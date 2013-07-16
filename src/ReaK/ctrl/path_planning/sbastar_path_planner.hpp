@@ -54,12 +54,9 @@
 #include "graph_alg/sbastar_rrtstar.hpp"
 #include "graph_alg/anytime_sbastar.hpp"
 
-#include "graph_alg/d_ary_bf_tree.hpp"
-#include "graph_alg/d_ary_cob_tree.hpp"
-#include "graph_alg/bgl_tree_adaptor.hpp"
+#include "motion_graph_structures.hpp"
+
 #include "graph_alg/bgl_more_property_maps.hpp"
-#include "graph_alg/pooled_adjacency_list.hpp"
-#include "dvp_layout_adjacency_list.hpp"
 #include "metric_space_search.hpp"
 #include "topological_search.hpp"
 
@@ -577,6 +574,8 @@ void sbastar_planner<FreeSpaceType>::solve_planning_query(planning_query<FreeSpa
       
       RK_SBASTAR_PLANNER_CALL_APPROPRIATE_SBASTAR_PLANNER_FUNCTION
       
+#ifdef RK_PLANNERS_ENABLE_COB_TREE
+      
     } else if((this->m_data_structure_flags & KNN_METHOD_MASK) == DVP_COB2_TREE_KNN) {
       
       RK_SBASTAR_PLANNER_SETUP_DVP_TREE_SYNCHRO(2, graph::d_ary_cob_tree_storage<2>)
@@ -588,8 +587,12 @@ void sbastar_planner<FreeSpaceType>::solve_planning_query(planning_query<FreeSpa
       RK_SBASTAR_PLANNER_SETUP_DVP_TREE_SYNCHRO(4, graph::d_ary_cob_tree_storage<4>)
       
       RK_SBASTAR_PLANNER_CALL_APPROPRIATE_SBASTAR_PLANNER_FUNCTION
+        
+#endif
       
     };
+    
+#ifdef RK_PLANNERS_ENABLE_DVP_ADJ_LIST_LAYOUT
     
   } else if((this->m_data_structure_flags & MOTION_GRAPH_STORAGE_MASK) == DVP_ADJ_LIST_MOTION_GRAPH) {
     
@@ -609,6 +612,8 @@ void sbastar_planner<FreeSpaceType>::solve_planning_query(planning_query<FreeSpa
       
       RK_SBASTAR_PLANNER_CALL_APPROPRIATE_SBASTAR_PLANNER_FUNCTION
       
+#ifdef RK_PLANNERS_ENABLE_COB_TREE
+      
     } else if((this->m_data_structure_flags & KNN_METHOD_MASK) == DVP_COB2_TREE_KNN) {
       
       RK_SBASTAR_PLANNER_SETUP_ALT_TREE_SYNCHRO(2, graph::d_ary_cob_tree_storage<2>)
@@ -624,8 +629,12 @@ void sbastar_planner<FreeSpaceType>::solve_planning_query(planning_query<FreeSpa
       RK_SBASTAR_PLANNER_INIT_START_AND_GOAL_NODE
       
       RK_SBASTAR_PLANNER_CALL_APPROPRIATE_SBASTAR_PLANNER_FUNCTION
+        
+#endif
       
     };
+      
+#endif
     
   };
   

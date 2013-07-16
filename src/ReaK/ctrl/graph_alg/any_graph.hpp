@@ -93,6 +93,7 @@ class any_graph {
     typedef boost::any_range<vertex_descriptor, boost::forward_traversal_tag, vertex_descriptor, std::ptrdiff_t > vertex_range;
     
     typedef vertex_range::iterator vertex_iterator;
+    typedef vertex_range::iterator adjacency_iterator;
     
     typedef std::size_t degree_size_type;
     typedef std::size_t vertices_size_type;
@@ -217,20 +218,20 @@ any_graph::property_map_by_any< ValueType > >::type get_dyn_prop(const std::stri
  *                  IncidenceGraph concept
  ******************************************************************************************/
 
-std::pair< any_graph::out_edge_iterator, any_graph::out_edge_iterator > out_edges(any_graph::vertex_descriptor v, const any_graph& g) {
+inline std::pair< any_graph::out_edge_iterator, any_graph::out_edge_iterator > out_edges(any_graph::vertex_descriptor v, const any_graph& g) {
   any_graph::out_edge_range er = g.out_edges(v);
   return std::pair< any_graph::out_edge_iterator, any_graph::out_edge_iterator >(boost::begin(er), boost::end(er));
 };
 
-any_graph::vertex_descriptor source(any_graph::edge_descriptor e, const any_graph& g) {
+inline any_graph::vertex_descriptor source(any_graph::edge_descriptor e, const any_graph& g) {
   return g.source(e);
 };
 
-any_graph::vertex_descriptor target(any_graph::edge_descriptor e, const any_graph& g) {
+inline any_graph::vertex_descriptor target(any_graph::edge_descriptor e, const any_graph& g) {
   return g.target(e);
 };
 
-any_graph::degree_size_type out_degree(any_graph::vertex_descriptor v, const any_graph& g) {
+inline any_graph::degree_size_type out_degree(any_graph::vertex_descriptor v, const any_graph& g) {
   return g.out_degree(v);
 };
 
@@ -239,16 +240,16 @@ any_graph::degree_size_type out_degree(any_graph::vertex_descriptor v, const any
  *                  BidirectionalGraph concept
  ******************************************************************************************/
 
-std::pair< any_graph::in_edge_iterator, any_graph::in_edge_iterator > in_edges(any_graph::vertex_descriptor v, const any_graph& g) {
+inline std::pair< any_graph::in_edge_iterator, any_graph::in_edge_iterator > in_edges(any_graph::vertex_descriptor v, const any_graph& g) {
   any_graph::in_edge_range er = g.in_edges(v);
   return std::pair< any_graph::in_edge_iterator, any_graph::in_edge_iterator >(boost::begin(er), boost::end(er));
 };
 
-any_graph::degree_size_type in_degree(any_graph::vertex_descriptor v, const any_graph& g) {
+inline any_graph::degree_size_type in_degree(any_graph::vertex_descriptor v, const any_graph& g) {
   return g.in_degree(v);
 };
 
-any_graph::degree_size_type degree(any_graph::edge_descriptor e, const any_graph& g) {
+inline any_graph::degree_size_type degree(any_graph::edge_descriptor e, const any_graph& g) {
   return g.degree(e);
 };
 
@@ -257,12 +258,12 @@ any_graph::degree_size_type degree(any_graph::edge_descriptor e, const any_graph
  *                  VertexListGraph concept
  ******************************************************************************************/
 
-std::pair< any_graph::vertex_iterator, any_graph::vertex_iterator > vertices(const any_graph& g) {
+inline std::pair< any_graph::vertex_iterator, any_graph::vertex_iterator > vertices(const any_graph& g) {
   any_graph::vertex_range vr = g.vertices();
   return std::pair< any_graph::vertex_iterator, any_graph::vertex_iterator >(boost::begin(vr), boost::end(vr));
 };
 
-any_graph::vertices_size_type num_vertices(const any_graph& g) {
+inline any_graph::vertices_size_type num_vertices(const any_graph& g) {
   return g.num_vertices();
 };
 
@@ -271,12 +272,12 @@ any_graph::vertices_size_type num_vertices(const any_graph& g) {
  *                  EdgeListGraph concept
  ******************************************************************************************/
 
-std::pair< any_graph::edge_iterator, any_graph::edge_iterator > edges(const any_graph& g) {
+inline std::pair< any_graph::edge_iterator, any_graph::edge_iterator > edges(const any_graph& g) {
   any_graph::edge_range er = g.edges();
   return std::pair< any_graph::edge_iterator, any_graph::edge_iterator >(boost::begin(er), boost::end(er));
 };
 
-any_graph::edges_size_type num_edges(const any_graph& g) {
+inline any_graph::edges_size_type num_edges(const any_graph& g) {
   return g.num_edges();
 };
 
@@ -285,7 +286,7 @@ any_graph::edges_size_type num_edges(const any_graph& g) {
  *                  AdjacencyMatrix concept
  ******************************************************************************************/
 
-std::pair<any_graph::edge_descriptor, bool> edge(any_graph::vertex_descriptor u, any_graph::vertex_descriptor v, const any_graph& g) {
+inline std::pair<any_graph::edge_descriptor, bool> edge(any_graph::vertex_descriptor u, any_graph::vertex_descriptor v, const any_graph& g) {
   return g.edge(u, v);
 };
 
@@ -295,33 +296,33 @@ std::pair<any_graph::edge_descriptor, bool> edge(any_graph::vertex_descriptor u,
  ******************************************************************************************/
 #if 0
 
-any_graph::vertex_descriptor add_vertex(any_graph& g) {
+inline any_graph::vertex_descriptor add_vertex(any_graph& g) {
   return g.add_vertex();
 };
 
-void clear_vertex(any_graph::vertex_descriptor v, any_graph& g) {
+inline void clear_vertex(any_graph::vertex_descriptor v, any_graph& g) {
   g.clear_vertex(v);
 };
 
-void remove_vertex(any_graph::vertex_descriptor v, any_graph& g) {
+inline void remove_vertex(any_graph::vertex_descriptor v, any_graph& g) {
   g.remove_vertex(v);
 };
 
-std::pair<any_graph::edge_descriptor, bool> add_edge(any_graph::vertex_descriptor u, any_graph::vertex_descriptor v, any_graph& g) {
+inline std::pair<any_graph::edge_descriptor, bool> add_edge(any_graph::vertex_descriptor u, any_graph::vertex_descriptor v, any_graph& g) {
   return g.add_edge(u, v);
 };
 
-void remove_edge(any_graph::vertex_descriptor u, any_graph::vertex_descriptor v, any_graph& g) {
+inline void remove_edge(any_graph::vertex_descriptor u, any_graph::vertex_descriptor v, any_graph& g) {
   std::pair<any_graph::edge_descriptor, bool> e = g.edge(u, v);
   if(e.second)
     g.remove_edge(e.first);
 };
 
-void remove_edge(any_graph::edge_descriptor e, any_graph& g) {
+inline void remove_edge(any_graph::edge_descriptor e, any_graph& g) {
   g.remove_edge(e);
 };
 
-void remove_edge(any_graph::edge_iterator e_iter, any_graph& g) {
+inline void remove_edge(any_graph::edge_iterator e_iter, any_graph& g) {
   g.remove_edge(*e_iter);
 };
 

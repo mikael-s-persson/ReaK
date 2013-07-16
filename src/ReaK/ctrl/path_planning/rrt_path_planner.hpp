@@ -47,11 +47,10 @@
 
 #include "graph_alg/rr_tree.hpp"
 
-#include "graph_alg/d_ary_bf_tree.hpp"
-#include "graph_alg/d_ary_cob_tree.hpp"
+#include "motion_graph_structures.hpp"
+
 #include "graph_alg/bgl_tree_adaptor.hpp"
 #include "graph_alg/bgl_more_property_maps.hpp"
-#include "dvp_layout_adjacency_list.hpp"
 #include "metric_space_search.hpp"
 #include "topological_search.hpp"
 
@@ -245,6 +244,8 @@ void rrt_planner<FreeSpaceType>::solve_planning_query(planning_query<FreeSpaceTy
         RK_RRT_PLANNER_SETUP_DVP_TREE_SYNCHRO(4, graph::d_ary_bf_tree_storage<4>)
         
         RK_RRT_PLANNER_CALL_RRT_FUNCTION
+      
+#ifdef RK_PLANNERS_ENABLE_COB_TREE
         
       } else if((this->m_data_structure_flags & KNN_METHOD_MASK) == DVP_COB2_TREE_KNN) {
         
@@ -258,7 +259,11 @@ void rrt_planner<FreeSpaceType>::solve_planning_query(planning_query<FreeSpaceTy
         
         RK_RRT_PLANNER_CALL_RRT_FUNCTION
         
+#endif
+        
       };
+    
+#ifdef RK_PLANNERS_ENABLE_DVP_ADJ_LIST_LAYOUT
       
     } else if((this->m_data_structure_flags & MOTION_GRAPH_STORAGE_MASK) == DVP_ADJ_LIST_MOTION_GRAPH) {
       
@@ -273,6 +278,8 @@ void rrt_planner<FreeSpaceType>::solve_planning_query(planning_query<FreeSpaceTy
         RK_RRT_PLANNER_SETUP_ALT_TREE_SYNCHRO(4, graph::d_ary_bf_tree_storage<4>)
         
         RK_RRT_PLANNER_CALL_RRT_FUNCTION
+      
+#ifdef RK_PLANNERS_ENABLE_COB_TREE
         
       } else if((this->m_data_structure_flags & KNN_METHOD_MASK) == DVP_COB2_TREE_KNN) {
         
@@ -286,7 +293,11 @@ void rrt_planner<FreeSpaceType>::solve_planning_query(planning_query<FreeSpaceTy
         
         RK_RRT_PLANNER_CALL_RRT_FUNCTION
         
+#endif
+        
       };
+      
+#endif
       
     };
     
@@ -382,6 +393,8 @@ void rrt_planner<FreeSpaceType>::solve_planning_query(planning_query<FreeSpaceTy
         RK_RRT_PLANNER_SETUP_TWO_DVP_TREE_SYNCHRO(4, graph::d_ary_bf_tree_storage<4>)
         
         RK_RRT_PLANNER_CALL_BIRRT_FUNCTION
+      
+#ifdef RK_PLANNERS_ENABLE_COB_TREE
         
       } else if((this->m_data_structure_flags & KNN_METHOD_MASK) == DVP_COB2_TREE_KNN) {
         
@@ -395,7 +408,11 @@ void rrt_planner<FreeSpaceType>::solve_planning_query(planning_query<FreeSpaceTy
         
         RK_RRT_PLANNER_CALL_BIRRT_FUNCTION
         
+#endif
+        
       };
+    
+#ifdef RK_PLANNERS_ENABLE_DVP_ADJ_LIST_LAYOUT
       
     } else if((this->m_data_structure_flags & MOTION_GRAPH_STORAGE_MASK) == DVP_ADJ_LIST_MOTION_GRAPH) {
       
@@ -410,6 +427,8 @@ void rrt_planner<FreeSpaceType>::solve_planning_query(planning_query<FreeSpaceTy
         RK_RRT_PLANNER_SETUP_TWO_ALT_TREE_SYNCHRO(4, graph::d_ary_bf_tree_storage<4>)
         
         RK_RRT_PLANNER_CALL_BIRRT_FUNCTION
+      
+#ifdef RK_PLANNERS_ENABLE_COB_TREE
         
       } else if((this->m_data_structure_flags & KNN_METHOD_MASK) == DVP_COB2_TREE_KNN) {
         
@@ -423,7 +442,11 @@ void rrt_planner<FreeSpaceType>::solve_planning_query(planning_query<FreeSpaceTy
         
         RK_RRT_PLANNER_CALL_BIRRT_FUNCTION
         
+#endif
+        
       };
+      
+#endif
       
     };
     

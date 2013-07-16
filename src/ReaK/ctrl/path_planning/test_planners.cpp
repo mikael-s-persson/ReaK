@@ -24,10 +24,6 @@
 #include <iostream>
 #include <fstream>
 
-#include <boost/graph/adjacency_list.hpp>
-#include <boost/graph/topology.hpp>
-#include <boost/graph/properties.hpp>
-
 #include "topologies/ptrobot2D_test_world.hpp"
 
 
@@ -216,8 +212,16 @@ int main(int argc, char** argv) {
     ("sba-with-bnb", "specify whether to use a Branch-and-bound or not during SBA* as a method to prune useless nodes from the motion-graph")
 #endif
     ("all-planners,a", "specify that all supported planners should be run (default if no particular planner is specified)")
-    ("knn-method", po::value< std::string >()->default_value("bf2"), "specify the KNN method to use (options: linear, bf2, bf4, cob2, cob4) (default: bf2)")
-    ("mg-storage", po::value< std::string >()->default_value("adj-list"), "specify the KNN method to use (options: adj-list, dvp-adj-list) (default: adj-list)")
+#ifdef RK_PLANNERS_ENABLE_COB_TREE
+    ("knn-method", po::value< std::string >()->default_value("bf2"), "specify the KNN method to use (supported options: linear, bf2, bf4, cob2, cob4) (default: bf2)")
+#else
+    ("knn-method", po::value< std::string >()->default_value("bf2"), "specify the KNN method to use (supported options: linear, bf2, bf4) (default: bf2)")
+#endif
+#ifdef RK_PLANNERS_ENABLE_DVP_ADJ_LIST_LAYOUT
+    ("mg-storage", po::value< std::string >()->default_value("adj-list"), "specify the KNN method to use (supported options: adj-list, dvp-adj-list) (default: adj-list)")
+#else
+    ("mg-storage", po::value< std::string >()->default_value("adj-list"), "specify the KNN method to use (supported options: adj-list) (default: adj-list)")
+#endif
   ;
   
   po::options_description cmdline_options;
@@ -253,21 +257,26 @@ int main(int argc, char** argv) {
   } else if(vm["knn-method"].as<std::string>() == "bf4") {
     data_struct_flags |= ReaK::pp::DVP_BF4_TREE_KNN;
     knn_method_str = "bf4";
+#ifdef RK_PLANNERS_ENABLE_COB_TREE
   } else if(vm["knn-method"].as<std::string>() == "cob2") {
     data_struct_flags |= ReaK::pp::DVP_COB2_TREE_KNN;
     knn_method_str = "cob2";
   } else if(vm["knn-method"].as<std::string>() == "cob4") {
     data_struct_flags |= ReaK::pp::DVP_COB4_TREE_KNN;
     knn_method_str = "cob4";
+#endif
   } else {
     data_struct_flags |= ReaK::pp::DVP_BF2_TREE_KNN;
   };
   
   std::string mg_storage_str = "adj-list";
+#ifdef RK_PLANNERS_ENABLE_DVP_ADJ_LIST_LAYOUT
   if(vm["mg-storage"].as<std::string>() == "dvp-adj-list") {
     data_struct_flags |= ReaK::pp::DVP_ADJ_LIST_MOTION_GRAPH;
     mg_storage_str = "dvp-adj-list";
-  } else {
+  } else 
+#endif
+  {
     data_struct_flags |= ReaK::pp::ADJ_LIST_MOTION_GRAPH;
   };
   

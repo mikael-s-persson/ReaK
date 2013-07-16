@@ -46,8 +46,6 @@
 #include "topologies/manip_free_svp_workspace.hpp"
 #include "topologies/manip_free_sap_workspace.hpp"
 
-#include "path_planning/frame_tracer_coin3d.hpp"
-
 namespace ReaK {
   
 namespace robot_airship {
@@ -80,9 +78,9 @@ typedef pp::manip_rl_direct_kin_map< pp::joint_limits_collection<double>, CRS3D_
 typedef pp::manip_rl_direct_kin_map< pp::joint_limits_collection<double>, CRS3D_jspace_o2_type > CRS3D_rlDK_o2_type;
 
 
-typedef pp::frame_tracer_3D< CRS3D_rlDK_o0_type, CRS3D_jspace_rl_o0_type, pp::identity_topo_map, pp::print_sbmp_progress<> > CRS3D_rl_o0_tracer;
-typedef pp::frame_tracer_3D< CRS3D_rlDK_o1_type, CRS3D_jspace_rl_o1_type, pp::identity_topo_map, pp::print_sbmp_progress<> > CRS3D_rl_o1_tracer;
-typedef pp::frame_tracer_3D< CRS3D_rlDK_o2_type, CRS3D_jspace_rl_o2_type, pp::identity_topo_map, pp::print_sbmp_progress<> > CRS3D_rl_o2_tracer;
+// typedef pp::frame_tracer_3D< CRS3D_rlDK_o0_type, CRS3D_jspace_rl_o0_type, pp::identity_topo_map, pp::print_sbmp_progress<> > CRS3D_rl_o0_tracer;
+// typedef pp::frame_tracer_3D< CRS3D_rlDK_o1_type, CRS3D_jspace_rl_o1_type, pp::identity_topo_map, pp::print_sbmp_progress<> > CRS3D_rl_o1_tracer;
+// typedef pp::frame_tracer_3D< CRS3D_rlDK_o2_type, CRS3D_jspace_rl_o2_type, pp::identity_topo_map, pp::print_sbmp_progress<> > CRS3D_rl_o2_tracer;
 
 
 };

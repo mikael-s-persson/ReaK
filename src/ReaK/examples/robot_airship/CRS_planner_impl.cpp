@@ -69,6 +69,8 @@
 #include "CRS_fadprm_planners.hpp"
 #include "CRS_sbastar_planners.hpp"
 
+#include "path_planning/frame_tracer_coin3d.hpp"
+
 #include "optimization/optim_exceptions.hpp"
 
 #include <chrono>
@@ -803,7 +805,7 @@ void CRSPlannerGUI::executePlanner() {
         get<0>(goal_inter) = ReaK::vect<double,7>(jt_desired); \
         goal_point = r_info.manip_jt_limits->map_to_space(goal_inter, *normal_jt_space, *jt_space); \
          \
-        typedef ReaK::robot_airship::CRS3D_rl_o0_tracer frame_reporter_type; \
+        typedef ReaK::pp::frame_tracer_3D< ReaK::robot_airship::CRS3D_rlDK_o0_type, ReaK::robot_airship::CRS3D_jspace_rl_o0_type, ReaK::pp::identity_topo_map, ReaK::pp::print_sbmp_progress<> > frame_reporter_type; \
         frame_reporter_type temp_reporter( \
           ReaK::robot_airship::CRS3D_rlDK_o0_type(r_info.manip_kin_mdl, r_info.manip_jt_limits, normal_jt_space), \
           jt_space, 0.5 * plan_options.min_travel); \
@@ -843,7 +845,7 @@ void CRSPlannerGUI::executePlanner() {
         get<0>(goal_inter) = ReaK::vect<double,7>(jt_desired); \
         goal_point = r_info.manip_jt_limits->map_to_space(goal_inter, *normal_jt_space, *jt_space); \
          \
-        typedef ReaK::robot_airship::CRS3D_rl_o1_tracer frame_reporter_type; \
+        typedef ReaK::pp::frame_tracer_3D< ReaK::robot_airship::CRS3D_rlDK_o1_type, ReaK::robot_airship::CRS3D_jspace_rl_o1_type, ReaK::pp::identity_topo_map, ReaK::pp::print_sbmp_progress<> > frame_reporter_type; \
         frame_reporter_type temp_reporter( \
           ReaK::robot_airship::CRS3D_rlDK_o1_type(r_info.manip_kin_mdl, r_info.manip_jt_limits, normal_jt_space), \
           jt_space, 0.5 * plan_options.min_travel); \
@@ -883,7 +885,7 @@ void CRSPlannerGUI::executePlanner() {
         get<0>(goal_inter) = ReaK::vect<double,7>(jt_desired); \
         goal_point = r_info.manip_jt_limits->map_to_space(goal_inter, *normal_jt_space, *jt_space); \
          \
-        typedef ReaK::robot_airship::CRS3D_rl_o2_tracer frame_reporter_type; \
+        typedef ReaK::pp::frame_tracer_3D< ReaK::robot_airship::CRS3D_rlDK_o2_type, ReaK::robot_airship::CRS3D_jspace_rl_o2_type, ReaK::pp::identity_topo_map, ReaK::pp::print_sbmp_progress<> > frame_reporter_type; \
         frame_reporter_type temp_reporter( \
           ReaK::robot_airship::CRS3D_rlDK_o2_type(r_info.manip_kin_mdl, r_info.manip_jt_limits, normal_jt_space), \
           jt_space, 0.5 * plan_options.min_travel); \

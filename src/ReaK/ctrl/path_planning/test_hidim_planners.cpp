@@ -24,22 +24,17 @@
 #include <iostream>
 #include <fstream>
 
-
-#include <boost/graph/adjacency_list.hpp>
-#include <boost/graph/topology.hpp>
-#include <boost/graph/properties.hpp>
-
 #include "topologies/hyperbox_topology.hpp"
 #include "topologies/se3_topologies.hpp"
 #include "topologies/no_obstacle_space.hpp"
 #include "interpolation/sustained_velocity_pulse.hpp"
 
 
-// #define RK_ENABLE_TEST_URRT_PLANNER
-// #define RK_ENABLE_TEST_BRRT_PLANNER
+#define RK_ENABLE_TEST_URRT_PLANNER
+#define RK_ENABLE_TEST_BRRT_PLANNER
 #define RK_ENABLE_TEST_RRTSTAR_PLANNER
-// #define RK_ENABLE_TEST_PRM_PLANNER
-// #define RK_ENABLE_TEST_FADPRM_PLANNER
+#define RK_ENABLE_TEST_PRM_PLANNER
+#define RK_ENABLE_TEST_FADPRM_PLANNER
 #define RK_ENABLE_TEST_SBASTAR_PLANNER
 
 
@@ -119,7 +114,6 @@ std::string rrtstar_qualifier = "";
 #endif
 
 #ifdef RK_ENABLE_TEST_SBASTAR_PLANNER
-double sba_potential_cutoff = 0.0;
 double sba_density_cutoff = 0.0;
 double sba_relaxation = 0.0;
 double sba_sa_temperature = 0.0;
@@ -643,7 +637,6 @@ int main(int argc, char** argv) {
 #endif
 #ifdef RK_ENABLE_TEST_SBASTAR_PLANNER
     ("sba-star", "specify that the SBA* algorithm should be run")
-    ("sba-potential-cutoff", po::value< double >()->default_value(0.0), "specify the potential cutoff for the SBA* algorithm")
     ("sba-density-cutoff", po::value< double >()->default_value(0.5), "specify the density cutoff for the SBA* algorithm")
     ("sba-relaxation", po::value< double >()->default_value(0.0), "specify the initial relaxation factor for the Anytime SBA* algorithm")
     ("sba-with-voronoi-pull", "specify whether to use a Voronoi pull or not as a method to add an exploratory bias to the search")
@@ -651,8 +644,16 @@ int main(int argc, char** argv) {
     ("sba-with-bnb", "specify whether to use a Branch-and-bound or not during SBA* as a method to prune useless nodes from the motion-graph")
 #endif
     ("all-planners,a", "specify that all supported planners should be run (default if no particular planner is specified)")
-    ("knn-method", po::value< std::string >()->default_value("bf2"), "specify the KNN method to use (options: linear, bf2, bf4, cob2, cob4) (default: bf2)")
-    ("mg-storage", po::value< std::string >()->default_value("adj-list"), "specify the KNN method to use (options: adj-list, dvp-adj-list) (default: adj-list)")
+#ifdef RK_PLANNERS_ENABLE_COB_TREE
+    ("knn-method", po::value< std::string >()->default_value("bf2"), "specify the KNN method to use (supported options: linear, bf2, bf4, cob2, cob4) (default: bf2)")
+#else
+    ("knn-method", po::value< std::string >()->default_value("bf2"), "specify the KNN method to use (supported options: linear, bf2, bf4) (default: bf2)")
+#endif
+#ifdef RK_PLANNERS_ENABLE_DVP_ADJ_LIST_LAYOUT
+    ("mg-storage", po::value< std::string >()->default_value("adj-list"), "specify the KNN method to use (supported options: adj-list, dvp-adj-list) (default: adj-list)")
+#else
+    ("mg-storage", po::value< std::string >()->default_value("adj-list"), "specify the KNN method to use (supported options: adj-list) (default: adj-list)")
+#endif
   ;
   
   po::options_description cmdline_options;
@@ -686,21 +687,26 @@ int main(int argc, char** argv) {
   } else if(vm["knn-method"].as<std::string>() == "bf4") {
     data_struct_flags |= ReaK::pp::DVP_BF4_TREE_KNN;
     knn_method_str = "bf4";
+#ifdef RK_PLANNERS_ENABLE_COB_TREE
   } else if(vm["knn-method"].as<std::string>() == "cob2") {
     data_struct_flags |= ReaK::pp::DVP_COB2_TREE_KNN;
     knn_method_str = "cob2";
   } else if(vm["knn-method"].as<std::string>() == "cob4") {
     data_struct_flags |= ReaK::pp::DVP_COB4_TREE_KNN;
     knn_method_str = "cob4";
+#endif
   } else {
     data_struct_flags |= ReaK::pp::DVP_BF2_TREE_KNN;
   };
   
   std::string mg_storage_str = "adj-list";
+#ifdef RK_PLANNERS_ENABLE_DVP_ADJ_LIST_LAYOUT
   if(vm["mg-storage"].as<std::string>() == "dvp-adj-list") {
     data_struct_flags |= ReaK::pp::DVP_ADJ_LIST_MOTION_GRAPH;
     mg_storage_str = "dvp-adj-list";
-  } else {
+  } else 
+#endif
+  {
     data_struct_flags |= ReaK::pp::ADJ_LIST_MOTION_GRAPH;
   };
   
@@ -741,7 +747,6 @@ int main(int argc, char** argv) {
     sba_qualifier += "_bnb";
   };
   
-  sba_potential_cutoff = vm["sba-potential-cutoff"].as<double>();
   sba_density_cutoff   = vm["sba-density-cutoff"].as<double>();
   sba_relaxation       = vm["sba-relaxation"].as<double>();
   sba_sa_temperature   = vm["sba-sa-temperature"].as<double>();

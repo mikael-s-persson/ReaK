@@ -47,12 +47,10 @@
 
 #include "graph_alg/rrt_star.hpp"
 
-#include "graph_alg/d_ary_bf_tree.hpp"
-#include "graph_alg/d_ary_cob_tree.hpp"
+#include "motion_graph_structures.hpp"
+
 #include "graph_alg/bgl_tree_adaptor.hpp"
 #include "graph_alg/bgl_more_property_maps.hpp"
-#include "graph_alg/pooled_adjacency_list.hpp"
-#include "dvp_layout_adjacency_list.hpp"
 #include "metric_space_search.hpp"
 #include "topological_search.hpp"
 
@@ -316,6 +314,8 @@ void rrtstar_planner<FreeSpaceType>::solve_planning_query(planning_query<FreeSpa
         RK_RRTSTAR_PLANNER_SETUP_DVP_TREE_SYNCHRO(4, graph::d_ary_bf_tree_storage<4>)
         
         RK_RRTSTAR_PLANNER_CALL_APPROPRIATE_RRTSTAR_PLANNER_FUNCTION
+      
+#ifdef RK_PLANNERS_ENABLE_COB_TREE
         
       } else if((this->m_data_structure_flags & KNN_METHOD_MASK) == DVP_COB2_TREE_KNN) {
         
@@ -329,7 +329,11 @@ void rrtstar_planner<FreeSpaceType>::solve_planning_query(planning_query<FreeSpa
         
         RK_RRTSTAR_PLANNER_CALL_APPROPRIATE_RRTSTAR_PLANNER_FUNCTION
         
+#endif
+        
       };
+    
+#ifdef RK_PLANNERS_ENABLE_DVP_ADJ_LIST_LAYOUT
       
     } else if((this->m_data_structure_flags & MOTION_GRAPH_STORAGE_MASK) == DVP_ADJ_LIST_MOTION_GRAPH) {
       
@@ -348,6 +352,8 @@ void rrtstar_planner<FreeSpaceType>::solve_planning_query(planning_query<FreeSpa
         RK_RRTSTAR_PLANNER_INIT_START_AND_GOAL_NODE
         
         RK_RRTSTAR_PLANNER_CALL_APPROPRIATE_RRTSTAR_PLANNER_FUNCTION
+      
+#ifdef RK_PLANNERS_ENABLE_COB_TREE
         
       } else if((this->m_data_structure_flags & KNN_METHOD_MASK) == DVP_COB2_TREE_KNN) {
         
@@ -365,7 +371,11 @@ void rrtstar_planner<FreeSpaceType>::solve_planning_query(planning_query<FreeSpa
         
         RK_RRTSTAR_PLANNER_CALL_APPROPRIATE_RRTSTAR_PLANNER_FUNCTION
         
+#endif
+        
       };
+      
+#endif
       
     };
     
@@ -487,6 +497,8 @@ void rrtstar_planner<FreeSpaceType>::solve_planning_query(planning_query<FreeSpa
         RK_RRTSTAR_PLANNER_SETUP_BIDIR_DVP_TREE_SYNCHRO(4, graph::d_ary_bf_tree_storage<4>)
         
         RK_RRTSTAR_PLANNER_CALL_BIDIR_RRTSTAR_FUNCTION
+      
+#ifdef RK_PLANNERS_ENABLE_COB_TREE
         
       } else if(m_knn_flag == DVP_COB2_TREE_KNN) {
         
@@ -500,7 +512,11 @@ void rrtstar_planner<FreeSpaceType>::solve_planning_query(planning_query<FreeSpa
         
         RK_RRTSTAR_PLANNER_CALL_BIDIR_RRTSTAR_FUNCTION
         
+#endif
+        
       };
+    
+#ifdef RK_PLANNERS_ENABLE_DVP_ADJ_LIST_LAYOUT
       
     } else if((m_data_structure_flags & MOTION_GRAPH_STORAGE_MASK) == DVP_ADJ_LIST_MOTION_GRAPH) {
       
@@ -519,6 +535,8 @@ void rrtstar_planner<FreeSpaceType>::solve_planning_query(planning_query<FreeSpa
         RK_RRTSTAR_PLANNER_INIT_BIDIR_START_AND_GOAL_NODE
         
         RK_RRTSTAR_PLANNER_CALL_BIDIR_RRTSTAR_FUNCTION
+      
+#ifdef RK_PLANNERS_ENABLE_COB_TREE
         
       } else if(m_knn_flag == DVP_ALT_COB2_KNN) {
         
@@ -536,7 +554,11 @@ void rrtstar_planner<FreeSpaceType>::solve_planning_query(planning_query<FreeSpa
         
         RK_RRTSTAR_PLANNER_CALL_BIDIR_RRTSTAR_FUNCTION
         
+#endif
+        
       };
+      
+#endif
       
     };
     
