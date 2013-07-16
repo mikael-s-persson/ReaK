@@ -84,6 +84,10 @@ struct vlist_sbmp_report : public shared_object {
                              print_to_stream(aPrinter),
                              file_path(aFilePath) { };
   
+  void reset_internal_state() {
+    next_reporter.reset_internal_state();
+  };
+  
   /**
    * Draws the entire motion-graph.
    * \tparam FreeSpaceType The C-free topology type.

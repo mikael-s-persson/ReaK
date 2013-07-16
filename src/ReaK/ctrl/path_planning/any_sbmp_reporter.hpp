@@ -41,6 +41,7 @@
 #include "trajectory_base.hpp"
 #include "seq_path_base.hpp"
 #include "graph_alg/any_graph.hpp"
+#include "any_motion_graphs.hpp"
 
 #ifndef RK_ENABLE_CXX11_FEATURES
 #include <boost/ref.hpp>
@@ -64,7 +65,7 @@ template <typename FreeSpaceType>
 class any_sbmp_reporter : public shared_object {
   public:
     typedef any_sbmp_reporter<FreeSpaceType> self;
-    typedef typename subspace_traits<FreeSpaceType>::super_space_type SuperSpaceType;
+    typedef typename subspace_traits<FreeSpaceType>::super_space_type super_space_type;
     
 #ifndef RK_ENABLE_CXX11_FEATURES
     typedef boost::reference_wrapper< const self > wrapped;
@@ -72,13 +73,20 @@ class any_sbmp_reporter : public shared_object {
     typedef std::reference_wrapper< const self > wrapped;
 #endif
     
+    typedef typename boost::mpl::if_< is_temporal_space<FreeSpaceType>,
+      trajectory_base< super_space_type >,
+      seq_path_base< super_space_type > >::type solution_base_type;
+    
+    typedef shared_ptr< solution_base_type > solution_record_ptr;
+    
   public:
     
     virtual void draw_any_motion_graph(const FreeSpaceType&, const graph::any_graph&) const { };
-    virtual void draw_trajectory(const FreeSpaceType&, const shared_ptr< trajectory_base< SuperSpaceType > >&) const { };
-    virtual void draw_sequential_path(const FreeSpaceType&, const shared_ptr< seq_path_base< SuperSpaceType > >&) const { };
+    virtual void draw_any_solution(const FreeSpaceType&, const solution_record_ptr&) const { };
     
     virtual ~any_sbmp_reporter() { };
+    
+    virtual void reset_internal_state() { };
     
     /**
      * Draws the entire motion-graph.
@@ -94,15 +102,8 @@ class any_sbmp_reporter : public shared_object {
     /**
      * Draws the solution trajectory.
      */
-    void draw_solution(const FreeSpaceType& space, const shared_ptr< trajectory_base< SuperSpaceType > >& traj) const { 
-      this->draw_trajectory(space, traj);
-    };
-    
-    /**
-     * Draws the solution trajectory.
-     */
-    void draw_solution(const FreeSpaceType& space, const shared_ptr< seq_path_base< SuperSpaceType > >& path) const { 
-      this->draw_sequential_path(space, path);
+    void draw_solution(const FreeSpaceType& space, const solution_record_ptr& path) const { 
+      this->draw_any_solution(space, path);
     };
   
   
@@ -155,7 +156,9 @@ class type_erased_sbmp_reporter : public any_sbmp_reporter<FreeSpaceType> {
   public:
     typedef any_sbmp_reporter<FreeSpaceType> base_type;
     typedef type_erased_sbmp_reporter<FreeSpaceType, Reporter> self;
-    typedef typename subspace_traits<FreeSpaceType>::super_space_type SuperSpaceType;
+    typedef typename subspace_traits<FreeSpaceType>::super_space_type super_space_type;
+    
+    typedef typename base_type::solution_record_ptr solution_record_ptr;
     
   protected:
     
@@ -167,18 +170,19 @@ class type_erased_sbmp_reporter : public any_sbmp_reporter<FreeSpaceType> {
     
     virtual void draw_any_motion_graph(const FreeSpaceType& space, const graph::any_graph& g) const { 
       typedef detail::get_sbmp_reporter_any_property_type<has_steering_record::type::value, FreeSpaceType> PropType;
-      reporter.draw_motion_graph(space, g, get< const typename PropType::type& >(PropType::name(), g));
+      reporter.draw_motion_graph(space, g, graph::get_dyn_prop< const typename PropType::type& >(PropType::name(), g));
     };
-    virtual void draw_trajectory(const FreeSpaceType& space, const shared_ptr< trajectory_base< SuperSpaceType > >& traj) const { 
+    virtual void draw_any_solution(const FreeSpaceType& space, const solution_record_ptr& traj) const { 
       reporter.draw_solution(space, traj);
-    };
-    virtual void draw_sequential_path(const FreeSpaceType& space, const shared_ptr< seq_path_base< SuperSpaceType > >& path) const { 
-      reporter.draw_solution(space, path);
     };
     
   public:
     
-    type_erased_sbmp_reporter(Reporter aReporter) : reporter(aReporter) { };
+    virtual void reset_internal_state() {
+      reporter.reset_internal_state();
+    };
+    
+    type_erased_sbmp_reporter(Reporter aReporter = Reporter()) : reporter(aReporter) { };
     
     virtual ~type_erased_sbmp_reporter() { };
     
@@ -201,6 +205,59 @@ class type_erased_sbmp_reporter : public any_sbmp_reporter<FreeSpaceType> {
 };
 
 
+template <typename FreeSpaceType, typename Reporter>
+class type_erased_sbmp_reporter<FreeSpaceType, Reporter* >  : public any_sbmp_reporter<FreeSpaceType> {
+  public:
+    typedef any_sbmp_reporter<FreeSpaceType> base_type;
+    typedef type_erased_sbmp_reporter<FreeSpaceType, Reporter* > self;
+    typedef typename subspace_traits<FreeSpaceType>::super_space_type super_space_type;
+    
+    typedef typename base_type::solution_record_ptr solution_record_ptr;
+    
+  protected:
+    
+    typedef is_steerable_space<FreeSpaceType> has_steering_record;
+    
+    Reporter* reporter;
+    
+  public:
+    
+    virtual void draw_any_motion_graph(const FreeSpaceType& space, const graph::any_graph& g) const { 
+      typedef detail::get_sbmp_reporter_any_property_type<has_steering_record::type::value, FreeSpaceType> PropType;
+      reporter->draw_motion_graph(space, g, graph::get_dyn_prop< const typename PropType::type& >(PropType::name(), g));
+    };
+    virtual void draw_any_solution(const FreeSpaceType& space, const solution_record_ptr& traj) const { 
+      reporter->draw_solution(space, traj);
+    };
+    
+  public:
+    
+    virtual void reset_internal_state() {
+      reporter->reset_internal_state();
+    };
+    
+    type_erased_sbmp_reporter(Reporter* aReporter) : reporter(aReporter) { };
+    
+    virtual ~type_erased_sbmp_reporter() { };
+    
+#if 0
+/*******************************************************************************
+                   ReaK's RTTI and Serialization interfaces
+*******************************************************************************/
+    
+    virtual void RK_CALL save(serialization::oarchive& A, unsigned int) const {
+      base_type::save(A,base_type::getStaticObjectType()->TypeVersion());
+    };
+    
+    virtual void RK_CALL load(serialization::iarchive& A, unsigned int) {
+      base_type::load(A,base_type::getStaticObjectType()->TypeVersion());
+    };
+    
+    RK_RTTI_MAKE_ABSTRACT_1BASE(self,0xC2460018,1,"type_erased_sbmp_reporter",base_type)
+#endif
+};
+
+
 
 
 /**
@@ -212,7 +269,13 @@ template <typename FreeSpaceType>
 class any_sbmp_reporter_chain : public shared_object {
   public:
     typedef any_sbmp_reporter_chain<FreeSpaceType> self;
-    typedef typename subspace_traits<FreeSpaceType>::super_space_type SuperSpaceType;
+    typedef typename subspace_traits<FreeSpaceType>::super_space_type super_space_type;
+    
+    typedef typename boost::mpl::if_< is_temporal_space<FreeSpaceType>,
+      trajectory_base< super_space_type >,
+      seq_path_base< super_space_type > >::type solution_base_type;
+    
+    typedef shared_ptr< solution_base_type > solution_record_ptr;
     
   private:
     
@@ -234,6 +297,12 @@ class any_sbmp_reporter_chain : public shared_object {
       reporters.push_back(pointer_type(new type_erased_sbmp_reporter<FreeSpaceType, Reporter>(aReporter)));
     };
     
+    template <typename Reporter>
+    void add_reporter(const boost::reference_wrapper<Reporter>& aReporter) {
+      reporters.push_back(pointer_type(new type_erased_sbmp_reporter<FreeSpaceType, Reporter* >(aReporter.get_pointer())));
+    };
+    
+    
     /**
      * Draws the entire motion-graph.
      * \tparam MotionGraph The graph structure type representing the motion-graph.
@@ -249,17 +318,14 @@ class any_sbmp_reporter_chain : public shared_object {
     /**
      * Draws the solution trajectory.
      */
-    void draw_solution(const FreeSpaceType& space, const shared_ptr< trajectory_base< SuperSpaceType > >& traj) const { 
+    void draw_solution(const FreeSpaceType& space, const solution_record_ptr& path) const { 
       for(typename std::vector< pointer_type >::const_iterator it = reporters.begin(); it != reporters.end(); ++it)
-        (*it)->draw_trajectory(space, traj);
+        (*it)->draw_any_solution(space, path);
     };
     
-    /**
-     * Draws the solution trajectory.
-     */
-    void draw_solution(const FreeSpaceType& space, const shared_ptr< seq_path_base< SuperSpaceType > >& path) const { 
+    void reset_internal_state() {
       for(typename std::vector< pointer_type >::const_iterator it = reporters.begin(); it != reporters.end(); ++it)
-        (*it)->draw_sequential_path(space, path);
+        (*it)->reset_internal_state();
     };
   
   

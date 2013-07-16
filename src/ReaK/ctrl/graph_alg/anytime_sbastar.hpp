@@ -188,7 +188,7 @@ namespace detail {
     void affected_vertex(Vertex u, Graph& g) const { requeue_vertex(u,g); }; // same function, different name.
     
     template <typename Graph>
-    void update_relaxation(const Graph& g) { 
+    void update_relaxation(Graph& g) { 
       m_current_relaxation = this->m_vis.adjust_relaxation(m_current_relaxation, g);
       
       typedef typename boost::graph_traits<Graph>::vertex_iterator VIter;
@@ -200,7 +200,7 @@ namespace detail {
     };
     
     template <typename Graph>
-    void publish_path(const Graph& g) { 
+    void publish_path(Graph& g) { 
       this->m_vis.publish_path(g);
       update_relaxation(g);
     };

@@ -353,7 +353,15 @@ class frame_tracer_3D : public shared_object {
       
       next_reporter.draw_solution(free_space, p);
     };
-  
+    
+    void reset_internal_state() {
+      motion_graph_traces.clear();
+      for(std::size_t i = 0; i < traced_frames.size(); ++i)
+        motion_graph_traces.push_back(geom::tracer_coin3d_impl(false));
+      solution_traces.clear();
+      
+      next_reporter.reset_internal_state();
+    };
   
 /*******************************************************************************
                    ReaK's RTTI and Serialization interfaces
@@ -662,7 +670,15 @@ class frame_tracer_3D<DirectKinMapper, JointStateSpace, identity_topo_map, NextR
       
       next_reporter.draw_solution(free_space, p);
     };
-  
+    
+    void reset_internal_state() {
+      motion_graph_traces.clear();
+      for(std::size_t i = 0; i < traced_frames.size(); ++i)
+        motion_graph_traces.push_back(geom::tracer_coin3d_impl(false));
+      solution_traces.clear();
+      
+      next_reporter.reset_internal_state();
+    };
   
 /*******************************************************************************
                    ReaK's RTTI and Serialization interfaces

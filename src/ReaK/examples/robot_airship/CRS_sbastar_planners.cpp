@@ -33,16 +33,14 @@ namespace ReaK {
 namespace pp {
 
 
-//template class sbastar_path_planner<WORKSPACE, FRAME_REPORTER>;
+template class sbastar_planner<robot_airship::CRS3D_workspace_o0_i1_type>;
+template class sbastar_planner<robot_airship::CRS3D_workspace_o1_i1_type>;
+template class sbastar_planner<robot_airship::CRS3D_workspace_o2_i1_type>;
 
-template class sbastar_path_planner<robot_airship::CRS3D_workspace_o0_i1_type, robot_airship::CRS3D_rl_o0_tracer>;
-template class sbastar_path_planner<robot_airship::CRS3D_workspace_o1_i1_type, robot_airship::CRS3D_rl_o1_tracer>;
-template class sbastar_path_planner<robot_airship::CRS3D_workspace_o2_i1_type, robot_airship::CRS3D_rl_o2_tracer>;
+template class sbastar_planner<robot_airship::CRS3D_workspace_o1_i3_type>;
+template class sbastar_planner<robot_airship::CRS3D_workspace_o2_i3_type>;
 
-template class sbastar_path_planner<robot_airship::CRS3D_workspace_o1_i3_type, robot_airship::CRS3D_rl_o1_tracer>;
-template class sbastar_path_planner<robot_airship::CRS3D_workspace_o2_i3_type, robot_airship::CRS3D_rl_o2_tracer>;
-
-template class sbastar_path_planner<robot_airship::CRS3D_workspace_o2_i5_type, robot_airship::CRS3D_rl_o2_tracer>;
+template class sbastar_planner<robot_airship::CRS3D_workspace_o2_i5_type>;
 
 
 };

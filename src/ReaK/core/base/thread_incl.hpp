@@ -107,8 +107,8 @@ namespace ReaKaux {
 
   //using std::swap;
 
-  using std::try_lock;
-  using std::lock;
+//   using std::try_lock;
+//   using std::lock;
 
   using std::once_flag;
 
@@ -174,8 +174,8 @@ namespace ReaKaux {
 
   //using std::swap;
 
-  using boost::try_lock;
-  using boost::lock;
+//   using boost::try_lock;
+//   using boost::lock;
 
   using boost::once_flag;
 

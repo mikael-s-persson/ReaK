@@ -233,6 +233,8 @@ void sbastar_planner<FreeSpaceType>::solve_planning_query(planning_query<FreeSpa
   typedef recursive_dense_mg_vertex< astar_mg_vertex<FreeSpaceType> > VertexProp;
   typedef optimal_mg_edge<FreeSpaceType> EdgeProp;
   
+  typedef mg_vertex_data<FreeSpaceType> BasicVertexProp;
+  
   typedef boost::data_member_property_map<PointType, VertexProp > PositionMap;
   PositionMap pos_map = PositionMap(&VertexProp::position);
   
@@ -327,9 +329,9 @@ void sbastar_planner<FreeSpaceType>::solve_planning_query(planning_query<FreeSpa
   
   
 #define RK_SBASTAR_PLANNER_SETUP_DVP_TREE_SYNCHRO(ARITY, TREE_STORAGE) \
-  typedef typename boost::property_map< MotionGraphType, PointType VertexProp::* >::type GraphPositionMap; \
+  typedef typename boost::property_map< MotionGraphType, PointType BasicVertexProp::* >::type GraphPositionMap; \
   typedef dvp_tree<Vertex, SuperSpace, GraphPositionMap, ARITY, random_vp_chooser, TREE_STORAGE > SpacePartType; \
-  SpacePartType space_part(motion_graph, sup_space_ptr, get(&VertexProp::position, motion_graph)); \
+  SpacePartType space_part(motion_graph, sup_space_ptr, get(&BasicVertexProp::position, motion_graph)); \
     \
   typedef multi_dvp_tree_search<MotionGraphType, SpacePartType> NNFinderType; \
   NNFinderType nn_finder; \

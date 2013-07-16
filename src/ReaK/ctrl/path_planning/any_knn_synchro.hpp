@@ -48,7 +48,7 @@ namespace pp {
 /**
  * This class can be used as the base for a dynamically polymorphic KNN synchronizer.
  */
-class any_knn_synchro : public shared_object {
+class any_knn_synchro {
   public:
     typedef any_knn_synchro self;
     
@@ -87,20 +87,6 @@ class any_knn_synchro : public shared_object {
       this->removed_vertex_impl(graph::any_graph::vertex_descriptor(boost::any(v)), teg);
     };
     
-/*******************************************************************************
-                   ReaK's RTTI and Serialization interfaces
-*******************************************************************************/
-    
-    virtual void RK_CALL save(serialization::oarchive& A, unsigned int) const {
-      shared_object::save(A,shared_object::getStaticObjectType()->TypeVersion());
-    };
-    
-    virtual void RK_CALL load(serialization::iarchive& A, unsigned int) {
-      shared_object::load(A,shared_object::getStaticObjectType()->TypeVersion());
-    };
-    
-    RK_RTTI_MAKE_CONCRETE_1BASE(self,0xC2460017,1,"any_knn_synchro",shared_object)
-    
 };
 
 
@@ -137,22 +123,6 @@ class type_erased_knn_synchro : public any_knn_synchro {
     explicit type_erased_knn_synchro(KNNSynchro aSynchro = KNNSynchro()) : any_knn_synchro(), synchro(aSynchro) { };
     
     virtual ~type_erased_knn_synchro() { };
-    
-/*******************************************************************************
-                   ReaK's RTTI and Serialization interfaces
-*******************************************************************************/
-    
-    virtual void RK_CALL save(serialization::oarchive& A, unsigned int) const {
-      base_type::save(A,base_type::getStaticObjectType()->TypeVersion());
-      A & RK_SERIAL_SAVE_WITH_NAME(synchro);
-    };
-    
-    virtual void RK_CALL load(serialization::iarchive& A, unsigned int) {
-      base_type::load(A,base_type::getStaticObjectType()->TypeVersion());
-      A & RK_SERIAL_LOAD_WITH_NAME(synchro);
-    };
-    
-    RK_RTTI_MAKE_CONCRETE_1BASE(self,0xC2460018,1,"type_erased_knn_synchro",base_type)
     
 };
 

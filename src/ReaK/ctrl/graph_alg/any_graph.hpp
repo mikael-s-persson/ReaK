@@ -60,16 +60,20 @@ class any_graph {
   public:
     typedef boost::any any_descriptor;
     
+    typedef void directed_category;
+    typedef void edge_parallel_category;
+    typedef void traversal_category;
+    
     struct vertex_descriptor {
       any_descriptor base;
-      explicit vertex_descriptor(const any_descriptor& aBase) : base(aBase) { };
+      explicit vertex_descriptor(const any_descriptor& aBase = any_descriptor()) : base(aBase) { };
       operator any_descriptor&() { return base; };
       operator const any_descriptor&() const { return base; };
     };
     
     struct edge_descriptor {
       any_descriptor base;
-      explicit edge_descriptor(const any_descriptor& aBase) : base(aBase) { };
+      explicit edge_descriptor(const any_descriptor& aBase = any_descriptor()) : base(aBase) { };
       operator any_descriptor&() { return base; };
       operator const any_descriptor&() const { return base; };
     };
@@ -128,13 +132,14 @@ class any_graph {
     virtual vertex_range vertices() const = 0;
     virtual vertices_size_type num_vertices() const = 0;
     
+#if 0
     virtual vertex_descriptor add_vertex() const = 0;
     virtual void clear_vertex(const vertex_descriptor& aVertex) const = 0;
     virtual void remove_vertex(const vertex_descriptor& aVertex) const = 0;
     
     virtual std::pair<edge_descriptor, bool> add_edge(const vertex_descriptor& aU, const vertex_descriptor& aV) const = 0;
     virtual void remove_edge(const edge_descriptor& aEdge) const = 0;
-    
+#endif
     
     bool equal_descriptors(const vertex_descriptor& aU, const vertex_descriptor& aV) const {
       return equal_vertex_descriptors(aU, aV);
@@ -196,13 +201,13 @@ class any_graph {
 template <typename ValueType>
 typename boost::enable_if< boost::is_reference< ValueType >,
 any_graph::property_map_by_ptr< typename boost::remove_reference< ValueType >::type > >::type 
-  get(const std::string& aProperty, const any_graph& aGraph) {
+  get_dyn_prop(const std::string& aProperty, const any_graph& aGraph) {
   return any_graph::property_map_by_ptr< typename boost::remove_reference< ValueType >::type >(&aGraph, aProperty);
 };
 
 template <typename ValueType>
 typename boost::disable_if< boost::is_reference< ValueType >,
-any_graph::property_map_by_any< ValueType > >::type get(const std::string& aProperty, const any_graph& aGraph) {
+any_graph::property_map_by_any< ValueType > >::type get_dyn_prop(const std::string& aProperty, const any_graph& aGraph) {
   return any_graph::property_map_by_any< ValueType >(&aGraph, aProperty);
 };
 
@@ -288,6 +293,7 @@ std::pair<any_graph::edge_descriptor, bool> edge(any_graph::vertex_descriptor u,
 /*******************************************************************************************
  *                  MutableGraph concept
  ******************************************************************************************/
+#if 0
 
 any_graph::vertex_descriptor add_vertex(any_graph& g) {
   return g.add_vertex();
@@ -319,7 +325,7 @@ void remove_edge(any_graph::edge_iterator e_iter, any_graph& g) {
   g.remove_edge(*e_iter);
 };
 
-
+#endif
 
 
 
@@ -441,7 +447,8 @@ namespace detail {
   template <typename Graph>
   typename boost::enable_if< boost::is_incidence_graph<Graph>,
   std::size_t >::type try_get_out_degree(const any_graph::vertex_descriptor& u, const Graph& g) {
-    return out_degree(u,g);
+    typedef typename boost::graph_traits< Graph >::vertex_descriptor Vertex;
+    return out_degree(boost::any_cast<Vertex>(u),g);
   };
   
   template <typename Graph>
@@ -476,7 +483,8 @@ namespace detail {
   template <typename Graph>
   typename boost::enable_if< boost::is_bidirectional_graph<Graph>,
   std::size_t >::type try_get_in_degree(const any_graph::vertex_descriptor& u, const Graph& g) {
-    return in_degree(u,g);
+    typedef typename boost::graph_traits< Graph >::vertex_descriptor Vertex;
+    return in_degree(boost::any_cast<Vertex>(u),g);
   };
   
   template <typename Graph>
@@ -485,10 +493,12 @@ namespace detail {
     return 0;
   };
   
+#if 0
   template <typename Graph>
   typename boost::enable_if< boost::is_bidirectional_graph<Graph>,
   std::size_t >::type try_get_degree(const any_graph::edge_descriptor& e, const Graph& g) {
-    return degree(e,g);
+    typedef typename boost::graph_traits< Graph >::edge_descriptor Edge;
+    return degree(boost::any_cast<Edge>(e),g);
   };
   
   template <typename Graph>
@@ -496,6 +506,7 @@ namespace detail {
   std::size_t >::type try_get_degree(const any_graph::edge_descriptor&, const Graph&) {
     return 0;
   };
+#endif
   
   
   template <typename Graph>
@@ -553,6 +564,41 @@ namespace detail {
   
   
   
+#if 1
+  // NOTE: The "is_mutable_graph" seems to rely on deprecated / undocumented graph-traits that cause errors.
+  
+  template <typename Graph>
+  any_graph::vertex_descriptor try_add_vertex(Graph& g) {
+    return any_graph::vertex_descriptor(boost::any(add_vertex(g)));
+  };
+  
+  template <typename Graph>
+  void try_clear_vertex(const any_graph::vertex_descriptor& u, Graph& g) {
+    typedef typename boost::graph_traits< Graph >::vertex_descriptor Vertex;
+    clear_vertex(boost::any_cast<Vertex>(u), g);
+  };
+  
+  template <typename Graph>
+  void try_remove_vertex(const any_graph::vertex_descriptor& u, Graph& g) {
+    typedef typename boost::graph_traits< Graph >::vertex_descriptor Vertex;
+    remove_vertex(boost::any_cast<Vertex>(u), g);
+  };
+  
+  template <typename Graph>
+  std::pair<any_graph::edge_descriptor, bool> try_add_edge(const any_graph::vertex_descriptor& u, const any_graph::vertex_descriptor& v, Graph& g) {
+    typedef typename boost::graph_traits< Graph >::vertex_descriptor Vertex;
+    typedef typename boost::graph_traits< Graph >::edge_descriptor Edge;
+    std::pair<Edge, bool> result = add_edge(boost::any_cast<Vertex>(u), boost::any_cast<Vertex>(v), g);
+    return std::pair<any_graph::edge_descriptor, bool>(any_graph::edge_descriptor(boost::any(result.first)), result.second);
+  };
+  
+  template <typename Graph>
+  void try_remove_edge(const any_graph::edge_descriptor& e, Graph& g) {
+    typedef typename boost::graph_traits< Graph >::edge_descriptor Edge;
+    remove_edge(boost::any_cast<Edge>(e), g);
+  };
+  
+#else
   
   template <typename Graph>
   typename boost::enable_if< boost::is_mutable_graph<Graph>,
@@ -562,14 +608,14 @@ namespace detail {
   
   template <typename Graph>
   typename boost::disable_if< boost::is_mutable_graph<Graph>,
-  std::size_t >::type try_add_vertex(Graph&) {
+  any_graph::vertex_descriptor >::type try_add_vertex(Graph&) {
     return any_graph::vertex_descriptor(boost::any(boost::graph_traits<Graph>::null_vertex()));
   };
   
   
   template <typename Graph>
   typename boost::enable_if< boost::is_mutable_graph<Graph>,
-  any_graph::vertex_descriptor >::type try_clear_vertex(const any_graph::vertex_descriptor& u, Graph& g) {
+  void >::type try_clear_vertex(const any_graph::vertex_descriptor& u, Graph& g) {
     typedef typename boost::graph_traits< Graph >::vertex_descriptor Vertex;
     clear_vertex(boost::any_cast<Vertex>(u), g);
   };
@@ -577,8 +623,6 @@ namespace detail {
   template <typename Graph>
   typename boost::disable_if< boost::is_mutable_graph<Graph>,
   void >::type try_clear_vertex(const any_graph::vertex_descriptor&, Graph&) { };
-  
-  
   
   template <typename Graph>
   typename boost::enable_if< boost::is_mutable_graph<Graph>,
@@ -621,6 +665,7 @@ namespace detail {
   typename boost::disable_if< boost::is_mutable_graph<Graph>,
   void >::type try_remove_edge(const any_graph::edge_descriptor&, Graph&) { };
   
+#endif
   
   
 };
@@ -651,7 +696,8 @@ class type_erased_graph : public any_graph {
     
   protected:
     
-    typedef Graph real_graph_type;
+    typedef Graph original_graph_type;
+    typedef typename boost::remove_const<Graph>::type real_graph_type;
     typedef typename boost::graph_traits<real_graph_type>::vertex_descriptor real_vertex_desc;
     typedef typename boost::graph_traits<real_graph_type>::edge_descriptor real_edge_desc;
     
@@ -689,7 +735,7 @@ class type_erased_graph : public any_graph {
     real_graph_type& base() { return *p_graph; };
     const real_graph_type& base() const { return *p_graph; };
     
-    type_erased_graph(real_graph_type* aPGraph) : p_graph(aPGraph) { };
+    type_erased_graph(original_graph_type* aPGraph) : p_graph(const_cast<real_graph_type*>(aPGraph)) { };
     
     virtual edge_range edges() const {
       return detail::try_get_edges(*p_graph);
@@ -728,7 +774,8 @@ class type_erased_graph : public any_graph {
     };
     
     virtual degree_size_type degree(const edge_descriptor& aEdge) const {
-      return detail::try_get_degree(aEdge, *p_graph);
+//       return detail::try_get_degree(aEdge, *p_graph);
+      return 0;  // seems that degree() function is broken in BGL.
     };
     
     
@@ -740,7 +787,7 @@ class type_erased_graph : public any_graph {
       return detail::try_get_num_vertices(*p_graph);
     };
     
-    
+#if 0
     virtual vertex_descriptor add_vertex() const {
       return detail::try_add_vertex(*p_graph);
     };
@@ -761,7 +808,7 @@ class type_erased_graph : public any_graph {
     virtual void remove_edge(const edge_descriptor& aEdge) const {
       detail::try_remove_edge(aEdge, *p_graph);
     };
-    
+#endif
     
 };
 

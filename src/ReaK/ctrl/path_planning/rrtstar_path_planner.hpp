@@ -169,6 +169,8 @@ void rrtstar_planner<FreeSpaceType>::solve_planning_query(planning_query<FreeSpa
   typedef optimal_mg_vertex<FreeSpaceType> VertexProp;
   typedef optimal_mg_edge<FreeSpaceType> EdgeProp;
   
+  typedef mg_vertex_data<FreeSpaceType> BasicVertexProp;
+  
   typedef boost::data_member_property_map<PointType, VertexProp > PositionMap;
   PositionMap pos_map = PositionMap(&VertexProp::position);
   
@@ -210,9 +212,9 @@ void rrtstar_planner<FreeSpaceType>::solve_planning_query(planning_query<FreeSpa
   };
   
 #define RK_RRTSTAR_PLANNER_SETUP_DVP_TREE_SYNCHRO(ARITY, TREE_STORAGE) \
-  typedef typename boost::property_map< MotionGraphType, PointType VertexProp::* >::type GraphPositionMap; \
+  typedef typename boost::property_map< MotionGraphType, PointType BasicVertexProp::* >::type GraphPositionMap; \
   typedef dvp_tree<Vertex, SuperSpace, GraphPositionMap, ARITY, random_vp_chooser, TREE_STORAGE > SpacePartType; \
-  SpacePartType space_part(motion_graph, sup_space_ptr, get(&VertexProp::position, motion_graph)); \
+  SpacePartType space_part(motion_graph, sup_space_ptr, get(&BasicVertexProp::position, motion_graph)); \
    \
   typedef multi_dvp_tree_search<MotionGraphType, SpacePartType> NNFinderType; \
   NNFinderType nn_finder; \
@@ -225,7 +227,7 @@ void rrtstar_planner<FreeSpaceType>::solve_planning_query(planning_query<FreeSpa
   typedef dvp_adjacency_list< \
     VertexProp, EdgeProp, SuperSpace, PositionMap, \
     ARITY, random_vp_chooser, TREE_STORAGE, \
-    boost::vecS, boost::bidirectionalS, boost::listS > ALTGraph; \
+    boost::vecS, boost::undirectedS, boost::listS > ALTGraph; \
   typedef typename ALTGraph::adj_list_type MotionGraphType; \
   typedef typename boost::graph_traits<MotionGraphType>::vertex_descriptor Vertex; \
    \
@@ -397,11 +399,11 @@ void rrtstar_planner<FreeSpaceType>::solve_planning_query(planning_query<FreeSpa
     
     
 #define RK_RRTSTAR_PLANNER_SETUP_BIDIR_DVP_TREE_SYNCHRO(ARITY, TREE_STORAGE) \
-  typedef typename boost::property_map< MotionGraphType, PointType VertexProp::* >::type GraphPositionMap; \
+  typedef typename boost::property_map< MotionGraphType, PointType BasicVertexProp::* >::type GraphPositionMap; \
   typedef dvp_tree<Vertex, SuperSpace, GraphPositionMap, ARITY, random_vp_chooser, TREE_STORAGE > SpacePartType; \
    \
-  SpacePartType space_part1(motion_graph1, sup_space_ptr, get(&VertexProp::position, motion_graph1)); \
-  SpacePartType space_part2(motion_graph2, sup_space_ptr, get(&VertexProp::position, motion_graph2)); \
+  SpacePartType space_part1(motion_graph1, sup_space_ptr, get(&BasicVertexProp::position, motion_graph1)); \
+  SpacePartType space_part2(motion_graph2, sup_space_ptr, get(&BasicVertexProp::position, motion_graph2)); \
    \
   typedef multi_dvp_tree_search<MotionGraphType, SpacePartType> NNFinderType; \
   NNFinderType nn_finder; \
@@ -458,9 +460,6 @@ void rrtstar_planner<FreeSpaceType>::solve_planning_query(planning_query<FreeSpa
                              EdgeProp,
                              boost::vecS> MotionGraphType;
       typedef typename boost::graph_traits<MotionGraphType>::vertex_descriptor Vertex;
-      
-      typedef boost::composite_property_map< 
-        PositionMap, boost::whole_bundle_property_map< MotionGraphType, boost::vertex_bundle_t > > GraphPositionMap;
       
       MotionGraphType motion_graph1;
       MotionGraphType motion_graph2;

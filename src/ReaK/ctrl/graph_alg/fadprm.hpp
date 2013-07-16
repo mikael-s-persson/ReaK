@@ -307,7 +307,6 @@ namespace graph {
         
         if(rhs_u != 0.0) {
           rhs_u = std::numeric_limits<double>::infinity(); 
-          Vertex pred_u = get(m_predecessor, u);
           typename GTraits::edge_descriptor pred_e; 
           for(boost::tie(ei,ei_end) = in_edges(u,g); ei != ei_end; ++ei) {
             distance_type rhs_tmp = get(m_weight, *ei) + get(m_distance, source(*ei,g)); 
@@ -608,7 +607,6 @@ namespace graph {
     
     typedef typename boost::property_traits<ColorMap>::value_type ColorValue;
     typedef boost::color_traits<ColorValue> Color;
-    typedef typename boost::property_traits<KeyMap>::value_type KeyValue;
     typedef typename boost::property_traits<PositionMap>::value_type PositionValue;
     typename boost::graph_traits<Graph>::vertex_iterator ui, ui_end;
     typedef typename Graph::vertex_bundled VertexProp;

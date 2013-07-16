@@ -35,7 +35,7 @@
 #define RK_ENABLE_TEST_BRRT_PLANNER
 #define RK_ENABLE_TEST_RRTSTAR_PLANNER
 #define RK_ENABLE_TEST_PRM_PLANNER
-// #define RK_ENABLE_TEST_FADPRM_PLANNER
+#define RK_ENABLE_TEST_FADPRM_PLANNER
 #define RK_ENABLE_TEST_SBASTAR_PLANNER
 
 
@@ -73,12 +73,11 @@ namespace fs = boost::filesystem;
 typedef ReaK::pp::ptrobot2D_test_world TestTopology;
 typedef ReaK::pp::timing_sbmp_report< ReaK::pp::least_cost_sbmp_report<> > MCReporterType;
 
-template <typename PlannerType>
 void run_monte_carlo_tests(
     std::size_t mc_run_count,
     std::size_t mc_num_records,
-//     ReaK::pp::sample_based_planner< ReaK::pp::path_planner_base<TestTopology> >& planner,
-    const PlannerType& planner,
+    ReaK::pp::sample_based_planner< TestTopology >& planner,
+    ReaK::pp::planning_query< TestTopology >& mc_query,
     std::stringstream& time_rec_ss,
     std::stringstream& cost_rec_ss,
     std::ostream& result_output) {
@@ -99,9 +98,9 @@ void run_monte_carlo_tests(
     cost_rec_ss.clear();
     cost_rec_ss.seekg(0, cost_rec_ss.end);
     
-    PlannerType planner_tmp = planner;
-    
-    planner_tmp.solve_path();
+    mc_query.reset_solution_records();
+    planner.reset_internal_state();
+    planner.solve_planning_query(mc_query);
     
     std::size_t v_count = 0, t_val = 0; 
     std::string tmp;
@@ -319,7 +318,19 @@ int main(int argc, char** argv) {
     
     std::ofstream timing_output(output_path_name + "/" + world_file_name_only + "_times.txt");
     
-    typedef ReaK::pp::timing_sbmp_report< ReaK::pp::least_cost_sbmp_report<> > ReporterType;
+    std::stringstream time_ss, cost_ss;
+    
+    //typedef ReaK::pp::timing_sbmp_report< ReaK::pp::least_cost_sbmp_report<> > ReporterType;
+    ReaK::pp::any_sbmp_reporter_chain< ReaK::pp::ptrobot2D_test_world > report_chain;
+    report_chain.add_reporter( ReaK::pp::timing_sbmp_report<>(time_ss) );
+    report_chain.add_reporter( ReaK::pp::least_cost_sbmp_report<>(cost_ss) );
+    
+    ReaK::pp::path_planning_p2p_query< ReaK::pp::ptrobot2D_test_world > mc_query(
+      "mc_planning_query",
+      world_map,
+      world_map->get_start_pos(),
+      world_map->get_goal_pos(),
+      mc_results);
     
 #ifdef RK_ENABLE_TEST_URRT_PLANNER
     
@@ -328,20 +339,13 @@ int main(int argc, char** argv) {
       std::cout << "Running RRT with Uni-dir, " << mg_storage_str << ", " << knn_method_str << std::endl;
       timing_output << "RRT, Uni-dir, " << mg_storage_str << ", " << knn_method_str << std::endl;
       {
-        std::stringstream ss, ss2;
         
-        ReaK::pp::rrt_path_planner< ReaK::pp::ptrobot2D_test_world, ReporterType > 
-          rrt_plan(world_map, 
-                  world_map->get_start_pos(), 
-                  world_map->get_goal_pos(),
-                  mc_max_vertices, 
-                  mc_prog_interval,
-                  data_struct_flags,
-                  ReaK::pp::UNIDIRECTIONAL_PLANNING,
-                  ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
-                  mc_results);
+        ReaK::pp::rrt_planner< ReaK::pp::ptrobot2D_test_world > rrt_plan(
+          world_map, mc_max_vertices, mc_prog_interval, data_struct_flags, 
+          ReaK::pp::UNIDIRECTIONAL_PLANNING, 0.1, 0.05, report_chain);
         
-        run_monte_carlo_tests(mc_run_count,mc_max_vertices_100,rrt_plan,ss,ss2,timing_output);
+        run_monte_carlo_tests(mc_run_count, mc_max_vertices_100, rrt_plan, mc_query, time_ss, cost_ss, timing_output);
+        
       };
       std::cout << "Done!" << std::endl;
       
@@ -357,20 +361,13 @@ int main(int argc, char** argv) {
       std::cout << "Running RRT with Bi-dir, " << mg_storage_str << ", " << knn_method_str << std::endl;
       timing_output << "RRT, Bi-dir, " << mg_storage_str << ", " << knn_method_str << std::endl;
       {
-        std::stringstream ss, ss2;
         
-        ReaK::pp::rrt_path_planner< ReaK::pp::ptrobot2D_test_world, ReporterType > 
-          rrt_plan(world_map, 
-                  world_map->get_start_pos(), 
-                  world_map->get_goal_pos(),
-                  mc_max_vertices, 
-                  mc_prog_interval,
-                  data_struct_flags,
-                  ReaK::pp::BIDIRECTIONAL_PLANNING,
-                  ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
-                  mc_results);
+        ReaK::pp::rrt_planner< ReaK::pp::ptrobot2D_test_world > rrt_plan(
+          world_map, mc_max_vertices, mc_prog_interval, data_struct_flags, 
+          ReaK::pp::BIDIRECTIONAL_PLANNING, 0.1, 0.05, report_chain);
         
-        run_monte_carlo_tests(mc_run_count,mc_max_vertices_100,rrt_plan,ss,ss2,timing_output);
+        run_monte_carlo_tests(mc_run_count, mc_max_vertices_100, rrt_plan, mc_query, time_ss, cost_ss, timing_output);
+        
       };
       std::cout << "Done!" << std::endl;
       
@@ -387,19 +384,13 @@ int main(int argc, char** argv) {
       std::cout << "Running PRM with " << mg_storage_str << ", " << knn_method_str << std::endl;
       timing_output << "PRM, " << mg_storage_str << ", " << knn_method_str << std::endl;
       {
-        std::stringstream ss, ss2;
         
-        ReaK::pp::prm_path_planner< ReaK::pp::ptrobot2D_test_world, ReporterType > 
-          prm_plan(world_map, 
-                  world_map->get_start_pos(), 
-                  world_map->get_goal_pos(),
-                  mc_max_vertices, 
-                  mc_prog_interval,
-                  data_struct_flags,
-                  ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
-                  mc_results);
+        ReaK::pp::prm_planner< ReaK::pp::ptrobot2D_test_world > prm_plan(
+          world_map, mc_max_vertices, mc_prog_interval, data_struct_flags, 
+          0.1, 0.05, world_map->get_max_edge_length(), 2, report_chain);
         
-        run_monte_carlo_tests(mc_run_count,mc_max_vertices_100,prm_plan,ss,ss2,timing_output);
+        run_monte_carlo_tests(mc_run_count, mc_max_vertices_100, prm_plan, mc_query, time_ss, cost_ss, timing_output);
+        
       };
       std::cout << "Done!" << std::endl;
       
@@ -415,21 +406,15 @@ int main(int argc, char** argv) {
       std::cout << "Running FADPRM with " << mg_storage_str << ", " << knn_method_str << std::endl;
       timing_output << "FADPRM, " << mg_storage_str << ", " << knn_method_str << std::endl;
       {
-        std::stringstream ss, ss2;
         
-        ReaK::pp::fadprm_path_planner< ReaK::pp::ptrobot2D_test_world, ReporterType > 
-          fadprm_plan(
-            world_map, 
-            world_map->get_start_pos(),
-            world_map->get_goal_pos(),
-            vm["fadprm-relaxation"].as<double>(),
-            mc_max_vertices, 
-            mc_prog_interval,
-            data_struct_flags,
-            ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
-            mc_results);
+        ReaK::pp::fadprm_planner< ReaK::pp::ptrobot2D_test_world > fadprm_plan(
+          world_map, mc_max_vertices, mc_prog_interval, data_struct_flags, 
+          0.1, 0.05, world_map->get_max_edge_length(), 2, report_chain);
         
-        run_monte_carlo_tests(mc_run_count,mc_max_vertices_100,fadprm_plan,ss,ss2,timing_output);
+        fadprm_plan.set_initial_relaxation(vm["fadprm-relaxation"].as<double>());
+        
+        run_monte_carlo_tests(mc_run_count, mc_max_vertices_100, fadprm_plan, mc_query, time_ss, cost_ss, timing_output);
+        
       };
       std::cout << "Done!" << std::endl;
       
@@ -446,26 +431,17 @@ int main(int argc, char** argv) {
       std::cout << "Running SBA* with " << mg_storage_str << ", " << knn_method_str << std::endl;
       timing_output << "SBA*, " << mg_storage_str << ", " << knn_method_str << std::endl;
       {
-        std::stringstream ss, ss2;
         
-        ReaK::pp::sbastar_path_planner< ReaK::pp::ptrobot2D_test_world, ReporterType > 
-          sbastar_plan(world_map, 
-                      world_map->get_start_pos(), 
-                      world_map->get_goal_pos(),
-                      mc_max_vertices, 
-                      mc_prog_interval,
-                      data_struct_flags,
-                      sba_opt_flags,
-                      ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
-                      mc_results);
+        ReaK::pp::sbastar_planner< ReaK::pp::ptrobot2D_test_world > sbastar_plan(
+          world_map, mc_max_vertices, mc_prog_interval, data_struct_flags, sba_opt_flags,
+          0.1, 0.05, world_map->get_max_edge_length(), 2, report_chain);
         
-        sbastar_plan.set_initial_key_threshold(vm["sba-potential-cutoff"].as<double>());
         sbastar_plan.set_initial_density_threshold(vm["sba-density-cutoff"].as<double>());
         sbastar_plan.set_initial_relaxation(vm["sba-relaxation"].as<double>());
         sbastar_plan.set_initial_SA_temperature(vm["sba-sa-temperature"].as<double>());
-        sbastar_plan.set_sampling_radius( world_map->get_max_edge_length() );
         
-        run_monte_carlo_tests(mc_run_count,mc_max_vertices_100,sbastar_plan,ss,ss2,timing_output);
+        run_monte_carlo_tests(mc_run_count, mc_max_vertices_100, sbastar_plan, mc_query, time_ss, cost_ss, timing_output);
+        
       };
       std::cout << "Done!" << std::endl;
       
@@ -481,20 +457,13 @@ int main(int argc, char** argv) {
       std::cout << "Running RRT* with Uni-dir, " << mg_storage_str << ", " << knn_method_str << std::endl;
       timing_output << "RRT*, Uni-dir, " << mg_storage_str << ", " << knn_method_str << std::endl;
       {
-        std::stringstream ss, ss2;
         
-        ReaK::pp::rrtstar_path_planner< ReaK::pp::ptrobot2D_test_world, ReporterType > 
-          rrtstar_plan(world_map, 
-                      world_map->get_start_pos(), 
-                      world_map->get_goal_pos(),
-                      mc_max_vertices, 
-                      mc_prog_interval,
-                      data_struct_flags,
-                      rrtstar_opt_flags,
-                      ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
-                      mc_results);
+        ReaK::pp::rrtstar_planner< ReaK::pp::ptrobot2D_test_world > rrtstar_plan(
+          world_map, mc_max_vertices, mc_prog_interval, data_struct_flags, rrtstar_opt_flags,
+          0.1, 0.05, 2, report_chain);
         
-        run_monte_carlo_tests(mc_run_count,mc_max_vertices_100,rrtstar_plan,ss,ss2,timing_output);
+        run_monte_carlo_tests(mc_run_count, mc_max_vertices_100, rrtstar_plan, mc_query, time_ss, cost_ss, timing_output);
+        
       };
       std::cout << "Done!" << std::endl;
       
@@ -513,6 +482,15 @@ int main(int argc, char** argv) {
     std::size_t sr_results          = vm["max-results"].as<std::size_t>();
     std::size_t sr_prog_interval    = vm["prog-interval"].as<std::size_t>();
     
+    ReaK::pp::path_planning_p2p_query< ReaK::pp::ptrobot2D_test_world > sr_query(
+      "sr_planning_query",
+      world_map,
+      world_map->get_start_pos(),
+      world_map->get_goal_pos(),
+      sr_results);
+    
+    ReaK::pp::differ_sbmp_report_to_space<> image_report("", 0.25 * world_map->get_max_edge_length());
+    
 #ifdef RK_ENABLE_TEST_URRT_PLANNER
     
     if(run_all_planners || vm.count("rrt")) {
@@ -521,18 +499,17 @@ int main(int argc, char** argv) {
       std::string rrt_output_path = output_path_name + "/rrt";
       fs::create_directory(rrt_output_path.c_str());
       
-      ReaK::pp::rrt_path_planner< ReaK::pp::ptrobot2D_test_world, ReaK::pp::differ_sbmp_report_to_space< ReaK::pp::print_sbmp_progress<> > > 
-        rrt_plan(world_map, 
-                 world_map->get_start_pos(), 
-                 world_map->get_goal_pos(),
-                 sr_max_vertices, 
-                 sr_prog_interval,
-                 data_struct_flags,
-                 ReaK::pp::UNIDIRECTIONAL_PLANNING,
-                 ReaK::pp::differ_sbmp_report_to_space< ReaK::pp::print_sbmp_progress<> >(rrt_output_path + "/" + world_file_name_only + "_", 5),
-                 sr_results);
+      ReaK::pp::any_sbmp_reporter_chain< ReaK::pp::ptrobot2D_test_world > report_chain;
+      image_report.file_path = rrt_output_path + "/" + world_file_name_only + "_";
+      report_chain.add_reporter( image_report );
+      report_chain.add_reporter( ReaK::pp::print_sbmp_progress<>() );
       
-      rrt_plan.solve_path();
+      ReaK::pp::rrt_planner< ReaK::pp::ptrobot2D_test_world > rrt_plan(
+          world_map, sr_max_vertices, sr_prog_interval, data_struct_flags, 
+          ReaK::pp::UNIDIRECTIONAL_PLANNING, 0.1, 0.05, report_chain);
+      
+      sr_query.reset_solution_records();
+      rrt_plan.solve_planning_query(sr_query);
       
       std::cout << "Done!" << std::endl;
     };
@@ -547,18 +524,17 @@ int main(int argc, char** argv) {
       std::string birrt_output_path = output_path_name + "/birrt";
       fs::create_directory(birrt_output_path.c_str());
       
-      ReaK::pp::rrt_path_planner< ReaK::pp::ptrobot2D_test_world, ReaK::pp::differ_sbmp_report_to_space< ReaK::pp::print_sbmp_progress<> > > 
-        rrt_plan(world_map, 
-                 world_map->get_start_pos(), 
-                 world_map->get_goal_pos(),
-                 sr_max_vertices, 
-                 sr_prog_interval,
-                 data_struct_flags,
-                 ReaK::pp::BIDIRECTIONAL_PLANNING,
-                 ReaK::pp::differ_sbmp_report_to_space< ReaK::pp::print_sbmp_progress<> >(birrt_output_path + "/" + world_file_name_only + "_", 5),
-                 sr_results);
+      ReaK::pp::any_sbmp_reporter_chain< ReaK::pp::ptrobot2D_test_world > report_chain;
+      image_report.file_path = birrt_output_path + "/" + world_file_name_only + "_";
+      report_chain.add_reporter( image_report );
+      report_chain.add_reporter( ReaK::pp::print_sbmp_progress<>() );
       
-      rrt_plan.solve_path();
+      ReaK::pp::rrt_planner< ReaK::pp::ptrobot2D_test_world > rrt_plan(
+          world_map, sr_max_vertices, sr_prog_interval, data_struct_flags, 
+          ReaK::pp::BIDIRECTIONAL_PLANNING, 0.1, 0.05, report_chain);
+      
+      sr_query.reset_solution_records();
+      rrt_plan.solve_planning_query(sr_query);
       
       std::cout << "Done!" << std::endl;
     };
@@ -573,17 +549,17 @@ int main(int argc, char** argv) {
       std::string prm_output_path = output_path_name + "/prm";
       fs::create_directory(prm_output_path.c_str());
       
-      ReaK::pp::prm_path_planner< ReaK::pp::ptrobot2D_test_world, ReaK::pp::differ_sbmp_report_to_space< ReaK::pp::print_sbmp_progress<> > > 
-        prm_plan(world_map, 
-                world_map->get_start_pos(), 
-                world_map->get_goal_pos(),
-                sr_max_vertices, 
-                sr_prog_interval,
-                data_struct_flags,
-                ReaK::pp::differ_sbmp_report_to_space< ReaK::pp::print_sbmp_progress<> >(prm_output_path + "/" + world_file_name_only + "_", 5),
-                sr_results);
+      ReaK::pp::any_sbmp_reporter_chain< ReaK::pp::ptrobot2D_test_world > report_chain;
+      image_report.file_path = prm_output_path + "/" + world_file_name_only + "_";
+      report_chain.add_reporter( image_report );
+      report_chain.add_reporter( ReaK::pp::print_sbmp_progress<>() );
       
-      prm_plan.solve_path();
+      ReaK::pp::prm_planner< ReaK::pp::ptrobot2D_test_world > prm_plan(
+        world_map, sr_max_vertices, sr_prog_interval, data_struct_flags, 
+        0.1, 0.05, world_map->get_max_edge_length(), 2, report_chain);
+      
+      sr_query.reset_solution_records();
+      prm_plan.solve_planning_query(sr_query);
       
       std::cout << "Done!" << std::endl;
     };
@@ -598,19 +574,19 @@ int main(int argc, char** argv) {
       std::string fadprm_output_path = output_path_name + "/fadprm";
       fs::create_directory(fadprm_output_path.c_str());
       
-      ReaK::pp::fadprm_path_planner< ReaK::pp::ptrobot2D_test_world, ReaK::pp::differ_sbmp_report_to_space< ReaK::pp::print_sbmp_progress<> > > 
-        fadprm_plan(
-          world_map, 
-          world_map->get_start_pos(), 
-          world_map->get_goal_pos(),
-          vm["fadprm-relaxation"].as<double>(),
-          sr_max_vertices, 
-          sr_prog_interval,
-          data_struct_flags,
-          ReaK::pp::differ_sbmp_report_to_space< ReaK::pp::print_sbmp_progress<> >(fadprm_output_path + "/" + world_file_name_only + "_", 5),
-          sr_results);
+      ReaK::pp::any_sbmp_reporter_chain< ReaK::pp::ptrobot2D_test_world > report_chain;
+      image_report.file_path = fadprm_output_path + "/" + world_file_name_only + "_";
+      report_chain.add_reporter( image_report );
+      report_chain.add_reporter( ReaK::pp::print_sbmp_progress<>() );
       
-      fadprm_plan.solve_path();
+      ReaK::pp::fadprm_planner< ReaK::pp::ptrobot2D_test_world > fadprm_plan(
+        world_map, sr_max_vertices, sr_prog_interval, data_struct_flags, 
+        0.1, 0.05, world_map->get_max_edge_length(), 2, report_chain);
+      
+      fadprm_plan.set_initial_relaxation(vm["fadprm-relaxation"].as<double>());
+      
+      sr_query.reset_solution_records();
+      fadprm_plan.solve_planning_query(sr_query);
       
       std::cout << "Done!" << std::endl;
     };
@@ -625,25 +601,21 @@ int main(int argc, char** argv) {
       std::string sba_output_path = output_path_name + "/sbastar" + sba_qualifier;
       fs::create_directory(sba_output_path.c_str());
       
-      ReaK::pp::sbastar_path_planner< ReaK::pp::ptrobot2D_test_world, ReaK::pp::differ_sbmp_report_to_space< ReaK::pp::print_sbmp_progress<> > > 
-        sbastar_plan(
-          world_map, 
-          world_map->get_start_pos(), 
-          world_map->get_goal_pos(),
-          sr_max_vertices, 
-          sr_prog_interval,
-          data_struct_flags,
-          sba_opt_flags,
-          ReaK::pp::differ_sbmp_report_to_space< ReaK::pp::print_sbmp_progress<> >(sba_output_path + "/" + world_file_name_only + "_", 5),
-          sr_results);
+      ReaK::pp::any_sbmp_reporter_chain< ReaK::pp::ptrobot2D_test_world > report_chain;
+      image_report.file_path = sba_output_path + "/" + world_file_name_only + "_";
+      report_chain.add_reporter( image_report );
+      report_chain.add_reporter( ReaK::pp::print_sbmp_progress<>() );
       
-      sbastar_plan.set_initial_key_threshold(vm["sba-potential-cutoff"].as<double>());
+      ReaK::pp::sbastar_planner< ReaK::pp::ptrobot2D_test_world > sbastar_plan(
+        world_map, sr_max_vertices, sr_prog_interval, data_struct_flags, sba_opt_flags,
+        0.1, 0.05, world_map->get_max_edge_length(), 2, report_chain);
+      
       sbastar_plan.set_initial_density_threshold(vm["sba-density-cutoff"].as<double>());
       sbastar_plan.set_initial_relaxation(vm["sba-relaxation"].as<double>());
       sbastar_plan.set_initial_SA_temperature(vm["sba-sa-temperature"].as<double>());
-      sbastar_plan.set_sampling_radius( world_map->get_max_edge_length() );
       
-      sbastar_plan.solve_path();
+      sr_query.reset_solution_records();
+      sbastar_plan.solve_planning_query(sr_query);
       
       std::cout << "Done!" << std::endl;
     };
@@ -658,18 +630,17 @@ int main(int argc, char** argv) {
       std::string rrtstar_output_path = output_path_name + "/rrt_star" + rrtstar_qualifier;
       fs::create_directory(rrtstar_output_path.c_str());
       
-      ReaK::pp::rrtstar_path_planner< ReaK::pp::ptrobot2D_test_world, ReaK::pp::differ_sbmp_report_to_space< ReaK::pp::print_sbmp_progress<> > > 
-        rrtstar_plan(world_map, 
-                     world_map->get_start_pos(), 
-                     world_map->get_goal_pos(),
-                     sr_max_vertices, 
-                     sr_prog_interval,
-                     data_struct_flags,
-                     rrtstar_opt_flags,
-                     ReaK::pp::differ_sbmp_report_to_space< ReaK::pp::print_sbmp_progress<> >(rrtstar_output_path + "/" + world_file_name_only + "_", 5),
-                     sr_results);
+      ReaK::pp::any_sbmp_reporter_chain< ReaK::pp::ptrobot2D_test_world > report_chain;
+      image_report.file_path = rrtstar_output_path + "/" + world_file_name_only + "_";
+      report_chain.add_reporter( image_report );
+      report_chain.add_reporter( ReaK::pp::print_sbmp_progress<>() );
       
-      rrtstar_plan.solve_path();
+      ReaK::pp::rrtstar_planner< ReaK::pp::ptrobot2D_test_world > rrtstar_plan(
+        world_map, sr_max_vertices, sr_prog_interval, data_struct_flags, rrtstar_opt_flags,
+        0.1, 0.05, 2, report_chain);
+      
+      sr_query.reset_solution_records();
+      rrtstar_plan.solve_planning_query(sr_query);
       
       std::cout << "Done!" << std::endl;
     };

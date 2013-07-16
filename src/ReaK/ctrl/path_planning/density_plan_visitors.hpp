@@ -48,9 +48,9 @@ namespace pp {
  * This class template
  */
 template <typename FreeSpaceType, typename DensityCalc = sbastar_density_calculator>
-struct density_plan_visitor : planning_visitor_base< density_plan_visitor<FreeSpaceType>, FreeSpaceType> {
+struct density_plan_visitor : planning_visitor_base< density_plan_visitor<FreeSpaceType,DensityCalc>, FreeSpaceType> {
   
-  typedef density_plan_visitor<FreeSpaceType> self;
+  typedef density_plan_visitor<FreeSpaceType,DensityCalc> self;
   typedef planning_visitor_base< self, FreeSpaceType> base_type;
   
   typedef typename base_type::space_type space_type;
@@ -76,10 +76,10 @@ struct density_plan_visitor : planning_visitor_base< density_plan_visitor<FreeSp
 ***************************************************/
   
   template <typename SpaceType, typename Vertex, typename Graph>
-  void dispatched_initialize_vertex(mg_vertex_data<SpaceType>&) const {};
+  void dispatched_initialize_vertex(mg_vertex_data<SpaceType>&, Vertex, Graph&) const {};
   
   template <typename SpaceType, typename Vertex, typename Graph>
-  void dispatched_initialize_vertex(astar_mg_vertex<SpaceType>& vp) const {
+  void dispatched_initialize_vertex(astar_mg_vertex<SpaceType>& vp, Vertex, Graph&) const {
     vp.heuristic_value = this->m_query->get_heuristic_to_goal(vp.position);
   };
   
@@ -105,13 +105,13 @@ struct density_plan_visitor : planning_visitor_base< density_plan_visitor<FreeSp
   
   template <typename BaseType, typename Vertex, typename Graph>
   void dispatched_initialize_vertex(dense_mg_vertex<BaseType>& vp, Vertex u, Graph& g) const {
-    dispatched_initialize_vertex(static_cast<BaseType&>(vp), u, g);
+    dispatched_initialize_vertex(static_cast<BaseType&>(vp),u,g);
     init_nonrecursive_density(u, g);
   };
   
   template <typename BaseType, typename Vertex, typename Graph>
   void dispatched_initialize_vertex(recursive_dense_mg_vertex<BaseType>& vp, Vertex u, Graph& g) const {
-    dispatched_initialize_vertex(static_cast<BaseType&>(vp), u, g);
+    dispatched_initialize_vertex(static_cast<BaseType&>(vp),u,g);
     init_recursive_density(u, g);
   };
   
@@ -156,6 +156,14 @@ struct density_plan_visitor : planning_visitor_base< density_plan_visitor<FreeSp
     return !has_search_potential(u,g);
   };
   
+/***************************************************
+                AnytimeHeuristicVisitorConcept  (Anytime A* search)
+***************************************************/
+  
+  template <typename Graph>
+  double adjust_relaxation(double old_relaxation, const Graph& g) const {
+    return old_relaxation * 0.5;
+  };
   
 /***************************************************
                 NeighborhoodTrackingVisitorConcept

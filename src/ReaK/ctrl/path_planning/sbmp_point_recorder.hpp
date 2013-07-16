@@ -105,6 +105,10 @@ class sbmp_point_recorder : public shared_object {
                                  file_path(aFilePath), 
                                  solution_count(0) { };
     
+    void reset_internal_state() { 
+      solution_count = 0;
+    };
+    
     /**
      * Draws the entire motion-graph.
      * \tparam FreeSpaceType The C-free topology type.
@@ -399,6 +403,10 @@ class sbmp_point_recorder<JointStateSpace, identity_topo_map, NextReporter> : pu
                                  interval_size(aIntervalSize),
                                  file_path(aFilePath),
                                  solution_count(0) { };
+    
+    void reset_internal_state() { 
+      solution_count = 0;
+    };
     
     /**
      * Draws the entire motion-graph.

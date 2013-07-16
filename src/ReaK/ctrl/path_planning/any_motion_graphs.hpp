@@ -55,7 +55,7 @@ namespace detail {
   
   template <typename Topology, typename Graph>
   typename boost::disable_if< is_steerable_space<Topology>,
-  int >::type try_get_steer_record(Graph&, typename boost::graph_traits< Graph >::edge_descriptor) {
+  int >::type& try_get_steer_record(Graph&, typename boost::graph_traits< Graph >::edge_descriptor) {
     throw std::invalid_argument("Required property 'edge_steer_record' on a non-steerable space!");
   };
   
@@ -132,7 +132,7 @@ class any_motion_graph : public graph::type_erased_graph<Graph> {
   protected:
     typedef any_motion_graph<Topology, Graph> self;
     typedef graph::type_erased_graph<Graph> base_type;
-    typedef typename base_type::real_graph_type real_graph_type;
+    typedef typename base_type::original_graph_type original_graph_type;
     typedef typename base_type::real_vertex_desc real_vertex_desc;
     typedef typename base_type::real_edge_desc real_edge_desc;
     
@@ -158,7 +158,7 @@ class any_motion_graph : public graph::type_erased_graph<Graph> {
     
   public:
     
-    any_motion_graph(real_graph_type* aPGraph) : base_type(aPGraph) { };
+    any_motion_graph(original_graph_type* aPGraph) : base_type(aPGraph) { };
     
 };
 
@@ -218,7 +218,7 @@ class any_optimal_motion_graph : public any_motion_graph<Topology, Graph> {
   protected:
     typedef any_optimal_motion_graph<Topology, Graph> self;
     typedef any_motion_graph<Topology, Graph> base_type;
-    typedef typename base_type::real_graph_type real_graph_type;
+    typedef typename base_type::original_graph_type original_graph_type;
     typedef typename base_type::real_vertex_desc real_vertex_desc;
     typedef typename base_type::real_edge_desc real_edge_desc;
     
@@ -248,7 +248,7 @@ class any_optimal_motion_graph : public any_motion_graph<Topology, Graph> {
     
   public:
     
-    any_optimal_motion_graph(real_graph_type* aPGraph) : base_type(aPGraph) { };
+    any_optimal_motion_graph(original_graph_type* aPGraph) : base_type(aPGraph) { };
     
 };
 
@@ -295,7 +295,7 @@ class any_astar_motion_graph : public any_optimal_motion_graph<Topology, Graph> 
   protected:
     typedef any_astar_motion_graph<Topology, Graph> self;
     typedef any_optimal_motion_graph<Topology, Graph> base_type;
-    typedef typename base_type::real_graph_type real_graph_type;
+    typedef typename base_type::original_graph_type original_graph_type;
     typedef typename base_type::real_vertex_desc real_vertex_desc;
     typedef typename base_type::real_edge_desc real_edge_desc;
     
@@ -325,7 +325,7 @@ class any_astar_motion_graph : public any_optimal_motion_graph<Topology, Graph> 
     
   public:
     
-    any_astar_motion_graph(real_graph_type* aPGraph) : base_type(aPGraph) { };
+    any_astar_motion_graph(original_graph_type* aPGraph) : base_type(aPGraph) { };
     
 };
 
@@ -360,7 +360,7 @@ class any_dense_motion_graph : public BaseMotionGraph {
   protected:
     typedef any_dense_motion_graph<BaseMotionGraph> self;
     typedef BaseMotionGraph base_type;
-    typedef typename base_type::real_graph_type real_graph_type;
+    typedef typename base_type::original_graph_type original_graph_type;
     typedef typename base_type::real_vertex_desc real_vertex_desc;
     typedef typename base_type::real_edge_desc real_edge_desc;
     
@@ -382,7 +382,7 @@ class any_dense_motion_graph : public BaseMotionGraph {
     
   public:
     
-    any_dense_motion_graph(real_graph_type* aPGraph) : base_type(aPGraph) { };
+    any_dense_motion_graph(original_graph_type* aPGraph) : base_type(aPGraph) { };
     
 };
 
@@ -423,7 +423,7 @@ class any_recursive_dense_mg : public BaseMotionGraph {
   protected:
     typedef any_recursive_dense_mg<BaseMotionGraph> self;
     typedef BaseMotionGraph base_type;
-    typedef typename base_type::real_graph_type real_graph_type;
+    typedef typename base_type::original_graph_type original_graph_type;
     typedef typename base_type::real_vertex_desc real_vertex_desc;
     typedef typename base_type::real_edge_desc real_edge_desc;
     
@@ -457,7 +457,7 @@ class any_recursive_dense_mg : public BaseMotionGraph {
     
   public:
     
-    any_recursive_dense_mg(real_graph_type* aPGraph) : base_type(aPGraph) { };
+    any_recursive_dense_mg(original_graph_type* aPGraph) : base_type(aPGraph) { };
     
 };
 

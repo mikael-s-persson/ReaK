@@ -163,6 +163,8 @@ void rrt_planner<FreeSpaceType>::solve_planning_query(planning_query<FreeSpaceTy
   typedef mg_vertex_data<FreeSpaceType> VertexProp;
   typedef mg_edge_data<FreeSpaceType> EdgeProp;
   
+  typedef mg_vertex_data<FreeSpaceType> BasicVertexProp;
+  
   typedef boost::data_member_property_map<PointType, VertexProp > PositionMap;
   PositionMap pos_map = PositionMap(&VertexProp::position);
   
@@ -178,9 +180,9 @@ void rrt_planner<FreeSpaceType>::solve_planning_query(planning_query<FreeSpaceTy
     
 #define RK_RRT_PLANNER_SETUP_DVP_TREE_SYNCHRO(ARITY, TREE_STORAGE) \
   typedef typename boost::graph_traits<MotionGraphType>::vertex_descriptor Vertex; \
-  typedef typename boost::property_map< MotionGraphType, PointType VertexProp::* >::type GraphPositionMap; \
+  typedef typename boost::property_map< MotionGraphType, PointType BasicVertexProp::* >::type GraphPositionMap; \
   typedef dvp_tree<Vertex, SuperSpace, GraphPositionMap, ARITY, random_vp_chooser, TREE_STORAGE > SpacePartType; \
-  SpacePartType space_part(motion_graph, sup_space_ptr, get(&VertexProp::position, motion_graph)); \
+  SpacePartType space_part(motion_graph, sup_space_ptr, get(&BasicVertexProp::position, motion_graph)); \
    \
   typedef multi_dvp_tree_search<MotionGraphType, SpacePartType> NNFinderType; \
   NNFinderType nn_finder; \
@@ -303,10 +305,10 @@ void rrt_planner<FreeSpaceType>::solve_planning_query(planning_query<FreeSpaceTy
     
 #define RK_RRT_PLANNER_SETUP_TWO_DVP_TREE_SYNCHRO(ARITY, TREE_STORAGE) \
   typedef typename boost::graph_traits<MotionGraphType>::vertex_descriptor Vertex; \
-  typedef typename boost::property_map< MotionGraphType, PointType VertexProp::* >::type GraphPositionMap; \
+  typedef typename boost::property_map< MotionGraphType, PointType BasicVertexProp::* >::type GraphPositionMap; \
   typedef dvp_tree<Vertex, SuperSpace, GraphPositionMap, ARITY, random_vp_chooser, TREE_STORAGE > SpacePartType; \
-  SpacePartType space_part1(motion_graph1, sup_space_ptr, get(&VertexProp::position, motion_graph1)); \
-  SpacePartType space_part2(motion_graph2, sup_space_ptr, get(&VertexProp::position, motion_graph2)); \
+  SpacePartType space_part1(motion_graph1, sup_space_ptr, get(&BasicVertexProp::position, motion_graph1)); \
+  SpacePartType space_part2(motion_graph2, sup_space_ptr, get(&BasicVertexProp::position, motion_graph2)); \
    \
   typedef multi_dvp_tree_search<MotionGraphType, SpacePartType> NNFinderType; \
   NNFinderType nn_finder; \

@@ -145,31 +145,35 @@ void single_run_planners_on_space(ReaK::shared_ptr< SpaceType > world_map, const
             << "*****************************************************************" << std::endl;
   
   
-  typedef print_sbmp_progress< least_cost_sbmp_report<> > InnerReporterType;
+  path_planning_p2p_query< SpaceType > sr_query(
+    "sr_hidim_planning_query",
+    world_map,
+    world_map->get_start_pos(),
+    world_map->get_goal_pos(),
+    sr_results);
+  
+  any_sbmp_reporter_chain< SpaceType > report_chain;
+  report_chain.add_reporter( least_cost_sbmp_report<>() );
+  report_chain.add_reporter( print_sbmp_progress<>() );
   
 #ifdef RK_ENABLE_TEST_URRT_PLANNER
   
   if(mc_flags & RK_HIDIM_PLANNER_DO_RRT) {
-    
-    typedef vlist_sbmp_report< rrt_vprinter, InnerReporterType> ReporterType;
     
     std::cout << "Running RRT with Uni-dir, " << data_struct_str << std::endl;
     {
       
       fs::create_directory((aFilePath + "/rrt/").c_str());
       
-      rrt_path_planner< SpaceType, ReporterType > 
-        rrt_plan(world_map, 
-                world_map->get_start_pos(), 
-                world_map->get_goal_pos(),
-                mc_max_vertices, 
-                mc_prog_interval,
-                data_struct_flags,
-                UNIDIRECTIONAL_PLANNING,
-                ReporterType(aFilePath + "/rrt/" + aSpaceName + "_"),
-                mc_results);
+//       vlist_sbmp_report< mg_vertex_printer > vlister(aFilePath + "/rrt/" + aSpaceName + "_");
+//       report_chain.add_reporter( vlister );
       
-      rrt_plan.solve_path();
+      rrt_planner< SpaceType > rrt_plan(
+          world_map, sr_max_vertices, sr_prog_interval, data_struct_flags, 
+          UNIDIRECTIONAL_PLANNING, 0.1, 0.05, report_chain);
+      
+      sr_query.reset_solution_records();
+      rrt_plan.solve_planning_query(sr_query);
       
     };
     std::cout << "Done!" << std::endl;
@@ -183,25 +187,20 @@ void single_run_planners_on_space(ReaK::shared_ptr< SpaceType > world_map, const
   
   if(mc_flags & RK_HIDIM_PLANNER_DO_BIRRT) {
     
-    typedef vlist_sbmp_report< rrt_vprinter, InnerReporterType> ReporterType;
-    
     std::cout << "Running RRT with Bi-dir, " << data_struct_str << std::endl;
     {
       
       fs::create_directory((aFilePath + "/birrt/").c_str());
       
-      rrt_path_planner< SpaceType, ReporterType > 
-        rrt_plan(world_map, 
-                 world_map->get_start_pos(), 
-                 world_map->get_goal_pos(),
-                 mc_max_vertices, 
-                 mc_prog_interval,
-                 data_struct_flags,
-                 BIDIRECTIONAL_PLANNING,
-                 ReporterType(aFilePath + "/birrt/" + aSpaceName + "_"),
-                 mc_results);
+//       vlist_sbmp_report< mg_vertex_printer > vlister(aFilePath + "/birrt/" + aSpaceName + "_");
+//       report_chain.add_reporter( vlister );
       
-      rrt_plan.solve_path();
+      rrt_planner< SpaceType > rrt_plan(
+          world_map, sr_max_vertices, sr_prog_interval, data_struct_flags, 
+          BIDIRECTIONAL_PLANNING, 0.1, 0.05, report_chain);
+      
+      sr_query.reset_solution_records();
+      rrt_plan.solve_planning_query(sr_query);
       
     };
     std::cout << "Done!" << std::endl;
@@ -216,24 +215,21 @@ void single_run_planners_on_space(ReaK::shared_ptr< SpaceType > world_map, const
   
   if(mc_flags & RK_HIDIM_PLANNER_DO_PRM) {
     
-    typedef vlist_sbmp_report< prm_vprinter, InnerReporterType> ReporterType;
-    
     std::cout << "Running PRM with " << data_struct_str << std::endl;
     {
       
       fs::create_directory((aFilePath + "/prm/").c_str());
       
-      prm_path_planner< SpaceType, ReporterType > 
-        prm_plan(world_map, 
-                 world_map->get_start_pos(), 
-                 world_map->get_goal_pos(),
-                 mc_max_vertices, 
-                 mc_prog_interval,
-                 data_struct_flags,
-                 ReporterType(aFilePath + "/prm/" + aSpaceName + "_"),
-                 mc_results);
+//       vlist_sbmp_report< mg_vertex_printer > vlister(aFilePath + "/prm/" + aSpaceName + "_");
+//       report_chain.add_reporter( vlister );
       
-      prm_plan.solve_path();
+      prm_planner< SpaceType > prm_plan(
+        world_map, sr_max_vertices, sr_prog_interval, data_struct_flags, 
+        0.1, 0.05, world_map->get_max_edge_length(), RK_HIDIM_PLANNER_N, report_chain);
+      
+      sr_query.reset_solution_records();
+      prm_plan.solve_planning_query(sr_query);
+      
     };
     std::cout << "Done!" << std::endl;
     
@@ -247,26 +243,23 @@ void single_run_planners_on_space(ReaK::shared_ptr< SpaceType > world_map, const
   
   if(mc_flags & RK_HIDIM_PLANNER_DO_FADPRM) {
     
-    typedef vlist_sbmp_report< fadprm_vprinter, InnerReporterType> ReporterType;
-    
     std::cout << "Running FADPRM with " << data_struct_str << std::endl;
     {
       
       fs::create_directory((aFilePath + "/fadprm/").c_str());
       
-      fadprm_path_planner< SpaceType, ReporterType > 
-        fadprm_plan(
-          world_map, 
-          world_map->get_start_pos(),
-          world_map->get_goal_pos(),
-          fadprm_relaxation,
-          mc_max_vertices, 
-          mc_prog_interval,
-          data_struct_flags,
-          ReporterType(aFilePath + "/fadprm/" + aSpaceName + "_"),
-          mc_results);
+//       vlist_sbmp_report< mg_vertex_printer > vlister(aFilePath + "/fadprm/" + aSpaceName + "_");
+//       report_chain.add_reporter( vlister );
       
-      fadprm_plan.solve_path();
+      fadprm_planner< SpaceType > fadprm_plan(
+        world_map, sr_max_vertices, sr_prog_interval, data_struct_flags, 
+        0.1, 0.05, world_map->get_max_edge_length(), RK_HIDIM_PLANNER_N, report_chain);
+      
+      fadprm_plan.set_initial_relaxation(fadprm_relaxation);
+      
+      sr_query.reset_solution_records();
+      fadprm_plan.solve_planning_query(sr_query);
+      
     };
     std::cout << "Done!" << std::endl;
     
@@ -280,31 +273,25 @@ void single_run_planners_on_space(ReaK::shared_ptr< SpaceType > world_map, const
   
   if(mc_flags & RK_HIDIM_PLANNER_DO_SBASTAR) {
     
-    typedef vlist_sbmp_report< sbastar_vprinter, InnerReporterType> ReporterType;
-    
     std::cout << "Running SBA* with " << data_struct_str << std::endl;
     {
       
       fs::create_directory((aFilePath + "/sbastar" + sba_qualifier + "/").c_str());
       
-      sbastar_path_planner< SpaceType, ReporterType > 
-        sbastar_plan(world_map, 
-                     world_map->get_start_pos(), 
-                     world_map->get_goal_pos(),
-                     mc_max_vertices, 
-                     mc_prog_interval,
-                     data_struct_flags,
-                     sba_opt_flags,
-                     ReporterType(aFilePath + "/sbastar" + sba_qualifier + "/" + aSpaceName + "_"),
-                     mc_results);
+//       vlist_sbmp_report< mg_vertex_printer > vlister(aFilePath + "/sbastar" + sba_qualifier + "/" + aSpaceName + "_");
+//       report_chain.add_reporter( vlister );
       
-      sbastar_plan.set_initial_key_threshold(sba_potential_cutoff);
+      sbastar_planner< SpaceType > sbastar_plan(
+        world_map, sr_max_vertices, sr_prog_interval, data_struct_flags, sba_opt_flags,
+        0.1, 0.05, world_map->get_max_edge_length(), RK_HIDIM_PLANNER_N, report_chain);
+      
       sbastar_plan.set_initial_density_threshold(sba_density_cutoff);
       sbastar_plan.set_initial_relaxation(sba_relaxation);
       sbastar_plan.set_initial_SA_temperature(sba_sa_temperature);
-      sbastar_plan.set_sampling_radius( world_map->get_max_edge_length() );
       
-      sbastar_plan.solve_path();
+      sr_query.reset_solution_records();
+      sbastar_plan.solve_planning_query(sr_query);
+      
     };
     std::cout << "Done!" << std::endl;
     
@@ -317,25 +304,21 @@ void single_run_planners_on_space(ReaK::shared_ptr< SpaceType > world_map, const
   
   if(mc_flags & RK_HIDIM_PLANNER_DO_RRTSTAR) {
     
-    typedef vlist_sbmp_report< rrtstar_vprinter, InnerReporterType> ReporterType;
-    
     std::cout << "Running RRT* with Uni-dir, " << data_struct_str << std::endl;
     {
       
       fs::create_directory((aFilePath + "/rrt_star" + rrtstar_qualifier + "/").c_str());
       
-      rrtstar_path_planner< SpaceType, ReporterType > 
-        rrtstar_plan(world_map, 
-                     world_map->get_start_pos(), 
-                     world_map->get_goal_pos(),
-                     mc_max_vertices, 
-                     mc_prog_interval,
-                     data_struct_flags,
-                     rrtstar_opt_flags,
-                     ReporterType(aFilePath + "/rrt_star" + rrtstar_qualifier + "/" + aSpaceName + "_"),
-                     mc_results);
+//       vlist_sbmp_report< mg_vertex_printer > vlister(aFilePath + "/rrt_star" + rrtstar_qualifier + "/" + aSpaceName + "_");
+//       report_chain.add_reporter( vlister );
       
-      rrtstar_plan.solve_path();
+      rrtstar_planner< SpaceType > rrtstar_plan(
+        world_map, sr_max_vertices, sr_prog_interval, data_struct_flags, rrtstar_opt_flags,
+        0.1, 0.05, RK_HIDIM_PLANNER_N, report_chain);
+      
+      sr_query.reset_solution_records();
+      rrtstar_plan.solve_planning_query(sr_query);
+      
     };
     std::cout << "Done!" << std::endl;
     
@@ -350,9 +333,10 @@ void single_run_planners_on_space(ReaK::shared_ptr< SpaceType > world_map, const
 
 
 
-template <typename PlannerType>
+template <typename SpaceType>
 void run_monte_carlo_tests(
-    const PlannerType& planner,
+    ReaK::pp::sample_based_planner< SpaceType >& planner,
+    ReaK::pp::planning_query< SpaceType >& mc_query,
     std::stringstream& time_rec_ss,
     std::stringstream& cost_rec_ss,
     std::ostream& result_output) {
@@ -373,9 +357,9 @@ void run_monte_carlo_tests(
     cost_rec_ss.clear();
     cost_rec_ss.seekg(0, cost_rec_ss.end);
     
-    PlannerType planner_tmp = planner;
-    
-    planner_tmp.solve_path();
+    mc_query.reset_solution_records();
+    planner.reset_internal_state();
+    planner.solve_planning_query(mc_query);
     
     std::size_t v_count = 0, t_val = 0; 
     std::string tmp;
@@ -434,12 +418,27 @@ template <typename SpaceType>
 void test_planners_on_space(ReaK::shared_ptr< SpaceType > world_map, 
                             std::ostream& timing_output) {
   
+  using namespace ReaK;
+  using namespace pp;
+  
   std::cout << "*****************************************************************" << std::endl
             << "*            Running tests on '" << world_map->getName() << "'" << std::endl
             << "*****************************************************************" << std::endl;
   
+  std::stringstream time_ss, cost_ss;
   
-  typedef ReaK::pp::timing_sbmp_report< ReaK::pp::least_cost_sbmp_report<> > ReporterType;
+  //typedef timing_sbmp_report< least_cost_sbmp_report<> > ReporterType;
+  any_sbmp_reporter_chain< SpaceType > report_chain;
+  report_chain.add_reporter( timing_sbmp_report<>(time_ss) );
+  report_chain.add_reporter( least_cost_sbmp_report<>(cost_ss) );
+  
+  path_planning_p2p_query< SpaceType > mc_query(
+    "mc_planning_query",
+    world_map,
+    world_map->get_start_pos(),
+    world_map->get_goal_pos(),
+    mc_results);
+  
   
 #ifdef RK_ENABLE_TEST_URRT_PLANNER
   
@@ -448,20 +447,13 @@ void test_planners_on_space(ReaK::shared_ptr< SpaceType > world_map,
     std::cout << "Running RRT with Uni-dir, " << data_struct_str << std::endl;
     timing_output << "RRT, Uni-dir, " << data_struct_str << std::endl;
     {
-      std::stringstream ss, ss2;
       
-      ReaK::pp::rrt_path_planner< SpaceType, ReporterType > 
-        rrt_plan(world_map, 
-                world_map->get_start_pos(), 
-                world_map->get_goal_pos(),
-                mc_max_vertices, 
-                mc_prog_interval,
-                data_struct_flags,
-                ReaK::pp::UNIDIRECTIONAL_PLANNING,
-                ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
-                mc_results);
+      rrt_planner< SpaceType > rrt_plan(
+        world_map, mc_max_vertices, mc_prog_interval, data_struct_flags, 
+        UNIDIRECTIONAL_PLANNING, 0.1, 0.05, report_chain);
       
-      run_monte_carlo_tests(rrt_plan,ss,ss2,timing_output);
+      run_monte_carlo_tests(rrt_plan, mc_query, time_ss, cost_ss, timing_output);
+      
     };
     std::cout << "Done!" << std::endl;
     
@@ -477,20 +469,13 @@ void test_planners_on_space(ReaK::shared_ptr< SpaceType > world_map,
     std::cout << "Running RRT with Bi-dir, " << data_struct_str << std::endl;
     timing_output << "RRT, Bi-dir, " << data_struct_str << std::endl;
     {
-      std::stringstream ss, ss2;
       
-      ReaK::pp::rrt_path_planner< SpaceType, ReporterType > 
-        rrt_plan(world_map, 
-                world_map->get_start_pos(), 
-                world_map->get_goal_pos(),
-                mc_max_vertices, 
-                mc_prog_interval,
-                data_struct_flags,
-                ReaK::pp::BIDIRECTIONAL_PLANNING,
-                ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
-                mc_results);
+      rrt_planner< SpaceType > rrt_plan(
+        world_map, mc_max_vertices, mc_prog_interval, data_struct_flags, 
+        BIDIRECTIONAL_PLANNING, 0.1, 0.05, report_chain);
       
-      run_monte_carlo_tests(rrt_plan,ss,ss2,timing_output);
+      run_monte_carlo_tests(rrt_plan, mc_query, time_ss, cost_ss, timing_output);
+      
     };
     std::cout << "Done!" << std::endl;
     
@@ -507,19 +492,13 @@ void test_planners_on_space(ReaK::shared_ptr< SpaceType > world_map,
     std::cout << "Running PRM with " << data_struct_str << std::endl;
     timing_output << "PRM, " << data_struct_str << std::endl;
     {
-      std::stringstream ss, ss2;
       
-      ReaK::pp::prm_path_planner< SpaceType, ReporterType > 
-        prm_plan(world_map, 
-                world_map->get_start_pos(), 
-                world_map->get_goal_pos(),
-                mc_max_vertices, 
-                mc_prog_interval,
-                data_struct_flags,
-                ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
-                mc_results);
+      prm_planner< SpaceType > prm_plan(
+        world_map, mc_max_vertices, mc_prog_interval, data_struct_flags, 
+        0.1, 0.05, world_map->get_max_edge_length(), RK_HIDIM_PLANNER_N, report_chain);
       
-      run_monte_carlo_tests(prm_plan,ss,ss2,timing_output);
+      run_monte_carlo_tests(prm_plan, mc_query, time_ss, cost_ss, timing_output);
+      
     };
     std::cout << "Done!" << std::endl;
     
@@ -536,21 +515,15 @@ void test_planners_on_space(ReaK::shared_ptr< SpaceType > world_map,
     std::cout << "Running FADPRM with " << data_struct_str << std::endl;
     timing_output << "FADPRM, " << data_struct_str << std::endl;
     {
-      std::stringstream ss, ss2;
       
-      ReaK::pp::fadprm_path_planner< SpaceType, ReporterType > 
-        fadprm_plan(
-          world_map, 
-          world_map->get_start_pos(),
-          world_map->get_goal_pos(),
-          fadprm_relaxation,
-          mc_max_vertices, 
-          mc_prog_interval,
-          data_struct_flags,
-          ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
-          mc_results);
+      fadprm_planner< SpaceType > fadprm_plan(
+        world_map, mc_max_vertices, mc_prog_interval, data_struct_flags, 
+        0.1, 0.05, world_map->get_max_edge_length(), RK_HIDIM_PLANNER_N, report_chain);
       
-      run_monte_carlo_tests(fadprm_plan,ss,ss2,timing_output);
+      fadprm_plan.set_initial_relaxation(fadprm_relaxation);
+      
+      run_monte_carlo_tests(fadprm_plan, mc_query, time_ss, cost_ss, timing_output);
+      
     };
     std::cout << "Done!" << std::endl;
     
@@ -567,26 +540,17 @@ void test_planners_on_space(ReaK::shared_ptr< SpaceType > world_map,
     std::cout << "Running SBA* with " << data_struct_str << std::endl;
     timing_output << "SBA*, " << data_struct_str << std::endl;
     {
-      std::stringstream ss, ss2;
       
-      ReaK::pp::sbastar_path_planner< SpaceType, ReporterType > 
-        sbastar_plan(world_map, 
-                    world_map->get_start_pos(), 
-                    world_map->get_goal_pos(),
-                    mc_max_vertices, 
-                    mc_prog_interval,
-                    data_struct_flags,
-                    sba_opt_flags,
-                    ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
-                    mc_results);
+      sbastar_planner< SpaceType > sbastar_plan(
+        world_map, mc_max_vertices, mc_prog_interval, data_struct_flags, sba_opt_flags,
+        0.1, 0.05, world_map->get_max_edge_length(), RK_HIDIM_PLANNER_N, report_chain);
       
-      sbastar_plan.set_initial_key_threshold(sba_potential_cutoff);
       sbastar_plan.set_initial_density_threshold(sba_density_cutoff);
       sbastar_plan.set_initial_relaxation(sba_relaxation);
       sbastar_plan.set_initial_SA_temperature(sba_sa_temperature);
-      sbastar_plan.set_sampling_radius( world_map->get_max_edge_length() );
       
-      run_monte_carlo_tests(sbastar_plan,ss,ss2,timing_output);
+      run_monte_carlo_tests(sbastar_plan, mc_query, time_ss, cost_ss, timing_output);
+      
     };
     std::cout << "Done!" << std::endl;
     
@@ -602,20 +566,13 @@ void test_planners_on_space(ReaK::shared_ptr< SpaceType > world_map,
     std::cout << "Running RRT* with Uni-dir, " << data_struct_str << std::endl;
     timing_output << "RRT*, Uni-dir, " << data_struct_str << std::endl;
     {
-      std::stringstream ss, ss2;
       
-      ReaK::pp::rrtstar_path_planner< SpaceType, ReporterType > 
-        rrtstar_plan(world_map, 
-                    world_map->get_start_pos(), 
-                    world_map->get_goal_pos(),
-                    mc_max_vertices, 
-                    mc_prog_interval,
-                    data_struct_flags,
-                    rrtstar_opt_flags,
-                    ReporterType(ss, ReaK::pp::least_cost_sbmp_report<>(ss2)),
-                    mc_results);
+      rrtstar_planner< SpaceType > rrtstar_plan(
+        world_map, mc_max_vertices, mc_prog_interval, data_struct_flags, rrtstar_opt_flags,
+        0.1, 0.05, RK_HIDIM_PLANNER_N, report_chain);
       
-      run_monte_carlo_tests(rrtstar_plan,ss,ss2,timing_output);
+      run_monte_carlo_tests(rrtstar_plan, mc_query, time_ss, cost_ss, timing_output);
+      
     };
     std::cout << "Done!" << std::endl;
     

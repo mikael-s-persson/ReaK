@@ -787,6 +787,7 @@ void CRSPlannerGUI::executePlanner() {
             r_info.manip_jt_limits, \
             plan_options.min_travel, \
             plan_options.max_travel)); \
+        std::size_t workspace_dims = 7; RK_UNUSED(workspace_dims); \
          \
         (*workspace) << r_info.robot_lab_proxy << r_info.robot_airship_proxy; \
          \
@@ -806,7 +807,13 @@ void CRSPlannerGUI::executePlanner() {
         frame_reporter_type temp_reporter( \
           ReaK::robot_airship::CRS3D_rlDK_o0_type(r_info.manip_kin_mdl, r_info.manip_jt_limits, normal_jt_space), \
           jt_space, 0.5 * plan_options.min_travel); \
-        temp_reporter.add_traced_frame(r_info.builder.arm_joint_6_end);
+        temp_reporter.add_traced_frame(r_info.builder.arm_joint_6_end); \
+         \
+        ReaK::pp::any_sbmp_reporter_chain< WORKSPACE > report_chain; \
+        report_chain.add_reporter( boost::ref(temp_reporter) ); \
+         \
+        ReaK::pp::path_planning_p2p_query< WORKSPACE > pp_query("pp_query", workspace, \
+          start_point, goal_point, plan_options.max_results);
         
 #define RK_CRS_PLANNER_GENERATE_PLANNER_IC_1(WORKSPACE) \
         typedef ReaK::pp::subspace_traits<WORKSPACE>::super_space_type SuperSpaceType; \
@@ -820,6 +827,7 @@ void CRSPlannerGUI::executePlanner() {
             r_info.manip_jt_limits, \
             plan_options.min_travel, \
             plan_options.max_travel)); \
+        std::size_t workspace_dims = 14; RK_UNUSED(workspace_dims); \
          \
         (*workspace) << r_info.robot_lab_proxy << r_info.robot_airship_proxy; \
          \
@@ -839,7 +847,13 @@ void CRSPlannerGUI::executePlanner() {
         frame_reporter_type temp_reporter( \
           ReaK::robot_airship::CRS3D_rlDK_o1_type(r_info.manip_kin_mdl, r_info.manip_jt_limits, normal_jt_space), \
           jt_space, 0.5 * plan_options.min_travel); \
-        temp_reporter.add_traced_frame(r_info.builder.arm_joint_6_end);
+        temp_reporter.add_traced_frame(r_info.builder.arm_joint_6_end); \
+         \
+        ReaK::pp::any_sbmp_reporter_chain< WORKSPACE > report_chain; \
+        report_chain.add_reporter( boost::ref(temp_reporter) ); \
+         \
+        ReaK::pp::path_planning_p2p_query< WORKSPACE > pp_query("pp_query", workspace, \
+          start_point, goal_point, plan_options.max_results);
         
 #define RK_CRS_PLANNER_GENERATE_PLANNER_IC_2(WORKSPACE) \
         typedef ReaK::pp::subspace_traits<WORKSPACE>::super_space_type SuperSpaceType; \
@@ -853,6 +867,7 @@ void CRSPlannerGUI::executePlanner() {
             r_info.manip_jt_limits, \
             plan_options.min_travel, \
             plan_options.max_travel)); \
+        std::size_t workspace_dims = 21; RK_UNUSED(workspace_dims); \
          \
         (*workspace) << r_info.robot_lab_proxy << r_info.robot_airship_proxy; \
          \
@@ -872,22 +887,27 @@ void CRSPlannerGUI::executePlanner() {
         frame_reporter_type temp_reporter( \
           ReaK::robot_airship::CRS3D_rlDK_o2_type(r_info.manip_kin_mdl, r_info.manip_jt_limits, normal_jt_space), \
           jt_space, 0.5 * plan_options.min_travel); \
-        temp_reporter.add_traced_frame(r_info.builder.arm_joint_6_end);
+        temp_reporter.add_traced_frame(r_info.builder.arm_joint_6_end); \
+         \
+        ReaK::pp::any_sbmp_reporter_chain< WORKSPACE > report_chain; \
+        report_chain.add_reporter( boost::ref(temp_reporter) ); \
+         \
+        ReaK::pp::path_planning_p2p_query< WORKSPACE > pp_query("pp_query", workspace, \
+          start_point, goal_point, plan_options.max_results);
         
 #define RK_CRS_PLANNER_GENERATE_RRT_PLANNER_CALL(WORKSPACE) \
-        ReaK::pp::rrt_path_planner<WORKSPACE, frame_reporter_type> \
-          workspace_planner( \
-            workspace, \
-            start_point, \
-            goal_point, \
-            plan_options.max_vertices, \
-            plan_options.prog_interval, \
+        ReaK::pp::rrt_planner< WORKSPACE > workspace_planner( \
+            workspace, plan_options.max_vertices, plan_options.prog_interval, \
             plan_options.store_policy | plan_options.knn_method, \
-            plan_options.planning_options, \
-            temp_reporter,  \
-            plan_options.max_results); \
+            plan_options.planning_options, 0.1, 0.05, report_chain); \
          \
-        ReaK::shared_ptr< ReaK::pp::seq_path_base< SuperSpaceType > > bestsol_rlpath = workspace_planner.solve_path(); \
+        pp_query.reset_solution_records(); \
+        workspace_planner.solve_planning_query(pp_query); \
+         \
+        ReaK::shared_ptr< ReaK::pp::seq_path_base< SuperSpaceType > > bestsol_rlpath; \
+        if(pp_query.solutions.size()) \
+          bestsol_rlpath = pp_query.solutions.begin()->second; \
+        std::cout << "The shortest distance is: " << pp_query.get_best_solution_distance() << std::endl; \
          \
         r_info.bestsol_trajectory.clear(); \
         if(bestsol_rlpath) { \
@@ -896,10 +916,10 @@ void CRSPlannerGUI::executePlanner() {
             r_info.bestsol_trajectory.push_back( get<0>(r_info.manip_jt_limits->map_to_space(*it, *jt_space, *normal_jt_space)) ); \
         }; \
          \
-        mg_sep = workspace_planner.get_reporter().get_motion_graph_tracer(r_info.builder.arm_joint_6_end).get_separator(); \
+        mg_sep = temp_reporter.get_motion_graph_tracer(r_info.builder.arm_joint_6_end).get_separator(); \
         mg_sep->ref(); \
-        for(std::size_t i = 0; i < workspace_planner.get_reporter().get_solution_count(); ++i) { \
-          sol_seps.push_back(workspace_planner.get_reporter().get_solution_tracer(r_info.builder.arm_joint_6_end, i).get_separator()); \
+        for(std::size_t i = 0; i < temp_reporter.get_solution_count(); ++i) { \
+          sol_seps.push_back(temp_reporter.get_solution_tracer(r_info.builder.arm_joint_6_end, i).get_separator()); \
           sol_seps.back()->ref(); \
         }; \
          \
@@ -913,20 +933,20 @@ void CRSPlannerGUI::executePlanner() {
         r_info.kin_chain->doMotion();
   
 #define RK_CRS_PLANNER_GENERATE_RRTSTAR_PLANNER_CALL(WORKSPACE) \
-        ReaK::pp::rrtstar_path_planner<WORKSPACE, frame_reporter_type> \
-          workspace_planner( \
-            workspace, \
-            start_point, \
-            goal_point, \
-            plan_options.max_vertices, \
-            plan_options.prog_interval, \
-            plan_options.store_policy | plan_options.knn_method, \
-            plan_options.planning_options, \
-            temp_reporter, \
-            plan_options.max_results); \
+        ReaK::pp::rrtstar_planner< WORKSPACE > workspace_planner( \
+          workspace, plan_options.max_vertices, plan_options.prog_interval, \
+          plan_options.store_policy | plan_options.knn_method, \
+          plan_options.planning_options, \
+          0.1, 0.05, workspace_dims, report_chain); \
          \
-        ReaK::shared_ptr< ReaK::pp::seq_path_base< SuperSpaceType > > bestsol_rlpath = workspace_planner.solve_path(); \
-        std::cout << "The shortest distance is: " << workspace_planner.get_best_solution_distance() << std::endl; \
+        pp_query.reset_solution_records(); \
+        workspace_planner.solve_planning_query(pp_query); \
+         \
+        ReaK::shared_ptr< ReaK::pp::seq_path_base< SuperSpaceType > > bestsol_rlpath; \
+        if(pp_query.solutions.size()) \
+          bestsol_rlpath = pp_query.solutions.begin()->second; \
+        std::cout << "The shortest distance is: " << pp_query.get_best_solution_distance() << std::endl; \
+         \
         r_info.bestsol_trajectory.clear(); \
         if(bestsol_rlpath) { \
           typedef ReaK::pp::seq_path_base< SuperSpaceType >::point_fraction_iterator PtIter; \
@@ -934,10 +954,10 @@ void CRSPlannerGUI::executePlanner() {
             r_info.bestsol_trajectory.push_back( get<0>(r_info.manip_jt_limits->map_to_space(*it, *jt_space, *normal_jt_space)) ); \
         }; \
          \
-        mg_sep = workspace_planner.get_reporter().get_motion_graph_tracer(r_info.builder.arm_joint_6_end).get_separator(); \
+        mg_sep = temp_reporter.get_motion_graph_tracer(r_info.builder.arm_joint_6_end).get_separator(); \
         mg_sep->ref(); \
-        for(std::size_t i = 0; i < workspace_planner.get_reporter().get_solution_count(); ++i) { \
-          sol_seps.push_back(workspace_planner.get_reporter().get_solution_tracer(r_info.builder.arm_joint_6_end, i).get_separator()); \
+        for(std::size_t i = 0; i < temp_reporter.get_solution_count(); ++i) { \
+          sol_seps.push_back(temp_reporter.get_solution_tracer(r_info.builder.arm_joint_6_end, i).get_separator()); \
           sol_seps.back()->ref(); \
         }; \
          \
@@ -951,18 +971,18 @@ void CRSPlannerGUI::executePlanner() {
         r_info.kin_chain->doMotion();
   
 #define RK_CRS_PLANNER_GENERATE_PRM_PLANNER_CALL(WORKSPACE) \
-        ReaK::pp::prm_path_planner<WORKSPACE, frame_reporter_type> \
-          workspace_planner( \
-            workspace, \
-            start_point, \
-            goal_point, \
-            plan_options.max_vertices, \
-            plan_options.prog_interval, \
-            plan_options.store_policy | plan_options.knn_method, \
-            temp_reporter, \
-            plan_options.max_results); \
+        ReaK::pp::prm_planner< WORKSPACE > workspace_planner( \
+          workspace, plan_options.max_vertices, plan_options.prog_interval, \
+          plan_options.store_policy | plan_options.knn_method, \
+          0.1, 0.05, plan_options.max_travel, workspace_dims, report_chain); \
          \
-        ReaK::shared_ptr< ReaK::pp::seq_path_base< SuperSpaceType > > bestsol_rlpath = workspace_planner.solve_path(); \
+        pp_query.reset_solution_records(); \
+        workspace_planner.solve_planning_query(pp_query); \
+         \
+        ReaK::shared_ptr< ReaK::pp::seq_path_base< SuperSpaceType > > bestsol_rlpath; \
+        if(pp_query.solutions.size()) \
+          bestsol_rlpath = pp_query.solutions.begin()->second; \
+        std::cout << "The shortest distance is: " << pp_query.get_best_solution_distance() << std::endl; \
          \
         r_info.bestsol_trajectory.clear(); \
         if(bestsol_rlpath) { \
@@ -971,10 +991,10 @@ void CRSPlannerGUI::executePlanner() {
             r_info.bestsol_trajectory.push_back( get<0>(r_info.manip_jt_limits->map_to_space(*it, *jt_space, *normal_jt_space)) ); \
         }; \
          \
-        mg_sep = workspace_planner.get_reporter().get_motion_graph_tracer(r_info.builder.arm_joint_6_end).get_separator(); \
+        mg_sep = temp_reporter.get_motion_graph_tracer(r_info.builder.arm_joint_6_end).get_separator(); \
         mg_sep->ref(); \
-        for(std::size_t i = 0; i < workspace_planner.get_reporter().get_solution_count(); ++i) { \
-          sol_seps.push_back(workspace_planner.get_reporter().get_solution_tracer(r_info.builder.arm_joint_6_end, i).get_separator()); \
+        for(std::size_t i = 0; i < temp_reporter.get_solution_count(); ++i) { \
+          sol_seps.push_back(temp_reporter.get_solution_tracer(r_info.builder.arm_joint_6_end, i).get_separator()); \
           sol_seps.back()->ref(); \
         }; \
          \
@@ -988,19 +1008,20 @@ void CRSPlannerGUI::executePlanner() {
         r_info.kin_chain->doMotion();
   
 #define RK_CRS_PLANNER_GENERATE_FADPRM_PLANNER_CALL(WORKSPACE) \
-        ReaK::pp::fadprm_path_planner<WORKSPACE, frame_reporter_type> \
-          workspace_planner( \
-            workspace, \
-            start_point, \
-            goal_point, \
-            plan_options.init_relax, \
-            plan_options.max_vertices, \
-            plan_options.prog_interval, \
-            plan_options.store_policy | plan_options.knn_method, \
-            temp_reporter, \
-            plan_options.max_results); \
+        ReaK::pp::fadprm_planner< WORKSPACE > workspace_planner( \
+          workspace, plan_options.max_vertices, plan_options.prog_interval, \
+          plan_options.store_policy | plan_options.knn_method, \
+          0.1, 0.05, plan_options.max_travel, workspace_dims, report_chain); \
          \
-        ReaK::shared_ptr< ReaK::pp::seq_path_base< SuperSpaceType > > bestsol_rlpath = workspace_planner.solve_path(); \
+        workspace_planner.set_initial_relaxation(plan_options.init_relax); \
+         \
+        pp_query.reset_solution_records(); \
+        workspace_planner.solve_planning_query(pp_query); \
+         \
+        ReaK::shared_ptr< ReaK::pp::seq_path_base< SuperSpaceType > > bestsol_rlpath; \
+        if(pp_query.solutions.size()) \
+          bestsol_rlpath = pp_query.solutions.begin()->second; \
+        std::cout << "The shortest distance is: " << pp_query.get_best_solution_distance() << std::endl; \
          \
         r_info.bestsol_trajectory.clear(); \
         if(bestsol_rlpath) { \
@@ -1009,10 +1030,10 @@ void CRSPlannerGUI::executePlanner() {
             r_info.bestsol_trajectory.push_back( get<0>(r_info.manip_jt_limits->map_to_space(*it, *jt_space, *normal_jt_space)) ); \
         }; \
          \
-        mg_sep = workspace_planner.get_reporter().get_motion_graph_tracer(r_info.builder.arm_joint_6_end).get_separator(); \
+        mg_sep = temp_reporter.get_motion_graph_tracer(r_info.builder.arm_joint_6_end).get_separator(); \
         mg_sep->ref(); \
-        for(std::size_t i = 0; i < workspace_planner.get_reporter().get_solution_count(); ++i) { \
-          sol_seps.push_back(workspace_planner.get_reporter().get_solution_tracer(r_info.builder.arm_joint_6_end, i).get_separator()); \
+        for(std::size_t i = 0; i < temp_reporter.get_solution_count(); ++i) { \
+          sol_seps.push_back(temp_reporter.get_solution_tracer(r_info.builder.arm_joint_6_end, i).get_separator()); \
           sol_seps.back()->ref(); \
         }; \
          \
@@ -1026,26 +1047,24 @@ void CRSPlannerGUI::executePlanner() {
         r_info.kin_chain->doMotion();
   
 #define RK_CRS_PLANNER_GENERATE_SBASTAR_PLANNER_CALL(WORKSPACE) \
-        ReaK::pp::sbastar_path_planner<WORKSPACE, frame_reporter_type> \
-          workspace_planner( \
-            workspace, \
-            start_point, \
-            goal_point, \
-            plan_options.max_vertices, \
-            plan_options.prog_interval, \
-            plan_options.store_policy | plan_options.knn_method, \
-            plan_options.planning_options, \
-            temp_reporter, \
-            plan_options.max_results); \
+        ReaK::pp::sbastar_planner< WORKSPACE > workspace_planner( \
+          workspace, plan_options.max_vertices, plan_options.prog_interval, \
+          plan_options.store_policy | plan_options.knn_method, \
+          plan_options.planning_options, \
+          0.1, 0.05, plan_options.max_travel, workspace_dims, report_chain); \
          \
-        workspace_planner.set_initial_key_threshold(0.02); \
         workspace_planner.set_initial_density_threshold(0.0); \
         workspace_planner.set_initial_relaxation(plan_options.init_relax); \
         workspace_planner.set_initial_SA_temperature(plan_options.init_SA_temp); \
-        workspace_planner.set_sampling_radius( plan_options.max_travel ); \
          \
-        ReaK::shared_ptr< ReaK::pp::seq_path_base< SuperSpaceType > > bestsol_rlpath = workspace_planner.solve_path(); \
-        std::cout << "The shortest distance is: " << workspace_planner.get_best_solution_distance() << std::endl; \
+        pp_query.reset_solution_records(); \
+        workspace_planner.solve_planning_query(pp_query); \
+         \
+        ReaK::shared_ptr< ReaK::pp::seq_path_base< SuperSpaceType > > bestsol_rlpath; \
+        if(pp_query.solutions.size()) \
+          bestsol_rlpath = pp_query.solutions.begin()->second; \
+        std::cout << "The shortest distance is: " << pp_query.get_best_solution_distance() << std::endl; \
+         \
         r_info.bestsol_trajectory.clear(); \
         if(bestsol_rlpath) { \
           typedef ReaK::pp::seq_path_base< SuperSpaceType >::point_fraction_iterator PtIter; \
@@ -1053,10 +1072,10 @@ void CRSPlannerGUI::executePlanner() {
             r_info.bestsol_trajectory.push_back( get<0>(r_info.manip_jt_limits->map_to_space(*it, *jt_space, *normal_jt_space)) ); \
         }; \
          \
-        mg_sep = workspace_planner.get_reporter().get_motion_graph_tracer(r_info.builder.arm_joint_6_end).get_separator(); \
+        mg_sep = temp_reporter.get_motion_graph_tracer(r_info.builder.arm_joint_6_end).get_separator(); \
         mg_sep->ref(); \
-        for(std::size_t i = 0; i < workspace_planner.get_reporter().get_solution_count(); ++i) { \
-          sol_seps.push_back(workspace_planner.get_reporter().get_solution_tracer(r_info.builder.arm_joint_6_end, i).get_separator()); \
+        for(std::size_t i = 0; i < temp_reporter.get_solution_count(); ++i) { \
+          sol_seps.push_back(temp_reporter.get_solution_tracer(r_info.builder.arm_joint_6_end, i).get_separator()); \
           sol_seps.back()->ref(); \
         }; \
          \

@@ -245,24 +245,29 @@ void keyboard_press_hdl(void* userData, SoEventCallback* eventCB) {
       0.05);
     temp_reporter.add_traced_frame(r_info->builder.arm_joint_6_end);
     
-    ReaK::pp::rrtstar_path_planner<workspace_type, frame_reporter_type>
-      workspace_planner(
-        workspace,
-        start_point,
-        goal_point,
-        3000,
-        1000,
-        ReaK::pp::ADJ_LIST_MOTION_GRAPH | ReaK::pp::DVP_BF2_TREE_KNN,
-        ReaK::pp::UNIDIRECTIONAL_PLANNING,
-        temp_reporter,
-        100);
+    ReaK::pp::any_sbmp_reporter_chain< workspace_type > report_chain;
+    report_chain.add_reporter( boost::ref(temp_reporter) );
     
-    workspace_planner.solve_path();
+    ReaK::pp::path_planning_p2p_query< workspace_type > pp_query(
+      "pp_query",
+      workspace,
+      start_point,
+      goal_point,
+      100);
     
-    r_info->solution_seps.push_back(workspace_planner.get_reporter().get_motion_graph_tracer(r_info->builder.arm_joint_6_end).get_separator());
+    ReaK::pp::rrtstar_planner< workspace_type > workspace_planner(
+      world_map, 3000, 1000, 
+      ReaK::pp::ADJ_LIST_MOTION_GRAPH | ReaK::pp::DVP_BF2_TREE_KNN, 
+      ReaK::pp::UNIDIRECTIONAL_PLANNING,
+      0.1, 0.05, 14, report_chain);
+    
+    pp_query.reset_solution_records();
+    workspace_planner.solve_planning_query(pp_query);
+    
+    r_info->solution_seps.push_back(temp_reporter.get_motion_graph_tracer(r_info->builder.arm_joint_6_end).get_separator());
     r_info->solution_seps.back()->ref();
-    if(workspace_planner.get_reporter().get_solution_count()) {
-      r_info->solution_seps.push_back(workspace_planner.get_reporter().get_solution_tracer(r_info->builder.arm_joint_6_end).get_separator());
+    if(temp_reporter.get_solution_count()) {
+      r_info->solution_seps.push_back(temp_reporter.get_solution_tracer(r_info->builder.arm_joint_6_end).get_separator());
       r_info->solution_seps.back()->ref();
     };
     SoIdleSensor* ask_for_new_solsep = new SoIdleSensor(add_new_solution_sep, r_info);

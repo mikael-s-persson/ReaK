@@ -41,7 +41,7 @@
 
 #ifdef RK_ENABLE_CXX0X_FEATURES
 
-#if (BOOST_VERSION < 105300)
+#if (defined(__clang__) || (BOOST_VERSION < 105300))
 
 namespace std {
   

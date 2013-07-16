@@ -41,12 +41,9 @@
 #include "base/named_object.hpp"
 
 #include "motion_planner_base.hpp"
-#include "sbmp_reporter_concept.hpp"
 
 #include "metric_space_concept.hpp"
-#include "seq_path_wrapper.hpp"
-#include "interpolation/point_to_point_path.hpp"
-#include "basic_sbmp_reporters.hpp"
+#include "any_sbmp_reporter.hpp"
 
 #include "graph_alg/fadprm.hpp"
 
@@ -57,9 +54,13 @@
 #include "dvp_layout_adjacency_list.hpp"
 #include "metric_space_search.hpp"
 #include "topological_search.hpp"
+
 #include "path_planner_options.hpp"
 #include "graph_alg/neighborhood_functors.hpp"
-#include "lin_alg/arithmetic_tuple.hpp"
+#include "any_motion_graphs.hpp"
+#include "planning_visitors.hpp"
+#include "any_knn_synchro.hpp"
+#include "density_plan_visitors.hpp"
 
 #include "base/misc_math.hpp"
 
@@ -69,42 +70,6 @@ namespace ReaK {
   
 namespace pp {
   
-  
-
-/**
- * This POD type contains the data required on a per-vertex basis for the FADPRM path-planning algorithm.
- * \tparam FreeSpaceType The topology type on which to perform the planning, should be the C-free sub-space of a larger configuration space.
- */
-template <typename FreeSpaceType>
-struct fadprm_vertex_data {
-  /// The position associated to the vertex.
-  typename topology_traits<FreeSpaceType>::point_type position;  //for PRM
-  /// The density associated to the vertex.
-  double density;                                                //for PRM
-  /// The heuristic-value associated to the vertex, i.e., the bird-flight distance to the goal.
-  double heuristic_value;                      //for A*
-  /// The travel-distance accumulated in the vertex, i.e., the travel-distance from the start vertex to this vertex.
-  double distance_accum;                       //for A*
-  /// The rhs-value associated to the vertex, computed by the FADPRM algorithm.
-  double astar_rhs_value;                      //for A*
-  /// The A* key-value associated to the vertex, computed by the FADPRM algorithm.
-  graph::adstar_key_value< double > astar_key_value;  //for A*
-  /// The color-value associated to the vertex, computed by the FADPRM algorithm.
-  boost::default_color_type astar_color;       //for A*
-  /// The predecessor associated to the vertex, i.e., following the predecessor links starting at the goal node yields a backward trace of the optimal path.
-  std::size_t predecessor;                     //for A*
-  
-  /**
-   * Default constructor.
-   */
-  fadprm_vertex_data() : position(typename topology_traits<FreeSpaceType>::point_type()),
-                         density(0.0), heuristic_value(0.0), 
-                         distance_accum(0.0), astar_rhs_value(0.0), astar_key_value(0.0, 0.0),
-                         astar_color(), predecessor(0) { };
-};
-
-
-
 
 /**
  * This class solves path planning problems using the 
@@ -257,11 +222,13 @@ void fadprm_planner<FreeSpaceType>::solve_planning_query(planning_query<FreeSpac
   typedef dense_mg_vertex< astar_mg_vertex<FreeSpaceType> > VertexProp;
   typedef optimal_mg_edge<FreeSpaceType> EdgeProp;
   
-  typedef boost::data_member_property_map<PointType, fadprm_vertex_data<FreeSpaceType> > PositionMap;
-  PositionMap pos_map = PositionMap(&fadprm_vertex_data<FreeSpaceType>::position);
+  typedef mg_vertex_data<FreeSpaceType> BasicVertexProp;
   
-  //typedef boost::data_member_property_map<double, fadprm_vertex_data<FreeSpaceType> > DensityMap;
-  //DensityMap dens_map = DensityMap(&fadprm_vertex_data<FreeSpaceType>::density);
+  typedef boost::data_member_property_map<PointType, VertexProp > PositionMap;
+  PositionMap pos_map = PositionMap(&VertexProp::position);
+  
+  //typedef boost::data_member_property_map<double, VertexProp > DensityMap;
+  //DensityMap dens_map = DensityMap(&VertexProp::density);
   
   double space_dim = double( this->get_space_dimensionality() );
   double space_Lc = aQuery.get_heuristic_to_goal( aQuery.get_start_position() );
@@ -322,9 +289,9 @@ void fadprm_planner<FreeSpaceType>::solve_planning_query(planning_query<FreeSpac
   
   
 #define RK_FADPRM_PLANNER_SETUP_DVP_TREE_SYNCHRO(ARITY, TREE_STORAGE) \
-  typedef typename boost::property_map< MotionGraphType, PointType VertexProp::* >::type GraphPositionMap; \
+  typedef typename boost::property_map< MotionGraphType, PointType BasicVertexProp::* >::type GraphPositionMap; \
   typedef dvp_tree<Vertex, SuperSpace, GraphPositionMap, ARITY, random_vp_chooser, TREE_STORAGE > SpacePartType; \
-  SpacePartType space_part(motion_graph, sup_space_ptr, get(&VertexProp::position, motion_graph)); \
+  SpacePartType space_part(motion_graph, sup_space_ptr, get(&BasicVertexProp::position, motion_graph)); \
     \
   typedef multi_dvp_tree_search<MotionGraphType, SpacePartType> NNFinderType; \
   NNFinderType nn_finder; \
@@ -361,9 +328,9 @@ void fadprm_planner<FreeSpaceType>::solve_planning_query(planning_query<FreeSpac
 //   ReaK::graph::fixed_neighborhood< NNFinderType > nc_selector(nn_finder, 10, this->get_sampling_radius());
   
   
-#define RK_FADPRM_MAKE_GENERATE_CALL_FADPRM_FUNCTION \
+#define RK_FADPRM_PLANNER_MAKE_GENERATE_CALL_FADPRM_FUNCTION \
   ReaK::graph::generate_fadprm( \
-    motion_graph, goal_node, *(this->m_space), \
+    motion_graph, start_node, *(this->m_space), \
     get(&VertexProp::heuristic_value, motion_graph),  \
     vis, \
     get(&VertexProp::predecessor, motion_graph),  \

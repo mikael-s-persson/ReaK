@@ -59,6 +59,9 @@ namespace pp {
  * and reports nothing.
  */
 struct no_sbmp_report : public shared_object {
+  
+  void reset_internal_state() { };
+  
   /**
    * Draws the entire motion-graph.
    * \tparam FreeSpaceType The C-free topology type.
@@ -137,6 +140,13 @@ struct differ_sbmp_report_to_space : public shared_object {
                                        file_path(aFilePath),
                                        progress_count(0),
                                        solution_count(0) { };
+  
+  void reset_internal_state() { 
+    progress_count = 0;
+    solution_count = 0;
+    
+    next_reporter.reset_internal_state();
+  };
   
   /**
    * Draws the entire motion-graph.
@@ -321,6 +331,12 @@ struct timing_sbmp_report : public shared_object {
                               last_time(boost::posix_time::microsec_clock::local_time()),
                               p_out(&aOutStream) { };
   
+  void reset_internal_state() {
+    last_time = boost::posix_time::microsec_clock::local_time();
+    
+    next_reporter.reset_internal_state();
+  };
+  
   /**
    * Draws the entire motion-graph.
    * \tparam FreeSpaceType The C-free topology type.
@@ -400,6 +416,10 @@ struct print_sbmp_progress : public shared_object {
   
   explicit print_sbmp_progress(NextReporter aNextReporter = NextReporter()) : 
                                next_reporter(aNextReporter) { };
+  
+  void reset_internal_state() { 
+    next_reporter.reset_internal_state();
+  };
   
   /**
    * Draws the entire motion-graph.
@@ -486,6 +506,12 @@ struct least_cost_sbmp_report : public shared_object {
                                   next_reporter(aNextReporter),
                                   p_out(&aOutStream),
                                   current_best(1e10) { };
+  
+  void reset_internal_state() { 
+    current_best = 1e10;
+    
+    next_reporter.reset_internal_state();
+  };
   
   /**
    * Draws the entire motion-graph.

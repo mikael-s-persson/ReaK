@@ -380,7 +380,7 @@ struct branch_and_bound_connector {
     Q.push(v);
     
     node_connector.connect_successors(v, x_near, g, super_space, conn_vis, position, distance, predecessor, weight, Succ);
-    update_successors(v, g, conn_vis, position, distance, predecessor, weight);
+    update_successors(v, g, super_space, conn_vis, position, distance, predecessor, weight);
     
   };
   

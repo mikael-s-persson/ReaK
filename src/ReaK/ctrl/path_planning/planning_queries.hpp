@@ -307,7 +307,7 @@ namespace detail {
   template <typename FreeSpaceType>
   typename boost::enable_if< is_steerable_space< FreeSpaceType >,
   shared_ptr< seq_path_base< typename subspace_traits<FreeSpaceType>::super_space_type > > >::type 
-    register_basic_solution_path_impl(const FreeSpaceType& space, 
+    register_basic_solution_path_impl(FreeSpaceType& space, 
                                       const graph::any_graph& g, 
                                       graph::any_graph::vertex_descriptor start_node, 
                                       graph::any_graph::vertex_descriptor goal_node,
@@ -324,8 +324,8 @@ namespace detail {
     
     shared_ptr< super_space_type > sup_space_ptr(&(space.get_super_space()),null_deleter());
     
-    graph::any_graph::property_map_by_ptr< const point_type >      position     = get<const point_type&>("vertex_position", g);
-    graph::any_graph::property_map_by_ptr< const SteerRecordType > steer_record = get<const SteerRecordType&>("edge_steer_record", g);
+    graph::any_graph::property_map_by_ptr< const point_type >      position     = graph::get_dyn_prop<const point_type&>("vertex_position", g);
+    graph::any_graph::property_map_by_ptr< const SteerRecordType > steer_record = graph::get_dyn_prop<const SteerRecordType&>("edge_steer_record", g);
     
     double solutions_total_dist = goal_distance;
     
@@ -363,7 +363,7 @@ namespace detail {
   template <typename FreeSpaceType>
   typename boost::disable_if< is_steerable_space< FreeSpaceType >,
   shared_ptr< seq_path_base< typename subspace_traits<FreeSpaceType>::super_space_type > > >::type 
-    register_basic_solution_path_impl(const FreeSpaceType& space, 
+    register_basic_solution_path_impl(FreeSpaceType& space, 
                                       const graph::any_graph& g, 
                                       graph::any_graph::vertex_descriptor start_node, 
                                       graph::any_graph::vertex_descriptor goal_node,
@@ -377,7 +377,7 @@ namespace detail {
     
     shared_ptr< super_space_type > sup_space_ptr(&(space.get_super_space()),null_deleter());
     
-    graph::any_graph::property_map_by_ptr< const point_type > position = get<const point_type&>("vertex_position", g);
+    graph::any_graph::property_map_by_ptr< const point_type > position = graph::get_dyn_prop<const point_type&>("vertex_position", g);
     
     double solutions_total_dist = goal_distance;
     
@@ -409,7 +409,7 @@ namespace detail {
   template <typename FreeSpaceType>
   typename boost::enable_if< is_steerable_space< FreeSpaceType >,
   shared_ptr< seq_path_base< typename subspace_traits<FreeSpaceType>::super_space_type > > >::type 
-    register_optimal_solution_path_impl(const FreeSpaceType& space, 
+    register_optimal_solution_path_impl(FreeSpaceType& space, 
                                         const graph::any_graph& g, 
                                         graph::any_graph::vertex_descriptor start_node, 
                                         graph::any_graph::vertex_descriptor goal_node,
@@ -426,10 +426,10 @@ namespace detail {
     
     shared_ptr< super_space_type > sup_space_ptr(&(space.get_super_space()),null_deleter());
     
-    graph::any_graph::property_map_by_ptr< const point_type >      position       = get<const point_type&>("vertex_position", g);
-    graph::any_graph::property_map_by_ptr< const std::size_t >     predecessor    = get<const std::size_t&>("vertex_predecessor", g);
-    graph::any_graph::property_map_by_ptr< const double >          distance_accum = get<const double&>("vertex_distance_accum", g);
-    graph::any_graph::property_map_by_ptr< const SteerRecordType > steer_record   = get<const SteerRecordType&>("edge_steer_record", g);
+    graph::any_graph::property_map_by_ptr< const point_type >      position       = graph::get_dyn_prop<const point_type&>("vertex_position", g);
+    graph::any_graph::property_map_by_ptr< const std::size_t >     predecessor    = graph::get_dyn_prop<const std::size_t&>("vertex_predecessor", g);
+    graph::any_graph::property_map_by_ptr< const double >          distance_accum = graph::get_dyn_prop<const double&>("vertex_distance_accum", g);
+    graph::any_graph::property_map_by_ptr< const SteerRecordType > steer_record   = graph::get_dyn_prop<const SteerRecordType&>("edge_steer_record", g);
     
     double solutions_total_dist = distance_accum[goal_node] + goal_distance;
     
@@ -475,7 +475,7 @@ namespace detail {
   template <typename FreeSpaceType>
   typename boost::disable_if< is_steerable_space< FreeSpaceType >,
   shared_ptr< seq_path_base< typename subspace_traits<FreeSpaceType>::super_space_type > > >::type 
-    register_optimal_solution_path_impl(const FreeSpaceType& space, 
+    register_optimal_solution_path_impl(FreeSpaceType& space, 
                                         const graph::any_graph& g, 
                                         graph::any_graph::vertex_descriptor start_node, 
                                         graph::any_graph::vertex_descriptor goal_node,
@@ -489,9 +489,9 @@ namespace detail {
     
     shared_ptr< super_space_type > sup_space_ptr(&(space.get_super_space()),null_deleter());
     
-    graph::any_graph::property_map_by_ptr< const point_type >  position       = get<const point_type&>("vertex_position", g);
-    graph::any_graph::property_map_by_ptr< const std::size_t > predecessor    = get<const std::size_t&>("vertex_predecessor", g);
-    graph::any_graph::property_map_by_ptr< const double >      distance_accum = get<const double&>("vertex_distance_accum", g);
+    graph::any_graph::property_map_by_ptr< const point_type >  position       = graph::get_dyn_prop<const point_type&>("vertex_position", g);
+    graph::any_graph::property_map_by_ptr< const std::size_t > predecessor    = graph::get_dyn_prop<const std::size_t&>("vertex_predecessor", g);
+    graph::any_graph::property_map_by_ptr< const double >      distance_accum = graph::get_dyn_prop<const double&>("vertex_distance_accum", g);
     
     double solutions_total_dist = distance_accum[goal_node] + goal_distance;
     
@@ -529,7 +529,7 @@ namespace detail {
   template <typename FreeSpaceType>
   typename boost::enable_if< is_steerable_space< FreeSpaceType >,
   shared_ptr< seq_path_base< typename subspace_traits<FreeSpaceType>::super_space_type > > >::type 
-    register_basic_solution_path_impl(const FreeSpaceType& space, 
+    register_basic_solution_path_impl(FreeSpaceType& space, 
                                       const graph::any_graph& g1, 
                                       const graph::any_graph& g2, 
                                       graph::any_graph::vertex_descriptor start_node, 
@@ -548,10 +548,10 @@ namespace detail {
     
     shared_ptr< super_space_type > sup_space_ptr(&(space.get_super_space()),null_deleter());
     
-    graph::any_graph::property_map_by_ptr< const point_type >      position1     = get<const point_type&>("vertex_position", g1);
-    graph::any_graph::property_map_by_ptr< const SteerRecordType > steer_record1 = get<const SteerRecordType&>("edge_steer_record", g1);
-    graph::any_graph::property_map_by_ptr< const point_type >      position2     = get<const point_type&>("vertex_position", g2);
-    graph::any_graph::property_map_by_ptr< const SteerRecordType > steer_record2 = get<const SteerRecordType&>("edge_steer_record", g2);
+    graph::any_graph::property_map_by_ptr< const point_type >      position1     = graph::get_dyn_prop<const point_type&>("vertex_position", g1);
+    graph::any_graph::property_map_by_ptr< const SteerRecordType > steer_record1 = graph::get_dyn_prop<const SteerRecordType&>("edge_steer_record", g1);
+    graph::any_graph::property_map_by_ptr< const point_type >      position2     = graph::get_dyn_prop<const point_type&>("vertex_position", g2);
+    graph::any_graph::property_map_by_ptr< const SteerRecordType > steer_record2 = graph::get_dyn_prop<const SteerRecordType&>("edge_steer_record", g2);
     
     double solutions_total_dist = joining_distance;
     
@@ -604,7 +604,7 @@ namespace detail {
   template <typename FreeSpaceType>
   typename boost::disable_if< is_steerable_space< FreeSpaceType >,
   shared_ptr< seq_path_base< typename subspace_traits<FreeSpaceType>::super_space_type > > >::type 
-    register_basic_solution_path_impl(const FreeSpaceType& space, 
+    register_basic_solution_path_impl(FreeSpaceType& space, 
                                       const graph::any_graph& g1, 
                                       const graph::any_graph& g2, 
                                       graph::any_graph::vertex_descriptor start_node, 
@@ -620,8 +620,8 @@ namespace detail {
     
     shared_ptr< super_space_type > sup_space_ptr(&(space.get_super_space()),null_deleter());
     
-    graph::any_graph::property_map_by_ptr< const point_type > position1 = get<const point_type&>("vertex_position", g1);
-    graph::any_graph::property_map_by_ptr< const point_type > position2 = get<const point_type&>("vertex_position", g2);
+    graph::any_graph::property_map_by_ptr< const point_type > position1 = graph::get_dyn_prop<const point_type&>("vertex_position", g1);
+    graph::any_graph::property_map_by_ptr< const point_type > position2 = graph::get_dyn_prop<const point_type&>("vertex_position", g2);
     
     double solutions_total_dist = joining_distance;
     
@@ -661,7 +661,7 @@ namespace detail {
   template <typename FreeSpaceType>
   typename boost::enable_if< is_steerable_space< FreeSpaceType >,
   shared_ptr< seq_path_base< typename subspace_traits<FreeSpaceType>::super_space_type > > >::type 
-    register_optimal_solution_path_impl(const FreeSpaceType& space, 
+    register_optimal_solution_path_impl(FreeSpaceType& space, 
                                         const graph::any_graph& g1, 
                                         const graph::any_graph& g2, 
                                         graph::any_graph::vertex_descriptor start_node, 
@@ -680,14 +680,14 @@ namespace detail {
     
     shared_ptr< super_space_type > sup_space_ptr(&(space.get_super_space()),null_deleter());
     
-    graph::any_graph::property_map_by_ptr< const point_type >      position1       = get<const point_type&>("vertex_position", g1);
-    graph::any_graph::property_map_by_ptr< const std::size_t >     predecessor1    = get<const std::size_t&>("vertex_predecessor", g1);
-    graph::any_graph::property_map_by_ptr< const double >          distance_accum1 = get<const double&>("vertex_distance_accum", g1);
-    graph::any_graph::property_map_by_ptr< const SteerRecordType > steer_record1   = get<const SteerRecordType&>("edge_steer_record", g1);
-    graph::any_graph::property_map_by_ptr< const point_type >      position2       = get<const point_type&>("vertex_position", g2);
-    graph::any_graph::property_map_by_ptr< const std::size_t >     predecessor2    = get<const std::size_t&>("vertex_predecessor", g2);
-    graph::any_graph::property_map_by_ptr< const double >          distance_accum2 = get<const double&>("vertex_distance_accum", g2);
-    graph::any_graph::property_map_by_ptr< const SteerRecordType > steer_record2   = get<const SteerRecordType&>("edge_steer_record", g2);
+    graph::any_graph::property_map_by_ptr< const point_type >      position1       = graph::get_dyn_prop<const point_type&>("vertex_position", g1);
+    graph::any_graph::property_map_by_ptr< const std::size_t >     predecessor1    = graph::get_dyn_prop<const std::size_t&>("vertex_predecessor", g1);
+    graph::any_graph::property_map_by_ptr< const double >          distance_accum1 = graph::get_dyn_prop<const double&>("vertex_distance_accum", g1);
+    graph::any_graph::property_map_by_ptr< const SteerRecordType > steer_record1   = graph::get_dyn_prop<const SteerRecordType&>("edge_steer_record", g1);
+    graph::any_graph::property_map_by_ptr< const point_type >      position2       = graph::get_dyn_prop<const point_type&>("vertex_position", g2);
+    graph::any_graph::property_map_by_ptr< const std::size_t >     predecessor2    = graph::get_dyn_prop<const std::size_t&>("vertex_predecessor", g2);
+    graph::any_graph::property_map_by_ptr< const double >          distance_accum2 = graph::get_dyn_prop<const double&>("vertex_distance_accum", g2);
+    graph::any_graph::property_map_by_ptr< const SteerRecordType > steer_record2   = graph::get_dyn_prop<const SteerRecordType&>("edge_steer_record", g2);
     
     double solutions_total_dist = distance_accum1[join1_node] + distance_accum2[join2_node] + joining_distance;
     
@@ -748,7 +748,7 @@ namespace detail {
   template <typename FreeSpaceType>
   typename boost::disable_if< is_steerable_space< FreeSpaceType >,
   shared_ptr< seq_path_base< typename subspace_traits<FreeSpaceType>::super_space_type > > >::type 
-    register_optimal_solution_path_impl(const FreeSpaceType& space, 
+    register_optimal_solution_path_impl(FreeSpaceType& space, 
                                         const graph::any_graph& g1, 
                                         const graph::any_graph& g2, 
                                         graph::any_graph::vertex_descriptor start_node, 
@@ -764,12 +764,12 @@ namespace detail {
     
     shared_ptr< super_space_type > sup_space_ptr(&(space.get_super_space()),null_deleter());
     
-    graph::any_graph::property_map_by_ptr< const point_type >  position1       = get<const point_type&>("vertex_position", g1);
-    graph::any_graph::property_map_by_ptr< const std::size_t > predecessor1    = get<const std::size_t&>("vertex_predecessor", g1);
-    graph::any_graph::property_map_by_ptr< const double >      distance_accum1 = get<const double&>("vertex_distance_accum", g1);
-    graph::any_graph::property_map_by_ptr< const point_type >  position2       = get<const point_type&>("vertex_position", g2);
-    graph::any_graph::property_map_by_ptr< const std::size_t > predecessor2    = get<const std::size_t&>("vertex_predecessor", g2);
-    graph::any_graph::property_map_by_ptr< const double >      distance_accum2 = get<const double&>("vertex_distance_accum", g2);
+    graph::any_graph::property_map_by_ptr< const point_type >  position1       = graph::get_dyn_prop<const point_type&>("vertex_position", g1);
+    graph::any_graph::property_map_by_ptr< const std::size_t > predecessor1    = graph::get_dyn_prop<const std::size_t&>("vertex_predecessor", g1);
+    graph::any_graph::property_map_by_ptr< const double >      distance_accum1 = graph::get_dyn_prop<const double&>("vertex_distance_accum", g1);
+    graph::any_graph::property_map_by_ptr< const point_type >  position2       = graph::get_dyn_prop<const point_type&>("vertex_position", g2);
+    graph::any_graph::property_map_by_ptr< const std::size_t > predecessor2    = graph::get_dyn_prop<const std::size_t&>("vertex_predecessor", g2);
+    graph::any_graph::property_map_by_ptr< const double >      distance_accum2 = graph::get_dyn_prop<const double&>("vertex_distance_accum", g2);
     
     double solutions_total_dist = distance_accum1[join1_node] + distance_accum2[join2_node] + joining_distance;
     

@@ -95,6 +95,7 @@ struct SBPPReporterConcept {
   
   BOOST_CONCEPT_USAGE(SBPPReporterConcept) 
   {
+    reporter.reset_internal_state();
     reporter.draw_motion_graph(free_space, g, pos_map);
     reporter.draw_solution(free_space, path);
   };
@@ -145,6 +146,7 @@ struct SBMPReporterConcept {
   
   BOOST_CONCEPT_USAGE(SBMPReporterConcept) 
   {
+    reporter.reset_internal_state();
     reporter.draw_motion_graph(free_space, g, pos_map);
     reporter.draw_solution(free_space, traj);
   };

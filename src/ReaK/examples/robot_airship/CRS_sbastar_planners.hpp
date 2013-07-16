@@ -44,21 +44,21 @@ namespace ReaK {
   
 namespace robot_airship {
   
-//typedef pp::sbastar_path_planner<WORKSPACE, FRAME_REPORTER> CRS3D_prm_o0_i1_traced_type;
+//typedef pp::sbastar_planner<WORKSPACE> CRS3D_sbastar_o0_i1_type;
 
-typedef pp::sbastar_path_planner<CRS3D_workspace_o0_i1_type, CRS3D_rl_o0_tracer> CRS3D_sbastar_o0_i1_traced_type;
-typedef pp::sbastar_path_planner<CRS3D_workspace_o1_i1_type, CRS3D_rl_o1_tracer> CRS3D_sbastar_o1_i1_traced_type;
-typedef pp::sbastar_path_planner<CRS3D_workspace_o2_i1_type, CRS3D_rl_o2_tracer> CRS3D_sbastar_o2_i1_traced_type;
+typedef pp::sbastar_planner<CRS3D_workspace_o0_i1_type> CRS3D_sbastar_o0_i1_type;
+typedef pp::sbastar_planner<CRS3D_workspace_o1_i1_type> CRS3D_sbastar_o1_i1_type;
+typedef pp::sbastar_planner<CRS3D_workspace_o2_i1_type> CRS3D_sbastar_o2_i1_type;
 
-typedef pp::sbastar_path_planner<CRS3D_workspace_o1_i3_type, CRS3D_rl_o1_tracer> CRS3D_sbastar_o1_i3_traced_type;
-typedef pp::sbastar_path_planner<CRS3D_workspace_o2_i3_type, CRS3D_rl_o2_tracer> CRS3D_sbastar_o2_i3_traced_type;
+typedef pp::sbastar_planner<CRS3D_workspace_o1_i3_type> CRS3D_sbastar_o1_i3_type;
+typedef pp::sbastar_planner<CRS3D_workspace_o2_i3_type> CRS3D_sbastar_o2_i3_type;
 
-typedef pp::sbastar_path_planner<CRS3D_workspace_o2_i5_type, CRS3D_rl_o2_tracer> CRS3D_sbastar_o2_i5_traced_type;
+typedef pp::sbastar_planner<CRS3D_workspace_o2_i5_type> CRS3D_sbastar_o2_i5_type;
 
-typedef pp::sbastar_path_planner<CRS3D_workspace_o1_svp_type, CRS3D_rl_o1_tracer> CRS3D_sbastar_o1_svp_traced_type;
-typedef pp::sbastar_path_planner<CRS3D_workspace_o2_svp_type, CRS3D_rl_o2_tracer> CRS3D_sbastar_o2_svp_traced_type;
+typedef pp::sbastar_planner<CRS3D_workspace_o1_svp_type> CRS3D_sbastar_o1_svp_type;
+typedef pp::sbastar_planner<CRS3D_workspace_o2_svp_type> CRS3D_sbastar_o2_svp_type;
 
-typedef pp::sbastar_path_planner<CRS3D_workspace_o2_sap_type, CRS3D_rl_o2_tracer> CRS3D_sbastar_o2_sap_traced_type;
+typedef pp::sbastar_planner<CRS3D_workspace_o2_sap_type> CRS3D_sbastar_o2_sap_type;
 
 
 };
@@ -69,21 +69,21 @@ namespace pp {
 
 #if (defined(RK_ENABLE_CXX11_FEATURES) && defined(RK_ENABLE_EXTERN_TEMPLATES))
 
-//extern template class sbastar_path_planner<WORKSPACE, FRAME_REPORTER>;
+//extern template class sbastar_planner<WORKSPACE>;
 
-extern template class sbastar_path_planner<robot_airship::CRS3D_workspace_o0_i1_type, robot_airship::CRS3D_rl_o0_tracer>;
-extern template class sbastar_path_planner<robot_airship::CRS3D_workspace_o1_i1_type, robot_airship::CRS3D_rl_o1_tracer>;
-extern template class sbastar_path_planner<robot_airship::CRS3D_workspace_o2_i1_type, robot_airship::CRS3D_rl_o2_tracer>;
+extern template class sbastar_planner<robot_airship::CRS3D_workspace_o0_i1_type>;
+extern template class sbastar_planner<robot_airship::CRS3D_workspace_o1_i1_type>;
+extern template class sbastar_planner<robot_airship::CRS3D_workspace_o2_i1_type>;
 
-extern template class sbastar_path_planner<robot_airship::CRS3D_workspace_o1_i3_type, robot_airship::CRS3D_rl_o1_tracer>;
-extern template class sbastar_path_planner<robot_airship::CRS3D_workspace_o2_i3_type, robot_airship::CRS3D_rl_o2_tracer>;
+extern template class sbastar_planner<robot_airship::CRS3D_workspace_o1_i3_type>;
+extern template class sbastar_planner<robot_airship::CRS3D_workspace_o2_i3_type>;
 
-extern template class sbastar_path_planner<robot_airship::CRS3D_workspace_o2_i5_type, robot_airship::CRS3D_rl_o2_tracer>;
+extern template class sbastar_planner<robot_airship::CRS3D_workspace_o2_i5_type>;
 
-extern template class sbastar_path_planner<robot_airship::CRS3D_workspace_o1_svp_type, robot_airship::CRS3D_rl_o1_tracer>;
-extern template class sbastar_path_planner<robot_airship::CRS3D_workspace_o2_svp_type, robot_airship::CRS3D_rl_o2_tracer>;
+extern template class sbastar_planner<robot_airship::CRS3D_workspace_o1_svp_type>;
+extern template class sbastar_planner<robot_airship::CRS3D_workspace_o2_svp_type>;
 
-extern template class sbastar_path_planner<robot_airship::CRS3D_workspace_o2_sap_type, robot_airship::CRS3D_rl_o2_tracer>;
+extern template class sbastar_planner<robot_airship::CRS3D_workspace_o2_sap_type>;
 
 #endif
 

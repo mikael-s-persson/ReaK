@@ -33,9 +33,7 @@ namespace ReaK {
 namespace pp {
 
 
-//template class rrt_path_planner<WORKSPACE, FRAME_REPORTER>;
-
-template class rrt_path_planner<robot_airship::CRS3D_workspace_o2_sap_type, robot_airship::CRS3D_rl_o2_tracer>;
+template class rrt_planner<robot_airship::CRS3D_workspace_o2_sap_type>;
 
 
 };

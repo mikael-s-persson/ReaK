@@ -94,7 +94,7 @@ struct planning_visitor_base {
   typedef mg_edge_data<space_type> EdgeProp;
   
   template <typename Vertex, typename Graph>
-  void dispatched_register_solution(Vertex start, Vertex, Vertex current, const Graph& g, 
+  void dispatched_register_solution(Vertex start, Vertex, Vertex current, Graph& g, 
                                     const mg_vertex_data<space_type>&) const {
     double goal_dist = m_query->get_distance_to_goal(g[current].position);
     solution_record_ptr srp = m_query->register_solution(start, current, goal_dist, g);
@@ -103,7 +103,7 @@ struct planning_visitor_base {
   };
   
   template <typename Vertex, typename Graph>
-  void dispatched_register_solution(Vertex start, Vertex goal, Vertex, const Graph& g, 
+  void dispatched_register_solution(Vertex start, Vertex goal, Vertex, Graph& g, 
                                     const optimal_mg_vertex<space_type>&) const {
     if((in_degree(goal, g)) && (g[goal].distance_accum < m_query->get_best_solution_distance())) {
       solution_record_ptr srp = m_query->register_solution(start, goal, 0.0, g);
@@ -113,7 +113,7 @@ struct planning_visitor_base {
   };
   
   template <typename Graph>
-  void publish_path(const Graph& g) const {
+  void publish_path(Graph& g) const {
     if(!m_goal_node.empty()) {
       typedef typename boost::graph_traits<Graph>::vertex_descriptor Vertex;
       Vertex goal_node = boost::any_cast<Vertex>(m_goal_node);
@@ -185,7 +185,7 @@ struct planning_visitor_base {
   template <typename Vertex, typename Graph>
   void joining_vertex_found(Vertex u1, Vertex u2, Graph& g1, Graph& g2) const {
     double join_dist = get(distance_metric, m_query->space->get_super_space())(g1[u1].position, g2[u2].position, m_query->space->get_super_space());
-    solution_record_ptr srp = m_query->register_solution(
+    solution_record_ptr srp = m_query->register_joining_point(
       boost::any_cast<Vertex>(m_start_node), 
       boost::any_cast<Vertex>(m_goal_node), 
       u1, u2, join_dist, g1, g2);
