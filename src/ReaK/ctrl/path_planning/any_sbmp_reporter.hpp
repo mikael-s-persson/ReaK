@@ -95,7 +95,8 @@ class any_sbmp_reporter : public shared_object {
      */
     template <typename MotionGraph, typename PositionMap>
     void draw_motion_graph(const FreeSpaceType& space, const MotionGraph& g, PositionMap) const {
-      graph::type_erased_graph<MotionGraph> teg(const_cast<MotionGraph*>(&g));
+      typedef typename te_mg_selector<FreeSpaceType, MotionGraph>::type TEGraphType;
+      TEGraphType teg(const_cast<MotionGraph*>(&g));
       this->draw_any_motion_graph(space, teg);
     };
     
@@ -310,7 +311,8 @@ class any_sbmp_reporter_chain : public shared_object {
      */
     template <typename MotionGraph, typename PositionMap>
     void draw_motion_graph(const FreeSpaceType& space, const MotionGraph& g, PositionMap) const {
-      graph::type_erased_graph<MotionGraph> teg(const_cast<MotionGraph*>(&g));
+      typedef typename te_mg_selector<FreeSpaceType, MotionGraph>::type TEGraphType;
+      TEGraphType teg(const_cast<MotionGraph*>(&g));
       for(typename std::vector< pointer_type >::const_iterator it = reporters.begin(); it != reporters.end(); ++it)
         (*it)->draw_any_motion_graph(space, teg);
     };

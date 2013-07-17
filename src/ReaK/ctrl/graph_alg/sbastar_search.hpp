@@ -221,7 +221,7 @@ namespace detail {
     
     template <typename Vertex, typename Graph>
     void requeue_vertex(Vertex u, Graph& g) const {
-      update_key(u,g); 
+      update_key(u,g);
       if( ! m_vis.should_close(u, g) ) {
         m_Q.push_or_update(u);
         m_vis.discover_vertex(u, g);
@@ -333,7 +333,7 @@ namespace detail {
       
       while (!Q.empty() && sba_vis.keep_going()) { 
         Vertex u = Q.top(); Q.pop();
-        
+      
         // stop if the best node does not meet the potential threshold.
         if( ! sba_vis.has_search_potential(u, g) )
           break;
@@ -634,6 +634,7 @@ inline void generate_sbastar(const SBAStarBundle& bdl) {
 };
 
 #endif
+
 
 
 

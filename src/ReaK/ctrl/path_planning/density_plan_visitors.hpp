@@ -139,7 +139,7 @@ struct density_plan_visitor : planning_visitor_base< density_plan_visitor<FreeSp
   };
   template <typename BaseType>
   bool dispatched_density_cutoff_test(const recursive_dense_mg_vertex<BaseType>& vp) const { 
-    return ((1.0 - vp.constriction) * (1.0 - vp.density) < m_density_cutoff);
+    return ((1.0 - vp.constriction) * (1.0 - vp.density) > m_density_cutoff);
   };
   
   template <typename Vertex, typename Graph>

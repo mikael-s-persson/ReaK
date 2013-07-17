@@ -17,19 +17,19 @@ then
   echo "$SR_OPTIONS --prm $SR_STRUCTS" > pp_results/$1/prm/info.txt
 #   ./test_planners -i $1.bmp -o pp_results/$1 $SR_OPTIONS --fadprm --fadprm-relaxation=10.0 $SR_STRUCTS
 #   echo "$SR_OPTIONS --fadprm --fadprm-relaxation=10.0 $SR_STRUCTS" > pp_results/$1/fadprm/info.txt
-#   ./test_planners -i $1.bmp -o pp_results/$1 $SR_OPTIONS --sba-star --sba-potential-cutoff=0.02 --sba-density-cutoff=0.0 $SR_STRUCTS
-#   echo "$SR_OPTIONS --sba-star --sba-potential-cutoff=0.02 --sba-density-cutoff=0.0 $SR_STRUCTS" > pp_results/$1/sbastar_lazy/info.txt
-  ./test_planners -i $1.bmp -o pp_results/$1 $SR_OPTIONS --sba-star --sba-potential-cutoff=0.02 --sba-density-cutoff=0.0 --sba-relaxation=5.0 $SR_STRUCTS
-  echo "$SR_OPTIONS --sba-star --sba-potential-cutoff=0.02 --sba-density-cutoff=0.0 --sba-relaxation=5.0 $SR_STRUCTS" > pp_results/$1/sbastar_lazy_any/info.txt
-  ./test_planners -i $1.bmp -o pp_results/$1 $SR_OPTIONS --sba-star --sba-potential-cutoff=0.02 --sba-density-cutoff=0.0 --sba-relaxation=5.0 --sba-with-bnb $SR_STRUCTS
-  echo "$SR_OPTIONS --sba-star --sba-potential-cutoff=0.02 --sba-density-cutoff=0.0 --sba-relaxation=5.0 --sba-with-bnb $SR_STRUCTS" > pp_results/$1/sbastar_lazy_any_bnb/info.txt
-  ./test_planners -i $1.bmp -o pp_results/$1 $SR_OPTIONS --sba-star --sba-potential-cutoff=0.02 --sba-density-cutoff=0.0 --sba-relaxation=5.0 --sba-with-voronoi-pull $SR_STRUCTS
+  ./test_planners -i $1.bmp -o pp_results/$1 $SR_OPTIONS --sba-star --sba-density-cutoff=0.01 $SR_STRUCTS
+  echo "$SR_OPTIONS --sba-star --sba-density-cutoff=0.01 $SR_STRUCTS" > pp_results/$1/sbastar_lazy/info.txt
+  ./test_planners -i $1.bmp -o pp_results/$1 $SR_OPTIONS --sba-star --sba-density-cutoff=0.01 --sba-relaxation=5.0 $SR_STRUCTS
+  echo "$SR_OPTIONS --sba-star --sba-density-cutoff=0.01 --sba-relaxation=5.0 $SR_STRUCTS" > pp_results/$1/sbastar_lazy_any/info.txt
+  ./test_planners -i $1.bmp -o pp_results/$1 $SR_OPTIONS --sba-star --sba-density-cutoff=0.01 --sba-relaxation=5.0 --sba-with-bnb $SR_STRUCTS
+  echo "$SR_OPTIONS --sba-star --sba-density-cutoff=0.01 --sba-relaxation=5.0 --sba-with-bnb $SR_STRUCTS" > pp_results/$1/sbastar_lazy_any_bnb/info.txt
+  ./test_planners -i $1.bmp -o pp_results/$1 $SR_OPTIONS --sba-star --sba-density-cutoff=0.01 --sba-relaxation=5.0 --sba-with-voronoi-pull $SR_STRUCTS
   mv pp_results/$1/sbastar_lazy_any_sa pp_results/$1/sbastar_rrtstar
-  echo "$SR_OPTIONS --sba-star --sba-potential-cutoff=0.02 --sba-density-cutoff=0.0 --sba-relaxation=5.0 --sba-with-voronoi-pull $SR_STRUCTS" > pp_results/$1/sbastar_rrtstar/info.txt
-  ./test_planners -i $1.bmp -o pp_results/$1 $SR_OPTIONS --sba-star --sba-potential-cutoff=0.02 --sba-density-cutoff=0.0 --sba-relaxation=5.0 --sba-with-voronoi-pull --sba-sa-temperature=2.0 $SR_STRUCTS
-  echo "$SR_OPTIONS --sba-star --sba-potential-cutoff=0.02 --sba-density-cutoff=0.0 --sba-relaxation=5.0 --sba-with-voronoi-pull --sba-sa-temperature=2.0 $SR_STRUCTS" > pp_results/$1/sbastar_lazy_any_sa/info.txt
-  ./test_planners -i $1.bmp -o pp_results/$1 $SR_OPTIONS --sba-star --sba-potential-cutoff=0.02 --sba-density-cutoff=0.0 --sba-relaxation=5.0 --sba-with-voronoi-pull --sba-sa-temperature=2.0 --sba-with-bnb $SR_STRUCTS
-  echo "$SR_OPTIONS --sba-star --sba-potential-cutoff=0.02 --sba-density-cutoff=0.0 --sba-relaxation=5.0 --sba-with-voronoi-pull --sba-sa-temperature=2.0 --sba-with-bnb $SR_STRUCTS" > pp_results/$1/sbastar_lazy_any_sa_bnb/info.txt
+  echo "$SR_OPTIONS --sba-star --sba-density-cutoff=0.01 --sba-relaxation=5.0 --sba-with-voronoi-pull $SR_STRUCTS" > pp_results/$1/sbastar_rrtstar/info.txt
+  ./test_planners -i $1.bmp -o pp_results/$1 $SR_OPTIONS --sba-star --sba-density-cutoff=0.01 --sba-relaxation=5.0 --sba-with-voronoi-pull --sba-sa-temperature=2.0 $SR_STRUCTS
+  echo "$SR_OPTIONS --sba-star --sba-density-cutoff=0.01 --sba-relaxation=5.0 --sba-with-voronoi-pull --sba-sa-temperature=2.0 $SR_STRUCTS" > pp_results/$1/sbastar_lazy_any_sa/info.txt
+  ./test_planners -i $1.bmp -o pp_results/$1 $SR_OPTIONS --sba-star --sba-density-cutoff=0.01 --sba-relaxation=5.0 --sba-with-voronoi-pull --sba-sa-temperature=2.0 --sba-with-bnb $SR_STRUCTS
+  echo "$SR_OPTIONS --sba-star --sba-density-cutoff=0.01 --sba-relaxation=5.0 --sba-with-voronoi-pull --sba-sa-temperature=2.0 --sba-with-bnb $SR_STRUCTS" > pp_results/$1/sbastar_lazy_any_sa_bnb/info.txt
 fi
 
 if [ $2 -eq 2 ] ;
@@ -45,7 +45,7 @@ then
       STORAGE="dvp-adj-list"
       STORAGE_SHORT="d"
     fi
-    for KNN_METHOD in bf2 bf4
+    for KNN_METHOD in bf4
     do
       ./test_planners -i $1.bmp -o pp_results/$1 $MC_OPTIONS --rrt --knn-method=$KNN_METHOD --mg-storage=$STORAGE
       mv pp_results/$1/$1_times.txt pp_results/$1/rrt_${STORAGE_SHORT}${KNN_METHOD}_times.txt

@@ -202,7 +202,7 @@ class planning_query : public named_object {
       TEVertex te_start = TEVertex( boost::any( start_node) );
       TEVertex te_goal  = TEVertex( boost::any( goal_node ) );
       
-      return register_solution_from_optimal_mg(te_start, te_goal, goal_distance, te_g);
+      return register_solution_from_basic_mg(te_start, te_goal, goal_distance, te_g);
     };
     
     

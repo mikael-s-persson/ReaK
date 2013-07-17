@@ -11,6 +11,8 @@ then
   BASE_SR_OPTIONS="-s --mc-results=50 --mc-prog-interval=100 --mc-vertices="
   SR_KNN_METHOD="bf4"
   SR_STORAGE="adj-list"
+  SR_SBA_RELAX="5.0"
+  SR_SBA_CUTOFF="0.01"
   for DIMENSIONS in 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20
   do
     SR_NUM_VERTICES=100
@@ -29,16 +31,16 @@ then
     echo "$SR_OPTIONS --rrt-star --knn-method=$SR_KNN_METHOD --mg-storage=$SR_STORAGE" > ${OUTPUT_DIRECTORY}/rrt_star/${SR_SPACE_NAME}_info.txt
     ${LAUNCH_SR_PLANNER_CMD} -o ${OUTPUT_DIRECTORY} $SR_OPTIONS --rrt-star --rrt-star-with-bnb --knn-method=$SR_KNN_METHOD --mg-storage=$SR_STORAGE
     echo "$SR_OPTIONS --rrt-star --rrt-star-with-bnb --knn-method=$SR_KNN_METHOD --mg-storage=$SR_STORAGE" > ${OUTPUT_DIRECTORY}/rrt_star_bnb/${SR_SPACE_NAME}_info.txt
-    ${LAUNCH_SR_PLANNER_CMD} -o ${OUTPUT_DIRECTORY} $SR_OPTIONS --sba-star --sba-potential-cutoff=0.0 --sba-density-cutoff=0.0 --knn-method=$SR_KNN_METHOD --mg-storage=$SR_STORAGE
-    echo "$SR_OPTIONS --sba-star --sba-potential-cutoff=0.0 --sba-density-cutoff=0.0 --knn-method=$SR_KNN_METHOD --mg-storage=$SR_STORAGE" > ${OUTPUT_DIRECTORY}/sbastar_lazy/${SR_SPACE_NAME}_info.txt
-    ${LAUNCH_SR_PLANNER_CMD} -o ${OUTPUT_DIRECTORY} $SR_OPTIONS --sba-star --sba-potential-cutoff=0.0 --sba-density-cutoff=0.0 --sba-relaxation=100.0 --knn-method=$SR_KNN_METHOD --mg-storage=$SR_STORAGE
-    echo "$SR_OPTIONS --sba-star --sba-potential-cutoff=0.0 --sba-density-cutoff=0.0 --sba-relaxation=100.0 --knn-method=$SR_KNN_METHOD --mg-storage=$SR_STORAGE" > ${OUTPUT_DIRECTORY}/sbastar_lazy_any/${SR_SPACE_NAME}_info.txt
-    ${LAUNCH_SR_PLANNER_CMD} -o ${OUTPUT_DIRECTORY} $SR_OPTIONS --sba-star --sba-potential-cutoff=0.0 --sba-density-cutoff=0.0 --sba-relaxation=100.0 --sba-with-bnb --knn-method=$SR_KNN_METHOD --mg-storage=$SR_STORAGE
-    echo "$SR_OPTIONS --sba-star --sba-potential-cutoff=0.0 --sba-density-cutoff=0.0 --sba-relaxation=100.0 --sba-with-bnb --knn-method=$SR_KNN_METHOD --mg-storage=$SR_STORAGE" > ${OUTPUT_DIRECTORY}/sbastar_lazy_any_bnb/${SR_SPACE_NAME}_info.txt
-    ${LAUNCH_SR_PLANNER_CMD} -o ${OUTPUT_DIRECTORY} $SR_OPTIONS --sba-star --sba-potential-cutoff=0.0 --sba-density-cutoff=0.0 --sba-relaxation=100.0 --sba-with-voronoi-pull --sba-sa-temperature=$SR_SA_TEMP --knn-method=$SR_KNN_METHOD --mg-storage=$SR_STORAGE
-    echo "$SR_OPTIONS --sba-star --sba-potential-cutoff=0.0 --sba-density-cutoff=0.0 --sba-relaxation=100.0 --sba-with-voronoi-pull --sba-sa-temperature=$SR_SA_TEMP --knn-method=$SR_KNN_METHOD --mg-storage=$SR_STORAGE" > ${OUTPUT_DIRECTORY}/sbastar_lazy_any_sa/${SR_SPACE_NAME}_info.txt
-    ${LAUNCH_SR_PLANNER_CMD} -o ${OUTPUT_DIRECTORY} $SR_OPTIONS --sba-star --sba-potential-cutoff=0.0 --sba-density-cutoff=0.0 --sba-relaxation=100.0 --sba-with-voronoi-pull --sba-sa-temperature=$SR_SA_TEMP --sba-with-bnb --knn-method=$SR_KNN_METHOD --mg-storage=$SR_STORAGE
-    echo "$SR_OPTIONS --sba-star --sba-potential-cutoff=0.0 --sba-density-cutoff=0.0 --sba-relaxation=100.0 --sba-with-voronoi-pull --sba-sa-temperature=$SR_SA_TEMP --sba-with-bnb --knn-method=$SR_KNN_METHOD --mg-storage=$SR_STORAGE" > ${OUTPUT_DIRECTORY}/sbastar_lazy_any_sa_bnb/${SR_SPACE_NAME}_info.txt
+    ${LAUNCH_SR_PLANNER_CMD} -o ${OUTPUT_DIRECTORY} $SR_OPTIONS --sba-star --sba-density-cutoff=$SR_SBA_CUTOFF --knn-method=$SR_KNN_METHOD --mg-storage=$SR_STORAGE
+    echo "$SR_OPTIONS --sba-star --sba-density-cutoff=$SR_SBA_CUTOFF --knn-method=$SR_KNN_METHOD --mg-storage=$SR_STORAGE" > ${OUTPUT_DIRECTORY}/sbastar_lazy/${SR_SPACE_NAME}_info.txt
+    ${LAUNCH_SR_PLANNER_CMD} -o ${OUTPUT_DIRECTORY} $SR_OPTIONS --sba-star --sba-density-cutoff=$SR_SBA_CUTOFF --sba-relaxation=$SR_SBA_RELAX --knn-method=$SR_KNN_METHOD --mg-storage=$SR_STORAGE
+    echo "$SR_OPTIONS --sba-star --sba-density-cutoff=$SR_SBA_CUTOFF --sba-relaxation=$SR_SBA_RELAX --knn-method=$SR_KNN_METHOD --mg-storage=$SR_STORAGE" > ${OUTPUT_DIRECTORY}/sbastar_lazy_any/${SR_SPACE_NAME}_info.txt
+    ${LAUNCH_SR_PLANNER_CMD} -o ${OUTPUT_DIRECTORY} $SR_OPTIONS --sba-star --sba-density-cutoff=$SR_SBA_CUTOFF --sba-relaxation=$SR_SBA_RELAX --sba-with-bnb --knn-method=$SR_KNN_METHOD --mg-storage=$SR_STORAGE
+    echo "$SR_OPTIONS --sba-star --sba-density-cutoff=$SR_SBA_CUTOFF --sba-relaxation=$SR_SBA_RELAX --sba-with-bnb --knn-method=$SR_KNN_METHOD --mg-storage=$SR_STORAGE" > ${OUTPUT_DIRECTORY}/sbastar_lazy_any_bnb/${SR_SPACE_NAME}_info.txt
+    ${LAUNCH_SR_PLANNER_CMD} -o ${OUTPUT_DIRECTORY} $SR_OPTIONS --sba-star --sba-density-cutoff=$SR_SBA_CUTOFF --sba-relaxation=$SR_SBA_RELAX --sba-with-voronoi-pull --sba-sa-temperature=$SR_SA_TEMP --knn-method=$SR_KNN_METHOD --mg-storage=$SR_STORAGE
+    echo "$SR_OPTIONS --sba-star --sba-density-cutoff=$SR_SBA_CUTOFF --sba-relaxation=$SR_SBA_RELAX --sba-with-voronoi-pull --sba-sa-temperature=$SR_SA_TEMP --knn-method=$SR_KNN_METHOD --mg-storage=$SR_STORAGE" > ${OUTPUT_DIRECTORY}/sbastar_lazy_any_sa/${SR_SPACE_NAME}_info.txt
+    ${LAUNCH_SR_PLANNER_CMD} -o ${OUTPUT_DIRECTORY} $SR_OPTIONS --sba-star --sba-density-cutoff=$SR_SBA_CUTOFF --sba-relaxation=$SR_SBA_RELAX --sba-with-voronoi-pull --sba-sa-temperature=$SR_SA_TEMP --sba-with-bnb --knn-method=$SR_KNN_METHOD --mg-storage=$SR_STORAGE
+    echo "$SR_OPTIONS --sba-star --sba-density-cutoff=$SR_SBA_CUTOFF --sba-relaxation=$SR_SBA_RELAX --sba-with-voronoi-pull --sba-sa-temperature=$SR_SA_TEMP --sba-with-bnb --knn-method=$SR_KNN_METHOD --mg-storage=$SR_STORAGE" > ${OUTPUT_DIRECTORY}/sbastar_lazy_any_sa_bnb/${SR_SPACE_NAME}_info.txt
   done
 
 fi
@@ -50,6 +52,8 @@ then
   echo "Making monte-carlo runs ..."
   
   BASE_MC_OPTIONS="-m --mc-runs=100 --mc-results=10 --mc-prog-interval=100 --mc-vertices="
+  MC_SBA_RELAX="5.0"
+  MC_SBA_CUTOFF="0.01"
   for DIMENSIONS in 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20
   do
     NUM_VERTICES=100
@@ -57,7 +61,8 @@ then
     do
       ((NUM_VERTICES *= 2 ))
     done
-    SR_SA_TEMP=`echo "l( $SR_NUM_VERTICES / 2.0 )" | bc -l`
+    MC_SA_TEMP=`echo "l( $NUM_VERTICES / 2.0 )" | bc -l`
+    echo "${MC_SA_TEMP}"
     let "NUM_VERTICES = (NUM_VERTICES > 1000000) ? 1000000 : NUM_VERTICES"
     SPACE_NAME="e$DIMENSIONS"
   #   MC_OPTIONS=$BASE_MC_OPTIONS$NUM_VERTICES" --mc-space="$SPACE_NAME
@@ -82,21 +87,21 @@ then
   #       ${LAUNCH_PLANNER_CMD} -o ${OUTPUT_DIRECTORY} $MC_OPTIONS --rrt-star --rrt-star-with-bnb --knn-method=$KNN_METHOD --mg-storage=$STORAGE
   #       mv ${OUTPUT_DIRECTORY}/${SPACE_NAME}_times.txt ${OUTPUT_DIRECTORY}/rrt_star_bnb_${SPACE_NAME}_${STORAGE_SHORT}${KNN_METHOD}_times.txt
   #       echo "$MC_OPTIONS --rrt-star --rrt-star-with-bnb --knn-method=$KNN_METHOD --mg-storage=$STORAGE" > ${OUTPUT_DIRECTORY}/rrt_star_bnb_${SPACE_NAME}_${STORAGE_SHORT}${KNN_METHOD}_info.txt
-  #       ${LAUNCH_PLANNER_CMD} -o ${OUTPUT_DIRECTORY} $MC_OPTIONS --sba-star --sba-potential-cutoff=0.02 --sba-density-cutoff=0.0 --knn-method=$KNN_METHOD --mg-storage=$STORAGE
+  #       ${LAUNCH_PLANNER_CMD} -o ${OUTPUT_DIRECTORY} $MC_OPTIONS --sba-star --sba-density-cutoff=$MC_SBA_CUTOFF --knn-method=$KNN_METHOD --mg-storage=$STORAGE
   #       mv ${OUTPUT_DIRECTORY}/${SPACE_NAME}_times.txt ${OUTPUT_DIRECTORY}/sbastar_lazy_${SPACE_NAME}_${STORAGE_SHORT}${KNN_METHOD}_times.txt
-  #       echo "$MC_OPTIONS --sba-star --sba-potential-cutoff=0.02 --sba-density-cutoff=0.0 --knn-method=$KNN_METHOD --mg-storage=$STORAGE" > ${OUTPUT_DIRECTORY}/sbastar_lazy_${SPACE_NAME}_${STORAGE_SHORT}${KNN_METHOD}_info.txt
-        ${LAUNCH_PLANNER_CMD} -o ${OUTPUT_DIRECTORY} $MC_OPTIONS --sba-star --sba-potential-cutoff=0.01 --sba-density-cutoff=0.0 --sba-relaxation=100.0 --knn-method=$KNN_METHOD --mg-storage=$STORAGE
+  #       echo "$MC_OPTIONS --sba-star --sba-density-cutoff=$MC_SBA_CUTOFF --knn-method=$KNN_METHOD --mg-storage=$STORAGE" > ${OUTPUT_DIRECTORY}/sbastar_lazy_${SPACE_NAME}_${STORAGE_SHORT}${KNN_METHOD}_info.txt
+        ${LAUNCH_PLANNER_CMD} -o ${OUTPUT_DIRECTORY} $MC_OPTIONS --sba-star --sba-density-cutoff=$MC_SBA_CUTOFF --sba-relaxation=$MC_SBA_RELAX --knn-method=$KNN_METHOD --mg-storage=$STORAGE
         mv ${OUTPUT_DIRECTORY}/${SPACE_NAME}_times.txt ${OUTPUT_DIRECTORY}/sbastar_lazy_any_${SPACE_NAME}_${STORAGE_SHORT}${KNN_METHOD}_times.txt
-        echo "$MC_OPTIONS --sba-star --sba-potential-cutoff=0.01 --sba-density-cutoff=0.0 --sba-relaxation=100.0 --knn-method=$KNN_METHOD --mg-storage=$STORAGE" > ${OUTPUT_DIRECTORY}/sbastar_lazy_any_${SPACE_NAME}_${STORAGE_SHORT}${KNN_METHOD}_info.txt
-  #       ${LAUNCH_PLANNER_CMD} -o ${OUTPUT_DIRECTORY} $MC_OPTIONS --sba-star --sba-potential-cutoff=0.02 --sba-density-cutoff=0.0 --sba-relaxation=5.0 --sba-with-bnb --knn-method=$KNN_METHOD --mg-storage=$STORAGE
+        echo "$MC_OPTIONS --sba-star --sba-density-cutoff=$MC_SBA_CUTOFF --sba-relaxation=$MC_SBA_RELAX --knn-method=$KNN_METHOD --mg-storage=$STORAGE" > ${OUTPUT_DIRECTORY}/sbastar_lazy_any_${SPACE_NAME}_${STORAGE_SHORT}${KNN_METHOD}_info.txt
+  #       ${LAUNCH_PLANNER_CMD} -o ${OUTPUT_DIRECTORY} $MC_OPTIONS --sba-star --sba-density-cutoff=$MC_SBA_CUTOFF --sba-relaxation=$MC_SBA_RELAX --sba-with-bnb --knn-method=$KNN_METHOD --mg-storage=$STORAGE
   #       mv ${OUTPUT_DIRECTORY}/${SPACE_NAME}_times.txt ${OUTPUT_DIRECTORY}/sbastar_lazy_any_bnb_${SPACE_NAME}_${STORAGE_SHORT}${KNN_METHOD}_times.txt
-  #       echo "$MC_OPTIONS --sba-star --sba-potential-cutoff=0.02 --sba-density-cutoff=0.0 --sba-relaxation=5.0 --sba-with-bnb --knn-method=$KNN_METHOD --mg-storage=$STORAGE" > ${OUTPUT_DIRECTORY}/sbastar_lazy_any_bnb_${SPACE_NAME}_${STORAGE_SHORT}${KNN_METHOD}_info.txt
-        ${LAUNCH_PLANNER_CMD} -o ${OUTPUT_DIRECTORY} $MC_OPTIONS --sba-star --sba-potential-cutoff=0.01 --sba-density-cutoff=0.0 --sba-relaxation=100.0 --sba-with-voronoi-pull --sba-sa-temperature=$SR_SA_TEMP --knn-method=$KNN_METHOD --mg-storage=$STORAGE
+  #       echo "$MC_OPTIONS --sba-star --sba-density-cutoff=$MC_SBA_CUTOFF --sba-relaxation=$MC_SBA_RELAX --sba-with-bnb --knn-method=$KNN_METHOD --mg-storage=$STORAGE" > ${OUTPUT_DIRECTORY}/sbastar_lazy_any_bnb_${SPACE_NAME}_${STORAGE_SHORT}${KNN_METHOD}_info.txt
+        ${LAUNCH_PLANNER_CMD} -o ${OUTPUT_DIRECTORY} $MC_OPTIONS --sba-star --sba-density-cutoff=$MC_SBA_CUTOFF --sba-relaxation=$MC_SBA_RELAX --sba-with-voronoi-pull --sba-sa-temperature=$MC_SA_TEMP --knn-method=$KNN_METHOD --mg-storage=$STORAGE
         mv ${OUTPUT_DIRECTORY}/${SPACE_NAME}_times.txt ${OUTPUT_DIRECTORY}/sbastar_lazy_any_sa_${SPACE_NAME}_${STORAGE_SHORT}${KNN_METHOD}_times.txt
-        echo "$MC_OPTIONS --sba-star --sba-potential-cutoff=0.01 --sba-density-cutoff=0.0 --sba-relaxation=100.0 --sba-with-voronoi-pull --sba-sa-temperature=$SR_SA_TEMP --knn-method=$KNN_METHOD --mg-storage=$STORAGE" > ${OUTPUT_DIRECTORY}/sbastar_lazy_any_sa_${SPACE_NAME}_${STORAGE_SHORT}${KNN_METHOD}_info.txt
-  #       ${LAUNCH_PLANNER_CMD} -o ${OUTPUT_DIRECTORY} $MC_OPTIONS --sba-star --sba-potential-cutoff=0.02 --sba-density-cutoff=0.0 --sba-relaxation=100.0 --sba-with-voronoi-pull --sba-sa-temperature=$SR_SA_TEMP --sba-with-bnb --knn-method=$KNN_METHOD --mg-storage=$STORAGE
+        echo "$MC_OPTIONS --sba-star --sba-density-cutoff=$MC_SBA_CUTOFF --sba-relaxation=$MC_SBA_RELAX --sba-with-voronoi-pull --sba-sa-temperature=$MC_SA_TEMP --knn-method=$KNN_METHOD --mg-storage=$STORAGE" > ${OUTPUT_DIRECTORY}/sbastar_lazy_any_sa_${SPACE_NAME}_${STORAGE_SHORT}${KNN_METHOD}_info.txt
+  #       ${LAUNCH_PLANNER_CMD} -o ${OUTPUT_DIRECTORY} $MC_OPTIONS --sba-star --sba-density-cutoff=$MC_SBA_CUTOFF --sba-relaxation=$MC_SBA_RELAX --sba-with-voronoi-pull --sba-sa-temperature=$MC_SA_TEMP --sba-with-bnb --knn-method=$KNN_METHOD --mg-storage=$STORAGE
   #       mv ${OUTPUT_DIRECTORY}/${SPACE_NAME}_times.txt ${OUTPUT_DIRECTORY}/sbastar_lazy_any_sa_bnb_${SPACE_NAME}_${STORAGE_SHORT}${KNN_METHOD}_times.txt
-  #       echo "$MC_OPTIONS --sba-star --sba-potential-cutoff=0.01 --sba-density-cutoff=0.0 --sba-relaxation=100.0 --sba-with-voronoi-pull --sba-sa-temperature=$SR_SA_TEMP --sba-with-bnb --knn-method=$KNN_METHOD --mg-storage=$STORAGE" > ${OUTPUT_DIRECTORY}/sbastar_lazy_any_sa_bnb_${SPACE_NAME}_${STORAGE_SHORT}${KNN_METHOD}_info.txt
+  #       echo "$MC_OPTIONS --sba-star --sba-density-cutoff=$MC_SBA_CUTOFF --sba-relaxation=$MC_SBA_RELAX --sba-with-voronoi-pull --sba-sa-temperature=$MC_SA_TEMP --sba-with-bnb --knn-method=$KNN_METHOD --mg-storage=$STORAGE" > ${OUTPUT_DIRECTORY}/sbastar_lazy_any_sa_bnb_${SPACE_NAME}_${STORAGE_SHORT}${KNN_METHOD}_info.txt
       done
     done
   done

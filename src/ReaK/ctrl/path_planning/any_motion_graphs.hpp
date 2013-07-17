@@ -464,6 +464,47 @@ class any_recursive_dense_mg : public BaseMotionGraph {
 
 
 
+template <typename Topology, typename Graph>
+struct te_mg_selector {
+  typedef typename Graph::vertex_bundled VertexProp;
+  
+  typedef boost::is_convertible< VertexProp*, mg_vertex_data<Topology>* > IsBasicMG;
+  typedef boost::is_convertible< VertexProp*, optimal_mg_vertex<Topology>* > IsOptimMG;
+  typedef boost::is_convertible< VertexProp*, astar_mg_vertex<Topology>* > IsAStarMG;
+  
+  typedef 
+  typename boost::mpl::if_< IsBasicMG,
+    typename boost::mpl::if_< IsOptimMG,
+      typename boost::mpl::if_< IsAStarMG,
+        astar_mg_vertex<Topology>,
+        optimal_mg_vertex<Topology> >::type,
+      mg_vertex_data<Topology> >::type,
+    void >::type BaseVertexProp;
+  
+  typedef 
+  typename boost::mpl::if_< IsBasicMG,
+    typename boost::mpl::if_< IsOptimMG,
+      typename boost::mpl::if_< IsAStarMG,
+        any_astar_motion_graph<Topology,Graph>,
+        any_optimal_motion_graph<Topology,Graph> >::type,
+      any_motion_graph<Topology,Graph> >::type,
+    graph::type_erased_graph<Graph> >::type BaseMG;
+  
+  typedef boost::is_convertible< VertexProp*, dense_mg_vertex<BaseVertexProp>* > IsDenseMG;
+  typedef boost::is_convertible< VertexProp*, recursive_dense_mg_vertex<BaseVertexProp>* > IsRecDenseMG;
+  
+  typedef
+  typename boost::mpl::if_< IsDenseMG,
+    any_dense_motion_graph<BaseMG>,
+    typename boost::mpl::if_< IsRecDenseMG,
+      any_recursive_dense_mg<BaseMG>,
+      BaseMG >::type >::type type;
+  
+};
+
+
+
+
 
 
 
