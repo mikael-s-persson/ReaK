@@ -299,7 +299,6 @@ struct planning_visitor_base {
     
     const super_space_type& sup_space = m_query->space->get_super_space();
     typename point_distribution_traits< super_space_type >::random_sampler_type get_sample = get(random_sampler, sup_space);
-    boost::variate_generator< pp::global_rng_type&, boost::normal_distribution<double> > var_rnd(pp::get_global_rng(), boost::normal_distribution<double>());
     
     unsigned int i = 0;
     point_type p_rnd = get_sample(sup_space);

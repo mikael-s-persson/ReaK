@@ -256,7 +256,7 @@ void keyboard_press_hdl(void* userData, SoEventCallback* eventCB) {
       100);
     
     ReaK::pp::rrtstar_planner< workspace_type > workspace_planner(
-      world_map, 3000, 1000, 
+      workspace, 3000, 1000, 
       ReaK::pp::ADJ_LIST_MOTION_GRAPH | ReaK::pp::DVP_BF2_TREE_KNN, 
       ReaK::pp::UNIDIRECTIONAL_PLANNING,
       0.1, 0.05, 14, report_chain);

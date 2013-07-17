@@ -35,24 +35,24 @@
 #include "base/defs.hpp"
 #include "base/named_object.hpp"
 
-#include "motion_planner_base.hpp"
+#include "path_planning/motion_planner_base.hpp"
 
-#include "metric_space_concept.hpp"
-#include "any_sbmp_reporter.hpp"
+#include "path_planning/metric_space_concept.hpp"
+#include "path_planning/any_sbmp_reporter.hpp"
 
 #include "graph_alg/rrt_star.hpp"
 
-#include "motion_graph_structures.hpp"
+#include "path_planning/motion_graph_structures.hpp"
 
 #include "graph_alg/bgl_tree_adaptor.hpp"
 #include "graph_alg/bgl_more_property_maps.hpp"
-#include "metric_space_search.hpp"
-#include "topological_search.hpp"
+#include "path_planning/metric_space_search.hpp"
+#include "path_planning/topological_search.hpp"
 
 #include "path_planning/path_planner_options.hpp"
 #include "graph_alg/neighborhood_functors.hpp"
-#include "any_motion_graphs.hpp"
-#include "planning_visitors.hpp"
+#include "path_planning/any_motion_graphs.hpp"
+#include "path_planning/planning_visitors.hpp"
 
 #include "MEAQR_topology.hpp"
 #include "topologies/fixed_topology_random_sampler.hpp"
@@ -177,20 +177,20 @@ struct MEAQR_rrtstar_visitor : planning_visitor< MEAQR_topology_with_CD<StateSpa
     typedef boost::tuple<point_type, bool, EdgeProp> ResultType;
     
     // First, try to bring the state-space point within the time-horizon:
-    double total_dist = get(distance_metric, this->m_space->get_super_space())(g[u].position, p, this->m_space->get_super_space());
-    double max_cost_to_go = 0.75 * this->m_space->get_max_time_horizon() * this->m_space->get_idle_power_cost(g[u].position);
+    double total_dist = get(distance_metric, this->m_query->space->get_super_space())(g[u].position, p, this->m_query->space->get_super_space());
+    double max_cost_to_go = 0.75 * this->m_query->space->get_max_time_horizon() * this->m_query->space->get_idle_power_cost(g[u].position);
     point_type p_dest = p;
     while(total_dist > max_cost_to_go) {
-      p_dest = point_type( this->m_space->get_state_space().move_position_toward(g[u].position.x, 0.5, p_dest.x) );
-      total_dist = get(distance_metric, this->m_space->get_super_space())(g[u].position, p_dest, this->m_space->get_super_space());
+      p_dest = point_type( this->m_query->space->get_state_space().move_position_toward(g[u].position.x, 0.5, p_dest.x) );
+      total_dist = get(distance_metric, this->m_query->space->get_super_space())(g[u].position, p_dest, this->m_query->space->get_super_space());
     };
     
     // Then, steer to that point, recording the path of the steering function.
-    std::pair<point_type, SteerRec> steer_result = this->m_space->steer_position_toward(g[u].position, 0.8, p_dest);
+    std::pair<point_type, SteerRec> steer_result = this->m_query->space->steer_position_toward(g[u].position, 0.8, p_dest);
     
     // Check if the progress in the state-space was significant (at least 0.1 of the best-case).
-    double best_case_dist = get(distance_metric, this->m_space->get_state_space())(g[u].position.x, p_dest.x, this->m_space->get_state_space());
-    double actual_dist = get(distance_metric, this->m_space->get_state_space())(g[u].position.x, steer_result.first.x, this->m_space->get_state_space());
+    double best_case_dist = get(distance_metric, this->m_query->space->get_state_space())(g[u].position.x, p_dest.x, this->m_query->space->get_state_space());
+    double actual_dist = get(distance_metric, this->m_query->space->get_state_space())(g[u].position.x, steer_result.first.x, this->m_query->space->get_state_space());
     
     if(actual_dist > this->m_planner->get_steer_progress_tolerance() * best_case_dist) {
 //       std::cout << "Steered successfully!" << std::endl;
@@ -209,16 +209,16 @@ struct MEAQR_rrtstar_visitor : planning_visitor< MEAQR_topology_with_CD<StateSpa
     typedef typename EdgeProp::steer_record_type SteerRec;
     typedef std::pair<bool,EdgeProp> ResultType;
     
-    std::pair<point_type, SteerRec> steer_result = this->m_space->steer_position_toward(g[u].position, 1.0, g[v].position);
+    std::pair<point_type, SteerRec> steer_result = this->m_query->space->steer_position_toward(g[u].position, 1.0, g[v].position);
     
     // NOTE Differs from rrtstar_path_planner HERE:
-    double best_case_dist = get(distance_metric, this->m_space->get_state_space())(g[u].position.x, g[v].position.x, this->m_space->get_state_space());
-    double diff_dist = get(distance_metric, this->m_space->get_state_space())(steer_result.first.x, g[v].position.x, this->m_space->get_state_space());
+    double best_case_dist = get(distance_metric, this->m_query->space->get_state_space())(g[u].position.x, g[v].position.x, this->m_query->space->get_state_space());
+    double diff_dist = get(distance_metric, this->m_query->space->get_state_space())(steer_result.first.x, g[v].position.x, this->m_query->space->get_state_space());
     
     if(diff_dist < this->m_planner->get_connection_tolerance() * best_case_dist) {
 //       std::cout << "Connected successfully!" << std::endl;
       return ResultType(true, EdgeProp(
-        get(distance_metric, this->m_space->get_super_space())(g[u].position, g[v].position, this->m_space->get_super_space()),
+        get(distance_metric, this->m_query->space->get_super_space())(g[u].position, g[v].position, this->m_query->space->get_super_space()),
 #ifdef RK_ENABLE_CXX11_FEATURES
         std::move(steer_result.second)
 #else
@@ -279,9 +279,7 @@ void MEAQR_rrtstar_planner<StateSpace, StateSpaceSystem, StateSpaceSampler>::sol
   path_planning_p2p_query<FreeSpaceType>* p2p_query_ptr = reinterpret_cast< path_planning_p2p_query<FreeSpaceType>* >(aQuery.castTo(path_planning_p2p_query<FreeSpaceType>::getStaticObjectType()));
   
   typedef boost::adjacency_list< boost::vecS, boost::vecS, boost::bidirectionalS,
-                                 MEAQR_rrtstar_vdata<StateSpace, StateSpaceSystem, StateSpaceSampler>,
-                                 MEAQR_rrtstar_edata<StateSpace, StateSpaceSystem, StateSpaceSampler>,
-                                 boost::vecS> MotionGraphType;
+                                 VertexProp, EdgeProp, boost::no_property, boost::listS> MotionGraphType;
   typedef typename boost::graph_traits<MotionGraphType>::vertex_descriptor Vertex;
   
   MotionGraphType motion_graph;
@@ -371,6 +369,10 @@ void MEAQR_rrtstar_planner<StateSpace, StateSpaceSystem, StateSpaceSampler>::sol
 #endif
     
   };
+  
+#undef RK_MEAQR_RRTSTAR_PLANNER_INIT_START_AND_GOAL_NODE
+#undef RK_MEAQR_RRTSTAR_PLANNER_SETUP_DVP_TREE_SYNCHRO
+#undef RK_MEAQR_RRTSTAR_PLANNER_CALL_RRTSTAR_FUNCTION
   
 };
 

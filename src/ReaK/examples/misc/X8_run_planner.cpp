@@ -133,57 +133,52 @@ int main(int argc, char ** argv) {
     
     std::ofstream timer_output(output_path + "/X8_pp_times.txt");
     
-    typedef timing_sbmp_report< point_recorder_type > planning_reporter_type;
+    any_sbmp_reporter_chain< X8_MEAQRCD_space_type > report_chain;
+    report_chain.add_reporter( timing_sbmp_report<>(timer_output) );
+    report_chain.add_reporter( sbmp_point_recorder< quadrotor_system::state_space_type, MEAQR_to_state_mapper >(
+      shared_ptr<quadrotor_system::state_space_type>(X8_MEAQR_space,&(X8_MEAQR_space->get_state_space())),
+      MEAQR_to_state_mapper(),
+      output_path + "/X8_pp_") );
+    report_chain.add_reporter( print_sbmp_progress<>() );
     
-    planning_reporter_type planning_report(
-      timer_output, 
-      point_recorder_type(
-        shared_ptr<quadrotor_system::state_space_type>(X8_MEAQR_space,&(X8_MEAQR_space->get_state_space())),
-        MEAQR_to_state_mapper(),
-        output_path + "/X8_pp_"));
+    path_planning_p2p_query< X8_MEAQRCD_space_type > pp_query(
+      "pp_query",
+      X8_MEAQR_space,
+      start_point,
+      goal_point,
+      max_results);
     
     typedef MEAQR_rrtstar_planner< 
       quadrotor_system::state_space_type, 
       quadrotor_system, 
-      position_only_sampler,
-      planning_reporter_type > X8_rrtstar_planner_type;
+      position_only_sampler > X8_rrtstar_planner_type;
     typedef MEAQR_sbastar_planner< 
       quadrotor_system::state_space_type, 
       quadrotor_system, 
-      position_only_sampler,
-      planning_reporter_type > X8_sbastar_planner_type;
+      position_only_sampler > X8_sbastar_planner_type;
     
     
     X8_rrtstar_planner_type X8_planner(
-      X8_MEAQR_space, 
-      start_point,
-      goal_point,
-      max_vertices, 
-      prog_interval,
-      ReaK::pp::ADJ_LIST_MOTION_GRAPH | knn_method,
-      ReaK::pp::UNIDIRECTIONAL_PLANNING,
-      planning_report,
-      max_results);
-      
+      X8_MEAQR_space, max_vertices, prog_interval, 
+      ADJ_LIST_MOTION_GRAPH | knn_method,
+      UNIDIRECTIONAL_PLANNING,
+      0.1, 0.05, 3, report_chain);
+    
 //     X8_sbastar_planner_type X8_planner(
-//       X8_MEAQR_space, 
-//       start_point,
-//       goal_point,
-//       max_vertices, 
-//       prog_interval,
-//       ReaK::pp::ADJ_LIST_MOTION_GRAPH | knn_method,
+//       X8_MEAQR_space, max_vertices, prog_interval,
+//       ADJ_LIST_MOTION_GRAPH | knn_method,
 //       LAZY_COLLISION_CHECKING | PLAN_WITH_VORONOI_PULL,
-//       planning_report,
-//       max_results);
-//     X8_planner.set_initial_key_threshold(0.02);
+//       0.1, 0.05, 
+//       0.25 * X8_MEAQR_space->get_max_time_horizon() * X8_MEAQR_space->get_idle_power_cost(start_point), 
+//       3, report_chain);
 //     X8_planner.set_initial_density_threshold(0.0);
 //     X8_planner.set_initial_relaxation(10.0);
 //     X8_planner.set_initial_SA_temperature(5.0);
-//     X8_planner.set_sampling_radius( 0.25 * X8_MEAQR_space->get_max_time_horizon() * X8_MEAQR_space->get_idle_power_cost(start_point) );
-      
-      
-    X8_planner.solve_path();
-      
+    
+    
+    pp_query.reset_solution_records();
+    X8_planner.solve_planning_query(pp_query);
+    
   } catch( ReaK::optim::infeasible_problem& e) {
     std::cout << "ERROR: Planning was unsuccessful due to some infeasibility problem: " << e.what() << std::endl;
     return 1;

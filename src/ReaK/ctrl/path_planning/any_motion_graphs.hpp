@@ -67,13 +67,13 @@ namespace detail {
   
   template <typename Topology>
   struct mg_edge_data_base<Topology,true> { 
-    typedef typename steerable_space_traits<Topology>::steer_record_type SteerRecType;
-    SteerRecType steer_record;
+    typedef typename steerable_space_traits<Topology>::steer_record_type steer_record_type;
+    steer_record_type steer_record;
     
     mg_edge_data_base() : steer_record() { };
-    mg_edge_data_base(const SteerRecType& aRec) : steer_record(aRec) { };
+    mg_edge_data_base(const steer_record_type& aRec) : steer_record(aRec) { };
 #ifdef RK_ENABLE_CXX11_FEATURES
-    mg_edge_data_base(SteerRecType&& aRec) : steer_record(std::move(aRec)) { };
+    mg_edge_data_base(steer_record_type&& aRec) : steer_record(std::move(aRec)) { };
 #endif
   };
   
