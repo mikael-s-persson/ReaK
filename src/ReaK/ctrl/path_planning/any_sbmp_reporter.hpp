@@ -120,7 +120,7 @@ class any_sbmp_reporter : public shared_object {
       shared_object::load(A,shared_object::getStaticObjectType()->TypeVersion());
     };
     
-    RK_RTTI_MAKE_CONCRETE_1BASE(self,0xC2460017,1,"any_sbmp_reporter",shared_object)
+    RK_RTTI_MAKE_CONCRETE_1BASE(self,0xC2460013,1,"any_sbmp_reporter",shared_object)
     
 };
 
@@ -201,7 +201,7 @@ class type_erased_sbmp_reporter : public any_sbmp_reporter<FreeSpaceType> {
       A & RK_SERIAL_LOAD_WITH_NAME(reporter);
     };
     
-    RK_RTTI_MAKE_CONCRETE_1BASE(self,0xC2460018,1,"type_erased_sbmp_reporter",base_type)
+    RK_RTTI_MAKE_CONCRETE_1BASE(self,0xC2460014,1,"type_erased_sbmp_reporter",base_type)
     
 };
 
@@ -345,7 +345,7 @@ class any_sbmp_reporter_chain : public shared_object {
       A & RK_SERIAL_LOAD_WITH_NAME(reporters);
     };
     
-    RK_RTTI_MAKE_CONCRETE_1BASE(self,0xC2460019,1,"any_sbmp_reporter_chain",shared_object)
+    RK_RTTI_MAKE_CONCRETE_1BASE(self,0xC2460015,1,"any_sbmp_reporter_chain",shared_object)
     
 };
 

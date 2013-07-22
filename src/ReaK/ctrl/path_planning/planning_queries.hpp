@@ -291,7 +291,7 @@ class planning_query : public named_object {
       A & RK_SERIAL_LOAD_WITH_NAME(space);
     };
 
-    RK_RTTI_MAKE_ABSTRACT_1BASE(self,0xC2460001,1,"planning_query",named_object)
+    RK_RTTI_MAKE_ABSTRACT_1BASE(self,0xC2460016,1,"planning_query",named_object)
 };
 
 
@@ -953,7 +953,7 @@ class path_planning_p2p_query : public planning_query<FreeSpaceType> {
       solutions.clear();
     };
 
-    RK_RTTI_MAKE_ABSTRACT_1BASE(self,0xC2460001,1,"path_planning_p2p_query",base_type)
+    RK_RTTI_MAKE_ABSTRACT_1BASE(self,0xC2460017,1,"path_planning_p2p_query",base_type)
 };
 
 

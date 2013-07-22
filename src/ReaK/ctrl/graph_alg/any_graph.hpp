@@ -213,6 +213,12 @@ any_graph::property_map_by_any< ValueType > >::type get_dyn_prop(const std::stri
 };
 
 
+template <typename ValueType>
+ValueType get_dyn_prop(const std::string& aProperty, boost::any aDesc, const any_graph& aGraph) {
+  return get_dyn_prop< ValueType >(aProperty, aGraph)[aDesc];
+};
+
+
 
 /*******************************************************************************************
  *                  IncidenceGraph concept

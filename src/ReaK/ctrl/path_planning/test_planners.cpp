@@ -76,7 +76,9 @@ void run_monte_carlo_tests(
     ReaK::pp::planning_query< TestTopology >& mc_query,
     std::stringstream& time_rec_ss,
     std::stringstream& cost_rec_ss,
-    std::ostream& result_output) {
+    std::stringstream& sol_rec_ss,
+    std::ostream& result_output,
+    std::ostream& first_sol_event_output) {
   std::vector< double > vertex_counts(mc_num_records, 0.0);
   std::vector< std::size_t > num_remaining_planners(mc_num_records, 0);
   std::vector< std::size_t > num_successful_planners(mc_num_records, 0);
@@ -87,12 +89,15 @@ void run_monte_carlo_tests(
   std::vector< double > avg_costs(mc_num_records, 0.0);
   
   cost_rec_ss << std::fixed;
+  sol_rec_ss << std::fixed;
   
   for(std::size_t i = 0; i < mc_run_count; ++i) {
     time_rec_ss.clear();
     time_rec_ss.seekg(0, time_rec_ss.end);
     cost_rec_ss.clear();
     cost_rec_ss.seekg(0, cost_rec_ss.end);
+    sol_rec_ss.clear();
+    sol_rec_ss.seekg(0, sol_rec_ss.end);
     
     mc_query.reset_solution_records();
     planner.reset_internal_state();
@@ -137,6 +142,11 @@ void run_monte_carlo_tests(
       };
       ++j;
     };
+    
+    std::string first_sol_event;
+    std::getline(sol_rec_ss, first_sol_event);
+    if(first_sol_event != "")
+      first_sol_event_output << first_sol_event << std::endl;
   };
   for(std::size_t i = 0; i < mc_num_records; ++i) {
     result_output << std::setw(9) << i 
@@ -326,13 +336,14 @@ int main(int argc, char** argv) {
     std::size_t mc_results          = vm["mc-results"].as<std::size_t>();
     
     std::ofstream timing_output(output_path_name + "/" + world_file_name_only + "_times.txt");
+    std::ofstream sol_events_output(output_path_name + "/" + world_file_name_only + "_solutions.txt");
     
-    std::stringstream time_ss, cost_ss;
+    std::stringstream time_ss, cost_ss, sol_ss;
     
     //typedef ReaK::pp::timing_sbmp_report< ReaK::pp::least_cost_sbmp_report<> > ReporterType;
     ReaK::pp::any_sbmp_reporter_chain< ReaK::pp::ptrobot2D_test_world > report_chain;
     report_chain.add_reporter( ReaK::pp::timing_sbmp_report<>(time_ss) );
-    report_chain.add_reporter( ReaK::pp::least_cost_sbmp_report<>(cost_ss) );
+    report_chain.add_reporter( ReaK::pp::least_cost_sbmp_report<>(cost_ss, &sol_ss) );
     
     ReaK::pp::path_planning_p2p_query< ReaK::pp::ptrobot2D_test_world > mc_query(
       "mc_planning_query",
@@ -347,13 +358,14 @@ int main(int argc, char** argv) {
       
       std::cout << "Running RRT with Uni-dir, " << mg_storage_str << ", " << knn_method_str << std::endl;
       timing_output << "RRT, Uni-dir, " << mg_storage_str << ", " << knn_method_str << std::endl;
+      sol_events_output << "RRT, Uni-dir, Solutions" << std::endl;
       {
         
         ReaK::pp::rrt_planner< ReaK::pp::ptrobot2D_test_world > rrt_plan(
           world_map, mc_max_vertices, mc_prog_interval, data_struct_flags, 
           ReaK::pp::UNIDIRECTIONAL_PLANNING, 0.1, 0.05, report_chain);
         
-        run_monte_carlo_tests(mc_run_count, mc_max_vertices_100, rrt_plan, mc_query, time_ss, cost_ss, timing_output);
+        run_monte_carlo_tests(mc_run_count, mc_max_vertices_100, rrt_plan, mc_query, time_ss, cost_ss, sol_ss, timing_output, sol_events_output);
         
       };
       std::cout << "Done!" << std::endl;
@@ -369,13 +381,14 @@ int main(int argc, char** argv) {
       
       std::cout << "Running RRT with Bi-dir, " << mg_storage_str << ", " << knn_method_str << std::endl;
       timing_output << "RRT, Bi-dir, " << mg_storage_str << ", " << knn_method_str << std::endl;
+      sol_events_output << "RRT, Bi-dir, Solutions" << std::endl;
       {
         
         ReaK::pp::rrt_planner< ReaK::pp::ptrobot2D_test_world > rrt_plan(
           world_map, mc_max_vertices, mc_prog_interval, data_struct_flags, 
           ReaK::pp::BIDIRECTIONAL_PLANNING, 0.1, 0.05, report_chain);
         
-        run_monte_carlo_tests(mc_run_count, mc_max_vertices_100, rrt_plan, mc_query, time_ss, cost_ss, timing_output);
+        run_monte_carlo_tests(mc_run_count, mc_max_vertices_100, rrt_plan, mc_query, time_ss, cost_ss, sol_ss, timing_output, sol_events_output);
         
       };
       std::cout << "Done!" << std::endl;
@@ -392,13 +405,14 @@ int main(int argc, char** argv) {
       
       std::cout << "Running PRM with " << mg_storage_str << ", " << knn_method_str << std::endl;
       timing_output << "PRM, " << mg_storage_str << ", " << knn_method_str << std::endl;
+      sol_events_output << "PRM, Solutions" << std::endl;
       {
         
         ReaK::pp::prm_planner< ReaK::pp::ptrobot2D_test_world > prm_plan(
           world_map, mc_max_vertices, mc_prog_interval, data_struct_flags, 
           0.1, 0.05, world_map->get_max_edge_length(), 2, report_chain);
         
-        run_monte_carlo_tests(mc_run_count, mc_max_vertices_100, prm_plan, mc_query, time_ss, cost_ss, timing_output);
+        run_monte_carlo_tests(mc_run_count, mc_max_vertices_100, prm_plan, mc_query, time_ss, cost_ss, sol_ss, timing_output, sol_events_output);
         
       };
       std::cout << "Done!" << std::endl;
@@ -414,6 +428,7 @@ int main(int argc, char** argv) {
       
       std::cout << "Running FADPRM with " << mg_storage_str << ", " << knn_method_str << std::endl;
       timing_output << "FADPRM, " << mg_storage_str << ", " << knn_method_str << std::endl;
+      sol_events_output << "FADPRM, Solutions" << std::endl;
       {
         
         ReaK::pp::fadprm_planner< ReaK::pp::ptrobot2D_test_world > fadprm_plan(
@@ -422,7 +437,7 @@ int main(int argc, char** argv) {
         
         fadprm_plan.set_initial_relaxation(vm["fadprm-relaxation"].as<double>());
         
-        run_monte_carlo_tests(mc_run_count, mc_max_vertices_100, fadprm_plan, mc_query, time_ss, cost_ss, timing_output);
+        run_monte_carlo_tests(mc_run_count, mc_max_vertices_100, fadprm_plan, mc_query, time_ss, cost_ss, sol_ss, timing_output, sol_events_output);
         
       };
       std::cout << "Done!" << std::endl;
@@ -439,6 +454,7 @@ int main(int argc, char** argv) {
       
       std::cout << "Running SBA* with " << mg_storage_str << ", " << knn_method_str << std::endl;
       timing_output << "SBA*, " << mg_storage_str << ", " << knn_method_str << std::endl;
+      sol_events_output << "SBA*, Solutions" << std::endl;
       {
         
         ReaK::pp::sbastar_planner< ReaK::pp::ptrobot2D_test_world > sbastar_plan(
@@ -449,7 +465,7 @@ int main(int argc, char** argv) {
         sbastar_plan.set_initial_relaxation(vm["sba-relaxation"].as<double>());
         sbastar_plan.set_initial_SA_temperature(vm["sba-sa-temperature"].as<double>());
         
-        run_monte_carlo_tests(mc_run_count, mc_max_vertices_100, sbastar_plan, mc_query, time_ss, cost_ss, timing_output);
+        run_monte_carlo_tests(mc_run_count, mc_max_vertices_100, sbastar_plan, mc_query, time_ss, cost_ss, sol_ss, timing_output, sol_events_output);
         
       };
       std::cout << "Done!" << std::endl;
@@ -465,13 +481,14 @@ int main(int argc, char** argv) {
       
       std::cout << "Running RRT* with Uni-dir, " << mg_storage_str << ", " << knn_method_str << std::endl;
       timing_output << "RRT*, Uni-dir, " << mg_storage_str << ", " << knn_method_str << std::endl;
+      sol_events_output << "RRT*, Uni-dir, Solutions" << std::endl;
       {
         
         ReaK::pp::rrtstar_planner< ReaK::pp::ptrobot2D_test_world > rrtstar_plan(
           world_map, mc_max_vertices, mc_prog_interval, data_struct_flags, rrtstar_opt_flags,
           0.1, 0.05, 2, report_chain);
         
-        run_monte_carlo_tests(mc_run_count, mc_max_vertices_100, rrtstar_plan, mc_query, time_ss, cost_ss, timing_output);
+        run_monte_carlo_tests(mc_run_count, mc_max_vertices_100, rrtstar_plan, mc_query, time_ss, cost_ss, sol_ss, timing_output, sol_events_output);
         
       };
       std::cout << "Done!" << std::endl;

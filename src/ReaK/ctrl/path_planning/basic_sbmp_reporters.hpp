@@ -102,7 +102,7 @@ struct no_sbmp_report : public shared_object {
     shared_object::load(A,shared_object::getStaticObjectType()->TypeVersion());
   };
   
-  RK_RTTI_MAKE_CONCRETE_1BASE(no_sbmp_report,0xC2460003,1,"no_sbmp_report",shared_object)
+  RK_RTTI_MAKE_CONCRETE_1BASE(no_sbmp_report,0xC2460002,1,"no_sbmp_report",shared_object)
   
   
 };
@@ -307,7 +307,7 @@ struct differ_sbmp_report_to_space : public shared_object {
       & RK_SERIAL_LOAD_WITH_NAME(file_path);
   };
   
-  RK_RTTI_MAKE_CONCRETE_1BASE(self,0xC2460004,1,"differ_sbmp_report_to_space",shared_object)
+  RK_RTTI_MAKE_CONCRETE_1BASE(self,0xC2460003,1,"differ_sbmp_report_to_space",shared_object)
   
 };
 
@@ -399,7 +399,7 @@ struct timing_sbmp_report : public shared_object {
     last_time = boost::posix_time::microsec_clock::local_time();
   };
   
-  RK_RTTI_MAKE_CONCRETE_1BASE(self,0xC2460005,1,"timing_sbmp_report",shared_object)
+  RK_RTTI_MAKE_CONCRETE_1BASE(self,0xC2460004,1,"timing_sbmp_report",shared_object)
   
 };
 
@@ -483,7 +483,7 @@ struct print_sbmp_progress : public shared_object {
     A & RK_SERIAL_LOAD_WITH_NAME(next_reporter);
   };
   
-  RK_RTTI_MAKE_CONCRETE_1BASE(self,0xC2460006,1,"print_sbmp_progress",shared_object)
+  RK_RTTI_MAKE_CONCRETE_1BASE(self,0xC2460005,1,"print_sbmp_progress",shared_object)
   
 };
 
@@ -499,16 +499,22 @@ struct least_cost_sbmp_report : public shared_object {
   
   NextReporter next_reporter;
   std::ostream* p_out;
+  std::ostream* p_sol;
   mutable double current_best;
+  mutable std::size_t last_node_count;
   
   explicit least_cost_sbmp_report(std::ostream& aOutStream = std::cout,
+                                  std::ostream* aPSolutionOutput = NULL,
                                   NextReporter aNextReporter = NextReporter()) : 
                                   next_reporter(aNextReporter),
                                   p_out(&aOutStream),
-                                  current_best(1e10) { };
+                                  p_sol(aPSolutionOutput),
+                                  current_best(1e10), 
+                                  last_node_count(0) { };
   
   void reset_internal_state() { 
     current_best = 1e10;
+    last_node_count = 0;
     
     next_reporter.reset_internal_state();
   };
@@ -526,6 +532,7 @@ struct least_cost_sbmp_report : public shared_object {
             typename MotionGraph,
             typename PositionMap>
   void draw_motion_graph(const FreeSpaceType& free_space, const MotionGraph& g, PositionMap pos) const {
+    last_node_count = num_vertices(g);
     (*p_out) << num_vertices(g) << " " << current_best << std::endl;
     
     next_reporter.draw_motion_graph(free_space, g, pos);
@@ -543,6 +550,9 @@ struct least_cost_sbmp_report : public shared_object {
     double total_cost = traj->get_end_time() - traj->get_start_time();
     if(total_cost < current_best)
       current_best = total_cost;
+    
+    if(p_sol)
+      (*p_sol) << last_node_count << " " << current_best << std::endl;
     
     next_reporter.draw_solution(free_space, traj);
   };
@@ -566,6 +576,9 @@ struct least_cost_sbmp_report : public shared_object {
     if(total_cost < current_best)
       current_best = total_cost;
     
+    if(p_sol)
+      (*p_sol) << last_node_count << " " << current_best << std::endl;
+    
     next_reporter.draw_solution(free_space, p);
   };
   
@@ -583,9 +596,10 @@ struct least_cost_sbmp_report : public shared_object {
     shared_object::load(A,shared_object::getStaticObjectType()->TypeVersion());
     A & RK_SERIAL_LOAD_WITH_NAME(next_reporter);
     current_best = 1e10;
+    last_node_count = 0;
   };
   
-  RK_RTTI_MAKE_CONCRETE_1BASE(self,0xC2460010,1,"least_cost_sbmp_report",shared_object)
+  RK_RTTI_MAKE_CONCRETE_1BASE(self,0xC2460006,1,"least_cost_sbmp_report",shared_object)
   
 };
 

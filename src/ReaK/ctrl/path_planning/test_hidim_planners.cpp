@@ -146,10 +146,6 @@ void single_run_planners_on_space(ReaK::shared_ptr< SpaceType > world_map, const
     world_map->get_goal_pos(),
     sr_results);
   
-  any_sbmp_reporter_chain< SpaceType > report_chain;
-  report_chain.add_reporter( least_cost_sbmp_report<>() );
-  report_chain.add_reporter( print_sbmp_progress<>() );
-  
 #ifdef RK_ENABLE_TEST_URRT_PLANNER
   
   if(mc_flags & RK_HIDIM_PLANNER_DO_RRT) {
@@ -159,8 +155,17 @@ void single_run_planners_on_space(ReaK::shared_ptr< SpaceType > world_map, const
       
       fs::create_directory((aFilePath + "/rrt/").c_str());
       
-//       vlist_sbmp_report< mg_vertex_printer > vlister(aFilePath + "/rrt/" + aSpaceName + "_");
-//       report_chain.add_reporter( vlister );
+      any_sbmp_reporter_chain< SpaceType > report_chain;
+      
+      std::ofstream cost_out(aFilePath + "/rrt/" + aSpaceName + "_times.txt");
+      std::ofstream sol_out(aFilePath + "/rrt/" + aSpaceName + "_solutions.txt");
+      report_chain.add_reporter( least_cost_sbmp_report<>(cost_out, &sol_out) );
+      
+      report_chain.add_reporter( print_sbmp_progress<>() );
+      
+      report_chain.add_reporter( vlist_sbmp_report< any_mg_vertex_printer<SpaceType> >(
+        aFilePath + "/rrt/" + aSpaceName + "_", 
+        any_mg_vertex_printer<SpaceType>( BASIC_MOTION_GRAPH_KIND )));
       
       rrt_planner< SpaceType > rrt_plan(
           world_map, sr_max_vertices, sr_prog_interval, data_struct_flags, 
@@ -186,8 +191,17 @@ void single_run_planners_on_space(ReaK::shared_ptr< SpaceType > world_map, const
       
       fs::create_directory((aFilePath + "/birrt/").c_str());
       
-//       vlist_sbmp_report< mg_vertex_printer > vlister(aFilePath + "/birrt/" + aSpaceName + "_");
-//       report_chain.add_reporter( vlister );
+      any_sbmp_reporter_chain< SpaceType > report_chain;
+      
+      std::ofstream cost_out(aFilePath + "/birrt/" + aSpaceName + "_times.txt");
+      std::ofstream sol_out(aFilePath + "/birrt/" + aSpaceName + "_solutions.txt");
+      report_chain.add_reporter( least_cost_sbmp_report<>(cost_out, &sol_out) );
+      
+      report_chain.add_reporter( print_sbmp_progress<>() );
+      
+      report_chain.add_reporter( vlist_sbmp_report< any_mg_vertex_printer<SpaceType> >(
+        aFilePath + "/birrt/" + aSpaceName + "_", 
+        any_mg_vertex_printer<SpaceType>( BASIC_MOTION_GRAPH_KIND )));
       
       rrt_planner< SpaceType > rrt_plan(
           world_map, sr_max_vertices, sr_prog_interval, data_struct_flags, 
@@ -214,8 +228,17 @@ void single_run_planners_on_space(ReaK::shared_ptr< SpaceType > world_map, const
       
       fs::create_directory((aFilePath + "/prm/").c_str());
       
-//       vlist_sbmp_report< mg_vertex_printer > vlister(aFilePath + "/prm/" + aSpaceName + "_");
-//       report_chain.add_reporter( vlister );
+      any_sbmp_reporter_chain< SpaceType > report_chain;
+      
+      std::ofstream cost_out(aFilePath + "/prm/" + aSpaceName + "_times.txt");
+      std::ofstream sol_out(aFilePath + "/prm/" + aSpaceName + "_solutions.txt");
+      report_chain.add_reporter( least_cost_sbmp_report<>(cost_out, &sol_out) );
+      
+      report_chain.add_reporter( print_sbmp_progress<>() );
+      
+      report_chain.add_reporter( vlist_sbmp_report< any_mg_vertex_printer<SpaceType> >(
+        aFilePath + "/prm/" + aSpaceName + "_", 
+        any_mg_vertex_printer<SpaceType>( ASTAR_MOTION_GRAPH_KIND | DENSE_MOTION_GRAPH_KIND )));
       
       prm_planner< SpaceType > prm_plan(
         world_map, sr_max_vertices, sr_prog_interval, data_struct_flags, 
@@ -242,8 +265,17 @@ void single_run_planners_on_space(ReaK::shared_ptr< SpaceType > world_map, const
       
       fs::create_directory((aFilePath + "/fadprm/").c_str());
       
-//       vlist_sbmp_report< mg_vertex_printer > vlister(aFilePath + "/fadprm/" + aSpaceName + "_");
-//       report_chain.add_reporter( vlister );
+      any_sbmp_reporter_chain< SpaceType > report_chain;
+      
+      std::ofstream cost_out(aFilePath + "/fadprm/" + aSpaceName + "_times.txt");
+      std::ofstream sol_out(aFilePath + "/fadprm/" + aSpaceName + "_solutions.txt");
+      report_chain.add_reporter( least_cost_sbmp_report<>(cost_out, &sol_out) );
+      
+      report_chain.add_reporter( print_sbmp_progress<>() );
+      
+      report_chain.add_reporter( vlist_sbmp_report< any_mg_vertex_printer<SpaceType> >(
+        aFilePath + "/fadprm/" + aSpaceName + "_", 
+        any_mg_vertex_printer<SpaceType>( ASTAR_MOTION_GRAPH_KIND | DENSE_MOTION_GRAPH_KIND )));
       
       fadprm_planner< SpaceType > fadprm_plan(
         world_map, sr_max_vertices, sr_prog_interval, data_struct_flags, 
@@ -272,8 +304,17 @@ void single_run_planners_on_space(ReaK::shared_ptr< SpaceType > world_map, const
       
       fs::create_directory((aFilePath + "/sbastar" + sba_qualifier + "/").c_str());
       
-//       vlist_sbmp_report< mg_vertex_printer > vlister(aFilePath + "/sbastar" + sba_qualifier + "/" + aSpaceName + "_");
-//       report_chain.add_reporter( vlister );
+      any_sbmp_reporter_chain< SpaceType > report_chain;
+      
+      std::ofstream cost_out(aFilePath + "/sbastar" + sba_qualifier + "/" + aSpaceName + "_times.txt");
+      std::ofstream sol_out(aFilePath + "/sbastar" + sba_qualifier + "/" + aSpaceName + "_solutions.txt");
+      report_chain.add_reporter( least_cost_sbmp_report<>(cost_out, &sol_out) );
+      
+      report_chain.add_reporter( print_sbmp_progress<>() );
+      
+      report_chain.add_reporter( vlist_sbmp_report< any_mg_vertex_printer<SpaceType> >(
+        aFilePath + "/sbastar" + sba_qualifier + "/" + aSpaceName + "_", 
+        any_mg_vertex_printer<SpaceType>( ASTAR_MOTION_GRAPH_KIND | RECURSIVE_DENSE_MOTION_GRAPH_KIND )));
       
       sbastar_planner< SpaceType > sbastar_plan(
         world_map, sr_max_vertices, sr_prog_interval, data_struct_flags, sba_opt_flags,
@@ -303,8 +344,17 @@ void single_run_planners_on_space(ReaK::shared_ptr< SpaceType > world_map, const
       
       fs::create_directory((aFilePath + "/rrt_star" + rrtstar_qualifier + "/").c_str());
       
-//       vlist_sbmp_report< mg_vertex_printer > vlister(aFilePath + "/rrt_star" + rrtstar_qualifier + "/" + aSpaceName + "_");
-//       report_chain.add_reporter( vlister );
+      any_sbmp_reporter_chain< SpaceType > report_chain;
+      
+      std::ofstream cost_out(aFilePath + "/rrt_star" + rrtstar_qualifier + "/" + aSpaceName + "_times.txt");
+      std::ofstream sol_out(aFilePath + "/rrt_star" + rrtstar_qualifier + "/" + aSpaceName + "_solutions.txt");
+      report_chain.add_reporter( least_cost_sbmp_report<>(cost_out, &sol_out) );
+      
+      report_chain.add_reporter( print_sbmp_progress<>() );
+      
+      report_chain.add_reporter( vlist_sbmp_report< any_mg_vertex_printer<SpaceType> >(
+        aFilePath + "/rrt_star" + rrtstar_qualifier + "/" + aSpaceName + "_", 
+        any_mg_vertex_printer<SpaceType>( OPTIMAL_MOTION_GRAPH_KIND )));
       
       rrtstar_planner< SpaceType > rrtstar_plan(
         world_map, sr_max_vertices, sr_prog_interval, data_struct_flags, rrtstar_opt_flags,
@@ -333,7 +383,9 @@ void run_monte_carlo_tests(
     ReaK::pp::planning_query< SpaceType >& mc_query,
     std::stringstream& time_rec_ss,
     std::stringstream& cost_rec_ss,
-    std::ostream& result_output) {
+    std::stringstream& sol_rec_ss,
+    std::ostream& result_output,
+    std::ostream& first_sol_event_output) {
   std::vector< double > vertex_counts(mc_max_vertices_100, 0.0);
   std::vector< std::size_t > num_remaining_planners(mc_max_vertices_100, 0);
   std::vector< std::size_t > num_successful_planners(mc_max_vertices_100, 0);
@@ -344,12 +396,15 @@ void run_monte_carlo_tests(
   std::vector< double > avg_costs(mc_max_vertices_100, 0.0);
   
   cost_rec_ss << std::fixed;
+  sol_rec_ss << std::fixed;
   
   for(std::size_t i = 0; i < mc_run_count; ++i) {
     time_rec_ss.clear();
     time_rec_ss.seekg(0, time_rec_ss.end);
     cost_rec_ss.clear();
     cost_rec_ss.seekg(0, cost_rec_ss.end);
+    sol_rec_ss.clear();
+    sol_rec_ss.seekg(0, sol_rec_ss.end);
     
     mc_query.reset_solution_records();
     planner.reset_internal_state();
@@ -394,6 +449,11 @@ void run_monte_carlo_tests(
       };
       ++j;
     };
+    
+    std::string first_sol_event;
+    std::getline(sol_rec_ss, first_sol_event);
+    if(first_sol_event != "")
+      first_sol_event_output << first_sol_event << std::endl;
   };
   for(std::size_t i = 0; i < mc_max_vertices_100; ++i) {
     result_output << std::setw(9) << i 
@@ -410,7 +470,7 @@ void run_monte_carlo_tests(
 
 template <typename SpaceType>
 void test_planners_on_space(ReaK::shared_ptr< SpaceType > world_map, 
-                            std::ostream& timing_output) {
+                            std::ostream& timing_output, std::ostream& sol_events_output) {
   
   using namespace ReaK;
   using namespace pp;
@@ -419,12 +479,12 @@ void test_planners_on_space(ReaK::shared_ptr< SpaceType > world_map,
             << "*            Running tests on '" << world_map->getName() << "'" << std::endl
             << "*****************************************************************" << std::endl;
   
-  std::stringstream time_ss, cost_ss;
+  std::stringstream time_ss, cost_ss, sol_ss;
   
   //typedef timing_sbmp_report< least_cost_sbmp_report<> > ReporterType;
   any_sbmp_reporter_chain< SpaceType > report_chain;
   report_chain.add_reporter( timing_sbmp_report<>(time_ss) );
-  report_chain.add_reporter( least_cost_sbmp_report<>(cost_ss) );
+  report_chain.add_reporter( least_cost_sbmp_report<>(cost_ss, &sol_ss) );
   
   path_planning_p2p_query< SpaceType > mc_query(
     "mc_planning_query",
@@ -440,13 +500,14 @@ void test_planners_on_space(ReaK::shared_ptr< SpaceType > world_map,
     
     std::cout << "Running RRT with Uni-dir, " << data_struct_str << std::endl;
     timing_output << "RRT, Uni-dir, " << data_struct_str << std::endl;
+    sol_events_output << "RRT, Uni-dir, Solution Events" << std::endl;
     {
       
       rrt_planner< SpaceType > rrt_plan(
         world_map, mc_max_vertices, mc_prog_interval, data_struct_flags, 
         UNIDIRECTIONAL_PLANNING, 0.1, 0.05, report_chain);
       
-      run_monte_carlo_tests(rrt_plan, mc_query, time_ss, cost_ss, timing_output);
+      run_monte_carlo_tests(rrt_plan, mc_query, time_ss, cost_ss, sol_ss, timing_output, sol_events_output);
       
     };
     std::cout << "Done!" << std::endl;
@@ -462,13 +523,14 @@ void test_planners_on_space(ReaK::shared_ptr< SpaceType > world_map,
     
     std::cout << "Running RRT with Bi-dir, " << data_struct_str << std::endl;
     timing_output << "RRT, Bi-dir, " << data_struct_str << std::endl;
+    sol_events_output << "RRT, Bi-dir, Solution Events" << std::endl;
     {
       
       rrt_planner< SpaceType > rrt_plan(
         world_map, mc_max_vertices, mc_prog_interval, data_struct_flags, 
         BIDIRECTIONAL_PLANNING, 0.1, 0.05, report_chain);
       
-      run_monte_carlo_tests(rrt_plan, mc_query, time_ss, cost_ss, timing_output);
+      run_monte_carlo_tests(rrt_plan, mc_query, time_ss, cost_ss, sol_ss, timing_output, sol_events_output);
       
     };
     std::cout << "Done!" << std::endl;
@@ -485,13 +547,14 @@ void test_planners_on_space(ReaK::shared_ptr< SpaceType > world_map,
     
     std::cout << "Running PRM with " << data_struct_str << std::endl;
     timing_output << "PRM, " << data_struct_str << std::endl;
+    sol_events_output << "PRM, Solution Events" << std::endl;
     {
       
       prm_planner< SpaceType > prm_plan(
         world_map, mc_max_vertices, mc_prog_interval, data_struct_flags, 
         0.1, 0.05, world_map->get_max_edge_length(), RK_HIDIM_PLANNER_N, report_chain);
       
-      run_monte_carlo_tests(prm_plan, mc_query, time_ss, cost_ss, timing_output);
+      run_monte_carlo_tests(prm_plan, mc_query, time_ss, cost_ss, sol_ss, timing_output, sol_events_output);
       
     };
     std::cout << "Done!" << std::endl;
@@ -508,6 +571,7 @@ void test_planners_on_space(ReaK::shared_ptr< SpaceType > world_map,
     
     std::cout << "Running FADPRM with " << data_struct_str << std::endl;
     timing_output << "FADPRM, " << data_struct_str << std::endl;
+    sol_events_output << "FADPRM, Solution Events" << std::endl;
     {
       
       fadprm_planner< SpaceType > fadprm_plan(
@@ -516,7 +580,7 @@ void test_planners_on_space(ReaK::shared_ptr< SpaceType > world_map,
       
       fadprm_plan.set_initial_relaxation(fadprm_relaxation);
       
-      run_monte_carlo_tests(fadprm_plan, mc_query, time_ss, cost_ss, timing_output);
+      run_monte_carlo_tests(fadprm_plan, mc_query, time_ss, cost_ss, sol_ss, timing_output, sol_events_output);
       
     };
     std::cout << "Done!" << std::endl;
@@ -533,6 +597,7 @@ void test_planners_on_space(ReaK::shared_ptr< SpaceType > world_map,
     
     std::cout << "Running SBA* with " << data_struct_str << std::endl;
     timing_output << "SBA*, " << data_struct_str << std::endl;
+    sol_events_output << "SBA*, Solution Events" << std::endl;
     {
       
       sbastar_planner< SpaceType > sbastar_plan(
@@ -543,7 +608,7 @@ void test_planners_on_space(ReaK::shared_ptr< SpaceType > world_map,
       sbastar_plan.set_initial_relaxation(sba_relaxation);
       sbastar_plan.set_initial_SA_temperature(sba_sa_temperature);
       
-      run_monte_carlo_tests(sbastar_plan, mc_query, time_ss, cost_ss, timing_output);
+      run_monte_carlo_tests(sbastar_plan, mc_query, time_ss, cost_ss, sol_ss, timing_output, sol_events_output);
       
     };
     std::cout << "Done!" << std::endl;
@@ -559,13 +624,14 @@ void test_planners_on_space(ReaK::shared_ptr< SpaceType > world_map,
     
     std::cout << "Running RRT* with Uni-dir, " << data_struct_str << std::endl;
     timing_output << "RRT*, Uni-dir, " << data_struct_str << std::endl;
+    sol_events_output << "RRT*, Uni-dir, Solution Events" << std::endl;
     {
       
       rrtstar_planner< SpaceType > rrtstar_plan(
         world_map, mc_max_vertices, mc_prog_interval, data_struct_flags, rrtstar_opt_flags,
         0.1, 0.05, RK_HIDIM_PLANNER_N, report_chain);
       
-      run_monte_carlo_tests(rrtstar_plan, mc_query, time_ss, cost_ss, timing_output);
+      run_monte_carlo_tests(rrtstar_plan, mc_query, time_ss, cost_ss, sol_ss, timing_output, sol_events_output);
       
     };
     std::cout << "Done!" << std::endl;
@@ -827,8 +893,9 @@ int main(int argc, char** argv) {
   
   if(vm.count("monte-carlo")) {
     std::ofstream timing_output(output_path_name + "/" + space_ND_name + "_times.txt");
+    std::ofstream sol_events_output(output_path_name + "/" + space_ND_name + "_solutions.txt");
     
-    test_planners_on_space(world_ND, timing_output);
+    test_planners_on_space(world_ND, timing_output, sol_events_output);
   };
   
   

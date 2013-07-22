@@ -139,7 +139,7 @@ class planner_base : public named_object {
       A & RK_SERIAL_LOAD_WITH_NAME(m_space);
     };
 
-    RK_RTTI_MAKE_ABSTRACT_1BASE(self,0xC2460001,1,"planner_base",named_object)
+    RK_RTTI_MAKE_ABSTRACT_1BASE(self,0xC2460000,1,"planner_base",named_object)
 };
 
 
@@ -441,7 +441,7 @@ class sample_based_planner : public planner_base<FreeSpaceType> {
       m_iteration_count = 0;
     };
 
-    RK_RTTI_MAKE_ABSTRACT_1BASE(self,0xC2460002,1,"sample_based_planner",base_type)
+    RK_RTTI_MAKE_ABSTRACT_1BASE(self,0xC2460001,1,"sample_based_planner",base_type)
 };
 
 };

@@ -117,7 +117,6 @@ void print_mg_vertex(std::ostream& out, const mg_vertex_data<Topology>& vp) {
   vect_n<double> v_pos = to_vect<double>(vp.position);
   for(std::size_t i = 0; i < v_pos.size(); ++i)
     out << " " << std::setw(10) << v_pos[i];
-  out << std::endl;
 };
 
 
@@ -203,7 +202,7 @@ void print_mg_vertex(std::ostream& out, const optimal_mg_vertex<Topology>& vp) {
   vect_n<double> v_pos = to_vect<double>(vp.position);
   for(std::size_t i = 0; i < v_pos.size(); ++i)
     out << " " << std::setw(10) << v_pos[i];
-  out << " " << std::setw(10) << vp.distance_accum << std::endl;
+  out << " " << std::setw(10) << vp.distance_accum;
 };
 
 
@@ -280,7 +279,7 @@ void print_mg_vertex(std::ostream& out, const astar_mg_vertex<Topology>& vp) {
     out << " " << std::setw(10) << v_pos[i];
   out << " " << std::setw(10) << vp.distance_accum
       << " " << std::setw(10) << vp.heuristic_value 
-      << " " << std::setw(10) << vp.key_value << std::endl;
+      << " " << std::setw(10) << vp.key_value;
 };
 
 
@@ -532,7 +531,80 @@ struct mg_vertex_printer : serialization::serializable {
   virtual void RK_CALL save(serialization::oarchive& A, unsigned int) const { };
   virtual void RK_CALL load(serialization::iarchive& A, unsigned int) { };
   
-  RK_RTTI_MAKE_ABSTRACT_1BASE(mg_vertex_printer,0xC2460014,1,"mg_vertex_printer",serialization::serializable)
+  RK_RTTI_MAKE_ABSTRACT_1BASE(mg_vertex_printer,0xC2460011,1,"mg_vertex_printer",serialization::serializable)
+};
+
+
+
+const std::size_t BASE_MOTION_GRAPH_KIND_MASK         = 0x0F;
+const std::size_t BASIC_MOTION_GRAPH_KIND             = 0x00;
+const std::size_t OPTIMAL_MOTION_GRAPH_KIND           = 0x01;
+const std::size_t ASTAR_MOTION_GRAPH_KIND             = 0x03;
+
+const std::size_t DENSITY_MOTION_GRAPH_KIND_MASK      = 0xF0;
+const std::size_t DENSE_MOTION_GRAPH_KIND             = 0x10;
+const std::size_t RECURSIVE_DENSE_MOTION_GRAPH_KIND   = 0x20;
+
+
+
+/**
+ * This stateless functor type can be used to print out the information about an A*-like motion-graph vertex.
+ * This is a printing policy type for the vlist_sbmp_report class.
+ */
+template <typename Topology>
+struct any_mg_vertex_printer : serialization::serializable {
+  typedef any_mg_vertex_printer<Topology> self;
+  typedef typename topology_traits<Topology>::point_type PointType;
+  
+  std::size_t graph_kind;
+  
+  /**
+   * This call operator prints all the information about a given vertex to a given output-stream.
+   * \tparam Vertex The vertex-descriptor type for the motion-graph.
+   * \tparam Graph The motion-graph type used by the planning algorithm.
+   * \param out The output-stream to which to print the information about the vertex.
+   * \param u The vertex whose information is to be printed.
+   * \param g The motion-graph to which the vertex belongs.
+   */
+  void operator()(std::ostream& out, graph::any_graph::vertex_descriptor u, const graph::any_graph& g) const {
+    using ReaK::to_vect;
+    using ReaK::graph::get_dyn_prop;
+    
+    vect_n<double> v_pos = to_vect<double>( get_dyn_prop<const PointType&>("vertex_position", u, g) );
+    for(std::size_t i = 0; i < v_pos.size(); ++i)
+      out << " " << std::setw(10) << v_pos[i];
+    
+    if( graph_kind & OPTIMAL_MOTION_GRAPH_KIND ) {
+      out << " " << std::setw(10) << get_dyn_prop<const double&>("vertex_distance_accum", u, g);
+    };
+    
+    if( graph_kind & ASTAR_MOTION_GRAPH_KIND ) {
+      out << " " << std::setw(10) << get_dyn_prop<const double&>("vertex_heuristic_value", u, g) 
+          << " " << std::setw(10) << get_dyn_prop<const double&>("vertex_key_value", u, g);
+    };
+    
+    if( graph_kind & DENSE_MOTION_GRAPH_KIND ) {
+      out << " " << std::setw(10) << get_dyn_prop<const double&>("vertex_density", u, g);
+    } else if( graph_kind & RECURSIVE_DENSE_MOTION_GRAPH_KIND ) {
+      out << " " << std::setw(10) << get_dyn_prop<const double&>("vertex_density", u, g)
+          << " " << std::setw(10) << get_dyn_prop<const std::size_t&>("vertex_expansion_trials", u, g)
+          << " " << std::setw(10) << get_dyn_prop<const double&>("vertex_constriction", u, g)
+          << " " << std::setw(10) << get_dyn_prop<const std::size_t&>("vertex_collision_count", u, g);
+    };
+    
+    out << std::endl;
+  };
+  
+  explicit any_mg_vertex_printer(std::size_t aGraphKind = 0) : graph_kind(aGraphKind) { };
+  
+  virtual void RK_CALL save(serialization::oarchive& A, unsigned int) const { 
+    A & RK_SERIAL_SAVE_WITH_NAME(graph_kind);
+  };
+  virtual void RK_CALL load(serialization::iarchive& A, unsigned int) { 
+    A & RK_SERIAL_LOAD_WITH_NAME(graph_kind);
+  };
+  
+  RK_RTTI_MAKE_ABSTRACT_1BASE(self,0xC2460012,1,"any_mg_vertex_printer",serialization::serializable)
 };
 
 

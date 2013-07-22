@@ -159,7 +159,7 @@ struct vlist_sbmp_report : public shared_object {
       & RK_SERIAL_LOAD_WITH_NAME(file_path);
   };
   
-  RK_RTTI_MAKE_CONCRETE_1BASE(self,0xC2460011,1,"vlist_sbmp_report",shared_object)
+  RK_RTTI_MAKE_CONCRETE_1BASE(self,0xC2460010,1,"vlist_sbmp_report",shared_object)
   
 };
 
