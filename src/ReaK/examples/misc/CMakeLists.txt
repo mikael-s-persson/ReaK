@@ -51,4 +51,7 @@ add_executable(X8_run_planner "${SRCROOT}${RKMISCEXAMPLESDIR}/X8_run_planner.cpp
 setup_custom_target(X8_run_planner "${SRCROOT}${RKMISCEXAMPLESDIR}")
 target_link_libraries(X8_run_planner reak_examples reak_topologies reak_mbd reak_core)
 
+add_executable(test_MEAQR_knn_methods "${SRCROOT}${RKMISCEXAMPLESDIR}/test_MEAQR_knn_methods.cpp")
+setup_custom_target(test_MEAQR_knn_methods "${SRCROOT}${RKMISCEXAMPLESDIR}")
+target_link_libraries(test_MEAQR_knn_methods reak_examples reak_topologies reak_mbd reak_core)
 
