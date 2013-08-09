@@ -5,6 +5,7 @@ set(SERIALIZATION_SOURCES
   "${SRCROOT}${RKSERIALIZATIONDIR}/protobuf_archiver.cpp"
   "${SRCROOT}${RKSERIALIZATIONDIR}/objtree_archiver.cpp"
   "${SRCROOT}${RKSERIALIZATIONDIR}/scheme_builder.cpp"
+  "${SRCROOT}${RKSERIALIZATIONDIR}/archiver_factory.cpp"
 )
 
 set(SERIALIZATION_HEADERS 
@@ -15,6 +16,7 @@ set(SERIALIZATION_HEADERS
   "${RKSERIALIZATIONDIR}/objtree_archiver.hpp"
   "${RKSERIALIZATIONDIR}/scheme_builder.hpp"
   "${RKSERIALIZATIONDIR}/type_schemes.hpp"
+  "${RKSERIALIZATIONDIR}/archiver_factory.hpp"
 )
 
 add_library(reakobj_serialization OBJECT ${SERIALIZATION_SOURCES})

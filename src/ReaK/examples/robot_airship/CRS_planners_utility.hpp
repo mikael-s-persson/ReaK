@@ -35,11 +35,9 @@
 #include "base/defs.hpp"
 #include "base/named_object.hpp"
 
-#include "CRS_A465_geom_model.hpp"
-#include "CRS_A465_models.hpp"
+#include "shapes/colored_model.hpp"
 #include "proximity/proxy_query_model.hpp"
-
-#include "kte_models/manip_kinematics_model.hpp"
+#include "kte_models/manip_P3R3R_arm.hpp"
 
 #include "CRS_workspaces.hpp"
 #include "CRS_rrt_planners.hpp"
@@ -48,10 +46,6 @@
 #include "CRS_fadprm_planners.hpp"
 #include "CRS_sbastar_planners.hpp"
 
-#include "serialization/bin_archiver.hpp"
-#include "serialization/xml_archiver.hpp"
-#include "serialization/protobuf_archiver.hpp"
-
 namespace ReaK {
   
 namespace robot_airship {
@@ -59,9 +53,12 @@ namespace robot_airship {
 
 class scenario_data : public named_object {
   public:
-    CRS_A465_geom_builder chaser_builder;
-    shared_ptr< kte::manipulator_kinematics_model > chaser_kin_model;
+    shared_ptr< frame_3D<double> >                    chaser_base_frame;
+    shared_ptr< kte::manip_P3R3R_kinematics >         chaser_kin_model;
     shared_ptr< pp::joint_limits_collection<double> > chaser_jt_limits;
+    shared_ptr< geom::proxy_query_model_3D >          chaser_proxy;
+    shared_ptr< geom::colored_model_3D >              chaser_geom_model;
+    vect_n<double>                                    chaser_jt_positions;
     
     shared_ptr< kte::kte_map_chain > target_kin_chain;
     shared_ptr< frame_3D<double> > target_state;
@@ -72,61 +69,54 @@ class scenario_data : public named_object {
     shared_ptr< geom::proxy_query_pair_3D > target_env_proxy;
     
     
-    scenario_data() : named_object() {
-      setName("robot_airship_scenario_data");
-      
-      
-      chaser_builder.create_geom_from_preset();
-      
-      shared_ptr< geom::proxy_query_model_3D > chaser_proxy = chaser_builder.get_proximity_model();
-      chaser_kin_model = chaser_builder.get_manipulator_kin_model();
-      chaser_jt_limits = shared_ptr< pp::joint_limits_collection<double> >(&(chaser_builder.joint_rate_limits), ReaK::null_deleter());
-      
-      shared_ptr< geom::proxy_query_model_3D > env_proxy;
-      shared_ptr< geom::colored_model_3D > env_geom_model;
-      {
-        serialization::xml_iarchive in("models/MD148_lab_model.xml");
-        in >> env_geom_model >> env_proxy;
-      };
-      
-      shared_ptr< geom::proxy_query_model_3D > target_proxy;
-      shared_ptr< geom::colored_model_3D > target_geom_model;
-      {
-        shared_ptr< kte::position_measure_3D > target_position;
-        shared_ptr< kte::rotation_measure_3D > target_rotation;
-        shared_ptr< kte::driving_actuator_3D > target_actuator;
-        shared_ptr< kte::inertia_3D > target_inertia;
-        shared_ptr< kte::mass_matrix_calc > target_mass_calc;
-        
-        serialization::xml_iarchive in("models/airship3D_with_geom.xml");
-        in >> target_state
-           >> target_position
-           >> target_rotation
-           >> target_actuator
-           >> target_inertia
-           >> target_kin_chain
-           >> target_mass_calc
-           >> target_frame
-           >> target_geom_model 
-           >> target_proxy;
-      };
-      
-      chaser_env_proxy     = shared_ptr< geom::proxy_query_pair_3D >(new geom::proxy_query_pair_3D("chaser_env_proxy", chaser_proxy, env_proxy));
-      chaser_target_proxy  = shared_ptr< geom::proxy_query_pair_3D >(new geom::proxy_query_pair_3D("chaser_target_proxy", chaser_proxy, target_proxy));
-      target_env_proxy     = shared_ptr< geom::proxy_query_pair_3D >(new geom::proxy_query_pair_3D("target_env_proxy", env_proxy, target_proxy));
-      
-      chaser_env_proxy->setModelPair(chaser_proxy, env_proxy);
-      chaser_target_proxy->setModelPair(chaser_proxy, target_proxy);
-      target_env_proxy->setModelPair(env_proxy, target_proxy);
-      
-      
-    };
+    scenario_data();
     
+    void load_positions(const std::string& fileName, const std::string& fileExt);
     
-  
-  
+  private:
+    
+    vect_n<double> get_chaser_goal_config();
+    
+  public:
+    
 };
 
+
+
+/*
+
+typedef pp::manip_pp_traits< kte::manip_P3R3R_kinematics >::rl_o0_jt_space_type CRS3D_jspace_rl_o0_type;
+typedef pp::manip_pp_traits< kte::manip_P3R3R_kinematics >::rl_o1_jt_space_type CRS3D_jspace_rl_o1_type;
+typedef pp::manip_pp_traits< kte::manip_P3R3R_kinematics >::rl_o2_jt_space_type CRS3D_jspace_rl_o2_type;
+
+typedef pp::manip_pp_traits< kte::manip_P3R3R_kinematics >::o0_jt_space_type CRS3D_jspace_o0_type;
+typedef pp::manip_pp_traits< kte::manip_P3R3R_kinematics >::o1_jt_space_type CRS3D_jspace_o1_type;
+typedef pp::manip_pp_traits< kte::manip_P3R3R_kinematics >::o2_jt_space_type CRS3D_jspace_o2_type;
+
+
+typedef pp::manip_static_workspace< kte::manip_P3R3R_kinematics, pp::linear_interpolation_tag>::rl_o0_workspace_type CRS3D_workspace_o0_i1_type;
+typedef pp::manip_static_workspace< kte::manip_P3R3R_kinematics, pp::linear_interpolation_tag>::rl_o1_workspace_type CRS3D_workspace_o1_i1_type;
+typedef pp::manip_static_workspace< kte::manip_P3R3R_kinematics, pp::linear_interpolation_tag>::rl_o2_workspace_type CRS3D_workspace_o2_i1_type;
+
+typedef pp::manip_static_workspace< kte::manip_P3R3R_kinematics, pp::cubic_hermite_interpolation_tag>::rl_o1_workspace_type CRS3D_workspace_o1_i3_type;
+typedef pp::manip_static_workspace< kte::manip_P3R3R_kinematics, pp::cubic_hermite_interpolation_tag>::rl_o2_workspace_type CRS3D_workspace_o2_i3_type;
+
+typedef pp::manip_static_workspace< kte::manip_P3R3R_kinematics, pp::quintic_hermite_interpolation_tag>::rl_o2_workspace_type CRS3D_workspace_o2_i5_type;
+
+typedef pp::manip_static_workspace< kte::manip_P3R3R_kinematics, pp::svp_Ndof_interpolation_tag>::rl_o1_workspace_type CRS3D_workspace_o1_svp_type;
+typedef pp::manip_static_workspace< kte::manip_P3R3R_kinematics, pp::svp_Ndof_interpolation_tag>::rl_o2_workspace_type CRS3D_workspace_o2_svp_type;
+
+typedef pp::manip_static_workspace< kte::manip_P3R3R_kinematics, pp::sap_Ndof_interpolation_tag>::rl_o2_workspace_type CRS3D_workspace_o2_sap_type;
+
+
+typedef pp::manip_DK_map< kte::manip_P3R3R_kinematics >::rl_o0_map_type CRS3D_rlDK_o0_type;
+typedef pp::manip_DK_map< kte::manip_P3R3R_kinematics >::rl_o1_map_type CRS3D_rlDK_o1_type;
+typedef pp::manip_DK_map< kte::manip_P3R3R_kinematics >::rl_o2_map_type CRS3D_rlDK_o2_type;
+
+*/
+
+
+/*
 struct all_robot_info {
   SoQtExaminerViewer * eviewer;
   SoSeparator* sg_root;
@@ -164,7 +154,7 @@ struct all_robot_info {
   std::size_t animation_progress;
   std::chrono::high_resolution_clock::time_point animation_last_render;
 } r_info;
-
+*/
 
 
 };
