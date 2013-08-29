@@ -81,11 +81,9 @@ BOOST_AUTO_TEST_CASE( root_finding_tests )
     BOOST_CHECK_NO_THROW( bisection_method(l, h, funcs[i], rel_tol) );
     BOOST_CHECK_CLOSE( l, sols[i], 5e-5 );
     
-#if 0
     l = lows[i]; h = his[i];
     BOOST_CHECK_NO_THROW( l = secant_method(l, h, funcs[i], rel_tol) );
     BOOST_CHECK_CLOSE( l, sols[i], 5e-5 );
-#endif
     
     l = lows[i]; h = his[i];
     BOOST_CHECK_NO_THROW( illinois_method(l, h, funcs[i], rel_tol) );

@@ -34,12 +34,12 @@ Core modules:
   - tsv-recorder/extractor   ----------------------------------------- PASS
   - tcp-recorder/extractor   ----------------------------------------- PASS
  - core/sorting   ---------------------------------------------------- PASS
- - core/root_finders   ----------------------------------------------- PART
+ - core/root_finders   ----------------------------------------------- PASS
   - bisection_method   ----------------------------------------------- PASS
-  - secant_method   ---------------------------------------------- FAIL      (seems too prone to divergence to pass the test cases)
+  - secant_method   -------------------------------------------------- PASS
   - illinois_method   ------------------------------------------------ PASS
-  - ford3_method   --------------------------------------------------- PASS
-  - brent_method   --------------------------------------------------- PASS
+  - ford3_method   --------------------------------------------------- PASS  (INFORMAL) (the second best secant-style method)
+  - brent_method   --------------------------------------------------- PASS  (INFORMAL) (the best secant-style method)
   - ridders_method   ------------------------------------------------- PASS
  - core/lin_alg   ---------------------------------------------------- PART
   - vect_alg   ------------------------------------------------------- PASS
