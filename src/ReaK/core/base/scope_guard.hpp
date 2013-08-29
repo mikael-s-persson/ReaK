@@ -161,7 +161,22 @@ namespace detail {
 
 #define RK_SCOPE_EXIT ReaK::detail::scope_guard_on_exit() + [&]() 
 
+#define RK_SCOPE_EXIT_ROUTINE(X) auto X = ReaK::detail::scope_guard_on_exit() + [&]() 
+
+#define RK_SCOPE_EXIT_DISMISS(X) X.dismiss()
+
 };
+
+#else
+
+
+
+#define RK_SCOPE_EXIT_ROUTINE(X) \
+#warning ("Warning : Use of a scope-guard on a pre-C++11 compiler has no effect!") \
+if(false) 
+
+#define RK_SCOPE_EXIT_DISMISS(X) \
+#warning ("Warning : Use of a scope-guard on a pre-C++11 compiler has no effect!") 
 
 #endif
 
