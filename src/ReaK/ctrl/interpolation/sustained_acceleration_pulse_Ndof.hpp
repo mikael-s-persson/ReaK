@@ -148,7 +148,7 @@ PointType sap_Ndof_interpolate(const PointType& a, const PointType& b, double t,
 template <typename SpaceType, typename TimeSpaceType>
 class sap_Ndof_interpolator {
   public:
-    typedef sap_interpolator<SpaceType,TimeSpaceType> self;
+    typedef sap_Ndof_interpolator<SpaceType,TimeSpaceType> self;
     typedef typename topology_traits<SpaceType>::point_type point_type;
   
     typedef typename derived_N_order_space< SpaceType,TimeSpaceType,0>::type Space0;

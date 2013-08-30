@@ -52,6 +52,9 @@ add_executable(test_Ndof_interp "${SRCROOT}${RKINTERPOLATIONDIR}/test_Ndof_inter
 setup_custom_target(test_Ndof_interp "${SRCROOT}${RKINTERPOLATIONDIR}")
 target_link_libraries(test_Ndof_interp reak_topologies reak_interp reak_core)
 
+add_executable(test_interp_mc "${SRCROOT}${RKINTERPOLATIONDIR}/test_interp_mc.cpp")
+setup_custom_target(test_interp_mc "${SRCROOT}${RKINTERPOLATIONDIR}")
+target_link_libraries(test_interp_mc reak_topologies reak_interp reak_core)
 
 
 

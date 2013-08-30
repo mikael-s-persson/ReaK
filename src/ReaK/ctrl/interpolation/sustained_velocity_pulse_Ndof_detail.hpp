@@ -70,9 +70,9 @@ namespace detail {
   template <typename Idx, typename PointType, typename DiffSpace, typename TimeSpace>
   inline
   typename boost::enable_if<
-    boost::mpl::equal_to<
+    boost::mpl::greater<
       Idx,
-      boost::mpl::size_t<2>
+      boost::mpl::size_t<1>
     >,
   void >::type svp_Ndof_constant_accel_motion_HOT_impl(PointType& result, double descended_accel, std::size_t i, const DiffSpace& space, const TimeSpace& t_space) {
     typedef typename topology_traits< typename derived_N_order_space< DiffSpace, TimeSpace,1>::type >::point_type PointType2;
@@ -95,9 +95,9 @@ namespace detail {
   template <typename Idx, typename PointType>
   inline
   typename boost::enable_if<
-    boost::mpl::equal_to<
+    boost::mpl::greater<
       Idx,
-      boost::mpl::size_t<2>
+      boost::mpl::size_t<1>
     >,
   void >::type svp_Ndof_constant_vel_motion_HOT_impl(PointType& result, std::size_t i) {
     get<2>(result)[i] = 0.0;
