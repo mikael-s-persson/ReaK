@@ -40,6 +40,7 @@
 
 
 #define RK_INTERP_MC_TEST_USE_HYPERBOX
+#define RK_INTERP_MC_TEST_USE_RL_NDOF_SPACE
 
 
 #ifndef RK_INTERP_MC_TEST_USE_HYPERBOX
@@ -56,6 +57,7 @@
 #include "topologies/line_topology.hpp"
 #else
 #include "topologies/hyperbox_topology.hpp"
+#include "topologies/Ndof_spaces.hpp"
 #endif
 
 
@@ -139,16 +141,14 @@ void try_interpolation(const std::string& aMethodName, std::size_t& succ_count,
         
         if( RK_TEST_IS_NAN((get<0>(p.pt))) || 
             RK_TEST_IS_NAN((get<1>(p.pt))) || 
-            RK_TEST_IS_NAN((get<2>(p.pt))) || 
-            RK_TEST_IS_NAN((get<3>(p.pt))) ) {
+            RK_TEST_IS_NAN((get<2>(p.pt))) ) {
           fail_reports << aMethodName << " NaN interp " << t << " " << curve_ampl << " " << curve_phase << " " << curve_freq << " " << interp_steps << std::endl;
           throw std::domain_error("NaN condition encountered!");
         };
         
         if( RK_TEST_IS_INF((get<0>(p.pt))) || 
             RK_TEST_IS_INF((get<1>(p.pt))) || 
-            RK_TEST_IS_INF((get<2>(p.pt))) || 
-            RK_TEST_IS_INF((get<3>(p.pt))) ) {
+            RK_TEST_IS_INF((get<2>(p.pt))) ) {
           fail_reports << aMethodName << " INF interp " << t << " " << curve_ampl << " " << curve_phase << " " << curve_freq << " " << interp_steps << std::endl;
           throw std::domain_error("INF condition encountered!");
         };
@@ -284,6 +284,8 @@ int main(int argc, char** argv) {
   
 #else
   
+#ifndef RK_INTERP_MC_TEST_USE_RL_NDOF_SPACE
+  
   typedef arithmetic_tuple< 
             pp::hyperbox_topology< vect<double, 1> >, 
             pp::hyperbox_topology< vect<double, 1> >, 
@@ -302,6 +304,23 @@ int main(int argc, char** argv) {
                      pp::hyperbox_topology< vect<double, 1> >("vel_topo", vect<double, 1>(-2.0 * max_rad_freq), vect<double, 1>(2.0 * max_rad_freq)),
                      pp::hyperbox_topology< vect<double, 1> >("acc_topo", vect<double, 1>(-2.0 * max_rad_freq * max_rad_freq), vect<double, 1>(2.0 * max_rad_freq * max_rad_freq)),
                      pp::hyperbox_topology< vect<double, 1> >("jerk_topo",vect<double, 1>(-2.0 * max_rad_freq * max_rad_freq * max_rad_freq), vect<double, 1>(2.0 * max_rad_freq * max_rad_freq * max_rad_freq)))));
+  
+#else
+  
+  typedef pp::Ndof_rl_space< double, 1, 2>::type TopoType;
+  typedef pp::topology_traits<TopoType>::point_type PointType;
+  typedef pp::temporal_space< TopoType, pp::time_poisson_topology> TempTopoType;
+  typedef pp::topology_traits<TempTopoType>::point_type TempPointType;
+  
+  shared_ptr< TempTopoType > topo = 
+    shared_ptr< TempTopoType >( new TempTopoType( "temporal_space",
+      pp::make_Ndof_rl_space<1, vect<double, 1> >(
+        vect<double, 1>(-2.0), vect<double, 1>(2.0), 
+        vect<double, 1>(2.0 * max_rad_freq),
+        vect<double, 1>(2.0 * max_rad_freq * max_rad_freq),
+        vect<double, 1>(2.0 * max_rad_freq * max_rad_freq * max_rad_freq))));
+  
+#endif
   
 #endif
   
@@ -343,14 +362,25 @@ int main(int argc, char** argv) {
         -curve_ampl * curve_freq * curve_freq * std::sin(curve_freq * t + curve_phase), 
         -curve_ampl * curve_freq * curve_freq * curve_freq * std::cos(curve_freq * t + curve_phase))) );
 #else
+#ifndef RK_INTERP_MC_TEST_USE_RL_NDOF_SPACE
       pts.push_back( TempPointType( t, PointType(
         vect<double, 1>( curve_ampl * std::sin(curve_freq * t + curve_phase)), 
         vect<double, 1>( curve_ampl * curve_freq * std::cos(curve_freq * t + curve_phase)), 
         vect<double, 1>(-curve_ampl * curve_freq * curve_freq * std::sin(curve_freq * t + curve_phase)), 
         vect<double, 1>(-curve_ampl * curve_freq * curve_freq * curve_freq * std::cos(curve_freq * t + curve_phase)))) );
+#else
+      pts.push_back( TempPointType( t, PointType(
+        vect<double, 1>( curve_ampl / (2.0 * max_rad_freq) * std::sin(curve_freq * t + curve_phase)), 
+        vect<double, 1>( curve_ampl * curve_freq / (2.0 * max_rad_freq * max_rad_freq) * std::cos(curve_freq * t + curve_phase)), 
+        vect<double, 1>(-curve_ampl * curve_freq * curve_freq / (2.0 * max_rad_freq * max_rad_freq * max_rad_freq) * std::sin(curve_freq * t + curve_phase)))) );
+#endif
 #endif
     };
     
+    
+#ifdef RK_INTERP_MC_TEST_USE_RL_NDOF_SPACE
+    curve_ampl /= 2.0 * max_rad_freq;
+#endif
     
 #ifdef RK_ENABLE_TEST_LINEAR_INTERPOLATOR
     
