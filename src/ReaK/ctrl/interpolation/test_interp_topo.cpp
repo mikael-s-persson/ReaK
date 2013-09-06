@@ -28,15 +28,13 @@
 #include <cmath>
 
 #include "topologies/time_topology.hpp"
-#include "topologies/time_poisson_topology.hpp"
 #include "topologies/differentiable_space.hpp"
-#include "topologies/temporal_space.hpp"
 
 
 
-#define RK_ENABLE_TEST_LINEAR_INTERPOLATOR
-#define RK_ENABLE_TEST_CUBIC_INTERPOLATOR
-#define RK_ENABLE_TEST_QUINTIC_INTERPOLATOR
+// #define RK_ENABLE_TEST_LINEAR_INTERPOLATOR
+// #define RK_ENABLE_TEST_CUBIC_INTERPOLATOR
+// #define RK_ENABLE_TEST_QUINTIC_INTERPOLATOR
 #define RK_ENABLE_TEST_SVP_NDOF_INTERPOLATOR
 #define RK_ENABLE_TEST_SAP_NDOF_INTERPOLATOR
 
@@ -44,6 +42,7 @@
 
 #include "topologies/hyperbox_topology.hpp"
 #include "topologies/Ndof_spaces.hpp"
+
 
 
 #ifdef RK_ENABLE_TEST_LINEAR_INTERPOLATOR
@@ -60,10 +59,12 @@
 
 #ifdef RK_ENABLE_TEST_SVP_NDOF_INTERPOLATOR
 #include "sustained_velocity_pulse_Ndof.hpp"
+#include "interpolation/svp_Ndof_reach_topologies.hpp"
 #endif
 
 #ifdef RK_ENABLE_TEST_SAP_NDOF_INTERPOLATOR
 #include "sustained_acceleration_pulse_Ndof.hpp"
+#include "interpolation/sap_Ndof_reach_topologies.hpp"
 #endif
 
 
@@ -100,63 +101,73 @@ bool vect_is_inf(const Vector& v) {
 };
 
 
-template <typename InterpTrajType, typename Vector, typename TempTopoType, typename PtContainer >
-void try_interpolation(const std::string& aMethodName, std::size_t& succ_count,
-                       const Vector& curve_ampl, const Vector& curve_phase, 
-                       double curve_freq, double interp_steps,
-                       const ReaK::shared_ptr< TempTopoType >& topo, const PtContainer& pts, std::ostream& fail_reports) {
+template <typename InterpTopoType, typename PtContainer >
+void try_interpolation(const std::string& aMethodName, const std::string& aTestData, 
+                       std::size_t& succ_count, std::size_t& graceful_failures,
+                       const InterpTopoType& topo, const PtContainer& pts, std::ostream& fail_reports) {
   
   using namespace ReaK;
   
-  typedef typename pp::topology_traits<TempTopoType>::point_type TempPointType;
+  typedef typename pp::topology_traits<InterpTopoType>::point_type PointType;
+  typedef typename PtContainer::const_iterator Iter;
   
-  try {
-    RK_SCOPE_EXIT_ROUTINE(report_construct_except) {
-      fail_reports << aMethodName << " exception construct 0 " << norm_2(curve_ampl) << " " << curve_freq << " " << interp_steps << std::endl;
-    };
-    InterpTrajType interp(pts.begin(), pts.end(), topo);
-    RK_SCOPE_EXIT_DISMISS(report_construct_except);
-    
-    for(double t = 0.0; t < 1.0 - 0.5 * interp_steps; ) {
-      TempPointType p = pts[0];
-      for(std::size_t j = 0; j < 100; ++j) {
-        t += 0.01 * interp_steps;
-        RK_SCOPE_EXIT_ROUTINE(report_interp_except) {
-          fail_reports << aMethodName << " exception interp " << t << " " << norm_2(curve_ampl) << " " << curve_freq << " " << interp_steps << std::endl;
-        };
-        p = interp.get_point_at_time(t);
-        RK_SCOPE_EXIT_DISMISS(report_interp_except);
-        
-        if( vect_is_nan((get<0>(p.pt))) || 
-            vect_is_nan((get<1>(p.pt))) || 
-            vect_is_nan((get<2>(p.pt))) ) {
-          fail_reports << aMethodName << " NaN interp " << t << " " << norm_2(curve_ampl) << " " << curve_freq << " " << interp_steps << std::endl;
-          throw std::domain_error("NaN condition encountered!");
-        };
-        
-        if( vect_is_inf((get<0>(p.pt))) || 
-            vect_is_inf((get<1>(p.pt))) || 
-            vect_is_inf((get<2>(p.pt))) ) {
-          fail_reports << aMethodName << " INF interp " << t << " " << norm_2(curve_ampl) << " " << curve_freq << " " << interp_steps << std::endl;
-          throw std::domain_error("INF condition encountered!");
-        };
-        
+  Iter it = pts.begin();
+  for(Iter prev_it = it++; it != pts.end(); ++prev_it, ++it) {
+      
+    try {
+      
+      RK_SCOPE_EXIT_ROUTINE(report_dist_except) {
+        fail_reports << aMethodName << " exception dist " << aTestData << std::endl;
+      };
+      double d = get(pp::distance_metric, topo)(*prev_it, *it, topo);
+      RK_SCOPE_EXIT_DISMISS(report_dist_except);
+      
+      if( std::isnan(d) ) {
+        fail_reports << aMethodName << " NaN dist " << aTestData << std::endl;
+        throw std::domain_error("NaN condition encountered!");
       };
       
-      Vector ref_pos = curve_ampl;
-      for(std::size_t j = 0; j < ref_pos.size(); ++j) {
-        ref_pos[j] *= std::sin(curve_freq * t + curve_phase[j]);
+      if( std::isinf(d) ) {
+        ++graceful_failures;
+        continue;
       };
-      if( norm_2(get<0>(p.pt) - ref_pos) > 1e-3) {
-        fail_reports << aMethodName << " pos_tol interp " << t << " " << norm_2(curve_ampl) << " " << curve_freq << " " << interp_steps << std::endl;
+      
+      RK_SCOPE_EXIT_ROUTINE(report_interp_except) {
+        fail_reports << aMethodName << " exception interp " << aTestData << std::endl;
+      };
+      PointType p = topo.move_position_toward(*prev_it, 1.0, *it);
+      RK_SCOPE_EXIT_DISMISS(report_interp_except);
+      
+      if( vect_is_nan((get<0>(p))) || 
+          vect_is_nan((get<1>(p))) || 
+          vect_is_nan((get<2>(p))) ) {
+        fail_reports << aMethodName << " NaN interp " << aTestData << std::endl;
+        throw std::domain_error("NaN condition encountered!");
+      };
+      
+      if( vect_is_inf((get<0>(p))) || 
+          vect_is_inf((get<1>(p))) || 
+          vect_is_inf((get<2>(p))) ) {
+        fail_reports << aMethodName << " INF interp " << aTestData << std::endl;
+        throw std::domain_error("INF condition encountered!");
+      };
+      
+      if( norm_2(get<0>(p) - get<0>(*it)) > 1e-3 ) {
+        fail_reports << aMethodName << " pos_tol interp " << aTestData << std::endl;
         throw std::domain_error("Position-tolerance exceeded!");
       };
       
-    };
+      if( norm_2(get<1>(p) - get<1>(*it)) > 1e-3 ) {
+        fail_reports << aMethodName << " vel_tol interp " << aTestData << std::endl;
+        throw std::domain_error("Velocity-tolerance exceeded!");
+      };
+      
+      ++succ_count;
+      
+    } catch (std::exception& e) { };
     
-    ++succ_count;
+  };
     
-  } catch (std::exception& e) { };
 };
 
 
@@ -165,34 +176,30 @@ void try_interpolation(const std::string& aMethodName, std::size_t& succ_count,
 template <std::size_t StaticSpDim>
 struct interp_mc_test_space {
   typedef typename ReaK::pp::Ndof_rl_space< double, StaticSpDim, 2>::type topo_type;
-  typedef ReaK::pp::temporal_space< topo_type, ReaK::pp::time_poisson_topology> temp_topo_type;
   typedef ReaK::vect<double, StaticSpDim> vector_type;
   
   static vector_type default_vect(std::size_t ) {
     return vector_type();
   };
   
-  static ReaK::shared_ptr< temp_topo_type > create(const vector_type& lb, const vector_type& ub, const vector_type& sb, 
-                                                   const vector_type& ab, const vector_type& jb) {
-    return ReaK::shared_ptr< temp_topo_type >( new temp_topo_type( "temporal_space",
-      ReaK::pp::make_Ndof_rl_space<StaticSpDim>( lb, ub, sb, ab, jb)));
+  static topo_type create(const vector_type& lb, const vector_type& ub, const vector_type& sb, 
+                          const vector_type& ab, const vector_type& jb) {
+    return ReaK::pp::make_Ndof_rl_space<StaticSpDim>(lb, ub, sb, ab, jb);
   };
 };
 
 template <>
 struct interp_mc_test_space<0> {
   typedef ReaK::pp::Ndof_rl_space< double, 0, 2>::type topo_type;
-  typedef ReaK::pp::temporal_space< topo_type, ReaK::pp::time_poisson_topology> temp_topo_type;
   typedef ReaK::vect_n<double> vector_type;
   
   static vector_type default_vect(std::size_t dyn_sp_size) {
     return vector_type(dyn_sp_size);
   };
   
-  static ReaK::shared_ptr< temp_topo_type > create(const vector_type& lb, const vector_type& ub, const vector_type& sb, 
-                                                   const vector_type& ab, const vector_type& jb) {
-    return ReaK::shared_ptr< temp_topo_type >( new temp_topo_type( "temporal_space",
-      ReaK::pp::make_Ndof_rl_space( lb, ub, sb, ab, jb)));
+  static topo_type create(const vector_type& lb, const vector_type& ub, const vector_type& sb, 
+                          const vector_type& ab, const vector_type& jb) {
+    return ReaK::pp::make_Ndof_rl_space( lb, ub, sb, ab, jb);
   };
 };
 
@@ -204,12 +211,9 @@ void perform_mc_tests(const po::variables_map& vm, std::size_t dyn_sp_dim) {
   
   typedef interp_mc_test_space< StaticSpDim > Config;
   typedef typename Config::topo_type      TopoType;
-  typedef typename Config::temp_topo_type TempTopoType;
   typedef typename Config::vector_type    Vector;
   
   typedef typename pp::topology_traits<TopoType>::point_type     PointType;
-  typedef typename pp::topology_traits<TempTopoType>::point_type TempPointType;
-  
   
   double max_freq     = vm["space-max-frequency"].as<double>();
   double max_rad_freq = max_freq * 2.0 * M_PI;  // rad/s
@@ -227,42 +231,50 @@ void perform_mc_tests(const po::variables_map& vm, std::size_t dyn_sp_dim) {
     jb[i] =  2.0 * max_rad_freq * max_rad_freq * max_rad_freq;
   };
   
-  shared_ptr< TempTopoType > topo = Config::create(lb, ub, sb, ab, jb);
-  
-  
   std::string output_path = vm["output-path"].as<std::string>();
   while(output_path[output_path.length()-1] == '/') 
     output_path.erase(output_path.length()-1, 1);
   
   fs::create_directory(output_path.c_str());
   
-  std::ofstream fail_reports((output_path + "/mc_fail_reports.txt").c_str());
+  std::ofstream fail_reports((output_path + "/topo_fail_reports.txt").c_str());
   
   
 #ifdef RK_ENABLE_TEST_LINEAR_INTERPOLATOR
   std::size_t linear_succ_count = 0;
+  std::size_t linear_graceful_fails = 0;
 #endif
 #ifdef RK_ENABLE_TEST_CUBIC_INTERPOLATOR
   std::size_t cubic_succ_count = 0;
+  std::size_t cubic_graceful_fails = 0;
 #endif
 #ifdef RK_ENABLE_TEST_QUINTIC_INTERPOLATOR
   std::size_t quintic_succ_count = 0;
+  std::size_t quintic_graceful_fails = 0;
 #endif
 #ifdef RK_ENABLE_TEST_SVP_NDOF_INTERPOLATOR
   std::size_t svp_Ndof_succ_count = 0;
+  std::size_t svp_Ndof_graceful_fails = 0;
+  pp::svp_Ndof_reach_topology<TopoType> svp_Ndof_topo( Config::create(lb, ub, sb, ab, jb) );
 #endif
 #ifdef RK_ENABLE_TEST_SAP_NDOF_INTERPOLATOR
   std::size_t sap_Ndof_succ_count = 0;
+  std::size_t sap_Ndof_graceful_fails = 0;
+  pp::sap_Ndof_reach_topology<TopoType> sap_Ndof_topo( Config::create(lb, ub, sb, ab, jb) );
 #endif
   
   std::size_t mc_runs = vm["mc-runs"].as<std::size_t>();
   double interp_steps = vm["interp-steps"].as<double>();
   
+  std::size_t segment_count = 0;
+  for(double t = 0.0; t < 1.0 + 0.5 * interp_steps; t += interp_steps)
+    ++segment_count;
+  --segment_count;
+  
   for(std::size_t i = 0; i < mc_runs; ++i) {
     
-    std::vector< TempPointType > pts;
+    std::vector< PointType > pts;
     double curve_freq  = double(std::rand() % 1000) * (max_rad_freq / 1000.0);
-    
     Vector curve_ampl = Config::default_vect(dyn_sp_dim);
     Vector curve_phase = Config::default_vect(dyn_sp_dim);
     for(std::size_t j = 0; j < dyn_sp_dim; ++j) {
@@ -281,18 +293,24 @@ void perform_mc_tests(const po::variables_map& vm, std::size_t dyn_sp_dim) {
         acc[j] *= -curve_freq * curve_freq * std::sin(curve_freq * t + curve_phase[j]) / (2.0 * max_rad_freq * max_rad_freq * max_rad_freq);
       };
       
-      pts.push_back( TempPointType( t, PointType(pos, vel, acc) ) );
+      pts.push_back( PointType(pos, vel, acc) );
     };
     
     
     curve_ampl *= 0.5 / max_rad_freq;
     
+    std::string test_data_str;
+    {
+      std::stringstream ss;
+      ss << norm_2(curve_ampl) << " " << curve_freq << " " << interp_steps;
+      test_data_str = ss.str();
+    };
+    
     
 #ifdef RK_ENABLE_TEST_LINEAR_INTERPOLATOR
     
     if(vm.count("all-interpolators") || vm.count("linear")) {
-      try_interpolation< pp::linear_interp_traj<TempTopoType> >(
-        "linear", linear_succ_count, curve_ampl, curve_phase, curve_freq, interp_steps, topo, pts, fail_reports);
+      try_interpolation("linear", test_data_str, linear_succ_count, linear_graceful_fails, linear_topo, pts, fail_reports);
     };
     
 #endif
@@ -301,8 +319,7 @@ void perform_mc_tests(const po::variables_map& vm, std::size_t dyn_sp_dim) {
 #ifdef RK_ENABLE_TEST_CUBIC_INTERPOLATOR
     
     if(vm.count("all-interpolators") || vm.count("cubic")) {
-      try_interpolation< pp::cubic_hermite_interp_traj<TempTopoType> >(
-        "cubic", cubic_succ_count, curve_ampl, curve_phase, curve_freq, interp_steps, topo, pts, fail_reports);
+      try_interpolation("cubic", test_data_str, cubic_succ_count, cubic_graceful_fails, cubic_topo, pts, fail_reports);
     };
     
 #endif
@@ -311,8 +328,7 @@ void perform_mc_tests(const po::variables_map& vm, std::size_t dyn_sp_dim) {
 #ifdef RK_ENABLE_TEST_QUINTIC_INTERPOLATOR
     
     if(vm.count("all-interpolators") || vm.count("quintic")) {
-      try_interpolation< pp::quintic_hermite_interp_traj<TempTopoType> >(
-        "quintic", quintic_succ_count, curve_ampl, curve_phase, curve_freq, interp_steps, topo, pts, fail_reports);
+      try_interpolation("quintic", test_data_str, quintic_succ_count, quintic_graceful_fails, quintic_topo, pts, fail_reports);
     };
     
 #endif
@@ -321,8 +337,7 @@ void perform_mc_tests(const po::variables_map& vm, std::size_t dyn_sp_dim) {
 #ifdef RK_ENABLE_TEST_SVP_NDOF_INTERPOLATOR
     
     if(vm.count("all-interpolators") || vm.count("svp-Ndof")) {
-      try_interpolation< pp::svp_Ndof_interp_traj<TempTopoType> >(
-        "svp_Ndof", svp_Ndof_succ_count, curve_ampl, curve_phase, curve_freq, interp_steps, topo, pts, fail_reports);
+      try_interpolation("svp_Ndof", test_data_str, svp_Ndof_succ_count, svp_Ndof_graceful_fails, svp_Ndof_topo, pts, fail_reports);
     };
     
 #endif
@@ -331,8 +346,7 @@ void perform_mc_tests(const po::variables_map& vm, std::size_t dyn_sp_dim) {
 #ifdef RK_ENABLE_TEST_SAP_NDOF_INTERPOLATOR
     
     if(vm.count("all-interpolators") || vm.count("sap-Ndof")) {
-      try_interpolation< pp::sap_Ndof_interp_traj<TempTopoType> >(
-        "sap_Ndof", sap_Ndof_succ_count, curve_ampl, curve_phase, curve_freq, interp_steps, topo, pts, fail_reports);
+      try_interpolation("sap_Ndof", test_data_str, sap_Ndof_succ_count, sap_Ndof_graceful_fails, sap_Ndof_topo, pts, fail_reports);
     };
     
 #endif
@@ -341,32 +355,64 @@ void perform_mc_tests(const po::variables_map& vm, std::size_t dyn_sp_dim) {
   
   fail_reports.close();
   
-  std::ofstream succ_reports((output_path + "/mc_success_rates.txt").c_str());
+  std::size_t total_segments = segment_count * mc_runs;
+  std::ofstream succ_reports((output_path + "/topo_success_rates.txt").c_str());
   succ_reports << "Monte-Carlo runs of interpolation methods using random sinusoidal curves.\n"
                << "  Number of runs: " << mc_runs << "\n"
+               << "  Number of segments per run: " << segment_count << "\n"
                << "  Spatial dimensions: " << dyn_sp_dim << "\n"
                << "  Maximum frequency: " << max_freq << " Hz ( " << max_rad_freq << " rad/s )\n"
                << "  Interpolation steps of: " << interp_steps << std::endl;
   
 #ifdef RK_ENABLE_TEST_LINEAR_INTERPOLATOR
   if(vm.count("all-interpolators") || vm.count("linear"))
-    succ_reports << "Linear interp succeeded " << linear_succ_count << " out of " << mc_runs << " which is " << (100.0 * double(linear_succ_count) / double(mc_runs)) << "\% success-rate." << std::endl;
+    succ_reports << "Linear interp" << "\n"
+                 << "\t Successes: " << linear_succ_count << "\n"
+                 << "\t Graceful Failures: " << linear_graceful_fails << "\n"
+                 << "\t Total num. of trials: " << total_segments << "\n"
+                 << "\t Success-rate: " << (100.0 * double(linear_succ_count) / double(total_segments)) << "\%\n" 
+                 << "\t Graceful-fail-rate: " << (100.0 * double(linear_graceful_fails) / double(total_segments)) << "\%\n"
+                 << "\t Hard-fail-rate: " << (100.0 * (1.0 - double(linear_succ_count + linear_graceful_fails) / double(total_segments))) << "\%." << std::endl;
 #endif
 #ifdef RK_ENABLE_TEST_CUBIC_INTERPOLATOR
   if(vm.count("all-interpolators") || vm.count("cubic"))
-    succ_reports << "Cubic interp succeeded " << cubic_succ_count << " out of " << mc_runs << " which is " << (100.0 * double(cubic_succ_count) / double(mc_runs)) << "\% success-rate." << std::endl;
+    succ_reports << "Cubic interp" << "\n"
+                 << "\t Successes: " << cubic_succ_count << "\n"
+                 << "\t Graceful Failures: " << cubic_graceful_fails << "\n"
+                 << "\t Total num. of trials: " << total_segments << "\n"
+                 << "\t Success-rate: " << (100.0 * double(cubic_succ_count) / double(total_segments)) << "\%\n" 
+                 << "\t Graceful-fail-rate: " << (100.0 * double(cubic_graceful_fails) / double(total_segments)) << "\%\n"
+                 << "\t Hard-fail-rate: " << (100.0 * (1.0 - double(cubic_succ_count + cubic_graceful_fails) / double(total_segments))) << "\%." << std::endl;
 #endif
 #ifdef RK_ENABLE_TEST_QUINTIC_INTERPOLATOR
   if(vm.count("all-interpolators") || vm.count("quintic"))
-    succ_reports << "Quintic interp succeeded " << quintic_succ_count << " out of " << mc_runs << " which is " << (100.0 * double(quintic_succ_count) / double(mc_runs)) << "\% success-rate." << std::endl;
+    succ_reports << "Quintic interp" << "\n"
+                 << "\t Successes: " << quintic_succ_count << "\n"
+                 << "\t Graceful Failures: " << quintic_graceful_fails << "\n"
+                 << "\t Total num. of trials: " << total_segments << "\n"
+                 << "\t Success-rate: " << (100.0 * double(quintic_succ_count) / double(total_segments)) << "\%\n" 
+                 << "\t Graceful-fail-rate: " << (100.0 * double(quintic_graceful_fails) / double(total_segments)) << "\%\n"
+                 << "\t Hard-fail-rate: " << (100.0 * (1.0 - double(quintic_succ_count + quintic_graceful_fails) / double(total_segments))) << "\%." << std::endl;
 #endif
 #ifdef RK_ENABLE_TEST_SVP_NDOF_INTERPOLATOR
   if(vm.count("all-interpolators") || vm.count("svp-Ndof"))
-    succ_reports << "SVP_Ndof interp succeeded " << svp_Ndof_succ_count << " out of " << mc_runs << " which is " << (100.0 * double(svp_Ndof_succ_count) / double(mc_runs)) << "\% success-rate." << std::endl;
+    succ_reports << "SVP_Ndof interp" << "\n"
+                 << "\t Successes: " << svp_Ndof_succ_count << "\n"
+                 << "\t Graceful Failures: " << svp_Ndof_graceful_fails << "\n"
+                 << "\t Total num. of trials: " << total_segments << "\n"
+                 << "\t Success-rate: " << (100.0 * double(svp_Ndof_succ_count) / double(total_segments)) << "\%\n" 
+                 << "\t Graceful-fail-rate: " << (100.0 * double(svp_Ndof_graceful_fails) / double(total_segments)) << "\%\n"
+                 << "\t Hard-fail-rate: " << (100.0 * (1.0 - double(svp_Ndof_succ_count + svp_Ndof_graceful_fails) / double(total_segments))) << "\%." << std::endl;
 #endif
 #ifdef RK_ENABLE_TEST_SAP_NDOF_INTERPOLATOR
   if(vm.count("all-interpolators") || vm.count("sap-Ndof"))
-    succ_reports << "SAP_Ndof interp succeeded " << sap_Ndof_succ_count << " out of " << mc_runs << " which is " << (100.0 * double(sap_Ndof_succ_count) / double(mc_runs)) << "\% success-rate." << std::endl;
+    succ_reports << "SAP_Ndof interp" << "\n"
+                 << "\t Successes: " << sap_Ndof_succ_count << "\n"
+                 << "\t Graceful Failures: " << sap_Ndof_graceful_fails << "\n"
+                 << "\t Total num. of trials: " << total_segments << "\n"
+                 << "\t Success-rate: " << (100.0 * double(sap_Ndof_succ_count) / double(total_segments)) << "\%\n" 
+                 << "\t Graceful-fail-rate: " << (100.0 * double(sap_Ndof_graceful_fails) / double(total_segments)) << "\%\n"
+                 << "\t Hard-fail-rate: " << (100.0 * (1.0 - double(sap_Ndof_succ_count + sap_Ndof_graceful_fails) / double(total_segments))) << "\%." << std::endl;
 #endif
   
   succ_reports.close();

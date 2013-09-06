@@ -67,7 +67,7 @@ class sap_Ndof_reach_topology : public BaseTopology
     BOOST_CONCEPT_ASSERT((TopologyConcept<BaseTopology>));
     BOOST_CONCEPT_ASSERT((PointDistributionConcept<BaseTopology>));
     
-    typedef sap_reach_topology<BaseTopology> self;
+    typedef sap_Ndof_reach_topology<BaseTopology> self;
     
     typedef typename topology_traits< BaseTopology >::point_type point_type;
     typedef typename topology_traits< BaseTopology >::point_difference_type point_difference_type;

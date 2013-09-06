@@ -62,7 +62,7 @@ namespace pp {
 template <typename TimeSpaceType = time_topology>
 struct sap_Ndof_rate_limited_sampler : public serialization::serializable {
   
-  typedef sap_rate_limited_sampler<TimeSpaceType> self;
+  typedef sap_Ndof_rate_limited_sampler<TimeSpaceType> self;
   
   shared_ptr<TimeSpaceType> t_space;
   
