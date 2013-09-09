@@ -200,7 +200,6 @@ class frame_tracer_3D : public shared_object {
         JointState s_u = map_to_jt_space.map_to_space(p_u, free_space.get_super_space(), *jt_space);
         for(boost::tie(ei,ei_end) = out_edges(*vi,g); ei != ei_end; ++ei) {
           PointType p_v = get(pos, target(*ei, g));
-          JointState s_v = map_to_jt_space.map_to_space(p_v, free_space.get_super_space(), *jt_space);
           dk_map.apply_to_model(s_u, *jt_space);
           for(std::size_t i = 0; i < traced_frames.size(); ++i)
             motion_graph_traces[i].begin_edge(traced_frames[i]->getGlobalPose().Position);

@@ -109,9 +109,12 @@ class manip_quasi_static_env<RateLimitedJointSpace, RK_REACHINTERP_TAG> : public
     
     std::pair<point_type, bool> random_walk(const point_type& p_u) const {
       point_type p_rnd, p_v;
+      point_difference_type dp;
       unsigned int i = 0;
       do {
         p_rnd = m_space.random_point();
+        dp = m_space.difference(p_rnd, m_space.origin());
+        p_rnd = m_space.adjust(p_u, dp);
         double dist = m_space.distance(p_u, p_rnd);
         p_v = move_position_toward(p_u, max_edge_length / dist, p_rnd);
         ++i;
@@ -312,9 +315,12 @@ class manip_dynamic_env<RateLimitedJointSpace, RK_REACHINTERP_TAG> : public name
     
     std::pair<point_type, bool> random_walk(const point_type& p_u) const {
       point_type p_rnd, p_v;
+      point_difference_type dp;
       unsigned int i = 0;
       do {
         p_rnd = point_type(0.0, m_space.get_space_topology().random_point());
+        dp = point_difference_type(0.0, m_space.get_space_topology().difference(p_rnd.pt, m_space.get_space_topology().origin()));
+        p_rnd.pt = m_space.get_space_topology().adjust(p_u.pt, dp.pt);
         double reach_time = m_space.get_space_topology().distance(p_u.pt, p_rnd.pt);
         p_rnd.time = m_space.get_time_topology().random_point() + reach_time + p_u.time;
         p_v = move_position_toward(p_u, max_edge_length / reach_time, p_rnd);
