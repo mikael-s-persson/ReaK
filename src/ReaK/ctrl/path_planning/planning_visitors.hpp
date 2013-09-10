@@ -268,7 +268,10 @@ struct planning_visitor_base {
     ResultType result;
     double traveled_dist = dispatched_steer_towards_position(*(m_query->space), g[u].position, p, get<0>(result), 1.0, get<2>(result));
     double best_case_dist = get(distance_metric, m_query->space->get_super_space())(g[u].position, p, m_query->space->get_super_space());
-    get<1>(result) = (traveled_dist > m_planner->get_steer_progress_tolerance() * best_case_dist);
+    get<1>(result) = (!std::isinf(traveled_dist)) && 
+                     (traveled_dist < 2.0 * best_case_dist) && 
+                     (traveled_dist > m_planner->get_steer_progress_tolerance() * best_case_dist);
+//     RK_NOTICE(1," Found a travel distance of " << traveled_dist << " in the STEER_TOWARDS_POSITION routine.");
     return result;
   };
   
@@ -284,7 +287,9 @@ struct planning_visitor_base {
     ResultType result;
     double traveled_dist = dispatched_steer_towards_position(*(m_query->space), g[u].position, g[v].position, p_result, 1.0, result.second);
     double remaining_dist = get(distance_metric, m_query->space->get_super_space())(p_result, g[v].position, m_query->space->get_super_space());
-    result.first = (remaining_dist < m_planner->get_connection_tolerance() * traveled_dist);
+    result.first = (!std::isinf(traveled_dist)) && 
+                   (remaining_dist < m_planner->get_connection_tolerance() * traveled_dist);
+//     RK_NOTICE(1," Found a travel distance of " << traveled_dist << " in the CAN_BE_CONNECTED routine.");
     return result;
   };
   
@@ -310,8 +315,9 @@ struct planning_visitor_base {
       double target_dist = boost::uniform_01<global_rng_type&,double>(get_global_rng())() * m_planner->get_sampling_radius();
       double traveled_dist = dispatched_steer_towards_position(*(m_query->space), g[u].position, p_rnd, 
                                                                get<0>(result), target_dist / dist, get<2>(result));
-      if( traveled_dist > m_planner->get_steer_progress_tolerance() * target_dist ) {
+      if( (!std::isinf(traveled_dist)) && (traveled_dist > m_planner->get_steer_progress_tolerance() * target_dist) ) {
         get<1>(result) = true;
+//         RK_NOTICE(1," Found a travel distance of " << traveled_dist << " in the RANDOM_WALK routine.");
         return result;
       } else {
         p_rnd = get_sample(sup_space);
