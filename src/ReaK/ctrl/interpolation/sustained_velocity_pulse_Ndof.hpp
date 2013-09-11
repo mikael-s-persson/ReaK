@@ -129,6 +129,57 @@ PointType svp_Ndof_interpolate(const PointType& a, const PointType& b, double t,
 
 
 
+
+template <typename Topology, typename TimeTopology>
+bool svp_Ndof_is_in_bounds(const typename topology_traits<Topology>::point_type& pt, 
+                           const Topology& space, const TimeTopology& t_space) {
+  BOOST_CONCEPT_ASSERT((TopologyConcept<Topology>));
+  BOOST_CONCEPT_ASSERT((TangentBundleConcept<Topology, 1, TimeTopology>));
+  
+  typedef typename derived_N_order_space<Topology, TimeTopology, 0>::type Space0;
+  typedef typename derived_N_order_space<Topology, TimeTopology, 1>::type Space1;
+  typedef typename topology_traits<Topology>::point_type PointType;
+  typedef typename topology_traits<Space0>::point_type Point0;
+  typedef typename topology_traits<Space1>::point_type Point1;
+  typedef typename topology_traits<Space0>::point_difference_type PointDiff0;
+  typedef typename topology_traits<Space1>::point_difference_type PointDiff1;
+  
+  using std::fabs;
+  
+  BOOST_CONCEPT_ASSERT((LieGroupConcept<Space0>));
+  BOOST_CONCEPT_ASSERT((LieGroupConcept<Space1>));
+  BOOST_CONCEPT_ASSERT((BoundedSpaceConcept< Space0 >));
+  BOOST_CONCEPT_ASSERT((BoxBoundedSpaceConcept< Space1 >));
+  
+  const Space0& s0 = get_space<0>(space, t_space);
+  const Space1& s1 = get_space<1>(space, t_space);
+  Point1 max_velocity = s1.get_upper_corner();
+  
+  if( !s0.is_in_bounds(get<0>(pt)) || !s1.is_in_bounds(get<1>(pt)) )
+    return false;
+  
+  Point0 stopping_point = get<0>(pt);
+  Point0 starting_point = get<0>(pt);
+  
+  for(std::size_t i = 0; i < max_velocity.size(); ++i) {
+    double dt = fabs(get<1>(pt)[i]);
+    
+    stopping_point[i] += 0.5 * get<1>(pt)[i] * dt / max_velocity[i];
+    starting_point[i] -= 0.5 * get<1>(pt)[i] * dt / max_velocity[i];
+  };
+  
+  // Check if we could have initiated the motion from within the boundary or if we can stop the motion before the boundary.
+  if( !s0.is_in_bounds(stopping_point) || !s0.is_in_bounds(starting_point) )
+    return false; //reject the sample.
+  
+  // If this point is reached, it means that the sample is acceptable:
+  return true;
+  
+};
+
+
+
+
 /**
  * This functor class implements a sustained velocity pulse (SVP) interpolation in a temporal and once-differentiable 
  * N-dof topology.

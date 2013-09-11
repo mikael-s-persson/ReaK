@@ -155,7 +155,7 @@ class manip_quasi_static_env : public named_object {
      * \return True if p is collision-free.
      */
     bool is_free(const point_type& p) const {
-      return m_prox_env.is_free(p, m_space);
+      return m_space.is_in_bounds(p) && m_prox_env.is_free(p, m_space);
     };
     
     //Topology concepts:
@@ -166,7 +166,7 @@ class manip_quasi_static_env : public named_object {
      */
     point_type random_point() const {
       point_type result;
-      while(!m_prox_env.is_free(result = m_rand_sampler(m_space), m_space)) ; //output only free C-space points.
+      while(!is_free(result = m_rand_sampler(m_space))) ; //output only free C-space points.
       return result;
     };
     
@@ -232,7 +232,7 @@ class manip_quasi_static_env : public named_object {
       point_type last_result = p1;
       while(d < dt) {
         interp.compute_point(result, p1, p2, m_space, time_topology(), d, dt_min, InterpFactoryType());
-        if(!m_prox_env.is_free(result, m_space))
+        if(!is_free(result))
           return last_result;
         d += min_interval;
         last_result = result;

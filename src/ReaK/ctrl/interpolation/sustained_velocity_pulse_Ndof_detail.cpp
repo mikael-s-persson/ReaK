@@ -47,6 +47,18 @@ namespace detail {
     using std::fabs;
     using std::sqrt;
     
+    if( ( fabs(end_position - start_position) < 1e-6 * max_velocity ) &&
+        ( fabs(end_velocity - start_velocity) < 1e-6 * max_velocity ) ) {
+      peak_velocity = start_velocity;
+      return 0.0;
+    };
+    
+    if( ( fabs(start_velocity) > max_velocity ) || ( fabs(end_velocity) > max_velocity ) ) {
+      peak_velocity = 0.0;
+      RK_NOTICE(1," Warning: violation of the velocity bounds was detected on SVP interpolations!");
+      return std::numeric_limits<double>::infinity();
+    };
+    
     // try to assume that peak_velocity = sign(p1 - p0) * max_velocity
     double sign_p1_p0 = 1.0;
     if(start_position > end_position)
@@ -95,6 +107,19 @@ namespace detail {
     
     using std::fabs;
     using std::sqrt;
+    
+    if( ( fabs(end_position - start_position) < 1e-6 * max_velocity ) &&
+        ( fabs(end_velocity - start_velocity) < 1e-6 * max_velocity ) ) {
+      peak_velocity = start_velocity;
+      return;
+    };
+    
+    if( ( fabs(start_velocity) > max_velocity ) || ( fabs(end_velocity) > max_velocity ) ) {
+      peak_velocity = 0.0;
+      RK_NOTICE(1," Warning: violation of the velocity bounds was detected on SVP interpolations!");
+      return;
+    };
+    
     
     double sign_p1_p0 = 1.0;
     if(start_position > end_position)

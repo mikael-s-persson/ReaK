@@ -164,14 +164,26 @@ class sap_Ndof_reach_topology : public BaseTopology
     double distance(const point_type& a, const point_type& b) const 
     {
       return rt_dist(a, b, static_cast<const BaseTopology&>(*this));
-    }
+    };
     
     /**
      * Returns the norm of the difference between two points.
      */
     double norm(const point_difference_type& delta) const {
       return rt_dist(delta, static_cast<const BaseTopology&>(*this));
-    }
+    };
+    
+    
+    /*************************************************************************
+    *                             BoundedSpaceConcept
+    * **********************************************************************/
+    
+    /**
+     * Tests if a given point is within the boundary of this space.
+     */
+    bool is_in_bounds(const point_type& a) const {
+      return sap_Ndof_is_in_bounds(a, static_cast<const BaseTopology&>(*this), *t_space);
+    };
     
    /*************************************************************************
     *                         for PointDistributionConcept

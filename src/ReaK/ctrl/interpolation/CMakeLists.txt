@@ -60,5 +60,9 @@ add_executable(test_interp_topo "${SRCROOT}${RKINTERPOLATIONDIR}/test_interp_top
 setup_custom_target(test_interp_topo "${SRCROOT}${RKINTERPOLATIONDIR}")
 target_link_libraries(test_interp_topo reak_topologies reak_interp reak_core)
 
+add_executable(test_interp_topo_rand "${SRCROOT}${RKINTERPOLATIONDIR}/test_interp_topo_rand.cpp")
+setup_custom_target(test_interp_topo_rand "${SRCROOT}${RKINTERPOLATIONDIR}")
+target_link_libraries(test_interp_topo_rand reak_topologies reak_interp reak_core)
+
 
 

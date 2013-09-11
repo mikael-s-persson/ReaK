@@ -137,6 +137,74 @@ PointType sap_Ndof_interpolate(const PointType& a, const PointType& b, double t,
 
 
 
+template <typename Topology, typename TimeTopology>
+bool sap_Ndof_is_in_bounds(const typename topology_traits<Topology>::point_type& pt, 
+                           const Topology& space, const TimeTopology& t_space) {
+  BOOST_CONCEPT_ASSERT((TopologyConcept<Topology>));
+  BOOST_CONCEPT_ASSERT((BoundedSpaceConcept<Topology>));
+  BOOST_CONCEPT_ASSERT((TangentBundleConcept<Topology, 2, TimeTopology>));
+  
+  typedef typename derived_N_order_space<Topology, TimeTopology, 0>::type Space0;
+  typedef typename derived_N_order_space<Topology, TimeTopology, 1>::type Space1;
+  typedef typename derived_N_order_space<Topology, TimeTopology, 2>::type Space2;
+  typedef typename topology_traits<Topology>::point_type PointType;
+  typedef typename topology_traits<Space0>::point_type Point0;
+  typedef typename topology_traits<Space1>::point_type Point1;
+  typedef typename topology_traits<Space2>::point_type Point2;
+  typedef typename topology_traits<Space0>::point_difference_type PointDiff0;
+  typedef typename topology_traits<Space1>::point_difference_type PointDiff1;
+  typedef typename topology_traits<Space2>::point_difference_type PointDiff2;
+  
+  using std::fabs;
+  
+  BOOST_CONCEPT_ASSERT((LieGroupConcept<Space0>));
+  BOOST_CONCEPT_ASSERT((LieGroupConcept<Space1>));
+  BOOST_CONCEPT_ASSERT((LieGroupConcept<Space2>));
+  BOOST_CONCEPT_ASSERT((BoundedSpaceConcept< Space0 >));
+  BOOST_CONCEPT_ASSERT((BoxBoundedSpaceConcept< Space1 >));
+  BOOST_CONCEPT_ASSERT((BoxBoundedSpaceConcept< Space2 >));
+  BOOST_CONCEPT_ASSERT((WritableVectorConcept<Point0>));
+  BOOST_CONCEPT_ASSERT((WritableVectorConcept<Point1>));
+  BOOST_CONCEPT_ASSERT((WritableVectorConcept<Point2>));
+  
+  const Space0& s0 = get_space<0>(space, t_space);
+  const Space1& s1 = get_space<1>(space, t_space);
+  const Space2& s2 = get_space<2>(space, t_space);
+  
+  if( !s0.is_in_bounds(get<0>(pt)) || !s1.is_in_bounds(get<1>(pt)) || !s2.is_in_bounds(get<2>(pt)) )
+    return false;
+  
+  Point1 max_velocity     = s1.get_upper_corner();
+  Point2 max_acceleration = s2.get_upper_corner();
+  
+  Point0 stopping_point = get<0>(pt);
+  Point0 starting_point = get<0>(pt);
+  
+  for(std::size_t i = 0; i < max_velocity.size(); ++i) {
+    double dt_vp1_1st = fabs(get<1>(pt)[i]);
+    if(dt_vp1_1st <= std::numeric_limits<double>::epsilon()) // no motion to do (v == 0).
+      continue;
+    // we know that dt_vp_2nd = dt_vp_1st + dt_amax
+    double dt_vp1 = dt_vp1_1st - max_acceleration[i];
+    if( dt_vp1 < 0.0 ) {
+      //means that we don't have time to reach the maximum acceleration:
+      double integ = get<1>(pt)[i] * dt_vp1_1st / max_velocity[i];
+      stopping_point[i] += integ;
+      starting_point[i] -= integ;
+    } else {
+      double integ = 0.5 * get<1>(pt)[i] * (dt_vp1_1st + max_acceleration[i]) / max_velocity[i];
+      stopping_point[i] += integ;
+      starting_point[i] -= integ;
+    };
+  };
+  
+  // Check if we could have initiated the motion from within the boundary or if we can stop the motion before the boundary.
+  if( !s0.is_in_bounds(stopping_point) || !s0.is_in_bounds(starting_point) )
+    return false; //reject the sample.
+  
+  return true;
+};
+
 
 
 /**

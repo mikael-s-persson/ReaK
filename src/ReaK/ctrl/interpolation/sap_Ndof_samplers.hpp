@@ -69,16 +69,10 @@ struct sap_Ndof_rate_limited_sampler : public serialization::serializable {
   sap_Ndof_rate_limited_sampler(const shared_ptr<TimeSpaceType>& aTimeSpace = shared_ptr<TimeSpaceType>(new TimeSpaceType())) : 
                                 t_space(aTimeSpace) { };
   
-  /** 
-   * This function returns a random sample-point on a topology.
-   * \tparam Topology The topology.
-   * \param s The topology or space on which the sample-point lies.
-   * \return A random sample-point on the topology.
-   */
+  
   template <typename Topology>
-  typename topology_traits<Topology>::point_type operator()(const Topology& s) const {
+  bool is_in_bounds(const Topology& s, const typename topology_traits<Topology>::point_type& pt) const {
     BOOST_CONCEPT_ASSERT((TopologyConcept<Topology>));
-    BOOST_CONCEPT_ASSERT((PointDistributionConcept<Topology>));
     BOOST_CONCEPT_ASSERT((BoundedSpaceConcept<Topology>));
     BOOST_CONCEPT_ASSERT((TangentBundleConcept<Topology, 2, TimeSpaceType>));
     
@@ -105,46 +99,69 @@ struct sap_Ndof_rate_limited_sampler : public serialization::serializable {
     BOOST_CONCEPT_ASSERT((WritableVectorConcept<Point1>));
     BOOST_CONCEPT_ASSERT((WritableVectorConcept<Point2>));
     
-    const typename point_distribution_traits<Topology>::random_sampler_type& get_sample = get(random_sampler,s);
     const Space0& s0 = get_space<0>(s, *t_space);
     const Space1& s1 = get_space<1>(s, *t_space);
     const Space2& s2 = get_space<2>(s, *t_space);
     
+    if( !s0.is_in_bounds(get<0>(pt)) || !s1.is_in_bounds(get<1>(pt)) || !s2.is_in_bounds(get<2>(pt)) )
+      return false;
+    
     Point1 max_velocity     = s1.get_upper_corner();
     Point2 max_acceleration = s2.get_upper_corner();
     
+    Point0 stopping_point = get<0>(pt);
+    Point0 starting_point = get<0>(pt);
+    
+    for(std::size_t i = 0; i < max_velocity.size(); ++i) {
+      double dt_vp1_1st = fabs(get<1>(pt)[i]);
+      if(dt_vp1_1st <= std::numeric_limits<double>::epsilon()) // no motion to do (v == 0).
+        continue;
+      // we know that dt_vp_2nd = dt_vp_1st + dt_amax
+      double dt_vp1 = dt_vp1_1st - max_acceleration[i];
+      if( dt_vp1 < 0.0 ) {
+        //means that we don't have time to reach the maximum acceleration:
+        double integ = get<1>(pt)[i] * dt_vp1_1st / max_velocity[i];
+        stopping_point[i] += integ;
+        starting_point[i] -= integ;
+      } else {
+        double integ = 0.5 * get<1>(pt)[i] * (dt_vp1_1st + max_acceleration[i]) / max_velocity[i];
+        stopping_point[i] += integ;
+        starting_point[i] -= integ;
+      };
+    };
+    
+    // Check if we could have initiated the motion from within the boundary or if we can stop the motion before the boundary.
+    if( !s0.is_in_bounds(stopping_point) || !s0.is_in_bounds(starting_point) )
+      return false; //reject the sample.
+    
+    return true;
+  };
+  
+  
+  /** 
+   * This function returns a random sample-point on a topology.
+   * \tparam Topology The topology.
+   * \param s The topology or space on which the sample-point lies.
+   * \return A random sample-point on the topology.
+   */
+  template <typename Topology>
+  typename topology_traits<Topology>::point_type operator()(const Topology& s) const {
+    BOOST_CONCEPT_ASSERT((TopologyConcept<Topology>));
+    BOOST_CONCEPT_ASSERT((PointDistributionConcept<Topology>));
+    BOOST_CONCEPT_ASSERT((TangentBundleConcept<Topology, 2, TimeSpaceType>));
+    
+    typedef typename topology_traits<Topology>::point_type PointType;
+    
+    const typename point_distribution_traits<Topology>::random_sampler_type& get_sample = get(random_sampler,s);
+    
     while(true) {
       PointType pt = get_sample(s);
-      get<2>(pt) = s2.origin();   // the acceleration value should always be 0 in SAP interpolation end-points.
+      // the acceleration value should always be 0 in SAP interpolation end-points.
+      get<2>(pt) = get_space<2>(s, *t_space).origin();
       
-      Point0 stopping_point = get<0>(pt);
-      Point0 starting_point = get<0>(pt);
+      if( sap_Ndof_is_in_bounds(pt, s, *t_space) )
+        return pt;
       
-      
-      for(std::size_t i = 0; i < max_velocity.size(); ++i) {
-        double dt_vp1_1st = fabs(get<1>(pt)[i]);
-        if(dt_vp1_1st <= std::numeric_limits<double>::epsilon()) // no motion to do (v == 0).
-          continue;
-        // we know that dt_vp_2nd = dt_vp_1st + dt_amax
-        double dt_vp1 = dt_vp1_1st - max_acceleration[i];
-        if( dt_vp1 < 0.0 ) {
-          //means that we don't have time to reach the maximum acceleration:
-          double integ = get<1>(pt)[i] * dt_vp1_1st / max_velocity[i];
-          stopping_point[i] += integ;
-          starting_point[i] -= integ;
-        } else {
-          double integ = 0.5 * get<1>(pt)[i] * (dt_vp1_1st + max_acceleration[i]) / max_velocity[i];
-          stopping_point[i] += integ;
-          starting_point[i] -= integ;
-        };
-      };
-      
-      // Check if we could have initiated the motion from within the boundary or if we can stop the motion before the boundary.
-      if( !s0.is_in_bounds(stopping_point) || !s0.is_in_bounds(starting_point) )
-        continue; //reject the sample.
-      
-      // if this point is reached it means that the sample is acceptable:
-      return pt;
     };
   };
   

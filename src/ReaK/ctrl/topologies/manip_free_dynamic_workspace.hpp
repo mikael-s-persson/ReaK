@@ -113,6 +113,8 @@ class manip_dynamic_env : public named_object {
      * \return True if p is collision-free.
      */
     bool is_free(const point_type& p) const {
+      if(!m_space.is_in_bounds(p))
+        return false;
       for(std::size_t i = 0; i < m_prox_updaters.size(); ++i)
         m_prox_updaters[i]->synchronize_proxy_model(p.time);
       return m_prox_env.is_free(p.pt, m_space.get_space_topology());

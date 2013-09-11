@@ -54,14 +54,14 @@ class manip_quasi_static_env<RateLimitedJointSpace, RK_REACHINTERP_TAG> : public
     const super_space_type& get_super_space() const { return m_space; };
     
     bool is_free(const point_type& p) const {
-      return m_prox_env.is_free(p, m_space.get_super_space());
+      return m_space.is_in_bounds(p) && m_prox_env.is_free(p, m_space.get_super_space());
     };
     
     //Topology concepts:
     
     point_type random_point() const {
       point_type result;
-      while(!m_prox_env.is_free(result = m_space.random_point(), m_space.get_super_space())) ; //output only free C-space points.
+      while(!is_free(result = m_space.random_point())) ; //output only free C-space points.
       return result;
     };
     
@@ -92,7 +92,7 @@ class manip_quasi_static_env<RateLimitedJointSpace, RK_REACHINTERP_TAG> : public
       point_type last_result = p1;
       while(d < dt) {
         interp.compute_point(result, p1, p2, static_cast<const RateLimitedJointSpace&>(m_space), time_topology(), d, dt_min, m_space.get_pseudo_factory());
-        if(!m_prox_env.is_free(result, m_space.get_super_space()))
+        if(!is_free(result))
           return last_result;
         d += min_interval;
         last_result = result;
@@ -237,6 +237,8 @@ class manip_dynamic_env<RateLimitedJointSpace, RK_REACHINTERP_TAG> : public name
     time_topology& get_time_topology() { return m_space.get_time_topology(); };
     
     bool is_free(const point_type& p) const {
+      if(!m_space.is_in_bounds(p))
+        return false;
       for(std::size_t i = 0; i < m_prox_updaters.size(); ++i)
         m_prox_updaters[i]->synchronize_proxy_model(p.time);
       return m_prox_env.is_free(p.pt, m_space.get_space_topology());
