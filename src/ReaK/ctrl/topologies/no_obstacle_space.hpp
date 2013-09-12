@@ -98,8 +98,8 @@ class no_obstacle_space : public named_object {
      * \param p The point to be checked for being collision-free.
      * \return True if p is collision-free.
      */
-    bool is_free(const point_type&) const {
-      return true;
+    bool is_free(const point_type& pt) const {
+      return m_space.is_in_bounds(pt);
     };
     
     //Topology concepts:

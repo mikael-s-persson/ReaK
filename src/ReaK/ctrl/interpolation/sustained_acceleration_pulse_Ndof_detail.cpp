@@ -33,6 +33,8 @@
 
 #include <fstream>
 
+#endif
+
 namespace ReaK {
 
 namespace pp {
@@ -40,22 +42,163 @@ namespace pp {
   
 namespace detail {
 
+  
+  
+  void sap_Ndof_compute_interpolated_values(
+    double start_position, double end_position,
+    double start_velocity, double end_velocity,
+    double peak_velocity, double max_velocity, double max_acceleration,
+    double dt, double dt_total,
+    double& result_pos, double& result_vel, 
+    double& result_acc, double& result_desc_jerk) {
+    
+    double dv1 = peak_velocity - start_velocity;
+    double dv2 = end_velocity - peak_velocity;
+    result_pos = start_position;
+    result_vel = start_velocity;
+    result_acc = 0.0;
+    result_desc_jerk = 0.0;
+    
+    double dt_vp1_1st = fabs(dv1);
+    // we know that dt_vp_2nd = dt_vp_1st + dt_amax
+    double dt_vp1 = dt_vp1_1st - max_acceleration;
+    double dt_ap1 = max_acceleration;
+    if( dt_vp1 < 0.0 ) {
+      //means that we don't have time to reach the maximum acceleration:
+      dt_vp1 = 0.0;
+      dt_ap1 = sqrt(max_acceleration * dt_vp1_1st);
+    };
+    
+    double dt_vp2_1st = fabs(dv2);
+    // we know that dt_vp_2nd = dt_vp_1st + dt_amax
+    double dt_vp2 = dt_vp2_1st - max_acceleration;
+    double dt_ap2 = max_acceleration;
+    if( dt_vp2 < 0.0 ) {
+      //means that we don't have time to reach the maximum acceleration:
+      dt_vp2 = 0.0;
+      dt_ap2 = sqrt(max_acceleration * dt_vp2_1st);
+    };
+    
+    
+    dt_total -= dt_vp2 + 2.0 * dt_ap2 + dt_vp1 + 2.0 * dt_ap1;
+    
+    if(dt_vp1_1st > std::numeric_limits<double>::epsilon()) {
+      //Phase 1: in the jerk-up phase of velocity ramp-up.
+      double descended_jerk = dv1 / dt_vp1_1st;
+      if( dt < dt_ap1 )
+        dt_ap1 = dt;
+      
+      result_pos += ( result_vel + ( result_acc + (1.0 / 6.0) * dt_ap1 * descended_jerk ) * dt_ap1 / max_acceleration ) * dt_ap1 / max_velocity;
+      result_vel += ( result_acc + 0.5 * dt_ap1 * descended_jerk ) * dt_ap1 / max_acceleration;
+      result_acc += dt_ap1 * descended_jerk;
+      
+      result_desc_jerk = descended_jerk;
+      
+      dt -= dt_ap1;
+      if(dt <= std::numeric_limits<double>::epsilon())
+        return;
+      
+      //Phase 2: in the constant accel phase of velocity ramp-up.
+      if(dt_vp1 > std::numeric_limits<double>::epsilon()) {
+        double descended_accel = result_acc / max_acceleration;
+        if( dt < dt_vp1 )
+          dt_vp1 = dt;
+        
+        result_pos += ( result_vel + 0.5 * dt_vp1 * descended_accel ) * dt_vp1 / max_velocity;
+        result_vel += dt_vp1 * descended_accel;
+        result_desc_jerk = 0.0;
+        
+        dt -= dt_vp1;
+        if(dt <= std::numeric_limits<double>::epsilon())
+          return;
+      };
+      
+      //Phase 3: in the jerk-down phase of velocity ramp-up.
+      descended_jerk = -dv1 / dt_vp1_1st;
+      if( dt < dt_ap1 )
+        dt_ap1 = dt;
+      
+      result_pos += ( result_vel + ( result_acc + (1.0 / 6.0) * dt_ap1 * descended_jerk ) * dt_ap1 / max_acceleration ) * dt_ap1 / max_velocity;
+      result_vel += ( result_acc + 0.5 * dt_ap1 * descended_jerk ) * dt_ap1 / max_acceleration;
+      result_acc += dt_ap1 * descended_jerk;
+      
+      result_desc_jerk = descended_jerk;
+      
+      dt -= dt_ap1;
+      if(dt <= std::numeric_limits<double>::epsilon())
+        return;
+    };
+    
+    //Phase 4: in the cruise phase.
+    double descended_vel = result_vel / max_velocity;
+    if( dt < dt_total )
+      dt_total = dt;
+    
+    result_pos += dt_total * descended_vel;
+    //result_vel = constant.
+    result_desc_jerk = 0.0;
+    
+    dt -= dt_total;
+    if(dt <= std::numeric_limits<double>::epsilon())
+      return;
+    
+    if(dt_vp1_1st > std::numeric_limits<double>::epsilon()) {
+      //Phase 5: in the jerk-up phase of velocity ramp-down.
+      double descended_jerk = dv2 / dt_vp2_1st;
+      if( dt < dt_ap2 )
+        dt_ap2 = dt;
+      
+      result_pos += ( result_vel + ( result_acc + (1.0 / 6.0) * dt_ap2 * descended_jerk ) * dt_ap2 / max_acceleration ) * dt_ap2 / max_velocity;
+      result_vel += ( result_acc + 0.5 * dt_ap2 * descended_jerk ) * dt_ap2 / max_acceleration;
+      result_acc += dt_ap2 * descended_jerk;
+      
+      result_desc_jerk = descended_jerk;
+      
+      dt -= dt_ap2;
+      if(dt <= std::numeric_limits<double>::epsilon())
+        return;
+      
+      //Phase 6: in the constant accel phase of velocity ramp-down.
+      if(dt_vp2 > std::numeric_limits<double>::epsilon()) {
+        double descended_accel = result_acc / max_acceleration;
+        if( dt < dt_vp2 )
+          dt_vp2 = dt;
+        
+        result_pos += ( result_vel + 0.5 * dt_vp2 * descended_accel ) * dt_vp2 / max_velocity;
+        result_vel += dt_vp2 * descended_accel;
+        result_desc_jerk = 0.0;
+        
+        dt -= dt_vp2;
+        if(dt <= std::numeric_limits<double>::epsilon())
+          return;
+      };
+      
+      //Phase 7: in the jerk-down phase of velocity ramp-down.
+      descended_jerk = -dv2 / dt_vp2_1st;
+      if( dt < dt_ap2 )
+        dt_ap2 = dt;
+      
+      result_pos += ( result_vel + ( result_acc + (1.0 / 6.0) * dt_ap2 * descended_jerk ) * dt_ap2 / max_acceleration ) * dt_ap2 / max_velocity;
+      result_vel += ( result_acc + 0.5 * dt_ap2 * descended_jerk ) * dt_ap2 / max_acceleration;
+      result_acc += dt_ap2 * descended_jerk;
+      
+      result_desc_jerk = descended_jerk;
+      
+    };
+  };
+  
+  
+  
+  
+#ifdef RK_SAP_DETAIL_IMPLEMENTATION_USE_LOGGED_VERSION
+  
   static double sap_Ndof_compute_min_delta_time_logged_version(
     double start_position, double end_position,
     double start_velocity, double end_velocity,
     double& peak_velocity, 
-    double max_velocity, double max_acceleration) {
+    double max_velocity, double max_acceleration, std::ostream& log_output) {
     using std::fabs;
     using std::sqrt;
-    
-    static std::ofstream log_output("sap_mindt_log.txt");
-    
-    log_output << "\n\n0000000000000000000000000000000000000000000000000000000000000000000\n\n"
-               << "Starting to compute the mininum delta-time for....\n"
-               << "Positions: ( " << start_position << " , " << end_position << " )\n"
-               << "Velocities: ( " << start_velocity << " , " << end_velocity << " )\n"
-               << "Max Velocity: " << max_velocity << "\n"
-               << "Max Acceleration: " << max_acceleration << std::endl;
     
     if( ( fabs(end_position - start_position) < 1e-6 * max_velocity ) &&
         ( fabs(end_velocity - start_velocity) < 1e-6 * max_acceleration ) ) {
@@ -465,24 +608,37 @@ namespace detail {
     peak_velocity = 0.0;
     return std::numeric_limits<double>::infinity();
   };
-
-};
-
-};
-
-};
-
-#endif
-
-
-
-
-namespace ReaK {
-
-namespace pp {
   
   
-namespace detail {
+  
+  double sap_Ndof_compute_min_delta_time(double start_position, double end_position,
+                                         double start_velocity, double end_velocity,
+                                         double& peak_velocity, 
+                                         double max_velocity, double max_acceleration) {
+    
+    static std::ofstream log_output("sap_mindt_log.txt");
+    
+    log_output << "\n\n0000000000000000000000000000000000000000000000000000000000000000000\n\n"
+               << "Starting to compute the mininum delta-time for....\n"
+               << "Positions: ( " << start_position << " , " << end_position << " )\n"
+               << "Velocities: ( " << start_velocity << " , " << end_velocity << " )\n"
+               << "Max Velocity: " << max_velocity << "\n"
+               << "Max Acceleration: " << max_acceleration << std::endl;
+    
+    double min_delta_time = sap_Ndof_compute_min_delta_time_logged_version(
+      start_position, end_position, start_velocity, end_velocity,
+      peak_velocity, max_velocity, max_acceleration, log_output);
+    
+    log_output << "The calculation of the minimum delta-time has finished and got the following:\n";
+    
+    
+    
+    
+    return min_delta_time;
+  };
+  
+  
+#else
   
   
   double sap_Ndof_compute_min_delta_time(double start_position, double end_position,
@@ -721,13 +877,13 @@ namespace detail {
     // What the fuck!! This point should never be reached, unless the motion is completely impossible:
     peak_velocity = 0.0;
     
-#ifdef RK_SAP_DETAIL_IMPLEMENTATION_USE_LOGGED_VERSION
-    sap_Ndof_compute_min_delta_time_logged_version(start_position, end_position, start_velocity, end_velocity,
-                                                   peak_velocity, max_velocity, max_acceleration);
-#endif
-    
     return std::numeric_limits<double>::infinity();
   };
+  
+#endif
+  
+  
+  
   
   void sap_Ndof_compute_peak_velocity(double start_position, double end_position,
                                       double start_velocity, double end_velocity,

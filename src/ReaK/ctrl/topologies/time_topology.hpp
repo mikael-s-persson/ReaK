@@ -154,7 +154,7 @@ class time_topology : public named_object
     /**
      * Tests if a given point is within the boundary of this space.
      */
-    bool is_in_bounds(const point_type& a) const {
+    virtual bool is_in_bounds(const point_type& a) const {
       return true;
     };
     

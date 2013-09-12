@@ -97,8 +97,8 @@ PointType svp_interpolate(const PointType& a, const PointType& b, double t, cons
   
   if(t <= a.time)
     return a;
-  if(t >= b.time)
-    return b;
+//   if(t >= b.time)
+//     return b;
   
   PointDiff0 delta_first_order;
   PointType1 peak_velocity;
@@ -222,10 +222,10 @@ class svp_interpolator {
 	result = start_point;
 	return;
       };
-      if(dt >= dt_total) {
-	result = end_point;
-	return;
-      };
+//       if(dt >= dt_total) {
+// 	result = end_point;
+// 	return;
+//       };
       
       detail::svp_interpolate_impl< max_derivation_order< SpaceType, TimeSpaceType > >(result, start_point, end_point, delta_first_order, peak_velocity, space, t_space, dt, dt_total);
     };

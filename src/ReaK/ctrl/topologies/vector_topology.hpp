@@ -89,7 +89,14 @@ class vector_topology : public named_object
      */
     virtual point_type origin() const {
       return point_type();
-    }
+    };
+    
+    /**
+     * Tests if a given point is within the boundary of this space.
+     */
+    virtual bool is_in_bounds(const point_type& a) const {
+      return true;
+    };
 
     /*************************************************************************
     *                             LieGroupConcept

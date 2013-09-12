@@ -306,6 +306,13 @@ class temporal_space : public named_object {
     point_type origin() const {
       return point_type(time.origin(), space.origin());
     };
+    
+    /**
+     * Tests if a given point is within the boundary of this space.
+     */
+    bool is_in_bounds(const point_type& a) const {
+      return time.is_in_bounds(a.time) && space.is_in_bounds(a.pt);
+    };
 
     /*************************************************************************
     *                             MetricSpaceConcept

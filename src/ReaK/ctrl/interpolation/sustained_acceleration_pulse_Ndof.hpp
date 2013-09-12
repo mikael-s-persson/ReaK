@@ -108,8 +108,8 @@ PointType sap_Ndof_interpolate(const PointType& a, const PointType& b, double t,
   
   if(t <= a.time)
     return a;
-  if(t >= b.time)
-    return b;
+//   if(t >= b.time)
+//     return b;
   
   PointType1 peak_velocity;  
   double delta_time = b.time - a.time;
@@ -311,10 +311,10 @@ class sap_Ndof_interpolator {
         result = start_point;
         return;
       };
-      if(dt >= dt_total) {
-        result = end_point;
-        return;
-      };
+//       if(dt >= dt_total) {
+//         result = end_point;
+//         return;
+//       };
       
       detail::sap_Ndof_interpolate_impl< max_derivation_order< SpaceType, TimeSpaceType > >(
         result, start_point, end_point, 

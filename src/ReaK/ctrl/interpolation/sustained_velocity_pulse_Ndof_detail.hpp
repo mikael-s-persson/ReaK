@@ -225,7 +225,7 @@ namespace detail {
       *best_peak_velocity = peak_velocity;
     
     if(min_dt_final > delta_time)
-      return min_dt_final;
+      delta_time = min_dt_final;
     
     for(std::size_t i = 0; i < peak_velocity.size(); ++i) {
       double vp = 0.0;

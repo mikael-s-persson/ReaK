@@ -99,6 +99,13 @@ class line_topology : public named_object
       return point_type(0);
     };
     
+    /**
+     * Tests if a given point is within the boundary of this space.
+     */
+    virtual bool is_in_bounds(const point_type& a) const {
+      return true;
+    };
+    
     /*************************************************************************
     *                             MetricSpaceConcept
     * **********************************************************************/

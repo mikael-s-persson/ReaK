@@ -48,6 +48,13 @@ namespace pp {
   
 namespace detail {
   
+  void sap_Ndof_compute_interpolated_values(
+    double start_position, double end_position,
+    double start_velocity, double end_velocity,
+    double peak_velocity, double max_velocity, double max_acceleration,
+    double dt, double dt_total,
+    double& result_pos, double& result_vel, 
+    double& result_acc, double& result_jerk);
   
   double sap_Ndof_compute_min_delta_time(double start_position, double end_position,
                                          double start_velocity, double end_velocity,
@@ -120,149 +127,20 @@ namespace detail {
     typename topology_traits< typename derived_N_order_space< DiffSpace, TimeSpace, 1>::type >::point_type max_velocity = get_space<1>(space,t_space).get_upper_corner();
     typename topology_traits< typename derived_N_order_space< DiffSpace, TimeSpace, 2>::type >::point_type max_acceleration = get_space<2>(space,t_space).get_upper_corner();
     
-    PointDiff1 dv1 = get_space<1>(space,t_space).difference(peak_velocity, get<1>(start_point));
-    PointDiff1 dv2 = get_space<1>(space,t_space).difference(get<1>(end_point), peak_velocity);
-    result = start_point;
-    
-    //double dt_amax = get_space<2>(space,t_space).get_radius();
-    
-    for(std::size_t i = 0; i < dv1.size(); ++i) {
+    for(std::size_t i = 0; i < peak_velocity.size(); ++i) {
       
-      double dt_vp1_1st = fabs(dv1[i]);
-      // we know that dt_vp_2nd = dt_vp_1st + dt_amax
-      double dt_vp1 = dt_vp1_1st - max_acceleration[i];
-      double dt_ap1 = max_acceleration[i];
-      if( dt_vp1 < 0.0 ) {
-        //means that we don't have time to reach the maximum acceleration:
-        dt_vp1 = 0.0;
-        dt_ap1 = sqrt(max_acceleration[i] * dt_vp1_1st);
-      };
+      double result_pos, result_vel, result_acc, result_desc_jerk;
       
-      double dt_vp2_1st = fabs(dv2[i]);
-      // we know that dt_vp_2nd = dt_vp_1st + dt_amax
-      double dt_vp2 = dt_vp2_1st - max_acceleration[i];
-      double dt_ap2 = max_acceleration[i];
-      if( dt_vp2 < 0.0 ) {
-        //means that we don't have time to reach the maximum acceleration:
-        dt_vp2 = 0.0;
-        dt_ap2 = sqrt(max_acceleration[i] * dt_vp2_1st);
-      };
+      sap_Ndof_compute_interpolated_values(
+        get<0>(start_point)[i], get<0>(end_point)[i],
+        get<1>(start_point)[i], get<1>(end_point)[i],
+        peak_velocity[i], max_velocity[i], max_acceleration[i],
+        dt, dt_total, result_pos, result_vel, result_acc, result_desc_jerk);
       
-      double dt_tmp = dt;
-      double dt_total_tmp = dt_total - dt_vp2 - 2.0 * dt_ap2 - dt_vp1 - 2.0 * dt_ap1;
-      
-      if(dt_vp1_1st > std::numeric_limits<double>::epsilon()) {
-        //Phase 1: in the jerk-up phase of velocity ramp-up.
-        double descended_jerk = dv1[i] / dt_vp1_1st;
-        if( dt_tmp < dt_ap1 )
-          dt_ap1 = dt_tmp;
-        
-        get<0>(result)[i] += ( get<1>(result)[i] + ( get<2>(result)[i] + (1.0 / 6.0) * dt_ap1 * descended_jerk ) * dt_ap1 / max_acceleration[i] ) * dt_ap1 / max_velocity[i];
-        get<1>(result)[i] += ( get<2>(result)[i] + 0.5 * dt_ap1 * descended_jerk ) * dt_ap1 / max_acceleration[i];
-        get<2>(result)[i] += dt_ap1 * descended_jerk;
-        
-        if(Idx::type::value > 2) 
-          sap_Ndof_constant_jerk_motion_HOT_impl<Idx>(result,descended_jerk,i,space,t_space);
-        
-        dt_tmp -= dt_ap1;
-        if(dt_tmp <= std::numeric_limits<double>::epsilon())
-          continue;
-        
-        //Phase 2: in the constant accel phase of velocity ramp-up.
-        if(dt_vp1 > std::numeric_limits<double>::epsilon()) {
-          double descended_accel = get<2>(result)[i] / max_acceleration[i];
-          if( dt_tmp < dt_vp1 )
-            dt_vp1 = dt_tmp;
-          
-          get<0>(result)[i] += ( get<1>(result)[i] + 0.5 * dt_vp1 * descended_accel ) * dt_vp1 / max_velocity[i];
-          get<1>(result)[i] += dt_vp1 * descended_accel;
-          
-          if(Idx::type::value > 1) 
-            svp_Ndof_constant_accel_motion_HOT_impl<Idx>(result, descended_accel, i, space, t_space);
-          
-          dt_tmp -= dt_vp1;
-          if(dt_tmp <= std::numeric_limits<double>::epsilon())
-            continue;
-        };
-        
-        //Phase 3: in the jerk-down phase of velocity ramp-up.
-        descended_jerk = -dv1[i] / dt_vp1_1st;
-        if( dt_tmp < dt_ap1 )
-          dt_ap1 = dt_tmp;
-        
-        get<0>(result)[i] += ( get<1>(result)[i] + ( get<2>(result)[i] + (1.0 / 6.0) * dt_ap1 * descended_jerk ) * dt_ap1 / max_acceleration[i] ) * dt_ap1 / max_velocity[i];
-        get<1>(result)[i] += ( get<2>(result)[i] + 0.5 * dt_ap1 * descended_jerk ) * dt_ap1 / max_acceleration[i];
-        get<2>(result)[i] += dt_ap1 * descended_jerk;
-        
-        if(Idx::type::value > 2) 
-          sap_Ndof_constant_jerk_motion_HOT_impl<Idx>(result,descended_jerk,i,space,t_space);
-        
-        dt_tmp -= dt_ap1;
-        if(dt_tmp <= std::numeric_limits<double>::epsilon())
-          continue;
-      };
-      
-      //Phase 4: in the cruise phase.
-      double descended_vel = get<1>(result)[i] / max_velocity[i];
-      if( dt_tmp < dt_total_tmp )
-        dt_total_tmp = dt_tmp;
-      
-      get<0>(result)[i] += dt_total_tmp * descended_vel;
-      //get<1>(result)[i] = constant.
-      
-      if(Idx::type::value > 1) 
-        svp_Ndof_constant_vel_motion_HOT_impl<Idx>(result,i);
-      
-      dt_tmp -= dt_total_tmp;
-      if(dt_tmp <= std::numeric_limits<double>::epsilon())
-        continue;
-      
-      if(dt_vp1_1st > std::numeric_limits<double>::epsilon()) {
-         //Phase 5: in the jerk-up phase of velocity ramp-down.
-        double descended_jerk = dv2[i] / dt_vp2_1st;
-        if( dt_tmp < dt_ap2 )
-          dt_ap2 = dt_tmp;
-        
-        get<0>(result)[i] += ( get<1>(result)[i] + ( get<2>(result)[i] + (1.0 / 6.0) * dt_ap2 * descended_jerk ) * dt_ap2 / max_acceleration[i] ) * dt_ap2 / max_velocity[i];
-        get<1>(result)[i] += ( get<2>(result)[i] + 0.5 * dt_ap2 * descended_jerk ) * dt_ap2 / max_acceleration[i];
-        get<2>(result)[i] += dt_ap2 * descended_jerk;
-        
-        if(Idx::type::value > 2) 
-          sap_Ndof_constant_jerk_motion_HOT_impl<Idx>(result,descended_jerk,i,space,t_space);
-        
-        dt_tmp -= dt_ap2;
-        if(dt_tmp <= std::numeric_limits<double>::epsilon())
-          continue;
-        
-        //Phase 6: in the constant accel phase of velocity ramp-down.
-        if(dt_vp2 > std::numeric_limits<double>::epsilon()) {
-          double descended_accel = get<2>(result)[i] / max_acceleration[i];
-          if( dt_tmp < dt_vp2 )
-            dt_vp2 = dt_tmp;
-          
-          get<0>(result)[i] += ( get<1>(result)[i] + 0.5 * dt_vp2 * descended_accel ) * dt_vp2 / max_velocity[i];
-          get<1>(result)[i] += dt_vp2 * descended_accel;
-          
-          if(Idx::type::value > 1) 
-            svp_Ndof_constant_accel_motion_HOT_impl<Idx>(result, descended_accel, i, space, t_space);
-          
-          dt_tmp -= dt_vp2;
-          if(dt_tmp <= std::numeric_limits<double>::epsilon())
-            continue;
-        };
-        
-        //Phase 7: in the jerk-down phase of velocity ramp-down.
-        descended_jerk = -dv2[i] / dt_vp2_1st;
-        if( dt_tmp < dt_ap2 )
-          dt_ap2 = dt_tmp;
-        
-        get<0>(result)[i] += ( get<1>(result)[i] + ( get<2>(result)[i] + (1.0 / 6.0) * dt_ap2 * descended_jerk ) * dt_ap2 / max_acceleration[i] ) * dt_ap2 / max_velocity[i];
-        get<1>(result)[i] += ( get<2>(result)[i] + 0.5 * dt_ap2 * descended_jerk ) * dt_ap2 / max_acceleration[i];
-        get<2>(result)[i] += dt_ap2 * descended_jerk;
-        
-        if(Idx::type::value > 2) 
-          sap_Ndof_constant_jerk_motion_HOT_impl<Idx>(result,descended_jerk,i,space,t_space);
-      };
+      get<0>(result)[i] = result_pos;
+      get<1>(result)[i] = result_vel;
+      get<2>(result)[i] = result_acc;
+      sap_Ndof_constant_jerk_motion_HOT_impl<Idx>(result, result_desc_jerk, i, space, t_space);
       
     };
   };
@@ -314,7 +192,7 @@ namespace detail {
       *best_peak_velocity = peak_velocity;
     
     if(min_dt_final > delta_time)
-      return min_dt_final;
+      delta_time = min_dt_final;
     
     for(std::size_t i = 0; i < peak_velocity.size(); ++i) {
       double vp = 0.0;
