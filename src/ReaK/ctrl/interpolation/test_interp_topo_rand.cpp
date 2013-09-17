@@ -154,12 +154,12 @@ void try_interpolation(const std::string& aMethodName, std::size_t mc_runs,
       };
       
       if( norm_2(get<0>(p) - get<0>(p2)) > 1e-3 ) {
-        fail_reports << aMethodName << " pos_tol interp" << std::endl;
+        fail_reports << aMethodName << " pos_tol interp " << norm_2(get<0>(p) - get<0>(p2)) << std::endl;
         throw std::domain_error("Position-tolerance exceeded!");
       };
       
       if( norm_2(get<1>(p) - get<1>(p2)) > 1e-3 ) {
-        fail_reports << aMethodName << " vel_tol interp" << std::endl;
+        fail_reports << aMethodName << " vel_tol interp " << norm_2(get<1>(p) - get<1>(p2)) << std::endl;
         throw std::domain_error("Velocity-tolerance exceeded!");
       };
       
