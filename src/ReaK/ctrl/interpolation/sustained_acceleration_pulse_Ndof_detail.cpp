@@ -27,6 +27,7 @@
 
 
 #include "root_finders/bisection_method.hpp"
+#include "root_finders/secant_method.hpp"
 
 
 // #define RK_SAP_DETAIL_IMPLEMENTATION_USE_LOGGED_VERSION
@@ -48,13 +49,7 @@ namespace detail {
   
   
   
-#ifdef RK_SAP_DETAIL_IMPLEMENTATION_USE_LOGGED_VERSION
-  
-  
-  
-  
-  
-  void sap_Ndof_compute_interpolated_values_closed_logged_version(
+  static void sap_Ndof_compute_interpolated_values_closedform(
     double start_position, double end_position,
     double start_velocity, double end_velocity,
     double peak_velocity, double max_velocity, double max_acceleration,
@@ -230,17 +225,41 @@ namespace detail {
       return;
     };
     
-    result_pos = end_position;
-    result_vel = end_velocity;
-    result_acc = 0.0;
-    result_desc_jerk = 0.0;
     
+//     result_pos += ( result_vel + 0.5 * ( dt_vp2 + dt_ap2 ) * dt_ap2 * sgn_vp2 / max_acceleration ) * ( 2.0 * dt_ap2 + dt_vp2 ) / max_velocity;
+    result_vel += ( dt_ap2 + dt_vp2 ) * dt_ap2 * sgn_vp2 / max_acceleration;
+    result_acc  = ( dt_ap2 - dt_ap2 ) * sgn_vp2;
+    result_desc_jerk = -sgn_vp2;
+    
+//     result_pos = end_position;
+//     result_vel = end_velocity;
+//     result_acc = 0.0;
+//     result_desc_jerk = 0.0;
+    
+    
+    // resulting position formula:
+    
+    
+//     result_pos += ( 
+//         peak_velocity * ( dt_total + 2.0 * dt_ap1 + dt_vp1 + 2.0 * dt_ap2 + dt_vp2 )
+//       - 0.5 * ( dt_ap1 + dt_vp1 ) * ( 2.0 * dt_ap1 + dt_vp1 ) * dt_ap1 * sgn_vp1 / max_acceleration
+//       + 0.5 * ( dt_vp2 + dt_ap2 ) * ( 2.0 * dt_ap2 + dt_vp2 ) * dt_ap2 * sgn_vp2 / max_acceleration ) / max_velocity;
+    
+    result_pos = start_position + ( peak_velocity * dt_total 
+      + 0.5 * ( start_velocity + peak_velocity ) * ( 2.0 * dt_ap1 + dt_vp1 ) 
+      + 0.5 * ( peak_velocity  + end_velocity  ) * ( 2.0 * dt_ap2 + dt_vp2 ) ) / max_velocity;
+    
+      
   };
   
   
   
   
-  void sap_Ndof_compute_interpolated_values_logged_version(
+#ifdef RK_SAP_DETAIL_IMPLEMENTATION_USE_LOGGED_VERSION
+  
+  
+  
+  static void sap_Ndof_compute_interpolated_values_incremental_logged_version(
     double start_position, double end_position,
     double start_velocity, double end_velocity,
     double peak_velocity, double max_velocity, double max_acceleration,
@@ -325,7 +344,7 @@ namespace detail {
       {
         double cf_pos, cf_vel, cf_acc, cf_desc_jerk;
         
-        sap_Ndof_compute_interpolated_values_closed_logged_version(
+        sap_Ndof_compute_interpolated_values_closedform(
           start_position, end_position, start_velocity, end_velocity,
           peak_velocity, max_velocity, max_acceleration,
           current_dt - 1e-4, original_dt_total,
@@ -377,7 +396,7 @@ namespace detail {
         {
           double cf_pos, cf_vel, cf_acc, cf_desc_jerk;
           
-          sap_Ndof_compute_interpolated_values_closed_logged_version(
+          sap_Ndof_compute_interpolated_values_closedform(
             start_position, end_position, start_velocity, end_velocity,
             peak_velocity, max_velocity, max_acceleration,
             current_dt - 1e-4, original_dt_total,
@@ -427,7 +446,7 @@ namespace detail {
       {
         double cf_pos, cf_vel, cf_acc, cf_desc_jerk;
         
-        sap_Ndof_compute_interpolated_values_closed_logged_version(
+        sap_Ndof_compute_interpolated_values_closedform(
           start_position, end_position, start_velocity, end_velocity,
           peak_velocity, max_velocity, max_acceleration,
           current_dt - 1e-4, original_dt_total,
@@ -475,7 +494,7 @@ namespace detail {
     {
       double cf_pos, cf_vel, cf_acc, cf_desc_jerk;
       
-      sap_Ndof_compute_interpolated_values_closed_logged_version(
+      sap_Ndof_compute_interpolated_values_closedform(
         start_position, end_position, start_velocity, end_velocity,
         peak_velocity, max_velocity, max_acceleration,
         current_dt - 1e-4, original_dt_total,
@@ -524,7 +543,7 @@ namespace detail {
       {
         double cf_pos, cf_vel, cf_acc, cf_desc_jerk;
         
-        sap_Ndof_compute_interpolated_values_closed_logged_version(
+        sap_Ndof_compute_interpolated_values_closedform(
           start_position, end_position, start_velocity, end_velocity,
           peak_velocity, max_velocity, max_acceleration,
           current_dt - 1e-4, original_dt_total,
@@ -574,7 +593,7 @@ namespace detail {
         {
           double cf_pos, cf_vel, cf_acc, cf_desc_jerk;
           
-          sap_Ndof_compute_interpolated_values_closed_logged_version(
+          sap_Ndof_compute_interpolated_values_closedform(
             start_position, end_position, start_velocity, end_velocity,
             peak_velocity, max_velocity, max_acceleration,
             current_dt - 1e-4, original_dt_total,
@@ -623,7 +642,7 @@ namespace detail {
       {
         double cf_pos, cf_vel, cf_acc, cf_desc_jerk;
         
-        sap_Ndof_compute_interpolated_values_closed_logged_version(
+        sap_Ndof_compute_interpolated_values_closedform(
           start_position, end_position, start_velocity, end_velocity,
           peak_velocity, max_velocity, max_acceleration,
           current_dt - 1e-4, original_dt_total,
@@ -674,7 +693,7 @@ namespace detail {
                << "Requested time: " << dt << "\n"
                << "over Total time: " << dt_total << std::endl;
     
-    sap_Ndof_compute_interpolated_values_logged_version(
+    sap_Ndof_compute_interpolated_values_incremental_logged_version(
       start_position, end_position, start_velocity, end_velocity,
       peak_velocity, max_velocity, max_acceleration, dt, dt_total,
       result_pos, result_vel, result_acc, result_desc_jerk, log_output);
@@ -687,7 +706,7 @@ namespace detail {
 #else
   
   
-  void sap_Ndof_compute_interpolated_values(
+  static void sap_Ndof_compute_interpolated_values_incremental(
     double start_position, double end_position,
     double start_velocity, double end_velocity,
     double peak_velocity, double max_velocity, double max_acceleration,
@@ -834,6 +853,25 @@ namespace detail {
       
     };
   };
+  
+  
+  
+  void sap_Ndof_compute_interpolated_values(
+    double start_position, double end_position,
+    double start_velocity, double end_velocity,
+    double peak_velocity, double max_velocity, double max_acceleration,
+    double dt, double dt_total,
+    double& result_pos, double& result_vel, 
+    double& result_acc, double& result_desc_jerk) {
+    
+    sap_Ndof_compute_interpolated_values_closedform(
+      start_position, end_position, start_velocity, end_velocity,
+      peak_velocity, max_velocity, max_acceleration, dt, dt_total,
+      result_pos, result_vel, result_acc, result_desc_jerk);
+    
+  };
+  
+  
   
   
 #endif
@@ -1436,7 +1474,7 @@ namespace detail {
     
     double result_pos, result_vel, result_acc, result_desc_jerk;
     
-    sap_Ndof_compute_interpolated_values_logged_version(
+    sap_Ndof_compute_interpolated_values_incremental_logged_version(
       start_position, end_position, start_velocity, end_velocity,
       peak_velocity, max_velocity, max_acceleration, min_delta_time, min_delta_time,
       result_pos, result_vel, result_acc, result_desc_jerk, log_output);
@@ -1766,10 +1804,29 @@ namespace detail {
       dp(a_dp), v1(a_v1), v2(a_v2), vmax(a_vmax), amax(a_amax), dt(a_dt) { };
     
     double operator()(double vp) {
+      using std::fabs;
+      
       double dp1, dt1, dp2, dt2;
       sap_Ndof_compute_ramp_dist_and_time(v1, vp, vmax, amax, dp1, dt1);
       sap_Ndof_compute_ramp_dist_and_time(vp, v2, vmax, amax, dp2, dt2);
-      return dp - dp1 - dp2 - vp / vmax * (dt - dt1 - dt2);
+//       if(dt + 1e-6 >= dt1 + dt2)
+        return dp - dp1 - dp2 - vp / vmax * (dt - dt1 - dt2);
+//       else {
+//         double cruise_gap = dp - dp1 - dp2;
+//         if( fabs(cruise_gap) < 1e-6 ) {
+//           return dp - vp / vmax * dt + dt1 * (vp / vmax - dp1 / dt1) + dt2 * (vp / vmax - dp2 / dt2);
+//         } else if( cruise_gap * vp > 0.0 )
+//           return cruise_gap - vp / vmax * (dt - dt1 - dt2);
+//         else
+//           return cruise_gap + vp / vmax * (dt - dt1 - dt2);
+//       };
+    };
+    
+    double get_delta_time_diff(double vp) {
+      double dp1, dt1, dp2, dt2;
+      sap_Ndof_compute_ramp_dist_and_time(v1, vp, vmax, amax, dp1, dt1);
+      sap_Ndof_compute_ramp_dist_and_time(vp, v2, vmax, amax, dp2, dt2);
+      return dt - dt1 - dt2;
     };
     
   };
@@ -1854,11 +1911,11 @@ namespace detail {
     
     using std::fabs;
     
-    if( ( fabs(end_position - start_position) < 1e-6 * max_velocity ) &&
-        ( fabs(end_velocity - start_velocity) < 1e-6 * max_acceleration ) ) {
-      peak_velocity = start_velocity;
-      return;
-    };
+//     if( ( fabs(end_position - start_position) < 1e-6 * max_velocity ) &&
+//         ( fabs(end_velocity - start_velocity) < 1e-6 * max_acceleration ) ) {
+//       peak_velocity = start_velocity;
+//       return;
+//     };
     
     if( ( fabs(start_velocity) > max_velocity ) || ( fabs(end_velocity) > max_velocity ) ) {
       peak_velocity = 0.0;
@@ -1874,23 +1931,40 @@ namespace detail {
       end_position - start_position, start_velocity, end_velocity, 
       max_velocity, max_acceleration, delta_time);
     
-    if( pd_calc(1.01 * sign_p1_p0 * max_velocity) * pd_calc(0.99 * sign_p1_p0 * max_velocity) < 0.0 ) {
-      peak_velocity = sign_p1_p0 * max_velocity;
-      return;
-    };
+//     if( pd_calc(1.02 * sign_p1_p0 * max_velocity) * pd_calc(0.98 * sign_p1_p0 * max_velocity) < 0.0 ) {
+//       double peak_vel_low = 0.98 * sign_p1_p0 * max_velocity;
+//       peak_velocity = 1.02 * sign_p1_p0 * max_velocity;
+//       bisection_method(peak_vel_low, peak_velocity, pd_calc, 1e-6 * max_velocity);
+//       return;
+//     };
     
-    double prev_vp = sign_p1_p0 * max_velocity;
+    double prev_vp = 1.03 * sign_p1_p0 * max_velocity;
     double prev_pd = pd_calc(prev_vp);
-    for(double cur_vp = prev_vp - 0.1 * sign_p1_p0 * max_velocity; cur_vp * sign_p1_p0 > -1.05 * max_velocity; prev_vp = cur_vp, cur_vp -= 0.1 * sign_p1_p0 * max_velocity) {
+    for(double cur_vp = prev_vp - 0.02 * sign_p1_p0 * max_velocity; cur_vp * sign_p1_p0 > -1.04 * max_velocity; cur_vp -= 0.02 * sign_p1_p0 * max_velocity) {
       double cur_pd = pd_calc(cur_vp);
-      if(cur_pd * prev_pd < 0.0) {
-        bisection_method(prev_vp, cur_vp, pd_calc, 1e-6 * max_velocity);
-        peak_velocity = cur_vp;
-        return;
+      if( cur_pd * prev_pd < 0.0 ) {
+        double orig_cur_vp = cur_vp;
+        ford3_method(prev_vp, cur_vp, pd_calc, 1e-7);
+//         bisection_method(prev_vp, cur_vp, pd_calc, 1e-12 * max_velocity);
+        cur_vp = (prev_vp + cur_vp) * 0.5;
+        cur_pd = pd_calc(cur_vp);
+        if( (pd_calc.get_delta_time_diff(cur_vp) >= -1e-3 * max_velocity) && ( fabs(cur_pd) < 1e-3 * max_velocity ) ) {
+          peak_velocity = cur_vp;
+          return;
+        } else {
+//           std::cout << " Could not really finish the root-finding for the peak-velocity:\n"
+//                     << "  got a delta-time error of " << pd_calc.get_delta_time_diff(cur_vp) << "\n"
+//                     << "  got vp-interval: " << prev_vp << " -- mid: " << cur_vp << " .. diff = " << (cur_vp - prev_vp) << "\n"
+//                     << "  corresponding to solutions: " << pd_calc(prev_vp) << " -- mid: " << cur_pd << std::endl;
+          cur_vp = orig_cur_vp;
+          cur_pd = pd_calc(cur_vp);
+        };
       };
+      prev_vp = cur_vp;
       prev_pd = cur_pd;
     };
     
+    RK_NOTICE(1," Warning: There was no solution to the peak-velocity for the given delta-time!");
     peak_velocity = -sign_p1_p0 * max_velocity;
     return;
   };
@@ -2247,9 +2321,51 @@ namespace detail {
                                       double& peak_velocity, double max_velocity, 
                                       double max_acceleration, double delta_time) {
     
+    
+//     sap_Ndof_compute_min_delta_time(
+//       start_position, end_position, 
+//       start_velocity, end_velocity, 
+//       peak_velocity, max_velocity, max_acceleration);
+    
     sap_Ndof_compute_peak_velocity_bisection(
       start_position, end_position, start_velocity, end_velocity,
       peak_velocity, max_velocity, max_acceleration, delta_time);
+    
+    
+    
+    double cf_pos, cf_vel, cf_acc, cf_desc_jerk;
+    
+    sap_Ndof_compute_interpolated_values_closedform(
+      start_position, end_position, start_velocity, end_velocity,
+      peak_velocity, max_velocity, max_acceleration,
+      delta_time, delta_time,
+      cf_pos, cf_vel, cf_acc, cf_desc_jerk);
+    
+    if( std::fabs(cf_pos - end_position) > 1e-3 ) {
+      double dt1, dt2, dp1, dp2;
+      
+      sap_Ndof_compute_ramp_dist_and_time(start_velocity, peak_velocity, max_velocity, max_acceleration, dp1, dt1);
+      sap_Ndof_compute_ramp_dist_and_time(peak_velocity, end_velocity, max_velocity, max_acceleration, dp2, dt2);
+      
+      sap_Ndof_pos_diff_calculator pd_calc(
+        end_position - start_position, start_velocity, end_velocity, 
+        max_velocity, max_acceleration, delta_time);
+      
+      std::cout << "The calculation of the peak velocity yielded a bad interpolated path!\n"
+                << " Start position = " << start_position << "\n"
+                << " End position   = " << end_position << "\n"
+                << " Start velocity = " << start_velocity << "\n"
+                << " End velocity   = " << end_velocity << "\n"
+                << " Peak velocity  = " << peak_velocity << "\n"
+                << " Delta-time     = " << delta_time << "\n"
+                << " Delta-time-1   = " << dt1 << "\n"
+                << " Delta-time-2   = " << dt2 << "\n"
+                << " Delta-pos-1    = " << dp1 << "\n"
+                << " Delta-pos-2    = " << dp2 << "\n"
+                << " Calculated EDP = " << pd_calc(peak_velocity) << "\n"
+                << " Actual EDP     = " << (cf_pos - end_position) << std::endl;
+    };
+    
     
   };
   
