@@ -54,6 +54,11 @@ namespace detail {
                                       double start_velocity, double end_velocity,
                                       double& peak_velocity, double max_velocity, double delta_time);  
   
+  void svp_Ndof_compute_interpolated_values(double start_position, double end_position,
+                                            double start_velocity, double end_velocity,
+                                            double peak_velocity, double max_velocity,
+                                            double dt, double dt_total,
+                                            double& result_pos, double& result_vel, double& result_desc_acc);
   
   
   template <typename Idx, typename PointType, typename DiffSpace, typename TimeSpace>
@@ -116,68 +121,23 @@ namespace detail {
                                          const PointType1& peak_velocity,
                                          const DiffSpace& space, const TimeSpace& t_space,
                                          double dt, double dt_total) {
-    using std::fabs;
-    typedef typename topology_traits< typename derived_N_order_space< DiffSpace, TimeSpace,1>::type >::point_difference_type PointDiff1;
     
     PointType1 max_velocity = get_space<1>(space,t_space).get_upper_corner();
     
-    PointDiff1 dv1 = get_space<1>(space,t_space).difference(peak_velocity, get<1>(start_point));
-    PointDiff1 dv2 = get_space<1>(space,t_space).difference(get<1>(end_point), peak_velocity);
-    result = start_point;
-    
-    for(std::size_t i = 0; i < dv1.size(); ++i) {
+    for(std::size_t i = 0; i < peak_velocity.size(); ++i) {
+      double result_pos, result_vel, result_desc_acc;
       
-      double dt1 = fabs(dv1[i]);
-      double dt2 = fabs(dv2[i]);
-      double dt_total_tmp = dt_total - dt1 - dt2;
-      double dt_tmp = dt;
+      svp_Ndof_compute_interpolated_values(
+        get<0>(start_point)[i], get<0>(end_point)[i], 
+        get<1>(start_point)[i], get<1>(end_point)[i], 
+        peak_velocity[i], max_velocity[i], dt, dt_total,
+        result_pos, result_vel, result_desc_acc);
       
-      //Phase 1: constant acceleration to the peak-velocity:
-      
-      if(dt1 > std::numeric_limits<double>::epsilon()) {
-        if(dt_tmp > dt1)
-          dt_tmp = dt1;
-        
-        get<0>(result)[i] += ( get<1>(result)[i] + 0.5 * dt_tmp / dt1 * dv1[i] ) * dt_tmp / max_velocity[i];
-        
-        get<1>(result)[i] += dt_tmp / dt1 * dv1[i];
-        
-        if(Idx::type::value > 1) 
-          svp_Ndof_constant_accel_motion_HOT_impl<Idx>(result, dv1[i] / dt1, i, space, t_space);
-        
-      };
-      dt_tmp = dt - dt1;
-      if(dt_tmp < 0.0)
-        continue;
-      
-      //Phase 2: constant velocity (or cruise phase):
-      if(dt_tmp > dt_total_tmp)
-        dt_tmp = dt_total_tmp;
-      
-      get<0>(result)[i] += dt_tmp * peak_velocity[i] / max_velocity[i];
-      get<1>(result)[i] = peak_velocity[i];
-      
+      get<0>(result)[i] = result_pos;
+      get<1>(result)[i] = result_vel;
       if(Idx::type::value > 1) 
-        svp_Ndof_constant_vel_motion_HOT_impl<Idx>(result,i);
+        svp_Ndof_constant_accel_motion_HOT_impl<Idx>(result, result_desc_acc, i, space, t_space);
       
-      dt_tmp = dt - dt1 - dt_total_tmp;
-      if(dt_tmp < 0.0)
-        continue;
-      
-      //Phase 3: constant acceleration to end-velocity:
-      
-      if(dt2 > std::numeric_limits<double>::epsilon()) {
-        if(dt_tmp > dt2)
-          dt_tmp = dt2;
-        
-        get<0>(result)[i] += ( get<1>(result)[i] + 0.5 * dt_tmp / dt2 * dv2[i] ) * dt_tmp / max_velocity[i];
-        
-        get<1>(result)[i] += dt_tmp / dt2 * dv2[i];
-        
-        if(Idx::type::value > 1) 
-          svp_Ndof_constant_accel_motion_HOT_impl<Idx>(result, dv2[i] / dt2, i, space, t_space);
-        
-      };
     };
     
   };
