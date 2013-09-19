@@ -29,6 +29,10 @@
 #include "root_finders/bisection_method.hpp"
 #include "root_finders/secant_method.hpp"
 
+#include "sorting/insertion_sort.hpp"
+
+#include <fstream>
+
 
 namespace ReaK {
 
@@ -441,10 +445,6 @@ namespace detail {
           peak_velocity = cur_vp;
           return;
         } else {
-//           std::cout << " Could not really finish the root-finding for the peak-velocity:\n"
-//                     << "  got a delta-time error of " << pd_calc.get_delta_time_diff(cur_vp) << "\n"
-//                     << "  got vp-interval: " << prev_vp << " -- mid: " << cur_vp << " .. diff = " << (cur_vp - prev_vp) << "\n"
-//                     << "  corresponding to solutions: " << pd_calc(prev_vp) << " -- mid: " << cur_pd << std::endl;
           cur_vp = orig_cur_vp;
           cur_pd = pd_calc(cur_vp);
         };
@@ -453,10 +453,222 @@ namespace detail {
       prev_pd = cur_pd;
     };
     
+    
+    static std::ofstream data_output("sap_mindt_log.txt");
+    data_output << "------------------------------------\n"
+                << " Start position = " << start_position << "\n"
+                << " End position   = " << end_position << "\n"
+                << " Start velocity = " << start_velocity << "\n"
+                << " End velocity   = " << end_velocity << "\n"
+                << " Delta-time     = " << delta_time << std::endl;
+    
+    {
+    double prev_vp = 1.03 * sign_p1_p0 * max_velocity;
+    double prev_pd = pd_calc(prev_vp);
+    for(double cur_vp = prev_vp - 0.02 * sign_p1_p0 * max_velocity; cur_vp * sign_p1_p0 > -1.04 * max_velocity; cur_vp -= 0.02 * sign_p1_p0 * max_velocity) {
+      double cur_pd = pd_calc(cur_vp);
+      if( cur_pd * prev_pd < 0.0 ) {
+        double orig_cur_vp = cur_vp;
+//         ford3_method(prev_vp, cur_vp, pd_calc, 1e-7);
+        bisection_method(prev_vp, cur_vp, pd_calc, 1e-8 * max_velocity);
+        cur_vp = (prev_vp + cur_vp) * 0.5;
+        cur_pd = pd_calc(cur_vp);
+        if( (pd_calc.get_delta_time_diff(cur_vp) >= -1e-3 * max_velocity) && ( fabs(cur_pd) < 1e-3 * max_velocity ) ) {
+          peak_velocity = cur_vp;
+          return;
+        } else {
+          data_output << " Could not really finish the root-finding for the peak-velocity:\n"
+                      << "  got a delta-time error of " << pd_calc.get_delta_time_diff(cur_vp) << "\n"
+                      << "  got vp-interval: " << prev_vp << " -- mid: " << cur_vp << " .. diff = " << (cur_vp - prev_vp) << "\n"
+                      << "  corresponding to solutions: " << pd_calc(prev_vp) << " -- mid: " << cur_pd << std::endl;
+          cur_vp = orig_cur_vp;
+          cur_pd = pd_calc(cur_vp);
+        };
+      };
+      prev_vp = cur_vp;
+      prev_pd = cur_pd;
+    };
+    };
+    
+    {
+      double dp_tot, dt_tot;
+      sap_Ndof_compute_ramp_dist_and_time(start_velocity, end_velocity, max_velocity, max_acceleration, dp_tot, dt_tot);
+      data_output << " Simple-ramp travel = " << dp_tot << " out of " << (end_position - start_position) << "\n"
+                  << " Simple-ramp time   = " << dt_tot << " out of " << delta_time << "\n"
+                  << " Using vs as vp     = " << ((delta_time - dt_tot) * start_velocity / max_velocity + dp_tot) << " out of " << (end_position - start_position) << "\n"
+                  << " Using ve as vp     = " << ((delta_time - dt_tot) * end_velocity / max_velocity + dp_tot) << " out of " << (end_position - start_position) << std::endl;
+      
+    };
+    for(double cur_vp = 1.02 * sign_p1_p0 * max_velocity; cur_vp * sign_p1_p0 > -1.025 * max_velocity; cur_vp -= 0.01 * sign_p1_p0 * max_velocity)
+      data_output << cur_vp << " " << pd_calc(cur_vp) << " " << pd_calc.get_delta_time_diff(cur_vp) << "\n";
+    data_output.flush();
+    
+    
+    
     RK_NOTICE(1," Warning: There was no solution to the peak-velocity for the given delta-time!");
     peak_velocity = -sign_p1_p0 * max_velocity;
     return;
   };
+  
+  
+  
+  static void sap_Ndof_compute_peak_velocity_numsolve2(
+    double start_position, double end_position,
+    double start_velocity, double end_velocity, double& peak_velocity, 
+    double max_velocity, double max_acceleration, double delta_time) {
+    
+    using std::fabs;
+    
+    if( ( fabs(end_position - start_position) < 1e-6 * max_velocity ) &&
+        ( fabs(end_velocity - start_velocity) < 1e-6 * max_acceleration ) ) {
+      peak_velocity = start_velocity;
+      return;
+    };
+    
+    if( ( fabs(start_velocity) > max_velocity ) || ( fabs(end_velocity) > max_velocity ) ) {
+      peak_velocity = 0.0;
+      RK_NOTICE(1," Warning: violation of the velocity bounds was detected on SAP interpolations!");
+      return;
+    };
+    
+    double sign_p1_p0 = 1.0;
+    if(start_position > end_position)
+      sign_p1_p0 = -1.0;
+    
+    sap_Ndof_pos_diff_calculator pd_calc(
+      end_position - start_position, start_velocity, end_velocity, 
+      max_velocity, max_acceleration, delta_time);
+    
+    // Here are all the intervals that could exist:
+    // vp == vmax;                      // upper boundary.
+    // vmax > vp >= (v1 + amax);        // between upper boundary and lowest all-trapezoidal-ramps peak-velocity.
+    // (v1 + amax) > vp >= v1;          // when the first ramp is a triangular ramp UP.
+    // v1 >= vp > (v1 - amax);          // when the first ramp is a triangular ramp DOWN.
+    // (v1 - amax) > vp >= (v2 + amax); // in the regime when both ramps are trapezoidal, and going DOWN and UP.
+    // (v2 + amax) > vp >= v2;          // when the second ramp is a triangular ramp DOWN.
+    // v2 > vp > (v2 - amax);           // when the second ramp is a triangular ramp UP.
+    // (v2 - amax) >= vp > -vmax;       // when the second ramp is a trapezoidal ramp UP.
+    // vp == -vmax;                     // lower boundary.
+    
+    // This means that the points of interest are:
+    //   vmax, v1 + amax, v1, v1 - amax, v2 + amax, v2, v2 - amax, -vmax
+    
+    // Lets try to just record all the points of interest and solve between them:
+    double interest_pts[8] = {max_velocity, 
+                              sign_p1_p0 * start_velocity + max_acceleration,
+                              sign_p1_p0 * start_velocity,
+                              sign_p1_p0 * start_velocity - max_acceleration,
+                              sign_p1_p0 * end_velocity + max_acceleration,
+                              sign_p1_p0 * end_velocity,
+                              sign_p1_p0 * end_velocity - max_acceleration,
+                              -max_velocity};
+    // using insertion sort because it is the fastest method for such a small array:
+    sorting::insertion_sort(&interest_pts[0], &interest_pts[0] + 8, std::greater< double >());
+    
+    for(int i = 0; i < 7; ++i) {
+      if(interest_pts[i] > 1.001 * max_velocity)
+        continue;
+      if(interest_pts[i+1] < -1.001 * max_velocity)
+        break;
+      if(interest_pts[i] - interest_pts[i+1] < 1e-8 * max_velocity) {
+        double vp_sol = sign_p1_p0 * interest_pts[i];
+        double pd_sol = pd_calc(vp_sol);
+        if( (pd_calc.get_delta_time_diff(vp_sol) >= -1e-3 * max_velocity) && ( fabs(pd_sol) < 1e-3 * max_velocity ) ) {
+          peak_velocity = vp_sol;
+          return;
+        };
+        continue;
+      };
+      double vp_lo  = sign_p1_p0 * interest_pts[i];
+      double vp_hi  = sign_p1_p0 * interest_pts[i+1];
+      double vp_mid = 0.5 * (vp_hi + vp_lo);
+      
+      double pd_lo  = pd_calc(vp_lo);
+      double pd_hi  = pd_calc(vp_hi);
+      double pd_mid = pd_calc(vp_mid);
+      
+      if( fabs(pd_lo + pd_hi - 2.0 * pd_mid) > 1e-2 * max_velocity ) {
+        // this means we might have enough curvature to have an internal crest.
+        double subpts[11] = {vp_lo, 
+                            0.9 * vp_lo + 0.1 * vp_hi, 
+                            0.8 * vp_lo + 0.2 * vp_hi, 
+                            0.7 * vp_lo + 0.3 * vp_hi, 
+                            0.6 * vp_lo + 0.4 * vp_hi, 
+                            vp_mid, 
+                            0.4 * vp_lo + 0.3 * vp_hi,
+                            0.3 * vp_lo + 0.7 * vp_hi,
+                            0.2 * vp_lo + 0.8 * vp_hi,
+                            0.1 * vp_lo + 0.9 * vp_hi,
+                            vp_hi };
+        for(int j = 0; j < 10; ++j) {
+          double vp_lo2  = sign_p1_p0 * subpts[j];
+          double vp_hi2  = sign_p1_p0 * subpts[j+1];
+          if( pd_calc(vp_lo2) * pd_calc(vp_hi2) < 0.0 ) {  // if we have a zero-crossing.
+            bisection_method(vp_lo2, vp_hi2, pd_calc, 1e-6 * max_velocity);
+            double vp_sol = (vp_lo2 + vp_hi2) * 0.5;
+            double pd_sol = pd_calc(vp_sol);
+            if( (pd_calc.get_delta_time_diff(vp_sol) >= -1e-3 * max_velocity) && ( fabs(pd_sol) < 1e-3 * max_velocity ) ) {
+              peak_velocity = vp_sol;
+              return;
+            };
+          };
+        };
+      } else {
+        if( pd_lo * pd_mid < 0.0 ) {
+          double vp2 = vp_mid; 
+          bisection_method(vp_lo, vp2, pd_calc, 1e-6 * max_velocity);
+          double vp_sol = (vp_lo + vp2) * 0.5;
+          double pd_sol = pd_calc(vp_sol);
+          if( (pd_calc.get_delta_time_diff(vp_sol) >= -1e-3 * max_velocity) && ( fabs(pd_sol) < 1e-3 * max_velocity ) ) {
+            peak_velocity = vp_sol;
+            return;
+          };
+        };
+        if( pd_mid * pd_hi < 0.0 ) { 
+          bisection_method(vp_mid, vp_hi, pd_calc, 1e-6 * max_velocity);
+          double vp_sol = (vp_mid + vp_hi) * 0.5;
+          double pd_sol = pd_calc(vp_sol);
+          if( (pd_calc.get_delta_time_diff(vp_sol) >= -1e-3 * max_velocity) && ( fabs(pd_sol) < 1e-3 * max_velocity ) ) {
+            peak_velocity = vp_sol;
+            return;
+          };
+        };
+      };
+    };
+    
+    static std::ofstream data_output("sap_mindt_log.txt");
+    data_output << "------------------------------------\n"
+                << " Start position = " << start_position << "\n"
+                << " End position   = " << end_position << "\n"
+                << " Start velocity = " << start_velocity << "\n"
+                << " End velocity   = " << end_velocity << "\n"
+                << " Delta-time     = " << delta_time << std::endl;
+    
+    data_output << "----- Points of interest:\n";
+    for(int i = 0; i < 8; ++i) {
+      if(interest_pts[i] > 1.001 * max_velocity)
+        continue;
+      if(interest_pts[i] < -1.001 * max_velocity)
+        break;
+      data_output << (sign_p1_p0 * interest_pts[i]) << " " 
+                  << pd_calc(sign_p1_p0 * interest_pts[i]) << " " 
+                  << pd_calc.get_delta_time_diff(sign_p1_p0 * interest_pts[i]) << "\n";
+    };
+    
+    data_output << "----- Complete curve:\n";
+    for(double cur_vp = 1.02 * sign_p1_p0 * max_velocity; cur_vp * sign_p1_p0 > -1.025 * max_velocity; cur_vp -= 0.01 * sign_p1_p0 * max_velocity)
+      data_output << cur_vp << " " << pd_calc(cur_vp) << " " << pd_calc.get_delta_time_diff(cur_vp) << "\n";
+    data_output.flush();
+    
+    
+    RK_NOTICE(1," Warning: There was no solution to the peak-velocity for the given delta-time!");
+    peak_velocity = -sign_p1_p0 * max_velocity;
+    return;
+  };
+  
+  
+  
+  
   
   
   
@@ -468,6 +680,10 @@ namespace detail {
     sap_Ndof_compute_peak_velocity_numsolve(
       start_position, end_position, start_velocity, end_velocity,
       peak_velocity, max_velocity, max_acceleration, delta_time);
+    
+//     sap_Ndof_compute_peak_velocity_numsolve2(
+//       start_position, end_position, start_velocity, end_velocity,
+//       peak_velocity, max_velocity, max_acceleration, delta_time);
     
     
     double cf_pos, cf_vel, cf_acc, cf_desc_jerk;

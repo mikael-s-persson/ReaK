@@ -25,12 +25,20 @@
 
 #include <cmath>
 
+#include "optimization/optim_exceptions.hpp"
+
+
+// #define RK_SVP_NDOF_DETAIL_USE_NUMERICAL_SOLVERS
+
+
+#ifdef RK_SVP_NDOF_DETAIL_USE_NUMERICAL_SOLVERS
 
 #include "root_finders/bisection_method.hpp"
 #include "root_finders/secant_method.hpp"
 
+#endif
 
-#include <fstream>
+
 
 
 namespace ReaK {
@@ -42,7 +50,7 @@ namespace detail {
 
   
   
-  
+#if 0
   static void svp_Ndof_compute_interpolated_values_closedform(
     double start_position, double end_position,
     double start_velocity, double end_velocity,
@@ -100,14 +108,6 @@ namespace detail {
     };
     
     result_desc_acc  = 0.0;
-    
-    // Expected end-conditions:
-    
-//     result_pos = end_position;
-//     result_vel = end_velocity;
-    
-    // Resulting position / velocity formulae:
-    
     result_vel += dv2;
     
     result_pos = start_position + ( peak_velocity * dt_total 
@@ -115,7 +115,64 @@ namespace detail {
       + 0.5 * ( peak_velocity  + end_velocity  ) * dt_vp2 ) / max_velocity;
     
   };
+#endif
   
+  
+  static void svp_Ndof_compute_interpolated_values_balanced(
+    double start_position, double end_position,
+    double start_velocity, double end_velocity,
+    double peak_velocity, double max_velocity, 
+    double dt, double dt_total,
+    double& result_pos, double& result_vel, double& result_desc_acc) {
+    
+    double dt_vp1 = peak_velocity - start_velocity;
+    double sgn_vp1 = 1.0;
+    if( peak_velocity < start_velocity ) { 
+      sgn_vp1 = -1.0;
+      dt_vp1 = -dt_vp1;
+    };
+    
+    double dt_vp2 = end_velocity - peak_velocity;
+    double sgn_vp2 = 1.0;
+    if( end_velocity < peak_velocity ) {
+      sgn_vp2 = -1.0;
+      dt_vp2 = -dt_vp2;
+    };
+    
+    dt_total -= dt_vp2 + dt_vp1;
+    
+    if( dt <= 0.0 ) {
+      // Expected start-conditions:
+      result_pos = start_position;
+      result_vel = start_velocity;
+      result_desc_acc = 0.0;
+    } else if( dt < dt_vp1 ) {
+      // in segment 1: in the constant accel phase of velocity ramp-up.
+      result_pos = start_position + ( start_velocity + 0.5 * dt * sgn_vp1 ) * dt / max_velocity;
+      result_vel = start_velocity + dt * sgn_vp1;
+      result_desc_acc = sgn_vp1;
+    } else if( dt < (dt_vp1 + dt_total) ) {
+      // in segment 2: in the cruise phase.
+      double idt = dt - dt_vp1;
+      double pis = start_position + 0.5 * ( start_velocity + peak_velocity ) * dt_vp1 / max_velocity;
+      double pie = end_position   - 0.5 * ( peak_velocity  + end_velocity  ) * dt_vp2 / max_velocity;
+      result_pos = idt / dt_total * pie + (1.0 - idt / dt_total) * pis;
+      result_vel = peak_velocity;
+      result_desc_acc = 0.0;
+    } else if( dt < (dt_vp1 + dt_total + dt_vp2) ) {
+      // in segment 3
+      double mdt = dt_vp2 + dt_vp1 + dt_total - dt;
+      result_pos = end_position - ( end_velocity - 0.5 * mdt * sgn_vp2 ) * mdt / max_velocity;
+      result_vel = end_velocity - mdt * sgn_vp2;
+      result_desc_acc = sgn_vp2;
+    } else {
+      // Expected end-conditions:
+      result_pos = end_position;
+      result_vel = end_velocity;
+      result_desc_acc  = 0.0;
+    };
+    
+  };
   
   
   void svp_Ndof_compute_interpolated_values(
@@ -125,7 +182,7 @@ namespace detail {
     double dt, double dt_total,
     double& result_pos, double& result_vel, double& result_desc_acc) {
     
-    svp_Ndof_compute_interpolated_values_closedform(
+    svp_Ndof_compute_interpolated_values_balanced(
       start_position, end_position, start_velocity, end_velocity,
       peak_velocity, max_velocity, dt, dt_total,
       result_pos, result_vel, result_desc_acc);
@@ -144,6 +201,11 @@ namespace detail {
     dt = fabs(v2 - v1);
     d_pos = 0.5 * dt * (v1 + v2) / vmax;
   };
+  
+  
+  
+  
+#ifdef RK_SVP_NDOF_DETAIL_USE_NUMERICAL_SOLVERS
   
   struct svp_Ndof_no_cruise_calculator {
     double dp, v1, v2, vmax;
@@ -181,7 +243,7 @@ namespace detail {
     
     if( ( fabs(start_velocity) > max_velocity ) || ( fabs(end_velocity) > max_velocity ) ) {
       peak_velocity = 0.0;
-      return std::numeric_limits<double>::infinity();
+      throw optim::infeasible_problem("Violation of the velocity bounds on invocation of the SVP minimum-time solver!");
     };
     
     double sign_p1_p0 = 1.0;
@@ -220,7 +282,6 @@ namespace detail {
   };
   
   
-  
   double svp_Ndof_compute_min_delta_time(double start_position, double end_position,
                                          double start_velocity, double end_velocity,
                                          double& peak_velocity, double max_velocity) {
@@ -232,6 +293,78 @@ namespace detail {
   };
   
   
+#else
+  
+  static double svp_Ndof_compute_min_delta_time_closedform(
+    double start_position, double end_position,
+    double start_velocity, double end_velocity,
+    double& peak_velocity, double max_velocity) {
+    using std::fabs;
+    using std::sqrt;
+    
+    if( ( fabs(end_position - start_position) < 1e-6 * max_velocity ) &&
+        ( fabs(end_velocity - start_velocity) < 1e-6 * max_velocity ) ) {
+      peak_velocity = start_velocity;
+      return 0.0;
+    };
+    
+    if( ( fabs(start_velocity) > max_velocity ) || ( fabs(end_velocity) > max_velocity ) ) {
+      peak_velocity = 0.0;
+      throw optim::infeasible_problem("Violation of the velocity bounds on invocation of the SVP minimum-time solver!");
+    };
+    
+    // try to assume that peak_velocity = sign(p1 - p0) * max_velocity
+    double sign_p1_p0 = 1.0;
+    if(start_position > end_position)
+      sign_p1_p0 = -1.0;
+    peak_velocity = sign_p1_p0 * max_velocity;
+    double descended_peak_velocity = peak_velocity / max_velocity;
+    double delta_first_order = end_position - start_position
+      - (0.5 * fabs(peak_velocity -   end_velocity)) * (descended_peak_velocity +   end_velocity / max_velocity)
+      - (0.5 * fabs(peak_velocity - start_velocity)) * (descended_peak_velocity + start_velocity / max_velocity);
+    if(delta_first_order * peak_velocity > 0.0) {
+      // this means that we guessed correctly (we can reach max cruise speed in the direction of the end-position):
+      return fabs(delta_first_order) + fabs(peak_velocity - end_velocity) + fabs(peak_velocity - start_velocity);
+    };
+    // if not, then can try to see if we simply can quite reach max velocity before having to ramp-down:
+    // this assumes that we have p1 - p0 == 0.5 / vm * ( fabs(vp - v1) * (vp + v1) + fabs(vp - v0) * (vp + v0) )
+    // first try if vp is more in the direction (p1-p0) than both v1 and v0:
+    peak_velocity = sqrt(max_velocity * fabs(end_position - start_position) + 0.5 * start_velocity * start_velocity + 0.5 * end_velocity * end_velocity);
+    if( ( peak_velocity > sign_p1_p0 * start_velocity ) && ( peak_velocity > sign_p1_p0 * end_velocity ) ) {
+      // this means that the vp solution is consistent with the assumption:
+      peak_velocity *= sign_p1_p0;
+      return fabs(peak_velocity - end_velocity) + fabs(peak_velocity - start_velocity);
+    };
+    // else, try if vp is less in the direction (p1-p0) than both v0 and v1 (because in-between is impossible):
+    if( max_velocity * fabs(end_position - start_position) < 0.5 * (start_velocity * start_velocity + end_velocity * end_velocity) ) {
+      // this means there exists a solution for the magnitude of vp:
+      peak_velocity = sqrt(0.5 * start_velocity * start_velocity + 0.5 * end_velocity * end_velocity - max_velocity * fabs(end_position - start_position));
+      if( ( peak_velocity < sign_p1_p0 * start_velocity ) && ( peak_velocity < sign_p1_p0 * end_velocity ) ) {
+        // this means there is a valid solution for which vp is still in the direction of (p1-p0):
+        peak_velocity *= sign_p1_p0;
+      } else {
+        // this means there must be a valid solution for when vp is in the opposite direction of (p1-p0):
+        peak_velocity *= -sign_p1_p0;
+      };
+      return fabs(peak_velocity - end_velocity) + fabs(peak_velocity - start_velocity);
+    };
+    // What the fuck!! This point should never be reached:
+    peak_velocity = 0.0;
+    throw optim::infeasible_problem("The SVP minimum-time solver could not find a feasible solution!");
+  };
+  
+  
+  double svp_Ndof_compute_min_delta_time(double start_position, double end_position,
+                                         double start_velocity, double end_velocity,
+                                         double& peak_velocity, double max_velocity) {
+    
+    double min_delta_time = svp_Ndof_compute_min_delta_time_closedform(
+      start_position, end_position, start_velocity, end_velocity, peak_velocity, max_velocity);
+    
+    return min_delta_time;
+  };
+  
+#endif
   
   
   
@@ -264,6 +397,7 @@ namespace detail {
   };
   
 #if 0
+  
   static void svp_Ndof_compute_peak_velocity_numsolve(
     double start_position, double end_position,
     double start_velocity, double end_velocity, double& peak_velocity, 
@@ -279,8 +413,7 @@ namespace detail {
     
     if( ( fabs(start_velocity) > max_velocity ) || ( fabs(end_velocity) > max_velocity ) ) {
       peak_velocity = 0.0;
-      RK_NOTICE(1," Warning: violation of the velocity bounds was detected on SVP interpolations!");
-      return;
+      throw optim::infeasible_problem("Violation of the velocity bounds on invocation of the SVP peak-velocity solver!");
     };
     
     double sign_p1_p0 = 1.0;
@@ -289,15 +422,6 @@ namespace detail {
     
     svp_Ndof_pos_diff_calculator pd_calc(
       end_position - start_position, start_velocity, end_velocity, max_velocity, delta_time);
-    
-    
-    
-    static std::ofstream dat_output("svp_pd_calc.txt");
-    dat_output << "%----------------------------------------------\n";
-    for(double cur_vp = 1.05 * sign_p1_p0 * max_velocity; cur_vp * sign_p1_p0 > -1.055 * max_velocity; cur_vp -= 0.01 * sign_p1_p0 * max_velocity)
-      dat_output << cur_vp << " " << pd_calc(cur_vp) << " " << pd_calc.get_delta_time_diff(cur_vp) << "\n";
-    dat_output.flush();
-    
     
     
     double prev_vp = 1.03 * sign_p1_p0 * max_velocity;
@@ -326,13 +450,21 @@ namespace detail {
       prev_pd = cur_pd;
     };
     
-    RK_NOTICE(1," Warning: There was no solution to the peak-velocity for the given delta-time!");
     peak_velocity = -sign_p1_p0 * max_velocity;
-    return;
+    throw optim::infeasible_problem("The SVP peak-velocity solver could not find a solution for the given boundary conditions!");
   };
-#endif
   
+  void svp_Ndof_compute_peak_velocity(double start_position, double end_position,
+                                      double start_velocity, double end_velocity,
+                                      double& peak_velocity, double max_velocity, double delta_time) {
+    
+    svp_Ndof_compute_peak_velocity_numsolve(
+      start_position, end_position, start_velocity, end_velocity,
+      peak_velocity, max_velocity, delta_time);
+    
+  };
   
+#else
   
   
   void svp_Ndof_compute_peak_velocity_closedform(double start_position, double end_position,
@@ -352,8 +484,7 @@ namespace detail {
     
     if( ( fabs(start_velocity) > max_velocity ) || ( fabs(end_velocity) > max_velocity ) ) {
       peak_velocity = 0.0;
-      RK_NOTICE(1," Warning: violation of the velocity bounds was detected on SVP interpolations!");
-      return;
+      throw optim::infeasible_problem("Violation of the velocity bounds on invocation of the SVP peak-velocity solver!");
     };
     
     svp_Ndof_pos_diff_calculator pd_calc(
@@ -449,63 +580,22 @@ namespace detail {
     };
     
     // What the fuck!! This point should never be reached, unless the motion is completely impossible:
-    RK_NOTICE(1," Warning: There was no solution to the peak-velocity for the given delta-time!");
     peak_velocity = -sign_p1_p0 * max_velocity;
-    return;
+    throw optim::infeasible_problem("The SVP peak-velocity solver could not find a solution for the given boundary conditions!");
   };
-  
-  
-  
-  
   
   
   void svp_Ndof_compute_peak_velocity(double start_position, double end_position,
                                       double start_velocity, double end_velocity,
                                       double& peak_velocity, double max_velocity, double delta_time) {
-    /*
-    svp_Ndof_compute_peak_velocity_numsolve(
-      start_position, end_position, start_velocity, end_velocity,
-      peak_velocity, max_velocity, delta_time);
-    */
     
     svp_Ndof_compute_peak_velocity_closedform(
       start_position, end_position, start_velocity, end_velocity,
       peak_velocity, max_velocity, delta_time);
     
-    double cf_pos, cf_vel, cf_desc_acc;
-    
-    svp_Ndof_compute_interpolated_values_closedform(
-      start_position, end_position, start_velocity, end_velocity,
-      peak_velocity, max_velocity, delta_time, delta_time,
-      cf_pos, cf_vel, cf_desc_acc);
-    
-    if( std::fabs(cf_pos - end_position) > 1e-3 ) {
-      double dt1, dt2, dp1, dp2;
-      
-      svp_Ndof_compute_ramp_dist_and_time(start_velocity, peak_velocity, max_velocity, dp1, dt1);
-      svp_Ndof_compute_ramp_dist_and_time(peak_velocity, end_velocity, max_velocity, dp2, dt2);
-      
-      svp_Ndof_pos_diff_calculator pd_calc(
-        end_position - start_position, start_velocity, end_velocity, 
-        max_velocity, delta_time);
-      
-      std::cout << "The calculation of the peak velocity yielded a bad interpolated path!\n"
-                << " Start position = " << start_position << "\n"
-                << " End position   = " << end_position << "\n"
-                << " Start velocity = " << start_velocity << "\n"
-                << " End velocity   = " << end_velocity << "\n"
-                << " Peak velocity  = " << peak_velocity << "\n"
-                << " Delta-time     = " << delta_time << "\n"
-                << " Delta-time-1   = " << dt1 << "\n"
-                << " Delta-time-2   = " << dt2 << "\n"
-                << " Delta-pos-1    = " << dp1 << "\n"
-                << " Delta-pos-2    = " << dp2 << "\n"
-                << " Calculated EDP = " << pd_calc(peak_velocity) << "\n"
-                << " Actual EDP     = " << (cf_pos - end_position) << std::endl;
-    };
-    
-    
   };
+  
+#endif
   
   
   
