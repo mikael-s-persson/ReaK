@@ -40,6 +40,46 @@
 namespace ReaK {
 
 
+
+template <typename T, typename RootedFunction, typename OutputIter>
+OutputIter find_multiroot_intervals(T low_bound, T hi_bound, RootedFunction f, 
+                                    OutputIter it_out, std::size_t& remaining_roots) {
+  
+  using std::fabs;
+  
+  T x0_value = f(low_bound);
+  T x1_value = f(hi_bound);
+  
+  
+  
+  
+  
+};
+
+
+
+template <typename T, typename RootedFunction, typename OutputIter>
+OutputIter ford3_multiroot(T low_bound, T hi_bound, 
+                           RootedFunction f, OutputIter it_out, 
+                           const T& tol = std::numeric_limits<T>::epsilon()) {
+  
+  using std::fabs;
+  
+  T x0_value = f(low_bound);
+  T x1_value = f(hi_bound);
+  
+  T abs_tol = tol * fabs(hi_bound - low_bound);
+  T abs_f_tol = tol * (fabs(x0_value) + fabs(x1_value));
+  
+  // while I have opposite signs on the bounds, try a secant pass to narrow down to the root.
+  // if I have same signs on the bounds, then bisect the interval recursively to find 
+  
+  
+};
+
+
+
+
 /**
  * This function template performs the Ford-3 algorithm for the root of a function. This assumes 
  * that the function is monotonic and has a unique root between the two given bounds. The Ford-3

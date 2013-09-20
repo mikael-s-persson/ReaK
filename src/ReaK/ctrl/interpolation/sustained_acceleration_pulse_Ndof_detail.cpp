@@ -385,7 +385,7 @@ namespace detail {
       double a_dp, double a_v1, double a_v2, double a_vmax, double a_amax, double a_dt) : 
       dp(a_dp), v1(a_v1), v2(a_v2), vmax(a_vmax), amax(a_amax), dt(a_dt) { };
     
-    double operator()(double vp) {
+    double operator()(double vp) const {
       using std::fabs;
       
       double dp1, dt1, dp2, dt2;
@@ -394,7 +394,7 @@ namespace detail {
       return dp - dp1 - dp2 - vp / vmax * (dt - dt1 - dt2);
     };
     
-    double get_delta_time_diff(double vp) {
+    double get_delta_time_diff(double vp) const {
       double dp1, dt1, dp2, dt2;
       sap_Ndof_compute_ramp_dist_and_time(v1, vp, vmax, amax, dp1, dt1);
       sap_Ndof_compute_ramp_dist_and_time(vp, v2, vmax, amax, dp2, dt2);
@@ -512,6 +512,35 @@ namespace detail {
   
   
   
+  
+  
+  inline void sap_Ndof_comp_vp_num2_find_sign_change(double& vp_lo, double& vp_hi, double tol,
+                                                     const sap_Ndof_pos_diff_calculator& pd_calc) {
+    double pd_lo = pd_calc(vp_lo);
+    double pd_hi = pd_calc(vp_hi);
+    double dt_lo = pd_calc.get_delta_time_diff(vp_lo);
+    double dt_hi = pd_calc.get_delta_time_diff(vp_hi);
+    
+    while( (std::fabs(vp_lo - vp_hi) > tol) && ( pd_lo * pd_hi > 0.0 ) && ( dt_lo * dt_hi < 0.0 ) ) {
+      double vp_mid = (vp_lo + vp_hi) * 0.5;
+      double pd_mid = pd_calc(vp_mid);
+      double dt_mid = pd_calc.get_delta_time_diff(vp_mid);
+      
+      if( dt_mid * dt_hi < 0.0 ) {
+        vp_lo = vp_mid;
+        pd_lo = pd_mid;
+        dt_lo = dt_mid;
+      } else {
+        vp_hi = vp_mid;
+        pd_hi = pd_mid;
+        dt_hi = dt_mid;
+      };
+      
+    };
+    
+  };
+  
+  
   static void sap_Ndof_compute_peak_velocity_numsolve2(
     double start_position, double end_position,
     double start_velocity, double end_velocity, double& peak_velocity, 
@@ -579,54 +608,48 @@ namespace detail {
         };
         continue;
       };
+      
       double vp_lo  = sign_p1_p0 * interest_pts[i];
       double vp_hi  = sign_p1_p0 * interest_pts[i+1];
-      double vp_mid = 0.5 * (vp_hi + vp_lo);
       
       double pd_lo  = pd_calc(vp_lo);
       double pd_hi  = pd_calc(vp_hi);
-      double pd_mid = pd_calc(vp_mid);
       
-      if( fabs(pd_lo + pd_hi - 2.0 * pd_mid) > 1e-2 * max_velocity ) {
-        // this means we might have enough curvature to have an internal crest.
-        double subpts[11] = {vp_lo, 
-                            0.9 * vp_lo + 0.1 * vp_hi, 
-                            0.8 * vp_lo + 0.2 * vp_hi, 
-                            0.7 * vp_lo + 0.3 * vp_hi, 
-                            0.6 * vp_lo + 0.4 * vp_hi, 
-                            vp_mid, 
-                            0.4 * vp_lo + 0.3 * vp_hi,
-                            0.3 * vp_lo + 0.7 * vp_hi,
-                            0.2 * vp_lo + 0.8 * vp_hi,
-                            0.1 * vp_lo + 0.9 * vp_hi,
-                            vp_hi };
-        for(int j = 0; j < 10; ++j) {
-          double vp_lo2  = sign_p1_p0 * subpts[j];
-          double vp_hi2  = sign_p1_p0 * subpts[j+1];
-          if( pd_calc(vp_lo2) * pd_calc(vp_hi2) < 0.0 ) {  // if we have a zero-crossing.
-            bisection_method(vp_lo2, vp_hi2, pd_calc, 1e-6 * max_velocity);
-            double vp_sol = (vp_lo2 + vp_hi2) * 0.5;
-            double pd_sol = pd_calc(vp_sol);
-            if( (pd_calc.get_delta_time_diff(vp_sol) >= -1e-3 * max_velocity) && ( fabs(pd_sol) < 1e-3 * max_velocity ) ) {
-              peak_velocity = vp_sol;
-              return;
-            };
-          };
+      double dt_lo = pd_calc.get_delta_time_diff(vp_lo);
+      double dt_hi = pd_calc.get_delta_time_diff(vp_hi);
+      
+      if( (dt_lo >= -1e-3 * max_velocity) && ( fabs(pd_lo) < 1e-3 * max_velocity ) ) {
+        peak_velocity = vp_lo;
+        return;
+      };
+      if( (dt_hi >= -1e-3 * max_velocity) && ( fabs(pd_hi) < 1e-3 * max_velocity ) ) {
+        peak_velocity = vp_hi;
+        return;
+      };
+      if( (dt_lo < -1e-3 * max_velocity) && (dt_hi < -1e-3 * max_velocity) ) 
+        continue;
+      
+      if( pd_lo * pd_hi < 0.0 ) { 
+//         ford3_method(vp_lo, vp_hi, pd_calc, 1e-9);
+        bisection_method(vp_lo, vp_hi, pd_calc, 1e-9 * max_velocity);
+        double vp_sol = (vp_lo + vp_hi) * 0.5;
+        double pd_sol = pd_calc(vp_sol);
+        if( (pd_calc.get_delta_time_diff(vp_sol) >= -1e-3 * max_velocity) && ( fabs(pd_sol) < 1e-3 * max_velocity ) ) {
+          peak_velocity = vp_sol;
+          return;
         };
       } else {
-        if( pd_lo * pd_mid < 0.0 ) {
-          double vp2 = vp_mid; 
-          bisection_method(vp_lo, vp2, pd_calc, 1e-6 * max_velocity);
-          double vp_sol = (vp_lo + vp2) * 0.5;
-          double pd_sol = pd_calc(vp_sol);
-          if( (pd_calc.get_delta_time_diff(vp_sol) >= -1e-3 * max_velocity) && ( fabs(pd_sol) < 1e-3 * max_velocity ) ) {
-            peak_velocity = vp_sol;
-            return;
-          };
-        };
-        if( pd_mid * pd_hi < 0.0 ) { 
-          bisection_method(vp_mid, vp_hi, pd_calc, 1e-6 * max_velocity);
-          double vp_sol = (vp_mid + vp_hi) * 0.5;
+        double vp_mid = 0.5 * (vp_hi + vp_lo);
+        double pd_mid = pd_calc(vp_mid);
+        
+        if( fabs(pd_lo + pd_hi - 2.0 * pd_mid) > 1e-3 * max_velocity ) {
+          if( (dt_lo * dt_hi > 0.0) ) 
+            continue;
+          
+          sap_Ndof_comp_vp_num2_find_sign_change(vp_lo, vp_hi, 1e-6 * max_velocity, pd_calc);
+//           ford3_method(vp_lo, vp_hi, pd_calc, 1e-9);
+          bisection_method(vp_lo, vp_hi, pd_calc, 1e-9 * max_velocity);
+          double vp_sol = (vp_lo + vp_hi) * 0.5;
           double pd_sol = pd_calc(vp_sol);
           if( (pd_calc.get_delta_time_diff(vp_sol) >= -1e-3 * max_velocity) && ( fabs(pd_sol) < 1e-3 * max_velocity ) ) {
             peak_velocity = vp_sol;
@@ -634,6 +657,7 @@ namespace detail {
           };
         };
       };
+      
     };
     
     static std::ofstream data_output("sap_mindt_log.txt");
@@ -653,6 +677,66 @@ namespace detail {
       data_output << (sign_p1_p0 * interest_pts[i]) << " " 
                   << pd_calc(sign_p1_p0 * interest_pts[i]) << " " 
                   << pd_calc.get_delta_time_diff(sign_p1_p0 * interest_pts[i]) << "\n";
+      
+      if(i < 7) {
+        
+        double vp_lo  = sign_p1_p0 * interest_pts[i];
+        double vp_hi  = sign_p1_p0 * interest_pts[i+1];
+        double vp_mid = 0.5 * (vp_hi + vp_lo);
+        
+        double pd_lo  = pd_calc(vp_lo);
+        double pd_hi  = pd_calc(vp_hi);
+        double pd_mid = pd_calc(vp_mid);
+        
+        double dt_lo = pd_calc.get_delta_time_diff(vp_lo);
+        double dt_hi = pd_calc.get_delta_time_diff(vp_hi);
+        
+        if( (dt_lo < -1e-3 * max_velocity) && (dt_hi < -1e-3 * max_velocity) ) {
+          data_output << " interval ( " << vp_lo << " , " << vp_hi << " ) does not valid delta-times! ( " << dt_lo << " , " << dt_hi << " )" << std::endl;
+          continue;
+        };
+        
+        if( fabs(pd_lo + pd_hi - 2.0 * pd_mid) > 1e-3 * max_velocity ) {
+          // this means we might have enough curvature to have an internal crest.
+          data_output << " interval here is considered to have enough curvature to mandate sub-intervals!" << std::endl;
+          double subpts[11] = {vp_lo, 
+                              0.9 * vp_lo + 0.1 * vp_hi, 
+                              0.8 * vp_lo + 0.2 * vp_hi, 
+                              0.7 * vp_lo + 0.3 * vp_hi, 
+                              0.6 * vp_lo + 0.4 * vp_hi, 
+                              vp_mid, 
+                              0.4 * vp_lo + 0.3 * vp_hi,
+                              0.3 * vp_lo + 0.7 * vp_hi,
+                              0.2 * vp_lo + 0.8 * vp_hi,
+                              0.1 * vp_lo + 0.9 * vp_hi,
+                              vp_hi };
+          for(int j = 0; j < 10; ++j) {
+            double vp_lo2  = subpts[j];
+            double vp_hi2  = subpts[j+1];
+            data_output << "  sub-interval " << j << " is :\n"
+                        << vp_lo2 << " " << pd_calc(vp_lo2) << " " << pd_calc.get_delta_time_diff(vp_lo2) << "\n"
+                        << vp_hi2 << " " << pd_calc(vp_hi2) << " " << pd_calc.get_delta_time_diff(vp_hi2) << std::endl;
+            if( pd_calc(vp_lo2) * pd_calc(vp_hi2) < 0.0 ) {  // if we have a zero-crossing.
+              bisection_method(vp_lo2, vp_hi2, pd_calc, 1e-9 * max_velocity);
+              double vp_sol = (vp_lo2 + vp_hi2) * 0.5;
+              data_output << "  sub-interval " << j << " gives " << vp_sol << " " << pd_calc(vp_sol) << " " << pd_calc.get_delta_time_diff(vp_sol) << std::endl;
+            };
+          };
+        } else {
+          data_output << " interval here does NOT have enough curvature to need sub-intervals!" << std::endl;
+          if( pd_lo * pd_mid < 0.0 ) {
+            double vp2 = vp_mid; 
+            bisection_method(vp_lo, vp2, pd_calc, 1e-9 * max_velocity);
+            double vp_sol = (vp_lo + vp2) * 0.5;
+            data_output << "  sub-interval lo-mid gives " << vp_sol << " " << pd_calc(vp_sol) << " " << pd_calc.get_delta_time_diff(vp_sol) << std::endl;
+          };
+          if( pd_mid * pd_hi < 0.0 ) { 
+            bisection_method(vp_mid, vp_hi, pd_calc, 1e-9 * max_velocity);
+            double vp_sol = (vp_mid + vp_hi) * 0.5;
+            data_output << "  sub-interval mid-hi gives " << vp_sol << " " << pd_calc(vp_sol) << " " << pd_calc.get_delta_time_diff(vp_sol) << std::endl;
+          };
+        };
+      };
     };
     
     data_output << "----- Complete curve:\n";
@@ -677,13 +761,13 @@ namespace detail {
                                       double& peak_velocity, double max_velocity, 
                                       double max_acceleration, double delta_time) {
     
-    sap_Ndof_compute_peak_velocity_numsolve(
-      start_position, end_position, start_velocity, end_velocity,
-      peak_velocity, max_velocity, max_acceleration, delta_time);
-    
-//     sap_Ndof_compute_peak_velocity_numsolve2(
+//     sap_Ndof_compute_peak_velocity_numsolve(
 //       start_position, end_position, start_velocity, end_velocity,
 //       peak_velocity, max_velocity, max_acceleration, delta_time);
+    
+    sap_Ndof_compute_peak_velocity_numsolve2(
+      start_position, end_position, start_velocity, end_velocity,
+      peak_velocity, max_velocity, max_acceleration, delta_time);
     
     
     double cf_pos, cf_vel, cf_acc, cf_desc_jerk;
