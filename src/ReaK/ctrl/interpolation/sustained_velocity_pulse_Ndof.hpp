@@ -250,9 +250,13 @@ class svp_Ndof_interpolator {
     template <typename Factory>
     void initialize(const point_type& start_point, const point_type& end_point, double dt,
                     const SpaceType& space, const TimeSpaceType& t_space, const Factory& factory) { RK_UNUSED(factory);
-      min_delta_time = detail::svp_compute_Ndof_interpolation_data_impl(
-        start_point, end_point,
-        peak_velocity, space, t_space, dt, &best_peak_velocity);
+      try {
+        min_delta_time = detail::svp_compute_Ndof_interpolation_data_impl(
+          start_point, end_point,
+          peak_velocity, space, t_space, dt, &best_peak_velocity);
+      } catch(optim::infeasible_problem& e) { RK_UNUSED(e);
+        min_delta_time = std::numeric_limits<double>::infinity();
+      };
     };
     
     /**
@@ -271,6 +275,8 @@ class svp_Ndof_interpolator {
     void compute_point(point_type& result, const point_type& start_point, const point_type& end_point,
                        const SpaceType& space, const TimeSpaceType& t_space, 
                        double dt, double dt_total, const Factory& factory) const { RK_UNUSED(factory);
+      if(min_delta_time == std::numeric_limits<double>::infinity())
+        return;
       if(dt <= 0.0) {
         result = start_point;
         return;

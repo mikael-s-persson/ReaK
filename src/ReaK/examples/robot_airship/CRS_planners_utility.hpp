@@ -60,18 +60,26 @@ class scenario_data : public named_object {
     shared_ptr< geom::colored_model_3D >              chaser_geom_model;
     vect_n<double>                                    chaser_jt_positions;
     
-    shared_ptr< kte::kte_map_chain > target_kin_chain;
-    shared_ptr< frame_3D<double> > target_state;
-    shared_ptr< frame_3D<double> > target_frame;
+    shared_ptr< kte::kte_map_chain >     target_kin_chain;
+    shared_ptr< frame_3D<double> >       target_state;
+    shared_ptr< frame_3D<double> >       target_frame;
+    shared_ptr< geom::colored_model_3D > target_geom_model;
     
-    shared_ptr< geom::proxy_query_pair_3D > chaser_env_proxy;
     shared_ptr< geom::proxy_query_pair_3D > chaser_target_proxy;
-    shared_ptr< geom::proxy_query_pair_3D > target_env_proxy;
+    
+    std::vector< shared_ptr< geom::colored_model_3D > > env_geom_models;
+    
+    std::vector< shared_ptr< geom::proxy_query_pair_3D > > chaser_env_proxies;
+    std::vector< shared_ptr< geom::proxy_query_pair_3D > > target_env_proxies;
+    
+    scenario_data(const std::string& aChaserFileName);
     
     
-    scenario_data();
+    void load_target(const std::string& fileName);
+    void load_positions(const std::string& fileName);
     
-    void load_positions(const std::string& fileName, const std::string& fileExt);
+    void load_environment(const std::string& fileName);
+    void clear_environment();
     
   private:
     
@@ -80,6 +88,8 @@ class scenario_data : public named_object {
   public:
     
 };
+
+
 
 
 

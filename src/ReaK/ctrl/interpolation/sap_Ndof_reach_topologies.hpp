@@ -205,13 +205,17 @@ class sap_Ndof_reach_topology : public BaseTopology
      */
     point_type move_position_toward(const point_type& a, double fraction, const point_type& b) const 
     {
-      detail::generic_interpolator_impl<sap_Ndof_interpolator,BaseTopology,time_topology> interp;
-      interp.initialize(a, b, 0.0, static_cast<const BaseTopology&>(*this), *t_space, rt_dist);
-      double dt_min = interp.get_minimum_travel_time();
-      double dt = dt_min * fraction;
-      point_type result = a;
-      interp.compute_point(result, a, b, static_cast<const BaseTopology&>(*this), *t_space, dt, dt_min, rt_dist);
-      return result;
+      try {
+        detail::generic_interpolator_impl<sap_Ndof_interpolator,BaseTopology,time_topology> interp;
+        interp.initialize(a, b, 0.0, static_cast<const BaseTopology&>(*this), *t_space, rt_dist);
+        double dt_min = interp.get_minimum_travel_time();
+        double dt = dt_min * fraction;
+        point_type result = a;
+        interp.compute_point(result, a, b, static_cast<const BaseTopology&>(*this), *t_space, dt, dt_min, rt_dist);
+        return result;
+      } catch(optim::infeasible_problem& e) { RK_UNUSED(e);
+        return a;
+      };
     };
     
 /*******************************************************************************

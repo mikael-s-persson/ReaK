@@ -36,6 +36,7 @@
 #include "lin_alg/arithmetic_tuple.hpp"
 
 #include "path_planning/tangent_bundle_concept.hpp"
+#include "optimization/optim_exceptions.hpp"
 
 #include <cmath>
 

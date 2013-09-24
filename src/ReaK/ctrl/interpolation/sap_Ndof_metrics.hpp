@@ -42,6 +42,7 @@
 #include "generic_interpolator_factory.hpp"
 #include "sustained_acceleration_pulse_Ndof.hpp"
 #include "topologies/time_topology.hpp"
+#include "optimization/optim_exceptions.hpp"
 
 namespace ReaK {
 
@@ -75,9 +76,13 @@ struct sap_Ndof_reach_time_metric : public serialization::serializable {
    */
   template <typename Point, typename Topology>
   double operator()(const Point& a, const Point& b, const Topology& s) const {
-    detail::generic_interpolator_impl<sap_Ndof_interpolator,Topology,TimeSpaceType> interp;
-    interp.initialize(a, b, 0.0, s, *t_space, *this);
-    return interp.get_minimum_travel_time();
+    try {
+      detail::generic_interpolator_impl<sap_Ndof_interpolator,Topology,TimeSpaceType> interp;
+      interp.initialize(a, b, 0.0, s, *t_space, *this);
+      return interp.get_minimum_travel_time();
+    } catch(optim::infeasible_problem& e) { RK_UNUSED(e);
+      return std::numeric_limits<double>::infinity();
+    };
   };
   
   /** 
@@ -90,9 +95,13 @@ struct sap_Ndof_reach_time_metric : public serialization::serializable {
    */
   template <typename PointDiff, typename Topology>
   double operator()(const PointDiff& a, const Topology& s) const {
-    detail::generic_interpolator_impl<sap_Ndof_interpolator,Topology,TimeSpaceType> interp;
-    interp.initialize(s.origin(), s.adjust(s.origin(),a), 0.0, s, *t_space, *this);
-    return interp.get_minimum_travel_time();
+    try {
+      detail::generic_interpolator_impl<sap_Ndof_interpolator,Topology,TimeSpaceType> interp;
+      interp.initialize(s.origin(), s.adjust(s.origin(),a), 0.0, s, *t_space, *this);
+      return interp.get_minimum_travel_time();
+    } catch(optim::infeasible_problem& e) { RK_UNUSED(e);
+      return std::numeric_limits<double>::infinity();
+    };
   };
   
       
