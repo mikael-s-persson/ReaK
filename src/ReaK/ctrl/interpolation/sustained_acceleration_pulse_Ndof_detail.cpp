@@ -31,7 +31,7 @@
 
 #include "sorting/insertion_sort.hpp"
 
-#include <fstream>
+#include "optimization/optim_exceptions.hpp"
 
 
 namespace ReaK {
@@ -44,7 +44,7 @@ namespace detail {
   
   
   
-  static void sap_Ndof_compute_interpolated_values_closedform(
+  static void sap_Ndof_compute_interpolated_values_balanced(
     double start_position, double end_position,
     double start_velocity, double end_velocity,
     double peak_velocity, double max_velocity, double max_acceleration,
@@ -52,19 +52,14 @@ namespace detail {
     double& result_pos, double& result_vel, 
     double& result_acc, double& result_desc_jerk) {
     
-    using std::fabs;
     using std::sqrt;
     
-    double dv1 = peak_velocity - start_velocity;
-    double dv2 = end_velocity - peak_velocity;
-    result_pos = start_position;
-    result_vel = start_velocity;
-    result_acc = 0.0;
-    result_desc_jerk = 0.0;
-    
-    double dt_vp1_1st = fabs(dv1);
+    double dt_vp1_1st = peak_velocity - start_velocity;
     double sgn_vp1 = 1.0;
-    if( dv1 < 0.0 ) sgn_vp1 = -1.0;
+    if( peak_velocity < start_velocity ) {
+      sgn_vp1 = -1.0;
+      dt_vp1_1st = -dt_vp1_1st;
+    };
     // we know that dt_vp_2nd = dt_vp_1st + dt_amax
     double dt_vp1 = dt_vp1_1st - max_acceleration;
     double dt_ap1 = max_acceleration;
@@ -73,10 +68,14 @@ namespace detail {
       dt_vp1 = 0.0;
       dt_ap1 = sqrt(max_acceleration * dt_vp1_1st);
     };
+    double dp_ramp1 = 0.5 * (dt_vp1 + 2.0 * dt_ap1) * (start_velocity + peak_velocity) / max_velocity;
     
-    double dt_vp2_1st = fabs(dv2);
+    double dt_vp2_1st = end_velocity - peak_velocity;
     double sgn_vp2 = 1.0;
-    if( dv2 < 0.0 ) sgn_vp2 = -1.0;
+    if( end_velocity < peak_velocity ) {
+      sgn_vp2 = -1.0;
+      dt_vp2_1st = -dt_vp2_1st;
+    };
     // we know that dt_vp_2nd = dt_vp_1st + dt_amax
     double dt_vp2 = dt_vp2_1st - max_acceleration;
     double dt_ap2 = max_acceleration;
@@ -85,166 +84,105 @@ namespace detail {
       dt_vp2 = 0.0;
       dt_ap2 = sqrt(max_acceleration * dt_vp2_1st);
     };
-    
+    double dp_ramp2 = 0.5 * (dt_vp2 + 2.0 * dt_ap2) * (end_velocity + peak_velocity) / max_velocity;
     
     dt_total -= dt_vp2 + 2.0 * dt_ap2 + dt_vp1 + 2.0 * dt_ap1;
     
-    
-    if( dt < (2.0 * dt_ap1 + dt_vp1) ) {
+    if( dt <= 0.0 ) {
+      
+      result_pos = start_position;
+      result_vel = start_velocity;
+      result_acc = 0.0;
+      result_desc_jerk = 0.0;
+      
+    } else if( dt < (2.0 * dt_ap1 + dt_vp1) ) {
       
       if( dt < dt_ap1 ) {
         
         //Segment 1: in the jerk-up phase of velocity ramp-up.
-        // assume result_acc == 0
-        result_pos += ( result_vel + ( dt * sgn_vp1 / 6.0 ) * dt / max_acceleration ) * dt / max_velocity;
-        result_vel += ( 0.5 * dt * sgn_vp1 ) * dt / max_acceleration;
-        result_acc  = dt * sgn_vp1;
+        result_pos = start_position + ( start_velocity + sgn_vp1 / 6.0 * dt * dt / max_acceleration ) * dt / max_velocity;
+        result_vel = start_velocity + 0.5 * sgn_vp1 * dt * dt / max_acceleration;
+        result_acc = dt * sgn_vp1;
         result_desc_jerk = sgn_vp1;
         
       } else if( dt < dt_ap1 + dt_vp1 ) {
         //Segment 2: in the constant accel phase of velocity ramp-up.
-        
         dt -= dt_ap1;
         
-        result_pos += ( ( result_vel + 0.5 * dt * sgn_vp1) * ( max_acceleration + dt ) 
+        result_pos = start_position + ( ( start_velocity + 0.5 * dt * sgn_vp1) * ( max_acceleration + dt ) 
                       + max_acceleration * max_acceleration * sgn_vp1 / 6.0 ) / max_velocity;
-        result_vel += (dt + 0.5 * max_acceleration) * sgn_vp1;
-        result_acc  = max_acceleration * sgn_vp1;
+        result_vel = start_velocity + (dt + 0.5 * max_acceleration) * sgn_vp1;
+        result_acc = max_acceleration * sgn_vp1;
         result_desc_jerk = 0.0;
         
       } else {
         //Segment 3: in the jerk-down phase of velocity ramp-up.
+        double mdt = dt - 2.0 * dt_ap1 - dt_vp1;
         
-        dt -= dt_ap1 + dt_vp1;
-        
-        result_pos += ( result_vel * ( dt_ap1 + dt_vp1 + dt )
-          + ( dt_ap1 * dt * ( 0.5 * dt + dt_vp1 + 0.5 * dt_ap1 )
-            + 0.5 * dt_ap1 * ( dt_ap1 * dt_ap1 / 3.0 + dt_vp1 * dt_ap1 + dt_vp1 * dt_vp1 ) 
-            - dt * dt * dt / 6.0 ) * sgn_vp1 / max_acceleration ) / max_velocity;
-        result_vel += ( dt_ap1 * ( dt + dt_vp1 + 0.5 * dt_ap1 )
-                      - 0.5 * dt * dt ) * sgn_vp1 / max_acceleration;
-        result_acc  = ( dt_ap1 - dt ) * sgn_vp1;
+        result_pos = start_position + dp_ramp1 + ( peak_velocity - sgn_vp1 / 6.0 * mdt * mdt / max_acceleration ) * mdt / max_velocity;
+        result_vel = peak_velocity - 0.5 * sgn_vp1 * mdt * mdt / max_acceleration;
+        result_acc = mdt * sgn_vp1;
         result_desc_jerk = -sgn_vp1;
-        
-        
-        // // alternative calculation (from the end of segment, backwards)
-        // double mdt -= 2.0 * dt_ap1 + dt_vp1 - dt;
-        
-        // result_pos += ( peak_velocity * ( 2.0 * dt_ap1 + dt_vp1 - mdt )
-        //   + ( mdt * mdt * mdt / 6.0 - dt_ap1 * ( dt_ap1 + dt_vp1 ) * ( dt_ap1 + 0.5 * dt_vp1 ) ) * sgn_vp1 / max_acceleration ) / max_velocity;
-        // // peak_velocity == result_vel + ( dt_ap1 * dt_vp1 + dt_ap1 * dt_ap1 ) * sgn_vp1 / max_acceleration
-        // result_vel  = peak_velocity - ( 0.5 * mdt * sgn_vp1 ) * mdt / max_acceleration;
-        // result_acc  = mdt * sgn_vp1;
-        // result_desc_jerk = -sgn_vp1;
         
       };
       
-      return;
+    } else if( dt < (2.0 * dt_ap1 + dt_vp1 + dt_total) ) {
       
-    };
-    
-    result_pos += ( peak_velocity * ( 2.0 * dt_ap1 + dt_vp1 )
-        - dt_ap1 * ( dt_ap1 + dt_vp1 ) * ( dt_ap1 + 0.5 * dt_vp1 ) * sgn_vp1 / max_acceleration ) / max_velocity;
-    result_vel  = peak_velocity;
-    result_acc = 0.0;
-    result_desc_jerk = 0.0;
-    
-    if( dt < (2.0 * dt_ap1 + dt_vp1 + dt_total) ) {
       //Segment 4: in the cruise phase.
+      double idt = dt - 2.0 * dt_ap1 - dt_vp1;
+      double pis = start_position + dp_ramp1;
+      double pie = end_position   - dp_ramp2;
+      result_pos = idt / dt_total * pie + (1.0 - idt / dt_total) * pis;
+      result_vel = peak_velocity;
+      result_acc = 0.0;
+      result_desc_jerk = 0.0;
       
-      dt -= 2.0 * dt_ap1 + dt_vp1;
-      
-      result_pos += dt * peak_velocity / max_velocity;
-      
-      return;
-    };
-    
-    result_pos += dt_total * peak_velocity / max_velocity;
-    
-    
-    if( dt < (2.0 * dt_ap1 + dt_vp1 + dt_total + 2.0 * dt_ap2 + dt_vp2) ) {
+    } else if( dt < (2.0 * dt_ap1 + dt_vp1 + dt_total + 2.0 * dt_ap2 + dt_vp2) ) {
       
       if( dt < (2.0 * dt_ap1 + dt_vp1 + dt_total + dt_ap2) ) {
         
         //Segment 5: in the jerk-up phase of velocity ramp-down.
-        
         dt -= 2.0 * dt_ap1 + dt_vp1 + dt_total;
         
-        result_pos += ( result_vel + ( dt * sgn_vp2 / 6.0 ) * dt / max_acceleration ) * dt / max_velocity;
-        result_vel += ( 0.5 * dt * sgn_vp2 ) * dt / max_acceleration;
-        result_acc  = dt * sgn_vp2;
+        result_pos = end_position - dp_ramp2 + ( peak_velocity + sgn_vp2 / 6.0 * dt * dt / max_acceleration ) * dt / max_velocity;
+        result_vel = peak_velocity + 0.5 * sgn_vp2 * dt * dt / max_acceleration;
+        result_acc = dt * sgn_vp2;
         result_desc_jerk = sgn_vp2;
         
       } else if( dt < (2.0 * dt_ap1 + dt_vp1 + dt_total + dt_ap2 + dt_vp2) ) {
         
         //Segment 6: in the constant accel phase of velocity ramp-down.
-        
         dt -= 2.0 * dt_ap1 + dt_vp1 + dt_total + dt_ap2;
         
-        result_pos += ( result_vel * ( max_acceleration + dt )
+        result_pos = end_position - dp_ramp2 + ( peak_velocity * ( max_acceleration + dt )
           + ( max_acceleration * max_acceleration / 6.0 + 0.5 * max_acceleration * dt + 0.5 * dt * dt ) * sgn_vp2 ) / max_velocity;
-        result_vel += ( dt + 0.5 * max_acceleration ) * sgn_vp2;
-        result_acc  = max_acceleration * sgn_vp2;
+        result_vel = peak_velocity + ( dt + 0.5 * max_acceleration ) * sgn_vp2;
+        result_acc = max_acceleration * sgn_vp2;
         result_desc_jerk = 0.0;
         
       } else {
         
         //Segment 7: in the jerk-down phase of velocity ramp-down.
+        double mdt = dt - 2.0 * dt_ap1 - dt_vp1 - dt_total - 2.0 * dt_ap2 - dt_vp2;
         
-        dt -= 2.0 * dt_ap1 + dt_vp1 + dt_total + dt_ap2 + dt_vp2;
-        
-        result_pos += ( result_vel * ( dt_ap2 + dt_vp2 + dt )
-          + ( dt_ap2 * dt_ap2 * dt_ap2 / 6.0 
-            + 0.5 * dt_vp2 * dt_ap2 * dt_ap2 
-            + 0.5 * dt_vp2 * dt_vp2 * dt_ap2 
-            + dt * dt_vp2 * dt_ap2 
-            + 0.5 * dt * dt_ap2 * dt_ap2 
-            + 0.5 * dt * dt * dt_ap2 
-            - dt * dt * dt / 6.0 ) * sgn_vp2 / max_acceleration ) / max_velocity;
-        result_vel += ( dt_ap2 * sgn_vp2 - 0.5 * dt * sgn_vp2 ) * dt / max_acceleration + ( dt_vp2 + 0.5 * dt_ap2 ) * dt_ap2 * sgn_vp2 / max_acceleration;
-        result_acc  = ( dt_ap2 - dt ) * sgn_vp2;
+        result_pos = end_position + ( end_velocity - sgn_vp2 / 6.0 * mdt * mdt / max_acceleration ) * mdt / max_velocity;
+        result_vel = end_velocity - 0.5 * sgn_vp2 * mdt * mdt / max_acceleration;
+        result_acc = mdt * sgn_vp2;
         result_desc_jerk = -sgn_vp2;
-        
-        // // alternative calculation (from the end of segment, backwards)
-        // double mdt -= 2.0 * dt_ap1 + dt_vp1 + dt_total + 2.0 * dt_ap1 + dt_vp1 - dt;
-        
-        // result_pos += ( end_velocity * ( 2.0 * dt_ap2 + dt_vp2 - mdt )
-        //   + ( mdt * mdt * mdt / 6.0 - dt_ap2 * ( dt_ap2 + dt_vp2 ) * ( dt_ap2 + 0.5 * dt_vp2 ) ) * sgn_vp2 / max_acceleration ) / max_velocity;
-        // // end_velocity == result_vel + ( dt_ap2 * dt_vp2 + dt_ap2 * dt_ap2 ) * sgn_vp2 / max_acceleration
-        // result_vel  = end_velocity - ( 0.5 * mdt * sgn_vp2 ) * mdt / max_acceleration;
-        // result_acc  = mdt * sgn_vp2;
-        // result_desc_jerk = -sgn_vp2;
         
       };
       
-      return;
+    } else {
+      
+      result_pos = end_position;
+      result_vel = end_velocity;
+      result_acc = 0.0;
+      result_desc_jerk = 0.0;
+      
     };
     
-    result_acc  = 0.0;
-    result_desc_jerk = 0.0;
-    
-    // Expected end-conditions:
-    
-//     result_pos = end_position;
-//     result_vel = end_velocity;
-    
-    // Resulting position / velocity formulae:
-    
-//     result_pos += ( result_vel + 0.5 * ( dt_vp2 + dt_ap2 ) * dt_ap2 * sgn_vp2 / max_acceleration ) * ( 2.0 * dt_ap2 + dt_vp2 ) / max_velocity;
-    result_vel += ( dt_ap2 + dt_vp2 ) * dt_ap2 * sgn_vp2 / max_acceleration;
-
-    
-//     result_pos += ( 
-//         peak_velocity * ( dt_total + 2.0 * dt_ap1 + dt_vp1 + 2.0 * dt_ap2 + dt_vp2 )
-//       - 0.5 * ( dt_ap1 + dt_vp1 ) * ( 2.0 * dt_ap1 + dt_vp1 ) * dt_ap1 * sgn_vp1 / max_acceleration
-//       + 0.5 * ( dt_vp2 + dt_ap2 ) * ( 2.0 * dt_ap2 + dt_vp2 ) * dt_ap2 * sgn_vp2 / max_acceleration ) / max_velocity;
-    
-    result_pos = start_position + ( peak_velocity * dt_total 
-      + 0.5 * ( start_velocity + peak_velocity ) * ( 2.0 * dt_ap1 + dt_vp1 ) 
-      + 0.5 * ( peak_velocity  + end_velocity  ) * ( 2.0 * dt_ap2 + dt_vp2 ) ) / max_velocity;
-    
-      
   };
+  
   
   
   
@@ -256,7 +194,7 @@ namespace detail {
     double& result_pos, double& result_vel, 
     double& result_acc, double& result_desc_jerk) {
     
-    sap_Ndof_compute_interpolated_values_closedform(
+    sap_Ndof_compute_interpolated_values_balanced(
       start_position, end_position, start_velocity, end_velocity,
       peak_velocity, max_velocity, max_acceleration, dt, dt_total,
       result_pos, result_vel, result_acc, result_desc_jerk);
@@ -350,7 +288,8 @@ namespace detail {
     };
     
 //     ford3_method(peak_vel_low, peak_vel_hi, nc_calc, 1e-8);
-    bisection_method(peak_vel_low, peak_vel_hi, nc_calc, 1e-6 * max_velocity);
+    brent_method(peak_vel_low, peak_vel_hi, nc_calc, 1e-8);
+//     bisection_method(peak_vel_low, peak_vel_hi, nc_calc, 1e-6 * max_velocity);
     
     peak_velocity = peak_vel_hi;
     sap_Ndof_compute_ramp_dist_and_time(start_velocity, peak_velocity, max_velocity, max_acceleration, dp_ramp1, dt_ramp1);
@@ -404,115 +343,6 @@ namespace detail {
   };
   
   
-  static void sap_Ndof_compute_peak_velocity_numsolve(
-    double start_position, double end_position,
-    double start_velocity, double end_velocity, double& peak_velocity, 
-    double max_velocity, double max_acceleration, double delta_time) {
-    
-    using std::fabs;
-    
-    if( ( fabs(end_position - start_position) < 1e-6 * max_velocity ) &&
-        ( fabs(end_velocity - start_velocity) < 1e-6 * max_acceleration ) ) {
-      peak_velocity = start_velocity;
-      return;
-    };
-    
-    if( ( fabs(start_velocity) > max_velocity ) || ( fabs(end_velocity) > max_velocity ) ) {
-      peak_velocity = 0.0;
-      RK_NOTICE(1," Warning: violation of the velocity bounds was detected on SAP interpolations!");
-      return;
-    };
-    
-    double sign_p1_p0 = 1.0;
-    if(start_position > end_position)
-      sign_p1_p0 = -1.0;
-    
-    sap_Ndof_pos_diff_calculator pd_calc(
-      end_position - start_position, start_velocity, end_velocity, 
-      max_velocity, max_acceleration, delta_time);
-    
-    double prev_vp = 1.03 * sign_p1_p0 * max_velocity;
-    double prev_pd = pd_calc(prev_vp);
-    for(double cur_vp = prev_vp - 0.02 * sign_p1_p0 * max_velocity; cur_vp * sign_p1_p0 > -1.04 * max_velocity; cur_vp -= 0.02 * sign_p1_p0 * max_velocity) {
-      double cur_pd = pd_calc(cur_vp);
-      if( cur_pd * prev_pd < 0.0 ) {
-        double orig_cur_vp = cur_vp;
-//         ford3_method(prev_vp, cur_vp, pd_calc, 1e-7);
-        bisection_method(prev_vp, cur_vp, pd_calc, 1e-8 * max_velocity);
-        cur_vp = (prev_vp + cur_vp) * 0.5;
-        cur_pd = pd_calc(cur_vp);
-        if( (pd_calc.get_delta_time_diff(cur_vp) >= -1e-3 * max_velocity) && ( fabs(cur_pd) < 1e-3 * max_velocity ) ) {
-          peak_velocity = cur_vp;
-          return;
-        } else {
-          cur_vp = orig_cur_vp;
-          cur_pd = pd_calc(cur_vp);
-        };
-      };
-      prev_vp = cur_vp;
-      prev_pd = cur_pd;
-    };
-    
-    
-    static std::ofstream data_output("sap_mindt_log.txt");
-    data_output << "------------------------------------\n"
-                << " Start position = " << start_position << "\n"
-                << " End position   = " << end_position << "\n"
-                << " Start velocity = " << start_velocity << "\n"
-                << " End velocity   = " << end_velocity << "\n"
-                << " Delta-time     = " << delta_time << std::endl;
-    
-    {
-    double prev_vp = 1.03 * sign_p1_p0 * max_velocity;
-    double prev_pd = pd_calc(prev_vp);
-    for(double cur_vp = prev_vp - 0.02 * sign_p1_p0 * max_velocity; cur_vp * sign_p1_p0 > -1.04 * max_velocity; cur_vp -= 0.02 * sign_p1_p0 * max_velocity) {
-      double cur_pd = pd_calc(cur_vp);
-      if( cur_pd * prev_pd < 0.0 ) {
-        double orig_cur_vp = cur_vp;
-//         ford3_method(prev_vp, cur_vp, pd_calc, 1e-7);
-        bisection_method(prev_vp, cur_vp, pd_calc, 1e-8 * max_velocity);
-        cur_vp = (prev_vp + cur_vp) * 0.5;
-        cur_pd = pd_calc(cur_vp);
-        if( (pd_calc.get_delta_time_diff(cur_vp) >= -1e-3 * max_velocity) && ( fabs(cur_pd) < 1e-3 * max_velocity ) ) {
-          peak_velocity = cur_vp;
-          return;
-        } else {
-          data_output << " Could not really finish the root-finding for the peak-velocity:\n"
-                      << "  got a delta-time error of " << pd_calc.get_delta_time_diff(cur_vp) << "\n"
-                      << "  got vp-interval: " << prev_vp << " -- mid: " << cur_vp << " .. diff = " << (cur_vp - prev_vp) << "\n"
-                      << "  corresponding to solutions: " << pd_calc(prev_vp) << " -- mid: " << cur_pd << std::endl;
-          cur_vp = orig_cur_vp;
-          cur_pd = pd_calc(cur_vp);
-        };
-      };
-      prev_vp = cur_vp;
-      prev_pd = cur_pd;
-    };
-    };
-    
-    {
-      double dp_tot, dt_tot;
-      sap_Ndof_compute_ramp_dist_and_time(start_velocity, end_velocity, max_velocity, max_acceleration, dp_tot, dt_tot);
-      data_output << " Simple-ramp travel = " << dp_tot << " out of " << (end_position - start_position) << "\n"
-                  << " Simple-ramp time   = " << dt_tot << " out of " << delta_time << "\n"
-                  << " Using vs as vp     = " << ((delta_time - dt_tot) * start_velocity / max_velocity + dp_tot) << " out of " << (end_position - start_position) << "\n"
-                  << " Using ve as vp     = " << ((delta_time - dt_tot) * end_velocity / max_velocity + dp_tot) << " out of " << (end_position - start_position) << std::endl;
-      
-    };
-    for(double cur_vp = 1.02 * sign_p1_p0 * max_velocity; cur_vp * sign_p1_p0 > -1.025 * max_velocity; cur_vp -= 0.01 * sign_p1_p0 * max_velocity)
-      data_output << cur_vp << " " << pd_calc(cur_vp) << " " << pd_calc.get_delta_time_diff(cur_vp) << "\n";
-    data_output.flush();
-    
-    
-    
-    RK_NOTICE(1," Warning: There was no solution to the peak-velocity for the given delta-time!");
-    peak_velocity = -sign_p1_p0 * max_velocity;
-    return;
-  };
-  
-  
-  
-  
   
   inline void sap_Ndof_comp_vp_num2_find_sign_change(double& vp_lo, double& vp_hi, double tol,
                                                      const sap_Ndof_pos_diff_calculator& pd_calc) {
@@ -541,7 +371,7 @@ namespace detail {
   };
   
   
-  static void sap_Ndof_compute_peak_velocity_numsolve2(
+  static void sap_Ndof_compute_peak_velocity_numsolve(
     double start_position, double end_position,
     double start_velocity, double end_velocity, double& peak_velocity, 
     double max_velocity, double max_acceleration, double delta_time) {
@@ -556,8 +386,7 @@ namespace detail {
     
     if( ( fabs(start_velocity) > max_velocity ) || ( fabs(end_velocity) > max_velocity ) ) {
       peak_velocity = 0.0;
-      RK_NOTICE(1," Warning: violation of the velocity bounds was detected on SAP interpolations!");
-      return;
+      throw optim::infeasible_problem("Violation of the velocity bounds on invocation of the SAP peak-velocity solver!");
     };
     
     double sign_p1_p0 = 1.0;
@@ -631,7 +460,8 @@ namespace detail {
       
       if( pd_lo * pd_hi < 0.0 ) { 
 //         ford3_method(vp_lo, vp_hi, pd_calc, 1e-9);
-        bisection_method(vp_lo, vp_hi, pd_calc, 1e-9 * max_velocity);
+        brent_method(vp_lo, vp_hi, pd_calc, 1e-8);
+//         bisection_method(vp_lo, vp_hi, pd_calc, 1e-9 * max_velocity);
         double vp_sol = (vp_lo + vp_hi) * 0.5;
         double pd_sol = pd_calc(vp_sol);
         if( (pd_calc.get_delta_time_diff(vp_sol) >= -1e-3 * max_velocity) && ( fabs(pd_sol) < 1e-3 * max_velocity ) ) {
@@ -648,7 +478,8 @@ namespace detail {
           
           sap_Ndof_comp_vp_num2_find_sign_change(vp_lo, vp_hi, 1e-6 * max_velocity, pd_calc);
 //           ford3_method(vp_lo, vp_hi, pd_calc, 1e-9);
-          bisection_method(vp_lo, vp_hi, pd_calc, 1e-9 * max_velocity);
+          brent_method(vp_lo, vp_hi, pd_calc, 1e-8);
+//           bisection_method(vp_lo, vp_hi, pd_calc, 1e-9 * max_velocity);
           double vp_sol = (vp_lo + vp_hi) * 0.5;
           double pd_sol = pd_calc(vp_sol);
           if( (pd_calc.get_delta_time_diff(vp_sol) >= -1e-3 * max_velocity) && ( fabs(pd_sol) < 1e-3 * max_velocity ) ) {
@@ -660,100 +491,9 @@ namespace detail {
       
     };
     
-    static std::ofstream data_output("sap_mindt_log.txt");
-    data_output << "------------------------------------\n"
-                << " Start position = " << start_position << "\n"
-                << " End position   = " << end_position << "\n"
-                << " Start velocity = " << start_velocity << "\n"
-                << " End velocity   = " << end_velocity << "\n"
-                << " Delta-time     = " << delta_time << std::endl;
-    
-    data_output << "----- Points of interest:\n";
-    for(int i = 0; i < 8; ++i) {
-      if(interest_pts[i] > 1.001 * max_velocity)
-        continue;
-      if(interest_pts[i] < -1.001 * max_velocity)
-        break;
-      data_output << (sign_p1_p0 * interest_pts[i]) << " " 
-                  << pd_calc(sign_p1_p0 * interest_pts[i]) << " " 
-                  << pd_calc.get_delta_time_diff(sign_p1_p0 * interest_pts[i]) << "\n";
-      
-      if(i < 7) {
-        
-        double vp_lo  = sign_p1_p0 * interest_pts[i];
-        double vp_hi  = sign_p1_p0 * interest_pts[i+1];
-        double vp_mid = 0.5 * (vp_hi + vp_lo);
-        
-        double pd_lo  = pd_calc(vp_lo);
-        double pd_hi  = pd_calc(vp_hi);
-        double pd_mid = pd_calc(vp_mid);
-        
-        double dt_lo = pd_calc.get_delta_time_diff(vp_lo);
-        double dt_hi = pd_calc.get_delta_time_diff(vp_hi);
-        
-        if( (dt_lo < -1e-3 * max_velocity) && (dt_hi < -1e-3 * max_velocity) ) {
-          data_output << " interval ( " << vp_lo << " , " << vp_hi << " ) does not valid delta-times! ( " << dt_lo << " , " << dt_hi << " )" << std::endl;
-          continue;
-        };
-        
-        if( fabs(pd_lo + pd_hi - 2.0 * pd_mid) > 1e-3 * max_velocity ) {
-          // this means we might have enough curvature to have an internal crest.
-          data_output << " interval here is considered to have enough curvature to mandate sub-intervals!" << std::endl;
-          double subpts[11] = {vp_lo, 
-                              0.9 * vp_lo + 0.1 * vp_hi, 
-                              0.8 * vp_lo + 0.2 * vp_hi, 
-                              0.7 * vp_lo + 0.3 * vp_hi, 
-                              0.6 * vp_lo + 0.4 * vp_hi, 
-                              vp_mid, 
-                              0.4 * vp_lo + 0.3 * vp_hi,
-                              0.3 * vp_lo + 0.7 * vp_hi,
-                              0.2 * vp_lo + 0.8 * vp_hi,
-                              0.1 * vp_lo + 0.9 * vp_hi,
-                              vp_hi };
-          for(int j = 0; j < 10; ++j) {
-            double vp_lo2  = subpts[j];
-            double vp_hi2  = subpts[j+1];
-            data_output << "  sub-interval " << j << " is :\n"
-                        << vp_lo2 << " " << pd_calc(vp_lo2) << " " << pd_calc.get_delta_time_diff(vp_lo2) << "\n"
-                        << vp_hi2 << " " << pd_calc(vp_hi2) << " " << pd_calc.get_delta_time_diff(vp_hi2) << std::endl;
-            if( pd_calc(vp_lo2) * pd_calc(vp_hi2) < 0.0 ) {  // if we have a zero-crossing.
-              bisection_method(vp_lo2, vp_hi2, pd_calc, 1e-9 * max_velocity);
-              double vp_sol = (vp_lo2 + vp_hi2) * 0.5;
-              data_output << "  sub-interval " << j << " gives " << vp_sol << " " << pd_calc(vp_sol) << " " << pd_calc.get_delta_time_diff(vp_sol) << std::endl;
-            };
-          };
-        } else {
-          data_output << " interval here does NOT have enough curvature to need sub-intervals!" << std::endl;
-          if( pd_lo * pd_mid < 0.0 ) {
-            double vp2 = vp_mid; 
-            bisection_method(vp_lo, vp2, pd_calc, 1e-9 * max_velocity);
-            double vp_sol = (vp_lo + vp2) * 0.5;
-            data_output << "  sub-interval lo-mid gives " << vp_sol << " " << pd_calc(vp_sol) << " " << pd_calc.get_delta_time_diff(vp_sol) << std::endl;
-          };
-          if( pd_mid * pd_hi < 0.0 ) { 
-            bisection_method(vp_mid, vp_hi, pd_calc, 1e-9 * max_velocity);
-            double vp_sol = (vp_mid + vp_hi) * 0.5;
-            data_output << "  sub-interval mid-hi gives " << vp_sol << " " << pd_calc(vp_sol) << " " << pd_calc.get_delta_time_diff(vp_sol) << std::endl;
-          };
-        };
-      };
-    };
-    
-    data_output << "----- Complete curve:\n";
-    for(double cur_vp = 1.02 * sign_p1_p0 * max_velocity; cur_vp * sign_p1_p0 > -1.025 * max_velocity; cur_vp -= 0.01 * sign_p1_p0 * max_velocity)
-      data_output << cur_vp << " " << pd_calc(cur_vp) << " " << pd_calc.get_delta_time_diff(cur_vp) << "\n";
-    data_output.flush();
-    
-    
-    RK_NOTICE(1," Warning: There was no solution to the peak-velocity for the given delta-time!");
-    peak_velocity = -sign_p1_p0 * max_velocity;
-    return;
+    peak_velocity = 0.0;
+    throw optim::infeasible_problem("The SAP peak-velocity solver could not find a solution for the given boundary conditions!");
   };
-  
-  
-  
-  
-  
   
   
   void sap_Ndof_compute_peak_velocity(double start_position, double end_position,
@@ -761,48 +501,9 @@ namespace detail {
                                       double& peak_velocity, double max_velocity, 
                                       double max_acceleration, double delta_time) {
     
-//     sap_Ndof_compute_peak_velocity_numsolve(
-//       start_position, end_position, start_velocity, end_velocity,
-//       peak_velocity, max_velocity, max_acceleration, delta_time);
-    
-    sap_Ndof_compute_peak_velocity_numsolve2(
+    sap_Ndof_compute_peak_velocity_numsolve(
       start_position, end_position, start_velocity, end_velocity,
       peak_velocity, max_velocity, max_acceleration, delta_time);
-    
-    
-    double cf_pos, cf_vel, cf_acc, cf_desc_jerk;
-    
-    sap_Ndof_compute_interpolated_values_closedform(
-      start_position, end_position, start_velocity, end_velocity,
-      peak_velocity, max_velocity, max_acceleration,
-      delta_time, delta_time,
-      cf_pos, cf_vel, cf_acc, cf_desc_jerk);
-    
-    if( std::fabs(cf_pos - end_position) > 1e-3 ) {
-      double dt1, dt2, dp1, dp2;
-      
-      sap_Ndof_compute_ramp_dist_and_time(start_velocity, peak_velocity, max_velocity, max_acceleration, dp1, dt1);
-      sap_Ndof_compute_ramp_dist_and_time(peak_velocity, end_velocity, max_velocity, max_acceleration, dp2, dt2);
-      
-      sap_Ndof_pos_diff_calculator pd_calc(
-        end_position - start_position, start_velocity, end_velocity, 
-        max_velocity, max_acceleration, delta_time);
-      
-      std::cout << "The calculation of the peak velocity yielded a bad interpolated path!\n"
-                << " Start position = " << start_position << "\n"
-                << " End position   = " << end_position << "\n"
-                << " Start velocity = " << start_velocity << "\n"
-                << " End velocity   = " << end_velocity << "\n"
-                << " Peak velocity  = " << peak_velocity << "\n"
-                << " Delta-time     = " << delta_time << "\n"
-                << " Delta-time-1   = " << dt1 << "\n"
-                << " Delta-time-2   = " << dt2 << "\n"
-                << " Delta-pos-1    = " << dp1 << "\n"
-                << " Delta-pos-2    = " << dp2 << "\n"
-                << " Calculated EDP = " << pd_calc(peak_velocity) << "\n"
-                << " Actual EDP     = " << (cf_pos - end_position) << std::endl;
-    };
-    
     
   };
   
