@@ -67,7 +67,8 @@ typedef pp::rrt_planner<CRS3D_workspace_o2_sap_type> CRS3D_rrt_o2_sap_type;
 namespace pp {
 
 
-#if (defined(RK_ENABLE_CXX11_FEATURES) && defined(RK_ENABLE_EXTERN_TEMPLATES))
+#if 0
+// #if (defined(RK_ENABLE_CXX11_FEATURES) && defined(RK_ENABLE_EXTERN_TEMPLATES))
 
 //extern template class rrt_planner<WORKSPACE>;
 

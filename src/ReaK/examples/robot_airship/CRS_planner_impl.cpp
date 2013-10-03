@@ -63,11 +63,14 @@
 #include "serialization/protobuf_archiver.hpp"
 
 #include "CRS_workspaces.hpp"
-#include "CRS_rrt_planners.hpp"
 #include "CRS_rrtstar_planners.hpp"
+#include "CRS_sbastar_planners.hpp"
+
+#if 0
+#include "CRS_rrt_planners.hpp"
 #include "CRS_prm_planners.hpp"
 #include "CRS_fadprm_planners.hpp"
-#include "CRS_sbastar_planners.hpp"
+#endif
 
 #include "path_planning/frame_tracer_coin3d.hpp"
 
@@ -897,49 +900,14 @@ void CRSPlannerGUI::executePlanner() {
         ReaK::pp::path_planning_p2p_query< WORKSPACE > pp_query("pp_query", workspace, \
           start_point, goal_point, plan_options.max_results);
         
+        
+#if 0
+        
 #define RK_CRS_PLANNER_GENERATE_RRT_PLANNER_CALL(WORKSPACE) \
         ReaK::pp::rrt_planner< WORKSPACE > workspace_planner( \
             workspace, plan_options.max_vertices, plan_options.prog_interval, \
             plan_options.store_policy | plan_options.knn_method, \
             plan_options.planning_options, 0.1, 0.05, report_chain); \
-         \
-        pp_query.reset_solution_records(); \
-        workspace_planner.solve_planning_query(pp_query); \
-         \
-        ReaK::shared_ptr< ReaK::pp::seq_path_base< SuperSpaceType > > bestsol_rlpath; \
-        if(pp_query.solutions.size()) \
-          bestsol_rlpath = pp_query.solutions.begin()->second; \
-        std::cout << "The shortest distance is: " << pp_query.get_best_solution_distance() << std::endl; \
-         \
-        r_info.bestsol_trajectory.clear(); \
-        if(bestsol_rlpath) { \
-          typedef ReaK::pp::seq_path_base< SuperSpaceType >::point_fraction_iterator PtIter; \
-          for(PtIter it = bestsol_rlpath->begin_fraction_travel(); it != bestsol_rlpath->end_fraction_travel(); it += 0.1) \
-            r_info.bestsol_trajectory.push_back( get<0>(r_info.manip_jt_limits->map_to_space(*it, *jt_space, *normal_jt_space)) ); \
-        }; \
-         \
-        mg_sep = temp_reporter.get_motion_graph_tracer(r_info.builder.arm_joint_6_end).get_separator(); \
-        mg_sep->ref(); \
-        for(std::size_t i = 0; i < temp_reporter.get_solution_count(); ++i) { \
-          sol_seps.push_back(temp_reporter.get_solution_tracer(r_info.builder.arm_joint_6_end, i).get_separator()); \
-          sol_seps.back()->ref(); \
-        }; \
-         \
-        r_info.builder.track_joint_coord->q = get<0>(start_inter)[0]; \
-        r_info.builder.arm_joint_1_coord->q = get<0>(start_inter)[1]; \
-        r_info.builder.arm_joint_2_coord->q = get<0>(start_inter)[2]; \
-        r_info.builder.arm_joint_3_coord->q = get<0>(start_inter)[3]; \
-        r_info.builder.arm_joint_4_coord->q = get<0>(start_inter)[4]; \
-        r_info.builder.arm_joint_5_coord->q = get<0>(start_inter)[5]; \
-        r_info.builder.arm_joint_6_coord->q = get<0>(start_inter)[6]; \
-        r_info.kin_chain->doMotion();
-  
-#define RK_CRS_PLANNER_GENERATE_RRTSTAR_PLANNER_CALL(WORKSPACE) \
-        ReaK::pp::rrtstar_planner< WORKSPACE > workspace_planner( \
-          workspace, plan_options.max_vertices, plan_options.prog_interval, \
-          plan_options.store_policy | plan_options.knn_method, \
-          plan_options.planning_options, \
-          0.1, 0.05, workspace_dims, report_chain); \
          \
         pp_query.reset_solution_records(); \
         workspace_planner.solve_planning_query(pp_query); \
@@ -1048,6 +1016,46 @@ void CRSPlannerGUI::executePlanner() {
         r_info.builder.arm_joint_6_coord->q = get<0>(start_inter)[6]; \
         r_info.kin_chain->doMotion();
   
+#endif
+  
+#define RK_CRS_PLANNER_GENERATE_RRTSTAR_PLANNER_CALL(WORKSPACE) \
+        ReaK::pp::rrtstar_planner< WORKSPACE > workspace_planner( \
+          workspace, plan_options.max_vertices, plan_options.prog_interval, \
+          plan_options.store_policy | plan_options.knn_method, \
+          plan_options.planning_options, \
+          0.1, 0.05, workspace_dims, report_chain); \
+         \
+        pp_query.reset_solution_records(); \
+        workspace_planner.solve_planning_query(pp_query); \
+         \
+        ReaK::shared_ptr< ReaK::pp::seq_path_base< SuperSpaceType > > bestsol_rlpath; \
+        if(pp_query.solutions.size()) \
+          bestsol_rlpath = pp_query.solutions.begin()->second; \
+        std::cout << "The shortest distance is: " << pp_query.get_best_solution_distance() << std::endl; \
+         \
+        r_info.bestsol_trajectory.clear(); \
+        if(bestsol_rlpath) { \
+          typedef ReaK::pp::seq_path_base< SuperSpaceType >::point_fraction_iterator PtIter; \
+          for(PtIter it = bestsol_rlpath->begin_fraction_travel(); it != bestsol_rlpath->end_fraction_travel(); it += 0.1) \
+            r_info.bestsol_trajectory.push_back( get<0>(r_info.manip_jt_limits->map_to_space(*it, *jt_space, *normal_jt_space)) ); \
+        }; \
+         \
+        mg_sep = temp_reporter.get_motion_graph_tracer(r_info.builder.arm_joint_6_end).get_separator(); \
+        mg_sep->ref(); \
+        for(std::size_t i = 0; i < temp_reporter.get_solution_count(); ++i) { \
+          sol_seps.push_back(temp_reporter.get_solution_tracer(r_info.builder.arm_joint_6_end, i).get_separator()); \
+          sol_seps.back()->ref(); \
+        }; \
+         \
+        r_info.builder.track_joint_coord->q = get<0>(start_inter)[0]; \
+        r_info.builder.arm_joint_1_coord->q = get<0>(start_inter)[1]; \
+        r_info.builder.arm_joint_2_coord->q = get<0>(start_inter)[2]; \
+        r_info.builder.arm_joint_3_coord->q = get<0>(start_inter)[3]; \
+        r_info.builder.arm_joint_4_coord->q = get<0>(start_inter)[4]; \
+        r_info.builder.arm_joint_5_coord->q = get<0>(start_inter)[5]; \
+        r_info.builder.arm_joint_6_coord->q = get<0>(start_inter)[6]; \
+        r_info.kin_chain->doMotion();
+  
 #define RK_CRS_PLANNER_GENERATE_SBASTAR_PLANNER_CALL(WORKSPACE) \
         ReaK::pp::sbastar_planner< WORKSPACE > workspace_planner( \
           workspace, plan_options.max_vertices, plan_options.prog_interval, \
@@ -1094,6 +1102,7 @@ void CRSPlannerGUI::executePlanner() {
   
   
   switch(plan_options.planning_algo) {
+#if 0
     case 0:  // RRT
     {
       
@@ -1127,6 +1136,7 @@ void CRSPlannerGUI::executePlanner() {
       };
       
     }; break;
+#endif
     case 1:  // RRT*
     {
       
@@ -1160,6 +1170,7 @@ void CRSPlannerGUI::executePlanner() {
       };
       
     }; break;
+#if 0
     case 2:  // PRM
     {
       
@@ -1193,6 +1204,7 @@ void CRSPlannerGUI::executePlanner() {
       };
       
     }; break;
+#endif
     case 3:  // SBA*
     { 
       
@@ -1226,6 +1238,7 @@ void CRSPlannerGUI::executePlanner() {
       };
       
     }; break;
+#if 0
     case 4:  // FADPRM
     { 
       
@@ -1259,6 +1272,7 @@ void CRSPlannerGUI::executePlanner() {
       };
       
     }; break;
+#endif
     case 5:  // LSBA*
     { 
       

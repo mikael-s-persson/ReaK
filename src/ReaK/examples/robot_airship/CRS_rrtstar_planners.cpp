@@ -28,6 +28,8 @@
 
 #include "CRS_rrtstar_planners.hpp"
 
+#include "path_planning/rrtstar_path_planner.tpp"
+
 namespace ReaK {
 
 namespace pp {

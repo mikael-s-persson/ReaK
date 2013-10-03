@@ -24,7 +24,8 @@
 
 #include "base/defs.hpp"
 
-#if (defined(RK_ENABLE_CXX11_FEATURES) && defined(RK_ENABLE_EXTERN_TEMPLATES))
+#if 0
+// #if (defined(RK_ENABLE_CXX11_FEATURES) && defined(RK_ENABLE_EXTERN_TEMPLATES))
 
 #include "CRS_fadprm_planners.hpp"
 

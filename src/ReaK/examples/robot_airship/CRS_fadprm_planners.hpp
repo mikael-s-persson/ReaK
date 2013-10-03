@@ -65,7 +65,8 @@ typedef pp::fadprm_planner<CRS3D_workspace_o2_sap_type> CRS3D_fadprm_o2_sap_type
 namespace pp {
 
 
-#if (defined(RK_ENABLE_CXX11_FEATURES) && defined(RK_ENABLE_EXTERN_TEMPLATES))
+#if 0
+// #if (defined(RK_ENABLE_CXX11_FEATURES) && defined(RK_ENABLE_EXTERN_TEMPLATES))
 
 extern template class fadprm_planner<robot_airship::CRS3D_workspace_o0_i1_type>;
 extern template class fadprm_planner<robot_airship::CRS3D_workspace_o1_i1_type>;

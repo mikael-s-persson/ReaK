@@ -48,6 +48,7 @@
 
 #if defined(RK_ENABLE_TEST_RRTSTAR_PLANNER)
 #include "rrtstar_path_planner.hpp"
+#include "rrtstar_path_planner.tpp"
 #endif
 
 #if defined(RK_ENABLE_TEST_FADPRM_PLANNER)

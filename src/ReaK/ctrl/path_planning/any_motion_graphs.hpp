@@ -39,6 +39,9 @@
 
 #include "lin_alg/arithmetic_tuple.hpp"
 
+#include <iostream>
+#include <iomanip>
+
 namespace ReaK {
 
 namespace pp {

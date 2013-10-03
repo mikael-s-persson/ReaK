@@ -63,11 +63,17 @@ typedef pp::rrtstar_planner<CRS3D_workspace_o2_sap_type> CRS3D_rrtstar_o2_sap_ty
 
 };
 
+};
 
-namespace pp {
 
 
 #if (defined(RK_ENABLE_CXX11_FEATURES) && defined(RK_ENABLE_EXTERN_TEMPLATES))
+
+// #include "path_planning/rrtstar_path_planner.tpp"
+
+namespace ReaK {
+
+namespace pp {
 
 //extern template class rrtstar_planner<WORKSPACE>;
 
@@ -85,12 +91,16 @@ extern template class rrtstar_planner<robot_airship::CRS3D_workspace_o2_svp_type
 
 extern template class rrtstar_planner<robot_airship::CRS3D_workspace_o2_sap_type>;
 
+};
+
+};
+
+#else
+
+#include "path_planning/rrtstar_path_planner.tpp"
+
 #endif
 
-
-};
-
-};
 
 #endif
 
