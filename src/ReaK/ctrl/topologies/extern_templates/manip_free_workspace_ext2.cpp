@@ -35,6 +35,8 @@ namespace ReaK {
 namespace pp {
 
 
+#if 0
+
 #define RK_MANIP_FREE_WORKSPACE_MAKE_CUBIC_QSTAT_ENV_FOR_JOINTS_DEFS(NDOF) \
 template class manip_quasi_static_env< Ndof_1st_order_rl_space<double, NDOF, euclidean_tuple_distance>::type, cubic_hermite_interpolation_tag>;\
 template class manip_quasi_static_env< Ndof_2nd_order_rl_space<double, NDOF, euclidean_tuple_distance>::type, cubic_hermite_interpolation_tag>;\
@@ -44,6 +46,14 @@ template class manip_quasi_static_env< Ndof_2nd_order_rl_space<double, NDOF, inf
 \
 template class manip_quasi_static_env< Ndof_rl_space<double, NDOF, 1>::type, cubic_hermite_interpolation_tag>;\
 template class manip_quasi_static_env< Ndof_rl_space<double, NDOF, 2>::type, cubic_hermite_interpolation_tag>;
+
+#else
+
+#define RK_MANIP_FREE_WORKSPACE_MAKE_CUBIC_QSTAT_ENV_FOR_JOINTS_DEFS(NDOF) \
+template class manip_quasi_static_env< Ndof_rl_space<double, NDOF, 1>::type, cubic_hermite_interpolation_tag>;\
+template class manip_quasi_static_env< Ndof_rl_space<double, NDOF, 2>::type, cubic_hermite_interpolation_tag>;
+
+#endif
 
 
 RK_MANIP_FREE_WORKSPACE_MAKE_CUBIC_QSTAT_ENV_FOR_JOINTS_DEFS(1)

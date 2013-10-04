@@ -35,12 +35,22 @@ namespace ReaK {
 namespace pp {
 
 
+#if 0
+
 #define RK_MANIP_FREE_WORKSPACE_MAKE_QUINTIC_DYN_ENV_FOR_JOINTS_DEFS(NDOF) \
 template class manip_dynamic_env< Ndof_2nd_order_rl_space<double, NDOF, euclidean_tuple_distance>::type, quintic_hermite_interpolation_tag>;\
 \
 template class manip_dynamic_env< Ndof_2nd_order_rl_space<double, NDOF, inf_norm_tuple_distance>::type, quintic_hermite_interpolation_tag>;\
 \
 template class manip_dynamic_env< Ndof_rl_space<double, NDOF, 2>::type, quintic_hermite_interpolation_tag>;
+
+#else
+
+#define RK_MANIP_FREE_WORKSPACE_MAKE_QUINTIC_DYN_ENV_FOR_JOINTS_DEFS(NDOF) \
+template class manip_dynamic_env< Ndof_rl_space<double, NDOF, 2>::type, quintic_hermite_interpolation_tag>;
+
+#endif
+
 
 RK_MANIP_FREE_WORKSPACE_MAKE_QUINTIC_DYN_ENV_FOR_JOINTS_DEFS(1)
 RK_MANIP_FREE_WORKSPACE_MAKE_QUINTIC_DYN_ENV_FOR_JOINTS_DEFS(2)

@@ -26,11 +26,14 @@
 #if (defined(RK_ENABLE_CXX11_FEATURES) && defined(RK_ENABLE_EXTERN_TEMPLATES))
 
 #include "topologies/manip_free_svp_workspace.hpp"
+#include "topologies/manip_free_svp_Ndof_workspace.hpp"
 
 namespace ReaK {
 
 namespace pp {
 
+
+#if 0
 
 #define RK_MANIP_FREE_SVP_WORKSPACE_MAKE_QSTAT_ENV_FOR_JOINTS_DEFS(NDOF) \
 template class manip_quasi_static_env< Ndof_1st_order_rl_space<double, NDOF, euclidean_tuple_distance>::type, svp_interpolation_tag>;\
@@ -41,6 +44,16 @@ template class manip_quasi_static_env< Ndof_2nd_order_rl_space<double, NDOF, inf
 \
 template class manip_quasi_static_env< Ndof_rl_space<double, NDOF, 1>::type, svp_Ndof_interpolation_tag>;\
 template class manip_quasi_static_env< Ndof_rl_space<double, NDOF, 2>::type, svp_Ndof_interpolation_tag>;
+
+#else
+
+#define RK_MANIP_FREE_SVP_WORKSPACE_MAKE_QSTAT_ENV_FOR_JOINTS_DEFS(NDOF) \
+template class manip_quasi_static_env< Ndof_rl_space<double, NDOF, 1>::type, svp_Ndof_interpolation_tag>;\
+template class manip_quasi_static_env< Ndof_rl_space<double, NDOF, 2>::type, svp_Ndof_interpolation_tag>;
+
+#endif
+
+
 
 RK_MANIP_FREE_SVP_WORKSPACE_MAKE_QSTAT_ENV_FOR_JOINTS_DEFS(1)
 RK_MANIP_FREE_SVP_WORKSPACE_MAKE_QSTAT_ENV_FOR_JOINTS_DEFS(2)
