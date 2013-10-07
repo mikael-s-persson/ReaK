@@ -37,7 +37,6 @@
 
 
 #include "base/defs.hpp"
-#include <boost/config.hpp> // For BOOST_STATIC_CONSTANT
 
 #include "differentiable_space.hpp"
 #include "metric_space_tuple.hpp"
@@ -91,10 +90,7 @@ struct joint_space_1st_order {
   typedef 
     differentiable_space< 
       time_topology, 
-      arithmetic_tuple< 
-        line_segment_topology<T>,
-        line_segment_topology<T>
-      >, 
+      arithmetic_tuple< line_segment_topology<T>, line_segment_topology<T> >, 
       DistanceMetric 
     > type;
 };
@@ -121,11 +117,7 @@ struct joint_space_2nd_order {
   typedef 
     differentiable_space< 
       time_topology, 
-      arithmetic_tuple< 
-        line_segment_topology<T>,
-        line_segment_topology<T>,
-        line_segment_topology<T>
-      >, 
+      arithmetic_tuple< line_segment_topology<T>, line_segment_topology<T>, line_segment_topology<T> >, 
       DistanceMetric 
     > type;
 };
@@ -153,9 +145,7 @@ template <typename T, typename DistanceMetric>
 struct is_normal_joint_space< 
     differentiable_space< 
       time_topology, 
-      arithmetic_tuple< 
-        line_segment_topology<T>
-      >, 
+      arithmetic_tuple< line_segment_topology<T> >, 
       DistanceMetric 
     > > : boost::mpl::true_ { };
 
@@ -163,10 +153,7 @@ template <typename T, typename DistanceMetric>
 struct is_normal_joint_space< 
     differentiable_space< 
       time_topology, 
-      arithmetic_tuple< 
-        line_segment_topology<T>,
-        line_segment_topology<T>
-      >, 
+      arithmetic_tuple< line_segment_topology<T>, line_segment_topology<T> >, 
       DistanceMetric 
     > > : boost::mpl::true_ { };
 
@@ -174,11 +161,7 @@ template <typename T, typename DistanceMetric>
 struct is_normal_joint_space< 
     differentiable_space< 
       time_topology, 
-      arithmetic_tuple< 
-        line_segment_topology<T>,
-        line_segment_topology<T>,
-        line_segment_topology<T>
-      >, 
+      arithmetic_tuple< line_segment_topology<T>, line_segment_topology<T>, line_segment_topology<T> >, 
       DistanceMetric 
     > > : boost::mpl::true_ { };
 
@@ -196,9 +179,7 @@ struct rl_joint_space_0th_order {
   typedef 
     reach_time_diff_space< 
       time_topology, 
-      arithmetic_tuple< 
-        line_segment_topology<T> 
-      >, 
+      arithmetic_tuple< line_segment_topology<T> >, 
       DistanceMetric 
     > type;
 };
@@ -224,10 +205,7 @@ struct rl_joint_space_1st_order {
   typedef 
     reach_time_diff_space< 
       time_topology, 
-      arithmetic_tuple< 
-        line_segment_topology<T>,
-        line_segment_topology<T>
-      >, 
+      arithmetic_tuple< line_segment_topology<T>, line_segment_topology<T> >, 
       DistanceMetric 
     > type;
 };
@@ -253,11 +231,7 @@ struct rl_joint_space_2nd_order {
   typedef 
     reach_time_diff_space< 
       time_topology, 
-      arithmetic_tuple< 
-        line_segment_topology<T>,
-        line_segment_topology<T>,
-        line_segment_topology<T>
-      >, 
+      arithmetic_tuple< line_segment_topology<T>, line_segment_topology<T>, line_segment_topology<T> >, 
       DistanceMetric 
     > type;
 };
@@ -284,9 +258,7 @@ template <typename T, typename DistanceMetric>
 struct is_rate_limited_joint_space< 
     reach_time_diff_space< 
       time_topology, 
-      arithmetic_tuple< 
-        line_segment_topology<T>
-      >, 
+      arithmetic_tuple< line_segment_topology<T> >, 
       DistanceMetric 
     > > : boost::mpl::true_ { };
 
@@ -294,10 +266,7 @@ template <typename T, typename DistanceMetric>
 struct is_rate_limited_joint_space< 
     reach_time_diff_space< 
       time_topology, 
-      arithmetic_tuple< 
-        line_segment_topology<T>,
-        line_segment_topology<T>
-      >, 
+      arithmetic_tuple< line_segment_topology<T>, line_segment_topology<T> >, 
       DistanceMetric 
     > > : boost::mpl::true_ { };
 
@@ -305,11 +274,7 @@ template <typename T, typename DistanceMetric>
 struct is_rate_limited_joint_space< 
     reach_time_diff_space< 
       time_topology, 
-      arithmetic_tuple< 
-        line_segment_topology<T>,
-        line_segment_topology<T>,
-        line_segment_topology<T>
-      >, 
+      arithmetic_tuple< line_segment_topology<T>, line_segment_topology<T>, line_segment_topology<T> >, 
       DistanceMetric 
     > > : boost::mpl::true_ { };
 
@@ -321,136 +286,100 @@ struct is_rate_limited_joint_space<
 
 
 template <typename T>
-gen_coord<T> get_gen_coord(
-  const arithmetic_tuple< T, T, T >& pt) {
-  return gen_coord<T>(get<0>(pt), 
-		      get<1>(pt), 
-		      get<2>(pt), 
-		      0.0);
+gen_coord<T> get_gen_coord(const arithmetic_tuple< T, T, T >& pt) {
+  return gen_coord<T>(get<0>(pt), get<1>(pt), get<2>(pt), 0.0);
 };
 
 template <typename T>
-gen_coord<T> get_gen_coord(
-  const arithmetic_tuple< T, T >& pt) {
-  return gen_coord<T>(get<0>(pt), 
-		      get<1>(pt), 
-		      0.0, 
-		      0.0);
+gen_coord<T> get_gen_coord(const arithmetic_tuple< T, T >& pt) {
+  return gen_coord<T>(get<0>(pt), get<1>(pt), 0.0, 0.0);
 };
 
 template <typename T>
-gen_coord<T> get_gen_coord(
-  const arithmetic_tuple< T >& pt) {
-  return gen_coord<T>(get<0>(pt), 
-		      0.0, 
-		      0.0, 
-		      0.0);
+gen_coord<T> get_gen_coord(const arithmetic_tuple< T >& pt) {
+  return gen_coord<T>(get<0>(pt), 0.0, 0.0, 0.0);
 };
 
 template <typename T>
-void set_gen_coord(
-  arithmetic_tuple< T, T, T >& pt,
-  const gen_coord<T>& p) {
+void set_gen_coord(arithmetic_tuple< T, T, T >& pt, const gen_coord<T>& p) {
   get<0>(pt) = p.q;
   get<1>(pt) = p.q_dot;
   get<2>(pt) = p.q_ddot;
 };
 
 template <typename T>
-void set_gen_coord(
-  arithmetic_tuple< T, T >& pt,
-  const gen_coord<T>& p) {
+void set_gen_coord(arithmetic_tuple< T, T >& pt, const gen_coord<T>& p) {
   get<0>(pt) = p.q;
   get<1>(pt) = p.q_dot;
 };
 
 template <typename T>
-void set_gen_coord(
-  arithmetic_tuple< T >& pt,
-  const gen_coord<T>& p) {
+void set_gen_coord(arithmetic_tuple< T >& pt, const gen_coord<T>& p) {
   get<0>(pt) = p.q;
 };
 
 
 
 template <typename T>
-const T& get_position(
-  const arithmetic_tuple< T, T, T >& pt) {
+const T& get_position(const arithmetic_tuple< T, T, T >& pt) {
   return get<0>(pt);
 };
 
 template <typename T>
-const T& get_position(
-  const arithmetic_tuple< T, T >& pt) {
+const T& get_position(const arithmetic_tuple< T, T >& pt) {
   return get<0>(pt);
 };
 
 template <typename T>
-const T& get_position(
-  const arithmetic_tuple< T >& pt) {
+const T& get_position(const arithmetic_tuple< T >& pt) {
   return get<0>(pt);
 };
 
 template <typename T>
-void set_position(
-  arithmetic_tuple< T, T, T >& pt,
-  const T& p) {
+void set_position(arithmetic_tuple< T, T, T >& pt, const T& p) {
   get<0>(pt) = p;
 };
 
 template <typename T>
-void set_position(
-  arithmetic_tuple< T, T >& pt,
-  const T& p) {
+void set_position(arithmetic_tuple< T, T >& pt, const T& p) {
   get<0>(pt) = p;
 };
 
 template <typename T>
-void set_position(
-  arithmetic_tuple< T >& pt,
-  const T& p) {
+void set_position(arithmetic_tuple< T >& pt, const T& p) {
   get<0>(pt) = p;
 };
 
 
 
 template <typename T>
-const T& get_velocity(
-  const arithmetic_tuple< T, T, T >& pt) {
+const T& get_velocity(const arithmetic_tuple< T, T, T >& pt) {
   return get<1>(pt);
 };
 
 template <typename T>
-const T& get_velocity(
-  const arithmetic_tuple< T, T >& pt) {
+const T& get_velocity(const arithmetic_tuple< T, T >& pt) {
   return get<1>(pt);
 };
 
 template <typename T>
-void set_velocity(
-  arithmetic_tuple< T, T, T >& pt,
-  const T& p) {
+void set_velocity(arithmetic_tuple< T, T, T >& pt, const T& p) {
   get<1>(pt) = p;
 };
 
 template <typename T>
-void set_velocity(
-  arithmetic_tuple< T, T >& pt,
-  const T& p) {
+void set_velocity(arithmetic_tuple< T, T >& pt, const T& p) {
   get<1>(pt) = p;
 };
 
 
 template <typename T>
-const T& get_acceleration(
-  const arithmetic_tuple< T, T, T >& pt) {
+const T& get_acceleration(const arithmetic_tuple< T, T, T >& pt) {
   return get<2>(pt);
 };
 
 template <typename T>
-void set_acceleration(
-  arithmetic_tuple< T, T, T >& pt,
-  const T& p) {
+void set_acceleration(arithmetic_tuple< T, T, T >& pt, const T& p) {
   get<2>(pt) = p;
 };
 

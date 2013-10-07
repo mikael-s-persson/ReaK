@@ -28,7 +28,7 @@
 
 #if (defined(RK_ENABLE_CXX11_FEATURES) && defined(RK_ENABLE_EXTERN_TEMPLATES))
 
-#include "topologies/manip_free_workspace.hpp"
+#include "topologies/manip_free_workspace.tpp"
 
 namespace ReaK {
 

@@ -39,6 +39,8 @@
 
 #include "path_planning/metric_space_concept.hpp"
 
+#include "metric_space_tuple_fwd.hpp"
+
 #include "lin_alg/arithmetic_tuple.hpp"
 #include "base/serializable.hpp"
 #include "tuple_distance_metrics.hpp"
@@ -539,7 +541,7 @@ namespace detail {
  * \tparam SpaceTuple A tuple type (e.g. arithmetic_tuple) which provides a set of spaces to glue together.
  * \tparam TupleDistanceMetric A distance metric type which models the DistanceMetricConcept and operates on a space-tuple (e.g. arithmetic_tuple).
  */
-template <typename SpaceTuple, typename TupleDistanceMetric = manhattan_tuple_distance >
+template <typename SpaceTuple, typename TupleDistanceMetric >
 class metric_space_tuple : public serialization::serializable {
   protected:
     SpaceTuple m_spaces;
@@ -736,13 +738,6 @@ class metric_space_tuple : public serialization::serializable {
 };
 
 
-template <typename SpaceTuple, typename TupleDistanceMetric>
-struct is_metric_space< metric_space_tuple<SpaceTuple, TupleDistanceMetric> > : boost::mpl::true_ { };
-
-template <typename SpaceTuple, typename TupleDistanceMetric>
-struct is_point_distribution< metric_space_tuple<SpaceTuple, TupleDistanceMetric> > : boost::mpl::true_ { };
-
-
 /**
  * This function returns the space at a given index.
  * \tparam Idx The index of the space.
@@ -790,7 +785,7 @@ typename arithmetic_tuple_element<Idx, SpaceTuple>::type& get(metric_space_tuple
  * \tparam N The number of spaces to glue together as a metric-space tuple.
  * \tparam TupleDistanceMetric A distance metric type which models the DistanceMetricConcept and operates on a space-tuple (e.g. arithmetic_tuple).
  */
-template <typename SpaceType, std::size_t N, typename TupleDistanceMetric = manhattan_tuple_distance >
+template <typename SpaceType, std::size_t N, typename TupleDistanceMetric >
 struct metric_space_array {
   char cannot_instantiation_the_general_template[0];
 };
@@ -897,40 +892,6 @@ struct metric_space_array<SpaceType,10,TupleDistanceMetric> {
 };
 
 
-namespace ReaK {
-  
-  
-/* Specialization, see general template docs. */
-  template <typename SpaceTuple, typename TupleDistanceMetric>
-  struct arithmetic_tuple_size< pp::metric_space_tuple<SpaceTuple,TupleDistanceMetric> > : 
-    arithmetic_tuple_size< SpaceTuple > { };
-  
-  
-/* Specialization, see general template docs. */
-  template <int Idx, typename SpaceTuple, typename TupleDistanceMetric>
-  struct arithmetic_tuple_element< Idx, pp::metric_space_tuple<SpaceTuple,TupleDistanceMetric> > {
-    typedef typename arithmetic_tuple_element< Idx, SpaceTuple >::type type;
-  };
-  
-/* Specialization, see general template docs. */
-  template <int Idx, typename SpaceTuple, typename TupleDistanceMetric>
-  struct arithmetic_tuple_element< Idx, const pp::metric_space_tuple<SpaceTuple,TupleDistanceMetric> > {
-    typedef typename arithmetic_tuple_element< Idx, const SpaceTuple >::type type;
-  };
-  
-/* Specialization, see general template docs. */
-  template <int Idx, typename SpaceTuple, typename TupleDistanceMetric>
-  struct arithmetic_tuple_element< Idx, volatile pp::metric_space_tuple<SpaceTuple,TupleDistanceMetric> > {
-    typedef typename arithmetic_tuple_element< Idx, volatile SpaceTuple >::type type;
-  };
-  
-/* Specialization, see general template docs. */
-  template <int Idx, typename SpaceTuple, typename TupleDistanceMetric>
-  struct arithmetic_tuple_element< Idx, const volatile pp::metric_space_tuple<SpaceTuple,TupleDistanceMetric> > {
-    typedef typename arithmetic_tuple_element< Idx, const volatile SpaceTuple >::type type;
-  };
-  
-};
 
 #endif
 

@@ -34,6 +34,7 @@
 #ifndef REAK_MANIP_FREE_WORKSPACE_EXT_HPP
 #define REAK_MANIP_FREE_WORKSPACE_EXT_HPP
 
+
 #if (defined(RK_ENABLE_CXX11_FEATURES) && defined(RK_ENABLE_EXTERN_TEMPLATES))
 
 #include "base/defs.hpp"
@@ -49,6 +50,7 @@
 
 #include "se2_topologies.hpp"
 #include "se3_topologies.hpp"
+#include "Ndof_spaces.hpp"
 
 #include "interpolation/linear_interp.hpp"
 #include "interpolation/cubic_hermite_interp.hpp"

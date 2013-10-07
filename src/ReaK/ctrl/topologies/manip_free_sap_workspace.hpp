@@ -38,7 +38,7 @@
 #include "base/defs.hpp"
 #include <boost/config.hpp>
 
-#include "manip_free_workspace.hpp"
+#include "manip_free_workspace.tpp"
 
 #include "topologies/rate_limited_spaces.hpp"
 #include "interpolation/sap_reach_topologies.hpp" 

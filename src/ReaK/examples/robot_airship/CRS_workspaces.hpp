@@ -40,11 +40,11 @@
 #include "interpolation/linear_interp.hpp"
 #include "interpolation/cubic_hermite_interp.hpp"
 #include "interpolation/quintic_hermite_interp.hpp"
-#include "interpolation/sustained_velocity_pulse.hpp"
-#include "interpolation/sustained_acceleration_pulse.hpp"
+#include "interpolation/sustained_velocity_pulse_Ndof.hpp"
+#include "interpolation/sustained_acceleration_pulse_Ndof.hpp"
 #include "topologies/manip_free_workspace.hpp"
-#include "topologies/manip_free_svp_workspace.hpp"
-#include "topologies/manip_free_sap_workspace.hpp"
+#include "topologies/manip_free_svp_Ndof_workspace.hpp"
+#include "topologies/manip_free_sap_Ndof_workspace.hpp"
 
 namespace ReaK {
   

@@ -30,6 +30,7 @@ set(TOPOLOGIES_SOURCES
   "${SRCROOT}${RKTOPOLOGIESDIR}/extern_templates/joint_space_topologies_ext2.cpp"
   "${SRCROOT}${RKTOPOLOGIESDIR}/extern_templates/joint_space_topologies_ext3.cpp"
   "${SRCROOT}${RKTOPOLOGIESDIR}/extern_templates/joint_space_topologies_ext4.cpp"
+  "${SRCROOT}${RKTOPOLOGIESDIR}/extern_templates/joint_space_topologies_ext5.cpp"
   "${SRCROOT}${RKTOPOLOGIESDIR}/extern_templates/line_topology_ext1.cpp"
   "${SRCROOT}${RKTOPOLOGIESDIR}/extern_templates/manip_free_workspace_ext1.cpp"
   "${SRCROOT}${RKTOPOLOGIESDIR}/extern_templates/manip_free_workspace_ext2.cpp"

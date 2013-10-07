@@ -27,6 +27,9 @@
 
 #include "topologies/se2_topologies.hpp"
 
+#include "topologies/joint_space_limits.tpp"
+
+
 namespace ReaK {
 
 namespace pp {
@@ -113,6 +116,48 @@ template class temporal_space< metric_space_tuple< arithmetic_tuple<
       reach_time_diff_space< time_topology, arithmetic_tuple< hyperbox_topology< vect<double,2> >, hyperball_topology< vect<double,2> >, hyperball_topology< vect<double,2> > >, euclidean_tuple_distance >,
       reach_time_diff_space< time_topology, arithmetic_tuple< line_segment_topology<double>, line_segment_topology<double>, line_segment_topology<double> >, euclidean_tuple_distance > >, euclidean_tuple_distance >, time_poisson_topology, reach_plus_time_metric>;
 
+
+
+
+template metric_space_array< se2_0th_order_rl_topology<double>::type, 1>::type joint_limits_collection<double>::make_rl_joint_space(const metric_space_array< se2_0th_order_topology<double>::type, 1>::type&) const;
+template metric_space_array< se2_1st_order_rl_topology<double>::type, 1>::type joint_limits_collection<double>::make_rl_joint_space(const metric_space_array< se2_1st_order_topology<double>::type, 1>::type&) const;
+template metric_space_array< se2_2nd_order_rl_topology<double>::type, 1>::type joint_limits_collection<double>::make_rl_joint_space(const metric_space_array< se2_2nd_order_topology<double>::type, 1>::type&) const;
+
+template metric_space_array< se2_0th_order_topology<double>::type, 1>::type joint_limits_collection<double>::make_normal_joint_space(const metric_space_array< se2_0th_order_rl_topology<double>::type, 1>::type&) const;
+template metric_space_array< se2_1st_order_topology<double>::type, 1>::type joint_limits_collection<double>::make_normal_joint_space(const metric_space_array< se2_1st_order_rl_topology<double>::type, 1>::type&) const;
+template metric_space_array< se2_2nd_order_topology<double>::type, 1>::type joint_limits_collection<double>::make_normal_joint_space(const metric_space_array< se2_2nd_order_rl_topology<double>::type, 1>::type&) const;
+
+template 
+topology_traits< metric_space_array< se2_0th_order_rl_topology<double>::type, 1>::type >::point_type 
+  joint_limits_collection<double>::map_to_space(const topology_traits< metric_space_array< se2_0th_order_topology<double>::type, 1>::type >::point_type& pt,
+                                                const metric_space_array< se2_0th_order_topology<double>::type, 1>::type& , 
+                                                const metric_space_array< se2_0th_order_rl_topology<double>::type, 1>::type& ) const;
+template 
+topology_traits< metric_space_array< se2_1st_order_rl_topology<double>::type, 1>::type >::point_type 
+  joint_limits_collection<double>::map_to_space(const topology_traits< metric_space_array< se2_1st_order_topology<double>::type, 1>::type >::point_type& pt,
+                                                const metric_space_array< se2_1st_order_topology<double>::type, 1>::type& , 
+                                                const metric_space_array< se2_1st_order_rl_topology<double>::type, 1>::type& ) const;
+template 
+topology_traits< metric_space_array< se2_2nd_order_rl_topology<double>::type, 1>::type >::point_type 
+  joint_limits_collection<double>::map_to_space(const topology_traits< metric_space_array< se2_2nd_order_topology<double>::type, 1>::type >::point_type& pt,
+                                                const metric_space_array< se2_2nd_order_topology<double>::type, 1>::type& , 
+                                                const metric_space_array< se2_2nd_order_rl_topology<double>::type, 1>::type& ) const;
+
+template 
+topology_traits< metric_space_array< se2_0th_order_topology<double>::type, 1>::type >::point_type 
+  joint_limits_collection<double>::map_to_space(const topology_traits< metric_space_array< se2_0th_order_rl_topology<double>::type, 1>::type >::point_type& pt,
+                                                const metric_space_array< se2_0th_order_rl_topology<double>::type, 1>::type& , 
+                                                const metric_space_array< se2_0th_order_topology<double>::type, 1>::type& ) const;
+template 
+topology_traits< metric_space_array< se2_1st_order_topology<double>::type, 1>::type >::point_type 
+  joint_limits_collection<double>::map_to_space(const topology_traits< metric_space_array< se2_1st_order_rl_topology<double>::type, 1>::type >::point_type& pt,
+                                                const metric_space_array< se2_1st_order_rl_topology<double>::type, 1>::type& , 
+                                                const metric_space_array< se2_1st_order_topology<double>::type, 1>::type& ) const;
+template 
+topology_traits< metric_space_array< se2_2nd_order_topology<double>::type, 1>::type >::point_type 
+  joint_limits_collection<double>::map_to_space(const topology_traits< metric_space_array< se2_2nd_order_rl_topology<double>::type, 1>::type >::point_type& pt,
+                                                const metric_space_array< se2_2nd_order_rl_topology<double>::type, 1>::type& , 
+                                                const metric_space_array< se2_2nd_order_topology<double>::type, 1>::type& ) const;
 
 
 

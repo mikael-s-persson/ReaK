@@ -65,13 +65,13 @@ struct se2_0th_order_topology {
     metric_space_tuple< arithmetic_tuple<
       differentiable_space< 
         time_topology, 
-	arithmetic_tuple< hyperbox_topology< vect<T,2> > >, 
-	DistanceMetric 
+        arithmetic_tuple< hyperbox_topology< vect<T,2> > >, 
+        DistanceMetric 
       >,
       differentiable_space< 
         time_topology, 
-	arithmetic_tuple< line_segment_topology<T> >, 
-	DistanceMetric 
+        arithmetic_tuple< line_segment_topology<T> >, 
+        DistanceMetric 
       > >,
       DistanceMetric 
     > type;
@@ -88,19 +88,19 @@ struct se2_1st_order_topology {
     metric_space_tuple< arithmetic_tuple<
       differentiable_space< 
         time_topology, 
-	arithmetic_tuple< 
-	  hyperbox_topology< vect<T,2> >,
-	  hyperball_topology< vect<T,2> >
-	>, 
-	DistanceMetric 
+        arithmetic_tuple< 
+          hyperbox_topology< vect<T,2> >,
+          hyperball_topology< vect<T,2> >
+        >, 
+        DistanceMetric 
       >,
       differentiable_space< 
         time_topology, 
-	arithmetic_tuple< 
-	  line_segment_topology<T>,
-	  line_segment_topology<T>
-	>, 
-	DistanceMetric 
+        arithmetic_tuple< 
+          line_segment_topology<T>,
+          line_segment_topology<T>
+        >, 
+        DistanceMetric 
       > >,
       DistanceMetric 
     > type;
@@ -117,21 +117,21 @@ struct se2_2nd_order_topology {
     metric_space_tuple< arithmetic_tuple<
       differentiable_space< 
         time_topology, 
-	arithmetic_tuple< 
-	  hyperbox_topology< vect<T,2> >,
-	  hyperball_topology< vect<T,2> >,
-	  hyperball_topology< vect<T,2> >
-	>, 
-	DistanceMetric 
+        arithmetic_tuple< 
+          hyperbox_topology< vect<T,2> >,
+          hyperball_topology< vect<T,2> >,
+          hyperball_topology< vect<T,2> >
+        >, 
+        DistanceMetric 
       >,
       differentiable_space< 
         time_topology, 
-	arithmetic_tuple< 
-	  line_segment_topology<T>,
-	  line_segment_topology<T>,
-	  line_segment_topology<T>
-	>, 
-	DistanceMetric 
+        arithmetic_tuple< 
+          line_segment_topology<T>,
+          line_segment_topology<T>,
+          line_segment_topology<T>
+        >, 
+        DistanceMetric 
       > >,
       DistanceMetric 
     > type;
@@ -147,13 +147,13 @@ struct is_se2_space<
     metric_space_tuple< arithmetic_tuple<
       differentiable_space< 
         time_topology, 
-	arithmetic_tuple< hyperbox_topology< vect<T,2> > >, 
-	DistanceMetric 
+        arithmetic_tuple< hyperbox_topology< vect<T,2> > >, 
+        DistanceMetric 
       >,
       differentiable_space< 
         time_topology, 
-	arithmetic_tuple< line_segment_topology<T> >, 
-	DistanceMetric 
+        arithmetic_tuple< line_segment_topology<T> >, 
+        DistanceMetric 
       > >,
       DistanceMetric 
     > > : boost::mpl::true_ { };
@@ -163,19 +163,19 @@ struct is_se2_space<
     metric_space_tuple< arithmetic_tuple<
       differentiable_space< 
         time_topology, 
-	arithmetic_tuple< 
-	  hyperbox_topology< vect<T,2> >,
-	  hyperball_topology< vect<T,2> >
-	>, 
-	DistanceMetric 
+        arithmetic_tuple< 
+          hyperbox_topology< vect<T,2> >,
+          hyperball_topology< vect<T,2> >
+        >, 
+        DistanceMetric 
       >,
       differentiable_space< 
         time_topology, 
-	arithmetic_tuple< 
-	  line_segment_topology<T>,
-	  line_segment_topology<T>
-	>, 
-	DistanceMetric 
+        arithmetic_tuple< 
+          line_segment_topology<T>,
+          line_segment_topology<T>
+        >, 
+        DistanceMetric 
       > >,
       DistanceMetric 
     > > : boost::mpl::true_ { };
@@ -185,28 +185,26 @@ struct is_se2_space<
     metric_space_tuple< arithmetic_tuple<
       differentiable_space< 
         time_topology, 
-	arithmetic_tuple< 
-	  hyperbox_topology< vect<T,2> >,
-	  hyperball_topology< vect<T,2> >,
-	  hyperball_topology< vect<T,2> >
-	>, 
-	DistanceMetric 
+        arithmetic_tuple< 
+          hyperbox_topology< vect<T,2> >,
+          hyperball_topology< vect<T,2> >,
+          hyperball_topology< vect<T,2> >
+        >, 
+        DistanceMetric 
       >,
       differentiable_space< 
         time_topology, 
-	arithmetic_tuple< 
-	  line_segment_topology<T>,
-	  line_segment_topology<T>,
-	  line_segment_topology<T>
-	>, 
-	DistanceMetric 
+        arithmetic_tuple< 
+          line_segment_topology<T>,
+          line_segment_topology<T>,
+          line_segment_topology<T>
+        >, 
+        DistanceMetric 
       > >,
       DistanceMetric 
     > > : boost::mpl::true_ { };
 
-    
-    
-    
+
 
 /**
  * This meta-function defines the type for a 0th order SE(2) topology (a zero-differentiable space).
@@ -219,13 +217,13 @@ struct se2_0th_order_rl_topology {
     metric_space_tuple< arithmetic_tuple<
       reach_time_diff_space< 
         time_topology, 
-	arithmetic_tuple< hyperbox_topology< vect<T,2> > >, 
-	DistanceMetric 
+        arithmetic_tuple< hyperbox_topology< vect<T,2> > >, 
+        DistanceMetric 
       >,
       reach_time_diff_space< 
         time_topology, 
-	arithmetic_tuple< line_segment_topology<T> >, 
-	DistanceMetric 
+        arithmetic_tuple< line_segment_topology<T> >, 
+        DistanceMetric 
       > >,
       DistanceMetric 
     > type;
@@ -242,19 +240,19 @@ struct se2_1st_order_rl_topology {
     metric_space_tuple< arithmetic_tuple<
       reach_time_diff_space< 
         time_topology, 
-	arithmetic_tuple< 
-	  hyperbox_topology< vect<T,2> >,
-	  hyperball_topology< vect<T,2> >
-	>, 
-	DistanceMetric 
+        arithmetic_tuple< 
+          hyperbox_topology< vect<T,2> >,
+          hyperball_topology< vect<T,2> >
+        >, 
+        DistanceMetric 
       >,
       reach_time_diff_space< 
         time_topology, 
-	arithmetic_tuple< 
-	  line_segment_topology<T>,
-	  line_segment_topology<T>
-	>, 
-	DistanceMetric 
+        arithmetic_tuple< 
+          line_segment_topology<T>,
+          line_segment_topology<T>
+        >, 
+        DistanceMetric 
       > >,
       DistanceMetric 
     > type;
@@ -271,21 +269,21 @@ struct se2_2nd_order_rl_topology {
     metric_space_tuple< arithmetic_tuple<
       reach_time_diff_space< 
         time_topology, 
-	arithmetic_tuple< 
-	  hyperbox_topology< vect<T,2> >,
-	  hyperball_topology< vect<T,2> >,
-	  hyperball_topology< vect<T,2> >
-	>, 
-	DistanceMetric 
+        arithmetic_tuple< 
+          hyperbox_topology< vect<T,2> >,
+          hyperball_topology< vect<T,2> >,
+          hyperball_topology< vect<T,2> >
+        >, 
+        DistanceMetric 
       >,
       reach_time_diff_space< 
         time_topology, 
-	arithmetic_tuple< 
-	  line_segment_topology<T>,
-	  line_segment_topology<T>,
-	  line_segment_topology<T>
-	>, 
-	DistanceMetric 
+        arithmetic_tuple< 
+          line_segment_topology<T>,
+          line_segment_topology<T>,
+          line_segment_topology<T>
+        >, 
+        DistanceMetric 
       > >,
       DistanceMetric 
     > type;
@@ -301,13 +299,13 @@ struct is_rate_limited_se2_space<
     metric_space_tuple< arithmetic_tuple<
       reach_time_diff_space< 
         time_topology, 
-	arithmetic_tuple< hyperbox_topology< vect<T,2> > >, 
-	DistanceMetric 
+        arithmetic_tuple< hyperbox_topology< vect<T,2> > >, 
+        DistanceMetric 
       >,
       reach_time_diff_space< 
         time_topology, 
-	arithmetic_tuple< line_segment_topology<T> >, 
-	DistanceMetric 
+        arithmetic_tuple< line_segment_topology<T> >, 
+        DistanceMetric 
       > >,
       DistanceMetric 
     > > : boost::mpl::true_ { };
@@ -317,19 +315,19 @@ struct is_rate_limited_se2_space<
     metric_space_tuple< arithmetic_tuple<
       reach_time_diff_space< 
         time_topology, 
-	arithmetic_tuple< 
-	  hyperbox_topology< vect<T,2> >,
-	  hyperball_topology< vect<T,2> >
-	>, 
-	DistanceMetric 
+        arithmetic_tuple< 
+          hyperbox_topology< vect<T,2> >,
+          hyperball_topology< vect<T,2> >
+        >, 
+        DistanceMetric 
       >,
       reach_time_diff_space< 
         time_topology, 
-	arithmetic_tuple< 
-	  line_segment_topology<T>,
-	  line_segment_topology<T>
-	>, 
-	DistanceMetric 
+        arithmetic_tuple< 
+          line_segment_topology<T>,
+          line_segment_topology<T>
+        >, 
+        DistanceMetric 
       > >,
       DistanceMetric 
     > > : boost::mpl::true_ { };
@@ -339,21 +337,21 @@ struct is_rate_limited_se2_space<
     metric_space_tuple< arithmetic_tuple<
       reach_time_diff_space< 
         time_topology, 
-	arithmetic_tuple< 
-	  hyperbox_topology< vect<T,2> >,
-	  hyperball_topology< vect<T,2> >,
-	  hyperball_topology< vect<T,2> >
-	>, 
-	DistanceMetric 
+        arithmetic_tuple<  
+          hyperbox_topology< vect<T,2> >,
+          hyperball_topology< vect<T,2> >,
+          hyperball_topology< vect<T,2> >
+        >, 
+        DistanceMetric 
       >,
       reach_time_diff_space< 
         time_topology, 
-	arithmetic_tuple< 
-	  line_segment_topology<T>,
-	  line_segment_topology<T>,
-	  line_segment_topology<T>
-	>, 
-	DistanceMetric 
+        arithmetic_tuple< 
+          line_segment_topology<T>,
+          line_segment_topology<T>,
+          line_segment_topology<T>
+        >, 
+        DistanceMetric 
       > >,
       DistanceMetric 
     > > : boost::mpl::true_ { };
@@ -378,13 +376,13 @@ frame_2D<T> get_frame_2D(
                           arithmetic_tuple< T, T, T > >& pt) {
   return frame_2D<T>(weak_ptr< pose_2D<T> >(),
                      get<0>(get<0>(pt)), 
-		     rot_mat_2D<T>(get<0>(get<1>(pt))), 
-		     get<1>(get<0>(pt)), 
-		     get<1>(get<1>(pt)), 
-		     get<2>(get<0>(pt)), 
-		     get<2>(get<1>(pt)),
-		     vect<T,2>(0.0,0.0), 
-		     0.0);
+                     rot_mat_2D<T>(get<0>(get<1>(pt))), 
+                     get<1>(get<0>(pt)), 
+                     get<1>(get<1>(pt)), 
+                     get<2>(get<0>(pt)), 
+                     get<2>(get<1>(pt)),
+                     vect<T,2>(0.0,0.0), 
+                     0.0);
 };
 
 template <typename T>
@@ -393,13 +391,13 @@ frame_2D<T> get_frame_2D(
                           arithmetic_tuple< T, T > >& pt) {
   return frame_2D<T>(weak_ptr< pose_2D<T> >(),
                      get<0>(get<0>(pt)), 
-		     rot_mat_2D<T>(get<0>(get<1>(pt))), 
-		     get<1>(get<0>(pt)), 
-		     get<1>(get<1>(pt)), 
-		     vect<T,2>(0.0,0.0), 
-		     0.0,
-		     vect<T,2>(0.0,0.0), 
-		     0.0);
+                     rot_mat_2D<T>(get<0>(get<1>(pt))), 
+                     get<1>(get<0>(pt)), 
+                     get<1>(get<1>(pt)), 
+                     vect<T,2>(0.0,0.0), 
+                     0.0,
+                     vect<T,2>(0.0,0.0), 
+                     0.0);
 };
 
 template <typename T>
@@ -408,13 +406,13 @@ frame_2D<T> get_frame_2D(
                           arithmetic_tuple< T > >& pt) {
   return frame_2D<T>(weak_ptr< pose_2D<T> >(),
                      get<0>(get<0>(pt)), 
-		     rot_mat_2D<T>(get<0>(get<1>(pt))), 
-		     vect<T,2>(0.0,0.0), 
-		     0.0,
-		     vect<T,2>(0.0,0.0), 
-		     0.0, 
-		     vect<T,2>(0.0,0.0), 
-		     0.0);
+                     rot_mat_2D<T>(get<0>(get<1>(pt))), 
+                     vect<T,2>(0.0,0.0), 
+                     0.0,
+                     vect<T,2>(0.0,0.0), 
+                     0.0, 
+                     vect<T,2>(0.0,0.0), 
+                     0.0);
 };
 
 
@@ -459,7 +457,7 @@ pose_2D<T> get_pose_2D(
                           arithmetic_tuple< T > >& pt) {
   return pose_2D<T>(weak_ptr< pose_2D<T> >(),
                     get<0>(get<0>(pt)), 
-		    rot_mat_2D<T>(get<0>(get<1>(pt))));
+                    rot_mat_2D<T>(get<0>(get<1>(pt))));
 };
 
 template <typename T>
@@ -685,6 +683,9 @@ void set_acceleration(
 #include "temporal_space.hpp"
 #include "reachability_space.hpp"
 
+#include "joint_space_limits.hpp"
+
+
 namespace ReaK {
 
 namespace pp {
@@ -771,6 +772,50 @@ extern template class temporal_space< metric_space_tuple< arithmetic_tuple<
 extern template class temporal_space< metric_space_tuple< arithmetic_tuple<
       reach_time_diff_space< time_topology, arithmetic_tuple< hyperbox_topology< vect<double,2> >, hyperball_topology< vect<double,2> >, hyperball_topology< vect<double,2> > >, euclidean_tuple_distance >,
       reach_time_diff_space< time_topology, arithmetic_tuple< line_segment_topology<double>, line_segment_topology<double>, line_segment_topology<double> >, euclidean_tuple_distance > >, euclidean_tuple_distance >, time_poisson_topology, reach_plus_time_metric>;
+
+
+
+
+
+extern template metric_space_array< se2_0th_order_rl_topology<double>::type, 1>::type joint_limits_collection<double>::make_rl_joint_space(const metric_space_array< se2_0th_order_topology<double>::type, 1>::type&) const;
+extern template metric_space_array< se2_1st_order_rl_topology<double>::type, 1>::type joint_limits_collection<double>::make_rl_joint_space(const metric_space_array< se2_1st_order_topology<double>::type, 1>::type&) const;
+extern template metric_space_array< se2_2nd_order_rl_topology<double>::type, 1>::type joint_limits_collection<double>::make_rl_joint_space(const metric_space_array< se2_2nd_order_topology<double>::type, 1>::type&) const;
+
+extern template metric_space_array< se2_0th_order_topology<double>::type, 1>::type joint_limits_collection<double>::make_normal_joint_space(const metric_space_array< se2_0th_order_rl_topology<double>::type, 1>::type&) const;
+extern template metric_space_array< se2_1st_order_topology<double>::type, 1>::type joint_limits_collection<double>::make_normal_joint_space(const metric_space_array< se2_1st_order_rl_topology<double>::type, 1>::type&) const;
+extern template metric_space_array< se2_2nd_order_topology<double>::type, 1>::type joint_limits_collection<double>::make_normal_joint_space(const metric_space_array< se2_2nd_order_rl_topology<double>::type, 1>::type&) const;
+
+extern template 
+topology_traits< metric_space_array< se2_0th_order_rl_topology<double>::type, 1>::type >::point_type 
+  joint_limits_collection<double>::map_to_space(const topology_traits< metric_space_array< se2_0th_order_topology<double>::type, 1>::type >::point_type& pt,
+                                                const metric_space_array< se2_0th_order_topology<double>::type, 1>::type& , 
+                                                const metric_space_array< se2_0th_order_rl_topology<double>::type, 1>::type& ) const;
+extern template 
+topology_traits< metric_space_array< se2_1st_order_rl_topology<double>::type, 1>::type >::point_type 
+  joint_limits_collection<double>::map_to_space(const topology_traits< metric_space_array< se2_1st_order_topology<double>::type, 1>::type >::point_type& pt,
+                                                const metric_space_array< se2_1st_order_topology<double>::type, 1>::type& , 
+                                                const metric_space_array< se2_1st_order_rl_topology<double>::type, 1>::type& ) const;
+extern template 
+topology_traits< metric_space_array< se2_2nd_order_rl_topology<double>::type, 1>::type >::point_type 
+  joint_limits_collection<double>::map_to_space(const topology_traits< metric_space_array< se2_2nd_order_topology<double>::type, 1>::type >::point_type& pt,
+                                                const metric_space_array< se2_2nd_order_topology<double>::type, 1>::type& , 
+                                                const metric_space_array< se2_2nd_order_rl_topology<double>::type, 1>::type& ) const;
+
+extern template 
+topology_traits< metric_space_array< se2_0th_order_topology<double>::type, 1>::type >::point_type 
+  joint_limits_collection<double>::map_to_space(const topology_traits< metric_space_array< se2_0th_order_rl_topology<double>::type, 1>::type >::point_type& pt,
+                                                const metric_space_array< se2_0th_order_rl_topology<double>::type, 1>::type& , 
+                                                const metric_space_array< se2_0th_order_topology<double>::type, 1>::type& ) const;
+extern template 
+topology_traits< metric_space_array< se2_1st_order_topology<double>::type, 1>::type >::point_type 
+  joint_limits_collection<double>::map_to_space(const topology_traits< metric_space_array< se2_1st_order_rl_topology<double>::type, 1>::type >::point_type& pt,
+                                                const metric_space_array< se2_1st_order_rl_topology<double>::type, 1>::type& , 
+                                                const metric_space_array< se2_1st_order_topology<double>::type, 1>::type& ) const;
+extern template 
+topology_traits< metric_space_array< se2_2nd_order_topology<double>::type, 1>::type >::point_type 
+  joint_limits_collection<double>::map_to_space(const topology_traits< metric_space_array< se2_2nd_order_rl_topology<double>::type, 1>::type >::point_type& pt,
+                                                const metric_space_array< se2_2nd_order_rl_topology<double>::type, 1>::type& , 
+                                                const metric_space_array< se2_2nd_order_topology<double>::type, 1>::type& ) const;
 
 
 

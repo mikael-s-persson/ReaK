@@ -38,26 +38,31 @@
 #include "base/defs.hpp"
 #include <boost/config.hpp>
 
+#include "base/named_object.hpp"
+
 #include "path_planning/random_sampler_concept.hpp"
 #include "path_planning/metric_space_concept.hpp"
-#include "path_planning/spatial_trajectory_concept.hpp"  // for SpatialTrajectoryConcept
 
 #include "basic_distance_metrics.hpp"
 #include "default_random_sampler.hpp"
 
-#include "rate_limited_spaces.hpp"
-
-#include "proximity/proxy_query_model.hpp"  // for proxy-query class
-
-#include "direct_kinematics_topomap.hpp"       // for write_joint_coordinates_impl
-#include "joint_space_limits.hpp"                        // for joint_limits_collection and create_normal_joint_vectors_impl.  (needed for manip_dynamic_env and manip_quasi_static_env)
-#include "kte_models/direct_kinematics_model.hpp"
-
-#include "interpolation/generic_interpolator_factory.hpp"
-
 namespace ReaK {
+  
+
+namespace kte {
+  class direct_kinematics_model;
+};
+
+namespace geom {
+  class proxy_query_pair_2D;
+  class proxy_query_pair_3D;
+};
+
 
 namespace pp {
+  
+template <typename T>
+struct joint_limits_collection;
 
 
 namespace detail {
@@ -75,30 +80,7 @@ class manip_dk_proxy_env_impl {
                             m_model(aModel), m_joint_limits_map(aJointLimitMap) { };
     
     template <typename PointType, typename RateLimitedJointSpace>
-    bool is_free(const PointType& pt, const RateLimitedJointSpace& space) const {
-      typedef typename get_rate_illimited_space< RateLimitedJointSpace >::type NormalJointSpace;
-      NormalJointSpace normal_j_space; // dummy
-      typename topology_traits< NormalJointSpace >::point_type pt_inter;
-      detail::create_normal_joint_vectors_impl(pt_inter, pt, *m_joint_limits_map);
-      detail::write_joint_coordinates_impl(pt_inter, normal_j_space, m_model);
-      // update the kinematics model with the given joint states.
-      m_model->doDirectMotion();
-      
-      // NOTE: it is assumed that the proxy environments are properly linked with the manipulator kinematic model.
-      
-      for( std::vector< shared_ptr< geom::proxy_query_pair_2D > >::const_iterator it = m_proxy_env_2D.begin(); it != m_proxy_env_2D.end(); ++it) {
-        ReaK::shared_ptr< ReaK::geom::proximity_finder_2D > tmp = (*it)->findMinimumDistance();
-        if((tmp) && (tmp->getLastResult().mDistance < 0.0))
-          return false;
-      };
-      for( std::vector< shared_ptr< geom::proxy_query_pair_3D > >::const_iterator it = m_proxy_env_3D.begin(); it != m_proxy_env_3D.end(); ++it) {
-        ReaK::shared_ptr< ReaK::geom::proximity_finder_3D > tmp = (*it)->findMinimumDistance();
-        if((tmp) && (tmp->getLastResult().mDistance < 0.0))
-          return false;
-      };
-      
-      return true;
-    };
+    bool is_free(const PointType& pt, const RateLimitedJointSpace& space) const;
     
 };
 
@@ -218,53 +200,12 @@ class manip_quasi_static_env : public named_object {
      * Returns a point which is at a fraction between two points a to b, or as 
      * far as it can get before a collision.
      */
-    point_type move_position_toward(const point_type& p1, double fraction, const point_type& p2) const {
-      typedef typename get_tagged_spatial_interpolator< InterpMethodTag, RateLimitedJointSpace, time_topology>::type InterpType;
-      typedef typename get_tagged_spatial_interpolator< InterpMethodTag, RateLimitedJointSpace, time_topology>::pseudo_factory_type InterpFactoryType;
-      
-      InterpType interp;
-      double dt_min = m_distance(p1, p2, m_space);
-      interp.initialize(p1, p2, dt_min, m_space, time_topology(), InterpFactoryType());
-      double dt = dt_min * fraction;
-      dt = (dt < max_edge_length ? dt : max_edge_length);
-      double d = min_interval;
-      point_type result = p1;
-      point_type last_result = p1;
-      while(d < dt) {
-        interp.compute_point(result, p1, p2, m_space, time_topology(), d, dt_min, InterpFactoryType());
-        if(!is_free(result))
-          return last_result;
-        d += min_interval;
-        last_result = result;
-      };
-      if((fraction == 1.0) && (dt_min < max_edge_length)) //these equal comparison are used for when exact end fractions are used.
-        return p2;
-      else if(fraction == 0.0)
-        return p1;
-      else {
-        interp.compute_point(result, p1, p2, m_space, time_topology(), dt, dt_min, InterpFactoryType());
-        return result;
-      };
-    };
+    point_type move_position_toward(const point_type& p1, double fraction, const point_type& p2) const;
     
     /**
      * Returns a random point fairly near to the given point.
      */
-    std::pair<point_type, bool> random_walk(const point_type& p_u) const {
-      point_type p_rnd, p_v;
-      unsigned int i = 0;
-      do {
-        p_rnd = m_rand_sampler(m_space);
-        double dist = m_distance(p_u, p_rnd, m_space);
-        p_v = move_position_toward(p_u, max_edge_length / dist, p_rnd);
-        ++i;
-      } while((m_distance(p_u, p_v, m_space) < min_interval) && (i <= 10));
-      if(i > 10) {
-        //could not expand vertex u, then just output a random C-free point.
-        return std::make_pair(p_v, false);
-      };
-      return std::make_pair(p_v, true);
-    };
+    std::pair<point_type, bool> random_walk(const point_type& p_u) const;
     
     
     /**

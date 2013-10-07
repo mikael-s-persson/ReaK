@@ -38,7 +38,7 @@
 #include "base/defs.hpp"
 #include <boost/config.hpp>
 
-#include "manip_free_dynamic_workspace.hpp"
+#include "manip_free_dynamic_workspace.tpp"
 
 #include "interpolation/sap_Ndof_reach_topologies.hpp"
 

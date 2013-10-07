@@ -11,7 +11,6 @@
 
 
 #include "CRS_A465_geom_model.hpp"
-#include "CRS_A465_2D_analog.hpp"
 
 
 #include "shapes/plane.hpp"
@@ -39,14 +38,6 @@ int main(int argc, char ** argv) {
   
   ReaK::shared_ptr< ReaK::geom::proxy_query_model_3D > robot_proxy = builder.get_proximity_model();
   ReaK::shared_ptr< ReaK::kte::kte_map_chain > kin_chain = builder.get_kinematics_kte_chain();
-  
-  ReaK::robot_airship::CRS_A465_2D_model_builder builder2D;
-  
-  builder2D.create_from_preset();
-  
-  builder2D.save_kte_to_file("models/CRS_A465_2D_raw_components.xml");
-  builder2D.save_limits_to_file("models/CRS_A465_2D_limits.xml");
-  
   
   
   ReaK::shared_ptr< ReaK::geom::colored_model_3D > MD148_basic_lab = ReaK::shared_ptr< ReaK::geom::colored_model_3D >(new ReaK::geom::colored_model_3D("MD148_basic_lab_render"));

@@ -46,6 +46,8 @@
 #include "default_random_sampler.hpp"
 #include "differentiable_space.hpp"
 
+#include "rate_limited_space_metamaps.hpp"
+
 namespace ReaK {
 
 namespace pp {
@@ -323,19 +325,6 @@ typename arithmetic_tuple_element<Idx, typename reach_time_diff_space<Independen
 };
 
 #endif
-
-
-
-template <typename RateLimitedSpace>
-struct get_rate_illimited_space { 
-  typedef RateLimitedSpace type;
-};
-
-template <typename NormalSpace>
-struct get_rate_limited_space {  
-  typedef NormalSpace type;
-};
-
 
 
 namespace detail {

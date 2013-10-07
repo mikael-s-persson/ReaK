@@ -39,14 +39,13 @@
 
 #include "lin_alg/vect_alg.hpp"
 
-#include "joint_space_limits_detail.hpp"
+#include "path_planning/metric_space_concept.hpp"
+#include "rate_limited_space_metamaps.hpp"
 
 
 namespace ReaK {
 
 namespace pp {
-
-
 
 
 
@@ -95,11 +94,7 @@ struct joint_limits_collection : public named_object {
    * \return A rate-limited joint-space corresponding to given joint-space and the stored limit values.
    */
   template <typename NormalSpaceType>
-  typename get_rate_limited_space< NormalSpaceType >::type make_rl_joint_space(const NormalSpaceType& j_space) const {
-    typename get_rate_limited_space< NormalSpaceType >::type result;
-    detail::create_rl_joint_spaces_impl(result, j_space, *this);
-    return result;
-  };
+  typename get_rate_limited_space< NormalSpaceType >::type make_rl_joint_space(const NormalSpaceType& j_space) const;
 
   /**
    * This function constructs a normal joint-space out of the given rate-limited joint-space.
@@ -108,11 +103,7 @@ struct joint_limits_collection : public named_object {
    * \return A normal joint-space corresponding to given rate-limited joint-space and the stored limit values.
    */
   template <typename RateLimitedSpaceType>
-  typename get_rate_illimited_space< RateLimitedSpaceType >::type make_normal_joint_space(const RateLimitedSpaceType& j_space) const {
-    typename get_rate_illimited_space< RateLimitedSpaceType >::type result;
-    detail::create_normal_joint_spaces_impl(result, j_space, *this);
-    return result;
-  };
+  typename get_rate_illimited_space< RateLimitedSpaceType >::type make_normal_joint_space(const RateLimitedSpaceType& j_space) const;
 
   /**
    * This function maps a set of normal joint coordinates into a set of rate-limited joint coordinates.
@@ -125,11 +116,7 @@ struct joint_limits_collection : public named_object {
   template <typename NormalSpaceType>
   typename topology_traits< typename get_rate_limited_space< NormalSpaceType >::type >::point_type map_to_space(
       const typename topology_traits< NormalSpaceType >::point_type& pt,
-      const NormalSpaceType& , const typename get_rate_limited_space< NormalSpaceType >::type& ) const {
-    typename topology_traits< typename get_rate_limited_space< NormalSpaceType >::type >::point_type result;
-    detail::create_rl_joint_vectors_impl(result, pt, *this);
-    return result;
-  };
+      const NormalSpaceType& , const typename get_rate_limited_space< NormalSpaceType >::type& ) const;
 
 
   /**
@@ -143,11 +130,7 @@ struct joint_limits_collection : public named_object {
   template <typename RateLimitedSpaceType>
   typename topology_traits< typename get_rate_illimited_space< RateLimitedSpaceType >::type >::point_type map_to_space(
       const typename topology_traits< RateLimitedSpaceType >::point_type& pt,
-      const RateLimitedSpaceType& , const typename get_rate_illimited_space< RateLimitedSpaceType >::type& ) const {
-    typename topology_traits< typename get_rate_illimited_space< RateLimitedSpaceType >::type >::point_type result;
-    detail::create_normal_joint_vectors_impl(result, pt, *this);
-    return result;
-  };
+      const RateLimitedSpaceType& , const typename get_rate_illimited_space< RateLimitedSpaceType >::type& ) const;
 
 
 
@@ -182,20 +165,23 @@ struct joint_limits_collection : public named_object {
 
     RK_RTTI_MAKE_CONCRETE_1BASE(self,0xC2400011,1,"joint_limits_collection",named_object)
 
-
 };
 
 
 
+#if (defined(RK_ENABLE_CXX11_FEATURES) && defined(RK_ENABLE_EXTERN_TEMPLATES))
+
+
+extern template struct joint_limits_collection<double>;
+
+
+#endif
+
 
 };
 
-
-
 };
 
-
-#include "joint_space_limits_ext.hpp"
 
 
 #endif

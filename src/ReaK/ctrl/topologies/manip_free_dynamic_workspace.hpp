@@ -186,62 +186,12 @@ class manip_dynamic_env : public named_object {
      * Returns a point which is at a fraction between two points a to b, or as 
      * far as it can get before a collision.
      */
-    point_type move_position_toward(const point_type& p1, double fraction, const point_type& p2) const {
-      if(p1.time > p2.time) // Am I trying to go backwards in time (impossible)?
-        return p1; //p2 is not reachable from p1.
-      
-      typedef typename get_tagged_spatial_interpolator< InterpMethodTag, RateLimitedJointSpace, time_topology>::type InterpType;
-      typedef typename get_tagged_spatial_interpolator< InterpMethodTag, RateLimitedJointSpace, time_topology>::pseudo_factory_type InterpFactoryType;
-      
-      InterpType interp;
-      double reach_time = m_distance(p1.pt, p2.pt, m_space.get_space_topology());
-      double dt_total = (p2.time - p1.time);  // the free time that I have along the path.
-      if(dt_total < reach_time) // There is not enough time to reach the end-point.
-        return p1;
-      interp.initialize(p1.pt, p2.pt, (p2.time - p1.time), m_space.get_space_topology(), m_space.get_time_topology(), InterpFactoryType());
-      double dt = dt_total * fraction;
-      dt = (dt < max_edge_length ? dt : max_edge_length);
-      double d = min_interval;
-      point_type result = p1;
-      point_type last_result = p1;
-      while(d < dt) {
-        interp.compute_point(result.pt, p1.pt, p2.pt, m_space.get_space_topology(), m_space.get_time_topology(), d, dt_total, InterpFactoryType());
-        result.time = p1.time + d;
-        if(!is_free(result))
-          return last_result;
-        d += min_interval;
-        last_result = result;
-      };
-      if((fraction == 1.0) && (dt_total < max_edge_length)) //these equal comparison are used for when exact end fractions are used.
-        return p2;
-      else if(fraction == 0.0)
-        return p1;
-      else {
-        interp.compute_point(result.pt, p1.pt, p2.pt, m_space.get_space_topology(), m_space.get_time_topology(), dt, dt_total, InterpFactoryType());
-        result.time = p1.time + dt;
-        return result;
-      };
-    };
+    point_type move_position_toward(const point_type& p1, double fraction, const point_type& p2) const;
     
     /**
      * Returns a random point fairly near to the given point.
      */
-    std::pair<point_type, bool> random_walk(const point_type& p_u) const {
-      point_type p_rnd, p_v;
-      unsigned int i = 0;
-      do {
-        p_rnd = point_type(0.0, m_rand_sampler(m_space.get_space_topology()));
-        double reach_time = m_distance(p_u.pt, p_rnd.pt, m_space.get_space_topology());
-        p_rnd.time = m_space.get_time_topology().random_point() + reach_time + p_u.time;
-        p_v = move_position_toward(p_u, max_edge_length / reach_time, p_rnd);
-        ++i;
-      } while((p_v.time - p_u.time < min_interval) && (i <= 20));
-      if(i > 20) {
-        //could not expand vertex u, then just output a arbitrary C-free point.
-        return std::make_pair(p_v, false);
-      };
-      return std::make_pair(p_v, true);
-    };
+    std::pair<point_type, bool> random_walk(const point_type& p_u) const;
     
     
     /**
