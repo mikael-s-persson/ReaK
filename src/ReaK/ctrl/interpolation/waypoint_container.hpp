@@ -78,6 +78,15 @@ class waypoint_container_base : public shared_object {
     
   protected:
     
+    typedef typename container_type::value_type waypoint_value;
+    
+    static const point_type& make_value(const point_type& p) { return p; };
+#ifdef RK_ENABLE_CXX11_FEATURES
+    static point_type&& make_value(point_type&& p) { return std::move(p); };
+#endif
+    static const point_type& extract_point(const point_type& v) { return v; };
+    static point_type& extract_point(point_type& v) { return v; };
+    
     shared_ptr<topology> space;
     distance_metric dist;
     
@@ -242,12 +251,21 @@ class waypoint_container_base< temporal_space<SpaceTopology, TimeTopology, Dista
       };
     };
     
-    typedef std::set<point_type,waypoint_time_ordering> container_type;
+    typedef std::map<double, point_type> container_type;
     
     typedef typename container_type::iterator waypoint_descriptor;
     typedef typename container_type::const_iterator const_waypoint_descriptor;
     
   protected:
+    
+    typedef typename container_type::value_type waypoint_value;
+    
+    static waypoint_value make_value(const point_type& p) { return waypoint_value(p.time, p); };
+#ifdef RK_ENABLE_CXX11_FEATURES
+    static waypoint_value make_value(point_type&& p) { return waypoint_value(p.time, std::move(p)); };
+#endif
+    static const point_type& extract_point(const waypoint_value& v) { return v.second; };
+    static point_type& extract_point(waypoint_value& v) { return v.second; };
     
     shared_ptr<topology> space;
     distance_metric dist;
@@ -257,7 +275,7 @@ class waypoint_container_base< temporal_space<SpaceTopology, TimeTopology, Dista
     typedef std::pair<const_waypoint_descriptor, const_waypoint_descriptor> const_waypoint_bounds;
     
     const_waypoint_bounds get_waypoint_bounds(const point_type& p, const_waypoint_descriptor) const {
-      const_waypoint_descriptor it2 = waypoints.lower_bound(p);
+      const_waypoint_descriptor it2 = waypoints.lower_bound(p.time);
       if(it2 == waypoints.begin())
         return const_waypoint_bounds(it2,it2);
       if(it2 == waypoints.end())
@@ -288,8 +306,8 @@ class waypoint_container_base< temporal_space<SpaceTopology, TimeTopology, Dista
      */
     waypoint_container_base(const shared_ptr<topology>& aSpace, const point_type& aStart, const point_type& aEnd, const distance_metric& aDist = distance_metric()) :
                             space(aSpace), dist(aDist), waypoints() {
-      waypoints.insert(aStart);
-      waypoints.insert( waypoints.end(), aEnd);
+      waypoints.insert(waypoint_value(aStart.time, aStart));
+      waypoints.insert(waypoints.end(), waypoint_value(aEnd.time, aEnd));
     };
     
     /**
@@ -302,9 +320,13 @@ class waypoint_container_base< temporal_space<SpaceTopology, TimeTopology, Dista
      */
     template <typename ForwardIter>
     waypoint_container_base(ForwardIter aBegin, ForwardIter aEnd, const shared_ptr<topology>& aSpace, const distance_metric& aDist = distance_metric()) : 
-                            space(aSpace), dist(aDist), waypoints(aBegin,aEnd) {
+                            space(aSpace), dist(aDist), waypoints() {
       if(aBegin == aEnd)
         throw invalid_path("Empty list of waypoints!");
+      while(aBegin != aEnd) {
+        waypoints.insert(waypoints.end(), waypoint_value(aBegin->time, *aBegin));
+        ++aBegin;
+      };
     };
     
     /**
@@ -475,26 +497,33 @@ class waypoint_container : public waypoint_container_base<Topology,DistanceMetri
     };
     
     const point_type& front() const {
-      return *(this->waypoints.begin());
+      return base_class_type::extract_point( *(this->waypoints.begin()) );
     };
     
     const point_type& back() const {
-      return *(this->waypoints.rbegin());
+      return base_class_type::extract_point( *(this->waypoints.rbegin()) );
+    };
+    
+    point_type& front() {
+      return base_class_type::extract_point( *(this->waypoints.begin()) );
+    };
+    
+    point_type& back() {
+      return base_class_type::extract_point( *(this->waypoints.rbegin()) );
     };
     
     template <typename InputIterator>
     void assign( InputIterator first, InputIterator last ) {
-      if(first == last)
-        throw invalid_path("Empty list of waypoints!");
-      container_type(first,last).swap(this->waypoints);
+      waypoint_container tmp(first, last, this->space, this->dist);
+      swap(tmp, *this);
     };
     
     void push_front(const point_type& p) {
-      this->waypoints.insert(this->waypoints.begin(),p);
+      this->waypoints.insert(this->waypoints.begin(), base_class_type::make_value(p));
     };
     
     void push_back(const point_type& p) {
-      this->waypoints.insert(this->waypoints.end(),p);
+      this->waypoints.insert(this->waypoints.end(), base_class_type::make_value(p));
     };
     
     void pop_front() {
@@ -506,13 +535,13 @@ class waypoint_container : public waypoint_container_base<Topology,DistanceMetri
     };
     
     waypoint_descriptor insert( waypoint_descriptor position, const point_type& p) {
-      return this->waypoints.insert(position,p);
+      return this->waypoints.insert(position, base_class_type::make_value(p));
     };
     
     template <typename InputIterator>
     void insert( waypoint_descriptor position, InputIterator first, InputIterator last) {
       for(; first != last; ++first)
-        this->waypoints.insert(position, *first);
+        this->waypoints.insert(position, base_class_type::make_value(*first));
     };
     
     void erase( waypoint_descriptor position) {

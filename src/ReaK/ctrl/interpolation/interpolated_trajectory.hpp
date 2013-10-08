@@ -94,56 +94,56 @@ class interpolated_trajectory : public waypoint_container<Topology,DistanceMetri
     mutable interpolator_map_type interp_segments; //this is mutable for JIT construction of it.
     
     double travel_distance_impl(const point_type& a, const const_waypoint_bounds& wpb_a, 
-				const point_type& b, const const_waypoint_bounds& wpb_b) const {
+                                const point_type& b, const const_waypoint_bounds& wpb_b) const {
       if(a.time > b.time)
-	return travel_distance_impl(b,wpb_b,a,wpb_a);
+        return travel_distance_impl(b,wpb_b,a,wpb_a);
       double sum = 0;
       if((wpb_a.first == wpb_b.first) && (wpb_a.first == wpb_b.first)) {
-	//this means that a and b are in the same segment.
-	interpolator_type seg = interp_fact.create_interpolator(&a,&b);
-	return seg.travel_distance_to(b, this->dist);
+        //this means that a and b are in the same segment.
+        interpolator_type seg = interp_fact.create_interpolator(&a,&b);
+        return seg.travel_distance_to(b, this->dist);
       };
       if(wpb_a.first == wpb_a.second) {
-	//this means that a is before the first point in the trajectory.
-	interpolator_type seg = interp_fact.create_interpolator(&a,&(*(wpb_a.second)));
-	sum += seg.travel_distance_from(a, this->dist);
+        //this means that a is before the first point in the trajectory.
+        interpolator_type seg = interp_fact.create_interpolator(&a,&(wpb_a.second->second));
+        sum += seg.travel_distance_from(a, this->dist);
       } else {
-	typename interpolator_map_type::iterator it_int = interp_segments.find(&(*(wpb_a.first)));
+        typename interpolator_map_type::iterator it_int = interp_segments.find(&(wpb_a.first->second));
         if(it_int == interp_segments.end()) {
-	  interp_segments[&(*(wpb_a.first))] = interp_fact.create_interpolator(&(*(wpb_a.first)),&(*(wpb_a.second)));
-	  it_int = interp_segments.find(&(*(wpb_a.first)));
-        } else if( it_int->second.get_end_point() != &(*(wpb_a.second)) ) {
-	  it_int->second.set_segment(&(*(wpb_a.first)),&(*(wpb_a.second)));
+          interp_segments[&(wpb_a.first->second)] = interp_fact.create_interpolator(&(wpb_a.first->second),&(wpb_a.second->second));
+          it_int = interp_segments.find(&(wpb_a.first->second));
+        } else if( it_int->second.get_end_point() != &(wpb_a.second->second) ) {
+          it_int->second.set_segment(&(wpb_a.first->second),&(wpb_a.second->second));
         };
-	sum += it_int->second.travel_distance_from(a, this->dist);
+        sum += it_int->second.travel_distance_from(a, this->dist);
       };
       const_waypoint_descriptor it = wpb_a.second;
       const_waypoint_descriptor it_prev = it;
       while(++it != wpb_b.first) {
-	typename interpolator_map_type::iterator it_int = interp_segments.find(&(*(it_prev)));
+        typename interpolator_map_type::iterator it_int = interp_segments.find(&(it_prev->second));
         if(it_int == interp_segments.end()) {
-	  interp_segments[&(*(it_prev))] = interp_fact.create_interpolator(&(*(it_prev)),&(*(it)));
-	  it_int = interp_segments.find(&(*(it_prev)));
-        } else if( it_int->second.get_end_point() != &(*(it)) ) {
-	  it_int->second.set_segment(&(*(it_prev)),&(*(it)));
+          interp_segments[&(it_prev->second)] = interp_fact.create_interpolator(&(it_prev->second),&(it->second));
+          it_int = interp_segments.find(&(it_prev->second));
+        } else if( it_int->second.get_end_point() != &(it->second) ) {
+          it_int->second.set_segment(&(it_prev->second),&(it->second));
         };
-	sum += it_int->second.travel_distance_from(*it_prev, this->dist);
+        sum += it_int->second.travel_distance_from(it_prev->second, this->dist);
       };
       {
-	typename interpolator_map_type::iterator it_int = interp_segments.find(&(*(wpb_b.first)));
+        typename interpolator_map_type::iterator it_int = interp_segments.find(&(wpb_b.first->second));
         if(it_int == interp_segments.end()) {
-	  if(wpb_b.first == wpb_b.second) {
-	    interpolator_type seg = interp_fact.create_interpolator(&(*(wpb_b.first)),&b);
-	    sum += seg.travel_distance_to(b, this->dist);
-	  } else {
-	    interp_segments[&(*(wpb_b.first))] = interp_fact.create_interpolator(&(*(wpb_b.first)),&(*(wpb_b.second)));
-	    sum += interp_segments[&(*(wpb_b.first))].travel_distance_to(b, this->dist);
-	  };
-        } else if( it_int->second.get_end_point() != &(*(wpb_b.second)) ) {
-	  it_int->second.set_segment(&(*(wpb_b.first)),&(*(wpb_b.second)));
-	  sum += it_int->second.travel_distance_to(b, this->dist);
+          if(wpb_b.first == wpb_b.second) {
+            interpolator_type seg = interp_fact.create_interpolator(&(wpb_b.first->second),&b);
+            sum += seg.travel_distance_to(b, this->dist);
+          } else {
+            interp_segments[&(wpb_b.first->second)] = interp_fact.create_interpolator(&(wpb_b.first->second),&(wpb_b.second->second));
+            sum += interp_segments[&(wpb_b.first->second)].travel_distance_to(b, this->dist);
+          };
+        } else if( it_int->second.get_end_point() != &(wpb_b.second->second) ) {
+          it_int->second.set_segment(&(wpb_b.first->second),&(wpb_b.second->second));
+          sum += it_int->second.travel_distance_to(b, this->dist);
         } else {
-	  sum += it_int->second.travel_distance_to(b, this->dist);
+          sum += it_int->second.travel_distance_to(b, this->dist);
         };
       };
       return sum;
@@ -154,31 +154,31 @@ class interpolated_trajectory : public waypoint_container<Topology,DistanceMetri
       const_waypoint_descriptor it = it_prev; ++it;
       
       if(it == this->waypoints.end()) {
-	if(it_prev == this->waypoints.begin()) {
-	  waypoint_pair result(it_prev,*it_prev);
-	  result.second.time = t;
-	  return result;
-	};
-	it = it_prev; --it_prev;
+        if(it_prev == this->waypoints.begin()) {
+          waypoint_pair result(it_prev, it_prev->second);
+          result.second.time = t;
+          return result;
+        };
+        it = it_prev; --it_prev;
       };
-      typename interpolator_map_type::iterator it_int = interp_segments.find(&(*it_prev));
+      typename interpolator_map_type::iterator it_int = interp_segments.find(&(it_prev->second));
       if(it_int == interp_segments.end()) {
-	return std::make_pair( wpb_a.first,
-	  (interp_segments[&(*(it_prev))] = interp_fact.create_interpolator(&(*it_prev),&(*it)))
-	  .get_point_at_time(t));
-      } else if(it_int->second.get_end_point() != &(*it)) {
-	it_int->second.set_segment(&(*it_prev),&(*it));
+        return std::make_pair( wpb_a.first,
+          (interp_segments[&(it_prev->second)] = interp_fact.create_interpolator(&(it_prev->second),&(it->second)))
+          .get_point_at_time(t));
+      } else if(it_int->second.get_end_point() != &(it->second)) {
+        it_int->second.set_segment(&(it_prev->second),&(it->second));
       };
       return std::make_pair(wpb_a.first, it_int->second.get_point_at_time(t));
     };
     
     waypoint_pair move_time_diff_from_impl(const point_type& a, const const_waypoint_bounds& wpb_a, double dt) const {
-      if((dt > 0.0) && (wpb_a.second->time > a.time + dt)) {
-	interpolator_type seg = interp_fact.create_interpolator(&a, &(*(wpb_a.second)));
-	return std::make_pair(wpb_a.first,seg.get_point_at_time(a.time + dt));
-      } else if((dt <= 0.0) && (wpb_a.first->time < a.time + dt)) {
-	interpolator_type seg = interp_fact.create_interpolator(&(*(wpb_a.first)), &a);
-	return std::make_pair(wpb_a.first,seg.get_point_at_time(a.time + dt));
+      if((dt > 0.0) && (wpb_a.second->first > a.time + dt)) {
+        interpolator_type seg = interp_fact.create_interpolator(&a, &(wpb_a.second->second));
+        return std::make_pair(wpb_a.first,seg.get_point_at_time(a.time + dt));
+      } else if((dt <= 0.0) && (wpb_a.first->first < a.time + dt)) {
+        interpolator_type seg = interp_fact.create_interpolator(&(wpb_a.first->second), &a);
+        return std::make_pair(wpb_a.first,seg.get_point_at_time(a.time + dt));
       };
       point_type result = a;
       result.time += dt;
@@ -291,7 +291,7 @@ class interpolated_trajectory : public waypoint_container<Topology,DistanceMetri
      */
     point_type get_point_at_time(double t) const {
       const_waypoint_descriptor start = this->waypoints.begin();
-      point_type p = *start;
+      point_type p = start->second;
       p.time = t;
       const_waypoint_bounds wpb_p = this->get_waypoint_bounds(p, start);
       return get_point_at_time_impl(t,wpb_p).second;
@@ -304,7 +304,7 @@ class interpolated_trajectory : public waypoint_container<Topology,DistanceMetri
      */
     waypoint_pair get_waypoint_at_time(double t) const {
       const_waypoint_descriptor start = this->waypoints.begin();
-      point_type p = *start;
+      point_type p = start->second;
       p.time = t;
       const_waypoint_bounds wpb_p = this->get_waypoint_bounds(p, start);
       return get_point_at_time_impl(t,wpb_p);
@@ -318,7 +318,7 @@ class interpolated_trajectory : public waypoint_container<Topology,DistanceMetri
       if(this->waypoints.empty())
         return 0.0;
       else
-        return this->waypoints.begin()->time;
+        return this->waypoints.begin()->first;
     };
     
     /**
@@ -329,7 +329,7 @@ class interpolated_trajectory : public waypoint_container<Topology,DistanceMetri
       if(this->waypoints.empty())
         return 0.0;
       else
-        return this->waypoints.rbegin()->time;
+        return this->waypoints.rbegin()->first;
     };
     
 /*******************************************************************************

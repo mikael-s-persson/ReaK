@@ -100,7 +100,7 @@ class discrete_point_trajectory : public waypoint_container<Topology,DistanceMet
           else
             return travel_distance_impl(b,a); // this means that b must be before a, so, reverse the computation.
         };
-        sum += get_dist()(*a_cpy, *a_next, get_space());
+        sum += get_dist()(a_cpy->second, a_next->second, get_space());
         a_cpy = a_next;
       };
       return sum;
@@ -114,7 +114,7 @@ class discrete_point_trajectory : public waypoint_container<Topology,DistanceMet
       if( a_next == this->waypoints.end() ) // is at end
         return a;
       
-      if( d < 0.5 * (a_next->t - a->t) ) // round up or down
+      if( d < 0.5 * (a_next->first - a->first) ) // round up or down
         return a;
       else
         return a_next;
@@ -158,7 +158,7 @@ class discrete_point_trajectory : public waypoint_container<Topology,DistanceMet
       
       point_time_iterator& operator+=(double rhs) {
         const_waypoint_bounds wpb_a = parent->get_waypoint_bounds(a, current_wpt);
-        current_wpt = parent->move_time_diff_from(waypoint_pair(current_wpt, *current_wpt), rhs).first;
+        current_wpt = parent->move_time_diff_from(waypoint_pair(current_wpt, current_wpt->second), rhs).first;
         return *this;
       };
       
@@ -195,7 +195,7 @@ class discrete_point_trajectory : public waypoint_container<Topology,DistanceMet
       };
       
       const point_type& operator*() const {
-        return *current_wpt;
+        return current_wpt->second;
       };
       
     };
@@ -247,7 +247,7 @@ class discrete_point_trajectory : public waypoint_container<Topology,DistanceMet
       };
       
       const point_type& operator*() const {
-        return *current_wpt;
+        return current_wpt->second;
       };
       
     };
@@ -261,8 +261,8 @@ class discrete_point_trajectory : public waypoint_container<Topology,DistanceMet
      * \param aDist The distance metric functor that the trajectory should use.
      */
     explicit discrete_point_trajectory(const shared_ptr<topology>& aSpace = shared_ptr<topology>(new topology()), 
-                                 const distance_metric& aDist = distance_metric()) : 
-                                 base_class_type(aSpace, aDist) { };
+                                       const distance_metric& aDist = distance_metric()) : 
+                                       base_class_type(aSpace, aDist) { };
     
     /**
      * Constructs the trajectory from a space, the start and end points.
@@ -272,10 +272,10 @@ class discrete_point_trajectory : public waypoint_container<Topology,DistanceMet
      * \param aDist The distance metric functor that the trajectory should use.
      */
     discrete_point_trajectory(const shared_ptr<topology>& aSpace, 
-                        const point_type& aStart, 
-                        const point_type& aEnd, 
-                        const distance_metric& aDist = distance_metric()) :
-                        base_class_type(aSpace, aStart, aEnd, aDist) { };
+                              const point_type& aStart, 
+                              const point_type& aEnd, 
+                              const distance_metric& aDist = distance_metric()) :
+                              base_class_type(aSpace, aStart, aEnd, aDist) { };
     
     /**
      * Constructs the trajectory from a range of points and their space.
@@ -287,9 +287,9 @@ class discrete_point_trajectory : public waypoint_container<Topology,DistanceMet
      */
     template <typename ForwardIter>
     discrete_point_trajectory(ForwardIter aBegin, ForwardIter aEnd, 
-                        const shared_ptr<topology>& aSpace, 
-                        const distance_metric& aDist = distance_metric()) : 
-                        base_class_type(aBegin, aEnd, aSpace, aDist) { };
+                              const shared_ptr<topology>& aSpace, 
+                              const distance_metric& aDist = distance_metric()) : 
+                              base_class_type(aBegin, aEnd, aSpace, aDist) { };
     
     /**
      * Standard swap function.
@@ -366,9 +366,9 @@ class discrete_point_trajectory : public waypoint_container<Topology,DistanceMet
      * \return The point that is a distance away from the given point.
      */
     point_type move_time_diff_from(point_type a, double d) const {
-      a.t += d;
+      a.time += d;
       const_waypoint_bounds wpb_a = this->get_waypoint_bounds(a, this->waypoints.begin());
-      return *(move_time_diff_from_impl(wpb_a.first, a.t - wpb_a.first->t));
+      return move_time_diff_from_impl(wpb_a.first, a.time - wpb_a.first->first)->second;
     };
     
     /**
@@ -378,10 +378,10 @@ class discrete_point_trajectory : public waypoint_container<Topology,DistanceMet
      * \return The waypoint-point-pair that is a time away from the given waypoint-point-pair.
      */
     waypoint_pair move_time_diff_from(waypoint_pair a, double d) const {
-      a.second.t += d;
+      a.second.time += d;
       const_waypoint_bounds wpb_a = this->get_waypoint_bounds(a.second, a.first);
-      const_waypoint_descriptor res = move_time_diff_from_impl(wpb_a.first, a.t - wpb_a.first->t);
-      return waypoint_pair(res, *res);
+      const_waypoint_descriptor res = move_time_diff_from_impl(wpb_a.first, a.time - wpb_a.first->first);
+      return waypoint_pair(res, res->second);
     };
     
     
@@ -391,7 +391,7 @@ class discrete_point_trajectory : public waypoint_container<Topology,DistanceMet
      * \return The point that is on the trajectory at the given time from the start.
      */
     point_type get_point_at_time(double d) const {
-      return move_time_diff_from(waypoint_pair(this->waypoints.begin(), *(this->waypoints.begin())), d).second;
+      return move_time_diff_from(waypoint_pair(this->waypoints.begin(), this->waypoints.begin()->second), d).second;
     };
     
     /**
@@ -400,7 +400,7 @@ class discrete_point_trajectory : public waypoint_container<Topology,DistanceMet
      * \return The waypoint-point pair that is on the trajectory at the given distance from the start.
      */
     waypoint_pair get_waypoint_at_time(double d) const {
-      return move_time_diff_from(waypoint_pair(this->waypoints.begin(), *(this->waypoints.begin())), d);
+      return move_time_diff_from(waypoint_pair(this->waypoints.begin(), this->waypoints.begin()->second), d);
     };
     
     /**
@@ -420,7 +420,7 @@ class discrete_point_trajectory : public waypoint_container<Topology,DistanceMet
      * \return The starting time of the trajectory.
      */
     double get_start_time() const {
-      return this->waypoints.begin()->t;
+      return this->waypoints.begin()->first;
     };
     
     /**
@@ -429,7 +429,7 @@ class discrete_point_trajectory : public waypoint_container<Topology,DistanceMet
      */
     double get_end_time() const {
       const_waypoint_descriptor end = this->waypoints.end(); --end;
-      return end->t;
+      return end->first;
     };
     
     
@@ -438,7 +438,7 @@ class discrete_point_trajectory : public waypoint_container<Topology,DistanceMet
      * \return The starting point of the trajectory.
      */
     point_type get_start_point() const {
-      return *(this->waypoints.begin());
+      return this->waypoints.begin()->second;
     };
     
     /**
@@ -447,7 +447,7 @@ class discrete_point_trajectory : public waypoint_container<Topology,DistanceMet
      */
     waypoint_pair get_start_waypoint() const {
       const_waypoint_descriptor start = this->waypoints.begin();
-      return waypoint_pair(start,*start);
+      return waypoint_pair(start, start->second);
     };
     
     /**
@@ -456,7 +456,7 @@ class discrete_point_trajectory : public waypoint_container<Topology,DistanceMet
      */
     point_type get_end_point() const {
       const_waypoint_descriptor end = this->waypoints.end(); --end;
-      return *end;
+      return end->second;
     };
     
     /**
@@ -465,7 +465,7 @@ class discrete_point_trajectory : public waypoint_container<Topology,DistanceMet
      */
     waypoint_pair get_end_waypoint() const {
       const_waypoint_descriptor end = this->waypoints.end(); --end;
-      return waypoint_pair(end,*end);
+      return waypoint_pair(end, end->second);
     };
     
 /*******************************************************************************
