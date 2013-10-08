@@ -6,6 +6,8 @@ set(OPTIM_HEADERS
   "${RKOPTIMDIR}/augmented_lagrangian_methods.hpp"
   "${RKOPTIMDIR}/conjugate_gradient_methods.hpp"
   "${RKOPTIMDIR}/finite_diff_jacobians.hpp"
+  "${RKOPTIMDIR}/finite_differences.hpp"
+  "${RKOPTIMDIR}/function_types.hpp"
   "${RKOPTIMDIR}/gauss_newton_method.hpp"
   "${RKOPTIMDIR}/hessian_approx_update.hpp"
   "${RKOPTIMDIR}/jacobian_helper_functions.hpp"

@@ -36,6 +36,7 @@ set(MBDKTE_HEADERS
   "${RKMBDKTEDIR}/jacobian_joint_map.hpp"
   "${RKMBDKTEDIR}/joint_backlash.hpp"
   "${RKMBDKTEDIR}/joint_friction.hpp"
+  "${RKMBDKTEDIR}/kte_chain_visitation.hpp"
   "${RKMBDKTEDIR}/kte_ext_mappings.hpp"
   "${RKMBDKTEDIR}/kte_map.hpp"
   "${RKMBDKTEDIR}/kte_map_chain.hpp"

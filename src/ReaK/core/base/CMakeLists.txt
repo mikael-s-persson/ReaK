@@ -2,14 +2,18 @@
 #set(BASE_SOURCES "")
 
 set(BASE_HEADERS 
+  "${RKBASEDIR}/backtrace_exception.hpp"
+  "${RKBASEDIR}/chrono_incl.hpp"
   "${RKBASEDIR}/defs.hpp"
   "${RKBASEDIR}/exec_time_profiler.hpp"
+  "${RKBASEDIR}/expected.hpp"
+  "${RKBASEDIR}/misc_math.hpp"
   "${RKBASEDIR}/named_object.hpp"
+  "${RKBASEDIR}/py_fixes.hpp"
+  "${RKBASEDIR}/scope_guard.hpp"
   "${RKBASEDIR}/serializable.hpp"
   "${RKBASEDIR}/shared_object.hpp"
   "${RKBASEDIR}/shared_object_base.hpp"
-  "${RKBASEDIR}/scope_guard.hpp"
-  "${RKBASEDIR}/expected.hpp"
   "${RKBASEDIR}/thread_incl.hpp"
 )
 

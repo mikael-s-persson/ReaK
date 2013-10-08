@@ -29,6 +29,7 @@ set(LINALG_HEADERS
                  "${RKLINALGDIR}/mat_comparisons.hpp"
                  "${RKLINALGDIR}/mat_composite_adaptor.hpp"
                  "${RKLINALGDIR}/mat_concepts.hpp"
+                 "${RKLINALGDIR}/mat_ctrl_decomp.hpp"
                  "${RKLINALGDIR}/mat_damped_matrix.hpp"
                  "${RKLINALGDIR}/mat_esn_expressions.hpp"
                  "${RKLINALGDIR}/mat_exp_methods.hpp"

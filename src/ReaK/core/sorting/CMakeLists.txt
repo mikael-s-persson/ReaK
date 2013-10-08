@@ -2,10 +2,15 @@
 #set(SORTING_SOURCES "${SRCROOT}${RKROOTFINDERSDIR}/.cpp")
 
 set(SORTING_HEADERS 
-  "${RKSORTINGDIR}/bisection_method.hpp"
-  "${RKSORTINGDIR}/broyden_method.hpp"
-  "${RKSORTINGDIR}/newton_raphson_method.hpp"
-  "${RKSORTINGDIR}/secant_method.hpp"
+  "${RKSORTINGDIR}/bubble_sort.hpp"
+  "${RKSORTINGDIR}/comb_sort.hpp"
+  "${RKSORTINGDIR}/heap_sort.hpp"
+  "${RKSORTINGDIR}/insertion_sort.hpp"
+  "${RKSORTINGDIR}/intro_sort.hpp"
+  "${RKSORTINGDIR}/merge_sort.hpp"
+  "${RKSORTINGDIR}/quick_sort.hpp"
+  "${RKSORTINGDIR}/selection_sort.hpp"
+  "${RKSORTINGDIR}/shell_sort.hpp"
 )
 
 #add_library(reak_sorting STATIC ${SORTING_SOURCES})
