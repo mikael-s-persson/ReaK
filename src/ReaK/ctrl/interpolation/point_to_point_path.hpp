@@ -79,7 +79,7 @@ class point_to_point_path : public waypoint_container<Topology,DistanceMetric> {
     typedef typename base_class_type::topology topology;
     typedef typename base_class_type::distance_metric distance_metric;
     
-    typedef std::pair<const_waypoint_descriptor, point_type> waypoint_pair;
+    typedef typename base_class_type::waypoint_pair waypoint_pair;
     
     
     
@@ -644,42 +644,6 @@ class point_to_point_path : public waypoint_container<Topology,DistanceMetric> {
       const_waypoint_descriptor end = this->waypoints.end(); --end;
       return travel_distance_impl(*start, const_waypoint_bounds(start,start),
                                   *end, const_waypoint_bounds(end,end));
-    };
-    
-    /**
-     * Returns the starting point of the path.
-     * \return The starting point of the path.
-     */
-    point_type get_start_point() const {
-      const_waypoint_descriptor start = this->waypoints.begin();
-      return *start;
-    };
-    
-    /**
-     * Returns the starting waypoint-point-pair of the path.
-     * \return The starting waypoint-point-pair of the path.
-     */
-    waypoint_pair get_start_waypoint() const {
-      const_waypoint_descriptor start = this->waypoints.begin();
-      return waypoint_pair(start,*start);
-    };
-    
-    /**
-     * Returns the end point of the path.
-     * \return The end point of the path.
-     */
-    point_type get_end_point() const {
-      const_waypoint_descriptor end = this->waypoints.end(); --end;
-      return *end;
-    };
-    
-    /**
-     * Returns the end waypoint-point-pair of the path.
-     * \return The end waypoint-point-pair of the path.
-     */
-    waypoint_pair get_end_waypoint() const {
-      const_waypoint_descriptor end = this->waypoints.end(); --end;
-      return waypoint_pair(end,*end);
     };
     
 /*******************************************************************************

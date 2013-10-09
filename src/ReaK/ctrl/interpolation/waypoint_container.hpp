@@ -76,6 +76,8 @@ class waypoint_container_base : public shared_object {
     typedef typename container_type::iterator waypoint_descriptor;
     typedef typename container_type::const_iterator const_waypoint_descriptor;
     
+    typedef std::pair<const_waypoint_descriptor, point_type> waypoint_pair;
+    
   protected:
     
     typedef typename container_type::value_type waypoint_value;
@@ -206,6 +208,44 @@ class waypoint_container_base : public shared_object {
     };
     
     
+    /**
+     * Returns the starting point of the waypoints.
+     * \return The starting point of the waypoints.
+     */
+    point_type get_start_point() const {
+      const_waypoint_descriptor start = this->waypoints.begin();
+      return *start;
+    };
+    
+    /**
+     * Returns the starting waypoint-point-pair of the waypoints.
+     * \return The starting waypoint-point-pair of the waypoints.
+     */
+    waypoint_pair get_start_waypoint() const {
+      const_waypoint_descriptor start = this->waypoints.begin();
+      return waypoint_pair(start,*start);
+    };
+    
+    /**
+     * Returns the end point of the waypoints.
+     * \return The end point of the waypoints.
+     */
+    point_type get_end_point() const {
+      const_waypoint_descriptor end = this->waypoints.end(); --end;
+      return *end;
+    };
+    
+    /**
+     * Returns the end waypoint-point-pair of the waypoints.
+     * \return The end waypoint-point-pair of the waypoints.
+     */
+    waypoint_pair get_end_waypoint() const {
+      const_waypoint_descriptor end = this->waypoints.end(); --end;
+      return waypoint_pair(end,*end);
+    };
+    
+    
+    
 /*******************************************************************************
                    ReaK's RTTI and Serialization interfaces
 *******************************************************************************/
@@ -255,6 +295,8 @@ class waypoint_container_base< temporal_space<SpaceTopology, TimeTopology, Dista
     
     typedef typename container_type::iterator waypoint_descriptor;
     typedef typename container_type::const_iterator const_waypoint_descriptor;
+    
+    typedef std::pair<const_waypoint_descriptor, point_type> waypoint_pair;
     
   protected:
     
@@ -357,6 +399,62 @@ class waypoint_container_base< temporal_space<SpaceTopology, TimeTopology, Dista
       lhs.waypoints.swap(rhs.waypoints);
     };
     
+    
+    /**
+     * Returns the starting time of the waypoints.
+     * \return The starting time of the waypoints.
+     */
+    double get_start_time() const {
+      return waypoints.begin()->first;
+    };
+    
+    /**
+     * Returns the end time of the waypoints.
+     * \return The end time of the waypoints.
+     */
+    double get_end_time() const {
+      const_waypoint_descriptor end = waypoints.end(); --end;
+      return end->first;
+    };
+    
+    
+    /**
+     * Returns the starting point of the waypoints.
+     * \return The starting point of the waypoints.
+     */
+    point_type get_start_point() const {
+      const_waypoint_descriptor start = waypoints.begin();
+      return start->second;
+    };
+    
+    /**
+     * Returns the starting waypoint-point-pair of the waypoints.
+     * \return The starting waypoint-point-pair of the waypoints.
+     */
+    waypoint_pair get_start_waypoint() const {
+      const_waypoint_descriptor start = waypoints.begin();
+      return waypoint_pair(start, start->second);
+    };
+    
+    /**
+     * Returns the end point of the waypoints.
+     * \return The end point of the waypoints.
+     */
+    point_type get_end_point() const {
+      const_waypoint_descriptor end = waypoints.end(); --end;
+      return end->second;
+    };
+    
+    /**
+     * Returns the end waypoint-point-pair of the waypoints.
+     * \return The end waypoint-point-pair of the waypoints.
+     */
+    waypoint_pair get_end_waypoint() const {
+      const_waypoint_descriptor end = waypoints.end(); --end;
+      return waypoint_pair(end, end->second);
+    };
+    
+    
 /*******************************************************************************
                    ReaK's RTTI and Serialization interfaces
 *******************************************************************************/
@@ -406,6 +504,8 @@ class waypoint_container : public waypoint_container_base<Topology,DistanceMetri
     typedef typename base_class_type::point_type point_type;
     typedef typename base_class_type::const_waypoint_descriptor const_waypoint_descriptor;
     typedef typename base_class_type::waypoint_descriptor waypoint_descriptor;
+    
+    typedef typename base_class_type::waypoint_pair waypoint_pair;
     
     typedef typename container_type::size_type size_type;
     typedef typename container_type::value_type value_type;

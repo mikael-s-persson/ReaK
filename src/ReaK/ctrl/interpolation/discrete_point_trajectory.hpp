@@ -75,7 +75,7 @@ class discrete_point_trajectory : public waypoint_container<Topology,DistanceMet
     typedef typename base_class_type::topology topology;
     typedef typename base_class_type::distance_metric distance_metric;
     
-    typedef std::pair<const_waypoint_descriptor, point_type> waypoint_pair;
+    typedef typename base_class_type::waypoint_pair waypoint_pair;
     
   private:
     
@@ -413,60 +413,6 @@ class discrete_point_trajectory : public waypoint_container<Topology,DistanceMet
       return travel_distance_impl(start, end);
     };
     
-    
-    
-    /**
-     * Returns the starting time of the trajectory.
-     * \return The starting time of the trajectory.
-     */
-    double get_start_time() const {
-      return this->waypoints.begin()->first;
-    };
-    
-    /**
-     * Returns the end time of the trajectory.
-     * \return The end time of the trajectory.
-     */
-    double get_end_time() const {
-      const_waypoint_descriptor end = this->waypoints.end(); --end;
-      return end->first;
-    };
-    
-    
-    /**
-     * Returns the starting point of the trajectory.
-     * \return The starting point of the trajectory.
-     */
-    point_type get_start_point() const {
-      return this->waypoints.begin()->second;
-    };
-    
-    /**
-     * Returns the starting waypoint-point-pair of the trajectory.
-     * \return The starting waypoint-point-pair of the trajectory.
-     */
-    waypoint_pair get_start_waypoint() const {
-      const_waypoint_descriptor start = this->waypoints.begin();
-      return waypoint_pair(start, start->second);
-    };
-    
-    /**
-     * Returns the end point of the trajectory.
-     * \return The end point of the trajectory.
-     */
-    point_type get_end_point() const {
-      const_waypoint_descriptor end = this->waypoints.end(); --end;
-      return end->second;
-    };
-    
-    /**
-     * Returns the end waypoint-point-pair of the trajectory.
-     * \return The end waypoint-point-pair of the trajectory.
-     */
-    waypoint_pair get_end_waypoint() const {
-      const_waypoint_descriptor end = this->waypoints.end(); --end;
-      return waypoint_pair(end, end->second);
-    };
     
 /*******************************************************************************
                    ReaK's RTTI and Serialization interfaces

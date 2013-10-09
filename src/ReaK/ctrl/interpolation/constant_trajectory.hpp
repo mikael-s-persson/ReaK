@@ -71,6 +71,60 @@ class constant_trajectory : public shared_object {
     
   public:
     
+    
+    struct point_time_iterator {
+      point_type current_pt;
+      
+      explicit point_time_iterator(const point_type& aCurrentPt) : current_pt(aCurrentPt) { };
+                              
+#ifdef RK_ENABLE_CXX11_FEATURES
+      explicit point_time_iterator(point_type&& aCurrentPt) : current_pt(std::move(aCurrentPt)) { };
+#endif
+      
+      friend point_time_iterator operator+(const point_time_iterator& lhs, double) { return lhs; };
+      friend point_time_iterator operator+(double, const point_time_iterator& rhs) { return rhs; };
+      friend point_time_iterator operator-(const point_time_iterator& lhs, double) { return lhs; };
+      
+      friend point_time_iterator& operator+=(point_time_iterator& lhs, double) { return lhs; };
+      friend point_time_iterator& operator-=(point_time_iterator& lhs, double) { return lhs; };
+      
+      friend bool operator==(const point_time_iterator& lhs, const point_time_iterator& rhs) { return true; };
+      friend bool operator!=(const point_time_iterator& lhs, const point_time_iterator& rhs) { return false; };
+      
+      const point_type& operator*() const { return current_pt; };
+      
+    };
+    
+    typedef point_time_iterator point_fraction_iterator;
+    
+    
+    /**
+     * Returns the starting time-iterator along the trajectory.
+     * \return The starting time-iterator along the trajectory.
+     */
+    point_time_iterator begin_time_travel() const { return point_time_iterator(start_point); };
+    
+    /**
+     * Returns the end time-iterator along the trajectory.
+     * \return The end time-iterator along the trajectory.
+     */
+    point_time_iterator end_time_travel() const { return point_time_iterator(start_point); };
+    
+    /**
+     * Returns the starting fraction-iterator along the trajectory.
+     * \return The starting fraction-iterator along the trajectory.
+     */
+    point_fraction_iterator begin_fraction_travel() const { return point_fraction_iterator(start_point); };
+    
+    /**
+     * Returns the end fraction-iterator along the trajectory.
+     * \return The end fraction-iterator along the trajectory.
+     */
+    point_fraction_iterator end_fraction_travel() const { return point_fraction_iterator(start_point); };
+    
+    
+    
+    
     constant_trajectory(const space_point_type& aStartPoint = space_point_type()) : start_point(0.0, aStartPoint) { };
     
     const point_type* get_start_point() const { return &start_point; };
@@ -97,8 +151,6 @@ class constant_trajectory : public shared_object {
     
     double get_start_time() const { return -std::numeric_limits<double>::infinity(); };
     double get_end_time() const { return std::numeric_limits<double>::infinity(); }; 
-    
-    // space = p.get_temporal_space(); RK_UNUSED(space);
     
 /*******************************************************************************
                    ReaK's RTTI and Serialization interfaces

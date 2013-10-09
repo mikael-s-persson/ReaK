@@ -405,6 +405,7 @@ discrete_point_path         0xC2440013   bin: 1100 0010 0100 0100 0000 0000 0001
 seq_trajectory_base         0xC2440014   bin: 1100 0010 0100 0100 0000 0000 0001 0100  D-R
 seq_trajectory_wrapper      0xC2440015   bin: 1100 0010 0100 0100 0000 0000 0001 0101  D-R
 discrete_point_trajectory   0xC2440016   bin: 1100 0010 0100 0100 0000 0000 0001 0110  D-R
+point_to_point_trajectory   0xC2440017   bin: 1100 0010 0100 0100 0000 0000 0001 0111  D-R
 
 //Random-Samplers:          0xC245****   
 default_random_sampler      0xC2450000   bin: 1100 0010 0100 0101 0000 0000 0000 0000  D-R
