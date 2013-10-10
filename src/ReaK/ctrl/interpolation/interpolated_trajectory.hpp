@@ -93,10 +93,12 @@ class interpolated_trajectory : public waypoint_container<Topology,DistanceMetri
     interpolator_factory_type interp_fact;
     mutable interpolator_map_type interp_segments; //this is mutable for JIT construction of it.
     
-    double travel_distance_impl(const point_type& a, const const_waypoint_bounds& wpb_a, 
-                                const point_type& b, const const_waypoint_bounds& wpb_b) const {
+    virtual double travel_distance_impl(const point_type& a, const point_type& b) const {
       if(a.time > b.time)
-        return travel_distance_impl(b,wpb_b,a,wpb_a);
+        return travel_distance_impl(b, a);
+      const_waypoint_bounds wpb_a = this->get_waypoint_bounds(a.time);
+      const_waypoint_bounds wpb_b = this->get_waypoint_bounds(b.time);
+      
       double sum = 0;
       if((wpb_a.first == wpb_b.first) && (wpb_a.first == wpb_b.first)) {
         //this means that a and b are in the same segment.
@@ -151,39 +153,30 @@ class interpolated_trajectory : public waypoint_container<Topology,DistanceMetri
     };
     
     waypoint_pair get_point_at_time_impl(double t, const const_waypoint_bounds& wpb_a) const {
-      const_waypoint_descriptor it_prev = wpb_a.first;
-      const_waypoint_descriptor it = it_prev; ++it;
       
-      if(it == this->waypoints.end()) {
-        if(it_prev == this->waypoints.begin()) {
-          waypoint_pair result(it_prev, it_prev->second);
-          result.second.time = t;
-          return result;
-        };
-        it = it_prev; --it_prev;
+      if( wpb_a.first == wpb_a.second ) {
+        // one way or another, the point is at the boundary:
+        waypoint_pair result(wpb_a.first, wpb_a.first->second);
+        result.second.time = t;
+        return result;
       };
-      typename interpolator_map_type::iterator it_int = interp_segments.find(&(it_prev->second));
+      
+      typename interpolator_map_type::iterator it_int = interp_segments.find(&(wpb_a.first->second));
       if(it_int == interp_segments.end()) {
-        return std::make_pair( wpb_a.first,
-          (interp_segments[&(it_prev->second)] = interp_fact.create_interpolator(&(it_prev->second),&(it->second)))
+        return waypoint_pair( wpb_a.first,
+          (interp_segments[&(wpb_a.first->second)] = interp_fact.create_interpolator(&(wpb_a.first->second),&(wpb_a.second->second)))
           .get_point_at_time(t));
-      } else if(it_int->second.get_end_point() != &(it->second)) {
-        it_int->second.set_segment(&(it_prev->second),&(it->second));
+      } else if(it_int->second.get_end_point() != &(wpb_a.second->second)) {
+        it_int->second.set_segment(&(wpb_a.first->second),&(wpb_a.second->second));
       };
-      return std::make_pair(wpb_a.first, it_int->second.get_point_at_time(t));
+      return waypoint_pair(wpb_a.first, it_int->second.get_point_at_time(t));
     };
     
-    waypoint_pair move_time_diff_from_impl(const point_type& a, const const_waypoint_bounds& wpb_a, double dt) const {
-      if((dt > 0.0) && (wpb_a.second->first > a.time + dt)) {
-        interpolator_type seg = interp_fact.create_interpolator(&a, &(wpb_a.second->second));
-        return std::make_pair(wpb_a.first,seg.get_point_at_time(a.time + dt));
-      } else if((dt <= 0.0) && (wpb_a.first->first < a.time + dt)) {
-        interpolator_type seg = interp_fact.create_interpolator(&(wpb_a.first->second), &a);
-        return std::make_pair(wpb_a.first,seg.get_point_at_time(a.time + dt));
-      };
-      point_type result = a;
-      result.time += dt;
-      return get_point_at_time_impl(result.time,this->get_waypoint_bounds(result, wpb_a.first));
+    virtual waypoint_pair move_time_diff_from_impl(const point_type& a, const const_waypoint_bounds& wpb_a, double dt) const {
+      if( ( a.time + dt >= wpb_a.first->first ) && ( a.time + dt <= wpb_a.second->first ) )
+        return get_point_at_time_impl(a.time + dt, wpb_a);
+      else
+        return get_point_at_time_impl(a.time + dt, this->get_waypoint_bounds(a.time + dt));
     };
     
   public:
@@ -567,51 +560,25 @@ class interpolated_trajectory : public waypoint_container<Topology,DistanceMetri
     
     
     /**
-     * Computes the travel distance between two points, if traveling along the path.
-     * \param a The first point.
-     * \param b The second point.
-     * \return The travel distance between two points if traveling along the path.
-     */
-    double travel_distance(const point_type& a, const point_type& b) const {
-      const_waypoint_bounds wpb_a = this->get_waypoint_bounds(a, this->waypoints.begin());
-      const_waypoint_bounds wpb_b = this->get_waypoint_bounds(b, wpb_a.first);
-      return this->travel_distance_impl(a, wpb_a, b, wpb_b);
-    };
-    
-    /**
-     * Computes the travel distance between two waypoint-point-pairs, if traveling along the path.
-     * \param a The first waypoint-point-pair.
-     * \param b The second waypoint-point-pair.
-     * \return The travel distance between two points if traveling along the path.
-     */
-    double travel_distance(waypoint_pair& a, waypoint_pair& b) const {
-      const_waypoint_bounds wpb_a = this->get_waypoint_bounds(a.second, a.first);
-      const_waypoint_bounds wpb_b = this->get_waypoint_bounds(b.second, b.first);
-      a.first = wpb_a.first; b.first = wpb_b.first;
-      return this->travel_distance_impl(a.second, wpb_a, b.second, wpb_b);
-    };
-    
-    
-    /**
      * Computes the point that is a time-difference away from a point on the trajectory.
      * \param a The point on the trajectory.
      * \param dt The time to move away from the point.
      * \return The point that is a time away from the given point.
      */
     point_type move_time_diff_from(const point_type& a, double dt) const {
-      const_waypoint_bounds wpb_a = this->get_waypoint_bounds(a, this->waypoints.begin());
-      return move_time_diff_from_impl(a,wpb_a,dt).second;
+      const_waypoint_bounds wpb_a = this->get_waypoint_bounds(a.time + dt);
+      return this->move_time_diff_from_impl(wpb_a.first->second, wpb_a, a.time + dt - wpb_a.first->first).second;
     };
     
     /**
-     * Computes the waypoint-point-pair that is a time-difference away from a waypoint-point-pair on the trajectory.
+     * Computes the waypoint-point-pair that is a time away from a waypoint-point-pair on the trajectory.
      * \param a The waypoint-point-pair on the trajectory.
      * \param dt The time to move away from the waypoint-point-pair.
      * \return The waypoint-point-pair that is a time away from the given waypoint-point-pair.
      */
     waypoint_pair move_time_diff_from(const waypoint_pair& a, double dt) const {
-      const_waypoint_bounds wpb_a = this->get_waypoint_bounds(a.second, a.first);
-      return move_time_diff_from_impl(a.second,wpb_a,dt);
+      const_waypoint_bounds wpb_a = this->get_waypoint_bounds(a.second.time + dt);
+      return this->move_time_diff_from_impl(wpb_a.first->second, wpb_a, a.second.time + dt - wpb_a.first->first);
     };
        
     /**
@@ -620,11 +587,8 @@ class interpolated_trajectory : public waypoint_container<Topology,DistanceMetri
      * \return The point that is on the trajectory at the given time.
      */
     point_type get_point_at_time(double t) const {
-      const_waypoint_descriptor start = this->waypoints.begin();
-      point_type p = start->second;
-      p.time = t;
-      const_waypoint_bounds wpb_p = this->get_waypoint_bounds(p, start);
-      return get_point_at_time_impl(t,wpb_p).second;
+      const_waypoint_bounds wpb_p = this->get_waypoint_bounds(t);
+      return this->move_time_diff_from_impl(wpb_p.first->second, wpb_p, t - wpb_p.first->first).second;
     };
     
     /**
@@ -633,11 +597,8 @@ class interpolated_trajectory : public waypoint_container<Topology,DistanceMetri
      * \return The waypoint-point pair that is on the trajectory at the given time.
      */
     waypoint_pair get_waypoint_at_time(double t) const {
-      const_waypoint_descriptor start = this->waypoints.begin();
-      point_type p = start->second;
-      p.time = t;
-      const_waypoint_bounds wpb_p = this->get_waypoint_bounds(p, start);
-      return get_point_at_time_impl(t,wpb_p);
+      const_waypoint_bounds wpb_p = this->get_waypoint_bounds(t);
+      return this->move_time_diff_from_impl(wpb_p.first->second, wpb_p, t - wpb_p.first->first);
     };
     
 /*******************************************************************************

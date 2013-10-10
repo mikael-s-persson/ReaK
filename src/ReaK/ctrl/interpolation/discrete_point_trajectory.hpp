@@ -87,37 +87,37 @@ class discrete_point_trajectory : public waypoint_container<Topology,DistanceMet
     const topology& get_temporal_space() const { return *(this->space); };
     
     
-    double travel_distance_impl(const_waypoint_descriptor a, 
-                                const_waypoint_descriptor b) const {
+    virtual double travel_distance_impl(const point_type& a, const point_type& b) const {
+      if(a.time > b.time)
+        return travel_distance_impl(b, a);
+      const_waypoint_bounds wpb_a = this->get_waypoint_bounds(a.time);
+      const_waypoint_bounds wpb_b = this->get_waypoint_bounds(b.time);
+      
       // first assume that a is before b:
       double sum = 0.0;
-      const_waypoint_descriptor a_cpy = a;
-      while(a_cpy != b) {
+      const_waypoint_descriptor a_cpy = wpb_a.first;
+      while(a_cpy != wpb_b.first) {
         const_waypoint_descriptor a_next = a_cpy; ++a_next;
-        if(a_next == this->waypoints.end()) {
-          if(b == this->waypoints.end()) 
-            return sum; // we're done.
-          else
-            return travel_distance_impl(b,a); // this means that b must be before a, so, reverse the computation.
-        };
+        if(a_next == this->waypoints.end())
+          break; // we're done.
         sum += get_dist()(a_cpy->second, a_next->second, get_space());
         a_cpy = a_next;
       };
       return sum;
     };
     
-    const_waypoint_descriptor move_time_diff_from_impl(const_waypoint_descriptor a, double d) const {
-      if(d < 0.0) // is at start
-        return a;
+    virtual waypoint_pair move_time_diff_from_impl(const point_type&, const const_waypoint_bounds& wpb_a, double dt) const {
+      if(dt < 0.0) // is at start
+        return waypoint_pair(wpb_a.first, wpb_a.first->second);
       
-      const_waypoint_descriptor a_next = a; ++a_next;
+      const_waypoint_descriptor a_next = wpb_a.first; ++a_next;
       if( a_next == this->waypoints.end() ) // is at end
-        return a;
+        return waypoint_pair(wpb_a.first, wpb_a.first->second);
       
-      if( d < 0.5 * (a_next->first - a->first) ) // round up or down
-        return a;
+      if( dt < 0.5 * (a_next->first - wpb_a.first->first) ) // round up or down
+        return waypoint_pair(wpb_a.first, wpb_a.first->second);
       else
-        return a_next;
+        return waypoint_pair(a_next, a_next->second);
     };
     
     const_waypoint_descriptor move_fraction_away_from_impl(const_waypoint_descriptor a, double d) const {
@@ -335,82 +335,45 @@ class discrete_point_trajectory : public waypoint_container<Topology,DistanceMet
     };
     
     /**
-     * Computes the travel distance between two points, if traveling along the trajectory.
-     * \param a The first point.
-     * \param b The second point.
-     * \return The travel distance between two points if traveling along the trajectory.
-     */
-    double travel_distance(const point_type& a, const point_type& b) const {
-      const_waypoint_bounds wpb_a = this->get_waypoint_bounds(a, this->waypoints.begin());
-      const_waypoint_bounds wpb_b = this->get_waypoint_bounds(b, wpb_a.first);
-      return this->travel_distance_impl(wpb_a.first, wpb_b.first);
-    };
-    
-    /**
-     * Computes the travel distance between two waypoint-point-pairs, if traveling along the trajectory.
-     * \param a The first waypoint-point-pair.
-     * \param b The second waypoint-point-pair.
-     * \return The travel distance between two points if traveling along the trajectory.
-     */
-    double travel_distance(waypoint_pair& a, waypoint_pair& b) const {
-      const_waypoint_bounds wpb_a = this->get_waypoint_bounds(a.second, a.first);
-      const_waypoint_bounds wpb_b = this->get_waypoint_bounds(b.second, b.first);
-      a.first = wpb_a.first; b.first = wpb_b.first;
-      return this->travel_distance_impl(wpb_a.first, wpb_b.first);
-    };
-    
-    /**
-     * Computes the point that is a distance away from a point on the trajectory.
+     * Computes the point that is a time away from a point on the trajectory.
      * \param a The point on the trajectory.
-     * \param d The distance to move away from the point.
-     * \return The point that is a distance away from the given point.
+     * \param dt The time to move away from the point.
+     * \return The point that is a time away from the given point.
      */
-    point_type move_time_diff_from(point_type a, double d) const {
-      a.time += d;
-      const_waypoint_bounds wpb_a = this->get_waypoint_bounds(a, this->waypoints.begin());
-      return move_time_diff_from_impl(wpb_a.first, a.time - wpb_a.first->first)->second;
+    point_type move_time_diff_from(const point_type& a, double dt) const {
+      const_waypoint_bounds wpb_a = this->get_waypoint_bounds(a.time + dt);
+      return this->move_time_diff_from_impl(wpb_a.first->second, a.time + dt - wpb_a.first->first).second;
     };
     
     /**
-     * Computes the waypoint-point-pair that is a distance away from a waypoint-point-pair on the trajectory.
+     * Computes the waypoint-point-pair that is a time away from a waypoint-point-pair on the trajectory.
      * \param a The waypoint-point-pair on the trajectory.
-     * \param dt The distance to move away from the waypoint-point-pair.
+     * \param dt The time to move away from the waypoint-point-pair.
      * \return The waypoint-point-pair that is a time away from the given waypoint-point-pair.
      */
-    waypoint_pair move_time_diff_from(waypoint_pair a, double d) const {
-      a.second.time += d;
-      const_waypoint_bounds wpb_a = this->get_waypoint_bounds(a.second, a.first);
-      const_waypoint_descriptor res = move_time_diff_from_impl(wpb_a.first, a.time - wpb_a.first->first);
-      return waypoint_pair(res, res->second);
+    waypoint_pair move_time_diff_from(waypoint_pair a, double dt) const {
+      const_waypoint_bounds wpb_a = this->get_waypoint_bounds(a.second.time + dt);
+      return this->move_time_diff_from_impl(wpb_a.first->second, a.second.time + dt - wpb_a.first->first);
     };
-    
-    
+       
     /**
-     * Computes the point that is on the trajectory at the given time from the start.
-     * \param d The time (from start) at which the point is sought.
-     * \return The point that is on the trajectory at the given time from the start.
+     * Computes the point that is on the trajectory at the given time.
+     * \param t The time at which the point is sought.
+     * \return The point that is on the trajectory at the given time.
      */
-    point_type get_point_at_time(double d) const {
-      return move_time_diff_from(waypoint_pair(this->waypoints.begin(), this->waypoints.begin()->second), d).second;
-    };
-    
-    /**
-     * Computes the waypoint-point pair that is on the trajectory at the given distance from the start.
-     * \param t The distance from the start at which the waypoint-point pair is sought.
-     * \return The waypoint-point pair that is on the trajectory at the given distance from the start.
-     */
-    waypoint_pair get_waypoint_at_time(double d) const {
-      return move_time_diff_from(waypoint_pair(this->waypoints.begin(), this->waypoints.begin()->second), d);
+    point_type get_point_at_time(double t) const {
+      const_waypoint_bounds wpb_p = this->get_waypoint_bounds(t);
+      return this->move_time_diff_from_impl(wpb_p.first->second, wpb_p, t - wpb_p.first->first).second;
     };
     
     /**
-     * Returns the total travel-distance of the trajectory.
-     * \return The total travel-distance of the trajectory.
+     * Computes the waypoint-point pair that is on the trajectory at the given time.
+     * \param t The time at which the waypoint-point pair is sought.
+     * \return The waypoint-point pair that is on the trajectory at the given time.
      */
-    double get_total_length() const {
-      const_waypoint_descriptor start = this->waypoints.begin();
-      const_waypoint_descriptor end = this->waypoints.end(); --end;
-      return travel_distance_impl(start, end);
+    waypoint_pair get_waypoint_at_time(double t) const {
+      const_waypoint_bounds wpb_p = this->get_waypoint_bounds(t);
+      return this->move_time_diff_from_impl(wpb_p.first->second, wpb_p, t - wpb_p.first->first);
     };
     
     

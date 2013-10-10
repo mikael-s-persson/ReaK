@@ -285,12 +285,6 @@ class waypoint_container_base< temporal_space<SpaceTopology, TimeTopology, Dista
     typedef typename topology_traits< temporal_space<SpaceTopology, TimeTopology, DistanceMetric> >::point_type point_type;
     typedef typename topology_traits< temporal_space<SpaceTopology, TimeTopology, DistanceMetric> >::point_difference_type point_difference_type;
     
-    struct waypoint_time_ordering {
-      bool operator()(const point_type& p1, const point_type& p2) const {
-        return p1.time < p2.time;
-      };
-    };
-    
     typedef std::map<double, point_type> container_type;
     
     typedef typename container_type::iterator waypoint_descriptor;
@@ -316,14 +310,18 @@ class waypoint_container_base< temporal_space<SpaceTopology, TimeTopology, Dista
     
     typedef std::pair<const_waypoint_descriptor, const_waypoint_descriptor> const_waypoint_bounds;
     
-    const_waypoint_bounds get_waypoint_bounds(const point_type& p, const_waypoint_descriptor) const {
-      const_waypoint_descriptor it2 = waypoints.lower_bound(p.time);
+    const_waypoint_bounds get_waypoint_bounds(double t) const {
+      const_waypoint_descriptor it2 = waypoints.lower_bound(t);
       if(it2 == waypoints.begin())
         return const_waypoint_bounds(it2,it2);
       if(it2 == waypoints.end())
         return const_waypoint_bounds((++waypoints.rbegin()).base(),(++waypoints.rbegin()).base());
       const_waypoint_descriptor it1 = it2; --it1;
       return const_waypoint_bounds(it1,it2);
+    };
+    
+    virtual double travel_distance_impl(const point_type& a, const point_type& b) const {
+      return 0.0;
     };
     
   public:
@@ -422,9 +420,8 @@ class waypoint_container_base< temporal_space<SpaceTopology, TimeTopology, Dista
      * Returns the starting point of the waypoints.
      * \return The starting point of the waypoints.
      */
-    point_type get_start_point() const {
-      const_waypoint_descriptor start = waypoints.begin();
-      return start->second;
+    const point_type& get_start_point() const {
+      return waypoints.begin()->second;
     };
     
     /**
@@ -440,9 +437,8 @@ class waypoint_container_base< temporal_space<SpaceTopology, TimeTopology, Dista
      * Returns the end point of the waypoints.
      * \return The end point of the waypoints.
      */
-    point_type get_end_point() const {
-      const_waypoint_descriptor end = waypoints.end(); --end;
-      return end->second;
+    const point_type& get_end_point() const {
+      return waypoints.rbegin()->second;
     };
     
     /**
@@ -450,8 +446,37 @@ class waypoint_container_base< temporal_space<SpaceTopology, TimeTopology, Dista
      * \return The end waypoint-point-pair of the waypoints.
      */
     waypoint_pair get_end_waypoint() const {
-      const_waypoint_descriptor end = waypoints.end(); --end;
+      const_waypoint_descriptor end = (++waypoints.rbegin()).base();
       return waypoint_pair(end, end->second);
+    };
+    
+    
+    /**
+     * Computes the travel distance between two points, if traveling along the trajectory.
+     * \param a The first point.
+     * \param b The second point.
+     * \return The travel distance between two points if traveling along the trajectory.
+     */
+    double travel_distance(const point_type& a, const point_type& b) const {
+      return this->travel_distance_impl(a, b);
+    };
+    
+    /**
+     * Computes the travel distance between two waypoint-point-pairs, if traveling along the trajectory.
+     * \param a The first waypoint-point-pair.
+     * \param b The second waypoint-point-pair.
+     * \return The travel distance between two points if traveling along the trajectory.
+     */
+    double travel_distance(const waypoint_pair& a, const waypoint_pair& b) const {
+      return this->travel_distance_impl(a.second, b.second);
+    };
+    
+    /**
+     * Returns the total travel-distance of the trajectory.
+     * \return The total travel-distance of the trajectory.
+     */
+    double get_total_length() const {
+      return this->travel_distance_impl(this->get_start_point(), this->get_end_point());
     };
     
     
