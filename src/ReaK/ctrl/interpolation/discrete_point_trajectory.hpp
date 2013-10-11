@@ -106,152 +106,27 @@ class discrete_point_trajectory : public waypoint_container<Topology,DistanceMet
       return sum;
     };
     
-    virtual waypoint_pair move_time_diff_from_impl(const point_type&, const const_waypoint_bounds& wpb_a, double dt) const {
+    virtual waypoint_pair move_time_diff_from_impl(const point_type& a, const const_waypoint_bounds& wpb_a, double dt) const {
+      const_waypoint_bounds wpb_p = wpb_a;
+      if( ( a.time + dt < wpb_p.first->first ) || ( a.time + dt > wpb_p.second->first ) ) {
+        wpb_p = this->get_waypoint_bounds(a.time + dt);
+        dt = a.time + dt - wpb_p.first->first;
+      };
+      
       if(dt < 0.0) // is at start
-        return waypoint_pair(wpb_a.first, wpb_a.first->second);
+        return waypoint_pair(wpb_p.first, wpb_p.first->second);
       
-      const_waypoint_descriptor a_next = wpb_a.first; ++a_next;
+      const_waypoint_descriptor a_next = wpb_p.first; ++a_next;
       if( a_next == this->waypoints.end() ) // is at end
-        return waypoint_pair(wpb_a.first, wpb_a.first->second);
+        return waypoint_pair(wpb_p.first, wpb_p.first->second);
       
-      if( dt < 0.5 * (a_next->first - wpb_a.first->first) ) // round up or down
-        return waypoint_pair(wpb_a.first, wpb_a.first->second);
+      if( dt < 0.5 * (a_next->first - wpb_p.first->first) ) // round up or down
+        return waypoint_pair(wpb_p.first, wpb_p.first->second);
       else
         return waypoint_pair(a_next, a_next->second);
     };
     
-    const_waypoint_descriptor move_fraction_away_from_impl(const_waypoint_descriptor a, double d) const {
-      bool go_backwards = false;
-      if(d < 0.0) {
-        go_backwards = true;
-        d = -d;
-      };
-      
-      double sum = 0.0;
-      while(sum < d) {
-        const_waypoint_descriptor a_next = a; 
-        if(go_backwards) {
-          if(a == this->waypoints.begin())
-            return a;
-          --a_next;
-        } else {
-          ++a_next;
-          if(a_next == this->waypoints.end())
-            return a;
-        };
-        sum += 1.0;
-        a = a_next;
-      };
-      return a;
-    };
-    
   public:
-    
-    
-    struct point_time_iterator {
-      const discrete_point_trajectory* parent;
-      const_waypoint_descriptor current_wpt;
-      
-      point_time_iterator(const discrete_point_trajectory* aParent, 
-                          const const_waypoint_descriptor& aWPt) :
-                          parent(aParent), current_wpt(aWPt) { };
-      
-      point_time_iterator& operator+=(double rhs) {
-        const_waypoint_bounds wpb_a = parent->get_waypoint_bounds(a, current_wpt);
-        current_wpt = parent->move_time_diff_from(waypoint_pair(current_wpt, current_wpt->second), rhs).first;
-        return *this;
-      };
-      
-      friend 
-      point_time_iterator operator+(point_time_iterator lhs, double rhs) {
-        return (lhs += rhs);
-      };
-      
-      friend 
-      point_time_iterator operator+(double lhs, point_time_iterator rhs) {
-        return (rhs += lhs);
-      };
-      
-      friend 
-      point_time_iterator operator-(point_time_iterator lhs, double rhs) {
-        return (lhs += -rhs);
-      };
-      
-      friend
-      point_time_iterator& operator-=(point_time_iterator& lhs, double rhs) {
-        return (lhs += -rhs);
-      };
-      
-      friend 
-      bool operator==(const point_time_iterator& lhs, 
-                      const point_time_iterator& rhs) {
-        return ((lhs.parent == rhs.parent) && (lhs.current_wpt == rhs.current_wpt));
-      };
-      
-      friend 
-      bool operator!=(const point_time_iterator& lhs, 
-                      const point_time_iterator& rhs) {
-        return !(lhs == rhs);
-      };
-      
-      const point_type& operator*() const {
-        return current_wpt->second;
-      };
-      
-    };
-    
-    
-    struct point_fraction_iterator {
-      const discrete_point_trajectory* parent;
-      const_waypoint_descriptor current_wpt;
-      
-      point_fraction_iterator(const discrete_point_trajectory* aParent, 
-                              const const_waypoint_descriptor& aWPt) :
-                              parent(aParent), current_wpt(aWPt) { };
-      
-      point_fraction_iterator& operator+=(double rhs) {
-        current_wpt = parent->move_fraction_away_from_impl(current_wpt, rhs);
-        return *this;
-      };
-      
-      friend 
-      point_fraction_iterator operator+(point_fraction_iterator lhs, double rhs) {
-        return (lhs += rhs);
-      };
-      
-      friend 
-      point_fraction_iterator operator+(double lhs, point_fraction_iterator rhs) {
-        return (rhs += lhs);
-      };
-      
-      friend 
-      point_fraction_iterator operator-(point_fraction_iterator lhs, double rhs) {
-        return (lhs += -rhs);
-      };
-      
-      friend
-      point_fraction_iterator& operator-=(point_fraction_iterator& lhs, double rhs) {
-        return (lhs += -rhs);
-      };
-      
-      friend 
-      bool operator==(const point_fraction_iterator& lhs, 
-                      const point_fraction_iterator& rhs) {
-        return ((lhs.parent == rhs.parent) && (lhs.current_wpt == rhs.current_wpt));
-      };
-      
-      friend 
-      bool operator!=(const point_fraction_iterator& lhs, 
-                      const point_fraction_iterator& rhs) {
-        return !(lhs == rhs);
-      };
-      
-      const point_type& operator*() const {
-        return current_wpt->second;
-      };
-      
-    };
-    
     
     
     /**
@@ -297,83 +172,6 @@ class discrete_point_trajectory : public waypoint_container<Topology,DistanceMet
     friend void swap(self& lhs, self& rhs) throw() {
       using std::swap;
       swap(static_cast<base_class_type&>(lhs),static_cast<base_class_type&>(rhs));
-    };
-    
-    
-    /**
-     * Returns the starting time-iterator along the trajectory.
-     * \return The starting time-iterator along the trajectory.
-     */
-    point_time_iterator begin_time_travel() const {
-      return point_time_iterator(this, this->waypoints.begin());
-    };
-    
-    /**
-     * Returns the end time-iterator along the trajectory.
-     * \return The end time-iterator along the trajectory.
-     */
-    point_time_iterator end_time_travel() const {
-      const_waypoint_descriptor it = this->waypoints.end(); --it;
-      return point_time_iterator(this, it);
-    };
-    
-    /**
-     * Returns the starting fraction-iterator along the trajectory.
-     * \return The starting fraction-iterator along the trajectory.
-     */
-    point_fraction_iterator begin_fraction_travel() const {
-      return point_fraction_iterator(this, this->waypoints.begin());
-    };
-    
-    /**
-     * Returns the end fraction-iterator along the trajectory.
-     * \return The end fraction-iterator along the trajectory.
-     */
-    point_fraction_iterator end_fraction_travel() const {
-      const_waypoint_descriptor it = this->waypoints.end(); --it;
-      return point_fraction_iterator(this, it);
-    };
-    
-    /**
-     * Computes the point that is a time away from a point on the trajectory.
-     * \param a The point on the trajectory.
-     * \param dt The time to move away from the point.
-     * \return The point that is a time away from the given point.
-     */
-    point_type move_time_diff_from(const point_type& a, double dt) const {
-      const_waypoint_bounds wpb_a = this->get_waypoint_bounds(a.time + dt);
-      return this->move_time_diff_from_impl(wpb_a.first->second, a.time + dt - wpb_a.first->first).second;
-    };
-    
-    /**
-     * Computes the waypoint-point-pair that is a time away from a waypoint-point-pair on the trajectory.
-     * \param a The waypoint-point-pair on the trajectory.
-     * \param dt The time to move away from the waypoint-point-pair.
-     * \return The waypoint-point-pair that is a time away from the given waypoint-point-pair.
-     */
-    waypoint_pair move_time_diff_from(waypoint_pair a, double dt) const {
-      const_waypoint_bounds wpb_a = this->get_waypoint_bounds(a.second.time + dt);
-      return this->move_time_diff_from_impl(wpb_a.first->second, a.second.time + dt - wpb_a.first->first);
-    };
-       
-    /**
-     * Computes the point that is on the trajectory at the given time.
-     * \param t The time at which the point is sought.
-     * \return The point that is on the trajectory at the given time.
-     */
-    point_type get_point_at_time(double t) const {
-      const_waypoint_bounds wpb_p = this->get_waypoint_bounds(t);
-      return this->move_time_diff_from_impl(wpb_p.first->second, wpb_p, t - wpb_p.first->first).second;
-    };
-    
-    /**
-     * Computes the waypoint-point pair that is on the trajectory at the given time.
-     * \param t The time at which the waypoint-point pair is sought.
-     * \return The waypoint-point pair that is on the trajectory at the given time.
-     */
-    waypoint_pair get_waypoint_at_time(double t) const {
-      const_waypoint_bounds wpb_p = this->get_waypoint_bounds(t);
-      return this->move_time_diff_from_impl(wpb_p.first->second, wpb_p, t - wpb_p.first->first);
     };
     
     

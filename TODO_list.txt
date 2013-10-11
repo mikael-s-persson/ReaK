@@ -13,6 +13,7 @@ implement the dynamic topologies and planners
   add iterators to the interpolated_trajectory   --------------------------------X
     test interpolated_trajectory   
   add iterators to the constant_trajectory   ------------------------------------X
+  create protected-virtual functions in the waypoint-cont-base   ----------------X
   add iterators to the belief_predicted_trajectory   
     test belief_predicted_trajectory   
   implement the intercept_query   
