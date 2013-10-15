@@ -55,11 +55,14 @@ namespace ctrl {
 /**
  * This class template can generate a predicted trajectory of 
  * belief-states. This class template relies on several classes to implement its functionality. 
- * Given a temporal space (or topology) whose point-type is a belief-state and a belief-state
+ * Given a space (or topology) whose point-type is a belief-state, and a belief-state
  * predictor function type, this class predict the beliefs at equal time intervals from a 
  * starting belief-state, and can provide belief-state predictions at any given time.
+ * The predictions are populated in a Just-In-Time (JIT) fashion (i.e., lazily), and 
+ * internally maintains a current horizon (time to last pre-computed prediction) which can
+ * be explicitely extended or pruned (eliminating predictions beyond a certain time).
  * 
- * Models: SpatialTrajectoryConcept, PredictedTrajectoryConcept, and provides an interface similar to STL containers (a sort-of hybrid of std::map and std::list).
+ * Models: SpatialTrajectoryConcept, PredictedTrajectoryConcept.
  * 
  * \tparam BeliefTopology The topology of the belief-space, should model the BeliefSpaceConcept.
  * \tparam BeliefPredictor The belief-state predictor function type, should model BeliefPredictorConcept.
@@ -104,12 +107,13 @@ class belief_predicted_trajectory {
       point_type point;
       predictor_type predictor;
       waypoint(const point_type& aPoint,
-	       const predictor_type& aPredictor) :
-	       point(aPoint),
-	       predictor(aPredictor) { };
+               const predictor_type& aPredictor) :
+               point(aPoint),
+               predictor(aPredictor) { };
     };
     
-    typedef std::deque<waypoint> container_type;
+    typedef std::map<time_type, waypoint> container_type;
+    typedef typename container_type::value_type container_value;
     typedef typename container_type::iterator waypoint_descriptor;
     typedef typename container_type::const_iterator const_waypoint_descriptor;
     typedef std::pair< const_waypoint_descriptor, point_type > waypoint_point_pair;
@@ -119,6 +123,8 @@ class belief_predicted_trajectory {
     container_type waypoints;
     topology_ptr space;
     InputTrajectory input;
+    
+    waypoint_descriptor updated_end;
     
   public:
     
@@ -131,227 +137,177 @@ class belief_predicted_trajectory {
      */
     belief_predicted_trajectory(const point_type& aInitialPoint,
                                 const predictor_type& aInitialPredictor,
-				const topology_ptr& aSpace = topology_ptr(new topology()),
-				const InputTrajectory& aInputTrajectory = InputTrajectory()) :
-				waypoints(1,waypoint(aInitialPoint,aInitialPredictor)),
-				space(aSpace),
-				input(aInputTrajectory) { };
+                                const topology_ptr& aSpace = topology_ptr(new topology()),
+                                const InputTrajectory& aInputTrajectory = InputTrajectory()) :
+                                waypoints(1,container_value(aInitialPoint.time, waypoint(aInitialPoint,aInitialPredictor))),
+                                space(aSpace),
+                                input(aInputTrajectory),
+                                updated_end(waypoints.end()) { };
     
     /**
-     * Returns the first waypoint in the underlying waypoint container.
-     * \return The first waypoint in the underlying waypoint container.
+     * Standard swap function.
      */
-    const waypoint& front() const { return waypoints.front(); };
-    /**
-     * Returns the last waypoint in the underlying waypoint container.
-     * \return The last waypoint in the underlying waypoint container.
-     */
-    const waypoint& back() const { return waypoints.back(); };
+    friend void swap(self& lhs, self& rhs) throw() {
+      using std::swap;
+      
+      // this little tricky piece of code is due to iterators being invalidated across the container-swap.
+      time_type lhs_horiz = lhs.get_current_horizon();
+      time_type rhs_horiz = rhs.get_current_horizon();
+      lhs.waypoints.swap(rhs.waypoints);
+      lhs.updated_end = lhs.waypoints.lower_bound(lhs_horiz);
+      rhs.updated_end = rhs.waypoints.lower_bound(rhs_horiz);
+      
+      swap(lhs.space,rhs.space);
+      swap(lhs.input,rhs.input);
+    };
+    
     
     /**
-     * Returns the number of waypoints in the underlying container.
-     * \return The number of waypoints in the underlying container.
+     * Gets the predicted trajectory horizon, i.e., the time up to which predictions are currently valid.
+     * \return The horizon for the predictions currently up-to-date in this trajectory.
      */
-    size_type size() const { return waypoints.size(); };
+    time_type get_current_horizon() const {
+      waypoint_descriptor last_valid = updated_end; --last_valid;
+      return last_valid->first;
+    };
+    
     /**
-     * Determines if the waypoint container is empty.
-     * \return Always false, the underlying container is not allowed to be emptied.
+     * Sets the minimal predicted trajectory horizon, i.e., extending predictions to reach that horizon 
+     * if they are not already reaching it.
+     * \param t The new minimal horizon for the predictions up-to-date in this trajectory.
      */
-    bool empty() const { return false; };
-    /**
-     * Returns the maximum number of waypoints the underlying container will allow.
-     * \return The maximum number of waypoints the underlying container will allow.
-     */
-    size_type max_size() const { return waypoints.max_size(); };
-    /**
-     * Resizes the underlying container to contain sz number of waypoints. Any new 
-     * waypoint will first be a copy of value but will then be predicted from the 
-     * existing waypoints. If sz is zero, the size after the resize will be 1.
-     * \param sz The new size for the waypoint container.
-     * \param value The value of the waypoints to be appended to the container if the new size is larger than the current size.
-     */
-    void resize( size_type sz, const waypoint& value ) {
-      if(sz > waypoints.size()) {
-	waypoint_descriptor it = (++(waypoints.rbegin())).base();
-	waypoints.resize(sz,value);
-	belief_state b = it->point.pt;
-	time_type t = it->point.time;
-        for(;it != waypoints.end();++it) {
-	  it->point = point_type(t, b);
-	  it->predictor.predict_belief(space->get_space_topology(), b, t, input.get_point(t));
-	  t = t + it->predictor.get_time_step();
+    void set_minimal_horizon(const time_type& t) {
+      
+      waypoint_descriptor it = waypoints.lower_bound(t);
+      
+      waypoint_descriptor last_valid = updated_end; --last_valid;
+      while( ( updated_end != waypoints.end() ) && ( last_valid->first < t ) ) {
+        updated_end->second.point.pt = last_valid->second.predictor.predict_belief(
+          space->get_space_topology(), 
+          last_valid->second.point.pt, last_valid->second.point.time, 
+          input.get_point_at_time(last_valid->second.point.time));
+        ++last_valid; ++updated_end;
+      };
+      
+      if(it == waypoints.end()) {
+        // must perform predictions from end to past time t.
+        while( last_valid->first < t ) {
+          updated_end = waypoints.insert(waypoints.end(), container_value(
+            last_valid->first + it->predictor.get_time_step(), 
+            last_valid->second));
+          updated_end->second.point.pt = last_valid->second.predictor.predict_belief(
+            space->get_space_topology(), 
+            last_valid->second.point.pt, last_valid->first, 
+            input.get_point_at_time(last_valid->first));
+          updated_end->second.point.time = updated_end->first;
+          last_valid = updated_end;
         };
-      } else if(sz != waypoints.size())
-	waypoints.resize((sz ? sz : 1),value);
-    };
-    /**
-     * Resizes the underlying container to contain sz number of waypoints. Any new 
-     * waypoint will first be a copy of the last waypoint but will then be predicted from the 
-     * existing waypoints. If sz is zero, the size after the resize will be 1.
-     * \param sz The new size for the waypoint container.
-     */
-    void resize( size_type sz ) { resize(sz, waypoints.back()); };
-    
-    /**
-     * Returns a const-iterator to the first waypoint in the underlying container.
-     * \return A const-iterator to the first waypoint in the underlying container.
-     */
-    const_waypoint_descriptor begin() const { return waypoints.begin(); };
-    /**
-     * Returns a const-iterator to the one-past-last waypoint in the underlying container.
-     * \return A const-iterator to the one-past-last waypoint in the underlying container.
-     */
-    const_waypoint_descriptor end() const { return waypoints.end(); };
-    /**
-     * Returns a const-reverse-iterator to the first waypoint in the underlying container.
-     * \return A const-reverse-iterator to the first waypoint in the underlying container.
-     */
-    typename container_type::const_reverse_iterator rbegin() const { return waypoints.rbegin(); };
-    /**
-     * Returns a const-reverse-iterator to the one-past-last waypoint in the underlying container.
-     * \return A const-reverse-iterator to the one-past-last waypoint in the underlying container.
-     */
-    typename container_type::const_reverse_iterator rend() const { return waypoints.rend(); };
-    
-    /**
-     * Returns the allocator object of the underlying container.
-     * \return The allocator object of the underlying container.
-     */
-    typename container_type::allocator_type get_allocator() const { return waypoints.get_allocator(); };
-    
-    /**
-     * Gets the waypoint that is associated to a time just before the given time.
-     * \param t The time at which the waypoint is sought.
-     * \return The waypoint that is associated to a time just before the given time.
-     */
-    const waypoint& operator[](time_type t) const { return *(get_waypoint(t).first); };
-    
-    /**
-     * Pops the last element off the underlying container, unless there is just one waypoint remaining.
-     */
-    void pop_back() { if(waypoints.size() > 1) waypoints.pop_back(); };
-    /**
-     * Pops the first element off the underlying container, unless there is just one waypoint remaining.
-     */
-    void pop_front() { if(waypoints.size() > 1) waypoints.pop_front(); };
-    /**
-     * Adds a waypoint at the end of the underlying container.
-     * \param value The new element to be added to the end of the container.
-     */
-    void push_back(const waypoint& value) {
-      waypoint_descriptor it = (++(waypoints.rbegin())).base();
-      waypoints.push_back(value);
-      belief_state b = it->point.pt;
-      time_type t = it->point.time;
-      b = it->predictor.predict_belief(space->get_space_topology(), b, t, input.get_point(t));
-      waypoints.back().point = point_type(t + it->predictor.get_time_step(),b);
-    };
-    /**
-     * Adds a waypoint at the begining of the underlying container.
-     * \param value The new element to be added to the begining of the container.
-     */
-    void push_front(const waypoint& value) {
-      waypoints.push_front(value);
-      waypoint_descriptor it = waypoints.begin();
-      belief_state b = it->point.pt;
-      time_type t = it->point.time;
-      for(;it != waypoints.end();++it) {
-	it->point = point_type(t, b);
-	b = it->predictor.predict_belief(space->get_space_topology(), b, t, input.get_point(t));
-	t = t + it->predictor.get_time_step();
+        updated_end = waypoints.end();
       };
+      
     };
     
     /**
-     * Moves the belief-point of a waypoint forward by a time-difference (or backward if negative).
-     * \param wp The waypoint from which to move.
-     * \param dt The time difference to move from the given waypoint.
-     * \return The adjusted waypoint.
+     * Sets the predicted trajectory horizon, i.e., pruning predictions that are 
+     * "too far ahead", or extending predictions to reach that horizon.
+     * \note This function will always preserve the starting point (stem), which can be reset with set_start_point.
+     * \param t The new horizon for the predictions kept .
      */
-    waypoint_point_pair move_away_from(const waypoint_point_pair& wp, const time_difference_type& dt) const {
-      const_waypoint_descriptor cit = wp.first;
-      time_difference_type dt_tot = cit->point.time - wp.second.time;
-      while(dt_tot < dt) {
-        ++cit;
-        if(cit == waypoints.end())
-	  return waypoint_point_pair((++(waypoints.rbegin())).base(),point_type(wp.second.time + dt, wp.second.pt));
-        dt_tot = cit->point.time - wp.second.time;
+    void set_exact_horizon(const time_type& t) {
+      if( t > get_current_horizon() ) {
+        set_minimal_horizon(t);
+        return;
       };
-      const point_type& tmp = cit->point;
-      return waypoint_point_pair(--cit,space->move_position_toward(wp.second,dt / dt_tot,tmp));
+      
+      waypoint_descriptor it = waypoints.lower_bound(t);
+      ++it; // <- this means that the pruning "conservative", and also, will always keep the beginning iterator.
+      waypoints.erase(it, waypoints.end());
+      updated_end = waypoints.end();
+      
     };
+    
+    
     /**
      * Returns the travel distance, along the trajectory, from one waypoint to another.
      * \param wp1 The first waypoint.
      * \param wp2 The second waypoint.
      * \return The travel distance, along the trajectory, from wp1 to wp2.
      */
-    double travel_distance(const waypoint_point_pair& wp1, const waypoint_point_pair& wp2) const {
+    double travel_distance(waypoint_point_pair wp1, const waypoint_point_pair& wp2) const {
+      if(wp1.second.time > wp2.second.time)
+        return travel_distance(wp2, wp1);
+      
       if(wp1.first == wp2.first)
-	return get(pp::distance_metric, *space)(wp1.second, wp2.second, *space);
+        return get(pp::distance_metric, *space)(wp1.second, wp2.second, *space);
       ++(wp1.first);
       if(wp1.first == waypoints.end())
-	return get(pp::distance_metric, *space)(wp1.second, wp2.second, *space);
-      double sum = get(pp::distance_metric, *space)(wp1.second, wp1.first->point, *space);
+        return get(pp::distance_metric, *space)(wp1.second, wp2.second, *space);
+      double sum = get(pp::distance_metric, *space)(wp1.second, wp1.first->second.point, *space);
       while( wp1.first != wp2.first ) {
-	const point_type& tmp = wp1.first->point;
-	++(wp1.first);
-	sum += get(pp::distance_metric, *space)(tmp, wp1.first->point, *space);
+        const point_type& tmp = wp1.first->second.point;
+        ++(wp1.first);
+        sum += get(pp::distance_metric, *space)(tmp, wp1.first->second.point, *space);
       };
-      sum += get(pp::distance_metric, *space)(wp2.first->point, wp2.second, *space);
+      sum += get(pp::distance_metric, *space)(wp2.first->second.point, wp2.second, *space);
       return sum;
     };
+    
     /**
      * Gets the waypoint that is associated to a time just before the given time.
+     * \note This function might add the necessary amount of waypoint predictions to provide a belief at the given time.
      * \param t The time at which the waypoint is sought.
-     * \return The waypoint that is associated to a time just before the given time.
+     * \return The waypoint that is associated to a time just before the given time, and an interpolated approximation of the belief-state at the given time.
      */
-    waypoint_point_pair get_waypoint(const time_type& t) const {
-      const_waypoint_descriptor it = waypoints.begin();
-      for(; it != waypoints.end(); ++it) {
-	if(t < it->point.time)
-	  break;
+    waypoint_point_pair get_waypoint_at_time(const time_type& t) {
+      
+      waypoint_descriptor it = waypoints.lower_bound(t);
+      
+      waypoint_descriptor last_valid = updated_end; --last_valid;
+      while( ( updated_end != waypoints.end() ) && ( last_valid->first < t ) ) {
+        updated_end->second.point.pt = last_valid->second.predictor.predict_belief(
+          space->get_space_topology(), 
+          last_valid->second.point.pt, last_valid->second.point.time, 
+          input.get_point_at_time(last_valid->second.point.time));
+        ++last_valid; ++updated_end;
       };
-      if(it == waypoints.end())
-	it = (++(waypoints.rbegin()).base();
-      else
-	--it;
-      return waypoint_point_pair(it, it->point);
+      
+      if(it == waypoints.end()) {
+        // must perform predictions from end to past time t.
+        while( last_valid->first < t ) {
+          updated_end = waypoints.insert(waypoints.end(), container_value(
+            last_valid->first + it->predictor.get_time_step(), 
+            last_valid->second));
+          updated_end->second.point.pt = last_valid->second.predictor.predict_belief(
+            space->get_space_topology(), 
+            last_valid->second.point.pt, last_valid->first, 
+            input.get_point_at_time(last_valid->first));
+          updated_end->second.point.time = updated_end->first;
+          last_valid = updated_end;
+        };
+        updated_end = waypoints.end();
+        it = last_valid;
+      };
+      
+      waypoint_point_pair result(it, it->second.point);
+      --(result.first);
+      result.second.time = t;
+      
+      time_difference_type dt_total = it->first - result.first->first;
+      time_difference_type dt       = t - result.first->first;
+      result.second.pt = space->get_space_topology().move_position_toward(result.first->second.point.pt, dt / dt_total, it->second.point.pt);
+      
+      return result;
     };
     
     /**
-     * Resets the initial point of the predicted trajector with a waypoint and an associated time. 
-     * This function triggers the elimination of all waypoints prior to this time and triggers 
-     * the recomputation of the belief predictions of all waypoints after this time.
-     * \param wp The waypoint that will become the first, initial waypoint.
-     * \param t The time of the initial waypoint.
+     * Gets the point that is associated to a time just before the given time.
+     * \param t The time at which the point is sought.
+     * \return The point that is associated to a time just before the given time.
      */
-    void set_initial_point(const waypoint_point_pair& wp, time_type t) {
-      const_waypoint_descriptor cit = wp.first;
-      waypoint_descriptor it = waypoints.begin();
-      std::advance(it, std::distance<const_waypoint_descriptor>(it,cit));
-      it->point = wp.second;
-      waypoints.erase(waypoints.begin(),it);
-      belief_state b = it->point.pt;
-      for(;it != waypoints.end();++it) {
-	it->point = point_type(t, b);
-	b = it->predictor.predict_belief(space->get_space_topology(), b, t, input.get_point(t));
-	t = t + it->predictor.get_time_step();
-      };
+    point_type get_point_at_time(const time_type& t) {
+      return get_waypoint_at_time(t).second;
     };
     
-    /**
-     * Moves the belief-point forward by a time-difference (or backward if negative). 
-     * \note It is more efficient to use the overload of this function that uses a waypoint, if the waypoint is already known.
-     * \param wp The waypoint from which to move.
-     * \param dt The time difference to move from the given waypoint.
-     * \return The adjusted waypoint.
-     */
-    point_type move_away_from(const point_type& pt, const time_difference_type& dt) const {
-      waypoint_point_pair wp = get_waypoint(pt.time);
-      wp.second = pt;
-      return move_away_from(wp,dt).second;
-    };
     /**
      * Returns the travel distance, along the trajectory, from one belief-point to another.
      * \note It is more efficient to use the overload of this function that uses a waypoint, if the waypoint is already known.
@@ -360,32 +316,227 @@ class belief_predicted_trajectory {
      * \return The travel distance, along the trajectory, from p1 to p2.
      */
     double travel_distance(const point_type& p1, const point_type& p2) const {
-      waypoint_point_pair wp1 = get_waypoint(p1.time); wp1.second = p1;
-      waypoint_point_pair wp2 = get_waypoint(p2.time); wp2.second = p2;
+      waypoint_point_pair wp1 = get_waypoint_at_time(p1.time); wp1.second = p1;
+      waypoint_point_pair wp2 = get_waypoint_at_time(p2.time); wp2.second = p2;
       return travel_distance(wp1,wp2);
     };
+    
     /**
-     * Gets the point that is associated to a time just before the given time.
-     * \param t The time at which the point is sought.
-     * \return The point that is associated to a time just before the given time.
+     * Moves the belief-point of a waypoint forward by a time-difference (or backward if negative).
+     * \note This function might add the necessary amount of waypoint predictions to provide a belief at the given time.
+     * \param wp The waypoint from which to move.
+     * \param dt The time difference to move from the given waypoint.
+     * \return The adjusted waypoint.
      */
-    point_type get_point(const time_type& t) const {
-      return get_waypoint(t).second;
+    waypoint_point_pair move_time_diff_from(const waypoint_point_pair& wp, const time_difference_type& dt) {
+      return get_waypoint_at_time(wp.second.time + dt);
     };
-
+    
+    /**
+     * Moves the belief-point forward by a time-difference (or backward if negative). 
+     * \note This function might add the necessary amount of waypoint predictions to provide a belief at the given time.
+     * \param wp The waypoint from which to move.
+     * \param dt The time difference to move from the given waypoint.
+     * \return The adjusted waypoint.
+     */
+    point_type move_time_diff_from(const point_type& pt, const time_difference_type& dt) {
+      return get_waypoint_at_time(pt.time + dt).second;
+    };
+    
+    
+    
+    /**
+     * Returns the starting point of the waypoints.
+     * \return The starting point of the waypoints.
+     */
+    const point_type& get_start_point() const {
+      return waypoints.begin()->second;
+    };
+    
+    /**
+     * Returns the starting waypoint-point-pair of the waypoints.
+     * \return The starting waypoint-point-pair of the waypoints.
+     */
+    waypoint_pair get_start_waypoint() const {
+      const_waypoint_descriptor start = waypoints.begin();
+      return waypoint_pair(start, start->second);
+    };
+    
+    /**
+     * Returns the end point of the waypoints.
+     * \return The end point of the waypoints.
+     */
+    const point_type& get_end_point() const {
+      return waypoints.rbegin()->second;
+    };
+    
+    /**
+     * Returns the end waypoint-point-pair of the waypoints.
+     * \return The end waypoint-point-pair of the waypoints.
+     */
+    waypoint_pair get_end_waypoint() const {
+      const_waypoint_descriptor end = (++waypoints.rbegin()).base();
+      return waypoint_pair(end, end->second);
+    };
+    
+    
     /**
      * Resets the initial point of the predicted trajector with a point and an associated time. 
      * This function triggers the elimination of all waypoints prior to this time and triggers 
      * the recomputation of the belief predictions of all waypoints after this time.
-     * \note It is more efficient to use the overload of this function that uses a waypoint, if the waypoint is already known.
      * \param pt The point that will become the first, initial waypoint.
-     * \param t The time of the initial point.
      */
-    void set_initial_point(const point_type& pt, time_type t) {
-      waypoint_point_pair wp = get_waypoint(t);
-      wp.second = pt;
-      set_initial_point(wp,t);
+    void set_start_point(const point_type& pt, const predictor_type& pred) {
+      using std::fabs;
+      
+      waypoint_descriptor it = waypoints.lower_bound(pt.time - 0.5 * dt);
+      // check if the time difference is too much:
+      if( fabs(pt.time - it->first) > 1e-4 * dt ) {
+        // we have to completely reset the entire container:
+        waypoints.clear();
+        waypoints.insert(waypoints.end(), container_value(pt.time, waypoint(pt, pred)));
+        updated_end = waypoints.end();
+        return;
+      };
+      
+      waypoints.erase(waypoints.begin(), it);
+      
+      it->second.point.time = it->first;
+      it->second.point.pt   = pt.pt;
+      it->second.predictor  = pred;
+      updated_end = it; ++updated_end;
+      
     };
+    
+    
+    /**
+     * Returns the starting time of the predictions.
+     * \return The starting time of the predictions.
+     */
+    time_type get_start_time() const {
+      return waypoints.begin()->first;
+    };
+    
+    /**
+     * Returns the end time of the predictions.
+     * \return The end time of the predictions.
+     */
+    time_type get_end_time() const {
+      return std::numeric_limits< time_type >::infinity();
+    };
+    
+    
+    
+    
+    
+    struct point_time_iterator {
+      const self* parent;
+      time_type current_time;
+      time_type end_time;
+      
+      point_time_iterator(const self* aParent, time_type aCurrentTime) :
+                          parent(aParent), current_time(aCurrentTime), end_time(parent->get_current_horizon()) { };
+      
+      explicit point_time_iterator(const self* aParent) :
+                                   parent(aParent), current_time(parent->get_current_horizon()), end_time(current_time) { };
+      
+      friend point_time_iterator& operator+=(point_time_iterator& lhs, double rhs) {
+        lhs.current_time += rhs;
+        if(current_time > end_time)
+          current_time = end_time;
+        return *this;
+      };
+      
+      friend point_time_iterator operator+(point_time_iterator lhs, double rhs) { return (lhs += rhs); };
+      friend point_time_iterator operator+(double lhs, point_time_iterator rhs) { return (rhs += lhs); };
+      friend point_time_iterator operator-(point_time_iterator lhs, double rhs) { return (lhs += -rhs); };
+      friend point_time_iterator& operator-=(point_time_iterator& lhs, double rhs) { return (lhs += -rhs); };
+      
+      friend bool operator==(const point_time_iterator& lhs, const point_time_iterator& rhs) {
+        return ( ( lhs.parent == rhs.parent ) && ( lhs.current_time == rhs.current_time ) );
+      };
+      friend bool operator!=(const point_time_iterator& lhs, const point_time_iterator& rhs) { return !(lhs == rhs); };
+      
+      point_type operator*() const {
+        return parent->get_point_at_time(current_time);
+      };
+      
+    };
+    
+    /**
+     * Returns the starting time-iterator along the trajectory.
+     * \return The starting time-iterator along the trajectory.
+     */
+    point_time_iterator begin_time_travel() const {
+      return point_time_iterator(this, this->waypoints.begin()->first);
+    };
+    
+    /**
+     * Returns the end time-iterator along the trajectory.
+     * \return The end time-iterator along the trajectory.
+     */
+    point_time_iterator end_time_travel() const {
+      return point_time_iterator(this);
+    };
+    
+    
+    
+    struct point_fraction_iterator {
+      const self* parent;
+      time_difference_type interval_time;
+      time_type current_time;
+      time_type end_time;
+      
+      point_fraction_iterator(const self* aParent, time_difference_type aDeltaTime, time_type aCurrentTime) :
+                              parent(aParent), interval_time(aDeltaTime), 
+                              current_time(aCurrentTime), end_time(parent->get_current_horizon()) { };
+      
+      point_fraction_iterator(const self* aParent, time_difference_type aDeltaTime) :
+                              parent(aParent), interval_time(aDeltaTime), 
+                              current_time(parent->get_current_horizon()), end_time(current_time) { };
+      
+      friend point_fraction_iterator& operator+=(point_fraction_iterator& lhs, double rhs) {
+        current_time += interval_time * rhs;
+        if(current_time > end_time)
+          current_time = end_time;
+        return *this;
+      };
+      
+      friend point_fraction_iterator operator+(point_fraction_iterator lhs, double rhs) { return (lhs += rhs); };
+      friend point_fraction_iterator operator+(double lhs, point_fraction_iterator rhs) { return (rhs += lhs); };
+      friend point_fraction_iterator operator-(point_fraction_iterator lhs, double rhs) { return (lhs += -rhs); };
+      friend point_fraction_iterator& operator-=(point_fraction_iterator& lhs, double rhs) { return (lhs += -rhs); };
+      
+      friend bool operator==(const point_fraction_iterator& lhs, const point_fraction_iterator& rhs) {
+        return ( ( lhs.parent == rhs.parent ) && ( lhs.current_time == rhs.current_time ) );
+      };
+      friend bool operator!=(const point_fraction_iterator& lhs, const point_fraction_iterator& rhs) { return !(lhs == rhs); };
+      
+      point_type operator*() const {
+        return parent->get_point_at_time(current_time);
+      };
+      
+    };
+    
+    /**
+     * Returns the starting fraction-iterator along the trajectory.
+     * \return The starting fraction-iterator along the trajectory.
+     */
+    point_fraction_iterator begin_fraction_travel() const {
+      return point_fraction_iterator(this, this->waypoints.begin()->second.predictor.get_time_step(), this->waypoints.begin()->first);
+    };
+    
+    /**
+     * Returns the end fraction-iterator along the trajectory.
+     * \return The end fraction-iterator along the trajectory.
+     */
+    point_fraction_iterator end_fraction_travel() const {
+      return point_fraction_iterator(this, this->waypoints.begin()->second.predictor.get_time_step());
+    };
+    
+    
+    
+    
     
 };
 

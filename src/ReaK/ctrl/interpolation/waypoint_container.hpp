@@ -471,7 +471,7 @@ class waypoint_container_base< temporal_space<SpaceTopology, TimeTopology, Dista
       };
       
       friend 
-      bool operator==(const point_time_iterator& lhs, const point_time_iterator& rhs) {
+      bool operator==(const point_fraction_iterator& lhs, const point_fraction_iterator& rhs) {
         using std::fabs;
         if( ( lhs.parent == rhs.parent ) && 
             ( lhs.current_wpb.first == rhs.current_wpb.first ) &&
