@@ -14,11 +14,18 @@ implement the dynamic topologies and planners
     test interpolated_trajectory   
   add iterators to the constant_trajectory   ------------------------------------X
   create protected-virtual functions in the waypoint-cont-base   ----------------X
-  add iterators to the belief_predicted_trajectory   
+  add iterators to the belief_predicted_trajectory   ----------------------------X
     test belief_predicted_trajectory   
-  implement the intercept_query   
-    implement the search alg. to find intercept-point   
-  
+  create a topo-map from belief to max-likelihood   
+  implement the intercept_query   -----------------------------------------------X
+    implement the search alg. to find intercept-point   -------------------------X
+  add the capability to load target trajectories to app   
+  add the capability to run dyn intercept queries to app   
+  create a simulation program to generate target trajectories   
+    add real-time feeding of noisy data   
+  add the capability to load a belief predictor   
+    plug the belief predictor into the intercept queries   
+  add mechanisms, somewhere (?), to delay motion-plan start   
 
 
 finish reachability sorting algorithm

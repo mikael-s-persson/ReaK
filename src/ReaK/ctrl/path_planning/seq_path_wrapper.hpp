@@ -65,6 +65,8 @@ class seq_path_wrapper : public seq_path_base< typename sequential_path_traits<S
     
     BOOST_CONCEPT_ASSERT((SequentialPathConcept<SequentialPath,topology>));
     
+    typedef SequentialPath wrapped_type;
+    
   protected:
     SequentialPath m_traj;
     
@@ -131,8 +133,11 @@ class seq_path_wrapper : public seq_path_base< typename sequential_path_traits<S
     typedef typename base_type::point_distance_iterator point_distance_iterator;
     typedef typename base_type::point_fraction_iterator point_fraction_iterator;
     
-    SequentialPath& get_underlying_path() { return m_traj; };
-    const SequentialPath& get_underlying_path() const { return m_traj; };
+    wrapped_type& get_underlying_path() { return m_traj; };
+    const wrapped_type& get_underlying_path() const { return m_traj; };
+    
+    wrapped_type& get_wrapped_object() { return m_traj; };
+    const wrapped_type& get_wrapped_object() const { return m_traj; };
     
     /**
      * Constructs the trajectory from a space, assumes the start and end are at the origin 

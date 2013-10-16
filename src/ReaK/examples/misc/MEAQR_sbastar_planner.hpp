@@ -53,6 +53,7 @@
 #include "path_planning/metric_space_search.hpp"
 #include "path_planning/topological_search.hpp"
 
+#include "path_planning/p2p_planning_query.hpp"
 #include "path_planning/path_planner_options.hpp"
 #include "graph_alg/neighborhood_functors.hpp"
 #include "path_planning/any_motion_graphs.hpp"

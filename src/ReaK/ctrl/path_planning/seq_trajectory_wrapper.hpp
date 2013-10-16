@@ -65,6 +65,8 @@ class seq_trajectory_wrapper : public seq_trajectory_base< typename sequential_t
     
     BOOST_CONCEPT_ASSERT((SequentialTrajectoryConcept<SequentialTraj,topology>));
     
+    typedef SequentialTraj wrapped_type;
+    
   protected:
     SequentialTraj m_traj;
     
@@ -98,7 +100,7 @@ class seq_trajectory_wrapper : public seq_trajectory_base< typename sequential_t
     };
     
     typedef typename base_type::point_fraction_iterator_impl base_pt_frac_iterator_impl;
-    typedef typename sequential_trajectory_traits<SequentialPath>::point_fraction_iterator gen_pt_frac_iterator;
+    typedef typename sequential_trajectory_traits<SequentialTraj>::point_fraction_iterator gen_pt_frac_iterator;
     
     struct point_fraction_iterator_impl : public base_pt_frac_iterator_impl {
       
@@ -131,8 +133,11 @@ class seq_trajectory_wrapper : public seq_trajectory_base< typename sequential_t
     typedef typename base_type::point_time_iterator point_time_iterator;
     typedef typename base_type::point_fraction_iterator point_fraction_iterator;
     
-    SequentialTraj& get_underlying_trajectory() { return m_traj; };
-    const SequentialTraj& get_underlying_trajectory() const { return m_traj; };
+    wrapped_type& get_underlying_trajectory() { return m_traj; };
+    const wrapped_type& get_underlying_trajectory() const { return m_traj; };
+    
+    wrapped_type& get_wrapped_object() { return m_traj; };
+    const wrapped_type& get_wrapped_object() const { return m_traj; };
     
     /**
      * Constructs the trajectory from a space, assumes the start and end are at the origin 

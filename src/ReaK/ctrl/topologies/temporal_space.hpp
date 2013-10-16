@@ -105,6 +105,15 @@ struct temporal_point : public serialization::serializable {
     RK_RTTI_MAKE_ABSTRACT_1BASE(self,0x0000002E,1,"temporal_point",serialization::serializable)
 };
 
+
+struct temporal_point_time_ordering {
+  template <typename TempPoint>
+  bool operator()(const TempPoint& lhs, const TempPoint& rhs) const {
+    return lhs.time < rhs.time;
+  };
+};
+
+
 /**
  * This nested type represents the difference between two points of the temporal-space.
  */

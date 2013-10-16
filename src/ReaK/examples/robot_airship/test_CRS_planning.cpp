@@ -58,6 +58,7 @@
 #include "topologies/direct_kinematics_topomap.hpp"
 #include "topologies/inverse_kinematics_topomap.hpp"
 #include "path_planning/frame_tracer_coin3d.hpp"
+#include "path_planning/p2p_planning_query.hpp"
 
 
 struct all_robot_info {

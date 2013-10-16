@@ -102,7 +102,7 @@ class seq_trajectory_base : public named_object {
         
       public:
         
-        point_time_iterator(point_distance_iterator_impl* aPImpl) : p_impl(aPImpl) { };
+        point_time_iterator(point_time_iterator_impl* aPImpl) : p_impl(aPImpl) { };
         
         point_time_iterator(const point_time_iterator& rhs) : p_impl(rhs.p_impl->clone()) { };
 #ifdef RK_ENABLE_CXX11_FEATURES

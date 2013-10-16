@@ -54,6 +54,7 @@
 #include "metric_space_search.hpp"
 #include "topological_search.hpp"
 
+#include "p2p_planning_query.hpp"
 #include "path_planner_options.hpp"
 #include "any_motion_graphs.hpp"
 #include "planning_visitors.hpp"
