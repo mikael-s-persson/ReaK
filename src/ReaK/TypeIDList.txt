@@ -242,6 +242,8 @@ gaussian_belief_space<S,C>  0xC2300011   bin: 1100 0010 0011 0000 0000 0000 0001
 dt_ih_lqr_controller        0xC2300012   bin: 1100 0010 0011 0000 0000 0000 0001 0010  D-R
 ct_ih_lqr_controller        0xC2300013   bin: 1100 0010 0011 0000 0000 0000 0001 0011  D-R
 
+maximum_likelihood_map<S>   0xC2300014   bin: 1100 0010 0011 0000 0000 0000 0001 0100  D-R
+
 
 
 

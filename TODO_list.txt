@@ -16,7 +16,7 @@ implement the dynamic topologies and planners
   create protected-virtual functions in the waypoint-cont-base   ----------------X
   add iterators to the belief_predicted_trajectory   ----------------------------X
     test belief_predicted_trajectory   
-  create a topo-map from belief to max-likelihood   
+  create a topo-map from belief to max-likelihood   -----------------------------X
   implement the intercept_query   -----------------------------------------------X
     implement the search alg. to find intercept-point   -------------------------X
   add the capability to load target trajectories to app   
