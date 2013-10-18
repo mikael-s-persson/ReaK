@@ -1,6 +1,19 @@
+/**
+ * \file satellite_basic_models.hpp
+ * 
+ * This library contains a number of discrete-time state-space systems to describe the dynamics
+ * of a free-floating satellite. These are basic and simplified models, with no complex forces 
+ * applied, just free-floating dynamics with 6 dof actuation forces applied to it. These systems
+ * benefit from a special integration method called the "momentum-conserving trapezoidal method" (TRAPM),
+ * which is an invariant variational method that guarantees conservation of angular momentum 
+ * when no actuation is applied, i.e., it is an efficient and highly stable method.
+ * 
+ * \author Mikael Persson, <mikael.s.persson@gmail.com>
+ * \date October 2013
+ */
 
 /*
- *    Copyright 2011 Sven Mikael Persson
+ *    Copyright 2013 Sven Mikael Persson
  *
  *    THIS SOFTWARE IS DISTRIBUTED UNDER THE TERMS OF THE GNU GENERAL PUBLIC LICENSE v3 (GPLv3).
  *
@@ -21,8 +34,8 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef SATELLITE_BASIC_MODELS_HPP
-#define SATELLITE_BASIC_MODELS_HPP
+#ifndef REAK_SATELLITE_BASIC_MODELS_HPP
+#define REAK_SATELLITE_BASIC_MODELS_HPP
 
 #include "base/named_object.hpp"
 
@@ -41,7 +54,14 @@ namespace ctrl {
 
 
 
-
+/**
+ * This class implements a basic linearized discrete-time state-space system for 
+ * simple free-floating dynamics characteristic of satellites in orbit. This system
+ * benefits from a special integration method called the "momentum-conserving trapezoidal method" (TRAPM),
+ * which is an invariant variational method that guarantees conservation of angular momentum 
+ * when no actuation is applied, i.e., it is an efficient and highly stable method.
+ * Also, this system operates within a first-order (once-differentiable) SE(3) topology.
+ */
 class satellite3D_lin_dt_system : public named_object {
   public:
   
@@ -67,7 +87,7 @@ class satellite3D_lin_dt_system : public named_object {
     
     struct zero_input_trajectory {
       input_type get_point(time_type) const {
-	return input_type(0.0,0.0,0.0,0.0,0.0,0.0);
+        return input_type(0.0,0.0,0.0,0.0,0.0,0.0);
       };
     };
     
@@ -79,27 +99,77 @@ class satellite3D_lin_dt_system : public named_object {
     
   public:
     
+    /**
+     * Constructor.
+     * \param aName The name for this object.
+     * \param aMass The mass of the satellite.
+     * \param aInertiaMoment The inertia tensor of the satellite.
+     * \param aDt The time-step for this discrete-time system.
+     */
     satellite3D_lin_dt_system(const std::string& aName = "", 
-			      double aMass = 1.0, 
-			      const mat<double,mat_structure::symmetric>& aInertiaMoment = (mat<double,mat_structure::symmetric>(mat<double,mat_structure::identity>(3))),
-			      double aDt = 0.001); 
-  
-    virtual ~satellite3D_lin_dt_system() { };
+                              double aMass = 1.0, 
+                              const mat<double,mat_structure::symmetric>& aInertiaMoment = (mat<double,mat_structure::symmetric>(mat<double,mat_structure::identity>(3))),
+                              double aDt = 0.001); 
     
+    /**
+     * This function returns the time-step for this discrete-time system.
+     * \return The time-step for this discrete-time system.
+     */
     time_difference_type get_time_step() const { return mDt; };
     
-    virtual point_type get_next_state(const state_space_type&, const point_type& x, const input_type& u, const time_type& t = 0.0) const;
+    /**
+     * This function computes the next state of the system, i.e., the state at one time-step after the current time.
+     * \param space The state-space within which the states reside.
+     * \param x The current state of the system.
+     * \param u The current input being applied to the system.
+     * \param t The current time.
+     * \return The state after one time-step beyond the given current state of the system.
+     */
+    virtual point_type get_next_state(const state_space_type& space, const point_type& x, const input_type& u, const time_type& t = 0.0) const;
     
+    /**
+     * This function computes the linearization of the state-transitions of the system.
+     * In other words, it populates the system matrices with the values appropriate for 
+     * the given state-transition.
+     * \param A Holds, as output, the state-to-state jacobian matrix of the state-transition of the system.
+     * \param B Holds, as output, the input-to-state jacobian matrix of the state-transition of the system.
+     * \param space The state-space within which the states reside.
+     * \param t_0 The time before the state-transition occurred.
+     * \param t_1 The time after the state-transition occurred.
+     * \param p_0 The state before the state-transition occurred.
+     * \param p_1 The state after the state-transition occurred.
+     * \param u_0 The input before the state-transition occurred.
+     * \param u_1 The input after the state-transition occurred.
+     */
     virtual void get_state_transition_blocks(matrixA_type& A, matrixB_type& B, 
-				     const state_space_type&, 
-				     const time_type& t_0, const time_type&,
-				     const point_type& p_0, const point_type&,
-				     const input_type&, const input_type&) const;
+                                             const state_space_type& space, 
+                                             const time_type& t_0, const time_type& t_1,
+                                             const point_type& p_0, const point_type& p_1,
+                                             const input_type& u_0, const input_type& u_1) const;
     
-    virtual output_type get_output(const state_space_type&, const point_type& x, const input_type& u, const time_type& t = 0.0) const;
+    /**
+     * This function computes the output of the system corresponding to the current state.
+     * \param space The state-space within which the states reside.
+     * \param x The current state of the system.
+     * \param u The current input being applied to the system.
+     * \param t The current time.
+     * \return The output for the given current state of the system.
+     */
+    virtual output_type get_output(const state_space_type& space, const point_type& x, const input_type& u, const time_type& t = 0.0) const;
     
-    virtual void get_output_function_blocks(matrixC_type& C, matrixD_type& D, const state_space_type&, 
-				    const time_type&, const point_type&, const input_type&) const;
+    /**
+     * This function computes the linearization of the output-function of the system.
+     * In other words, it populates the system matrices with the values appropriate at 
+     * the given state.
+     * \param C Holds, as output, the state-to-output jacobian matrix of the output-function of the system.
+     * \param D Holds, as output, the input-to-output jacobian matrix of the output-function of the system.
+     * \param space The state-space within which the states reside.
+     * \param t The current time.
+     * \param p The current state of the system.
+     * \param u The input at the current time.
+     */
+    virtual void get_output_function_blocks(matrixC_type& C, matrixD_type& D, const state_space_type& space, 
+                                            const time_type& t, const point_type& p, const input_type& u) const;
     
 /*******************************************************************************
                    ReaK's RTTI and Serialization interfaces
@@ -117,11 +187,11 @@ class satellite3D_lin_dt_system : public named_object {
         & RK_SERIAL_LOAD_WITH_NAME(mInertiaMoment)
         & RK_SERIAL_LOAD_WITH_NAME(mDt);
       if((mInertiaMoment.get_row_count() != 3) || (mMass < std::numeric_limits< double >::epsilon()))
-	throw system_incoherency("Inertial information is improper in satellite3D_lin_dt_system's definition");
+        throw system_incoherency("Inertial information is improper in satellite3D_lin_dt_system's definition");
       try {
         invert_Cholesky(mInertiaMoment,mInertiaMomentInv);
       } catch(singularity_error&) {
-	throw system_incoherency("Inertial tensor is singular in satellite3D_lin_dt_system's definition");
+        throw system_incoherency("Inertial tensor is singular in satellite3D_lin_dt_system's definition");
       };
     };
 
@@ -133,6 +203,16 @@ class satellite3D_lin_dt_system : public named_object {
 
 
 
+/**
+ * This class implements a basic linearized discrete-time state-space system for 
+ * simple free-floating dynamics characteristic of satellites in orbit. In this class,
+ * the measurements (output) from gyros is incorporated into the system, that is, measurements
+ * of the angular velocity is available. This system benefits from a special integration method 
+ * called the "momentum-conserving trapezoidal method" (TRAPM), which is an invariant variational 
+ * method that guarantees conservation of angular momentum when no actuation is applied, i.e., 
+ * it is an efficient and highly stable method. Also, this system operates within a first-order 
+ * (once-differentiable) SE(3) topology.
+ */
 class satellite3D_gyro_lin_dt_system : public satellite3D_lin_dt_system {
   public:
   
@@ -160,17 +240,22 @@ class satellite3D_gyro_lin_dt_system : public satellite3D_lin_dt_system {
     
   public:
     
+    /**
+     * Constructor.
+     * \param aName The name for this object.
+     * \param aMass The mass of the satellite.
+     * \param aInertiaMoment The inertia tensor of the satellite.
+     * \param aDt The time-step for this discrete-time system.
+     */
     satellite3D_gyro_lin_dt_system(const std::string& aName = "", 
-			           double aMass = 1.0, 
-			           const mat<double,mat_structure::symmetric>& aInertiaMoment = (mat<double,mat_structure::symmetric>(mat<double,mat_structure::identity>(3))),
-			           double aDt = 0.001); 
-  
-    virtual ~satellite3D_gyro_lin_dt_system() { };
+                                   double aMass = 1.0, 
+                                   const mat<double,mat_structure::symmetric>& aInertiaMoment = (mat<double,mat_structure::symmetric>(mat<double,mat_structure::identity>(3))),
+                                   double aDt = 0.001); 
     
     virtual output_type get_output(const state_space_type&, const point_type& x, const input_type& u, const time_type& t = 0.0) const;
     
     virtual void get_output_function_blocks(matrixC_type& C, matrixD_type& D, const state_space_type&, 
-				    const time_type&, const point_type&, const input_type&) const;
+                                            const time_type&, const point_type&, const input_type&) const;
     
 /*******************************************************************************
                    ReaK's RTTI and Serialization interfaces
@@ -197,6 +282,14 @@ class satellite3D_gyro_lin_dt_system : public satellite3D_lin_dt_system {
 
 
 
+/**
+ * This class implements an invariantized discrete-time state-space system for 
+ * simple free-floating dynamics characteristic of satellites in orbit. This system
+ * benefits from a special integration method called the "momentum-conserving trapezoidal method" (TRAPM),
+ * which is an invariant variational method that guarantees conservation of angular momentum 
+ * when no actuation is applied, i.e., it is an efficient and highly stable method.
+ * Also, this system operates within a first-order (once-differentiable) SE(3) topology.
+ */
 class satellite3D_inv_dt_system : public satellite3D_lin_dt_system {
   public:
     
@@ -228,30 +321,78 @@ class satellite3D_inv_dt_system : public satellite3D_lin_dt_system {
     
     typedef satellite3D_lin_dt_system::zero_input_trajectory zero_input_trajectory;
     
+    /**
+     * Constructor.
+     * \param aName The name for this object.
+     * \param aMass The mass of the satellite.
+     * \param aInertiaMoment The inertia tensor of the satellite.
+     * \param aDt The time-step for this discrete-time system.
+     */
     satellite3D_inv_dt_system(const std::string& aName = "", 
-			      double aMass = 1.0, 
-			      const mat<double,mat_structure::symmetric>& aInertiaMoment = (mat<double,mat_structure::symmetric>(mat<double,mat_structure::identity>(3))),
-			      double aDt = 0.001); 
-  
-    virtual ~satellite3D_inv_dt_system() { };
+                              double aMass = 1.0, 
+                              const mat<double,mat_structure::symmetric>& aInertiaMoment = (mat<double,mat_structure::symmetric>(mat<double,mat_structure::identity>(3))),
+                              double aDt = 0.001); 
     
     void get_state_transition_blocks(matrixA_type& A, matrixB_type& B, const state_space_type&, 
-				     const time_type& t_0, const time_type&,
-				     const point_type& p_0, const point_type&,
-				     const input_type&, const input_type&) const;
+                                     const time_type& t_0, const time_type&,
+                                     const point_type& p_0, const point_type&,
+                                     const input_type&, const input_type&) const;
     
     void get_output_function_blocks(matrixC_type& C, matrixD_type& D, const state_space_type&, 
-				    const time_type&, const point_type&, const input_type&) const;
+                                    const time_type&, const point_type&, const input_type&) const;
     
-    virtual invariant_error_type get_invariant_error(const state_space_type&, const point_type& x, const input_type& u, const output_type& y, const time_type& t) const;
+    /**
+     * This function computes the invariant output-error of the system corresponding to the current state and the given output.
+     * \param space The state-space within which the states reside.
+     * \param x The current state of the system.
+     * \param u The current input being applied to the system.
+     * \param y The output against which to compute the invariant error.
+     * \param t The current time.
+     * \return The invariant output-error for the given state and output.
+     */
+    virtual invariant_error_type get_invariant_error(const state_space_type& space, 
+                                                     const point_type& x, const input_type& u, 
+                                                     const output_type& y, const time_type& t) const;
     
-    virtual point_type apply_correction(const state_space_type&, const point_type& x, const invariant_correction_type& c, const input_type&, const time_type&) const;
+    /**
+     * This function computes a state corresponding to the given state corrected by a given invariant term.
+     * \param space The state-space within which the states reside.
+     * \param x The current state of the system.
+     * \param c The invariant correction term to apply to the state.
+     * \param u The current input being applied to the system.
+     * \param t The current time.
+     * \return The corrected state of the system.
+     */
+    virtual point_type apply_correction(const state_space_type& space, const point_type& x, const invariant_correction_type& c, 
+                                        const input_type& u, const time_type& t) const;
     
-    virtual invariant_frame_type get_invariant_prior_frame(const state_space_type&, const point_type&, const point_type&, const input_type&, const time_type&) const {
+    /**
+     * This function computes the invariant frame transition matrix for the prior stage, 
+     * i.e., during a state transition from x_0 to x_1, what invariant frame transition matrix
+     * describes the shift from one frame to the other.
+     * \param space The state-space within which the states reside.
+     * \param x_0 The state of the system before the state-transition.
+     * \param x_1 The state of the system after the state-transition.
+     * \param u The input being applied to the system before the state-transition.
+     * \param t The time before the state-transition.
+     * \return The invariant frame transition matrix for the prior stage.
+     */
+    virtual invariant_frame_type get_invariant_prior_frame(const state_space_type& space, const point_type& x_0, const point_type& x_1, const input_type& u, const time_type& t) const {
       return invariant_frame_type(mat<double,mat_structure::identity>(invariant_correction_dimensions));
     };
     
-    virtual invariant_frame_type get_invariant_posterior_frame(const state_space_type&, const point_type&, const point_type&, const input_type&, const time_type&) const {
+    /**
+     * This function computes the invariant frame transition matrix for the posterior stage, 
+     * i.e., during a state correction from x_0 to x_1, what invariant frame transition matrix
+     * describes the shift from one frame to the other.
+     * \param space The state-space within which the states reside.
+     * \param x_0 The state of the system before the correction.
+     * \param x_1 The state of the system after the correction.
+     * \param u The current input being applied to the system.
+     * \param t The current time.
+     * \return The invariant frame transition matrix for the posterior stage.
+     */
+    virtual invariant_frame_type get_invariant_posterior_frame(const state_space_type& space, const point_type& x_0, const point_type& x_1, const input_type& u, const time_type& t) const {
       return invariant_frame_type(mat<double,mat_structure::identity>(invariant_correction_dimensions));
     };
     
@@ -273,6 +414,16 @@ class satellite3D_inv_dt_system : public satellite3D_lin_dt_system {
 
 
 
+/**
+ * This class implements an invariantized discrete-time state-space system for 
+ * simple free-floating dynamics characteristic of satellites in orbit. In this class,
+ * the measurements (output) from gyros is incorporated into the system, that is, measurements
+ * of the angular velocity is available. This system benefits from a special integration method 
+ * called the "momentum-conserving trapezoidal method" (TRAPM), which is an invariant variational 
+ * method that guarantees conservation of angular momentum when no actuation is applied, i.e., 
+ * it is an efficient and highly stable method. Also, this system operates within a first-order 
+ * (once-differentiable) SE(3) topology.
+ */
 class satellite3D_gyro_inv_dt_system : public satellite3D_inv_dt_system {
   public:
   
@@ -306,17 +457,22 @@ class satellite3D_gyro_inv_dt_system : public satellite3D_inv_dt_system {
     
   public:
     
+    /**
+     * Constructor.
+     * \param aName The name for this object.
+     * \param aMass The mass of the satellite.
+     * \param aInertiaMoment The inertia tensor of the satellite.
+     * \param aDt The time-step for this discrete-time system.
+     */
     satellite3D_gyro_inv_dt_system(const std::string& aName = "", 
-			           double aMass = 1.0, 
-			           const mat<double,mat_structure::symmetric>& aInertiaMoment = (mat<double,mat_structure::symmetric>(mat<double,mat_structure::identity>(3))),
-			           double aDt = 0.001); 
-  
-    virtual ~satellite3D_gyro_inv_dt_system() { };
+                                   double aMass = 1.0, 
+                                   const mat<double,mat_structure::symmetric>& aInertiaMoment = (mat<double,mat_structure::symmetric>(mat<double,mat_structure::identity>(3))),
+                                   double aDt = 0.001); 
     
     virtual output_type get_output(const state_space_type&, const point_type& x, const input_type& u, const time_type& t = 0.0) const;
     
     virtual void get_output_function_blocks(matrixC_type& C, matrixD_type& D, const state_space_type&, 
-				    const time_type&, const point_type&, const input_type&) const;
+                                            const time_type&, const point_type&, const input_type&) const;
     
     virtual invariant_error_type get_invariant_error(const state_space_type&, const point_type& x, const input_type& u, const output_type& y, const time_type& t) const;
     

@@ -35,14 +35,9 @@ namespace ctrl {
 
 
 
-satellite3D_lin_dt_system::satellite3D_lin_dt_system(const std::string& aName, 
-                                                     double aMass,
-						     const mat<double,mat_structure::symmetric>& aInertiaMoment,
-						     double aDt) :
-						     named_object(),
-						     mMass(aMass),
-						     mInertiaMoment(aInertiaMoment),
-						     mDt(aDt) {
+satellite3D_lin_dt_system::satellite3D_lin_dt_system(
+  const std::string& aName, double aMass, const mat<double,mat_structure::symmetric>& aInertiaMoment, double aDt) :
+  named_object(), mMass(aMass), mInertiaMoment(aInertiaMoment), mDt(aDt) {
   setName(aName);
   if(mDt < std::numeric_limits< double >::epsilon())
     throw system_incoherency("The time step is below numerical tolerance in satellite3D_lin_dt_system's definition");
@@ -56,24 +51,25 @@ satellite3D_lin_dt_system::satellite3D_lin_dt_system(const std::string& aName,
 }; 
   
 
-satellite3D_lin_dt_system::point_type satellite3D_lin_dt_system::get_next_state(const satellite3D_lin_dt_system::state_space_type&, 
-										const satellite3D_lin_dt_system::point_type& x, 
-										const satellite3D_lin_dt_system::input_type& u, 
-										const satellite3D_lin_dt_system::time_type&) const {
+satellite3D_lin_dt_system::point_type satellite3D_lin_dt_system::get_next_state(
+  const satellite3D_lin_dt_system::state_space_type&, 
+  const satellite3D_lin_dt_system::point_type& x, 
+  const satellite3D_lin_dt_system::input_type& u, 
+  const satellite3D_lin_dt_system::time_type&) const {
   //this function implements the momentum-conserving trapezoidal rule (variational integrator). This is very similar to the symplectic variational midpoint integrator over Lie Groups.
-      
+  
   vect<double,3> half_dp(0.005 * mDt * u[3], 0.005 * mDt * u[4], 0.005 * mDt * u[5]);
   vect<double,3> w0 = get_ang_velocity(x);
   unit_quat<double> half_w0_rot = exp( (0.0025 * mDt) * w0 );
   vect<double,3> dp0 = invert(half_w0_rot).as_rotation() * (mInertiaMoment * w0 + half_dp);
-      
+  
   unit_quat<double> q_new = get_quaternion(x);
-      
+  
   for(unsigned int i = 0; i < 100; ++i) {
-      
+    
     vect<double,3> w1_prev = w0 + (mInertiaMomentInv * (2.0 * half_dp - (0.01 * mDt) * w0 % (mInertiaMoment * w0)));
     unit_quat<double> half_w1_prev_rot = exp( (0.0025 * mDt) * w1_prev );
-	
+    
     for(int i = 0; i < 20; ++i) {
       vect<double,3> w1_next = mInertiaMomentInv * (half_dp 
                                 + invert(half_w1_prev_rot).as_rotation() * dp0);
@@ -91,21 +87,25 @@ satellite3D_lin_dt_system::point_type satellite3D_lin_dt_system::get_next_state(
       
   vect<double,3> dv(mDt * u[0] / mMass, mDt * u[1] / mMass, mDt * u[2] / mMass);
   return satellite3D_lin_dt_system::point_type(
-           make_arithmetic_tuple(get_position(x) + mDt * (get_velocity(x) + 0.5 * dv),
-	                         get_velocity(x) + dv),
-	   make_arithmetic_tuple(q_new, 
-	                         w0));
+    make_arithmetic_tuple(
+      get_position(x) + mDt * (get_velocity(x) + 0.5 * dv),
+      get_velocity(x) + dv),
+    make_arithmetic_tuple(
+      q_new, 
+      w0));
 };
     
-void satellite3D_lin_dt_system::get_state_transition_blocks(satellite3D_lin_dt_system::matrixA_type& A, 
-							    satellite3D_lin_dt_system::matrixB_type& B, 
-							    const satellite3D_lin_dt_system::state_space_type&, 
-							    const satellite3D_lin_dt_system::time_type&, 
-							    const satellite3D_lin_dt_system::time_type&,
-							    const satellite3D_lin_dt_system::point_type& p_0, 
-							    const satellite3D_lin_dt_system::point_type&,
-							    const satellite3D_lin_dt_system::input_type&, 
-							    const satellite3D_lin_dt_system::input_type&) const {
+void satellite3D_lin_dt_system::get_state_transition_blocks(
+  satellite3D_lin_dt_system::matrixA_type& A, 
+  satellite3D_lin_dt_system::matrixB_type& B, 
+  const satellite3D_lin_dt_system::state_space_type&, 
+  const satellite3D_lin_dt_system::time_type&, 
+  const satellite3D_lin_dt_system::time_type&,
+  const satellite3D_lin_dt_system::point_type& p_0, 
+  const satellite3D_lin_dt_system::point_type&,
+  const satellite3D_lin_dt_system::input_type&, 
+  const satellite3D_lin_dt_system::input_type&) const {
+  
   vect<double,3> w = -mDt * get_ang_velocity(p_0);
       
   A = mat<double,mat_structure::identity>(13);
@@ -141,21 +141,23 @@ void satellite3D_lin_dt_system::get_state_transition_blocks(satellite3D_lin_dt_s
       
 };
     
-satellite3D_lin_dt_system::output_type satellite3D_lin_dt_system::get_output(const satellite3D_lin_dt_system::state_space_type&, 
-									     const satellite3D_lin_dt_system::point_type& x, 
-									     const satellite3D_lin_dt_system::input_type&, 
-									     const satellite3D_lin_dt_system::time_type&) const {
+satellite3D_lin_dt_system::output_type satellite3D_lin_dt_system::get_output(
+  const satellite3D_lin_dt_system::state_space_type&, 
+  const satellite3D_lin_dt_system::point_type& x, 
+  const satellite3D_lin_dt_system::input_type&, 
+  const satellite3D_lin_dt_system::time_type&) const {
   const vect<double,3>& pos = get_position(x);
   const unit_quat<double>& q = get_quaternion(x);
   return satellite3D_lin_dt_system::output_type(pos[0], pos[1], pos[2], q[0], q[1], q[2], q[3]);
 };
     
-void satellite3D_lin_dt_system::get_output_function_blocks(satellite3D_lin_dt_system::matrixC_type& C, 
-							   satellite3D_lin_dt_system::matrixD_type& D, 
-							   const satellite3D_lin_dt_system::state_space_type&,
-							   const satellite3D_lin_dt_system::time_type&, 
-							   const satellite3D_lin_dt_system::point_type&, 
-							   const satellite3D_lin_dt_system::input_type&) const {
+void satellite3D_lin_dt_system::get_output_function_blocks(
+  satellite3D_lin_dt_system::matrixC_type& C, 
+  satellite3D_lin_dt_system::matrixD_type& D, 
+  const satellite3D_lin_dt_system::state_space_type&,
+  const satellite3D_lin_dt_system::time_type&, 
+  const satellite3D_lin_dt_system::point_type&, 
+  const satellite3D_lin_dt_system::input_type&) const {
   C = mat<double,mat_structure::nil>(7,13);
   set_block(C,mat<double,mat_structure::identity>(7),0,0);
       
@@ -166,32 +168,33 @@ void satellite3D_lin_dt_system::get_output_function_blocks(satellite3D_lin_dt_sy
 
 
 
-satellite3D_gyro_lin_dt_system::satellite3D_gyro_lin_dt_system(const std::string& aName, 
-							       double aMass, 
-							       const mat<double,mat_structure::symmetric>& aInertiaMoment,
-							       double aDt) :
-							       satellite3D_lin_dt_system(aName, aMass, aInertiaMoment, aDt) { }; 
+satellite3D_gyro_lin_dt_system::satellite3D_gyro_lin_dt_system(
+  const std::string& aName, double aMass, const mat<double,mat_structure::symmetric>& aInertiaMoment, double aDt) :
+  satellite3D_lin_dt_system(aName, aMass, aInertiaMoment, aDt) { }; 
   
     
-satellite3D_gyro_lin_dt_system::output_type satellite3D_gyro_lin_dt_system::get_output(const satellite3D_gyro_lin_dt_system::state_space_type&, 
-										       const satellite3D_gyro_lin_dt_system::point_type& x, 
-										       const satellite3D_gyro_lin_dt_system::input_type&, 
-										       const satellite3D_gyro_lin_dt_system::time_type&) const {
+satellite3D_gyro_lin_dt_system::output_type satellite3D_gyro_lin_dt_system::get_output(
+  const satellite3D_gyro_lin_dt_system::state_space_type&, 
+  const satellite3D_gyro_lin_dt_system::point_type& x, 
+  const satellite3D_gyro_lin_dt_system::input_type&, 
+  const satellite3D_gyro_lin_dt_system::time_type&) const {
   const vect<double,3>& pos = get_position(x);
   const unit_quat<double>& q = get_quaternion(x);
   const vect<double,3>& w = get_ang_velocity(x);
-  return satellite3D_gyro_lin_dt_system::output_type(pos[0], pos[1], pos[2], 
-						     q[0], q[1], q[2], q[3], 
-						     q[0], q[1], q[2], q[3], 
-						     w[0], w[1], w[2]);
+  return satellite3D_gyro_lin_dt_system::output_type(
+    pos[0], pos[1], pos[2], 
+    q[0], q[1], q[2], q[3], 
+    q[0], q[1], q[2], q[3], 
+    w[0], w[1], w[2]);
 };
     
-void satellite3D_gyro_lin_dt_system::get_output_function_blocks(satellite3D_gyro_lin_dt_system::matrixC_type& C, 
-								satellite3D_gyro_lin_dt_system::matrixD_type& D, 
-								const satellite3D_gyro_lin_dt_system::state_space_type&, 
-								const satellite3D_gyro_lin_dt_system::time_type&, 
-								const satellite3D_gyro_lin_dt_system::point_type&, 
-								const satellite3D_gyro_lin_dt_system::input_type&) const {
+void satellite3D_gyro_lin_dt_system::get_output_function_blocks(
+  satellite3D_gyro_lin_dt_system::matrixC_type& C, 
+  satellite3D_gyro_lin_dt_system::matrixD_type& D, 
+  const satellite3D_gyro_lin_dt_system::state_space_type&, 
+  const satellite3D_gyro_lin_dt_system::time_type&, 
+  const satellite3D_gyro_lin_dt_system::point_type&, 
+  const satellite3D_gyro_lin_dt_system::input_type&) const {
   C = mat<double,mat_structure::nil>(14,13);
   set_block(C,mat<double,mat_structure::identity>(7),0,0);
   set_block(C,mat<double,mat_structure::identity>(4),7,3);
@@ -210,21 +213,21 @@ void satellite3D_gyro_lin_dt_system::get_output_function_blocks(satellite3D_gyro
 
 
     
-satellite3D_inv_dt_system::satellite3D_inv_dt_system(const std::string& aName, 
-						     double aMass,
-						     const mat<double,mat_structure::symmetric>& aInertiaMoment,
-						     double aDt) :
-						     satellite3D_lin_dt_system(aName,aMass,aInertiaMoment,aDt) { }; 
+satellite3D_inv_dt_system::satellite3D_inv_dt_system(
+  const std::string& aName, double aMass, const mat<double,mat_structure::symmetric>& aInertiaMoment, double aDt) :
+  satellite3D_lin_dt_system(aName,aMass,aInertiaMoment,aDt) { }; 
     
-void satellite3D_inv_dt_system::get_state_transition_blocks(satellite3D_inv_dt_system::matrixA_type& A, 
-							    satellite3D_inv_dt_system::matrixB_type& B, 
-							    const satellite3D_inv_dt_system::state_space_type&, 
-							    const satellite3D_inv_dt_system::time_type&, 
-							    const satellite3D_inv_dt_system::time_type&,
-							    const satellite3D_inv_dt_system::point_type& p_0, 
-							    const satellite3D_inv_dt_system::point_type&,
-							    const satellite3D_inv_dt_system::input_type&, 
-							    const satellite3D_inv_dt_system::input_type&) const {
+void satellite3D_inv_dt_system::get_state_transition_blocks(
+  satellite3D_inv_dt_system::matrixA_type& A, 
+  satellite3D_inv_dt_system::matrixB_type& B, 
+  const satellite3D_inv_dt_system::state_space_type&, 
+  const satellite3D_inv_dt_system::time_type&, 
+  const satellite3D_inv_dt_system::time_type&,
+  const satellite3D_inv_dt_system::point_type& p_0, 
+  const satellite3D_inv_dt_system::point_type&,
+  const satellite3D_inv_dt_system::input_type&, 
+  const satellite3D_inv_dt_system::input_type&) const {
+  
   vect<double,3> w = 0.5 * get_ang_velocity(p_0);
       
   A = mat<double,mat_structure::identity>(12);
@@ -250,39 +253,41 @@ void satellite3D_inv_dt_system::get_state_transition_blocks(satellite3D_inv_dt_s
   
 };
     
-void satellite3D_inv_dt_system::get_output_function_blocks(satellite3D_inv_dt_system::matrixC_type& C, 
-							   satellite3D_inv_dt_system::matrixD_type& D, 
-							   const satellite3D_inv_dt_system::state_space_type&, 
-							   const satellite3D_inv_dt_system::time_type&, 
-							   const satellite3D_inv_dt_system::point_type&, 
-							   const satellite3D_inv_dt_system::input_type&) const {
+void satellite3D_inv_dt_system::get_output_function_blocks(
+  satellite3D_inv_dt_system::matrixC_type& C, 
+  satellite3D_inv_dt_system::matrixD_type& D, 
+  const satellite3D_inv_dt_system::state_space_type&, 
+  const satellite3D_inv_dt_system::time_type&, 
+  const satellite3D_inv_dt_system::point_type&, 
+  const satellite3D_inv_dt_system::input_type&) const {
   C = mat<double,mat_structure::nil>(6,12);
   set_block(C,mat<double,mat_structure::identity>(6),0,0);
       
   D = mat<double,mat_structure::nil>(6,6);
 };
     
-satellite3D_inv_dt_system::invariant_error_type satellite3D_inv_dt_system::get_invariant_error(const satellite3D_inv_dt_system::state_space_type&, 
-											       const satellite3D_inv_dt_system::point_type& x, 
-											       const satellite3D_inv_dt_system::input_type&, 
-											       const satellite3D_inv_dt_system::output_type& y, 
-											       const satellite3D_inv_dt_system::time_type&) const {
+satellite3D_inv_dt_system::invariant_error_type satellite3D_inv_dt_system::get_invariant_error(
+  const satellite3D_inv_dt_system::state_space_type&, 
+  const satellite3D_inv_dt_system::point_type& x, 
+  const satellite3D_inv_dt_system::input_type&, 
+  const satellite3D_inv_dt_system::output_type& y, 
+  const satellite3D_inv_dt_system::time_type&) const {
+  
   unit_quat<double> q_diff = invert(get_quaternion(x)) * unit_quat<double>(y[3],y[4],y[5],y[6]);
   vect<double,3> a = log(q_diff);
   const vect<double,3>& pos = get_position(x);
-  return satellite3D_inv_dt_system::invariant_error_type(y[0] - pos[0],
-							 y[1] - pos[1],
-							 y[2] - pos[2],
-							 2.0 * a[0],
-							 2.0 * a[1],
-							 2.0 * a[2]); 
+  return satellite3D_inv_dt_system::invariant_error_type(
+    y[0] - pos[0], y[1] - pos[1], y[2] - pos[2],
+    2.0 * a[0], 2.0 * a[1], 2.0 * a[2]); 
 };
     
-satellite3D_inv_dt_system::point_type satellite3D_inv_dt_system::apply_correction(const satellite3D_inv_dt_system::state_space_type&, 
-										  const satellite3D_inv_dt_system::point_type& x, 
-										  const satellite3D_inv_dt_system::invariant_correction_type& c, 
-										  const satellite3D_inv_dt_system::input_type&, 
-										  const satellite3D_inv_dt_system::time_type&) const {
+satellite3D_inv_dt_system::point_type satellite3D_inv_dt_system::apply_correction(
+  const satellite3D_inv_dt_system::state_space_type&, 
+  const satellite3D_inv_dt_system::point_type& x, 
+  const satellite3D_inv_dt_system::invariant_correction_type& c, 
+  const satellite3D_inv_dt_system::input_type&, 
+  const satellite3D_inv_dt_system::time_type&) const {
+  
   unit_quat<double> q_diff = exp( 0.5 * vect<double,3>(c[3],c[4],c[5]) );
   unit_quat<double> q_new = get_quaternion(x) * q_diff;
   
@@ -300,31 +305,34 @@ satellite3D_inv_dt_system::point_type satellite3D_inv_dt_system::apply_correctio
 
 
 
-satellite3D_gyro_inv_dt_system::satellite3D_gyro_inv_dt_system(const std::string& aName, 
-							       double aMass,
-							       const mat<double,mat_structure::symmetric>& aInertiaMoment,
-							       double aDt) :
-							       satellite3D_inv_dt_system(aName,aMass,aInertiaMoment,aDt) { }; 
+satellite3D_gyro_inv_dt_system::satellite3D_gyro_inv_dt_system(
+  const std::string& aName, double aMass, const mat<double,mat_structure::symmetric>& aInertiaMoment, double aDt) :
+  satellite3D_inv_dt_system(aName,aMass,aInertiaMoment,aDt) { }; 
   
-satellite3D_gyro_inv_dt_system::output_type satellite3D_gyro_inv_dt_system::get_output(const satellite3D_gyro_inv_dt_system::state_space_type&, 
-										       const satellite3D_gyro_inv_dt_system::point_type& x, 
-										       const satellite3D_gyro_inv_dt_system::input_type&, 
-										       const satellite3D_gyro_inv_dt_system::time_type&) const {
+satellite3D_gyro_inv_dt_system::output_type satellite3D_gyro_inv_dt_system::get_output(
+  const satellite3D_gyro_inv_dt_system::state_space_type&, 
+  const satellite3D_gyro_inv_dt_system::point_type& x, 
+  const satellite3D_gyro_inv_dt_system::input_type&, 
+  const satellite3D_gyro_inv_dt_system::time_type&) const {
+  
   const vect<double,3>& pos = get_position(x);
   const unit_quat<double>& q = get_quaternion(x);
   const vect<double,3>& w = get_ang_velocity(x);
-  return satellite3D_gyro_inv_dt_system::output_type(pos[0], pos[1], pos[2], 
-						     q[0], q[1], q[2], q[3], 
-						     q[0], q[1], q[2], q[3], 
-						     w[0], w[1], w[2]);
+  return satellite3D_gyro_inv_dt_system::output_type(
+    pos[0], pos[1], pos[2], 
+    q[0], q[1], q[2], q[3], 
+    q[0], q[1], q[2], q[3], 
+    w[0], w[1], w[2]);
 };
     
-void satellite3D_gyro_inv_dt_system::get_output_function_blocks(satellite3D_gyro_inv_dt_system::matrixC_type& C, 
-								satellite3D_gyro_inv_dt_system::matrixD_type& D, 
-								const satellite3D_gyro_inv_dt_system::state_space_type&, 
-								const satellite3D_gyro_inv_dt_system::time_type&, 
-								const satellite3D_gyro_inv_dt_system::point_type&, 
-								const satellite3D_gyro_inv_dt_system::input_type&) const {
+void satellite3D_gyro_inv_dt_system::get_output_function_blocks(
+  satellite3D_gyro_inv_dt_system::matrixC_type& C, 
+  satellite3D_gyro_inv_dt_system::matrixD_type& D, 
+  const satellite3D_gyro_inv_dt_system::state_space_type&, 
+  const satellite3D_gyro_inv_dt_system::time_type&, 
+  const satellite3D_gyro_inv_dt_system::point_type&, 
+  const satellite3D_gyro_inv_dt_system::input_type&) const {
+  
   C = mat<double,mat_structure::nil>(12,12);
   set_block(C,mat<double,mat_structure::identity>(6),0,0);
   set_block(C,mat<double,mat_structure::identity>(3),6,3);
@@ -333,29 +341,24 @@ void satellite3D_gyro_inv_dt_system::get_output_function_blocks(satellite3D_gyro
   D = mat<double,mat_structure::nil>(12,6);
 };
     
-satellite3D_gyro_inv_dt_system::invariant_error_type satellite3D_gyro_inv_dt_system::get_invariant_error(const satellite3D_gyro_inv_dt_system::state_space_type&, 
-													 const satellite3D_gyro_inv_dt_system::point_type& x, 
-													 const satellite3D_gyro_inv_dt_system::input_type&, 
-													 const satellite3D_gyro_inv_dt_system::output_type& y, 
-													 const satellite3D_gyro_inv_dt_system::time_type&) const {
+satellite3D_gyro_inv_dt_system::invariant_error_type satellite3D_gyro_inv_dt_system::get_invariant_error(
+  const satellite3D_gyro_inv_dt_system::state_space_type&, 
+  const satellite3D_gyro_inv_dt_system::point_type& x, 
+  const satellite3D_gyro_inv_dt_system::input_type&, 
+  const satellite3D_gyro_inv_dt_system::output_type& y, 
+  const satellite3D_gyro_inv_dt_system::time_type&) const {
+  
   unit_quat<double> q_diff = invert(get_quaternion(x)) * unit_quat<double>(y[3],y[4],y[5],y[6]);
   vect<double,3> a = log(q_diff);
   unit_quat<double> q_diff_IMU = invert(get_quaternion(x)) * unit_quat<double>(y[7],y[8],y[9],y[10]);
   vect<double,3> a_IMU = log(q_diff_IMU);
   const vect<double,3>& pos = get_position(x);
   vect<double,3> dw_IMU = q_diff_IMU.as_rotation() * vect<double,3>(y[11],y[12],y[13]) - get_ang_velocity(x);
-  return satellite3D_gyro_inv_dt_system::invariant_error_type(y[0] - pos[0],
-							      y[1] - pos[1],
-							      y[2] - pos[2],
-							      2.0 * a[0],
-							      2.0 * a[1],
-							      2.0 * a[2],
-							      2.0 * a_IMU[0],
-							      2.0 * a_IMU[1],
-							      2.0 * a_IMU[2],
-							      dw_IMU[0],
-							      dw_IMU[1],
-							      dw_IMU[2]); 
+  return satellite3D_gyro_inv_dt_system::invariant_error_type(
+    y[0] - pos[0], y[1] - pos[1], y[2] - pos[2],
+    2.0 * a[0], 2.0 * a[1], 2.0 * a[2],
+    2.0 * a_IMU[0], 2.0 * a_IMU[1], 2.0 * a_IMU[2],
+    dw_IMU[0], dw_IMU[1], dw_IMU[2]); 
 };
 
 
