@@ -73,7 +73,7 @@ int main(int argc, char** argv) {
     ("inertia,I", po::value< std::string >()->default_value("models/airship3D_inertia.rkx"), "specify the filename for the airship's inertial data (default is 'models/airship3D_inertia.xml')")
     ("Q-matrix,Q", po::value< std::string >()->default_value("models/airship3D_Q.rkx"), "specify the filename for the airship's input disturbance covariance matrix (default is 'models/airship3D_Q.xml')")
     ("R-matrix,R", po::value< std::string >()->default_value("models/airship3D_R.rkx"), "specify the filename for the airship's measurement noise covariance matrix (default is 'models/airship3D_R.xml')")
-    ("output,o", po::value< std::string >()->default_value("results_airship3D/output_record"), "specify the path and filename (without extension) for the output of the results (default is 'results_airship3D/output_record')")
+    ("output,o", po::value< std::string >()->default_value("sim_results/airship3D/output_record"), "specify the path and filename (without extension) for the output of the results (default is 'results_airship3D/output_record')")
   ;
   
   po::options_description sim_options("Simulation options");
@@ -81,7 +81,6 @@ int main(int argc, char** argv) {
     ("start-time,s", po::value< double >()->default_value(0.0), "start time of the simulation (default is 0.0)")
     ("end-time,e", po::value< double >()->default_value(1.0), "end time of the simulation (default is 1.0)")
     ("time-step,t", po::value< double >()->default_value(0.01), "time-step used for the simulations (default is 0.01)")
-    ("sample-hops,r", po::value< std::size_t >()->default_value(1), "time-steps between each output point, i.e., sample-hops x time-step = sample-period (default is 1)")
   ;
   
   po::options_description output_options("Output options (at least one must be set)");
@@ -104,11 +103,22 @@ int main(int argc, char** argv) {
     return 1;
   };
   
-  std::string output_path_name = vm["output-path"].as<std::string>();
+  std::string output_path_name = vm["output"].as<std::string>();
+  std::string output_stem_name = output_path_name;
+  if(output_stem_name[output_stem_name.size()-1] == '/')
+    output_stem_name += "output_record";
+  else {
+    std::size_t p = output_path_name.find_last_of('/');
+    if(p == std::string::npos)
+      output_path_name = "";
+    else
+      output_path_name.erase(p);
+  };
   while(output_path_name[output_path_name.length()-1] == '/') 
     output_path_name.erase(output_path_name.length()-1, 1);
   
-  fs::create_directory(output_path_name.c_str());
+  if(!output_path_name.empty())
+    fs::create_directory(output_path_name.c_str());
   
   
   std::string model_filename = vm["model"].as<std::string>();
@@ -150,7 +160,6 @@ int main(int argc, char** argv) {
   double start_time = vm["start-time"].as<double>();
   double end_time   = vm["end-time"].as<double>();
   double time_step  = vm["time-step"].as<double>();
-//   std::size_t hops  = vm["sample-hops"].as<std::size_t>();
   
   
   boost::variate_generator< boost::minstd_rand, boost::normal_distribution<double> > var_rnd(boost::minstd_rand(static_cast<unsigned int>(time(NULL))), boost::normal_distribution<double>());
@@ -319,10 +328,10 @@ int main(int argc, char** argv) {
   
   } catch(impossible_integration& e) {
     std::cout << "Integration was deemed impossible, with message: '" << e.what() << "'" << std::endl;
-    return 3;
+    return 20;
   } catch(untolerable_integration& e) {
     std::cout << "Integration was deemed untolerable with message: '" << e.what() << "'" << std::endl;
-    return 4;
+    return 21;
   };
   
   

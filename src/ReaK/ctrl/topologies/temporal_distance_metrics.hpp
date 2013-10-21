@@ -117,7 +117,7 @@ struct time_distance_only : public serialization::serializable {
    * \param s The temporal-space.
    * \return the temporal-distance between the two points.
    */
-  template <typename Point, typename TemporalTopology, typename SpaceTopology>
+  template <typename Point, typename TemporalTopology>
   double operator()(const Point& a, const Point& b, const TemporalTopology& s) const {
     return get(distance_metric,s.get_time_topology())(a.time, b.time, s.get_time_topology());
   };
@@ -129,7 +129,7 @@ struct time_distance_only : public serialization::serializable {
    * \param s The temporal-space.
    * \return The temporal-norm of the difference between the two points.
    */
-  template <typename PointDiff, typename TemporalTopology, typename SpaceTopology>
+  template <typename PointDiff, typename TemporalTopology>
   double operator()(const PointDiff& a, const TemporalTopology& s) const {
     return get(distance_metric,s.get_time_topology())(a.time, s.get_time_topology());
   };
