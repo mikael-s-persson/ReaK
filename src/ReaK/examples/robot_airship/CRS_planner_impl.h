@@ -39,7 +39,8 @@ class CRSPlannerGUI : public QMainWindow, private Ui::CRSPlannerWindow {
   private slots:
     
     void executePlanner();
-    void startRobot();
+    void startSolutionAnimation();
+    void startTargetAnimation();
     void onJointChange();
     void onTargetChange();
     
@@ -61,6 +62,8 @@ class CRSPlannerGUI : public QMainWindow, private Ui::CRSPlannerWindow {
     
     void savePlannerConfig();
     void loadPlannerConfig();
+    
+    void loadTargetTrajectory();
     
   private:
     

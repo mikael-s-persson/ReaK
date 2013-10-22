@@ -419,28 +419,34 @@ int main(int argc, char** argv) {
     
   };
   
-  if( vm.count("xml") ) {
+  std::cout << "\nFinished simulation!" << std::endl;
+  
+  if( vm.count("xml") + vm.count("protobuf") + vm.count("binary") > 0) {
+    std::cout << "Saving to file..." << std::endl;
     
-    *(serialization::open_oarchive(output_stem_name + ".rkx"))
-      & RK_SERIAL_SAVE_WITH_ALIAS("se3_trajectory", traj_ptr);
+    if( vm.count("xml") ) {
+      
+      *(serialization::open_oarchive(output_stem_name + ".rkx"))
+        & RK_SERIAL_SAVE_WITH_ALIAS("se3_trajectory", traj_ptr);
+      
+    };
     
+    if( vm.count("protobuf") ) {
+      
+      *(serialization::open_oarchive(output_stem_name + ".pbuf"))
+        & RK_SERIAL_SAVE_WITH_ALIAS("se3_trajectory", traj_ptr);
+      
+    };
+    
+    if( vm.count("binary") ) {
+      
+      *(serialization::open_oarchive(output_stem_name + ".rkb"))
+        & RK_SERIAL_SAVE_WITH_ALIAS("se3_trajectory", traj_ptr);
+      
+    };
+    
+    std::cout << "Finished saving!" << std::endl;
   };
-  
-  if( vm.count("protobuf") ) {
-    
-    *(serialization::open_oarchive(output_stem_name + ".pbuf"))
-      & RK_SERIAL_SAVE_WITH_ALIAS("se3_trajectory", traj_ptr);
-    
-  };
-  
-  if( vm.count("binary") ) {
-    
-    *(serialization::open_oarchive(output_stem_name + ".rkb"))
-      & RK_SERIAL_SAVE_WITH_ALIAS("se3_trajectory", traj_ptr);
-    
-  };
-  
-  
   
   return 0;
 };

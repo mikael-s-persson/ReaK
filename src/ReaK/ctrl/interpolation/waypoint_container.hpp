@@ -396,6 +396,9 @@ class waypoint_container_base< temporal_space<SpaceTopology, TimeTopology, Dista
       const point_type& operator*() const {
         return current_pt;
       };
+      const point_type* operator->() const {
+        return &current_pt;
+      };
       
     };
     
@@ -490,6 +493,9 @@ class waypoint_container_base< temporal_space<SpaceTopology, TimeTopology, Dista
       
       const point_type& operator*() const {
         return current_pt;
+      };
+      const point_type* operator->() const {
+        return &current_pt;
       };
       
     };
@@ -630,7 +636,7 @@ class waypoint_container_base< temporal_space<SpaceTopology, TimeTopology, Dista
      * \return The starting time-iterator along the trajectory.
      */
     point_time_iterator begin_time_travel() const {
-      return point_time_iterator(this, this->waypoints.begin());
+      return point_time_iterator(this, get_waypoint_bounds(get_start_time()));
     };
     
     /**
@@ -638,8 +644,7 @@ class waypoint_container_base< temporal_space<SpaceTopology, TimeTopology, Dista
      * \return The end time-iterator along the trajectory.
      */
     point_time_iterator end_time_travel() const {
-      const_waypoint_descriptor it = this->waypoints.end(); --it;
-      return point_time_iterator(this, it);
+      return point_time_iterator(this, get_waypoint_bounds(get_end_time()));
     };
     
     /**
@@ -647,7 +652,7 @@ class waypoint_container_base< temporal_space<SpaceTopology, TimeTopology, Dista
      * \return The starting fraction-iterator along the trajectory.
      */
     point_fraction_iterator begin_fraction_travel() const {
-      return point_fraction_iterator(this, this->waypoints.begin());
+      return point_fraction_iterator(this, get_waypoint_bounds(get_start_time()));
     };
     
     /**
@@ -655,8 +660,7 @@ class waypoint_container_base< temporal_space<SpaceTopology, TimeTopology, Dista
      * \return The end fraction-iterator along the trajectory.
      */
     point_fraction_iterator end_fraction_travel() const {
-      const_waypoint_descriptor it = this->waypoints.end(); --it;
-      return point_fraction_iterator(this, it);
+      return point_fraction_iterator(this, get_waypoint_bounds(get_end_time()));
     };
     
     
