@@ -126,46 +126,6 @@ typedef pp::manip_DK_map< kte::manip_P3R3R_kinematics >::rl_o2_map_type CRS3D_rl
 */
 
 
-/*
-struct all_robot_info {
-  SoQtExaminerViewer * eviewer;
-  SoSeparator* sg_root;
-  ReaK::geom::oi_scene_graph* sg_robot_geom;
-  SoSwitch* sw_robot_geom;
-  ReaK::geom::oi_scene_graph* sg_robot_kin;
-  SoSwitch* sw_robot_kin;
-  ReaK::geom::oi_scene_graph* sg_airship_geom;
-  SoSwitch* sw_airship_geom;
-  ReaK::geom::oi_scene_graph* sg_lab_geom;
-  SoSwitch* sw_lab_geom;
-  ReaK::geom::oi_scene_graph* sg_proxy_geom;
-  SoSwitch* sw_proxy_geom;
-  SoSwitch* sw_motion_graph;
-  SoSwitch* sw_solutions;
-  ReaK::robot_airship::CRS_A465_geom_builder builder;
-  ReaK::shared_ptr< ReaK::kte::kte_map_chain > kin_chain;
-  ReaK::shared_ptr< ReaK::kte::manipulator_kinematics_model > manip_kin_mdl;
-  ReaK::shared_ptr< ReaK::pp::joint_limits_collection<double> > manip_jt_limits;
-  ReaK::shared_ptr< ReaK::geom::proxy_query_model_3D > robot_proxy;
-  ReaK::shared_ptr< ReaK::geom::proxy_query_model_3D > lab_proxy;
-  ReaK::shared_ptr< ReaK::geom::proxy_query_pair_3D > robot_lab_proxy;
-  ReaK::shared_ptr< ReaK::frame_3D<double> > airship_frame;
-  ReaK::pose_3D<double> target_frame;
-  ReaK::shared_ptr< ReaK::kte::kte_map_chain > airship_chain;
-  ReaK::shared_ptr< ReaK::geom::proxy_query_model_3D > airship_proxy;
-  ReaK::shared_ptr< ReaK::geom::proxy_query_pair_3D > robot_airship_proxy;
-  ReaK::shared_ptr< ReaK::geom::proxy_query_pair_3D > lab_airship_proxy;
-  SoCoordinate3* l_r_proxy_line;
-  SoCoordinate3* r_a_proxy_line;
-  SoCoordinate3* l_a_proxy_line;
-  
-  std::vector< ReaK::vect<double,7> > bestsol_trajectory;
-  SoTimerSensor* animation_timer;
-  std::size_t animation_progress;
-  std::chrono::high_resolution_clock::time_point animation_last_render;
-} r_info;
-*/
-
 
 };
 

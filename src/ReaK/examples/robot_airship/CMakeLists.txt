@@ -114,7 +114,12 @@ if(Boost_CHRONO_FOUND)
   QT4_WRAP_CPP( ROBOTAIRSHIP_CRSPLANNER_MOC_SRCS ${ROBOTAIRSHIP_CRSPLANNER_MOC_HDRS} )
   include_directories( AFTER "${CMAKE_BINARY_DIR}${RKROBOTAIRSHIPDIR}" )
   
-  add_executable(CRS_planner "${SRCROOT}${RKROBOTAIRSHIPDIR}/CRS_planner_impl.cpp" ${ROBOTAIRSHIP_CRSPLANNER_MOC_SRCS} ${ROBOTAIRSHIP_CRSPLANNER_UI_HDRS})
+  set( ROBOTAIRSHIP_CRSPLANNER_SRCS
+    "${SRCROOT}${RKROBOTAIRSHIPDIR}/CRS_planner_impl.cpp"
+    "${SRCROOT}${RKROBOTAIRSHIPDIR}/CRS_planner_exec.cpp"
+  )
+  
+  add_executable(CRS_planner ${ROBOTAIRSHIP_CRSPLANNER_SRCS} ${ROBOTAIRSHIP_CRSPLANNER_MOC_SRCS} ${ROBOTAIRSHIP_CRSPLANNER_UI_HDRS})
   setup_custom_target(CRS_planner "${SRCROOT}${RKROBOTAIRSHIPDIR}")
   target_link_libraries(CRS_planner reak_robot_airship reak_topologies reak_interp reak_mbd_coin reak_core)
   target_link_libraries(CRS_planner ${SOQT4_LIBRARIES} ${QT_LIBRARIES})

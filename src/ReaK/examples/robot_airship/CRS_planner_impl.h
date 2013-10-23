@@ -29,6 +29,19 @@
 #include "ui_CRS_planner_config.h"
 
 
+
+
+struct CRS_coin_nodes;
+struct CRS_model_data;
+struct CRS_sol_anim_data;
+struct CRS_target_anim_data;
+struct CRS_planning_options;
+
+
+class SoSensor;
+
+
+
 class CRSPlannerGUI : public QMainWindow, private Ui::CRSPlannerWindow {
     Q_OBJECT
   
@@ -65,13 +78,25 @@ class CRSPlannerGUI : public QMainWindow, private Ui::CRSPlannerWindow {
     
     void loadTargetTrajectory();
     
+    
+    friend void CRSPlannerGUI_animate_bestsol_trajectory(void*, SoSensor*);
+    friend void CRSPlannerGUI_animate_target_trajectory(void*, SoSensor*);
+    
   private:
+    
+    CRSPlannerGUI( const CRSPlannerGUI& );
+    CRSPlannerGUI& operator=( const CRSPlannerGUI& );
     
     void onProxyChange();
     
     Ui::CRSPlannerConfig configs;
     
-  
+    CRS_coin_nodes* draw_data;
+    CRS_model_data* mdl_data;
+    CRS_sol_anim_data* sol_anim;
+    CRS_target_anim_data* target_anim;
+    CRS_planning_options* plan_options;
+    
 };
 
 
