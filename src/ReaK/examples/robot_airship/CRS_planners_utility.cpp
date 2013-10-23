@@ -27,24 +27,21 @@
 #include "CRS_A465_models.hpp"
 #include "proximity/proxy_query_model.hpp"
 
+#include "mbd_kte/mass_matrix_calculator.hpp"
+#include "mbd_kte/kte_map_chain.hpp"
 #include "kte_models/manip_kinematics_model.hpp"
 
-#include "CRS_workspaces.hpp"
-#include "CRS_rrt_planners.hpp"
-#include "CRS_rrtstar_planners.hpp"
-#include "CRS_prm_planners.hpp"
-#include "CRS_fadprm_planners.hpp"
-#include "CRS_sbastar_planners.hpp"
-
 #include "serialization/archiver_factory.hpp"
+
+#include "optimization/optim_exceptions.hpp"
 
 namespace ReaK {
   
 namespace robot_airship {
 
   
-scenario_data::scenario_data(const std::string& aChaserFileName) : named_object {
-  setName("robot_airship_scenario_data");
+scenario_data::scenario_data(const std::string& aChaserFileName) : named_object() {
+  this->setName("robot_airship_scenario_data");
   
   {
     shared_ptr< serialization::iarchive > p_in = serialization::open_iarchive(aChaserFileName);
@@ -57,20 +54,13 @@ scenario_data::scenario_data(const std::string& aChaserFileName) : named_object 
 
 void scenario_data::load_target(const std::string& fileName) {
   
-  shared_ptr< geom::proxy_query_model_3D > target_proxy;
   {
-    shared_ptr< kte::position_measure_3D > target_position;
-    shared_ptr< kte::rotation_measure_3D > target_rotation;
-    shared_ptr< kte::driving_actuator_3D > target_actuator;
-    shared_ptr< kte::inertia_3D > target_inertia;
+    shared_ptr< frame_3D<double> > target_base;
     shared_ptr< kte::mass_matrix_calc > target_mass_calc;
     
     shared_ptr< serialization::iarchive > p_in = serialization::open_iarchive(fileName);
-    (*p_in) >> target_state
-            >> target_position
-            >> target_rotation
-            >> target_actuator
-            >> target_inertia
+    (*p_in) >> target_base
+            >> target_state
             >> target_kin_chain
             >> target_mass_calc
             >> target_frame
@@ -185,6 +175,4 @@ vect_n<double> scenario_data::get_chaser_goal_config() {
 };
 
 };
-
-#endif
 

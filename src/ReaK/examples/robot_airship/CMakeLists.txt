@@ -123,7 +123,19 @@ if(Boost_CHRONO_FOUND)
   setup_custom_target(CRS_planner "${SRCROOT}${RKROBOTAIRSHIPDIR}")
   target_link_libraries(CRS_planner reak_robot_airship reak_topologies reak_interp reak_mbd_coin reak_core)
   target_link_libraries(CRS_planner ${SOQT4_LIBRARIES} ${QT_LIBRARIES})
-
+  
+  
+  set( ROBOTAIRSHIP_CRSPLANNER2_SRCS
+    "${SRCROOT}${RKROBOTAIRSHIPDIR}/CRS_planners_utility.cpp"
+    "${SRCROOT}${RKROBOTAIRSHIPDIR}/CRS_planner2_impl.cpp"
+    "${SRCROOT}${RKROBOTAIRSHIPDIR}/CRS_planner2_exec.cpp"
+  )
+  
+  add_executable(CRS_planner2 ${ROBOTAIRSHIP_CRSPLANNER2_SRCS} ${ROBOTAIRSHIP_CRSPLANNER_MOC_SRCS} ${ROBOTAIRSHIP_CRSPLANNER_UI_HDRS})
+  setup_custom_target(CRS_planner2 "${SRCROOT}${RKROBOTAIRSHIPDIR}")
+  target_link_libraries(CRS_planner2 reak_robot_airship reak_topologies reak_interp reak_mbd_coin reak_core)
+  target_link_libraries(CRS_planner2 ${SOQT4_LIBRARIES} ${QT_LIBRARIES})
+  
 endif()
 
 #endif()

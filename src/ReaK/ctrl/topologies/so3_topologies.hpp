@@ -441,6 +441,20 @@ struct so3_2nd_order_topology {
 };
 
 
+template <typename T, int Order, typename DistanceMetric = euclidean_tuple_distance>
+struct so3_topology {
+  typedef typename boost::mpl::if_<
+    boost::mpl::equal_to< boost::mpl::int_<0>, boost::mpl::int_<Order> >,
+    typename so3_0th_order_topology<T,DistanceMetric>::type,
+    typename boost::mpl::if_< 
+      boost::mpl::equal_to< boost::mpl::int_<1>, boost::mpl::int_<Order> >,
+      typename so3_1st_order_topology<T,DistanceMetric>::type,
+      typename so3_2nd_order_topology<T,DistanceMetric>::type
+    >::type
+  >::type type;
+};
+
+
 /**
  * This meta-function defines the type for a 0th order SO(3) rate-limited topology (a zero-differentiable space).
  * \tparam T The value type for the topology.
@@ -470,6 +484,22 @@ template <typename T, typename DistanceMetric = euclidean_tuple_distance>
 struct so3_2nd_order_rl_topology {
   typedef reach_time_diff_space< time_topology, arithmetic_tuple< rate_limited_quat_space<T>, ang_velocity_3D_topology<T>, ang_accel_3D_topology<T> >, DistanceMetric > type;
 };
+
+
+template <typename T, int Order, typename DistanceMetric = euclidean_tuple_distance>
+struct so3_rl_topology {
+  typedef typename boost::mpl::if_<
+    boost::mpl::equal_to< boost::mpl::int_<0>, boost::mpl::int_<Order> >,
+    typename so3_0th_order_rl_topology<T,DistanceMetric>::type,
+    typename boost::mpl::if_< 
+      boost::mpl::equal_to< boost::mpl::int_<1>, boost::mpl::int_<Order> >,
+      typename so3_1st_order_rl_topology<T,DistanceMetric>::type,
+      typename so3_2nd_order_rl_topology<T,DistanceMetric>::type
+    >::type
+  >::type type;
+};
+
+
 
 
 };

@@ -57,9 +57,9 @@ int main(int argc, char ** argv) {
   shared_ptr< kte::free_joint_3D > 
     airship3D_joint( new kte::free_joint_3D("airship3D_joint",
                                             airship3D_frame,
-					    global_base,
-					    airship3D_output_frame,
-					    airship3D_joint_jac), scoped_deleter());
+                                            global_base,
+                                            airship3D_output_frame,
+                                            airship3D_joint_jac), scoped_deleter());
     
   shared_ptr< kte::joint_dependent_frame_3D > 
     airship3D_dep_frame( new kte::joint_dependent_frame_3D(airship3D_output_frame),
@@ -69,9 +69,9 @@ int main(int argc, char ** argv) {
   shared_ptr< kte::inertia_3D > 
     airship3D_inertia( new kte::inertia_3D("airship3D_inertia",
                                            airship3D_dep_frame,
-					   1.0,
-					   mat<double,mat_structure::symmetric>(mat<double,mat_structure::identity>(3))),
-		       scoped_deleter());
+                                           1.0,
+                                           mat<double,mat_structure::symmetric>(mat<double,mat_structure::identity>(3))),
+                       scoped_deleter());
   
   shared_ptr< kte::mass_matrix_calc > 
     airship3D_mass_calc( new kte::mass_matrix_calc("airship3D_mass_calc"), scoped_deleter());
@@ -82,7 +82,7 @@ int main(int argc, char ** argv) {
   shared_ptr< kte::driving_actuator_3D > 
     airship3D_actuator( new kte::driving_actuator_3D("airship3D_actuator",
                                                      airship3D_frame,
-						     airship3D_joint), scoped_deleter());
+                                                     airship3D_joint), scoped_deleter());
   
   shared_ptr< kte::position_measure_3D > 
     airship3D_position( new kte::position_measure_3D("airship3D_position",
@@ -119,6 +119,20 @@ int main(int argc, char ** argv) {
   (*proxy_mdl)
     .addShape(hull);
   
+  
+  
+  shared_ptr< frame_3D<double> > 
+    airship3D_grapple_frame( new frame_3D<double>(airship3D_output_frame,
+      vect<double,3>(0.97 * std::sin(0.2 / 0.93),0.0,0.97 * std::cos(0.2 / 0.93)),
+      axis_angle<double>(0.2 / 0.93 / 2.0,vect<double,3>(0.0,1.0,0.0)).getQuaternion()
+      * quaternion<double>::yrot(M_PI) * quaternion<double>::zrot(0.5 * M_PI),
+      vect<double,3>(0.0,0.0,0.0), vect<double,3>(0.0,0.0,0.0), 
+      vect<double,3>(0.0,0.0,0.0), vect<double,3>(0.0,0.0,0.0), 
+      vect<double,3>(0.0,0.0,0.0), vect<double,3>(0.0,0.0,0.0)
+    ), scoped_deleter());
+  airship3D_grapple_frame->Position += airship3D_grapple_frame->Quat * (-0.3 * vect_k);
+  
+  
   {
     serialization::xml_oarchive out("models/airship3D_basic.xml");
     out << airship3D_frame
@@ -139,6 +153,16 @@ int main(int argc, char ** argv) {
         << airship3D_inertia
         << airship3D_model
         << airship3D_mass_calc
+        << geom_mdl << proxy_mdl;
+  };
+  
+  {
+    serialization::xml_oarchive out("models/airship3D.model.rkx");
+    out << global_base
+        << airship3D_frame
+        << airship3D_model
+        << airship3D_mass_calc
+        << airship3D_grapple_frame
         << geom_mdl << proxy_mdl;
   };
   

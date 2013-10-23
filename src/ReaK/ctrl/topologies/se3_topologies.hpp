@@ -599,6 +599,21 @@ typename se3_2nd_order_topology<T,TupleDistanceMetric>::type make_se3_space(
 
 
 
+template <typename T, int Order, typename DistanceMetric = euclidean_tuple_distance>
+struct se3_topology {
+  typedef typename boost::mpl::if_<
+    boost::mpl::equal_to< boost::mpl::int_<0>, boost::mpl::int_<Order> >,
+    typename se3_0th_order_topology<T,DistanceMetric>::type,
+    typename boost::mpl::if_< 
+      boost::mpl::equal_to< boost::mpl::int_<1>, boost::mpl::int_<Order> >,
+      typename se3_1st_order_topology<T,DistanceMetric>::type,
+      typename se3_2nd_order_topology<T,DistanceMetric>::type
+    >::type
+  >::type type;
+};
+
+
+
 
 template <typename SE3Space>
 struct is_se3_space : boost::mpl::false_ { };
@@ -1243,6 +1258,21 @@ typename se3_2nd_order_rl_topology<T,TupleDistanceMetric>::type make_rl_se3_spac
         )
     );
   
+};
+
+
+
+template <typename T, int Order, typename DistanceMetric = euclidean_tuple_distance>
+struct se3_rl_topology {
+  typedef typename boost::mpl::if_<
+    boost::mpl::equal_to< boost::mpl::int_<0>, boost::mpl::int_<Order> >,
+    typename se3_0th_order_rl_topology<T,DistanceMetric>::type,
+    typename boost::mpl::if_< 
+      boost::mpl::equal_to< boost::mpl::int_<1>, boost::mpl::int_<Order> >,
+      typename se3_1st_order_rl_topology<T,DistanceMetric>::type,
+      typename se3_2nd_order_rl_topology<T,DistanceMetric>::type
+    >::type
+  >::type type;
 };
 
 

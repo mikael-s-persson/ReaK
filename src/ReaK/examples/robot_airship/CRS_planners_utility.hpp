@@ -38,13 +38,7 @@
 #include "shapes/colored_model.hpp"
 #include "proximity/proxy_query_model.hpp"
 #include "kte_models/manip_P3R3R_arm.hpp"
-
-#include "CRS_workspaces.hpp"
-#include "CRS_rrt_planners.hpp"
-#include "CRS_rrtstar_planners.hpp"
-#include "CRS_prm_planners.hpp"
-#include "CRS_fadprm_planners.hpp"
-#include "CRS_sbastar_planners.hpp"
+#include "topologies/joint_space_limits.hpp"
 
 namespace ReaK {
   
@@ -63,6 +57,7 @@ class scenario_data : public named_object {
     shared_ptr< kte::kte_map_chain >     target_kin_chain;
     shared_ptr< frame_3D<double> >       target_state;
     shared_ptr< frame_3D<double> >       target_frame;
+    shared_ptr< geom::proxy_query_model_3D > target_proxy;
     shared_ptr< geom::colored_model_3D > target_geom_model;
     
     shared_ptr< geom::proxy_query_pair_3D > chaser_target_proxy;

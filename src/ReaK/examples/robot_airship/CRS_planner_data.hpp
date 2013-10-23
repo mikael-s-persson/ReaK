@@ -116,14 +116,15 @@ struct CRS_model_data {
 struct CRS_sol_anim_data {
   std::vector< vect<double,7> > bestsol_trajectory;
   SoTimerSensor* animation_timer;
-  std::size_t animation_progress;
   std::chrono::high_resolution_clock::time_point animation_last_render;
+  volatile bool enabled;
 };
 
 struct CRS_target_anim_data {
   shared_ptr< sat_traj_type > target_trajectory;
   SoTimerSensor* target_anim_timer;
   std::chrono::high_resolution_clock::time_point target_anim_last_render;
+  volatile bool enabled;
 };
 
 

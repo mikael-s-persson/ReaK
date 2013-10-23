@@ -44,21 +44,13 @@ namespace pp {
   
   
   
-template <>
-struct manip_pp_traits< kte::manip_3R3R_kinematics > {
+template <int Order>
+struct manip_pp_traits< kte::manip_3R3R_kinematics, Order > {
   BOOST_STATIC_CONSTANT(std::size_t, degrees_of_freedom = 6);
   
-  typedef Ndof_rl_space<double, 6, 0>::type rl_o0_jt_space_type;
-  typedef Ndof_space<double, 6, 0>::type o0_jt_space_type;
-  typedef se3_0th_order_topology<double>::type o0_ee_space_type;
-  
-  typedef Ndof_rl_space<double, 6, 1>::type rl_o1_jt_space_type;
-  typedef Ndof_space<double, 6, 1>::type o1_jt_space_type;
-  typedef se3_1st_order_topology<double>::type o1_ee_space_type;
-  
-  typedef Ndof_rl_space<double, 6, 2>::type rl_o2_jt_space_type;
-  typedef Ndof_space<double, 6, 2>::type o2_jt_space_type;
-  typedef se3_2nd_order_topology<double>::type o2_ee_space_type;
+  typedef Ndof_rl_space<double, 6, Order>::type rl_jt_space_type;
+  typedef Ndof_space<double, 6, Order>::type jt_space_type;
+  typedef se3_topology<double, Order>::type ee_space_type;
 };
 
 

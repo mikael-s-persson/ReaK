@@ -21,7 +21,7 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "CRS_planner_impl.h"
+#include "CRS_planner2_impl.hpp"
 
 
 #include <QApplication>
@@ -61,9 +61,9 @@
 #include "serialization/archiver_factory.hpp"
 
 
-#include "CRS_planner_data.hpp"
+#include "CRS_planners_utility.hpp"
 
-#include "path_planning/frame_tracer_coin3d.hpp"
+#include "CRS_planner_data.hpp"
 
 #include "optimization/optim_exceptions.hpp"
 
@@ -89,16 +89,10 @@ void CRSPlannerGUI_animate_bestsol_trajectory(void* pv, SoSensor*) {
   
   if( (p->sol_anim->enabled) && ( animation_progress < p->sol_anim->bestsol_trajectory.size() ) ) {
     if(std::chrono::high_resolution_clock::now() - p->sol_anim->animation_last_render >= std::chrono::milliseconds(100)) {
-      const vect<double,7>& cur_pos = p->sol_anim->bestsol_trajectory[animation_progress];
-      std::cout << "animate point: " << cur_pos << std::endl;
-      p->mdl_data->builder.track_joint_coord->q = cur_pos[0];
-      p->mdl_data->builder.arm_joint_1_coord->q = cur_pos[1];
-      p->mdl_data->builder.arm_joint_2_coord->q = cur_pos[2];
-      p->mdl_data->builder.arm_joint_3_coord->q = cur_pos[3];
-      p->mdl_data->builder.arm_joint_4_coord->q = cur_pos[4]; 
-      p->mdl_data->builder.arm_joint_5_coord->q = cur_pos[5]; 
-      p->mdl_data->builder.arm_joint_6_coord->q = cur_pos[6]; 
-      p->mdl_data->kin_chain->doMotion();
+      
+      p->scene_data->chaser_kin_model->setJointPositions(vect_n<double>(p->sol_anim->bestsol_trajectory[animation_progress]));
+      p->scene_data->chaser_kin_model->doDirectMotion();
+      
       animation_progress++;
       p->sol_anim->animation_last_render = std::chrono::high_resolution_clock::now();
     };
@@ -126,6 +120,7 @@ void CRSPlannerGUI_animate_target_trajectory(void* pv, SoSensor*) {
   
   static shared_ptr< sat_traj_type > target_traj = p->target_anim->target_trajectory;
   static sat_traj_type::point_time_iterator cur_pit = target_traj->begin_time_travel();
+  
   if(!target_traj) {
     target_traj = p->target_anim->target_trajectory;
     cur_pit = target_traj->begin_time_travel();
@@ -134,8 +129,8 @@ void CRSPlannerGUI_animate_target_trajectory(void* pv, SoSensor*) {
     if(std::chrono::high_resolution_clock::now() - p->target_anim->target_anim_last_render >= std::chrono::milliseconds(100)) {
       p->target_anim->target_anim_last_render = std::chrono::high_resolution_clock::now();
       cur_pit += 0.1;
-      *(p->mdl_data->airship_frame) = get_frame_3D(cur_pit->pt);
-      p->mdl_data->airship_chain->doMotion();
+      *(p->scene_data->target_state) = get_frame_3D(cur_pit->pt); 
+      p->scene_data->target_kin_chain->doMotion();
     };
   } else {
     p->target_anim->target_anim_timer->unschedule();
@@ -172,8 +167,6 @@ void CRSPlannerGUI::loadTargetTrajectory() {
   
   last_used_path = fileInf.absolutePath();
   
-  QString fileExt = fileInf.completeSuffix();
-  
   *(serialization::open_iarchive(fileName.toStdString()))
     & RK_SERIAL_LOAD_WITH_ALIAS("se3_trajectory", target_anim->target_trajectory);
   
@@ -190,9 +183,11 @@ CRSPlannerGUI::CRSPlannerGUI( QWidget * parent, Qt::WindowFlags flags ) : QMainW
                                                                           configs() {
   setupUi(this);
   
+  scene_data = new robot_airship::scenario_data("models/CRS_A465.model.rkx");
+  scene_data->load_target("models/airship3D.model.rkx");
+  scene_data->load_environment("models/MD148_lab_model.xml");
   
   draw_data = new CRS_coin_nodes();
-  mdl_data = new CRS_model_data();
   sol_anim = new CRS_sol_anim_data();
   target_anim = new CRS_target_anim_data();
   plan_options = new CRS_planning_options();
@@ -231,52 +226,6 @@ CRSPlannerGUI::CRSPlannerGUI( QWidget * parent, Qt::WindowFlags flags ) : QMainW
   sol_anim->animation_timer = new SoTimerSensor(CRSPlannerGUI_animate_bestsol_trajectory, this);
   target_anim->target_anim_timer = new SoTimerSensor(CRSPlannerGUI_animate_target_trajectory, this);
   
-  //mdl_data->builder.create_geom_from_preset();
-  mdl_data->builder.load_kte_and_geom("models/CRS_A465_with_geom.xml");
-  mdl_data->builder.load_limits_from_file("models/CRS_A465_limits.xml");
-  
-  mdl_data->robot_proxy = mdl_data->builder.get_proximity_model();
-  mdl_data->kin_chain = mdl_data->builder.get_kinematics_kte_chain();
-  mdl_data->manip_kin_mdl = mdl_data->builder.get_manipulator_kin_model();
-  mdl_data->manip_jt_limits = shared_ptr< pp::joint_limits_collection<double> >(&(mdl_data->builder.joint_rate_limits), null_deleter());
-  
-  
-  shared_ptr< geom::colored_model_3D > lab_geom_model;
-  {
-    *(serialization::open_iarchive("models/MD148_lab_model.xml"))
-      >> lab_geom_model >> mdl_data->lab_proxy;
-  };
-  
-  shared_ptr< geom::colored_model_3D > airship_geom_model;
-  {
-    shared_ptr< kte::position_measure_3D > airship3D_position;
-    shared_ptr< kte::rotation_measure_3D > airship3D_rotation;
-    shared_ptr< kte::driving_actuator_3D > airship3D_actuator;
-    shared_ptr< kte::inertia_3D > airship3D_inertia;
-    shared_ptr< kte::mass_matrix_calc > airship3D_mass_calc;
-    
-    *(serialization::open_iarchive("models/airship3D_with_geom.xml"))
-      >> mdl_data->airship_frame
-      >> airship3D_position
-      >> airship3D_rotation
-      >> airship3D_actuator
-      >> airship3D_inertia
-      >> mdl_data->airship_chain
-      >> airship3D_mass_calc
-      >> airship_geom_model 
-      >> mdl_data->airship_proxy;
-  };
-  
-  mdl_data->target_frame = pose_3D<double>(mdl_data->airship_frame,
-      vect<double,3>(0.97 * std::sin(0.2 / 0.93),0.0,0.97 * std::cos(0.2 / 0.93)),
-      axis_angle<double>(0.2 / 0.93 / 2.0,vect<double,3>(0.0,1.0,0.0)).getQuaternion()
-      * quaternion<double>::yrot(M_PI) * quaternion<double>::zrot(0.5 * M_PI));
-  mdl_data->target_frame.Position += mdl_data->target_frame.Quat * (-0.3 * vect_k);
-  
-  mdl_data->robot_lab_proxy     = shared_ptr< geom::proxy_query_pair_3D >(new geom::proxy_query_pair_3D("robot_lab_proxy",mdl_data->robot_proxy, mdl_data->lab_proxy));
-  mdl_data->robot_airship_proxy = shared_ptr< geom::proxy_query_pair_3D >(new geom::proxy_query_pair_3D("robot_airship_proxy",mdl_data->robot_proxy, mdl_data->airship_proxy));
-  mdl_data->lab_airship_proxy   = shared_ptr< geom::proxy_query_pair_3D >(new geom::proxy_query_pair_3D("lab_airship_proxy",mdl_data->lab_proxy, mdl_data->airship_proxy));
-  
   
   
   SoQt::init(this->centralwidget);
@@ -288,7 +237,7 @@ CRSPlannerGUI::CRSPlannerGUI( QWidget * parent, Qt::WindowFlags flags ) : QMainW
   draw_data->sw_robot_geom = new SoSwitch();
   draw_data->sg_robot_geom = new geom::oi_scene_graph();
   
-  (*draw_data->sg_robot_geom) << (*mdl_data->builder.get_geometric_model());
+  (*draw_data->sg_robot_geom) << (*scene_data->chaser_geom_model);
   double charact_length = draw_data->sg_robot_geom->computeCharacteristicLength();
   
   draw_data->sw_robot_geom->addChild(draw_data->sg_robot_geom->getSceneGraph());
@@ -301,7 +250,7 @@ CRSPlannerGUI::CRSPlannerGUI( QWidget * parent, Qt::WindowFlags flags ) : QMainW
   draw_data->sg_robot_kin = new geom::oi_scene_graph();
   
   draw_data->sg_robot_kin->setCharacteristicLength(charact_length);
-  (*draw_data->sg_robot_kin) << (*mdl_data->kin_chain);
+  (*draw_data->sg_robot_kin) << (*scene_data->chaser_kin_model->getKTEChain());
   
   draw_data->sw_robot_kin->addChild(draw_data->sg_robot_kin->getSceneGraph());
   draw_data->sw_robot_kin->whichChild.setValue((configs.check_show_kinmdl->isChecked() ? SO_SWITCH_ALL : SO_SWITCH_NONE));
@@ -312,8 +261,8 @@ CRSPlannerGUI::CRSPlannerGUI( QWidget * parent, Qt::WindowFlags flags ) : QMainW
   draw_data->sw_airship_geom = new SoSwitch();
   draw_data->sg_airship_geom = new geom::oi_scene_graph();
   
-  (*draw_data->sg_airship_geom) << (*airship_geom_model) 
-                         << geom::coord_arrows_3D("target_arrows",mdl_data->airship_frame,mdl_data->target_frame,0.3);
+  (*draw_data->sg_airship_geom) << (*scene_data->target_geom_model) 
+                                << geom::coord_arrows_3D("target_arrows", scene_data->target_frame, pose_3D<double>(), 0.3);
   
   draw_data->sw_airship_geom->addChild(draw_data->sg_airship_geom->getSceneGraph());
   draw_data->sw_airship_geom->whichChild.setValue((configs.check_show_target->isChecked() ? SO_SWITCH_ALL : SO_SWITCH_NONE));
@@ -324,7 +273,8 @@ CRSPlannerGUI::CRSPlannerGUI( QWidget * parent, Qt::WindowFlags flags ) : QMainW
   draw_data->sw_lab_geom = new SoSwitch();
   draw_data->sg_lab_geom = new geom::oi_scene_graph();
   
-  (*draw_data->sg_lab_geom) << (*lab_geom_model);
+  for(std::size_t i = 0; i < scene_data->env_geom_models.size(); ++i)
+    (*draw_data->sg_lab_geom) << (*(scene_data->env_geom_models[i]));
   
   draw_data->sw_lab_geom->addChild(draw_data->sg_lab_geom->getSceneGraph());
   draw_data->sw_lab_geom->whichChild.setValue((configs.check_show_env->isChecked() ? SO_SWITCH_ALL : SO_SWITCH_NONE));
@@ -336,96 +286,9 @@ CRSPlannerGUI::CRSPlannerGUI( QWidget * parent, Qt::WindowFlags flags ) : QMainW
   draw_data->sw_motion_graph->whichChild.setValue((configs.check_show_motiongraph->isChecked() ? SO_SWITCH_ALL : SO_SWITCH_NONE));
   draw_data->sg_root->addChild(draw_data->sw_motion_graph);
   
-  
   draw_data->sw_solutions = new SoSwitch();
   draw_data->sw_solutions->whichChild.setValue((configs.check_show_sol->isChecked() ? SO_SWITCH_ALL : SO_SWITCH_NONE));
   draw_data->sg_root->addChild(draw_data->sw_solutions);
-  
-  
-  
-  
-  
-  draw_data->sw_proxy_geom = new SoSwitch();
-  
-  shared_ptr< geom::proximity_finder_3D > lr_pline = mdl_data->robot_lab_proxy->findMinimumDistance();
-  
-  SoSeparator* sep_lr_pline = new SoSeparator;
-  
-  SoBaseColor * col_lr_pline = new SoBaseColor;
-  col_lr_pline->rgb = SbColor(1, 0, 1);
-  sep_lr_pline->addChild(col_lr_pline);
-  
-  SoCoordinate3* coords_lr_pline = new SoCoordinate3;
-  if(lr_pline) {
-    coords_lr_pline->point.set1Value(0, lr_pline->getLastResult().mPoint1[0], lr_pline->getLastResult().mPoint1[1], lr_pline->getLastResult().mPoint1[2]);
-    coords_lr_pline->point.set1Value(1, lr_pline->getLastResult().mPoint2[0], lr_pline->getLastResult().mPoint2[1], lr_pline->getLastResult().mPoint2[2]);
-  } else {
-    coords_lr_pline->point.set1Value(0, 0.0, 0.0, 0.0);
-    coords_lr_pline->point.set1Value(1, 0.0, 0.0, 0.0);
-  };
-  sep_lr_pline->addChild(coords_lr_pline);
-  draw_data->l_r_proxy_line = coords_lr_pline;
-  
-  SoLineSet* ln_set_lr_pline = new SoLineSet;
-  ln_set_lr_pline->numVertices.set1Value(0, 2);
-  sep_lr_pline->addChild(ln_set_lr_pline);
-  
-  draw_data->sw_proxy_geom->addChild(sep_lr_pline);
-  
-  
-  shared_ptr< geom::proximity_finder_3D > ra_pline = mdl_data->robot_airship_proxy->findMinimumDistance();
-  
-  SoSeparator* sep_ra_pline = new SoSeparator;
-  
-  SoBaseColor * col_ra_pline = new SoBaseColor;
-  col_ra_pline->rgb = SbColor(1, 0, 1);
-  sep_ra_pline->addChild(col_ra_pline);
-  
-  SoCoordinate3* coords_ra_pline = new SoCoordinate3;
-  if(ra_pline) {
-    coords_ra_pline->point.set1Value(0, ra_pline->getLastResult().mPoint1[0], ra_pline->getLastResult().mPoint1[1], ra_pline->getLastResult().mPoint1[2]);
-    coords_ra_pline->point.set1Value(1, ra_pline->getLastResult().mPoint2[0], ra_pline->getLastResult().mPoint2[1], ra_pline->getLastResult().mPoint2[2]);
-  } else {
-    coords_ra_pline->point.set1Value(0, 0.0, 0.0, 0.0);
-    coords_ra_pline->point.set1Value(1, 0.0, 0.0, 0.0);
-  };
-  sep_ra_pline->addChild(coords_ra_pline);
-  draw_data->r_a_proxy_line = coords_ra_pline;
-  
-  SoLineSet* ln_set_ra_pline = new SoLineSet;
-  ln_set_ra_pline->numVertices.set1Value(0, 2);
-  sep_ra_pline->addChild(ln_set_ra_pline);
-  
-  draw_data->sw_proxy_geom->addChild(sep_ra_pline);
-  
-  
-  shared_ptr< geom::proximity_finder_3D > la_pline = mdl_data->lab_airship_proxy->findMinimumDistance();
-  
-  SoSeparator* sep_la_pline = new SoSeparator;
-  
-  SoBaseColor * col_la_pline = new SoBaseColor;
-  col_la_pline->rgb = SbColor(1, 0, 1);
-  sep_la_pline->addChild(col_la_pline);
-  
-  SoCoordinate3* coords_la_pline = new SoCoordinate3;
-  if(la_pline) {
-    coords_la_pline->point.set1Value(0, la_pline->getLastResult().mPoint1[0], la_pline->getLastResult().mPoint1[1], la_pline->getLastResult().mPoint1[2]);
-    coords_la_pline->point.set1Value(1, la_pline->getLastResult().mPoint2[0], la_pline->getLastResult().mPoint2[1], la_pline->getLastResult().mPoint2[2]);
-  } else {
-    coords_la_pline->point.set1Value(0, 0.0, 0.0, 0.0);
-    coords_la_pline->point.set1Value(1, 0.0, 0.0, 0.0);
-  };
-  sep_la_pline->addChild(coords_la_pline);
-  draw_data->l_a_proxy_line = coords_la_pline;
-  
-  SoLineSet* ln_set_la_pline = new SoLineSet;
-  ln_set_la_pline->numVertices.set1Value(0, 2);
-  sep_la_pline->addChild(ln_set_la_pline);
-  
-  draw_data->sw_proxy_geom->addChild(sep_la_pline);
-  
-  
-  draw_data->sg_root->addChild(draw_data->sw_proxy_geom);
   
   
   
@@ -485,50 +348,51 @@ CRSPlannerGUI::~CRSPlannerGUI() {
   
   
   delete draw_data;
-  delete mdl_data;
   delete sol_anim;
   delete target_anim;
   delete plan_options;
+  
+  delete scene_data;
   
 };
 
 
 void CRSPlannerGUI::onJointChange() {
-  mdl_data->builder.track_joint_coord->q = double(configs.track_pos->value()) * 0.001;
-  mdl_data->builder.arm_joint_1_coord->q = double(configs.joint1_pos->value()) * 0.001;
-  mdl_data->builder.arm_joint_2_coord->q = double(configs.joint2_pos->value()) * 0.001;
-  mdl_data->builder.arm_joint_3_coord->q = double(configs.joint3_pos->value()) * 0.001;
-  mdl_data->builder.arm_joint_4_coord->q = double(configs.joint4_pos->value()) * 0.001; 
-  mdl_data->builder.arm_joint_5_coord->q = double(configs.joint5_pos->value()) * 0.001; 
-  mdl_data->builder.arm_joint_6_coord->q = double(configs.joint6_pos->value()) * 0.001; 
-  mdl_data->kin_chain->doMotion();
+  scene_data->chaser_kin_model->setJointPositions(
+    vect_n<double>(
+      double(configs.track_pos->value()) * 0.001,
+      double(configs.joint1_pos->value()) * 0.001,
+      double(configs.joint2_pos->value()) * 0.001,
+      double(configs.joint3_pos->value()) * 0.001,
+      double(configs.joint4_pos->value()) * 0.001,
+      double(configs.joint5_pos->value()) * 0.001,
+      double(configs.joint6_pos->value()) * 0.001
+    )
+  );
+  scene_data->chaser_kin_model->doDirectMotion();
+  
   onProxyChange();
 };
 
 void CRSPlannerGUI::onTargetChange() {
-  mdl_data->airship_frame->Position = vect<double,3>(
+  scene_data->target_state->Position = vect<double,3>(
     double(configs.target_x->value()) * 0.001, 
     double(configs.target_y->value()) * 0.001, 
     double(configs.target_z->value()) * 0.001);
-  mdl_data->airship_frame->Quat = 
+  scene_data->target_state->Quat = 
     quaternion<double>::zrot(double(configs.target_yaw->value()) * 0.001) * 
     quaternion<double>::yrot(double(configs.target_pitch->value()) * 0.001) * 
     quaternion<double>::xrot(double(configs.target_roll->value()) * 0.001);
-  mdl_data->airship_chain->doMotion();
+  scene_data->target_kin_chain->doMotion();
   
   
   if(configs.check_enable_ik->isChecked()) {
     try {
-      vect_n<double> jt_sol = mdl_data->builder.compute_inverse_kinematics(mdl_data->target_frame.getGlobalPose());
-      mdl_data->builder.track_joint_coord->q = jt_sol[0];
-      mdl_data->builder.arm_joint_1_coord->q = jt_sol[1];
-      mdl_data->builder.arm_joint_2_coord->q = jt_sol[2];
-      mdl_data->builder.arm_joint_3_coord->q = jt_sol[3];
-      mdl_data->builder.arm_joint_4_coord->q = jt_sol[4];
-      mdl_data->builder.arm_joint_5_coord->q = jt_sol[5];
-      mdl_data->builder.arm_joint_6_coord->q = jt_sol[6];
+      frame_3D<double> tf = scene_data->target_frame->getFrameRelativeTo(scene_data->chaser_kin_model->getDependentFrame3D(0)->mFrame);
+      scene_data->chaser_kin_model->getDependentFrame3D(0)->mFrame->addBefore(tf);
+      scene_data->chaser_kin_model->doInverseMotion();
     } catch( optim::infeasible_problem& e ) { RK_UNUSED(e); };
-    mdl_data->kin_chain->doMotion();
+    scene_data->chaser_kin_model->doDirectMotion();
   };
   
   onProxyChange();
@@ -551,7 +415,7 @@ void CRSPlannerGUI::onEnvVisible() {
 };
 
 void CRSPlannerGUI::onProxyVisible() {
-  draw_data->sw_proxy_geom->whichChild.setValue((configs.check_show_proxy->isChecked() ? SO_SWITCH_ALL : SO_SWITCH_NONE));
+  
 };
 
 void CRSPlannerGUI::onMGVisible() {
@@ -563,23 +427,7 @@ void CRSPlannerGUI::onSolutionsVisible() {
 };
 
 void CRSPlannerGUI::onProxyChange() {
-  shared_ptr< geom::proximity_finder_3D > lr_pline = mdl_data->robot_lab_proxy->findMinimumDistance();
-  if(lr_pline) {
-    draw_data->l_r_proxy_line->point.set1Value(0, lr_pline->getLastResult().mPoint1[0], lr_pline->getLastResult().mPoint1[1], lr_pline->getLastResult().mPoint1[2]);
-    draw_data->l_r_proxy_line->point.set1Value(1, lr_pline->getLastResult().mPoint2[0], lr_pline->getLastResult().mPoint2[1], lr_pline->getLastResult().mPoint2[2]);
-  };
   
-  shared_ptr< geom::proximity_finder_3D > ra_pline = mdl_data->robot_airship_proxy->findMinimumDistance();
-  if(ra_pline) {
-    draw_data->r_a_proxy_line->point.set1Value(0, ra_pline->getLastResult().mPoint1[0], ra_pline->getLastResult().mPoint1[1], ra_pline->getLastResult().mPoint1[2]);
-    draw_data->r_a_proxy_line->point.set1Value(1, ra_pline->getLastResult().mPoint2[0], ra_pline->getLastResult().mPoint2[1], ra_pline->getLastResult().mPoint2[2]);
-  };
-  
-  shared_ptr< geom::proximity_finder_3D > la_pline = mdl_data->lab_airship_proxy->findMinimumDistance();
-  if(la_pline) {
-    draw_data->l_a_proxy_line->point.set1Value(0, la_pline->getLastResult().mPoint1[0], la_pline->getLastResult().mPoint1[1], la_pline->getLastResult().mPoint1[2]);
-    draw_data->l_a_proxy_line->point.set1Value(1, la_pline->getLastResult().mPoint2[0], la_pline->getLastResult().mPoint2[1], la_pline->getLastResult().mPoint2[2]);
-  };
 };
 
 
@@ -802,36 +650,13 @@ void CRSPlannerGUI::onUpdateAvailableOptions() {
 
 void CRSPlannerGUI::savePositions() {
   QString fileName = QFileDialog::getSaveFileName(
-    this, 
-    tr("Save Positions Record..."),
-    last_used_path,
+    this, tr("Save Positions Record..."), last_used_path,
     tr("Robot-Airship Positions Record (*.rapos.rkx *.rapos.rkb *.rapos.pbuf)"));
   
   if( fileName == tr("") )
     return;
   
-  QFileInfo fileInf(fileName);
-  
-  last_used_path = fileInf.absolutePath();
-  
-  QString fileExt = fileInf.completeSuffix();
-  
-  if( (fileExt != tr("rapos.rkx")) || (fileExt != tr("rapos.rkb")) || (fileExt != tr("rapos.pbuf")) ) {
-    QString filesuff = fileInf.suffix();
-    if( filesuff == tr("rkb") ) {
-      fileName = fileInf.dir().filePath(fileInf.baseName() + tr(".rapos.rkb"));
-      fileInf.setFile(fileName);
-      fileExt = fileInf.completeSuffix();
-    } else if( filesuff == tr("pbuf") ) {
-      fileName = fileInf.dir().filePath(fileInf.baseName() + tr(".rapos.pbuf"));
-      fileInf.setFile(fileName);
-      fileExt = fileInf.completeSuffix();
-    } else {
-      fileName = fileInf.dir().filePath(fileInf.baseName() + tr(".rapos.rkx"));
-      fileInf.setFile(fileName);
-      fileExt = fileInf.completeSuffix();
-    };
-  };
+  last_used_path = QFileInfo(fileName).absolutePath();
   
   vect<double,7> robot_joint_positions;
   robot_joint_positions[0] = double(configs.track_pos->value()) * 0.001;
@@ -879,11 +704,7 @@ void CRSPlannerGUI::loadPositions() {
   if( fileName == tr("") )
     return;
   
-  QFileInfo fileInf(fileName);
-  
-  last_used_path = fileInf.absolutePath();
-  
-  QString fileExt = fileInf.completeSuffix();
+  last_used_path = QFileInfo(fileName).absolutePath();
   
   vect<double,7> robot_joint_positions;
   vect<double,3> airship_position;
@@ -924,40 +745,15 @@ void CRSPlannerGUI::loadPositions() {
 
 void CRSPlannerGUI::savePlannerConfig() {
   QString fileName = QFileDialog::getSaveFileName(
-    this, 
-    tr("Save Planner Configurations..."),
-    last_used_path,
+    this, tr("Save Planner Configurations..."), last_used_path,
     tr("Robot-Airship Planner Configurations (*.raplan.rkx *.raplan.rkb *.raplan.pbuf)"));
   
   if( fileName == tr("") )
     return;
   
-  QFileInfo fileInf(fileName);
-  
-  last_used_path = fileInf.absolutePath();
-  
-  QString fileExt = fileInf.completeSuffix();
-  
-  if( (fileExt != tr("raplan.rkx")) || (fileExt != tr("raplan.rkb")) || (fileExt != tr("raplan.pbuf")) ) {
-    QString filesuff = fileInf.suffix();
-    if( filesuff == tr("rkb") ) {
-      fileName = fileInf.dir().filePath(fileInf.baseName() + tr(".raplan.rkb"));
-      fileInf.setFile(fileName);
-      fileExt = fileInf.completeSuffix();
-    } else if( filesuff == tr("pbuf") ) {
-      fileName = fileInf.dir().filePath(fileInf.baseName() + tr(".raplan.pbuf"));
-      fileInf.setFile(fileName);
-      fileExt = fileInf.completeSuffix();
-    } else {
-      fileName = fileInf.dir().filePath(fileInf.baseName() + tr(".raplan.rkx"));
-      fileInf.setFile(fileName);
-      fileExt = fileInf.completeSuffix();
-    };
-  };
-  
+  last_used_path = QFileInfo(fileName).absolutePath();
   
   onConfigsChanged();
-  
   
   try {
     plan_options->save( *(serialization::open_oarchive(fileName.toStdString())) );
@@ -969,23 +765,17 @@ void CRSPlannerGUI::savePlannerConfig() {
     return;
   };
   
-  
 };
 
 void CRSPlannerGUI::loadPlannerConfig() {
   QString fileName = QFileDialog::getOpenFileName(
-    this, 
-    tr("Open Planner Configurations..."),
-    last_used_path,
+    this, tr("Open Planner Configurations..."), last_used_path,
     tr("Robot-Airship Planner Configurations (*.raplan.rkx *.raplan.rkb *.raplan.pbuf)"));
   
   if( fileName == tr("") )
     return;
   
-  QFileInfo fileInf(fileName);
-  
-  last_used_path = fileInf.absolutePath();
-  
+  last_used_path = QFileInfo(fileName).absolutePath();
   
   try {
     plan_options->load( *(serialization::open_iarchive(fileName.toStdString())) );
@@ -998,7 +788,6 @@ void CRSPlannerGUI::loadPlannerConfig() {
   };
   
   updateConfigs();
-  
 };
 
 
