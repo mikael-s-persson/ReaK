@@ -48,9 +48,9 @@ template <int Order>
 struct manip_pp_traits< kte::manip_SSRMS_kinematics, Order > {
   BOOST_STATIC_CONSTANT(std::size_t, degrees_of_freedom = 7);
   
-  typedef Ndof_rl_space<double, 7, Order>::type rl_jt_space_type;
-  typedef Ndof_space<double, 7, Order>::type jt_space_type;
-  typedef se3_topology<double, Order>::type ee_space_type;
+  typedef typename Ndof_rl_space<double, 7, Order>::type rl_jt_space_type;
+  typedef typename Ndof_space<double, 7, Order>::type jt_space_type;
+  typedef typename se3_topology<double, Order>::type ee_space_type;
 };
 
 

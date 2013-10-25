@@ -253,8 +253,8 @@ int main(int argc, char ** argv) {
     joint_rate_limits->frame3D_jerk_limits.resize(0);
     
     
-    shared_ptr< pp::manip_static_workspace< manip_P3R3R_kinematics, pp::linear_interpolation_tag >::rl_o0_workspace_type >
-      workspace = pp::make_manip_o0_static_workspace< pp::linear_interpolation_tag >(
+    shared_ptr< pp::manip_static_workspace< manip_P3R3R_kinematics, 0, pp::linear_interpolation_tag >::rl_workspace_type >
+      workspace = pp::make_manip_static_workspace< 0, pp::linear_interpolation_tag >(
         kte_model, joint_rate_limits, 0.1, 1.0
       );
     

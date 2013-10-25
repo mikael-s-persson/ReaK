@@ -49,18 +49,18 @@ template <int Order>
 struct manip_pp_traits< kte::manip_3R_2D_kinematics, Order > {
   BOOST_STATIC_CONSTANT(std::size_t, degrees_of_freedom = 3);
   
-  typedef Ndof_rl_space<double, 3, Order>::type rl_jt_space_type;
-  typedef Ndof_space<double, 3, Order>::type jt_space_type;
-  typedef se2_topology<double, Order>::type ee_space_type;
+  typedef typename Ndof_rl_space<double, 3, Order>::type rl_jt_space_type;
+  typedef typename Ndof_space<double, 3, Order>::type jt_space_type;
+  typedef typename se2_topology<double, Order>::type ee_space_type;
 };
 
 template <int Order>
 struct manip_pp_traits< kte::manip_3R_3D_kinematics, Order > {
   BOOST_STATIC_CONSTANT(std::size_t, degrees_of_freedom = 3);
   
-  typedef Ndof_rl_space<double, 3, Order>::type rl_jt_space_type;
-  typedef Ndof_space<double, 3, Order>::type jt_space_type;
-  typedef se3_topology<double, Order>::type ee_space_type;
+  typedef typename Ndof_rl_space<double, 3, Order>::type rl_jt_space_type;
+  typedef typename Ndof_space<double, 3, Order>::type jt_space_type;
+  typedef typename se3_topology<double, Order>::type ee_space_type;
 };
 
 
