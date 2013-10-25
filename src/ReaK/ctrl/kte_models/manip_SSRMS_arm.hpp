@@ -58,6 +58,8 @@ class manip_SSRMS_kinematics : public inverse_kinematics_model {
     
   public:
     
+    BOOST_STATIC_CONSTANT(std::size_t, degrees_of_freedom = 7);
+    
     vect_n<double> joint_lower_bounds;
     vect_n<double> joint_upper_bounds;
     

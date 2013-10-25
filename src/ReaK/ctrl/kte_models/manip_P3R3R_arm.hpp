@@ -71,6 +71,8 @@ class manip_P3R3R_kinematics : public inverse_kinematics_model {
     
   public:
     
+    BOOST_STATIC_CONSTANT(std::size_t, degrees_of_freedom = 7);
+    
     shared_ptr< kte_map_chain > getKTEChain() const { return m_chain; };
     
     /**

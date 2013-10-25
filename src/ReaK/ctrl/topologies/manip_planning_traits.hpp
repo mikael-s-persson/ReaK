@@ -152,8 +152,7 @@ typename boost::enable_if< boost::mpl::equal_to< boost::mpl::int_<1>, boost::mpl
   shared_ptr< typename manip_pp_traits< ManipMdlType, Order >::jt_space_type > 
 >::type make_manip_jt_space(
     const shared_ptr< ManipMdlType >& manip_kin_mdl,
-    const shared_ptr< joint_limits_collection<double> >& manip_jt_limits,
-    double min_travel, double max_travel) {
+    const shared_ptr< joint_limits_collection<double> >& manip_jt_limits) {
   typedef typename manip_pp_traits< ManipMdlType, Order >::jt_space_type JtspaceType;
   
   return shared_ptr<JtspaceType>(new JtspaceType(
@@ -168,8 +167,7 @@ typename boost::enable_if< boost::mpl::equal_to< boost::mpl::int_<2>, boost::mpl
   shared_ptr< typename manip_pp_traits< ManipMdlType, Order >::jt_space_type > 
 >::type make_manip_jt_space(
     const shared_ptr< ManipMdlType >& manip_kin_mdl,
-    const shared_ptr< joint_limits_collection<double> >& manip_jt_limits,
-    double min_travel, double max_travel) {
+    const shared_ptr< joint_limits_collection<double> >& manip_jt_limits) {
   typedef typename manip_pp_traits< ManipMdlType, Order >::jt_space_type JtspaceType;
   
   return shared_ptr<JtspaceType>(new JtspaceType(
@@ -205,8 +203,7 @@ typename boost::enable_if< boost::mpl::equal_to< boost::mpl::int_<1>, boost::mpl
   shared_ptr< typename manip_pp_traits< ManipMdlType, Order >::rl_jt_space_type > 
 >::type make_manip_rl_jt_space(
     const shared_ptr< ManipMdlType >& manip_kin_mdl,
-    const shared_ptr< joint_limits_collection<double> >& manip_jt_limits,
-    double min_travel, double max_travel) {
+    const shared_ptr< joint_limits_collection<double> >& manip_jt_limits) {
   typedef typename manip_pp_traits< ManipMdlType, Order >::rl_jt_space_type JtspaceType;
   
   return shared_ptr<JtspaceType>(new JtspaceType(
@@ -222,8 +219,7 @@ typename boost::enable_if< boost::mpl::equal_to< boost::mpl::int_<2>, boost::mpl
   shared_ptr< typename manip_pp_traits< ManipMdlType, Order >::rl_jt_space_type > 
 >::type make_manip_rl_jt_space(
     const shared_ptr< ManipMdlType >& manip_kin_mdl,
-    const shared_ptr< joint_limits_collection<double> >& manip_jt_limits,
-    double min_travel, double max_travel) {
+    const shared_ptr< joint_limits_collection<double> >& manip_jt_limits) {
   typedef typename manip_pp_traits< ManipMdlType, Order >::rl_jt_space_type JtspaceType;
   
   return shared_ptr<JtspaceType>(new JtspaceType(

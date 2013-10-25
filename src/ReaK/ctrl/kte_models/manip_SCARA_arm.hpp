@@ -59,6 +59,8 @@ class manip_SCARA_kinematics : public inverse_kinematics_model {
     
   public:
     
+    BOOST_STATIC_CONSTANT(std::size_t, degrees_of_freedom = 3);
+    
     /**
      * Default constructor.
      */

@@ -57,6 +57,8 @@ class manip_ERA_kinematics : public inverse_kinematics_model {
     
   public:
     
+    BOOST_STATIC_CONSTANT(std::size_t, degrees_of_freedom = 7);
+    
     vect<double,3> preferred_elbow_dir;
     vect_n<double> joint_lower_bounds;
     vect_n<double> joint_upper_bounds;
