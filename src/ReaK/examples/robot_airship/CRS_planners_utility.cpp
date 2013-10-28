@@ -113,8 +113,7 @@ void scenario_data::load_positions(const std::string& fileName) {
           & RK_SERIAL_LOAD_WITH_NAME(target_position)
           & RK_SERIAL_LOAD_WITH_NAME(target_quaternion);
   
-  chaser_jt_positions = chaser_joint_positions;
-  chaser_kin_model->setJointPositions(chaser_jt_positions);
+  chaser_kin_model->setJointPositions(chaser_joint_positions);
   chaser_kin_model->doDirectMotion();
   
   target_state->Position = target_position;
@@ -127,14 +126,14 @@ void scenario_data::load_positions(const std::string& fileName) {
 namespace {
   
   // without C++11 lambdas, this is the best approximation of a closure for restoring joint positions after an IK attempt.
-  struct kin_model_jt_pos_restore {
+  struct kin_model_jt_state_restore {
     kte::direct_kinematics_model& kin_model;
-    const vect_n<double>& jt_pos;
+    vect_n<double> jt_pos;
     
-    kin_model_jt_pos_restore(kte::direct_kinematics_model& aKinModel, const vect_n<double>& aJtPos) :
-                             kin_model(aKinModel), jt_pos(aJtPos) { };
+    kin_model_jt_state_restore(kte::direct_kinematics_model& aKinModel) :
+                               kin_model(aKinModel), jt_pos(aKinModel.getJointPositions()) { };
     
-    ~kin_model_jt_pos_restore() {
+    ~kin_model_jt_state_restore() {
       kin_model.setJointPositions(jt_pos);
       kin_model.doDirectMotion();
     };
@@ -148,7 +147,7 @@ namespace {
 vect_n<double> scenario_data::get_chaser_goal_config() {
   
   // a simple scope-guard object to restore the chaser configuration upon return (or unwinding):
-  kin_model_jt_pos_restore restore_chaser_at_exit( *chaser_kin_model, chaser_jt_positions );
+  kin_model_jt_state_restore restore_chaser_at_exit( *chaser_kin_model );
   
   target_kin_chain->doMotion();
   

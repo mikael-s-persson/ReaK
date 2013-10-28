@@ -18,7 +18,7 @@ endforeach(CURRENT_RKGEOMETRYSUBDIR)
 
 
 
-add_library(reak_mbd STATIC $<TARGET_OBJECTS:reakobj_geom> $<TARGET_OBJECTS:reakobj_proximity> $<TARGET_OBJECTS:reakobj_mbd_kte> $<TARGET_OBJECTS:reakobj_kte_models>)
+add_library(reak_mbd STATIC $<TARGET_OBJECTS:reakobj_geom> $<TARGET_OBJECTS:reakobj_proximity> $<TARGET_OBJECTS:reakobj_mbd_kte> $<TARGET_OBJECTS:reakobj_kte_models> $<TARGET_OBJECTS:reakobj_kte_geom_models>)
 setup_custom_target(reak_mbd "${SRCROOT}${RKCTRLDIR}")
 target_link_libraries(reak_mbd reak_core)
 

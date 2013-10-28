@@ -34,5 +34,17 @@ add_library(reakobj_kte_models OBJECT ${KTEMODELS_SOURCES})
 setup_headers("${KTEMODELS_HEADERS}" "${RKKTEMODELSDIR}")
 
 
+set(KTEGEOMMODELS_SOURCES 
+  "${SRCROOT}${RKKTEMODELSDIR}/chaser_target_model_data.cpp"
+)
+
+
+set(KTEGEOMMODELS_HEADERS 
+  "${RKKTEMODELSDIR}/chaser_target_model_data.hpp"
+)
+
+add_library(reakobj_kte_geom_models OBJECT ${KTEGEOMMODELS_SOURCES})
+
+setup_headers("${KTEGEOMMODELS_HEADERS}" "${RKKTEMODELSDIR}")
 
 

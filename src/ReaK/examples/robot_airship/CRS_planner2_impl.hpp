@@ -28,18 +28,13 @@
 #include "ui_CRS_planner_window.h"
 #include "ui_CRS_planner_config.h"
 
+#include "path_planning/path_planner_options.hpp"
+#include "kte_models/chaser_target_model_data.hpp"
 
-namespace ReaK {
-namespace robot_airship {
-class scenario_data; // forward-declaration.
-};
-};
 
 struct CRS_coin_nodes;
-struct CRS_model_data;
 struct CRS_sol_anim_data;
 struct CRS_target_anim_data;
-struct CRS_planning_options;
 
 
 class SoSensor;
@@ -95,12 +90,12 @@ class CRSPlannerGUI : public QMainWindow, private Ui::CRSPlannerWindow {
     
     Ui::CRSPlannerConfig configs;
     
-    ReaK::robot_airship::scenario_data* scene_data;
+    ReaK::kte::chaser_target_data scene_data;
+    ReaK::pp::planning_option_collection plan_options;
     
     CRS_coin_nodes* draw_data;
     CRS_sol_anim_data* sol_anim;
     CRS_target_anim_data* target_anim;
-    CRS_planning_options* plan_options;
     
 };
 

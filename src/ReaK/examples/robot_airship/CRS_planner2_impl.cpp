@@ -90,8 +90,8 @@ void CRSPlannerGUI_animate_bestsol_trajectory(void* pv, SoSensor*) {
   if( (p->sol_anim->enabled) && ( animation_progress < p->sol_anim->bestsol_trajectory.size() ) ) {
     if(std::chrono::high_resolution_clock::now() - p->sol_anim->animation_last_render >= std::chrono::milliseconds(100)) {
       
-      p->scene_data->chaser_kin_model->setJointPositions(vect_n<double>(p->sol_anim->bestsol_trajectory[animation_progress]));
-      p->scene_data->chaser_kin_model->doDirectMotion();
+      p->scene_data.chaser_kin_model->setJointPositions(vect_n<double>(p->sol_anim->bestsol_trajectory[animation_progress]));
+      p->scene_data.chaser_kin_model->doDirectMotion();
       
       animation_progress++;
       p->sol_anim->animation_last_render = std::chrono::high_resolution_clock::now();
@@ -129,8 +129,8 @@ void CRSPlannerGUI_animate_target_trajectory(void* pv, SoSensor*) {
     if(std::chrono::high_resolution_clock::now() - p->target_anim->target_anim_last_render >= std::chrono::milliseconds(100)) {
       p->target_anim->target_anim_last_render = std::chrono::high_resolution_clock::now();
       cur_pit += 0.1;
-      *(p->scene_data->target_state) = get_frame_3D(cur_pit->pt); 
-      p->scene_data->target_kin_chain->doMotion();
+      *(p->scene_data.target_kin_model->getFrame3D(0)) = get_frame_3D(cur_pit->pt); 
+      p->scene_data.target_kin_model->doDirectMotion();
     };
   } else {
     p->target_anim->target_anim_timer->unschedule();
@@ -183,14 +183,13 @@ CRSPlannerGUI::CRSPlannerGUI( QWidget * parent, Qt::WindowFlags flags ) : QMainW
                                                                           configs() {
   setupUi(this);
   
-  scene_data = new robot_airship::scenario_data("models/CRS_A465.model.rkx");
-  scene_data->load_target("models/airship3D.model.rkx");
-  scene_data->load_environment("models/MD148_lab_model.xml");
+  scene_data.load_chaser("models/CRS_A465.model.rkx");
+  scene_data.load_target("models/airship3D.model.rkx");
+  scene_data.load_environment("models/MD148_lab_model.xml");
   
   draw_data = new CRS_coin_nodes();
   sol_anim = new CRS_sol_anim_data();
   target_anim = new CRS_target_anim_data();
-  plan_options = new CRS_planning_options();
   
   
   
@@ -237,7 +236,7 @@ CRSPlannerGUI::CRSPlannerGUI( QWidget * parent, Qt::WindowFlags flags ) : QMainW
   draw_data->sw_robot_geom = new SoSwitch();
   draw_data->sg_robot_geom = new geom::oi_scene_graph();
   
-  (*draw_data->sg_robot_geom) << (*scene_data->chaser_geom_model);
+  (*draw_data->sg_robot_geom) << (*scene_data.chaser_geom_model);
   double charact_length = draw_data->sg_robot_geom->computeCharacteristicLength();
   
   draw_data->sw_robot_geom->addChild(draw_data->sg_robot_geom->getSceneGraph());
@@ -250,7 +249,7 @@ CRSPlannerGUI::CRSPlannerGUI( QWidget * parent, Qt::WindowFlags flags ) : QMainW
   draw_data->sg_robot_kin = new geom::oi_scene_graph();
   
   draw_data->sg_robot_kin->setCharacteristicLength(charact_length);
-  (*draw_data->sg_robot_kin) << (*scene_data->chaser_kin_model->getKTEChain());
+  (*draw_data->sg_robot_kin) << (*scene_data.chaser_kin_model->getKTEChain());
   
   draw_data->sw_robot_kin->addChild(draw_data->sg_robot_kin->getSceneGraph());
   draw_data->sw_robot_kin->whichChild.setValue((configs.check_show_kinmdl->isChecked() ? SO_SWITCH_ALL : SO_SWITCH_NONE));
@@ -261,8 +260,8 @@ CRSPlannerGUI::CRSPlannerGUI( QWidget * parent, Qt::WindowFlags flags ) : QMainW
   draw_data->sw_airship_geom = new SoSwitch();
   draw_data->sg_airship_geom = new geom::oi_scene_graph();
   
-  (*draw_data->sg_airship_geom) << (*scene_data->target_geom_model) 
-                                << geom::coord_arrows_3D("target_arrows", scene_data->target_frame, pose_3D<double>(), 0.3);
+  (*draw_data->sg_airship_geom) << (*scene_data.target_geom_model) 
+                                << geom::coord_arrows_3D("target_arrows", scene_data.target_frame, pose_3D<double>(), 0.3);
   
   draw_data->sw_airship_geom->addChild(draw_data->sg_airship_geom->getSceneGraph());
   draw_data->sw_airship_geom->whichChild.setValue((configs.check_show_target->isChecked() ? SO_SWITCH_ALL : SO_SWITCH_NONE));
@@ -273,8 +272,8 @@ CRSPlannerGUI::CRSPlannerGUI( QWidget * parent, Qt::WindowFlags flags ) : QMainW
   draw_data->sw_lab_geom = new SoSwitch();
   draw_data->sg_lab_geom = new geom::oi_scene_graph();
   
-  for(std::size_t i = 0; i < scene_data->env_geom_models.size(); ++i)
-    (*draw_data->sg_lab_geom) << (*(scene_data->env_geom_models[i]));
+  for(std::size_t i = 0; i < scene_data.env_geom_models.size(); ++i)
+    (*draw_data->sg_lab_geom) << (*(scene_data.env_geom_models[i]));
   
   draw_data->sw_lab_geom->addChild(draw_data->sg_lab_geom->getSceneGraph());
   draw_data->sw_lab_geom->whichChild.setValue((configs.check_show_env->isChecked() ? SO_SWITCH_ALL : SO_SWITCH_NONE));
@@ -297,19 +296,19 @@ CRSPlannerGUI::CRSPlannerGUI( QWidget * parent, Qt::WindowFlags flags ) : QMainW
   
   
   
-  plan_options->space_order = 0;
-  plan_options->interp_id = 0;
-  plan_options->min_travel = 0.1;
-  plan_options->max_travel = 1.0;
-  plan_options->planning_algo = 0;
-  plan_options->max_vertices = 2000;
-  plan_options->prog_interval = 500;
-  plan_options->max_results = 50;
-  plan_options->planning_options = 0;
-  plan_options->store_policy = 0;
-  plan_options->knn_method = 2;
-  plan_options->init_SA_temp = 0.0;
-  plan_options->init_relax = 5.0;
+  plan_options.space_order = 0;
+  plan_options.interp_id = 0;
+  plan_options.min_travel = 0.1;
+  plan_options.max_travel = 1.0;
+  plan_options.planning_algo = 0;
+  plan_options.max_vertices = 2000;
+  plan_options.prog_interval = 500;
+  plan_options.max_results = 50;
+  plan_options.planning_options = 0;
+  plan_options.store_policy = 0;
+  plan_options.knn_method = 2;
+  plan_options.init_SA_temp = 0.0;
+  plan_options.init_relax = 5.0;
   updateConfigs();
   
   
@@ -350,15 +349,12 @@ CRSPlannerGUI::~CRSPlannerGUI() {
   delete draw_data;
   delete sol_anim;
   delete target_anim;
-  delete plan_options;
-  
-  delete scene_data;
   
 };
 
 
 void CRSPlannerGUI::onJointChange() {
-  scene_data->chaser_kin_model->setJointPositions(
+  scene_data.chaser_kin_model->setJointPositions(
     vect_n<double>(
       double(configs.track_pos->value()) * 0.001,
       double(configs.joint1_pos->value()) * 0.001,
@@ -369,30 +365,31 @@ void CRSPlannerGUI::onJointChange() {
       double(configs.joint6_pos->value()) * 0.001
     )
   );
-  scene_data->chaser_kin_model->doDirectMotion();
+  scene_data.chaser_kin_model->doDirectMotion();
   
   onProxyChange();
 };
 
 void CRSPlannerGUI::onTargetChange() {
-  scene_data->target_state->Position = vect<double,3>(
+  shared_ptr< frame_3D<double> > target_state = scene_data.target_kin_model->getFrame3D(0);
+  target_state->Position = vect<double,3>(
     double(configs.target_x->value()) * 0.001, 
     double(configs.target_y->value()) * 0.001, 
     double(configs.target_z->value()) * 0.001);
-  scene_data->target_state->Quat = 
+  target_state->Quat = 
     quaternion<double>::zrot(double(configs.target_yaw->value()) * 0.001) * 
     quaternion<double>::yrot(double(configs.target_pitch->value()) * 0.001) * 
     quaternion<double>::xrot(double(configs.target_roll->value()) * 0.001);
-  scene_data->target_kin_chain->doMotion();
+  scene_data.target_kin_model->doDirectMotion();
   
   
   if(configs.check_enable_ik->isChecked()) {
     try {
-      frame_3D<double> tf = scene_data->target_frame->getFrameRelativeTo(scene_data->chaser_kin_model->getDependentFrame3D(0)->mFrame);
-      scene_data->chaser_kin_model->getDependentFrame3D(0)->mFrame->addBefore(tf);
-      scene_data->chaser_kin_model->doInverseMotion();
+      frame_3D<double> tf = scene_data.target_frame->getFrameRelativeTo(scene_data.chaser_kin_model->getDependentFrame3D(0)->mFrame);
+      scene_data.chaser_kin_model->getDependentFrame3D(0)->mFrame->addBefore(tf);
+      scene_data.chaser_kin_model->doInverseMotion();
     } catch( optim::infeasible_problem& e ) { RK_UNUSED(e); };
-    scene_data->chaser_kin_model->doDirectMotion();
+    scene_data.chaser_kin_model->doDirectMotion();
   };
   
   onProxyChange();
@@ -434,63 +431,63 @@ void CRSPlannerGUI::onProxyChange() {
 void CRSPlannerGUI::onConfigsChanged() {
   
   // joint-space parameters:
-  plan_options->space_order = configs.order_selection->currentIndex();
-  plan_options->interp_id = configs.interp_selection->currentIndex();
+  plan_options.space_order = configs.order_selection->currentIndex();
+  plan_options.interp_id = configs.interp_selection->currentIndex();
   
-  plan_options->min_travel = configs.min_interval_spinbox->value();
-  plan_options->max_travel = configs.max_interval_spinbox->value();
+  plan_options.min_travel = configs.min_interval_spinbox->value();
+  plan_options.max_travel = configs.max_interval_spinbox->value();
   
   
   // planner parameters:
-  plan_options->planning_algo = configs.planning_algo_selection->currentIndex();
+  plan_options.planning_algo = configs.planning_algo_selection->currentIndex();
   
-  plan_options->max_vertices = configs.maxvertices_spinbox->value();
-  plan_options->prog_interval = configs.progress_interval_spinbox->value();
-  plan_options->max_results = configs.maxsolutions_spinbox->value();
+  plan_options.max_vertices = configs.maxvertices_spinbox->value();
+  plan_options.prog_interval = configs.progress_interval_spinbox->value();
+  plan_options.max_results = configs.maxsolutions_spinbox->value();
   
-  plan_options->planning_options = pp::UNIDIRECTIONAL_PLANNING;
+  plan_options.planning_options = pp::UNIDIRECTIONAL_PLANNING;
   
   if(configs.check_bidir->isChecked())
-    plan_options->planning_options |= pp::BIDIRECTIONAL_PLANNING;
+    plan_options.planning_options |= pp::BIDIRECTIONAL_PLANNING;
   
   if(configs.check_lazy_collision->isChecked())
-    plan_options->planning_options |= pp::LAZY_COLLISION_CHECKING;
+    plan_options.planning_options |= pp::LAZY_COLLISION_CHECKING;
   
-  plan_options->init_SA_temp = -1.0;
+  plan_options.init_SA_temp = -1.0;
   if(configs.check_voronoi_pull->isChecked()) {
-    plan_options->planning_options |= pp::PLAN_WITH_VORONOI_PULL;
-    plan_options->init_SA_temp = configs.init_sa_temp_spinbox->value();
-    if(plan_options->init_SA_temp < 1e-6)
-      plan_options->init_SA_temp = -1.0;
+    plan_options.planning_options |= pp::PLAN_WITH_VORONOI_PULL;
+    plan_options.init_SA_temp = configs.init_sa_temp_spinbox->value();
+    if(plan_options.init_SA_temp < 1e-6)
+      plan_options.init_SA_temp = -1.0;
   };
   
-  plan_options->init_relax = 0.0;
+  plan_options.init_relax = 0.0;
   if(configs.check_anytime_heuristic->isChecked()) {
-    plan_options->planning_options |= pp::PLAN_WITH_ANYTIME_HEURISTIC;
-    plan_options->init_relax = configs.init_relax_spinbox->value();
+    plan_options.planning_options |= pp::PLAN_WITH_ANYTIME_HEURISTIC;
+    plan_options.init_relax = configs.init_relax_spinbox->value();
   };
   
   if(configs.check_bnb->isChecked())
-    plan_options->planning_options |= pp::USE_BRANCH_AND_BOUND_PRUNING_FLAG;
+    plan_options.planning_options |= pp::USE_BRANCH_AND_BOUND_PRUNING_FLAG;
   
   
-  plan_options->store_policy = pp::ADJ_LIST_MOTION_GRAPH;
+  plan_options.store_policy = pp::ADJ_LIST_MOTION_GRAPH;
   if(configs.graph_storage_selection->currentIndex())
-    plan_options->store_policy = pp::DVP_ADJ_LIST_MOTION_GRAPH;
+    plan_options.store_policy = pp::DVP_ADJ_LIST_MOTION_GRAPH;
   
-  plan_options->knn_method = pp::LINEAR_SEARCH_KNN;
+  plan_options.knn_method = pp::LINEAR_SEARCH_KNN;
   switch(configs.KNN_method_selection->currentIndex()) {
     case 1:
-      plan_options->knn_method = pp::DVP_BF2_TREE_KNN;
+      plan_options.knn_method = pp::DVP_BF2_TREE_KNN;
       break;
     case 2:
-      plan_options->knn_method = pp::DVP_BF4_TREE_KNN;
+      plan_options.knn_method = pp::DVP_BF4_TREE_KNN;
       break;
     case 3:
-      plan_options->knn_method = pp::DVP_COB2_TREE_KNN;
+      plan_options.knn_method = pp::DVP_COB2_TREE_KNN;
       break;
     case 4:
-      plan_options->knn_method = pp::DVP_COB4_TREE_KNN;
+      plan_options.knn_method = pp::DVP_COB4_TREE_KNN;
       break;
     default:
       break;
@@ -500,60 +497,60 @@ void CRSPlannerGUI::onConfigsChanged() {
 
 
 void CRSPlannerGUI::updateConfigs() {
-  configs.order_selection->setCurrentIndex(plan_options->space_order);
-  configs.interp_selection->setCurrentIndex(plan_options->interp_id);
+  configs.order_selection->setCurrentIndex(plan_options.space_order);
+  configs.interp_selection->setCurrentIndex(plan_options.interp_id);
   
-  configs.min_interval_spinbox->setValue(plan_options->min_travel);
-  configs.max_interval_spinbox->setValue(plan_options->max_travel);
+  configs.min_interval_spinbox->setValue(plan_options.min_travel);
+  configs.max_interval_spinbox->setValue(plan_options.max_travel);
   
   // planner parameters:
-  configs.planning_algo_selection->setCurrentIndex(plan_options->planning_algo);
+  configs.planning_algo_selection->setCurrentIndex(plan_options.planning_algo);
   
-  configs.maxvertices_spinbox->setValue(plan_options->max_vertices);
-  configs.progress_interval_spinbox->setValue(plan_options->prog_interval);
-  configs.maxsolutions_spinbox->setValue(plan_options->max_results);
+  configs.maxvertices_spinbox->setValue(plan_options.max_vertices);
+  configs.progress_interval_spinbox->setValue(plan_options.prog_interval);
+  configs.maxsolutions_spinbox->setValue(plan_options.max_results);
   
-  if(plan_options->planning_options & pp::BIDIRECTIONAL_PLANNING)
+  if(plan_options.planning_options & pp::BIDIRECTIONAL_PLANNING)
     configs.check_bidir->setChecked(true);
   else
     configs.check_bidir->setChecked(false);
   
   
-  if(plan_options->planning_options & pp::LAZY_COLLISION_CHECKING)
+  if(plan_options.planning_options & pp::LAZY_COLLISION_CHECKING)
     configs.check_lazy_collision->setChecked(true);
   else
     configs.check_lazy_collision->setChecked(false);
   
   
-  if(plan_options->planning_options & pp::PLAN_WITH_VORONOI_PULL) {
-    configs.init_sa_temp_spinbox->setValue(plan_options->init_SA_temp);
+  if(plan_options.planning_options & pp::PLAN_WITH_VORONOI_PULL) {
+    configs.init_sa_temp_spinbox->setValue(plan_options.init_SA_temp);
     configs.check_voronoi_pull->setChecked(true);
   } else {
     configs.init_sa_temp_spinbox->setValue(0.0);
     configs.check_voronoi_pull->setChecked(false);
   };
   
-  if(plan_options->planning_options & pp::PLAN_WITH_ANYTIME_HEURISTIC) {
-    configs.init_relax_spinbox->setValue(plan_options->init_relax);
+  if(plan_options.planning_options & pp::PLAN_WITH_ANYTIME_HEURISTIC) {
+    configs.init_relax_spinbox->setValue(plan_options.init_relax);
     configs.check_anytime_heuristic->setChecked(true);
   } else {
     configs.init_relax_spinbox->setValue(0.0);
     configs.check_anytime_heuristic->setChecked(false);
   };
   
-  if(plan_options->planning_options & pp::USE_BRANCH_AND_BOUND_PRUNING_FLAG)
+  if(plan_options.planning_options & pp::USE_BRANCH_AND_BOUND_PRUNING_FLAG)
     configs.check_bnb->setChecked(true);
   else
     configs.check_bnb->setChecked(false);
   
   
-  if( plan_options->store_policy == pp::DVP_ADJ_LIST_MOTION_GRAPH ) {
+  if( plan_options.store_policy == pp::DVP_ADJ_LIST_MOTION_GRAPH ) {
     configs.graph_storage_selection->setCurrentIndex(1);
   } else {
     configs.graph_storage_selection->setCurrentIndex(0);
   };
   
-  switch(plan_options->knn_method) {
+  switch(plan_options.knn_method) {
     case pp::DVP_BF2_TREE_KNN:
       configs.KNN_method_selection->setCurrentIndex(1);
       break;
@@ -756,7 +753,7 @@ void CRSPlannerGUI::savePlannerConfig() {
   onConfigsChanged();
   
   try {
-    plan_options->save( *(serialization::open_oarchive(fileName.toStdString())) );
+    (*serialization::open_oarchive(fileName.toStdString())) << plan_options;
   } catch(...) {
     QMessageBox::information(this,
                 "File Type Not Supported!",
@@ -778,7 +775,7 @@ void CRSPlannerGUI::loadPlannerConfig() {
   last_used_path = QFileInfo(fileName).absolutePath();
   
   try {
-    plan_options->load( *(serialization::open_iarchive(fileName.toStdString())) );
+    (*serialization::open_iarchive(fileName.toStdString())) >> plan_options;
   } catch(...) {
     QMessageBox::information(this,
                 "File Type Not Supported!",

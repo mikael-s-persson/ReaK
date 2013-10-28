@@ -32,6 +32,9 @@
 #ifndef REAK_PATH_PLANNER_OPTIONS_HPP
 #define REAK_PATH_PLANNER_OPTIONS_HPP
 
+#include "base/defs.hpp"
+#include "base/shared_object.hpp"
+
 namespace ReaK {
   
 namespace pp {
@@ -106,6 +109,69 @@ const std::size_t BIDIRECTIONAL_PLANNING       = 1 << 8;
 
 /// This flag indicates a branch-and-bound pruning strategy should be use during the motion planning.
 const std::size_t USE_BRANCH_AND_BOUND_PRUNING_FLAG = 0x01 << 10;
+
+
+
+
+class planning_option_collection : public shared_object {
+  public:
+    std::size_t space_order;
+    std::size_t interp_id;
+    double min_travel;
+    double max_travel;
+    std::size_t planning_algo;
+    std::size_t max_vertices;
+    std::size_t prog_interval;
+    std::size_t max_results;
+    std::size_t planning_options;
+    std::size_t store_policy;
+    std::size_t knn_method;
+    double init_SA_temp;
+    double init_relax;
+    
+/*******************************************************************************
+                   ReaK's RTTI and Serialization interfaces
+*******************************************************************************/
+    
+    virtual void RK_CALL save(serialization::oarchive& A, unsigned int) const {
+      shared_object::save(A,shared_object::getStaticObjectType()->TypeVersion());
+      A & RK_SERIAL_SAVE_WITH_NAME(space_order)
+        & RK_SERIAL_SAVE_WITH_NAME(interp_id)
+        & RK_SERIAL_SAVE_WITH_NAME(min_travel)
+        & RK_SERIAL_SAVE_WITH_NAME(max_travel)
+        & RK_SERIAL_SAVE_WITH_NAME(planning_algo)
+        & RK_SERIAL_SAVE_WITH_NAME(max_vertices)
+        & RK_SERIAL_SAVE_WITH_NAME(prog_interval)
+        & RK_SERIAL_SAVE_WITH_NAME(max_results)
+        & RK_SERIAL_SAVE_WITH_NAME(planning_options)
+        & RK_SERIAL_SAVE_WITH_NAME(store_policy)
+        & RK_SERIAL_SAVE_WITH_NAME(knn_method)
+        & RK_SERIAL_SAVE_WITH_NAME(init_SA_temp)
+        & RK_SERIAL_SAVE_WITH_NAME(init_relax);
+    };
+    
+    virtual void RK_CALL load(serialization::iarchive& A, unsigned int) {
+      shared_object::load(A,shared_object::getStaticObjectType()->TypeVersion());
+      A & RK_SERIAL_LOAD_WITH_NAME(space_order)
+        & RK_SERIAL_LOAD_WITH_NAME(interp_id)
+        & RK_SERIAL_LOAD_WITH_NAME(min_travel)
+        & RK_SERIAL_LOAD_WITH_NAME(max_travel)
+        & RK_SERIAL_LOAD_WITH_NAME(planning_algo)
+        & RK_SERIAL_LOAD_WITH_NAME(max_vertices)
+        & RK_SERIAL_LOAD_WITH_NAME(prog_interval)
+        & RK_SERIAL_LOAD_WITH_NAME(max_results)
+        & RK_SERIAL_LOAD_WITH_NAME(planning_options)
+        & RK_SERIAL_LOAD_WITH_NAME(store_policy)
+        & RK_SERIAL_LOAD_WITH_NAME(knn_method)
+        & RK_SERIAL_LOAD_WITH_NAME(init_SA_temp)
+        & RK_SERIAL_LOAD_WITH_NAME(init_relax);
+    };
+    
+    RK_RTTI_MAKE_CONCRETE_1BASE(planning_option_collection,0xC2460019,1,"planning_option_collection",shared_object)
+    
+    
+};
+
 
 
 
