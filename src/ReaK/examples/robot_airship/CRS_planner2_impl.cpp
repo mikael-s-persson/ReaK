@@ -185,7 +185,7 @@ CRSPlannerGUI::CRSPlannerGUI( QWidget * parent, Qt::WindowFlags flags ) : QMainW
   
   scene_data.load_chaser("models/CRS_A465.model.rkx");
   scene_data.load_target("models/airship3D.model.rkx");
-  scene_data.load_environment("models/MD148_lab_model.xml");
+  scene_data.load_environment("models/MD148_lab.geom.rkx");
   
   draw_data = new CRS_coin_nodes();
   sol_anim = new CRS_sol_anim_data();
@@ -260,8 +260,7 @@ CRSPlannerGUI::CRSPlannerGUI( QWidget * parent, Qt::WindowFlags flags ) : QMainW
   draw_data->sw_airship_geom = new SoSwitch();
   draw_data->sg_airship_geom = new geom::oi_scene_graph();
   
-  (*draw_data->sg_airship_geom) << (*scene_data.target_geom_model) 
-                                << geom::coord_arrows_3D("target_arrows", scene_data.target_frame, pose_3D<double>(), 0.3);
+  (*draw_data->sg_airship_geom) << (*scene_data.target_geom_model);
   
   draw_data->sw_airship_geom->addChild(draw_data->sg_airship_geom->getSceneGraph());
   draw_data->sw_airship_geom->whichChild.setValue((configs.check_show_target->isChecked() ? SO_SWITCH_ALL : SO_SWITCH_NONE));

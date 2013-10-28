@@ -36,6 +36,10 @@
 namespace ReaK {
 
 
+
+namespace detail {
+  
+  
 enum esn_i_tag { esn_i };
 enum esn_j_tag { esn_j };
 enum esn_k_tag { esn_k };
@@ -50,8 +54,6 @@ enum esn_s_tag { esn_s };
 enum esn_t_tag { esn_t };
 enum esn_u_tag { esn_u };
 
-
-namespace detail {
   
   enum op_class {
     term,

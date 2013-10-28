@@ -20,9 +20,7 @@
 
 #include "topologies/manip_P3R3R_workspaces.hpp"
 
-#include "serialization/xml_archiver.hpp"
-#include "serialization/bin_archiver.hpp"
-#include "serialization/protobuf_archiver.hpp"
+#include "serialization/archiver_factory.hpp"
 
 #include <boost/tuple/tuple.hpp>
 
@@ -76,7 +74,12 @@ int main(int argc, char ** argv) {
   
   fs::create_directory(output_path_name.c_str());
   
-  
+  std::string output_extension = ".rkx";
+  if(vm["format"].as<std::string>() == "bin") {
+    output_extension = ".rkb";
+  } else if(vm["format"].as<std::string>() == "protobuf") {
+    output_extension = ".pbuf";
+  };
   
   
   
@@ -169,16 +172,8 @@ int main(int argc, char ** argv) {
   
   // Save the kte_geom_model object:
   if(vm.count("geometry") || vm.count("proxy")) {
-    if(vm["format"].as<std::string>() == "bin") {
-      serialization::bin_oarchive out(output_path_name + "/" + output_base_name + ".geom.rkb");
-      out << kte_geom_model;
-    } else if(vm["format"].as<std::string>() == "protobuf") {
-      serialization::protobuf_oarchive out(output_path_name + "/" + output_base_name + ".geom.pbuf");
-      out << kte_geom_model;
-    } else {
-      serialization::xml_oarchive out(output_path_name + "/" + output_base_name + ".geom.rkx");
-      out << kte_geom_model;
-    };
+    (*serialization::open_oarchive(output_path_name + "/" + output_base_name + ".geom" + output_extension))
+      << kte_geom_model;
   };
   
   
@@ -263,16 +258,8 @@ int main(int argc, char ** argv) {
     
     // Save kte_model and joint_rate_limits together in one file (kte_model first).
     if(vm.count("kte-model")) {
-      if(vm["format"].as<std::string>() == "bin") {
-        serialization::bin_oarchive out(output_path_name + "/" + output_base_name + ".kte_ik.rkb");
-        out << base_frame << kte_model << joint_rate_limits;
-      } else if(vm["format"].as<std::string>() == "protobuf") {
-        serialization::protobuf_oarchive out(output_path_name + "/" + output_base_name + ".kte_ik.pbuf");
-        out << base_frame << kte_model << joint_rate_limits;
-      } else {
-        serialization::xml_oarchive out(output_path_name + "/" + output_base_name + ".kte_ik.rkx");
-        out << base_frame << kte_model << joint_rate_limits;
-      };
+      (*serialization::open_oarchive(output_path_name + "/" + output_base_name + ".kte_ik" + output_extension))
+        << base_frame << kte_model << joint_rate_limits;
     };
     
     if(vm.count("all-assembled")) {
@@ -280,16 +267,8 @@ int main(int argc, char ** argv) {
       shared_ptr< proxy_query_model_3D > mdl_prox;
       boost::tie(mdl_geom, mdl_prox) = kte_geom_model->attachToKTEChain(*(kte_model->getKTEChain()));
       
-      if(vm["format"].as<std::string>() == "bin") {
-        serialization::bin_oarchive out(output_path_name + "/" + output_base_name + ".model.rkb");
-        out << base_frame << kte_model << joint_rate_limits << mdl_geom << mdl_prox;
-      } else if(vm["format"].as<std::string>() == "protobuf") {
-        serialization::protobuf_oarchive out(output_path_name + "/" + output_base_name + ".model.pbuf");
-        out << base_frame << kte_model << joint_rate_limits << mdl_geom << mdl_prox;
-      } else {
-        serialization::xml_oarchive out(output_path_name + "/" + output_base_name + ".model.rkx");
-        out << base_frame << kte_model << joint_rate_limits << mdl_geom << mdl_prox;
-      };
+      (*serialization::open_oarchive(output_path_name + "/" + output_base_name + ".model" + output_extension))
+        << base_frame << kte_model << joint_rate_limits << mdl_geom << mdl_prox;
     };
     
     

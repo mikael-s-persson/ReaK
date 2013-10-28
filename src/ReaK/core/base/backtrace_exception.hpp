@@ -45,9 +45,7 @@
 namespace ReaK {
 
 
-/**
- * This class template
- */
+
 template <typename BaseException>
 class backtrace_except : public BaseException {
   private:

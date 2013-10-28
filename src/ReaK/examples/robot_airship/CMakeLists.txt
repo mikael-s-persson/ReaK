@@ -78,6 +78,15 @@ add_executable(build_P3R3R_model "${SRCROOT}${RKROBOTAIRSHIPDIR}/build_P3R3R_mod
 setup_custom_target(build_P3R3R_model "${SRCROOT}${RKROBOTAIRSHIPDIR}")
 target_link_libraries(build_P3R3R_model reak_topologies reak_interp reak_mbd reak_core)
 
+add_executable(build_MD148_lab "${SRCROOT}${RKROBOTAIRSHIPDIR}/build_MD148_lab.cpp")
+setup_custom_target(build_MD148_lab "${SRCROOT}${RKROBOTAIRSHIPDIR}")
+target_link_libraries(build_MD148_lab reak_geom_prox)
+
+add_executable(build_airship3D_target "${SRCROOT}${RKROBOTAIRSHIPDIR}/build_airship3D_target.cpp")
+setup_custom_target(build_airship3D_target "${SRCROOT}${RKROBOTAIRSHIPDIR}")
+target_link_libraries(build_airship3D_target reak_mbd)
+
+
 
 if(COIN3D_FOUND AND QT_FOUND)
 
