@@ -215,6 +215,67 @@ struct temporal_point_difference : public serialization::serializable {
 
 
 /**
+ * This class template can be used to transform a spatial topological map into a 
+ * topological map over a temporal space.
+ * \tparam SpatialMap A spatial topological map type. (held by value)
+ */
+template <typename SpatialMap>
+class temporal_topo_map : public serialization::serializable {
+  private:
+    
+    SpatialMap spatial_map;
+    
+  public:
+    
+    typedef temporal_topo_map<SpatialMap> self;
+    
+    /**
+     * Parametric and default constructor.
+     * \param aSMap The underlying spatial map.
+     */
+    temporal_topo_map(const SpatialMap& aSMap = SpatialMap()) : spatial_map(aSMap) { };
+    
+    
+    /**
+     * This function template maps a given temporal point in an input temporal space
+     * to an output temporal point in the output temporal space, given that the 
+     * spatial map type of this class template is able to perform the mapping in 
+     * the space topology level.
+     * \tparam PointType The point-type of the input temporal space.
+     * \tparam InSpace The type of the input temporal space.
+     * \tparam OutSpace The type of the output temporal space.
+     * \param pt The temporal point in the input temporal space.
+     * \param space_in The input temporal space.
+     * \param space_out The output temporal space.
+     * \return A temporal point in the output temporal space.
+     */
+    template <typename PointType, typename InSpace, typename OutSpace>
+    typename topology_traits< OutSpace >::point_type
+    map_to_space(const PointType& pt, const InSpace& space_in, const OutSpace& space_out) const {
+      typedef typename topology_traits< OutSpace >::point_type OutPointType;
+      return OutPointType(pt.time, spatial_map.map_to_space(pt, space_in.get_space_topology(), space_out.get_space_topology()));
+    };
+    
+    
+/*******************************************************************************
+                   ReaK's RTTI and Serialization interfaces
+*******************************************************************************/
+
+    virtual void RK_CALL save(serialization::oarchive& A, unsigned int) const {
+      A & RK_SERIAL_SAVE_WITH_NAME(spatial_map);
+    };
+
+    virtual void RK_CALL load(serialization::iarchive& A, unsigned int) {
+      A & RK_SERIAL_LOAD_WITH_NAME(spatial_map);
+    };
+
+    RK_RTTI_MAKE_ABSTRACT_1BASE(self,0xC2400038,1,"temporal_topo_map",serialization::serializable)
+
+};
+
+
+
+/**
  * This class implementats a temporal-space which augments a
  * topology with a temporal dimension (time-stamp). The time-dimension resides on a line-segment
  * topology (see line_segment_topology), while the spatial topology and distance-metric

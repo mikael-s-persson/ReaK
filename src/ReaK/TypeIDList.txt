@@ -333,6 +333,7 @@ MEAQR_point_type<S,SS>      0xC2400034   bin: 1100 0010 0100 0000 0000 0000 0011
 MEAQR_topology<S,SS>        0xC2400035   bin: 1100 0010 0100 0000 0000 0000 0011 0101  D-R
 MEAQR_topology_with_CD<S,SS> 0xC2400036  bin: 1100 0010 0100 0000 0000 0000 0011 0110  D-R
 IHAQR_to_state_mapper       0xC2400037   bin: 1100 0010 0100 0000 0000 0000 0011 0111  D-R
+temporal_topo_map           0xC2400038   bin: 1100 0010 0100 0000 0000 0000 0011 1000  D-R
 
 
 //Distance metrics:         0xC241****

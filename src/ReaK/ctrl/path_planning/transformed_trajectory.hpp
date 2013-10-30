@@ -38,6 +38,7 @@
 
 #include "spatial_trajectory_concept.hpp"
 #include "topological_map_concepts.hpp"
+#include "sequential_trajectory_concept.hpp"
 
 #include <boost/config.hpp>
 #include <boost/concept_check.hpp>
@@ -47,6 +48,59 @@
 namespace ReaK {
 
 namespace pp {
+  
+  
+  
+  namespace detail {
+    
+    
+    template <typename ParentType, typename InputIterator>
+    struct transformed_point_iterator {
+      typedef transformed_point_iterator<ParentType, InputIterator> self;
+      
+      const ParentType* p_parent;
+      InputIterator base_it;
+      
+      transformed_point_iterator(const ParentType* aParent,
+                                 InputIterator aBaseIt) :
+                                 p_in_space(aPInSpace),
+                                 p_out_space(aPOutSpace),
+                                 p_mapping(aPMapping), 
+                                 base_it(aBaseIt) { };
+      
+      friend self& operator+=(self& lhs, double rhs) {
+        lhs.base_it += rhs;
+        return lhs;
+      };
+      
+      friend self& operator-=(self& lhs, double rhs) {
+        lhs.base_it -= rhs;
+        return lhs;
+      };
+      
+      friend self operator+(self lhs, double rhs) { return (lhs += rhs); };
+      friend self operator+(double lhs, self rhs) { return (rhs += lhs); };
+      friend self operator-(self lhs, double rhs) { return (lhs -= rhs); };
+      
+      friend bool operator==(const self& lhs, const self& rhs) {
+        return (lhs.base_it == rhs.base_it);
+      };
+      
+      friend bool operator!=(const self& lhs, const self& rhs) { return !(lhs == rhs); };
+      
+      point_type operator*() const {
+        return p_parent->map_point_forward(*base_it);
+      };
+      
+    };
+    
+    
+    
+    
+  };
+  
+  
+  
   
 
 /**
@@ -77,13 +131,45 @@ class transformed_trajectory : public shared_object {
     
     typedef std::pair<const_waypoint_descriptor, point_type> waypoint_pair;
     
+    typedef detail::transformed_point_iterator< self, 
+      typename sequential_trajectory_traits<InputTrajectory>::point_time_iterator
+    > point_time_iterator;
+    
+    typedef detail::transformed_point_iterator< self, 
+      typename sequential_trajectory_traits<InputTrajectory>::point_fraction_iterator
+    > point_fraction_iterator;
+    
+    friend class detail::transformed_point_iterator< self, 
+      typename sequential_trajectory_traits<InputTrajectory>::point_time_iterator >;
+      
+    friend class detail::transformed_point_iterator< self, 
+      typename sequential_trajectory_traits<InputTrajectory>::point_fraction_iterator >;
+    
   private:
     
     shared_ptr<const Topology> space;
     shared_ptr<const InputTrajectory> traject;
     Mapping map;
     
+    
+    point_type map_point_forward(const typename spatial_trajectory_traits<InputTrajectory>::point_type& pt_in) const {
+      return map.map_to_space(pt_in, traject->get_temporal_space(), *space);
+    };
+    
+    typename spatial_trajectory_traits<InputTrajectory>::point_type map_point_backward(const point_type& pt_in) const {
+      return map.map_to_space(pt_in, *space, traject->get_temporal_space());
+    };
+    
   public:
+    
+    
+    /**
+     * Returns the space on which the path resides.
+     * \return The space on which the path resides.
+     */
+    const topology& get_temporal_space() const throw() { return *space; };
+    
+    
     /**
      * Constructs the trajectory from a space, assumes the start and end are at the origin 
      * of the space.
@@ -92,8 +178,8 @@ class transformed_trajectory : public shared_object {
      * \param aMap The homeomorphic mapping object to use.
      */
     explicit transformed_trajectory(const shared_ptr<const Topology>& aSpace = shared_ptr<const Topology>(new Topology()), 
-				    const shared_ptr<const InputTrajectory>& aTrajectory = shared_ptr<const InputTrajectory>(new InputTrajectory()), 
-				    const Mapping& aMap = Mapping()) : 
+                                    const shared_ptr<const InputTrajectory>& aTrajectory = shared_ptr<const InputTrajectory>(new InputTrajectory()), 
+                                    const Mapping& aMap = Mapping()) : 
                                     space(aSpace), traject(aTrajectory), map(aMap) { };
     
     /**
@@ -103,8 +189,7 @@ class transformed_trajectory : public shared_object {
      * \return The travel distance between two points if traveling along the path.
      */
     double travel_distance(const point_type& a, const point_type& b) const {
-      return traject->travel_distance(map.map_to_space(a,*space,traject->get_temporal_space()),
-			 	      map.map_to_space(b,*space,traject->get_temporal_space()));
+      return traject->travel_distance(map_point_backward(a), map_point_backward(b));
     };
     
     /**
@@ -114,8 +199,16 @@ class transformed_trajectory : public shared_object {
      * \return The travel distance between two points if traveling along the path.
      */
     double travel_distance(waypoint_pair& a, waypoint_pair& b) const {
-      return traject->travel_distance(std::make_pair(a.first, map.map_to_space(a.second,*space,traject->get_temporal_space())),
-				      std::make_pair(b.first, map.map_to_space(b.second,*space,traject->get_temporal_space())));
+      return traject->travel_distance(std::make_pair(a.first, map_point_backward(a.second)),
+                                      std::make_pair(b.first, map_point_backward(b.second)));
+    };
+    
+    /**
+     * Returns the total travel-distance of the trajectory.
+     * \return The total travel-distance of the trajectory.
+     */
+    double get_total_length() const {
+      return traject->get_total_length();
     };
     
     
@@ -126,9 +219,7 @@ class transformed_trajectory : public shared_object {
      * \return The point that is a time away from the given point.
      */
     point_type move_time_diff_from(const point_type& a, double dt) const {
-      return map.map_to_space(
-	traject->move_time_diff_from( map.map_to_space(a,*space,traject->get_temporal_space()),dt),
-	traject->get_temporal_space(), *space);
+      return map_point_forward(traject->move_time_diff_from(map_point_backward(a),dt));
     };
     
     /**
@@ -139,8 +230,8 @@ class transformed_trajectory : public shared_object {
      */
     waypoint_pair move_time_diff_from(const waypoint_pair& a, double dt) const {
       std::pair< const_waypoint_descriptor, typename spatial_trajectory_traits<InputTrajectory>::point_type> result = 
-        traject->move_time_diff_from( std::make_pair(a.second,map.map_to_space(a.second,*space,traject->get_temporal_space())), dt);
-      return std::make_pair( result.first, map.map_to_space(result.second, traject->get_temporal_space(), *space));
+        traject->move_time_diff_from( std::make_pair(a.second,map_point_backward(a.second)), dt);
+      return std::make_pair( result.first, map_point_forward(result.second));
     };
        
     /**
@@ -149,7 +240,7 @@ class transformed_trajectory : public shared_object {
      * \return The point that is on the trajectory at the given time.
      */
     point_type get_point_at_time(double t) const {
-      return map.map_to_space(traject->get_point_at_time(t), traject->get_temporal_space(), *space);
+      return map_point_forward(traject->get_point_at_time(t));
     };
     
     /**
@@ -160,14 +251,8 @@ class transformed_trajectory : public shared_object {
     waypoint_pair get_waypoint_at_time(double t) const {
       std::pair< const_waypoint_descriptor, typename spatial_trajectory_traits<InputTrajectory>::point_type> result = 
         traject->get_waypoint_at_time(t);
-      return std::make_pair( result.first, map.map_to_space(result.second, traject->get_temporal_space(), *space));
+      return std::make_pair( result.first, map_point_forward(result.second));
     };
-    
-    /**
-     * Returns the space on which the path resides.
-     * \return The space on which the path resides.
-     */
-    const topology& get_temporal_space() const throw() { return *space; };
     
     /**
      * Returns the starting time of the trajectory.
@@ -186,6 +271,80 @@ class transformed_trajectory : public shared_object {
     };
     
     
+    /**
+     * Returns the starting point of the waypoints.
+     * \return The starting point of the waypoints.
+     */
+    const point_type& get_start_point() const {
+      return map_point_forward(traject->get_start_point());
+    };
+    
+    /**
+     * Returns the starting waypoint-point-pair of the waypoints.
+     * \return The starting waypoint-point-pair of the waypoints.
+     */
+    waypoint_pair get_start_waypoint() const {
+      std::pair< const_waypoint_descriptor, typename spatial_trajectory_traits<InputTrajectory>::point_type> result = 
+        traject->get_start_waypoint();
+      return std::make_pair(result.first, map_point_forward(result.second));
+    };
+    
+    /**
+     * Returns the end point of the waypoints.
+     * \return The end point of the waypoints.
+     */
+    const point_type& get_end_point() const {
+      return map_point_forward(traject->get_end_point());
+    };
+    
+    /**
+     * Returns the end waypoint-point-pair of the waypoints.
+     * \return The end waypoint-point-pair of the waypoints.
+     */
+    waypoint_pair get_end_waypoint() const {
+      std::pair< const_waypoint_descriptor, typename spatial_trajectory_traits<InputTrajectory>::point_type> result = 
+        traject->get_end_waypoint();
+      return std::make_pair(result.first, map_point_forward(result.second));
+    };
+    
+    
+    
+    
+    /**
+     * Returns the starting time-iterator along the trajectory.
+     * \return The starting time-iterator along the trajectory.
+     */
+    point_time_iterator begin_time_travel() const {
+      return point_time_iterator(this, traject->begin_time_travel());
+    };
+    
+    /**
+     * Returns the end time-iterator along the trajectory.
+     * \return The end time-iterator along the trajectory.
+     */
+    point_time_iterator end_time_travel() const {
+      return point_time_iterator(this, traject->end_time_travel());
+    };
+    
+    /**
+     * Returns the starting fraction-iterator along the trajectory.
+     * \return The starting fraction-iterator along the trajectory.
+     */
+    point_fraction_iterator begin_fraction_travel() const {
+      return point_fraction_iterator(this, traject->begin_fraction_travel());
+    };
+    
+    /**
+     * Returns the end fraction-iterator along the trajectory.
+     * \return The end fraction-iterator along the trajectory.
+     */
+    point_fraction_iterator end_fraction_travel() const {
+      return point_fraction_iterator(this, traject->end_fraction_travel());
+    };
+    
+    
+    
+    
 /*******************************************************************************
                    ReaK's RTTI and Serialization interfaces
 *******************************************************************************/
@@ -194,14 +353,14 @@ class transformed_trajectory : public shared_object {
       shared_object::save(A,shared_object::getStaticObjectType()->TypeVersion());
       A & RK_SERIAL_SAVE_WITH_NAME(space)
         & RK_SERIAL_SAVE_WITH_NAME(traject)
-	& RK_SERIAL_SAVE_WITH_NAME(map);
+        & RK_SERIAL_SAVE_WITH_NAME(map);
     };
 
     virtual void RK_CALL load(serialization::iarchive& A, unsigned int) {
       shared_object::load(A,shared_object::getStaticObjectType()->TypeVersion());
       A & RK_SERIAL_LOAD_WITH_NAME(space)
         & RK_SERIAL_LOAD_WITH_NAME(traject)
-	& RK_SERIAL_LOAD_WITH_NAME(map);
+        & RK_SERIAL_LOAD_WITH_NAME(map);
     };
 
     RK_RTTI_MAKE_CONCRETE_1BASE(self,0xC2440008,1,"transformed_trajectory",shared_object)

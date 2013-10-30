@@ -90,6 +90,16 @@ struct BijectionConcept :
 };
 
 
+/**
+ * This class is a simple composition of two topological maps. Provided an output map,
+ * an intermediate space, and an input map, this topological map will first use the 
+ * input map to map a given source point to the intermediate space, and then use 
+ * the output map to make the final mapping to the given output space.
+ * \note This class template is limited to implementing a BijectionConcept, i.e., a directional mapping, since it cannot perform the inverse mapping.
+ * \tparam OuterBijection The type of the map used to produce the output of the bijection.
+ * \tparam InnerBijection The type of the map used to map the given point to the intermediate space of the composition.
+ * \tparam MiddleSpace The intermediate space type between the two bijections.
+ */
 template <typename OuterBijection, typename InnerBijection, typename MiddleSpace>
 struct bijection_cascade : public shared_object {
   typedef bijection_cascade<OuterBijection, InnerBijection, MiddleSpace> self;
@@ -99,12 +109,23 @@ struct bijection_cascade : public shared_object {
   shared_ptr< MiddleSpace > mid_space;
   
   bijection_cascade(const OuterBijection& aMapOuter, 
-		    const InnerBijection& aMapInner, 
-		    const shared_ptr< MiddleSpace >& aMidSpace) : 
-		    map_outer(aMapOuter), 
-		    map_inner(aMapInner),
-		    mid_space(aMidSpace) { };
+                    const InnerBijection& aMapInner, 
+                    const shared_ptr< MiddleSpace >& aMidSpace) : 
+                    map_outer(aMapOuter), 
+                    map_inner(aMapInner),
+                    mid_space(aMidSpace) { };
   
+  /**
+   * This function template maps a given point in an input space
+   * to an output point in the output space. The mapping simply forwards the point.
+   * \tparam PointType The point-type of the input space.
+   * \tparam InSpace The type of the input space.
+   * \tparam OutSpace The type of the output space.
+   * \param p_in The point in the input space.
+   * \param s_in The input space.
+   * \param s_out The output space.
+   * \return A point in the output space, identical in value and type to the input point.
+   */
   template <typename PointType, typename SpaceIn, typename SpaceOut>
   typename topology_traits<SpaceOut>::point_type map_to_space(const PointType& p_in, const SpaceIn& s_in, const SpaceOut& s_out) const {
     return map_outer.map_to_space( map_inner.map_to_space(p_in, s_in, *mid_space), *mid_space, s_out);
@@ -132,11 +153,26 @@ struct bijection_cascade : public shared_object {
 };
 
 
+/**
+ * This class is a simple identity topological map, that is, a map that simply 
+ * forwards the point, regardless of the input versus output spaces provided.
+ * \note This class will only be a valid map between spaces with compatible point-types.
+ */
 struct identity_topo_map : public shared_object {
   typedef identity_topo_map self;
   
   identity_topo_map() { };
   
+  
+  /**
+   * This function template maps a given point in an input space
+   * to an output point in the output space. The mapping simply forwards the point.
+   * \tparam PointType The point-type of the input space.
+   * \tparam InSpace The type of the input space.
+   * \tparam OutSpace The type of the output space.
+   * \param p_in The point in the input space.
+   * \return A point in the output space, identical in value and type to the input point.
+   */
   template <typename PointType, typename SpaceIn, typename SpaceOut>
   PointType map_to_space(const PointType& p_in, const SpaceIn&, const SpaceOut&) const {
     return p_in;
@@ -153,9 +189,11 @@ struct identity_topo_map : public shared_object {
     shared_object::load(A,shared_object::getStaticObjectType()->TypeVersion());
   };
 
-  RK_RTTI_MAKE_CONCRETE_1BASE(self,0xC240002B,1,"identity_topo_map",shared_object)
-    
+  RK_RTTI_MAKE_CONCRETE_1BASE(self,0xC240002D,1,"identity_topo_map",shared_object)
+  
 };
+
+
 
 
 /**
