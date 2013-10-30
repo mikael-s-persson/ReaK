@@ -40,7 +40,7 @@
 #include <boost/concept_check.hpp>
 
 #include "subspace_concept.hpp"
-#include "trajectory_base.hpp"
+#include "seq_trajectory_base.hpp"
 #include "seq_path_base.hpp"
 #include <boost/graph/graph_concepts.hpp>
 
@@ -124,7 +124,7 @@ struct vlist_sbmp_report : public shared_object {
    */
   template <typename FreeSpaceType>
   void draw_solution(const FreeSpaceType& free_space, 
-                     const shared_ptr< trajectory_base< typename subspace_traits<FreeSpaceType>::super_space_type > >& traj) const {
+                     const shared_ptr< seq_trajectory_base< typename subspace_traits<FreeSpaceType>::super_space_type > >& traj) const {
     next_reporter.draw_solution(free_space, traj);
   };
   

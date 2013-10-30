@@ -38,7 +38,7 @@
 #include <boost/config.hpp>
 #include <boost/concept_check.hpp>
 
-#include "trajectory_base.hpp"
+#include "seq_trajectory_base.hpp"
 #include "seq_path_base.hpp"
 #include "graph_alg/any_graph.hpp"
 #include "any_motion_graphs.hpp"
@@ -74,7 +74,7 @@ class any_sbmp_reporter : public shared_object {
 #endif
     
     typedef typename boost::mpl::if_< is_temporal_space<FreeSpaceType>,
-      trajectory_base< super_space_type >,
+      seq_trajectory_base< super_space_type >,
       seq_path_base< super_space_type > >::type solution_base_type;
     
     typedef shared_ptr< solution_base_type > solution_record_ptr;
@@ -273,7 +273,7 @@ class any_sbmp_reporter_chain : public shared_object {
     typedef typename subspace_traits<FreeSpaceType>::super_space_type super_space_type;
     
     typedef typename boost::mpl::if_< is_temporal_space<FreeSpaceType>,
-      trajectory_base< super_space_type >,
+      seq_trajectory_base< super_space_type >,
       seq_path_base< super_space_type > >::type solution_base_type;
     
     typedef shared_ptr< solution_base_type > solution_record_ptr;

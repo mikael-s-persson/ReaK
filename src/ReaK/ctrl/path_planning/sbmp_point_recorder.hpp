@@ -39,7 +39,7 @@
 #include <boost/config.hpp>
 #include <boost/concept_check.hpp>
 
-#include "trajectory_base.hpp"
+#include "seq_trajectory_base.hpp"
 #include "basic_sbmp_reporters.hpp"
 #include <boost/graph/graph_concepts.hpp>
 
@@ -250,7 +250,7 @@ class sbmp_point_recorder : public shared_object {
      */
     template <typename FreeSpaceType>
     void draw_solution(const FreeSpaceType& free_space, 
-                       const shared_ptr< trajectory_base< typename subspace_traits<FreeSpaceType>::super_space_type > >& traj) const {
+                       const shared_ptr< seq_trajectory_base< typename subspace_traits<FreeSpaceType>::super_space_type > >& traj) const {
       typedef typename topology_traits< FreeSpaceType >::point_type PointType;
       typedef typename topology_traits< JointStateSpace >::point_type JointState;
       
@@ -540,7 +540,7 @@ class sbmp_point_recorder<JointStateSpace, identity_topo_map, NextReporter> : pu
      */
     template <typename FreeSpaceType>
     void draw_solution(const FreeSpaceType& free_space, 
-                       const shared_ptr< trajectory_base< typename subspace_traits<FreeSpaceType>::super_space_type > >& traj) const {
+                       const shared_ptr< seq_trajectory_base< typename subspace_traits<FreeSpaceType>::super_space_type > >& traj) const {
       typedef typename topology_traits< FreeSpaceType >::point_type PointType;
       
       double t_total = traj->get_end_time() - traj->get_start_time();

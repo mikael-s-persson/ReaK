@@ -64,7 +64,7 @@ struct planning_visitor_base {
   typedef typename topology_traits<space_type>::point_difference_type point_difference_type;
   
   typedef typename boost::mpl::if_< is_temporal_space<space_type>,
-    trajectory_base< super_space_type >,
+    seq_trajectory_base< super_space_type >,
     seq_path_base< super_space_type > >::type solution_base_type;
   
   typedef shared_ptr< solution_base_type > solution_record_ptr;

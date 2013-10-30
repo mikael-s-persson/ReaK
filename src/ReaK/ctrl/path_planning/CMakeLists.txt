@@ -1,5 +1,9 @@
 
 set(PATH_PLANNING_SOURCES 
+  "${SRCROOT}${RKPATHPLANNINGDIR}/extern_templates/rrtstar_manip_planners_static.cpp"
+  "${SRCROOT}${RKPATHPLANNINGDIR}/extern_templates/rrtstar_manip_planners_dynamic.cpp"
+  "${SRCROOT}${RKPATHPLANNINGDIR}/extern_templates/sbastar_manip_planners_static.cpp"
+  "${SRCROOT}${RKPATHPLANNINGDIR}/extern_templates/sbastar_manip_planners_dynamic.cpp"
 )
 
 set(PATH_PLANNING_HEADERS 
@@ -57,9 +61,11 @@ set(PATH_PLANNING_HEADERS
   "${RKPATHPLANNINGDIR}/vlist_sbmp_report.hpp"
 )
 
-#add_library(reak_path_planning STATIC ${PATH_PLANNING_SOURCES})
-#setup_custom_target(reak_path_planning "${SRCROOT}${RKPATHPLANNINGDIR}")
+add_library(reak_planners STATIC ${PATH_PLANNING_SOURCES})
+setup_custom_target(reak_planners "${SRCROOT}${RKPATHPLANNINGDIR}")
 setup_headers("${PATH_PLANNING_HEADERS}" "${RKPATHPLANNINGDIR}")
+target_link_libraries(reak_planners reak_topologies reak_interp reak_core)
+
 
 add_executable(test_vp_tree "${SRCROOT}${RKPATHPLANNINGDIR}/test_vp_tree.cpp")
 setup_custom_target(test_vp_tree "${SRCROOT}${RKPATHPLANNINGDIR}")

@@ -276,7 +276,7 @@ class frame_tracer_3D : public shared_object {
      */
     template <typename FreeSpaceType>
     void draw_solution(const FreeSpaceType& free_space, 
-                       const shared_ptr< trajectory_base< typename subspace_traits<FreeSpaceType>::super_space_type > >& traj) const {
+                       const shared_ptr< seq_trajectory_base< typename subspace_traits<FreeSpaceType>::super_space_type > >& traj) const {
       typedef typename topology_traits< FreeSpaceType >::point_type PointType;
       typedef typename topology_traits< JointStateSpace >::point_type JointState;
       
@@ -601,7 +601,7 @@ class frame_tracer_3D<DirectKinMapper, JointStateSpace, identity_topo_map, NextR
      */
     template <typename FreeSpaceType>
     void draw_solution(const FreeSpaceType& free_space, 
-                       const shared_ptr< trajectory_base< typename subspace_traits<FreeSpaceType>::super_space_type > >& traj) const {
+                       const shared_ptr< seq_trajectory_base< typename subspace_traits<FreeSpaceType>::super_space_type > >& traj) const {
       typedef typename topology_traits< FreeSpaceType >::point_type PointType;
       
       double t_total = traj->get_end_time() - traj->get_start_time();

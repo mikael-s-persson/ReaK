@@ -40,7 +40,7 @@
 
 #include "subspace_concept.hpp"
 #include "steerable_space_concept.hpp"
-#include "trajectory_base.hpp"
+#include "seq_trajectory_base.hpp"
 #include "seq_path_base.hpp"
 #include <boost/graph/graph_concepts.hpp>
 
@@ -79,7 +79,7 @@ struct no_sbmp_report : public shared_object {
    */
   template <typename FreeSpaceType>
   void draw_solution(const FreeSpaceType&, 
-                     const shared_ptr< trajectory_base< typename subspace_traits<FreeSpaceType>::super_space_type > >&) const { };
+                     const shared_ptr< seq_trajectory_base< typename subspace_traits<FreeSpaceType>::super_space_type > >&) const { };
   
   /**
    * Draws the solution trajectory.
@@ -234,7 +234,7 @@ struct differ_sbmp_report_to_space : public shared_object {
    */
   template <typename FreeSpaceType>
   void draw_solution(const FreeSpaceType& free_space, 
-                     const shared_ptr< trajectory_base< typename subspace_traits<FreeSpaceType>::super_space_type > >& traj) const {
+                     const shared_ptr< seq_trajectory_base< typename subspace_traits<FreeSpaceType>::super_space_type > >& traj) const {
     typedef typename topology_traits<FreeSpaceType>::point_type PointType;
     
     free_space.reset_output();
@@ -367,7 +367,7 @@ struct timing_sbmp_report : public shared_object {
    */
   template <typename FreeSpaceType>
   void draw_solution(const FreeSpaceType& free_space, 
-                     const shared_ptr< trajectory_base< typename subspace_traits<FreeSpaceType>::super_space_type > >& traj) const {
+                     const shared_ptr< seq_trajectory_base< typename subspace_traits<FreeSpaceType>::super_space_type > >& traj) const {
     next_reporter.draw_solution(free_space, traj);
   };
   
@@ -448,7 +448,7 @@ struct print_sbmp_progress : public shared_object {
    */
   template <typename FreeSpaceType>
   void draw_solution(const FreeSpaceType& free_space, 
-                     const shared_ptr< trajectory_base< typename subspace_traits<FreeSpaceType>::super_space_type > >& traj) const {
+                     const shared_ptr< seq_trajectory_base< typename subspace_traits<FreeSpaceType>::super_space_type > >& traj) const {
     std::cout << "Solution Found!" << std::endl;
     
     next_reporter.draw_solution(free_space, traj);
@@ -546,7 +546,7 @@ struct least_cost_sbmp_report : public shared_object {
    */
   template <typename FreeSpaceType>
   void draw_solution(const FreeSpaceType& free_space, 
-                     const shared_ptr< trajectory_base< typename subspace_traits<FreeSpaceType>::super_space_type > >& traj) const {
+                     const shared_ptr< seq_trajectory_base< typename subspace_traits<FreeSpaceType>::super_space_type > >& traj) const {
     double total_cost = traj->get_end_time() - traj->get_start_time();
     if(total_cost < current_best)
       current_best = total_cost;
