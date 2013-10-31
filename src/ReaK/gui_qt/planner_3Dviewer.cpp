@@ -62,14 +62,6 @@
 
 #include "topologies/joint_space_limits.hpp"
 
-/*
-#include "CRS_workspaces.hpp"
-#include "CRS_rrt_planners.hpp"
-#include "CRS_rrtstar_planners.hpp"
-#include "CRS_prm_planners.hpp"
-#include "CRS_fadprm_planners.hpp"
-#include "CRS_sbastar_planners.hpp"
-*/
 
 #include "optimization/optim_exceptions.hpp"
 

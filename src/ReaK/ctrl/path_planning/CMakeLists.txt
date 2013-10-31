@@ -1,9 +1,5 @@
 
 set(PATH_PLANNING_SOURCES 
-  "${SRCROOT}${RKPATHPLANNINGDIR}/extern_templates/rrtstar_manip_planners_static.cpp"
-  "${SRCROOT}${RKPATHPLANNINGDIR}/extern_templates/rrtstar_manip_planners_dynamic.cpp"
-  "${SRCROOT}${RKPATHPLANNINGDIR}/extern_templates/sbastar_manip_planners_static.cpp"
-  "${SRCROOT}${RKPATHPLANNINGDIR}/extern_templates/sbastar_manip_planners_dynamic.cpp"
 )
 
 set(PATH_PLANNING_HEADERS 
@@ -61,10 +57,30 @@ set(PATH_PLANNING_HEADERS
   "${RKPATHPLANNINGDIR}/vlist_sbmp_report.hpp"
 )
 
-add_library(reak_planners STATIC ${PATH_PLANNING_SOURCES})
+
+
+set(PLANNERS_SOURCES 
+  "${SRCROOT}${RKPATHPLANNINGDIR}/extern_templates/rrtstar_manip_planners_static.cpp"
+  "${SRCROOT}${RKPATHPLANNINGDIR}/extern_templates/rrtstar_manip_planners_dynamic.cpp"
+  "${SRCROOT}${RKPATHPLANNINGDIR}/extern_templates/sbastar_manip_planners_static.cpp"
+  "${SRCROOT}${RKPATHPLANNINGDIR}/extern_templates/sbastar_manip_planners_dynamic.cpp"
+)
+
+
+# foreach(PLANNERS_DIM_COUNTER 0 1 2 3 4 5 6 7 8 9 10)
+foreach(PLANNERS_DIM_COUNTER 7)
+  add_library(reakobj_planners_${PLANNERS_DIM_COUNTER} OBJECT ${PLANNERS_SOURCES})
+  set_target_properties(reakobj_planners_${PLANNERS_DIM_COUNTER} PROPERTIES COMPILE_DEFINITIONS "RK_PLANNERS_DIM=${PLANNERS_DIM_COUNTER}")
+  set(PLANNERS_OBJECT_FILES ${PLANNERS_OBJECT_FILES} $<TARGET_OBJECTS:reakobj_planners_${PLANNERS_DIM_COUNTER}>)
+endforeach(PLANNERS_DIM_COUNTER)
+
+add_library(reak_planners STATIC ${PLANNERS_OBJECT_FILES})
 setup_custom_target(reak_planners "${SRCROOT}${RKPATHPLANNINGDIR}")
-setup_headers("${PATH_PLANNING_HEADERS}" "${RKPATHPLANNINGDIR}")
 target_link_libraries(reak_planners reak_topologies reak_interp reak_core)
+
+
+
+setup_headers("${PATH_PLANNING_HEADERS}" "${RKPATHPLANNINGDIR}")
 
 
 add_executable(test_vp_tree "${SRCROOT}${RKPATHPLANNINGDIR}/test_vp_tree.cpp")

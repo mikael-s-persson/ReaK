@@ -50,14 +50,16 @@
 
 #include "topologies/manip_P3R3R_workspaces.hpp"
 
-#include "CRS_workspaces.hpp"
-#include "CRS_rrtstar_planners.hpp"
-#include "CRS_sbastar_planners.hpp"
+
+#include "path_planning/p2p_planning_query.hpp"
+
+#include "path_planning/rrtstar_manip_planners.hpp"
+#include "path_planning/sbastar_manip_planners.hpp"
 
 #if 0
-#include "CRS_rrt_planners.hpp"
-#include "CRS_prm_planners.hpp"
-#include "CRS_fadprm_planners.hpp"
+#include "path_planning/rrt_path_planner.hpp"
+#include "path_planning/prm_path_planner.hpp"
+#include "path_planning/fadprm_path_planner.hpp"
 #endif
 
 #include "CRS_planners_utility.hpp"

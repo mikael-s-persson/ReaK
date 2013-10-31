@@ -54,6 +54,7 @@
 
 #if defined(RK_ENABLE_TEST_SBASTAR_PLANNER)
 #include "sbastar_path_planner.hpp"
+#include "sbastar_path_planner.tpp"
 #endif
 
 #include "basic_sbmp_reporters.hpp"

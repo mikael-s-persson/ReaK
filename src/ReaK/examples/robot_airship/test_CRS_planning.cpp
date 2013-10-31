@@ -53,7 +53,7 @@
 
 #include "topologies/manip_free_workspace.hpp"
 
-#include "CRS_rrtstar_planners.hpp"
+#include "path_planning/rrtstar_manip_planners.hpp"
 
 #include "topologies/direct_kinematics_topomap.hpp"
 #include "topologies/inverse_kinematics_topomap.hpp"
