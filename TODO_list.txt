@@ -19,10 +19,10 @@ implement the dynamic topologies and planners
   create a topo-map from belief to max-likelihood   -----------------------------X
   implement the intercept_query   -----------------------------------------------X
     implement the search alg. to find intercept-point   -------------------------X
-  add the capability to load target trajectories to app   
+  add the capability to load target trajectories to app   -----------------------X
   add the capability to run dyn intercept queries to app   
-  create a simulation program to generate target trajectories   
-    add real-time feeding of noisy data   
+  create a simulation program to generate target trajectories   -----------------X
+    add real-time feeding of noisy data   ---------------------------------------X
   add the capability to load a belief predictor   
     plug the belief predictor into the intercept queries   
   add mechanisms, somewhere (?), to delay motion-plan start   

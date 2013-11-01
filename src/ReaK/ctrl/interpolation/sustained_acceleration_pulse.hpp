@@ -112,12 +112,12 @@ PointType sap_interpolate(const PointType& a, const PointType& b, double t, cons
   PointType1 peak_velocity;  
   double delta_time = b.time - a.time;
   
-  double min_delta_time = detail::sap_compute_interpolation_data_impl(a.pt, b.pt,
-                                                                  delta_first_order, peak_velocity,
-								  space.get_space_topology(),
-								  space.get_time_topology(),
-								  delta_time, NULL,
-								  1e-6, 60);
+  double min_delta_time = detail::sap_compute_interpolation_data_impl(
+    a.pt, b.pt,
+    delta_first_order, peak_velocity,
+    space.get_space_topology(),
+    space.get_time_topology(),
+    delta_time, NULL, 1e-6, 60);
   
   if(min_delta_time > delta_time)
     delta_time = min_delta_time;
@@ -129,6 +129,87 @@ PointType sap_interpolate(const PointType& a, const PointType& b, double t, cons
   detail::sap_interpolate_impl< max_derivation_order< SpaceType, TimeSpaceType > >(result.pt, a.pt, b.pt, delta_first_order, peak_velocity, space.get_space_topology(), space.get_time_topology(), dt, delta_time);
   
   return result;    
+};
+
+
+
+template <typename Topology, typename TimeTopology>
+bool sap_is_in_bounds(const typename topology_traits<Topology>::point_type& pt, 
+                      const Topology& space, const TimeTopology& t_space) {
+  BOOST_CONCEPT_ASSERT((TopologyConcept<Topology>));
+  BOOST_CONCEPT_ASSERT((BoundedSpaceConcept<Topology>));
+  
+  typedef typename derived_N_order_space<Topology, TimeTopology, 0>::type Space0;
+  typedef typename derived_N_order_space<Topology, TimeTopology, 1>::type Space1;
+  typedef typename derived_N_order_space<Topology, TimeTopology, 2>::type Space2;
+  typedef typename topology_traits<Topology>::point_type PointType;
+  typedef typename topology_traits<Space0>::point_type Point0;
+  typedef typename topology_traits<Space1>::point_type Point1;
+  typedef typename topology_traits<Space2>::point_type Point2;
+  typedef typename topology_traits<Space0>::point_difference_type PointDiff0;
+  typedef typename topology_traits<Space1>::point_difference_type PointDiff1;
+  typedef typename topology_traits<Space2>::point_difference_type PointDiff2;
+  
+  BOOST_CONCEPT_ASSERT((LieGroupConcept<Space0>));
+  BOOST_CONCEPT_ASSERT((LieGroupConcept<Space1>));
+  BOOST_CONCEPT_ASSERT((LieGroupConcept<Space2>));
+  BOOST_CONCEPT_ASSERT((SphereBoundedSpaceConcept< Space1 >));
+  BOOST_CONCEPT_ASSERT((SphereBoundedSpaceConcept< Space2 >));
+  
+  const Space1& s1 = get_space<1>(space, t_space);
+  const Space2& s2 = get_space<2>(space, t_space);
+  const typename metric_space_traits< Space1 >::distance_metric_type& get_dist1 = get(distance_metric,s1);
+  const typename metric_space_traits< Space2 >::distance_metric_type& get_dist2 = get(distance_metric,s2);
+  
+  // Get the descended acceleration to the point of zero velocity (origin).
+  PointDiff1 dp1 = s1.difference(s1.origin(), get<1>(pt));
+  double dt1 = get_dist1(s1.origin(), get<1>(pt), s1);
+  // Get the corresponding acceleration.
+  Point2 p2 = lift_to_space<2>(dp1, dt1, space, t_space);
+  // Get the descended jerk to reach that acceleration.
+  PointDiff2 dp2 = s2.difference(p2, s2.origin());
+  double dt2 = get_dist2(p2, s2.origin(), s2);
+  
+  // Check if we can safely ramp-up to that acceleration:
+  PointType result_a = pt;
+  detail::sap_constant_jerk_motion_impl< max_derivation_order< Topology, TimeTopology > >(result_a, dp2, space, t_space, dt2);
+  if( !space.is_in_bounds(result_a) )
+    return false; //reject the sample.
+  
+  if( dt1 > get_dist1(get<1>(result_a), get<1>(pt), s1) ) {
+    // This means, we didn't cross the zero-velocity during the jerk-down.
+    
+    //Get the new descended acceleration to the point of zero velocity (origin).
+    dp1 = s1.difference(s1.origin(), get<1>(result_a));
+    double dt1a = get_dist1(s1.origin(), get<1>(result_a), s1);
+  
+    // Check if we can safely stop before the boundary:
+    detail::svp_constant_accel_motion_impl< max_derivation_order< Topology, TimeTopology > >(result_a, dp1, space, t_space, dt1a);
+    if( !space.is_in_bounds(result_a) )
+      return false; //reject the sample.
+  };
+  
+  // Check if we could have ramped-down from that inverse acceleration:
+  PointType result_b = pt;
+  detail::sap_constant_jerk_motion_impl< max_derivation_order< Topology, TimeTopology > >(result_b, -dp2, space, t_space, -dt2);
+  if( !space.is_in_bounds(result_b) )
+    return false; //reject the sample.
+  
+  if( dt1 > get_dist1(get<1>(pt), get<1>(result_b), s1) ) {
+    // This means, the zero-velocity point is not in the wake of the last jerk-down.
+    
+    //Get the new descended acceleration to the point of zero velocity (origin).
+    dp1 = s1.difference(s1.origin(), get<1>(result_b));
+    double dt1b = get_dist1(s1.origin(), get<1>(result_b), s1);
+  
+    // Check if we could have ramped up from within the boundary:
+    detail::svp_constant_accel_motion_impl< max_derivation_order< Topology, TimeTopology > >(result_b, -dp1, space, t_space, -dt1b);
+    if( !space.is_in_bounds(result_b) )
+      return false; //reject the sample.
+  };
+  
+  // if this point is reached it means that the sample is acceptable:
+  return true;
 };
 
 

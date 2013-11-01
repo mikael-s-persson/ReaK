@@ -106,8 +106,8 @@ RK_MANIP_FREE_SAP_WORKSPACE_MAKE_QSTAT_ENV_FOR_JOINTS(9)
 RK_MANIP_FREE_SAP_WORKSPACE_MAKE_QSTAT_ENV_FOR_JOINTS(10)
 #endif
 
-extern template class manip_quasi_static_env< metric_space_array< se2_2nd_order_rl_topology<double>::type, 1>::type, sap_interpolation_tag>;
-extern template class manip_quasi_static_env< metric_space_array< se3_2nd_order_rl_topology<double>::type, 1>::type, sap_interpolation_tag>;
+// extern template class manip_quasi_static_env< metric_space_array< se2_2nd_order_rl_topology<double>::type, 1>::type, sap_interpolation_tag>;
+// extern template class manip_quasi_static_env< metric_space_array< se3_2nd_order_rl_topology<double>::type, 1>::type, sap_interpolation_tag>;
 
 
 };

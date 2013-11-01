@@ -65,11 +65,11 @@ RK_MANIP_FREE_SVP_WORKSPACE_MAKE_DYN_ENV_FOR_JOINTS_DEFS(8)
 RK_MANIP_FREE_SVP_WORKSPACE_MAKE_DYN_ENV_FOR_JOINTS_DEFS(9)
 RK_MANIP_FREE_SVP_WORKSPACE_MAKE_DYN_ENV_FOR_JOINTS_DEFS(10)
 
-template class manip_dynamic_env< metric_space_array< se2_1st_order_rl_topology<double>::type, 1>::type, svp_interpolation_tag>;
-template class manip_dynamic_env< metric_space_array< se2_2nd_order_rl_topology<double>::type, 1>::type, svp_interpolation_tag>;
-
-template class manip_dynamic_env< metric_space_array< se3_1st_order_rl_topology<double>::type, 1>::type, svp_interpolation_tag>;
-template class manip_dynamic_env< metric_space_array< se3_2nd_order_rl_topology<double>::type, 1>::type, svp_interpolation_tag>;
+// template class manip_dynamic_env< metric_space_array< se2_1st_order_rl_topology<double>::type, 1>::type, svp_interpolation_tag>;
+// template class manip_dynamic_env< metric_space_array< se2_2nd_order_rl_topology<double>::type, 1>::type, svp_interpolation_tag>;
+// 
+// template class manip_dynamic_env< metric_space_array< se3_1st_order_rl_topology<double>::type, 1>::type, svp_interpolation_tag>;
+// template class manip_dynamic_env< metric_space_array< se3_2nd_order_rl_topology<double>::type, 1>::type, svp_interpolation_tag>;
 
 };
 

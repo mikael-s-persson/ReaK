@@ -79,46 +79,17 @@ struct svp_rate_limited_sampler : public serialization::serializable {
   typename topology_traits<Topology>::point_type operator()(const Topology& s) const {
     BOOST_CONCEPT_ASSERT((TopologyConcept<Topology>));
     BOOST_CONCEPT_ASSERT((PointDistributionConcept<Topology>));
-    BOOST_CONCEPT_ASSERT((BoundedSpaceConcept<Topology>));
     BOOST_CONCEPT_ASSERT((TangentBundleConcept<Topology, 1, TimeSpaceType>));
     
-    typedef typename derived_N_order_space<Topology, TimeSpaceType, 0>::type Space0;
-    typedef typename derived_N_order_space<Topology, TimeSpaceType, 1>::type Space1;
     typedef typename topology_traits<Topology>::point_type PointType;
-    typedef typename topology_traits<Space0>::point_type Point0;
-    typedef typename topology_traits<Space1>::point_type Point1;
-    typedef typename topology_traits<Space0>::point_difference_type PointDiff0;
-    typedef typename topology_traits<Space1>::point_difference_type PointDiff1;
-    
-    BOOST_CONCEPT_ASSERT((LieGroupConcept<Space0>));
-    BOOST_CONCEPT_ASSERT((LieGroupConcept<Space1>));
-    BOOST_CONCEPT_ASSERT((SphereBoundedSpaceConcept< Space1 >));
     
     const typename point_distribution_traits<Topology>::random_sampler_type& get_sample = get(random_sampler,s);
-//    const Space0& s0 = get_space<0>(s, *t_space);
-    const Space1& s1 = get_space<1>(s, *t_space);
-    const typename metric_space_traits< Space1 >::distance_metric_type& get_vel_dist = get(distance_metric,s1);
     
     while(true) {
       PointType pt = get_sample(s);
       
-      PointDiff1 dp1 = s1.difference(s1.origin(), get<1>(pt));
-      double dt = get_vel_dist(s1.origin(), get<1>(pt), s1);
-      
-      // Check if we can stop the motion before the boundary.
-      PointType result = pt;
-      detail::svp_constant_accel_motion_impl< max_derivation_order< Topology, TimeSpaceType > >(result, dp1, s, *t_space, dt);
-      if( !s.is_in_bounds(result) )
-        continue; //reject the sample.
-      
-      // Check if we could have initiated the motion from within the boundary.
-      result = pt;
-      detail::svp_constant_accel_motion_impl< max_derivation_order< Topology, TimeSpaceType > >(result, -dp1, s, *t_space, -dt);
-      if( !s.is_in_bounds(result) )
-        continue; //reject the sample.
-      
-      // If this point is reached, it means that the sample is acceptable:
-      return pt;
+      if( svp_is_in_bounds<Topology,TimeSpaceType>(pt, s, *t_space) )
+        return pt;
     };
   };
   

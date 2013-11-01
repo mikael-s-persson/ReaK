@@ -36,7 +36,7 @@
 #include "path_planning/spatial_trajectory_concept.hpp"
 #include "path_planning/tangent_bundle_concept.hpp"
 
-#include "interpolated_trajectory.hpp"
+#include "interpolated_topologies.hpp"
 #include "generic_interpolator_factory.hpp"
 
 #include <boost/config.hpp>
@@ -57,29 +57,31 @@ namespace ReaK {
 namespace pp {
 
 
-
 /**
- * This class wraps a reach-time topology with SVP-based distance metric and a sampler.
- * \tparam BaseTopology The topology underlying this space, should express values as reach-time values and metrics (distance), and should model TopologyConcept, PointDistributionConcept, BoundedSpaceConcept and TangentBundleConcept for time_topology and up to 2nd order (acceleration).
+ * This class wraps an interpolated topology which is a topology with a new travel function, distance metric and sampler.
+ * \tparam BaseTopology The topology underlying this space, should model TopologyConcept.
  */
 template <typename BaseTopology>
-class svp_Ndof_reach_topology : public BaseTopology
-{
+class interpolated_topology<BaseTopology, svp_Ndof_interpolation_tag> : public interpolated_topology_base<BaseTopology> {
   public:
-    BOOST_CONCEPT_ASSERT((TopologyConcept<BaseTopology>));
-    BOOST_CONCEPT_ASSERT((PointDistributionConcept<BaseTopology>));
     
-    typedef svp_Ndof_reach_topology<BaseTopology> self;
+    typedef interpolated_topology_base<BaseTopology> base_type;
+    typedef interpolated_topology<BaseTopology, svp_Ndof_interpolation_tag> self;
     
-    typedef typename topology_traits< BaseTopology >::point_type point_type;
-    typedef typename topology_traits< BaseTopology >::point_difference_type point_difference_type;
+    typedef typename base_type::point_type point_type;
+    typedef typename base_type::point_difference_type point_difference_type;
     
-    typedef default_distance_metric distance_metric_type;
-    typedef default_random_sampler random_sampler_type;
+    typedef typename base_type::distance_metric_type distance_metric_type;
+    typedef typename base_type::random_sampler_type random_sampler_type;
     
-    typedef BaseTopology super_space_type;
+    BOOST_STATIC_CONSTANT(std::size_t, dimensions = base_type::dimensions);
     
-    BOOST_STATIC_CONSTANT(std::size_t, dimensions = topology_traits< BaseTopology >::dimensions);
+    
+#ifdef BOOST_NO_CXX11_HDR_FUNCTIONAL
+    typedef boost::function< bool(const point_type&) > validity_predicate_type;
+#else
+    typedef std::function< bool(const point_type&) > validity_predicate_type;
+#endif
     
   protected:
     
@@ -87,154 +89,238 @@ class svp_Ndof_reach_topology : public BaseTopology
     svp_Ndof_reach_time_metric<time_topology> rt_dist;
     generic_sampler<svp_Ndof_rate_limited_sampler<time_topology>, BaseTopology> rl_sampler;
     
-    
-  public:
-    
-    const svp_Ndof_reach_time_metric<time_topology>& get_pseudo_factory() const { return rt_dist; };
-    
-    svp_Ndof_reach_topology(const BaseTopology& aTopo) : 
-                            BaseTopology(aTopo),
-                            t_space(new time_topology),
-                            rt_dist(t_space), 
-                            rl_sampler(svp_Ndof_rate_limited_sampler<time_topology>(t_space)) { };
-    
-#ifdef RK_ENABLE_CXX11_FEATURES
-    template <typename... Args>
-    svp_Ndof_reach_topology(Args&&... args) : 
-                            BaseTopology(std::forward<Args>(args)...),
-                            t_space(new time_topology),
-                            rt_dist(t_space), 
-                            rl_sampler(svp_Ndof_rate_limited_sampler<time_topology>(t_space)) { };
-#else
-    svp_Ndof_reach_topology() : 
-                            BaseTopology(),
-                            t_space(new time_topology),
-                            rt_dist(t_space), 
-                            rl_sampler(svp_Ndof_rate_limited_sampler<time_topology>(t_space)) { };
-    
-    template <typename A1>
-    svp_Ndof_reach_topology(const A1& a1) : 
-                            BaseTopology(a1),
-                            t_space(new time_topology),
-                            rt_dist(t_space), 
-                            rl_sampler(svp_Ndof_rate_limited_sampler<time_topology>(t_space)) { };
-    
-    template <typename A1, typename A2>
-    svp_Ndof_reach_topology(const A1& a1, const A2& a2) : 
-                            BaseTopology(a1, a2),
-                            t_space(new time_topology),
-                            rt_dist(t_space), 
-                            rl_sampler(svp_Ndof_rate_limited_sampler<time_topology>(t_space)) { };
-    
-    template <typename A1, typename A2, typename A3>
-    svp_Ndof_reach_topology(const A1& a1, const A2& a2, const A3& a3) : 
-                            BaseTopology(a1, a2, a3),
-                            t_space(new time_topology),
-                            rt_dist(t_space), 
-                            rl_sampler(svp_Ndof_rate_limited_sampler<time_topology>(t_space)) { };
-    
-    template <typename A1, typename A2, typename A3, typename A4>
-    svp_Ndof_reach_topology(const A1& a1, const A2& a2, const A3& a3, const A4& a4) : 
-                            BaseTopology(a1, a2, a3, a4),
-                            t_space(new time_topology),
-                            rt_dist(t_space), 
-                            rl_sampler(svp_Ndof_rate_limited_sampler<time_topology>(t_space)) { };
-    
-    template <typename A1, typename A2, typename A3, typename A4, typename A5>
-    svp_Ndof_reach_topology(const A1& a1, const A2& a2, const A3& a3, const A4& a4, const A5& a5) : 
-                            BaseTopology(a1, a2, a3, a4, a5),
-                            t_space(new time_topology),
-                            rt_dist(t_space), 
-                            rl_sampler(svp_Ndof_rate_limited_sampler<time_topology>(t_space)) { };
-#endif
-                       
-   /**
-    * Returns a const-reference to the super-space of this topology.
-    * \note This function returns a const-reference to itself since the super-space is also 
-    *       the base-class of this topology. The base class is not polymorphic, meaning that its
-    *       distance metric and random-sampler are not overridden (non-virtual calls).
-    */
-   const super_space_type& get_super_space() const { return *this; };
-    
-   /*************************************************************************
-    *                             MetricSpaceConcept
-    * **********************************************************************/
-    
-    /**
-     * Returns the distance between two points.
-     */
-    double distance(const point_type& a, const point_type& b) const 
-    {
-      return rt_dist(a, b, static_cast<const BaseTopology&>(*this));
-    };
-    
-    /**
-     * Returns the norm of the difference between two points.
-     */
-    double norm(const point_difference_type& delta) const {
-      return rt_dist(delta, static_cast<const BaseTopology&>(*this));
-    };
-    
-    /*************************************************************************
-    *                             BoundedSpaceConcept
-    * **********************************************************************/
-    
-    /**
-     * Tests if a given point is within the boundary of this space.
-     */
-    bool is_in_bounds(const point_type& a) const {
-      return svp_Ndof_is_in_bounds(a, static_cast<const BaseTopology&>(*this), *t_space);
-    };
-    
-   /*************************************************************************
-    *                         for PointDistributionConcept
-    * **********************************************************************/
-    
-    /**
-     * Generates a random point in the space, uniformly distributed within the reachable space.
-     */
-    point_type random_point() const {
-      return rl_sampler(static_cast<const BaseTopology&>(*this));
-    };
-
-   /*************************************************************************
-    *                             LieGroupConcept
-    * **********************************************************************/
-    
-    /**
-     * Returns a point which is at a fraction between two points a to b.
-     */
-    point_type move_position_toward(const point_type& a, double fraction, const point_type& b) const 
-    {
+    virtual point_type interp_topo_move_position_toward(const point_type& a, double fraction, const point_type& b) const {
+      const BaseTopology& b_space = static_cast<const BaseTopology&>(*this);
       try {
         detail::generic_interpolator_impl<svp_Ndof_interpolator,BaseTopology,time_topology> interp;
-        interp.initialize(a, b, 0.0, static_cast<const BaseTopology&>(*this), *t_space, rt_dist);
+        interp.initialize(a, b, 0.0, b_space, *t_space, rt_dist);
         double dt_min = interp.get_minimum_travel_time();
         double dt = dt_min * fraction;
         point_type result = a;
-        interp.compute_point(result, a, b, static_cast<const BaseTopology&>(*this), *t_space, dt, dt_min, rt_dist);
+        interp.compute_point(result, a, b, b_space, *t_space, dt, dt_min, rt_dist);
         return result;
       } catch(optim::infeasible_problem& e) { RK_UNUSED(e);
         return a;
       };
     };
     
+    virtual double interp_topo_get_distance(const point_type& a, const point_type& b) const {
+      return rt_dist(a, b, static_cast<const BaseTopology&>(*this));
+    };
+    
+    virtual point_type interp_topo_move_position_toward_pred(const point_type& a, double fraction, const point_type& b,
+                                                        double min_dist_interval, validity_predicate_type predicate) const {
+      const BaseTopology& b_space = static_cast<const BaseTopology&>(*this);
+      try {
+        detail::generic_interpolator_impl<svp_Ndof_interpolator,BaseTopology,time_topology> interp;
+        interp.initialize(a, b, 0.0, b_space, *t_space, rt_dist);
+        double dt_min = interp.get_minimum_travel_time();
+        double dt = dt_min * fraction;
+        double d = min_dist_interval;
+        point_type result = a;
+        point_type last_result = a;
+        while(d < dt) {
+          interp.compute_point(result, a, b, b_space, *t_space, d, dt_min, rt_dist);
+          if(!predicate(result))
+            return last_result;
+          d += min_dist_interval;
+          last_result = result;
+        };
+        if(fraction == 1.0) //these equal comparison are used for when exact end fractions are used.
+          return b;
+        if(fraction == 0.0)
+          return a;
+        interp.compute_point(result, a, b, b_space, *t_space, dt, dt_min, rt_dist);
+        return result;
+      } catch(optim::infeasible_problem& e) { RK_UNUSED(e);
+        return a;
+      };
+    };
+    
+    virtual double interp_topo_get_norm(const point_difference_type& dp) const {
+      return rt_dist(dp, static_cast<const BaseTopology&>(*this));
+    };
+    
+    virtual bool interp_topo_is_in_bounds(const point_type& a) const {
+      return svp_Ndof_is_in_bounds(a, static_cast<const BaseTopology&>(*this), *t_space);
+    };
+    
+    virtual point_type interp_topo_random_point() const {
+      return rl_sampler(static_cast<const BaseTopology&>(*this));
+    };
+    
+    
+  public:
+    
+    const svp_Ndof_reach_time_metric<time_topology>& get_pseudo_factory() const { return rt_dist; };
+    
+    
+    interpolated_topology(const BaseTopology& aTopo) : base_type(aTopo),
+                          t_space(new time_topology), rt_dist(t_space), 
+                          rl_sampler(svp_Ndof_rate_limited_sampler<time_topology>(t_space)) { };
+    
+#ifdef RK_ENABLE_CXX11_FEATURES
+    template <typename... Args>
+    interpolated_topology(Args&&... args) : base_type(std::forward<Args>(args)...),
+                                            t_space(new time_topology), rt_dist(t_space), 
+                                            rl_sampler(svp_Ndof_rate_limited_sampler<time_topology>(t_space)) { };
+#else
+    interpolated_topology() : base_type(),
+                              t_space(new time_topology), rt_dist(t_space), 
+                              rl_sampler(svp_Ndof_rate_limited_sampler<time_topology>(t_space)) { };
+    
+    template <typename A1>
+    interpolated_topology(const A1& a1) : 
+                          base_type(a1),
+                          t_space(new time_topology), rt_dist(t_space), 
+                          rl_sampler(svp_Ndof_rate_limited_sampler<time_topology>(t_space)) { };
+    
+    template <typename A1, typename A2>
+    interpolated_topology(const A1& a1, const A2& a2) : 
+                          base_type(a1, a2),
+                          t_space(new time_topology), rt_dist(t_space), 
+                          rl_sampler(svp_Ndof_rate_limited_sampler<time_topology>(t_space)) { };
+    
+    template <typename A1, typename A2, typename A3>
+    interpolated_topology(const A1& a1, const A2& a2, const A3& a3) : 
+                          base_type(a1, a2, a3),
+                          t_space(new time_topology), rt_dist(t_space), 
+                          rl_sampler(svp_Ndof_rate_limited_sampler<time_topology>(t_space)) { };
+    
+    template <typename A1, typename A2, typename A3, typename A4>
+    interpolated_topology(const A1& a1, const A2& a2, const A3& a3, const A4& a4) : 
+                          base_type(a1, a2, a3, a4),
+                          t_space(new time_topology), rt_dist(t_space), 
+                          rl_sampler(svp_Ndof_rate_limited_sampler<time_topology>(t_space)) { };
+    
+    template <typename A1, typename A2, typename A3, typename A4, typename A5>
+    interpolated_topology(const A1& a1, const A2& a2, const A3& a3, const A4& a4, const A5& a5) : 
+                          base_type(a1, a2, a3, a4, a5),
+                          t_space(new time_topology), rt_dist(t_space), 
+                          rl_sampler(svp_Ndof_rate_limited_sampler<time_topology>(t_space)) { };
+    
+    template <typename A1, typename A2, typename A3, typename A4, typename A5, typename A6>
+    interpolated_topology(const A1& a1, const A2& a2, const A3& a3, const A4& a4, const A5& a5, const A6& a6) : 
+                          base_type(a1, a2, a3, a4, a5, a6),
+                          t_space(new time_topology), rt_dist(t_space), 
+                          rl_sampler(svp_Ndof_rate_limited_sampler<time_topology>(t_space)) { };
+    
+    template <typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7>
+    interpolated_topology(const A1& a1, const A2& a2, const A3& a3, const A4& a4, const A5& a5, const A6& a6, const A7& a7) : 
+                          base_type(a1, a2, a3, a4, a5, a6, a7),
+                          t_space(new time_topology), rt_dist(t_space), 
+                          rl_sampler(svp_Ndof_rate_limited_sampler<time_topology>(t_space)) { };
+    
+    template <typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8>
+    interpolated_topology(const A1& a1, const A2& a2, const A3& a3, const A4& a4, const A5& a5, const A6& a6, const A7& a7, const A8& a8) : 
+                          base_type(a1, a2, a3, a4, a5, a6, a7, a8),
+                          t_space(new time_topology), rt_dist(t_space), 
+                          rl_sampler(svp_Ndof_rate_limited_sampler<time_topology>(t_space)) { };
+#endif
+   
 /*******************************************************************************
                    ReaK's RTTI and Serialization interfaces
 *******************************************************************************/
     
     virtual void RK_CALL save(serialization::oarchive& A, unsigned int) const {
-      BaseTopology::save(A,BaseTopology::getStaticObjectType()->TypeVersion());
+      base_type::save(A,base_type::getStaticObjectType()->TypeVersion());
     };
 
     virtual void RK_CALL load(serialization::iarchive& A, unsigned int) {
-      BaseTopology::load(A,BaseTopology::getStaticObjectType()->TypeVersion());
+      base_type::load(A,base_type::getStaticObjectType()->TypeVersion());
     };
 
-    RK_RTTI_MAKE_ABSTRACT_1BASE(self,0xC2400030,1,"svp_Ndof_reach_topology",BaseTopology)
+    RK_RTTI_MAKE_ABSTRACT_1BASE(self,0xC240003A,1,"interpolated_topology",base_type)
     
 };
 
+
+
+
+
+
+/**
+ * This class wraps a reach-time topology with SVP-based distance metric and a sampler.
+ * \tparam BaseTopology The topology underlying this space, should express values as reach-time values and metrics (distance), and should model TopologyConcept, PointDistributionConcept, BoundedSpaceConcept and TangentBundleConcept for time_topology and up to 1st order (velocity).
+ */
+template <typename BaseTopology>
+class svp_Ndof_reach_topology : public interpolated_topology<BaseTopology, svp_Ndof_interpolation_tag>
+{
+  public:
+    BOOST_CONCEPT_ASSERT((TopologyConcept<BaseTopology>));
+    BOOST_CONCEPT_ASSERT((PointDistributionConcept<BaseTopology>));
+    
+    typedef interpolated_topology<BaseTopology, svp_Ndof_interpolation_tag> base_type;
+    typedef svp_Ndof_reach_topology<BaseTopology> self;
+    
+    typedef typename base_type::point_type point_type;
+    typedef typename base_type::point_difference_type point_difference_type;
+    
+    typedef typename base_type::distance_metric_type distance_metric_type;
+    typedef typename base_type::random_sampler_type random_sampler_type;
+    
+    typedef typename base_type::super_space_type super_space_type;
+    
+    BOOST_STATIC_CONSTANT(std::size_t, dimensions = base_type::dimensions);
+    
+  public:
+    
+    svp_Ndof_reach_topology(const BaseTopology& aTopo) : base_type(aTopo) { };
+    
+#ifdef RK_ENABLE_CXX11_FEATURES
+    template <typename... Args>
+    svp_Ndof_reach_topology(Args&&... args) : base_type(std::forward<Args>(args)...) { };
+#else
+    svp_Ndof_reach_topology() : base_type() { };
+    
+    template <typename A1>
+    svp_Ndof_reach_topology(const A1& a1) : 
+                            base_type(a1) { };
+    
+    template <typename A1, typename A2>
+    svp_Ndof_reach_topology(const A1& a1, const A2& a2) : 
+                            base_type(a1, a2) { };
+    
+    template <typename A1, typename A2, typename A3>
+    svp_Ndof_reach_topology(const A1& a1, const A2& a2, const A3& a3) : 
+                            base_type(a1, a2, a3) { };
+    
+    template <typename A1, typename A2, typename A3, typename A4>
+    svp_Ndof_reach_topology(const A1& a1, const A2& a2, const A3& a3, const A4& a4) : 
+                            base_type(a1, a2, a3, a4) { };
+    
+    template <typename A1, typename A2, typename A3, typename A4, typename A5>
+    svp_Ndof_reach_topology(const A1& a1, const A2& a2, const A3& a3, const A4& a4, const A5& a5) : 
+                            base_type(a1, a2, a3, a4, a5) { };
+    
+    template <typename A1, typename A2, typename A3, typename A4, typename A5, typename A6>
+    svp_Ndof_reach_topology(const A1& a1, const A2& a2, const A3& a3, const A4& a4, const A5& a5, const A6& a6) : 
+                            base_type(a1, a2, a3, a4, a5, a6) { };
+    
+    template <typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7>
+    svp_Ndof_reach_topology(const A1& a1, const A2& a2, const A3& a3, const A4& a4, const A5& a5, const A6& a6, const A7& a7) : 
+                            base_type(a1, a2, a3, a4, a5, a6, a7) { };
+    
+    template <typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8>
+    svp_Ndof_reach_topology(const A1& a1, const A2& a2, const A3& a3, const A4& a4, const A5& a5, const A6& a6, const A7& a7, const A8& a8) : 
+                            base_type(a1, a2, a3, a4, a5, a6, a7, a8) { };
+#endif
+   
+/*******************************************************************************
+                   ReaK's RTTI and Serialization interfaces
+*******************************************************************************/
+    
+    virtual void RK_CALL save(serialization::oarchive& A, unsigned int) const {
+      base_type::save(A,base_type::getStaticObjectType()->TypeVersion());
+    };
+
+    virtual void RK_CALL load(serialization::iarchive& A, unsigned int) {
+      base_type::load(A,base_type::getStaticObjectType()->TypeVersion());
+    };
+
+    RK_RTTI_MAKE_ABSTRACT_1BASE(self,0xC2400030,1,"svp_Ndof_reach_topology",base_type)
+    
+};
 
 template <typename BaseTopology>
 struct is_metric_space< svp_Ndof_reach_topology<BaseTopology> > : boost::mpl::true_ { };
@@ -242,11 +328,8 @@ struct is_metric_space< svp_Ndof_reach_topology<BaseTopology> > : boost::mpl::tr
 template <typename BaseTopology>
 struct is_point_distribution< svp_Ndof_reach_topology<BaseTopology> > : boost::mpl::true_ { };
 
-
-
 template <typename BaseTopology>
-struct get_rate_illimited_space< svp_Ndof_reach_topology<BaseTopology> > : 
-  get_rate_illimited_space< BaseTopology > { };
+struct get_rate_illimited_space< svp_Ndof_reach_topology<BaseTopology> > : get_rate_illimited_space< BaseTopology > { };
 
 
 

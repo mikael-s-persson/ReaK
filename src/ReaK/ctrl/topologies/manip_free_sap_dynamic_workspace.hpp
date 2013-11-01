@@ -105,8 +105,8 @@ RK_MANIP_FREE_SAP_WORKSPACE_MAKE_DYN_ENV_FOR_JOINTS(8)
 RK_MANIP_FREE_SAP_WORKSPACE_MAKE_DYN_ENV_FOR_JOINTS(9)
 RK_MANIP_FREE_SAP_WORKSPACE_MAKE_DYN_ENV_FOR_JOINTS(10)
 
-extern template class manip_dynamic_env< metric_space_array< se2_2nd_order_rl_topology<double>::type, 1>::type, sap_interpolation_tag>;
-extern template class manip_dynamic_env< metric_space_array< se3_2nd_order_rl_topology<double>::type, 1>::type, sap_interpolation_tag>;
+// extern template class manip_dynamic_env< metric_space_array< se2_2nd_order_rl_topology<double>::type, 1>::type, sap_interpolation_tag>;
+// extern template class manip_dynamic_env< metric_space_array< se3_2nd_order_rl_topology<double>::type, 1>::type, sap_interpolation_tag>;
 
 };
 
