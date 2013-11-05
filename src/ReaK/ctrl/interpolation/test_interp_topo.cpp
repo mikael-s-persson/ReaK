@@ -255,12 +255,14 @@ void perform_mc_tests(const po::variables_map& vm, std::size_t dyn_sp_dim) {
 #ifdef RK_ENABLE_TEST_SVP_NDOF_INTERPOLATOR
   std::size_t svp_Ndof_succ_count = 0;
   std::size_t svp_Ndof_graceful_fails = 0;
-  pp::svp_Ndof_reach_topology<TopoType> svp_Ndof_topo( Config::create(lb, ub, sb, ab, jb) );
+  pp::interpolated_topology<TopoType, pp::svp_Ndof_interpolation_tag>
+    svp_Ndof_topo( Config::create(lb, ub, sb, ab, jb) );
 #endif
 #ifdef RK_ENABLE_TEST_SAP_NDOF_INTERPOLATOR
   std::size_t sap_Ndof_succ_count = 0;
   std::size_t sap_Ndof_graceful_fails = 0;
-  pp::sap_Ndof_reach_topology<TopoType> sap_Ndof_topo( Config::create(lb, ub, sb, ab, jb) );
+  pp::interpolated_topology<TopoType, pp::sap_Ndof_interpolation_tag>
+    sap_Ndof_topo( Config::create(lb, ub, sb, ab, jb) );
 #endif
   
   std::size_t mc_runs = vm["mc-runs"].as<std::size_t>();

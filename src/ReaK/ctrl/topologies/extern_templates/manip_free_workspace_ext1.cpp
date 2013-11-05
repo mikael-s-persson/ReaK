@@ -28,7 +28,7 @@
 
 #if (defined(RK_ENABLE_CXX11_FEATURES) && defined(RK_ENABLE_EXTERN_TEMPLATES))
 
-#include "topologies/manip_free_workspace.tpp"
+#include "topologies/manip_free_workspace.hpp"
 
 namespace ReaK {
 
@@ -52,9 +52,9 @@ template class manip_quasi_static_env< Ndof_rl_space<double, NDOF, 2>::type, lin
 #else
 
 #define RK_MANIP_FREE_WORKSPACE_MAKE_LIN_QSTAT_ENV_FOR_JOINTS_DEFS(NDOF) \
-template class manip_quasi_static_env< Ndof_rl_space<double, NDOF, 0>::type, linear_interpolation_tag>;\
-template class manip_quasi_static_env< Ndof_rl_space<double, NDOF, 1>::type, linear_interpolation_tag>;\
-template class manip_quasi_static_env< Ndof_rl_space<double, NDOF, 2>::type, linear_interpolation_tag>;
+template class manip_quasi_static_env< Ndof_rl_space<double, NDOF, 0>::type >;\
+template class manip_quasi_static_env< Ndof_rl_space<double, NDOF, 1>::type >;\
+template class manip_quasi_static_env< Ndof_rl_space<double, NDOF, 2>::type >;
 
 #endif
 
@@ -71,13 +71,13 @@ RK_MANIP_FREE_WORKSPACE_MAKE_LIN_QSTAT_ENV_FOR_JOINTS_DEFS(9)
 RK_MANIP_FREE_WORKSPACE_MAKE_LIN_QSTAT_ENV_FOR_JOINTS_DEFS(10)
 
 
-template class manip_quasi_static_env< metric_space_array< se2_0th_order_rl_topology<double>::type, 1>::type, linear_interpolation_tag>;
-template class manip_quasi_static_env< metric_space_array< se2_1st_order_rl_topology<double>::type, 1>::type, linear_interpolation_tag>;
-template class manip_quasi_static_env< metric_space_array< se2_2nd_order_rl_topology<double>::type, 1>::type, linear_interpolation_tag>;
+template class manip_quasi_static_env< metric_space_array< se2_0th_order_rl_topology<double>::type, 1>::type >;
+template class manip_quasi_static_env< metric_space_array< se2_1st_order_rl_topology<double>::type, 1>::type >;
+template class manip_quasi_static_env< metric_space_array< se2_2nd_order_rl_topology<double>::type, 1>::type >;
 
-template class manip_quasi_static_env< metric_space_array< se3_0th_order_rl_topology<double>::type, 1>::type, linear_interpolation_tag>;
-template class manip_quasi_static_env< metric_space_array< se3_1st_order_rl_topology<double>::type, 1>::type, linear_interpolation_tag>;
-template class manip_quasi_static_env< metric_space_array< se3_2nd_order_rl_topology<double>::type, 1>::type, linear_interpolation_tag>;
+template class manip_quasi_static_env< metric_space_array< se3_0th_order_rl_topology<double>::type, 1>::type >;
+template class manip_quasi_static_env< metric_space_array< se3_1st_order_rl_topology<double>::type, 1>::type >;
+template class manip_quasi_static_env< metric_space_array< se3_2nd_order_rl_topology<double>::type, 1>::type >;
 
 };
 

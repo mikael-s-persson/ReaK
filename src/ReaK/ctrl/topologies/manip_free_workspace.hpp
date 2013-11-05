@@ -43,48 +43,66 @@
 #include "path_planning/random_sampler_concept.hpp"
 #include "path_planning/metric_space_concept.hpp"
 
+#include "interpolation/interpolated_topologies.hpp"
+#include "proxy_model_updater.hpp"
+
+#include "proximity/proxy_query_model.hpp"  // for proxy-query class
+
 #include "basic_distance_metrics.hpp"
 #include "default_random_sampler.hpp"
 
+#ifdef BOOST_NO_CXX11_HDR_FUNCTIONAL
+#include <boost/bind.hpp>
+#else
+#include <functional>
+#endif
+
 namespace ReaK {
-  
-
-namespace kte {
-  class direct_kinematics_model;
-};
-
-namespace geom {
-  class proxy_query_pair_2D;
-  class proxy_query_pair_3D;
-};
 
 
 namespace pp {
-  
-template <typename T>
-struct joint_limits_collection;
 
 
 namespace detail {
 
+template <typename BaseJointSpace>
 class manip_dk_proxy_env_impl {
   public:
-    shared_ptr< kte::direct_kinematics_model > m_model; 
-    shared_ptr< joint_limits_collection<double> > m_joint_limits_map;
+    typedef typename topology_traits<BaseJointSpace>::point_type point_type;
+    
+    shared_ptr< proxy_model_applicator<BaseJointSpace> > m_applicator;
     
     std::vector< shared_ptr< geom::proxy_query_pair_2D > > m_proxy_env_2D;
     std::vector< shared_ptr< geom::proxy_query_pair_3D > > m_proxy_env_3D;
     
-    manip_dk_proxy_env_impl(const shared_ptr< kte::direct_kinematics_model >& aModel = shared_ptr< kte::direct_kinematics_model >(),
-                            const shared_ptr< joint_limits_collection<double> >& aJointLimitMap = shared_ptr< joint_limits_collection<double> >()) :
-                            m_model(aModel), m_joint_limits_map(aJointLimitMap) { };
+    manip_dk_proxy_env_impl(const shared_ptr< proxy_model_applicator<BaseJointSpace> >& aApplicator = shared_ptr< proxy_model_applicator<BaseJointSpace> >()) :
+                            m_applicator(aApplicator) { };
     
-    template <typename PointType, typename RateLimitedJointSpace>
-    bool is_free(const PointType& pt, const RateLimitedJointSpace& space) const;
+    bool is_free(const point_type& pt, const BaseJointSpace& space) const {
+      if(m_applicator)
+        m_applicator->apply_to_model(pt, space);
+      
+      // NOTE: it is assumed that the proxy environments are properly linked with the manipulator kinematic model.
+      
+      for( std::vector< shared_ptr< geom::proxy_query_pair_2D > >::const_iterator it = m_proxy_env_2D.begin(); it != m_proxy_env_2D.end(); ++it) {
+        shared_ptr< geom::proximity_finder_2D > tmp = (*it)->findMinimumDistance();
+        if((tmp) && (tmp->getLastResult().mDistance < 0.0))
+          return false;
+      };
+      
+      for( std::vector< shared_ptr< geom::proxy_query_pair_3D > >::const_iterator it = m_proxy_env_3D.begin(); it != m_proxy_env_3D.end(); ++it) {
+        shared_ptr< geom::proximity_finder_3D > tmp = (*it)->findMinimumDistance();
+        if((tmp) && (tmp->getLastResult().mDistance < 0.0))
+          return false;
+      };
+      
+      return true;
+    };
     
 };
 
 };
+
 
 
 
@@ -93,13 +111,17 @@ class manip_dk_proxy_env_impl {
  * Here, the term quasi-static refers to the fact that proximity queries are performed against an 
  * environment that is assumed to be unchanging (at least, not significantly while this topology is used).
  */
-template <typename RateLimitedJointSpace, typename InterpMethodTag>
+template <typename BaseJointSpace>
 class manip_quasi_static_env : public named_object {
   public:
-    typedef manip_quasi_static_env<RateLimitedJointSpace,InterpMethodTag> self;
-    typedef RateLimitedJointSpace super_space_type;
+    typedef manip_quasi_static_env<BaseJointSpace> self;
+    typedef interpolated_topology_base<BaseJointSpace> super_space_base_type;
+    typedef wrapped_interp_topology<BaseJointSpace> super_space_type;
     typedef typename topology_traits< super_space_type >::point_type point_type;
     typedef typename topology_traits< super_space_type >::point_difference_type point_difference_type;
+    
+    typedef proxy_model_applicator<BaseJointSpace> applicator_type;
+    typedef detail::manip_dk_proxy_env_impl<BaseJointSpace> dk_proxy_env_type;
     
     BOOST_STATIC_CONSTANT(std::size_t, dimensions = topology_traits< super_space_type >::dimensions);
     
@@ -108,13 +130,8 @@ class manip_quasi_static_env : public named_object {
     
   private:
     double min_interval;
-    double max_edge_length;
-    
     super_space_type m_space;
-    typename metric_space_traits<super_space_type>::distance_metric_type m_distance;
-    typename point_distribution_traits<super_space_type>::random_sampler_type m_rand_sampler;
-    
-    detail::manip_dk_proxy_env_impl m_prox_env;
+    dk_proxy_env_type m_prox_env;
     
   public:
     
@@ -137,7 +154,13 @@ class manip_quasi_static_env : public named_object {
      * \return True if p is collision-free.
      */
     bool is_free(const point_type& p) const {
-      return m_space.is_in_bounds(p) && m_prox_env.is_free(p, m_space);
+      return m_space.is_in_bounds(p) && m_prox_env.is_free(p, m_space.get_super_space());
+    };
+    
+    struct is_free_predicate {
+      const self* parent;
+      is_free_predicate(const self* aParent) : parent(aParent) { };
+      bool operator()(const point_type& p) const { return parent->is_free(p); };
     };
     
     //Topology concepts:
@@ -146,10 +169,8 @@ class manip_quasi_static_env : public named_object {
      * Produces a random, collision-free point.
      * \return A random, collision-free point.
      */
-    point_type random_point() const {
-      point_type result;
-      while(!is_free(result = m_rand_sampler(m_space))) ; //output only free C-space points.
-      return result;
+    point_type random_point() const { 
+      return m_space.random_point( is_free_predicate(this) ); 
     };
     
     /**
@@ -160,10 +181,7 @@ class manip_quasi_static_env : public named_object {
      * \return The collision-free distance between the two given points.
      */
     double distance(const point_type& p1, const point_type& p2) const {
-      if(m_distance(p2, move_position_toward(p1, 1.0, p2), m_space) < std::numeric_limits< double >::epsilon())
-        return m_distance(p1, p2, m_space); //if p2 is reachable from p1, use Euclidean distance.
-      else
-        return std::numeric_limits<double>::infinity(); //p2 is not reachable from p1.
+      return m_space.distance(p1, p2, min_interval, is_free_predicate(this));
     };
     
     /**
@@ -171,9 +189,7 @@ class manip_quasi_static_env : public named_object {
      * \param dp The point difference.
      * \return The norm of the difference between the two points.
      */
-    double norm(const point_difference_type& dp) const {
-      return m_distance(dp, m_space);
-    };
+    double norm(const point_difference_type& dp) const { return m_space.norm(dp); };
     
     /**
      * Returns the difference between two points (a - b).
@@ -200,29 +216,35 @@ class manip_quasi_static_env : public named_object {
      * Returns a point which is at a fraction between two points a to b, or as 
      * far as it can get before a collision.
      */
-    point_type move_position_toward(const point_type& p1, double fraction, const point_type& p2) const;
-    
-    /**
-     * Returns a random point fairly near to the given point.
-     */
-    std::pair<point_type, bool> random_walk(const point_type& p_u) const;
+    point_type move_position_toward(const point_type& p1, double fraction, const point_type& p2) const {
+      return m_space.move_position_toward(p1, fraction, p2, min_interval, is_free_predicate(this));
+    };
     
     
     /**
      * Parametrized constructor (this class is a RAII class).
-     * \param aMaxEdgeLength The maximum length of an added edge, in time units (e.g., seconds).
+     * \param aMinInterval The minimum length of the travel between collision detection calls.
      */
-    manip_quasi_static_env(const super_space_type& aSpace = super_space_type(),
-                           const shared_ptr< kte::direct_kinematics_model >& aModel = shared_ptr< kte::direct_kinematics_model >(),
-                           const shared_ptr< joint_limits_collection<double> >& aJointLimitsMap = shared_ptr< joint_limits_collection<double> >(),
-                           double aMinInterval = 0.1, 
-                           double aMaxEdgeLength = 1.0) : 
+    manip_quasi_static_env(const BaseJointSpace& aSpace = BaseJointSpace(),
+                           const shared_ptr< applicator_type >& aApplicator = shared_ptr< applicator_type >(),
+                           double aMinInterval = 0.1) : 
                            min_interval(aMinInterval),
-                           max_edge_length(aMaxEdgeLength),
-                           m_space(aSpace),
-                           m_distance(get(distance_metric, m_space)),
-                           m_rand_sampler(get(random_sampler, m_space)), 
-                           m_prox_env(aModel, aJointLimitsMap) { };
+                           m_space(shared_ptr<super_space_base_type>(new super_space_base_type(aSpace))),
+                           m_prox_env(aApplicator) { };
+    
+    /**
+     * Parametrized constructor (this class is a RAII class).
+     * \param aMinInterval The minimum length of the travel between collision detection calls.
+     */
+    template <typename InterpMethodTag>
+    explicit
+    manip_quasi_static_env(InterpMethodTag aInterpTag,
+                           const BaseJointSpace& aSpace = BaseJointSpace(),
+                           const shared_ptr< applicator_type >& aApplicator = shared_ptr< applicator_type >(),
+                           double aMinInterval = 0.1) : 
+                           min_interval(aMinInterval),
+                           m_space(shared_ptr<super_space_base_type>(new interpolated_topology<BaseJointSpace, InterpMethodTag>(aSpace))),
+                           m_prox_env(aApplicator) { };
     
     virtual ~manip_quasi_static_env() { };
     
@@ -253,12 +275,8 @@ class manip_quasi_static_env : public named_object {
     virtual void RK_CALL save(serialization::oarchive& A, unsigned int) const {
       ReaK::named_object::save(A,named_object::getStaticObjectType()->TypeVersion());
       A & RK_SERIAL_SAVE_WITH_NAME(min_interval)
-        & RK_SERIAL_SAVE_WITH_NAME(max_edge_length)
         & RK_SERIAL_SAVE_WITH_NAME(m_space)
-        & RK_SERIAL_SAVE_WITH_NAME(m_distance)
-        & RK_SERIAL_SAVE_WITH_NAME(m_rand_sampler)
-        & RK_SERIAL_SAVE_WITH_NAME(m_prox_env.m_model)
-        & RK_SERIAL_SAVE_WITH_NAME(m_prox_env.m_joint_limits_map)
+        & RK_SERIAL_SAVE_WITH_NAME(m_prox_env.m_applicator)
         & RK_SERIAL_SAVE_WITH_NAME(m_prox_env.m_proxy_env_2D)
         & RK_SERIAL_SAVE_WITH_NAME(m_prox_env.m_proxy_env_3D);
     };
@@ -266,12 +284,8 @@ class manip_quasi_static_env : public named_object {
     virtual void RK_CALL load(serialization::iarchive& A, unsigned int) {
       ReaK::named_object::load(A,named_object::getStaticObjectType()->TypeVersion());
       A & RK_SERIAL_LOAD_WITH_NAME(min_interval)
-        & RK_SERIAL_LOAD_WITH_NAME(max_edge_length)
         & RK_SERIAL_LOAD_WITH_NAME(m_space)
-        & RK_SERIAL_LOAD_WITH_NAME(m_distance)
-        & RK_SERIAL_LOAD_WITH_NAME(m_rand_sampler)
-        & RK_SERIAL_LOAD_WITH_NAME(m_prox_env.m_model)
-        & RK_SERIAL_LOAD_WITH_NAME(m_prox_env.m_joint_limits_map)
+        & RK_SERIAL_LOAD_WITH_NAME(m_prox_env.m_applicator)
         & RK_SERIAL_LOAD_WITH_NAME(m_prox_env.m_proxy_env_2D)
         & RK_SERIAL_LOAD_WITH_NAME(m_prox_env.m_proxy_env_3D);
     };
@@ -282,11 +296,16 @@ class manip_quasi_static_env : public named_object {
 };
 
 
-template <typename RateLimitedJointSpace, typename InterpMethodTag>
-struct is_metric_space< manip_quasi_static_env<RateLimitedJointSpace, InterpMethodTag> > : boost::mpl::true_ { };
+template <typename BaseJointSpace>
+struct is_metric_space< manip_quasi_static_env<BaseJointSpace> > : boost::mpl::true_ { };
 
-template <typename RateLimitedJointSpace, typename InterpMethodTag>
-struct is_point_distribution< manip_quasi_static_env<RateLimitedJointSpace, InterpMethodTag> > : boost::mpl::true_ { };
+template <typename BaseJointSpace>
+struct is_point_distribution< manip_quasi_static_env<BaseJointSpace> > : boost::mpl::true_ { };
+
+
+
+
+
 
 
 

@@ -56,16 +56,21 @@ namespace pp {
  * queries are performed against an environment updated to the time-point of the current temporal 
  * point in question.
  */
-template <typename RateLimitedJointSpace, typename InterpMethodTag>
+template <typename BaseJointSpace>
 class manip_dynamic_env : public named_object {
   public:
-    typedef manip_dynamic_env<RateLimitedJointSpace,InterpMethodTag> self;
-    typedef temporal_space<RateLimitedJointSpace, time_poisson_topology, reach_plus_time_metric> super_space_type;
+    typedef manip_dynamic_env<BaseJointSpace> self;
+    typedef temporal_space<BaseJointSpace, time_poisson_topology, reach_plus_time_metric> base_temporal_joint_space;
+    typedef interpolated_topology_base<base_temporal_joint_space> super_space_base_type;
+    typedef wrapped_interp_topology<base_temporal_joint_space> super_space_type;
     typedef typename topology_traits< super_space_type >::point_type point_type;
     typedef typename topology_traits< super_space_type >::point_difference_type point_difference_type;
     
     typedef time_poisson_topology time_topology;
-    typedef RateLimitedJointSpace space_topology;
+    typedef BaseJointSpace space_topology;
+    
+    typedef proxy_model_applicator<BaseJointSpace> applicator_type;
+    typedef detail::manip_dk_proxy_env_impl<BaseJointSpace> dk_proxy_env_type;
     
     BOOST_STATIC_CONSTANT(std::size_t, dimensions = topology_traits< super_space_type >::dimensions);
     
@@ -74,13 +79,9 @@ class manip_dynamic_env : public named_object {
     
   private:
     double min_interval;
-    double max_edge_length;
-    
     super_space_type m_space;
-    typename metric_space_traits<RateLimitedJointSpace>::distance_metric_type m_distance;
-    typename point_distribution_traits<RateLimitedJointSpace>::random_sampler_type m_rand_sampler;
     
-    detail::manip_dk_proxy_env_impl m_prox_env;
+    dk_proxy_env_type m_prox_env;
     std::vector< shared_ptr< proxy_model_updater > > m_prox_updaters;
     
   public:
@@ -102,11 +103,6 @@ class manip_dynamic_env : public named_object {
     /** Returns the underlying time topology. */
     const time_topology& get_time_topology() const { return m_space.get_time_topology(); };
     
-    /** Returns the underlying space topology. */
-    space_topology& get_space_topology() { return m_space.get_space_topology(); };
-    /** Returns the underlying time topology. */
-    time_topology& get_time_topology() { return m_space.get_time_topology(); };
-    
     /**
      * Checks if the given point is within the free-space.
      * \param p The point to be checked for being collision-free.
@@ -120,6 +116,12 @@ class manip_dynamic_env : public named_object {
       return m_prox_env.is_free(p.pt, m_space.get_space_topology());
     };
     
+    struct is_free_predicate {
+      const self* parent;
+      is_free_predicate(const self* aParent) : parent(aParent) { };
+      bool operator()(const point_type& p) const { return parent->is_free(p); };
+    };
+    
     //Topology concepts:
     
     /**
@@ -127,9 +129,7 @@ class manip_dynamic_env : public named_object {
      * \return A random, collision-free point.
      */
     point_type random_point() const {
-      point_type result;
-      while(!is_free(result = point_type(m_space.get_time_topology().random_point(), m_rand_sampler(m_space.get_space_topology())))) ; //output only free C-space points.
-      return result;
+      return m_space.random_point( is_free_predicate(this) ); 
     };
     
     /**
@@ -140,16 +140,7 @@ class manip_dynamic_env : public named_object {
      * \return The collision-free distance between the two given points.
      */
     double distance(const point_type& p1, const point_type& p2) const {
-      using std::fabs;
-      
-      double actual_dist = get(distance_metric, m_space)(p1, p2, m_space);
-      if(actual_dist == std::numeric_limits<double>::infinity())
-        return actual_dist;
-      
-      if(fabs(p2.time - move_position_toward(p1, 1.0, p2).time) < std::numeric_limits< double >::epsilon())
-        return actual_dist; //if p2 is reachable from p1, use Euclidean distance.
-      else
-        return std::numeric_limits<double>::infinity(); //p2 is not reachable from p1, due to a collision.
+      return m_space.distance(p1, p2, min_interval, is_free_predicate(this));
     };
     
     /**
@@ -157,9 +148,7 @@ class manip_dynamic_env : public named_object {
      * \param dp The point difference.
      * \return The norm of the difference between the two points.
      */
-    double norm(const point_difference_type& dp) const {
-      return get(distance_metric, m_space)(dp, m_space);
-    };
+    double norm(const point_difference_type& dp) const { return m_space.norm(dp); };
     
     /**
      * Returns the difference between two points (a - b).
@@ -186,31 +175,46 @@ class manip_dynamic_env : public named_object {
      * Returns a point which is at a fraction between two points a to b, or as 
      * far as it can get before a collision.
      */
-    point_type move_position_toward(const point_type& p1, double fraction, const point_type& p2) const;
-    
-    /**
-     * Returns a random point fairly near to the given point.
-     */
-    std::pair<point_type, bool> random_walk(const point_type& p_u) const;
+    point_type move_position_toward(const point_type& p1, double fraction, const point_type& p2) const {
+      return m_space.move_position_toward(p1, fraction, p2, min_interval, is_free_predicate(this));
+    };
     
     
     /**
      * Parametrized constructor (this class is a RAII class).
      * \param aMaxEdgeLength The maximum length of an added edge, in time units (e.g., seconds).
      */
-    manip_dynamic_env(const RateLimitedJointSpace& aSpace = RateLimitedJointSpace(),
-                      const shared_ptr< kte::direct_kinematics_model >& aModel = shared_ptr< kte::direct_kinematics_model >(),
-                      const shared_ptr< joint_limits_collection<double> >& aJointLimitsMap = shared_ptr< joint_limits_collection<double> >(),
-                      double aMinInterval = 0.1, 
-                      double aMaxEdgeLength = 1.0) : 
+    explicit
+    manip_dynamic_env(const BaseJointSpace& aSpace = BaseJointSpace(),
+                      const shared_ptr< applicator_type >& aApplicator = shared_ptr< applicator_type >(),
+                      double aMinInterval = 0.1, double aMaxEdgeLength = 10.0) : 
                       min_interval(aMinInterval),
-                      max_edge_length(aMaxEdgeLength),
-                      m_space("manip_dynamic_env_underlying_space", 
-                              aSpace, 
-                              time_poisson_topology("time-poisson topology", aMinInterval, aMaxEdgeLength)),
-                      m_distance(get(distance_metric, m_space.get_space_topology())),
-                      m_rand_sampler(get(random_sampler, m_space.get_space_topology())), 
-                      m_prox_env(aModel, aJointLimitsMap) { };
+                      m_space(
+                        shared_ptr<super_space_base_type>(new super_space_base_type(
+                          base_temporal_joint_space(
+                            "manip_dynamic_env_underlying_space", 
+                            aSpace, time_poisson_topology("time-poisson topology", aMinInterval, aMaxEdgeLength)
+                          )))),
+                      m_prox_env(aApplicator) { };
+    
+    /**
+     * Parametrized constructor (this class is a RAII class).
+     * \param aMinInterval The minimum length of the travel between collision detection calls.
+     */
+    template <typename InterpMethodTag>
+    explicit
+    manip_dynamic_env(InterpMethodTag aInterpTag,
+                      const BaseJointSpace& aSpace = BaseJointSpace(),
+                      const shared_ptr< applicator_type >& aApplicator = shared_ptr< applicator_type >(),
+                      double aMinInterval = 0.1, double aMaxEdgeLength = 10.0) : 
+                      min_interval(aMinInterval),
+                      m_space(
+                        shared_ptr<super_space_base_type>(new interpolated_topology<base_temporal_joint_space, InterpMethodTag>(
+                          base_temporal_joint_space(
+                            "manip_dynamic_env_underlying_space", 
+                            aSpace, time_poisson_topology("time-poisson topology", aMinInterval, aMaxEdgeLength)
+                          )))),
+                      m_prox_env(aApplicator) { };
     
     virtual ~manip_dynamic_env() { };
     
@@ -255,12 +259,8 @@ class manip_dynamic_env : public named_object {
     virtual void RK_CALL save(serialization::oarchive& A, unsigned int) const {
       ReaK::named_object::save(A,named_object::getStaticObjectType()->TypeVersion());
       A & RK_SERIAL_SAVE_WITH_NAME(min_interval)
-        & RK_SERIAL_SAVE_WITH_NAME(max_edge_length)
         & RK_SERIAL_SAVE_WITH_NAME(m_space)
-        & RK_SERIAL_SAVE_WITH_NAME(m_distance)
-        & RK_SERIAL_SAVE_WITH_NAME(m_rand_sampler)
-        & RK_SERIAL_SAVE_WITH_NAME(m_prox_env.m_model)
-        & RK_SERIAL_SAVE_WITH_NAME(m_prox_env.m_joint_limits_map)
+        & RK_SERIAL_SAVE_WITH_NAME(m_prox_env.m_applicator)
         & RK_SERIAL_SAVE_WITH_NAME(m_prox_env.m_proxy_env_2D)
         & RK_SERIAL_SAVE_WITH_NAME(m_prox_env.m_proxy_env_3D)
         & RK_SERIAL_SAVE_WITH_NAME(m_prox_updaters);
@@ -269,12 +269,8 @@ class manip_dynamic_env : public named_object {
     virtual void RK_CALL load(serialization::iarchive& A, unsigned int) {
       ReaK::named_object::load(A,named_object::getStaticObjectType()->TypeVersion());
       A & RK_SERIAL_LOAD_WITH_NAME(min_interval)
-        & RK_SERIAL_LOAD_WITH_NAME(max_edge_length)
         & RK_SERIAL_LOAD_WITH_NAME(m_space)
-        & RK_SERIAL_LOAD_WITH_NAME(m_distance)
-        & RK_SERIAL_LOAD_WITH_NAME(m_rand_sampler)
-        & RK_SERIAL_LOAD_WITH_NAME(m_prox_env.m_model)
-        & RK_SERIAL_LOAD_WITH_NAME(m_prox_env.m_joint_limits_map)
+        & RK_SERIAL_LOAD_WITH_NAME(m_prox_env.m_applicator)
         & RK_SERIAL_LOAD_WITH_NAME(m_prox_env.m_proxy_env_2D)
         & RK_SERIAL_LOAD_WITH_NAME(m_prox_env.m_proxy_env_3D)
         & RK_SERIAL_LOAD_WITH_NAME(m_prox_updaters);
@@ -286,16 +282,14 @@ class manip_dynamic_env : public named_object {
 };
 
 
-template <typename RateLimitedJointSpace, typename InterpMethodTag>
-struct is_metric_space< manip_dynamic_env<RateLimitedJointSpace, InterpMethodTag> > : boost::mpl::true_ { };
+template <typename BaseJointSpace>
+struct is_metric_space< manip_dynamic_env<BaseJointSpace> > : boost::mpl::true_ { };
         
-template <typename RateLimitedJointSpace, typename InterpMethodTag>
-struct is_point_distribution< manip_dynamic_env<RateLimitedJointSpace, InterpMethodTag> > : boost::mpl::true_ { };
+template <typename BaseJointSpace>
+struct is_point_distribution< manip_dynamic_env<BaseJointSpace> > : boost::mpl::true_ { };
 
-template <typename RateLimitedJointSpace, typename InterpMethodTag>
-struct is_temporal_space< manip_dynamic_env<RateLimitedJointSpace, InterpMethodTag> > : boost::mpl::true_ { };
-
-
+template <typename BaseJointSpace>
+struct is_temporal_space< manip_dynamic_env<BaseJointSpace> > : boost::mpl::true_ { };
 
 
 

@@ -336,6 +336,9 @@ IHAQR_to_state_mapper       0xC2400037   bin: 1100 0010 0100 0000 0000 0000 0011
 temporal_topo_map           0xC2400038   bin: 1100 0010 0100 0000 0000 0000 0011 1000  D-R
 interpolated_topology_base  0xC2400039   bin: 1100 0010 0100 0000 0000 0000 0011 1001  D-R
 interpolated_topology       0xC240003A   bin: 1100 0010 0100 0000 0000 0000 0011 1010  D-R
+proxy_model_applicator      0xC240003B   bin: 1100 0010 0100 0000 0000 0000 0011 1011  D-R
+any_model_applicator        0xC240003C   bin: 1100 0010 0100 0000 0000 0000 0011 1100  D-R
+wrapped_interp_topology     0xC240003D   bin: 1100 0010 0100 0000 0000 0000 0011 1101  D-R
 
 
 //Distance metrics:         0xC241****

@@ -95,21 +95,21 @@ struct manip_pp_traits {
 };
 
 
-template <typename ManipMdlType, int Order, typename InterpTag = linear_interpolation_tag>
+template <typename ManipMdlType, int Order>
 struct manip_static_workspace {
   typedef manip_pp_traits<ManipMdlType, Order> Traits;
   
-  typedef manip_quasi_static_env<typename Traits::rl_jt_space_type, InterpTag>  rl_workspace_type;
-  typedef manip_quasi_static_env<typename Traits::jt_space_type, InterpTag>     workspace_type;
+  typedef manip_quasi_static_env<typename Traits::rl_jt_space_type>  rl_workspace_type;
+  typedef manip_quasi_static_env<typename Traits::jt_space_type>     workspace_type;
   
 };
 
 
-template <typename ManipMdlType, int Order, typename InterpTag = linear_interpolation_tag>
+template <typename ManipMdlType, int Order>
 struct manip_dynamic_workspace {
   typedef manip_pp_traits<ManipMdlType, Order> Traits;
   
-  typedef manip_dynamic_env<typename Traits::rl_jt_space_type, InterpTag> rl_workspace_type;
+  typedef manip_dynamic_env<typename Traits::rl_jt_space_type> rl_workspace_type;
 };
 
 
@@ -240,129 +240,141 @@ typename boost::enable_if< boost::mpl::equal_to< boost::mpl::int_<2>, boost::mpl
 
 template <int Order, typename InterpTag, typename ManipMdlType>
 typename boost::enable_if< boost::mpl::equal_to< boost::mpl::int_<0>, boost::mpl::int_<Order> >,
-  shared_ptr< typename manip_static_workspace< ManipMdlType, Order, InterpTag >::rl_workspace_type > 
+  shared_ptr< typename manip_static_workspace< ManipMdlType, Order >::rl_workspace_type > 
 >::type make_manip_static_workspace(
+    InterpTag interp_tag,
     const shared_ptr< ManipMdlType >& manip_kin_mdl,
     const shared_ptr< joint_limits_collection<double> >& manip_jt_limits,
-    double min_travel, double max_travel) {
-  typedef typename manip_static_workspace< ManipMdlType, Order, InterpTag >::rl_workspace_type WorkspaceType;
+    double min_travel) {
+  typedef typename manip_static_workspace< ManipMdlType, Order >::rl_workspace_type WorkspaceType;
+  typedef typename manip_pp_traits< ManipMdlType, Order >::jt_space_type JtspaceType;
   
   return shared_ptr<WorkspaceType>(new WorkspaceType(
+    interp_tag,
     make_Ndof_rl_space< manip_pp_traits< ManipMdlType, Order >::degrees_of_freedom >(
       manip_kin_mdl->getJointPositionLowerBounds(), 
       manip_kin_mdl->getJointPositionUpperBounds(), 
       manip_jt_limits->gen_speed_limits),
-    manip_kin_mdl,
-    manip_jt_limits,
-    min_travel,
-    max_travel));
+    make_any_model_applicator(manip_rl_direct_kin_map< joint_limits_collection<double>, JtspaceType >(
+      manip_kin_mdl, manip_jt_limits, make_manip_jt_space(manip_kin_mdl, manip_jt_limits))),
+    min_travel));
 };
 
 template <int Order, typename InterpTag, typename ManipMdlType>
 typename boost::enable_if< boost::mpl::equal_to< boost::mpl::int_<1>, boost::mpl::int_<Order> >,
-  shared_ptr< typename manip_static_workspace< ManipMdlType, Order, InterpTag >::rl_workspace_type > 
+  shared_ptr< typename manip_static_workspace< ManipMdlType, Order >::rl_workspace_type > 
 >::type make_manip_static_workspace(
+    InterpTag interp_tag,
     const shared_ptr< ManipMdlType >& manip_kin_mdl,
     const shared_ptr< joint_limits_collection<double> >& manip_jt_limits,
-    double min_travel, double max_travel) {
-  typedef typename manip_static_workspace< ManipMdlType, Order, InterpTag >::rl_workspace_type WorkspaceType;
+    double min_travel) {
+  typedef typename manip_static_workspace< ManipMdlType, Order >::rl_workspace_type WorkspaceType;
+  typedef typename manip_pp_traits< ManipMdlType, Order >::jt_space_type JtspaceType;
   
   return shared_ptr<WorkspaceType>(new WorkspaceType(
+    interp_tag,
     make_Ndof_rl_space< manip_pp_traits< ManipMdlType, Order >::degrees_of_freedom >(
       manip_kin_mdl->getJointPositionLowerBounds(), 
       manip_kin_mdl->getJointPositionUpperBounds(), 
       manip_jt_limits->gen_speed_limits, 
       manip_jt_limits->gen_accel_limits),
-    manip_kin_mdl,
-    manip_jt_limits,
-    min_travel,
-    max_travel));
+    make_any_model_applicator(manip_rl_direct_kin_map< joint_limits_collection<double>, JtspaceType >(
+      manip_kin_mdl, manip_jt_limits, make_manip_jt_space(manip_kin_mdl, manip_jt_limits))),
+    min_travel));
 };
 
 template <int Order, typename InterpTag, typename ManipMdlType>
 typename boost::enable_if< boost::mpl::equal_to< boost::mpl::int_<2>, boost::mpl::int_<Order> >,
-  shared_ptr< typename manip_static_workspace< ManipMdlType, Order, InterpTag >::rl_workspace_type > 
+  shared_ptr< typename manip_static_workspace< ManipMdlType, Order >::rl_workspace_type > 
 >::type make_manip_static_workspace(
+    InterpTag interp_tag,
     const shared_ptr< ManipMdlType >& manip_kin_mdl,
     const shared_ptr< joint_limits_collection<double> >& manip_jt_limits,
-    double min_travel, double max_travel) {
-  typedef typename manip_static_workspace< ManipMdlType, Order, InterpTag >::rl_workspace_type WorkspaceType;
+    double min_travel) {
+  typedef typename manip_static_workspace< ManipMdlType, Order >::rl_workspace_type WorkspaceType;
+  typedef typename manip_pp_traits< ManipMdlType, Order >::jt_space_type JtspaceType;
   
   return shared_ptr<WorkspaceType>(new WorkspaceType(
+    interp_tag,
     make_Ndof_rl_space< manip_pp_traits< ManipMdlType, Order >::degrees_of_freedom >(
       manip_kin_mdl->getJointPositionLowerBounds(), 
       manip_kin_mdl->getJointPositionUpperBounds(), 
       manip_jt_limits->gen_speed_limits, 
       manip_jt_limits->gen_accel_limits, 
       manip_jt_limits->gen_jerk_limits),
-    manip_kin_mdl,
-    manip_jt_limits,
-    min_travel,
-    max_travel));
+    make_any_model_applicator(manip_rl_direct_kin_map< joint_limits_collection<double>, JtspaceType >(
+      manip_kin_mdl, manip_jt_limits, make_manip_jt_space(manip_kin_mdl, manip_jt_limits))),
+    min_travel));
 };
 
 
 template <int Order, typename InterpTag, typename ManipMdlType>
 typename boost::enable_if< boost::mpl::equal_to< boost::mpl::int_<0>, boost::mpl::int_<Order> >,
-  shared_ptr< typename manip_dynamic_workspace< ManipMdlType, Order, InterpTag >::rl_workspace_type > 
+  shared_ptr< typename manip_dynamic_workspace< ManipMdlType, Order >::rl_workspace_type > 
 >::type make_manip_dynamic_workspace(
+    InterpTag interp_tag,
     const shared_ptr< ManipMdlType >& manip_kin_mdl,
     const shared_ptr< joint_limits_collection<double> >& manip_jt_limits,
     double min_travel, double max_travel) {
-  typedef typename manip_dynamic_workspace< ManipMdlType, Order, InterpTag >::rl_workspace_type WorkspaceType;
+  typedef typename manip_dynamic_workspace< ManipMdlType, Order >::rl_workspace_type WorkspaceType;
+  typedef typename manip_pp_traits< ManipMdlType, Order >::jt_space_type JtspaceType;
   
   return shared_ptr<WorkspaceType>(new WorkspaceType(
+    interp_tag,
     make_Ndof_rl_space< manip_pp_traits< ManipMdlType, Order >::degrees_of_freedom >(
       manip_kin_mdl->getJointPositionLowerBounds(), 
       manip_kin_mdl->getJointPositionUpperBounds(), 
       manip_jt_limits->gen_speed_limits),
-    manip_kin_mdl,
-    manip_jt_limits,
-    min_travel,
-    max_travel));
+    make_any_model_applicator(manip_rl_direct_kin_map< joint_limits_collection<double>, JtspaceType >(
+      manip_kin_mdl, manip_jt_limits, make_manip_jt_space(manip_kin_mdl, manip_jt_limits))),
+    min_travel, max_travel));
 };
 
 template <int Order, typename InterpTag, typename ManipMdlType>
 typename boost::enable_if< boost::mpl::equal_to< boost::mpl::int_<1>, boost::mpl::int_<Order> >,
-  shared_ptr< typename manip_dynamic_workspace< ManipMdlType, Order, InterpTag >::rl_workspace_type > 
+  shared_ptr< typename manip_dynamic_workspace< ManipMdlType, Order >::rl_workspace_type > 
 >::type make_manip_dynamic_workspace(
+    InterpTag interp_tag,
     const shared_ptr< ManipMdlType >& manip_kin_mdl,
     const shared_ptr< joint_limits_collection<double> >& manip_jt_limits,
     double min_travel, double max_travel) {
-  typedef typename manip_dynamic_workspace< ManipMdlType, Order, InterpTag >::rl_workspace_type WorkspaceType;
+  typedef typename manip_dynamic_workspace< ManipMdlType, Order >::rl_workspace_type WorkspaceType;
+  typedef typename manip_pp_traits< ManipMdlType, Order >::jt_space_type JtspaceType;
   
   return shared_ptr<WorkspaceType>(new WorkspaceType(
+    interp_tag,
     make_Ndof_rl_space< manip_pp_traits< ManipMdlType, Order >::degrees_of_freedom >(
       manip_kin_mdl->getJointPositionLowerBounds(), 
       manip_kin_mdl->getJointPositionUpperBounds(), 
       manip_jt_limits->gen_speed_limits, 
       manip_jt_limits->gen_accel_limits),
-    manip_kin_mdl,
-    manip_jt_limits,
-    min_travel,
-    max_travel));
+    make_any_model_applicator(manip_rl_direct_kin_map< joint_limits_collection<double>, JtspaceType >(
+      manip_kin_mdl, manip_jt_limits, make_manip_jt_space(manip_kin_mdl, manip_jt_limits))),
+    min_travel, max_travel));
 };
 
 template <int Order, typename InterpTag, typename ManipMdlType>
 typename boost::enable_if< boost::mpl::equal_to< boost::mpl::int_<2>, boost::mpl::int_<Order> >,
-  shared_ptr< typename manip_dynamic_workspace< ManipMdlType, Order, InterpTag >::rl_workspace_type > 
+  shared_ptr< typename manip_dynamic_workspace< ManipMdlType, Order >::rl_workspace_type > 
 >::type make_manip_dynamic_workspace(
+    InterpTag interp_tag,
     const shared_ptr< ManipMdlType >& manip_kin_mdl,
     const shared_ptr< joint_limits_collection<double> >& manip_jt_limits,
     double min_travel, double max_travel) {
-  typedef typename manip_dynamic_workspace< ManipMdlType, Order, InterpTag >::rl_workspace_type WorkspaceType;
+  typedef typename manip_dynamic_workspace< ManipMdlType, Order >::rl_workspace_type WorkspaceType;
+  typedef typename manip_pp_traits< ManipMdlType, Order >::jt_space_type JtspaceType;
   
   return shared_ptr<WorkspaceType>(new WorkspaceType(
+    interp_tag,
     make_Ndof_rl_space< manip_pp_traits< ManipMdlType, Order >::degrees_of_freedom >(
       manip_kin_mdl->getJointPositionLowerBounds(), 
       manip_kin_mdl->getJointPositionUpperBounds(), 
       manip_jt_limits->gen_speed_limits, 
       manip_jt_limits->gen_accel_limits, 
       manip_jt_limits->gen_jerk_limits),
-    manip_kin_mdl,
-    manip_jt_limits,
-    min_travel,
-    max_travel));
+    make_any_model_applicator(manip_rl_direct_kin_map< joint_limits_collection<double>, JtspaceType >(
+      manip_kin_mdl, manip_jt_limits, make_manip_jt_space(manip_kin_mdl, manip_jt_limits))),
+    min_travel, max_travel));
 };
 
 

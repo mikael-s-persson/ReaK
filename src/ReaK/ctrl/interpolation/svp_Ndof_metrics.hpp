@@ -59,9 +59,9 @@ struct svp_Ndof_reach_time_metric : public serialization::serializable {
   
   typedef svp_Ndof_reach_time_metric<TimeSpaceType> self;
   
-  shared_ptr<TimeSpaceType> t_space;
+  shared_ptr<const TimeSpaceType> t_space;
   
-  svp_Ndof_reach_time_metric(const shared_ptr<TimeSpaceType>& aTimeSpace = shared_ptr<TimeSpaceType>(new TimeSpaceType())) : 
+  svp_Ndof_reach_time_metric(const shared_ptr<const TimeSpaceType>& aTimeSpace = shared_ptr<const TimeSpaceType>(new TimeSpaceType())) : 
                              t_space(aTimeSpace) { };
   
   /** 

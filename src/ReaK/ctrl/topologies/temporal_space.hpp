@@ -37,6 +37,7 @@
 #include <boost/config.hpp>
 
 #include "path_planning/metric_space_concept.hpp"
+#include "path_planning/temporal_space_concept.hpp"
 #include "temporal_distance_metrics.hpp"
 #include "default_random_sampler.hpp"
 
