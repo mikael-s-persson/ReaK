@@ -76,10 +76,10 @@ if(COIN3D_FOUND AND QT_FOUND)
   target_link_libraries(test_lab_scene reak_topologies reak_interp reak_robot_airship reak_mbd_coin reak_core)
   target_link_libraries(test_lab_scene ${SOQT4_LIBRARIES} ${QT_LIBRARIES})
   
-  add_executable(test_CRS_planning "${SRCROOT}${RKROBOTAIRSHIPDIR}/test_CRS_planning.cpp")
-  setup_custom_target(test_CRS_planning "${SRCROOT}${RKROBOTAIRSHIPDIR}")
-  target_link_libraries(test_CRS_planning reak_planners reak_topologies reak_interp reak_robot_airship reak_mbd_coin reak_core)
-  target_link_libraries(test_CRS_planning ${SOQT4_LIBRARIES} ${QT_LIBRARIES})
+#   add_executable(test_CRS_planning "${SRCROOT}${RKROBOTAIRSHIPDIR}/test_CRS_planning.cpp")
+#   setup_custom_target(test_CRS_planning "${SRCROOT}${RKROBOTAIRSHIPDIR}")
+#   target_link_libraries(test_CRS_planning reak_planners reak_topologies reak_interp reak_robot_airship reak_mbd_coin reak_core)
+#   target_link_libraries(test_CRS_planning ${SOQT4_LIBRARIES} ${QT_LIBRARIES})
   
 if(Boost_CHRONO_FOUND)
 

@@ -48,6 +48,10 @@
 namespace ReaK {
 
 namespace pp {
+  
+  
+#if 0
+  
 
 // joint_space_0th_order
 extern template class differentiable_space< time_topology, arithmetic_tuple< line_segment_topology<double> >, euclidean_tuple_distance >;
@@ -966,7 +970,7 @@ RK_JOINT_SPACE_LIMITS_EXT_MAKE_MEMBER_FUNC(9)
 RK_JOINT_SPACE_LIMITS_EXT_MAKE_MEMBER_FUNC(10)
 
 
-
+#endif
 
 
   

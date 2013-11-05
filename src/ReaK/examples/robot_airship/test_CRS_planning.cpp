@@ -46,12 +46,16 @@
 
 #include "mbd_kte/kte_map_chain.hpp"
 
+#include "kte_models/manip_P3R3R_arm.hpp"
+#include "topologies/manip_P3R3R_workspaces.hpp"
+
 #include "serialization/xml_archiver.hpp"
 #include "optimization/optim_exceptions.hpp"
 
 #include "interpolation/cubic_hermite_interp.hpp"
 
 #include "topologies/manip_free_workspace.hpp"
+#include "topologies/manip_planning_traits.hpp"
 
 #include "path_planning/rrtstar_manip_planners.hpp"
 
@@ -196,20 +200,14 @@ void keyboard_press_hdl(void* userData, SoEventCallback* eventCB) {
   try {
     ReaK::shared_ptr< ReaK::kte::manipulator_kinematics_model > manip_kin_mdl = r_info->builder.get_manipulator_kin_model();
     ReaK::shared_ptr< ReaK::pp::joint_limits_collection<double> > manip_jt_limits(&(r_info->builder.joint_rate_limits), ReaK::null_deleter());
-    typedef ReaK::pp::manip_quasi_static_env<ReaK::robot_airship::CRS_A465_model_builder::rate_limited_joint_space_1st_type, ReaK::pp::cubic_hermite_interpolation_tag> workspace_type;
+    typedef ReaK::pp::manip_static_workspace< ReaK::kte::manip_P3R3R_kinematics, 1 >::rl_workspace_type workspace_type;
+    ReaK::shared_ptr<workspace_type> workspace = 
+      ReaK::pp::make_manip_static_workspace<1>(ReaK::pp::cubic_hermite_interpolation_tag(),
+        manip_kin_mdl, manip_jt_limits, 0.1);
+    /*typedef ReaK::pp::manip_quasi_static_env<ReaK::robot_airship::CRS_A465_model_builder::rate_limited_joint_space_type> workspace_type;
     ReaK::shared_ptr<workspace_type> 
-      workspace(new workspace_type(
-        r_info->builder.get_rl_joint_space_1st(),
-        manip_kin_mdl,
-        manip_jt_limits,
-        0.1, 1.2));
-    /*typedef ReaK::pp::manip_quasi_static_env<ReaK::robot_airship::CRS_A465_model_builder::rate_limited_joint_space_type, ReaK::pp::sap_interpolation_tag> workspace_type;
-    ReaK::shared_ptr<workspace_type> 
-      workspace(new workspace_type(
-        r_info->builder.get_rl_joint_space(),
-        manip_kin_mdl,
-        manip_jt_limits,
-        0.1, 1.0, 1e-6, 60));*/
+      pp::make_manip_static_workspace<Order>(ReaK::pp::sap_interpolation_tag(),
+        manip_kin_mdl, manip_jt_limits, 0.1);*/
     
     (*workspace) << r_info->robot_lab_proxy << r_info->robot_airship_proxy;
     

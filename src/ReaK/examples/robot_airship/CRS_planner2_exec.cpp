@@ -72,6 +72,12 @@
 
 #include "topologies/manip_planning_traits.hpp"
 
+#include "topologies/Ndof_linear_spaces.hpp"
+#include "topologies/Ndof_cubic_spaces.hpp"
+#include "topologies/Ndof_quintic_spaces.hpp"
+#include "topologies/Ndof_svp_spaces.hpp"
+#include "topologies/Ndof_sap_spaces.hpp"
+
 
 #include <chrono>
 
@@ -95,7 +101,7 @@ void CRS_execute_static_planner_impl(const kte::chaser_target_data& scene_data,
   if( !chaser_P3R3R_model )
     return;
   
-  typedef typename pp::manip_static_workspace< kte::manip_P3R3R_kinematics, Order, InterpTag >::rl_workspace_type static_workspace_type;
+  typedef typename pp::manip_static_workspace< kte::manip_P3R3R_kinematics, Order >::rl_workspace_type static_workspace_type;
   typedef typename pp::manip_pp_traits< kte::manip_P3R3R_kinematics, Order >::rl_jt_space_type rl_jt_space_type;
   typedef typename pp::manip_pp_traits< kte::manip_P3R3R_kinematics, Order >::jt_space_type jt_space_type;
   typedef typename pp::manip_pp_traits< kte::manip_P3R3R_kinematics, Order >::ee_space_type ee_space_type;
@@ -113,9 +119,9 @@ void CRS_execute_static_planner_impl(const kte::chaser_target_data& scene_data,
   shared_ptr< frame_3D<double> > EE_frame = chaser_P3R3R_model->getDependentFrame3D(0)->mFrame;
   
   shared_ptr< static_workspace_type > workspace = 
-    pp::make_manip_static_workspace<Order, InterpTag>(
+    pp::make_manip_static_workspace<Order>(InterpTag(),
       chaser_P3R3R_model, scene_data.chaser_jt_limits, 
-      plan_options.min_travel, plan_options.max_travel);
+      plan_options.min_travel);
   
   shared_ptr< rl_jt_space_type > jt_space = 
     pp::make_manip_rl_jt_space<Order>(chaser_P3R3R_model, scene_data.chaser_jt_limits);

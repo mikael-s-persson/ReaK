@@ -43,6 +43,8 @@
 #include "rate_limited_spaces.hpp"
 #include "hyperbox_topology.hpp"
 
+#include "joint_space_limits.hpp"
+
 #include "kinetostatics/gen_coord.hpp"
 
 namespace ReaK {
@@ -1244,6 +1246,67 @@ extern template class differentiable_space<time_topology,
                           hyperbox_topology< vect_n<double>, inf_norm_distance_metric >, 
                           hyperbox_topology< vect_n<double>, inf_norm_distance_metric > 
                         > >;
+
+
+
+
+
+#define RK_JOINT_SPACE_NDOF_LIMITS_EXT_MAKE_MEMBER_FUNC(NDOF) \
+\
+extern template Ndof_rl_space<double,NDOF,0>::type joint_limits_collection<double>::make_rl_joint_space(const Ndof_space<double,NDOF,0>::type&) const;\
+extern template Ndof_rl_space<double,NDOF,1>::type joint_limits_collection<double>::make_rl_joint_space(const Ndof_space<double,NDOF,1>::type&) const;\
+extern template Ndof_rl_space<double,NDOF,2>::type joint_limits_collection<double>::make_rl_joint_space(const Ndof_space<double,NDOF,2>::type&) const;\
+\
+extern template Ndof_space<double,NDOF,0>::type joint_limits_collection<double>::make_normal_joint_space(const Ndof_rl_space<double,NDOF,0>::type&) const;\
+extern template Ndof_space<double,NDOF,1>::type joint_limits_collection<double>::make_normal_joint_space(const Ndof_rl_space<double,NDOF,1>::type&) const;\
+extern template Ndof_space<double,NDOF,2>::type joint_limits_collection<double>::make_normal_joint_space(const Ndof_rl_space<double,NDOF,2>::type&) const;\
+\
+extern template \
+topology_traits< Ndof_rl_space<double,NDOF,0>::type >::point_type \
+  joint_limits_collection<double>::map_to_space(const topology_traits< Ndof_space<double,NDOF,0>::type >::point_type& pt,\
+                                                const Ndof_space<double,NDOF,0>::type& , \
+                                                const Ndof_rl_space<double,NDOF,0>::type& ) const;\
+extern template \
+topology_traits< Ndof_rl_space<double,NDOF,1>::type >::point_type \
+  joint_limits_collection<double>::map_to_space(const topology_traits< Ndof_space<double,NDOF,1>::type >::point_type& pt,\
+                                                const Ndof_space<double,NDOF,1>::type& , \
+                                                const Ndof_rl_space<double,NDOF,1>::type& ) const;\
+extern template \
+topology_traits< Ndof_rl_space<double,NDOF,2>::type >::point_type \
+  joint_limits_collection<double>::map_to_space(const topology_traits< Ndof_space<double,NDOF,2>::type >::point_type& pt,\
+                                                const Ndof_space<double,NDOF,2>::type& , \
+                                                const Ndof_rl_space<double,NDOF,2>::type& ) const;\
+\
+extern template \
+topology_traits< Ndof_space<double,NDOF,0>::type >::point_type \
+  joint_limits_collection<double>::map_to_space(const topology_traits< Ndof_rl_space<double,NDOF,0>::type >::point_type& pt,\
+                                                const Ndof_rl_space<double,NDOF,0>::type& , \
+                                                const Ndof_space<double,NDOF,0>::type& ) const;\
+extern template \
+topology_traits< Ndof_space<double,NDOF,1>::type >::point_type \
+  joint_limits_collection<double>::map_to_space(const topology_traits< Ndof_rl_space<double,NDOF,1>::type >::point_type& pt,\
+                                                const Ndof_rl_space<double,NDOF,1>::type& , \
+                                                const Ndof_space<double,NDOF,1>::type& ) const;\
+extern template \
+topology_traits< Ndof_space<double,NDOF,2>::type >::point_type \
+  joint_limits_collection<double>::map_to_space(const topology_traits< Ndof_rl_space<double,NDOF,2>::type >::point_type& pt,\
+                                                const Ndof_rl_space<double,NDOF,2>::type& , \
+                                                const Ndof_space<double,NDOF,2>::type& ) const;
+
+RK_JOINT_SPACE_NDOF_LIMITS_EXT_MAKE_MEMBER_FUNC(0)
+RK_JOINT_SPACE_NDOF_LIMITS_EXT_MAKE_MEMBER_FUNC(1)
+RK_JOINT_SPACE_NDOF_LIMITS_EXT_MAKE_MEMBER_FUNC(2)
+RK_JOINT_SPACE_NDOF_LIMITS_EXT_MAKE_MEMBER_FUNC(3)
+RK_JOINT_SPACE_NDOF_LIMITS_EXT_MAKE_MEMBER_FUNC(4)
+RK_JOINT_SPACE_NDOF_LIMITS_EXT_MAKE_MEMBER_FUNC(5)
+RK_JOINT_SPACE_NDOF_LIMITS_EXT_MAKE_MEMBER_FUNC(6)
+RK_JOINT_SPACE_NDOF_LIMITS_EXT_MAKE_MEMBER_FUNC(7)
+RK_JOINT_SPACE_NDOF_LIMITS_EXT_MAKE_MEMBER_FUNC(8)
+RK_JOINT_SPACE_NDOF_LIMITS_EXT_MAKE_MEMBER_FUNC(9)
+RK_JOINT_SPACE_NDOF_LIMITS_EXT_MAKE_MEMBER_FUNC(10)
+
+
+
 
 };
 

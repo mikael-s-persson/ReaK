@@ -82,8 +82,8 @@ namespace detail {
 #endif
     
     static 
-    point_type move_pt_toward(const BaseTopology& b_space, 
-                              const point_type& a, double fraction, const point_type& b) const {
+    point_type move_pt_toward(const BaseTopology& b_space, const rt_metric_type& rt_dist, 
+                              const point_type& a, double fraction, const point_type& b) {
       try {
         generic_interpolator_impl<sap_Ndof_interpolator,BaseTopology,time_topology> interp;
         interp.initialize(a, b, 0.0, b_space, time_topology(), rt_dist);
@@ -98,9 +98,9 @@ namespace detail {
     };
     
     static 
-    point_type move_pt_toward(const BaseTopology& b_space, 
+    point_type move_pt_toward(const BaseTopology& b_space, const rt_metric_type& rt_dist, 
                               const point_type& a, double fraction, const point_type& b,
-                              double min_dist_interval, validity_predicate_type predicate) const {
+                              double min_dist_interval, validity_predicate_type predicate) {
       try {
         generic_interpolator_impl<sap_Ndof_interpolator,BaseTopology,time_topology> interp;
         interp.initialize(a, b, 0.0, b_space, time_topology(), rt_dist);
@@ -129,24 +129,24 @@ namespace detail {
     
     static 
     double get_distance(const BaseTopology& b_space, const rt_metric_type& rt_dist,
-                        const point_type& a, const point_type& b) const {
+                        const point_type& a, const point_type& b) {
       return rt_dist(a, b, b_space);
     };
     
     static 
     double get_norm(const BaseTopology& b_space, const rt_metric_type& rt_dist,
-                    const point_difference_type& dp) const {
+                    const point_difference_type& dp) {
       return rt_dist(dp, b_space);
     };
     
     static 
     bool is_in_bounds(const BaseTopology& b_space,
-                      const point_type& a) const {
+                      const point_type& a) {
       return sap_Ndof_is_in_bounds(a, b_space, time_topology());
     };
     
     static 
-    point_type random_point(const BaseTopology& b_space, const sampler_type& rl_sampler) const {
+    point_type random_point(const BaseTopology& b_space, const sampler_type& rl_sampler) {
       return rl_sampler(b_space);
     };
     
@@ -169,11 +169,11 @@ namespace detail {
     typedef generic_sampler<sap_Ndof_rate_limited_sampler< base_time_topo >, base_space_topo > sampler_type;
     
     static rt_metric_type make_rt_metric(const BaseTopology& b_space) {
-      return rt_metric_type(shared_ptr<const base_time_topo>(&(b_space.get_time_topology()), null_deleter()));
+      return rt_metric_type(shared_ptr<base_time_topo>(&const_cast<base_time_topo&>(b_space.get_time_topology()), null_deleter()));
     };
     
     static sampler_type make_sampler(const BaseTopology& b_space) {
-      return sampler_type(shared_ptr<const base_time_topo>(&(b_space.get_time_topology()), null_deleter()));
+      return sampler_type(shared_ptr<base_time_topo>(&const_cast<base_time_topo&>(b_space.get_time_topology()), null_deleter()));
     };
     
 #ifdef BOOST_NO_CXX11_HDR_FUNCTIONAL
@@ -182,8 +182,9 @@ namespace detail {
     typedef std::function< bool(const point_type&) > validity_predicate_type;
 #endif
     
-    point_type move_pt_toward(const BaseTopology& b_space, 
-                              const point_type& a, double fraction, const point_type& b) const {
+    static 
+    point_type move_pt_toward(const BaseTopology& b_space, const rt_metric_type& rt_dist, 
+                              const point_type& a, double fraction, const point_type& b) {
       
       if(a.time > b.time) // Am I trying to go backwards in time (impossible)?
         return a; //b is not reachable from a.
@@ -202,9 +203,10 @@ namespace detail {
       };
     };
     
-    point_type move_pt_toward(const BaseTopology& b_space, 
+    static 
+    point_type move_pt_toward(const BaseTopology& b_space, const rt_metric_type& rt_dist, 
                               const point_type& a, double fraction, const point_type& b,
-                              double min_dist_interval, validity_predicate_type predicate) const {
+                              double min_dist_interval, validity_predicate_type predicate) {
       
       if(a.time > b.time) // Am I trying to go backwards in time (impossible)?
         return a; //b is not reachable from a.
@@ -212,7 +214,7 @@ namespace detail {
       try {
         double dt_total = (b.time - a.time);  // the free time that I have along the path.
         if(dt_total < min_dist_interval)
-          return move_pt_toward(b_space, a, fraction, b);
+          return move_pt_toward(b_space, rt_dist, a, fraction, b);
         
         generic_interpolator_impl<sap_Ndof_interpolator, base_space_topo, base_time_topo> interp;
         interp.initialize(a.pt, b.pt, dt_total, b_space.get_space_topology(), b_space.get_time_topology(), rt_dist);
@@ -240,22 +242,23 @@ namespace detail {
       };
     };
     
-    double get_distance(const BaseTopology& b_space, const rt_metric_type& rt_dist,
-                        const point_type& a, const point_type& b) const {
+    static 
+    double get_distance(const BaseTopology& b_space, const rt_metric_type& rt_dist, const point_type& a, const point_type& b) {
       return rt_dist(a.pt, b.pt, b_space.get_space_topology());
     };
     
-    double get_norm(const BaseTopology& b_space, const rt_metric_type& rt_dist,
-                    const point_difference_type& dp) const {
+    static 
+    double get_norm(const BaseTopology& b_space, const rt_metric_type& rt_dist, const point_difference_type& dp) {
       return rt_dist(dp.pt, b_space.get_space_topology());
     };
     
-    bool is_in_bounds(const BaseTopology& b_space,
-                      const point_type& a) const {
+    static 
+    bool is_in_bounds(const BaseTopology& b_space, const point_type& a) {
       return sap_Ndof_is_in_bounds(a.pt, b_space.get_space_topology(), b_space.get_time_topology());
     };
     
-    point_type random_point(const BaseTopology& b_space, const sampler_type& rl_sampler) const {
+    static 
+    point_type random_point(const BaseTopology& b_space, const sampler_type& rl_sampler) {
       return point_type(get(random_sampler, b_space.get_time_topology())(b_space.get_time_topology()), 
                         rl_sampler(b_space.get_space_topology()));
     };
@@ -311,12 +314,12 @@ class interpolated_topology<BaseTopology, sap_Ndof_interpolation_tag> : public i
     sampler_type rl_sampler;
     
     virtual point_type interp_topo_move_position_toward(const point_type& a, double fraction, const point_type& b) const {
-      return Impl::move_pt_toward(*this, a, fraction, b);
+      return Impl::move_pt_toward(*this, rt_dist, a, fraction, b);
     };
     
     virtual point_type interp_topo_move_position_toward_pred(const point_type& a, double fraction, const point_type& b,
                                                              double min_dist_interval, validity_predicate_type predicate) const {
-      return Impl::move_pt_toward(*this, a, fraction, b, min_dist_interval, predicate);
+      return Impl::move_pt_toward(*this, rt_dist, a, fraction, b, min_dist_interval, predicate);
     };
     
     virtual double interp_topo_get_distance(const point_type& a, const point_type& b) const {
@@ -407,104 +410,6 @@ class interpolated_topology<BaseTopology, sap_Ndof_interpolation_tag> : public i
 };
 
 
-#if 0
-  
-/**
- * This class wraps a reach-time topology with SAP-based distance metric and a sampler.
- * \tparam BaseTopology The topology underlying this space, should express values as reach-time values and metrics (distance), and should model TopologyConcept, PointDistributionConcept, BoundedSpaceConcept and TangentBundleConcept for time_topology and up to 2nd order (acceleration).
- */
-template <typename BaseTopology>
-class sap_Ndof_reach_topology : public interpolated_topology<BaseTopology, sap_Ndof_interpolation_tag>
-{
-  public:
-    BOOST_CONCEPT_ASSERT((TopologyConcept<BaseTopology>));
-    BOOST_CONCEPT_ASSERT((PointDistributionConcept<BaseTopology>));
-    
-    typedef interpolated_topology<BaseTopology, sap_Ndof_interpolation_tag> base_type;
-    typedef sap_Ndof_reach_topology<BaseTopology> self;
-    
-    typedef typename base_type::point_type point_type;
-    typedef typename base_type::point_difference_type point_difference_type;
-    
-    typedef typename base_type::distance_metric_type distance_metric_type;
-    typedef typename base_type::random_sampler_type random_sampler_type;
-    
-    typedef typename base_type::super_space_type super_space_type;
-    
-    BOOST_STATIC_CONSTANT(std::size_t, dimensions = base_type::dimensions);
-    
-  public:
-    
-    sap_Ndof_reach_topology(const BaseTopology& aTopo) : base_type(aTopo) { };
-    
-#ifdef RK_ENABLE_CXX11_FEATURES
-    template <typename... Args>
-    sap_Ndof_reach_topology(Args&&... args) : base_type(std::forward<Args>(args)...) { };
-#else
-    sap_Ndof_reach_topology() : base_type() { };
-    
-    template <typename A1>
-    sap_Ndof_reach_topology(const A1& a1) : 
-                            base_type(a1) { };
-    
-    template <typename A1, typename A2>
-    sap_Ndof_reach_topology(const A1& a1, const A2& a2) : 
-                            base_type(a1, a2) { };
-    
-    template <typename A1, typename A2, typename A3>
-    sap_Ndof_reach_topology(const A1& a1, const A2& a2, const A3& a3) : 
-                            base_type(a1, a2, a3) { };
-    
-    template <typename A1, typename A2, typename A3, typename A4>
-    sap_Ndof_reach_topology(const A1& a1, const A2& a2, const A3& a3, const A4& a4) : 
-                            base_type(a1, a2, a3, a4) { };
-    
-    template <typename A1, typename A2, typename A3, typename A4, typename A5>
-    sap_Ndof_reach_topology(const A1& a1, const A2& a2, const A3& a3, const A4& a4, const A5& a5) : 
-                            base_type(a1, a2, a3, a4, a5) { };
-    
-    template <typename A1, typename A2, typename A3, typename A4, typename A5, typename A6>
-    sap_Ndof_reach_topology(const A1& a1, const A2& a2, const A3& a3, const A4& a4, const A5& a5, const A6& a6) : 
-                            base_type(a1, a2, a3, a4, a5, a6) { };
-    
-    template <typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7>
-    sap_Ndof_reach_topology(const A1& a1, const A2& a2, const A3& a3, const A4& a4, const A5& a5, const A6& a6, const A7& a7) : 
-                            base_type(a1, a2, a3, a4, a5, a6, a7) { };
-    
-    template <typename A1, typename A2, typename A3, typename A4, typename A5, typename A6, typename A7, typename A8>
-    sap_Ndof_reach_topology(const A1& a1, const A2& a2, const A3& a3, const A4& a4, const A5& a5, const A6& a6, const A7& a7, const A8& a8) : 
-                            base_type(a1, a2, a3, a4, a5, a6, a7, a8) { };
-#endif
-   
-/*******************************************************************************
-                   ReaK's RTTI and Serialization interfaces
-*******************************************************************************/
-    
-    virtual void RK_CALL save(serialization::oarchive& A, unsigned int) const {
-      base_type::save(A,base_type::getStaticObjectType()->TypeVersion());
-    };
-
-    virtual void RK_CALL load(serialization::iarchive& A, unsigned int) {
-      base_type::load(A,base_type::getStaticObjectType()->TypeVersion());
-    };
-
-    RK_RTTI_MAKE_ABSTRACT_1BASE(self,0xC240002F,1,"sap_Ndof_reach_topology",base_type)
-    
-};
-
-template <typename BaseTopology>
-struct is_metric_space< sap_Ndof_reach_topology<BaseTopology> > : boost::mpl::true_ { };
-
-template <typename BaseTopology>
-struct is_point_distribution< sap_Ndof_reach_topology<BaseTopology> > : boost::mpl::true_ { };
-
-
-template <typename BaseTopology>
-struct get_rate_illimited_space< sap_Ndof_reach_topology<BaseTopology> > : 
-  get_rate_illimited_space< BaseTopology > { };
-
-#endif
-
 
 template <typename SpaceType, typename TimeTopology>
 struct get_tagged_spatial_interpolator< sap_Ndof_interpolation_tag, SpaceType, TimeTopology> {
@@ -522,41 +427,6 @@ struct get_tagged_temporal_interpolator< sap_Ndof_interpolation_tag, TemporalSpa
 };
 
 };
-
-#if 0
-
-namespace ReaK {
-  
-  
-/* Specialization, see general template docs. */
-  template <typename BaseTopology>
-  struct arithmetic_tuple_size< pp::sap_Ndof_reach_topology<BaseTopology> > : 
-    arithmetic_tuple_size< BaseTopology > { };
-  
-  
-/* Specialization, see general template docs. */
-  template <int Idx, typename BaseTopology>
-  struct arithmetic_tuple_element< Idx, pp::sap_Ndof_reach_topology<BaseTopology> > :
-    arithmetic_tuple_element< Idx, BaseTopology > { };
-  
-/* Specialization, see general template docs. */
-  template <int Idx, typename BaseTopology>
-  struct arithmetic_tuple_element< Idx, const pp::sap_Ndof_reach_topology<BaseTopology> > : 
-    arithmetic_tuple_element< Idx, const BaseTopology > { };
-  
-/* Specialization, see general template docs. */
-  template <int Idx, typename BaseTopology>
-  struct arithmetic_tuple_element< Idx, volatile pp::sap_Ndof_reach_topology<BaseTopology> > : 
-    arithmetic_tuple_element< Idx, volatile BaseTopology > { };
-  
-/* Specialization, see general template docs. */
-  template <int Idx, typename BaseTopology>
-  struct arithmetic_tuple_element< Idx, const volatile pp::sap_Ndof_reach_topology<BaseTopology> > : 
-    arithmetic_tuple_element< Idx, const volatile BaseTopology > { };
-  
-};
-
-#endif
 
 
 

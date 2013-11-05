@@ -60,9 +60,9 @@ struct sap_Ndof_reach_time_metric : public serialization::serializable {
   
   typedef sap_Ndof_reach_time_metric<TimeSpaceType> self;
   
-  shared_ptr<const TimeSpaceType> t_space;
+  shared_ptr<TimeSpaceType> t_space;
   
-  sap_Ndof_reach_time_metric(const shared_ptr<const TimeSpaceType>& aTimeSpace = shared_ptr<const TimeSpaceType>(new TimeSpaceType())) : 
+  sap_Ndof_reach_time_metric(const shared_ptr<TimeSpaceType>& aTimeSpace = shared_ptr<TimeSpaceType>(new TimeSpaceType())) : 
                              t_space(aTimeSpace) { };
   
   /** 

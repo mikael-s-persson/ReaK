@@ -713,7 +713,8 @@ namespace detail {
     boost::mpl::or_<
       is_rate_limited_joint_space< OutSpace >,
       is_rate_limited_se2_space< OutSpace >,
-      is_rate_limited_se3_space< OutSpace >
+      is_rate_limited_se3_space< OutSpace >,
+      is_Ndof_rl_space< OutSpace >
     >,
   void >::type create_rl_joint_space_impl(OutSpace& space_out,
                                           const InSpace& space_in,
@@ -765,7 +766,8 @@ namespace detail {
     boost::mpl::or_<
       is_rate_limited_joint_space< OutSpace >,
       is_rate_limited_se2_space< OutSpace >,
-      is_rate_limited_se3_space< OutSpace >
+      is_rate_limited_se3_space< OutSpace >,
+      is_Ndof_rl_space< OutSpace >
     >,
   void >::type create_rl_joint_spaces_impl(OutSpace& space_out,
                                    const InSpace& space_in,
@@ -784,7 +786,8 @@ namespace detail {
     boost::mpl::or_<
       is_rate_limited_joint_space< OutSpace >,
       is_rate_limited_se2_space< OutSpace >,
-      is_rate_limited_se3_space< OutSpace >
+      is_rate_limited_se3_space< OutSpace >,
+      is_Ndof_rl_space< OutSpace >
     >,
   void >::type create_rl_joint_spaces_impl(OutSpace& space_out,
                                    const InSpace& space_in,
@@ -1404,7 +1407,8 @@ namespace detail {
     boost::mpl::or_<
       is_rate_limited_joint_space< InSpace >,
       is_rate_limited_se2_space< InSpace >,
-      is_rate_limited_se3_space< InSpace >
+      is_rate_limited_se3_space< InSpace >,
+      is_Ndof_rl_space< InSpace >
     >,
   void >::type create_normal_joint_space_impl(OutSpace& space_out,
                                               const InSpace& space_in,
@@ -1456,7 +1460,8 @@ namespace detail {
     boost::mpl::or_<
       is_rate_limited_joint_space< InSpace >,
       is_rate_limited_se2_space< InSpace >,
-      is_rate_limited_se3_space< InSpace >
+      is_rate_limited_se3_space< InSpace >,
+      is_Ndof_rl_space< InSpace >
     >,
   void >::type create_normal_joint_spaces_impl(OutSpace& space_out,
                                        const InSpace& space_in,
@@ -1475,7 +1480,8 @@ namespace detail {
     boost::mpl::or_<
       is_rate_limited_joint_space< InSpace >,
       is_rate_limited_se2_space< InSpace >,
-      is_rate_limited_se3_space< InSpace >
+      is_rate_limited_se3_space< InSpace >,
+      is_Ndof_rl_space< InSpace >
     >,
   void >::type create_normal_joint_spaces_impl(OutSpace& space_out,
                                        const InSpace& space_in,

@@ -37,27 +37,11 @@ namespace pp {
 
 #define RK_RRTSTAR_MANIP_PLANNERS_MAKE_STATIC_MANIP_EXTERN_INSTANCES(NDOF) \
 template class rrtstar_planner< \
-  manip_quasi_static_env< typename Ndof_rl_space<double, NDOF, 0>::type, linear_interpolation_tag> >; \
+  manip_quasi_static_env< typename Ndof_rl_space<double, NDOF, 0>::type > >; \
 template class rrtstar_planner< \
-  manip_quasi_static_env< typename Ndof_rl_space<double, NDOF, 1>::type, linear_interpolation_tag> >; \
+  manip_quasi_static_env< typename Ndof_rl_space<double, NDOF, 1>::type > >; \
 template class rrtstar_planner< \
-  manip_quasi_static_env< typename Ndof_rl_space<double, NDOF, 2>::type, linear_interpolation_tag> >; \
- \
-template class rrtstar_planner< \
-  manip_quasi_static_env< typename Ndof_rl_space<double, NDOF, 1>::type, cubic_hermite_interpolation_tag> >; \
-template class rrtstar_planner< \
-  manip_quasi_static_env< typename Ndof_rl_space<double, NDOF, 2>::type, cubic_hermite_interpolation_tag> >; \
- \
-template class rrtstar_planner< \
-  manip_quasi_static_env< typename Ndof_rl_space<double, NDOF, 2>::type, quintic_hermite_interpolation_tag> >; \
- \
-template class rrtstar_planner< \
-  manip_quasi_static_env< typename Ndof_rl_space<double, NDOF, 1>::type, svp_Ndof_interpolation_tag> >; \
-template class rrtstar_planner< \
-  manip_quasi_static_env< typename Ndof_rl_space<double, NDOF, 2>::type, svp_Ndof_interpolation_tag> >; \
- \
-template class rrtstar_planner< \
-  manip_quasi_static_env< typename Ndof_rl_space<double, NDOF, 2>::type, sap_Ndof_interpolation_tag> >;
+  manip_quasi_static_env< typename Ndof_rl_space<double, NDOF, 2>::type > >;
 
 
 RK_RRTSTAR_MANIP_PLANNERS_MAKE_STATIC_MANIP_EXTERN_INSTANCES(RK_PLANNERS_DIM)

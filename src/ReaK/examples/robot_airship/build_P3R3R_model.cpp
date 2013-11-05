@@ -19,6 +19,7 @@
 #include "topologies/joint_space_limits.hpp"
 
 #include "topologies/manip_P3R3R_workspaces.hpp"
+#include "interpolation/linear_interp.hpp"
 
 #include "serialization/archiver_factory.hpp"
 
@@ -248,10 +249,9 @@ int main(int argc, char ** argv) {
     joint_rate_limits->frame3D_jerk_limits.resize(0);
     
     
-    shared_ptr< pp::manip_static_workspace< manip_P3R3R_kinematics, 0, pp::linear_interpolation_tag >::rl_workspace_type >
-      workspace = pp::make_manip_static_workspace< 0, pp::linear_interpolation_tag >(
-        kte_model, joint_rate_limits, 0.1, 1.0
-      );
+    shared_ptr< pp::manip_static_workspace< manip_P3R3R_kinematics, 0 >::rl_workspace_type >
+      workspace = pp::make_manip_static_workspace< 0 >(
+        pp::linear_interpolation_tag(), kte_model, joint_rate_limits, 0.1);
     
     
     
