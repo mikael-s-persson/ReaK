@@ -301,7 +301,7 @@ manip_inverse_kin_map       0xC2400014   bin: 1100 0010 0100 0000 0000 0000 0001
 manip_rl_inverse_kin_map    0xC2400015   bin: 1100 0010 0100 0000 0000 0000 0001 0101  D-R
 manip_clik_kin_map          0xC2400016   bin: 1100 0010 0100 0000 0000 0000 0001 0110  D-R
 manip_rl_clik_kin_map       0xC2400017   bin: 1100 0010 0100 0000 0000 0000 0001 0111  D-R
- 0xC2400018   bin: 1100 0010 0100 0000 0000 0000 0001 1000  D-R
+manip_dk_ik_map             0xC2400018   bin: 1100 0010 0100 0000 0000 0000 0001 1000  D-R
  0xC2400019   bin: 1100 0010 0100 0000 0000 0000 0001 1001  D-R
 manip_ik_fixed_ip_map       0xC240001A   bin: 1100 0010 0100 0000 0000 0000 0001 1010  D-R
 manip_rl_ik_fixed_ip_map    0xC240001B   bin: 1100 0010 0100 0000 0000 0000 0001 1011  D-R
@@ -319,13 +319,13 @@ quintic_interp_topology<T>  0xC2400026   bin: 1100 0010 0100 0000 0000 0000 0010
 manip_quasi_static_env<T,t> 0xC2400027   bin: 1100 0010 0100 0000 0000 0000 0010 0111  D-R
 manip_dynamic_env<T,t>      0xC2400028   bin: 1100 0010 0100 0000 0000 0000 0010 1000  D-R
 proxy_model_updater         0xC2400029   bin: 1100 0010 0100 0000 0000 0000 0010 1001  D-R
-manip_DK_proxy_updater      0xC240002A   bin: 1100 0010 0100 0000 0000 0000 0010 1010  D-R
+proxy_traj_applicator       0xC240002A   bin: 1100 0010 0100 0000 0000 0000 0010 1010  D-R
 bijection_cascade           0xC240002B   bin: 1100 0010 0100 0000 0000 0000 0010 1011  D-R
 subspace_map                0xC240002C   bin: 1100 0010 0100 0000 0000 0000 0010 1100  D-R
 identity_topo_map           0xC240002D   bin: 1100 0010 0100 0000 0000 0000 0010 1101  D-R
 Ndof_limits<T,S>            0xC240002E   bin: 1100 0010 0100 0000 0000 0000 0010 1110  D-R
-sap_Ndof_reach_topology<T>  0xC240002F   bin: 1100 0010 0100 0000 0000 0000 0010 1111  D-R
-svp_Ndof_reach_topology<T>  0xC2400030   bin: 1100 0010 0100 0000 0000 0000 0011 0000  D-R
+  0xC240002F   bin: 1100 0010 0100 0000 0000 0000 0010 1111  D-R
+  0xC2400030   bin: 1100 0010 0100 0000 0000 0000 0011 0000  D-R
 IHAQR_point_type<S,SS>      0xC2400031   bin: 1100 0010 0100 0000 0000 0000 0011 0001  D-R
 IHAQR_topology<S,SS>        0xC2400032   bin: 1100 0010 0100 0000 0000 0000 0011 0010  D-R
 IHAQR_topology_with_CD<S,SS> 0xC2400033  bin: 1100 0010 0100 0000 0000 0000 0011 0011  D-R
@@ -339,6 +339,7 @@ interpolated_topology       0xC240003A   bin: 1100 0010 0100 0000 0000 0000 0011
 proxy_model_applicator      0xC240003B   bin: 1100 0010 0100 0000 0000 0000 0011 1011  D-R
 any_model_applicator        0xC240003C   bin: 1100 0010 0100 0000 0000 0000 0011 1100  D-R
 wrapped_interp_topology     0xC240003D   bin: 1100 0010 0100 0000 0000 0000 0011 1101  D-R
+extract_spatial_component   0xC240003E   bin: 1100 0010 0100 0000 0000 0000 0011 1110  D-R
 
 
 //Distance metrics:         0xC241****

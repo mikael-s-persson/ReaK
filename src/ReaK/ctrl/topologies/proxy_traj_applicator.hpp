@@ -1,17 +1,16 @@
 /**
- * \file manip_DK_proxy_updater.hpp
+ * \file proxy_traj_applicator.hpp
  * 
- * This library defines a class for path-planning for a manipulator moving inside an environment 
- * with obstacles and physical limits (joint limits). This class is essentially just an assembly 
- * of many of the building blocks in the ReaK path-planning library. This class can also draw the 
- * elements of the motion graph (edges) as end-effector trajectories in a Coin3D scene-graph.
+ * This library defines a class for applying a trajectory to a given static model applicator.
+ * This class can be used for updating a proximity-query model with time such that the model 
+ * is always synchronized, in its configuration, with a given time (e.g., current planning time).
  * 
  * \author Sven Mikael Persson <mikael.s.persson@gmail.com>
- * \date October 2012
+ * \date November 2013
  */
 
 /*
- *    Copyright 2012 Sven Mikael Persson
+ *    Copyright 2013 Sven Mikael Persson
  *
  *    THIS SOFTWARE IS DISTRIBUTED UNDER THE TERMS OF THE GNU GENERAL PUBLIC LICENSE v3 (GPLv3).
  *
@@ -32,8 +31,8 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef REAK_MANIP_FREE_WORKSPACE_HPP
-#define REAK_MANIP_FREE_WORKSPACE_HPP
+#ifndef REAK_PROXY_TRAJ_APPLICATOR_HPP
+#define REAK_PROXY_TRAJ_APPLICATOR_HPP
 
 #include "base/defs.hpp"
 #include <boost/config.hpp>
@@ -42,9 +41,6 @@
 
 #include "path_planning/metric_space_concept.hpp"
 #include "path_planning/spatial_trajectory_concept.hpp"  // for SpatialTrajectoryConcept
-
-#include "kte_models/direct_kinematics_model.hpp"
-#include "direct_kinematics_topomap_detail.hpp"       // for write_joint_coordinates_impl
 
 
 namespace ReaK {
@@ -55,23 +51,24 @@ namespace pp {
 
 
 /**
- * This class implements the forward kinematics mappings associated to a given manipulator kinematics 
- * model. This class assumes that the manipulator model has a number of joint coordinates (both 
- * generalized and frames), and that it has dependent coordinate frames (gen, 2D or 3D) as end-effectors.
+ * This class is for applying a trajectory to a given static model applicator.
+ * This class can be used for updating a proximity-query model with time such that the model 
+ * is always synchronized, in its configuration, with a given time (e.g., current planning time).
  */
 template <typename JointTrajectory>
-class manip_DK_proxy_updater : public proxy_model_updater {
+class proxy_traj_applicator : public proxy_model_updater {
   public:
     
-    typedef manip_DK_proxy_updater< JointTrajectory > self;
+    typedef proxy_traj_applicator< JointTrajectory > self;
     typedef typename spatial_trajectory_traits< JointTrajectory >::topology temporal_space_type;
+    typedef typename temporal_space_traits< temporal_space_type >::space_topology joint_space_type;
     typedef typename topology_traits< temporal_space_type >::point_type point_type;
     typedef typename spatial_trajectory_traits< JointTrajectory >::const_waypoint_descriptor wp_desc_type;
     
     BOOST_CONCEPT_ASSERT((SpatialTrajectoryConcept<JointTrajectory, temporal_space_type>));
     
     /** This data member points to a manipulator kinematics model to use for the mappings performed. */
-    shared_ptr< kte::direct_kinematics_model > model; 
+    shared_ptr< proxy_model_applicator<joint_space_type> > static_applicator;
   private:
     shared_ptr< JointTrajectory > traj;
     mutable std::pair<wp_desc_type, point_type> last_wp;
@@ -83,42 +80,44 @@ class manip_DK_proxy_updater : public proxy_model_updater {
         last_wp = traj->get_waypoint_at_time(traj->get_start_time());
     };
     
-    manip_DK_proxy_updater(const shared_ptr< kte::direct_kinematics_model >& aModel = shared_ptr< kte::direct_kinematics_model >(),
-                           const shared_ptr< JointTrajectory >& aTraj = shared_ptr< JointTrajectory >()) :
-                           model(aModel), traj(aTraj) { };
+    /**
+     * Parametric / default constructor.
+     * \param aStaticApplicator The static applicator for the proximity-query model.
+     * \param aTraj The joint-space trajectory of the proximity-query model, i.e., tracks its state over time.
+     */
+    proxy_traj_applicator(const shared_ptr< proxy_model_applicator<joint_space_type> >& aStaticApplicator = shared_ptr< proxy_model_applicator<joint_space_type> >(),
+                          const shared_ptr< JointTrajectory >& aTraj = shared_ptr< JointTrajectory >()) :
+                          static_applicator(aStaticApplicator), traj(aTraj) { };
     
     
     virtual void synchronize_proxy_model(double t) const {
-      if(!traj)
+      if( (!traj) || (!static_applicator) )
         return;
       
       last_wp = traj->move_time_diff_from(last_wp, t - last_wp.second.time);
       
-      detail::write_joint_coordinates_impl(last_wp, traj->get_temporal_space().get_space_topology(), model);
-    
-      model->doDirectMotion();  //NOTE: It is assumed that the motion of the proxy-model is linked to the manip-kin-model used here.
+      static_applicator->apply_to_model(last_wp.second.pt, traj->get_temporal_space().get_space_topology());
       
     };
-    
     
 /*******************************************************************************
                    ReaK's RTTI and Serialization interfaces
 *******************************************************************************/
 
     virtual void RK_CALL save(ReaK::serialization::oarchive& A, unsigned int) const {
-      shared_object::save(A,shared_object::getStaticObjectType()->TypeVersion());
-      A & RK_SERIAL_SAVE_WITH_NAME(model)
+      proxy_model_updater::save(A,proxy_model_updater::getStaticObjectType()->TypeVersion());
+      A & RK_SERIAL_SAVE_WITH_NAME(static_applicator)
         & RK_SERIAL_SAVE_WITH_NAME(traj);
     };
     virtual void RK_CALL load(ReaK::serialization::iarchive& A, unsigned int) {
-      shared_object::load(A,shared_object::getStaticObjectType()->TypeVersion());
-      A & RK_SERIAL_LOAD_WITH_NAME(model)
+      proxy_model_updater::load(A,proxy_model_updater::getStaticObjectType()->TypeVersion());
+      A & RK_SERIAL_LOAD_WITH_NAME(static_applicator)
         & RK_SERIAL_LOAD_WITH_NAME(traj);
       if(traj)
         last_wp = traj->get_waypoint_at_time(traj->get_start_time());
     };
 
-    RK_RTTI_MAKE_CONCRETE_1BASE(self,0xC240002A,1,"manip_DK_proxy_updater",shared_object)
+    RK_RTTI_MAKE_CONCRETE_1BASE(self,0xC240002A,1,"proxy_traj_applicator",proxy_model_updater)
     
     
 };

@@ -1,5 +1,5 @@
 /**
- * \file frame_tracer_coin3d.hpp
+ * \file frame_tracer_coin3d_impl.hpp
  * 
  * This library defines a sampling-based motion/path planning reporter for tracing out the path of a frame 
  * linked to a DK kinematic model. 

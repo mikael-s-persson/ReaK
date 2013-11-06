@@ -66,6 +66,20 @@ class manip_direct_kin_map : public shared_object {
                          model(aModel) { };
     
     /**
+     * This function template applies a forward kinematics calculation on the 
+     * manipulator model with the given joint-space state.
+     * \tparam PointType The point-type of the input space.
+     * \tparam InSpace The type of the input space (joint-space).
+     * \param pt The point in the input space, i.e. the joint coordinates.
+     * \param space_in The input space, i.e. the joint-space.
+     */
+    template <typename PointType, typename InSpace>
+    void apply_to_model(const PointType& pt, const InSpace& space_in) const {
+      detail::write_joint_coordinates_impl(pt, space_in, model);
+      model->doDirectMotion();
+    };
+    
+    /**
      * This function template performs a forward kinematics calculation on the 
      * manipulator model.
      * \tparam PointType The point-type of the input space.
@@ -79,29 +93,13 @@ class manip_direct_kin_map : public shared_object {
     template <typename PointType, typename InSpace, typename OutSpace>
     typename topology_traits< OutSpace >::point_type
     map_to_space(const PointType& pt, const InSpace& space_in, const OutSpace& space_out) const {
-      typename topology_traits< OutSpace >::point_type result;
       
-      detail::write_joint_coordinates_impl(pt, space_in, model);
-    
-      model->doDirectMotion();
-    
+      apply_to_model(pt, space_in);
+      
+      typename topology_traits< OutSpace >::point_type result;
       detail::read_dependent_coordinates_impl(result, space_out, model);
       
       return result;
-    };
-    
-    /**
-     * This function template applies a forward kinematics calculation on the 
-     * manipulator model with the given joint-space state.
-     * \tparam PointType The point-type of the input space.
-     * \tparam InSpace The type of the input space (joint-space).
-     * \param pt The point in the input space, i.e. the joint coordinates.
-     * \param space_in The input space, i.e. the joint-space.
-     */
-    template <typename PointType, typename InSpace>
-    void apply_to_model(const PointType& pt, const InSpace& space_in) const {
-      detail::write_joint_coordinates_impl(pt, space_in, model);
-      model->doDirectMotion();
     };
     
 /*******************************************************************************
@@ -150,6 +148,21 @@ class manip_rl_direct_kin_map : public shared_object {
                             normal_jt_space(aNormalJtSpace) { };
     
     /**
+     * This function template applies a forward kinematics calculation on the 
+     * manipulator model with the given joint-space state.
+     * \tparam PointType The point-type of the input space.
+     * \tparam InSpace The type of the input space (joint-space).
+     * \param pt The point in the input space, i.e. the joint coordinates.
+     * \param space_in The input space, i.e. the joint-space.
+     */
+    template <typename PointType, typename InSpace>
+    void apply_to_model(const PointType& pt, const InSpace& space_in) const {
+      typename topology_traits<NormalJointSpace>::point_type pt_inter = joint_limits_map->map_to_space(pt, space_in, *normal_jt_space);
+      detail::write_joint_coordinates_impl(pt_inter, *normal_jt_space, model);
+      model->doDirectMotion();
+    };
+    
+    /**
      * This function template performs a forward kinematics calculation on the 
      * manipulator model.
      * \tparam PointType The point-type of the input space.
@@ -163,31 +176,13 @@ class manip_rl_direct_kin_map : public shared_object {
     template <typename PointType, typename InSpace, typename OutSpace>
     typename topology_traits< OutSpace >::point_type
     map_to_space(const PointType& pt, const InSpace& space_in, const OutSpace& space_out) const {
+      
+      apply_to_model(pt, space_in);
+      
       typename topology_traits< OutSpace >::point_type result;
-      
-      typename topology_traits<NormalJointSpace>::point_type pt_inter = joint_limits_map->map_to_space(pt, space_in, *normal_jt_space);
-      detail::write_joint_coordinates_impl(pt_inter, *normal_jt_space, model);
-      
-      model->doDirectMotion();
-      
       detail::read_dependent_coordinates_impl(result, space_out, model);
       
       return result;
-    };
-    
-    /**
-     * This function template applies a forward kinematics calculation on the 
-     * manipulator model with the given joint-space state.
-     * \tparam PointType The point-type of the input space.
-     * \tparam InSpace The type of the input space (joint-space).
-     * \param pt The point in the input space, i.e. the joint coordinates.
-     * \param space_in The input space, i.e. the joint-space.
-     */
-    template <typename PointType, typename InSpace>
-    void apply_to_model(const PointType& pt, const InSpace& space_in) const {
-      typename topology_traits<NormalJointSpace>::point_type pt_inter = joint_limits_map->map_to_space(pt, space_in, *normal_jt_space);
-      detail::write_joint_coordinates_impl(pt_inter, *normal_jt_space, model);
-      model->doDirectMotion();
     };
     
     

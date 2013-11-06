@@ -276,6 +276,49 @@ class temporal_topo_map : public serialization::serializable {
 
 
 
+
+
+
+/**
+ * This class can be used to transform a time-space points into space-only points, i.e.,
+ * it extracts the spatial component only of the time-space point.
+ */
+class extract_spatial_component : public serialization::serializable {
+  public:
+    
+    typedef extract_spatial_component self;
+    
+    /**
+     * Parametric and default constructor.
+     */
+    extract_spatial_component() { };
+    
+    /**
+     * This function template maps a given temporal point in an input temporal space
+     * to an output spatial point in the output space.
+     * \tparam PointType The point-type of the input temporal space.
+     * \tparam InSpace The type of the input temporal space.
+     * \tparam OutSpace The type of the output temporal space.
+     * \param pt The temporal point in the input temporal space.
+     * \return A spatial point in the output space.
+     */
+    template <typename PointType, typename InSpace, typename OutSpace>
+    typename topology_traits< OutSpace >::point_type
+    map_to_space(const PointType& pt, const InSpace&, const OutSpace&) const { return pt.pt; };
+    
+/*******************************************************************************
+                   ReaK's RTTI and Serialization interfaces
+*******************************************************************************/
+    virtual void RK_CALL save(serialization::oarchive& A, unsigned int) const { };
+    virtual void RK_CALL load(serialization::iarchive& A, unsigned int) { };
+    RK_RTTI_MAKE_ABSTRACT_1BASE(self,0xC240003E,1,"extract_spatial_component",serialization::serializable)
+};
+
+
+
+
+
+
 /**
  * This class implementats a temporal-space which augments a
  * topology with a temporal dimension (time-stamp). The time-dimension resides on a line-segment

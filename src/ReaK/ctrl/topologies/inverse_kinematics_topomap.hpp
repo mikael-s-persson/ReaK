@@ -87,6 +87,23 @@ class manip_inverse_kin_map : public shared_object {
     /**
      * This function template performs a inverse kinematics calculation on the 
      * manipulator model.
+     * \tparam OutSpace The type of the output space (joint-space).
+     * \param space_out The output space, i.e. the joint-space.
+     * \return A point in the output space, i.e. the joint coordinates.
+     */
+    template <typename OutSpace>
+    typename topology_traits< OutSpace >::point_type extract_from_model(const OutSpace& space_out) const {
+      
+      model->doInverseMotion();
+      
+      typename topology_traits< OutSpace >::point_type result;
+      detail::read_joint_coordinates_impl(result, space_out, model);
+      return result;
+    };
+    
+    /**
+     * This function template performs a inverse kinematics calculation on the 
+     * manipulator model.
      * \tparam PointType The point-type of the input space.
      * \tparam InSpace The type of the input space (end-effector space).
      * \tparam OutSpace The type of the output space (joint-space).
@@ -98,15 +115,10 @@ class manip_inverse_kin_map : public shared_object {
     template <typename PointType, typename InSpace, typename OutSpace>
     typename topology_traits< OutSpace >::point_type
     map_to_space(const PointType& pt, const InSpace& space_in, const OutSpace& space_out) const {
-      typename topology_traits< OutSpace >::point_type result;
       
       detail::write_dependent_coordinates_impl(pt, space_in, model);
       
-      model->doInverseMotion();
-      
-      detail::read_joint_coordinates_impl(result, space_out, model);
-      
-      return result;
+      return extract_from_model(space_out);
     };
     
     
@@ -156,6 +168,25 @@ class manip_rl_inverse_kin_map : public shared_object {
     
     /**
      * This function template performs a inverse kinematics calculation on the 
+     * manipulator model, at the current end-effector configuration.
+     * \tparam OutSpace The type of the output space (rate-limited joint-space).
+     * \param space_out The output space, i.e. the rate-limited joint-space.
+     * \return A point in the output space, i.e. the rate-limited joint coordinates.
+     */
+    template <typename OutSpace>
+    typename topology_traits< OutSpace >::point_type extract_from_model(const OutSpace& space_out) const {
+      
+      model->doInverseMotion();
+    
+      typedef typename get_rate_illimited_space< OutSpace >::type NormalJointSpace;
+      typename topology_traits<NormalJointSpace>::point_type result_inter;
+      detail::read_joint_coordinates_impl(result_inter, NormalJointSpace(), model);
+      
+      return joint_limits_map->map_to_space(result_inter, NormalJointSpace(), space_out);
+    };
+    
+    /**
+     * This function template performs a inverse kinematics calculation on the 
      * manipulator model.
      * \tparam PointType The point-type of the input space.
      * \tparam InSpace The type of the input space (end-effector space).
@@ -168,18 +199,10 @@ class manip_rl_inverse_kin_map : public shared_object {
     template <typename PointType, typename InSpace, typename OutSpace>
     typename topology_traits< OutSpace >::point_type
     map_to_space(const PointType& pt, const InSpace& space_in, const OutSpace& space_out) const {
-      typename topology_traits< OutSpace >::point_type result;
       
       detail::write_dependent_coordinates_impl(pt,space_in,model);
       
-      model->doInverseMotion();
-    
-      typedef typename get_rate_illimited_space< OutSpace >::type NormalJointSpace;
-      typename topology_traits<NormalJointSpace>::point_type result_inter;
-      detail::read_joint_coordinates_impl(result_inter, NormalJointSpace(), model);
-      result = joint_limits_map->map_to_space(result_inter, NormalJointSpace(), space_out);
-      
-      return result;
+      return extract_from_model(space_out);
     };
     
     

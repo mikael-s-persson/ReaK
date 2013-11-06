@@ -385,6 +385,9 @@ class wrapped_interp_topology : public named_object {
       setName("wrapped_interp_topology");
     };
     
+    operator wrapped_base_type&() { return *m_space; };
+    operator const wrapped_base_type&() const { return *m_space; };
+    
     /**
      * Returns a const-reference to the super-space of this topology.
      * \note This function returns a const-reference to itself since the super-space is also 

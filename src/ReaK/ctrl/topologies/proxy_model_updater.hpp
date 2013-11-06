@@ -38,6 +38,7 @@
 #include "base/shared_object.hpp"
 
 #include "path_planning/metric_space_concept.hpp"
+#include "path_planning/topological_map_concepts.hpp"
 
 
 namespace ReaK {
@@ -52,8 +53,17 @@ class proxy_model_updater : public shared_object {
   public:
     typedef proxy_model_updater self;
     
+    /**
+     * Default constructor.
+     * \note This is an abstract base-class, so, it can't be constructed.
+     */
     proxy_model_updater() { };
     
+    /**
+     * This virtual function is meant to update the configuration of some (proximity-query) model 
+     * such that it matches its configuration for the given time (e.g., along its trajectory).
+     * \param t The time to which the model should be synchronized.
+     */
     virtual void synchronize_proxy_model(double t) const = 0;
     
 /*******************************************************************************
@@ -108,10 +118,20 @@ class proxy_model_applicator : public shared_object {
 };
 
 
+
+
+
+
 /**
  * This type-erasure derived-class is used to apply a configuration to a (proximity-query) model.
+ * \tparam JointSpace The joint-space of the configurations given to the applicator.
+ * \tparam DKTopoMap The generic direct-kinematics topological-map type that is used to apply the configuration to the model.
+ * \tparam JointSpaceMapping The map type that can map points between joint-space and intermediate-space.
+ * \tparam IntermediateSpace The type of an intermediate space required by the direct-kinematics map.
  */
-template <typename JointSpace, typename DKTopoMap>
+template <typename JointSpace, typename DKTopoMap, 
+          typename JointSpaceMapping = identity_topo_map, 
+          typename IntermediateSpace = JointSpace>
 class any_model_applicator : public proxy_model_applicator<JointSpace> {
   public:
     typedef proxy_model_applicator<JointSpace> base_type;
@@ -120,7 +140,73 @@ class any_model_applicator : public proxy_model_applicator<JointSpace> {
     typedef typename topology_traits<JointSpace>::point_type point_type;
     
     DKTopoMap dk_topomap;
+    JointSpaceMapping map_to_jt_space;
+    shared_ptr<IntermediateSpace> inter_space;
     
+    /**
+     * Parametrized / default constructor.
+     * \param aDKTopoMap The generic direct-kinematics topological-map object that is used to apply the configuration to the model.
+     * \param aMapToJtSpace The map that can map the points of the joint-space topology into points of the intermediate space.
+     * \param aInterSpace The shared-pointer to the intermediate space.
+     */
+    explicit any_model_applicator(const DKTopoMap& aDKTopoMap = DKTopoMap(),
+                                  const JointSpaceMapping& aMapToJtSpace = JointSpaceMapping(),
+                                  const shared_ptr<IntermediateSpace>& aInterSpace = shared_ptr<IntermediateSpace>()) : 
+                                  dk_topomap(aDKTopoMap), map_to_jt_space(aMapToJtSpace), inter_space(aInterSpace) { };
+    
+    /**
+     * This function applies the given configuration / joint-state onto some underlying (proximity-query) model.
+     * \param pt The point in the joint-space, i.e. the joint coordinates / configuration.
+     * \param jt_space The joint-space.
+     */
+    virtual void apply_to_model(const point_type& pt, const joint_space& jt_space) const {
+      if(!inter_space)
+        return;
+      dk_topomap.apply_to_model( map_to_jt_space.map_to_space(pt, jt_space, *inter_space), *inter_space );
+    };
+    
+/*******************************************************************************
+                   ReaK's RTTI and Serialization interfaces
+*******************************************************************************/
+
+    virtual void RK_CALL save(ReaK::serialization::oarchive& A, unsigned int) const {
+      base_type::save(A,base_type::getStaticObjectType()->TypeVersion());
+      A & RK_SERIAL_SAVE_WITH_NAME(dk_topomap)
+        & RK_SERIAL_SAVE_WITH_NAME(map_to_jt_space)
+        & RK_SERIAL_SAVE_WITH_NAME(inter_space);
+    };
+    virtual void RK_CALL load(ReaK::serialization::iarchive& A, unsigned int) {
+      base_type::load(A,base_type::getStaticObjectType()->TypeVersion());
+      A & RK_SERIAL_LOAD_WITH_NAME(dk_topomap)
+        & RK_SERIAL_LOAD_WITH_NAME(map_to_jt_space)
+        & RK_SERIAL_LOAD_WITH_NAME(inter_space);
+    };
+
+    RK_RTTI_MAKE_ABSTRACT_1BASE(self,0xC240003C,1,"any_model_applicator",base_type)
+    
+};
+
+
+
+/**
+ * This type-erasure derived-class is used to apply a configuration to a (proximity-query) model.
+ * \tparam JointSpace The joint-space of the configurations given to the applicator.
+ * \tparam DKTopoMap The generic direct-kinematics topological-map type that is used to apply the configuration to the model.
+ */
+template <typename JointSpace, typename DKTopoMap>
+class any_model_applicator<JointSpace, DKTopoMap, identity_topo_map, JointSpace> : public proxy_model_applicator<JointSpace> {
+  public:
+    typedef proxy_model_applicator<JointSpace> base_type;
+    typedef any_model_applicator<JointSpace, DKTopoMap> self;
+    typedef JointSpace joint_space;
+    typedef typename topology_traits<JointSpace>::point_type point_type;
+    
+    DKTopoMap dk_topomap;
+    
+    /**
+     * Parametrized / default constructor.
+     * \param aDKTopoMap The generic direct-kinematics topological-map object that is used to apply the configuration to the model.
+     */
     explicit any_model_applicator(const DKTopoMap& aDKTopoMap = DKTopoMap()) : dk_topomap(aDKTopoMap) { };
     
     /**
@@ -163,6 +249,28 @@ shared_ptr< any_model_applicator<JointSpace, DKTopoMap> > make_any_model_applica
   return shared_ptr< any_model_applicator<JointSpace, DKTopoMap> >(new any_model_applicator<JointSpace, DKTopoMap>(aDKMap));
 };
 
+
+
+/**
+ * This function template is used to create a type-erasure object that can be used 
+ * to apply a configuration to a (proximity-query) model.
+ * \tparam JointSpace The joint-space of the configurations given to the applicator.
+ * \tparam DKTopoMap The generic direct-kinematics topological-map type that is used to apply the configuration to the model.
+ * \tparam JointSpaceMapping The map type that can map points between joint-space and intermediate-space.
+ * \tparam IntermediateSpace The type of an intermediate space required by the direct-kinematics map.
+ * \param aDKMap The generic direct-kinematics topological-map object that is used to apply the configuration to the model.
+ * \param aMapToJtSpace The map that can map the points of the joint-space topology into points of the intermediate space.
+ * \param aInterSpace The shared-pointer to the intermediate space.
+ * \return A shared-pointer to a type-erased object that can be used to apply a configuration to a (proximity-query) model.
+ */
+template <typename JointSpace, typename DKTopoMap, typename JointSpaceMapping, typename IntermediateSpace>
+shared_ptr< any_model_applicator<JointSpace, DKTopoMap, JointSpaceMapping, IntermediateSpace> > 
+  make_any_model_applicator( const DKTopoMap& aDKMap, const JointSpaceMapping& aMapToJtSpace, 
+                             const shared_ptr<IntermediateSpace>& aInterSpace) {
+  return shared_ptr< any_model_applicator<JointSpace, DKTopoMap, JointSpaceMapping, IntermediateSpace> >(
+    new any_model_applicator<JointSpace, DKTopoMap, JointSpaceMapping, IntermediateSpace>(
+      aDKMap, aMapToJtSpace, aInterSpace));
+};
 
 
 
