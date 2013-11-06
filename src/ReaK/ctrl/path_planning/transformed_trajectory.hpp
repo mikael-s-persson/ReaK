@@ -63,9 +63,7 @@ namespace pp {
       
       transformed_point_iterator(const ParentType* aParent,
                                  InputIterator aBaseIt) :
-                                 p_in_space(aPInSpace),
-                                 p_out_space(aPOutSpace),
-                                 p_mapping(aPMapping), 
+                                 p_parent(aParent),
                                  base_it(aBaseIt) { };
       
       friend self& operator+=(self& lhs, double rhs) {
@@ -88,7 +86,7 @@ namespace pp {
       
       friend bool operator!=(const self& lhs, const self& rhs) { return !(lhs == rhs); };
       
-      point_type operator*() const {
+      typename ParentType::point_type operator*() const {
         return p_parent->map_point_forward(*base_it);
       };
       
@@ -120,7 +118,7 @@ class transformed_trajectory : public shared_object {
     
     BOOST_CONCEPT_ASSERT((TemporalSpaceConcept<Topology>));
     BOOST_CONCEPT_ASSERT((SpatialTrajectoryConcept<InputTrajectory,input_topology>));
-    BOOST_CONCEPT_ASSERT((HomeomorphismConcept<Mapping,input_topology,Topology>));
+    BOOST_CONCEPT_ASSERT((BijectionConcept<Mapping,input_topology,Topology>));
     
     typedef transformed_trajectory<Topology,InputTrajectory,Mapping> self;
     
@@ -147,8 +145,8 @@ class transformed_trajectory : public shared_object {
     
   private:
     
-    shared_ptr<const Topology> space;
-    shared_ptr<const InputTrajectory> traject;
+    shared_ptr<Topology> space;
+    shared_ptr<InputTrajectory> traject;
     Mapping map;
     
     
@@ -177,8 +175,8 @@ class transformed_trajectory : public shared_object {
      * \param aTrajectory The underlying trajectory to use.
      * \param aMap The homeomorphic mapping object to use.
      */
-    explicit transformed_trajectory(const shared_ptr<const Topology>& aSpace = shared_ptr<const Topology>(new Topology()), 
-                                    const shared_ptr<const InputTrajectory>& aTrajectory = shared_ptr<const InputTrajectory>(new InputTrajectory()), 
+    explicit transformed_trajectory(const shared_ptr<Topology>& aSpace = shared_ptr<Topology>(new Topology()), 
+                                    const shared_ptr<InputTrajectory>& aTrajectory = shared_ptr<InputTrajectory>(new InputTrajectory()), 
                                     const Mapping& aMap = Mapping()) : 
                                     space(aSpace), traject(aTrajectory), map(aMap) { };
     

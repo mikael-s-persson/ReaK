@@ -262,30 +262,31 @@ class frame_tracer_3D : public shared_object {
     void draw_solution(const FreeSpaceType& free_space, 
                        const shared_ptr< seq_trajectory_base< typename subspace_traits<FreeSpaceType>::super_space_type > >& traj) const {
       typedef typename topology_traits< FreeSpaceType >::point_type PointType;
+      typedef typename seq_trajectory_base< typename subspace_traits<FreeSpaceType>::super_space_type >::point_time_iterator PtIter;
       
-      double t_total = traj->get_end_time() - traj->get_start_time();
-      if(!(solution_traces.empty()) && t_total > solution_traces.begin()->first) {
-        next_reporter.draw_solution(free_space, traj);
-        return;
-      };
-      std::vector< geom::tracer_coin3d_impl >& current_trace = solution_traces[t_total];
+      std::vector< geom::tracer_coin3d_impl > current_trace;
       for(std::size_t i = 0; i < traced_frames.size(); ++i)
         current_trace.push_back(geom::tracer_coin3d_impl(true));
       
-      double t = traj->get_start_time();
-      PointType u_pt = traj->get_point_at_time(t);
-      mdl_applicator->apply_to_model(u_pt, free_space.get_super_space());
+      double t = 0.0;
+      PtIter it = traj->begin_time_travel();
+      PointType last_pt = *it;
+      mdl_applicator->apply_to_model(last_pt, free_space.get_super_space());
       for(std::size_t i = 0; i < traced_frames.size(); ++i)
         current_trace[i].begin_edge(traced_frames[i]->getGlobalPose().Position);
-      while(t < traj->get_end_time()) {
+      while(it != traj->end_time_travel()) {
         t += interval_size;
-        u_pt = traj->get_point_at_time(t);
-        mdl_applicator->apply_to_model(u_pt, free_space.get_super_space());
+        it += interval_size;
+        last_pt = *it;
+        mdl_applicator->apply_to_model(last_pt, free_space.get_super_space());
         for(std::size_t i = 0; i < traced_frames.size(); ++i)
           current_trace[i].add_point(traced_frames[i]->getGlobalPose().Position);
       };
       for(std::size_t i = 0; i < traced_frames.size(); ++i)
         current_trace[i].end_edge();
+      
+      if(solution_traces.empty() || (t <= solution_traces.begin()->first))
+        solution_traces[t].swap(current_trace);
       
       next_reporter.draw_solution(free_space, traj);
     };

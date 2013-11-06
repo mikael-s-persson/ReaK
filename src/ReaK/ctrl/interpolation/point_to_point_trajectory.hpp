@@ -79,6 +79,8 @@ class point_to_point_trajectory : public waypoint_container<Topology,DistanceMet
     
     typedef typename base_class_type::waypoint_pair waypoint_pair;
     
+    typedef typename base_class_type::point_time_iterator point_time_iterator;
+    typedef typename base_class_type::point_fraction_iterator point_fraction_iterator;
     
     
   private:

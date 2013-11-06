@@ -81,7 +81,7 @@ class seq_trajectory_wrapper : public seq_trajectory_base< typename sequential_t
       
       virtual ~point_time_iterator_impl() { };
       
-      virtual void move_by_distance(double d) {
+      virtual void move_by_time(double d) {
         base_it += d;
       };
       

@@ -59,13 +59,13 @@ namespace pp {
  * \tparam Topology The topology type on which the points and the path can reside, should model the MetricSpaceConcept.
  * \tparam DistanceMetric The distance metric used to assess the distance between points.
  */
-template <typename Topology, typename DistanceMetric = typename metric_space_traits<Topology>::distance_metric_type >
+template <bool IsTemporalSpace, typename Topology, typename DistanceMetric = typename metric_space_traits<Topology>::distance_metric_type >
 class waypoint_container_base : public shared_object {
   public:
     BOOST_CONCEPT_ASSERT((MetricSpaceConcept<Topology>));
     BOOST_CONCEPT_ASSERT((DistanceMetricConcept<DistanceMetric,Topology>));
     
-    typedef waypoint_container_base<Topology,DistanceMetric> self;
+    typedef waypoint_container_base<IsTemporalSpace,Topology,DistanceMetric> self;
     typedef Topology topology;
     typedef DistanceMetric distance_metric;
     typedef typename topology_traits<Topology>::point_type point_type;
@@ -274,16 +274,16 @@ class waypoint_container_base : public shared_object {
  * \tparam Topology The topology type on which the points and the path can reside, should model the MetricSpaceConcept.
  * \tparam DistanceMetric The distance metric used to assess the distance between points.
  */
-template <typename SpaceTopology, typename TimeTopology, typename DistanceMetric, typename DistanceMetricBase>
-class waypoint_container_base< temporal_space<SpaceTopology, TimeTopology, DistanceMetric>, DistanceMetricBase > : public shared_object {
+template <typename Topology, typename DistanceMetricBase>
+class waypoint_container_base< true, Topology, DistanceMetricBase > : public shared_object {
   public:
-    BOOST_CONCEPT_ASSERT((MetricSpaceConcept< temporal_space<SpaceTopology, TimeTopology, DistanceMetric> >));
+    BOOST_CONCEPT_ASSERT((MetricSpaceConcept< Topology >));
     
-    typedef waypoint_container_base<temporal_space<SpaceTopology, TimeTopology, DistanceMetric>,DistanceMetricBase> self;
-    typedef temporal_space<SpaceTopology, TimeTopology, DistanceMetric> topology;
+    typedef waypoint_container_base<true,Topology,DistanceMetricBase> self;
+    typedef Topology topology;
     typedef DistanceMetricBase distance_metric;
-    typedef typename topology_traits< temporal_space<SpaceTopology, TimeTopology, DistanceMetric> >::point_type point_type;
-    typedef typename topology_traits< temporal_space<SpaceTopology, TimeTopology, DistanceMetric> >::point_difference_type point_difference_type;
+    typedef typename topology_traits< Topology >::point_type point_type;
+    typedef typename topology_traits< Topology >::point_difference_type point_difference_type;
     
     typedef std::map<double, point_type> container_type;
     
@@ -430,7 +430,7 @@ class waypoint_container_base< temporal_space<SpaceTopology, TimeTopology, Dista
             rhs -= 1.0 - cur_dt / dt_total;
             cur_dt = 0.0;
             ++(current_wpb.second);
-            if( current_wpb.second == parent->end() ) {
+            if( current_wpb.second == parent->waypoints.end() ) {
               current_wpb.second = current_wpb.first; ++(current_wpb.second);
               current_pt = current_wpb.second->second;
               return *this;
@@ -439,7 +439,7 @@ class waypoint_container_base< temporal_space<SpaceTopology, TimeTopology, Dista
           } else {
             rhs += cur_dt / dt_total;
             cur_dt = 1.0;
-            if( current_wpb.first == parent->begin() ) {
+            if( current_wpb.first == parent->waypoints.begin() ) {
               current_pt = current_wpb.first->second;
               return *this;
             };
@@ -772,14 +772,14 @@ class waypoint_container_base< temporal_space<SpaceTopology, TimeTopology, Dista
  * \tparam DistanceMetric The distance metric used to assess the distance between points.
  */
 template <typename Topology, typename DistanceMetric = default_distance_metric>
-class waypoint_container : public waypoint_container_base<Topology,DistanceMetric> {
+class waypoint_container : public waypoint_container_base< is_temporal_space<Topology>::type::value, Topology, DistanceMetric> {
   public:
     
     BOOST_CONCEPT_ASSERT((MetricSpaceConcept<Topology>));
     BOOST_CONCEPT_ASSERT((DistanceMetricConcept<DistanceMetric,Topology>));
     
     typedef waypoint_container<Topology,DistanceMetric> self;
-    typedef waypoint_container_base<Topology,DistanceMetric> base_class_type;
+    typedef waypoint_container_base<is_temporal_space<Topology>::type::value, Topology, DistanceMetric> base_class_type;
     
     typedef typename base_class_type::container_type container_type;
     typedef typename base_class_type::topology topology;

@@ -51,6 +51,7 @@ class CRSPlannerGUI : public QMainWindow, private Ui::CRSPlannerWindow {
   private slots:
     
     void executePlanner();
+    void executeDynamicPlanner();
     void startSolutionAnimation();
     void startTargetAnimation();
     void onJointChange();

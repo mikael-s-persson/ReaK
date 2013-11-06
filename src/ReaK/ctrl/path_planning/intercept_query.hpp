@@ -135,7 +135,7 @@ class motion_plan_intercept_query : public planning_query<FreeSpaceType> {
       goal_knots.clear();
     };
     
-    virtual double get_distance_to_goal(const point_type& pos) { 
+    std::pair<point_type, double> get_distance_position_to_goal(const point_type& pos) { 
       typedef typename std::set<point_type, temporal_point_time_ordering>::const_iterator KnotIter;
       
       for(KnotIter it = goal_knots.begin(); it != goal_knots.end(); ++it) {
@@ -143,7 +143,7 @@ class motion_plan_intercept_query : public planning_query<FreeSpaceType> {
           continue;
         double tmp = get(distance_metric, *(this->space))(pos, *it, *(this->space));
         if(tmp != std::numeric_limits<double>::infinity() )
-          return tmp;
+          return std::pair<point_type, double>(*it, tmp);
       };
       
       for(double t = pos.time; t < maximum_horizon + pos.time + horizon_decimation * 0.5; t += horizon_decimation) {
@@ -151,11 +151,16 @@ class motion_plan_intercept_query : public planning_query<FreeSpaceType> {
         double tmp = get(distance_metric, *(this->space))(pos, goal_pos, *(this->space));
         if(tmp != std::numeric_limits<double>::infinity() ) {
           goal_knots.insert(goal_pos);
-          return tmp;
+          return std::pair<point_type, double>(goal_pos, tmp);
         };
       };
       
-      return std::numeric_limits<double>::infinity();
+      return std::pair<point_type, double>(pos, std::numeric_limits<double>::infinity());
+    };
+    
+    
+    virtual double get_distance_to_goal(const point_type& pos) { 
+      return get_distance_position_to_goal(pos).second;
     };
     
     virtual double get_heuristic_to_goal(const point_type& pos) { 
@@ -188,7 +193,9 @@ class motion_plan_intercept_query : public planning_query<FreeSpaceType> {
                                         graph::any_graph::vertex_descriptor goal_node, 
                                         double goal_distance,
                                         graph::any_graph& g) {
-      return detail::register_optimal_solution_path_impl<solution_trajectory_wrapper>(*(this->space), g, start_node, goal_node, goal_pos, goal_distance, solutions);
+      graph::any_graph::property_map_by_ptr< const point_type > position = graph::get_dyn_prop<const point_type&>("vertex_position", g);
+      std::pair<point_type, double> goal_pos_dist = get_distance_position_to_goal(position[goal_node]);
+      return detail::register_optimal_solution_path_impl<solution_trajectory_wrapper>(*(this->space), g, start_node, goal_node, goal_pos_dist.first, goal_pos_dist.second, solutions);
     };
     
     virtual solution_record_ptr 
@@ -196,7 +203,9 @@ class motion_plan_intercept_query : public planning_query<FreeSpaceType> {
                                       graph::any_graph::vertex_descriptor goal_node, 
                                       double goal_distance,
                                       graph::any_graph& g) {
-      return detail::register_basic_solution_path_impl<solution_trajectory_wrapper>(*(this->space), g, start_node, goal_node, goal_pos, goal_distance, solutions);
+      graph::any_graph::property_map_by_ptr< const point_type > position = graph::get_dyn_prop<const point_type&>("vertex_position", g);
+      std::pair<point_type, double> goal_pos_dist = get_distance_position_to_goal(position[goal_node]);
+      return detail::register_basic_solution_path_impl<solution_trajectory_wrapper>(*(this->space), g, start_node, goal_node, goal_pos_dist.first, goal_pos_dist.second, solutions);
     };
     
     virtual solution_record_ptr 

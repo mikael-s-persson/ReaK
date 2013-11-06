@@ -21,6 +21,8 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "CRS_planner2_impl.hpp"
+
 #include "path_planning/path_planner_options.hpp"
 #include "kte_models/chaser_target_model_data.hpp"
 
@@ -73,6 +75,7 @@
 #include "topologies/Ndof_svp_spaces.hpp"
 #include "topologies/Ndof_sap_spaces.hpp"
 
+#include "path_planning/transformed_trajectory.hpp"
 
 #include <chrono>
 
@@ -136,14 +139,14 @@ void CRS_execute_dynamic_planner_impl(const kte::chaser_target_data& scene_data,
   
   shared_ptr< target_proxy_applicator_type > target_proxy_applicator( 
     new target_proxy_applicator_type(
-      pp::make_any_model_applicator< target_jt_space_type >(manip_direct_kin_map(scene_data.target_kin_model)),
+      pp::make_any_model_applicator< target_jt_space_type >(pp::manip_direct_kin_map(scene_data.target_kin_model)),
       target_state_traj));
   
   workspace->add_proxy_model_updater(target_proxy_applicator);
   
   
   // Create the starting configuration as a joint-space configuration.
-  typedef typename topology_traits< dynamic_workspace_type >::point_type rl_temporal_point_type;
+  typedef typename pp::topology_traits< dynamic_workspace_type >::point_type rl_temporal_point_type;
   
   point_type start_inter = normal_jt_space->origin();
   get<0>(start_inter) = jt_start;
@@ -168,16 +171,16 @@ void CRS_execute_dynamic_planner_impl(const kte::chaser_target_data& scene_data,
   
   // Create the interception query object:
   
-  typedef pp::manip_dk_ik_map< manip_direct_kin_map, rlIK_map_type > dkik_map_type;
+  typedef pp::manip_dk_ik_map< pp::manip_direct_kin_map, rlIK_map_type > dkik_map_type;
   typedef pp::temporal_topo_map< dkik_map_type > temporal_dkik_map_type;
   typedef pp::transformed_trajectory<dynamic_super_space_type, TargetStateTrajectory, temporal_dkik_map_type> mapped_traj_type;
   
   shared_ptr<mapped_traj_type> mapped_goal_traj( new mapped_traj_type(
-    shared_ptr<const dynamic_super_space_type>(&(workspace->get_super_space()), null_deleter()), 
+    shared_ptr<dynamic_super_space_type>(&(workspace->get_super_space()), null_deleter()), 
     target_state_traj, 
     temporal_dkik_map_type(
       dkik_map_type(
-        manip_direct_kin_map(scene_data.target_kin_model),
+        pp::manip_direct_kin_map(scene_data.target_kin_model),
         rlIK_map_type(chaser_P3R3R_model, scene_data.chaser_jt_limits)
       ))));
   
@@ -261,16 +264,16 @@ void CRS_execute_dynamic_planner_impl(const kte::chaser_target_data& scene_data,
   pp_query.reset_solution_records();
   workspace_planner->solve_planning_query(pp_query);
   
-  shared_ptr< pp::seq_path_base< static_super_space_type > > bestsol_rlpath;
+  shared_ptr< pp::seq_trajectory_base< dynamic_super_space_type > > bestsol_rltraj;
   if(pp_query.solutions.size())
-    bestsol_rlpath = pp_query.solutions.begin()->second;
+    bestsol_rltraj = pp_query.solutions.begin()->second;
   std::cout << "The shortest distance is: " << pp_query.get_best_solution_distance() << std::endl;
   
   sol_trace.clear();
-  if(bestsol_rlpath) {
-    typedef typename pp::seq_path_base< static_super_space_type >::point_fraction_iterator PtIter;
-    for(PtIter it = bestsol_rlpath->begin_fraction_travel(); it != bestsol_rlpath->end_fraction_travel(); it += 0.1)
-      sol_trace.push_back( vect<double,7>(get<0>(scene_data.chaser_jt_limits->map_to_space(*it, *jt_space, *normal_jt_space))) );
+  if(bestsol_rltraj) {
+    typedef typename pp::seq_trajectory_base< dynamic_super_space_type >::point_time_iterator PtIter;
+    for(PtIter it = bestsol_rltraj->begin_time_travel(); it != bestsol_rltraj->end_time_travel(); it += 0.05)
+      sol_trace.push_back( vect<double,7>(get<0>(scene_data.chaser_jt_limits->map_to_space((*it).pt, *jt_space, *normal_jt_space))) );
   };
   
   SoSeparator* mg_sep = temp_reporter.get_motion_graph_tracer(EE_frame).get_separator();
@@ -300,6 +303,72 @@ void CRS_execute_dynamic_planner_impl(const kte::chaser_target_data& scene_data,
   };
   
 };
+
+
+
+
+
+
+void CRSPlannerGUI::executeDynamicPlanner() {
+  
+  vect_n<double> jt_start;
+  if(configs.check_current_start->isChecked()) {
+    jt_start = scene_data.chaser_kin_model->getJointPositions(); 
+  } else {
+    std::stringstream ss(configs.custom_start_edit->text().toStdString());
+    ss >> jt_start;
+  };
+  
+  // update the planning options record:
+  onConfigsChanged();
+  
+  if((plan_options.space_order == 0) && (plan_options.interp_id == 0)) { 
+    CRS_execute_dynamic_planner_impl<pp::linear_interpolation_tag, 0>(
+      scene_data, plan_options, draw_data, jt_start, 10.0, target_anim->target_trajectory, sol_anim->bestsol_trajectory);
+  } else 
+#if 0
+  if((plan_options.space_order == 1) && (plan_options.interp_id == 0)) {
+    CRS_execute_dynamic_planner_impl<pp::linear_interpolation_tag, 1>(
+      scene_data, plan_options, draw_data, jt_start, 10.0, target_anim->target_trajectory, sol_anim->bestsol_trajectory);
+  } else 
+  if((plan_options.space_order == 2) && (plan_options.interp_id == 0)) {
+    CRS_execute_dynamic_planner_impl<pp::linear_interpolation_tag, 2>(
+      scene_data, plan_options, draw_data, jt_start, 10.0, target_anim->target_trajectory, sol_anim->bestsol_trajectory);
+  } else 
+#endif
+  if((plan_options.space_order == 1) && (plan_options.interp_id == 1)) {
+    CRS_execute_dynamic_planner_impl<pp::cubic_hermite_interpolation_tag, 1>(
+      scene_data, plan_options, draw_data, jt_start, 10.0, target_anim->target_trajectory, sol_anim->bestsol_trajectory);
+  } else 
+#if 0
+  if((plan_options.space_order == 2) && (plan_options.interp_id == 1)) {
+    CRS_execute_dynamic_planner_impl<pp::cubic_hermite_interpolation_tag, 2>(
+      scene_data, plan_options, draw_data, jt_start, 10.0, target_anim->target_trajectory, sol_anim->bestsol_trajectory);
+  } else 
+#endif
+  if((plan_options.space_order == 2) && (plan_options.interp_id == 2)) {
+    CRS_execute_dynamic_planner_impl<pp::quintic_hermite_interpolation_tag, 2>(
+      scene_data, plan_options, draw_data, jt_start, 10.0, target_anim->target_trajectory, sol_anim->bestsol_trajectory);
+  } else 
+  if((plan_options.space_order == 1) && (plan_options.interp_id == 3)) {
+    CRS_execute_dynamic_planner_impl<pp::svp_Ndof_interpolation_tag, 1>(
+      scene_data, plan_options, draw_data, jt_start, 10.0, target_anim->target_trajectory, sol_anim->bestsol_trajectory);
+  } else 
+#if 0
+  if((plan_options.space_order == 2) && (plan_options.interp_id == 3)) {
+    CRS_execute_static_planner_impl<pp::svp_Ndof_interpolation_tag, 2>(scene_data, plan_options,draw_data, jt_start, jt_desired, sol_anim->bestsol_trajectory);
+  } else 
+#endif
+  if((plan_options.space_order == 2) && (plan_options.interp_id == 4)) {
+    CRS_execute_dynamic_planner_impl<pp::sap_Ndof_interpolation_tag, 2>(
+      scene_data, plan_options, draw_data, jt_start, 10.0, target_anim->target_trajectory, sol_anim->bestsol_trajectory);
+  };
+  
+  
+};
+
+
+
 
 
 

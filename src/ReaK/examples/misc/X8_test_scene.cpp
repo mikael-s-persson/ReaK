@@ -138,15 +138,20 @@ void keyboard_press_hdl(void* userData, SoEventCallback* eventCB) {
       
       any_sbmp_reporter_chain< X8_MEAQRCD_space_type > report_chain;
       
-      typedef frame_tracer_3D<
-        manip_direct_kin_map,
-        quadrotor_system::state_space_type,
-        MEAQR_to_state_mapper > frame_reporter_type;
+//       typedef frame_tracer_3D<
+//         manip_direct_kin_map,
+//         quadrotor_system::state_space_type,
+//         MEAQR_to_state_mapper > frame_reporter_type;
+      
+      typedef frame_tracer_3D< X8_MEAQR_space_type > frame_reporter_type;
+      
       
       frame_reporter_type temp_reporter(
-        manip_direct_kin_map(r_info->builder),
-        shared_ptr<quadrotor_system::state_space_type>(&(r_info->X8_MEAQR_space->get_state_space()),null_deleter()),
-        MEAQR_to_state_mapper(), 5);
+        pp::make_any_model_applicator< X8_MEAQR_space_type >(
+          manip_direct_kin_map(r_info->builder),
+          MEAQR_to_state_mapper(), 
+          shared_ptr<quadrotor_system::state_space_type>(&(r_info->X8_MEAQR_space->get_state_space()),null_deleter())),
+        5);
       temp_reporter.add_traced_frame(r_info->target_frame);
       
       report_chain.add_reporter( boost::ref(temp_reporter) );

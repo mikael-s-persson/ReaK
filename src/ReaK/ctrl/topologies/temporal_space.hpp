@@ -254,7 +254,7 @@ class temporal_topo_map : public serialization::serializable {
     typename topology_traits< OutSpace >::point_type
     map_to_space(const PointType& pt, const InSpace& space_in, const OutSpace& space_out) const {
       typedef typename topology_traits< OutSpace >::point_type OutPointType;
-      return OutPointType(pt.time, spatial_map.map_to_space(pt, space_in.get_space_topology(), space_out.get_space_topology()));
+      return OutPointType(pt.time, spatial_map.map_to_space(pt.pt, space_in.get_space_topology(), space_out.get_space_topology()));
     };
     
     

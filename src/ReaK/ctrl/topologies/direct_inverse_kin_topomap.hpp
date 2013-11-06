@@ -116,7 +116,7 @@ class manip_dk_ik_map : public shared_object {
         EE_frame->addBefore(tf);
       };
       
-      return extract_from_model(space_out);
+      return ik_map.extract_from_model(space_out);
     };
     
     

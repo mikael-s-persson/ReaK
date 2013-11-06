@@ -77,14 +77,9 @@ class discrete_point_trajectory : public waypoint_container<Topology,DistanceMet
     
     typedef typename base_class_type::waypoint_pair waypoint_pair;
     
-  private:
+  protected:
     
     typedef typename base_class_type::container_type container_type;
-    
-    const container_type& get_waypoints() const { return this->waypoints; };
-    const distance_metric& get_dist() const { return this->dist; };
-    const topology& get_space() const { return *(this->space); };
-    const topology& get_temporal_space() const { return *(this->space); };
     
     
     virtual double travel_distance_impl(const point_type& a, const point_type& b) const {
@@ -100,7 +95,7 @@ class discrete_point_trajectory : public waypoint_container<Topology,DistanceMet
         const_waypoint_descriptor a_next = a_cpy; ++a_next;
         if(a_next == this->waypoints.end())
           break; // we're done.
-        sum += get_dist()(a_cpy->second, a_next->second, get_space());
+        sum += this->getDistanceMetric()(a_cpy->second, a_next->second, this->getSpace());
         a_cpy = a_next;
       };
       return sum;
