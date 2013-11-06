@@ -147,12 +147,14 @@ class motion_plan_intercept_query : public planning_query<FreeSpaceType> {
       };
       
       for(double t = pos.time; t < maximum_horizon + pos.time + horizon_decimation * 0.5; t += horizon_decimation) {
-        point_type goal_pos = goal_traj->get_point_at_time(t);
-        double tmp = get(distance_metric, *(this->space))(pos, goal_pos, *(this->space));
-        if(tmp != std::numeric_limits<double>::infinity() ) {
-          goal_knots.insert(goal_pos);
-          return std::pair<point_type, double>(goal_pos, tmp);
-        };
+        try {
+          point_type goal_pos = goal_traj->get_point_at_time(t);
+          double tmp = get(distance_metric, *(this->space))(pos, goal_pos, *(this->space));
+          if(tmp != std::numeric_limits<double>::infinity() ) {
+            goal_knots.insert(goal_pos);
+            return std::pair<point_type, double>(goal_pos, tmp);
+          };
+        } catch(std::exception& e) { RK_UNUSED(e); };
       };
       
       return std::pair<point_type, double>(pos, std::numeric_limits<double>::infinity());
@@ -175,12 +177,14 @@ class motion_plan_intercept_query : public planning_query<FreeSpaceType> {
       };
       
       for(double t = pos.time; t < maximum_horizon + pos.time + horizon_decimation * 0.5; t += horizon_decimation) {
-        point_type goal_pos = goal_traj->get_point_at_time(t);
-        double tmp = get(distance_metric, this->space->get_super_space())(pos, goal_pos, this->space->get_super_space());
-        if(tmp != std::numeric_limits<double>::infinity() ) {
-          goal_knots.insert(goal_pos);
-          return tmp;
-        };
+        try {
+          point_type goal_pos = goal_traj->get_point_at_time(t);
+          double tmp = get(distance_metric, this->space->get_super_space())(pos, goal_pos, this->space->get_super_space());
+          if(tmp != std::numeric_limits<double>::infinity() ) {
+            goal_knots.insert(goal_pos);
+            return tmp;
+          };
+        } catch(std::exception& e) { RK_UNUSED(e); };
       };
       
       return std::numeric_limits<double>::infinity();

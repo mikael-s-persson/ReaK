@@ -128,6 +128,7 @@ class planning_option_collection : public shared_object {
     std::size_t knn_method;
     double init_SA_temp;
     double init_relax;
+    double start_delay;
     
 /*******************************************************************************
                    ReaK's RTTI and Serialization interfaces
@@ -147,7 +148,8 @@ class planning_option_collection : public shared_object {
         & RK_SERIAL_SAVE_WITH_NAME(store_policy)
         & RK_SERIAL_SAVE_WITH_NAME(knn_method)
         & RK_SERIAL_SAVE_WITH_NAME(init_SA_temp)
-        & RK_SERIAL_SAVE_WITH_NAME(init_relax);
+        & RK_SERIAL_SAVE_WITH_NAME(init_relax)
+        & RK_SERIAL_SAVE_WITH_NAME(start_delay);
     };
     
     virtual void RK_CALL load(serialization::iarchive& A, unsigned int) {
@@ -164,7 +166,8 @@ class planning_option_collection : public shared_object {
         & RK_SERIAL_LOAD_WITH_NAME(store_policy)
         & RK_SERIAL_LOAD_WITH_NAME(knn_method)
         & RK_SERIAL_LOAD_WITH_NAME(init_SA_temp)
-        & RK_SERIAL_LOAD_WITH_NAME(init_relax);
+        & RK_SERIAL_LOAD_WITH_NAME(init_relax)
+        & RK_SERIAL_LOAD_WITH_NAME(start_delay);
     };
     
     RK_RTTI_MAKE_CONCRETE_1BASE(planning_option_collection,0xC2460019,1,"planning_option_collection",shared_object)

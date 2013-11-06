@@ -28,13 +28,10 @@
 #include "ui_CRS_planner_window.h"
 #include "ui_CRS_planner_config.h"
 
+#include "CRS_planner_data.hpp"
 #include "path_planning/path_planner_options.hpp"
 #include "kte_models/chaser_target_model_data.hpp"
 
-
-struct CRS_coin_nodes;
-struct CRS_sol_anim_data;
-struct CRS_target_anim_data;
 
 
 class SoSensor;
@@ -52,8 +49,14 @@ class CRSPlannerGUI : public QMainWindow, private Ui::CRSPlannerWindow {
     
     void executePlanner();
     void executeDynamicPlanner();
+    
     void startSolutionAnimation();
     void startTargetAnimation();
+    void startCompleteAnimation();
+    void stopSolutionAnimation();
+    void stopTargetAnimation();
+    void stopCompleteAnimation();
+    
     void onJointChange();
     void onTargetChange();
     
@@ -84,19 +87,18 @@ class CRSPlannerGUI : public QMainWindow, private Ui::CRSPlannerWindow {
     
   private:
     
+    // non-copyable:
     CRSPlannerGUI( const CRSPlannerGUI& );
     CRSPlannerGUI& operator=( const CRSPlannerGUI& );
-    
-    void onProxyChange();
     
     Ui::CRSPlannerConfig configs;
     
     ReaK::kte::chaser_target_data scene_data;
     ReaK::pp::planning_option_collection plan_options;
     
-    CRS_coin_nodes* draw_data;
-    CRS_sol_anim_data* sol_anim;
-    CRS_target_anim_data* target_anim;
+    CRS_coin_nodes       draw_data;
+    CRS_sol_anim_data    sol_anim;
+    CRS_target_anim_data target_anim;
     
 };
 

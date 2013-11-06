@@ -31,9 +31,6 @@
 #include <QDir>
 
 
-
-#include "CRS_A465_geom_model.hpp"
-
 #include <Inventor/Qt/SoQt.h>
 #include <Inventor/Qt/viewers/SoQtExaminerViewer.h>
 #include <Inventor/nodes/SoSeparator.h>
@@ -60,15 +57,12 @@
 
 #include "serialization/archiver_factory.hpp"
 
-
-#include "CRS_planners_utility.hpp"
-
 #include "CRS_planner_data.hpp"
 
 #include "optimization/optim_exceptions.hpp"
 
+#include "base/chrono_incl.hpp"
 
-#include <chrono>
 
 
 using namespace ReaK;
@@ -85,31 +79,45 @@ static QString last_used_path;
 void CRSPlannerGUI_animate_bestsol_trajectory(void* pv, SoSensor*) {
   CRSPlannerGUI* p = static_cast<CRSPlannerGUI*>(pv);
   
-  static std::size_t animation_progress = 0;
+  static shared_ptr< CRS_sol_anim_data::trajectory_type > manip_traj     = p->sol_anim.trajectory;
+  static CRS_sol_anim_data::trajectory_type::point_time_iterator cur_pit = manip_traj->begin_time_travel();
+  static ReaKaux::chrono::high_resolution_clock::time_point animation_start = ReaKaux::chrono::high_resolution_clock::now();
   
-  if( (p->sol_anim->enabled) && ( animation_progress < p->sol_anim->bestsol_trajectory.size() ) ) {
-    if(std::chrono::high_resolution_clock::now() - p->sol_anim->animation_last_render >= std::chrono::milliseconds(100)) {
-      
-      p->scene_data.chaser_kin_model->setJointPositions(vect_n<double>(p->sol_anim->bestsol_trajectory[animation_progress]));
+  if(!manip_traj) {
+    manip_traj = p->sol_anim.trajectory;
+    cur_pit = manip_traj->begin_time_travel();
+    animation_start = ReaKaux::chrono::high_resolution_clock::now();
+  };
+  if( (p->sol_anim.enabled) && ( (*cur_pit).time < manip_traj->get_end_time() ) ) {
+    if( (*cur_pit).time <= 0.001 * (ReaKaux::chrono::duration_cast<ReaKaux::chrono::milliseconds>(ReaKaux::chrono::high_resolution_clock::now() - animation_start)).count() ) {
+      cur_pit += 0.1;
+      p->scene_data.chaser_kin_model->setJointPositions(vect_n<double>((*cur_pit).pt));
       p->scene_data.chaser_kin_model->doDirectMotion();
-      
-      animation_progress++;
-      p->sol_anim->animation_last_render = std::chrono::high_resolution_clock::now();
     };
   } else {
-    p->sol_anim->animation_timer->unschedule();
-    animation_progress = 0;
-    p->sol_anim->animation_last_render = std::chrono::high_resolution_clock::now();
+    p->sol_anim.animation_timer->unschedule();
+    animation_start = ReaKaux::chrono::high_resolution_clock::now();
+    manip_traj.reset();
   };
 };
 
 void CRSPlannerGUI::startSolutionAnimation() {
-  sol_anim->animation_last_render = std::chrono::high_resolution_clock::now();
-  sol_anim->enabled = true;
-  sol_anim->animation_timer->schedule();
+  
+  if( !sol_anim.trajectory ) {
+    QMessageBox::critical(this,
+                  "Animation Error!",
+                  "The best-solution trajectory is missing (not loaded or erroneous)! Cannot animate chaser!",
+                  QMessageBox::Ok);
+    return;
+  };
+  sol_anim.enabled = true;
+  sol_anim.animation_timer->schedule();
 };
 
 
+void CRSPlannerGUI::stopSolutionAnimation() {
+  sol_anim.enabled = false;
+};
 
 
 
@@ -118,38 +126,42 @@ void CRSPlannerGUI::startSolutionAnimation() {
 void CRSPlannerGUI_animate_target_trajectory(void* pv, SoSensor*) {
   CRSPlannerGUI* p = static_cast<CRSPlannerGUI*>(pv);
   
-  static shared_ptr< sat_traj_type > target_traj = p->target_anim->target_trajectory;
-  static sat_traj_type::point_time_iterator cur_pit = target_traj->begin_time_travel();
+  static shared_ptr< CRS_target_anim_data::trajectory_type > target_traj    = p->target_anim.trajectory;
+  static CRS_target_anim_data::trajectory_type::point_time_iterator cur_pit = target_traj->begin_time_travel();
+  static ReaKaux::chrono::high_resolution_clock::time_point animation_start = ReaKaux::chrono::high_resolution_clock::now();
   
   if(!target_traj) {
-    target_traj = p->target_anim->target_trajectory;
+    target_traj = p->target_anim.trajectory;
     cur_pit = target_traj->begin_time_travel();
+    animation_start = ReaKaux::chrono::high_resolution_clock::now();
   };
-  if( (p->target_anim->enabled) && ( cur_pit->time < target_traj->get_end_time() ) ) {
-    if(std::chrono::high_resolution_clock::now() - p->target_anim->target_anim_last_render >= std::chrono::milliseconds(100)) {
-      p->target_anim->target_anim_last_render = std::chrono::high_resolution_clock::now();
+  if( (p->target_anim.enabled) && ( (*cur_pit).time < target_traj->get_end_time() ) ) {
+    if( (*cur_pit).time <= 0.001 * (ReaKaux::chrono::duration_cast<ReaKaux::chrono::milliseconds>(ReaKaux::chrono::high_resolution_clock::now() - animation_start)).count() ) {
       cur_pit += 0.1;
-      *(p->scene_data.target_kin_model->getFrame3D(0)) = get_frame_3D(cur_pit->pt); 
+      *(p->scene_data.target_kin_model->getFrame3D(0)) = get_frame_3D((*cur_pit).pt); 
       p->scene_data.target_kin_model->doDirectMotion();
     };
   } else {
-    p->target_anim->target_anim_timer->unschedule();
-    p->target_anim->target_anim_last_render = std::chrono::high_resolution_clock::now();
+    p->target_anim.animation_timer->unschedule();
+    animation_start = ReaKaux::chrono::high_resolution_clock::now();
     target_traj.reset();
   };
 };
 
 void CRSPlannerGUI::startTargetAnimation() {
-  if( !target_anim->target_trajectory ) {
+  if( !target_anim.trajectory ) {
     QMessageBox::critical(this,
                   "Animation Error!",
                   "The target trajectory is missing (not loaded or erroneous)! Cannot animate target!",
                   QMessageBox::Ok);
     return;
   };
-  target_anim->target_anim_last_render = std::chrono::high_resolution_clock::now();
-  target_anim->enabled = true;
-  target_anim->target_anim_timer->schedule();
+  target_anim.enabled = true;
+  target_anim.animation_timer->schedule();
+};
+
+void CRSPlannerGUI::stopTargetAnimation() {
+  target_anim.enabled = false;
 };
 
 void CRSPlannerGUI::loadTargetTrajectory() {
@@ -168,14 +180,38 @@ void CRSPlannerGUI::loadTargetTrajectory() {
   last_used_path = fileInf.absolutePath();
   
   *(serialization::open_iarchive(fileName.toStdString()))
-    & RK_SERIAL_LOAD_WITH_ALIAS("se3_trajectory", target_anim->target_trajectory);
+    & RK_SERIAL_LOAD_WITH_ALIAS("se3_trajectory", target_anim.trajectory);
   
-  if( target_anim->target_trajectory ) {
+  if( target_anim.trajectory ) {
     configs.traj_filename_edit->setText(fileInf.baseName());
   } else {
     configs.traj_filename_edit->setText(tr("ERROR!"));
   };
 };
+
+
+
+
+void CRSPlannerGUI::startCompleteAnimation() {
+  
+  if( !sol_anim.trajectory || !target_anim.trajectory ) {
+    QMessageBox::critical(this,
+                  "Animation Error!",
+                  "One of the trajectories is missing (not loaded or erroneous)! Cannot animate chaser and target!",
+                  QMessageBox::Ok);
+    return;
+  };
+  sol_anim.enabled = true;
+  target_anim.enabled = true;
+  sol_anim.animation_timer->schedule();
+  target_anim.animation_timer->schedule();
+};
+
+void CRSPlannerGUI::stopCompleteAnimation() {
+  sol_anim.enabled = false;
+  target_anim.enabled = false;
+};
+
 
 
 
@@ -186,11 +222,6 @@ CRSPlannerGUI::CRSPlannerGUI( QWidget * parent, Qt::WindowFlags flags ) : QMainW
   scene_data.load_chaser("models/CRS_A465.model.rkx");
   scene_data.load_target("models/airship3D.model.rkx");
   scene_data.load_environment("models/MD148_lab.geom.rkx");
-  
-  draw_data = new CRS_coin_nodes();
-  sol_anim = new CRS_sol_anim_data();
-  target_anim = new CRS_target_anim_data();
-  
   
   
   configs.setupUi(this->config_dock->widget());
@@ -222,77 +253,75 @@ CRSPlannerGUI::CRSPlannerGUI( QWidget * parent, Qt::WindowFlags flags ) : QMainW
   
   
   
-  sol_anim->animation_timer = new SoTimerSensor(CRSPlannerGUI_animate_bestsol_trajectory, this);
-  target_anim->target_anim_timer = new SoTimerSensor(CRSPlannerGUI_animate_target_trajectory, this);
+  sol_anim.animation_timer    = new SoTimerSensor(CRSPlannerGUI_animate_bestsol_trajectory, this);
+  target_anim.animation_timer = new SoTimerSensor(CRSPlannerGUI_animate_target_trajectory, this);
   
   
   
   SoQt::init(this->centralwidget);
   
-  draw_data->sg_root = new SoSeparator;
-  draw_data->sg_root->ref();
+  draw_data.sg_root = new SoSeparator;
+  draw_data.sg_root->ref();
   
   
-  draw_data->sw_robot_geom = new SoSwitch();
-  draw_data->sg_robot_geom = new geom::oi_scene_graph();
+  draw_data.sw_chaser_geom = new SoSwitch();
+  draw_data.sg_chaser_geom = new geom::oi_scene_graph();
   
-  (*draw_data->sg_robot_geom) << (*scene_data.chaser_geom_model);
-  double charact_length = draw_data->sg_robot_geom->computeCharacteristicLength();
+  (*draw_data.sg_chaser_geom) << (*scene_data.chaser_geom_model);
+  double charact_length = draw_data.sg_chaser_geom->computeCharacteristicLength();
   
-  draw_data->sw_robot_geom->addChild(draw_data->sg_robot_geom->getSceneGraph());
-  draw_data->sw_robot_geom->whichChild.setValue((configs.check_show_geom->isChecked() ? SO_SWITCH_ALL : SO_SWITCH_NONE));
+  draw_data.sw_chaser_geom->addChild(draw_data.sg_chaser_geom->getSceneGraph());
+  draw_data.sw_chaser_geom->whichChild.setValue((configs.check_show_geom->isChecked() ? SO_SWITCH_ALL : SO_SWITCH_NONE));
   
-  draw_data->sg_root->addChild(draw_data->sw_robot_geom);
-  
-  
-  draw_data->sw_robot_kin = new SoSwitch();
-  draw_data->sg_robot_kin = new geom::oi_scene_graph();
-  
-  draw_data->sg_robot_kin->setCharacteristicLength(charact_length);
-  (*draw_data->sg_robot_kin) << (*scene_data.chaser_kin_model->getKTEChain());
-  
-  draw_data->sw_robot_kin->addChild(draw_data->sg_robot_kin->getSceneGraph());
-  draw_data->sw_robot_kin->whichChild.setValue((configs.check_show_kinmdl->isChecked() ? SO_SWITCH_ALL : SO_SWITCH_NONE));
-  
-  draw_data->sg_root->addChild(draw_data->sw_robot_kin);
+  draw_data.sg_root->addChild(draw_data.sw_chaser_geom);
   
   
-  draw_data->sw_airship_geom = new SoSwitch();
-  draw_data->sg_airship_geom = new geom::oi_scene_graph();
+  draw_data.sw_chaser_kin = new SoSwitch();
+  draw_data.sg_chaser_kin = new geom::oi_scene_graph();
   
-  (*draw_data->sg_airship_geom) << (*scene_data.target_geom_model);
+  draw_data.sg_chaser_kin->setCharacteristicLength(charact_length);
+  (*draw_data.sg_chaser_kin) << (*scene_data.chaser_kin_model->getKTEChain());
   
-  draw_data->sw_airship_geom->addChild(draw_data->sg_airship_geom->getSceneGraph());
-  draw_data->sw_airship_geom->whichChild.setValue((configs.check_show_target->isChecked() ? SO_SWITCH_ALL : SO_SWITCH_NONE));
+  draw_data.sw_chaser_kin->addChild(draw_data.sg_chaser_kin->getSceneGraph());
+  draw_data.sw_chaser_kin->whichChild.setValue((configs.check_show_kinmdl->isChecked() ? SO_SWITCH_ALL : SO_SWITCH_NONE));
   
-  draw_data->sg_root->addChild(draw_data->sw_airship_geom);
+  draw_data.sg_root->addChild(draw_data.sw_chaser_kin);
   
   
-  draw_data->sw_lab_geom = new SoSwitch();
-  draw_data->sg_lab_geom = new geom::oi_scene_graph();
+  draw_data.sw_target_geom = new SoSwitch();
+  draw_data.sg_target_geom = new geom::oi_scene_graph();
+  
+  (*draw_data.sg_target_geom) << (*scene_data.target_geom_model);
+  
+  draw_data.sw_target_geom->addChild(draw_data.sg_target_geom->getSceneGraph());
+  draw_data.sw_target_geom->whichChild.setValue((configs.check_show_target->isChecked() ? SO_SWITCH_ALL : SO_SWITCH_NONE));
+  
+  draw_data.sg_root->addChild(draw_data.sw_target_geom);
+  
+  
+  draw_data.sw_env_geom = new SoSwitch();
+  draw_data.sg_env_geom = new geom::oi_scene_graph();
   
   for(std::size_t i = 0; i < scene_data.env_geom_models.size(); ++i)
-    (*draw_data->sg_lab_geom) << (*(scene_data.env_geom_models[i]));
+    (*draw_data.sg_env_geom) << (*(scene_data.env_geom_models[i]));
   
-  draw_data->sw_lab_geom->addChild(draw_data->sg_lab_geom->getSceneGraph());
-  draw_data->sw_lab_geom->whichChild.setValue((configs.check_show_env->isChecked() ? SO_SWITCH_ALL : SO_SWITCH_NONE));
+  draw_data.sw_env_geom->addChild(draw_data.sg_env_geom->getSceneGraph());
+  draw_data.sw_env_geom->whichChild.setValue((configs.check_show_env->isChecked() ? SO_SWITCH_ALL : SO_SWITCH_NONE));
   
-  draw_data->sg_root->addChild(draw_data->sw_lab_geom);
+  draw_data.sg_root->addChild(draw_data.sw_env_geom);
   
   
-  draw_data->sw_motion_graph = new SoSwitch();
-  draw_data->sw_motion_graph->whichChild.setValue((configs.check_show_motiongraph->isChecked() ? SO_SWITCH_ALL : SO_SWITCH_NONE));
-  draw_data->sg_root->addChild(draw_data->sw_motion_graph);
+  draw_data.sw_motion_graph = new SoSwitch();
+  draw_data.sw_motion_graph->whichChild.setValue((configs.check_show_motiongraph->isChecked() ? SO_SWITCH_ALL : SO_SWITCH_NONE));
+  draw_data.sg_root->addChild(draw_data.sw_motion_graph);
   
-  draw_data->sw_solutions = new SoSwitch();
-  draw_data->sw_solutions->whichChild.setValue((configs.check_show_sol->isChecked() ? SO_SWITCH_ALL : SO_SWITCH_NONE));
-  draw_data->sg_root->addChild(draw_data->sw_solutions);
-  
+  draw_data.sw_solutions = new SoSwitch();
+  draw_data.sw_solutions->whichChild.setValue((configs.check_show_sol->isChecked() ? SO_SWITCH_ALL : SO_SWITCH_NONE));
+  draw_data.sg_root->addChild(draw_data.sw_solutions);
   
   
   onJointChange();
   onTargetChange();
-  
   
   
   plan_options.space_order = 0;
@@ -308,46 +337,39 @@ CRSPlannerGUI::CRSPlannerGUI( QWidget * parent, Qt::WindowFlags flags ) : QMainW
   plan_options.knn_method = 2;
   plan_options.init_SA_temp = 0.0;
   plan_options.init_relax = 5.0;
+  plan_options.start_delay = 20.0;
   updateConfigs();
   
   
+  draw_data.eviewer = new SoQtExaminerViewer(this->centralwidget);
+  draw_data.eviewer->setSceneGraph(draw_data.sg_root);
+  draw_data.eviewer->show();
   
-  
-  
-  draw_data->eviewer = new SoQtExaminerViewer(this->centralwidget);
-  draw_data->eviewer->setSceneGraph(draw_data->sg_root);
-  draw_data->eviewer->show();
-  
-  draw_data->sg_robot_geom->enableAnchorUpdates();
-  draw_data->sg_robot_kin->enableAnchorUpdates();
-  draw_data->sg_airship_geom->enableAnchorUpdates();
+  draw_data.sg_chaser_geom->enableAnchorUpdates();
+  draw_data.sg_chaser_kin->enableAnchorUpdates();
+  draw_data.sg_target_geom->enableAnchorUpdates();
 };
 
 
 CRSPlannerGUI::~CRSPlannerGUI() {
   
-  draw_data->sg_robot_geom->disableAnchorUpdates();
-  draw_data->sg_robot_kin->disableAnchorUpdates();
-  draw_data->sg_airship_geom->disableAnchorUpdates();
+  draw_data.sg_chaser_geom->disableAnchorUpdates();
+  draw_data.sg_chaser_kin->disableAnchorUpdates();
+  draw_data.sg_target_geom->disableAnchorUpdates();
   
-  delete draw_data->sg_robot_geom;
-  delete draw_data->sg_robot_kin;
-  delete draw_data->sg_airship_geom;
-  delete draw_data->sg_lab_geom;
+  delete draw_data.sg_chaser_geom;
+  delete draw_data.sg_chaser_kin;
+  delete draw_data.sg_target_geom;
+  delete draw_data.sg_env_geom;
   
-  delete target_anim->target_anim_timer;
+  delete target_anim.animation_timer;
   
-  delete sol_anim->animation_timer;
+  delete sol_anim.animation_timer;
   
-  delete draw_data->eviewer;
-  draw_data->sg_root->unref();
+  delete draw_data.eviewer;
+  draw_data.sg_root->unref();
   SoQt::done();
   
-  
-  
-  delete draw_data;
-  delete sol_anim;
-  delete target_anim;
   
 };
 
@@ -365,8 +387,6 @@ void CRSPlannerGUI::onJointChange() {
     )
   );
   scene_data.chaser_kin_model->doDirectMotion();
-  
-  onProxyChange();
 };
 
 void CRSPlannerGUI::onTargetChange() {
@@ -391,23 +411,22 @@ void CRSPlannerGUI::onTargetChange() {
     scene_data.chaser_kin_model->doDirectMotion();
   };
   
-  onProxyChange();
 };
 
 void CRSPlannerGUI::onRobotVisible() {
-  draw_data->sw_robot_geom->whichChild.setValue((configs.check_show_geom->isChecked() ? SO_SWITCH_ALL : SO_SWITCH_NONE));
+  draw_data.sw_chaser_geom->whichChild.setValue((configs.check_show_geom->isChecked() ? SO_SWITCH_ALL : SO_SWITCH_NONE));
 };
 
 void CRSPlannerGUI::onRobotKinVisible() {
-  draw_data->sw_robot_kin->whichChild.setValue((configs.check_show_kinmdl->isChecked() ? SO_SWITCH_ALL : SO_SWITCH_NONE));
+  draw_data.sw_chaser_kin->whichChild.setValue((configs.check_show_kinmdl->isChecked() ? SO_SWITCH_ALL : SO_SWITCH_NONE));
 };
 
 void CRSPlannerGUI::onTargetVisible() {
-  draw_data->sw_airship_geom->whichChild.setValue((configs.check_show_target->isChecked() ? SO_SWITCH_ALL : SO_SWITCH_NONE));
+  draw_data.sw_target_geom->whichChild.setValue((configs.check_show_target->isChecked() ? SO_SWITCH_ALL : SO_SWITCH_NONE));
 };
 
 void CRSPlannerGUI::onEnvVisible() {
-  draw_data->sw_lab_geom->whichChild.setValue((configs.check_show_env->isChecked() ? SO_SWITCH_ALL : SO_SWITCH_NONE));
+  draw_data.sw_env_geom->whichChild.setValue((configs.check_show_env->isChecked() ? SO_SWITCH_ALL : SO_SWITCH_NONE));
 };
 
 void CRSPlannerGUI::onProxyVisible() {
@@ -415,15 +434,11 @@ void CRSPlannerGUI::onProxyVisible() {
 };
 
 void CRSPlannerGUI::onMGVisible() {
-  draw_data->sw_motion_graph->whichChild.setValue((configs.check_show_motiongraph->isChecked() ? SO_SWITCH_ALL : SO_SWITCH_NONE));
+  draw_data.sw_motion_graph->whichChild.setValue((configs.check_show_motiongraph->isChecked() ? SO_SWITCH_ALL : SO_SWITCH_NONE));
 };
 
 void CRSPlannerGUI::onSolutionsVisible() {
-  draw_data->sw_solutions->whichChild.setValue((configs.check_show_sol->isChecked() ? SO_SWITCH_ALL : SO_SWITCH_NONE));
-};
-
-void CRSPlannerGUI::onProxyChange() {
-  
+  draw_data.sw_solutions->whichChild.setValue((configs.check_show_sol->isChecked() ? SO_SWITCH_ALL : SO_SWITCH_NONE));
 };
 
 

@@ -89,6 +89,8 @@ class frame_tracer_3D : public shared_object {
     std::vector< geom::tracer_coin3d_impl > motion_graph_traces;
     /// Holds the list of traces that represent each solution recorded.
     mutable std::map< double, std::vector< geom::tracer_coin3d_impl > > solution_traces;
+    
+    bool enable_mg_traces;
   
   public:
     
@@ -99,10 +101,10 @@ class frame_tracer_3D : public shared_object {
      * \param aNextReporter The instance of the SBMP/SBPP reporter to which calls are forwarded to.
      */
     explicit frame_tracer_3D(const shared_ptr<applicator_type>& aMdlApplicator = shared_ptr<applicator_type>(),
-                             double aIntervalSize = 0.1, NextReporter aNextReporter = NextReporter()) : 
+                             double aIntervalSize = 0.1, bool aTraceMotionGraph = true, NextReporter aNextReporter = NextReporter()) : 
                              next_reporter(aNextReporter),
                              mdl_applicator(aMdlApplicator),
-                             interval_size(aIntervalSize) { };
+                             interval_size(aIntervalSize), enable_mg_traces(aTraceMotionGraph) { };
     
     /**
      * This function adds a frame to the list of traced frames, i.e., the frames whose 
@@ -179,6 +181,12 @@ class frame_tracer_3D : public shared_object {
               typename PositionMap>
     typename boost::disable_if< is_steerable_space<FreeSpaceType>,
     void >::type draw_motion_graph(const FreeSpaceType& free_space, const MotionGraph& g, PositionMap pos) const {
+      
+      if(!enable_mg_traces) {
+        next_reporter.draw_motion_graph(free_space, g, pos);
+        return;
+      };
+      
       typedef typename boost::graph_traits<MotionGraph>::vertex_iterator VIter;
       typedef typename boost::graph_traits<MotionGraph>::out_edge_iterator EIter;
       typedef typename topology_traits< FreeSpaceType >::point_type PointType;
@@ -221,6 +229,12 @@ class frame_tracer_3D : public shared_object {
               typename SteerRecMap>
     typename boost::enable_if< is_steerable_space<FreeSpaceType>,
     void >::type draw_motion_graph(const FreeSpaceType& free_space, const MotionGraph& g, SteerRecMap steer_rec) const {
+      
+      if(!enable_mg_traces) {
+        next_reporter.draw_motion_graph(free_space, g, steer_rec);
+        return;
+      };
+      
       typedef typename boost::graph_traits<MotionGraph>::vertex_iterator VIter;
       typedef typename boost::graph_traits<MotionGraph>::out_edge_iterator EIter;
       typedef typename topology_traits< FreeSpaceType >::point_type PointType;
