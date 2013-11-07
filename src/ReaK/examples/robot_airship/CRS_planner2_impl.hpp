@@ -52,10 +52,8 @@ class CRSPlannerGUI : public QMainWindow, private Ui::CRSPlannerWindow {
     
     void startSolutionAnimation();
     void startTargetAnimation();
-    void startCompleteAnimation();
     void stopSolutionAnimation();
     void stopTargetAnimation();
-    void stopCompleteAnimation();
     
     void onJointChange();
     void onTargetChange();
@@ -64,7 +62,6 @@ class CRSPlannerGUI : public QMainWindow, private Ui::CRSPlannerWindow {
     void onRobotKinVisible();
     void onTargetVisible();
     void onEnvVisible();
-    void onProxyVisible();
     void onMGVisible();
     void onSolutionsVisible();
     
@@ -81,11 +78,19 @@ class CRSPlannerGUI : public QMainWindow, private Ui::CRSPlannerWindow {
     
     void loadTargetTrajectory();
     
+    void loadChaserModel();
+    void loadTargetModel();
+    void loadEnvironmentGeometry();
+    void clearEnvironmentGeometries();
+    
     
     friend void CRSPlannerGUI_animate_bestsol_trajectory(void*, SoSensor*);
     friend void CRSPlannerGUI_animate_target_trajectory(void*, SoSensor*);
     
   private:
+    
+    void startCompleteAnimation();
+    void stopCompleteAnimation();
     
     // non-copyable:
     CRSPlannerGUI( const CRSPlannerGUI& );

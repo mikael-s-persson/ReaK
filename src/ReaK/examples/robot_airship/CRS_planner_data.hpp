@@ -49,16 +49,16 @@ struct chaser_target_coin_nodes {
   SoQtExaminerViewer* eviewer;
   SoSeparator* sg_root;
   
-  ReaK::geom::oi_scene_graph* sg_chaser_geom;
+  ReaK::shared_ptr<ReaK::geom::oi_scene_graph> sg_chaser_geom;
   SoSwitch* sw_chaser_geom;
   
-  ReaK::geom::oi_scene_graph* sg_chaser_kin;
+  ReaK::shared_ptr<ReaK::geom::oi_scene_graph> sg_chaser_kin;
   SoSwitch* sw_chaser_kin;
   
-  ReaK::geom::oi_scene_graph* sg_target_geom;
+  ReaK::shared_ptr<ReaK::geom::oi_scene_graph> sg_target_geom;
   SoSwitch* sw_target_geom;
   
-  ReaK::geom::oi_scene_graph* sg_env_geom;
+  ReaK::shared_ptr<ReaK::geom::oi_scene_graph> sg_env_geom;
   SoSwitch* sw_env_geom;
   
   bool trace_motion_graph;

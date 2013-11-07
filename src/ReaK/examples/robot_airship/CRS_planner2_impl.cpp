@@ -23,37 +23,20 @@
 
 #include "CRS_planner2_impl.hpp"
 
-
 #include <QApplication>
 #include <QMessageBox>
 #include <QFileDialog>
 #include <QMainWindow>
 #include <QDir>
 
-
 #include <Inventor/Qt/SoQt.h>
 #include <Inventor/Qt/viewers/SoQtExaminerViewer.h>
 #include <Inventor/nodes/SoSeparator.h>
 #include <Inventor/nodes/SoSwitch.h>
-#include <Inventor/nodes/SoCoordinate3.h>
-#include <Inventor/nodes/SoBaseColor.h>
-#include <Inventor/nodes/SoLineSet.h>
 #include <Inventor/sensors/SoTimerSensor.h>  // for SoTimerSensor
 
 #include "shapes/oi_scene_graph.hpp"
-#include "shapes/plane.hpp"
-#include "shapes/box.hpp"
-#include "shapes/coord_arrows_3D.hpp"
-#include "shapes/capped_cylinder.hpp"
 #include "proximity/proxy_query_model.hpp"
-
-#include "mbd_kte/inertia.hpp"
-#include "mbd_kte/mass_matrix_calculator.hpp"
-#include "mbd_kte/driving_actuator.hpp"
-#include "mbd_kte/state_measures.hpp"
-#include "mbd_kte/free_joints.hpp"
-#include "mbd_kte/kte_map_chain.hpp"
-#include "kte_models/manip_dynamics_model.hpp"
 
 #include "serialization/archiver_factory.hpp"
 
@@ -103,7 +86,12 @@ void CRSPlannerGUI_animate_bestsol_trajectory(void* pv, SoSensor*) {
 
 void CRSPlannerGUI::startSolutionAnimation() {
   
-  if( !sol_anim.trajectory ) {
+  if( configs.check_trajectory->isChecked() ) {
+    startCompleteAnimation();
+    return;
+  };
+  
+  if( !sol_anim.trajectory || !scene_data.chaser_kin_model ) {
     QMessageBox::critical(this,
                   "Animation Error!",
                   "The best-solution trajectory is missing (not loaded or erroneous)! Cannot animate chaser!",
@@ -116,6 +104,12 @@ void CRSPlannerGUI::startSolutionAnimation() {
 
 
 void CRSPlannerGUI::stopSolutionAnimation() {
+  
+  if( configs.check_trajectory->isChecked() ) {
+    stopCompleteAnimation();
+    return;
+  };
+  
   sol_anim.enabled = false;
 };
 
@@ -149,7 +143,7 @@ void CRSPlannerGUI_animate_target_trajectory(void* pv, SoSensor*) {
 };
 
 void CRSPlannerGUI::startTargetAnimation() {
-  if( !target_anim.trajectory ) {
+  if( !target_anim.trajectory || !scene_data.target_kin_model ) {
     QMessageBox::critical(this,
                   "Animation Error!",
                   "The target trajectory is missing (not loaded or erroneous)! Cannot animate target!",
@@ -194,7 +188,7 @@ void CRSPlannerGUI::loadTargetTrajectory() {
 
 void CRSPlannerGUI::startCompleteAnimation() {
   
-  if( !sol_anim.trajectory || !target_anim.trajectory ) {
+  if( !sol_anim.trajectory || !target_anim.trajectory || !scene_data.chaser_kin_model || !scene_data.target_kin_model ) {
     QMessageBox::critical(this,
                   "Animation Error!",
                   "One of the trajectories is missing (not loaded or erroneous)! Cannot animate chaser and target!",
@@ -219,14 +213,11 @@ CRSPlannerGUI::CRSPlannerGUI( QWidget * parent, Qt::WindowFlags flags ) : QMainW
                                                                           configs() {
   setupUi(this);
   
-  scene_data.load_chaser("models/CRS_A465.model.rkx");
-  scene_data.load_target("models/airship3D.model.rkx");
-  scene_data.load_environment("models/MD148_lab.geom.rkx");
-  
-  
   configs.setupUi(this->config_dock->widget());
   connect(configs.actionStart_Robot, SIGNAL(triggered()), this, SLOT(startSolutionAnimation()));
+  connect(configs.actionStopRobot, SIGNAL(triggered()), this, SLOT(stopSolutionAnimation()));
   connect(configs.actionAnimateTarget, SIGNAL(triggered()), this, SLOT(startTargetAnimation()));
+  connect(configs.actionStopTargetAnimation, SIGNAL(triggered()), this, SLOT(stopTargetAnimation()));
   connect(configs.actionExecutePlanner, SIGNAL(triggered()), this, SLOT(executePlanner()));
   connect(configs.actionJointChange, SIGNAL(triggered()), this, SLOT(onJointChange()));
   connect(configs.actionTargetChange, SIGNAL(triggered()), this, SLOT(onTargetChange()));
@@ -237,25 +228,18 @@ CRSPlannerGUI::CRSPlannerGUI( QWidget * parent, Qt::WindowFlags flags ) : QMainW
   connect(configs.actionRobotKinVisibleToggle, SIGNAL(triggered()), this, SLOT(onRobotKinVisible()));
   connect(configs.actionTargetVisibleToggle, SIGNAL(triggered()), this, SLOT(onTargetVisible()));
   connect(configs.actionEnvVisibleToggle, SIGNAL(triggered()), this, SLOT(onEnvVisible()));
-  connect(configs.actionProxyVisibleToggle, SIGNAL(triggered()), this, SLOT(onProxyVisible()));
   connect(configs.actionMGVisibleToggle, SIGNAL(triggered()), this, SLOT(onMGVisible()));
   connect(configs.actionSolutionsVisibleToggle, SIGNAL(triggered()), this, SLOT(onSolutionsVisible()));
   
   connect(configs.actionUpdateAvailOptions, SIGNAL(triggered()), this, SLOT(onUpdateAvailableOptions()));
-  
-  
   
   connect(actionLoad_Positions, SIGNAL(triggered()), this, SLOT(loadPositions()));
   connect(actionSave_Positions, SIGNAL(triggered()), this, SLOT(savePositions()));
   connect(actionLoad_Planner, SIGNAL(triggered()), this, SLOT(loadPlannerConfig()));
   connect(actionSave_Planner, SIGNAL(triggered()), this, SLOT(savePlannerConfig()));
   
-  
-  
-  
   sol_anim.animation_timer    = new SoTimerSensor(CRSPlannerGUI_animate_bestsol_trajectory, this);
   target_anim.animation_timer = new SoTimerSensor(CRSPlannerGUI_animate_target_trajectory, this);
-  
   
   
   SoQt::init(this->centralwidget);
@@ -263,53 +247,21 @@ CRSPlannerGUI::CRSPlannerGUI( QWidget * parent, Qt::WindowFlags flags ) : QMainW
   draw_data.sg_root = new SoSeparator;
   draw_data.sg_root->ref();
   
-  
   draw_data.sw_chaser_geom = new SoSwitch();
-  draw_data.sg_chaser_geom = new geom::oi_scene_graph();
-  
-  (*draw_data.sg_chaser_geom) << (*scene_data.chaser_geom_model);
-  double charact_length = draw_data.sg_chaser_geom->computeCharacteristicLength();
-  
-  draw_data.sw_chaser_geom->addChild(draw_data.sg_chaser_geom->getSceneGraph());
   draw_data.sw_chaser_geom->whichChild.setValue((configs.check_show_geom->isChecked() ? SO_SWITCH_ALL : SO_SWITCH_NONE));
-  
   draw_data.sg_root->addChild(draw_data.sw_chaser_geom);
   
-  
   draw_data.sw_chaser_kin = new SoSwitch();
-  draw_data.sg_chaser_kin = new geom::oi_scene_graph();
-  
-  draw_data.sg_chaser_kin->setCharacteristicLength(charact_length);
-  (*draw_data.sg_chaser_kin) << (*scene_data.chaser_kin_model->getKTEChain());
-  
-  draw_data.sw_chaser_kin->addChild(draw_data.sg_chaser_kin->getSceneGraph());
   draw_data.sw_chaser_kin->whichChild.setValue((configs.check_show_kinmdl->isChecked() ? SO_SWITCH_ALL : SO_SWITCH_NONE));
-  
   draw_data.sg_root->addChild(draw_data.sw_chaser_kin);
   
-  
   draw_data.sw_target_geom = new SoSwitch();
-  draw_data.sg_target_geom = new geom::oi_scene_graph();
-  
-  (*draw_data.sg_target_geom) << (*scene_data.target_geom_model);
-  
-  draw_data.sw_target_geom->addChild(draw_data.sg_target_geom->getSceneGraph());
   draw_data.sw_target_geom->whichChild.setValue((configs.check_show_target->isChecked() ? SO_SWITCH_ALL : SO_SWITCH_NONE));
-  
   draw_data.sg_root->addChild(draw_data.sw_target_geom);
   
-  
   draw_data.sw_env_geom = new SoSwitch();
-  draw_data.sg_env_geom = new geom::oi_scene_graph();
-  
-  for(std::size_t i = 0; i < scene_data.env_geom_models.size(); ++i)
-    (*draw_data.sg_env_geom) << (*(scene_data.env_geom_models[i]));
-  
-  draw_data.sw_env_geom->addChild(draw_data.sg_env_geom->getSceneGraph());
   draw_data.sw_env_geom->whichChild.setValue((configs.check_show_env->isChecked() ? SO_SWITCH_ALL : SO_SWITCH_NONE));
-  
   draw_data.sg_root->addChild(draw_data.sw_env_geom);
-  
   
   draw_data.sw_motion_graph = new SoSwitch();
   draw_data.sw_motion_graph->whichChild.setValue((configs.check_show_motiongraph->isChecked() ? SO_SWITCH_ALL : SO_SWITCH_NONE));
@@ -320,8 +272,9 @@ CRSPlannerGUI::CRSPlannerGUI( QWidget * parent, Qt::WindowFlags flags ) : QMainW
   draw_data.sg_root->addChild(draw_data.sw_solutions);
   
   
-  onJointChange();
-  onTargetChange();
+  draw_data.eviewer = new SoQtExaminerViewer(this->centralwidget);
+  draw_data.eviewer->setSceneGraph(draw_data.sg_root);
+  draw_data.eviewer->show();
   
   
   plan_options.space_order = 0;
@@ -340,78 +293,20 @@ CRSPlannerGUI::CRSPlannerGUI( QWidget * parent, Qt::WindowFlags flags ) : QMainW
   plan_options.start_delay = 20.0;
   updateConfigs();
   
-  
-  draw_data.eviewer = new SoQtExaminerViewer(this->centralwidget);
-  draw_data.eviewer->setSceneGraph(draw_data.sg_root);
-  draw_data.eviewer->show();
-  
-  draw_data.sg_chaser_geom->enableAnchorUpdates();
-  draw_data.sg_chaser_kin->enableAnchorUpdates();
-  draw_data.sg_target_geom->enableAnchorUpdates();
 };
 
 
 CRSPlannerGUI::~CRSPlannerGUI() {
   
-  draw_data.sg_chaser_geom->disableAnchorUpdates();
-  draw_data.sg_chaser_kin->disableAnchorUpdates();
-  draw_data.sg_target_geom->disableAnchorUpdates();
-  
-  delete draw_data.sg_chaser_geom;
-  delete draw_data.sg_chaser_kin;
-  delete draw_data.sg_target_geom;
-  delete draw_data.sg_env_geom;
-  
   delete target_anim.animation_timer;
-  
   delete sol_anim.animation_timer;
   
   delete draw_data.eviewer;
   draw_data.sg_root->unref();
   SoQt::done();
   
-  
 };
 
-
-void CRSPlannerGUI::onJointChange() {
-  scene_data.chaser_kin_model->setJointPositions(
-    vect_n<double>(
-      double(configs.track_pos->value()) * 0.001,
-      double(configs.joint1_pos->value()) * 0.001,
-      double(configs.joint2_pos->value()) * 0.001,
-      double(configs.joint3_pos->value()) * 0.001,
-      double(configs.joint4_pos->value()) * 0.001,
-      double(configs.joint5_pos->value()) * 0.001,
-      double(configs.joint6_pos->value()) * 0.001
-    )
-  );
-  scene_data.chaser_kin_model->doDirectMotion();
-};
-
-void CRSPlannerGUI::onTargetChange() {
-  shared_ptr< frame_3D<double> > target_state = scene_data.target_kin_model->getFrame3D(0);
-  target_state->Position = vect<double,3>(
-    double(configs.target_x->value()) * 0.001, 
-    double(configs.target_y->value()) * 0.001, 
-    double(configs.target_z->value()) * 0.001);
-  target_state->Quat = 
-    quaternion<double>::zrot(double(configs.target_yaw->value()) * 0.001) * 
-    quaternion<double>::yrot(double(configs.target_pitch->value()) * 0.001) * 
-    quaternion<double>::xrot(double(configs.target_roll->value()) * 0.001);
-  scene_data.target_kin_model->doDirectMotion();
-  
-  
-  if(configs.check_enable_ik->isChecked()) {
-    try {
-      frame_3D<double> tf = scene_data.target_frame->getFrameRelativeTo(scene_data.chaser_kin_model->getDependentFrame3D(0)->mFrame);
-      scene_data.chaser_kin_model->getDependentFrame3D(0)->mFrame->addBefore(tf);
-      scene_data.chaser_kin_model->doInverseMotion();
-    } catch( optim::infeasible_problem& e ) { RK_UNUSED(e); };
-    scene_data.chaser_kin_model->doDirectMotion();
-  };
-  
-};
 
 void CRSPlannerGUI::onRobotVisible() {
   draw_data.sw_chaser_geom->whichChild.setValue((configs.check_show_geom->isChecked() ? SO_SWITCH_ALL : SO_SWITCH_NONE));
@@ -427,10 +322,6 @@ void CRSPlannerGUI::onTargetVisible() {
 
 void CRSPlannerGUI::onEnvVisible() {
   draw_data.sw_env_geom->whichChild.setValue((configs.check_show_env->isChecked() ? SO_SWITCH_ALL : SO_SWITCH_NONE));
-};
-
-void CRSPlannerGUI::onProxyVisible() {
-  
 };
 
 void CRSPlannerGUI::onMGVisible() {
@@ -484,6 +375,9 @@ void CRSPlannerGUI::onConfigsChanged() {
   if(configs.check_bnb->isChecked())
     plan_options.planning_options |= pp::USE_BRANCH_AND_BOUND_PRUNING_FLAG;
   
+  plan_options.start_delay = 0.0;
+  if(configs.check_trajectory->isChecked())
+    plan_options.start_delay = configs.start_delay_spinbox->value();
   
   plan_options.store_policy = pp::ADJ_LIST_MOTION_GRAPH;
   if(configs.graph_storage_selection->currentIndex())
@@ -556,6 +450,8 @@ void CRSPlannerGUI::updateConfigs() {
     configs.check_bnb->setChecked(true);
   else
     configs.check_bnb->setChecked(false);
+  
+  configs.start_delay_spinbox->setValue(plan_options.start_delay);
   
   
   if( plan_options.store_policy == pp::DVP_ADJ_LIST_MOTION_GRAPH ) {
@@ -803,6 +699,164 @@ void CRSPlannerGUI::loadPlannerConfig() {
 
 
 
+
+
+void CRSPlannerGUI::onJointChange() {
+  if( !scene_data.chaser_kin_model )
+    return;
+  
+  scene_data.chaser_kin_model->setJointPositions(
+    vect_n<double>(
+      double(configs.track_pos->value()) * 0.001,
+      double(configs.joint1_pos->value()) * 0.001,
+      double(configs.joint2_pos->value()) * 0.001,
+      double(configs.joint3_pos->value()) * 0.001,
+      double(configs.joint4_pos->value()) * 0.001,
+      double(configs.joint5_pos->value()) * 0.001,
+      double(configs.joint6_pos->value()) * 0.001
+    )
+  );
+  scene_data.chaser_kin_model->doDirectMotion();
+};
+
+  
+void CRSPlannerGUI::loadChaserModel() {
+  
+  QString fileName = QFileDialog::getOpenFileName(
+    this, tr("Open Chaser Kinematic Model..."), last_used_path,
+    tr("Chaser Kinematic Model (*.model.rkx *.model.rkb *.model.pbuf)"));
+  
+  if( fileName == tr("") )
+    return;
+  
+  last_used_path = QFileInfo(fileName).absolutePath();
+  
+  try {
+    scene_data.load_chaser(fileName.toStdString());  // "models/CRS_A465.model.rkx"
+    
+    draw_data.sw_chaser_geom->removeAllChildren();
+    draw_data.sg_chaser_geom = shared_ptr<geom::oi_scene_graph>(new geom::oi_scene_graph());
+    (*draw_data.sg_chaser_geom) << (*scene_data.chaser_geom_model);
+    double charact_length = draw_data.sg_chaser_geom->computeCharacteristicLength();
+    draw_data.sw_chaser_geom->addChild(draw_data.sg_chaser_geom->getSceneGraph());
+    draw_data.sg_chaser_geom->enableAnchorUpdates();
+    
+    draw_data.sw_chaser_kin->removeAllChildren();
+    draw_data.sg_chaser_kin = shared_ptr<geom::oi_scene_graph>(new geom::oi_scene_graph());
+    draw_data.sg_chaser_kin->setCharacteristicLength(charact_length);
+    (*draw_data.sg_chaser_kin) << (*scene_data.chaser_kin_model->getKTEChain());
+    draw_data.sw_chaser_kin->addChild(draw_data.sg_chaser_kin->getSceneGraph());
+    draw_data.sg_chaser_kin->enableAnchorUpdates();
+    
+    onJointChange();
+    
+  } catch(...) {
+    QMessageBox::information(this,
+                "File Type Not Supported!",
+                "Sorry, this file-type is not supported!",
+                QMessageBox::Ok);
+    return;
+  };
+  
+};
+
+
+void CRSPlannerGUI::onTargetChange() {
+  if( !scene_data.target_kin_model )
+    return;
+  
+  shared_ptr< frame_3D<double> > target_state = scene_data.target_kin_model->getFrame3D(0);
+  target_state->Position = vect<double,3>(
+    double(configs.target_x->value()) * 0.001, 
+    double(configs.target_y->value()) * 0.001, 
+    double(configs.target_z->value()) * 0.001);
+  target_state->Quat = 
+    quaternion<double>::zrot(double(configs.target_yaw->value()) * 0.001) * 
+    quaternion<double>::yrot(double(configs.target_pitch->value()) * 0.001) * 
+    quaternion<double>::xrot(double(configs.target_roll->value()) * 0.001);
+  scene_data.target_kin_model->doDirectMotion();
+  
+  
+  if( scene_data.chaser_kin_model && configs.check_enable_ik->isChecked()) {
+    try {
+      frame_3D<double> tf = scene_data.target_frame->getFrameRelativeTo(scene_data.chaser_kin_model->getDependentFrame3D(0)->mFrame);
+      scene_data.chaser_kin_model->getDependentFrame3D(0)->mFrame->addBefore(tf);
+      scene_data.chaser_kin_model->doInverseMotion();
+    } catch( optim::infeasible_problem& e ) { RK_UNUSED(e); };
+    scene_data.chaser_kin_model->doDirectMotion();
+  };
+  
+};
+
+
+void CRSPlannerGUI::loadTargetModel() {
+  
+  
+  QString fileName = QFileDialog::getOpenFileName(
+    this, tr("Open Target Model..."), last_used_path,
+    tr("Target Model (*.model.rkx *.model.rkb *.model.pbuf)"));
+  
+  if( fileName == tr("") )
+    return;
+  
+  last_used_path = QFileInfo(fileName).absolutePath();
+  
+  try {
+    scene_data.load_target(fileName.toStdString());  // "models/airship3D.model.rkx"
+    
+    draw_data.sw_target_geom->removeAllChildren();
+    draw_data.sg_target_geom = shared_ptr<geom::oi_scene_graph>(new geom::oi_scene_graph());
+    (*draw_data.sg_target_geom) << (*scene_data.target_geom_model);
+    draw_data.sw_target_geom->addChild(draw_data.sg_target_geom->getSceneGraph());
+    draw_data.sg_target_geom->enableAnchorUpdates();
+    
+    onTargetChange();
+    
+  } catch(...) {
+    QMessageBox::information(this,
+                "File Type Not Supported!",
+                "Sorry, this file-type is not supported!",
+                QMessageBox::Ok);
+    return;
+  };
+  
+};
+
+void CRSPlannerGUI::loadEnvironmentGeometry() {
+  
+  QString fileName = QFileDialog::getOpenFileName(
+    this, tr("Open Environment Geometry..."), last_used_path,
+    tr("Environment Geometry (*.geom.rkx *.geom.rkb *.geom.pbuf)"));
+  
+  if( fileName == tr("") )
+    return;
+  
+  last_used_path = QFileInfo(fileName).absolutePath();
+  
+  try {
+    scene_data.load_environment(fileName.toStdString());  // "models/MD148_lab.geom.rkx"
+    
+    draw_data.sw_env_geom->removeAllChildren();
+    draw_data.sg_env_geom = shared_ptr<geom::oi_scene_graph>(new geom::oi_scene_graph());
+    for(std::size_t i = 0; i < scene_data.env_geom_models.size(); ++i)
+      (*draw_data.sg_env_geom) << (*(scene_data.env_geom_models[i]));
+    draw_data.sw_env_geom->addChild(draw_data.sg_env_geom->getSceneGraph());
+    
+  } catch(...) {
+    QMessageBox::information(this,
+                "File Type Not Supported!",
+                "Sorry, this file-type is not supported!",
+                QMessageBox::Ok);
+    return;
+  };
+  
+};
+
+void CRSPlannerGUI::clearEnvironmentGeometries() {
+  draw_data.sw_env_geom->removeAllChildren();
+  draw_data.sg_env_geom.reset();
+  scene_data.clear_environment();
+};
 
 
 int main(int argc, char** argv) {
