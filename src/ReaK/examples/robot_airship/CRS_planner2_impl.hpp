@@ -32,6 +32,7 @@
 #include "path_planning/path_planner_options.hpp"
 #include "kte_models/chaser_target_model_data.hpp"
 
+#include "rk_view3d_menu.hpp"
 
 
 class SoSensor;
@@ -57,13 +58,6 @@ class CRSPlannerGUI : public QMainWindow, private Ui::CRSPlannerWindow {
     
     void onJointChange();
     void onTargetChange();
-    
-    void onRobotVisible();
-    void onRobotKinVisible();
-    void onTargetVisible();
-    void onEnvVisible();
-    void onMGVisible();
-    void onSolutionsVisible();
     
     void onUpdateAvailableOptions();
     
@@ -97,6 +91,7 @@ class CRSPlannerGUI : public QMainWindow, private Ui::CRSPlannerWindow {
     CRSPlannerGUI& operator=( const CRSPlannerGUI& );
     
     Ui::CRSPlannerConfig configs;
+    ReaK::rkqt::View3DMenu view3d_menu;
     
     ReaK::kte::chaser_target_data scene_data;
     ReaK::pp::planning_option_collection plan_options;

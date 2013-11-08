@@ -210,7 +210,7 @@ void CRSPlannerGUI::stopCompleteAnimation() {
 
 
 CRSPlannerGUI::CRSPlannerGUI( QWidget * parent, Qt::WindowFlags flags ) : QMainWindow(parent,flags),
-                                                                          configs() {
+                                                                          configs(), view3d_menu(this) {
   setupUi(this);
   
   configs.setupUi(this->config_dock->widget());
@@ -223,13 +223,6 @@ CRSPlannerGUI::CRSPlannerGUI( QWidget * parent, Qt::WindowFlags flags ) : QMainW
   connect(configs.actionTargetChange, SIGNAL(triggered()), this, SLOT(onTargetChange()));
   
   connect(configs.actionLoadTargetTrajectory, SIGNAL(triggered()), this, SLOT(loadTargetTrajectory()));
-  
-  connect(configs.actionRobotVisibleToggle, SIGNAL(triggered()), this, SLOT(onRobotVisible()));
-  connect(configs.actionRobotKinVisibleToggle, SIGNAL(triggered()), this, SLOT(onRobotKinVisible()));
-  connect(configs.actionTargetVisibleToggle, SIGNAL(triggered()), this, SLOT(onTargetVisible()));
-  connect(configs.actionEnvVisibleToggle, SIGNAL(triggered()), this, SLOT(onEnvVisible()));
-  connect(configs.actionMGVisibleToggle, SIGNAL(triggered()), this, SLOT(onMGVisible()));
-  connect(configs.actionSolutionsVisibleToggle, SIGNAL(triggered()), this, SLOT(onSolutionsVisible()));
   
   connect(configs.actionUpdateAvailOptions, SIGNAL(triggered()), this, SLOT(onUpdateAvailableOptions()));
   
@@ -247,29 +240,16 @@ CRSPlannerGUI::CRSPlannerGUI( QWidget * parent, Qt::WindowFlags flags ) : QMainW
   draw_data.sg_root = new SoSeparator;
   draw_data.sg_root->ref();
   
-  draw_data.sw_chaser_geom = new SoSwitch();
-  draw_data.sw_chaser_geom->whichChild.setValue((configs.check_show_geom->isChecked() ? SO_SWITCH_ALL : SO_SWITCH_NONE));
-  draw_data.sg_root->addChild(draw_data.sw_chaser_geom);
   
-  draw_data.sw_chaser_kin = new SoSwitch();
-  draw_data.sw_chaser_kin->whichChild.setValue((configs.check_show_kinmdl->isChecked() ? SO_SWITCH_ALL : SO_SWITCH_NONE));
-  draw_data.sg_root->addChild(draw_data.sw_chaser_kin);
+  menubar->addMenu(&view3d_menu);
+  view3d_menu.setRoot(draw_data.sg_root);
   
-  draw_data.sw_target_geom = new SoSwitch();
-  draw_data.sw_target_geom->whichChild.setValue((configs.check_show_target->isChecked() ? SO_SWITCH_ALL : SO_SWITCH_NONE));
-  draw_data.sg_root->addChild(draw_data.sw_target_geom);
-  
-  draw_data.sw_env_geom = new SoSwitch();
-  draw_data.sw_env_geom->whichChild.setValue((configs.check_show_env->isChecked() ? SO_SWITCH_ALL : SO_SWITCH_NONE));
-  draw_data.sg_root->addChild(draw_data.sw_env_geom);
-  
-  draw_data.sw_motion_graph = new SoSwitch();
-  draw_data.sw_motion_graph->whichChild.setValue((configs.check_show_motiongraph->isChecked() ? SO_SWITCH_ALL : SO_SWITCH_NONE));
-  draw_data.sg_root->addChild(draw_data.sw_motion_graph);
-  
-  draw_data.sw_solutions = new SoSwitch();
-  draw_data.sw_solutions->whichChild.setValue((configs.check_show_sol->isChecked() ? SO_SWITCH_ALL : SO_SWITCH_NONE));
-  draw_data.sg_root->addChild(draw_data.sw_solutions);
+  draw_data.sw_chaser_geom  = view3d_menu.getDisplayGroup("Chaser Geometry",true);
+  draw_data.sw_chaser_kin   = view3d_menu.getDisplayGroup("Chaser KTE Chain",false);
+  draw_data.sw_target_geom  = view3d_menu.getDisplayGroup("Target Geometry",true);
+  draw_data.sw_env_geom     = view3d_menu.getDisplayGroup("Environment",true);
+  draw_data.sw_motion_graph = view3d_menu.getDisplayGroup("Motion-Graph",true);
+  draw_data.sw_solutions    = view3d_menu.getDisplayGroup("Solution(s)",true);
   
   
   draw_data.eviewer = new SoQtExaminerViewer(this->centralwidget);
@@ -301,36 +281,13 @@ CRSPlannerGUI::~CRSPlannerGUI() {
   delete target_anim.animation_timer;
   delete sol_anim.animation_timer;
   
+  view3d_menu.setRoot(NULL);
   delete draw_data.eviewer;
   draw_data.sg_root->unref();
   SoQt::done();
   
 };
 
-
-void CRSPlannerGUI::onRobotVisible() {
-  draw_data.sw_chaser_geom->whichChild.setValue((configs.check_show_geom->isChecked() ? SO_SWITCH_ALL : SO_SWITCH_NONE));
-};
-
-void CRSPlannerGUI::onRobotKinVisible() {
-  draw_data.sw_chaser_kin->whichChild.setValue((configs.check_show_kinmdl->isChecked() ? SO_SWITCH_ALL : SO_SWITCH_NONE));
-};
-
-void CRSPlannerGUI::onTargetVisible() {
-  draw_data.sw_target_geom->whichChild.setValue((configs.check_show_target->isChecked() ? SO_SWITCH_ALL : SO_SWITCH_NONE));
-};
-
-void CRSPlannerGUI::onEnvVisible() {
-  draw_data.sw_env_geom->whichChild.setValue((configs.check_show_env->isChecked() ? SO_SWITCH_ALL : SO_SWITCH_NONE));
-};
-
-void CRSPlannerGUI::onMGVisible() {
-  draw_data.sw_motion_graph->whichChild.setValue((configs.check_show_motiongraph->isChecked() ? SO_SWITCH_ALL : SO_SWITCH_NONE));
-};
-
-void CRSPlannerGUI::onSolutionsVisible() {
-  draw_data.sw_solutions->whichChild.setValue((configs.check_show_sol->isChecked() ? SO_SWITCH_ALL : SO_SWITCH_NONE));
-};
 
 
 void CRSPlannerGUI::onConfigsChanged() {

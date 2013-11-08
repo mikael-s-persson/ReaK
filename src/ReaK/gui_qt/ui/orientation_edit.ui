@@ -1,0 +1,294 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>OrientationEdit</class>
+ <widget class="QWidget" name="OrientationEdit">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>400</width>
+    <height>155</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Form</string>
+  </property>
+  <layout class="QGridLayout" name="gridLayout">
+   <property name="margin">
+    <number>0</number>
+   </property>
+   <property name="verticalSpacing">
+    <number>-1</number>
+   </property>
+   <item row="2" column="1">
+    <widget class="QSlider" name="yaw_slider">
+     <property name="minimum">
+      <number>-3141</number>
+     </property>
+     <property name="maximum">
+      <number>3141</number>
+     </property>
+     <property name="singleStep">
+      <number>10</number>
+     </property>
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+    </widget>
+   </item>
+   <item row="2" column="0">
+    <widget class="QLabel" name="yaw_label">
+     <property name="text">
+      <string>Yaw:</string>
+     </property>
+    </widget>
+   </item>
+   <item row="1" column="0">
+    <widget class="QLabel" name="pitch_label">
+     <property name="text">
+      <string>Pitch:</string>
+     </property>
+    </widget>
+   </item>
+   <item row="0" column="0">
+    <widget class="QLabel" name="roll_label">
+     <property name="text">
+      <string>Roll:</string>
+     </property>
+    </widget>
+   </item>
+   <item row="1" column="1">
+    <widget class="QSlider" name="pitch_slider">
+     <property name="minimum">
+      <number>-1570</number>
+     </property>
+     <property name="maximum">
+      <number>1570</number>
+     </property>
+     <property name="singleStep">
+      <number>10</number>
+     </property>
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+    </widget>
+   </item>
+   <item row="0" column="1">
+    <widget class="QSlider" name="roll_slider">
+     <property name="minimum">
+      <number>-3141</number>
+     </property>
+     <property name="maximum">
+      <number>3141</number>
+     </property>
+     <property name="singleStep">
+      <number>10</number>
+     </property>
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+    </widget>
+   </item>
+   <item row="0" column="2">
+    <widget class="QSpinBox" name="roll_spinbox">
+     <property name="suffix">
+      <string> mrad</string>
+     </property>
+     <property name="minimum">
+      <number>-3141</number>
+     </property>
+     <property name="maximum">
+      <number>3141</number>
+     </property>
+     <property name="singleStep">
+      <number>10</number>
+     </property>
+    </widget>
+   </item>
+   <item row="1" column="2">
+    <widget class="QSpinBox" name="pitch_spinbox">
+     <property name="suffix">
+      <string> mrad</string>
+     </property>
+     <property name="minimum">
+      <number>-1570</number>
+     </property>
+     <property name="maximum">
+      <number>1570</number>
+     </property>
+     <property name="singleStep">
+      <number>10</number>
+     </property>
+    </widget>
+   </item>
+   <item row="2" column="2">
+    <widget class="QSpinBox" name="yaw_spinbox">
+     <property name="suffix">
+      <string> mrad</string>
+     </property>
+     <property name="minimum">
+      <number>-3141</number>
+     </property>
+     <property name="maximum">
+      <number>3141</number>
+     </property>
+     <property name="singleStep">
+      <number>10</number>
+     </property>
+    </widget>
+   </item>
+  </layout>
+  <action name="actionOrientationChanged">
+   <property name="text">
+    <string>OrientationChanged</string>
+   </property>
+  </action>
+ </widget>
+ <resources/>
+ <connections>
+  <connection>
+   <sender>pitch_slider</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>pitch_spinbox</receiver>
+   <slot>setValue(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>171</x>
+     <y>148</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>355</x>
+     <y>148</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>pitch_spinbox</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>pitch_slider</receiver>
+   <slot>setValue(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>355</x>
+     <y>148</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>171</x>
+     <y>148</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>roll_slider</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>roll_spinbox</receiver>
+   <slot>setValue(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>171</x>
+     <y>66</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>355</x>
+     <y>66</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>roll_spinbox</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>roll_slider</receiver>
+   <slot>setValue(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>355</x>
+     <y>66</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>171</x>
+     <y>66</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>yaw_slider</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>yaw_spinbox</receiver>
+   <slot>setValue(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>171</x>
+     <y>230</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>355</x>
+     <y>230</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>yaw_spinbox</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>yaw_slider</receiver>
+   <slot>setValue(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>355</x>
+     <y>230</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>171</x>
+     <y>230</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>pitch_slider</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>actionOrientationChanged</receiver>
+   <slot>trigger()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>171</x>
+     <y>76</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>roll_slider</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>actionOrientationChanged</receiver>
+   <slot>trigger()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>171</x>
+     <y>30</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>yaw_slider</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>actionOrientationChanged</receiver>
+   <slot>trigger()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>171</x>
+     <y>122</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+</ui>
