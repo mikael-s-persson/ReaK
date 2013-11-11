@@ -87,6 +87,8 @@ void oi_scene_graph::update_anchors(void* aData, SoSensor*) {
   typedef std::map< shared_ptr< pose_2D<double> >, std::pair<SoSeparator*, SoTransform*> >::iterator Iter2D;
   typedef std::map< shared_ptr< pose_3D<double> >, std::pair<SoSeparator*, SoTransform*> >::iterator Iter3D;
   
+  ReaKaux::unique_lock<ReaKaux::recursive_mutex> lock_here(SG->mAnchorUpdatingMutex);
+  
   for(Iter2D it = SG->mAnchor2DMap.begin(); it != SG->mAnchor2DMap.end(); ++it) {
     it->second.second->rotation.setValue(SbVec3f(0.0,0.0,1.0), it->first->Rotation.getAngle());
     it->second.second->translation.setValue(it->first->Position[0],it->first->Position[1],0.0);
@@ -101,9 +103,24 @@ void oi_scene_graph::update_anchors(void* aData, SoSensor*) {
     SG->mUpdateFuncs[i]();
 };
 
-void oi_scene_graph::setVisibility(bool aVisible) {
+void oi_scene_graph::setVisibility(bool aVisible) const {
   mRootSwitch->whichChild.setValue((aVisible ? SO_SWITCH_ALL : SO_SWITCH_NONE));
 };
+
+
+void oi_scene_graph::clearAll() {
+  
+  ReaKaux::unique_lock<ReaKaux::recursive_mutex> lock_here(mAnchorUpdatingMutex);
+  
+  mUpdateFuncs.clear();
+  
+  mAnchor2DMap.clear();
+  mAnchor3DMap.clear();
+  
+  mRootSwitch->removeAllChildren();
+  
+};
+
 
 void oi_scene_graph::enableAnchorUpdates() {
   mTimer->schedule();
@@ -126,7 +143,7 @@ double oi_scene_graph::computeCharacteristicLength() {
 
 
 
-oi_scene_graph::oi_scene_graph() : mRoot(NULL), mTimer(NULL), mCharacteristicLength(1.0), mAnchor2DMap(), mAnchor3DMap() {
+oi_scene_graph::oi_scene_graph() : mRoot(NULL), mTimer(NULL), mCharacteristicLength(1.0), mAnchorUpdatingMutex(), mAnchor2DMap(), mAnchor3DMap() {
   mRoot = new SoSeparator;
   mRoot->ref();
   mRootSwitch = new SoSwitch;
@@ -141,6 +158,9 @@ oi_scene_graph::~oi_scene_graph() {
 };
 
 oi_scene_graph& operator<<(oi_scene_graph& aSG, const shared_ptr< pose_2D<double> >& aAnchor) {
+  
+  ReaKaux::unique_lock<ReaKaux::recursive_mutex> lock_here(aSG.mAnchorUpdatingMutex);
+  
   if((!aAnchor) || (aSG.mAnchor2DMap.find(aAnchor) != aSG.mAnchor2DMap.end()))
     return aSG;
   if(!aAnchor->Parent.expired())
@@ -162,6 +182,9 @@ oi_scene_graph& operator<<(oi_scene_graph& aSG, const shared_ptr< pose_2D<double
 };
 
 oi_scene_graph& operator<<(oi_scene_graph& aSG, const shared_ptr< pose_3D<double> >& aAnchor) {
+  
+  ReaKaux::unique_lock<ReaKaux::recursive_mutex> lock_here(aSG.mAnchorUpdatingMutex);
+  
   if((!aAnchor) || (aSG.mAnchor3DMap.find(aAnchor) != aSG.mAnchor3DMap.end()))
     return aSG;
   if(!aAnchor->Parent.expired())
@@ -360,6 +383,9 @@ oi_scene_graph& operator<<(oi_scene_graph& aSG, const geometry_2D& aGeom2D) {
   if(!aGeom2D.getAnchor()) {
     aSG.mRootSwitch->addChild(sep);
   } else {
+    
+    ReaKaux::unique_lock<ReaKaux::recursive_mutex> lock_here(aSG.mAnchorUpdatingMutex);
+    
     if(aSG.mAnchor2DMap.find(aGeom2D.getAnchor()) == aSG.mAnchor2DMap.end())
       aSG << aGeom2D.getAnchor();
     aSG.mAnchor2DMap[aGeom2D.getAnchor()].first->addChild(sep);
@@ -599,6 +625,8 @@ oi_scene_graph& operator<<(oi_scene_graph& aSG, const geometry_3D& aGeom3D) {
   if(!aGeom3D.getAnchor()) {
     aSG.mRootSwitch->addChild(sep);
   } else {
+    ReaKaux::unique_lock<ReaKaux::recursive_mutex> lock_here(aSG.mAnchorUpdatingMutex);
+    
     if(aSG.mAnchor3DMap.find(aGeom3D.getAnchor()) == aSG.mAnchor3DMap.end())
       aSG << aGeom3D.getAnchor();
     aSG.mAnchor3DMap[aGeom3D.getAnchor()].first->addChild(sep);

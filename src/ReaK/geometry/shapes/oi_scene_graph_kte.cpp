@@ -224,6 +224,8 @@ oi_scene_graph& operator<<(oi_scene_graph& aSG, const kte::kte_map& aModel) {
     if(!rev_joint.BaseFrame()) {
       aSG.mRootSwitch->addChild(sep);
     } else {
+      ReaKaux::unique_lock<ReaKaux::recursive_mutex> lock_here(aSG.mAnchorUpdatingMutex);
+      
       if(aSG.mAnchor3DMap.find(rev_joint.BaseFrame()) == aSG.mAnchor3DMap.end())
         aSG << rev_joint.BaseFrame();
       aSG.mAnchor3DMap[rev_joint.BaseFrame()].first->addChild(sep);
@@ -263,6 +265,8 @@ oi_scene_graph& operator<<(oi_scene_graph& aSG, const kte::kte_map& aModel) {
     if(!rev_joint.BaseFrame()) {
       aSG.mRootSwitch->addChild(sep);
     } else {
+      ReaKaux::unique_lock<ReaKaux::recursive_mutex> lock_here(aSG.mAnchorUpdatingMutex);
+      
       if(aSG.mAnchor2DMap.find(rev_joint.BaseFrame()) == aSG.mAnchor2DMap.end())
         aSG << rev_joint.BaseFrame();
       aSG.mAnchor2DMap[rev_joint.BaseFrame()].first->addChild(sep);
@@ -316,6 +320,8 @@ oi_scene_graph& operator<<(oi_scene_graph& aSG, const kte::kte_map& aModel) {
     if(!pri_joint.BaseFrame()) {
       aSG.mRootSwitch->addChild(sep);
     } else {
+      ReaKaux::unique_lock<ReaKaux::recursive_mutex> lock_here(aSG.mAnchorUpdatingMutex);
+      
       if(aSG.mAnchor3DMap.find(pri_joint.BaseFrame()) == aSG.mAnchor3DMap.end())
         aSG << pri_joint.BaseFrame();
       aSG.mAnchor3DMap[pri_joint.BaseFrame()].first->addChild(sep);
@@ -360,6 +366,8 @@ oi_scene_graph& operator<<(oi_scene_graph& aSG, const kte::kte_map& aModel) {
     if(!pri_joint.BaseFrame()) {
       aSG.mRootSwitch->addChild(sep);
     } else {
+      ReaKaux::unique_lock<ReaKaux::recursive_mutex> lock_here(aSG.mAnchorUpdatingMutex);
+      
       if(aSG.mAnchor2DMap.find(pri_joint.BaseFrame()) == aSG.mAnchor2DMap.end())
         aSG << pri_joint.BaseFrame();
       aSG.mAnchor2DMap[pri_joint.BaseFrame()].first->addChild(sep);
@@ -441,6 +449,8 @@ oi_scene_graph& operator<<(oi_scene_graph& aSG, const kte::kte_map& aModel) {
     if(!fr_joint.BaseFrame()) {
       aSG.mRootSwitch->addChild(sep);
     } else {
+      ReaKaux::unique_lock<ReaKaux::recursive_mutex> lock_here(aSG.mAnchorUpdatingMutex);
+      
       if(aSG.mAnchor3DMap.find(fr_joint.BaseFrame()) == aSG.mAnchor3DMap.end())
         aSG << fr_joint.BaseFrame();
       aSG.mAnchor3DMap[fr_joint.BaseFrame()].first->addChild(sep);
@@ -480,6 +490,8 @@ oi_scene_graph& operator<<(oi_scene_graph& aSG, const kte::kte_map& aModel) {
     if(!fr_joint.BaseFrame()) {
       aSG.mRootSwitch->addChild(sep);
     } else {
+      ReaKaux::unique_lock<ReaKaux::recursive_mutex> lock_here(aSG.mAnchorUpdatingMutex);
+      
       if(aSG.mAnchor2DMap.find(fr_joint.BaseFrame()) == aSG.mAnchor2DMap.end())
         aSG << fr_joint.BaseFrame();
       aSG.mAnchor2DMap[fr_joint.BaseFrame()].first->addChild(sep);
@@ -529,6 +541,8 @@ oi_scene_graph& operator<<(oi_scene_graph& aSG, const kte::kte_map& aModel) {
     if(!lnk_obj.BaseFrame()) {
       aSG.mRootSwitch->addChild(sep);
     } else {
+      ReaKaux::unique_lock<ReaKaux::recursive_mutex> lock_here(aSG.mAnchorUpdatingMutex);
+      
       if(aSG.mAnchor3DMap.find(lnk_obj.BaseFrame()) == aSG.mAnchor3DMap.end())
         aSG << lnk_obj.BaseFrame();
       aSG.mAnchor3DMap[lnk_obj.BaseFrame()].first->addChild(sep);
@@ -565,6 +579,8 @@ oi_scene_graph& operator<<(oi_scene_graph& aSG, const kte::kte_map& aModel) {
     if(!lnk_obj.BaseFrame()) {
       aSG.mRootSwitch->addChild(sep);
     } else {
+      ReaKaux::unique_lock<ReaKaux::recursive_mutex> lock_here(aSG.mAnchorUpdatingMutex);
+      
       if(aSG.mAnchor2DMap.find(lnk_obj.BaseFrame()) == aSG.mAnchor2DMap.end())
         aSG << lnk_obj.BaseFrame();
       aSG.mAnchor2DMap[lnk_obj.BaseFrame()].first->addChild(sep);
@@ -573,10 +589,14 @@ oi_scene_graph& operator<<(oi_scene_graph& aSG, const kte::kte_map& aModel) {
   } else if(aModel.castTo(kte::spring_3D::getStaticObjectType())) {
     const kte::spring_3D& spr_obj = static_cast<const kte::spring_3D&>(aModel);
     
-    if(aSG.mAnchor3DMap.find(spr_obj.Anchor1()) == aSG.mAnchor3DMap.end())
-      aSG << spr_obj.Anchor1();
-    if(aSG.mAnchor3DMap.find(spr_obj.Anchor2()) == aSG.mAnchor3DMap.end())
-      aSG << spr_obj.Anchor2();
+    {
+      ReaKaux::unique_lock<ReaKaux::recursive_mutex> lock_here(aSG.mAnchorUpdatingMutex);
+      
+      if(aSG.mAnchor3DMap.find(spr_obj.Anchor1()) == aSG.mAnchor3DMap.end())
+        aSG << spr_obj.Anchor1();
+      if(aSG.mAnchor3DMap.find(spr_obj.Anchor2()) == aSG.mAnchor3DMap.end())
+        aSG << spr_obj.Anchor2();
+    };
     
     SoSeparator* sep = new SoSeparator;
     
@@ -586,9 +606,12 @@ oi_scene_graph& operator<<(oi_scene_graph& aSG, const kte::kte_map& aModel) {
     SoScale* scal = new SoScale;
     sep->addChild(scal);
     
-    aSG.mUpdateFuncs.push_back(detail::update_inter_frame_3D(spr_obj.Anchor1(), spr_obj.Anchor2(), trans, scal));
-    aSG.mUpdateFuncs.back()();
-    
+    {
+      ReaKaux::unique_lock<ReaKaux::recursive_mutex> lock_here(aSG.mAnchorUpdatingMutex);
+      
+      aSG.mUpdateFuncs.push_back(detail::update_inter_frame_3D(spr_obj.Anchor1(), spr_obj.Anchor2(), trans, scal));
+      aSG.mUpdateFuncs.back()();
+    };
     
     SoBaseColor * red_col = new SoBaseColor;
     red_col->rgb = SbColor(kte_red_R, kte_red_G, kte_red_B);
@@ -596,19 +619,19 @@ oi_scene_graph& operator<<(oi_scene_graph& aSG, const kte::kte_map& aModel) {
     
     SoCoordinate3* sp_coords = new SoCoordinate3;
     {
-    int i = 0;
-    sp_coords->point.set1Value(i++, 0.0, -1.0, 0.0);
-    sp_coords->point.set1Value(i++, 0.0, -0.9, 0.0);
-    float h = -0.9;
-    float a = 0.0;
-    float r = aSG.mCharacteristicLength * 0.01;
-    for(int j = 0; j < 181; ++j) {
-      sp_coords->point.set1Value(i++, r * cos(a), h, r * sin(a));
-      h += 0.01;
-      a += 0.314159265359; // PI / 10
-    };
-    sp_coords->point.set1Value(i++, 0.0, 0.9, 0.0);
-    sp_coords->point.set1Value(i++, 0.0, 1.0, 0.0);
+      int i = 0;
+      sp_coords->point.set1Value(i++, 0.0, -1.0, 0.0);
+      sp_coords->point.set1Value(i++, 0.0, -0.9, 0.0);
+      float h = -0.9;
+      float a = 0.0;
+      float r = aSG.mCharacteristicLength * 0.01;
+      for(int j = 0; j < 181; ++j) {
+        sp_coords->point.set1Value(i++, r * cos(a), h, r * sin(a));
+        h += 0.01;
+        a += 0.314159265359; // PI / 10
+      };
+      sp_coords->point.set1Value(i++, 0.0, 0.9, 0.0);
+      sp_coords->point.set1Value(i++, 0.0, 1.0, 0.0);
     };
     sep->addChild(sp_coords);
     
@@ -636,10 +659,14 @@ oi_scene_graph& operator<<(oi_scene_graph& aSG, const kte::kte_map& aModel) {
   } else if(aModel.castTo(kte::spring_2D::getStaticObjectType())) {
     const kte::spring_2D& spr_obj = static_cast<const kte::spring_2D&>(aModel);
     
-    if(aSG.mAnchor2DMap.find(spr_obj.Anchor1()) == aSG.mAnchor2DMap.end())
-      aSG << spr_obj.Anchor1();
-    if(aSG.mAnchor2DMap.find(spr_obj.Anchor2()) == aSG.mAnchor2DMap.end())
-      aSG << spr_obj.Anchor2();
+    {
+      ReaKaux::unique_lock<ReaKaux::recursive_mutex> lock_here(aSG.mAnchorUpdatingMutex);
+      
+      if(aSG.mAnchor2DMap.find(spr_obj.Anchor1()) == aSG.mAnchor2DMap.end())
+        aSG << spr_obj.Anchor1();
+      if(aSG.mAnchor2DMap.find(spr_obj.Anchor2()) == aSG.mAnchor2DMap.end())
+        aSG << spr_obj.Anchor2();
+    };
     
     SoSeparator* sep = new SoSeparator;
     
@@ -649,8 +676,12 @@ oi_scene_graph& operator<<(oi_scene_graph& aSG, const kte::kte_map& aModel) {
     SoScale* scal = new SoScale;
     sep->addChild(scal);
     
-    aSG.mUpdateFuncs.push_back(detail::update_inter_frame_2D(spr_obj.Anchor1(), spr_obj.Anchor2(), trans, scal));
-    aSG.mUpdateFuncs.back()();
+    {
+      ReaKaux::unique_lock<ReaKaux::recursive_mutex> lock_here(aSG.mAnchorUpdatingMutex);
+      
+      aSG.mUpdateFuncs.push_back(detail::update_inter_frame_2D(spr_obj.Anchor1(), spr_obj.Anchor2(), trans, scal));
+      aSG.mUpdateFuncs.back()();
+    };
     
     SoBaseColor * white_col = new SoBaseColor;
     white_col->rgb = SbColor(1.0, 1.0, 1.0);
@@ -683,10 +714,14 @@ oi_scene_graph& operator<<(oi_scene_graph& aSG, const kte::kte_map& aModel) {
   } else if(aModel.castTo(kte::damper_3D::getStaticObjectType())) {
     const kte::damper_3D& dmp_obj = static_cast<const kte::damper_3D&>(aModel);
     
-    if(aSG.mAnchor3DMap.find(dmp_obj.Anchor1()) == aSG.mAnchor3DMap.end())
-      aSG << dmp_obj.Anchor1();
-    if(aSG.mAnchor3DMap.find(dmp_obj.Anchor2()) == aSG.mAnchor3DMap.end())
-      aSG << dmp_obj.Anchor2();
+    {
+      ReaKaux::unique_lock<ReaKaux::recursive_mutex> lock_here(aSG.mAnchorUpdatingMutex);
+      
+      if(aSG.mAnchor3DMap.find(dmp_obj.Anchor1()) == aSG.mAnchor3DMap.end())
+        aSG << dmp_obj.Anchor1();
+      if(aSG.mAnchor3DMap.find(dmp_obj.Anchor2()) == aSG.mAnchor3DMap.end())
+        aSG << dmp_obj.Anchor2();
+    };
     
     SoSeparator* sep = new SoSeparator;
     
@@ -696,9 +731,12 @@ oi_scene_graph& operator<<(oi_scene_graph& aSG, const kte::kte_map& aModel) {
     SoScale* scal = new SoScale;
     sep->addChild(scal);
     
-    aSG.mUpdateFuncs.push_back(detail::update_inter_frame_3D(dmp_obj.Anchor1(), dmp_obj.Anchor2(), trans, scal));
-    aSG.mUpdateFuncs.back()();
-    
+    {
+      ReaKaux::unique_lock<ReaKaux::recursive_mutex> lock_here(aSG.mAnchorUpdatingMutex);
+      
+      aSG.mUpdateFuncs.push_back(detail::update_inter_frame_3D(dmp_obj.Anchor1(), dmp_obj.Anchor2(), trans, scal));
+      aSG.mUpdateFuncs.back()();
+    };
     
     // draw the center-line:
     
@@ -751,10 +789,14 @@ oi_scene_graph& operator<<(oi_scene_graph& aSG, const kte::kte_map& aModel) {
   } else if(aModel.castTo(kte::damper_2D::getStaticObjectType())) {
     const kte::damper_2D& dmp_obj = static_cast<const kte::damper_2D&>(aModel);
     
-    if(aSG.mAnchor2DMap.find(dmp_obj.Anchor1()) == aSG.mAnchor2DMap.end())
-      aSG << dmp_obj.Anchor1();
-    if(aSG.mAnchor2DMap.find(dmp_obj.Anchor2()) == aSG.mAnchor2DMap.end())
-      aSG << dmp_obj.Anchor2();
+    {
+      ReaKaux::unique_lock<ReaKaux::recursive_mutex> lock_here(aSG.mAnchorUpdatingMutex);
+      
+      if(aSG.mAnchor2DMap.find(dmp_obj.Anchor1()) == aSG.mAnchor2DMap.end())
+        aSG << dmp_obj.Anchor1();
+      if(aSG.mAnchor2DMap.find(dmp_obj.Anchor2()) == aSG.mAnchor2DMap.end())
+        aSG << dmp_obj.Anchor2();
+    };
     
     SoSeparator* sep = new SoSeparator;
     
@@ -764,8 +806,12 @@ oi_scene_graph& operator<<(oi_scene_graph& aSG, const kte::kte_map& aModel) {
     SoScale* scal = new SoScale;
     sep->addChild(scal);
     
-    aSG.mUpdateFuncs.push_back(detail::update_inter_frame_2D(dmp_obj.Anchor1(), dmp_obj.Anchor2(), trans, scal));
-    aSG.mUpdateFuncs.back()();
+    {
+      ReaKaux::unique_lock<ReaKaux::recursive_mutex> lock_here(aSG.mAnchorUpdatingMutex);
+      
+      aSG.mUpdateFuncs.push_back(detail::update_inter_frame_2D(dmp_obj.Anchor1(), dmp_obj.Anchor2(), trans, scal));
+      aSG.mUpdateFuncs.back()();
+    };
     
     SoBaseColor * white_col = new SoBaseColor;
     white_col->rgb = SbColor(1.0, 1.0, 1.0);
@@ -830,6 +876,8 @@ oi_scene_graph& operator<<(oi_scene_graph& aSG, const kte::kte_map& aModel) {
     if(!tor_spr.Anchor1()) {
       aSG.mRootSwitch->addChild(sep);
     } else {
+      ReaKaux::unique_lock<ReaKaux::recursive_mutex> lock_here(aSG.mAnchorUpdatingMutex);
+      
       if(aSG.mAnchor3DMap.find(tor_spr.Anchor1()) == aSG.mAnchor3DMap.end())
         aSG << tor_spr.Anchor1();
       aSG.mAnchor3DMap[tor_spr.Anchor1()].first->addChild(sep);
@@ -870,6 +918,8 @@ oi_scene_graph& operator<<(oi_scene_graph& aSG, const kte::kte_map& aModel) {
     if(!tor_spr.Anchor1()) {
       aSG.mRootSwitch->addChild(sep);
     } else {
+      ReaKaux::unique_lock<ReaKaux::recursive_mutex> lock_here(aSG.mAnchorUpdatingMutex);
+      
       if(aSG.mAnchor2DMap.find(tor_spr.Anchor1()) == aSG.mAnchor2DMap.end())
         aSG << tor_spr.Anchor1();
       aSG.mAnchor2DMap[tor_spr.Anchor1()].first->addChild(sep);
@@ -910,6 +960,8 @@ oi_scene_graph& operator<<(oi_scene_graph& aSG, const kte::kte_map& aModel) {
     if(!tor_dmp.Anchor1()) {
       aSG.mRootSwitch->addChild(sep);
     } else {
+      ReaKaux::unique_lock<ReaKaux::recursive_mutex> lock_here(aSG.mAnchorUpdatingMutex);
+      
       if(aSG.mAnchor3DMap.find(tor_dmp.Anchor1()) == aSG.mAnchor3DMap.end())
         aSG << tor_dmp.Anchor1();
       aSG.mAnchor3DMap[tor_dmp.Anchor1()].first->addChild(sep);
@@ -950,6 +1002,8 @@ oi_scene_graph& operator<<(oi_scene_graph& aSG, const kte::kte_map& aModel) {
     if(!tor_dmp.Anchor1()) {
       aSG.mRootSwitch->addChild(sep);
     } else {
+      ReaKaux::unique_lock<ReaKaux::recursive_mutex> lock_here(aSG.mAnchorUpdatingMutex);
+      
       if(aSG.mAnchor2DMap.find(tor_dmp.Anchor1()) == aSG.mAnchor2DMap.end())
         aSG << tor_dmp.Anchor1();
       aSG.mAnchor2DMap[tor_dmp.Anchor1()].first->addChild(sep);
@@ -975,6 +1029,8 @@ oi_scene_graph& operator<<(oi_scene_graph& aSG, const kte::kte_map& aModel) {
     if(!cm_obj.CenterOfMass()->mFrame) {
       aSG.mRootSwitch->addChild(sep);
     } else {
+      ReaKaux::unique_lock<ReaKaux::recursive_mutex> lock_here(aSG.mAnchorUpdatingMutex);
+      
       if(aSG.mAnchor3DMap.find(cm_obj.CenterOfMass()->mFrame) == aSG.mAnchor3DMap.end())
         aSG << cm_obj.CenterOfMass()->mFrame;
       aSG.mAnchor3DMap[cm_obj.CenterOfMass()->mFrame].first->addChild(sep);
@@ -1000,6 +1056,8 @@ oi_scene_graph& operator<<(oi_scene_graph& aSG, const kte::kte_map& aModel) {
     if(!cm_obj.CenterOfMass()->mFrame) {
       aSG.mRootSwitch->addChild(sep);
     } else {
+      ReaKaux::unique_lock<ReaKaux::recursive_mutex> lock_here(aSG.mAnchorUpdatingMutex);
+      
       if(aSG.mAnchor2DMap.find(cm_obj.CenterOfMass()->mFrame) == aSG.mAnchor2DMap.end())
         aSG << cm_obj.CenterOfMass()->mFrame;
       aSG.mAnchor2DMap[cm_obj.CenterOfMass()->mFrame].first->addChild(sep);

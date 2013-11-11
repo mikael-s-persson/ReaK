@@ -96,7 +96,6 @@ class CRSPlannerGUI : public QMainWindow, private Ui::CRSPlannerWindow {
     ReaK::kte::chaser_target_data scene_data;
     ReaK::pp::planning_option_collection plan_options;
     
-    CRS_coin_nodes       draw_data;
     CRS_sol_anim_data    sol_anim;
     CRS_target_anim_data target_anim;
     

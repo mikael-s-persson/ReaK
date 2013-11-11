@@ -101,19 +101,8 @@ std::string KTEModelViewerEditor::loadKinModelFromArchive(ReaK::serialization::i
   ReaK::shared_ptr< const ReaK::kte::kte_map_chain > kin_mdl_chain = kin_mdl->getKTEChain();
   if(kin_mdl_chain) {
     kin_mdl->doDirectMotion();
-    std::string sg_name = objtree_edit.get_object_name(kin_mdl_id) + " | kte_chain";
-    ReaK::shared_ptr< ReaK::geom::oi_scene_graph > sg(new ReaK::geom::oi_scene_graph());
-    scene_graphs[sg_name] = sg;
-    (*sg) << (*kin_mdl_chain);
-    sg->setVisibility(true);
-    
-    SoSwitch* sw = view3d_menu.getDisplayGroup("Kinematics Models", true);
-    if(sw) {
-      sw->addChild(sg->getSceneGraph());
-    } else
-      sg_root->addChild(sg->getSceneGraph());
-    
-    sg->enableAnchorUpdates();
+    ReaK::shared_ptr< ReaK::geom::oi_scene_graph > psg = view3d_menu.getGeometryGroup("Kinematics Models");
+    (*psg) << (*kin_mdl_chain);
   };
   
   return objtree_edit.get_object_name(kin_mdl_id);
@@ -129,18 +118,9 @@ std::string KTEModelViewerEditor::addGeometricModel(const ReaK::shared_ptr< ReaK
   
   std::string sg_name = objtree_edit.get_object_name(mdl_geom_id);
   geom_models[sg_name] = mdl_geom;
-  ReaK::shared_ptr< ReaK::geom::oi_scene_graph > sg(new ReaK::geom::oi_scene_graph());
-  scene_graphs[sg_name] = sg;
-  (*sg) << (*mdl_geom);
-  sg->setVisibility(true);
   
-  SoSwitch* sw = view3d_menu.getDisplayGroup("Geometric Models", true);
-  if(sw) {
-    sw->addChild(sg->getSceneGraph());
-  } else
-    sg_root->addChild(sg->getSceneGraph());
-  
-  sg->enableAnchorUpdates();
+  ReaK::shared_ptr< ReaK::geom::oi_scene_graph > psg = view3d_menu.getGeometryGroup("Geometric Models");
+  (*psg) << (*mdl_geom);
   
   return sg_name;
 };
@@ -154,18 +134,9 @@ std::string KTEModelViewerEditor::addProximityModel(const ReaK::shared_ptr< ReaK
   
   std::string sg_name = objtree_edit.get_object_name(mdl_prox_id);
   proxy_models[sg_name] = mdl_prox;
-  ReaK::shared_ptr< ReaK::geom::oi_scene_graph > sg(new ReaK::geom::oi_scene_graph());
-  scene_graphs[sg_name] = sg;
-  (*sg) << (*mdl_prox);
-  sg->setVisibility(true);
   
-  SoSwitch* sw = view3d_menu.getDisplayGroup("Proximity Models", false);
-  if(sw) {
-    sw->addChild(sg->getSceneGraph());
-  } else
-    sg_root->addChild(sg->getSceneGraph());
-  
-  sg->enableAnchorUpdates();
+  ReaK::shared_ptr< ReaK::geom::oi_scene_graph > psg = view3d_menu.getGeometryGroup("Proximity Models");
+  (*psg) << (*mdl_prox);
   
   return sg_name;
 };

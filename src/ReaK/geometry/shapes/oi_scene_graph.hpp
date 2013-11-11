@@ -60,6 +60,8 @@
 #include <map>
 #include <vector>
 
+#include "base/thread_incl.hpp"
+
 #ifdef RK_ENABLE_CXX11_FEATURES
 #include <functional>
 #else
@@ -112,6 +114,8 @@ class oi_scene_graph {
     color mCurrentColor;
     double mCharacteristicLength;
     
+    ReaKaux::recursive_mutex mAnchorUpdatingMutex;
+    
     std::map< shared_ptr< pose_2D<double> >, std::pair<SoSeparator*, SoTransform*> > mAnchor2DMap;
     std::map< shared_ptr< pose_3D<double> >, std::pair<SoSeparator*, SoTransform*> > mAnchor3DMap;
 
@@ -127,7 +131,9 @@ class oi_scene_graph {
     
     SoSeparator* getSceneGraph() const { return mRoot; };
     
-    void setVisibility(bool aVisible);
+    void setVisibility(bool aVisible) const;
+    
+    void clearAll();
     
     /**
      * Enable the internal sensor-mechanism that will update all the transformations in the scene-graph

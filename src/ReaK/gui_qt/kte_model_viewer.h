@@ -103,12 +103,7 @@ class KTEModelViewerEditor : public QMainWindow, private Ui::KTEModelView {
     
     ReaK::serialization::objtree_editor& objtree_edit;
     
-    SoQtExaminerViewer* eviewer;
-    SoSeparator* sg_root;
-    
     ReaK::rkqt::View3DMenu view3d_menu;
-    
-    std::map< std::string, ReaK::shared_ptr< ReaK::geom::oi_scene_graph > > scene_graphs;
     
     std::map< std::string, ReaK::shared_ptr< ReaK::geom::kte_chain_geometry_3D > > kte_geometries;
     std::map< std::string, ReaK::shared_ptr< ReaK::geom::colored_model_3D > > geom_models;

@@ -231,31 +231,21 @@ CRSPlannerGUI::CRSPlannerGUI( QWidget * parent, Qt::WindowFlags flags ) : QMainW
   connect(actionLoad_Planner, SIGNAL(triggered()), this, SLOT(loadPlannerConfig()));
   connect(actionSave_Planner, SIGNAL(triggered()), this, SLOT(savePlannerConfig()));
   
-  sol_anim.animation_timer    = new SoTimerSensor(CRSPlannerGUI_animate_bestsol_trajectory, this);
-  target_anim.animation_timer = new SoTimerSensor(CRSPlannerGUI_animate_target_trajectory, this);
-  
   
   SoQt::init(this->centralwidget);
   
-  draw_data.sg_root = new SoSeparator;
-  draw_data.sg_root->ref();
-  
-  
   menubar->addMenu(&view3d_menu);
-  view3d_menu.setRoot(draw_data.sg_root);
+  view3d_menu.setViewer(new SoQtExaminerViewer(this->centralwidget));
   
-  draw_data.sw_chaser_geom  = view3d_menu.getDisplayGroup("Chaser Geometry",true);
-  draw_data.sw_chaser_kin   = view3d_menu.getDisplayGroup("Chaser KTE Chain",false);
-  draw_data.sw_target_geom  = view3d_menu.getDisplayGroup("Target Geometry",true);
-  draw_data.sw_env_geom     = view3d_menu.getDisplayGroup("Environment",true);
-  draw_data.sw_motion_graph = view3d_menu.getDisplayGroup("Motion-Graph",true);
-  draw_data.sw_solutions    = view3d_menu.getDisplayGroup("Solution(s)",true);
+  view3d_menu.getGeometryGroup("Chaser Geometry",true);
+  view3d_menu.getGeometryGroup("Chaser KTE Chain",false);
+  view3d_menu.getGeometryGroup("Target Geometry",true);
+  view3d_menu.getGeometryGroup("Environment",true);
+  view3d_menu.getDisplayGroup("Motion-Graph",true);
+  view3d_menu.getDisplayGroup("Solution(s)",true);
   
-  
-  draw_data.eviewer = new SoQtExaminerViewer(this->centralwidget);
-  draw_data.eviewer->setSceneGraph(draw_data.sg_root);
-  draw_data.eviewer->show();
-  
+  sol_anim.animation_timer    = new SoTimerSensor(CRSPlannerGUI_animate_bestsol_trajectory, this);
+  target_anim.animation_timer = new SoTimerSensor(CRSPlannerGUI_animate_target_trajectory, this);
   
   plan_options.space_order = 0;
   plan_options.interp_id = 0;
@@ -281,9 +271,7 @@ CRSPlannerGUI::~CRSPlannerGUI() {
   delete target_anim.animation_timer;
   delete sol_anim.animation_timer;
   
-  view3d_menu.setRoot(NULL);
-  delete draw_data.eviewer;
-  draw_data.sg_root->unref();
+  view3d_menu.setViewer(NULL);
   SoQt::done();
   
 };
@@ -691,19 +679,14 @@ void CRSPlannerGUI::loadChaserModel() {
   try {
     scene_data.load_chaser(fileName.toStdString());  // "models/CRS_A465.model.rkx"
     
-    draw_data.sw_chaser_geom->removeAllChildren();
-    draw_data.sg_chaser_geom = shared_ptr<geom::oi_scene_graph>(new geom::oi_scene_graph());
-    (*draw_data.sg_chaser_geom) << (*scene_data.chaser_geom_model);
-    double charact_length = draw_data.sg_chaser_geom->computeCharacteristicLength();
-    draw_data.sw_chaser_geom->addChild(draw_data.sg_chaser_geom->getSceneGraph());
-    draw_data.sg_chaser_geom->enableAnchorUpdates();
+    shared_ptr<geom::oi_scene_graph> psg = view3d_menu.getGeometryGroup("Chaser Geometry");
+    psg->clearAll();
+    (*psg) << (*scene_data.chaser_geom_model);
     
-    draw_data.sw_chaser_kin->removeAllChildren();
-    draw_data.sg_chaser_kin = shared_ptr<geom::oi_scene_graph>(new geom::oi_scene_graph());
-    draw_data.sg_chaser_kin->setCharacteristicLength(charact_length);
-    (*draw_data.sg_chaser_kin) << (*scene_data.chaser_kin_model->getKTEChain());
-    draw_data.sw_chaser_kin->addChild(draw_data.sg_chaser_kin->getSceneGraph());
-    draw_data.sg_chaser_kin->enableAnchorUpdates();
+    shared_ptr<geom::oi_scene_graph> psg_kte = view3d_menu.getGeometryGroup("Chaser KTE Chain");
+    psg_kte->clearAll();
+    psg_kte->setCharacteristicLength( psg->computeCharacteristicLength() );
+    (*psg_kte) << (*scene_data.chaser_kin_model->getKTEChain());
     
     onJointChange();
     
@@ -761,11 +744,9 @@ void CRSPlannerGUI::loadTargetModel() {
   try {
     scene_data.load_target(fileName.toStdString());  // "models/airship3D.model.rkx"
     
-    draw_data.sw_target_geom->removeAllChildren();
-    draw_data.sg_target_geom = shared_ptr<geom::oi_scene_graph>(new geom::oi_scene_graph());
-    (*draw_data.sg_target_geom) << (*scene_data.target_geom_model);
-    draw_data.sw_target_geom->addChild(draw_data.sg_target_geom->getSceneGraph());
-    draw_data.sg_target_geom->enableAnchorUpdates();
+    shared_ptr<geom::oi_scene_graph> psg = view3d_menu.getGeometryGroup("Target Geometry");
+    psg->clearAll();
+    (*psg) << (*scene_data.target_geom_model);
     
     onTargetChange();
     
@@ -793,11 +774,10 @@ void CRSPlannerGUI::loadEnvironmentGeometry() {
   try {
     scene_data.load_environment(fileName.toStdString());  // "models/MD148_lab.geom.rkx"
     
-    draw_data.sw_env_geom->removeAllChildren();
-    draw_data.sg_env_geom = shared_ptr<geom::oi_scene_graph>(new geom::oi_scene_graph());
+    shared_ptr<geom::oi_scene_graph> psg = view3d_menu.getGeometryGroup("Environment");
+    psg->clearAll();
     for(std::size_t i = 0; i < scene_data.env_geom_models.size(); ++i)
-      (*draw_data.sg_env_geom) << (*(scene_data.env_geom_models[i]));
-    draw_data.sw_env_geom->addChild(draw_data.sg_env_geom->getSceneGraph());
+      (*psg) << (*(scene_data.env_geom_models[i]));
     
   } catch(...) {
     QMessageBox::information(this,
@@ -810,8 +790,7 @@ void CRSPlannerGUI::loadEnvironmentGeometry() {
 };
 
 void CRSPlannerGUI::clearEnvironmentGeometries() {
-  draw_data.sw_env_geom->removeAllChildren();
-  draw_data.sg_env_geom.reset();
+  view3d_menu.getGeometryGroup("Environment")->clearAll();
   scene_data.clear_environment();
 };
 

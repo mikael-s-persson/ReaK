@@ -116,35 +116,18 @@ KTEModelViewerEditor::KTEModelViewerEditor(QWidget * parent, Qt::WindowFlags fla
   
   SoQt::init(this->centralwidget);
   
-  sg_root = new SoSeparator;
-  sg_root->ref();
+  view3d_menu.setViewer(new SoQtExaminerViewer(this->centralwidget));
   
-  view3d_menu.setRoot(sg_root);
+  view3d_menu.getGeometryGroup("Kinematics Models",true);
+  view3d_menu.getGeometryGroup("Geometric Models",true);
+  view3d_menu.getGeometryGroup("Proximity Models",false);
   
-  // insert some code here.  Add geometries.
-  
-  eviewer = new SoQtExaminerViewer(this->centralwidget);
-  eviewer->setSceneGraph(sg_root);
-  eviewer->show();
-  
-#if 0
-  
-  r_info.sg_robot_geom->enableAnchorUpdates();
-  r_info.sg_robot_kin->enableAnchorUpdates();
-  r_info.sg_airship_geom->enableAnchorUpdates();
-  
-#endif
 };
 
 
 KTEModelViewerEditor::~KTEModelViewerEditor() {
   
-  // insert some code here.  Delete geometries.
-  
-  delete eviewer;
-  sg_root->unref();
-  view3d_menu.setRoot(NULL);
-  scene_graphs.clear();
+  view3d_menu.setViewer(NULL);
   
   SoQt::done();
   
@@ -314,14 +297,9 @@ void KTEModelViewerEditor::onCloseAll() {
   objtree.mdl.refreshObjTree();
   propedit.mdl.selectObject(objtree_root);
   
-  
-  view3d_menu.removeDisplayGroup("Kinematics Models");
-  view3d_menu.removeDisplayGroup("Geometric Models");
-  view3d_menu.removeDisplayGroup("Proximity Models");
-  
-  sg_root->removeAllChildren();
-  
-  scene_graphs.clear();
+  view3d_menu.getGeometryGroup("Kinematics Models")->clearAll();
+  view3d_menu.getGeometryGroup("Geometric Models")->clearAll();
+  view3d_menu.getGeometryGroup("Proximity Models")->clearAll();
   
   kte_geometries.clear();
   geom_models.clear();

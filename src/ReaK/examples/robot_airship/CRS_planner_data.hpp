@@ -27,48 +27,7 @@
 #include "satellite_invar_models.hpp"
 #include "interpolation/discrete_point_trajectory.hpp"
 
-
 class SoTimerSensor;
-class SoQtExaminerViewer;
-class SoSeparator;
-class SoSwitch;
-class SoCoordinate3;
-
-
-namespace ReaK { 
-
-namespace geom {
-  class oi_scene_graph;
-}; 
-
-};
-
-
-struct chaser_target_coin_nodes {
-  // needed in constructor:
-  SoQtExaminerViewer* eviewer;
-  SoSeparator* sg_root;
-  
-  ReaK::shared_ptr<ReaK::geom::oi_scene_graph> sg_chaser_geom;
-  SoSwitch* sw_chaser_geom;
-  
-  ReaK::shared_ptr<ReaK::geom::oi_scene_graph> sg_chaser_kin;
-  SoSwitch* sw_chaser_kin;
-  
-  ReaK::shared_ptr<ReaK::geom::oi_scene_graph> sg_target_geom;
-  SoSwitch* sw_target_geom;
-  
-  ReaK::shared_ptr<ReaK::geom::oi_scene_graph> sg_env_geom;
-  SoSwitch* sw_env_geom;
-  
-  bool trace_motion_graph;
-  SoSwitch* sw_motion_graph;
-  
-  bool trace_solutions;
-  SoSwitch* sw_solutions;
-};
-
-typedef chaser_target_coin_nodes CRS_coin_nodes;
 
 
 template <typename Topology>
