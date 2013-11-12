@@ -550,7 +550,6 @@ namespace pp {
                                                                       PositionMap position) const {
       BOOST_CONCEPT_ASSERT((MetricSpaceConcept<Topology>));
       BOOST_CONCEPT_ASSERT((boost::VertexListGraphConcept<Graph>));
-      typedef typename boost::graph_traits<Graph>::vertex_descriptor Vertex;
       typedef typename boost::graph_traits<Graph>::vertex_iterator VertexIter;
       VertexIter ui,ui_end; 
       boost::tie(ui,ui_end) = vertices(g);
@@ -589,7 +588,6 @@ namespace pp {
                               double radius = std::numeric_limits<double>::infinity()) const {
       BOOST_CONCEPT_ASSERT((MetricSpaceConcept<Topology>));
       BOOST_CONCEPT_ASSERT((boost::VertexListGraphConcept<Graph>));
-      typedef typename boost::graph_traits<Graph>::vertex_descriptor Vertex;
       typedef typename boost::graph_traits<Graph>::vertex_iterator VertexIter;
       VertexIter ui,ui_end; 
       boost::tie(ui,ui_end) = vertices(g);
@@ -707,7 +705,6 @@ namespace pp {
                  double radius = std::numeric_limits<double>::infinity()) const {
       BOOST_CONCEPT_ASSERT((MetricSpaceConcept<Topology>));
       BOOST_CONCEPT_ASSERT((boost::VertexListGraphConcept<Graph>));
-      typedef typename boost::graph_traits<Graph>::vertex_descriptor Vertex;
       typedef typename boost::graph_traits<Graph>::vertex_iterator VertexIter;
       VertexIter ui,ui_end; 
       boost::tie(ui,ui_end) = vertices(g);

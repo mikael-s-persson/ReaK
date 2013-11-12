@@ -214,8 +214,6 @@ void perform_mc_tests(const po::variables_map& vm, std::size_t dyn_sp_dim) {
   typedef typename Config::topo_type      TopoType;
   typedef typename Config::vector_type    Vector;
   
-  typedef typename pp::topology_traits<TopoType>::point_type     PointType;
-  
   Vector lb = Config::default_vect(dyn_sp_dim);
   Vector ub = Config::default_vect(dyn_sp_dim);
   Vector sb = Config::default_vect(dyn_sp_dim);

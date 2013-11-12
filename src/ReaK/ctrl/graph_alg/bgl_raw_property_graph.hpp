@@ -246,7 +246,7 @@ Bundle& get(edge_raw_prop_to_bundle_t, const Graph&, Bundle& b) {
 
 
 
-#ifndef RK_ENABLE_CXX0X_FEATURES
+#ifdef BOOST_NO_CXX11_RVALUE_REFERENCES
 
 template <typename Graph, typename Vertex, typename Bundle>
 void put(vertex_raw_property_t, Graph& g, Vertex v, const Bundle& value) {
@@ -273,7 +273,7 @@ void put(edge_raw_property_t, Graph& g, Edge e, Bundle&& value) {
 #endif
 
 
-#ifndef RK_ENABLE_CXX0X_FEATURES
+#ifdef BOOST_NO_CXX11_RVALUE_REFERENCES
 
 template <typename Graph, typename Bundle1, typename Bundle2>
 void put(vertex_raw_prop_to_bundle_t, const Graph&, Bundle1& b1, const Bundle2& b2) {

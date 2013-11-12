@@ -91,7 +91,7 @@ class vect_const_ref_view {
     size_type count;
     
     self& operator=(const self&);  
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
     explicit vect_const_ref_view(Vector&&);
  
     vect_const_ref_view(Vector&&, size_type, size_type aOffset = 0);
@@ -111,8 +111,8 @@ class vect_const_ref_view {
      * \param aOffset The offset from the start of the vector.
      */
     vect_const_ref_view(const Vector& aV, 
-			size_type aCount, 
-			size_type aOffset = 0) : v(&aV), offset(aOffset), count(aCount) { };
+                        size_type aCount, 
+                        size_type aOffset = 0) : v(&aV), offset(aOffset), count(aCount) { };
     
     
 /*******************************************************************************
@@ -258,8 +258,8 @@ class vect_ref_view {
      * \param aOffset The offset from the start of the vector.
      */
     vect_ref_view(Vector& aV, 
-		  size_type aCount,
-		  size_type aOffset = 0) : v(&aV), offset(aOffset), count(aCount) { };
+                  size_type aCount,
+                  size_type aOffset = 0) : v(&aV), offset(aOffset), count(aCount) { };
         
     /**
      * Standard assignment operator.
@@ -268,9 +268,9 @@ class vect_ref_view {
     typename boost::enable_if< is_readable_vector<Vector2>,
     self& >::type operator=(const Vector2& rhs) {
       if(rhs.size() != count)
-	throw std::range_error("Vector dimensions mismatch.");
+        throw std::range_error("Vector dimensions mismatch.");
       for(size_type i = 0; i < count; ++i)
-	(*v)[offset + i] = rhs[i];
+        (*v)[offset + i] = rhs[i];
       return *this;
     };
     
@@ -462,10 +462,10 @@ class vect_copy_view {
      * \param aOffset The offset from the start of the vector.
      */
     vect_copy_view(const Vector& aV, 
-		   size_type aCount, 
-		   size_type aOffset = 0) : v(aV), offset(aOffset), count(aCount) { };
+                   size_type aCount, 
+                   size_type aOffset = 0) : v(aV), offset(aOffset), count(aCount) { };
     
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
     /**
      * Constructs the sub-matrix which represents the entire matrix.
      */
@@ -478,8 +478,8 @@ class vect_copy_view {
      * \param aOffset The offset from the start of the vector.
      */
     vect_copy_view(Vector&& aV, 
-		   size_type aCount,
-		   size_type aOffset = 0) : v(std::move(aV)), offset(aOffset), count(aCount) { };
+                   size_type aCount,
+                   size_type aOffset = 0) : v(std::move(aV)), offset(aOffset), count(aCount) { };
 #endif
     
     /**
@@ -509,7 +509,7 @@ class vect_copy_view {
                                  !boost::is_same<Vector2,self>::value ,
     self& >::type operator=(const Vector2& rhs) {
       if(rhs.size() != count)
-	throw std::range_error("Vector dimensions mismatch.");
+        throw std::range_error("Vector dimensions mismatch.");
       for(size_type i=0; i < count; ++i)
         v[offset + i] = rhs[i];
       return *this;
@@ -659,7 +659,7 @@ struct vect_copy_view_factory {
 
   Vector v;
   vect_copy_view_factory(const Vector& aV) : v(aV) { };
-#ifndef RK_ENABLE_CXX0X_FEATURES
+#ifdef BOOST_NO_CXX11_RVALUE_REFERENCES
   vect_copy_view<Vector> operator[](const std::pair<size_type,size_type>& indices) {
     return vect_copy_view<Vector>(v,indices.second - indices.first + 1,indices.first);
   };
@@ -706,7 +706,7 @@ template <typename Vector>
 typename boost::enable_if< is_readable_vector<Vector>,
 vect_copy_view_factory<Vector> >::type sub_copy(const Vector& V) { return vect_copy_view_factory<Vector>(V); };
 
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
 template <typename Vector>
 typename boost::enable_if< is_readable_vector<Vector>,
 vect_copy_view_factory<Vector> >::type sub(Vector&& V) { return vect_copy_view_factory<Vector>(std::move(V)); };

@@ -113,13 +113,13 @@ struct bgl_tree_storage { };
 
 template <typename VertexProperty, 
           typename EdgeProperty = boost::no_property, 
-	  typename TreeStorage = bgl_tree_storage>
+          typename TreeStorage = bgl_tree_storage>
 struct tree_storage {
   typedef boost::adjacency_list< boost::vecS, boost::listS, boost::bidirectionalS,
                                  VertexProperty,
-		                 EdgeProperty,
+                                 EdgeProperty,
                                  boost::no_property,
-		                 boost::listS> type;
+                                 boost::listS> type;
 };
 
 template <typename TreeStorage = bgl_tree_storage>
@@ -239,7 +239,7 @@ typename graph_traits<Graph>::vertex_descriptor create_root(const typename Graph
   return add_vertex(vp,g);
 };
 
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
 template <typename Graph>
 inline
 typename graph_traits<Graph>::vertex_descriptor
@@ -257,7 +257,7 @@ std::pair<
 typename graph_traits<Graph>::vertex_descriptor,
 typename graph_traits<Graph>::edge_descriptor >
   add_child_vertex( const typename graph_traits<Graph>::vertex_descriptor& u,
-		    const typename Graph::vertex_bundled& vp, Graph& g) {
+                    const typename Graph::vertex_bundled& vp, Graph& g) {
   typename graph_traits<Graph>::vertex_descriptor v = add_vertex(vp, g);
   typename graph_traits<Graph>::edge_descriptor e = add_edge(u, v, g).first;
   return std::make_pair(v,e);
@@ -269,14 +269,14 @@ std::pair<
 typename graph_traits<Graph>::vertex_descriptor,
 typename graph_traits<Graph>::edge_descriptor >
   add_child_vertex( const typename graph_traits<Graph>::vertex_descriptor& u,
-		    const typename Graph::vertex_bundled& vp,
-		    const typename Graph::edge_bundled& ep, Graph& g) {
+                    const typename Graph::vertex_bundled& vp,
+                    const typename Graph::edge_bundled& ep, Graph& g) {
   typename graph_traits<Graph>::vertex_descriptor v = add_vertex(vp, g);
   typename graph_traits<Graph>::edge_descriptor e = add_edge(u, v, ep, g).first;
   return std::make_pair(v,e);
 };
 
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
 template <typename Graph>
 inline
 std::pair< 
@@ -295,8 +295,8 @@ std::pair<
 typename graph_traits<Graph>::vertex_descriptor,
 typename graph_traits<Graph>::edge_descriptor >
   add_child_vertex( const typename graph_traits<Graph>::vertex_descriptor& u,
-		    typename Graph::vertex_bundled&& vp,
-		    typename Graph::edge_bundled&& ep, Graph& g) {
+                    typename Graph::vertex_bundled&& vp,
+                    typename Graph::edge_bundled&& ep, Graph& g) {
   typename graph_traits<Graph>::vertex_descriptor v = add_vertex(std::move(vp), g);
   typename graph_traits<Graph>::edge_descriptor e = add_edge(u, v, std::move(ep), g).first;
   return std::make_pair(v,e);

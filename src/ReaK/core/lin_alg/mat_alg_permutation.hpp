@@ -495,7 +495,7 @@ mat<T,mat_structure::rectangular,Alignment,Allocator> >::type
 
 
 
-#if (defined(RK_ENABLE_CXX11_FEATURES) && defined(RK_ENABLE_EXTERN_TEMPLATES))
+#ifndef BOOST_NO_CXX11_EXTERN_TEMPLATE
 
 extern template class mat<double, mat_structure::permutation>;
 extern template class mat<float, mat_structure::permutation>;

@@ -1194,8 +1194,7 @@ void >::type decompose_GenRealSchur(const Matrix1& A, const Matrix2& B, Matrix3&
 
 
 
-#if (defined(RK_ENABLE_CXX11_FEATURES) && defined(RK_ENABLE_EXTERN_TEMPLATES))
-
+#ifndef BOOST_NO_CXX11_EXTERN_TEMPLATE
 
 extern template void decompose_RealSchur(const mat<double,mat_structure::square>& A, mat<double,mat_structure::square>& Q, mat<double,mat_structure::square>& T, double NumTol);
 extern template void decompose_RealSchur(const mat<double,mat_structure::rectangular>& A, mat<double,mat_structure::square>& Q, mat<double,mat_structure::rectangular>& T, double NumTol);

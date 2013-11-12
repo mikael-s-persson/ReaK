@@ -85,7 +85,7 @@ void export_base() {
 	>("NamedObj");
   def("create_named_obj", ReaK::rk_create<ReaK::named_object>);
   
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_SMART_PTR
   implicitly_convertible< std::shared_ptr< ReaK::named_object >, 
                           std::shared_ptr< ReaK::shared_object > >();
   implicitly_convertible< std::shared_ptr< ReaK::named_object >, 

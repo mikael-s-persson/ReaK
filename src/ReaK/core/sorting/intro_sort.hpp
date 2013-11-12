@@ -43,7 +43,7 @@
 #include "insertion_sort.hpp"
 #include "heap_sort.hpp"
 
-#ifndef RK_ENABLE_CXX0X_FEATURES
+#if ((defined(BOOST_NO_CXX11_LAMBDAS)) || (defined(BOOST_NO_CXX11_DECLTYPE)))
 #include <boost/bind.hpp>
 #endif
 
@@ -66,7 +66,7 @@ void intro_sort_impl(RandomAccessIter first, RandomAccessIter last, Compare comp
       return insertion_sort(first,last,comp);
     choose_pivot(first, last, comp);
     RandomAccessIter before_last = last - 1;
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#if ((!defined(BOOST_NO_CXX11_LAMBDAS)) && (!defined(BOOST_NO_CXX11_DECLTYPE)))
     RandomAccessIter pivot = std::partition(first, before_last, [&](decltype(*first) x) -> bool { return comp(x, *before_last); });
 #else
     RandomAccessIter pivot = std::partition(first, before_last, boost::bind(comp, _1, *before_last));

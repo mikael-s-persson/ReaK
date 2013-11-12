@@ -195,7 +195,7 @@ struct MEAQR_rrtstar_visitor : planning_visitor< MEAQR_topology_with_CD<StateSpa
     
     if(actual_dist > this->m_planner->get_steer_progress_tolerance() * best_case_dist) {
 //       std::cout << "Steered successfully!" << std::endl;
-#ifdef RK_ENABLE_CXX11_FEATURES
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
       return ResultType(steer_result.first, true, EdgeProp(0.8 * total_dist, std::move(steer_result.second)));
 #else
       return ResultType(steer_result.first, true, EdgeProp(0.8 * total_dist, steer_result.second));
@@ -220,7 +220,7 @@ struct MEAQR_rrtstar_visitor : planning_visitor< MEAQR_topology_with_CD<StateSpa
 //       std::cout << "Connected successfully!" << std::endl;
       return ResultType(true, EdgeProp(
         get(distance_metric, this->m_query->space->get_super_space())(g[u].position, g[v].position, this->m_query->space->get_super_space()),
-#ifdef RK_ENABLE_CXX11_FEATURES
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
         std::move(steer_result.second)
 #else
         steer_result.second

@@ -8,7 +8,7 @@
 using namespace ReaK;
 
 int main() {
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
   
   mat<double,mat_structure::rectangular> M1(4,4);
   
@@ -26,7 +26,7 @@ int main() {
   
   std::cout << "M2 0; 0 1; = " << ( ( M2 & mat_nil<double>(4,2) ) |
                                     ( mat_nil<double>(2,4) & mat_ident<double>(2) ) ) << std::endl;
-				    
+  
   vect_n<double> V1(1.0,2.0,3.0,4.0,5.0,6.0,7.0,8.0,9.0,10.0,11.0,12.0);
   
   std::cout << "V1 = " << V1 << std::endl;

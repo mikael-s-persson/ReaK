@@ -77,7 +77,7 @@ class generic_sampler_impl {
     //BOOST_STATIC_ASSERT(false);
   };
   
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_VARIADIC_TEMPLATES
   
   template <std::size_t Size, typename Sampler, typename... Spaces>
   struct generic_sampler_impl_tuple_impl< Size, std::tuple<Spaces...>, Sampler > {

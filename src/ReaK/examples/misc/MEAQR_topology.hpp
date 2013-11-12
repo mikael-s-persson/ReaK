@@ -163,7 +163,7 @@ namespace detail {
         ReaK::detail::inplace_lower_multiply_with_fill_impl(H, G);
         
         return point_derivative_type(
-#ifdef RK_ENABLE_CXX11_FEATURES
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
           std::move(F),                              // L_dot
           std::move(G),                              // H_dot
 #else
@@ -220,7 +220,7 @@ class MEAQR_point_type : public IHAQR_point_type<StateSpace, StateSpaceSystem> {
       return *this;
     };
     
-#ifdef RK_ENABLE_CXX11_FEATURES
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
     MEAQR_point_type(base_type&& rhs) : base_type(std::move(rhs)) { };
     explicit MEAQR_point_type(state_type&& aX) : base_type(std::move(aX)) { };
     

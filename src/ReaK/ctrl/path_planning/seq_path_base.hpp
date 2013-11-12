@@ -105,7 +105,7 @@ class seq_path_base : public named_object {
         point_distance_iterator(point_distance_iterator_impl* aPImpl) : p_impl(aPImpl) { };
         
         point_distance_iterator(const point_distance_iterator& rhs) : p_impl(rhs.p_impl->clone()) { };
-#ifdef RK_ENABLE_CXX11_FEATURES
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
         point_distance_iterator(point_distance_iterator&& rhs) : p_impl(rhs.p_impl) { rhs.p_impl = NULL; };
 #endif
         friend 
@@ -176,7 +176,7 @@ class seq_path_base : public named_object {
         point_fraction_iterator(point_fraction_iterator_impl* aPImpl) : p_impl(aPImpl) { };
         
         point_fraction_iterator(const point_fraction_iterator& rhs) : p_impl(rhs.p_impl->clone()) { };
-#ifdef RK_ENABLE_CXX11_FEATURES
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
         point_fraction_iterator(point_fraction_iterator&& rhs) : p_impl(rhs.p_impl) { rhs.p_impl = NULL; };
 #endif
         friend 

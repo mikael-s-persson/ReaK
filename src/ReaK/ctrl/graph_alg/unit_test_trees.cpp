@@ -72,7 +72,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE( intint_tree_test, TreeType, intint_treetest_types
   BOOST_CHECK_EQUAL( props.size(), 1 );
   BOOST_CHECK_EQUAL( props[0], 1 );
   
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
   BOOST_CHECK_NO_THROW( v_root = create_root(std::move(vp_r), g) );
 #else
   BOOST_CHECK_NO_THROW( v_root = create_root(vp_r, g) );
@@ -157,7 +157,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE( intint_tree_test, TreeType, intint_treetest_types
   Vertex v_rc2c[4];
   Edge e_rc2c[4];
   for(std::size_t i = 0; i < 4; ++i) {
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
     BOOST_CHECK_NO_THROW( boost::tie(v_rc2c[i],e_rc2c[i]) = add_child_vertex(v_rc[1],std::move(vp_rc2c[i]),std::move(ep_rc2c[i]),g) );
 #else
     BOOST_CHECK_NO_THROW( boost::tie(v_rc2c[i],e_rc2c[i]) = add_child_vertex(v_rc[1],vp_rc2c[i],ep_rc2c[i],g) );

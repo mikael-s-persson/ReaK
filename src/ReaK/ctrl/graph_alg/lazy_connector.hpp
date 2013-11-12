@@ -117,7 +117,7 @@ struct lazy_node_connector {
           conn_vis.travel_succeeded(*it, v, g);
           x_near = *it;
           d_near = d_out;
-#ifdef RK_ENABLE_CXX11_FEATURES
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
           eprop  = std::move(eprop2);
 #else
           eprop  = eprop2;
@@ -129,7 +129,7 @@ struct lazy_node_connector {
       };
     };
     
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
     std::pair<Edge, bool> e_new = add_edge(x_near, v, std::move(eprop), g);
 #else
     std::pair<Edge, bool> e_new = add_edge(x_near, v, eprop, g);
@@ -181,7 +181,7 @@ struct lazy_node_connector {
         conn_vis.travel_explored(v, *it, g);
         if(can_connect) {
           conn_vis.travel_succeeded(v, *it, g);
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
           std::pair<Edge, bool> e_new = add_edge(v, *it, std::move(eprop2), g);
 #else
           std::pair<Edge, bool> e_new = add_edge(v, *it, eprop2, g);

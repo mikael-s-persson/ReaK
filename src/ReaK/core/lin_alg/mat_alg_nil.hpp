@@ -444,7 +444,7 @@ typename boost::enable_if_c< is_readable_matrix<Matrix>::value, const Matrix& >:
 
 
 
-#if (defined(RK_ENABLE_CXX11_FEATURES) && defined(RK_ENABLE_EXTERN_TEMPLATES))
+#ifndef BOOST_NO_CXX11_EXTERN_TEMPLATE
 
 extern template class mat<double, mat_structure::nil>;
 extern template class mat<float, mat_structure::nil>;

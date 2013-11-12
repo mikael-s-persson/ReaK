@@ -189,8 +189,8 @@ int main() {
   
   typedef WorldPartition2BF_listS::adj_list_type WorldGrid2BF_listS;
   
-  WorldPartition2BF dvp2_ls(m_space, PositionMap(&WorldGridVertexProperties::pos));
-  WorldGrid2BF g2_ls = dvp2_ls.get_adjacency_list();
+  WorldPartition2BF_listS dvp2_ls(m_space, PositionMap(&WorldGridVertexProperties::pos));
+  WorldGrid2BF_listS g2_ls = dvp2_ls.get_adjacency_list();
   
   if(!test_propgraph_functions(g2_ls))
     return 1;

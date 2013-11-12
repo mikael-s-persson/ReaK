@@ -97,7 +97,7 @@ namespace detail {
       VertexProp vp; 
       put(position, vp, p_v);
       Vertex v; Edge e;
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
       boost::tie(v,e) = add_child_vertex(u, std::move(vp), std::move(ep), g);
 #else
       boost::tie(v,e) = add_child_vertex(u, vp, ep, g);
@@ -127,7 +127,7 @@ namespace detail {
         p = get_sample(space);
       VertexProp up;
       put(position, up, p);
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
       Vertex u = create_root(std::move(up),g);
 #else
       Vertex u = create_root(up,g);

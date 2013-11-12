@@ -123,7 +123,6 @@ namespace detail {
                                          const DiffSpace& space, const TimeSpace& t_space,
                                          double dt, double dt_total) {
     using std::sqrt; using std::fabs;
-    typedef typename topology_traits< typename derived_N_order_space< DiffSpace, TimeSpace, 1>::type >::point_type PointDiff1;
     
     typename topology_traits< typename derived_N_order_space< DiffSpace, TimeSpace, 1>::type >::point_type max_velocity = get_space<1>(space,t_space).get_upper_corner();
     typename topology_traits< typename derived_N_order_space< DiffSpace, TimeSpace, 2>::type >::point_type max_acceleration = get_space<2>(space,t_space).get_upper_corner();

@@ -67,8 +67,8 @@ struct temporal_point : public serialization::serializable {
    * \param aPt The spatial-point associated to the space-time point.
    */
   temporal_point(const TimePoint& aTime,
-	         const SpacePoint& aPt) :
-	         time(aTime), pt(aPt) { };
+                 const SpacePoint& aPt) :
+                 time(aTime), pt(aPt) { };
 
   temporal_point(const self& rhs) : time(rhs.time), pt(rhs.pt) { };
 
@@ -78,7 +78,7 @@ struct temporal_point : public serialization::serializable {
     return *this;
   };
 
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
   temporal_point(self&& rhs) : time(std::move(rhs.time)), pt(std::move(rhs.pt)) { };
 
   self& operator=(self&& rhs) {
@@ -135,8 +135,8 @@ struct temporal_point_difference : public serialization::serializable {
    * \param aPt The spatial-difference.
    */
   temporal_point_difference(const TimeDiff& aTime,
-	                    const SpaceDiff& aPt) :
-	                    time(aTime), pt(aPt) { };
+                            const SpaceDiff& aPt) :
+                            time(aTime), pt(aPt) { };
 
   temporal_point_difference(const self& rhs) : time(rhs.time), pt(rhs.pt) { };
 
@@ -146,7 +146,7 @@ struct temporal_point_difference : public serialization::serializable {
     return *this;
   };
 
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
   temporal_point_difference(self&& rhs) : time(std::move(rhs.time)), pt(std::move(rhs.pt)) { };
 
   self& operator=(self&& rhs) {
@@ -352,16 +352,16 @@ class temporal_space : public named_object {
      * \param aDist The temporal distance metric functor to use.
      */
     explicit temporal_space(const std::string& aName = "",
-			    const space_topology& aSpace = space_topology(),
-			    const time_topology& aTime = time_topology(),
-			    const distance_metric_type& aDist = distance_metric_type()) :
+                            const space_topology& aSpace = space_topology(),
+                            const time_topology& aTime = time_topology(),
+                            const distance_metric_type& aDist = distance_metric_type()) :
                             named_object(), space(aSpace), time(aTime), dist(aDist) { this->setName(aName); };
 
     typedef temporal_point<typename topology_traits<space_topology>::point_type,
                            typename topology_traits<time_topology>::point_type> point_type;
     typedef temporal_point_difference<typename topology_traits<space_topology>::point_difference_type,
                                       typename topology_traits<time_topology>::point_difference_type> point_difference_type;
-	
+        
     BOOST_STATIC_CONSTANT(std::size_t, dimensions = topology_traits<space_topology>::dimensions + topology_traits<time_topology>::dimensions);
 
     /** Returns the underlying space topology. */
@@ -464,7 +464,7 @@ class temporal_space : public named_object {
      */
     point_type move_position_toward(const point_type& a, double fraction, const point_type& b) const {
       return point_type(time.move_position_toward(a.time, fraction, b.time),
-	                space.move_position_toward(a.pt, fraction, b.pt));
+                        space.move_position_toward(a.pt, fraction, b.pt));
     };
 
     /*************************************************************************
@@ -489,14 +489,14 @@ class temporal_space : public named_object {
       ReaK::named_object::save(A,named_object::getStaticObjectType()->TypeVersion());
       A & RK_SERIAL_SAVE_WITH_NAME(space)
         & RK_SERIAL_SAVE_WITH_NAME(time)
-	& RK_SERIAL_SAVE_WITH_NAME(dist);
+        & RK_SERIAL_SAVE_WITH_NAME(dist);
     };
 
     virtual void RK_CALL load(serialization::iarchive& A, unsigned int) {
       ReaK::named_object::load(A,named_object::getStaticObjectType()->TypeVersion());
       A & RK_SERIAL_LOAD_WITH_NAME(space)
         & RK_SERIAL_LOAD_WITH_NAME(time)
-	& RK_SERIAL_LOAD_WITH_NAME(dist);
+        & RK_SERIAL_LOAD_WITH_NAME(dist);
     };
 
     RK_RTTI_MAKE_CONCRETE_1BASE(self,0xC2400004,1,"temporal_space",named_object)

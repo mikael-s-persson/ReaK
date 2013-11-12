@@ -145,7 +145,7 @@ mat_traits<Matrix1> >::type::size_type
 
 
 
-#if (defined(RK_ENABLE_CXX11_FEATURES) && defined(RK_ENABLE_EXTERN_TEMPLATES))
+#ifndef BOOST_NO_CXX11_EXTERN_TEMPLATE
 
 
 #endif

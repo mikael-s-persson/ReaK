@@ -321,7 +321,7 @@ std::ostream& operator <<(std::ostream& out, const pose_3D<T>& g) {
 
 
 
-#if (defined(RK_ENABLE_CXX11_FEATURES) && defined(RK_ENABLE_EXTERN_TEMPLATES))
+#ifndef BOOST_NO_CXX11_EXTERN_TEMPLATE
 
 extern template class pose_3D<double>;
 

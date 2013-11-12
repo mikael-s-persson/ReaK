@@ -105,7 +105,7 @@ class IHAQR_point_type : public shared_object {
     mutable shared_ptr< IHAQR_payload > IHAQR_data;
     
     explicit IHAQR_point_type(const state_type& aX = state_type()) : x(aX) { };
-#ifdef RK_ENABLE_CXX11_FEATURES
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
     explicit IHAQR_point_type(state_type&& aX) : x(std::move(aX)) { };
 #endif
     
@@ -209,7 +209,7 @@ class IHAQR_topology : public named_object
       state_difference_type dx;
       
       explicit point_difference_type(const state_difference_type& aDX = state_difference_type()) : dx(aDX) { };
-#ifdef RK_ENABLE_CXX11_FEATURES
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
       explicit point_difference_type(state_difference_type&& aDX) : dx(std::move(aDX)) { };
 #endif
       

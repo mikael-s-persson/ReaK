@@ -44,29 +44,11 @@
 
 
 namespace ReaK {
-
-//NOT USED. DEPRECATED 
-template <>
-struct mat_indexer<mat_structure::square, mat_alignment::column_major> {
-  std::size_t rowCount;
-  mat_indexer<mat_structure::square, mat_alignment::column_major>(std::size_t aRowCount) : rowCount(aRowCount) { };
-  std::size_t operator()(std::size_t i, std::size_t j) const { return j * rowCount + i; };
-};
-
-//NOT USED. DEPRECATED 
-template <>
-struct mat_indexer<mat_structure::square, mat_alignment::row_major> {
-  std::size_t rowCount;
-  mat_indexer<mat_structure::square, mat_alignment::row_major>(std::size_t aRowCount) : rowCount(aRowCount) { };
-  std::size_t operator()(std::size_t i, std::size_t j) const { return i * rowCount + j; };
-};
-
-  
   
 
 template <typename T,
           mat_alignment::tag Alignment,
-	  typename Allocator>
+          typename Allocator>
 struct is_fully_writable_matrix< mat<T,mat_structure::square,Alignment,Allocator> > {
   BOOST_STATIC_CONSTANT( bool, value = true );
   typedef is_fully_writable_matrix< mat<T,mat_structure::square,Alignment,Allocator> > type;
@@ -85,8 +67,7 @@ struct is_fully_writable_matrix< mat<T,mat_structure::square,Alignment,Allocator
  * \tparam T Arithmetic type of the elements of the matrix.
  * \tparam Allocator Standard allocator class (as in the STL), the default is std::allocator<T>.
  */
-template <typename T,
-	  typename Allocator>
+template <typename T, typename Allocator>
 class mat<T,mat_structure::square,mat_alignment::column_major,Allocator> : public serialization::serializable {
   public:    
     
@@ -129,28 +110,25 @@ class mat<T,mat_structure::square,mat_alignment::column_major,Allocator> : publi
      * \test PASSED
      */
     mat(const allocator_type& aAlloc = allocator_type()) :
-             q(0,value_type(),aAlloc),
-	     rowCount(0) { };
+        q(0,value_type(),aAlloc), rowCount(0) { };
 
     /**
      * Constructor for a sized matrix.
      * \test PASSED
      */
     mat(size_type aRowCount, const value_type& aFill = value_type(),const allocator_type& aAlloc = allocator_type()) :
-        q(aRowCount * aRowCount,aFill,aAlloc),
-	rowCount(aRowCount) { };
+        q(aRowCount * aRowCount,aFill,aAlloc), rowCount(aRowCount) { };
 
     /**
      * Constructor for an identity matrix.
      * \test PASSED
      */
     mat(size_type aRowCount, bool aIdentity,const allocator_type& aAlloc = allocator_type()) :
-             q(aRowCount * aRowCount,0,aAlloc),
-	     rowCount(aRowCount) {
+        q(aRowCount * aRowCount,0,aAlloc), rowCount(aRowCount) {
       if(aIdentity) {
-	size_type minN = rowCount * (rowCount + 1);
-	for(size_type i=0;i < minN;i += rowCount + 1)
-	  q[i] = 1;
+        size_type minN = rowCount * (rowCount + 1);
+        for(size_type i=0;i < minN;i += rowCount + 1)
+          q[i] = 1;
       };
     };
 
@@ -158,37 +136,33 @@ class mat<T,mat_structure::square,mat_alignment::column_major,Allocator> : publi
      * Standard Copy Constructor with standard semantics.
      * \test PASSED
      */
-    mat(const self& M) :
-             q(M.q),
-	     rowCount(M.rowCount) { };
-	
-#ifdef RK_ENABLE_CXX0X_FEATURES
+    mat(const self& M) : q(M.q), rowCount(M.rowCount) { };
+    
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
     /**
      * Standard Copy Constructor with standard semantics.
      * \test PASSED
      */
-    mat(self&& M) :
-             q(std::move(M.q)),
-	     rowCount(std::move(M.rowCount)) { };
+    mat(self&& M) : q(std::move(M.q)), rowCount(std::move(M.rowCount)) { };
 #endif
-	     
+    
     /**
      * Explicit constructor from a any type of matrix.
      * \test PASSED
      */
     template <typename Matrix>
     explicit mat(const Matrix&  M,const allocator_type& aAlloc = allocator_type(),
-		                  typename boost::enable_if_c< is_readable_matrix<Matrix>::value && 
-                                                               !(boost::is_same<Matrix,self>::value) &&
-                                                               !(has_allocator_matrix<Matrix>::value), void* >::type dummy = NULL) :
-             q(M.get_row_count()*M.get_row_count(),T(0.0),aAlloc),
-	     rowCount(M.get_row_count()) {
+                 typename boost::enable_if_c< is_readable_matrix<Matrix>::value && 
+                                              !(boost::is_same<Matrix,self>::value) &&
+                                              !(has_allocator_matrix<Matrix>::value), void* >::type dummy = NULL) :
+                 q(M.get_row_count()*M.get_row_count(),T(0.0),aAlloc),
+                 rowCount(M.get_row_count()) {
       if(M.get_col_count() != M.get_row_count())
-	throw std::range_error("Matrix is not square!");
+        throw std::range_error("Matrix is not square!");
       typename container_type::iterator it = q.begin();
       for(size_type j=0;j<rowCount;++j)
         for(size_type i=0;i<rowCount;++i,++it)
-	  *it = M(i,j);
+          *it = M(i,j);
     };
     
     /**
@@ -199,14 +173,14 @@ class mat<T,mat_structure::square,mat_alignment::column_major,Allocator> : publi
     explicit mat(const Matrix&  M,typename boost::enable_if_c< is_readable_matrix<Matrix>::value && 
                                                                !(boost::is_same<Matrix,self>::value) &&
                                                                has_allocator_matrix<Matrix>::value, void* >::type dummy = NULL) :
-             q(M.get_row_count()*M.get_row_count(),T(0.0),M.get_allocator()),
-	     rowCount(M.get_row_count()) {
+                 q(M.get_row_count()*M.get_row_count(),T(0.0),M.get_allocator()),
+                 rowCount(M.get_row_count()) {
       if(M.get_col_count() != M.get_row_count())
-	throw std::range_error("Matrix is not square!");
+        throw std::range_error("Matrix is not square!");
       typename container_type::iterator it = q.begin();
       for(size_type j=0;j<rowCount;++j)
         for(size_type i=0;i<rowCount;++i,++it)
-	  *it = M(i,j);
+          *it = M(i,j);
     };
 
     /**
@@ -226,7 +200,7 @@ class mat<T,mat_structure::square,mat_alignment::column_major,Allocator> : publi
      * \test PASSED
      */
     mat(const_reference a11,const_reference a12,
-	const_reference a21,const_reference a22) : q(4), rowCount(2) {
+        const_reference a21,const_reference a22) : q(4), rowCount(2) {
       q[0] = a11;
       q[1] = a21;
       q[2] = a12;
@@ -238,9 +212,9 @@ class mat<T,mat_structure::square,mat_alignment::column_major,Allocator> : publi
      * \test PASSED
      */
     mat(const_reference a11,const_reference a12,const_reference a13,
-	const_reference a21,const_reference a22,const_reference a23,
-	const_reference a31,const_reference a32,const_reference a33) : 
-	q(9), rowCount(3) {
+        const_reference a21,const_reference a22,const_reference a23,
+        const_reference a31,const_reference a32,const_reference a33) : 
+        q(9), rowCount(3) {
       q[0] = a11;
       q[1] = a21;
       q[2] = a31;
@@ -257,10 +231,10 @@ class mat<T,mat_structure::square,mat_alignment::column_major,Allocator> : publi
      * \test PASSED
      */
     mat(const_reference a11,const_reference a12,const_reference a13,const_reference a14,
-	const_reference a21,const_reference a22,const_reference a23,const_reference a24,
-	const_reference a31,const_reference a32,const_reference a33,const_reference a34,
-	const_reference a41,const_reference a42,const_reference a43,const_reference a44) : 
-	q(16), rowCount(4) {
+        const_reference a21,const_reference a22,const_reference a23,const_reference a24,
+        const_reference a31,const_reference a32,const_reference a33,const_reference a34,
+        const_reference a41,const_reference a42,const_reference a43,const_reference a44) : 
+        q(16), rowCount(4) {
       q[0] = a11;
       q[1] = a21;
       q[2] = a31;
@@ -368,17 +342,17 @@ class mat<T,mat_structure::square,mat_alignment::column_major,Allocator> : publi
      */
     void set_row_count(size_type aRowCount,bool aPreserveData = false) {
       if(aPreserveData) {
-	if(aRowCount > rowCount)
-	  for(size_type i=rowCount;i!=0;--i)
-	    q.insert(q.begin() + i*rowCount,aRowCount - rowCount,value_type(0));
-	else if(aRowCount < rowCount)
-	  for(size_type i=rowCount;i!=0;--i)
-	    q.erase(q.begin() + (i-1)*rowCount + aRowCount, q.begin() + i*rowCount);
-	else
-	  return;
-	q.resize(aRowCount * aRowCount, value_type(0));
+        if(aRowCount > rowCount)
+          for(size_type i=rowCount;i!=0;--i)
+            q.insert(q.begin() + i*rowCount,aRowCount - rowCount,value_type(0));
+        else if(aRowCount < rowCount)
+          for(size_type i=rowCount;i!=0;--i)
+            q.erase(q.begin() + (i-1)*rowCount + aRowCount, q.begin() + i*rowCount);
+        else
+          return;
+        q.resize(aRowCount * aRowCount, value_type(0));
       } else
-	q.resize(aRowCount * aRowCount,value_type(0));
+        q.resize(aRowCount * aRowCount,value_type(0));
       rowCount = aRowCount;
     };
 
@@ -503,11 +477,11 @@ class mat<T,mat_structure::square,mat_alignment::column_major,Allocator> : publi
     self& operator +=(const Matrix& M) {
       boost::function_requires< ReadableMatrixConcept<Matrix> >();
       if((M.get_col_count() != rowCount) || (M.get_row_count() != rowCount))
-	throw std::range_error("Matrix dimension mismatch.");
+        throw std::range_error("Matrix dimension mismatch.");
       typename container_type::iterator it = q.begin();
       for(size_type j=0;j<rowCount;++j)
         for(size_type i=0;i<rowCount;++i,++it)
-	  *it += M(i,j);
+          *it += M(i,j);
       return *this;
     };
 
@@ -519,11 +493,11 @@ class mat<T,mat_structure::square,mat_alignment::column_major,Allocator> : publi
     self& operator -=(const Matrix& M) {
       boost::function_requires< ReadableMatrixConcept<Matrix> >();
       if((M.get_col_count() != rowCount) || (M.get_row_count() != rowCount))
-	throw std::range_error("Matrix dimension mismatch.");
+        throw std::range_error("Matrix dimension mismatch.");
       typename container_type::iterator it = q.begin();
       for(size_type j=0;j<rowCount;++j)
         for(size_type i=0;i<rowCount;++i,++it)
-	  *it -= M(i,j);
+          *it -= M(i,j);
       return *this;
     };
 
@@ -581,7 +555,7 @@ class mat<T,mat_structure::square,mat_alignment::column_major,Allocator> : publi
       swap(result,M.q,M.rowCount);
       return result;
     };
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
     /**
      * Transposes the matrix M by simply moving the data of M into a matrix of different alignment.
      * \param M The matrix to be transposed.
@@ -603,7 +577,7 @@ class mat<T,mat_structure::square,mat_alignment::column_major,Allocator> : publi
     friend value_type trace(const self& M) {
       value_type sum = value_type(0);
       for(size_type i = 0; i < M.q.size(); i += M.rowCount + 1)
-	sum += M.q[i];
+        sum += M.q[i];
       return sum;
     };
     
@@ -641,8 +615,7 @@ class mat<T,mat_structure::square,mat_alignment::column_major,Allocator> : publi
  * \tparam T Arithmetic type of the elements of the matrix.
  * \tparam Allocator Standard allocator class (as in the STL), the default is std::allocator<T>.
  */
-template <typename T,
-	  typename Allocator>
+template <typename T, typename Allocator>
 class mat<T,mat_structure::square,mat_alignment::row_major,Allocator> : public serialization::serializable {
   public:    
     
@@ -685,28 +658,25 @@ class mat<T,mat_structure::square,mat_alignment::row_major,Allocator> : public s
      * \test PASSED
      */
     mat(const allocator_type& aAlloc = allocator_type()) :
-             q(0,value_type(),aAlloc),
-	     rowCount(0) { };
+        q(0,value_type(),aAlloc), rowCount(0) { };
 
     /**
      * Constructor for a sized matrix.
      * \test PASSED
      */
     mat(size_type aRowCount, const value_type& aFill = value_type(),const allocator_type& aAlloc = allocator_type()) :
-        q(aRowCount * aRowCount,aFill,aAlloc),
-	rowCount(aRowCount) { };
+        q(aRowCount * aRowCount,aFill,aAlloc), rowCount(aRowCount) { };
 
     /**
      * Constructor for an identity matrix.
      * \test PASSED
      */
     mat(size_type aRowCount, bool aIdentity,const allocator_type& aAlloc = allocator_type()) :
-             q(aRowCount * aRowCount,0,aAlloc),
-	     rowCount(aRowCount) {
+        q(aRowCount * aRowCount,0,aAlloc), rowCount(aRowCount) {
       if(aIdentity) {
-	size_type minN = rowCount * (rowCount + 1);
-	for(size_type i=0;i < minN;i += rowCount + 1)
-	  q[i] = 1;
+        size_type minN = rowCount * (rowCount + 1);
+        for(size_type i=0;i < minN;i += rowCount + 1)
+          q[i] = 1;
       };
     };
 
@@ -714,18 +684,14 @@ class mat<T,mat_structure::square,mat_alignment::row_major,Allocator> : public s
      * Standard Copy Constructor with standard semantics.
      * \test PASSED
      */
-    mat(const self& M) :
-             q(M.q),
-	     rowCount(M.rowCount) { };
-	     
-#ifdef RK_ENABLE_CXX0X_FEATURES
+    mat(const self& M) : q(M.q), rowCount(M.rowCount) { };
+    
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
     /**
      * Standard Copy Constructor with standard semantics.
      * \test PASSED
      */
-    mat(self&& M) :
-             q(std::move(M.q)),
-	     rowCount(std::move(M.rowCount)) { };
+    mat(self&& M) : q(std::move(M.q)), rowCount(std::move(M.rowCount)) { };
 #endif
 	     
     /**
@@ -735,14 +701,14 @@ class mat<T,mat_structure::square,mat_alignment::row_major,Allocator> : public s
     template <typename Matrix>
     explicit mat(const Matrix&  M, typename boost::enable_if_c< is_readable_matrix<Matrix>::value && 
                                                                !(boost::is_same<Matrix,self>::value) , void* >::type dummy = NULL) :
-             q(M.get_row_count()*M.get_row_count(),T(0.0)),
-	     rowCount(M.get_row_count()) {
+                 q(M.get_row_count()*M.get_row_count(),T(0.0)),
+                 rowCount(M.get_row_count()) {
       if(M.get_col_count() != M.get_row_count())
-	throw std::range_error("Matrix is not square!");
+        throw std::range_error("Matrix is not square!");
       typename container_type::iterator it = q.begin();
       for(size_type i=0;i<rowCount;++i)
         for(size_type j=0;j<rowCount;++j,++it)
-	  *it = M(i,j);
+          *it = M(i,j);
     };
 
     /**
@@ -762,7 +728,7 @@ class mat<T,mat_structure::square,mat_alignment::row_major,Allocator> : public s
      * \test PASSED
      */
     mat(const value_type& a11,const value_type& a12,
-	const value_type& a21,const value_type& a22) : q(4), rowCount(2) {
+        const value_type& a21,const value_type& a22) : q(4), rowCount(2) {
       q[0] = a11;
       q[1] = a12;
       q[2] = a21;
@@ -774,9 +740,9 @@ class mat<T,mat_structure::square,mat_alignment::row_major,Allocator> : public s
      * \test PASSED
      */
     mat(const value_type& a11,const value_type& a12,const value_type& a13,
-	const value_type& a21,const value_type& a22,const value_type& a23,
-	const value_type& a31,const value_type& a32,const value_type& a33) : 
-	q(9), rowCount(3) {
+        const value_type& a21,const value_type& a22,const value_type& a23,
+        const value_type& a31,const value_type& a32,const value_type& a33) : 
+        q(9), rowCount(3) {
       q[0] = a11;
       q[1] = a12;
       q[2] = a13;
@@ -793,10 +759,10 @@ class mat<T,mat_structure::square,mat_alignment::row_major,Allocator> : public s
      * \test PASSED
      */
     mat(const value_type& a11,const value_type& a12,const value_type& a13,const value_type& a14,
-	const value_type& a21,const value_type& a22,const value_type& a23,const value_type& a24,
-	const value_type& a31,const value_type& a32,const value_type& a33,const value_type& a34,
-	const value_type& a41,const value_type& a42,const value_type& a43,const value_type& a44) : 
-	q(16), rowCount(4) {
+        const value_type& a21,const value_type& a22,const value_type& a23,const value_type& a24,
+        const value_type& a31,const value_type& a32,const value_type& a33,const value_type& a34,
+        const value_type& a41,const value_type& a42,const value_type& a43,const value_type& a44) : 
+        q(16), rowCount(4) {
       q[0] = a11;
       q[1] = a12;
       q[2] = a13;
@@ -903,17 +869,17 @@ class mat<T,mat_structure::square,mat_alignment::row_major,Allocator> : public s
      */
     void set_col_count(size_type aColCount,bool aPreserveData = false) {
       if(aPreserveData) {
-	if(aColCount > rowCount)
-	  for(size_type i=rowCount;i!=0;--i)
-	    q.insert(q.begin() + i*rowCount,aColCount - rowCount,value_type(0.0));
-	else if(aColCount < rowCount)
-	  for(size_type i=rowCount;i!=0;--i)
-	    q.erase(q.begin() + (i-1)*rowCount + aColCount, q.begin() + i*rowCount);
-	else
-	  return;
-	q.resize(aColCount * aColCount,value_type(0));
+        if(aColCount > rowCount)
+          for(size_type i=rowCount;i!=0;--i)
+            q.insert(q.begin() + i*rowCount,aColCount - rowCount,value_type(0.0));
+        else if(aColCount < rowCount)
+          for(size_type i=rowCount;i!=0;--i)
+            q.erase(q.begin() + (i-1)*rowCount + aColCount, q.begin() + i*rowCount);
+        else
+          return;
+        q.resize(aColCount * aColCount,value_type(0));
       } else
-	q.resize(aColCount * aColCount,value_type(0));
+        q.resize(aColCount * aColCount,value_type(0));
       rowCount = aColCount;
     };
 
@@ -1037,11 +1003,11 @@ class mat<T,mat_structure::square,mat_alignment::row_major,Allocator> : public s
     self& operator +=(const Matrix& M) {
       boost::function_requires< ReadableMatrixConcept<Matrix> >();
       if((M.get_col_count() != rowCount) || (M.get_row_count() != rowCount))
-	throw std::range_error("Matrix dimension mismatch.");
+        throw std::range_error("Matrix dimension mismatch.");
       typename container_type::iterator it = q.begin();
       for(size_type i=0;i<rowCount;++i)
         for(size_type j=0;j<rowCount;++j,++it)
-	  *it += M(i,j);
+          *it += M(i,j);
       return *this;
     };
 
@@ -1053,11 +1019,11 @@ class mat<T,mat_structure::square,mat_alignment::row_major,Allocator> : public s
     self& operator -=(const Matrix& M) {
       boost::function_requires< ReadableMatrixConcept<Matrix> >();
       if((M.get_col_count() != rowCount) || (M.get_row_count() != rowCount))
-	throw std::range_error("Matrix dimension mismatch.");
+        throw std::range_error("Matrix dimension mismatch.");
       typename container_type::iterator it = q.begin();
       for(size_type i=0;i<rowCount;++i)
         for(size_type j=0;j<rowCount;++j,++it)
-	  *it -= M(i,j);
+          *it -= M(i,j);
       return *this;
     };
 
@@ -1117,7 +1083,7 @@ class mat<T,mat_structure::square,mat_alignment::row_major,Allocator> : public s
       swap(result,M.q,M.rowCount);
       return result;
     };
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
     /**
      * Transposes the matrix M by simply moving the data of M into a matrix of different alignment.
      * \param M The matrix to be transposed.
@@ -1139,7 +1105,7 @@ class mat<T,mat_structure::square,mat_alignment::row_major,Allocator> : public s
     friend value_type trace(const self& M) {
       value_type sum = value_type(0);
       for(size_type i = 0; i < M.q.size(); i += M.rowCount + 1)
-	sum += M.q[i];
+        sum += M.q[i];
       return sum;
     };
 
@@ -1164,9 +1130,7 @@ class mat<T,mat_structure::square,mat_alignment::row_major,Allocator> : public s
 };
 
 
-  
-
-#if (defined(RK_ENABLE_CXX11_FEATURES) && defined(RK_ENABLE_EXTERN_TEMPLATES))
+#ifndef BOOST_NO_CXX11_EXTERN_TEMPLATE
 
 extern template class mat<double, mat_structure::square, mat_alignment::column_major>;
 extern template class mat<double, mat_structure::square, mat_alignment::row_major>;

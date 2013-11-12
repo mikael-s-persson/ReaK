@@ -126,10 +126,10 @@ int main(int argc, char ** argv) {
     X8_MEAQRCD_space_type::point_type start_point( start_state );
     X8_MEAQRCD_space_type::point_type goal_point( goal_state );
     
-    typedef sbmp_point_recorder<
-      quadrotor_system::state_space_type,
-      MEAQR_to_state_mapper,
-      print_sbmp_progress<> > point_recorder_type;
+//     typedef sbmp_point_recorder<
+//       quadrotor_system::state_space_type,
+//       MEAQR_to_state_mapper,
+//       print_sbmp_progress<> > point_recorder_type;
     
     std::ofstream timer_output(output_path + "/X8_pp_times.txt");
     
@@ -152,18 +152,16 @@ int main(int argc, char ** argv) {
       quadrotor_system::state_space_type, 
       quadrotor_system, 
       position_only_sampler > X8_rrtstar_planner_type;
-    typedef MEAQR_sbastar_planner< 
-      quadrotor_system::state_space_type, 
-      quadrotor_system, 
-      position_only_sampler > X8_sbastar_planner_type;
-    
-    
     X8_rrtstar_planner_type X8_planner(
       X8_MEAQR_space, max_vertices, prog_interval, 
       ADJ_LIST_MOTION_GRAPH | knn_method,
       UNIDIRECTIONAL_PLANNING,
       0.1, 0.05, 3, report_chain);
     
+//     typedef MEAQR_sbastar_planner< 
+//       quadrotor_system::state_space_type, 
+//       quadrotor_system, 
+//       position_only_sampler > X8_sbastar_planner_type;
 //     X8_sbastar_planner_type X8_planner(
 //       X8_MEAQR_space, max_vertices, prog_interval,
 //       ADJ_LIST_MOTION_GRAPH | knn_method,

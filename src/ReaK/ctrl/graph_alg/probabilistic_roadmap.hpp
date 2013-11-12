@@ -95,7 +95,7 @@ namespace detail {
       
       VertexProp up;
       put(m_position, up, p);
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
       Vertex u = add_vertex(std::move(up), g);
 #else
       Vertex u = add_vertex(up, g);
@@ -339,7 +339,7 @@ inline void generate_prm(Graph& g,
       p = get_sample(super_space);
     VertexProp up;
     put(position, up, p);
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
     Vertex u = add_vertex(std::move(up), g);
 #else
     Vertex u = add_vertex(up, g);

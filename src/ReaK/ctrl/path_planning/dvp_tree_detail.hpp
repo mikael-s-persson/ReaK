@@ -189,13 +189,13 @@ class dvp_tree_impl
           edge_property ep;
           put(m_mu, ep, cur_task.edge_dist);
           edge_type e;
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
           boost::tie(current_node,e) = add_child_vertex(cur_task.parent_node, std::move(*cur_task.first), std::move(ep), m_tree);
 #else
           boost::tie(current_node,e) = add_child_vertex(cur_task.parent_node, *cur_task.first, ep, m_tree);
 #endif
         } else {
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
           current_node = create_root(std::move(*cur_task.first), m_tree);
 #else
           current_node = create_root(*cur_task.first, m_tree);
@@ -209,7 +209,7 @@ class dvp_tree_impl
           for(PropIter it = cur_task.first; it != cur_task.last; ++it) {
             edge_property ep;
             put(m_mu, ep, dist_map[get(m_key,*it)]);
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
             add_child_vertex(current_node, std::move(*it), std::move(ep), m_tree);
 #else
             add_child_vertex(current_node, *it, ep, m_tree);
@@ -702,7 +702,7 @@ class dvp_tree_impl
         vertex_property vp;
         put(m_key, vp, *vi);
         put(m_position, vp, get(aGraphPosition, *vi));
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
         v_bin.push_back(std::move(vp));
 #else
         v_bin.push_back(vp);
@@ -750,7 +750,7 @@ class dvp_tree_impl
         vertex_property vp;
         put(m_key, vp, *aBegin);
         put(m_position, vp, get(aElemPosition, *aBegin));
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
         v_bin.push_back(std::move(vp));
 #else
         v_bin.push_back(vp);
@@ -806,13 +806,13 @@ class dvp_tree_impl
      * Inserts a vertex into the tree.
      * \param up The vertex-property to be added to the DVP-tree.
      */
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
     void insert(vertex_property up) {
 #else
     void insert(const vertex_property& up) {
 #endif
       if(num_vertices(m_tree) == 0) {
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
         m_root = create_root(std::move(up), m_tree); 
 #else
         m_root = create_root(up, m_tree); 
@@ -823,7 +823,7 @@ class dvp_tree_impl
       vertex_type u_realleaf = get_leaf(u_pt,m_root);
       if(u_realleaf == m_root) { //if the root is the leaf, it requires special attention since no parent exists.
         std::vector<vertex_property> prop_list;
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
         prop_list.push_back(std::move(up));
 #else
         prop_list.push_back(up);
@@ -850,7 +850,7 @@ class dvp_tree_impl
         } else 
           u_leaf_parent = boost::graph_traits<tree_indexer>::null_vertex();
         std::vector<vertex_property> prop_list;
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
         prop_list.push_back(std::move(up));
 #else
         prop_list.push_back(up);
@@ -882,7 +882,7 @@ class dvp_tree_impl
             p_parent = boost::graph_traits<tree_indexer>::null_vertex();
           };
           std::vector<vertex_property> prop_list;
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
           prop_list.push_back(std::move(up));
 #else
           prop_list.push_back(up);
@@ -895,7 +895,7 @@ class dvp_tree_impl
           edge_type l_p;
           edge_property ep;
           put(m_mu, ep, m_distance(u_pt, get(m_position, get(boost::vertex_raw_property,m_tree,u_realleaf)), *m_space));
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
           boost::tie(p, l_p) = add_child_vertex(u_realleaf, std::move(up), std::move(ep), m_tree);
 #else
           boost::tie(p, l_p) = add_child_vertex(u_realleaf, up, ep, m_tree);
@@ -1213,7 +1213,7 @@ class dvp_tree_impl
         m_parent->insert(vp);
       };
       
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
       void add_vertex(vertex_property&& vp, tree_indexer&) const {
         m_parent->insert(std::move(vp));
       };

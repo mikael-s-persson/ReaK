@@ -922,7 +922,7 @@ struct is_readable_matrix< trans_mat_2D<T> > {
 
 
 
-#if (defined(RK_ENABLE_CXX11_FEATURES) && defined(RK_ENABLE_EXTERN_TEMPLATES))
+#ifndef BOOST_NO_CXX11_EXTERN_TEMPLATE
 
 extern template class rot_mat_2D<double>;
 extern template class trans_mat_2D<double>;

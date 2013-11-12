@@ -215,7 +215,6 @@ namespace detail {
     NcSelector select_neighborhood,
     double SA_init_temperature = -1.0)
   {
-    typedef typename boost::property_traits<KeyMap>::value_type KeyValue;
     typedef std::less<double> KeyCompareType;  // <---- this is a min-heap.
     typedef boost::vector_property_map<std::size_t> IndexInHeapMap;
     IndexInHeapMap index_in_heap;

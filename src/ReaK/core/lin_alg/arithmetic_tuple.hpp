@@ -36,9 +36,9 @@
 #ifndef REAK_ARITHMETIC_TUPLE_HPP
 #define REAK_ARITHMETIC_TUPLE_HPP
 
-#include "base/defs.hpp"  //For the RK_ENABLE_CXX0X_FEATURES compilation flag.
+#include "base/defs.hpp"
 
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_HDR_TUPLE
 #include <tuple>
 #include <type_traits>
 #else
@@ -63,7 +63,7 @@
 
 namespace ReaK {
 
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_HDR_TUPLE
   using std::get;
 #else
   using boost::tuples::get;
@@ -88,7 +88,7 @@ template <typename Tuple>
 struct arithmetic_tuple_size : 
   boost::mpl::size_t< 0 > { };
 
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_HDR_TUPLE
 
 /**
  * This class template is a simple wrapper of a tuple with the addition of arithmetic operators. 
@@ -104,13 +104,14 @@ class arithmetic_tuple : public std::tuple< T... > {
     typedef std::tuple< T... > arithmetic_tuple_base_class;
   public:
     
-#if 1
     constexpr arithmetic_tuple() : arithmetic_tuple_base_class() { };
     
     explicit arithmetic_tuple(const T&... t) : arithmetic_tuple_base_class(t...) { };
     
     template <typename... U>
-    explicit arithmetic_tuple(U&&... u) noexcept : arithmetic_tuple_base_class(std::forward<U>(u)...) { };
+    explicit arithmetic_tuple(U&&... u) : arithmetic_tuple_base_class(std::forward<U>(u)...) { };
+    
+#ifndef BOOST_NO_CXX11_DEFAULTED_FUNCTIONS
     
     arithmetic_tuple(const arithmetic_tuple< T... >&) = default;
     arithmetic_tuple(arithmetic_tuple< T... >&&) = default;
@@ -118,11 +119,10 @@ class arithmetic_tuple : public std::tuple< T... > {
     arithmetic_tuple< T... >& operator=(const arithmetic_tuple< T... >&) = default;
     arithmetic_tuple< T... >& operator=(arithmetic_tuple< T... >&&) = default;
     
+#endif
+    
     //TODO: missing other standard-specified constructors (with other tuple types, and std::pair).
     
-#else
-    using arithmetic_tuple_base_class::arithmetic_tuple_base_class;
-#endif
 };
 
 /* Specialization, see general template docs. */
@@ -166,9 +166,9 @@ class arithmetic_tuple : public boost::tuples::tuple< T1, T2, T3, T4, T5, T6, T7
     
     
     explicit arithmetic_tuple(const T1& t1 = T1(), const T2& t2 = T2(), const T3& t3 = T3(),
-                     const T4& t4 = T4(), const T5& t5 = T5(), const T6& t6 = T6(),
-		     const T7& t7 = T7(), const T8& t8 = T8(), const T9& t9 = T9(), 
-		     const T10& t10 = T10()) : arithmetic_tuple_base_class(t1,t2,t3,t4,t5,t6,t7,t8,t9,t10) { };
+                              const T4& t4 = T4(), const T5& t5 = T5(), const T6& t6 = T6(),
+                              const T7& t7 = T7(), const T8& t8 = T8(), const T9& t9 = T9(), 
+                              const T10& t10 = T10()) : arithmetic_tuple_base_class(t1,t2,t3,t4,t5,t6,t7,t8,t9,t10) { };
     
     
     
@@ -198,9 +198,9 @@ class arithmetic_tuple< T1, T2, T3, T4, T5, T6, T7, T8, T9, void > : public boos
     
     
     explicit arithmetic_tuple(const T1& t1 = T1(), const T2& t2 = T2(), const T3& t3 = T3(),
-			      const T4& t4 = T4(), const T5& t5 = T5(), const T6& t6 = T6(),
-			      const T7& t7 = T7(), const T8& t8 = T8(), const T9& t9 = T9()) : 
-			      arithmetic_tuple_base_class(t1,t2,t3,t4,t5,t6,t7,t8,t9) { };
+                              const T4& t4 = T4(), const T5& t5 = T5(), const T6& t6 = T6(),
+                              const T7& t7 = T7(), const T8& t8 = T8(), const T9& t9 = T9()) : 
+                              arithmetic_tuple_base_class(t1,t2,t3,t4,t5,t6,t7,t8,t9) { };
     
     
     
@@ -216,9 +216,9 @@ class arithmetic_tuple< T1, T2, T3, T4, T5, T6, T7, T8, void, void > : public bo
     
     
     explicit arithmetic_tuple(const T1& t1 = T1(), const T2& t2 = T2(), const T3& t3 = T3(),
-			      const T4& t4 = T4(), const T5& t5 = T5(), const T6& t6 = T6(),
-			      const T7& t7 = T7(), const T8& t8 = T8()) : 
-			      arithmetic_tuple_base_class(t1,t2,t3,t4,t5,t6,t7,t8) { };
+                              const T4& t4 = T4(), const T5& t5 = T5(), const T6& t6 = T6(),
+                              const T7& t7 = T7(), const T8& t8 = T8()) : 
+                              arithmetic_tuple_base_class(t1,t2,t3,t4,t5,t6,t7,t8) { };
     
     
     
@@ -234,9 +234,9 @@ class arithmetic_tuple< T1, T2, T3, T4, T5, T6, T7, void, void, void > : public 
     
     
     explicit arithmetic_tuple(const T1& t1 = T1(), const T2& t2 = T2(), const T3& t3 = T3(),
-			      const T4& t4 = T4(), const T5& t5 = T5(), const T6& t6 = T6(),
-			      const T7& t7 = T7()) : 
-			      arithmetic_tuple_base_class(t1,t2,t3,t4,t5,t6,t7) { };
+                              const T4& t4 = T4(), const T5& t5 = T5(), const T6& t6 = T6(),
+                              const T7& t7 = T7()) : 
+                              arithmetic_tuple_base_class(t1,t2,t3,t4,t5,t6,t7) { };
     
     
     
@@ -252,8 +252,8 @@ class arithmetic_tuple< T1, T2, T3, T4, T5, T6, void, void, void, void > : publi
     
     
     explicit arithmetic_tuple(const T1& t1 = T1(), const T2& t2 = T2(), const T3& t3 = T3(),
-			      const T4& t4 = T4(), const T5& t5 = T5(), const T6& t6 = T6()) : 
-			      arithmetic_tuple_base_class(t1,t2,t3,t4,t5,t6) { };
+                              const T4& t4 = T4(), const T5& t5 = T5(), const T6& t6 = T6()) : 
+                              arithmetic_tuple_base_class(t1,t2,t3,t4,t5,t6) { };
     
     
     
@@ -268,8 +268,8 @@ class arithmetic_tuple< T1, T2, T3, T4, T5, void, void, void, void, void > : pub
     
     
     explicit arithmetic_tuple(const T1& t1 = T1(), const T2& t2 = T2(), const T3& t3 = T3(),
-			      const T4& t4 = T4(), const T5& t5 = T5()) : 
-			      arithmetic_tuple_base_class(t1,t2,t3,t4,t5) { };
+                              const T4& t4 = T4(), const T5& t5 = T5()) : 
+                              arithmetic_tuple_base_class(t1,t2,t3,t4,t5) { };
     
     
     
@@ -284,8 +284,8 @@ class arithmetic_tuple< T1, T2, T3, T4, void, void, void, void, void, void > : p
     
     
     explicit arithmetic_tuple(const T1& t1 = T1(), const T2& t2 = T2(), const T3& t3 = T3(),
-			      const T4& t4 = T4()) : 
-			      arithmetic_tuple_base_class(t1,t2,t3,t4) { };
+                              const T4& t4 = T4()) : 
+                              arithmetic_tuple_base_class(t1,t2,t3,t4) { };
     
     
     
@@ -315,7 +315,7 @@ class arithmetic_tuple< T1, T2, void, void, void, void, void, void, void, void >
     
     
     explicit arithmetic_tuple(const T1& t1 = T1(), const T2& t2 = T2()) : 
-		              arithmetic_tuple_base_class(t1,t2) { };
+                              arithmetic_tuple_base_class(t1,t2) { };
     
     
     
@@ -330,7 +330,7 @@ class arithmetic_tuple< T1, void, void, void, void, void, void, void, void, void
     
     
     explicit arithmetic_tuple(const T1& t1 = T1()) : 
-		              arithmetic_tuple_base_class(t1) { };
+                              arithmetic_tuple_base_class(t1) { };
     
     
     
@@ -363,7 +363,7 @@ arithmetic_tuple< T1, T2, T3 > make_arithmetic_tuple(const T1& t1, const T2& t2,
 template <typename T1, typename T2, typename T3, typename T4>
 inline 
 arithmetic_tuple< T1, T2, T3, T4 > make_arithmetic_tuple(const T1& t1, const T2& t2, const T3& t3, 
-							 const T4& t4) {
+                                                         const T4& t4) {
   return arithmetic_tuple< T1, T2, T3, T4 >(t1,t2,t3,t4);
 };
 
@@ -371,7 +371,7 @@ arithmetic_tuple< T1, T2, T3, T4 > make_arithmetic_tuple(const T1& t1, const T2&
 template <typename T1, typename T2, typename T3, typename T4, typename T5>
 inline 
 arithmetic_tuple< T1, T2, T3, T4, T5 > make_arithmetic_tuple(const T1& t1, const T2& t2, const T3& t3, 
-							     const T4& t4, const T5& t5) {
+                                                             const T4& t4, const T5& t5) {
   return arithmetic_tuple< T1, T2, T3, T4, T5 >(t1,t2,t3,t4,t5);
 };
 
@@ -380,7 +380,7 @@ template <typename T1, typename T2, typename T3, typename T4, typename T5,
           typename T6>
 inline 
 arithmetic_tuple< T1, T2, T3, T4, T5, T6 > make_arithmetic_tuple(const T1& t1, const T2& t2, const T3& t3, 
-							         const T4& t4, const T5& t5, const T6& t6) {
+                                                                 const T4& t4, const T5& t5, const T6& t6) {
   return arithmetic_tuple< T1, T2, T3, T4, T5, T6 >(t1,t2,t3,t4,t5,t6);
 };
 
@@ -389,8 +389,8 @@ template <typename T1, typename T2, typename T3, typename T4, typename T5,
           typename T6, typename T7>
 inline 
 arithmetic_tuple< T1, T2, T3, T4, T5, T6, T7 > make_arithmetic_tuple(const T1& t1, const T2& t2, const T3& t3, 
-								     const T4& t4, const T5& t5, const T6& t6,
-								     const T7& t7) {
+                                                                     const T4& t4, const T5& t5, const T6& t6,
+                                                                     const T7& t7) {
   return arithmetic_tuple< T1, T2, T3, T4, T5, T6, T7 >(t1,t2,t3,t4,t5,t6,t7);
 };
 
@@ -399,8 +399,8 @@ template <typename T1, typename T2, typename T3, typename T4, typename T5,
           typename T6, typename T7, typename T8>
 inline 
 arithmetic_tuple< T1, T2, T3, T4, T5, T6, T7, T8 > make_arithmetic_tuple(const T1& t1, const T2& t2, const T3& t3, 
-									 const T4& t4, const T5& t5, const T6& t6,
-									 const T7& t7, const T8& t8) {
+                                                                         const T4& t4, const T5& t5, const T6& t6,
+                                                                         const T7& t7, const T8& t8) {
   return arithmetic_tuple< T1, T2, T3, T4, T5, T6, T7, T8 >(t1,t2,t3,t4,t5,t6,t7,t8);
 };
 
@@ -409,8 +409,8 @@ template <typename T1, typename T2, typename T3, typename T4, typename T5,
           typename T6, typename T7, typename T8, typename T9>
 inline 
 arithmetic_tuple< T1, T2, T3, T4, T5, T6, T7, T8, T9 > make_arithmetic_tuple(const T1& t1, const T2& t2, const T3& t3, 
-									     const T4& t4, const T5& t5, const T6& t6,
-									     const T7& t7, const T8& t8, const T9& t9) {
+                                                                             const T4& t4, const T5& t5, const T6& t6,
+                                                                             const T7& t7, const T8& t8, const T9& t9) {
   return arithmetic_tuple< T1, T2, T3, T4, T5, T6, T7, T8, T9 >(t1,t2,t3,t4,t5,t6,t7,t8,t9);
 };
 
@@ -424,8 +424,8 @@ template <typename T1, typename T2, typename T3, typename T4, typename T5,
           typename T6, typename T7, typename T8, typename T9, typename T10>
 inline 
 arithmetic_tuple< T1, T2, T3, T4, T5, T6, T7, T8, T9, T10 > make_arithmetic_tuple(const T1& t1, const T2& t2, const T3& t3, 
-										  const T4& t4, const T5& t5, const T6& t6,
-										  const T7& t7, const T8& t8, const T9& t9, const T10& t10) {
+                                                                                  const T4& t4, const T5& t5, const T6& t6,
+                                                                                  const T7& t7, const T8& t8, const T9& t9, const T10& t10) {
   return arithmetic_tuple< T1, T2, T3, T4, T5, T6, T7, T8, T9, T10 >(t1,t2,t3,t4,t5,t6,t7,t8,t9,t10);
 };
 
@@ -1390,7 +1390,7 @@ iarchive& >::type operator &(iarchive& in, const std::pair<std::string, Tuple& >
 
 namespace rtti {
 
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_VARIADIC_TEMPLATES
   
 template <typename... T>
 struct get_type_id< arithmetic_tuple< T... > > {
@@ -1440,8 +1440,7 @@ struct get_type_info< arithmetic_tuple< T1, T2, T3, T4, T5, T6, T7, T8, T9, T10 
 
 
 
-
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_HDR_TUPLE
 
 namespace ReaK {
   

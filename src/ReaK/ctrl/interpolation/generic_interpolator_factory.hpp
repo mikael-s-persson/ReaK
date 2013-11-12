@@ -62,7 +62,7 @@ class generic_interpolator_impl : public InterpolatorImpl< SpaceType, TimeSpaceT
     //BOOST_STATIC_ASSERT(false);
   };
   
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_VARIADIC_TEMPLATES
   
   template <std::size_t Size, template <typename,typename> class InterpolatorImpl, typename TimeSpace, typename... Spaces>
   struct generic_interpolator_impl_tuple_impl< Size, std::tuple<Spaces...>, InterpolatorImpl, TimeSpace > {

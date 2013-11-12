@@ -48,7 +48,7 @@
 
 #include <cmath>
 
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_HDR_TYPE_TRAITS
 #include <type_traits>
 #else
 #include <boost/type_traits.hpp>
@@ -262,7 +262,7 @@ class differentiable_space : public metric_space_tuple<SpaceTuple,TupleDistanceM
      */
     template <int Idx, typename IndependentSpace2 = IndependentSpace>
     struct space {
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_HDR_TYPE_TRAITS
       BOOST_STATIC_ASSERT((std::is_convertible< const IndependentSpace2&, const IndependentSpace&>::value));
 #else
       BOOST_STATIC_ASSERT((boost::is_convertible< const IndependentSpace2&, const IndependentSpace&>::value));
@@ -377,7 +377,7 @@ struct derived_N_order_space< differentiable_space<IndependentSpace,SpaceTuple,T
  * \tparam Idx The differential order (e.g. 0: position, 1: velocity, 2: acceleration).
  */
 template <int Idx, typename IndependentSpace, typename SpaceTuple, typename TupleDistanceMetric, typename DiffRule, typename IndependentSpace2>
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_HDR_TYPE_TRAITS
 typename std::enable_if< std::is_convertible< const IndependentSpace2&, const IndependentSpace&>::value,
 const typename arithmetic_tuple_element<Idx, SpaceTuple>::type& >::type
 #else
@@ -393,7 +393,7 @@ const typename arithmetic_tuple_element<Idx, SpaceTuple>::type& >::type
  * \tparam Idx The differential order (e.g. 0: position, 1: velocity, 2: acceleration).
  */
 template <int Idx, typename IndependentSpace, typename SpaceTuple, typename TupleDistanceMetric, typename DiffRule, typename IndependentSpace2>
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_HDR_TYPE_TRAITS
 typename std::enable_if< std::is_convertible< const IndependentSpace2&, const IndependentSpace&>::value,
 typename arithmetic_tuple_element<Idx, SpaceTuple>::type& >::type
 #else
@@ -409,7 +409,7 @@ typename arithmetic_tuple_element<Idx, SpaceTuple>::type& >::type
  * \tparam Idx The differential order (e.g. 0: position/velocity, 1: velocity/acceleration).
  */
 template <int Idx, typename IndependentSpace, typename SpaceTuple, typename TupleDistanceMetric, typename DiffRule, typename IndependentSpace2>
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_HDR_TYPE_TRAITS
 typename std::enable_if< std::is_convertible< const IndependentSpace2&, const IndependentSpace&>::value,
 const DiffRule& >::type
 #else
@@ -425,7 +425,7 @@ const DiffRule& >::type
  * \tparam Idx The differential order (e.g. 0: position/velocity, 1: velocity/acceleration).
  */
 template <int Idx, typename IndependentSpace, typename SpaceTuple, typename TupleDistanceMetric, typename DiffRule, typename IndependentSpace2>
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_HDR_TYPE_TRAITS
 typename std::enable_if< std::is_convertible< const IndependentSpace2&, const IndependentSpace&>::value,
 DiffRule& >::type
 #else
@@ -446,7 +446,7 @@ DiffRule& >::type
  * \return The point in space Idx which is the tangential lift of the point-difference in space Idx-1.
  */
 template <int Idx, typename IndependentSpace, typename SpaceTuple, typename TupleDistanceMetric, typename DiffRule, typename IndependentSpace2>
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_HDR_TYPE_TRAITS
 typename std::enable_if< std::is_convertible< const IndependentSpace2&, const IndependentSpace&>::value,
 arithmetic_tuple_element<Idx, typename differentiable_space<IndependentSpace,SpaceTuple,TupleDistanceMetric,DiffRule>::point_type> >::type::type
 #else
@@ -470,7 +470,7 @@ arithmetic_tuple_element<Idx, typename differentiable_space<IndependentSpace,Spa
      * \return The point-difference in space Idx which is the tangential descent of the point in space Idx+1.
      */
 template <int Idx, typename IndependentSpace, typename SpaceTuple, typename TupleDistanceMetric, typename DiffRule, typename IndependentSpace2>
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_HDR_TYPE_TRAITS
 typename std::enable_if< std::is_convertible< const IndependentSpace2&, const IndependentSpace&>::value,
 arithmetic_tuple_element<Idx, typename differentiable_space<IndependentSpace,SpaceTuple,TupleDistanceMetric,DiffRule>::point_difference_type> >::type::type
 #else

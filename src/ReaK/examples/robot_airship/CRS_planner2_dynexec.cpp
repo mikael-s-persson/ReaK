@@ -87,7 +87,6 @@ void CRS_execute_dynamic_planner_impl(const ReaK::kte::chaser_target_data& scene
   typedef typename manip_dynamic_workspace< ManipMdlType, Order >::rl_workspace_type dynamic_workspace_type;
   typedef typename manip_pp_traits< ManipMdlType, Order >::rl_jt_space_type rl_jt_space_type;
   typedef typename manip_pp_traits< ManipMdlType, Order >::jt_space_type jt_space_type;
-  typedef typename manip_pp_traits< ManipMdlType, Order >::ee_space_type ee_space_type;
   typedef typename manip_DK_map< ManipMdlType, Order >::rl_map_type rlDK_map_type;
   typedef typename manip_IK_map< ManipMdlType, Order >::rl_map_type rlIK_map_type;
   

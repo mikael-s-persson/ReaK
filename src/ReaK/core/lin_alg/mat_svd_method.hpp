@@ -786,8 +786,6 @@ typename boost::enable_if_c< is_readable_matrix<Matrix1>::value &&
                              is_writable_matrix<Matrix2>::value &&
                              !is_fully_writable_matrix<Matrix2>::value, 
 void >::type pseudoinvert_SVD(const Matrix1& A, Matrix2& A_pinv, typename mat_traits<Matrix1>::value_type NumTol = 1E-15) {
-  typedef typename mat_traits<Matrix1>::value_type ValueType;
-  
   mat<typename mat_traits<Matrix1>::value_type, mat_structure::rectangular> A_pinv_tmp(A.get_col_count(),A.get_row_count());
   pseudoinvert_SVD(A,A_pinv_tmp,NumTol);
   A_pinv = A_pinv_tmp;
@@ -811,7 +809,7 @@ struct SVD_linlsqsolver {
 
 
 
-#if (defined(RK_ENABLE_CXX11_FEATURES) && defined(RK_ENABLE_EXTERN_TEMPLATES))
+#ifndef BOOST_NO_CXX11_EXTERN_TEMPLATE
 
 extern template void decompose_SVD(const mat<double,mat_structure::rectangular>& A, mat<double,mat_structure::rectangular>& U, mat<double,mat_structure::diagonal>& E, mat<double,mat_structure::rectangular>& V, double NumTol);
 extern template void decompose_SVD(const mat<double,mat_structure::rectangular>& A, mat<double,mat_structure::rectangular>& U, mat<double,mat_structure::diagonal>& E, mat<double,mat_structure::square>& V, double NumTol);

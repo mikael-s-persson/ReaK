@@ -35,16 +35,6 @@
 
 #include "so_type.hpp"
 
-#ifndef RK_ENABLE_CXX0X_FEATURES
-
-#include <boost/shared_ptr.hpp>
-#include <boost/weak_ptr.hpp>
-
-#else
-
-#include <memory>
-
-#endif
 
 namespace ReaK {
 
@@ -147,7 +137,7 @@ struct get_type_info< std::string, Tail > {
   static std::string type_name() { return get_type_id< std::string >::type_name() + (boost::is_same< Tail, null_type_info >::value ? "" : "," + Tail::type_name()); };
 };
 
-#ifndef RK_ENABLE_CXX0X_FEATURES
+#ifdef BOOST_NO_CXX11_SMART_PTR
 
 template <typename T>
 struct get_type_id< boost::shared_ptr<T> > {

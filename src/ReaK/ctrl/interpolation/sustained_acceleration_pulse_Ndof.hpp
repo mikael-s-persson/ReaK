@@ -84,15 +84,12 @@ PointType sap_Ndof_interpolate(const PointType& a, const PointType& b, double t,
   
   typedef typename derived_N_order_space< SpaceType, TimeSpaceType,0>::type Space0;
   typedef typename topology_traits<Space0>::point_type PointType0;
-  typedef typename topology_traits<Space0>::point_difference_type PointDiff0;
   
   typedef typename derived_N_order_space< SpaceType, TimeSpaceType,1>::type Space1;
   typedef typename topology_traits<Space1>::point_type PointType1;
-  typedef typename topology_traits<Space1>::point_difference_type PointDiff1;
 
   typedef typename derived_N_order_space< SpaceType, TimeSpaceType,2>::type Space2;
   typedef typename topology_traits<Space2>::point_type PointType2;
-  typedef typename topology_traits<Space2>::point_difference_type PointDiff2;
   
   BOOST_CONCEPT_ASSERT((MetricSpaceConcept<Space0>));
   BOOST_CONCEPT_ASSERT((MetricSpaceConcept<Space1>));
@@ -147,13 +144,9 @@ bool sap_Ndof_is_in_bounds(const typename topology_traits<Topology>::point_type&
   typedef typename derived_N_order_space<Topology, TimeTopology, 0>::type Space0;
   typedef typename derived_N_order_space<Topology, TimeTopology, 1>::type Space1;
   typedef typename derived_N_order_space<Topology, TimeTopology, 2>::type Space2;
-  typedef typename topology_traits<Topology>::point_type PointType;
   typedef typename topology_traits<Space0>::point_type Point0;
   typedef typename topology_traits<Space1>::point_type Point1;
   typedef typename topology_traits<Space2>::point_type Point2;
-  typedef typename topology_traits<Space0>::point_difference_type PointDiff0;
-  typedef typename topology_traits<Space1>::point_difference_type PointDiff1;
-  typedef typename topology_traits<Space2>::point_difference_type PointDiff2;
   
   using std::fabs;
   

@@ -63,7 +63,6 @@ namespace detail {
       Graph& g,
       RRGVisitor vis) {
     typedef typename boost::graph_traits<Graph>::vertex_descriptor Vertex;
-    typedef typename boost::graph_traits<Graph>::edge_descriptor Edge; 
     typedef typename Graph::edge_bundled EdgeProp;
     typedef boost::tuple< Vertex, bool, EdgeProp > ResultType;
     

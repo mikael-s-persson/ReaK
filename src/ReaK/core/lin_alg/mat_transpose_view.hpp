@@ -38,11 +38,6 @@
 namespace ReaK {
 
 
-  
-  
-
-
-
 template <typename Matrix>
 class mat_const_transpose_view {
   public:    
@@ -74,7 +69,7 @@ class mat_const_transpose_view {
     const Matrix* m;
     
     self& operator=(const self&);  
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
     explicit mat_const_transpose_view(Matrix&&);
 #endif
     
@@ -134,8 +129,8 @@ class mat_const_transpose_view {
     mat<value_type,mat_structure::rectangular> operator -() const {
       mat<value_type,mat_structure::rectangular> result(*this);
       for(size_type j = 0; j < result.get_col_count(); ++j)
-	for(size_type i = 0; i < result.get_row_count(); ++i)
-	  result(i,j) = -result(i,j);
+        for(size_type i = 0; i < result.get_row_count(); ++i)
+          result(i,j) = -result(i,j);
       return result;
     };
     
@@ -378,8 +373,8 @@ class mat_transpose_view {
     mat<value_type,mat_structure::rectangular> operator -() const {
       mat<value_type,mat_structure::rectangular> result(*this);
       for(size_type j = 0; j < result.get_col_count(); ++j)
-	for(size_type i = 0; i < result.get_row_count(); ++i)
-	  result(i,j) = -result(i,j);
+        for(size_type i = 0; i < result.get_row_count(); ++i)
+          result(i,j) = -result(i,j);
       return result;
     };
     
@@ -472,7 +467,7 @@ template <typename Matrix>
 typename boost::enable_if_c< is_readable_matrix<Matrix>::value,
 mat_const_transpose_view<Matrix> >::type transpose_view(const Matrix& M) { return mat_const_transpose_view<Matrix>(M); };
 
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
 template <typename Matrix>
 typename boost::enable_if_c< is_readable_matrix<Matrix>::value,
 mat_const_transpose_view<Matrix> >::type transpose_view(Matrix&& M) { return mat_const_transpose_view<Matrix>(std::move(M)); };

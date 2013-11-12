@@ -92,10 +92,10 @@ class mat_row_slice {
      * \param aCount The number of elements to take in the slice.
      */
     mat_row_slice(Matrix& aM, 
-		  size_type aColIndex, 
-		  size_type aOffset, 
-		  size_type aCount) : m(&aM), offset(aOffset), colIndex(aColIndex), count(aCount) { };
-		  
+                  size_type aColIndex, 
+                  size_type aOffset, 
+                  size_type aCount) : m(&aM), offset(aOffset), colIndex(aColIndex), count(aCount) { };
+                  
     /**
      * Standard copy-constructor (shallow).
      */
@@ -122,9 +122,9 @@ class mat_row_slice {
     typename boost::enable_if_c< is_readable_vector<Vector>::value,
     self& >::type operator=(const Vector& v) {
       if(v.size() != count) 
-	throw std::range_error("Vector dimensions mismatch.");
+        throw std::range_error("Vector dimensions mismatch.");
       for(size_type i = 0; i < count; ++i)
-	(*m)(offset + i,colIndex) = v[i];
+        (*m)(offset + i,colIndex) = v[i];
       return *this;
     };
     
@@ -307,7 +307,7 @@ class mat_const_row_slice {
     
     self& operator=(const self&); //non-assignable.
 
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
     mat_const_row_slice(Matrix&&);
     mat_const_row_slice(Matrix&&, size_type, size_type, size_type);
 #endif
@@ -328,10 +328,10 @@ class mat_const_row_slice {
      * \param aCount The number of elements to take in the slice.
      */
     mat_const_row_slice(const Matrix& aM, 
-		  size_type aColIndex, 
-		  size_type aOffset, 
-		  size_type aCount) : m(&aM), offset(aOffset), colIndex(aColIndex), count(aCount) { };
-		  
+                  size_type aColIndex, 
+                  size_type aOffset, 
+                  size_type aCount) : m(&aM), offset(aOffset), colIndex(aColIndex), count(aCount) { };
+                  
     /**
      * Standard copy-constructor (shallow).
      */
@@ -526,10 +526,10 @@ class mat_col_slice {
      * \param aCount The number of elements to take in the slice.
      */
     mat_col_slice(Matrix& aM, 
-		  size_type aRowIndex, 
-		  size_type aOffset, 
-		  size_type aCount) : m(&aM), offset(aOffset), rowIndex(aRowIndex), count(aCount) { };
-		  
+                  size_type aRowIndex, 
+                  size_type aOffset, 
+                  size_type aCount) : m(&aM), offset(aOffset), rowIndex(aRowIndex), count(aCount) { };
+                  
     /**
      * Standard copy-constructor (shallow).
      */
@@ -556,9 +556,9 @@ class mat_col_slice {
     typename boost::enable_if_c< is_readable_vector<Vector>::value,
     self& >::type operator=(const Vector& v) {
       if(v.size() != count) 
-	throw std::range_error("Vector dimensions mismatch.");
+        throw std::range_error("Vector dimensions mismatch.");
       for(size_type i = 0; i < count; ++i)
-	(*m)(rowIndex,offset + i) = v[i];
+        (*m)(rowIndex,offset + i) = v[i];
       return *this;
     };
     
@@ -749,7 +749,7 @@ class mat_const_col_slice {
     
     self& operator=(const self&); //non-assignable.
     
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
     mat_const_col_slice(Matrix&&);
     mat_const_col_slice(Matrix&&, size_type, size_type, size_type);
 #endif
@@ -770,10 +770,10 @@ class mat_const_col_slice {
      * \param aCount The number of elements to take in the slice.
      */
     mat_const_col_slice(const Matrix& aM, 
-		  size_type aRowIndex, 
-		  size_type aOffset, 
-		  size_type aCount) : m(&aM), offset(aOffset), rowIndex(aRowIndex), count(aCount) { };
-		  
+                  size_type aRowIndex, 
+                  size_type aOffset, 
+                  size_type aCount) : m(&aM), offset(aOffset), rowIndex(aRowIndex), count(aCount) { };
+                  
     /**
      * Standard copy-constructor (shallow).
      */
@@ -914,11 +914,11 @@ struct mat_slice_factory {
   Matrix& m;
   mat_slice_factory(Matrix& aM) : m(aM) { };
   mat_col_slice<Matrix> operator()(size_type row,
-				   const std::pair<size_type,size_type>& cols) {
+                                   const std::pair<size_type,size_type>& cols) {
     return mat_col_slice<Matrix>(m,row,cols.first,cols.second - cols.first + 1);
   };
   mat_row_slice<Matrix> operator()(const std::pair<size_type,size_type>& rows,
-				   size_type col) {
+                                   size_type col) {
     return mat_row_slice<Matrix>(m,col,rows.first,rows.second - rows.first + 1);
   };
 };
@@ -930,11 +930,11 @@ struct mat_const_slice_factory {
   const Matrix& m;
   mat_const_slice_factory(const Matrix& aM) : m(aM) { };
   mat_const_col_slice<Matrix> operator()(size_type row,
-				   const std::pair<size_type,size_type>& cols) {
+                                   const std::pair<size_type,size_type>& cols) {
     return mat_const_col_slice<Matrix>(m,row,cols.first,cols.second - cols.first + 1);
   };
   mat_const_row_slice<Matrix> operator()(const std::pair<size_type,size_type>& rows,
-				   size_type col) {
+                                   size_type col) {
     return mat_const_row_slice<Matrix>(m,col,rows.first,rows.second - rows.first + 1);
   };
 };

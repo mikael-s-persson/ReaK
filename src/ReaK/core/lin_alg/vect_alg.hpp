@@ -232,7 +232,7 @@ class vect : public serialization::serializable {
      */
     vect() {
       for(size_type i = 0;i < Size;++i)
-	q[i] = value_type();
+        q[i] = value_type();
       return;
     };
     
@@ -245,7 +245,7 @@ class vect : public serialization::serializable {
      */
     vect(const_pointer Q) {
       for(size_type i=0;i < Size;++i)
-	q[i] = Q[i];
+        q[i] = Q[i];
       return;
     };
 
@@ -255,11 +255,11 @@ class vect : public serialization::serializable {
      */
     vect(const self& V) {
       for(size_type i=0;i < Size;++i)
-	q[i] = V.q[i];
+        q[i] = V.q[i];
       return;
     };
     
-#ifdef RK_ENABLE_CXX11_FEATURES
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
     /**
      * Standard Move Constructor with standard semantics.
      * \test PASSED
@@ -298,7 +298,7 @@ class vect : public serialization::serializable {
     ~vect() { };
     
     
-#ifndef RK_ENABLE_CXX11_FEATURES
+#ifdef BOOST_NO_CXX11_VARIADIC_TEMPLATES
     
     /**
      * Constructor for 1 values.
@@ -308,7 +308,7 @@ class vect : public serialization::serializable {
       BOOST_STATIC_ASSERT(Size >= 1);
       q[0] = Q1;
       for(size_type i=1;i<Size;++i)
-	q[i] = value_type();
+        q[i] = value_type();
       return;
     };
 
@@ -321,7 +321,7 @@ class vect : public serialization::serializable {
       q[0] = Q1;
       q[1] = Q2;
       for(size_type i=2;i<Size;++i)
-	q[i] = value_type();
+        q[i] = value_type();
       return;
     };
 
@@ -335,7 +335,7 @@ class vect : public serialization::serializable {
       q[1] = Q2;
       q[2] = Q3;
       for(size_type i=3;i<Size;++i)
-	q[i] = value_type();
+        q[i] = value_type();
       return;
     };
 
@@ -350,7 +350,7 @@ class vect : public serialization::serializable {
       q[2] = Q3;
       q[3] = Q4;
       for(size_type i=4;i<Size;++i)
-	q[i] = value_type();
+        q[i] = value_type();
       return;
     };
 
@@ -359,7 +359,7 @@ class vect : public serialization::serializable {
      * \test PASSED
      */
     vect(const_reference Q1,const_reference Q2,const_reference Q3,
-	 const_reference Q4,const_reference Q5) {
+         const_reference Q4,const_reference Q5) {
       BOOST_STATIC_ASSERT(Size >= 5);
       q[0] = Q1;
       q[1] = Q2;
@@ -367,7 +367,7 @@ class vect : public serialization::serializable {
       q[3] = Q4;
       q[4] = Q5;
       for(size_type i=5;i<Size;++i)
-	q[i] = value_type();
+        q[i] = value_type();
       return;
     };
 
@@ -376,7 +376,7 @@ class vect : public serialization::serializable {
      * \test PASSED
      */
     vect(const_reference Q1,const_reference Q2,const_reference Q3,
-	 const_reference Q4,const_reference Q5,const_reference Q6) {
+         const_reference Q4,const_reference Q5,const_reference Q6) {
       BOOST_STATIC_ASSERT(Size >= 6);
       q[0] = Q1;
       q[1] = Q2;
@@ -385,7 +385,7 @@ class vect : public serialization::serializable {
       q[4] = Q5;
       q[5] = Q6;
       for(size_type i=6;i<Size;++i)
-	q[i] = value_type();
+        q[i] = value_type();
       return;
     };
 
@@ -394,7 +394,7 @@ class vect : public serialization::serializable {
      * \test PASSED
      */
     vect(const_reference Q1,const_reference Q2,const_reference Q3,const_reference Q4,
-	 const_reference Q5,const_reference Q6,const_reference Q7) {
+         const_reference Q5,const_reference Q6,const_reference Q7) {
       BOOST_STATIC_ASSERT(Size >= 7);
       q[0] = Q1;
       q[1] = Q2;
@@ -404,7 +404,7 @@ class vect : public serialization::serializable {
       q[5] = Q6;
       q[6] = Q7;
       for(size_type i=7;i<Size;++i)
-	q[i] = value_type();
+        q[i] = value_type();
       return;
     };
 
@@ -413,7 +413,7 @@ class vect : public serialization::serializable {
      * \test PASSED
      */
     vect(const_reference Q1,const_reference Q2,const_reference Q3,const_reference Q4,
-	 const_reference Q5,const_reference Q6,const_reference Q7,const_reference Q8) {
+         const_reference Q5,const_reference Q6,const_reference Q7,const_reference Q8) {
       BOOST_STATIC_ASSERT(Size >= 8);
       q[0] = Q1;
       q[1] = Q2;
@@ -424,7 +424,7 @@ class vect : public serialization::serializable {
       q[6] = Q7;
       q[7] = Q8;
       for(size_type i=8;i<Size;++i)
-	q[i] = value_type();
+        q[i] = value_type();
       return;
     };
 
@@ -433,7 +433,7 @@ class vect : public serialization::serializable {
      * \test PASSED
      */
     vect(const_reference Q1,const_reference Q2,const_reference Q3,const_reference Q4,const_reference Q5,
-	 const_reference Q6,const_reference Q7,const_reference Q8,const_reference Q9) {
+         const_reference Q6,const_reference Q7,const_reference Q8,const_reference Q9) {
       BOOST_STATIC_ASSERT(Size >= 9);
       q[0] = Q1;
       q[1] = Q2;
@@ -445,7 +445,7 @@ class vect : public serialization::serializable {
       q[7] = Q8;
       q[8] = Q9;
       for(size_type i=9;i<Size;++i)
-	q[i] = value_type();
+        q[i] = value_type();
       return;
     };
 
@@ -454,7 +454,7 @@ class vect : public serialization::serializable {
      * \test PASSED
      */
     vect(const_reference Q1,const_reference Q2,const_reference Q3,const_reference Q4,const_reference Q5,
-	 const_reference Q6,const_reference Q7,const_reference Q8,const_reference Q9,const_reference Q10) {
+         const_reference Q6,const_reference Q7,const_reference Q8,const_reference Q9,const_reference Q10) {
       BOOST_STATIC_ASSERT(Size >= 10);
       q[0] = Q1;
       q[1] = Q2;
@@ -467,7 +467,7 @@ class vect : public serialization::serializable {
       q[8] = Q9;
       q[9] = Q10;
       for(size_type i=10;i<Size;++i)
-	q[i] = value_type();
+        q[i] = value_type();
       return;
     };
 
@@ -476,8 +476,8 @@ class vect : public serialization::serializable {
      * \test PASSED
      */
     vect(const_reference Q1,const_reference Q2,const_reference Q3,const_reference Q4,const_reference Q5,
-	 const_reference Q6,const_reference Q7,const_reference Q8,const_reference Q9,const_reference Q10,
-	 const_reference Q11) {
+         const_reference Q6,const_reference Q7,const_reference Q8,const_reference Q9,const_reference Q10,
+         const_reference Q11) {
       BOOST_STATIC_ASSERT(Size >= 11);
       q[0] = Q1;
       q[1] = Q2;
@@ -491,7 +491,7 @@ class vect : public serialization::serializable {
       q[9] = Q10;
       q[10] = Q11;
       for(size_type i=11;i<Size;++i)
-	q[i] = value_type();
+        q[i] = value_type();
       return;
     };
 
@@ -500,8 +500,8 @@ class vect : public serialization::serializable {
      * \test PASSED
      */
     vect(const_reference Q1,const_reference Q2,const_reference Q3,const_reference Q4,const_reference Q5,
-	 const_reference Q6,const_reference Q7,const_reference Q8,const_reference Q9,const_reference Q10,
-	 const_reference Q11, const_reference Q12) {
+         const_reference Q6,const_reference Q7,const_reference Q8,const_reference Q9,const_reference Q10,
+         const_reference Q11, const_reference Q12) {
       BOOST_STATIC_ASSERT(Size >= 12);
       q[0] = Q1;
       q[1] = Q2;
@@ -516,7 +516,7 @@ class vect : public serialization::serializable {
       q[10] = Q11;
       q[11] = Q12;
       for(size_type i=12;i<Size;++i)
-	q[i] = value_type();
+        q[i] = value_type();
       return;
     };
 
@@ -525,8 +525,8 @@ class vect : public serialization::serializable {
      * \test PASSED
      */
     vect(const_reference Q1,const_reference Q2,const_reference Q3,const_reference Q4,const_reference Q5,
-	 const_reference Q6,const_reference Q7,const_reference Q8,const_reference Q9,const_reference Q10,
-	 const_reference Q11, const_reference Q12, const_reference Q13) {
+         const_reference Q6,const_reference Q7,const_reference Q8,const_reference Q9,const_reference Q10,
+         const_reference Q11, const_reference Q12, const_reference Q13) {
       BOOST_STATIC_ASSERT(Size >= 13);
       q[0] = Q1;
       q[1] = Q2;
@@ -542,7 +542,7 @@ class vect : public serialization::serializable {
       q[11] = Q12;
       q[12] = Q13;
       for(size_type i=13;i<Size;++i)
-	q[i] = value_type();
+        q[i] = value_type();
       return;
     };
 
@@ -551,8 +551,8 @@ class vect : public serialization::serializable {
      * \test PASSED
      */
     vect(const_reference Q1,const_reference Q2,const_reference Q3,const_reference Q4,const_reference Q5,
-	 const_reference Q6,const_reference Q7,const_reference Q8,const_reference Q9,const_reference Q10,
-	 const_reference Q11, const_reference Q12, const_reference Q13, const_reference Q14) {
+         const_reference Q6,const_reference Q7,const_reference Q8,const_reference Q9,const_reference Q10,
+         const_reference Q11, const_reference Q12, const_reference Q13, const_reference Q14) {
       BOOST_STATIC_ASSERT(Size >= 14);
       q[0] = Q1;
       q[1] = Q2;
@@ -569,7 +569,7 @@ class vect : public serialization::serializable {
       q[12] = Q13;
       q[13] = Q14;
       for(size_type i=14;i<Size;++i)
-	q[i] = value_type();
+        q[i] = value_type();
       return;
     };
 
@@ -578,8 +578,8 @@ class vect : public serialization::serializable {
      * \test PASSED
      */
     vect(const_reference Q1,const_reference Q2,const_reference Q3,const_reference Q4,const_reference Q5,
-	 const_reference Q6,const_reference Q7,const_reference Q8,const_reference Q9,const_reference Q10,
-	 const_reference Q11, const_reference Q12, const_reference Q13, const_reference Q14, const_reference Q15) {
+         const_reference Q6,const_reference Q7,const_reference Q8,const_reference Q9,const_reference Q10,
+         const_reference Q11, const_reference Q12, const_reference Q13, const_reference Q14, const_reference Q15) {
       BOOST_STATIC_ASSERT(Size >= 15);
       q[0] = Q1;
       q[1] = Q2;
@@ -597,7 +597,7 @@ class vect : public serialization::serializable {
       q[13] = Q14;
       q[14] = Q15;
       for(size_type i=15;i<Size;++i)
-	q[i] = value_type();
+        q[i] = value_type();
       return;
     };
 
@@ -606,9 +606,9 @@ class vect : public serialization::serializable {
      * \test PASSED
      */
     vect(const_reference Q1,const_reference Q2,const_reference Q3,const_reference Q4,const_reference Q5,
-	 const_reference Q6,const_reference Q7,const_reference Q8,const_reference Q9,const_reference Q10,
-	 const_reference Q11, const_reference Q12, const_reference Q13, const_reference Q14, const_reference Q15,
-	 const_reference Q16) {
+         const_reference Q6,const_reference Q7,const_reference Q8,const_reference Q9,const_reference Q10,
+         const_reference Q11, const_reference Q12, const_reference Q13, const_reference Q14, const_reference Q15,
+         const_reference Q16) {
       BOOST_STATIC_ASSERT(Size >= 16);
       q[0] = Q1;
       q[1] = Q2;
@@ -627,7 +627,7 @@ class vect : public serialization::serializable {
       q[14] = Q15;
       q[15] = Q16;
       for(size_type i=16;i<Size;++i)
-	q[i] = value_type();
+        q[i] = value_type();
       return;
     };
 
@@ -636,9 +636,9 @@ class vect : public serialization::serializable {
      * \test PASSED
      */
     vect(const_reference Q1,const_reference Q2,const_reference Q3,const_reference Q4,const_reference Q5,
-	 const_reference Q6,const_reference Q7,const_reference Q8,const_reference Q9,const_reference Q10,
-	 const_reference Q11, const_reference Q12, const_reference Q13, const_reference Q14, const_reference Q15,
-	 const_reference Q16, const_reference Q17) {
+         const_reference Q6,const_reference Q7,const_reference Q8,const_reference Q9,const_reference Q10,
+         const_reference Q11, const_reference Q12, const_reference Q13, const_reference Q14, const_reference Q15,
+         const_reference Q16, const_reference Q17) {
       BOOST_STATIC_ASSERT(Size >= 17);
       q[0] = Q1;
       q[1] = Q2;
@@ -658,7 +658,7 @@ class vect : public serialization::serializable {
       q[15] = Q16;
       q[16] = Q17;
       for(size_type i=17;i<Size;++i)
-	q[i] = value_type();
+        q[i] = value_type();
       return;
     };
 
@@ -667,9 +667,9 @@ class vect : public serialization::serializable {
      * \test PASSED
      */
     vect(const_reference Q1,const_reference Q2,const_reference Q3,const_reference Q4,const_reference Q5,
-	 const_reference Q6,const_reference Q7,const_reference Q8,const_reference Q9,const_reference Q10,
-	 const_reference Q11, const_reference Q12, const_reference Q13, const_reference Q14, const_reference Q15,
-	 const_reference Q16, const_reference Q17, const_reference Q18) {
+         const_reference Q6,const_reference Q7,const_reference Q8,const_reference Q9,const_reference Q10,
+         const_reference Q11, const_reference Q12, const_reference Q13, const_reference Q14, const_reference Q15,
+         const_reference Q16, const_reference Q17, const_reference Q18) {
       BOOST_STATIC_ASSERT(Size >= 18);
       q[0] = Q1;
       q[1] = Q2;
@@ -690,7 +690,7 @@ class vect : public serialization::serializable {
       q[16] = Q17;
       q[17] = Q18;
       for(size_type i=18;i<Size;++i)
-	q[i] = value_type();
+        q[i] = value_type();
       return;
     };
 
@@ -699,9 +699,9 @@ class vect : public serialization::serializable {
      * \test PASSED
      */
     vect(const_reference Q1,const_reference Q2,const_reference Q3,const_reference Q4,const_reference Q5,
-	 const_reference Q6,const_reference Q7,const_reference Q8,const_reference Q9,const_reference Q10,
-	 const_reference Q11, const_reference Q12, const_reference Q13, const_reference Q14, const_reference Q15,
-	 const_reference Q16, const_reference Q17, const_reference Q18, const_reference Q19) {
+         const_reference Q6,const_reference Q7,const_reference Q8,const_reference Q9,const_reference Q10,
+         const_reference Q11, const_reference Q12, const_reference Q13, const_reference Q14, const_reference Q15,
+         const_reference Q16, const_reference Q17, const_reference Q18, const_reference Q19) {
       BOOST_STATIC_ASSERT(Size >= 19);
       q[0] = Q1;
       q[1] = Q2;
@@ -723,7 +723,7 @@ class vect : public serialization::serializable {
       q[17] = Q18;
       q[18] = Q19;
       for(size_type i=19;i<Size;++i)
-	q[i] = value_type();
+        q[i] = value_type();
       return;
     };
 
@@ -732,9 +732,9 @@ class vect : public serialization::serializable {
      * \test PASSED
      */
     vect(const_reference Q1,const_reference Q2,const_reference Q3,const_reference Q4,const_reference Q5,
-	 const_reference Q6,const_reference Q7,const_reference Q8,const_reference Q9,const_reference Q10,
-	 const_reference Q11, const_reference Q12, const_reference Q13, const_reference Q14, const_reference Q15,
-	 const_reference Q16, const_reference Q17, const_reference Q18, const_reference Q19, const_reference Q20) {
+         const_reference Q6,const_reference Q7,const_reference Q8,const_reference Q9,const_reference Q10,
+         const_reference Q11, const_reference Q12, const_reference Q13, const_reference Q14, const_reference Q15,
+         const_reference Q16, const_reference Q17, const_reference Q18, const_reference Q19, const_reference Q20) {
       BOOST_STATIC_ASSERT(Size >= 20);
       q[0] = Q1;
       q[1] = Q2;
@@ -757,7 +757,7 @@ class vect : public serialization::serializable {
       q[18] = Q19;
       q[19] = Q20;
       for(size_type i=20;i<Size;++i)
-	q[i] = value_type();
+        q[i] = value_type();
       return;
     };
     
@@ -854,7 +854,7 @@ class vect : public serialization::serializable {
      */
     self& operator =(const self& V) {
       for(size_type i=0;i<Size;++i)
-	q[i] = V[i];
+        q[i] = V[i];
       return *this;
     };
     
@@ -869,7 +869,7 @@ class vect : public serialization::serializable {
       if(Size != V.size())
         throw std::range_error("Vector size mismatch.");
       for(size_type i=0; i < Size; ++i)
-	q[i] = V[i];
+        q[i] = V[i];
       return *this;
     };
     
@@ -1457,7 +1457,7 @@ class vect_n : public serialization::serializable {
      * \test PASSED
      */
     vect_n(const_reference Q1,const_reference Q2,const_reference Q3,
-	   const_reference Q4,const_reference Q5) : q(5) {
+           const_reference Q4,const_reference Q5) : q(5) {
       q[0] = Q1;
       q[1] = Q2;
       q[2] = Q3;
@@ -1471,7 +1471,7 @@ class vect_n : public serialization::serializable {
      * \test PASSED
      */
     vect_n(const_reference Q1,const_reference Q2,const_reference Q3,
-	   const_reference Q4,const_reference Q5,const_reference Q6) : q(6) {
+           const_reference Q4,const_reference Q5,const_reference Q6) : q(6) {
       q[0] = Q1;
       q[1] = Q2;
       q[2] = Q3;
@@ -1486,7 +1486,7 @@ class vect_n : public serialization::serializable {
      * \test PASSED
      */
     vect_n(const_reference Q1,const_reference Q2,const_reference Q3,const_reference Q4,
-	   const_reference Q5,const_reference Q6,const_reference Q7) : q(7) {
+           const_reference Q5,const_reference Q6,const_reference Q7) : q(7) {
       q[0] = Q1;
       q[1] = Q2;
       q[2] = Q3;
@@ -1502,7 +1502,7 @@ class vect_n : public serialization::serializable {
      * \test PASSED
      */
     vect_n(const_reference Q1,const_reference Q2,const_reference Q3,const_reference Q4,
-	   const_reference Q5,const_reference Q6,const_reference Q7,const_reference Q8) : q(8) {
+           const_reference Q5,const_reference Q6,const_reference Q7,const_reference Q8) : q(8) {
       q[0] = Q1;
       q[1] = Q2;
       q[2] = Q3;
@@ -1519,7 +1519,7 @@ class vect_n : public serialization::serializable {
      * \test PASSED
      */
     vect_n(const_reference Q1,const_reference Q2,const_reference Q3,const_reference Q4,const_reference Q5,
-	   const_reference Q6,const_reference Q7,const_reference Q8,const_reference Q9) : q(9) {
+           const_reference Q6,const_reference Q7,const_reference Q8,const_reference Q9) : q(9) {
       q[0] = Q1;
       q[1] = Q2;
       q[2] = Q3;
@@ -1537,7 +1537,7 @@ class vect_n : public serialization::serializable {
      * \test PASSED
      */
     vect_n(const_reference Q1,const_reference Q2,const_reference Q3,const_reference Q4,const_reference Q5,
-	   const_reference Q6,const_reference Q7,const_reference Q8,const_reference Q9,const_reference Q10) : q(10) {
+           const_reference Q6,const_reference Q7,const_reference Q8,const_reference Q9,const_reference Q10) : q(10) {
       q[0] = Q1;
       q[1] = Q2;
       q[2] = Q3;
@@ -1556,8 +1556,8 @@ class vect_n : public serialization::serializable {
      * \test PASSED
      */
     vect_n(const_reference Q1,const_reference Q2,const_reference Q3,const_reference Q4,const_reference Q5,
-	   const_reference Q6,const_reference Q7,const_reference Q8,const_reference Q9,const_reference Q10,
-	   const_reference Q11) : q(11) {
+           const_reference Q6,const_reference Q7,const_reference Q8,const_reference Q9,const_reference Q10,
+           const_reference Q11) : q(11) {
       q[0] = Q1;
       q[1] = Q2;
       q[2] = Q3;
@@ -1577,8 +1577,8 @@ class vect_n : public serialization::serializable {
      * \test PASSED
      */
     vect_n(const_reference Q1,const_reference Q2,const_reference Q3,const_reference Q4,const_reference Q5,
-	   const_reference Q6,const_reference Q7,const_reference Q8,const_reference Q9,const_reference Q10,
-	   const_reference Q11,const_reference Q12) : q(12) {
+           const_reference Q6,const_reference Q7,const_reference Q8,const_reference Q9,const_reference Q10,
+           const_reference Q11,const_reference Q12) : q(12) {
       q[0] = Q1;
       q[1] = Q2;
       q[2] = Q3;
@@ -1599,8 +1599,8 @@ class vect_n : public serialization::serializable {
      * \test PASSED
      */
     vect_n(const_reference Q1,const_reference Q2,const_reference Q3,const_reference Q4,const_reference Q5,
-	   const_reference Q6,const_reference Q7,const_reference Q8,const_reference Q9,const_reference Q10,
-	   const_reference Q11,const_reference Q12,const_reference Q13) : q(13) {
+           const_reference Q6,const_reference Q7,const_reference Q8,const_reference Q9,const_reference Q10,
+           const_reference Q11,const_reference Q12,const_reference Q13) : q(13) {
       q[0] = Q1;
       q[1] = Q2;
       q[2] = Q3;
@@ -1622,8 +1622,8 @@ class vect_n : public serialization::serializable {
      * \test PASSED
      */
     vect_n(const_reference Q1,const_reference Q2,const_reference Q3,const_reference Q4,const_reference Q5,
-	   const_reference Q6,const_reference Q7,const_reference Q8,const_reference Q9,const_reference Q10,
-	   const_reference Q11,const_reference Q12,const_reference Q13,const_reference Q14) : q(14) {
+           const_reference Q6,const_reference Q7,const_reference Q8,const_reference Q9,const_reference Q10,
+           const_reference Q11,const_reference Q12,const_reference Q13,const_reference Q14) : q(14) {
       q[0] = Q1;
       q[1] = Q2;
       q[2] = Q3;
@@ -1646,8 +1646,8 @@ class vect_n : public serialization::serializable {
      * \test PASSED
      */
     vect_n(const_reference Q1,const_reference Q2,const_reference Q3,const_reference Q4,const_reference Q5,
-	   const_reference Q6,const_reference Q7,const_reference Q8,const_reference Q9,const_reference Q10,
-	   const_reference Q11,const_reference Q12,const_reference Q13,const_reference Q14,const_reference Q15) : q(15) {
+           const_reference Q6,const_reference Q7,const_reference Q8,const_reference Q9,const_reference Q10,
+           const_reference Q11,const_reference Q12,const_reference Q13,const_reference Q14,const_reference Q15) : q(15) {
       q[0] = Q1;
       q[1] = Q2;
       q[2] = Q3;
@@ -1671,9 +1671,9 @@ class vect_n : public serialization::serializable {
      * \test PASSED
      */
     vect_n(const_reference Q1,const_reference Q2,const_reference Q3,const_reference Q4,const_reference Q5,
-	   const_reference Q6,const_reference Q7,const_reference Q8,const_reference Q9,const_reference Q10,
-	   const_reference Q11,const_reference Q12,const_reference Q13,const_reference Q14,const_reference Q15,
-	   const_reference Q16) : q(16) {
+           const_reference Q6,const_reference Q7,const_reference Q8,const_reference Q9,const_reference Q10,
+           const_reference Q11,const_reference Q12,const_reference Q13,const_reference Q14,const_reference Q15,
+           const_reference Q16) : q(16) {
       q[0] = Q1;
       q[1] = Q2;
       q[2] = Q3;
@@ -1698,9 +1698,9 @@ class vect_n : public serialization::serializable {
      * \test PASSED
      */
     vect_n(const_reference Q1,const_reference Q2,const_reference Q3,const_reference Q4,const_reference Q5,
-	   const_reference Q6,const_reference Q7,const_reference Q8,const_reference Q9,const_reference Q10,
-	   const_reference Q11,const_reference Q12,const_reference Q13,const_reference Q14,const_reference Q15,
-	   const_reference Q16,const_reference Q17) : q(17) {
+           const_reference Q6,const_reference Q7,const_reference Q8,const_reference Q9,const_reference Q10,
+           const_reference Q11,const_reference Q12,const_reference Q13,const_reference Q14,const_reference Q15,
+           const_reference Q16,const_reference Q17) : q(17) {
       q[0] = Q1;
       q[1] = Q2;
       q[2] = Q3;
@@ -1726,9 +1726,9 @@ class vect_n : public serialization::serializable {
      * \test PASSED
      */
     vect_n(const_reference Q1,const_reference Q2,const_reference Q3,const_reference Q4,const_reference Q5,
-	   const_reference Q6,const_reference Q7,const_reference Q8,const_reference Q9,const_reference Q10,
-	   const_reference Q11,const_reference Q12,const_reference Q13,const_reference Q14,const_reference Q15,
-	   const_reference Q16,const_reference Q17,const_reference Q18) : q(18) {
+           const_reference Q6,const_reference Q7,const_reference Q8,const_reference Q9,const_reference Q10,
+           const_reference Q11,const_reference Q12,const_reference Q13,const_reference Q14,const_reference Q15,
+           const_reference Q16,const_reference Q17,const_reference Q18) : q(18) {
       q[0] = Q1;
       q[1] = Q2;
       q[2] = Q3;
@@ -1755,9 +1755,9 @@ class vect_n : public serialization::serializable {
      * \test PASSED
      */
     vect_n(const_reference Q1,const_reference Q2,const_reference Q3,const_reference Q4,const_reference Q5,
-	   const_reference Q6,const_reference Q7,const_reference Q8,const_reference Q9,const_reference Q10,
-	   const_reference Q11,const_reference Q12,const_reference Q13,const_reference Q14,const_reference Q15,
-	   const_reference Q16,const_reference Q17,const_reference Q18,const_reference Q19) : q(19) {
+           const_reference Q6,const_reference Q7,const_reference Q8,const_reference Q9,const_reference Q10,
+           const_reference Q11,const_reference Q12,const_reference Q13,const_reference Q14,const_reference Q15,
+           const_reference Q16,const_reference Q17,const_reference Q18,const_reference Q19) : q(19) {
       q[0] = Q1;
       q[1] = Q2;
       q[2] = Q3;
@@ -1785,9 +1785,9 @@ class vect_n : public serialization::serializable {
      * \test PASSED
      */
     vect_n(const_reference Q1,const_reference Q2,const_reference Q3,const_reference Q4,const_reference Q5,
-	   const_reference Q6,const_reference Q7,const_reference Q8,const_reference Q9,const_reference Q10,
-	   const_reference Q11,const_reference Q12,const_reference Q13,const_reference Q14,const_reference Q15,
-	   const_reference Q16,const_reference Q17,const_reference Q18,const_reference Q19,const_reference Q20) : q(20) {
+           const_reference Q6,const_reference Q7,const_reference Q8,const_reference Q9,const_reference Q10,
+           const_reference Q11,const_reference Q12,const_reference Q13,const_reference Q14,const_reference Q15,
+           const_reference Q16,const_reference Q17,const_reference Q18,const_reference Q19,const_reference Q20) : q(20) {
       q[0] = Q1;
       q[1] = Q2;
       q[2] = Q3;
@@ -1891,7 +1891,7 @@ class vect_n : public serialization::serializable {
     self& >::type operator =(const Vector& V) {
       q.resize(V.size());
       for(size_type i=0; i < q.size(); ++i)
-	q[i] = V[i];
+        q[i] = V[i];
       return *this;
     };
 
@@ -2785,7 +2785,7 @@ std::istream& operator >>(std::istream& in_stream, vect<T,Size>& V) {
 
 
 
-#if (defined(RK_ENABLE_CXX11_FEATURES) && defined(RK_ENABLE_EXTERN_TEMPLATES))
+#ifndef BOOST_NO_CXX11_EXTERN_TEMPLATE
 
 extern template class vect<double,2>;
 extern template class vect<double,3>;

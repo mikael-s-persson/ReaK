@@ -584,7 +584,6 @@ class sbmp_point_recorder<JointStateSpace, identity_topo_map, NextReporter> : pu
     template <typename FreeSpaceType>
     void draw_solution(const FreeSpaceType& free_space, 
                        const shared_ptr< seq_path_base< typename subspace_traits<FreeSpaceType>::super_space_type > >& p) const {
-      typedef typename topology_traits<FreeSpaceType>::point_type PointType;
       typedef typename seq_path_base< typename subspace_traits<FreeSpaceType>::super_space_type >::point_fraction_iterator PtIter;
       
       std::stringstream ss;

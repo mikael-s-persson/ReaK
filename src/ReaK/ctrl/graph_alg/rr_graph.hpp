@@ -94,14 +94,14 @@ namespace detail {
       
       VertexProp xp_new;
       put(position, xp_new, p_new);
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
       Vertex x_new = add_vertex(std::move(xp_new),g);
 #else
       Vertex x_new = add_vertex(xp_new,g);
 #endif
       vis.vertex_added(x_new,g);
       
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
       std::pair<Edge, bool> ep = add_edge(x_near, x_new, std::move(eprop), g);
 #else
       std::pair<Edge, bool> ep = add_edge(x_near, x_new, eprop, g);
@@ -118,7 +118,7 @@ namespace detail {
         if(!can_connect)
           continue;
         
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
         ep = add_edge(*it, x_new, std::move(eprop2), g);
 #else
         ep = add_edge(*it, x_new, eprop2, g);
@@ -162,14 +162,14 @@ namespace detail {
       
       VertexProp xp_new;
       put(position, xp_new, p_new);
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
       Vertex x_new = add_vertex(std::move(xp_new),g);
 #else
       Vertex x_new = add_vertex(xp_new,g);
 #endif
       vis.vertex_added(x_new,g);
       
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
       std::pair<Edge, bool> ep = add_edge(x_near, x_new, std::move(eprop), g);
 #else
       std::pair<Edge, bool> ep = add_edge(x_near, x_new, eprop, g);
@@ -186,7 +186,7 @@ namespace detail {
         if(!can_connect)
           continue;
         
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
         ep = add_edge(*it, x_new, std::move(eprop2), g);
 #else
         ep = add_edge(*it, x_new, eprop2, g);
@@ -201,7 +201,7 @@ namespace detail {
         if(!can_connect)
           continue;
         
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
         ep = add_edge(x_new, *it, std::move(eprop2), g);
 #else
         ep = add_edge(x_new, *it, eprop2, g);
@@ -272,7 +272,7 @@ inline void
     
     VertexProp up;
     put(position, up, p);
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
     Vertex u = add_vertex(std::move(up),g);
 #else
     Vertex u = add_vertex(up,g);

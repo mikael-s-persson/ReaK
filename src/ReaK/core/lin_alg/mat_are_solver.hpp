@@ -2883,7 +2883,7 @@ void >::type solve_dtsf_problem(const Matrix1& F, const Matrix2& G,
 
 
 
-#if (defined(RK_ENABLE_CXX11_FEATURES) && defined(RK_ENABLE_EXTERN_TEMPLATES))
+#ifndef BOOST_NO_CXX11_EXTERN_TEMPLATE
 
 extern template void solve_care_problem(const mat<double,mat_structure::square>& A, const mat<double,mat_structure::rectangular>& B, 
                                         const mat<double,mat_structure::square>& Q, const mat<double,mat_structure::square>& R, 

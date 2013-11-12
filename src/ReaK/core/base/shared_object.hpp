@@ -68,7 +68,7 @@ class shared_object : public shared_object_base, public serialization::serializa
 
 class empty_base_object { };
 
-#ifndef RK_ENABLE_CXX0X_FEATURES
+#ifdef BOOST_NO_CXX11_VARIADIC_TEMPLATES
 
 template <typename T>
 ReaK::shared_ptr<T> rk_create() {
@@ -92,7 +92,7 @@ ReaK::shared_ptr<T> rk_share(T& t) {
 
 namespace rtti {
 
-#ifndef RK_ENABLE_CXX0X_FEATURES
+#ifdef BOOST_NO_CXX11_SMART_PTR
 
 template <typename Y>
 ReaK::shared_ptr<Y> rk_static_ptr_cast(const ReaK::shared_ptr<ReaK::shared_object_base>& p) {

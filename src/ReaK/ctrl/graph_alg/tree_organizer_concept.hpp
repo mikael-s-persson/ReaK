@@ -75,7 +75,7 @@ struct TreeOrganizerVisitorConcept {
   {
     vis.remove_vertex(v, tree);
     vis.add_vertex(vp, tree);
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
     vis.add_vertex(std::move(vp), tree);
 #endif
   };

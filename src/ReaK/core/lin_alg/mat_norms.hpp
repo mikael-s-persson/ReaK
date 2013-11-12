@@ -144,7 +144,7 @@ typename Matrix::value_type >::type elem_norm_max(const Matrix& M) {
 
 
 
-#if (defined(RK_ENABLE_CXX11_FEATURES) && defined(RK_ENABLE_EXTERN_TEMPLATES))
+#ifndef BOOST_NO_CXX11_EXTERN_TEMPLATE
 
 extern template double norm_1(const mat<double,mat_structure::rectangular,mat_alignment::column_major>& M);
 extern template double norm_1(const mat<double,mat_structure::rectangular,mat_alignment::row_major>& M);

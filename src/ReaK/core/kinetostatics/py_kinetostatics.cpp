@@ -762,7 +762,7 @@ void export_kinetostatics() {
   def("fabs",static_cast< double(*)(const ReaK::unit_quat<double>&) >(&ReaK::fabs));
   
   
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_SMART_PTR
   implicitly_convertible< ReaK::shared_ptr< ReaK::gen_coord<double> >, 
                           ReaK::shared_ptr< ReaK::shared_object > >();
   implicitly_convertible< ReaK::shared_ptr< ReaK::pose_2D<double> >, 

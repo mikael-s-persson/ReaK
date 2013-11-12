@@ -1307,7 +1307,7 @@ public:
 
 
 
-#if (defined(RK_ENABLE_CXX11_FEATURES) && defined(RK_ENABLE_EXTERN_TEMPLATES))
+#ifndef BOOST_NO_CXX11_EXTERN_TEMPLATE
 
 extern template class jacobian_gen_gen<double>;
 extern template class jacobian_gen_2D<double>;

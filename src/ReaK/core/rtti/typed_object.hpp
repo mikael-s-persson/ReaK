@@ -65,9 +65,9 @@ class typed_object {
      */
     virtual void* RK_CALL castTo(const so_type::shared_pointer& aTypeID) { 
       if(*(aTypeID->TypeID_begin()) == 0) 
-	return reinterpret_cast<void*>(this); 
+        return reinterpret_cast<void*>(this); 
       else 
-	return NULL;
+        return NULL;
     };
     
     /**
@@ -75,9 +75,9 @@ class typed_object {
      */
     virtual const void* RK_CALL castTo(const so_type::shared_pointer& aTypeID) const { 
       if(*(aTypeID->TypeID_begin()) == 0) 
-	return reinterpret_cast<const void*>(this); 
+        return reinterpret_cast<const void*>(this); 
       else 
-	return NULL;
+        return NULL;
     };
 
     virtual ~typed_object() { RK_NOTICE(8,"Typed object destructor reached!"); };
@@ -94,7 +94,7 @@ class typed_object {
 
 };
 
-#ifndef RK_ENABLE_CXX0X_FEATURES
+#ifdef BOOST_NO_CXX11_SMART_PTR
 
 /**
  * This function replaces the standard C++ static cast for pointers (i.e. static_cast<>()) and furthermore, also
@@ -160,7 +160,7 @@ std::unique_ptr<Y,Deleter> rk_dynamic_ptr_cast(std::unique_ptr<U,Deleter>&& p) {
 #endif
 
 
-#ifndef RK_ENABLE_CXX0X_FEATURES
+#ifdef BOOST_NO_CXX11_SMART_PTR
 
 /// This MACRO creates a static (no-parameter) factory function for the current class CLASS_NAME.
 #define RK_RTTI_MAKE_DEFAULT_FACTORY(CLASS_NAME) \
@@ -188,15 +188,15 @@ std::unique_ptr<Y,Deleter> rk_dynamic_ptr_cast(std::unique_ptr<U,Deleter>&& p) {
     };\
     virtual void* RK_CALL castTo(const boost::shared_ptr<ReaK::rtti::so_type>& aTypeID) { \
       if(*aTypeID == *(CLASS_NAME::getStaticObjectType())) \
-	return reinterpret_cast<void*>(this); \
+        return reinterpret_cast<void*>(this); \
       else \
-	return NULL; \
+        return NULL; \
     };\
     virtual const void* RK_CALL castTo(const boost::shared_ptr<ReaK::rtti::so_type>& aTypeID) const { \
       if(*aTypeID == *(CLASS_NAME::getStaticObjectType())) \
-	return reinterpret_cast<const void*>(this); \
+        return reinterpret_cast<const void*>(this); \
       else \
-	return NULL; \
+        return NULL; \
     };
 
 /// This MACRO creates the static elements for the current class to be added to the global type registry (it is guaranteed to be added if the class is instantiated).
@@ -209,15 +209,15 @@ std::unique_ptr<Y,Deleter> rk_dynamic_ptr_cast(std::unique_ptr<U,Deleter>&& p) {
     };\
     virtual void* RK_CALL castTo(const boost::shared_ptr<ReaK::rtti::so_type>& aTypeID) { \
       if(*aTypeID == *(CLASS_NAME::getStaticObjectType())) \
-	return reinterpret_cast<void*>(this); \
+        return reinterpret_cast<void*>(this); \
       else \
-	return BASE_NAME::castTo(aTypeID); \
+        return BASE_NAME::castTo(aTypeID); \
     };\
     virtual const void* RK_CALL castTo(const boost::shared_ptr<ReaK::rtti::so_type>& aTypeID) const { \
       if(*aTypeID == *(CLASS_NAME::getStaticObjectType())) \
-	return reinterpret_cast<const void*>(this); \
+        return reinterpret_cast<const void*>(this); \
       else \
-	return BASE_NAME::castTo(aTypeID); \
+        return BASE_NAME::castTo(aTypeID); \
     };
 
 /// This MACRO creates the static elements for the current class to be added to the global type registry (it is guaranteed to be added if the class is instantiated).
@@ -230,20 +230,20 @@ std::unique_ptr<Y,Deleter> rk_dynamic_ptr_cast(std::unique_ptr<U,Deleter>&& p) {
     };\
     virtual void* RK_CALL castTo(const boost::shared_ptr<ReaK::rtti::so_type>& aTypeID) { \
       if(*aTypeID == *(CLASS_NAME::getStaticObjectType())) \
-	return reinterpret_cast<void*>(this); \
+        return reinterpret_cast<void*>(this); \
       else { \
-	void* result = BASE_NAME1::castTo(aTypeID); \
-	if(result) return result; \
-	return BASE_NAME2::castTo(aTypeID); \
+        void* result = BASE_NAME1::castTo(aTypeID); \
+        if(result) return result; \
+        return BASE_NAME2::castTo(aTypeID); \
       }; \
     };\
     virtual const void* RK_CALL castTo(const boost::shared_ptr<ReaK::rtti::so_type>& aTypeID) const { \
       if(*aTypeID == *(CLASS_NAME::getStaticObjectType())) \
-	return reinterpret_cast<const void*>(this); \
+        return reinterpret_cast<const void*>(this); \
       else { \
-	const void* result = BASE_NAME1::castTo(aTypeID); \
-	if(result) return result; \
-	return BASE_NAME2::castTo(aTypeID); \
+        const void* result = BASE_NAME1::castTo(aTypeID); \
+        if(result) return result; \
+        return BASE_NAME2::castTo(aTypeID); \
       }; \
     };
     
@@ -257,23 +257,23 @@ std::unique_ptr<Y,Deleter> rk_dynamic_ptr_cast(std::unique_ptr<U,Deleter>&& p) {
     };\
     virtual void* RK_CALL castTo(const boost::shared_ptr<ReaK::rtti::so_type>& aTypeID) { \
       if(*aTypeID == *(CLASS_NAME::getStaticObjectType())) \
-	return reinterpret_cast<void*>(this); \
+        return reinterpret_cast<void*>(this); \
       else { \
-	void* result = BASE_NAME1::castTo(aTypeID); \
-	if(result) return result; \
-	result = BASE_NAME2::castTo(aTypeID); \
-	if(result) return result; \
+        void* result = BASE_NAME1::castTo(aTypeID); \
+        if(result) return result; \
+        result = BASE_NAME2::castTo(aTypeID); \
+        if(result) return result; \
         return BASE_NAME3::castTo(aTypeID); \
       }; \
     };\
     virtual const void* RK_CALL castTo(const boost::shared_ptr<ReaK::rtti::so_type>& aTypeID) const { \
       if(*aTypeID == *(CLASS_NAME::getStaticObjectType())) \
-	return reinterpret_cast<const void*>(this); \
+        return reinterpret_cast<const void*>(this); \
       else { \
-	const void* result = BASE_NAME1::castTo(aTypeID); \
-	if(result) return result; \
-	result = BASE_NAME2::castTo(aTypeID); \
-	if(result) return result; \
+        const void* result = BASE_NAME1::castTo(aTypeID); \
+        if(result) return result; \
+        result = BASE_NAME2::castTo(aTypeID); \
+        if(result) return result; \
         return BASE_NAME3::castTo(aTypeID); \
       }; \
     };
@@ -288,27 +288,27 @@ std::unique_ptr<Y,Deleter> rk_dynamic_ptr_cast(std::unique_ptr<U,Deleter>&& p) {
     };\
     virtual void* RK_CALL castTo(const boost::shared_ptr<ReaK::rtti::so_type>& aTypeID) { \
       if(*aTypeID == *(CLASS_NAME::getStaticObjectType())) \
-	return reinterpret_cast<void*>(this); \
+        return reinterpret_cast<void*>(this); \
       else { \
-	void* result = BASE_NAME1::castTo(aTypeID); \
-	if(result) return result; \
-	result = BASE_NAME2::castTo(aTypeID); \
-	if(result) return result; \
-	result = BASE_NAME3::castTo(aTypeID); \
-	if(result) return result; \
+        void* result = BASE_NAME1::castTo(aTypeID); \
+        if(result) return result; \
+        result = BASE_NAME2::castTo(aTypeID); \
+        if(result) return result; \
+        result = BASE_NAME3::castTo(aTypeID); \
+        if(result) return result; \
         return BASE_NAME4::castTo(aTypeID); \
       }; \
     };\
     virtual const void* RK_CALL castTo(const boost::shared_ptr<ReaK::rtti::so_type>& aTypeID) const { \
       if(*aTypeID == *(CLASS_NAME::getStaticObjectType())) \
-	return reinterpret_cast<const void*>(this); \
+        return reinterpret_cast<const void*>(this); \
       else { \
-	const void* result = BASE_NAME1::castTo(aTypeID); \
-	if(result) return result; \
-	result = BASE_NAME2::castTo(aTypeID); \
-	if(result) return result; \
-	result = BASE_NAME3::castTo(aTypeID); \
-	if(result) return result; \
+        const void* result = BASE_NAME1::castTo(aTypeID); \
+        if(result) return result; \
+        result = BASE_NAME2::castTo(aTypeID); \
+        if(result) return result; \
+        result = BASE_NAME3::castTo(aTypeID); \
+        if(result) return result; \
         return BASE_NAME4::castTo(aTypeID); \
       }; \
     };
@@ -341,15 +341,15 @@ std::unique_ptr<Y,Deleter> rk_dynamic_ptr_cast(std::unique_ptr<U,Deleter>&& p) {
     };\
     virtual void* RK_CALL castTo(const std::shared_ptr<ReaK::rtti::so_type>& aTypeID) { \
       if(*aTypeID == *(CLASS_NAME::getStaticObjectType())) \
-	return reinterpret_cast<void*>(this); \
+        return reinterpret_cast<void*>(this); \
       else \
-	return NULL; \
+        return NULL; \
     };\
     virtual const void* RK_CALL castTo(const std::shared_ptr<ReaK::rtti::so_type>& aTypeID) const { \
       if(*aTypeID == *(CLASS_NAME::getStaticObjectType())) \
-	return reinterpret_cast<const void*>(this); \
+        return reinterpret_cast<const void*>(this); \
       else \
-	return NULL; \
+        return NULL; \
     };
 
 /// This MACRO creates the static elements for the current class to be added to the global type registry (it is guaranteed to be added if the class is instantiated).
@@ -362,15 +362,15 @@ std::unique_ptr<Y,Deleter> rk_dynamic_ptr_cast(std::unique_ptr<U,Deleter>&& p) {
     };\
     virtual void* RK_CALL castTo(const std::shared_ptr<ReaK::rtti::so_type>& aTypeID) { \
       if(*aTypeID == *(CLASS_NAME::getStaticObjectType())) \
-	return reinterpret_cast<void*>(this); \
+        return reinterpret_cast<void*>(this); \
       else \
-	return BASE_NAME::castTo(aTypeID); \
+        return BASE_NAME::castTo(aTypeID); \
     };\
     virtual const void* RK_CALL castTo(const std::shared_ptr<ReaK::rtti::so_type>& aTypeID) const { \
       if(*aTypeID == *(CLASS_NAME::getStaticObjectType())) \
-	return reinterpret_cast<const void*>(this); \
+        return reinterpret_cast<const void*>(this); \
       else \
-	return BASE_NAME::castTo(aTypeID); \
+        return BASE_NAME::castTo(aTypeID); \
     };
 
 /// This MACRO creates the static elements for the current class to be added to the global type registry (it is guaranteed to be added if the class is instantiated).
@@ -383,20 +383,20 @@ std::unique_ptr<Y,Deleter> rk_dynamic_ptr_cast(std::unique_ptr<U,Deleter>&& p) {
     };\
     virtual void* RK_CALL castTo(const std::shared_ptr<ReaK::rtti::so_type>& aTypeID) { \
       if(*aTypeID == *(CLASS_NAME::getStaticObjectType())) \
-	return reinterpret_cast<void*>(this); \
+        return reinterpret_cast<void*>(this); \
       else { \
-	void* result = BASE_NAME1::castTo(aTypeID); \
-	if(result) return result; \
-	return BASE_NAME2::castTo(aTypeID); \
+        void* result = BASE_NAME1::castTo(aTypeID); \
+        if(result) return result; \
+        return BASE_NAME2::castTo(aTypeID); \
       }; \
     };\
     virtual const void* RK_CALL castTo(const std::shared_ptr<ReaK::rtti::so_type>& aTypeID) const { \
       if(*aTypeID == *(CLASS_NAME::getStaticObjectType())) \
-	return reinterpret_cast<const void*>(this); \
+        return reinterpret_cast<const void*>(this); \
       else { \
-	const void* result = BASE_NAME1::castTo(aTypeID); \
-	if(result) return result; \
-	return BASE_NAME2::castTo(aTypeID); \
+        const void* result = BASE_NAME1::castTo(aTypeID); \
+        if(result) return result; \
+        return BASE_NAME2::castTo(aTypeID); \
       }; \
     };
     
@@ -410,23 +410,23 @@ std::unique_ptr<Y,Deleter> rk_dynamic_ptr_cast(std::unique_ptr<U,Deleter>&& p) {
     };\
     virtual void* RK_CALL castTo(const std::shared_ptr<ReaK::rtti::so_type>& aTypeID) { \
       if(*aTypeID == *(CLASS_NAME::getStaticObjectType())) \
-	return reinterpret_cast<void*>(this); \
+        return reinterpret_cast<void*>(this); \
       else { \
-	void* result = BASE_NAME1::castTo(aTypeID); \
-	if(result) return result; \
-	result = BASE_NAME2::castTo(aTypeID); \
-	if(result) return result; \
+        void* result = BASE_NAME1::castTo(aTypeID); \
+        if(result) return result; \
+        result = BASE_NAME2::castTo(aTypeID); \
+        if(result) return result; \
         return BASE_NAME3::castTo(aTypeID); \
       }; \
     };\
     virtual const void* RK_CALL castTo(const std::shared_ptr<ReaK::rtti::so_type>& aTypeID) const { \
       if(*aTypeID == *(CLASS_NAME::getStaticObjectType())) \
-	return reinterpret_cast<const void*>(this); \
+        return reinterpret_cast<const void*>(this); \
       else { \
-	const void* result = BASE_NAME1::castTo(aTypeID); \
-	if(result) return result; \
-	result = BASE_NAME2::castTo(aTypeID); \
-	if(result) return result; \
+        const void* result = BASE_NAME1::castTo(aTypeID); \
+        if(result) return result; \
+        result = BASE_NAME2::castTo(aTypeID); \
+        if(result) return result; \
         return BASE_NAME3::castTo(aTypeID); \
       }; \
     };
@@ -441,27 +441,27 @@ std::unique_ptr<Y,Deleter> rk_dynamic_ptr_cast(std::unique_ptr<U,Deleter>&& p) {
     };\
     virtual void* RK_CALL castTo(const std::shared_ptr<ReaK::rtti::so_type>& aTypeID) { \
       if(*aTypeID == *(CLASS_NAME::getStaticObjectType())) \
-	return reinterpret_cast<void*>(this); \
+        return reinterpret_cast<void*>(this); \
       else { \
-	void* result = BASE_NAME1::castTo(aTypeID); \
-	if(result) return result; \
-	result = BASE_NAME2::castTo(aTypeID); \
-	if(result) return result; \
-	result = BASE_NAME3::castTo(aTypeID); \
-	if(result) return result; \
+        void* result = BASE_NAME1::castTo(aTypeID); \
+        if(result) return result; \
+        result = BASE_NAME2::castTo(aTypeID); \
+        if(result) return result; \
+        result = BASE_NAME3::castTo(aTypeID); \
+        if(result) return result; \
         return BASE_NAME4::castTo(aTypeID); \
       }; \
     };\
     virtual const void* RK_CALL castTo(const std::shared_ptr<ReaK::rtti::so_type>& aTypeID) const { \
       if(*aTypeID == *(CLASS_NAME::getStaticObjectType())) \
-	return reinterpret_cast<const void*>(this); \
+        return reinterpret_cast<const void*>(this); \
       else { \
-	const void* result = BASE_NAME1::castTo(aTypeID); \
-	if(result) return result; \
-	result = BASE_NAME2::castTo(aTypeID); \
-	if(result) return result; \
-	result = BASE_NAME3::castTo(aTypeID); \
-	if(result) return result; \
+        const void* result = BASE_NAME1::castTo(aTypeID); \
+        if(result) return result; \
+        result = BASE_NAME2::castTo(aTypeID); \
+        if(result) return result; \
+        result = BASE_NAME3::castTo(aTypeID); \
+        if(result) return result; \
         return BASE_NAME4::castTo(aTypeID); \
       }; \
     };

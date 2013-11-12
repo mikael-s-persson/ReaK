@@ -108,7 +108,7 @@ namespace detail {
       VertexProp up;
       put(m_position, up, p);
       put(m_distance, up, std::numeric_limits<double>::infinity());
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
       Vertex u = add_vertex(std::move(up), g);
 #else
       Vertex u = add_vertex(up, g);
@@ -295,7 +295,7 @@ inline void generate_rrt_star(Graph& g,
     put(position, up, p);
     put(cost, up, 0.0);
     put(pred, up, boost::graph_traits<Graph>::null_vertex());
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
     Vertex u = add_vertex(std::move(up),g);
 #else
     Vertex u = add_vertex(up,g);
@@ -375,10 +375,6 @@ inline void generate_bnb_rrt_star(Graph& g,
   BOOST_CONCEPT_ASSERT((RRGVisitorConcept<RRGVisitor,Graph,Topology>));
   BOOST_CONCEPT_ASSERT((ReaK::pp::MetricSpaceConcept<Topology>));
   BOOST_CONCEPT_ASSERT((ReaK::pp::RandomSamplerConcept<RandomSampler,Topology>));
-  
-  typedef typename boost::property_traits<PositionMap>::value_type PositionValue;
-  typedef typename boost::graph_traits<Graph>::vertex_descriptor Vertex;
-  typedef typename Graph::vertex_bundled VertexProp;
   
   if( (num_vertices(g) == 0) ||
       ( start_vertex == boost::graph_traits<Graph>::null_vertex() ) ||

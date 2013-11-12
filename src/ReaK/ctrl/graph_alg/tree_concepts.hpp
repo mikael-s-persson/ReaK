@@ -190,7 +190,7 @@ struct MutablePropertyTreeConcept {
     std::vector< typename TreeType::vertex_property_type > vp_vect;
     remove_branch(v, back_inserter(vp_vect), tree);
     
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
     v = create_root(std::move(vp), tree);
     boost::tie(v,e) = add_child_vertex(u, std::move(vp), tree);
     boost::tie(v,e) = add_child_vertex(u, std::move(vp), std::move(ep), tree);

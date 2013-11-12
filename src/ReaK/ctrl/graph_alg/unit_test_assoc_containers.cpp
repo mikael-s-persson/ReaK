@@ -50,15 +50,10 @@ BOOST_AUTO_TEST_CASE_TEMPLATE( intint_map_test, Map, intint_maptest_types )
 {
   typedef typename Map::key_type KeyType;
   typedef typename Map::mapped_type MappedType;
-//   typedef typename Map::value_type ValueType;
   typedef std::pair< KeyType, MappedType > ValueType;
-  typedef typename Map::iterator Iter;
-  typedef typename Map::const_iterator ConstIter;
-  typedef typename Map::reverse_iterator RevIter;
-  typedef typename Map::const_reverse_iterator ConstRevIter;
   
   Map m;
-#ifdef RK_ENABLE_CXX11_FEATURES
+#ifndef BOOST_NO_CXX11_HDR_INITIALIZER_LIST
   BOOST_CHECK_THROW( m.at(KeyType(5)), std::out_of_range);
 #endif
   
@@ -76,7 +71,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE( intint_map_test, Map, intint_maptest_types )
   m.insert(tmp_v.begin(), tmp_v.end());
   BOOST_CHECK_MESSAGE( ((m[7] == 14) && (m[12] == 24) && (m[15] == 30) && (m[17] == 34) && (m[22] == 44)), "insert iterator range" );
   
-#ifdef RK_ENABLE_CXX11_FEATURES
+#ifndef BOOST_NO_CXX11_HDR_INITIALIZER_LIST
   m.insert({ValueType(KeyType(8), MappedType(16)), ValueType(KeyType(13), MappedType(26)), ValueType(KeyType(16), MappedType(32))});
   BOOST_CHECK_MESSAGE( ((m[8] == 16) && (m[13] == 26) && (m[16] == 32)), "insert std::initializer_list" );
 #endif
@@ -99,7 +94,6 @@ BOOST_AUTO_TEST_CASE_TEMPLATE( intint_multimap_test, Map, intint_multimaptest_ty
   typedef std::pair< KeyType, MappedType > ValueType;
   typedef typename Map::iterator Iter;
   typedef typename Map::const_iterator ConstIter;
-  typedef typename Map::reverse_iterator RevIter;
   typedef typename Map::const_reverse_iterator ConstRevIter;
   
   Map m;
@@ -107,7 +101,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE( intint_multimap_test, Map, intint_multimaptest_ty
   BOOST_CHECK( m.empty() ); 
   BOOST_CHECK( m.begin() == m.end() ); 
   BOOST_CHECK( m.rbegin() == m.rend() ); 
-#ifdef RK_ENABLE_CXX11_FEATURES
+#ifndef BOOST_NO_CXX11_HDR_INITIALIZER_LIST
   BOOST_CHECK( m.cbegin() == m.cend() ); 
   BOOST_CHECK( m.crbegin() == m.crend() ); 
 #endif
@@ -128,7 +122,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE( intint_multimap_test, Map, intint_multimaptest_ty
   m.insert(tmp_v.begin(), tmp_v.end()); 
   BOOST_CHECK_MESSAGE( ((m.count(7) == 1) && (m.count(12) == 1) && (m.count(15) == 1) && (m.count(17) == 1) && (m.count(22) == 1)), "insert iterator range" );
    
-#ifdef RK_ENABLE_CXX11_FEATURES
+#ifndef BOOST_NO_CXX11_HDR_INITIALIZER_LIST
   m.insert({ValueType(KeyType(16), MappedType(32)), ValueType(KeyType(8), MappedType(16)), ValueType(KeyType(13), MappedType(26))});
   BOOST_CHECK_MESSAGE( ((m.count(8) == 1) && (m.count(13) == 1) && (m.count(16) == 1)), "insert std::initializer_list" );
 #endif
@@ -148,7 +142,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE( intint_multimap_test, Map, intint_multimaptest_ty
   BOOST_CHECK( it15 != m.end() );
   BOOST_CHECK( ((it15->first == 15) && (it15->second == 30)) );
    
-#ifdef RK_ENABLE_CXX11_FEATURES
+#ifndef BOOST_NO_CXX11_HDR_INITIALIZER_LIST
   Iter it16 = m.erase(it15);
   BOOST_CHECK( m.count(15) == 0 );
   BOOST_CHECK( it16 != m.end() );
@@ -183,7 +177,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE( intint_multimap_test, Map, intint_multimaptest_ty
   
   Map m2(tmp_v.begin(), tmp_v.end()); 
   BOOST_CHECK_MESSAGE( ((m2.count(7) == 1) && (m2.count(12) == 1) && (m2.count(15) == 1) && (m2.count(17) == 1) && (m2.count(22) == 1)), "constructor iterator range" );
-#ifdef RK_ENABLE_CXX11_FEATURES
+#ifndef BOOST_NO_CXX11_HDR_INITIALIZER_LIST
   Map m3{ValueType(KeyType(8), MappedType(16)), ValueType(KeyType(13), MappedType(26)), ValueType(KeyType(16), MappedType(32))};
   BOOST_CHECK_MESSAGE( ((m3.count(8) == 1) && (m3.count(13) == 1) && (m3.count(16) == 1)), "constructor std::initializer_list" ); 
 #endif
@@ -216,7 +210,6 @@ BOOST_AUTO_TEST_CASE_TEMPLATE( int_multiset_test, Set, int_multisettest_types )
   typedef typename Set::value_type ValueType;
   typedef typename Set::iterator Iter;
   typedef typename Set::const_iterator ConstIter;
-  typedef typename Set::reverse_iterator RevIter;
   typedef typename Set::const_reverse_iterator ConstRevIter;
   
   Set s;
@@ -224,7 +217,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE( int_multiset_test, Set, int_multisettest_types )
   BOOST_CHECK( s.empty() ); 
   BOOST_CHECK( s.begin() == s.end() ); 
   BOOST_CHECK( s.rbegin() == s.rend() ); 
-#ifdef RK_ENABLE_CXX11_FEATURES
+#ifndef BOOST_NO_CXX11_HDR_INITIALIZER_LIST
   BOOST_CHECK( s.cbegin() == s.cend() ); 
   BOOST_CHECK( s.crbegin() == s.crend() ); 
 #endif
@@ -246,7 +239,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE( int_multiset_test, Set, int_multisettest_types )
   s.insert(tmp_v.begin(), tmp_v.end()); 
   BOOST_CHECK_MESSAGE( ((s.count(7) == 1) && (s.count(12) == 1) && (s.count(15) == 1) && (s.count(17) == 1) && (s.count(22) == 1)), "insert iterator range" );
    
-#ifdef RK_ENABLE_CXX11_FEATURES
+#ifndef BOOST_NO_CXX11_HDR_INITIALIZER_LIST
   s.insert({ValueType(16), ValueType(8), ValueType(13)});
   BOOST_CHECK_MESSAGE( ((s.count(8) == 1) && (s.count(13) == 1) && (s.count(16) == 1)), "insert std::initializer_list" );
 #endif
@@ -266,7 +259,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE( int_multiset_test, Set, int_multisettest_types )
   BOOST_CHECK( it15 != s.end() );
   BOOST_CHECK( (*it15 == 15) );
    
-#ifdef RK_ENABLE_CXX11_FEATURES
+#ifndef BOOST_NO_CXX11_HDR_INITIALIZER_LIST
   Iter it16 = s.erase(it15);
   BOOST_CHECK( s.count(15) == 0 );
   BOOST_CHECK( it16 != s.end() );
@@ -301,7 +294,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE( int_multiset_test, Set, int_multisettest_types )
   
   Set s2(tmp_v.begin(), tmp_v.end()); 
   BOOST_CHECK_MESSAGE( ((s2.count(7) == 1) && (s2.count(12) == 1) && (s2.count(15) == 1) && (s2.count(17) == 1) && (s2.count(22) == 1)), "constructor iterator range" );
-#ifdef RK_ENABLE_CXX11_FEATURES
+#ifndef BOOST_NO_CXX11_HDR_INITIALIZER_LIST
   Set s3{ValueType(8), ValueType(13), ValueType(16)};
   BOOST_CHECK_MESSAGE( ((s3.count(8) == 1) && (s3.count(13) == 1) && (s3.count(16) == 1)), "constructor std::initializer_list" ); 
 #endif

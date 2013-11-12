@@ -62,7 +62,7 @@
 
 #include "base/thread_incl.hpp"
 
-#ifdef RK_ENABLE_CXX11_FEATURES
+#ifndef BOOST_NO_CXX11_HDR_FUNCTIONAL
 #include <functional>
 #else
 #include <boost/function.hpp>
@@ -119,7 +119,7 @@ class oi_scene_graph {
     std::map< shared_ptr< pose_2D<double> >, std::pair<SoSeparator*, SoTransform*> > mAnchor2DMap;
     std::map< shared_ptr< pose_3D<double> >, std::pair<SoSeparator*, SoTransform*> > mAnchor3DMap;
 
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_HDR_FUNCTIONAL
     std::vector< std::function< void() > > mUpdateFuncs;
 #else
     std::vector< boost::function< void() > > mUpdateFuncs;

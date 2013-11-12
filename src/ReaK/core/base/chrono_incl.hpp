@@ -38,22 +38,8 @@
 #include "defs.hpp"
 
 
-#if ( defined(__GNUC__) && !defined(_WIN32) )
 
-// if under g++, with c++0x, with gcc version >= 4.7.0
-#if ( defined(RK_ENABLE_CXX11_FEATURES) \
-   && ( (__GNUC__ > 4) \
-     || ( (__GNUC__ == 4) \
-       && (__GNUC_MINOR__ >= 7) ) ) )
-
-#define RK_ENABLE_CXX11_CHRONO_LIB
-
-#endif
-
-#endif
-
-
-#ifdef RK_ENABLE_CXX11_CHRONO_LIB
+#ifndef BOOST_NO_CXX11_HDR_CHRONO
 
 // must use standard chrono library because most supported versions of boost, up to 1.48 are broken for C++11 under GCC 4.7 or higher.
 #include <chrono>

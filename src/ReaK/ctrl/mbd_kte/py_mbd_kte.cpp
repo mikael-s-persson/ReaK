@@ -1469,7 +1469,7 @@ void export_mbd_kte() {
     .def("frames_3D", &py_mmc_frame_vector< ReaK::frame_3D<double>, &ReaK::kte::mass_matrix_calc::Frames3D >::create);
     
   
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_SMART_PTR
   implicitly_convertible< ReaK::shared_ptr< ReaK::kte::kte_map >, 
                           ReaK::shared_ptr< ReaK::named_object > >();
   implicitly_convertible< ReaK::shared_ptr< ReaK::kte::kte_map_chain >, 

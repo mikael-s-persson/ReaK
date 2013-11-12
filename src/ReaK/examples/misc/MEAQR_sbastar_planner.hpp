@@ -246,7 +246,6 @@ struct MEAQR_sbastar_visitor : density_plan_visitor< MEAQR_topology_with_CD<Stat
   template <typename Vertex, typename Graph>
   boost::tuple<point_type, bool, EdgeProp > random_walk(Vertex u, Graph& g) const {
     typedef boost::tuple<point_type, bool, EdgeProp > ResultType;
-    typedef typename EdgeProp::steer_record_type SteerRec;
     
     const super_space_type& sup_space = this->m_query->space->get_super_space();
     typename point_distribution_traits< super_space_type >::random_sampler_type get_sample = get(random_sampler, sup_space);
@@ -304,7 +303,7 @@ struct MEAQR_sbastar_visitor : density_plan_visitor< MEAQR_topology_with_CD<Stat
     
     if(actual_dist > this->m_planner->get_steer_progress_tolerance() * best_case_dist) {
 //       std::cout << "Steered successfully!" << std::endl;
-#ifdef RK_ENABLE_CXX11_FEATURES
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
       return ResultType(steer_result.first, true, EdgeProp(0.8 * total_dist, std::move(steer_result.second)));
 #else
       return ResultType(steer_result.first, true, EdgeProp(0.8 * total_dist, steer_result.second));
@@ -329,7 +328,7 @@ struct MEAQR_sbastar_visitor : density_plan_visitor< MEAQR_topology_with_CD<Stat
 //       std::cout << "Connected successfully!" << std::endl;
       return ResultType(true, EdgeProp(
         get(distance_metric, this->m_query->space->get_super_space())(g[u].position, g[v].position, this->m_query->space->get_super_space()),
-#ifdef RK_ENABLE_CXX11_FEATURES
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
         std::move(steer_result.second)
 #else
         steer_result.second
@@ -399,7 +398,7 @@ void MEAQR_sbastar_planner<StateSpace, StateSpaceSystem, StateSpaceSampler>::sol
   
   
   
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
 
 #define RK_MEAQR_SBASTAR_PLANNER_INIT_START_AND_GOAL_NODE \
   VertexProp vp_start; \

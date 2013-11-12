@@ -423,7 +423,7 @@ class dvp_tree
       vertex_raw_property_type vp;
       put(m_vp_key, vp, u);
       put(m_vp_pos, vp, get(m_position, u));
-#ifndef RK_ENABLE_CXX0X_FEATURES
+#ifdef BOOST_NO_CXX11_RVALUE_REFERENCES
       m_impl.insert(vp);
 #else
       m_impl.insert(std::move(vp));

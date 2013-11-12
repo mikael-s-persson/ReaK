@@ -222,7 +222,7 @@ struct is_point_distribution< hyperball_topology<Vector> > : boost::mpl::true_ {
 
 
 
-#if (defined(RK_ENABLE_CXX11_FEATURES) && defined(RK_ENABLE_EXTERN_TEMPLATES))
+#ifndef BOOST_NO_CXX11_EXTERN_TEMPLATE
 
 #include "lin_alg/vect_alg.hpp"
 

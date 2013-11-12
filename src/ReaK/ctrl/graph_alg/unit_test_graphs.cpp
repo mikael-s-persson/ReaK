@@ -145,13 +145,13 @@ BOOST_AUTO_TEST_CASE_TEMPLATE( intint_bgl_mutable_graph_test, Graph, intint_grap
   Vertex v_rc2c[4];
   Edge e_rc2c[4];
   for(std::size_t i = 0; i < 4; ++i) {
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
     BOOST_CHECK_NO_THROW( v_rc2c[i] = add_vertex(std::move(vp_rc2c[i]), g) );
 #else
     BOOST_CHECK_NO_THROW( v_rc2c[i] = add_vertex(vp_rc2c[i], g) );
 #endif
     bool edge_added_success = false;
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
     BOOST_CHECK_NO_THROW( boost::tie(e_rc2c[i],edge_added_success) = add_edge(v_rc[1], v_rc2c[i], ep_rc2c[i], g) );
 #else
     BOOST_CHECK_NO_THROW( boost::tie(e_rc2c[i],edge_added_success) = add_edge(v_rc[1], v_rc2c[i], ep_rc2c[i], g) );

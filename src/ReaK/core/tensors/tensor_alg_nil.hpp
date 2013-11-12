@@ -41,8 +41,8 @@ namespace ReaK {
 
 template <typename T, 
           unsigned int Order,
-	  tensor_alignment::tag Alignment,
-	  typename Allocator>
+          tensor_alignment::tag Alignment,
+          typename Allocator>
 struct is_writable_tensor< tensor<T,Order,tensor_structure::nil,Alignment,Allocator> > {
   typedef boost::mpl::integral_c_tag tag;
   typedef bool value_type;
@@ -52,8 +52,8 @@ struct is_writable_tensor< tensor<T,Order,tensor_structure::nil,Alignment,Alloca
 
 template <typename T, 
           unsigned int Order,
-	  tensor_alignment::tag Alignment,
-	  typename Allocator>
+          tensor_alignment::tag Alignment,
+          typename Allocator>
 struct is_fully_writable_tensor< tensor<T,Order,tensor_structure::nil,Alignment,Allocator> > {
   typedef boost::mpl::integral_c_tag tag;
   typedef bool value_type;
@@ -63,8 +63,8 @@ struct is_fully_writable_tensor< tensor<T,Order,tensor_structure::nil,Alignment,
 
 template <typename T, 
           unsigned int Order,
-	  tensor_alignment::tag Alignment,
-	  typename Allocator>
+          tensor_alignment::tag Alignment,
+          typename Allocator>
 struct has_allocator_tensor< tensor<T,Order,tensor_structure::nil,Alignment,Allocator> > {
   typedef boost::mpl::integral_c_tag tag;
   typedef bool value_type;
@@ -84,8 +84,8 @@ struct has_allocator_tensor< tensor<T,Order,tensor_structure::nil,Alignment,Allo
  * \tparam Allocator Standard allocator class (as in the STL), the default is std::allocator<T>.
  */
 template <typename T,
-	  tensor_alignment::tag Alignment,
-	  typename Allocator>
+          tensor_alignment::tag Alignment,
+          typename Allocator>
 class tensor<T,3,tensor_structure::nil,Alignment,Allocator> : public serialization::serializable {
   public:    
     
@@ -127,19 +127,19 @@ class tensor<T,3,tensor_structure::nil,Alignment,Allocator> : public serializati
      * Default constructor. Sets dimensions to zero.
      */
     tensor() 
-#ifdef RK_ENABLE_CXX0X_FEATURES
-	     : counts{0,0,0} { };
+#ifndef BOOST_NO_CXX11_UNIFIED_INITIALIZATION_SYNTAX
+             : counts{0,0,0} { };
 #else
-	     { counts[0] = 0; counts[1] = 0; counts[2] = 0; };
+             { counts[0] = 0; counts[1] = 0; counts[2] = 0; };
 #endif
     /**
      * Constructs a null matrix to the given dimensions.
      */
     tensor(size_type aCount0, size_type aCount1, size_type aCount2) 
-#ifdef RK_ENABLE_CXX0X_FEATURES
-	   : counts{aCount0, aCount1, aCount2} { };
+#ifndef BOOST_NO_CXX11_UNIFIED_INITIALIZATION_SYNTAX
+           : counts{aCount0, aCount1, aCount2} { };
 #else
-	   { counts[0] = aCount0; counts[1] = aCount1; counts[2] = aCount2; };
+           { counts[0] = aCount0; counts[1] = aCount1; counts[2] = aCount2; };
 #endif
     
     tensor(const self& rhs) { std::copy(&M.counts[0],&M.counts[0] + 3,&counts[0]); };
@@ -239,7 +239,7 @@ class tensor<T,3,tensor_structure::nil,Alignment,Allocator> : public serializati
       return M;
     };
 
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
     /**
      * Transposes the matrix M by simply moving the data of M into a matrix of different alignment.
      * \param M The matrix to be transposed.
@@ -257,8 +257,8 @@ class tensor<T,3,tensor_structure::nil,Alignment,Allocator> : public serializati
 
     virtual void RK_CALL save(serialization::oarchive& A, unsigned int) const {
       A & std::pair<std::string, unsigned int>("counts[0]",counts[0])
-	& std::pair<std::string, unsigned int>("counts[1]",counts[1])
-	& std::pair<std::string, unsigned int>("counts[2]",counts[2]);
+        & std::pair<std::string, unsigned int>("counts[1]",counts[1])
+        & std::pair<std::string, unsigned int>("counts[2]",counts[2]);
     };
     virtual void RK_CALL load(serialization::iarchive& A, unsigned int) {
       unsigned int tmp;
@@ -292,8 +292,8 @@ class tensor<T,3,tensor_structure::nil,Alignment,Allocator> : public serializati
  * \tparam Allocator Standard allocator class (as in the STL), the default is std::allocator<T>.
  */
 template <typename T,
-	  tensor_alignment::tag Alignment,
-	  typename Allocator>
+          tensor_alignment::tag Alignment,
+          typename Allocator>
 class tensor<T,4,tensor_structure::nil,Alignment,Allocator> : public serialization::serializable {
   public:    
     
@@ -335,19 +335,19 @@ class tensor<T,4,tensor_structure::nil,Alignment,Allocator> : public serializati
      * Default constructor. Sets dimensions to zero.
      */
     tensor() 
-#ifdef RK_ENABLE_CXX0X_FEATURES
-	     : counts{0,0,0,0} { };
+#ifndef BOOST_NO_CXX11_UNIFIED_INITIALIZATION_SYNTAX
+             : counts{0,0,0,0} { };
 #else
-	     { counts[0] = 0; counts[1] = 0; counts[2] = 0; counts[3] = 0; };
+             { counts[0] = 0; counts[1] = 0; counts[2] = 0; counts[3] = 0; };
 #endif
     /**
      * Constructs a null matrix to the given dimensions.
      */
     tensor(size_type aCount0, size_type aCount1, size_type aCount2, size_type aCount3) 
-#ifdef RK_ENABLE_CXX0X_FEATURES
-	   : counts{aCount0, aCount1, aCount2, aCount3} { };
+#ifndef BOOST_NO_CXX11_UNIFIED_INITIALIZATION_SYNTAX
+           : counts{aCount0, aCount1, aCount2, aCount3} { };
 #else
-	   { counts[0] = aCount0; counts[1] = aCount1; counts[2] = aCount2; counts[3] = aCount3; };
+           { counts[0] = aCount0; counts[1] = aCount1; counts[2] = aCount2; counts[3] = aCount3; };
 #endif
     
     tensor(const self& rhs) { std::copy(&M.counts[0],&M.counts[0] + 4,&counts[0]); };
@@ -449,7 +449,7 @@ class tensor<T,4,tensor_structure::nil,Alignment,Allocator> : public serializati
       return M;
     };
 
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
     /**
      * Transposes the matrix M by simply moving the data of M into a matrix of different alignment.
      * \param M The matrix to be transposed.
@@ -467,9 +467,9 @@ class tensor<T,4,tensor_structure::nil,Alignment,Allocator> : public serializati
 
     virtual void RK_CALL save(serialization::oarchive& A, unsigned int) const {
       A & std::pair<std::string, unsigned int>("counts[0]",counts[0])
-	& std::pair<std::string, unsigned int>("counts[1]",counts[1])
-	& std::pair<std::string, unsigned int>("counts[2]",counts[2])
-	& std::pair<std::string, unsigned int>("counts[3]",counts[3]);
+        & std::pair<std::string, unsigned int>("counts[1]",counts[1])
+        & std::pair<std::string, unsigned int>("counts[2]",counts[2])
+        & std::pair<std::string, unsigned int>("counts[3]",counts[3]);
     };
     virtual void RK_CALL load(serialization::iarchive& A, unsigned int) {
       unsigned int tmp;

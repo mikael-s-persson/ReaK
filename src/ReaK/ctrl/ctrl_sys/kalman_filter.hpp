@@ -157,7 +157,6 @@ void >::type kalman_update(const LinearSystem& sys,
   
   typedef typename pp::topology_traits<StateSpaceType>::point_type StateType;
   typedef typename pp::topology_traits<StateSpaceType>::point_type StateDiffType;
-  typedef typename discrete_sss_traits<LinearSystem>::output_type OutputType;
   typedef typename continuous_belief_state_traits<BeliefState>::covariance_type CovType;
   typedef typename covariance_mat_traits< CovType >::matrix_type MatType;
   typedef typename mat_traits<MatType>::value_type ValueType;
@@ -228,7 +227,6 @@ void >::type kalman_filter_step(const LinearSystem& sys,
   
   typedef typename pp::topology_traits<StateSpaceType>::point_type StateType;
   typedef typename pp::topology_traits<StateSpaceType>::point_type StateDiffType;
-  typedef typename discrete_sss_traits<LinearSystem>::output_type OutputType;
   typedef typename continuous_belief_state_traits<BeliefState>::covariance_type CovType;
   typedef typename covariance_mat_traits< CovType >::matrix_type MatType;
   typedef typename mat_traits<MatType>::value_type ValueType;

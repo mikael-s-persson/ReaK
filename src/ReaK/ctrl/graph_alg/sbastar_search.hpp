@@ -159,7 +159,7 @@ namespace detail {
       VertexProp up;
       put(m_position, up, p);
       put(m_distance, up, std::numeric_limits<double>::infinity());
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
       Vertex u = add_vertex(std::move(up), g);
 #else
       Vertex u = add_vertex(up, g);
@@ -382,7 +382,6 @@ namespace detail {
       PredecessorMap predecessor, KeyMap key,                          // properties resulting from the algorithm
       NcSelector select_neighborhood)
   {
-    typedef typename boost::property_traits<KeyMap>::value_type KeyValue;
     typedef std::less<double> KeyCompareType;  // <---- this is a min-heap.
     typedef boost::vector_property_map<std::size_t> IndexInHeapMap;
     IndexInHeapMap index_in_heap;

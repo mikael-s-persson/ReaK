@@ -999,8 +999,7 @@ void >::type pseudoinvert_RRQR(const Matrix1& A, Matrix2& A_pinv, typename mat_t
 
 
 
-
-#if (defined(RK_ENABLE_CXX11_FEATURES) && defined(RK_ENABLE_EXTERN_TEMPLATES))
+#ifndef BOOST_NO_CXX11_EXTERN_TEMPLATE
 
 
 extern template void decompose_QR(const mat<double,mat_structure::rectangular>& A, mat<double,mat_structure::rectangular>& Q, mat<double,mat_structure::rectangular>& R, double NumTol);

@@ -58,7 +58,7 @@ Reference get(const subobject_put_get_helper<Reference, PropertyMap>& pa, K& k) 
   return static_cast<const PropertyMap&>(pa)[k];
 };
 
-#ifndef RK_ENABLE_CXX0X_FEATURES
+#ifdef BOOST_NO_CXX11_RVALUE_REFERENCES
 
 template <typename PropertyMap, typename Reference, typename K, typename V>
 inline
@@ -226,7 +226,7 @@ class composite_property_map {
       return m.prop_out[m.prop_in[p]];
     };
 
-#ifndef RK_ENABLE_CXX0X_FEATURES
+#ifdef BOOST_NO_CXX11_RVALUE_REFERENCES
     template <typename V>
     friend
     void put(const self& m, const key_type& p, const V& value) {

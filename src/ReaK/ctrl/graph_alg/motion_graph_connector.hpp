@@ -151,7 +151,7 @@ struct motion_graph_connector {
     conn_vis.travel_explored(x_near, v, g);
     conn_vis.travel_succeeded(x_near, v, g);
     double d_near = get(distance, g[x_near]) + get(weight, eprop);
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
     std::pair<Edge, bool> e_new = add_edge(x_near, v, std::move(eprop), g);
 #else
     std::pair<Edge, bool> e_new = add_edge(x_near, v, eprop, g);
@@ -174,7 +174,7 @@ struct motion_graph_connector {
       if(can_connect) {
         conn_vis.travel_succeeded(v, *it, g);
         double d_in = get(distance, g[*it]) + get(weight, eprop2);
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
         e_new = add_edge(v, *it, std::move(eprop2), g);
 #else
         e_new = add_edge(v, *it, eprop2, g);
@@ -297,7 +297,7 @@ struct motion_graph_connector {
     conn_vis.travel_explored(x_near, v, g);
     conn_vis.travel_succeeded(x_near, v, g);
     double d_near = get(distance, g[x_near]) + get(weight, eprop);
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
     std::pair<Edge, bool> e_new = add_edge(x_near, v, std::move(eprop), g);
 #else
     std::pair<Edge, bool> e_new = add_edge(x_near, v, eprop, g);
@@ -320,7 +320,7 @@ struct motion_graph_connector {
       if(can_connect) {
         conn_vis.travel_succeeded(*it, v, g);
         double d_in = get(distance, g[*it]) + get(weight, eprop2);
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
         e_new = add_edge(*it, v, std::move(eprop2), g);
 #else
         e_new = add_edge(*it, v, eprop2, g);
@@ -348,7 +348,7 @@ struct motion_graph_connector {
       conn_vis.travel_explored(v, *it, g);
       if(can_connect) {
         conn_vis.travel_succeeded(v, *it, g);
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
         e_new = add_edge(v, *it, std::move(eprop2), g);
 #else
         e_new = add_edge(v, *it, eprop2, g);

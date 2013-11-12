@@ -451,7 +451,7 @@ void >::type invert_PLU(Matrix1 A,Matrix2& A_inv, typename mat_traits<Matrix1>::
 
 
 
-#if (defined(RK_ENABLE_CXX11_FEATURES) && defined(RK_ENABLE_EXTERN_TEMPLATES))
+#ifndef BOOST_NO_CXX11_EXTERN_TEMPLATE
 
 extern template void invert_gaussian(const mat<double,mat_structure::rectangular>& A, mat<double,mat_structure::rectangular>& A_inv, double NumTol);
 extern template void invert_gaussian(const mat<double,mat_structure::rectangular>& A, mat<double,mat_structure::square>& A_inv, double NumTol);

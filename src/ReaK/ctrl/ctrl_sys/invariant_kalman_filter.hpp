@@ -104,10 +104,8 @@ void >::type invariant_kalman_predict(const InvariantSystem& sys,
   BOOST_CONCEPT_ASSERT((ContinuousBeliefStateConcept<InputBelief>));
   
   typedef typename discrete_sss_traits<InvariantSystem>::point_type StateType;
-  typedef typename discrete_sss_traits<InvariantSystem>::output_type OutputType;
   typedef typename continuous_belief_state_traits<BeliefState>::covariance_type CovType;
   typedef typename covariance_mat_traits< CovType >::matrix_type MatType;
-  typedef typename mat_traits<MatType>::value_type ValueType;
   typedef typename invariant_system_traits<InvariantSystem>::invariant_frame_type InvarFrame;
   
   typename discrete_linear_sss_traits<InvariantSystem>::matrixA_type A;
@@ -174,12 +172,10 @@ void >::type invariant_kalman_update(const InvariantSystem& sys,
   BOOST_CONCEPT_ASSERT((ContinuousBeliefStateConcept<MeasurementBelief>));
 
   typedef typename discrete_sss_traits<InvariantSystem>::point_type StateType;
-  typedef typename discrete_sss_traits<InvariantSystem>::output_type OutputType;
   typedef typename continuous_belief_state_traits<BeliefState>::covariance_type CovType;
   typedef typename covariance_mat_traits< CovType >::matrix_type MatType;
   typedef typename mat_traits<MatType>::value_type ValueType;
   typedef typename invariant_system_traits<InvariantSystem>::invariant_frame_type InvarFrame;
-  typedef typename invariant_system_traits<InvariantSystem>::invariant_error_type InvarErr;
   typedef typename invariant_system_traits<InvariantSystem>::invariant_correction_type InvarCorr;
   
   typename discrete_linear_sss_traits<InvariantSystem>::matrixC_type C;
@@ -253,12 +249,10 @@ void >::type invariant_kalman_filter_step(const InvariantSystem& sys,
   BOOST_CONCEPT_ASSERT((ContinuousBeliefStateConcept<MeasurementBelief>));
 
   typedef typename discrete_sss_traits<InvariantSystem>::point_type StateType;
-  typedef typename discrete_sss_traits<InvariantSystem>::output_type OutputType;
   typedef typename continuous_belief_state_traits<BeliefState>::covariance_type CovType;
   typedef typename covariance_mat_traits< CovType >::matrix_type MatType;
   typedef typename mat_traits<MatType>::value_type ValueType;
   typedef typename invariant_system_traits<InvariantSystem>::invariant_frame_type InvarFrame;
-  typedef typename invariant_system_traits<InvariantSystem>::invariant_error_type InvarErr;
   typedef typename invariant_system_traits<InvariantSystem>::invariant_correction_type InvarCorr;
   
   typename discrete_linear_sss_traits<InvariantSystem>::matrixA_type A;

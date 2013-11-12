@@ -191,9 +191,6 @@ PointType cubic_hermite_interpolate(const PointType& a, const PointType& b, doub
   BOOST_CONCEPT_ASSERT((LieGroupConcept<Space0>));
   BOOST_CONCEPT_ASSERT((LieGroupConcept<Space1>));
   
-  typedef typename topology_traits<Space0>::point_type PointType0;
-  typedef typename topology_traits<Space1>::point_type PointType1;
-  
   typedef typename topology_traits<Space0>::point_difference_type PointDiff0;
   typedef typename topology_traits<Space1>::point_difference_type PointDiff1;
     

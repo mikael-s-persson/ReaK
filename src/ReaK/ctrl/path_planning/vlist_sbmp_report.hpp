@@ -102,7 +102,6 @@ struct vlist_sbmp_report : public shared_object {
             typename PositionMap>
   void draw_motion_graph(const FreeSpaceType& free_space, const MotionGraph& g, PositionMap pos) const {
     typedef typename boost::graph_traits<MotionGraph>::vertex_iterator VIter;
-    typedef typename boost::graph_traits<MotionGraph>::out_edge_iterator EIter;
     
     std::stringstream ss;
     ss << std::setw(6) << std::setfill('0') << num_vertices(g);

@@ -184,7 +184,7 @@ class point_to_point_path : public waypoint_container<Topology,DistanceMetric> {
         current_distance = 0.0;
       };
                               
-#ifdef RK_ENABLE_CXX11_FEATURES
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
       point_distance_iterator(const point_to_point_path* aParent,
                               const_waypoint_bounds&& aWPB, 
                               point_type&& aCurrentPt) :
@@ -355,7 +355,7 @@ class point_to_point_path : public waypoint_container<Topology,DistanceMetric> {
                               current_pt(*(aWPB.first)),
                               current_fraction(0.0) { };
                               
-#ifdef RK_ENABLE_CXX11_FEATURES
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
       point_fraction_iterator(const point_to_point_path* aParent,
                               const_waypoint_bounds&& aWPB, 
                               point_type&& aCurrentPt) :

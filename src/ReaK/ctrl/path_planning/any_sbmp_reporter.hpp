@@ -43,7 +43,7 @@
 #include "graph_alg/any_graph.hpp"
 #include "any_motion_graphs.hpp"
 
-#ifndef RK_ENABLE_CXX11_FEATURES
+#ifdef BOOST_NO_CXX11_HDR_FUNCTIONAL
 #include <boost/ref.hpp>
 #else
 #include <functional>
@@ -67,7 +67,7 @@ class any_sbmp_reporter : public shared_object {
     typedef any_sbmp_reporter<FreeSpaceType> self;
     typedef typename subspace_traits<FreeSpaceType>::super_space_type super_space_type;
     
-#ifndef RK_ENABLE_CXX11_FEATURES
+#ifdef BOOST_NO_CXX11_HDR_FUNCTIONAL
     typedef boost::reference_wrapper< const self > wrapped;
 #else
     typedef std::reference_wrapper< const self > wrapped;

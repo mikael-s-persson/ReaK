@@ -41,33 +41,6 @@ namespace ReaK {
 
 
 
-
-//....not good, the following: (ill-defined)
-//NOT USED. DEPRECATED
-template <mat_alignment::tag Alignment>
-struct mat_indexer<mat_structure::skew_symmetric,Alignment> {
-  std::size_t rowCount;
-  mat_indexer<mat_structure::skew_symmetric, Alignment>(std::size_t aRowCount) : rowCount(aRowCount) { };
-  std::size_t mat_triangular_size(std::size_t Size) {
-    return (Size * (Size - 1)) / 2 + Size;
-  };
-  std::size_t operator()(std::size_t i,std::size_t j) const {
-    if(i > j)
-      return mat_triangular_size(i) + j;
-    else
-      return mat_triangular_size(j) + i;      
- /*   if(i > j)
-      return -q[mat_triangular_size(i-1) + j];
-    else if(i < j)
-      return q[mat_triangular_size(j-1) + i];
-    else
-      return T(0.0);*/
-  };
-};
-
-
-
-
 /**
  * This class holds a skew-symmetric matrix. This class will hold only the strict upper-triangular part
  * since the lower part is assumed to be equal to the negative of the upper one.
@@ -125,8 +98,7 @@ class mat<T,mat_structure::skew_symmetric,Alignment,Allocator> : public serializ
      * \test PASSED
      */
     mat(const allocator_type& aAlloc = allocator_type()) :
-        q(0,value_type(0),aAlloc),
-	rowCount(0) { };
+        q(0,value_type(0),aAlloc), rowCount(0) { };
 
     /**
      * Constructor for a sized matrix.
@@ -134,7 +106,7 @@ class mat<T,mat_structure::skew_symmetric,Alignment,Allocator> : public serializ
      */
     mat(size_type aRowCount, value_type aFill = 0, const allocator_type& aAlloc = allocator_type()) :
         q(mat_triangular_size(aRowCount-1),aFill,aAlloc),
-	rowCount(aRowCount) { };
+        rowCount(aRowCount) { };
 
     /**
      * Standard Copy Constructor with standard semantics.
@@ -142,7 +114,7 @@ class mat<T,mat_structure::skew_symmetric,Alignment,Allocator> : public serializ
      */
     mat(const self& M) : q(M.q), rowCount(M.rowCount) { };
     
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
     /**
      * Standard Copy Constructor with standard semantics.
      * \test PASSED
@@ -156,27 +128,27 @@ class mat<T,mat_structure::skew_symmetric,Alignment,Allocator> : public serializ
      */
     template <typename Matrix>
     explicit mat(const Matrix&  M, const allocator_type& aAlloc = allocator_type(), 
-		                   typename boost::enable_if_c< is_readable_matrix<Matrix>::value && 
-                                                               !(boost::is_same<Matrix,self>::value) , void* >::type dummy = NULL) :
-             q(mat_triangular_size((M.get_row_count() > M.get_col_count() ? M.get_row_count() : M.get_col_count()) - 1),value_type(0),aAlloc),
-	     rowCount((M.get_row_count() > M.get_col_count() ? M.get_row_count() : M.get_col_count())) {
+                 typename boost::enable_if_c< is_readable_matrix<Matrix>::value && 
+                                              !(boost::is_same<Matrix,self>::value) , void* >::type dummy = NULL) :
+                 q(mat_triangular_size((M.get_row_count() > M.get_col_count() ? M.get_row_count() : M.get_col_count()) - 1),value_type(0),aAlloc),
+                 rowCount((M.get_row_count() > M.get_col_count() ? M.get_row_count() : M.get_col_count())) {
       size_type k=0;
       size_type i=1;
       size_type min_size = (M.get_row_count() > M.get_col_count() ? M.get_col_count() : M.get_row_count());
       for(;i<min_size;k += i++) {
-	for(size_type j=0;j<i;++j) {
-	  q[k+j] = value_type(0.5) * (M(j,i) - M(i,j));
-	};
+        for(size_type j=0;j<i;++j) {
+          q[k+j] = value_type(0.5) * (M(j,i) - M(i,j));
+        };
       };
       if(M.get_row_count() > M.get_col_count()) {
         for(;i<rowCount;k += i++) {
-   	  for(size_type j=0;j<min_size;++j)
-	    q[k+j] = value_type(-0.5) * M(i,j);
+          for(size_type j=0;j<min_size;++j)
+            q[k+j] = value_type(-0.5) * M(i,j);
         };
       } else {
-	for(;i<rowCount;k += i++) {
-   	  for(size_type j=0;j<min_size;++j)
-	    q[k+j] = value_type(0.5) * M(j,i);
+        for(;i<rowCount;k += i++) {
+          for(size_type j=0;j<min_size;++j)
+            q[k+j] = value_type(0.5) * M(j,i);
         };
       };
     };
@@ -187,9 +159,9 @@ class mat<T,mat_structure::skew_symmetric,Alignment,Allocator> : public serializ
      */
     template <mat_alignment::tag Align2, typename Alloc2>
     mat(const mat<value_type,mat_structure::symmetric,Align2,Alloc2>& M, 
-	const allocator_type& aAlloc = allocator_type()) : 
-	q(mat_triangular_size(M.get_row_count()-1),value_type(0),aAlloc), 
-	rowCount(M.get_row_count()) { };
+        const allocator_type& aAlloc = allocator_type()) : 
+        q(mat_triangular_size(M.get_row_count()-1),value_type(0),aAlloc), 
+        rowCount(M.get_row_count()) { };
 
     /**
      * Destructor.
@@ -202,7 +174,7 @@ class mat<T,mat_structure::skew_symmetric,Alignment,Allocator> : public serializ
      * \test PASSED
      */
     explicit mat(const_reference a12, 
-		 const allocator_type& aAlloc = allocator_type()) : q(1,value_type(0),aAlloc), rowCount(2) {
+                 const allocator_type& aAlloc = allocator_type()) : q(1,value_type(0),aAlloc), rowCount(2) {
       q[0] = a12;
     };
 
@@ -211,8 +183,8 @@ class mat<T,mat_structure::skew_symmetric,Alignment,Allocator> : public serializ
      * \test PASSED
      */
     mat(const_reference a12,const_reference a13,
-	                    const_reference a23, 
-	const allocator_type& aAlloc = allocator_type()) : q(3,value_type(0),aAlloc), rowCount(3) {
+                            const_reference a23, 
+        const allocator_type& aAlloc = allocator_type()) : q(3,value_type(0),aAlloc), rowCount(3) {
       q[0] = a12;
       q[1] = a13;
       q[2] = a23;
@@ -223,9 +195,9 @@ class mat<T,mat_structure::skew_symmetric,Alignment,Allocator> : public serializ
      * \test PASSED
      */
     mat(const_reference a12,const_reference a13,const_reference a14,
-	                    const_reference a23,const_reference a24,
-			                        const_reference a34, 
-	const allocator_type& aAlloc = allocator_type()) : q(6,value_type(0),aAlloc), rowCount(4) {
+                            const_reference a23,const_reference a24,
+                                                const_reference a34, 
+        const allocator_type& aAlloc = allocator_type()) : q(6,value_type(0),aAlloc), rowCount(4) {
       q[0] = a12;
       q[1] = a13;
       q[2] = a23;
@@ -241,7 +213,7 @@ class mat<T,mat_structure::skew_symmetric,Alignment,Allocator> : public serializ
      */
     explicit mat(const vect_n<T>& V, const allocator_type& aAlloc = allocator_type()) : q(3,value_type(0),aAlloc), rowCount(3) {
       if(V.size() != 3)
-	throw std::range_error("To construct a skew-matrix from a vector, that vector must have dimension 3");
+        throw std::range_error("To construct a skew-matrix from a vector, that vector must have dimension 3");
       q[0] = -V[2];
       q[1] = V[1];
       q[2] = -V[0];
@@ -282,9 +254,9 @@ class mat<T,mat_structure::skew_symmetric,Alignment,Allocator> : public serializ
      */
     reference operator()(size_type i,size_type j) {
       if(i > j)
-	return q[mat_triangular_size(i-1) + j];
+        return q[mat_triangular_size(i-1) + j];
       else if(i < j)
-	return q[mat_triangular_size(j-1) + i];
+        return q[mat_triangular_size(j-1) + i];
       else
         throw std::range_error("Cannot set the elements of the diagonal of a skew-symmetric matrix!");
     };
@@ -298,11 +270,11 @@ class mat<T,mat_structure::skew_symmetric,Alignment,Allocator> : public serializ
      */
     value_type operator()(size_type i,size_type j) const {
       if(i > j)
-	return -q[mat_triangular_size(i-1) + j];
+        return -q[mat_triangular_size(i-1) + j];
       else if(i < j)
         return q[mat_triangular_size(j-1) + i];
       else
-	return value_type(0.0);
+        return value_type(0.0);
     };
 
     /**
@@ -400,10 +372,10 @@ class mat<T,mat_structure::skew_symmetric,Alignment,Allocator> : public serializ
      */
     self& operator +=(const self& M) {
       if(M.rowCount != rowCount)
-	throw std::range_error("Matrix dimension mismatch.");
+        throw std::range_error("Matrix dimension mismatch.");
       typename container_type::iterator it = q.begin();
       for(typename container_type::const_iterator cit = M.q.begin(); it != q.end(); ++it, ++cit)
-	*it += *cit;
+        *it += *cit;
       return *this;
     };
 
@@ -416,10 +388,10 @@ class mat<T,mat_structure::skew_symmetric,Alignment,Allocator> : public serializ
      */
     self& operator -=(const self& M) {
       if(M.rowCount != rowCount)
-	throw std::range_error("Matrix dimension mismatch.");
+        throw std::range_error("Matrix dimension mismatch.");
       typename container_type::iterator it = q.begin();
       for(typename container_type::const_iterator cit = M.q.begin(); it != q.end(); ++it, ++cit)
-	*it -= *cit;
+        *it -= *cit;
       return *this;
     };
 
@@ -461,7 +433,7 @@ class mat<T,mat_structure::skew_symmetric,Alignment,Allocator> : public serializ
       self result(rowCount,value_type(0),q.get_allocator());
       typename container_type::iterator it = result.q.begin();
       for(typename container_type::const_iterator cit = q.begin(); cit != q.end(); ++it, ++cit)
-	*it -= *cit;
+        *it -= *cit;
       return result;
     };
 
@@ -496,12 +468,12 @@ class mat<T,mat_structure::skew_symmetric,Alignment,Allocator> : public serializ
       mat<value_type,mat_structure::rectangular,Alignment,Allocator> result(M1.rowCount,M2.get_col_count(),value_type(0),M1.get_allocator());
       size_type k=0; size_type i=1;
       for(;i<M1.rowCount;k += i++) {
-	for(size_type l=0;l<M2.get_col_count();++l) {
-	  for(size_type j=0;j<i;++j) {
-	    result(j,l) += M1.q[k+j] * M2(i,l);
-	    result(i,l) -= M1.q[k+j] * M2(j,l);
-	  };
-	};
+        for(size_type l=0;l<M2.get_col_count();++l) {
+          for(size_type j=0;j<i;++j) {
+            result(j,l) += M1.q[k+j] * M2(i,l);
+            result(i,l) -= M1.q[k+j] * M2(j,l);
+          };
+        };
       };
       return result;
     };
@@ -525,12 +497,12 @@ class mat<T,mat_structure::skew_symmetric,Alignment,Allocator> : public serializ
       mat<value_type,mat_structure::rectangular,Alignment,Allocator> result(M1.get_row_count(),M2.rowCount,value_type(0),M2.get_allocator());
       size_type k=0; size_type i=1;
       for(;i<M2.rowCount;k += i++) {
-	for(size_type l=0;l<M1.get_row_count();++l) {
-	  for(size_type j=0;j<i;++j) {
-	    result(l,j) -= M2.q[k+j] * M1(l,i);
-	    result(l,i) += M2.q[k+j] * M1(l,j);
-	  };
-	};
+        for(size_type l=0;l<M1.get_row_count();++l) {
+          for(size_type j=0;j<i;++j) {
+            result(l,j) -= M2.q[k+j] * M1(l,i);
+            result(l,i) += M2.q[k+j] * M1(l,j);
+          };
+        };
       };
       return result;
     };
@@ -549,26 +521,26 @@ class mat<T,mat_structure::skew_symmetric,Alignment,Allocator> : public serializ
       mat<value_type,mat_structure::square,alignment,allocator_type> result(M1.rowCount,value_type(0),M1.get_allocator());
       size_type k=0; size_type i=1;
       for(;i<M1.rowCount;k += i++) {
-	size_type h=0; size_type l=0;
-	for(;l<=i;h += l++) {
-	  size_type m=0; size_type j=0;
-	  for(;j<l;m += j++) {
-	    result(j,l) -= M1.q[k+j] * M2.q[k+l];
-	    result(i,l) -= M1.q[k+j] * M2.q[h+j];
-	  };
-	  result(j,l) -= M1.q[k+j] * M2.q[k+l];
-	  for(m += j++;j<i;m += j++) {
-	    result(j,l) -= M1.q[k+j] * M2.q[k+l];
-	    result(i,l) += M1.q[k+j] * M2.q[m+l];
-	  };
-	};
-	for(;l<M2.rowCount;h += l++) {
-	  size_type m=0; size_type j=0;
-	  for(;j<i;m += j++) {
-	    result(j,l) += M1.q[k+j] * M2.q[h+i];
-	    result(i,l) -= M1.q[k+j] * M2.q[h+j];
-	  };
-	};
+        size_type h=0; size_type l=0;
+        for(;l<=i;h += l++) {
+          size_type m=0; size_type j=0;
+          for(;j<l;m += j++) {
+            result(j,l) -= M1.q[k+j] * M2.q[k+l];
+            result(i,l) -= M1.q[k+j] * M2.q[h+j];
+          };
+          result(j,l) -= M1.q[k+j] * M2.q[k+l];
+          for(m += j++;j<i;m += j++) {
+            result(j,l) -= M1.q[k+j] * M2.q[k+l];
+            result(i,l) += M1.q[k+j] * M2.q[m+l];
+          };
+        };
+        for(;l<M2.rowCount;h += l++) {
+          size_type m=0; size_type j=0;
+          for(;j<i;m += j++) {
+            result(j,l) += M1.q[k+j] * M2.q[h+i];
+            result(i,l) -= M1.q[k+j] * M2.q[h+j];
+          };
+        };
       };
       return result;
     };   
@@ -588,10 +560,10 @@ class mat<T,mat_structure::skew_symmetric,Alignment,Allocator> : public serializ
       vect<T,Size> result;
       size_type k=0; size_type i=1;
       for(;i<Size;k += i++) {
-	for(size_type j=0;j<i;++j) {
-	  result[j] += M.q[k+j] * V[i];
-	  result[i] -= M.q[k+j] * V[j];
-	};
+        for(size_type j=0;j<i;++j) {
+          result[j] += M.q[k+j] * V[i];
+          result[i] -= M.q[k+j] * V[j];
+        };
       };
       return result;
     };
@@ -610,10 +582,10 @@ class mat<T,mat_structure::skew_symmetric,Alignment,Allocator> : public serializ
       vect<T,Size> result;
       size_type k=0; size_type i=1;
       for(;i<Size;k += i++) {
-	for(size_type j=0;j<i;++j) {
-	  result[j] -= M.q[k+j] * V[i];
-	  result[i] += M.q[k+j] * V[j];
-	};
+        for(size_type j=0;j<i;++j) {
+          result[j] -= M.q[k+j] * V[i];
+          result[i] += M.q[k+j] * V[j];
+        };
       };
       return result;
     };
@@ -634,10 +606,10 @@ class mat<T,mat_structure::skew_symmetric,Alignment,Allocator> : public serializ
       Vector result(V.size(),value_type(0),V.get_allocator());
       size_type k=0; size_type i=1;
       for(;i<V.size();k += i++) {
-	for(size_type j=0;j<i;++j) {
-	  result[j] += M.q[k+j] * V[i];
-	  result[i] -= M.q[k+j] * V[j];
-	};
+        for(size_type j=0;j<i;++j) {
+          result[j] += M.q[k+j] * V[i];
+          result[i] -= M.q[k+j] * V[j];
+        };
       };
       return result;
     };
@@ -658,10 +630,10 @@ class mat<T,mat_structure::skew_symmetric,Alignment,Allocator> : public serializ
       Vector result(V.size(),value_type(0),V.get_allocator());
       size_type k=0; size_type i=1;
       for(;i<V.size();k += i++) {
-	for(size_type j=0;j<i;++j) {
-	  result[j] -= M.q[k+j] * V[i];
-	  result[i] += M.q[k+j] * V[j];
-	};
+        for(size_type j=0;j<i;++j) {
+          result[j] -= M.q[k+j] * V[i];
+          result[i] += M.q[k+j] * V[j];
+        };
       };
       return result;
     };
@@ -673,27 +645,6 @@ class mat<T,mat_structure::skew_symmetric,Alignment,Allocator> : public serializ
 /*******************************************************************************
                          Special Methods
 *******************************************************************************/
-
-
-
-    /**
-     * Extracts a sub-matrix from this matrix.
-     * \param aRowOffset Number of rows before the start of the sub-matrix rows.
-     * \param aColOffset Number of columns before the start of the sub-matrix columns.
-     * \param aRowCountOut Number of rows of the sub-matrix.
-     * \param aColCountOut Number of columns of the sub-matrix.
-     * \return The sub-matrix contained in this matrix.
-     * \throw std::range_error If the sub-matrix's dimensions and position does not fit within this matrix.
-     *//* This can just use the generic overload instead.
-    mat_cm<T> getSubMat(unsigned int aRowOffset,unsigned int aColOffset,unsigned int aRowCountOut,unsigned int aColCountOut) const throw(std::range_error) {
-      if((aRowOffset + aRowCountOut > size) || (aColOffset + aColCountOut > size))
-        throw std::range_error("Matrix dimension mismatch.");
-      mat_cm<T> result(aRowCountOut,aColCountOut);
-      for(unsigned int j=0;j<aColCountOut;++j)
-        for(unsigned int i=0;i < aRowCountOut;++i)
-	  result.q[j*aRowCountOut+i] = this->operator()(i+aRowOffset,j+aColOffset);
-      return result;
-    };*/
 
     /**
      * Extracts a skew-symmetric sub-matrix from this matrix.
@@ -764,10 +715,10 @@ class mat<T,mat_structure::skew_symmetric,Alignment,Allocator> : public serializ
       self result;
       swap(result,M);
       for(typename container_type::iterator it = result.q.begin(); it != result.q.end(); ++it)
-	*it = -(*it);
+        *it = -(*it);
       return result;
     };
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
     /**
      * Transposes and moves the matrix M.
      * \param M The matrix to be transposed and moved.
@@ -776,7 +727,7 @@ class mat<T,mat_structure::skew_symmetric,Alignment,Allocator> : public serializ
     friend self transpose(self&& M) {
       self result(std::move(M));
       for(typename container_type::iterator it = result.q.begin(); it != result.q.end(); ++it)
-	*it = -(*it);
+        *it = -(*it);
       return result;
     };
 #endif
@@ -809,56 +760,10 @@ class mat<T,mat_structure::skew_symmetric,Alignment,Allocator> : public serializ
 };
 
 
-#if (defined(RK_ENABLE_CXX11_FEATURES) && defined(RK_ENABLE_EXTERN_TEMPLATES))
+#ifndef BOOST_NO_CXX11_EXTERN_TEMPLATE
 
 extern template class mat<double, mat_structure::skew_symmetric>;
 extern template class mat<float, mat_structure::skew_symmetric>;
-
-
-// for compilers that don't support extern templates for friend functions:
-#if !defined(__clang__)
-
-extern template mat<double,mat_structure::rectangular> operator *(const mat<double,mat_structure::skew_symmetric>& M1, const mat<double,mat_structure::rectangular,mat_alignment::column_major>& M2);
-extern template mat<double,mat_structure::rectangular> operator *(const mat<double,mat_structure::skew_symmetric>& M1, const mat<double,mat_structure::rectangular,mat_alignment::row_major>& M2);
-
-//extern template mat<double,mat_structure::rectangular> operator *(const mat<double,mat_structure::rectangular,mat_alignment::column_major>& M1, const mat<double,mat_structure::skew_symmetric>& M2);
-//extern template mat<double,mat_structure::rectangular> operator *(const mat<double,mat_structure::rectangular,mat_alignment::row_major>& M1, const mat<double,mat_structure::skew_symmetric>& M2);
-
-extern template vect<double,2> operator *<2>(const mat<double,mat_structure::skew_symmetric>& M,const vect<double,2>& V);
-extern template vect<double,3> operator *<3>(const mat<double,mat_structure::skew_symmetric>& M,const vect<double,3>& V);
-extern template vect<double,4> operator *<4>(const mat<double,mat_structure::skew_symmetric>& M,const vect<double,4>& V);
-extern template vect<double,6> operator *<6>(const mat<double,mat_structure::skew_symmetric>& M,const vect<double,6>& V);
-
-extern template vect<double,2> operator *<2>(const vect<double,2>& V,const mat<double,mat_structure::skew_symmetric>& M);
-extern template vect<double,3> operator *<3>(const vect<double,3>& V,const mat<double,mat_structure::skew_symmetric>& M);
-extern template vect<double,4> operator *<4>(const vect<double,4>& V,const mat<double,mat_structure::skew_symmetric>& M);
-extern template vect<double,6> operator *<6>(const vect<double,6>& V,const mat<double,mat_structure::skew_symmetric>& M);
-
-extern template vect_n<double> operator *(const mat<double,mat_structure::skew_symmetric>& M,const vect_n<double>& V);
-extern template vect_n<double> operator *(const vect_n<double>& V,const mat<double,mat_structure::skew_symmetric>& M);
-
-
-extern template mat<float,mat_structure::rectangular> operator *(const mat<float,mat_structure::skew_symmetric>& M1, const mat<float,mat_structure::rectangular,mat_alignment::column_major>& M2);
-extern template mat<float,mat_structure::rectangular> operator *(const mat<float,mat_structure::skew_symmetric>& M1, const mat<float,mat_structure::rectangular,mat_alignment::row_major>& M2);
-
-//extern template mat<float,mat_structure::rectangular> operator *(const mat<float,mat_structure::rectangular,mat_alignment::column_major>& M1, const mat<float,mat_structure::skew_symmetric>& M2);
-//extern template mat<float,mat_structure::rectangular> operator *(const mat<float,mat_structure::rectangular,mat_alignment::row_major>& M1, const mat<float,mat_structure::skew_symmetric>& M2);
-
-extern template vect<float,2> operator *<2>(const mat<float,mat_structure::skew_symmetric>& M,const vect<float,2>& V);
-extern template vect<float,3> operator *<3>(const mat<float,mat_structure::skew_symmetric>& M,const vect<float,3>& V);
-extern template vect<float,4> operator *<4>(const mat<float,mat_structure::skew_symmetric>& M,const vect<float,4>& V);
-extern template vect<float,6> operator *<6>(const mat<float,mat_structure::skew_symmetric>& M,const vect<float,6>& V);
-
-extern template vect<float,2> operator *<2>(const vect<float,2>& V,const mat<float,mat_structure::skew_symmetric>& M);
-extern template vect<float,3> operator *<3>(const vect<float,3>& V,const mat<float,mat_structure::skew_symmetric>& M);
-extern template vect<float,4> operator *<4>(const vect<float,4>& V,const mat<float,mat_structure::skew_symmetric>& M);
-extern template vect<float,6> operator *<6>(const vect<float,6>& V,const mat<float,mat_structure::skew_symmetric>& M);
-
-extern template vect_n<float> operator *(const mat<float,mat_structure::skew_symmetric>& M,const vect_n<float>& V);
-extern template vect_n<float> operator *(const vect_n<float>& V,const mat<float,mat_structure::skew_symmetric>& M);
-
-#endif
-
 
 #endif
 

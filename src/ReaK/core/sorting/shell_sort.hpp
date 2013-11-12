@@ -60,19 +60,19 @@ void shell_sort(RandomAccessIter first, RandomAccessIter last, Compare comp) {
   for(; gap <= max_gap; gap = 3 * gap + 1);
   for(; gap > 0; gap = (gap + 1) / 3) {
     for(RandomAccessIter current = first + gap; current < last; ++current) {
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
       ValueType tmp = std::move(*current);
 #else
       ValueType tmp = *current;
 #endif
       RandomAccessIter it = current;
       for(RandomAccessIter it_prev; ((it > first + gap) && (comp(tmp, *(it_prev = it - gap)))); it -= gap)
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
         *it = std::move(*it_prev);
 #else
         *it = *it_prev;
 #endif
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
       *it = std::move(tmp);
 #else
       *it = tmp;

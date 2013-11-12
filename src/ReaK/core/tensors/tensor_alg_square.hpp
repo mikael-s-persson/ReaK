@@ -59,7 +59,7 @@ namespace ReaK {
  * \tparam Allocator Standard allocator class (as in the STL), the default is std::allocator<T>.
  */
 template <typename T,
-	  typename Allocator>
+          typename Allocator>
 class tensor<T,3,tensor_structure::square,tensor_alignment::hi_dim_major,Allocator> : public serialization::serializable {
   public:    
     
@@ -108,7 +108,7 @@ class tensor<T,3,tensor_structure::square,tensor_alignment::hi_dim_major,Allocat
      * Constructor for a sized tensor.
      */
     tensor(size_type aCount, 
-	   const value_type& aFill = value_type(), const allocator_type& aAlloc = allocator_type()) :
+           const value_type& aFill = value_type(), const allocator_type& aAlloc = allocator_type()) :
            q(aCount * aCount * aCount,aFill,aAlloc), count(aCount) { };
 
     /**
@@ -117,7 +117,7 @@ class tensor<T,3,tensor_structure::square,tensor_alignment::hi_dim_major,Allocat
     tensor(const self& M) :
              q(M.q), count(M.count) { };
          
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
     /**
      * Standard Copy Constructor with standard semantics.
      */
@@ -136,13 +136,13 @@ class tensor<T,3,tensor_structure::square,tensor_alignment::hi_dim_major,Allocat
                                                  >, void* >::type dummy = NULL) :
              q(size<0>(M) * size<0>(M) * size<0>(M),T(0.0)) {
       if((size<0>(M) != size<1>(M)) || (size<1>(M) != size<2>(M)))
-	throw std::range_error("Tensor dimensions mismatch.");
+        throw std::range_error("Tensor dimensions mismatch.");
       count = size<0>(M);
       typename container_type::iterator it = q.begin();
       for(size_type i = 0; i < count; ++i)
         for(size_type j = 0; j < count; ++j)
           for(size_type k = 0; k < count; ++k, ++it)
-	    *it = M(k,j,i);
+            *it = M(k,j,i);
     };
 
     /**
@@ -248,9 +248,9 @@ class tensor<T,3,tensor_structure::square,tensor_alignment::hi_dim_major,Allocat
       self new_m(sz);
       size_type min_sz = std::min(sz, m.count);
       for(size_type k = 0; k < min_sz; ++k)
-	for(size_type j = 0; j < min_sz; ++j)
-	  for(size_type i = 0; i < min_sz; ++i)
-	    new_m.q[(k * new_m.count + j) * new_m.count + i] = m.q[(k * m.count + j) * m.count + i]; 
+        for(size_type j = 0; j < min_sz; ++j)
+          for(size_type i = 0; i < min_sz; ++i)
+            new_m.q[(k * new_m.count + j) * new_m.count + i] = m.q[(k * m.count + j) * m.count + i]; 
       swap(new_m,m);
     };
     
@@ -297,14 +297,14 @@ class tensor<T,3,tensor_structure::square,tensor_alignment::hi_dim_major,Allocat
       is_readable_tensor<Tensor>,
     self& >::type operator +=(const Tensor& M) {
       if((size<0>(M) != count) || 
-	 (size<1>(M) != count) || 
-	 (size<2>(M) != count))
-	throw std::range_error("Tensor dimensions mismatch.");
+         (size<1>(M) != count) || 
+         (size<2>(M) != count))
+        throw std::range_error("Tensor dimensions mismatch.");
       typename container_type::iterator it = q.begin();
       for(size_type k = 0; k < count; ++k)
         for(size_type j = 0; j < count; ++j)
           for(size_type i = 0; i < count; ++i, ++it)
-	    *it += M(i,j,k);
+            *it += M(i,j,k);
       return *this;
     };
 
@@ -316,14 +316,14 @@ class tensor<T,3,tensor_structure::square,tensor_alignment::hi_dim_major,Allocat
       is_readable_tensor<Tensor>,
     self& >::type operator -=(const Tensor& M) {
       if((size<0>(M) != count) || 
-	 (size<1>(M) != count) || 
-	 (size<2>(M) != count))
-	throw std::range_error("Tensor dimensions mismatch.");
+         (size<1>(M) != count) || 
+         (size<2>(M) != count))
+        throw std::range_error("Tensor dimensions mismatch.");
       typename container_type::iterator it = q.begin();
       for(size_type k = 0; k < count; ++k)
         for(size_type j = 0; j < count; ++j)
           for(size_type i = 0; i < count; ++i, ++it)
-	    *it -= M(i,j,k);
+            *it -= M(i,j,k);
       return *this;
     };
 
@@ -372,7 +372,7 @@ class tensor<T,3,tensor_structure::square,tensor_alignment::hi_dim_major,Allocat
       return result;
     };
 
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
     /**
      * Transposes the tensor M by simply moving the data of M into a tensor of different alignment.
      * \param M The tensor to be transposed.
@@ -421,7 +421,7 @@ class tensor<T,3,tensor_structure::square,tensor_alignment::hi_dim_major,Allocat
  * \tparam Allocator Standard allocator class (as in the STL), the default is std::allocator<T>.
  */
 template <typename T,
-	  typename Allocator>
+          typename Allocator>
 class tensor<T,3,tensor_structure::square,tensor_alignment::low_dim_major,Allocator> : public serialization::serializable {
   public:    
     
@@ -469,7 +469,7 @@ class tensor<T,3,tensor_structure::square,tensor_alignment::low_dim_major,Alloca
      * Constructor for a sized tensor.
      */
     tensor(size_type aCount,
-	   const value_type& aFill = value_type(), const allocator_type& aAlloc = allocator_type()) :
+           const value_type& aFill = value_type(), const allocator_type& aAlloc = allocator_type()) :
            q(aCount * aCount * aCount,aFill,aAlloc), count(aCount) { };
 
     /**
@@ -478,14 +478,14 @@ class tensor<T,3,tensor_structure::square,tensor_alignment::low_dim_major,Alloca
     tensor(const self& M) :
              q(M.q), count(M.count) { };
          
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
     /**
      * Standard Copy Constructor with standard semantics.
      */
     tensor(self&& M) :
              q(std::move(M.q)), count(std::move(M.count)) { };
 #endif
-	
+        
     /**
      * Explicit constructor from a any type of tensor.
      */
@@ -497,13 +497,13 @@ class tensor<T,3,tensor_structure::square,tensor_alignment::low_dim_major,Alloca
                                                  >, void* >::type dummy = NULL) :
              q(size<0>(M) * size<0>(M) * size<0>(M),T(0.0)) {
       if((size<0>(M) != size<1>(M)) || (size<1>(M) != size<2>(M)))
-	throw std::range_error("Tensor dimension mismatch!");
+        throw std::range_error("Tensor dimension mismatch!");
       count = size<0>(M);
       typename container_type::iterator it = q.begin();
       for(size_type i = 0; i < count; ++i)
         for(size_type j = 0; j < count; ++j)
           for(size_type k = 0; k < count; ++k, ++it)
-	    *it = M(i,j,k);
+            *it = M(i,j,k);
     };
 
     /**
@@ -609,9 +609,9 @@ class tensor<T,3,tensor_structure::square,tensor_alignment::low_dim_major,Alloca
       self new_m(sz);
       size_type min_sz = std::min(sz,m.count);
       for(size_type i = 0; i < min_sz; ++i)
-	for(size_type j = 0; j < min_sz; ++j)
-	  for(size_type k = 0; k < min_sz; ++k)
-	    new_m.q[(i * new_m.count + j) * new_m.count + k] = m.q[(i * m.count + j) * m.count + k]; 
+        for(size_type j = 0; j < min_sz; ++j)
+          for(size_type k = 0; k < min_sz; ++k)
+            new_m.q[(i * new_m.count + j) * new_m.count + k] = m.q[(i * m.count + j) * m.count + k]; 
       swap(new_m,m);
     };
     
@@ -657,14 +657,14 @@ class tensor<T,3,tensor_structure::square,tensor_alignment::low_dim_major,Alloca
       is_readable_tensor<Tensor>,
     self& >::type operator +=(const Tensor& M) {
       if((size<0>(M) != count) || 
-	 (size<1>(M) != count) || 
-	 (size<2>(M) != count))
-	throw std::range_error("Tensor dimensions mismatch.");
+         (size<1>(M) != count) || 
+         (size<2>(M) != count))
+        throw std::range_error("Tensor dimensions mismatch.");
       typename container_type::iterator it = q.begin();
       for(size_type i = 0; i < count; ++i)
         for(size_type j = 0; j < count; ++j)
           for(size_type k = 0; k < count; ++k, ++it)
-	    *it += M(i,j,k);
+            *it += M(i,j,k);
       return *this;
     };
 
@@ -676,14 +676,14 @@ class tensor<T,3,tensor_structure::square,tensor_alignment::low_dim_major,Alloca
       is_readable_tensor<Tensor>,
     self& >::type operator -=(const Tensor& M) {
       if((size<0>(M) != count) || 
-	 (size<1>(M) != count) || 
-	 (size<2>(M) != count))
-	throw std::range_error("Tensor dimensions mismatch.");
+         (size<1>(M) != count) || 
+         (size<2>(M) != count))
+        throw std::range_error("Tensor dimensions mismatch.");
       typename container_type::iterator it = q.begin();
       for(size_type i = 0; i < count; ++i)
         for(size_type j = 0; j < count; ++j)
           for(size_type k = 0; k < count; ++k, ++it)
-	    *it -= M(i,j,k);
+            *it -= M(i,j,k);
       return *this;
     };
 
@@ -730,7 +730,7 @@ class tensor<T,3,tensor_structure::square,tensor_alignment::low_dim_major,Alloca
       return result;
     };
 
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
     /**
      * Transposes the tensor M by simply moving the data of M into a tensor of different alignment.
      * \param M The tensor to be transposed.
@@ -787,7 +787,7 @@ class tensor<T,3,tensor_structure::square,tensor_alignment::low_dim_major,Alloca
  * \tparam Allocator Standard allocator class (as in the STL), the default is std::allocator<T>.
  */
 template <typename T,
-	  typename Allocator>
+          typename Allocator>
 class tensor<T,4,tensor_structure::square,tensor_alignment::hi_dim_major,Allocator> : public serialization::serializable {
   public:    
     
@@ -836,7 +836,7 @@ class tensor<T,4,tensor_structure::square,tensor_alignment::hi_dim_major,Allocat
      * Constructor for a sized tensor.
      */
     tensor(size_type aCount, 
-	   const value_type& aFill = value_type(), const allocator_type& aAlloc = allocator_type()) :
+           const value_type& aFill = value_type(), const allocator_type& aAlloc = allocator_type()) :
            q(aCount * aCount * aCount * aCount,aFill,aAlloc), count(aCount) { };
 
     /**
@@ -845,7 +845,7 @@ class tensor<T,4,tensor_structure::square,tensor_alignment::hi_dim_major,Allocat
     tensor(const self& M) :
              q(M.q), count(M.count) { };
          
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
     /**
      * Standard Copy Constructor with standard semantics.
      */
@@ -864,14 +864,14 @@ class tensor<T,4,tensor_structure::square,tensor_alignment::hi_dim_major,Allocat
                                                  >, void* >::type dummy = NULL) :
              q(size<0>(M) * size<0>(M) * size<0>(M) * size<0>(M),T(0.0)) {
       if((size<0>(M) != size<1>(M)) || (size<1>(M) != size<2>(M)) || (size<2>(M) != size<3>(M)))
-	throw std::range_error("Tensor dimensions mismatch!");
+        throw std::range_error("Tensor dimensions mismatch!");
       count = size<0>(M);
       typename container_type::iterator it = q.begin();
       for(size_type i = 0; i < count; ++i)
         for(size_type j = 0; j < count; ++j)
           for(size_type k = 0; k < count; ++k)
             for(size_type l = 0; l < count; ++l, ++it)
-	      *it = M(l,k,j,i);
+              *it = M(l,k,j,i);
     };
 
     /**
@@ -980,9 +980,9 @@ class tensor<T,4,tensor_structure::square,tensor_alignment::hi_dim_major,Allocat
       size_type min_sz = std::min(sz,m.count);
       for(size_type l = 0; l < min_sz; ++l)
         for(size_type k = 0; k < min_sz; ++k)
-	  for(size_type j = 0; j < min_sz; ++j)
-	    for(size_type i = 0; i < min_sz; ++i)
-	      new_m.q[((l * new_m.count + k) * new_m.count + j) * new_m.count + i] = m.q[((l * m.count + k) * m.count + j) * m.count + i]; 
+          for(size_type j = 0; j < min_sz; ++j)
+            for(size_type i = 0; i < min_sz; ++i)
+              new_m.q[((l * new_m.count + k) * new_m.count + j) * new_m.count + i] = m.q[((l * m.count + k) * m.count + j) * m.count + i]; 
       swap(new_m,m);
     };
     
@@ -1029,16 +1029,16 @@ class tensor<T,4,tensor_structure::square,tensor_alignment::hi_dim_major,Allocat
       is_readable_tensor<Tensor>,
     self& >::type operator +=(const Tensor& M) {
       if((size<0>(M) != count) || 
-	 (size<1>(M) != count) || 
-	 (size<2>(M) != count) || 
-	 (size<3>(M) != count))
-	throw std::range_error("Tensor dimensions mismatch.");
+         (size<1>(M) != count) || 
+         (size<2>(M) != count) || 
+         (size<3>(M) != count))
+        throw std::range_error("Tensor dimensions mismatch.");
       typename container_type::iterator it = q.begin();
       for(size_type l = 0; l < count; ++l)
         for(size_type k = 0; k < count; ++k)
           for(size_type j = 0; j < count; ++j)
             for(size_type i = 0; i < count; ++i, ++it)
-	      *it += M(i,j,k,l);
+              *it += M(i,j,k,l);
       return *this;
     };
 
@@ -1050,16 +1050,16 @@ class tensor<T,4,tensor_structure::square,tensor_alignment::hi_dim_major,Allocat
       is_readable_tensor<Tensor>,
     self& >::type operator -=(const Tensor& M) {
       if((size<0>(M) != count) || 
-	 (size<1>(M) != count) || 
-	 (size<2>(M) != count) || 
-	 (size<3>(M) != count))
-	throw std::range_error("Tensor dimensions mismatch.");
+         (size<1>(M) != count) || 
+         (size<2>(M) != count) || 
+         (size<3>(M) != count))
+        throw std::range_error("Tensor dimensions mismatch.");
       typename container_type::iterator it = q.begin();
       for(size_type l = 0; l < count; ++l)
         for(size_type k = 0; k < count; ++k)
           for(size_type j = 0; j < count; ++j)
             for(size_type i = 0; i < count; ++i, ++it)
-	      *it -= M(i,j,k,l);
+              *it -= M(i,j,k,l);
       return *this;
     };
 
@@ -1108,7 +1108,7 @@ class tensor<T,4,tensor_structure::square,tensor_alignment::hi_dim_major,Allocat
       return result;
     };
 
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
     /**
      * Transposes the tensor M by simply moving the data of M into a tensor of different alignment.
      * \param M The tensor to be transposed.
@@ -1157,7 +1157,7 @@ class tensor<T,4,tensor_structure::square,tensor_alignment::hi_dim_major,Allocat
  * \tparam Allocator Standard allocator class (as in the STL), the default is std::allocator<T>.
  */
 template <typename T,
-	  typename Allocator>
+          typename Allocator>
 class tensor<T,4,tensor_structure::square,tensor_alignment::low_dim_major,Allocator> : public serialization::serializable {
   public:    
     
@@ -1206,7 +1206,7 @@ class tensor<T,4,tensor_structure::square,tensor_alignment::low_dim_major,Alloca
      * Constructor for a sized tensor.
      */
     tensor(size_type aCount,
-	   const value_type& aFill = value_type(), const allocator_type& aAlloc = allocator_type()) :
+           const value_type& aFill = value_type(), const allocator_type& aAlloc = allocator_type()) :
            q(aCount * aCount * aCount * aCount,aFill,aAlloc), count(aCount) { };
 
     /**
@@ -1215,14 +1215,14 @@ class tensor<T,4,tensor_structure::square,tensor_alignment::low_dim_major,Alloca
     tensor(const self& M) :
              q(M.q), count(M.count) { };
          
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
     /**
      * Standard Copy Constructor with standard semantics.
      */
     tensor(self&& M) :
              q(std::move(M.q)), count(std::move(M.count)) { };
 #endif
-	
+        
     /**
      * Explicit constructor from a any type of tensor.
      */
@@ -1234,14 +1234,14 @@ class tensor<T,4,tensor_structure::square,tensor_alignment::low_dim_major,Alloca
                                                  >, void* >::type dummy = NULL) :
              q(size<0>(M) * size<0>(M) * size<0>(M) * size<0>(M),T(0.0)) {
       if((size<0>(M) != size<1>(M)) || (size<1>(M) != size<2>(M)) || (size<2>(M) != size<3>(M)))
-	throw std::range_error("Tensor dimensions mismatch!");
+        throw std::range_error("Tensor dimensions mismatch!");
       count = size<0>(M);
       typename container_type::iterator it = q.begin();
       for(size_type i = 0; i < count; ++i)
         for(size_type j = 0; j < count; ++j)
           for(size_type k = 0; k < count; ++k)
             for(size_type l = 0; l < count; ++l, ++it)
-	      *it = M(i,j,k,l);
+              *it = M(i,j,k,l);
     };
 
     /**
@@ -1349,10 +1349,10 @@ class tensor<T,4,tensor_structure::square,tensor_alignment::low_dim_major,Alloca
       self new_m(sz);
       size_type min_sz = std::min(sz,m.count);
       for(size_type i = 0; i < min_sz; ++i)
-	for(size_type j = 0; j < min_sz; ++j)
-	  for(size_type k = 0; k < min_sz; ++k)
-	    for(size_type l = 0; l < min_sz; ++l)
-	      new_m.q[((i * new_m.count + j) * new_m.count + k) * new_m.count + l] = m.q[((i * m.count + j) * m.count + k) * m.count + l]; 
+        for(size_type j = 0; j < min_sz; ++j)
+          for(size_type k = 0; k < min_sz; ++k)
+            for(size_type l = 0; l < min_sz; ++l)
+              new_m.q[((i * new_m.count + j) * new_m.count + k) * new_m.count + l] = m.q[((i * m.count + j) * m.count + k) * m.count + l]; 
       swap(new_m,m);
     };
     
@@ -1398,16 +1398,16 @@ class tensor<T,4,tensor_structure::square,tensor_alignment::low_dim_major,Alloca
       is_readable_tensor<Tensor>,
     self& >::type operator +=(const Tensor& M) {
       if((size<0>(M) != count) || 
-	 (size<1>(M) != count) || 
-	 (size<2>(M) != count) || 
-	 (size<3>(M) != count))
-	throw std::range_error("Tensor dimensions mismatch.");
+         (size<1>(M) != count) || 
+         (size<2>(M) != count) || 
+         (size<3>(M) != count))
+        throw std::range_error("Tensor dimensions mismatch.");
       typename container_type::iterator it = q.begin();
       for(size_type i = 0; i < count; ++i)
         for(size_type j = 0; j < count; ++j)
           for(size_type k = 0; k < count; ++k)
             for(size_type l = 0; l < count; ++l, ++it)
-	      *it += M(i,j,k,l);
+              *it += M(i,j,k,l);
       return *this;
     };
 
@@ -1419,16 +1419,16 @@ class tensor<T,4,tensor_structure::square,tensor_alignment::low_dim_major,Alloca
       is_readable_tensor<Tensor>,
     self& >::type operator -=(const Tensor& M) {
       if((size<0>(M) != count) || 
-	 (size<1>(M) != count) || 
-	 (size<2>(M) != count) || 
-	 (size<3>(M) != count))
-	throw std::range_error("Tensor dimensions mismatch.");
+         (size<1>(M) != count) || 
+         (size<2>(M) != count) || 
+         (size<3>(M) != count))
+        throw std::range_error("Tensor dimensions mismatch.");
       typename container_type::iterator it = q.begin();
       for(size_type i = 0; i < count; ++i)
         for(size_type j = 0; j < count; ++j)
           for(size_type k = 0; k < count; ++k)
             for(size_type l = 0; l < count; ++l, ++it)
-	      *it -= M(i,j,k,l);
+              *it -= M(i,j,k,l);
       return *this;
     };
 
@@ -1475,7 +1475,7 @@ class tensor<T,4,tensor_structure::square,tensor_alignment::low_dim_major,Alloca
       return result;
     };
 
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
     /**
      * Transposes the tensor M by simply moving the data of M into a tensor of different alignment.
      * \param M The tensor to be transposed.

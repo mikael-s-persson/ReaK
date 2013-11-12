@@ -529,7 +529,7 @@ void >::type reduce_HessTri(const Matrix1& A, const Matrix2& B,
 
 
 
-#if (defined(RK_ENABLE_CXX11_FEATURES) && defined(RK_ENABLE_EXTERN_TEMPLATES))
+#ifndef BOOST_NO_CXX11_EXTERN_TEMPLATE
 
 extern template void decompose_Hess(const mat<double,mat_structure::square>& A, mat<double,mat_structure::square>& Q, mat<double,mat_structure::square>& H, double NumTol);
 extern template void decompose_Hess(const mat<double,mat_structure::rectangular>& A, mat<double,mat_structure::rectangular>& Q, mat<double,mat_structure::rectangular>& H, double NumTol);

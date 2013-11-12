@@ -112,7 +112,7 @@ void sbastar_planner<FreeSpaceType>::solve_planning_query(planning_query<FreeSpa
   
   // Some MACROs to reduce the size of the code below.
   
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
 
 #define RK_SBASTAR_PLANNER_INIT_START_AND_GOAL_NODE \
   VertexProp vp_start; \

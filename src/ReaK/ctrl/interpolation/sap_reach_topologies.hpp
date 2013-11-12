@@ -347,7 +347,7 @@ class interpolated_topology<BaseTopology, sap_interpolation_tag> : public interp
     interpolated_topology(const BaseTopology& aTopo) : base_type(aTopo),
                           rt_dist(Impl::make_rt_metric(*this)), rl_sampler(Impl::make_sampler(*this)) { };
     
-#ifdef RK_ENABLE_CXX11_FEATURES
+#ifndef BOOST_NO_CXX11_VARIADIC_TEMPLATES
     template <typename... Args>
     interpolated_topology(Args&&... args) : base_type(std::forward<Args>(args)...),
                                             rt_dist(Impl::make_rt_metric(*this)), rl_sampler(Impl::make_sampler(*this)) { };

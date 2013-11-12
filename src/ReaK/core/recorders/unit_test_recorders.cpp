@@ -29,6 +29,7 @@
 #include <sstream>
 
 #include "base/chrono_incl.hpp"
+#include "base/thread_incl.hpp"
 
 #define BOOST_TEST_DYN_LINK
 
@@ -222,7 +223,8 @@ BOOST_AUTO_TEST_CASE( tcp_record_extract_test )
   ReaKaux::thread server_thd( srv );
   
   // it is necessary to give some time for the server to get up and waiting before a client can be created:
-  ReaKaux::this_thread::sleep_for(ReaKaux::chrono::milliseconds(10));
+//   ReaKaux::this_thread::sleep_for(ReaKaux::chrono::nanoseconds(10000));
+  ReaKaux::this_thread::yield();
   
   tcp_extractor input_rec("127.0.0.1:17017");
   

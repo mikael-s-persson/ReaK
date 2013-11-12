@@ -1104,14 +1104,7 @@ typename boost::enable_if_c< is_readable_matrix<Matrix1>::value && is_readable_m
 
 
 
-
-
-
-
-#if (defined(RK_ENABLE_CXX11_FEATURES) && defined(RK_ENABLE_EXTERN_TEMPLATES))
-
-
-
+#ifndef BOOST_NO_CXX11_EXTERN_TEMPLATE
 
 
 extern template std::ostream& operator <<(std::ostream& out_stream, const mat<double,mat_structure::rectangular,mat_alignment::column_major>& M);
@@ -1152,17 +1145,6 @@ extern template mat_product_result< mat<double,mat_structure::square,mat_alignme
 extern template mat_product_result< mat<double,mat_structure::square,mat_alignment::row_major>, mat<double,mat_structure::rectangular,mat_alignment::column_major> >::type operator *(const mat<double,mat_structure::square,mat_alignment::row_major>& M1, const mat<double,mat_structure::rectangular,mat_alignment::column_major>& M2);
 extern template mat_product_result< mat<double,mat_structure::square,mat_alignment::row_major>, mat<double,mat_structure::rectangular,mat_alignment::row_major> >::type operator *(const mat<double,mat_structure::square,mat_alignment::row_major>& M1, const mat<double,mat_structure::rectangular,mat_alignment::row_major>& M2);
 
-
-// for compilers that don't support extern templates for friend functions:
-#if !defined(__clang__)
-
-extern template mat_product_result< mat<double,mat_structure::symmetric>, mat<double,mat_structure::rectangular,mat_alignment::column_major> >::type operator *< mat<double,mat_structure::rectangular,mat_alignment::column_major> >(const mat<double,mat_structure::symmetric>& M1, const mat<double,mat_structure::rectangular,mat_alignment::column_major>& M2);
-extern template mat_product_result< mat<double,mat_structure::symmetric>, mat<double,mat_structure::rectangular,mat_alignment::row_major> >::type operator *< mat<double,mat_structure::rectangular,mat_alignment::row_major> >(const mat<double,mat_structure::symmetric>& M1, const mat<double,mat_structure::rectangular,mat_alignment::row_major>& M2);
-
-extern template mat_product_result< mat<double,mat_structure::skew_symmetric>, mat<double,mat_structure::rectangular,mat_alignment::column_major> >::type operator *< mat<double,mat_structure::rectangular,mat_alignment::column_major> >(const mat<double,mat_structure::skew_symmetric>& M1, const mat<double,mat_structure::rectangular,mat_alignment::column_major>& M2);
-extern template mat_product_result< mat<double,mat_structure::skew_symmetric>, mat<double,mat_structure::rectangular,mat_alignment::row_major> >::type operator *< mat<double,mat_structure::rectangular,mat_alignment::row_major> >(const mat<double,mat_structure::skew_symmetric>& M1, const mat<double,mat_structure::rectangular,mat_alignment::row_major>& M2);
-
-#endif
 
 
 //square and square matrix.
@@ -1305,16 +1287,6 @@ extern template mat_product_result< mat<float,mat_structure::square,mat_alignmen
 extern template mat_product_result< mat<float,mat_structure::square,mat_alignment::row_major>, mat<float,mat_structure::rectangular,mat_alignment::row_major> >::type operator *(const mat<float,mat_structure::square,mat_alignment::row_major>& M1, const mat<float,mat_structure::rectangular,mat_alignment::row_major>& M2);
 
 
-// for compilers that don't support extern templates for friend functions:
-#if !defined(__clang__)
-
-extern template mat_product_result< mat<float,mat_structure::symmetric>, mat<float,mat_structure::rectangular,mat_alignment::column_major> >::type operator *< mat<float,mat_structure::rectangular,mat_alignment::column_major> >(const mat<float,mat_structure::symmetric>& M1, const mat<float,mat_structure::rectangular,mat_alignment::column_major>& M2);
-extern template mat_product_result< mat<float,mat_structure::symmetric>, mat<float,mat_structure::rectangular,mat_alignment::row_major> >::type operator *< mat<float,mat_structure::rectangular,mat_alignment::row_major> >(const mat<float,mat_structure::symmetric>& M1, const mat<float,mat_structure::rectangular,mat_alignment::row_major>& M2);
-
-extern template mat_product_result< mat<float,mat_structure::skew_symmetric>, mat<float,mat_structure::rectangular,mat_alignment::column_major> >::type operator *< mat<float,mat_structure::rectangular,mat_alignment::column_major> >(const mat<float,mat_structure::skew_symmetric>& M1, const mat<float,mat_structure::rectangular,mat_alignment::column_major>& M2);
-extern template mat_product_result< mat<float,mat_structure::skew_symmetric>, mat<float,mat_structure::rectangular,mat_alignment::row_major> >::type operator *< mat<float,mat_structure::rectangular,mat_alignment::row_major> >(const mat<float,mat_structure::skew_symmetric>& M1, const mat<float,mat_structure::rectangular,mat_alignment::row_major>& M2);
-
-#endif
 
 //square and square matrix.
 extern template mat_product_result< mat<float,mat_structure::square,mat_alignment::column_major>, mat<float,mat_structure::square,mat_alignment::column_major> >::type operator *(const mat<float,mat_structure::square,mat_alignment::column_major>& M1, const mat<float,mat_structure::square,mat_alignment::column_major>& M2);

@@ -59,7 +59,7 @@ namespace ReaK {
  * \tparam Allocator Standard allocator class (as in the STL), the default is std::allocator<T>.
  */
 template <typename T,
-	  typename Allocator>
+          typename Allocator>
 class tensor<T,3,tensor_structure::rectangular,tensor_alignment::hi_dim_major,Allocator> : public serialization::serializable {
   public:    
     
@@ -103,22 +103,22 @@ class tensor<T,3,tensor_structure::rectangular,tensor_alignment::hi_dim_major,Al
      */
     tensor(const allocator_type& aAlloc = allocator_type()) :
              q(0,value_type(),aAlloc)
-#ifdef RK_ENABLE_CXX0X_FEATURES
-	     , counts{0,0,0} { };
+#ifndef BOOST_NO_CXX11_UNIFIED_INITIALIZATION_SYNTAX
+             , counts{0,0,0} { };
 #else
-	     { counts[0] = 0; counts[1] = 0; counts[2] = 0; };
+             { counts[0] = 0; counts[1] = 0; counts[2] = 0; };
 #endif
 
     /**
      * Constructor for a sized tensor.
      */
     tensor(size_type aCount0, size_type aCount1, size_type aCount2, 
-	   const value_type& aFill = value_type(), const allocator_type& aAlloc = allocator_type()) :
+           const value_type& aFill = value_type(), const allocator_type& aAlloc = allocator_type()) :
            q(aCount0 * aCount1 * aCount2,aFill,aAlloc)
-#ifdef RK_ENABLE_CXX0X_FEATURES
-	   , counts{aCount0, aCount1, aCount2} { };
+#ifndef BOOST_NO_CXX11_UNIFIED_INITIALIZATION_SYNTAX
+           , counts{aCount0, aCount1, aCount2} { };
 #else
-	   { counts[0] = aCount0; counts[1] = aCount1; counts[2] = aCount2; };
+           { counts[0] = aCount0; counts[1] = aCount1; counts[2] = aCount2; };
 #endif
 
     /**
@@ -127,7 +127,7 @@ class tensor<T,3,tensor_structure::rectangular,tensor_alignment::hi_dim_major,Al
     tensor(const self& M) :
              q(M.q) { std::copy(&M.counts[0],&M.counts[0] + 3,&counts[0]); };
          
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
     /**
      * Standard Copy Constructor with standard semantics.
      */
@@ -150,7 +150,7 @@ class tensor<T,3,tensor_structure::rectangular,tensor_alignment::hi_dim_major,Al
       for(size_type i = 0; i < counts[2]; ++i)
         for(size_type j = 0; j < counts[1]; ++j)
           for(size_type k = 0; k < counts[0]; ++k, ++it)
-	    *it = M(k,j,i);
+            *it = M(k,j,i);
     };
 
     /**
@@ -158,10 +158,10 @@ class tensor<T,3,tensor_structure::rectangular,tensor_alignment::hi_dim_major,Al
      */
     tensor(const container_type& Q, size_type aCount0, size_type aCount1, size_type aCount2) :
              q(Q)
-#ifdef RK_ENABLE_CXX0X_FEATURES
-	   , counts{aCount0, aCount1, aCount2} { };
+#ifndef BOOST_NO_CXX11_UNIFIED_INITIALIZATION_SYNTAX
+           , counts{aCount0, aCount1, aCount2} { };
 #else
-	   { counts[0] = aCount0; counts[1] = aCount1; counts[2] = aCount2; };
+           { counts[0] = aCount0; counts[1] = aCount1; counts[2] = aCount2; };
 #endif
 
     /**
@@ -268,9 +268,9 @@ class tensor<T,3,tensor_structure::rectangular,tensor_alignment::hi_dim_major,Al
       new_counts[Dim] = sz;
       self new_m(new_counts[0],new_counts[1],new_counts[2]);
       for(size_type k = 0; k < std::min(new_m.counts[2], m.counts[2]); ++k)
-	for(size_type j = 0; j < std::min(new_m.counts[1], m.counts[1]); ++j)
-	  for(size_type i = 0; i < std::min(new_m.counts[0], m.counts[0]); ++i)
-	    new_m.q[(k * new_m.counts[1] + j) * new_m.counts[0] + i] = m.q[(k * m.counts[1] + j) * m.counts[0] + i]; 
+        for(size_type j = 0; j < std::min(new_m.counts[1], m.counts[1]); ++j)
+          for(size_type i = 0; i < std::min(new_m.counts[0], m.counts[0]); ++i)
+            new_m.q[(k * new_m.counts[1] + j) * new_m.counts[0] + i] = m.q[(k * m.counts[1] + j) * m.counts[0] + i]; 
       swap(new_m,m);
     };
     
@@ -317,14 +317,14 @@ class tensor<T,3,tensor_structure::rectangular,tensor_alignment::hi_dim_major,Al
       is_readable_tensor<Tensor>,
     self& >::type operator +=(const Tensor& M) {
       if((size<0>(M) != counts[0]) || 
-	 (size<1>(M) != counts[1]) || 
-	 (size<2>(M) != counts[2]))
-	throw std::range_error("Tensor dimensions mismatch.");
+         (size<1>(M) != counts[1]) || 
+         (size<2>(M) != counts[2]))
+        throw std::range_error("Tensor dimensions mismatch.");
       typename container_type::iterator it = q.begin();
       for(size_type k = 0; k < counts[2]; ++k)
         for(size_type j = 0; j < counts[1]; ++j)
           for(size_type i = 0; i < counts[0]; ++i, ++it)
-	    *it += M(i,j,k);
+            *it += M(i,j,k);
       return *this;
     };
 
@@ -336,14 +336,14 @@ class tensor<T,3,tensor_structure::rectangular,tensor_alignment::hi_dim_major,Al
       is_readable_tensor<Tensor>,
     self& >::type operator -=(const Tensor& M) {
       if((size<0>(M) != counts[0]) || 
-	 (size<1>(M) != counts[1]) || 
-	 (size<2>(M) != counts[2]))
-	throw std::range_error("Tensor dimensions mismatch.");
+         (size<1>(M) != counts[1]) || 
+         (size<2>(M) != counts[2]))
+        throw std::range_error("Tensor dimensions mismatch.");
       typename container_type::iterator it = q.begin();
       for(size_type k = 0; k < counts[2]; ++k)
         for(size_type j = 0; j < counts[1]; ++j)
           for(size_type i = 0; i < counts[0]; ++i, ++it)
-	    *it -= M(i,j,k);
+            *it -= M(i,j,k);
       return *this;
     };
 
@@ -392,7 +392,7 @@ class tensor<T,3,tensor_structure::rectangular,tensor_alignment::hi_dim_major,Al
       return result;
     };
 
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
     /**
      * Transposes the tensor M by simply moving the data of M into a tensor of different alignment.
      * \param M The tensor to be transposed.
@@ -414,8 +414,8 @@ class tensor<T,3,tensor_structure::rectangular,tensor_alignment::hi_dim_major,Al
     virtual void RK_CALL save(serialization::oarchive& A, unsigned int) const {
       A & std::pair<std::string, const std::vector<T>&>("q",q)
         & std::pair<std::string, unsigned int>("counts[0]",counts[0])
-	& std::pair<std::string, unsigned int>("counts[1]",counts[1])
-	& std::pair<std::string, unsigned int>("counts[2]",counts[2]);
+        & std::pair<std::string, unsigned int>("counts[1]",counts[1])
+        & std::pair<std::string, unsigned int>("counts[2]",counts[2]);
     };
     virtual void RK_CALL load(serialization::iarchive& A, unsigned int) {
       unsigned int tmp;
@@ -447,7 +447,7 @@ class tensor<T,3,tensor_structure::rectangular,tensor_alignment::hi_dim_major,Al
  * \tparam Allocator Standard allocator class (as in the STL), the default is std::allocator<T>.
  */
 template <typename T,
-	  typename Allocator>
+          typename Allocator>
 class tensor<T,3,tensor_structure::rectangular,tensor_alignment::low_dim_major,Allocator> : public serialization::serializable {
   public:    
     
@@ -492,22 +492,22 @@ class tensor<T,3,tensor_structure::rectangular,tensor_alignment::low_dim_major,A
      */
     tensor(const allocator_type& aAlloc = allocator_type()) :
              q(0,value_type(),aAlloc)
-#ifdef RK_ENABLE_CXX0X_FEATURES
-	     , counts{0,0,0} { };
+#ifndef BOOST_NO_CXX11_UNIFIED_INITIALIZATION_SYNTAX
+             , counts{0,0,0} { };
 #else
-	     { counts[0] = 0; counts[1] = 0; counts[2] = 0; };
+             { counts[0] = 0; counts[1] = 0; counts[2] = 0; };
 #endif
 
     /**
      * Constructor for a sized tensor.
      */
     tensor(size_type aCount0, size_type aCount1, size_type aCount2, 
-	   const value_type& aFill = value_type(), const allocator_type& aAlloc = allocator_type()) :
+           const value_type& aFill = value_type(), const allocator_type& aAlloc = allocator_type()) :
            q(aCount0 * aCount1 * aCount2,aFill,aAlloc)
-#ifdef RK_ENABLE_CXX0X_FEATURES
-	   , counts{aCount0, aCount1, aCount2} { };
+#ifndef BOOST_NO_CXX11_UNIFIED_INITIALIZATION_SYNTAX
+           , counts{aCount0, aCount1, aCount2} { };
 #else
-	   { counts[0] = aCount0; counts[1] = aCount1; counts[2] = aCount2; };
+           { counts[0] = aCount0; counts[1] = aCount1; counts[2] = aCount2; };
 #endif
 
     /**
@@ -516,14 +516,14 @@ class tensor<T,3,tensor_structure::rectangular,tensor_alignment::low_dim_major,A
     tensor(const self& M) :
              q(M.q) { std::copy(&M.counts[0],&M.counts[0] + 3,&counts[0]); };
          
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
     /**
      * Standard Copy Constructor with standard semantics.
      */
     tensor(self&& M) :
              q(std::move(M.q)) { std::move(&M.counts[0],&M.counts[0] + 3,&counts[0]); };
 #endif
-	
+        
     /**
      * Explicit constructor from a any type of tensor.
      */
@@ -539,7 +539,7 @@ class tensor<T,3,tensor_structure::rectangular,tensor_alignment::low_dim_major,A
       for(size_type i = 0; i < counts[0]; ++i)
         for(size_type j = 0; j < counts[1]; ++j)
           for(size_type k = 0; k < counts[2]; ++k, ++it)
-	    *it = M(i,j,k);
+            *it = M(i,j,k);
     };
 
     /**
@@ -547,10 +547,10 @@ class tensor<T,3,tensor_structure::rectangular,tensor_alignment::low_dim_major,A
      */
     tensor(const container_type& Q, size_type aCount0, size_type aCount1, size_type aCount2) :
              q(Q)
-#ifdef RK_ENABLE_CXX0X_FEATURES
-	   , counts{aCount0, aCount1, aCount2} { };
+#ifndef BOOST_NO_CXX11_UNIFIED_INITIALIZATION_SYNTAX
+           , counts{aCount0, aCount1, aCount2} { };
 #else
-	   { counts[0] = aCount0; counts[1] = aCount1; counts[2] = aCount2; };
+           { counts[0] = aCount0; counts[1] = aCount1; counts[2] = aCount2; };
 #endif
 
     /**
@@ -657,9 +657,9 @@ class tensor<T,3,tensor_structure::rectangular,tensor_alignment::low_dim_major,A
       new_counts[Dim] = sz;
       self new_m(new_counts[0],new_counts[1],new_counts[2]);
       for(size_type i = 0; i < std::min(new_m.counts[0], m.counts[0]); ++i)
-	for(size_type j = 0; j < std::min(new_m.counts[1], m.counts[1]); ++j)
-	  for(size_type k = 0; k < std::min(new_m.counts[2], m.counts[2]); ++k)
-	    new_m.q[(i * new_m.counts[1] + j) * new_m.counts[2] + k] = m.q[(i * m.counts[1] + j) * m.counts[2] + k]; 
+        for(size_type j = 0; j < std::min(new_m.counts[1], m.counts[1]); ++j)
+          for(size_type k = 0; k < std::min(new_m.counts[2], m.counts[2]); ++k)
+            new_m.q[(i * new_m.counts[1] + j) * new_m.counts[2] + k] = m.q[(i * m.counts[1] + j) * m.counts[2] + k]; 
       swap(new_m,m);
     };
     
@@ -705,14 +705,14 @@ class tensor<T,3,tensor_structure::rectangular,tensor_alignment::low_dim_major,A
       is_readable_tensor<Tensor>,
     self& >::type operator +=(const Tensor& M) {
       if((size<0>(M) != counts[0]) || 
-	 (size<1>(M) != counts[1]) || 
-	 (size<2>(M) != counts[2]))
-	throw std::range_error("Tensor dimensions mismatch.");
+         (size<1>(M) != counts[1]) || 
+         (size<2>(M) != counts[2]))
+        throw std::range_error("Tensor dimensions mismatch.");
       typename container_type::iterator it = q.begin();
       for(size_type i = 0; i < counts[0]; ++i)
         for(size_type j = 0; j < counts[1]; ++j)
           for(size_type k = 0; k < counts[2]; ++k, ++it)
-	    *it += M(i,j,k);
+            *it += M(i,j,k);
       return *this;
     };
 
@@ -724,14 +724,14 @@ class tensor<T,3,tensor_structure::rectangular,tensor_alignment::low_dim_major,A
       is_readable_tensor<Tensor>,
     self& >::type operator -=(const Tensor& M) {
       if((size<0>(M) != counts[0]) || 
-	 (size<1>(M) != counts[1]) || 
-	 (size<2>(M) != counts[2]))
-	throw std::range_error("Tensor dimensions mismatch.");
+         (size<1>(M) != counts[1]) || 
+         (size<2>(M) != counts[2]))
+        throw std::range_error("Tensor dimensions mismatch.");
       typename container_type::iterator it = q.begin();
       for(size_type i = 0; i < counts[0]; ++i)
         for(size_type j = 0; j < counts[1]; ++j)
           for(size_type k = 0; k < counts[2]; ++k, ++it)
-	    *it -= M(i,j,k);
+            *it -= M(i,j,k);
       return *this;
     };
 
@@ -778,7 +778,7 @@ class tensor<T,3,tensor_structure::rectangular,tensor_alignment::low_dim_major,A
       return result;
     };
 
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
     /**
      * Transposes the tensor M by simply moving the data of M into a tensor of different alignment.
      * \param M The tensor to be transposed.
@@ -801,8 +801,8 @@ class tensor<T,3,tensor_structure::rectangular,tensor_alignment::low_dim_major,A
     virtual void RK_CALL save(serialization::oarchive& A, unsigned int) const {
       A & std::pair<std::string, const std::vector<T>&>("q",q)
         & std::pair<std::string, unsigned int>("counts[0]",counts[0])
-	& std::pair<std::string, unsigned int>("counts[1]",counts[1])
-	& std::pair<std::string, unsigned int>("counts[2]",counts[2]);
+        & std::pair<std::string, unsigned int>("counts[1]",counts[1])
+        & std::pair<std::string, unsigned int>("counts[2]",counts[2]);
     };
     virtual void RK_CALL load(serialization::iarchive& A, unsigned int) {
       unsigned int tmp;
@@ -841,7 +841,7 @@ class tensor<T,3,tensor_structure::rectangular,tensor_alignment::low_dim_major,A
  * \tparam Allocator Standard allocator class (as in the STL), the default is std::allocator<T>.
  */
 template <typename T,
-	  typename Allocator>
+          typename Allocator>
 class tensor<T,4,tensor_structure::rectangular,tensor_alignment::hi_dim_major,Allocator> : public serialization::serializable {
   public:    
     
@@ -885,22 +885,22 @@ class tensor<T,4,tensor_structure::rectangular,tensor_alignment::hi_dim_major,Al
      */
     tensor(const allocator_type& aAlloc = allocator_type()) :
              q(0,value_type(),aAlloc)
-#ifdef RK_ENABLE_CXX0X_FEATURES
-	     , counts{0,0,0,0} { };
+#ifndef BOOST_NO_CXX11_UNIFIED_INITIALIZATION_SYNTAX
+             , counts{0,0,0,0} { };
 #else
-	     { counts[0] = 0; counts[1] = 0; counts[2] = 0; counts[3] = 0; };
+             { counts[0] = 0; counts[1] = 0; counts[2] = 0; counts[3] = 0; };
 #endif
 
     /**
      * Constructor for a sized tensor.
      */
     tensor(size_type aCount0, size_type aCount1, size_type aCount2, size_type aCount3, 
-	   const value_type& aFill = value_type(), const allocator_type& aAlloc = allocator_type()) :
+           const value_type& aFill = value_type(), const allocator_type& aAlloc = allocator_type()) :
            q(aCount0 * aCount1 * aCount2 * aCount3,aFill,aAlloc)
-#ifdef RK_ENABLE_CXX0X_FEATURES
-	   , counts{aCount0, aCount1, aCount2, aCount3} { };
+#ifndef BOOST_NO_CXX11_UNIFIED_INITIALIZATION_SYNTAX
+           , counts{aCount0, aCount1, aCount2, aCount3} { };
 #else
-	   { counts[0] = aCount0; counts[1] = aCount1; counts[2] = aCount2; counts[3] = aCount3; };
+           { counts[0] = aCount0; counts[1] = aCount1; counts[2] = aCount2; counts[3] = aCount3; };
 #endif
 
     /**
@@ -909,7 +909,7 @@ class tensor<T,4,tensor_structure::rectangular,tensor_alignment::hi_dim_major,Al
     tensor(const self& M) :
              q(M.q) { std::copy(&M.counts[0],&M.counts[0] + 4,&counts[0]); };
          
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
     /**
      * Standard Copy Constructor with standard semantics.
      */
@@ -933,7 +933,7 @@ class tensor<T,4,tensor_structure::rectangular,tensor_alignment::hi_dim_major,Al
         for(size_type j = 0; j < counts[2]; ++j)
           for(size_type k = 0; k < counts[1]; ++k)
             for(size_type l = 0; l < counts[0]; ++l, ++it)
-	      *it = M(l,k,j,i);
+              *it = M(l,k,j,i);
     };
 
     /**
@@ -941,10 +941,10 @@ class tensor<T,4,tensor_structure::rectangular,tensor_alignment::hi_dim_major,Al
      */
     tensor(const container_type& Q, size_type aCount0, size_type aCount1, size_type aCount2, size_type aCount3) :
              q(Q)
-#ifdef RK_ENABLE_CXX0X_FEATURES
-	   , counts{aCount0, aCount1, aCount2, aCount3} { };
+#ifndef BOOST_NO_CXX11_UNIFIED_INITIALIZATION_SYNTAX
+           , counts{aCount0, aCount1, aCount2, aCount3} { };
 #else
-	   { counts[0] = aCount0; counts[1] = aCount1; counts[2] = aCount2; counts[3] = aCount3; };
+           { counts[0] = aCount0; counts[1] = aCount1; counts[2] = aCount2; counts[3] = aCount3; };
 #endif
 
     /**
@@ -1057,9 +1057,9 @@ class tensor<T,4,tensor_structure::rectangular,tensor_alignment::hi_dim_major,Al
       self new_m(new_counts[0],new_counts[1],new_counts[2],new_counts[3]);
       for(size_type l = 0; l < std::min(new_m.counts[3], m.counts[3]); ++l)
         for(size_type k = 0; k < std::min(new_m.counts[2], m.counts[2]); ++k)
-	  for(size_type j = 0; j < std::min(new_m.counts[1], m.counts[1]); ++j)
-	    for(size_type i = 0; i < std::min(new_m.counts[0], m.counts[0]); ++i)
-	      new_m.q[((l * new_m.counts[2] + k) * new_m.counts[1] + j) * new_m.counts[0] + i] = m.q[((l * m.counts[2] + k) * m.counts[1] + j) * m.counts[0] + i]; 
+          for(size_type j = 0; j < std::min(new_m.counts[1], m.counts[1]); ++j)
+            for(size_type i = 0; i < std::min(new_m.counts[0], m.counts[0]); ++i)
+              new_m.q[((l * new_m.counts[2] + k) * new_m.counts[1] + j) * new_m.counts[0] + i] = m.q[((l * m.counts[2] + k) * m.counts[1] + j) * m.counts[0] + i]; 
       swap(new_m,m);
     };
     
@@ -1106,16 +1106,16 @@ class tensor<T,4,tensor_structure::rectangular,tensor_alignment::hi_dim_major,Al
       is_readable_tensor<Tensor>,
     self& >::type operator +=(const Tensor& M) {
       if((size<0>(M) != counts[0]) || 
-	 (size<1>(M) != counts[1]) || 
-	 (size<2>(M) != counts[2]) || 
-	 (size<3>(M) != counts[3]))
-	throw std::range_error("Tensor dimensions mismatch.");
+         (size<1>(M) != counts[1]) || 
+         (size<2>(M) != counts[2]) || 
+         (size<3>(M) != counts[3]))
+        throw std::range_error("Tensor dimensions mismatch.");
       typename container_type::iterator it = q.begin();
       for(size_type l = 0; l < counts[3]; ++l)
         for(size_type k = 0; k < counts[2]; ++k)
           for(size_type j = 0; j < counts[1]; ++j)
             for(size_type i = 0; i < counts[0]; ++i, ++it)
-	      *it += M(i,j,k,l);
+              *it += M(i,j,k,l);
       return *this;
     };
 
@@ -1127,16 +1127,16 @@ class tensor<T,4,tensor_structure::rectangular,tensor_alignment::hi_dim_major,Al
       is_readable_tensor<Tensor>,
     self& >::type operator -=(const Tensor& M) {
       if((size<0>(M) != counts[0]) || 
-	 (size<1>(M) != counts[1]) || 
-	 (size<2>(M) != counts[2]) || 
-	 (size<2>(M) != counts[3]))
-	throw std::range_error("Tensor dimensions mismatch.");
+         (size<1>(M) != counts[1]) || 
+         (size<2>(M) != counts[2]) || 
+         (size<2>(M) != counts[3]))
+        throw std::range_error("Tensor dimensions mismatch.");
       typename container_type::iterator it = q.begin();
       for(size_type l = 0; l < counts[3]; ++l)
         for(size_type k = 0; k < counts[2]; ++k)
           for(size_type j = 0; j < counts[1]; ++j)
             for(size_type i = 0; i < counts[0]; ++i, ++it)
-	      *it -= M(i,j,k,l);
+              *it -= M(i,j,k,l);
       return *this;
     };
 
@@ -1185,7 +1185,7 @@ class tensor<T,4,tensor_structure::rectangular,tensor_alignment::hi_dim_major,Al
       return result;
     };
 
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
     /**
      * Transposes the tensor M by simply moving the data of M into a tensor of different alignment.
      * \param M The tensor to be transposed.
@@ -1207,9 +1207,9 @@ class tensor<T,4,tensor_structure::rectangular,tensor_alignment::hi_dim_major,Al
     virtual void RK_CALL save(serialization::oarchive& A, unsigned int) const {
       A & std::pair<std::string, const std::vector<T>&>("q",q)
         & std::pair<std::string, unsigned int>("counts[0]",counts[0])
-	& std::pair<std::string, unsigned int>("counts[1]",counts[1])
-	& std::pair<std::string, unsigned int>("counts[2]",counts[2])
-	& std::pair<std::string, unsigned int>("counts[3]",counts[3]);
+        & std::pair<std::string, unsigned int>("counts[1]",counts[1])
+        & std::pair<std::string, unsigned int>("counts[2]",counts[2])
+        & std::pair<std::string, unsigned int>("counts[3]",counts[3]);
     };
     virtual void RK_CALL load(serialization::iarchive& A, unsigned int) {
       unsigned int tmp;
@@ -1243,7 +1243,7 @@ class tensor<T,4,tensor_structure::rectangular,tensor_alignment::hi_dim_major,Al
  * \tparam Allocator Standard allocator class (as in the STL), the default is std::allocator<T>.
  */
 template <typename T,
-	  typename Allocator>
+          typename Allocator>
 class tensor<T,4,tensor_structure::rectangular,tensor_alignment::low_dim_major,Allocator> : public serialization::serializable {
   public:    
     
@@ -1288,22 +1288,22 @@ class tensor<T,4,tensor_structure::rectangular,tensor_alignment::low_dim_major,A
      */
     tensor(const allocator_type& aAlloc = allocator_type()) :
              q(0,value_type(),aAlloc)
-#ifdef RK_ENABLE_CXX0X_FEATURES
-	     , counts{0,0,0,0} { };
+#ifndef BOOST_NO_CXX11_UNIFIED_INITIALIZATION_SYNTAX
+             , counts{0,0,0,0} { };
 #else
-	     { counts[0] = 0; counts[1] = 0; counts[2] = 0; counts[3] = 0; };
+             { counts[0] = 0; counts[1] = 0; counts[2] = 0; counts[3] = 0; };
 #endif
 
     /**
      * Constructor for a sized tensor.
      */
     tensor(size_type aCount0, size_type aCount1, size_type aCount2, size_type aCount3, 
-	   const value_type& aFill = value_type(), const allocator_type& aAlloc = allocator_type()) :
+           const value_type& aFill = value_type(), const allocator_type& aAlloc = allocator_type()) :
            q(aCount0 * aCount1 * aCount2 * aCount3,aFill,aAlloc)
-#ifdef RK_ENABLE_CXX0X_FEATURES
-	   , counts{aCount0, aCount1, aCount2, aCount3} { };
+#ifndef BOOST_NO_CXX11_UNIFIED_INITIALIZATION_SYNTAX
+           , counts{aCount0, aCount1, aCount2, aCount3} { };
 #else
-	   { counts[0] = aCount0; counts[1] = aCount1; counts[2] = aCount2; counts[3] = aCount3; };
+           { counts[0] = aCount0; counts[1] = aCount1; counts[2] = aCount2; counts[3] = aCount3; };
 #endif
 
     /**
@@ -1312,14 +1312,14 @@ class tensor<T,4,tensor_structure::rectangular,tensor_alignment::low_dim_major,A
     tensor(const self& M) :
              q(M.q) { std::copy(&M.counts[0],&M.counts[0] + 4,&counts[0]); };
          
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
     /**
      * Standard Copy Constructor with standard semantics.
      */
     tensor(self&& M) :
              q(std::move(M.q)) { std::move(&M.counts[0],&M.counts[0] + 4,&counts[0]); };
 #endif
-	
+        
     /**
      * Explicit constructor from a any type of tensor.
      */
@@ -1336,7 +1336,7 @@ class tensor<T,4,tensor_structure::rectangular,tensor_alignment::low_dim_major,A
         for(size_type j = 0; j < counts[1]; ++j)
           for(size_type k = 0; k < counts[2]; ++k)
             for(size_type l = 0; l < counts[3]; ++l, ++it)
-	      *it = M(i,j,k,l);
+              *it = M(i,j,k,l);
     };
 
     /**
@@ -1344,10 +1344,10 @@ class tensor<T,4,tensor_structure::rectangular,tensor_alignment::low_dim_major,A
      */
     tensor(const container_type& Q, size_type aCount0, size_type aCount1, size_type aCount2, size_type aCount3) :
              q(Q)
-#ifdef RK_ENABLE_CXX0X_FEATURES
-	   , counts{aCount0, aCount1, aCount2, aCount3} { };
+#ifndef BOOST_NO_CXX11_UNIFIED_INITIALIZATION_SYNTAX
+           , counts{aCount0, aCount1, aCount2, aCount3} { };
 #else
-	   { counts[0] = aCount0; counts[1] = aCount1; counts[2] = aCount2; counts[3] = aCount3; };
+           { counts[0] = aCount0; counts[1] = aCount1; counts[2] = aCount2; counts[3] = aCount3; };
 #endif
 
     /**
@@ -1459,10 +1459,10 @@ class tensor<T,4,tensor_structure::rectangular,tensor_alignment::low_dim_major,A
       new_counts[Dim] = sz;
       self new_m(new_counts[0],new_counts[1],new_counts[2],new_counts[3]);
       for(size_type i = 0; i < std::min(new_m.counts[0], m.counts[0]); ++i)
-	for(size_type j = 0; j < std::min(new_m.counts[1], m.counts[1]); ++j)
-	  for(size_type k = 0; k < std::min(new_m.counts[2], m.counts[2]); ++k)
-	    for(size_type l = 0; l < std::min(new_m.counts[3], m.counts[3]); ++l)
-	      new_m.q[((i * new_m.counts[1] + j) * new_m.counts[2] + k) * new_m.counts[3] + l] = m.q[((i * m.counts[1] + j) * m.counts[2] + k) * m.counts[3] + l]; 
+        for(size_type j = 0; j < std::min(new_m.counts[1], m.counts[1]); ++j)
+          for(size_type k = 0; k < std::min(new_m.counts[2], m.counts[2]); ++k)
+            for(size_type l = 0; l < std::min(new_m.counts[3], m.counts[3]); ++l)
+              new_m.q[((i * new_m.counts[1] + j) * new_m.counts[2] + k) * new_m.counts[3] + l] = m.q[((i * m.counts[1] + j) * m.counts[2] + k) * m.counts[3] + l]; 
       swap(new_m,m);
     };
     
@@ -1508,16 +1508,16 @@ class tensor<T,4,tensor_structure::rectangular,tensor_alignment::low_dim_major,A
       is_readable_tensor<Tensor>,
     self& >::type operator +=(const Tensor& M) {
       if((size<0>(M) != counts[0]) || 
-	 (size<1>(M) != counts[1]) || 
-	 (size<2>(M) != counts[2]) || 
-	 (size<3>(M) != counts[3]))
-	throw std::range_error("Tensor dimensions mismatch.");
+         (size<1>(M) != counts[1]) || 
+         (size<2>(M) != counts[2]) || 
+         (size<3>(M) != counts[3]))
+        throw std::range_error("Tensor dimensions mismatch.");
       typename container_type::iterator it = q.begin();
       for(size_type i = 0; i < counts[0]; ++i)
         for(size_type j = 0; j < counts[1]; ++j)
           for(size_type k = 0; k < counts[2]; ++k)
             for(size_type l = 0; l < counts[3]; ++l, ++it)
-	      *it += M(i,j,k,l);
+              *it += M(i,j,k,l);
       return *this;
     };
 
@@ -1529,16 +1529,16 @@ class tensor<T,4,tensor_structure::rectangular,tensor_alignment::low_dim_major,A
       is_readable_tensor<Tensor>,
     self& >::type operator -=(const Tensor& M) {
       if((size<0>(M) != counts[0]) || 
-	 (size<1>(M) != counts[1]) || 
-	 (size<2>(M) != counts[2]) || 
-	 (size<3>(M) != counts[3]))
-	throw std::range_error("Tensor dimensions mismatch.");
+         (size<1>(M) != counts[1]) || 
+         (size<2>(M) != counts[2]) || 
+         (size<3>(M) != counts[3]))
+        throw std::range_error("Tensor dimensions mismatch.");
       typename container_type::iterator it = q.begin();
       for(size_type i = 0; i < counts[0]; ++i)
         for(size_type j = 0; j < counts[1]; ++j)
           for(size_type k = 0; k < counts[2]; ++k)
             for(size_type l = 0; l < counts[3]; ++l, ++it)
-	      *it -= M(i,j,k,l);
+              *it -= M(i,j,k,l);
       return *this;
     };
 
@@ -1585,7 +1585,7 @@ class tensor<T,4,tensor_structure::rectangular,tensor_alignment::low_dim_major,A
       return result;
     };
 
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
     /**
      * Transposes the tensor M by simply moving the data of M into a tensor of different alignment.
      * \param M The tensor to be transposed.
@@ -1608,9 +1608,9 @@ class tensor<T,4,tensor_structure::rectangular,tensor_alignment::low_dim_major,A
     virtual void RK_CALL save(serialization::oarchive& A, unsigned int) const {
       A & std::pair<std::string, const std::vector<T>&>("q",q)
         & std::pair<std::string, unsigned int>("counts[0]",counts[0])
-	& std::pair<std::string, unsigned int>("counts[1]",counts[1])
-	& std::pair<std::string, unsigned int>("counts[2]",counts[2])
-	& std::pair<std::string, unsigned int>("counts[3]",counts[3]);
+        & std::pair<std::string, unsigned int>("counts[1]",counts[1])
+        & std::pair<std::string, unsigned int>("counts[2]",counts[2])
+        & std::pair<std::string, unsigned int>("counts[3]",counts[3]);
     };
     virtual void RK_CALL load(serialization::iarchive& A, unsigned int) {
       unsigned int tmp;

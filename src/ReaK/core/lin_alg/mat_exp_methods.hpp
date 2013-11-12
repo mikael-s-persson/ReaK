@@ -204,7 +204,7 @@ void >::type exp_PadeSAS(const Matrix1& A, Matrix2& X, LinearEqSolver linsolve, 
 
 
 
-#if (defined(RK_ENABLE_CXX11_FEATURES) && defined(RK_ENABLE_EXTERN_TEMPLATES))
+#ifndef BOOST_NO_CXX11_EXTERN_TEMPLATE
 
 extern template void exp_PadeSAS(const mat<double,mat_structure::square>& A, mat<double,mat_structure::square>& X, QR_linlsqsolver linsolve, double NumTol);
 extern template void exp_PadeSAS(const mat<double,mat_structure::square>& A, mat<double,mat_structure::square>& X, RRQR_linlsqsolver linsolve, double NumTol);

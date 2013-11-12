@@ -107,53 +107,46 @@ class mat<T,mat_structure::diagonal,Alignment,Allocator> : public serialization:
      * Constructor for a sized matrix.
      */
     mat(size_type aRowCount, value_type aFill = value_type(0),const allocator_type& aAlloc = allocator_type()) :
-             q(aRowCount,aFill,aAlloc),
-	     rowCount(aRowCount) { };
+        q(aRowCount,aFill,aAlloc), rowCount(aRowCount) { };
 
     /**
      * Constructor for an identity matrix.
      */
     mat(size_type aRowCount, bool aIdentity, const allocator_type& aAlloc = allocator_type()) :
-             q(aRowCount,(aIdentity ? value_type(1) : value_type(0)),aAlloc),
-	     rowCount(aRowCount) { };
+        q(aRowCount,(aIdentity ? value_type(1) : value_type(0)),aAlloc), rowCount(aRowCount) { };
 
     /**
      * Standard Copy Constructor with standard semantics.
      */
-    mat(const self& M) :
-             q(M.q),
-	     rowCount(M.rowCount) { };
-	     
-#ifdef RK_ENABLE_CXX0X_FEATURES
+    mat(const self& M) : q(M.q), rowCount(M.rowCount) { };
+    
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
     /**
      * Standard Move Constructor with standard semantics.
      */
-    mat(self&& M) :
-             q(std::move(M.q)),
-	     rowCount(std::move(M.rowCount)) { };
+    mat(self&& M) : q(std::move(M.q)), rowCount(std::move(M.rowCount)) { };
 #endif
-	     
+    
     /**
      * Constructor from a vector of size n.
      */
     template <typename Vector>
     explicit mat(const Vector& V, const allocator_type& aAlloc = allocator_type(),
-                      typename boost::enable_if_c< is_readable_vector<Vector>::value && 
-                                                  !(boost::is_same<Vector,self>::value) , void* >::type dummy = NULL) :
-             q(V.begin(),V.end(),aAlloc),
-	     rowCount(V.size()) { };
+                 typename boost::enable_if_c< is_readable_vector<Vector>::value && 
+                                              !(boost::is_same<Vector,self>::value) , void* >::type dummy = NULL) :
+                 q(V.begin(),V.end(),aAlloc), rowCount(V.size()) { };
 
     /**
      * Constructor from a general matrix, copying only the diagonal part.
      */
     template <typename Matrix>
     explicit mat(const Matrix& M, const allocator_type& aAlloc = allocator_type(),
-		      typename boost::enable_if_c< is_readable_matrix<Matrix>::value && 
-                                                  !(boost::is_same<Matrix,self>::value) , void* >::type dummy = NULL) :
-             q((M.get_row_count() < M.get_col_count() ? M.get_row_count() : M.get_col_count()),T(0.0),aAlloc),
-	     rowCount((M.get_row_count() < M.get_col_count() ? M.get_row_count() : M.get_col_count())) {
+                 typename boost::enable_if_c< is_readable_matrix<Matrix>::value && 
+                                              !(boost::is_same<Matrix,self>::value) , void* >::type dummy = NULL) :
+                 q((M.get_row_count() < M.get_col_count() ? M.get_row_count() : M.get_col_count()),T(0.0),aAlloc),
+                 rowCount((M.get_row_count() < M.get_col_count() ? M.get_row_count() : M.get_col_count())) {
       for(size_type i=0;i<rowCount;++i)
-	q[i] = M(i,i);
+        q[i] = M(i,i);
     };
 
     /**
@@ -185,9 +178,9 @@ class mat<T,mat_structure::diagonal,Alignment,Allocator> : public serialization:
      */
     reference operator()(size_type i,size_type j) {
       if(i == j)
-	return q[i];
+        return q[i];
       else
-	throw std::range_error("Cannot write to the off-diagonal terms of a diagonal matrix!");
+        throw std::range_error("Cannot write to the off-diagonal terms of a diagonal matrix!");
     };
 
     /**
@@ -199,7 +192,7 @@ class mat<T,mat_structure::diagonal,Alignment,Allocator> : public serialization:
      */
     value_type operator()(size_type i,size_type j) const {
       if(i == j)
-	return q[i];
+        return q[i];
       else
         return T(0.0);
     };
@@ -292,7 +285,7 @@ class mat<T,mat_structure::diagonal,Alignment,Allocator> : public serialization:
      */
     self& operator +=(const self& M) {
       if(M.rowCount != rowCount)
-	throw std::range_error("Matrix dimension mismatch.");
+        throw std::range_error("Matrix dimension mismatch.");
       for(size_type i=0;i<rowCount;++i)
         q[i] += M.q[i];
       return *this;
@@ -306,7 +299,7 @@ class mat<T,mat_structure::diagonal,Alignment,Allocator> : public serialization:
      */
     self& operator -=(const self& M) {
       if(M.rowCount != rowCount)
-	throw std::range_error("Matrix dimension mismatch.");
+        throw std::range_error("Matrix dimension mismatch.");
       for(size_type i=0;i<rowCount;++i)
         q[i] -= M.q[i];
       return *this;
@@ -333,7 +326,7 @@ class mat<T,mat_structure::diagonal,Alignment,Allocator> : public serialization:
       if(rowCount != M.rowCount)
         throw std::range_error("Matrix dimension mismatch.");
       for(size_type i=0;i<rowCount;++i)
-	q[i] *= M.q[i];
+        q[i] *= M.q[i];
       return *this;
     };
 
@@ -349,7 +342,7 @@ class mat<T,mat_structure::diagonal,Alignment,Allocator> : public serialization:
      */
     friend self operator +(const self& M1,const self& M2) {
       if(M1.rowCount != M2.rowCount)
-	throw std::range_error("Matrix dimension mismatch.");
+        throw std::range_error("Matrix dimension mismatch.");
       self result(M1.rowCount);
       for(size_type i=0;i<M1.rowCount;++i)
         result.q[i] = M1.q[i] + M2.q[i];
@@ -363,7 +356,7 @@ class mat<T,mat_structure::diagonal,Alignment,Allocator> : public serialization:
     self operator -() const {
       self result(rowCount);
       for(size_type i=0;i<rowCount;++i)
-	result.q[i] = -q[i];
+        result.q[i] = -q[i];
       return result;
     };
 
@@ -375,7 +368,7 @@ class mat<T,mat_structure::diagonal,Alignment,Allocator> : public serialization:
      */
     friend self operator -(const self& M1, const self& M2) {
       if(M1.rowCount != M2.rowCount)
-	throw std::range_error("Matrix dimension mismatch.");
+        throw std::range_error("Matrix dimension mismatch.");
       self result(M1.rowCount);
       for(size_type i=0;i<M1.rowCount;++i)
         result.q[i] = M1.q[i] - M2.q[i];
@@ -394,7 +387,7 @@ class mat<T,mat_structure::diagonal,Alignment,Allocator> : public serialization:
         throw std::range_error("Matrix dimension mismatch.");
       self result(M1.rowCount);
       for(size_type i=0;i<M1.rowCount;++i)
-	result.q[i] = M1.q[i] * M2.q[i];
+        result.q[i] = M1.q[i] * M2.q[i];
       return result;
     };
     
@@ -415,7 +408,7 @@ class mat<T,mat_structure::diagonal,Alignment,Allocator> : public serialization:
         throw std::range_error("Matrix dimension mismatch.");
       for(size_type l=0;l<M2.get_col_count();++l)
         for(size_type i=0;i<M1.rowCount;++i)
-	  M2(i,l) *= M1.q[i];
+          M2(i,l) *= M1.q[i];
       return M2;
     };
     
@@ -436,7 +429,7 @@ class mat<T,mat_structure::diagonal,Alignment,Allocator> : public serialization:
         throw std::range_error("Matrix dimension mismatch.");
       for(size_type l=0;l<M1.get_row_count();++l)
         for(size_type i=0;i<M2.rowCount;++i)
-	  M1(l,i) *= M2.q[i];
+          M1(l,i) *= M2.q[i];
       return M1;
     };
 #endif
@@ -509,30 +502,6 @@ class mat<T,mat_structure::diagonal,Alignment,Allocator> : public serialization:
 *******************************************************************************/
 
     /**
-     * Extracts a sub-matrix from this matrix.
-     * \param aRowOffset Number of rows before the start of the sub-matrix rows.
-     * \param aColOffset Number of columns before the start of the sub-matrix columns.
-     * \param aRowCountOut Number of rows of the sub-matrix.
-     * \param aColCountOut Number of columns of the sub-matrix.
-     * \return The sub-matrix contained in this matrix.
-     * \throw std::range_error If the sub-matrix's dimensions and position does not fit within this matrix.
-     *//* This should do fine with the generic version.
-    mat_cm<T> getSubMat(unsigned int aRowOffset,unsigned int aColOffset,unsigned int aRowCountOut,unsigned int aColCountOut) const throw(std::range_error) {
-      if((aRowOffset + aRowCountOut > size) || (aColOffset + aColCountOut > size))
-        throw std::range_error("Matrix dimension mismatch.");
-      mat_cm<T> result(aRowCountOut,aColCountOut);
-      for(unsigned int j=0;j<aColCountOut;++j) {
-        unsigned int i=0;
-	for(;((i<aRowCountOut) && (i+aRowOffset < j+aColOffset));++i)
-	  result.q[j*aRowCountOut+i] = 0.0;
-	result.q[j*aRowCountOut+i] = q[i+aRowOffset]; ++i;
-	for(;i<aRowCountOut;++i)
-          result.q[j*aRowCountOut+i] = 0.0;
-      };
-      return result;
-    };*/
-
-    /**
      * Extracts a diagonal sub-matrix from this matrix.
      * \param aDiagOffset Number of rows/columns before the start of the sub-matrix rows/columns.
      * \param aSizeOut Number of rows/columns of the sub-matrix.
@@ -595,7 +564,7 @@ class mat<T,mat_structure::diagonal,Alignment,Allocator> : public serialization:
       swap(result,M);
       return result;
     };
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
     /**
      * Transposes the matrix M in a potentially destructive way (move-semantics, C++0x).
      * \param M The diagonal matrix to be transposed and moved.
@@ -614,7 +583,7 @@ class mat<T,mat_structure::diagonal,Alignment,Allocator> : public serialization:
     friend value_type trace(const self& M) {
       value_type sum = value_type(0);
       for(size_type i = 0; i < M.rowCount; ++i)
-	sum += M.q[i];
+        sum += M.q[i];
       return sum;
     };
     
@@ -649,40 +618,10 @@ class mat<T,mat_structure::diagonal,Alignment,Allocator> : public serialization:
 
 
 
-#if (defined(RK_ENABLE_CXX11_FEATURES) && defined(RK_ENABLE_EXTERN_TEMPLATES))
+#ifndef BOOST_NO_CXX11_EXTERN_TEMPLATE
 
 extern template class mat<double, mat_structure::diagonal>;
 extern template class mat<float, mat_structure::diagonal>;
-
-
-// for compilers that don't support extern templates for friend functions:
-#if 0
-
-extern template vect<double,2> operator *(const mat<double,mat_structure::diagonal>& M, vect<double,2> V);
-extern template vect<double,3> operator *(const mat<double,mat_structure::diagonal>& M, vect<double,3> V);
-extern template vect<double,4> operator *(const mat<double,mat_structure::diagonal>& M, vect<double,4> V);
-extern template vect<double,6> operator *(const mat<double,mat_structure::diagonal>& M, vect<double,6> V);
-extern template vect_n<double> operator *(const mat<double,mat_structure::diagonal>& M, const vect_n<double> V);
-
-extern template vect<double,2> operator *(vect<double,2> V,const mat<double,mat_structure::diagonal>& M);
-extern template vect<double,3> operator *(vect<double,3> V,const mat<double,mat_structure::diagonal>& M);
-extern template vect<double,4> operator *(vect<double,4> V,const mat<double,mat_structure::diagonal>& M);
-extern template vect<double,6> operator *(vect<double,6> V,const mat<double,mat_structure::diagonal>& M);
-extern template vect_n<double> operator *(vect_n<double> V,const mat<double,mat_structure::diagonal>& M);
-
-extern template vect<float,2> operator *(const mat<float,mat_structure::diagonal>& M, vect<float,2> V);
-extern template vect<float,3> operator *(const mat<float,mat_structure::diagonal>& M, vect<float,3> V);
-extern template vect<float,4> operator *(const mat<float,mat_structure::diagonal>& M, vect<float,4> V);
-extern template vect<float,6> operator *(const mat<float,mat_structure::diagonal>& M, vect<float,6> V);
-extern template vect_n<float> operator *(const mat<float,mat_structure::diagonal>& M, vect_n<float> V);
-
-extern template vect<float,2> operator *(vect<float,2> V,const mat<float,mat_structure::diagonal>& M);
-extern template vect<float,3> operator *(vect<float,3> V,const mat<float,mat_structure::diagonal>& M);
-extern template vect<float,4> operator *(vect<float,4> V,const mat<float,mat_structure::diagonal>& M);
-extern template vect<float,6> operator *(vect<float,6> V,const mat<float,mat_structure::diagonal>& M);
-extern template vect_n<float> operator *(vect_n<float> V,const mat<float,mat_structure::diagonal>& M);
-
-#endif
 
 
 #endif

@@ -439,8 +439,6 @@ namespace graph {
       typedef color_traits<ColorValue> Color;
       typedef typename property_traits<DistanceMap>::value_type DistanceValue;
       typedef typename property_traits<WeightMap>::value_type WeightValue;
-      typedef typename property_traits<KeyMap>::value_type KeyValue;
-      typedef typename adstar_key_traits<KeyValue>::compare_type KeyCompareType;
       
       Vertex s = start_vertex;
       put(distance, s, inf);
@@ -622,11 +620,6 @@ namespace graph {
      CompareFunction compare = CompareFunction(), EqualCompareFunction equal_compare = EqualCompareFunction(),
      CombineFunction combine = CombineFunction(), ComposeFunction compose = ComposeFunction())
   {
-    typedef typename boost::graph_traits<VertexListGraph>::edge_descriptor Edge;
-    typedef typename boost::property_traits<ColorMap>::value_type ColorValue;
-    typedef boost::color_traits<ColorValue> Color;
-    typedef typename boost::property_traits<DistanceMap>::value_type DistanceValue;
-    typedef typename boost::property_traits<WeightMap>::value_type WeightValue;
     typedef typename boost::property_traits<KeyMap>::value_type KeyValue;
     typedef typename adstar_key_traits<KeyValue>::compare_type KeyCompareType;
     typedef boost::vector_property_map<std::size_t> IndexInHeapMap;

@@ -100,7 +100,7 @@ class oi_reader {
     oi_reader(const oi_reader&);
     oi_reader& operator=(const oi_reader&);
     
-#ifdef RK_ENABLE_CXX11_FEATURES
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
     oi_reader(oi_reader&&);
     oi_reader& operator=(oi_reader&&);
 #endif

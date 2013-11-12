@@ -83,7 +83,7 @@ class waypoint_container_base : public shared_object {
     typedef typename container_type::value_type waypoint_value;
     
     static const point_type& make_value(const point_type& p) { return p; };
-#ifdef RK_ENABLE_CXX11_FEATURES
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
     static point_type&& make_value(point_type&& p) { return std::move(p); };
 #endif
     static const point_type& extract_point(const point_type& v) { return v; };
@@ -297,7 +297,7 @@ class waypoint_container_base< true, Topology, DistanceMetricBase > : public sha
     typedef typename container_type::value_type waypoint_value;
     
     static waypoint_value make_value(const point_type& p) { return waypoint_value(p.time, p); };
-#ifdef RK_ENABLE_CXX11_FEATURES
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
     static waypoint_value make_value(point_type&& p) { return waypoint_value(p.time, std::move(p)); };
 #endif
     static const point_type& extract_point(const waypoint_value& v) { return v.second; };
@@ -341,7 +341,7 @@ class waypoint_container_base< true, Topology, DistanceMetricBase > : public sha
                           current_wpb(aWPB), 
                           current_pt(current_wpb.first->second) { };
                               
-#ifdef RK_ENABLE_CXX11_FEATURES
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
       point_time_iterator(const self* aParent,
                           const_waypoint_bounds&& aWPB) :
                           parent(aParent),
@@ -413,7 +413,7 @@ class waypoint_container_base< true, Topology, DistanceMetricBase > : public sha
                               current_wpb(aWPB), 
                               current_pt(current_wpb.first->second) { };
                               
-#ifdef RK_ENABLE_CXX11_FEATURES
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
       point_fraction_iterator(const self* aParent,
                               const_waypoint_bounds&& aWPB) :
                               parent(aParent),

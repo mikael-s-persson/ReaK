@@ -157,7 +157,7 @@ void export_kte_models() {
     .def("compute_state_rate", &py_dyn_mdl_compute_state_rate);
     
   
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_SMART_PTR
   implicitly_convertible< ReaK::shared_ptr< ReaK::kte::direct_kinematics_model >, 
                           ReaK::shared_ptr< ReaK::named_object > >();
                           

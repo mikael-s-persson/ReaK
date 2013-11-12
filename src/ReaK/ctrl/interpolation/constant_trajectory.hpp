@@ -77,7 +77,7 @@ class constant_trajectory : public shared_object {
       
       explicit point_time_iterator(const point_type& aCurrentPt) : current_pt(aCurrentPt) { };
                               
-#ifdef RK_ENABLE_CXX11_FEATURES
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
       explicit point_time_iterator(point_type&& aCurrentPt) : current_pt(std::move(aCurrentPt)) { };
 #endif
       

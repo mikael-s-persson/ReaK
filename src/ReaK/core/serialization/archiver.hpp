@@ -51,7 +51,7 @@
 #include <list>
 #include <iterator>
 
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_HDR_TYPE_TRAITS
 #include <type_traits>
 #else
 #include <boost/type_traits.hpp>
@@ -337,7 +337,7 @@ class iarchive : public archive {
       return in.load_string(s);
     };
 
-#ifndef RK_ENABLE_CXX0X_FEATURES
+#ifdef BOOST_NO_CXX11_SMART_PTR
     /// Loading a serializable object as a templated pointer.
     template <typename T>
     friend 
@@ -350,7 +350,7 @@ class iarchive : public archive {
       if(tmp)
         Item = rtti::rk_dynamic_ptr_cast<T>(tmp);
       else
-	Item = boost::shared_ptr<T>();
+        Item = boost::shared_ptr<T>();
       return in;
     };
 
@@ -366,7 +366,7 @@ class iarchive : public archive {
       if(tmp)
         Item.second = rtti::rk_dynamic_ptr_cast<T>(tmp);
       else
-	Item.second = boost::shared_ptr<T>();
+        Item.second = boost::shared_ptr<T>();
       return in;
     };
     
@@ -404,7 +404,7 @@ class iarchive : public archive {
       if(tmp)
         Item = rtti::rk_dynamic_ptr_cast<T>(tmp);
       else
-	Item = boost::weak_ptr<T>();
+        Item = boost::weak_ptr<T>();
       return in;
     };
 
@@ -420,7 +420,7 @@ class iarchive : public archive {
       if(tmp)
         Item.second = rtti::rk_dynamic_ptr_cast<T>(tmp);
       else
-	Item.second = boost::weak_ptr<T>();
+        Item.second = boost::weak_ptr<T>();
       return in;
     };
 #else
@@ -436,7 +436,7 @@ class iarchive : public archive {
       if(tmp)
         Item = rtti::rk_dynamic_ptr_cast<T>(tmp);
       else
-	Item = std::shared_ptr<T>();
+        Item = std::shared_ptr<T>();
       return in;
     };
 
@@ -452,7 +452,7 @@ class iarchive : public archive {
       if(tmp)
         Item.second = rtti::rk_dynamic_ptr_cast<T>(tmp);
       else
-	Item.second = std::shared_ptr<T>();
+        Item.second = std::shared_ptr<T>();
       return in;
     };
     
@@ -490,7 +490,7 @@ class iarchive : public archive {
       if(tmp)
         Item = rtti::rk_dynamic_ptr_cast<T>(tmp);
       else
-	Item = std::weak_ptr<T>();
+        Item = std::weak_ptr<T>();
       return in;
     };
 
@@ -506,7 +506,7 @@ class iarchive : public archive {
       if(tmp)
         Item.second = rtti::rk_dynamic_ptr_cast<T>(tmp);
       else
-	Item.second = std::weak_ptr<T>();
+        Item.second = std::weak_ptr<T>();
       return in;
     };
 #endif
@@ -514,7 +514,7 @@ class iarchive : public archive {
     template <typename T>
     friend 
     typename boost::enable_if< 
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_HDR_TYPE_TRAITS
       std::is_convertible< T& , serializable& >, 
 #else
       boost::is_convertible< T& , serializable& >,
@@ -528,7 +528,7 @@ class iarchive : public archive {
     template <typename T>
     friend 
     typename boost::enable_if< 
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_HDR_TYPE_TRAITS
       std::is_convertible< T& , serializable& >, 
 #else
       boost::is_convertible< T& , serializable& >,
@@ -546,7 +546,7 @@ class iarchive : public archive {
       v.resize(count);
       in.start_repeated_field(rtti::get_type_info<T>::type_name());
       for(unsigned int i=0;i<count;++i)
-	in >> v[i];
+        in >> v[i];
       in.finish_repeated_field();
       return in;
     };
@@ -559,9 +559,9 @@ class iarchive : public archive {
       v.second.resize(count);
       in.start_repeated_field(rtti::get_type_info<T>::type_name(),v.first);
       for(unsigned int i=0;i<count;++i) {
-	std::stringstream s_stream;
-	s_stream << v.first << "_q[" << i << "]";
-	in & RK_SERIAL_LOAD_WITH_ALIAS(s_stream.str(), v.second[i]);
+        std::stringstream s_stream;
+        s_stream << v.first << "_q[" << i << "]";
+        in & RK_SERIAL_LOAD_WITH_ALIAS(s_stream.str(), v.second[i]);
       };
       in.finish_repeated_field();
       return in;
@@ -576,7 +576,7 @@ class iarchive : public archive {
       in.start_repeated_field(rtti::get_type_info<T>::type_name());
       typename std::list<T,Allocator>::iterator it = v.begin();
       for(;it!=v.end();++it)
-	in >> (*it);
+        in >> (*it);
       in.finish_repeated_field();
       return in;
     };
@@ -590,9 +590,9 @@ class iarchive : public archive {
       in.start_repeated_field(rtti::get_type_info<T>::type_name(),v.first);
       typename std::list<T,Allocator>::iterator it = v.second.begin();
       for(unsigned int i=0;it!=v.second.end();++it) {
-	std::stringstream s_stream;
-	s_stream << v.first << "_q[" << i++ << "]";
-	in & RK_SERIAL_LOAD_WITH_ALIAS(s_stream.str(), (*it));
+        std::stringstream s_stream;
+        s_stream << v.first << "_q[" << i++ << "]";
+        in & RK_SERIAL_LOAD_WITH_ALIAS(s_stream.str(), (*it));
       };
       in.finish_repeated_field();
       return in;
@@ -606,9 +606,9 @@ class iarchive : public archive {
       m.clear();
       in.start_repeated_pair(rtti::get_type_info<Key>::type_name(),rtti::get_type_info<T>::type_name());
       for(unsigned int i=0;i<count;++i) {
-	Key value_key;
-	in >> value_key;
-	in >> m[value_key];
+        Key value_key;
+        in >> value_key;
+        in >> m[value_key];
       };
       in.finish_repeated_pair();
       return in;
@@ -622,13 +622,13 @@ class iarchive : public archive {
       m.second.clear();
       in.start_repeated_pair(rtti::get_type_info<Key>::type_name(),rtti::get_type_info<T>::type_name(),m.first);
       for(unsigned int i=0;i<count;++i) {
-	std::stringstream key_s_stream;
-	key_s_stream << m.first << "_key[" << i << "]";
-	Key value_key;
-	in & RK_SERIAL_LOAD_WITH_ALIAS(key_s_stream.str(), value_key);
-	std::stringstream value_s_stream;
-	value_s_stream << m.first << "_value[" << i << "]";
-	in & RK_SERIAL_LOAD_WITH_ALIAS(value_s_stream.str(), m.second[value_key]);
+        std::stringstream key_s_stream;
+        key_s_stream << m.first << "_key[" << i << "]";
+        Key value_key;
+        in & RK_SERIAL_LOAD_WITH_ALIAS(key_s_stream.str(), value_key);
+        std::stringstream value_s_stream;
+        value_s_stream << m.first << "_value[" << i << "]";
+        in & RK_SERIAL_LOAD_WITH_ALIAS(value_s_stream.str(), m.second[value_key]);
       };
       in.finish_repeated_pair();
       return in;
@@ -642,9 +642,9 @@ class iarchive : public archive {
       v.clear();
       in.start_repeated_field(rtti::get_type_info<T>::type_name());
       for(unsigned int i = 0;i < count;++i) {
-	T temp;
-	in >> temp;
-	v.insert(v.end(), temp);
+        T temp;
+        in >> temp;
+        v.insert(v.end(), temp);
       };
       in.finish_repeated_field();
       return in;
@@ -658,11 +658,11 @@ class iarchive : public archive {
       v.second.clear();
       in.start_repeated_field(rtti::get_type_info<T>::type_name(),v.first);
       for(unsigned int i=0; i < count;++i) {
-	std::stringstream s_stream;
-	s_stream << v.first << "_q[" << i << "]";
-	T temp;
-	in & RK_SERIAL_LOAD_WITH_ALIAS(s_stream.str(), temp);
-	v.second.insert(v.second.end(), temp);
+        std::stringstream s_stream;
+        s_stream << v.first << "_q[" << i << "]";
+        T temp;
+        in & RK_SERIAL_LOAD_WITH_ALIAS(s_stream.str(), temp);
+        v.second.insert(v.second.end(), temp);
       };
       in.finish_repeated_field();
       return in;
@@ -910,12 +910,16 @@ class oarchive : public archive {
       return out.save_string(s);
     };
 
-#ifndef RK_ENABLE_CXX0X_FEATURES
+#ifdef BOOST_NO_CXX11_SMART_PTR
     /// Saving a serializable object as a templated pointer.
     template <typename T>
     friend 
     typename boost::enable_if< 
+#ifndef BOOST_NO_CXX11_HDR_TYPE_TRAITS
+      std::is_convertible< const T* , const serializable* >, 
+#else
       boost::is_convertible< const T* , const serializable* >,
+#endif
     oarchive& >::type operator <<(oarchive& out, const boost::shared_ptr<T>& Item) {
       out.signal_polymorphic_field(T::getStaticObjectType()->TypeName(), T::getStaticObjectType()->TypeID_begin(), "Item");
       serializable_shared_pointer tmp;
@@ -928,7 +932,11 @@ class oarchive : public archive {
     template <typename T>
     friend 
     typename boost::enable_if< 
+#ifndef BOOST_NO_CXX11_HDR_TYPE_TRAITS
+      std::is_convertible< const T* , const serializable* >, 
+#else
       boost::is_convertible< const T* , const serializable* >,
+#endif
     oarchive& >::type operator &(oarchive& out, const std::pair<std::string, const boost::shared_ptr<T>& >& Item) {
       out.signal_polymorphic_field(T::getStaticObjectType()->TypeName(), T::getStaticObjectType()->TypeID_begin(), Item.first);
       serializable_shared_pointer tmp;
@@ -941,7 +949,11 @@ class oarchive : public archive {
     template <typename T>
     friend 
     typename boost::disable_if< 
+#ifndef BOOST_NO_CXX11_HDR_TYPE_TRAITS
+      std::is_convertible< const T* , const serializable* >, 
+#else
       boost::is_convertible< const T* , const serializable* >,
+#endif
     oarchive& >::type operator <<(oarchive& out, const boost::shared_ptr<T>& Item) {
       if(Item)
         out << *Item;
@@ -952,7 +964,11 @@ class oarchive : public archive {
     template <typename T>
     friend 
     typename boost::disable_if< 
+#ifndef BOOST_NO_CXX11_HDR_TYPE_TRAITS
+      std::is_convertible< const T* , const serializable* >, 
+#else
       boost::is_convertible< const T* , const serializable* >,
+#endif
     oarchive& >::type operator &(oarchive& out, const std::pair<std::string, const boost::shared_ptr<T>& >& Item) {
       if(Item.second)
         out & std::pair<std::string, const T& >(Item.first, *(Item.second));
@@ -963,7 +979,11 @@ class oarchive : public archive {
     template <typename T>
     friend 
     typename boost::enable_if< 
+#ifndef BOOST_NO_CXX11_HDR_TYPE_TRAITS
+      std::is_convertible< const T* , const serializable* >, 
+#else
       boost::is_convertible< const T* , const serializable* >,
+#endif
     oarchive& >::type operator <<(oarchive& out, const boost::weak_ptr<T>& Item) {
       out.signal_polymorphic_field(T::getStaticObjectType()->TypeName(), T::getStaticObjectType()->TypeID_begin(), "Item");
       serializable_shared_pointer tmp;
@@ -976,7 +996,11 @@ class oarchive : public archive {
     template <typename T>
     friend 
     typename boost::enable_if< 
+#ifndef BOOST_NO_CXX11_HDR_TYPE_TRAITS
+      std::is_convertible< const T* , const serializable* >, 
+#else
       boost::is_convertible< const T* , const serializable* >,
+#endif
     oarchive& >::type operator &(oarchive& out, const std::pair<std::string, const boost::weak_ptr<T>& >& Item) {
       out.signal_polymorphic_field(T::getStaticObjectType()->TypeName(), T::getStaticObjectType()->TypeID_begin(), Item.first);
       serializable_shared_pointer tmp;
@@ -989,7 +1013,11 @@ class oarchive : public archive {
     template <typename T>
     friend 
     typename boost::enable_if< 
-      std::is_convertible< const T* , const serializable* >,
+#ifndef BOOST_NO_CXX11_HDR_TYPE_TRAITS
+      std::is_convertible< const T* , const serializable* >, 
+#else
+      boost::is_convertible< const T* , const serializable* >,
+#endif
     oarchive& >::type operator <<(oarchive& out, const std::shared_ptr<T>& Item) {
       out.signal_polymorphic_field(T::getStaticObjectType()->TypeName(), T::getStaticObjectType()->TypeID_begin(), "Item");
       serializable_shared_pointer tmp;
@@ -1002,7 +1030,11 @@ class oarchive : public archive {
     template <typename T>
     friend 
     typename boost::enable_if< 
-      std::is_convertible< const T* , const serializable* >,
+#ifndef BOOST_NO_CXX11_HDR_TYPE_TRAITS
+      std::is_convertible< const T* , const serializable* >, 
+#else
+      boost::is_convertible< const T* , const serializable* >,
+#endif
     oarchive& >::type operator &(oarchive& out, const std::pair<std::string, const std::shared_ptr<T>& >& Item) {
       out.signal_polymorphic_field(T::getStaticObjectType()->TypeName(), T::getStaticObjectType()->TypeID_begin(), Item.first);
       serializable_shared_pointer tmp;
@@ -1015,7 +1047,11 @@ class oarchive : public archive {
     template <typename T>
     friend 
     typename boost::disable_if< 
-      std::is_convertible< const T* , const serializable* >,
+#ifndef BOOST_NO_CXX11_HDR_TYPE_TRAITS
+      std::is_convertible< const T* , const serializable* >, 
+#else
+      boost::is_convertible< const T* , const serializable* >,
+#endif
     oarchive& >::type operator <<(oarchive& out, const std::shared_ptr<T>& Item) {
       if(Item)
         out << *Item;
@@ -1026,7 +1062,11 @@ class oarchive : public archive {
     template <typename T>
     friend 
     typename boost::disable_if< 
-      std::is_convertible< const T* , const serializable* >,
+#ifndef BOOST_NO_CXX11_HDR_TYPE_TRAITS
+      std::is_convertible< const T* , const serializable* >, 
+#else
+      boost::is_convertible< const T* , const serializable* >,
+#endif
     oarchive& >::type operator &(oarchive& out, const std::pair<std::string, const std::shared_ptr<T>& >& Item) {
       if(Item.second)
         out & std::pair<std::string, const T& >(Item.first, *(Item.second));
@@ -1037,7 +1077,11 @@ class oarchive : public archive {
     template <typename T>
     friend 
     typename boost::enable_if< 
-      std::is_convertible< const T* , const serializable* >,
+#ifndef BOOST_NO_CXX11_HDR_TYPE_TRAITS
+      std::is_convertible< const T* , const serializable* >, 
+#else
+      boost::is_convertible< const T* , const serializable* >,
+#endif
     oarchive& >::type operator <<(oarchive& out, const std::weak_ptr<T>& Item) {
       out.signal_polymorphic_field(T::getStaticObjectType()->TypeName(), T::getStaticObjectType()->TypeID_begin(), "Item");
       serializable_shared_pointer tmp;
@@ -1050,7 +1094,11 @@ class oarchive : public archive {
     template <typename T>
     friend 
     typename boost::enable_if< 
-      std::is_convertible< const T* , const serializable* >,
+#ifndef BOOST_NO_CXX11_HDR_TYPE_TRAITS
+      std::is_convertible< const T* , const serializable* >, 
+#else
+      boost::is_convertible< const T* , const serializable* >,
+#endif
     oarchive& >::type operator &(oarchive& out, const std::pair<std::string, const std::weak_ptr<T>& >& Item) {
       out.signal_polymorphic_field(T::getStaticObjectType()->TypeName(), T::getStaticObjectType()->TypeID_begin(), Item.first);
       serializable_shared_pointer tmp;
@@ -1064,7 +1112,7 @@ class oarchive : public archive {
     template <typename T>
     friend 
     typename boost::enable_if< 
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_HDR_TYPE_TRAITS
       std::is_convertible< const T& , const serializable& >, 
 #else
       boost::is_convertible< const T& , const serializable& >,
@@ -1079,7 +1127,7 @@ class oarchive : public archive {
     template <typename T>
     friend 
     typename boost::enable_if< 
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_HDR_TYPE_TRAITS
       std::is_convertible< const T& , const serializable& >, 
 #else
       boost::is_convertible< const T& , const serializable& >,
@@ -1096,7 +1144,7 @@ class oarchive : public archive {
       out << count;
       out.start_repeated_field(rtti::get_type_info<T>::type_name());
       for(unsigned int i=0;i<count;++i)
-	out << v[i];
+        out << v[i];
       out.finish_repeated_field();
       return out;
     };
@@ -1108,9 +1156,9 @@ class oarchive : public archive {
       out & RK_SERIAL_SAVE_WITH_ALIAS(v.first + "_count", count);
       out.start_repeated_field(rtti::get_type_info<T>::type_name(),v.first);
       for(unsigned int i=0;i<count;++i) {
-	std::stringstream s_stream;
-	s_stream << v.first << "_q[" << i << "]";
-	out & RK_SERIAL_SAVE_WITH_ALIAS(s_stream.str(), v.second[i]);
+        std::stringstream s_stream;
+        s_stream << v.first << "_q[" << i << "]";
+        out & RK_SERIAL_SAVE_WITH_ALIAS(s_stream.str(), v.second[i]);
       };
       out.finish_repeated_field();
       return out;
@@ -1124,7 +1172,7 @@ class oarchive : public archive {
       out.start_repeated_field(rtti::get_type_info<T>::type_name());
       typename std::list<T,Allocator>::const_iterator it = v.begin();
       for(;it!=v.end();++it)
-	out << (*it);
+        out << (*it);
       out.finish_repeated_field();
       return out;
     };
@@ -1137,9 +1185,9 @@ class oarchive : public archive {
       out.start_repeated_field(rtti::get_type_info<T>::type_name(),v.first);
       typename std::list<T,Allocator>::const_iterator it = v.second.begin();
       for(unsigned int i=0;it!=v.second.end();++it) {
-	std::stringstream s_stream;
-	s_stream << v.first << "_q[" << i++ << "]";
-	out & RK_SERIAL_SAVE_WITH_ALIAS(s_stream.str(), (*it));
+        std::stringstream s_stream;
+        s_stream << v.first << "_q[" << i++ << "]";
+        out & RK_SERIAL_SAVE_WITH_ALIAS(s_stream.str(), (*it));
       };
       out.finish_repeated_field();
       return out;
@@ -1153,7 +1201,7 @@ class oarchive : public archive {
       out.start_repeated_pair(rtti::get_type_info<Key>::type_name(),rtti::get_type_info<T>::type_name());
       typename std::map<Key,T,Compare,Allocator>::const_iterator it = m.begin();
       for(;it != m.end();it++)
-	out << it->first << it->second;
+        out << it->first << it->second;
       out.finish_repeated_pair();
       return out;
     };
@@ -1166,13 +1214,13 @@ class oarchive : public archive {
       out.start_repeated_pair(rtti::get_type_info<Key>::type_name(),rtti::get_type_info<T>::type_name(),m.first);
       typename std::map<Key,T,Compare,Allocator>::const_iterator it = m.second.begin();
       for(unsigned int i=0;it != m.second.end();it++,++i) {
-	std::stringstream key_s_stream;
-	key_s_stream << m.first << "_key[" << i << "]";
-	out & RK_SERIAL_SAVE_WITH_ALIAS(key_s_stream.str(),it->first);
-	//(*this) & std::pair<std::string, Key >(key_s_stream.str(), it->first);
-	std::stringstream value_s_stream;
-	value_s_stream << m.first << "_value[" << i << "]";
-	out & RK_SERIAL_SAVE_WITH_ALIAS(value_s_stream.str(), it->second);
+        std::stringstream key_s_stream;
+        key_s_stream << m.first << "_key[" << i << "]";
+        out & RK_SERIAL_SAVE_WITH_ALIAS(key_s_stream.str(),it->first);
+        //(*this) & std::pair<std::string, Key >(key_s_stream.str(), it->first);
+        std::stringstream value_s_stream;
+        value_s_stream << m.first << "_value[" << i << "]";
+        out & RK_SERIAL_SAVE_WITH_ALIAS(value_s_stream.str(), it->second);
       };
       out.finish_repeated_pair();
       return out;
@@ -1186,7 +1234,7 @@ class oarchive : public archive {
       out.start_repeated_field(rtti::get_type_info<T>::type_name());
       typename std::set<T,Compare,Allocator>::const_iterator it = v.begin();
       for(;it!=v.end();++it)
-	out << (*it);
+        out << (*it);
       out.finish_repeated_field();
       return out;
     };
@@ -1199,9 +1247,9 @@ class oarchive : public archive {
       out.start_repeated_field(rtti::get_type_info<T>::type_name(),v.first);
       typename std::set<T,Compare,Allocator>::const_iterator it = v.second.begin();
       for(unsigned int i=0;it!=v.second.end();++it) {
-	std::stringstream s_stream;
-	s_stream << v.first << "_q[" << i++ << "]";
-	out & RK_SERIAL_SAVE_WITH_ALIAS(s_stream.str(), (*it));
+        std::stringstream s_stream;
+        s_stream << v.first << "_q[" << i++ << "]";
+        out & RK_SERIAL_SAVE_WITH_ALIAS(s_stream.str(), (*it));
       };
       out.finish_repeated_field();
       return out;

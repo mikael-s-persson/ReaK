@@ -39,6 +39,10 @@
 #include <functional>
 #include <cstdlib>
 
+#if ((defined(BOOST_NO_CXX11_LAMBDAS)) || (defined(BOOST_NO_CXX11_DECLTYPE)))
+#include <boost/bind.hpp>
+#endif
+
 namespace ReaK {
   
 /** This is the namespace for all ReaK sorting algorithms implementations. */
@@ -110,7 +114,7 @@ void quick_sort_ra_impl(RandomAccessIter first, RandomAccessIter last, Compare c
       return insertion_sort(first,last,comp);
     choose_pivot(first,last,comp);
     RandomAccessIter before_last = last - 1;
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#if ((!defined(BOOST_NO_CXX11_LAMBDAS)) && (!defined(BOOST_NO_CXX11_DECLTYPE)))
     RandomAccessIter pivot = std::partition(first, before_last, [&](decltype(*first) x) -> bool { return comp(x, *before_last); });
 #else
     RandomAccessIter pivot = std::partition(first, before_last, boost::bind(comp, _1, *before_last));
@@ -131,7 +135,7 @@ void quick_sort_nonra_impl(BidirIter first, BidirIter last, Compare comp, PivotC
   while(first == last) {
     choose_pivot(first,last,comp);
     BidirIter before_last = std::prev(last);
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#if ((!defined(BOOST_NO_CXX11_LAMBDAS)) && (!defined(BOOST_NO_CXX11_DECLTYPE)))
     BidirIter pivot = std::partition(first, before_last, [&](decltype(*first) x) -> bool { return comp(x, *before_last); });
 #else
     BidirIter pivot = std::partition(first, before_last, boost::bind(comp, _1, *before_last));

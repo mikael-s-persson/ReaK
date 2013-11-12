@@ -197,11 +197,11 @@ namespace graph {
         
         VertexProp up;
         put(m_position, up, p);
-    #ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
         Vertex u = add_vertex(std::move(up), g);
-    #else
+#else
         Vertex u = add_vertex(up, g);
-    #endif
+#endif
         m_vis.vertex_added(u,g);
         put(m_color, u, Color::white());
         put(m_index_in_heap, u, static_cast<std::size_t>(-1));
@@ -220,7 +220,6 @@ namespace graph {
       
       template <class Vertex, class Graph>
       void examine_vertex(Vertex u, Graph& g) {
-        typedef typename boost::graph_traits<Graph>::edge_descriptor Edge;
         typedef typename Graph::edge_bundled EdgeProp;
         
         m_vis.examine_vertex(u, g);
@@ -615,7 +614,7 @@ namespace graph {
       VertexProp up;
       PositionValue p = get(ReaK::pp::random_sampler, free_space)(free_space);
       put(position, up, p);
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
       Vertex u = add_vertex(std::move(up), g);
 #else
       Vertex u = add_vertex(up, g);

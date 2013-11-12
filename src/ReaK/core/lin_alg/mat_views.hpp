@@ -103,12 +103,12 @@ class mat_copy_sub_block {
      * \param aColOffset The column-offset from the start of the matrix.
      */
     mat_copy_sub_block(const Matrix& aM, 
-		       size_type aRowCount, 
-		       size_type aColCount,
-		       size_type aRowOffset = 0,
+                       size_type aRowCount, 
+                       size_type aColCount,
+                       size_type aRowOffset = 0,
                        size_type aColOffset = 0) : m(aM), rowOffset(aRowOffset), colOffset(aColOffset), rowCount(aRowCount), colCount(aColCount) { };
     
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
     /**
      * Constructs the sub-matrix which represents the entire matrix.
      */
@@ -123,9 +123,9 @@ class mat_copy_sub_block {
      * \param aColOffset The column-offset from the start of the matrix.
      */
     mat_copy_sub_block(Matrix&& aM, 
-		       size_type aRowCount, 
-		       size_type aColCount,
-		       size_type aRowOffset = 0,
+                       size_type aRowCount, 
+                       size_type aColCount,
+                       size_type aRowOffset = 0,
                        size_type aColOffset = 0) : m(std::move(aM)), rowOffset(aRowOffset), colOffset(aColOffset), rowCount(aRowCount), colCount(aColCount) { };
 #endif
 
@@ -134,7 +134,7 @@ class mat_copy_sub_block {
      */
     mat_copy_sub_block(const self& aObj) : m(aObj.m), rowOffset(aObj.rowOffset), colOffset(aObj.colOffset), rowCount(aObj.rowCount), colCount(aObj.colCount) { };
     
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
     /**
      * Standard move-constructor.
      */
@@ -170,10 +170,10 @@ class mat_copy_sub_block {
                                  !boost::is_same<Matrix2,self>::value ,
     self& >::type operator=(const Matrix2& rhs) {
       if((rhs.get_row_count() != rowCount) || (rhs.get_col_count() != colCount))
-	throw std::range_error("Matrix dimensions mismatch.");
+        throw std::range_error("Matrix dimensions mismatch.");
       for(size_type j=0;j<colCount;++j)
         for(size_type i=0;i<rowCount;++i)
-	  m(rowOffset + i,colOffset + j) = rhs(i,j);
+          m(rowOffset + i,colOffset + j) = rhs(i,j);
       return *this;
     };
     
@@ -237,10 +237,10 @@ class mat_copy_sub_block {
     self& operator +=(const Matrix2& M) {
       boost::function_requires< ReadableMatrixConcept<Matrix2> >();
       if((M.get_col_count() != colCount) || (M.get_row_count() != rowCount))
-	throw std::range_error("Matrix dimension mismatch.");
+        throw std::range_error("Matrix dimension mismatch.");
       for(size_type j=0;j<colCount;++j)
         for(size_type i=0;i<rowCount;++i)
-	  m(rowOffset + i, colOffset + j) += M(i,j);
+          m(rowOffset + i, colOffset + j) += M(i,j);
       return *this;
     };
 
@@ -252,10 +252,10 @@ class mat_copy_sub_block {
     self& operator -=(const Matrix2& M) {
       boost::function_requires< ReadableMatrixConcept<Matrix2> >();
       if((M.get_col_count() != colCount) || (M.get_row_count() != rowCount))
-	throw std::range_error("Matrix dimension mismatch.");
+        throw std::range_error("Matrix dimension mismatch.");
       for(size_type j=0;j<colCount;++j)
         for(size_type i=0;i<rowCount;++i)
-	  m(rowOffset + i, colOffset + j) -= M(i,j);
+          m(rowOffset + i, colOffset + j) -= M(i,j);
       return *this;
     };
 
@@ -266,7 +266,7 @@ class mat_copy_sub_block {
     self& operator *=(const value_type& S) {
       for(size_type j=0;j<colCount;++j)
         for(size_type i=0;i<rowCount;++i)
-	  m(rowOffset + i, colOffset + j) *= S;
+          m(rowOffset + i, colOffset + j) *= S;
       return *this;
     };
 
@@ -278,7 +278,7 @@ class mat_copy_sub_block {
     typename boost::enable_if_c< is_readable_matrix<Matrix2>::value, 
      self&>::type operator *=(const Matrix2& M) {
       if((M.get_col_count() != colCount) || (M.get_row_count() != colCount))
-	throw std::range_error("Matrix Dimension Mismatch.");
+        throw std::range_error("Matrix Dimension Mismatch.");
       *this = *this * M;
       return *this;
     };
@@ -292,8 +292,8 @@ class mat_copy_sub_block {
     mat<value_type,mat_structure::rectangular> operator -() const {
       mat<value_type,mat_structure::rectangular> result(*this);
       for(size_type j = 0; j < result.get_col_count(); ++j)
-	for(size_type i = 0; i < result.get_row_count(); ++i)
-	  result(i,j) = -result(i,j);
+        for(size_type i = 0; i < result.get_row_count(); ++i)
+          result(i,j) = -result(i,j);
       return result;
     };
     
@@ -305,8 +305,8 @@ class mat_copy_sub_block {
     friend mat<value_type,mat_structure::rectangular> transpose(const self& M) {
       mat<value_type,mat_structure::rectangular> result(M.colCount, M.rowCount);
       for(size_type j = 0; j < result.get_col_count(); ++j)
-	for(size_type i = 0; i < result.get_row_count(); ++i)
-	  result(i,j) = M(j,i);
+        for(size_type i = 0; i < result.get_row_count(); ++i)
+          result(i,j) = M(j,i);
       return result;
     };
     
@@ -318,8 +318,8 @@ class mat_copy_sub_block {
     friend mat<value_type,mat_structure::rectangular> transpose_move(const self& M) {
       mat<value_type,mat_structure::rectangular> result(M.colCount, M.rowCount);
       for(size_type j = 0; j < result.get_col_count(); ++j)
-	for(size_type i = 0; i < result.get_row_count(); ++i)
-	  result(i,j) = M(j,i);
+        for(size_type i = 0; i < result.get_row_count(); ++i)
+          result(i,j) = M(j,i);
       return result;
     };
     
@@ -409,9 +409,9 @@ class mat_sub_block {
      * \param aColOffset The column-offset from the start of the matrix.
      */
     mat_sub_block(Matrix& aM, 
-		  size_type aRowCount, 
-		  size_type aColCount,
-		  size_type aRowOffset = 0,
+                  size_type aRowCount, 
+                  size_type aColCount,
+                  size_type aRowOffset = 0,
                   size_type aColOffset = 0) : m(&aM), rowOffset(aRowOffset), colOffset(aColOffset), rowCount(aRowCount), colCount(aColCount) { };
    
     /**
@@ -419,7 +419,7 @@ class mat_sub_block {
      */
     mat_sub_block(const self& aObj) : m(aObj.m), rowOffset(aObj.rowOffset), colOffset(aObj.colOffset), rowCount(aObj.rowCount), colCount(aObj.colCount) { };
     
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
    
     /**
      * Standard move-constructor.
@@ -446,10 +446,10 @@ class mat_sub_block {
      */
     self& operator=(const self& rhs) {
       if((rhs.get_row_count() != rowCount) || (rhs.get_col_count() != colCount))
-	throw std::range_error("Matrix dimensions mismatch.");
+        throw std::range_error("Matrix dimensions mismatch.");
       for(size_type j=0;j<colCount;++j)
         for(size_type i=0;i<rowCount;++i)
-	  (*m)(rowOffset + i,colOffset + j) = rhs(i,j);
+          (*m)(rowOffset + i,colOffset + j) = rhs(i,j);
       return *this;
     };
         
@@ -460,10 +460,10 @@ class mat_sub_block {
     typename boost::enable_if_c< is_readable_matrix<Matrix2>::value ,
     self& >::type operator=(const Matrix2& rhs) {
       if((rhs.get_row_count() != rowCount) || (rhs.get_col_count() != colCount))
-	throw std::range_error("Matrix dimensions mismatch.");
+        throw std::range_error("Matrix dimensions mismatch.");
       for(size_type j=0;j<colCount;++j)
         for(size_type i=0;i<rowCount;++i)
-	  (*m)(rowOffset + i,colOffset + j) = rhs(i,j);
+          (*m)(rowOffset + i,colOffset + j) = rhs(i,j);
       return *this;
     };
     
@@ -527,10 +527,10 @@ class mat_sub_block {
     self& operator +=(const Matrix2& M) {
       boost::function_requires< ReadableMatrixConcept<Matrix2> >();
       if((M.get_col_count() != colCount) || (M.get_row_count() != rowCount))
-	throw std::range_error("Matrix dimension mismatch.");
+        throw std::range_error("Matrix dimension mismatch.");
       for(size_type j=0;j<colCount;++j)
         for(size_type i=0;i<rowCount;++i)
-	  (*m)(rowOffset + i, colOffset + j) += M(i,j);
+          (*m)(rowOffset + i, colOffset + j) += M(i,j);
       return *this;
     };
 
@@ -542,10 +542,10 @@ class mat_sub_block {
     self& operator -=(const Matrix2& M) {
       boost::function_requires< ReadableMatrixConcept<Matrix2> >();
       if((M.get_col_count() != colCount) || (M.get_row_count() != rowCount))
-	throw std::range_error("Matrix dimension mismatch.");
+        throw std::range_error("Matrix dimension mismatch.");
       for(size_type j=0;j<colCount;++j)
         for(size_type i=0;i<rowCount;++i)
-	  (*m)(rowOffset + i, colOffset + j) -= M(i,j);
+          (*m)(rowOffset + i, colOffset + j) -= M(i,j);
       return *this;
     };
 
@@ -556,7 +556,7 @@ class mat_sub_block {
     self& operator *=(const value_type& S) {
       for(size_type j=0;j<colCount;++j)
         for(size_type i=0;i<rowCount;++i)
-	  (*m)(rowOffset + i, colOffset + j) *= S;
+          (*m)(rowOffset + i, colOffset + j) *= S;
       return *this;
     };
 
@@ -568,7 +568,7 @@ class mat_sub_block {
     typename boost::enable_if_c< is_readable_matrix<Matrix2>::value, 
      self&>::type operator *=(const Matrix2& M) {
       if((M.get_col_count() != colCount) || (M.get_row_count() != colCount))
-	throw std::range_error("Matrix Dimension Mismatch.");
+        throw std::range_error("Matrix Dimension Mismatch.");
       *this = *this * M;
       return *this;
     };
@@ -582,8 +582,8 @@ class mat_sub_block {
     mat<value_type,mat_structure::rectangular> operator -() const {
       mat<value_type,mat_structure::rectangular> result(*this);
       for(size_type j = 0; j < result.get_col_count(); ++j)
-	for(size_type i = 0; i < result.get_row_count(); ++i)
-	  result(i,j) = -result(i,j);
+        for(size_type i = 0; i < result.get_row_count(); ++i)
+          result(i,j) = -result(i,j);
       return result;
     };
     
@@ -595,8 +595,8 @@ class mat_sub_block {
     friend mat<value_type,mat_structure::rectangular> transpose(const self& M) {
       mat<value_type,mat_structure::rectangular> result(M.colCount, M.rowCount);
       for(size_type j = 0; j < result.get_col_count(); ++j)
-	for(size_type i = 0; i < result.get_row_count(); ++i)
-	  result(i,j) = M(j,i);
+        for(size_type i = 0; i < result.get_row_count(); ++i)
+          result(i,j) = M(j,i);
       return result;
     };
     
@@ -608,8 +608,8 @@ class mat_sub_block {
     friend mat<value_type,mat_structure::rectangular> transpose_move(const self& M) {
       mat<value_type,mat_structure::rectangular> result(M.colCount, M.rowCount);
       for(size_type j = 0; j < result.get_col_count(); ++j)
-	for(size_type i = 0; i < result.get_row_count(); ++i)
-	  result(i,j) = M(j,i);
+        for(size_type i = 0; i < result.get_row_count(); ++i)
+          result(i,j) = M(j,i);
       return result;
     };
     
@@ -685,7 +685,7 @@ class mat_const_sub_block {
     size_type colCount;
     
     self& operator=(const self&);  
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
     explicit mat_const_sub_block(Matrix&&);
  
     mat_const_sub_block(Matrix&&, size_type, size_type, size_type aRowOffset = 0, size_type aColOffset = 0);
@@ -706,17 +706,17 @@ class mat_const_sub_block {
      * \param aColOffset The column-offset from the start of the matrix.
      */
     mat_const_sub_block(const Matrix& aM, 
-			size_type aRowCount, 
-			size_type aColCount,
-			size_type aRowOffset = 0,
-			size_type aColOffset = 0) : m(&aM), rowOffset(aRowOffset), colOffset(aColOffset), rowCount(aRowCount), colCount(aColCount) { };
+                        size_type aRowCount, 
+                        size_type aColCount,
+                        size_type aRowOffset = 0,
+                        size_type aColOffset = 0) : m(&aM), rowOffset(aRowOffset), colOffset(aColOffset), rowCount(aRowCount), colCount(aColCount) { };
     
     /**
      * Standard copy-constructor.
      */
     mat_const_sub_block(const self& aObj) : m(aObj.m), rowOffset(aObj.rowOffset), colOffset(aObj.colOffset), rowCount(aObj.rowCount), colCount(aObj.colCount) { };
     
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
     /**
      * Standard move-constructor.
      */
@@ -786,8 +786,8 @@ class mat_const_sub_block {
     mat<value_type,mat_structure::rectangular> operator -() const {
       mat<value_type,mat_structure::rectangular> result(*this);
       for(size_type j = 0; j < result.get_col_count(); ++j)
-	for(size_type i = 0; i < result.get_row_count(); ++i)
-	  result(i,j) = -result(i,j);
+        for(size_type i = 0; i < result.get_row_count(); ++i)
+          result(i,j) = -result(i,j);
       return result;
     };
     
@@ -799,8 +799,8 @@ class mat_const_sub_block {
     friend mat<value_type,mat_structure::rectangular> transpose(const self& M) {
       mat<value_type,mat_structure::rectangular> result(M.colCount, M.rowCount);
       for(size_type j = 0; j < result.get_col_count(); ++j)
-	for(size_type i = 0; i < result.get_row_count(); ++i)
-	  result(i,j) = M(j,i);
+        for(size_type i = 0; i < result.get_row_count(); ++i)
+          result(i,j) = M(j,i);
       return result;
     };
     
@@ -812,8 +812,8 @@ class mat_const_sub_block {
     friend mat<value_type,mat_structure::rectangular> transpose_move(const self& M) {
       mat<value_type,mat_structure::rectangular> result(M.colCount, M.rowCount);
       for(size_type j = 0; j < result.get_col_count(); ++j)
-	for(size_type i = 0; i < result.get_row_count(); ++i)
-	  result(i,j) = M(j,i);
+        for(size_type i = 0; i < result.get_row_count(); ++i)
+          result(i,j) = M(j,i);
       return result;
     };
     
@@ -859,18 +859,18 @@ template <typename Matrix>
 struct mat_copy_sub_block_factory {
   typedef typename mat_traits<Matrix>::size_type size_type;
 
-#ifndef RK_ENABLE_CXX0X_FEATURES
+#ifdef BOOST_NO_CXX11_RVALUE_REFERENCES
   Matrix m;
   mat_copy_sub_block_factory(const Matrix& aM) : m(aM) { };
   mat_copy_sub_block<Matrix> operator()(const std::pair<size_type,size_type>& rows,
-					const std::pair<size_type,size_type>& cols) {
+                                        const std::pair<size_type,size_type>& cols) {
     return mat_copy_sub_block<Matrix>(m,rows.second - rows.first + 1,cols.second - cols.first + 1,rows.first,cols.first);
   };
 #else
   Matrix m;
   mat_copy_sub_block_factory(Matrix&& aM) : m(std::move(aM)) { };
   mat_copy_sub_block<Matrix> operator()(const std::pair<size_type,size_type>& rows,
-					const std::pair<size_type,size_type>& cols) {
+                                        const std::pair<size_type,size_type>& cols) {
     return mat_copy_sub_block<Matrix>(std::move(m),rows.second - rows.first + 1,cols.second - cols.first + 1,rows.first,cols.first);
   };
 #endif
@@ -883,7 +883,7 @@ struct mat_sub_block_factory {
   Matrix& m;
   mat_sub_block_factory(Matrix& aM) : m(aM) { };
   mat_sub_block<Matrix> operator()(const std::pair<size_type,size_type>& rows,
-				   const std::pair<size_type,size_type>& cols) {
+                                   const std::pair<size_type,size_type>& cols) {
     return mat_sub_block<Matrix>(m,rows.second - rows.first + 1,cols.second - cols.first + 1,rows.first,cols.first);
   };
 };
@@ -895,7 +895,7 @@ struct mat_const_sub_block_factory {
   const Matrix& m;
   mat_const_sub_block_factory(const Matrix& aM) : m(aM) { };
   mat_const_sub_block<Matrix> operator()(const std::pair<size_type,size_type>& rows,
-				         const std::pair<size_type,size_type>& cols) {
+                                         const std::pair<size_type,size_type>& cols) {
     return mat_const_sub_block<Matrix>(m,rows.second - rows.first + 1,cols.second - cols.first + 1,rows.first,cols.first);
   };
 };
@@ -913,7 +913,7 @@ template <typename Matrix>
 typename boost::enable_if_c< is_readable_matrix<Matrix>::value,
 mat_copy_sub_block_factory<Matrix> >::type sub_copy(const Matrix& M) { return mat_copy_sub_block_factory<Matrix>(M); };
 
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
 template <typename Matrix>
 typename boost::enable_if_c< is_readable_matrix<Matrix>::value,
 mat_copy_sub_block_factory<Matrix> >::type sub(Matrix&& M) { return mat_copy_sub_block_factory<Matrix>(std::move(M)); };
@@ -996,15 +996,15 @@ class mat_copy_sub_sym_block<Matrix,mat_structure::symmetric> {
      * \param aOffset The row-offset from the start of the matrix.
      */
     mat_copy_sub_sym_block(const Matrix& aM, 
-		      size_type aSize,
-		      size_type aOffset = 0) : m(aM), offset(aOffset), rowCount(aSize) { };
-		      
+                      size_type aSize,
+                      size_type aOffset = 0) : m(aM), offset(aOffset), rowCount(aSize) { };
+                      
     /**
      * Standard copy-constructor.
      */
     mat_copy_sub_sym_block(const self& aObj) : m(aObj.m), offset(aObj.offset), rowCount(aObj.rowCount) { };
     
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
     /**
      * Constructs the sub-matrix which represents the entire matrix.
      */
@@ -1017,9 +1017,9 @@ class mat_copy_sub_sym_block<Matrix,mat_structure::symmetric> {
      * \param aOffset The row-offset from the start of the matrix.
      */
     mat_copy_sub_sym_block(Matrix&& aM, 
-		           size_type aSize,
-		           size_type aOffset = 0) : m(std::move(aM)), offset(aOffset), rowCount(aSize) { };
-		      
+                           size_type aSize,
+                           size_type aOffset = 0) : m(std::move(aM)), offset(aOffset), rowCount(aSize) { };
+                      
     /**
      * Standard move-constructor.
      */
@@ -1054,10 +1054,10 @@ class mat_copy_sub_sym_block<Matrix,mat_structure::symmetric> {
     typename boost::enable_if_c< is_readable_matrix<Matrix2>::value,
     self& >::type operator=(const Matrix2& rhs) {
       if((rhs.get_row_count() != rowCount) || (rhs.get_col_count() != rowCount))
-	throw std::range_error("Matrix dimensions mismatch.");
+        throw std::range_error("Matrix dimensions mismatch.");
       for(size_type j=0;j<rowCount;++j)
         for(size_type i=j;i<rowCount;++i)
-	  m(offset + i,offset + j) = (rhs(i,j) + rhs(j,i)) * value_type(0.5);
+          m(offset + i,offset + j) = (rhs(i,j) + rhs(j,i)) * value_type(0.5);
       return *this;
     };
     
@@ -1121,10 +1121,10 @@ class mat_copy_sub_sym_block<Matrix,mat_structure::symmetric> {
     self& operator +=(const Matrix2& M) {
       boost::function_requires< ReadableMatrixConcept<Matrix2> >();
       if((M.get_col_count() != rowCount) || (M.get_row_count() != rowCount))
-	throw std::range_error("Matrix dimension mismatch.");
+        throw std::range_error("Matrix dimension mismatch.");
       for(size_type j=0;j<rowCount;++j)
         for(size_type i=j;i<rowCount;++i)
-	  m(offset + i, offset + j) += (M(i,j) + M(j,i)) * value_type(0.5);
+          m(offset + i, offset + j) += (M(i,j) + M(j,i)) * value_type(0.5);
       return *this;
     };
 
@@ -1136,10 +1136,10 @@ class mat_copy_sub_sym_block<Matrix,mat_structure::symmetric> {
     self& operator -=(const Matrix2& M) {
       boost::function_requires< ReadableMatrixConcept<Matrix2> >();
       if((M.get_col_count() != rowCount) || (M.get_row_count() != rowCount))
-	throw std::range_error("Matrix dimension mismatch.");
+        throw std::range_error("Matrix dimension mismatch.");
       for(size_type j=0;j<rowCount;++j)
         for(size_type i=j;i<rowCount;++i)
-	  m(offset + i, offset + j) -= (M(i,j) + M(j,i)) * value_type(0.5);
+          m(offset + i, offset + j) -= (M(i,j) + M(j,i)) * value_type(0.5);
       return *this;
     };
 
@@ -1150,7 +1150,7 @@ class mat_copy_sub_sym_block<Matrix,mat_structure::symmetric> {
     self& operator *=(const value_type& S) {
       for(size_type j=0;j<rowCount;++j)
         for(size_type i=j;i<rowCount;++i)
-	  m(offset + i, offset + j) *= S;
+          m(offset + i, offset + j) *= S;
       return *this;
     };
 
@@ -1162,7 +1162,7 @@ class mat_copy_sub_sym_block<Matrix,mat_structure::symmetric> {
     typename boost::enable_if_c< is_readable_matrix<Matrix2>::value, 
      self&>::type operator *=(const Matrix2& M) {
       if((M.get_col_count() != rowCount) || (M.get_row_count() != rowCount))
-	throw std::range_error("Matrix Dimension Mismatch.");
+        throw std::range_error("Matrix Dimension Mismatch.");
       *this = *this * M;
       return *this;
     };
@@ -1176,8 +1176,8 @@ class mat_copy_sub_sym_block<Matrix,mat_structure::symmetric> {
     mat<value_type,mat_structure::symmetric> operator -() const {
       mat<value_type,mat_structure::symmetric> result(*this);
       for(size_type j = 0; j < result.get_col_count(); ++j)
-	for(size_type i = j; i < result.get_row_count(); ++i)
-	  result(i,j) = -result(i,j);
+        for(size_type i = j; i < result.get_row_count(); ++i)
+          result(i,j) = -result(i,j);
       return result;
     };
     
@@ -1199,7 +1199,7 @@ class mat_copy_sub_sym_block<Matrix,mat_structure::symmetric> {
       return M;
     };
     
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
     /**
      * Transposes the matrix M.
      * \param M The matrix to be transposed.
@@ -1218,7 +1218,7 @@ class mat_copy_sub_sym_block<Matrix,mat_structure::symmetric> {
     friend value_type trace(const self& M) {
       value_type result(0.0);
       for(size_type i = 0; i < M.rowCount; ++i)
-	result += M(i,i);
+        result += M(i,i);
       return result;
     };
     
@@ -1268,14 +1268,14 @@ class mat_sub_sym_block<Matrix,mat_structure::symmetric> {
      * \param aOffset The row-offset from the start of the matrix.
      */
     mat_sub_sym_block(Matrix& aM, 
-		      size_type aSize,
-		      size_type aOffset = 0) : m(&aM), offset(aOffset), rowCount(aSize) { };
+                      size_type aSize,
+                      size_type aOffset = 0) : m(&aM), offset(aOffset), rowCount(aSize) { };
     /**
      * Standard copy-constructor.
      */
     mat_sub_sym_block(const self& aObj) : m(aObj.m), offset(aObj.offset), rowCount(aObj.rowCount) { };
     
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
    
     /**
      * Standard move-constructor.
@@ -1300,10 +1300,10 @@ class mat_sub_sym_block<Matrix,mat_structure::symmetric> {
      */
     self& operator=(const self& rhs) {
       if((rhs.get_row_count() != rowCount) || (rhs.get_col_count() != rowCount))
-	throw std::range_error("Matrix dimensions mismatch.");
+        throw std::range_error("Matrix dimensions mismatch.");
       for(size_type j=0;j<rowCount;++j)
         for(size_type i=j;i<rowCount;++i)
-	  (*m)(offset + i,offset + j) = (rhs(i,j) + rhs(j,i)) * value_type(0.5);
+          (*m)(offset + i,offset + j) = (rhs(i,j) + rhs(j,i)) * value_type(0.5);
       return *this;
     };
     
@@ -1314,10 +1314,10 @@ class mat_sub_sym_block<Matrix,mat_structure::symmetric> {
     typename boost::enable_if_c< is_readable_matrix<Matrix2>::value,
     self& >::type operator=(const Matrix2& rhs) {
       if((rhs.get_row_count() != rowCount) || (rhs.get_col_count() != rowCount))
-	throw std::range_error("Matrix dimensions mismatch.");
+        throw std::range_error("Matrix dimensions mismatch.");
       for(size_type j=0;j<rowCount;++j)
         for(size_type i=j;i<rowCount;++i)
-	  (*m)(offset + i,offset + j) = (rhs(i,j) + rhs(j,i)) * value_type(0.5);
+          (*m)(offset + i,offset + j) = (rhs(i,j) + rhs(j,i)) * value_type(0.5);
       return *this;
     };
     
@@ -1381,10 +1381,10 @@ class mat_sub_sym_block<Matrix,mat_structure::symmetric> {
     self& operator +=(const Matrix2& M) {
       boost::function_requires< ReadableMatrixConcept<Matrix2> >();
       if((M.get_col_count() != rowCount) || (M.get_row_count() != rowCount))
-	throw std::range_error("Matrix dimension mismatch.");
+        throw std::range_error("Matrix dimension mismatch.");
       for(size_type j=0;j<rowCount;++j)
         for(size_type i=j;i<rowCount;++i)
-	  (*m)(offset + i, offset + j) += (M(i,j) + M(j,i)) * value_type(0.5);
+          (*m)(offset + i, offset + j) += (M(i,j) + M(j,i)) * value_type(0.5);
       return *this;
     };
 
@@ -1396,10 +1396,10 @@ class mat_sub_sym_block<Matrix,mat_structure::symmetric> {
     self& operator -=(const Matrix2& M) {
       boost::function_requires< ReadableMatrixConcept<Matrix2> >();
       if((M.get_col_count() != rowCount) || (M.get_row_count() != rowCount))
-	throw std::range_error("Matrix dimension mismatch.");
+        throw std::range_error("Matrix dimension mismatch.");
       for(size_type j=0;j<rowCount;++j)
         for(size_type i=j;i<rowCount;++i)
-	  (*m)(offset + i, offset + j) -= (M(i,j) + M(j,i)) * value_type(0.5);
+          (*m)(offset + i, offset + j) -= (M(i,j) + M(j,i)) * value_type(0.5);
       return *this;
     };
 
@@ -1410,7 +1410,7 @@ class mat_sub_sym_block<Matrix,mat_structure::symmetric> {
     self& operator *=(const value_type& S) {
       for(size_type j=0;j<rowCount;++j)
         for(size_type i=j;i<rowCount;++i)
-	  (*m)(offset + i, offset + j) *= S;
+          (*m)(offset + i, offset + j) *= S;
       return *this;
     };
 
@@ -1422,7 +1422,7 @@ class mat_sub_sym_block<Matrix,mat_structure::symmetric> {
     typename boost::enable_if_c< is_readable_matrix<Matrix2>::value, 
      self&>::type operator *=(const Matrix2& M) {
       if((M.get_col_count() != rowCount) || (M.get_row_count() != rowCount))
-	throw std::range_error("Matrix Dimension Mismatch.");
+        throw std::range_error("Matrix Dimension Mismatch.");
       *this = *this * M;
       return *this;
     };
@@ -1436,8 +1436,8 @@ class mat_sub_sym_block<Matrix,mat_structure::symmetric> {
     mat<value_type,mat_structure::symmetric> operator -() const {
       mat<value_type,mat_structure::symmetric> result(*this);
       for(size_type j = 0; j < result.get_col_count(); ++j)
-	for(size_type i = j; i < result.get_row_count(); ++i)
-	  result(i,j) = -result(i,j);
+        for(size_type i = j; i < result.get_row_count(); ++i)
+          result(i,j) = -result(i,j);
       return result;
     };
     
@@ -1467,7 +1467,7 @@ class mat_sub_sym_block<Matrix,mat_structure::symmetric> {
     friend value_type trace(const self& M) {
       value_type result(0.0);
       for(size_type i = 0; i < M.rowCount; ++i)
-	result += M(i,i);
+        result += M(i,i);
       return result;
     };
     
@@ -1508,7 +1508,7 @@ class mat_const_sub_sym_block<Matrix,mat_structure::symmetric> {
     
     self& operator=(const self&);
     
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
     mat_const_sub_sym_block(Matrix&&);
     
     mat_const_sub_sym_block(Matrix&&, size_type, size_type aOffset = 0);
@@ -1527,16 +1527,16 @@ class mat_const_sub_sym_block<Matrix,mat_structure::symmetric> {
      * \param aOffset The row-offset from the start of the matrix.
      */
     mat_const_sub_sym_block(const Matrix& aM, 
-			    size_type aSize,
-			    size_type aOffset = 0) : m(&aM), offset(aOffset), rowCount(aSize) { };
-			    
+                            size_type aSize,
+                            size_type aOffset = 0) : m(&aM), offset(aOffset), rowCount(aSize) { };
+                            
     /**
      * Standard copy-constructor.
      */
     mat_const_sub_sym_block(const self& aObj) : m(aObj.m), offset(aObj.offset), rowCount(aObj.rowCount) { };
     
 
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
     /**
      * Standard move-constructor.
      */
@@ -1604,8 +1604,8 @@ class mat_const_sub_sym_block<Matrix,mat_structure::symmetric> {
     mat<value_type,mat_structure::symmetric> operator -() const {
       mat<value_type,mat_structure::symmetric> result(*this);
       for(size_type j = 0; j < result.get_col_count(); ++j)
-	for(size_type i = j; i < result.get_row_count(); ++i)
-	  result(i,j) = -result(i,j);
+        for(size_type i = j; i < result.get_row_count(); ++i)
+          result(i,j) = -result(i,j);
       return result;
     };
     
@@ -1627,7 +1627,7 @@ class mat_const_sub_sym_block<Matrix,mat_structure::symmetric> {
       return M;
     };
     
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
     /**
      * Transposes the matrix M.
      * \param M The matrix to be transposed.
@@ -1646,7 +1646,7 @@ class mat_const_sub_sym_block<Matrix,mat_structure::symmetric> {
     friend value_type trace(const self& M) {
       value_type result(0.0);
       for(size_type i = 0; i < M.rowCount; ++i)
-	result += M(i,i);
+        result += M(i,i);
       return result;
     };
     
@@ -1707,15 +1707,15 @@ class mat_copy_sub_sym_block<Matrix,mat_structure::skew_symmetric> {
      * \param aOffset The row-offset from the start of the matrix.
      */
     mat_copy_sub_sym_block(const Matrix& aM, 
-		      size_type aSize,
-		      size_type aOffset = 0) : m(aM), offset(aOffset), rowCount(aSize) { };
-		      
+                      size_type aSize,
+                      size_type aOffset = 0) : m(aM), offset(aOffset), rowCount(aSize) { };
+                      
     /**
      * Standard copy-constructor.
      */
     mat_copy_sub_sym_block(const self& aObj) : m(aObj.m), offset(aObj.offset), rowCount(aObj.rowCount) { };
     
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
     /**
      * Constructs the sub-matrix which represents the entire matrix.
      */
@@ -1728,9 +1728,9 @@ class mat_copy_sub_sym_block<Matrix,mat_structure::skew_symmetric> {
      * \param aOffset The row-offset from the start of the matrix.
      */
     mat_copy_sub_sym_block(Matrix&& aM, 
-		           size_type aSize,
-		           size_type aOffset = 0) : m(std::move(aM)), offset(aOffset), rowCount(aSize) { };
-		      
+                           size_type aSize,
+                           size_type aOffset = 0) : m(std::move(aM)), offset(aOffset), rowCount(aSize) { };
+                      
     /**
      * Standard move-constructor.
      */
@@ -1765,10 +1765,10 @@ class mat_copy_sub_sym_block<Matrix,mat_structure::skew_symmetric> {
     typename boost::enable_if_c< is_readable_matrix<Matrix2>::value,
     self& >::type operator=(const Matrix2& rhs) {
       if((rhs.get_row_count() != rowCount) || (rhs.get_col_count() != rowCount))
-	throw std::range_error("Matrix dimensions mismatch.");
+        throw std::range_error("Matrix dimensions mismatch.");
       for(size_type j=0;j<rowCount;++j)
         for(size_type i=j;i<rowCount;++i)
-	  m(offset + i,offset + j) = (rhs(i,j) + rhs(j,i)) * value_type(0.5);
+          m(offset + i,offset + j) = (rhs(i,j) + rhs(j,i)) * value_type(0.5);
       return *this;
     };
     
@@ -1832,10 +1832,10 @@ class mat_copy_sub_sym_block<Matrix,mat_structure::skew_symmetric> {
     self& operator +=(const Matrix2& M) {
       boost::function_requires< ReadableMatrixConcept<Matrix2> >();
       if((M.get_col_count() != rowCount) || (M.get_row_count() != rowCount))
-	throw std::range_error("Matrix dimension mismatch.");
+        throw std::range_error("Matrix dimension mismatch.");
       for(size_type j=0;j<rowCount;++j)
         for(size_type i=j;i<rowCount;++i)
-	  m(offset + i, offset + j) += (M(i,j) + M(j,i)) * value_type(0.5);
+          m(offset + i, offset + j) += (M(i,j) + M(j,i)) * value_type(0.5);
       return *this;
     };
 
@@ -1847,10 +1847,10 @@ class mat_copy_sub_sym_block<Matrix,mat_structure::skew_symmetric> {
     self& operator -=(const Matrix2& M) {
       boost::function_requires< ReadableMatrixConcept<Matrix2> >();
       if((M.get_col_count() != rowCount) || (M.get_row_count() != rowCount))
-	throw std::range_error("Matrix dimension mismatch.");
+        throw std::range_error("Matrix dimension mismatch.");
       for(size_type j=0;j<rowCount;++j)
         for(size_type i=j;i<rowCount;++i)
-	  m(offset + i, offset + j) -= (M(i,j) + M(j,i)) * value_type(0.5);
+          m(offset + i, offset + j) -= (M(i,j) + M(j,i)) * value_type(0.5);
       return *this;
     };
 
@@ -1861,7 +1861,7 @@ class mat_copy_sub_sym_block<Matrix,mat_structure::skew_symmetric> {
     self& operator *=(const value_type& S) {
       for(size_type j=0;j<rowCount;++j)
         for(size_type i=j;i<rowCount;++i)
-	  m(offset + i, offset + j) *= S;
+          m(offset + i, offset + j) *= S;
       return *this;
     };
 
@@ -1873,7 +1873,7 @@ class mat_copy_sub_sym_block<Matrix,mat_structure::skew_symmetric> {
     typename boost::enable_if_c< is_readable_matrix<Matrix2>::value, 
      self&>::type operator *=(const Matrix2& M) {
       if((M.get_col_count() != rowCount) || (M.get_row_count() != rowCount))
-	throw std::range_error("Matrix Dimension Mismatch.");
+        throw std::range_error("Matrix Dimension Mismatch.");
       *this = *this * M;
       return *this;
     };
@@ -1887,8 +1887,8 @@ class mat_copy_sub_sym_block<Matrix,mat_structure::skew_symmetric> {
     mat<value_type,mat_structure::skew_symmetric> operator -() const {
       mat<value_type,mat_structure::skew_symmetric> result(*this);
       for(size_type j = 0; j < result.get_col_count(); ++j)
-	for(size_type i = j; i < result.get_row_count(); ++i)
-	  result(i,j) = -result(i,j);
+        for(size_type i = j; i < result.get_row_count(); ++i)
+          result(i,j) = -result(i,j);
       return result;
     };
     
@@ -1918,7 +1918,7 @@ class mat_copy_sub_sym_block<Matrix,mat_structure::skew_symmetric> {
     friend value_type trace(const self& M) {
       value_type result(0.0);
       for(size_type i = 0; i < M.rowCount; ++i)
-	result += M(i,i);
+        result += M(i,i);
       return result;
     };
     
@@ -1969,15 +1969,15 @@ class mat_sub_sym_block<Matrix,mat_structure::skew_symmetric> {
      * \param aOffset The row-offset from the start of the matrix.
      */
     mat_sub_sym_block(Matrix& aM, 
-		      size_type aSize,
-		      size_type aOffset = 0) : m(&aM), offset(aOffset), rowCount(aSize) { };
-		      
+                      size_type aSize,
+                      size_type aOffset = 0) : m(&aM), offset(aOffset), rowCount(aSize) { };
+                      
     /**
      * Standard copy-constructor.
      */
     mat_sub_sym_block(const self& aObj) : m(aObj.m), offset(aObj.offset), rowCount(aObj.rowCount) { };
     
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
     /**
      * Standard move-constructor.
      */
@@ -2000,10 +2000,10 @@ class mat_sub_sym_block<Matrix,mat_structure::skew_symmetric> {
      */
     self& operator=(const self& rhs) {
       if((rhs.get_row_count() != rowCount) || (rhs.get_col_count() != rowCount))
-	throw std::range_error("Matrix dimensions mismatch.");
+        throw std::range_error("Matrix dimensions mismatch.");
       for(size_type j=1;j<rowCount;++j)
         for(size_type i=0;i<j;++i)
-	  (*m)(offset + i,offset + j) = (rhs(i,j) - rhs(j,i)) * value_type(0.5);
+          (*m)(offset + i,offset + j) = (rhs(i,j) - rhs(j,i)) * value_type(0.5);
       return *this;
     };
     
@@ -2014,10 +2014,10 @@ class mat_sub_sym_block<Matrix,mat_structure::skew_symmetric> {
     typename boost::enable_if_c< is_readable_matrix<Matrix2>::value,
     self& >::type operator=(const Matrix2& rhs) {
       if((rhs.get_row_count() != rowCount) || (rhs.get_col_count() != rowCount))
-	throw std::range_error("Matrix dimensions mismatch.");
+        throw std::range_error("Matrix dimensions mismatch.");
       for(size_type j=1;j<rowCount;++j)
         for(size_type i=0;i<j;++i)
-	  (*m)(offset + i,offset + j) = (rhs(i,j) - rhs(j,i)) * value_type(0.5);
+          (*m)(offset + i,offset + j) = (rhs(i,j) - rhs(j,i)) * value_type(0.5);
       return *this;
     };
     
@@ -2081,10 +2081,10 @@ class mat_sub_sym_block<Matrix,mat_structure::skew_symmetric> {
     self& operator +=(const Matrix2& M) {
       boost::function_requires< ReadableMatrixConcept<Matrix2> >();
       if((M.get_col_count() != rowCount) || (M.get_row_count() != rowCount))
-	throw std::range_error("Matrix dimension mismatch.");
+        throw std::range_error("Matrix dimension mismatch.");
       for(size_type j=0;j<rowCount;++j)
         for(size_type i=0;i<j;++i)
-	  (*m)(offset + i, offset + j) += (M(i,j) - M(j,i)) * value_type(0.5);
+          (*m)(offset + i, offset + j) += (M(i,j) - M(j,i)) * value_type(0.5);
       return *this;
     };
 
@@ -2096,10 +2096,10 @@ class mat_sub_sym_block<Matrix,mat_structure::skew_symmetric> {
     self& operator -=(const Matrix2& M) {
       boost::function_requires< ReadableMatrixConcept<Matrix2> >();
       if((M.get_col_count() != rowCount) || (M.get_row_count() != rowCount))
-	throw std::range_error("Matrix dimension mismatch.");
+        throw std::range_error("Matrix dimension mismatch.");
       for(size_type j=0;j<rowCount;++j)
         for(size_type i=0;i<j;++i)
-	  (*m)(offset + i, offset + j) -= (M(i,j) - M(j,i)) * value_type(0.5);
+          (*m)(offset + i, offset + j) -= (M(i,j) - M(j,i)) * value_type(0.5);
       return *this;
     };
 
@@ -2110,7 +2110,7 @@ class mat_sub_sym_block<Matrix,mat_structure::skew_symmetric> {
     self& operator *=(const value_type& S) {
       for(size_type j=0;j<rowCount;++j)
         for(size_type i=0;i<j;++i)
-	  (*m)(offset + i, offset + j) *= S;
+          (*m)(offset + i, offset + j) *= S;
       return *this;
     };
 
@@ -2122,7 +2122,7 @@ class mat_sub_sym_block<Matrix,mat_structure::skew_symmetric> {
     typename boost::enable_if_c< is_readable_matrix<Matrix2>::value, 
      self&>::type operator *=(const Matrix2& M) {
       if((M.get_col_count() != rowCount) || (M.get_row_count() != rowCount))
-	throw std::range_error("Matrix Dimension Mismatch.");
+        throw std::range_error("Matrix Dimension Mismatch.");
       *this = *this * M;
       return *this;
     };
@@ -2136,8 +2136,8 @@ class mat_sub_sym_block<Matrix,mat_structure::skew_symmetric> {
     mat<value_type,mat_structure::skew_symmetric> operator -() const {
       mat<value_type,mat_structure::skew_symmetric> result(*this);
       for(size_type j = 0; j < result.get_col_count(); ++j)
-	for(size_type i = 0; i < j; ++i)
-	  result(i,j) = -result(i,j);
+        for(size_type i = 0; i < j; ++i)
+          result(i,j) = -result(i,j);
       return result;
     };
     
@@ -2206,7 +2206,7 @@ class mat_const_sub_sym_block<Matrix,mat_structure::skew_symmetric> {
     
     self& operator=(const self&);
     
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
     mat_const_sub_sym_block(Matrix&& aM);
     
     mat_const_sub_sym_block(Matrix&& aM, size_type aSize, size_type aOffset = 0);
@@ -2225,15 +2225,15 @@ class mat_const_sub_sym_block<Matrix,mat_structure::skew_symmetric> {
      * \param aOffset The row-offset from the start of the matrix.
      */
     mat_const_sub_sym_block(const Matrix& aM, 
-			    size_type aSize,
-			    size_type aOffset = 0) : m(&aM), offset(aOffset), rowCount(aSize) { };
+                            size_type aSize,
+                            size_type aOffset = 0) : m(&aM), offset(aOffset), rowCount(aSize) { };
     
     /**
      * Standard copy-constructor.
      */
     mat_const_sub_sym_block(const self& aObj) : m(aObj.m), offset(aObj.offset), rowCount(aObj.rowCount) { };
     
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
     /**
      * Standard move-constructor.
      */
@@ -2301,8 +2301,8 @@ class mat_const_sub_sym_block<Matrix,mat_structure::skew_symmetric> {
     mat<value_type,mat_structure::skew_symmetric> operator -() const {
       mat<value_type,mat_structure::skew_symmetric> result(*this);
       for(size_type j = 0; j < result.get_col_count(); ++j)
-	for(size_type i = 0; i < j; ++i)
-	  result(i,j) = -result(i,j);
+        for(size_type i = 0; i < j; ++i)
+          result(i,j) = -result(i,j);
       return result;
     };
     
@@ -2390,15 +2390,15 @@ class mat_copy_sub_sym_block<Matrix,mat_structure::diagonal> {
      * \param aOffset The row-offset from the start of the matrix.
      */
     mat_copy_sub_sym_block(const Matrix& aM, 
-		           size_type aSize,
-		           size_type aOffset = 0) : m(aM), offset(aOffset), rowCount(aSize) { };
-			   
+                           size_type aSize,
+                           size_type aOffset = 0) : m(aM), offset(aOffset), rowCount(aSize) { };
+                           
     /**
      * Standard copy-constructor.
      */
     mat_copy_sub_sym_block(const self& aObj) : m(aObj.m), offset(aObj.offset), rowCount(aObj.rowCount) { };
     
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
     /**
      * Constructs the sub-matrix which represents the entire matrix.
      */
@@ -2411,9 +2411,9 @@ class mat_copy_sub_sym_block<Matrix,mat_structure::diagonal> {
      * \param aOffset The row-offset from the start of the matrix.
      */
     mat_copy_sub_sym_block(Matrix&& aM, 
-		           size_type aSize,
-		           size_type aOffset = 0) : m(std::move(aM)), offset(aOffset), rowCount(aSize) { };
-			   
+                           size_type aSize,
+                           size_type aOffset = 0) : m(std::move(aM)), offset(aOffset), rowCount(aSize) { };
+                           
     /**
      * Standard move-constructor.
      */
@@ -2446,7 +2446,7 @@ class mat_copy_sub_sym_block<Matrix,mat_structure::diagonal> {
     typename boost::enable_if_c< is_readable_matrix<Matrix2>::value,
     self& >::type operator=(const Matrix2& rhs) {
       if((rhs.get_row_count() != rowCount) || (rhs.get_col_count() != rowCount))
-	throw std::range_error("Matrix dimensions mismatch.");
+        throw std::range_error("Matrix dimensions mismatch.");
       for(size_type i=0;i<rowCount;++i)
         m(offset + i,offset + i) = rhs(i,i);
       return *this;
@@ -2512,7 +2512,7 @@ class mat_copy_sub_sym_block<Matrix,mat_structure::diagonal> {
     self& operator +=(const Matrix2& M) {
       boost::function_requires< ReadableMatrixConcept<Matrix2> >();
       if((M.get_col_count() != rowCount) || (M.get_row_count() != rowCount))
-	throw std::range_error("Matrix dimension mismatch.");
+        throw std::range_error("Matrix dimension mismatch.");
       for(size_type i=0;i<rowCount;++i)
         m(offset + i, offset + i) += M(i,i);
       return *this;
@@ -2526,9 +2526,9 @@ class mat_copy_sub_sym_block<Matrix,mat_structure::diagonal> {
     self& operator -=(const Matrix2& M) {
       boost::function_requires< ReadableMatrixConcept<Matrix2> >();
       if((M.get_col_count() != rowCount) || (M.get_row_count() != rowCount))
-	throw std::range_error("Matrix dimension mismatch.");
+        throw std::range_error("Matrix dimension mismatch.");
       for(size_type i=0;i<rowCount;++i)
-	m(offset + i, offset + i) -= M(i,i);
+        m(offset + i, offset + i) -= M(i,i);
       return *this;
     };
 
@@ -2538,7 +2538,7 @@ class mat_copy_sub_sym_block<Matrix,mat_structure::diagonal> {
      */
     self& operator *=(const value_type& S) {
       for(size_type i=0;i<rowCount;++i)
-	m(offset + i, offset + i) *= S;
+        m(offset + i, offset + i) *= S;
       return *this;
     };
 
@@ -2550,7 +2550,7 @@ class mat_copy_sub_sym_block<Matrix,mat_structure::diagonal> {
     typename boost::enable_if_c< is_readable_matrix<Matrix2>::value, 
      self&>::type operator *=(const Matrix2& M) {
       if((M.get_col_count() != rowCount) || (M.get_row_count() != rowCount))
-	throw std::range_error("Matrix Dimension Mismatch.");
+        throw std::range_error("Matrix Dimension Mismatch.");
       *this = *this * M;
       return *this;
     };
@@ -2564,7 +2564,7 @@ class mat_copy_sub_sym_block<Matrix,mat_structure::diagonal> {
     mat<value_type,mat_structure::diagonal> operator -() const {
       mat<value_type,mat_structure::diagonal> result(*this);
       for(size_type i = 0; i < result.get_col_count(); ++i)
-	result(i,i) = -result(i,i);
+        result(i,i) = -result(i,i);
       return result;
     };
     
@@ -2586,7 +2586,7 @@ class mat_copy_sub_sym_block<Matrix,mat_structure::diagonal> {
       return M;
     };
     
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
     friend self&& transpose(self&& M) {
       return std::move(M);
     };
@@ -2600,7 +2600,7 @@ class mat_copy_sub_sym_block<Matrix,mat_structure::diagonal> {
     friend value_type trace(const self& M) {
       value_type result(0.0);
       for(size_type i = 0; i < M.rowCount; ++i)
-	result += M(i,i);
+        result += M(i,i);
       return result;
     };
     
@@ -2652,14 +2652,14 @@ class mat_sub_sym_block<Matrix,mat_structure::diagonal> {
      * \param aOffset The row-offset from the start of the matrix.
      */
     mat_sub_sym_block(Matrix& aM, 
-		      size_type aSize,
-		      size_type aOffset = 0) : m(&aM), offset(aOffset), rowCount(aSize) { };
+                      size_type aSize,
+                      size_type aOffset = 0) : m(&aM), offset(aOffset), rowCount(aSize) { };
     /**
      * Standard copy-constructor.
      */
     mat_sub_sym_block(const self& aObj) : m(aObj.m), offset(aObj.offset), rowCount(aObj.rowCount) { };
     
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
     /**
      * Standard move-constructor.
      */
@@ -2682,7 +2682,7 @@ class mat_sub_sym_block<Matrix,mat_structure::diagonal> {
      */
     self& operator=(const self& rhs) {
       if((rhs.get_row_count() != rowCount) || (rhs.get_col_count() != rowCount))
-	throw std::range_error("Matrix dimensions mismatch.");
+        throw std::range_error("Matrix dimensions mismatch.");
       for(size_type i=0;i<rowCount;++i)
         (*m)(offset + i,offset + i) = rhs(i,i);
       return *this;
@@ -2695,7 +2695,7 @@ class mat_sub_sym_block<Matrix,mat_structure::diagonal> {
     typename boost::enable_if_c< is_readable_matrix<Matrix2>::value,
     self& >::type operator=(const Matrix2& rhs) {
       if((rhs.get_row_count() != rowCount) || (rhs.get_col_count() != rowCount))
-	throw std::range_error("Matrix dimensions mismatch.");
+        throw std::range_error("Matrix dimensions mismatch.");
       for(size_type i=0;i<rowCount;++i)
         (*m)(offset + i,offset + i) = rhs(i,i);
       return *this;
@@ -2761,7 +2761,7 @@ class mat_sub_sym_block<Matrix,mat_structure::diagonal> {
     self& operator +=(const Matrix2& M) {
       boost::function_requires< ReadableMatrixConcept<Matrix2> >();
       if((M.get_col_count() != rowCount) || (M.get_row_count() != rowCount))
-	throw std::range_error("Matrix dimension mismatch.");
+        throw std::range_error("Matrix dimension mismatch.");
       for(size_type i=0;i<rowCount;++i)
         (*m)(offset + i, offset + i) += M(i,i);
       return *this;
@@ -2775,9 +2775,9 @@ class mat_sub_sym_block<Matrix,mat_structure::diagonal> {
     self& operator -=(const Matrix2& M) {
       boost::function_requires< ReadableMatrixConcept<Matrix2> >();
       if((M.get_col_count() != rowCount) || (M.get_row_count() != rowCount))
-	throw std::range_error("Matrix dimension mismatch.");
+        throw std::range_error("Matrix dimension mismatch.");
       for(size_type i=0;i<rowCount;++i)
-	(*m)(offset + i, offset + i) -= M(i,i);
+        (*m)(offset + i, offset + i) -= M(i,i);
       return *this;
     };
 
@@ -2787,7 +2787,7 @@ class mat_sub_sym_block<Matrix,mat_structure::diagonal> {
      */
     self& operator *=(const value_type& S) {
       for(size_type i=0;i<rowCount;++i)
-	(*m)(offset + i, offset + i) *= S;
+        (*m)(offset + i, offset + i) *= S;
       return *this;
     };
 
@@ -2799,7 +2799,7 @@ class mat_sub_sym_block<Matrix,mat_structure::diagonal> {
     typename boost::enable_if_c< is_readable_matrix<Matrix2>::value, 
      self&>::type operator *=(const Matrix2& M) {
       if((M.get_col_count() != rowCount) || (M.get_row_count() != rowCount))
-	throw std::range_error("Matrix Dimension Mismatch.");
+        throw std::range_error("Matrix Dimension Mismatch.");
       *this = *this * M;
       return *this;
     };
@@ -2813,7 +2813,7 @@ class mat_sub_sym_block<Matrix,mat_structure::diagonal> {
     mat<value_type,mat_structure::diagonal> operator -() const {
       mat<value_type,mat_structure::diagonal> result(*this);
       for(size_type i = 0; i < result.get_col_count(); ++i)
-	result(i,i) = -result(i,i);
+        result(i,i) = -result(i,i);
       return result;
     };
     
@@ -2835,7 +2835,7 @@ class mat_sub_sym_block<Matrix,mat_structure::diagonal> {
       return M;
     };
     
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
     /**
      * Transposes the matrix M.
      * \param M The matrix to be transposed.
@@ -2854,7 +2854,7 @@ class mat_sub_sym_block<Matrix,mat_structure::diagonal> {
     friend value_type trace(const self& M) {
       value_type result(0.0);
       for(size_type i = 0; i < M.rowCount; ++i)
-	result += M(i,i);
+        result += M(i,i);
       return result;
     };
     
@@ -2896,7 +2896,7 @@ class mat_const_sub_sym_block<Matrix,mat_structure::diagonal> {
     
     self& operator=(const self&);
     
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
     mat_const_sub_sym_block(Matrix&&);
     mat_const_sub_sym_block(Matrix&&, size_type, size_type aOffset = 0);
 #endif
@@ -2913,8 +2913,8 @@ class mat_const_sub_sym_block<Matrix,mat_structure::diagonal> {
      * \param aOffset The row-offset from the start of the matrix.
      */
     mat_const_sub_sym_block(const Matrix& aM, 
-			    size_type aSize,
-			    size_type aOffset = 0) : m(&aM), offset(aOffset), rowCount(aSize) { };
+                            size_type aSize,
+                            size_type aOffset = 0) : m(&aM), offset(aOffset), rowCount(aSize) { };
     
     /**
      * Standard copy-constructor.
@@ -2922,7 +2922,7 @@ class mat_const_sub_sym_block<Matrix,mat_structure::diagonal> {
     mat_const_sub_sym_block(const self& aObj) : m(aObj.m), offset(aObj.offset), rowCount(aObj.rowCount) { };
     
     
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
     /**
      * Standard move-constructor.
      */
@@ -2991,7 +2991,7 @@ class mat_const_sub_sym_block<Matrix,mat_structure::diagonal> {
     mat<value_type,mat_structure::diagonal> operator -() const {
       mat<value_type,mat_structure::diagonal> result(*this);
       for(size_type i = 0; i < result.get_col_count(); ++i)
-	result(i,i) = -result(i,i);
+        result(i,i) = -result(i,i);
       return result;
     };
     
@@ -3013,7 +3013,7 @@ class mat_const_sub_sym_block<Matrix,mat_structure::diagonal> {
       return M;
     };
     
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
     /**
      * Transposes the matrix M.
      * \param M The matrix to be transposed.
@@ -3032,7 +3032,7 @@ class mat_const_sub_sym_block<Matrix,mat_structure::diagonal> {
     friend value_type trace(const self& M) {
       value_type result(0.0);
       for(size_type i = 0; i < M.rowCount; ++i)
-	result += M(i,i);
+        result += M(i,i);
       return result;
     };
     
@@ -3147,7 +3147,7 @@ template <typename Matrix>
 struct mat_copy_sub_sym_block_factory {
   typedef typename mat_traits<Matrix>::size_type size_type;
 
-#ifndef RK_ENABLE_CXX0X_FEATURES
+#ifdef BOOST_NO_CXX11_RVALUE_REFERENCES
   Matrix m;
   mat_copy_sub_sym_block_factory(const Matrix& aM) : m(aM) { };
   mat_copy_sub_sym_block<Matrix> operator()(const std::pair<size_type,size_type>& rows) {
@@ -3197,7 +3197,7 @@ template <typename Matrix>
 typename boost::enable_if_c< is_readable_matrix<Matrix>::value,
 mat_copy_sub_sym_block_factory<Matrix> >::type sub_sym_copy(const Matrix& M) { return mat_copy_sub_sym_block_factory<Matrix>(M); };
 
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
 template <typename Matrix>
 typename boost::enable_if_c< is_readable_matrix<Matrix>::value,
 mat_copy_sub_sym_block_factory<Matrix> >::type sub_sym(Matrix&& M) { return mat_copy_sub_sym_block_factory<Matrix>(std::move(M)); };

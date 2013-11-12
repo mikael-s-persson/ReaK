@@ -265,7 +265,6 @@ struct differ_sbmp_report_to_space : public shared_object {
   template <typename FreeSpaceType>
   void draw_solution(const FreeSpaceType& free_space, 
                      const shared_ptr< seq_path_base< typename subspace_traits<FreeSpaceType>::super_space_type > >& p) const {
-    typedef typename topology_traits<FreeSpaceType>::point_type PointType;
     typedef typename seq_path_base< typename subspace_traits<FreeSpaceType>::super_space_type >::point_distance_iterator PtIter;
     
     free_space.reset_output();

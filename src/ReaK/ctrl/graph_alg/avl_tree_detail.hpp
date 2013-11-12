@@ -94,7 +94,7 @@ namespace detail {
     static const mapped_type& value_to_mapped(const value_type& rhs) { return rhs; };
     static mapped_type& value_to_mapped(value_type& rhs) { return rhs; };
     
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
     template <typename U, typename V>
     static value_type keymap_to_value(U&& k, V&&) { 
       return value_type(std::forward<U>(k));
@@ -129,7 +129,7 @@ namespace detail {
     static const mapped_type& value_to_mapped(const value_type& rhs) { return rhs; };
     static mapped_type& value_to_mapped(value_type& rhs) { return rhs; };
     
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
     template <typename U, typename V>
     static value_type keymap_to_value(U&& k, V&&) { 
       return value_type(std::forward<U>(k));
@@ -182,7 +182,7 @@ namespace detail {
     static const mapped_type& value_to_mapped(const value_type& rhs) { return rhs.second; };
     static mapped_type& value_to_mapped(value_type& rhs) { return rhs.second; };
     
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
     template <typename U, typename V>
     static value_type keymap_to_value(U&& k, V&& m) { 
       return value_type(std::forward<U>(k), std::forward<V>(m));
@@ -235,7 +235,7 @@ namespace detail {
     static const mapped_type& value_to_mapped(const value_type& rhs) { return rhs.second; };
     static mapped_type& value_to_mapped(value_type& rhs) { return rhs.second; };
     
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
     template <typename U, typename V>
     static value_type keymap_to_value(U&& k, V&& m) { 
       return value_type(std::forward<U>(k), std::forward<V>(m));
@@ -396,7 +396,7 @@ class avl_tree_impl
         PropIter cur_task_median = cur_task.first + std::distance(cur_task.first, cur_task.last) / 2;
         std::nth_element(cur_task.first, cur_task_median, cur_task.last, m_compare);
         
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
         m_tree[cur_task.node] = std::move(*cur_task_median);
 #else
         m_tree[cur_task.node] = *cur_task_median;
@@ -497,7 +497,7 @@ class avl_tree_impl
       tasks.push(aRootNode);
       while(!tasks.empty()) {
         vertex_type cur_task = tasks.front(); tasks.pop();
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
         aList.push_back(std::move(m_tree[cur_task]));
 #else
         aList.push_back(m_tree[cur_task]);
@@ -524,14 +524,14 @@ class avl_tree_impl
     };
     
     // re-balance the sub-tree rooted at the given node. Uses a "collect and re-construct" approach.
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
     void rebalance_and_insert_subtree(vertex_type aRootNode, vertex_property&& aAdded) {
 #else
     void rebalance_and_insert_subtree(vertex_type aRootNode, const vertex_property& aAdded) {
 #endif
       // collect and remove.
       std::vector< vertex_property > collected_nodes;
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
       collected_nodes.push_back(std::move(aAdded));
 #else
       collected_nodes.push_back(aAdded);
@@ -588,14 +588,14 @@ class avl_tree_impl
     };
     
     
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
     std::pair< iterator, bool > insert_after_terminal_impl(vertex_type aBefore, vertex_property&& aValue) {
 #else
     std::pair< iterator, bool > insert_after_terminal_impl(vertex_type aBefore, const vertex_property& aValue) {
 #endif
       using std::swap;
       if(out_degree(aBefore, m_tree)) { // then the before node is terminal but not a leaf, safe to insert:
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
         std::pair<vertex_type, edge_type> new_child = add_child_vertex(aBefore, std::move(aValue), m_tree);
 #else
         std::pair<vertex_type, edge_type> new_child = add_child_vertex(aBefore, aValue, m_tree);
@@ -608,14 +608,14 @@ class avl_tree_impl
       if(imbal_u.second) {
         // must re-balance and insert at sub-tree from imbal_u.first:
         key_type tmp_k = helper_type::value_to_key(aValue);
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
         rebalance_and_insert_subtree(imbal_u.first, std::move(aValue));
 #else
         rebalance_and_insert_subtree(imbal_u.first, aValue);
 #endif
         return std::pair< iterator, bool >(iterator(&m_tree, find_lower_bound(tmp_k, imbal_u.first)), true);
       } else {
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
         std::pair<vertex_type, edge_type> new_child = add_child_vertex(aBefore, std::move(aValue), m_tree);
 #else
         std::pair<vertex_type, edge_type> new_child = add_child_vertex(aBefore, aValue, m_tree);
@@ -626,7 +626,7 @@ class avl_tree_impl
     };
     
     
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
     vertex_type insert_in_range_impl(iterator tvi, iterator tvi_end, vertex_property&& aValue) {
 #else
     vertex_type insert_in_range_impl(iterator tvi, iterator tvi_end, const vertex_property& aValue) {
@@ -635,7 +635,7 @@ class avl_tree_impl
       vertex_type tmp_u = tvi.base(); 
       for(; tvi != tvi_end; ++tvi) {
         if(out_degree(tvi.base(), m_tree) == 1) { // then, this is definitely a good spot:
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
           std::pair<vertex_type, edge_type> new_child = add_child_vertex(tvi.base(), std::move(aValue), m_tree);
 #else
           std::pair<vertex_type, edge_type> new_child = add_child_vertex(tvi.base(), aValue, m_tree);
@@ -651,14 +651,14 @@ class avl_tree_impl
         if(imbal_u.second) {
           // must re-balance and insert at sub-tree from imbal_u.first:
           key_type tmp_k = helper_type::value_to_key(aValue);
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
           rebalance_and_insert_subtree(imbal_u.first, std::move(aValue));
 #else
           rebalance_and_insert_subtree(imbal_u.first, aValue);
 #endif
           return find_lower_bound(tmp_k, imbal_u.first);
         } else {
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
           rebalance_and_insert_subtree(tmp_u, std::move(aValue));
 #else
           rebalance_and_insert_subtree(tmp_u, aValue);
@@ -677,7 +677,7 @@ class avl_tree_impl
      * The vertex aAfter is the "upper-bound" (the first greater element).
      * The value is the property of the vertex to be inserted.
      */
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
     std::pair< iterator, bool > insert_impl(vertex_type aBefore, vertex_type aAfter, vertex_property aValue) { // by-value.
 #else
     std::pair< iterator, bool > insert_impl(vertex_type aBefore, vertex_type aAfter, const vertex_property& aValue) {
@@ -686,7 +686,7 @@ class avl_tree_impl
       
       if((aAfter == tree_indexer::null_vertex()) && (aBefore != tree_indexer::null_vertex())) {
         // this means that all the vertices remaining after aBefore are all equal to the given value.
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
         vertex_type tmp_u = insert_in_range_impl(iterator(&m_tree, aBefore), iterator::end(&m_tree), std::move(aValue));
 #else
         vertex_type tmp_u = insert_in_range_impl(iterator(&m_tree, aBefore), iterator::end(&m_tree), aValue);
@@ -700,7 +700,7 @@ class avl_tree_impl
       if((aBefore == tree_indexer::null_vertex()) && (aAfter == tree_indexer::null_vertex())) {
         // this means that the vertex must be appended to the end. (value is greater than all elements in the tree)
         aBefore = detail::bst_go_down_right(m_tree, m_root);
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
         return insert_after_terminal_impl(aBefore, std::move(aValue));
 #else
         return insert_after_terminal_impl(aBefore, aValue);
@@ -716,14 +716,14 @@ class avl_tree_impl
           if(imbal_u.second) {
             // must re-balance and insert at sub-tree from imbal_u.first:
             key_type tmp_k = helper_type::value_to_key(aValue);
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
             rebalance_and_insert_subtree(imbal_u.first, std::move(aValue));
 #else
             rebalance_and_insert_subtree(imbal_u.first, aValue);
 #endif
             return std::pair< iterator, bool >(iterator(&m_tree, find_lower_bound(tmp_k, imbal_u.first)), true);
           } else {
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
             std::pair<vertex_type, edge_type> new_child = add_child_vertex(aAfter, std::move(aValue), m_tree);
 #else
             std::pair<vertex_type, edge_type> new_child = add_child_vertex(aAfter, aValue, m_tree);
@@ -734,7 +734,7 @@ class avl_tree_impl
         
         if(out_degree(aAfter, m_tree) == 1) {
           // this means that the left-child must be a leaf (otherwise it would be imbalanced), so, we can rotate the tree.
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
           std::pair<vertex_type, edge_type> new_child = add_child_vertex(aAfter, std::move(aValue), m_tree);
 #else
           std::pair<vertex_type, edge_type> new_child = add_child_vertex(aAfter, aValue, m_tree);
@@ -746,7 +746,7 @@ class avl_tree_impl
         
         // else, aAfter is full, lets try after the previous node (which must be a leaf or non-full node):
         aBefore = detail::bst_go_down_right(m_tree, *(child_vertices(aAfter,m_tree).first));
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
         return insert_after_terminal_impl(aBefore, std::move(aValue));
 #else
         return insert_after_terminal_impl(aBefore, aValue);
@@ -754,7 +754,7 @@ class avl_tree_impl
       };
       
       // then, the general case: the equal range is somewhere in the middle of the set.
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
       vertex_type tmp_u = insert_in_range_impl(iterator(&m_tree, aBefore), iterator(&m_tree, aAfter), std::move(aValue));
 #else
       vertex_type tmp_u = insert_in_range_impl(iterator(&m_tree, aBefore), iterator(&m_tree, aAfter), aValue);
@@ -811,7 +811,7 @@ class avl_tree_impl
           it_near = aAfter;
           continue;
         };
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
         collected_nodes.push_back(std::move(m_tree[it_near.base()]));
 #else
         collected_nodes.push_back(m_tree[it_near.base()]);
@@ -905,7 +905,7 @@ class avl_tree_impl
      * \return True if the AVL-tree is empty.
      */
     bool empty() const
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_NOEXCEPT
     noexcept
 #endif
     { return (num_vertices(m_tree) == 0); };
@@ -914,7 +914,7 @@ class avl_tree_impl
      * \return The size of the AVL-tree (the number of vertices it contains).
      */
     size_type size() const
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_NOEXCEPT
     noexcept
 #endif
     { return num_vertices(m_tree); };
@@ -923,7 +923,7 @@ class avl_tree_impl
      * \return The maximum size of the AVL-tree.
      */
     size_type max_size() const
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_NOEXCEPT
     noexcept
 #endif
     { return std::numeric_limits<size_type>::max(); };
@@ -1106,7 +1106,7 @@ class avl_tree_impl
       return insert_impl(find_lower_bound(k, m_root), find_upper_bound(k, m_root), aValue);
     };
     
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
     /**
      * Attempts to insert an element into the set.
      * \param aValue Element to be inserted.
@@ -1160,7 +1160,7 @@ class avl_tree_impl
       return insert_impl(aPosition.base(), p5.base(), aValue).first;
     };
     
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
     /**
      * Attempts to insert an element into the set.
      * \param aPosition An iterator that serves as a hint as to where the element should be inserted.
@@ -1217,7 +1217,7 @@ class avl_tree_impl
         insert(*aFirst);
     };
     
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_HDR_INITIALIZER_LIST
     /**
      * Attempts to insert a list of elements into the set.
      * \param aList A std::initializer_list of elements to be inserted.
@@ -1225,7 +1225,9 @@ class avl_tree_impl
     void insert(std::initializer_list<value_type> aList) {
       insert(aList.begin(), aList.end());
     };
+#endif
     
+#ifndef BOOST_NO_CXX11_VARIADIC_TEMPLATES
     /**
      * Attempts to emplace-create an element into the set.
      * \param args The constructor arguments required to create the element.
@@ -1296,7 +1298,7 @@ class avl_tree_impl
     /**
      * Erases all elements in a set.
      */
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_NOEXCEPT
     void clear() noexcept {
 #else
     void clear() {
@@ -1330,7 +1332,7 @@ class avl_tree_impl
       };
     };
     
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
     /**
      * Subscript ( [] ) access to map data. Allows for easy lookup with the subscript ( [] ) operator. 
      * Returns data associated with the key specified in subscript. If the key does not exist, a pair 
@@ -1404,7 +1406,7 @@ class avl_tree_impl
         m_parent->insert(vp);
       };
       
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
       void add_vertex(vertex_property&& vp, tree_indexer&) const {
         m_parent->insert(std::move(vp));
       };

@@ -144,9 +144,9 @@ namespace detail {
   struct get_type_id {
     unsigned int at(unsigned int i) const {
       if(i == 0)
-	return T::ID;
+        return T::ID;
       else
-	return get_type_id< typename T::tail >().at(--i);
+        return get_type_id< typename T::tail >().at(--i);
     };
   };
   
@@ -170,7 +170,7 @@ struct get_type_id< null_type_info > {
   static construct_ptr CreatePtr() { return NULL; };
 };
 
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_VARIADIC_TEMPLATES
 
 template <typename... T> struct get_type_info_seq;
 
@@ -253,18 +253,18 @@ template <template <typename,
                     typename,
                     typename> class U, typename T1, 
                                        typename T2, 
-				       typename T3, typename Tail>
+                                       typename T3, typename Tail>
 struct get_type_info< U<T1,
                         T2,
-			T3>, Tail > {
+                        T3>, Tail > {
   typedef detail::type_id< U<T1,
                              T2,
-			     T3>, typename get_type_info<T1, 
+                             T3>, typename get_type_info<T1, 
                                            get_type_info<T2,
-					   get_type_info<T3, Tail> > >::type > type;
+                                           get_type_info<T3, Tail> > >::type > type;
   static std::string type_name() { return get_type_id< U<T1,
                                                          T2,
-							 T3> >::type_name() + "<" + get_type_id<T1>::type_name() + ","
+                                                         T3> >::type_name() + "<" + get_type_id<T1>::type_name() + ","
                                                                                   + get_type_id<T2>::type_name() + ","
                                                                                   + get_type_id<T3>::type_name() + ">" + (boost::is_same< Tail, null_type_info >::value ? "" : "," + Tail::type_name()); };
 };
@@ -274,23 +274,23 @@ template <template <typename,
                     typename,
                     typename> class U, typename T1, 
                                        typename T2, 
-			               typename T3, 
-				       typename T4, typename Tail>
+                                       typename T3, 
+                                       typename T4, typename Tail>
 struct get_type_info< U<T1,
                         T2,
-			T3,
-			T4>, Tail > {
+                        T3,
+                        T4>, Tail > {
   typedef detail::type_id< U<T1,
                              T2,
-			     T3,
-			     T4>, typename get_type_info<T1, 
+                             T3,
+                             T4>, typename get_type_info<T1, 
                                            get_type_info<T2,
-					   get_type_info<T3,
-					   get_type_info<T4, Tail> > > >::type > type;
+                                           get_type_info<T3,
+                                           get_type_info<T4, Tail> > > >::type > type;
   static std::string type_name() { return get_type_id< U<T1,
                                                          T2,
-							 T3,
-							 T4> >::type_name() + "<" + get_type_id<T1>::type_name() + ","
+                                                         T3,
+                                                         T4> >::type_name() + "<" + get_type_id<T1>::type_name() + ","
                                                                                   + get_type_id<T2>::type_name() + ","
                                                                                   + get_type_id<T3>::type_name() + ","
                                                                                   + get_type_id<T4>::type_name() + ">" + (boost::is_same< Tail, null_type_info >::value ? "" : "," + Tail::type_name()); };
@@ -302,28 +302,28 @@ template <template <typename,
                     typename,
                     typename> class U, typename T1, 
                                        typename T2, 
-				       typename T3, 
-				       typename T4, 
-				       typename T5, typename Tail>
+                                       typename T3, 
+                                       typename T4, 
+                                       typename T5, typename Tail>
 struct get_type_info< U<T1,
                         T2,
-			T3,
-			T4,
-			T5>, Tail > {
+                        T3,
+                        T4,
+                        T5>, Tail > {
   typedef detail::type_id< U<T1,
                              T2,
-			     T3,
-			     T4,
-			     T5>, typename get_type_info<T1, 
+                             T3,
+                             T4,
+                             T5>, typename get_type_info<T1, 
                                            get_type_info<T2,
-					   get_type_info<T3,
-					   get_type_info<T4,
-					   get_type_info<T5, Tail> > > > >::type > type;
+                                           get_type_info<T3,
+                                           get_type_info<T4,
+                                           get_type_info<T5, Tail> > > > >::type > type;
   static std::string type_name() { return get_type_id< U<T1,
                                                          T2,
-							 T3,
-							 T4,
-							 T5> >::type_name() + "<" + get_type_id<T1>::type_name() + ","
+                                                         T3,
+                                                         T4,
+                                                         T5> >::type_name() + "<" + get_type_id<T1>::type_name() + ","
                                                                                   + get_type_id<T2>::type_name() + ","
                                                                                   + get_type_id<T3>::type_name() + ","
                                                                                   + get_type_id<T4>::type_name() + ","
@@ -337,33 +337,33 @@ template <template <typename,
                     typename,
                     typename> class U, typename T1, 
                                        typename T2, 
-				       typename T3, 
-				       typename T4, 
-				       typename T5, 
-				       typename T6, typename Tail>
+                                       typename T3, 
+                                       typename T4, 
+                                       typename T5, 
+                                       typename T6, typename Tail>
 struct get_type_info< U<T1,
                         T2,
-			T3,
-			T4,
-			T5,
-			T6>, Tail > {
+                        T3,
+                        T4,
+                        T5,
+                        T6>, Tail > {
   typedef detail::type_id< U<T1,
                              T2,
-			     T3,
-			     T4,
-			     T5,
-			     T6>, typename get_type_info<T1, 
+                             T3,
+                             T4,
+                             T5,
+                             T6>, typename get_type_info<T1, 
                                            get_type_info<T2,
-					   get_type_info<T3,
-					   get_type_info<T4,
-					   get_type_info<T5,
-					   get_type_info<T6, Tail> > > > > >::type > type;
+                                           get_type_info<T3,
+                                           get_type_info<T4,
+                                           get_type_info<T5,
+                                           get_type_info<T6, Tail> > > > > >::type > type;
   static std::string type_name() { return get_type_id< U<T1,
                                                          T2,
-							 T3,
-							 T4,
-							 T5,
-							 T6> >::type_name() + "<" + get_type_id<T1>::type_name() + ","
+                                                         T3,
+                                                         T4,
+                                                         T5,
+                                                         T6> >::type_name() + "<" + get_type_id<T1>::type_name() + ","
                                                                                   + get_type_id<T2>::type_name() + ","
                                                                                   + get_type_id<T3>::type_name() + ","
                                                                                   + get_type_id<T4>::type_name() + ","
@@ -379,38 +379,38 @@ template <template <typename,
                     typename,
                     typename> class U, typename T1, 
                                        typename T2, 
-				       typename T3, 
-				       typename T4, 
-				       typename T5, 
-				       typename T6, 
-				       typename T7, typename Tail>
+                                       typename T3, 
+                                       typename T4, 
+                                       typename T5, 
+                                       typename T6, 
+                                       typename T7, typename Tail>
 struct get_type_info< U<T1,
                         T2,
-			T3,
-			T4,
-			T5,
-			T6,
-			T7>, Tail > {
+                        T3,
+                        T4,
+                        T5,
+                        T6,
+                        T7>, Tail > {
   typedef detail::type_id< U<T1,
                              T2,
-			     T3,
-			     T4,
-			     T5,
-			     T6,
-			     T7>, typename get_type_info<T1, 
+                             T3,
+                             T4,
+                             T5,
+                             T6,
+                             T7>, typename get_type_info<T1, 
                                            get_type_info<T2,
-					   get_type_info<T3,
-					   get_type_info<T4,
-					   get_type_info<T5,
-					   get_type_info<T6,
-					   get_type_info<T7, Tail> > > > > > >::type > type;
+                                           get_type_info<T3,
+                                           get_type_info<T4,
+                                           get_type_info<T5,
+                                           get_type_info<T6,
+                                           get_type_info<T7, Tail> > > > > > >::type > type;
   static std::string type_name() { return get_type_id< U<T1,
                                                          T2,
-							 T3,
-							 T4,
-							 T5,
-							 T6,
-							 T7> >::type_name() + "<" + get_type_id<T1>::type_name() + ","
+                                                         T3,
+                                                         T4,
+                                                         T5,
+                                                         T6,
+                                                         T7> >::type_name() + "<" + get_type_id<T1>::type_name() + ","
                                                                                   + get_type_id<T2>::type_name() + ","
                                                                                   + get_type_id<T3>::type_name() + ","
                                                                                   + get_type_id<T4>::type_name() + ","
@@ -428,43 +428,43 @@ template <template <typename,
                     typename,
                     typename> class U, typename T1, 
                                        typename T2, 
-				       typename T3, 
-				       typename T4, 
-				       typename T5, 
-				       typename T6, 
-				       typename T7, 
-				       typename T8, typename Tail>
+                                       typename T3, 
+                                       typename T4, 
+                                       typename T5, 
+                                       typename T6, 
+                                       typename T7, 
+                                       typename T8, typename Tail>
 struct get_type_info< U<T1,
                         T2,
-			T3,
-			T4,
-			T5,
-			T6,
-			T7,
-			T8>, Tail > {
+                        T3,
+                        T4,
+                        T5,
+                        T6,
+                        T7,
+                        T8>, Tail > {
   typedef detail::type_id< U<T1,
                              T2,
-			     T3,
-			     T4,
-			     T5,
-			     T6,
-			     T7,
-			     T8>, typename get_type_info<T1, 
+                             T3,
+                             T4,
+                             T5,
+                             T6,
+                             T7,
+                             T8>, typename get_type_info<T1, 
                                            get_type_info<T2,
-					   get_type_info<T3,
-					   get_type_info<T4,
-					   get_type_info<T5,
-					   get_type_info<T6,
-					   get_type_info<T7,
-					   get_type_info<T8, Tail> > > > > > > >::type > type;
+                                           get_type_info<T3,
+                                           get_type_info<T4,
+                                           get_type_info<T5,
+                                           get_type_info<T6,
+                                           get_type_info<T7,
+                                           get_type_info<T8, Tail> > > > > > > >::type > type;
   static std::string type_name() { return get_type_id< U<T1,
                                                          T2,
-							 T3,
-							 T4,
-							 T5,
-							 T6,
-							 T7,
-							 T8> >::type_name() + "<" + get_type_id<T1>::type_name() + ","
+                                                         T3,
+                                                         T4,
+                                                         T5,
+                                                         T6,
+                                                         T7,
+                                                         T8> >::type_name() + "<" + get_type_id<T1>::type_name() + ","
                                                                                   + get_type_id<T2>::type_name() + ","
                                                                                   + get_type_id<T3>::type_name() + ","
                                                                                   + get_type_id<T4>::type_name() + ","
@@ -484,48 +484,48 @@ template <template <typename,
                     typename,
                     typename> class U, typename T1, 
                                        typename T2, 
-				       typename T3, 
-				       typename T4, 
-				       typename T5, 
-				       typename T6, 
-				       typename T7, 
-				       typename T8, 
-				       typename T9, typename Tail>
+                                       typename T3, 
+                                       typename T4, 
+                                       typename T5, 
+                                       typename T6, 
+                                       typename T7, 
+                                       typename T8, 
+                                       typename T9, typename Tail>
 struct get_type_info< U<T1,
                         T2,
-			T3,
-			T4,
-			T5,
-			T6,
-			T7,
-			T8,
-			T9>, Tail > {
+                        T3,
+                        T4,
+                        T5,
+                        T6,
+                        T7,
+                        T8,
+                        T9>, Tail > {
   typedef detail::type_id< U<T1,
                              T2,
-			     T3,
-			     T4,
-			     T5,
-			     T6,
-			     T7,
-			     T8,
-			     T9>, typename get_type_info<T1, 
+                             T3,
+                             T4,
+                             T5,
+                             T6,
+                             T7,
+                             T8,
+                             T9>, typename get_type_info<T1, 
                                            get_type_info<T2,
-					   get_type_info<T3,
-					   get_type_info<T4,
-					   get_type_info<T5,
-					   get_type_info<T6,
-					   get_type_info<T7,
-					   get_type_info<T8,
-					   get_type_info<T9, Tail> > > > > > > > >::type > type;
+                                           get_type_info<T3,
+                                           get_type_info<T4,
+                                           get_type_info<T5,
+                                           get_type_info<T6,
+                                           get_type_info<T7,
+                                           get_type_info<T8,
+                                           get_type_info<T9, Tail> > > > > > > > >::type > type;
   static std::string type_name() { return get_type_id< U<T1,
                                                          T2,
-							 T3,
-							 T4,
-							 T5,
-							 T6,
-							 T7,
-							 T8,
-							 T9> >::type_name() + "<" + get_type_id<T1>::type_name() + ","
+                                                         T3,
+                                                         T4,
+                                                         T5,
+                                                         T6,
+                                                         T7,
+                                                         T8,
+                                                         T9> >::type_name() + "<" + get_type_id<T1>::type_name() + ","
                                                                                   + get_type_id<T2>::type_name() + ","
                                                                                   + get_type_id<T3>::type_name() + ","
                                                                                   + get_type_id<T4>::type_name() + ","
@@ -546,54 +546,54 @@ template <template <typename,
                     typename,
                     typename,
                     typename> class U, typename T1, 
-		                       typename T2, 
-				       typename T3, 
-				       typename T4, 
-				       typename T5, 
-				       typename T6, 
-				       typename T7, 
-				       typename T8, 
-				       typename T9, 
-				       typename T10, typename Tail>
+                                       typename T2, 
+                                       typename T3, 
+                                       typename T4, 
+                                       typename T5, 
+                                       typename T6, 
+                                       typename T7, 
+                                       typename T8, 
+                                       typename T9, 
+                                       typename T10, typename Tail>
 struct get_type_info< U<T1,
                         T2,
-			T3,
-			T4,
-			T5,
-			T6,
-			T7,
-			T8,
-			T9,
-			T10>, Tail > {
+                        T3,
+                        T4,
+                        T5,
+                        T6,
+                        T7,
+                        T8,
+                        T9,
+                        T10>, Tail > {
   typedef detail::type_id< U<T1,
                              T2,
-			     T3,
-			     T4,
-			     T5,
-			     T6,
-			     T7,
-			     T8,
-			     T9,
-			     T10>, typename get_type_info<T1, 
+                             T3,
+                             T4,
+                             T5,
+                             T6,
+                             T7,
+                             T8,
+                             T9,
+                             T10>, typename get_type_info<T1, 
                                            get_type_info<T2,
-					   get_type_info<T3,
-					   get_type_info<T4,
-					   get_type_info<T5,
-					   get_type_info<T6,
-					   get_type_info<T7,
-					   get_type_info<T8,
-					   get_type_info<T9,
-					   get_type_info<T10, Tail> > > > > > > > > >::type > type;
+                                           get_type_info<T3,
+                                           get_type_info<T4,
+                                           get_type_info<T5,
+                                           get_type_info<T6,
+                                           get_type_info<T7,
+                                           get_type_info<T8,
+                                           get_type_info<T9,
+                                           get_type_info<T10, Tail> > > > > > > > > >::type > type;
   static std::string type_name() { return get_type_id< U<T1,
                                                          T2,
-							 T3,
-							 T4,
-							 T5,
-							 T6,
-							 T7,
-							 T8,
-							 T9,
-							 T10> >::type_name() + "<" + get_type_id<T1>::type_name() + ","
+                                                         T3,
+                                                         T4,
+                                                         T5,
+                                                         T6,
+                                                         T7,
+                                                         T8,
+                                                         T9,
+                                                         T10> >::type_name() + "<" + get_type_id<T1>::type_name() + ","
                                                                                   + get_type_id<T2>::type_name() + ","
                                                                                   + get_type_id<T3>::type_name() + ","
                                                                                   + get_type_id<T4>::type_name() + ","

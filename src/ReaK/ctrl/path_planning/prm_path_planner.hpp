@@ -256,7 +256,7 @@ void prm_planner<FreeSpaceType>::solve_planning_query(planning_query<FreeSpaceTy
   path_planning_p2p_query<FreeSpaceType>* p2p_query_ptr = reinterpret_cast< path_planning_p2p_query<FreeSpaceType>* >(aQuery.castTo(path_planning_p2p_query<FreeSpaceType>::getStaticObjectType()));
   
   
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
 
 #define RK_PRM_PLANNER_INITIALIZE_START_AND_GOAL \
   VertexProp vp_start; \

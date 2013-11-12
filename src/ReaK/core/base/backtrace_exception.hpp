@@ -70,7 +70,7 @@ class backtrace_except : public BaseException {
     
     enum transformed_exception_t { transformed_exception };
     
-#ifdef RK_ENABLE_CXX11_FEATURES
+#if (!defined(BOOST_NO_CXX11_VARIADIC_TEMPLATES) && !defined(BOOST_NO_CXX11_RVALUE_REFERENCES))
     template <typename... Args>
     backtrace_except(const char* aFileName, const char* aFuncName, int aLineNum, Args&&... args) :
                      BaseException(std::forward<Args>(args)...) {
@@ -168,16 +168,10 @@ class backtrace_except : public BaseException {
     };
     
     
-    virtual ~backtrace_except() 
-#ifdef RK_ENABLE_CXX11_FEATURES
-      noexcept
-#else
-      throw()
-#endif
-      { };
+    virtual ~backtrace_except() { };
     
     virtual const char* what() const 
-#ifdef RK_ENABLE_CXX11_FEATURES
+#ifndef BOOST_NO_CXX11_NOEXCEPT
       noexcept
 #else
       throw()

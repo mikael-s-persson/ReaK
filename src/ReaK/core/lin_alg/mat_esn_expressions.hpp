@@ -66,7 +66,7 @@ enum esn_u_tag { esn_u };
   struct op_addition {
     BOOST_STATIC_CONSTANT(unsigned int, arity = 2);
     BOOST_STATIC_CONSTANT(op_class, classification = split);
-#ifndef RK_ENABLE_CXX0X_FEATURES
+#ifdef BOOST_NO_CXX11_RVALUE_REFERENCES
     static T evaluate(const T& t, const U& u) { return t + u; };
 #else
     static auto evaluate(T&& t, U&& u) -> decltype(std::move(t) + std::move(u)) { return std::move(t) + std::move(u); };
@@ -78,7 +78,7 @@ enum esn_u_tag { esn_u };
   struct op_subtraction {
     BOOST_STATIC_CONSTANT(unsigned int, arity = 2);
     BOOST_STATIC_CONSTANT(op_class, classification = split);
-#ifndef RK_ENABLE_CXX0X_FEATURES
+#ifdef BOOST_NO_CXX11_RVALUE_REFERENCES
     static T evaluate(const T& t, const U& u) { return t - u; };
 #else
     static auto evaluate(T&& t, U&& u) -> decltype(std::move(t) - std::move(u)) { return std::move(t) - std::move(u); };
@@ -90,7 +90,7 @@ enum esn_u_tag { esn_u };
   struct op_negation {
     BOOST_STATIC_CONSTANT(unsigned int, arity = 1);
     BOOST_STATIC_CONSTANT(op_class, classification = split);
-#ifndef RK_ENABLE_CXX0X_FEATURES
+#ifdef BOOST_NO_CXX11_RVALUE_REFERENCES
     static T evaluate(const T& t) { return -t; };
 #else
     static auto evaluate(T&& t) -> decltype(-std::move(t)) { return -std::move(t); };
@@ -102,7 +102,7 @@ enum esn_u_tag { esn_u };
   struct op_multiplication {
     BOOST_STATIC_CONSTANT(unsigned int, arity = 2);
     BOOST_STATIC_CONSTANT(op_class, classification = term);
-#ifndef RK_ENABLE_CXX0X_FEATURES
+#ifdef BOOST_NO_CXX11_RVALUE_REFERENCES
     static T evaluate(const T& t, const U& u) { return t * u; };
 #else
     static auto evaluate(T&& t, U&& u) -> decltype(std::move(t) * std::move(u)) { return std::move(t) * std::move(u); };
@@ -114,7 +114,7 @@ enum esn_u_tag { esn_u };
   struct op_division {
     BOOST_STATIC_CONSTANT(unsigned int, arity = 2);
     BOOST_STATIC_CONSTANT(op_class, classification = term);
-#ifndef RK_ENABLE_CXX0X_FEATURES
+#ifdef BOOST_NO_CXX11_RVALUE_REFERENCES
     static T evaluate(const T& t, const U& u) { return t / u; };
 #else
     static auto evaluate(T&& t, U&& u) -> decltype(std::move(t) / std::move(u)) { return std::move(t) / std::move(u); };

@@ -165,7 +165,6 @@ struct LinearSSSystemConcept : SSSystemConcept<LinearSSSystem,StateSpaceType> {
   BOOST_CONCEPT_USAGE(LinearSSSystemConcept)
   {
     using ReaK::to_vect; using ReaK::from_vect;
-    typedef typename ss_system_traits<LinearSSSystem>::point_type StateType;
     typedef typename ss_system_traits<LinearSSSystem>::point_derivative_type StateDerivType;
     typedef typename ss_system_traits<LinearSSSystem>::output_type OutputType;
     typedef typename mat_traits<typename linear_ss_system_traits<LinearSSSystem>::matrixA_type>::value_type ValueType;

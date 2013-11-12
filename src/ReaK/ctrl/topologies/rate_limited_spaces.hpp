@@ -178,7 +178,7 @@ class reach_time_diff_space : public differentiable_space<IndependentSpace, Spac
   public:
     typedef reach_time_diff_space< IndependentSpace, SpaceTuple, TupleDistanceMetric > self;
     typedef differentiable_space<IndependentSpace, SpaceTuple, TupleDistanceMetric, reach_time_differentiation> base_type;
-	typedef typename base_type::diff_rule_tuple diff_rule_tuple;
+        typedef typename base_type::diff_rule_tuple diff_rule_tuple;
     
     BOOST_STATIC_CONSTANT(std::size_t, dimensions = base_type::dimensions);
     
@@ -189,9 +189,9 @@ class reach_time_diff_space : public differentiable_space<IndependentSpace, Spac
      * \param aDiffRules The differentiation rule tuple to initialize the diff-rule functors with.
      */
     reach_time_diff_space(const SpaceTuple& aSpaces = SpaceTuple(), 
-			  const TupleDistanceMetric& aDist = TupleDistanceMetric(),
-			  const diff_rule_tuple& aDiffRules = diff_rule_tuple()) :
-			  base_type(aSpaces,aDist,aDiffRules) { };
+                          const TupleDistanceMetric& aDist = TupleDistanceMetric(),
+                          const diff_rule_tuple& aDiffRules = diff_rule_tuple()) :
+                          base_type(aSpaces,aDist,aDiffRules) { };
 
     /**
      * Parametrized constructor which creates the reach-time differentiation rules from a list 
@@ -205,10 +205,10 @@ class reach_time_diff_space : public differentiable_space<IndependentSpace, Spac
     template <typename ForwardIter>
     reach_time_diff_space(ForwardIter first, ForwardIter last,
                           const SpaceTuple& aSpaces = SpaceTuple(), 
-			  const TupleDistanceMetric& aDist = TupleDistanceMetric()) :
-			  base_type(aSpaces, aDist, detail::construct_reach_time_diff_rules<diff_rule_tuple>(first, last)) { };
+                          const TupleDistanceMetric& aDist = TupleDistanceMetric()) :
+                          base_type(aSpaces, aDist, detail::construct_reach_time_diff_rules<diff_rule_tuple>(first, last)) { };
     
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_HDR_INITIALIZER_LIST
     /**
      * Parametrized constructor which creates the reach-time differentiation rules from a list 
      * of rate-limits on spaces of the tangent bundle (element 0 should be the velocity limit, 
@@ -219,11 +219,11 @@ class reach_time_diff_space : public differentiable_space<IndependentSpace, Spac
      */
     reach_time_diff_space(std::initializer_list<double> aList,
                           const SpaceTuple& aSpaces = SpaceTuple(), 
-			  const TupleDistanceMetric& aDist = TupleDistanceMetric()) :
-			  base_type(aSpaces, aDist, detail::construct_reach_time_diff_rules<diff_rule_tuple>(aList.begin(), aList.end())) { };
+                          const TupleDistanceMetric& aDist = TupleDistanceMetric()) :
+                          base_type(aSpaces, aDist, detail::construct_reach_time_diff_rules<diff_rule_tuple>(aList.begin(), aList.end())) { };
 #endif
     
-			  
+                          
 /*******************************************************************************
                    ReaK's RTTI and Serialization interfaces
 *******************************************************************************/
@@ -335,7 +335,7 @@ namespace detail {
     //BOOST_STATIC_ASSERT(false);
   };
   
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_VARIADIC_TEMPLATES
   
   template <std::size_t Size, typename... Spaces>
   struct get_rate_illimited_space_tuple_impl< Size, std::tuple<Spaces...> > {
@@ -454,7 +454,7 @@ namespace detail {
     //BOOST_STATIC_ASSERT(false);
   };
   
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_VARIADIC_TEMPLATES
   
   template <std::size_t Size, typename... Spaces>
   struct get_rate_limited_space_tuple_impl< Size, std::tuple<Spaces...> > {

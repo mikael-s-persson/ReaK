@@ -96,30 +96,25 @@ class mat<T,mat_structure::scalar,Alignment,Allocator> : public serialization::s
      * Constructor for a sized matrix.
      */
     mat(size_type aRowCount, value_type aFill = value_type(0),const Allocator& aAlloc = Allocator()) :
-             q(aFill),
-	     rowCount(aRowCount) { };
+        q(aFill), rowCount(aRowCount) { };
 
     /**
      * Constructor for an identity matrix.
      */
     mat(size_type aRowCount, bool aIdentity, const Allocator& aAlloc = Allocator()) :
-             q((aIdentity ? value_type(1) : value_type(0))),
-	     rowCount(aRowCount) { };
+        q((aIdentity ? value_type(1) : value_type(0))), rowCount(aRowCount) { };
 
     /**
      * Standard Copy Constructor with standard semantics.
      */
     mat(const self& M) :
-             q(M.q),
-	     rowCount(M.rowCount) { };
-	     
-#ifdef RK_ENABLE_CXX0X_FEATURES
+        q(M.q), rowCount(M.rowCount) { };
+    
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
     /**
      * Standard Move Constructor with standard semantics.
      */
-    mat(self&& M) :
-             q(std::move(M.q)),
-	     rowCount(std::move(M.rowCount)) { };
+    mat(self&& M) : q(std::move(M.q)), rowCount(std::move(M.rowCount)) { };
 #endif
 	     
     /**
@@ -127,10 +122,10 @@ class mat<T,mat_structure::scalar,Alignment,Allocator> : public serialization::s
      */
     template <typename Matrix>
     explicit mat(const Matrix& M, const Allocator& aAlloc = Allocator(),
-		      typename boost::enable_if_c< is_readable_matrix<Matrix>::value && 
-                                                  !(boost::is_same<Matrix,self>::value) , void* >::type dummy = NULL) :
-             q(0.0),
-	     rowCount((M.get_row_count() < M.get_col_count() ? M.get_row_count() : M.get_col_count())) {
+                 typename boost::enable_if_c< is_readable_matrix<Matrix>::value && 
+                                              !(boost::is_same<Matrix,self>::value) , void* >::type dummy = NULL) :
+                 q(0.0),
+                 rowCount((M.get_row_count() < M.get_col_count() ? M.get_row_count() : M.get_col_count())) {
       q = trace(M) / value_type(rowCount);
     };
 
@@ -163,9 +158,9 @@ class mat<T,mat_structure::scalar,Alignment,Allocator> : public serialization::s
      */
     reference operator()(size_type i,size_type j) {
       if(i == j)
-	return q;
+        return q;
       else
-	throw std::range_error("Cannot write to the off-diagonal terms of a diagonal matrix!");
+        throw std::range_error("Cannot write to the off-diagonal terms of a diagonal matrix!");
     };
 
     /**
@@ -177,7 +172,7 @@ class mat<T,mat_structure::scalar,Alignment,Allocator> : public serialization::s
      */
     value_type operator()(size_type i,size_type j) const {
       if(i == j)
-	return q;
+        return q;
       else
         return value_type(0.0);
     };
@@ -268,7 +263,7 @@ class mat<T,mat_structure::scalar,Alignment,Allocator> : public serialization::s
      */
     self& operator +=(const self& M) {
       if(M.rowCount != rowCount)
-	throw std::range_error("Matrix dimension mismatch.");
+        throw std::range_error("Matrix dimension mismatch.");
       q += M.q;
       return *this;
     };
@@ -281,7 +276,7 @@ class mat<T,mat_structure::scalar,Alignment,Allocator> : public serialization::s
      */
     self& operator -=(const self& M) {
       if(M.rowCount != rowCount)
-	throw std::range_error("Matrix dimension mismatch.");
+        throw std::range_error("Matrix dimension mismatch.");
       q -= M.q;
       return *this;
     };
@@ -321,7 +316,7 @@ class mat<T,mat_structure::scalar,Alignment,Allocator> : public serialization::s
      */
     friend self operator +(const self& M1,const self& M2) {
       if(M1.rowCount != M2.rowCount)
-	throw std::range_error("Matrix dimension mismatch.");
+        throw std::range_error("Matrix dimension mismatch.");
       return self(M1.rowCount,M1.q + M2.q);
     };
 
@@ -341,7 +336,7 @@ class mat<T,mat_structure::scalar,Alignment,Allocator> : public serialization::s
      */
     friend self operator -(const self& M1, const self& M2) {
       if(M1.rowCount != M2.rowCount)
-	throw std::range_error("Matrix dimension mismatch.");
+        throw std::range_error("Matrix dimension mismatch.");
       return self(M1.rowCount,M1.q - M2.q);
     };
 
@@ -382,7 +377,7 @@ class mat<T,mat_structure::scalar,Alignment,Allocator> : public serialization::s
       swap(result,M);
       return result;
     };
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
     /**
      * Transposes the matrix M in a potentially destructive way (move-semantics, C++0x).
      * \param M The scalar matrix to be transposed and moved.
@@ -529,39 +524,10 @@ vect<T,Size> operator *(const vect<T,Size>& V,const mat<T,mat_structure::scalar,
 
 
 
-#if (defined(RK_ENABLE_CXX11_FEATURES) && defined(RK_ENABLE_EXTERN_TEMPLATES))
+#ifndef BOOST_NO_CXX11_EXTERN_TEMPLATE
 
 extern template class mat<double, mat_structure::scalar>;
 extern template class mat<float, mat_structure::scalar>;
-
-// for compilers that don't support extern templates for friend functions:
-#if !defined(__clang__)
-
-extern template vect<double,2> operator *<double, 2, mat_alignment::column_major, std::allocator<double> >(const mat<double,mat_structure::scalar>& M,const vect<double,2>& V);
-extern template vect<double,3> operator *<double, 3, mat_alignment::column_major, std::allocator<double> >(const mat<double,mat_structure::scalar>& M,const vect<double,3>& V);
-extern template vect<double,4> operator *<double, 4, mat_alignment::column_major, std::allocator<double> >(const mat<double,mat_structure::scalar>& M,const vect<double,4>& V);
-extern template vect<double,6> operator *<double, 6, mat_alignment::column_major, std::allocator<double> >(const mat<double,mat_structure::scalar>& M,const vect<double,6>& V);
-extern template vect_n<double> operator *<double, vect_n<double>, mat_alignment::column_major, std::allocator<double> >(const mat<double,mat_structure::scalar>& M, const vect_n<double>& V);
-
-extern template vect<double,2> operator *<double, 2, mat_alignment::column_major, std::allocator<double> >(const vect<double,2>& V,const mat<double,mat_structure::scalar>& M);
-extern template vect<double,3> operator *<double, 3, mat_alignment::column_major, std::allocator<double> >(const vect<double,3>& V,const mat<double,mat_structure::scalar>& M);
-extern template vect<double,4> operator *<double, 4, mat_alignment::column_major, std::allocator<double> >(const vect<double,4>& V,const mat<double,mat_structure::scalar>& M);
-extern template vect<double,6> operator *<double, 6, mat_alignment::column_major, std::allocator<double> >(const vect<double,6>& V,const mat<double,mat_structure::scalar>& M);
-extern template vect_n<double> operator *<double, vect_n<double>, mat_alignment::column_major, std::allocator<double> >(const vect_n<double>& V,const mat<double,mat_structure::scalar>& M);
-
-extern template vect<float,2> operator *<float, 2, mat_alignment::column_major, std::allocator<float> >(const mat<float,mat_structure::scalar>& M,const vect<float,2>& V);
-extern template vect<float,3> operator *<float, 3, mat_alignment::column_major, std::allocator<float> >(const mat<float,mat_structure::scalar>& M,const vect<float,3>& V);
-extern template vect<float,4> operator *<float, 4, mat_alignment::column_major, std::allocator<float> >(const mat<float,mat_structure::scalar>& M,const vect<float,4>& V);
-extern template vect<float,6> operator *<float, 6, mat_alignment::column_major, std::allocator<float> >(const mat<float,mat_structure::scalar>& M,const vect<float,6>& V);
-extern template vect_n<float> operator *<float, vect_n<float>, mat_alignment::column_major, std::allocator<float> >(const mat<float,mat_structure::scalar>& M, const vect_n<float>& V);
-
-extern template vect<float,2> operator *<float, 2, mat_alignment::column_major, std::allocator<float> >(const vect<float,2>& V,const mat<float,mat_structure::scalar>& M);
-extern template vect<float,3> operator *<float, 3, mat_alignment::column_major, std::allocator<float> >(const vect<float,3>& V,const mat<float,mat_structure::scalar>& M);
-extern template vect<float,4> operator *<float, 4, mat_alignment::column_major, std::allocator<float> >(const vect<float,4>& V,const mat<float,mat_structure::scalar>& M);
-extern template vect<float,6> operator *<float, 6, mat_alignment::column_major, std::allocator<float> >(const vect<float,6>& V,const mat<float,mat_structure::scalar>& M);
-extern template vect_n<float> operator *<float, vect_n<float>, mat_alignment::column_major, std::allocator<float> >(const vect_n<float>& V,const mat<float,mat_structure::scalar>& M);
-
-#endif
 
 #endif
 

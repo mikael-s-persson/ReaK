@@ -36,6 +36,8 @@
 #include <iostream>
 #include <cmath>
 
+#include <boost/config.hpp>
+
 #ifndef M_PI
 #define M_PI 3.1415926535898
 #endif
@@ -70,11 +72,6 @@
 #define RK_ORDER_PDP_ENDIAN 3
 
 #ifdef __GNUC__
-
-#ifdef __GXX_EXPERIMENTAL_CXX0X__
-#define RK_ENABLE_CXX0X_FEATURES
-#define RK_ENABLE_CXX11_FEATURES
-#endif // __GXX_EXPERIMENTAL_CXX0X__
 
 #if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
 #define RK_BYTE_ORDER RK_ORDER_LITTLE_ENDIAN
@@ -181,7 +178,7 @@ inline std::string RK_RELATIVE_PATH(const std::string& S) {
 
 
 
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_SMART_PTR
 
 #include <memory>
 
@@ -205,7 +202,7 @@ namespace ReaK {
 
 };
 
-#endif // RK_ENABLE_CXX0X_FEATURES
+#endif
 
 /** Main namespace for ReaK */
 namespace ReaK {

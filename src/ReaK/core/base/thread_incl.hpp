@@ -38,25 +38,7 @@
 #include "defs.hpp"
 
 
-#if ( ( defined(__GNUC__) || defined(__clang__) ) && !defined(_WIN32) )
-
-// if under g++, with c++0x, with gcc version >= 4.7.0
-#if ( defined(RK_ENABLE_CXX11_FEATURES) \
-   && ( ( (__GNUC__ > 4) \
-       || ( (__GNUC__ == 4) \
-         && (__GNUC_MINOR__ >= 7) ) ) \
-     || ( (__clang_major__ > 3) \
-       || ( (__clang_major__ == 3) \
-         && (__clang_minor__ > 4) ) ) ) )
-
-#define RK_ENABLE_CXX11_THREAD_LIB
-
-#endif
-
-#endif
-
-
-#ifdef RK_ENABLE_CXX11_THREAD_LIB
+#ifndef BOOST_NO_CXX11_HDR_THREAD
 
 // This is a bit nasty...
 #ifndef _GLIBCXX_USE_SCHED_YIELD

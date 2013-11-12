@@ -330,7 +330,7 @@ typename mat_traits<Matrix>::value_type >::type determinant_Jacobi(const Matrix&
 
 
 
-#if (defined(RK_ENABLE_CXX11_FEATURES) && defined(RK_ENABLE_EXTERN_TEMPLATES))
+#ifndef BOOST_NO_CXX11_EXTERN_TEMPLATE
 
 
 extern template void eigensolve_Jacobi(const mat<double,mat_structure::symmetric>& A, mat<double,mat_structure::diagonal>& E, mat<double,mat_structure::rectangular>& Q, double NumTol);

@@ -194,7 +194,7 @@ class interpolated_topology_base : public BaseTopology {
     explicit interpolated_topology_base(const BaseTopology& aTopo) : 
                                         BaseTopology(aTopo) { };
     
-#ifdef RK_ENABLE_CXX11_FEATURES
+#ifndef BOOST_NO_CXX11_VARIADIC_TEMPLATES
     template <typename... Args>
     interpolated_topology_base(Args&&... args) : BaseTopology(std::forward<Args>(args)...) { };
 #else
@@ -727,7 +727,7 @@ class interpolated_topology : public interpolated_topology_base<BaseTopology> {
     
     interpolated_topology(const BaseTopology& aTopo) : base_type(aTopo) { };
     
-#ifdef RK_ENABLE_CXX11_FEATURES
+#ifndef BOOST_NO_CXX11_VARIADIC_TEMPLATES
     template <typename... Args>
     interpolated_topology(Args&&... args) : base_type(std::forward<Args>(args)...) { };
 #else

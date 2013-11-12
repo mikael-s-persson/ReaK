@@ -116,7 +116,7 @@ oi_reader& oi_reader::operator=(const oi_reader& rhs) {
   return *this;
 };
 
-#ifdef RK_ENABLE_CXX11_FEATURES
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
 
 oi_reader::oi_reader(oi_reader&& rhs) : mRoot(rhs.mRoot) {
   rhs.mRoot = NULL;

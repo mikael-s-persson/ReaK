@@ -32,7 +32,7 @@
 #ifndef REAK_JOINT_SPACE_TOPOLOGIES_EXT_HPP
 #define REAK_JOINT_SPACE_TOPOLOGIES_EXT_HPP
 
-#if (defined(RK_ENABLE_CXX11_FEATURES) && defined(RK_ENABLE_EXTERN_TEMPLATES))
+#ifndef BOOST_NO_CXX11_EXTERN_TEMPLATE
 
 
 #include "joint_space_topologies.hpp"

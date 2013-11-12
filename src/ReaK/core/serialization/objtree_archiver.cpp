@@ -361,7 +361,7 @@ void xml_field_editor::set_field_value(std::size_t aIndex, const std::string& aV
   new_xml_src.append(it_end, xml_src.end());
   for(std::size_t j = aIndex; j < src_markers.size(); ++j)
     src_markers[j] += len_diff;
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
   xml_src = std::move(new_xml_src);
 #else
   xml_src = new_xml_src;
@@ -417,7 +417,7 @@ void xml_field_editor::set_field_newptr(std::size_t aIndex, const shared_ptr< se
   new_xml_src.append(it_end, xml_src.end());
   for(std::size_t j = aIndex; j < src_markers.size(); ++j)
     src_markers[j] += len_diff;
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
   xml_src = std::move(new_xml_src);
 #else
   xml_src = new_xml_src;

@@ -161,12 +161,6 @@ void keyboard_press_hdl(void* userData, SoEventCallback* eventCB) {
         quadrotor_system::state_space_type, 
         quadrotor_system, 
         position_only_sampler > X8_rrtstar_planner_type;
-      typedef MEAQR_sbastar_planner< 
-        quadrotor_system::state_space_type, 
-        quadrotor_system, 
-        position_only_sampler > X8_sbastar_planner_type;
-      
-      
       X8_rrtstar_planner_type X8_planner(
         r_info->X8_MEAQR_space, 
         r_info->X8_plan_params.max_vertices, 
@@ -175,6 +169,10 @@ void keyboard_press_hdl(void* userData, SoEventCallback* eventCB) {
         UNIDIRECTIONAL_PLANNING,
         0.1, 0.05, 3, report_chain);
     
+//       typedef MEAQR_sbastar_planner< 
+//         quadrotor_system::state_space_type, 
+//         quadrotor_system, 
+//         position_only_sampler > X8_sbastar_planner_type;
 //       X8_sbastar_planner_type X8_planner(
 //         r_info->X8_MEAQR_space, 
 //         r_info->X8_plan_params.max_vertices, 

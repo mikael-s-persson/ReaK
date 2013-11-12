@@ -35,7 +35,7 @@
 #define REAK_MANIP_FREE_WORKSPACE_EXT_HPP
 
 
-#if (defined(RK_ENABLE_CXX11_FEATURES) && defined(RK_ENABLE_EXTERN_TEMPLATES))
+#ifndef BOOST_NO_CXX11_EXTERN_TEMPLATE
 
 #include "base/defs.hpp"
 #include <boost/config.hpp> // For BOOST_STATIC_CONSTANT

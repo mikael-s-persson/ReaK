@@ -299,7 +299,6 @@ PointType quintic_hermite_interpolate(const PointType& a, const PointType& b, do
   BOOST_CONCEPT_ASSERT((LieGroupConcept<Space1>));
   BOOST_CONCEPT_ASSERT((LieGroupConcept<Space2>));
     
-  typedef typename topology_traits<Space0>::point_type PointType0;
   typedef typename topology_traits<Space1>::point_type PointType1;
   typedef typename topology_traits<Space2>::point_type PointType2;
     

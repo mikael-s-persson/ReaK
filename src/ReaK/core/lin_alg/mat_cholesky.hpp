@@ -228,7 +228,6 @@ void backsub_LDL_impl(const Matrix1& L, Matrix2& B) {
 
 template <typename Matrix1, typename Matrix2>
 void backsub_TriDiagLDL_impl(const Matrix1& L, Matrix2& B) {
-  typedef typename mat_traits<Matrix1>::value_type ValueType;
   typedef typename mat_traits<Matrix1>::size_type SizeType;
   SizeType N = L.get_row_count();
   SizeType M = B.get_col_count();
@@ -1345,7 +1344,7 @@ void >::type invert_PLTLP(const Matrix1& A, Matrix2& A_inv,
 
 
 
-#if (defined(RK_ENABLE_CXX11_FEATURES) && defined(RK_ENABLE_EXTERN_TEMPLATES))
+#ifndef BOOST_NO_CXX11_EXTERN_TEMPLATE
 
 extern template void decompose_Cholesky(const mat<double,mat_structure::square>& A, mat<double,mat_structure::square>& L, double NumTol);
 extern template void decompose_Cholesky(const mat<double,mat_structure::symmetric>& A, mat<double,mat_structure::square>& L, double NumTol);

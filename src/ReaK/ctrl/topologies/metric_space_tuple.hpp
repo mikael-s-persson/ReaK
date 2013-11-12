@@ -58,7 +58,7 @@ namespace detail {
     //BOOST_STATIC_ASSERT(false);
   };
   
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_VARIADIC_TEMPLATES
   
   template <std::size_t Size, typename... Spaces>
   struct point_type_tuple_impl< Size, std::tuple<Spaces...> > {
@@ -180,7 +180,7 @@ namespace detail {
     //BOOST_STATIC_ASSERT(false);
   };
   
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_VARIADIC_TEMPLATES
   
   template <std::size_t Size, typename... Spaces>
   struct point_difference_type_tuple_impl< Size, std::tuple<Spaces...> > {
@@ -302,7 +302,7 @@ namespace detail {
     BOOST_STATIC_CONSTANT(std::size_t, value = 0);
   };
   
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_VARIADIC_TEMPLATES
   
   template <std::size_t Size, typename Space0>
   struct topo_dimensions_tuple_impl< Size, std::tuple<Space0> > {

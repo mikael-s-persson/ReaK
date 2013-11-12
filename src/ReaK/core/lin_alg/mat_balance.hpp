@@ -444,7 +444,7 @@ void >::type apply_right_bal_inv_exp(Matrix1& A, const Vector1& D) {
 
 
 
-#if (defined(RK_ENABLE_CXX11_FEATURES) && defined(RK_ENABLE_EXTERN_TEMPLATES))
+#ifndef BOOST_NO_CXX11_EXTERN_TEMPLATE
 
 
 extern template void balance(mat<double,mat_structure::rectangular>& A, vect_n<int>& D);

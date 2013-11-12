@@ -351,7 +351,7 @@ class pooled_adjacency_list {
       remove_edge(e_iter, ep, m_graph);
     };
 
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
     vertex_descriptor add_vertex_impl(vertex_property_type&& vp) {
       vertex_descriptor v;
       if( m_first_hole.value == null_vertex() ) {
@@ -674,7 +674,7 @@ void remove_edge(typename graph_traits< pooled_adjacency_list<DirectedS, VertexP
   g.remove_edge_impl(e_iter,ep);
 };
 
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
 template <typename DirectedS, typename VertexProperty, typename EdgeProperty, typename GraphProperty, typename EdgeListS>
 typename graph_traits< pooled_adjacency_list<DirectedS, VertexProperty, EdgeProperty, GraphProperty, EdgeListS> >::vertex_descriptor
   add_vertex(typename pooled_adjacency_list<DirectedS, VertexProperty, EdgeProperty, GraphProperty, EdgeListS>::vertex_property_type&& vp,

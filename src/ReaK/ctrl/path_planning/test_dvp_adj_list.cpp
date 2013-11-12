@@ -79,7 +79,6 @@ int main() {
     WorldPartition2BF dvp2(m_space, PositionMap(&WorldGridVertexProperties::pos));
     WorldGrid2BF g2 = dvp2.get_adjacency_list();
     
-    typedef boost::graph_traits< WorldGrid2BF >::vertex_descriptor VertexType;
     typedef ReaK::pp::point_distribution_traits< TopologyType >::random_sampler_type RandSampler;
     RandSampler get_sample = get(ReaK::pp::random_sampler, *m_space);
     

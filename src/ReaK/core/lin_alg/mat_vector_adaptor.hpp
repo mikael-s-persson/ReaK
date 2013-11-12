@@ -97,9 +97,9 @@ class mat_vect_adaptor<Vector,mat_alignment::column_major> {
      * \param aOffset The index into the vector from which to start the matrix elements.
      */
     mat_vect_adaptor(Vector& aV, 
-		     size_type aRowCount, 
-		     size_type aColCount,
-		     size_type aOffset = 0) : v(&aV), offset(aOffset), rowCount(aRowCount), colCount(aColCount) { };
+                     size_type aRowCount, 
+                     size_type aColCount,
+                     size_type aOffset = 0) : v(&aV), offset(aOffset), rowCount(aRowCount), colCount(aColCount) { };
     /**
      * Standard copy-constructor (shallow).
      */
@@ -122,11 +122,11 @@ class mat_vect_adaptor<Vector,mat_alignment::column_major> {
      */
     self& operator=(const self& rhs) {
       if((rhs.get_row_count() != rowCount) || (rhs.get_col_count() != colCount))
-	throw std::range_error("Matrix dimensions mismatch.");
+        throw std::range_error("Matrix dimensions mismatch.");
       size_type it = offset;
       for(size_type j=0;j<colCount;++j)
         for(size_type i=0;i<rowCount;++i,++it)
-	  (*v)[it] = rhs(i,j);
+          (*v)[it] = rhs(i,j);
       return *this;
     };
     
@@ -137,11 +137,11 @@ class mat_vect_adaptor<Vector,mat_alignment::column_major> {
     typename boost::enable_if_c< is_readable_matrix<Matrix>::value,
     self& >::type operator=(const Matrix& rhs) {
       if((rhs.get_row_count() != rowCount) || (rhs.get_col_count() != colCount))
-	throw std::range_error("Matrix dimensions mismatch.");
+        throw std::range_error("Matrix dimensions mismatch.");
       size_type it = offset;
       for(size_type j=0;j<colCount;++j)
         for(size_type i=0;i<rowCount;++i,++it)
-	  (*v)[it] = rhs(i,j);
+          (*v)[it] = rhs(i,j);
       return *this;
     };
     
@@ -214,11 +214,11 @@ class mat_vect_adaptor<Vector,mat_alignment::column_major> {
     self& operator +=(const Matrix& M) {
       boost::function_requires< ReadableMatrixConcept<Matrix> >();
       if((M.get_col_count() != colCount) || (M.get_row_count() != rowCount))
-	throw std::range_error("Matrix dimension mismatch.");
+        throw std::range_error("Matrix dimension mismatch.");
       size_type it = offset;
       for(size_type j=0;j<colCount;++j)
         for(size_type i=0;i<rowCount;++i,++it)
-	  (*v)[it] += M(i,j);
+          (*v)[it] += M(i,j);
       return *this;
     };
 
@@ -230,11 +230,11 @@ class mat_vect_adaptor<Vector,mat_alignment::column_major> {
     self& operator -=(const Matrix& M) {
       boost::function_requires< ReadableMatrixConcept<Matrix> >();
       if((M.get_col_count() != colCount) || (M.get_row_count() != rowCount))
-	throw std::range_error("Matrix dimension mismatch.");
+        throw std::range_error("Matrix dimension mismatch.");
       size_type it = offset;
       for(size_type j=0;j<colCount;++j)
         for(size_type i=0;i<rowCount;++i,++it)
-	  (*v)[it] -= M(i,j);
+          (*v)[it] -= M(i,j);
       return *this;
     };
 
@@ -256,7 +256,7 @@ class mat_vect_adaptor<Vector,mat_alignment::column_major> {
     typename boost::enable_if_c< is_readable_matrix<Matrix>::value, 
      self&>::type operator *=(const Matrix& M) {
       if((M.get_col_count() != colCount) || (M.get_row_count() != colCount))
-	throw std::range_error("Matrix Dimension Mismatch.");
+        throw std::range_error("Matrix Dimension Mismatch.");
       *this = *this * M;
       return *this;
     };
@@ -270,8 +270,8 @@ class mat_vect_adaptor<Vector,mat_alignment::column_major> {
     mat<value_type,mat_structure::rectangular> operator -() const {
       mat<value_type,mat_structure::rectangular> result(*this);
       for(size_type j = 0; j < result.get_col_count(); ++j)
-	for(size_type i = 0; i < result.get_row_count(); ++i)
-	  result(i,j) = -result(i,j);
+        for(size_type i = 0; i < result.get_row_count(); ++i)
+          result(i,j) = -result(i,j);
       return result;
     };
     
@@ -345,9 +345,9 @@ class mat_vect_adaptor<Vector,mat_alignment::row_major> {
      * \param aOffset The index into the vector from which to start the matrix elements.
      */
     mat_vect_adaptor(Vector& aV, 
-		     size_type aRowCount, 
-		     size_type aColCount,
-		     size_type aOffset = 0) : v(&aV), offset(aOffset), rowCount(aRowCount), colCount(aColCount) { };
+                     size_type aRowCount, 
+                     size_type aColCount,
+                     size_type aOffset = 0) : v(&aV), offset(aOffset), rowCount(aRowCount), colCount(aColCount) { };
     /**
      * Standard copy-constructor (shallow).
      */
@@ -370,11 +370,11 @@ class mat_vect_adaptor<Vector,mat_alignment::row_major> {
      */
     self& operator=(const self& rhs) {
       if((rhs.get_row_count() != rowCount) || (rhs.get_col_count() != colCount))
-	throw std::range_error("Matrix dimensions mismatch.");
+        throw std::range_error("Matrix dimensions mismatch.");
       size_type it = offset;
       for(size_type i=0;i<rowCount;++i)
         for(size_type j=0;j<colCount;++j,++it)
-	  (*v)[it] = rhs(i,j);
+          (*v)[it] = rhs(i,j);
       return *this;
     };
     
@@ -385,11 +385,11 @@ class mat_vect_adaptor<Vector,mat_alignment::row_major> {
     typename boost::enable_if_c< is_readable_matrix<Matrix>::value,
     self& >::type operator=(const Matrix& rhs) {
       if((rhs.get_row_count() != rowCount) || (rhs.get_col_count() != colCount))
-	throw std::range_error("Matrix dimensions mismatch.");
+        throw std::range_error("Matrix dimensions mismatch.");
       size_type it = offset;
       for(size_type i=0;i<rowCount;++i)
         for(size_type j=0;j<colCount;++j,++it)
-	  (*v)[it] = rhs(i,j);
+          (*v)[it] = rhs(i,j);
       return *this;
     };
     
@@ -462,11 +462,11 @@ class mat_vect_adaptor<Vector,mat_alignment::row_major> {
     self& operator +=(const Matrix& M) {
       boost::function_requires< ReadableMatrixConcept<Matrix> >();
       if((M.get_col_count() != colCount) || (M.get_row_count() != rowCount))
-	throw std::range_error("Matrix dimension mismatch.");
+        throw std::range_error("Matrix dimension mismatch.");
       size_type it = offset;
       for(size_type i=0;i<rowCount;++i)
         for(size_type j=0;j<colCount;++j,++it)
-	  (*v)[it] += M(i,j);
+          (*v)[it] += M(i,j);
       return *this;
     };
 
@@ -478,11 +478,11 @@ class mat_vect_adaptor<Vector,mat_alignment::row_major> {
     self& operator -=(const Matrix& M) {
       boost::function_requires< ReadableMatrixConcept<Matrix> >();
       if((M.get_col_count() != colCount) || (M.get_row_count() != rowCount))
-	throw std::range_error("Matrix dimension mismatch.");
+        throw std::range_error("Matrix dimension mismatch.");
       size_type it = offset;
       for(size_type i=0;i<rowCount;++i)
         for(size_type j=0;j<colCount;++j,++it)
-	  (*v)[it] -= M(i,j);
+          (*v)[it] -= M(i,j);
       return *this;
     };
 
@@ -504,7 +504,7 @@ class mat_vect_adaptor<Vector,mat_alignment::row_major> {
     typename boost::enable_if_c< is_readable_matrix<Matrix>::value, 
      self&>::type operator *=(const Matrix& M) {
       if((M.get_col_count() != colCount) || (M.get_row_count() != colCount))
-	throw std::range_error("Matrix Dimension Mismatch.");
+        throw std::range_error("Matrix Dimension Mismatch.");
       *this = *this * M;
       return *this;
     };
@@ -518,8 +518,8 @@ class mat_vect_adaptor<Vector,mat_alignment::row_major> {
     mat<value_type,mat_structure::rectangular> operator -() const {
       mat<value_type,mat_structure::rectangular> result(*this);
       for(size_type j = 0; j < result.get_col_count(); ++j)
-	for(size_type i = 0; i < result.get_row_count(); ++i)
-	  result(i,j) = -result(i,j);
+        for(size_type i = 0; i < result.get_row_count(); ++i)
+          result(i,j) = -result(i,j);
       return result;
     };
     
@@ -622,7 +622,7 @@ class mat_const_vect_adaptor<Vector,mat_alignment::column_major> {
     
     self& operator=(const self&); //non-assignable.
     
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
     mat_const_vect_adaptor(Vector&&);
     mat_const_vect_adaptor(Vector&&, size_type, size_type, size_type aOffset = 0);
 #endif
@@ -641,9 +641,9 @@ class mat_const_vect_adaptor<Vector,mat_alignment::column_major> {
      * \param aOffset The index into the vector from which to start the matrix elements.
      */
     mat_const_vect_adaptor(const Vector& aV, 
-		     size_type aRowCount, 
-		     size_type aColCount,
-		     size_type aOffset = 0) : v(&aV), offset(aOffset), rowCount(aRowCount), colCount(aColCount) { };
+                     size_type aRowCount, 
+                     size_type aColCount,
+                     size_type aOffset = 0) : v(&aV), offset(aOffset), rowCount(aRowCount), colCount(aColCount) { };
     /**
      * Standard copy-constructor (shallow).
      */
@@ -711,8 +711,8 @@ class mat_const_vect_adaptor<Vector,mat_alignment::column_major> {
     mat<value_type,mat_structure::rectangular> operator -() const {
       mat<value_type,mat_structure::rectangular> result(*this);
       for(size_type j = 0; j < result.get_col_count(); ++j)
-	for(size_type i = 0; i < result.get_row_count(); ++i)
-	  result(i,j) = -result(i,j);
+        for(size_type i = 0; i < result.get_row_count(); ++i)
+          result(i,j) = -result(i,j);
       return result;
     };
     
@@ -775,7 +775,7 @@ class mat_const_vect_adaptor<Vector,mat_alignment::row_major> {
     self& operator=(const self&); //non-assignable.
     
         
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
     mat_const_vect_adaptor(Vector&&);
     mat_const_vect_adaptor(Vector&&, size_type, size_type, size_type aOffset = 0);
 #endif
@@ -794,9 +794,9 @@ class mat_const_vect_adaptor<Vector,mat_alignment::row_major> {
      * \param aOffset The index into the vector from which to start the matrix elements.
      */
     mat_const_vect_adaptor(const Vector& aV, 
-			   size_type aRowCount, 
-			   size_type aColCount,
-			   size_type aOffset = 0) : v(&aV), offset(aOffset), rowCount(aRowCount), colCount(aColCount) { };
+                           size_type aRowCount, 
+                           size_type aColCount,
+                           size_type aOffset = 0) : v(&aV), offset(aOffset), rowCount(aRowCount), colCount(aColCount) { };
     /**
      * Standard copy-constructor (shallow).
      */
@@ -864,8 +864,8 @@ class mat_const_vect_adaptor<Vector,mat_alignment::row_major> {
     mat<value_type,mat_structure::rectangular> operator -() const {
       mat<value_type,mat_structure::rectangular> result(*this);
       for(size_type j = 0; j < result.get_col_count(); ++j)
-	for(size_type i = 0; i < result.get_row_count(); ++i)
-	  result(i,j) = -result(i,j);
+        for(size_type i = 0; i < result.get_row_count(); ++i)
+          result(i,j) = -result(i,j);
       return result;
     };
     
@@ -958,11 +958,11 @@ struct mat_vect_adaptor_factory {
   Vector& v;
   mat_vect_adaptor_factory(Vector& aV) : v(aV) { };
   mat_vect_adaptor<Vector,mat_alignment::row_major> operator()(size_type rowCount,
-				      const std::pair<size_type,size_type>& cols) {
+                                      const std::pair<size_type,size_type>& cols) {
     return mat_vect_adaptor<Vector,mat_alignment::row_major>(v,rowCount,cols.second - cols.first + 1,cols.first);
   };
   mat_vect_adaptor<Vector,mat_alignment::column_major> operator()(const std::pair<size_type,size_type>& rows,
-				   size_type colCount) {
+                                   size_type colCount) {
     return mat_vect_adaptor<Vector,mat_alignment::column_major>(v,rows.second - rows.first + 1,colCount,rows.first);
   };
 };
@@ -974,11 +974,11 @@ struct mat_const_vect_adaptor_factory {
   const Vector& v;
   mat_const_vect_adaptor_factory(const Vector& aV) : v(aV) { };
   mat_const_vect_adaptor<Vector,mat_alignment::row_major> operator()(size_type rowCount,
-				   const std::pair<size_type,size_type>& cols) {
+                                   const std::pair<size_type,size_type>& cols) {
     return mat_const_vect_adaptor<Vector,mat_alignment::row_major>(v,rowCount,cols.second - cols.first + 1,cols.first);
   };
   mat_const_vect_adaptor<Vector,mat_alignment::column_major> operator()(const std::pair<size_type,size_type>& rows,
-				   size_type colCount) {
+                                   size_type colCount) {
     return mat_const_vect_adaptor<Vector,mat_alignment::column_major>(v,rows.second - rows.first + 1,colCount,rows.first);
   };
 };

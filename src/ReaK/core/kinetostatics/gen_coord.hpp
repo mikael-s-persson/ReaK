@@ -209,7 +209,7 @@ std::ostream& operator <<(std::ostream& out, const gen_coord<T>& g) {
 
 
 
-#if (defined(RK_ENABLE_CXX11_FEATURES) && defined(RK_ENABLE_EXTERN_TEMPLATES))
+#ifndef BOOST_NO_CXX11_EXTERN_TEMPLATE
 
 extern template class gen_coord<double>;
 extern template std::ostream& operator <<(std::ostream& out, const gen_coord<double>& g);

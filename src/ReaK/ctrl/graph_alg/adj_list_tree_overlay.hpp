@@ -132,10 +132,10 @@ boost::data_member_property_map<AdjVertexProperty, tree_vertex_properties_impl<A
  * indirect to a graph, and the two graphs are always kept consistent, which would be difficult to do externally.
  */
 template <typename AdjListType,
-	  typename VertexProperty,
-	  typename TreeVertexProperty,
-	  typename TreeEdgeProperty,
-	  typename TreeStorageTag>
+          typename VertexProperty,
+          typename TreeVertexProperty,
+          typename TreeEdgeProperty,
+          typename TreeStorageTag>
 class adj_list_on_tree {
   public:
     typedef adj_list_on_tree<AdjListType, VertexProperty, TreeVertexProperty, TreeEdgeProperty, TreeStorageTag> self;
@@ -180,11 +180,11 @@ class adj_list_on_tree {
 
 
 template <typename OutEdgeListS = boost::vecS,
-	  typename DirectedS = boost::directedS,
-	  typename VertexProperty = boost::no_property,
-	  typename AdjEdgeProperty = boost::no_property,
-	  typename AdjEdgeListS = boost::vecS,
-	  typename TreeStorageTag = ReaK::graph::d_ary_bf_tree_storage<2> >
+          typename DirectedS = boost::directedS,
+          typename VertexProperty = boost::no_property,
+          typename AdjEdgeProperty = boost::no_property,
+          typename AdjEdgeListS = boost::vecS,
+          typename TreeStorageTag = ReaK::graph::d_ary_bf_tree_storage<2> >
 struct adj_list_on_tree_tag {
 
   typedef typename tree_storage_traits< TreeStorageTag >::vertex_descriptor tree_vertex_descriptor;
@@ -198,7 +198,7 @@ struct adj_list_on_tree_tag {
 
   typedef boost::adjacency_list< OutEdgeListS, boost::vecS, DirectedS,
                                  adj_vertex_properties, adj_edge_properties,
-				 boost::no_property, AdjEdgeListS > adj_list_type;
+                                 boost::no_property, AdjEdgeListS > adj_list_type;
 
   template <typename TreeVertexProperty, typename TreeEdgeProperty>
   struct alt {
@@ -212,12 +212,12 @@ struct adj_list_on_tree_tag {
 
 template <typename TreeVertexProperty,
           typename TreeEdgeProperty,
-	  typename OutEdgeListS,
-	  typename DirectedS,
-	  typename VertexProperty,
-	  typename AdjEdgeProperty,
-	  typename AdjEdgeListS,
-	  typename TreeStorageTag>
+          typename OutEdgeListS,
+          typename DirectedS,
+          typename VertexProperty,
+          typename AdjEdgeProperty,
+          typename AdjEdgeListS,
+          typename TreeStorageTag>
 struct tree_storage< TreeVertexProperty, TreeEdgeProperty,
                      adj_list_on_tree_tag<OutEdgeListS, DirectedS, VertexProperty, AdjEdgeProperty, AdjEdgeListS, TreeStorageTag> > {
   typedef adj_list_on_tree_tag<OutEdgeListS, DirectedS, VertexProperty, AdjEdgeProperty, AdjEdgeListS, TreeStorageTag> alt_tag_type;
@@ -226,11 +226,11 @@ struct tree_storage< TreeVertexProperty, TreeEdgeProperty,
 
 
 template <typename OutEdgeListS,
-	  typename DirectedS,
-	  typename VertexProperty,
-	  typename AdjEdgeProperty,
-	  typename AdjEdgeListS,
-	  typename TreeStorageTag>
+          typename DirectedS,
+          typename VertexProperty,
+          typename AdjEdgeProperty,
+          typename AdjEdgeListS,
+          typename TreeStorageTag>
 struct tree_storage_traits< adj_list_on_tree_tag<OutEdgeListS, DirectedS, VertexProperty, AdjEdgeProperty, AdjEdgeListS, TreeStorageTag> > :
   tree_storage_traits< TreeStorageTag > { };
 
@@ -371,8 +371,8 @@ class alt_tree_view {
 
     std::pair< vertex_descriptor, edge_descriptor>
       add_child_vertex_impl(vertex_descriptor v,
-		       const vertex_property_type& vp,
-		       const edge_property_type& ep = edge_property_type()) {
+                       const vertex_property_type& vp,
+                       const edge_property_type& ep = edge_property_type()) {
       std::pair< vertex_descriptor, edge_descriptor> result = add_child_vertex(v, vp, ep, m_alt->m_tree);
       m_alt->m_adj_list[ m_alt->m_tree[result.first].partner_node ].tree_vertex = result.first;
       return result;
@@ -383,7 +383,7 @@ class alt_tree_view {
       return remove_branch(v, it_out, m_alt->m_tree);
     };
 
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
     vertex_descriptor create_root_impl(vertex_property_type&& vp) {
       vertex_descriptor v_root = create_root(std::move(vp), m_alt->m_tree);
       m_alt->m_adj_list[ m_alt->m_tree[v_root].partner_node ].tree_vertex = v_root;
@@ -594,7 +594,7 @@ class alt_graph_view {
 
       virtual void remove_vertex(tree_vertex_desc, alt_tree_view< AdjListOnTreeType >&) const = 0;
       virtual void add_vertex(const tree_vertex_prop&, alt_tree_view< AdjListOnTreeType >&) const = 0;
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
       virtual void add_vertex(tree_vertex_prop&&, alt_tree_view< AdjListOnTreeType >&) const = 0;
 #endif
     };
@@ -609,14 +609,14 @@ class alt_graph_view {
       virtual ~mutation_visitor() { };
 
       virtual void remove_vertex(tree_vertex_desc tv, alt_tree_view< AdjListOnTreeType >& t) const {
-	m_vis.remove_vertex(tv, t);
+        m_vis.remove_vertex(tv, t);
       };
       virtual void add_vertex(const tree_vertex_prop& tvp, alt_tree_view< AdjListOnTreeType >& t) const {
-	m_vis.add_vertex(tvp, t);
+        m_vis.add_vertex(tvp, t);
       };
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
       virtual void add_vertex(tree_vertex_prop&& tvp, alt_tree_view< AdjListOnTreeType >& t) const {
-	m_vis.add_vertex(std::move(tvp), t);
+        m_vis.add_vertex(std::move(tvp), t);
       };
 #endif
     };
@@ -779,18 +779,18 @@ class alt_graph_view {
     vertex_descriptor add_vertex_impl(const vertex_property_type& vp) {
       vertex_descriptor v;
       if( m_alt->m_available_pnodes.empty() ) {
-	// add a new node in the graph (this is safe, it will not invalidate vertex descriptors).
-	v = add_vertex(m_alt->m_adj_list);
+        // add a new node in the graph (this is safe, it will not invalidate vertex descriptors).
+        v = add_vertex(m_alt->m_adj_list);
       } else {
-	// resurrect a node from the graveyard.
-	v = m_alt->m_available_pnodes.top();
-	m_alt->m_available_pnodes.pop();
+        // resurrect a node from the graveyard.
+        v = m_alt->m_available_pnodes.top();
+        m_alt->m_available_pnodes.pop();
       };
       typename tree_type::vertex_property_type tree_vp;
       tree_vp.partner_node = v;
       tree_vp.user_data = vp;
       alt_tree_view< AdjListOnTreeType > tree_view(*this);
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
       m_vis->add_vertex(std::move(tree_vp), tree_view);
 #else
       m_vis->add_vertex(tree_vp, tree_view);
@@ -819,16 +819,16 @@ class alt_graph_view {
       remove_edge(e_iter, ep, m_alt->m_adj_list);
     };
 
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
     vertex_descriptor add_vertex_impl(vertex_property_type&& vp) {
       vertex_descriptor v;
       if( m_alt->m_available_pnodes.empty() ) {
-	// add a new node in the graph (this is safe, it will not invalidate vertex descriptors).
-	v = add_vertex(m_alt->m_adj_list);
+        // add a new node in the graph (this is safe, it will not invalidate vertex descriptors).
+        v = add_vertex(m_alt->m_adj_list);
       } else {
-	// resurrect a node from the graveyard.
-	v = m_alt->m_available_pnodes.top();
-	m_alt->m_available_pnodes.pop();
+        // resurrect a node from the graveyard.
+        v = m_alt->m_available_pnodes.top();
+        m_alt->m_available_pnodes.pop();
       };
       typename tree_type::vertex_property_type tree_vp;
       tree_vp.partner_node = v;
@@ -847,11 +847,11 @@ class alt_graph_view {
 
     bool is_vertex_valid_impl(vertex_descriptor u) const {
       if( ( u != null_vertex() ) &&
-	  ( m_alt->m_adj_list[u].tree_vertex != m_alt->m_tree.null_vertex() ) &&
-	  is_vertex_valid(m_alt->m_adj_list[u].tree_vertex, m_alt->m_tree) )
-	return true;
+          ( m_alt->m_adj_list[u].tree_vertex != m_alt->m_tree.null_vertex() ) &&
+          is_vertex_valid(m_alt->m_adj_list[u].tree_vertex, m_alt->m_tree) )
+        return true;
       else
-	return false;
+        return false;
     };
 
     bool is_edge_valid_impl(edge_descriptor e) const {
@@ -863,7 +863,7 @@ class alt_graph_view {
 
     void update_vertex(vertex_descriptor v) {
       alt_tree_view< AdjListOnTreeType > tree_view(*this);
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
       typename tree_type::vertex_property_type tree_vp = std::move(m_alt->m_tree[ m_alt->m_adj_list[v].tree_vertex ]);
       m_vis->remove_vertex(m_alt->m_adj_list[v].tree_vertex, tree_view);
       m_vis->add_vertex(std::move(tree_vp), tree_view);
@@ -877,51 +877,51 @@ class alt_graph_view {
     // this could go into NonCompactGraphConcept
     void repack_graph() {
       if(m_alt->m_available_pnodes.empty())
-	return;
+        return;
       // here, the idea is to essentially empty out the graveyard,
       if( boost::is_same< vertices_size_type, vertex_descriptor >::type::value ) {
-	// if vertex descriptors are into a random-access container, then a simple remove loop won't cut it.
-	// the idea here is to achieve a behavior similar to the std::remove function, but by taking
-	// elements from the back of the vertex list and swapping them with the ones in the graveyard.
-	using std::swap;
-	vertex_descriptor v_end = reinterpret_cast<vertex_descriptor>(num_vertices(m_alt->m_adj_list));
-	while(!m_alt->m_available_pnodes.empty()) {
-	  vertex_descriptor v = m_alt->m_available_pnodes.top();
-	  while( ( v_end > v ) && ( !is_vertex_valid_impl(--v_end) ) )
-	    /* nothing */;
-	  if(v > v_end) {
-	    ++v_end;
-	    break;
-	  };
-	  swap(m_alt->m_adj_list[v], m_alt->m_adj_list[v_end]);
-	  out_edge_iterator ei, ei_end;
-	  for(boost::tie(ei,ei_end) = out_edges(v_end, m_alt->m_adj_list); ei != ei_end; ++ei) {
-	    std::pair<edge_descriptor, bool> e = add_edge(v, target(*ei, m_alt->m_adj_list), m_alt->m_adj_list);
-	    swap(m_alt->m_adj_list[e], m_alt->m_adj_list[*ei]);
-	  };
-	  if( boost::is_same< directed_category, boost::directed_tag >::type::value ) {
-	    in_edge_iterator in_ei, in_ei_end;
-	    for(boost::tie(in_ei, in_ei_end) = in_edges(v_end, m_alt->m_adj_list); in_ei != in_ei_end; ++in_ei) {
-	      std::pair<edge_descriptor, bool> e = add_edge(source(*in_ei, m_alt->m_adj_list), v, m_alt->m_adj_list);
-	      swap(m_alt->m_adj_list[e], m_alt->m_adj_list[*in_ei]);
-	    };
-	  };
-	  clear_vertex(v_end, m_alt->m_adj_list);
-	  m_alt->m_available_pnodes.pop();
-	};
-	while(!m_alt->m_available_pnodes.empty())
-	  m_alt->m_available_pnodes.pop();
-	// at this point v_end is the first invalid vertex remaining.
-	vertex_descriptor v_rm = reinterpret_cast<vertex_descriptor>(num_vertices(m_alt->m_adj_list));
-	while(v_rm > v_end)
-	  remove_vertex(--v_rm, m_alt->m_adj_list);
+        // if vertex descriptors are into a random-access container, then a simple remove loop won't cut it.
+        // the idea here is to achieve a behavior similar to the std::remove function, but by taking
+        // elements from the back of the vertex list and swapping them with the ones in the graveyard.
+        using std::swap;
+        vertex_descriptor v_end = reinterpret_cast<vertex_descriptor>(num_vertices(m_alt->m_adj_list));
+        while(!m_alt->m_available_pnodes.empty()) {
+          vertex_descriptor v = m_alt->m_available_pnodes.top();
+          while( ( v_end > v ) && ( !is_vertex_valid_impl(--v_end) ) )
+            /* nothing */;
+          if(v > v_end) {
+            ++v_end;
+            break;
+          };
+          swap(m_alt->m_adj_list[v], m_alt->m_adj_list[v_end]);
+          out_edge_iterator ei, ei_end;
+          for(boost::tie(ei,ei_end) = out_edges(v_end, m_alt->m_adj_list); ei != ei_end; ++ei) {
+            std::pair<edge_descriptor, bool> e = add_edge(v, target(*ei, m_alt->m_adj_list), m_alt->m_adj_list);
+            swap(m_alt->m_adj_list[e], m_alt->m_adj_list[*ei]);
+          };
+          if( boost::is_same< directed_category, boost::directed_tag >::type::value ) {
+            in_edge_iterator in_ei, in_ei_end;
+            for(boost::tie(in_ei, in_ei_end) = in_edges(v_end, m_alt->m_adj_list); in_ei != in_ei_end; ++in_ei) {
+              std::pair<edge_descriptor, bool> e = add_edge(source(*in_ei, m_alt->m_adj_list), v, m_alt->m_adj_list);
+              swap(m_alt->m_adj_list[e], m_alt->m_adj_list[*in_ei]);
+            };
+          };
+          clear_vertex(v_end, m_alt->m_adj_list);
+          m_alt->m_available_pnodes.pop();
+        };
+        while(!m_alt->m_available_pnodes.empty())
+          m_alt->m_available_pnodes.pop();
+        // at this point v_end is the first invalid vertex remaining.
+        vertex_descriptor v_rm = reinterpret_cast<vertex_descriptor>(num_vertices(m_alt->m_adj_list));
+        while(v_rm > v_end)
+          remove_vertex(--v_rm, m_alt->m_adj_list);
 
       } else {
-	// if vertex descriptors are not random-access, they should not get invalidated by removal of other vertices.
+        // if vertex descriptors are not random-access, they should not get invalidated by removal of other vertices.
         while(!m_alt->m_available_pnodes.empty()) {
-	  clear_vertex(m_alt->m_available_pnodes.top(), m_alt->m_adj_list);
-	  remove_vertex(m_alt->m_available_pnodes.top(), m_alt->m_adj_list);
-	  m_alt->m_available_pnodes.pop();
+          clear_vertex(m_alt->m_available_pnodes.top(), m_alt->m_adj_list);
+          remove_vertex(m_alt->m_available_pnodes.top(), m_alt->m_adj_list);
+          m_alt->m_available_pnodes.pop();
         };
       };
       // re-updating all partner-vertex descriptors in the tree.
@@ -940,9 +940,9 @@ alt_tree_view<AdjListOnTreeType>::alt_tree_view(const alt_graph_view< AdjListOnT
 template <typename AdjListOnTreeType>
 template <typename GraphMutationVisitor>
 alt_graph_view<AdjListOnTreeType>::alt_graph_view(const alt_tree_view< AdjListOnTreeType >& t,
-						  GraphMutationVisitor aVis ) :
-						  m_alt(t.m_alt),
-						  m_vis(new typename alt_graph_view<AdjListOnTreeType>::template mutation_visitor<GraphMutationVisitor>(aVis)) { };
+                                                  GraphMutationVisitor aVis ) :
+                                                  m_alt(t.m_alt),
+                                                  m_vis(new typename alt_graph_view<AdjListOnTreeType>::template mutation_visitor<GraphMutationVisitor>(aVis)) { };
 
 
 
@@ -972,28 +972,28 @@ template <typename AdjListOnTreeType>
 std::pair< typename boost::graph_traits< alt_tree_view<AdjListOnTreeType> >::out_edge_iterator,
            typename boost::graph_traits< alt_tree_view<AdjListOnTreeType> >::out_edge_iterator >
   out_edges(typename boost::graph_traits< alt_tree_view<AdjListOnTreeType> >::vertex_descriptor v,
-	    const alt_tree_view<AdjListOnTreeType>& g) {
+            const alt_tree_view<AdjListOnTreeType>& g) {
   return out_edges(v, g.get_tree());
 };
 
 template <typename AdjListOnTreeType>
 typename boost::graph_traits< alt_tree_view<AdjListOnTreeType> >::vertex_descriptor
   source(typename boost::graph_traits< alt_tree_view<AdjListOnTreeType> >::edge_descriptor e,
-	 const alt_tree_view<AdjListOnTreeType>& g) {
+         const alt_tree_view<AdjListOnTreeType>& g) {
   return source(e, g.get_tree());
 };
 
 template <typename AdjListOnTreeType>
 typename boost::graph_traits< alt_tree_view<AdjListOnTreeType> >::vertex_descriptor
   target(typename boost::graph_traits< alt_tree_view<AdjListOnTreeType> >::edge_descriptor e,
-	 const alt_tree_view<AdjListOnTreeType>& g) {
+         const alt_tree_view<AdjListOnTreeType>& g) {
   return target(e, g.get_tree());
 };
 
 template <typename AdjListOnTreeType>
 typename boost::graph_traits< alt_tree_view<AdjListOnTreeType> >::degree_size_type
   out_degree(typename boost::graph_traits< alt_tree_view<AdjListOnTreeType> >::vertex_descriptor v,
-	     const alt_tree_view<AdjListOnTreeType>& g) {
+             const alt_tree_view<AdjListOnTreeType>& g) {
   return out_degree(v, g.get_tree());
 };
 
@@ -1006,21 +1006,21 @@ template <typename AdjListOnTreeType>
 std::pair< typename boost::graph_traits< alt_tree_view<AdjListOnTreeType> >::in_edge_iterator,
            typename boost::graph_traits< alt_tree_view<AdjListOnTreeType> >::in_edge_iterator >
   in_edges(typename boost::graph_traits< alt_tree_view<AdjListOnTreeType> >::vertex_descriptor v,
-	   const alt_tree_view<AdjListOnTreeType>& g) {
+           const alt_tree_view<AdjListOnTreeType>& g) {
   return in_edges(v, g.get_tree());
 };
 
 template <typename AdjListOnTreeType>
 typename boost::graph_traits< alt_tree_view<AdjListOnTreeType> >::degree_size_type
   in_degree(typename boost::graph_traits< alt_tree_view<AdjListOnTreeType> >::vertex_descriptor v,
-	    const alt_tree_view<AdjListOnTreeType>& g) {
+            const alt_tree_view<AdjListOnTreeType>& g) {
   return in_degree(v, g.get_tree());
 };
 
 template <typename AdjListOnTreeType>
 typename boost::graph_traits< alt_tree_view<AdjListOnTreeType> >::degree_size_type
   degree(typename boost::graph_traits< alt_tree_view<AdjListOnTreeType> >::edge_descriptor e,
-	 const alt_tree_view<AdjListOnTreeType>& g) {
+         const alt_tree_view<AdjListOnTreeType>& g) {
   return degree(e, g.get_tree());
 };
 
@@ -1033,7 +1033,7 @@ template <typename AdjListOnTreeType>
 std::pair< typename boost::graph_traits< alt_tree_view<AdjListOnTreeType> >::adjacency_iterator,
            typename boost::graph_traits< alt_tree_view<AdjListOnTreeType> >::adjacency_iterator >
   adjacent_vertices(typename boost::graph_traits< alt_tree_view<AdjListOnTreeType> >::vertex_descriptor u,
-		    const alt_tree_view<AdjListOnTreeType>& g) {
+                    const alt_tree_view<AdjListOnTreeType>& g) {
   return adjacent_vertices(u, g.get_tree());
 };
 
@@ -1100,7 +1100,7 @@ template <typename AdjListOnTreeType>
 std::pair< typename tree_traits< alt_tree_view<AdjListOnTreeType> >::child_vertex_iterator,
            typename tree_traits< alt_tree_view<AdjListOnTreeType> >::child_vertex_iterator >
   child_vertices(typename boost::graph_traits< alt_tree_view<AdjListOnTreeType> >::vertex_descriptor v,
-		 const alt_tree_view<AdjListOnTreeType>& g) {
+                 const alt_tree_view<AdjListOnTreeType>& g) {
   return child_vertices(v,g.get_tree());
 };
 
@@ -1119,14 +1119,14 @@ template <typename AdjListOnTreeType>
 std::pair< typename boost::graph_traits< alt_tree_view<AdjListOnTreeType> >::vertex_descriptor,
            typename boost::graph_traits< alt_tree_view<AdjListOnTreeType> >::edge_descriptor>
   add_child_vertex(typename boost::graph_traits< alt_tree_view<AdjListOnTreeType> >::vertex_descriptor v,
-		   const alt_tree_view<AdjListOnTreeType>& g) {
+                   const alt_tree_view<AdjListOnTreeType>& g) {
   return g.add_child_vertex_can_only_be_called_with_a_vertex_property(v);
 };
 
 
 template <typename AdjListOnTreeType>
 void remove_branch(typename boost::graph_traits< alt_tree_view<AdjListOnTreeType> >::vertex_descriptor v,
-		   alt_tree_view<AdjListOnTreeType>& g) {
+                   alt_tree_view<AdjListOnTreeType>& g) {
   g.remove_branch_can_only_be_called_with_a_vertex_property_range_for_output(v);
 };
 
@@ -1139,7 +1139,7 @@ void remove_branch(typename boost::graph_traits< alt_tree_view<AdjListOnTreeType
 template <typename AdjListOnTreeType>
 typename boost::graph_traits< alt_tree_view<AdjListOnTreeType> >::vertex_descriptor
   create_root(const typename alt_tree_view<AdjListOnTreeType>::vertex_property_type& vp,
-	      alt_tree_view<AdjListOnTreeType>& g) {
+              alt_tree_view<AdjListOnTreeType>& g) {
   return g.create_root_impl(vp);
 };
 
@@ -1147,8 +1147,8 @@ template <typename AdjListOnTreeType>
 std::pair< typename boost::graph_traits< alt_tree_view<AdjListOnTreeType> >::vertex_descriptor,
            typename boost::graph_traits< alt_tree_view<AdjListOnTreeType> >::edge_descriptor>
   add_child_vertex(typename boost::graph_traits< alt_tree_view<AdjListOnTreeType> >::vertex_descriptor v,
-		   const typename alt_tree_view<AdjListOnTreeType>::vertex_property_type& vp,
-		   alt_tree_view<AdjListOnTreeType>& g) {
+                   const typename alt_tree_view<AdjListOnTreeType>::vertex_property_type& vp,
+                   alt_tree_view<AdjListOnTreeType>& g) {
   return g.add_child_vertex_impl(v, vp);
 };
 
@@ -1156,25 +1156,25 @@ template <typename AdjListOnTreeType>
 std::pair< typename boost::graph_traits< alt_tree_view<AdjListOnTreeType> >::vertex_descriptor,
            typename boost::graph_traits< alt_tree_view<AdjListOnTreeType> >::edge_descriptor>
   add_child_vertex(typename boost::graph_traits< alt_tree_view<AdjListOnTreeType> >::vertex_descriptor v,
-		   const typename alt_tree_view<AdjListOnTreeType>::vertex_property_type& vp,
-		   const typename alt_tree_view<AdjListOnTreeType>::edge_property_type& ep,
-		   alt_tree_view<AdjListOnTreeType>& g) {
+                   const typename alt_tree_view<AdjListOnTreeType>::vertex_property_type& vp,
+                   const typename alt_tree_view<AdjListOnTreeType>::edge_property_type& ep,
+                   alt_tree_view<AdjListOnTreeType>& g) {
   return g.add_child_vertex_impl(v, vp, ep);
 };
 
 
 template <typename AdjListOnTreeType, typename OutputIter>
 OutputIter remove_branch(typename boost::graph_traits< alt_tree_view<AdjListOnTreeType> >::vertex_descriptor v,
-		         OutputIter it_out,
-		         alt_tree_view<AdjListOnTreeType>& g) {
+                         OutputIter it_out,
+                         alt_tree_view<AdjListOnTreeType>& g) {
   return g.remove_branch_impl(v,it_out);
 };
 
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
 template <typename AdjListOnTreeType>
 typename boost::graph_traits< alt_tree_view<AdjListOnTreeType> >::vertex_descriptor
   create_root(typename alt_tree_view<AdjListOnTreeType>::vertex_property_type&& vp,
-	      alt_tree_view<AdjListOnTreeType>& g) {
+              alt_tree_view<AdjListOnTreeType>& g) {
   return g.create_root_impl(std::move(vp));
 };
 
@@ -1182,8 +1182,8 @@ template <typename AdjListOnTreeType>
 std::pair< typename boost::graph_traits< alt_tree_view<AdjListOnTreeType> >::vertex_descriptor,
            typename boost::graph_traits< alt_tree_view<AdjListOnTreeType> >::edge_descriptor>
   add_child_vertex(typename boost::graph_traits< alt_tree_view<AdjListOnTreeType> >::vertex_descriptor v,
-		   typename alt_tree_view<AdjListOnTreeType>::vertex_property_type&& vp,
-		   alt_tree_view<AdjListOnTreeType>& g) {
+                   typename alt_tree_view<AdjListOnTreeType>::vertex_property_type&& vp,
+                   alt_tree_view<AdjListOnTreeType>& g) {
   return g.add_child_vertex_impl(v, std::move(vp));
 };
 
@@ -1191,9 +1191,9 @@ template <typename AdjListOnTreeType>
 std::pair< typename boost::graph_traits< alt_tree_view<AdjListOnTreeType> >::vertex_descriptor,
            typename boost::graph_traits< alt_tree_view<AdjListOnTreeType> >::edge_descriptor>
   add_child_vertex(typename boost::graph_traits< alt_tree_view<AdjListOnTreeType> >::vertex_descriptor v,
-		   typename alt_tree_view<AdjListOnTreeType>::vertex_property_type&& vp,
-		   typename alt_tree_view<AdjListOnTreeType>::edge_property_type&& ep,
-		   alt_tree_view<AdjListOnTreeType>& g) {
+                   typename alt_tree_view<AdjListOnTreeType>::vertex_property_type&& vp,
+                   typename alt_tree_view<AdjListOnTreeType>::edge_property_type&& ep,
+                   alt_tree_view<AdjListOnTreeType>& g) {
   return g.add_child_vertex_impl(v, std::move(vp), std::move(ep));
 };
 #endif
@@ -1204,13 +1204,13 @@ std::pair< typename boost::graph_traits< alt_tree_view<AdjListOnTreeType> >::ver
 
 template <typename AdjListOnTreeType>
 bool is_vertex_valid(typename boost::graph_traits< alt_tree_view<AdjListOnTreeType> >::vertex_descriptor u,
-		     const alt_tree_view<AdjListOnTreeType>& g) {
+                     const alt_tree_view<AdjListOnTreeType>& g) {
   return is_vertex_valid(u,g.get_tree());
 };
 
 template <typename AdjListOnTreeType>
 bool is_edge_valid(typename boost::graph_traits< alt_tree_view<AdjListOnTreeType> >::edge_descriptor e,
-		   const alt_tree_view<AdjListOnTreeType>& g) {
+                   const alt_tree_view<AdjListOnTreeType>& g) {
   return is_edge_valid(e,g.get_tree());
 };
 
@@ -1234,28 +1234,28 @@ template <typename AdjListOnTreeType>
 std::pair< typename boost::graph_traits< alt_graph_view<AdjListOnTreeType> >::out_edge_iterator,
            typename boost::graph_traits< alt_graph_view<AdjListOnTreeType> >::out_edge_iterator >
   out_edges(typename boost::graph_traits< alt_graph_view<AdjListOnTreeType> >::vertex_descriptor v,
-	    const alt_graph_view<AdjListOnTreeType>& g) {
+            const alt_graph_view<AdjListOnTreeType>& g) {
   return g.out_edges_impl(v);
 };
 
 template <typename AdjListOnTreeType>
 typename boost::graph_traits< alt_graph_view<AdjListOnTreeType> >::vertex_descriptor
   source(typename boost::graph_traits< alt_graph_view<AdjListOnTreeType> >::edge_descriptor e,
-	 const alt_graph_view<AdjListOnTreeType>& g) {
+         const alt_graph_view<AdjListOnTreeType>& g) {
   return g.source_impl(e);
 };
 
 template <typename AdjListOnTreeType>
 typename boost::graph_traits< alt_graph_view<AdjListOnTreeType> >::vertex_descriptor
   target(typename boost::graph_traits< alt_graph_view<AdjListOnTreeType> >::edge_descriptor e,
-	 const alt_graph_view<AdjListOnTreeType>& g) {
+         const alt_graph_view<AdjListOnTreeType>& g) {
   return g.target_impl(e);
 };
 
 template <typename AdjListOnTreeType>
 typename boost::graph_traits< alt_graph_view<AdjListOnTreeType> >::degree_size_type
   out_degree(typename boost::graph_traits< alt_graph_view<AdjListOnTreeType> >::vertex_descriptor v,
-	     const alt_graph_view<AdjListOnTreeType>& g) {
+             const alt_graph_view<AdjListOnTreeType>& g) {
   return g.out_degree_impl(v);
 };
 
@@ -1268,21 +1268,21 @@ template <typename AdjListOnTreeType>
 std::pair< typename boost::graph_traits< alt_graph_view<AdjListOnTreeType> >::in_edge_iterator,
            typename boost::graph_traits< alt_graph_view<AdjListOnTreeType> >::in_edge_iterator >
   in_edges(typename boost::graph_traits< alt_graph_view<AdjListOnTreeType> >::vertex_descriptor v,
-	   const alt_graph_view<AdjListOnTreeType>& g) {
+           const alt_graph_view<AdjListOnTreeType>& g) {
   return g.in_edges_impl(v);
 };
 
 template <typename AdjListOnTreeType>
 typename boost::graph_traits< alt_graph_view<AdjListOnTreeType> >::degree_size_type
   in_degree(typename boost::graph_traits< alt_graph_view<AdjListOnTreeType> >::vertex_descriptor v,
-	    const alt_graph_view<AdjListOnTreeType>& g) {
+            const alt_graph_view<AdjListOnTreeType>& g) {
   return g.in_degree_impl(v);
 };
 
 template <typename AdjListOnTreeType>
 typename boost::graph_traits< alt_graph_view<AdjListOnTreeType> >::degree_size_type
   degree(typename boost::graph_traits< alt_graph_view<AdjListOnTreeType> >::edge_descriptor e,
-	 const alt_graph_view<AdjListOnTreeType>& g) {
+         const alt_graph_view<AdjListOnTreeType>& g) {
   return g.degree_impl(e);
 };
 
@@ -1295,7 +1295,7 @@ template <typename AdjListOnTreeType>
 std::pair< typename boost::graph_traits< alt_graph_view<AdjListOnTreeType> >::adjacency_iterator,
            typename boost::graph_traits< alt_graph_view<AdjListOnTreeType> >::adjacency_iterator >
   adjacent_vertices(typename boost::graph_traits< alt_graph_view<AdjListOnTreeType> >::vertex_descriptor u,
-		    const alt_graph_view<AdjListOnTreeType>& g) {
+                    const alt_graph_view<AdjListOnTreeType>& g) {
   return g.adjacent_vertices_impl(u);
 };
 
@@ -1375,15 +1375,15 @@ void remove_vertex(typename boost::graph_traits< alt_graph_view<AdjListOnTreeTyp
 template <typename AdjListOnTreeType>
 std::pair<typename boost::graph_traits< alt_graph_view<AdjListOnTreeType> >::edge_descriptor, bool>
   add_edge(typename boost::graph_traits< alt_graph_view<AdjListOnTreeType> >::vertex_descriptor u,
-	   typename boost::graph_traits< alt_graph_view<AdjListOnTreeType> >::vertex_descriptor v,
-	   alt_graph_view<AdjListOnTreeType>& g) {
+           typename boost::graph_traits< alt_graph_view<AdjListOnTreeType> >::vertex_descriptor v,
+           alt_graph_view<AdjListOnTreeType>& g) {
   return g.add_edge_impl(u,v);
 };
 
 template <typename AdjListOnTreeType>
 void remove_edge(typename boost::graph_traits< alt_graph_view<AdjListOnTreeType> >::vertex_descriptor u,
-		 typename boost::graph_traits< alt_graph_view<AdjListOnTreeType> >::vertex_descriptor v,
-		 alt_graph_view<AdjListOnTreeType>& g) {
+                 typename boost::graph_traits< alt_graph_view<AdjListOnTreeType> >::vertex_descriptor v,
+                 alt_graph_view<AdjListOnTreeType>& g) {
   g.remove_edge_impl(u,v);
 };
 
@@ -1412,43 +1412,43 @@ typename boost::graph_traits< alt_graph_view<AdjListOnTreeType> >::vertex_descri
 
 template <typename AdjListOnTreeType>
 void remove_vertex(typename boost::graph_traits< alt_graph_view<AdjListOnTreeType> >::vertex_descriptor v,
-		   typename alt_graph_view<AdjListOnTreeType>::vertex_property_type& vp,
-		   alt_graph_view<AdjListOnTreeType>& g) {
+                   typename alt_graph_view<AdjListOnTreeType>::vertex_property_type& vp,
+                   alt_graph_view<AdjListOnTreeType>& g) {
   g.remove_vertex_impl(v,vp);
 };
 
 template <typename AdjListOnTreeType>
 std::pair<typename boost::graph_traits< alt_graph_view<AdjListOnTreeType> >::edge_descriptor, bool>
   add_edge(typename boost::graph_traits< alt_graph_view<AdjListOnTreeType> >::vertex_descriptor u,
-	   typename boost::graph_traits< alt_graph_view<AdjListOnTreeType> >::vertex_descriptor v,
-	   const typename alt_graph_view<AdjListOnTreeType>::edge_property_type& ep,
-	   alt_graph_view<AdjListOnTreeType>& g) {
+           typename boost::graph_traits< alt_graph_view<AdjListOnTreeType> >::vertex_descriptor v,
+           const typename alt_graph_view<AdjListOnTreeType>::edge_property_type& ep,
+           alt_graph_view<AdjListOnTreeType>& g) {
   return g.add_edge_impl(u,v,ep);
 };
 
 template <typename AdjListOnTreeType>
 void remove_edge(typename boost::graph_traits< alt_graph_view<AdjListOnTreeType> >::vertex_descriptor u,
-		 typename boost::graph_traits< alt_graph_view<AdjListOnTreeType> >::vertex_descriptor v,
-		 typename alt_graph_view<AdjListOnTreeType>::edge_property_type& ep,
-		 alt_graph_view<AdjListOnTreeType>& g) {
+                 typename boost::graph_traits< alt_graph_view<AdjListOnTreeType> >::vertex_descriptor v,
+                 typename alt_graph_view<AdjListOnTreeType>::edge_property_type& ep,
+                 alt_graph_view<AdjListOnTreeType>& g) {
   g.remove_edge_impl(u,v,ep);
 };
 
 template <typename AdjListOnTreeType>
 void remove_edge(typename boost::graph_traits< alt_graph_view<AdjListOnTreeType> >::edge_descriptor e,
-		 typename alt_graph_view<AdjListOnTreeType>::edge_property_type& ep,
-		 alt_graph_view<AdjListOnTreeType>& g) {
+                 typename alt_graph_view<AdjListOnTreeType>::edge_property_type& ep,
+                 alt_graph_view<AdjListOnTreeType>& g) {
   g.remove_edge_impl(e,ep);
 };
 
 template <typename AdjListOnTreeType>
 void remove_edge(typename boost::graph_traits< alt_graph_view<AdjListOnTreeType> >::edge_iterator e_iter,
-		 typename alt_graph_view<AdjListOnTreeType>::edge_property_type& ep,
-		 alt_graph_view<AdjListOnTreeType>& g) {
+                 typename alt_graph_view<AdjListOnTreeType>::edge_property_type& ep,
+                 alt_graph_view<AdjListOnTreeType>& g) {
   g.remove_edge_impl(e_iter,ep);
 };
 
-#ifdef RK_ENABLE_CXX0X_FEATURES
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
 template <typename AdjListOnTreeType>
 typename boost::graph_traits< alt_graph_view<AdjListOnTreeType> >::vertex_descriptor
   add_vertex(typename alt_graph_view<AdjListOnTreeType>::vertex_property_type&& vp,
@@ -1459,9 +1459,9 @@ typename boost::graph_traits< alt_graph_view<AdjListOnTreeType> >::vertex_descri
 template <typename AdjListOnTreeType>
 std::pair<typename boost::graph_traits< alt_graph_view<AdjListOnTreeType> >::edge_descriptor, bool>
   add_edge(typename boost::graph_traits< alt_graph_view<AdjListOnTreeType> >::vertex_descriptor u,
-	   typename boost::graph_traits< alt_graph_view<AdjListOnTreeType> >::vertex_descriptor v,
-	   typename alt_graph_view<AdjListOnTreeType>::edge_property_type&& ep,
-	   alt_graph_view<AdjListOnTreeType>& g) {
+           typename boost::graph_traits< alt_graph_view<AdjListOnTreeType> >::vertex_descriptor v,
+           typename alt_graph_view<AdjListOnTreeType>::edge_property_type&& ep,
+           alt_graph_view<AdjListOnTreeType>& g) {
   return g.add_edge_impl(u,v,std::move(ep));
 };
 #endif
@@ -1472,13 +1472,13 @@ std::pair<typename boost::graph_traits< alt_graph_view<AdjListOnTreeType> >::edg
 
 template <typename AdjListOnTreeType>
 bool is_vertex_valid(typename boost::graph_traits< alt_graph_view<AdjListOnTreeType> >::vertex_descriptor u,
-		     const alt_graph_view<AdjListOnTreeType>& g) {
+                     const alt_graph_view<AdjListOnTreeType>& g) {
   return g.is_vertex_valid_impl(u);
 };
 
 template <typename AdjListOnTreeType>
 bool is_edge_valid(typename boost::graph_traits< alt_graph_view<AdjListOnTreeType> >::edge_descriptor e,
-		   const alt_graph_view<AdjListOnTreeType>& g) {
+                   const alt_graph_view<AdjListOnTreeType>& g) {
   return g.is_edge_valid_impl(e);
 };
 
