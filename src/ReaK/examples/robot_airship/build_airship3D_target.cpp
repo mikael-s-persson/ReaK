@@ -191,10 +191,17 @@ int main(int argc, char ** argv) {
     .addShape(hull);
   
   
+    
+  
+  shared_ptr< manipulator_kinematics_model > airship3D_kin_model(new manipulator_kinematics_model("airship3D_kin_model"));
+  airship3D_kin_model->setModel(airship3D_model);
+  (*airship3D_kin_model) << airship3D_frame;
+  (*airship3D_kin_model) << airship3D_dep_frame;
+  
   
   (*serialization::open_oarchive(output_path_name + "/" + output_base_name + ".model" + output_extension))
     << global_base
-    << airship3D_dyn_model
+    << airship3D_kin_model
     << airship3D_grasp_frame
     << geom_mdl 
     << proxy_mdl;

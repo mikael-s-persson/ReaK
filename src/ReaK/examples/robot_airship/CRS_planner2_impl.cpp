@@ -189,10 +189,11 @@ void CRSPlannerGUI::stopCompleteAnimation() {
 
 
 void CRSPlannerGUI::runPlanner() {
-  if( space_config.is_temporal )
+  if( space_config.is_temporal ) {
     executeDynamicPlanner();
-  else
+  } else {
     executePlanner();
+  };
 };
 
 

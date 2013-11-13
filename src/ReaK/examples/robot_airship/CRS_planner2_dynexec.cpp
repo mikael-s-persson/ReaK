@@ -82,8 +82,14 @@ void CRS_execute_dynamic_planner_impl(const ReaK::kte::chaser_target_data& scene
   using namespace pp;
   
   shared_ptr< ManipMdlType > chaser_concrete_model = rtti::rk_dynamic_ptr_cast<ManipMdlType>(scene_data.chaser_kin_model);
-  if( !chaser_concrete_model )
+  if( !chaser_concrete_model ) {
+    std::cout << "Could not cast the chaser model to the given type!" << std::endl;
+    if( scene_data.chaser_kin_model )
+      std::cout << "Because the chaser model is a null pointer!" << std::endl;
+    if( dynamic_cast<ManipMdlType*>(scene_data.chaser_kin_model.get()) )
+      std::cout << "But the C++RTTI could perform the dynamic-cast correctly!" << std::endl;
     return;
+  };
   
   typedef typename manip_dynamic_workspace< ManipMdlType, Order >::rl_workspace_type dynamic_workspace_type;
   typedef typename manip_pp_traits< ManipMdlType, Order >::rl_jt_space_type rl_jt_space_type;
@@ -153,7 +159,7 @@ void CRS_execute_dynamic_planner_impl(const ReaK::kte::chaser_target_data& scene
       extract_spatial_component(), jt_space),
     0.5 * min_travel, (sw_motion_graph == NULL));
   
-  if((sw_motion_graph == NULL) || (sw_solutions == NULL)) {
+  if((sw_motion_graph) || (sw_solutions)) {
     temp_reporter.add_traced_frame(EE_frame);
     report_chain.add_reporter( boost::ref(temp_reporter) );
   };
@@ -185,6 +191,28 @@ void CRS_execute_dynamic_planner_impl(const ReaK::kte::chaser_target_data& scene
     target_state_traj->get_end_time(), min_travel, plan_options.max_results);
   
   shared_ptr< sample_based_planner< dynamic_workspace_type > > workspace_planner;
+  
+  std::cout << "The selected planning algorithm is of index = " << plan_options.planning_algo << std::endl;
+  switch(plan_options.planning_algo) {
+    case 0:
+      std::cout << "RRT" << std::endl;
+      break;
+    case 1:
+      std::cout << "RRT*" << std::endl;
+      break;
+    case 2:
+      std::cout << "PRM" << std::endl;
+      break;
+    case 3:
+      std::cout << "SBA*" << std::endl;
+      break;
+    case 4:
+      std::cout << "FADPRM" << std::endl;
+      break;
+    default:
+      std::cout << "Unkown algorithm type" << std::endl;
+      break;
+  };
   
 #if 0
   if( plan_options.planning_algo == 0 ) { // RRT
@@ -251,11 +279,15 @@ void CRS_execute_dynamic_planner_impl(const ReaK::kte::chaser_target_data& scene
     
   }
 #endif
-  ;
+  else {
+    std::cout << "The desired planner algorithm is not supported!" << std::endl;
+  };
   
   
-  if(!workspace_planner)
+  if(!workspace_planner) {
+    std::cout << "The workspace planner was not created successfully!" << std::endl;
     return;
+  };
   
   pp_query.reset_solution_records();
   workspace_planner->solve_planning_query(pp_query);

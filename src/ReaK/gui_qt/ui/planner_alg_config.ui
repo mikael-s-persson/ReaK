@@ -439,6 +439,11 @@
     <string>UpdateAvailOptions</string>
    </property>
   </action>
+  <action name="actionValuesChanged">
+   <property name="text">
+    <string>ValuesChanged</string>
+   </property>
+  </action>
  </widget>
  <resources/>
  <connections>
@@ -503,6 +508,310 @@
     <hint type="destinationlabel">
      <x>265</x>
      <y>406</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>graph_storage_selection</sender>
+   <signal>currentIndexChanged(int)</signal>
+   <receiver>actionValuesChanged</receiver>
+   <slot>trigger()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>179</x>
+     <y>70</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>KNN_method_selection</sender>
+   <signal>currentIndexChanged(int)</signal>
+   <receiver>actionValuesChanged</receiver>
+   <slot>trigger()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>179</x>
+     <y>117</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>check_anytime_heuristic</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>actionValuesChanged</receiver>
+   <slot>trigger()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>94</x>
+     <y>416</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>check_bidir</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>actionValuesChanged</receiver>
+   <slot>trigger()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>265</x>
+     <y>339</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>check_bnb</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>actionValuesChanged</receiver>
+   <slot>trigger()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>94</x>
+     <y>468</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>check_lazy_collision</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>actionValuesChanged</receiver>
+   <slot>trigger()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>94</x>
+     <y>339</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>check_print_best</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>actionValuesChanged</receiver>
+   <slot>trigger()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>265</x>
+     <y>609</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>check_print_counter</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>actionValuesChanged</receiver>
+   <slot>trigger()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>265</x>
+     <y>584</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>check_print_graph</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>actionValuesChanged</receiver>
+   <slot>trigger()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>94</x>
+     <y>609</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>check_print_timing</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>actionValuesChanged</receiver>
+   <slot>trigger()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>94</x>
+     <y>584</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>check_voronoi_pull</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>actionValuesChanged</receiver>
+   <slot>trigger()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>94</x>
+     <y>364</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>init_relax_spinbox</sender>
+   <signal>valueChanged(double)</signal>
+   <receiver>actionValuesChanged</receiver>
+   <slot>trigger()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>265</x>
+     <y>442</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>init_sa_temp_spinbox</sender>
+   <signal>valueChanged(double)</signal>
+   <receiver>actionValuesChanged</receiver>
+   <slot>trigger()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>265</x>
+     <y>390</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>max_expansion_spinbox</sender>
+   <signal>valueChanged(double)</signal>
+   <receiver>actionValuesChanged</receiver>
+   <slot>trigger()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>265</x>
+     <y>494</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>maxsolutions_spinbox</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>actionValuesChanged</receiver>
+   <slot>trigger()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>265</x>
+     <y>276</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>maxvertices_spinbox</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>actionValuesChanged</receiver>
+   <slot>trigger()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>265</x>
+     <y>222</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>planning_algo_selection</sender>
+   <signal>currentIndexChanged(int)</signal>
+   <receiver>actionValuesChanged</receiver>
+   <slot>trigger()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>179</x>
+     <y>164</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>progress_interval_spinbox</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>actionValuesChanged</receiver>
+   <slot>trigger()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>265</x>
+     <y>249</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>start_delay_spinbox</sender>
+   <signal>valueChanged(double)</signal>
+   <receiver>actionValuesChanged</receiver>
+   <slot>trigger()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>265</x>
+     <y>521</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>-1</x>
+     <y>-1</y>
     </hint>
    </hints>
   </connection>

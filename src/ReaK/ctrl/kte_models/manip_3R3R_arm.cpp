@@ -268,7 +268,6 @@ void manip_3R3R_kinematics::doInverseMotion() {
   
   frame_3D<double> EE_fr = m_EE->mFrame->getFrameRelativeTo(m_base_frame);
   
-  quaternion<double>::zrot gl_to_track_rot(-0.5 * M_PI);
   vect<double,3> EE_z_axis = EE_fr.Quat * vect_k;
   vect<double,3> EE_y_axis = EE_fr.Quat * vect_j;
   vect<double,3> wrist_pos = EE_fr.Position - wrist_to_flange * EE_z_axis - base_to_shoulder * vect_k;

@@ -111,9 +111,8 @@ void manip_P3R3R_kinematics::doInverseMotion() {
   
   const double extend_epsilon = .02;
   
-  quaternion<double>::zrot gl_to_track_rot(-0.5 * M_PI);
-  vect<double,3> EE_z_axis = gl_to_track_rot * (EE_fr.Quat * vect_k);
-  vect<double,3> wrist_pos = gl_to_track_rot * EE_fr.Position
+  vect<double,3> EE_z_axis = EE_fr.Quat * vect_k;
+  vect<double,3> wrist_pos = EE_fr.Position
                            - m_arm_model.getWristToFlange() * EE_z_axis 
                            - m_arm_model.getBaseToShoulder() * vect_k;
   double elbow_to_wrist_dist = m_arm_model.getElbowToJoint4() + m_arm_model.getJoint4ToWrist();
@@ -189,8 +188,9 @@ void manip_P3R3R_kinematics::doInverseMotion() {
   
   double shoulder_to_wrist_max_sqr = m_arm_model.getShoulderToElbow() + elbow_to_wrist_dist * c3_max;
   shoulder_to_wrist_max_sqr = shoulder_to_wrist_max_sqr * shoulder_to_wrist_max_sqr + elbow_to_wrist_dist * elbow_to_wrist_dist * c3_max_s3 * c3_max_s3;
-  if(perp_wrist_dist_sqr > shoulder_to_wrist_max_sqr)
+  if(perp_wrist_dist_sqr > shoulder_to_wrist_max_sqr) {
     throw optim::infeasible_problem("Inverse kinematics problem is infeasible! End-effector pose is out-of-reach! Desired wrist position is outside the cylindrical workspace envelope (maximally-extended arm).");
+  };
   
   double x_max = sqrt(shoulder_to_wrist_max_sqr - perp_wrist_dist_sqr);
   

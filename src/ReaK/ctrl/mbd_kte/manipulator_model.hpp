@@ -392,7 +392,7 @@ class manipulator_kinematics_model : public kte_map {
         & RK_SERIAL_LOAD_WITH_NAME(mModel);
     };
 
-    RK_RTTI_MAKE_CONCRETE_1BASE(manipulator_kinematics_model,0xC210004D,1,"manipulator_kinematics_model",kte_map)
+    RK_RTTI_MAKE_CONCRETE_1BASE(manipulator_kinematics_model,0xC210FFFE,1,"manipulator_kinematics_model",kte_map)
 
 };
 
@@ -637,7 +637,7 @@ class manipulator_dynamics_model : public manipulator_kinematics_model, public s
       A & RK_SERIAL_LOAD_WITH_NAME(mMassCalc);
     };
 
-    RK_RTTI_MAKE_CONCRETE_2BASE(manipulator_dynamics_model,0xC210004E,1,"manipulator_dynamics_model",manipulator_kinematics_model,state_rate_function<double>)
+    RK_RTTI_MAKE_CONCRETE_2BASE(manipulator_dynamics_model,0xC210FFFF,1,"manipulator_dynamics_model",manipulator_kinematics_model,state_rate_function<double>)
     
 };
 

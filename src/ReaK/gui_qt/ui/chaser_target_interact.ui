@@ -1423,5 +1423,229 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>enable_ik_check</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>joint1_pos</receiver>
+   <slot>setDisabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>147</x>
+     <y>77</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>147</x>
+     <y>149</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>enable_ik_check</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>joint1_pos_spin</receiver>
+   <slot>setDisabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>147</x>
+     <y>77</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>320</x>
+     <y>149</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>enable_ik_check</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>joint2_pos</receiver>
+   <slot>setDisabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>147</x>
+     <y>77</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>147</x>
+     <y>176</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>enable_ik_check</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>joint2_pos_spin</receiver>
+   <slot>setDisabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>147</x>
+     <y>77</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>320</x>
+     <y>176</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>enable_ik_check</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>joint3_pos</receiver>
+   <slot>setDisabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>147</x>
+     <y>77</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>147</x>
+     <y>203</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>enable_ik_check</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>joint3_pos_spin</receiver>
+   <slot>setDisabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>147</x>
+     <y>77</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>320</x>
+     <y>203</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>enable_ik_check</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>joint4_pos</receiver>
+   <slot>setDisabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>147</x>
+     <y>77</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>147</x>
+     <y>230</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>enable_ik_check</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>joint4_pos_spin</receiver>
+   <slot>setDisabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>147</x>
+     <y>77</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>320</x>
+     <y>230</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>enable_ik_check</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>joint5_pos</receiver>
+   <slot>setDisabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>147</x>
+     <y>77</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>147</x>
+     <y>257</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>enable_ik_check</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>joint5_pos_spin</receiver>
+   <slot>setDisabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>147</x>
+     <y>77</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>320</x>
+     <y>257</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>enable_ik_check</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>joint6_pos</receiver>
+   <slot>setDisabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>147</x>
+     <y>77</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>147</x>
+     <y>284</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>enable_ik_check</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>joint6_pos_spin</receiver>
+   <slot>setDisabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>147</x>
+     <y>77</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>320</x>
+     <y>284</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>enable_ik_check</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>track_pos</receiver>
+   <slot>setDisabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>147</x>
+     <y>77</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>147</x>
+     <y>122</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>enable_ik_check</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>track_pos_spin</receiver>
+   <slot>setDisabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>147</x>
+     <y>77</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>320</x>
+     <y>122</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
 </ui>

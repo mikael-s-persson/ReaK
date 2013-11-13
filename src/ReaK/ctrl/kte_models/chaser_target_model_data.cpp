@@ -26,6 +26,11 @@
 #include "shapes/colored_model.hpp"
 #include "proximity/proxy_query_model.hpp"
 
+#include "manip_dynamics_model.hpp"
+#include "mbd_kte/state_measures.hpp"
+#include "mbd_kte/inertia.hpp"
+#include "mbd_kte/driving_actuator.hpp"
+
 #include "serialization/archiver_factory.hpp"
 
 #include "optimization/optim_exceptions.hpp"
@@ -72,12 +77,18 @@ void chaser_target_data::load_target(const std::string& fileName) {
   
   shared_ptr< frame_3D<double> > target_base;
   
-  (*serialization::open_iarchive(fileName))
-    >> target_base
-    >> target_kin_model
-    >> target_frame
-    >> target_geom_model
-    >> target_proxy;
+  shared_ptr< serialization::iarchive > iA = serialization::open_iarchive(fileName);
+  RK_NOTICE(1," reached!");
+  (*iA) >> target_base;
+  RK_NOTICE(1," reached!");
+  (*iA) >> target_kin_model;
+  RK_NOTICE(1," reached!");
+  (*iA) >> target_frame;
+  RK_NOTICE(1," reached!");
+  (*iA) >> target_geom_model;
+  RK_NOTICE(1," reached!");
+  (*iA) >> target_proxy;
+  RK_NOTICE(1," reached!");
   
   create_chaser_target_proxy();
   target_env_proxies.clear();

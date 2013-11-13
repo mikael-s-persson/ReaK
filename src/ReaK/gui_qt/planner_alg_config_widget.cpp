@@ -52,6 +52,7 @@ PlannerAlgConfigWidget::PlannerAlgConfigWidget(QWidget * parent, Qt::WindowFlags
   setupUi(this->QDockWidget::widget());
   
   connect(this->planning_algo_selection, SIGNAL(currentIndexChanged(int)), this, SLOT(onUpdateAvailableOptions(int)));
+  connect(this->actionValuesChanged, SIGNAL(triggered()), this, SLOT(onConfigsChanged()));
   connect(this->load_button, SIGNAL(clicked()), this, SLOT(loadPlannerConfig()));
   connect(this->save_button, SIGNAL(clicked()), this, SLOT(savePlannerConfig()));
   
