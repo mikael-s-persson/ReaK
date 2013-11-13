@@ -127,6 +127,10 @@ KTEModelViewerEditor::KTEModelViewerEditor(QWidget * parent, Qt::WindowFlags fla
 
 KTEModelViewerEditor::~KTEModelViewerEditor() {
   
+  view3d_menu.removeGeometryGroup("Kinematics Models");
+  view3d_menu.removeGeometryGroup("Geometric Models");
+  view3d_menu.removeGeometryGroup("Proximity Models");
+  
   view3d_menu.setViewer(NULL);
   
   SoQt::done();

@@ -109,6 +109,15 @@ class chaser_target_data : public named_object {
      * \param fileName The filename of the file from which to load the chaser models.
      */
     void load_chaser(const std::string& fileName);
+    
+    /**
+     * This function saves the chaser models to a given filename. The file will have 
+     * all the models laid out in the following order: chaser_base_frame, chaser_kin_model, 
+     * chaser_jt_limits, chaser_geom_model, and chaser_proxy.
+     * \param fileName The filename of the file to which to save the chaser models.
+     */
+    void save_chaser(const std::string& fileName) const;
+    
     /**
      * This function loads the target models from a given filename. The file is expected to have 
      * all the models laid out in the following order: target_base, target_kin_model, target_frame,
@@ -118,11 +127,28 @@ class chaser_target_data : public named_object {
     void load_target(const std::string& fileName);
     
     /**
+     * This function saves the target models to a given filename. The file will have 
+     * all the models laid out in the following order: target_base, target_kin_model, target_frame,
+     * target_geom_model, and target_proxy.
+     * \param fileName The filename of the file to which to save the target models.
+     */
+    void save_target(const std::string& fileName) const;
+    
+    /**
      * This function loads (and adds) an environment object from a given filename. The file is 
      * expected to have the models laid out in the following order: env_geom_model and env_proxy.
      * \param fileName The filename of the file from which to load the environment object.
      */
     void load_environment(const std::string& fileName);
+    
+    /**
+     * This function saves an environment object to a given filename. The file will 
+     * have the models laid out in the following order: env_geom_model and env_proxy.
+     * \param id The index of the environment object in the array of environment geometries.
+     * \param fileName The filename of the file to which to save the environment object.
+     */
+    void save_environment(std::size_t id, const std::string& fileName) const;
+    
     /**
      * This function clears the list of environment objects (and the related proximity models). 
      */

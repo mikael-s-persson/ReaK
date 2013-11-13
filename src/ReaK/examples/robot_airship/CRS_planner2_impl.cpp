@@ -271,7 +271,16 @@ CRSPlannerGUI::~CRSPlannerGUI() {
   delete target_anim.animation_timer;
   delete sol_anim.animation_timer;
   
+  
+  view3d_menu.removeGeometryGroup("Chaser Geometry");
+  view3d_menu.removeGeometryGroup("Chaser KTE Chain");
+  view3d_menu.removeGeometryGroup("Target Geometry");
+  view3d_menu.removeGeometryGroup("Environment");
+  view3d_menu.removeDisplayGroup("Motion-Graph");
+  view3d_menu.removeDisplayGroup("Solution(s)");
+  
   view3d_menu.setViewer(NULL);
+  
   SoQt::done();
   
 };

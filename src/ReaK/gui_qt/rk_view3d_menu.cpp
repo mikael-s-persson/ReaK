@@ -35,7 +35,7 @@ namespace ReaK {
   
 namespace rkqt {
 
-View3DMenu::View3DMenu( QWidget * parent, SoQtExaminerViewer* aViewer ) : QMenu(tr("View"), parent), qtviewer(aViewer) {
+View3DMenu::View3DMenu( QWidget * parent, SoQtExaminerViewer* aViewer ) : QMenu(tr("View"), parent), qtviewer(aViewer), root_sep(NULL) {
   // addAction("Some General Option");
   addSeparator();
   
@@ -124,7 +124,8 @@ void View3DMenu::removeDisplayGroup(const std::string& aGroupName) {
   if(it == display_items.end())
     return;
   
-  root_sep->removeChild(it->second.display_switch);
+  if(root_sep)
+    root_sep->removeChild(it->second.display_switch);
   removeAction(it->second.selector);
   display_items.erase(it);
   
@@ -159,7 +160,8 @@ void View3DMenu::removeGeometryGroup(const std::string& aGroupName) {
   if(it == geometry_items.end())
     return;
   
-  root_sep->removeChild(it->second.geom_scene->getSceneGraph());
+  if(root_sep)
+    root_sep->removeChild(it->second.geom_scene->getSceneGraph());
   removeAction(it->second.selector);
   geometry_items.erase(it);
   

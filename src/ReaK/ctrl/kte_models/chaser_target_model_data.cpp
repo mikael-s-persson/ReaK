@@ -55,6 +55,18 @@ void chaser_target_data::load_chaser(const std::string& fileName) {
 };
 
 
+void chaser_target_data::save_chaser(const std::string& fileName) const {
+  
+  (*serialization::open_oarchive(fileName))
+    << chaser_base_frame 
+    << chaser_kin_model 
+    << chaser_jt_limits 
+    << chaser_geom_model 
+    << chaser_proxy;
+  
+};
+
+
 
 void chaser_target_data::load_target(const std::string& fileName) {
   
@@ -72,6 +84,18 @@ void chaser_target_data::load_target(const std::string& fileName) {
   create_target_env_proxies();
 };
 
+void chaser_target_data::save_target(const std::string& fileName) const {
+  
+  (*serialization::open_oarchive(fileName))
+    << shared_ptr< frame_3D<double> >()
+    << target_kin_model
+    << target_frame
+    << target_geom_model
+    << target_proxy;
+  
+};
+
+
 
 void chaser_target_data::load_environment(const std::string& fileName) {
   
@@ -87,6 +111,14 @@ void chaser_target_data::load_environment(const std::string& fileName) {
   
   create_chaser_env_proxies();
   create_target_env_proxies();
+  
+};
+
+void chaser_target_data::save_environment(std::size_t id, const std::string& fileName) const {
+  if(id >= env_geom_models.size())
+    return;
+  
+  (*serialization::open_oarchive(fileName)) << env_geom_models[id] << env_proxy_models[id];
   
 };
 

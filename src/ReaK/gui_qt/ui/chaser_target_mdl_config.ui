@@ -1,0 +1,566 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>ChaserTargetMdlConfig</class>
+ <widget class="QWidget" name="ChaserTargetMdlConfig">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>347</width>
+    <height>621</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Chaser-Target Model Configuration</string>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <property name="margin">
+    <number>1</number>
+   </property>
+   <item>
+    <widget class="QGroupBox" name="chaser_target_group">
+     <property name="title">
+      <string>Complete Chaser-Target Scenario</string>
+     </property>
+     <layout class="QVBoxLayout" name="verticalLayout_5">
+      <property name="margin">
+       <number>1</number>
+      </property>
+      <item>
+       <widget class="QLabel" name="complete_file_label">
+        <property name="text">
+         <string>Scenario:</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QWidget" name="widget_2" native="true">
+        <layout class="QGridLayout" name="gridLayout_4">
+         <property name="leftMargin">
+          <number>0</number>
+         </property>
+         <property name="rightMargin">
+          <number>0</number>
+         </property>
+         <property name="bottomMargin">
+          <number>0</number>
+         </property>
+         <item row="0" column="0">
+          <widget class="QLineEdit" name="complete_filename_edit">
+           <property name="readOnly">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="1">
+          <widget class="QPushButton" name="complete_load_button">
+           <property name="text">
+            <string>Load</string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="2">
+          <widget class="QPushButton" name="complete_edit_button">
+           <property name="enabled">
+            <bool>true</bool>
+           </property>
+           <property name="text">
+            <string>Edit</string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="3">
+          <widget class="QPushButton" name="complete_save_button">
+           <property name="text">
+            <string>Save</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QGroupBox" name="chaser_mdl_group">
+     <property name="title">
+      <string>Chaser Manipulator Model</string>
+     </property>
+     <layout class="QVBoxLayout" name="verticalLayout_3">
+      <property name="margin">
+       <number>1</number>
+      </property>
+      <item>
+       <widget class="QLabel" name="chaser_file_label">
+        <property name="text">
+         <string>Chaser Model:</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QWidget" name="chaser_load_widget" native="true">
+        <layout class="QGridLayout" name="gridLayout_3">
+         <property name="margin">
+          <number>0</number>
+         </property>
+         <item row="0" column="2">
+          <widget class="QPushButton" name="chaser_mdl_edit_button">
+           <property name="enabled">
+            <bool>true</bool>
+           </property>
+           <property name="text">
+            <string>Edit</string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="0">
+          <widget class="QLineEdit" name="chaser_filename_edit">
+           <property name="readOnly">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="1">
+          <widget class="QPushButton" name="chaser_load_button">
+           <property name="text">
+            <string>Load</string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="3">
+          <widget class="QPushButton" name="chaser_save_button">
+           <property name="text">
+            <string>Save</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </item>
+      <item>
+       <widget class="QCheckBox" name="enable_ik_check">
+        <property name="text">
+         <string>Enable Inverse Kinematics</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QGroupBox" name="target_mdl_group">
+     <property name="title">
+      <string>Target Model</string>
+     </property>
+     <layout class="QVBoxLayout" name="verticalLayout_2">
+      <property name="margin">
+       <number>1</number>
+      </property>
+      <item>
+       <widget class="QLabel" name="target_file_label">
+        <property name="text">
+         <string>Target Model:</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QWidget" name="target_load_widget" native="true">
+        <layout class="QGridLayout" name="gridLayout">
+         <property name="margin">
+          <number>0</number>
+         </property>
+         <item row="0" column="1">
+          <widget class="QPushButton" name="target_load_button">
+           <property name="text">
+            <string>Load</string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="0">
+          <widget class="QLineEdit" name="target_filename_edit">
+           <property name="readOnly">
+            <bool>true</bool>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="2">
+          <widget class="QPushButton" name="target_mdl_edit_button">
+           <property name="enabled">
+            <bool>true</bool>
+           </property>
+           <property name="text">
+            <string>Edit</string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="3">
+          <widget class="QPushButton" name="target_save_button">
+           <property name="text">
+            <string>Save</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QGroupBox" name="env_geoms_group">
+     <property name="title">
+      <string>Environment Geometries</string>
+     </property>
+     <layout class="QVBoxLayout" name="verticalLayout_4">
+      <property name="margin">
+       <number>1</number>
+      </property>
+      <item>
+       <widget class="QWidget" name="widget" native="true">
+        <layout class="QGridLayout" name="gridLayout_2">
+         <property name="margin">
+          <number>0</number>
+         </property>
+         <item row="0" column="0">
+          <widget class="QLabel" name="env_geoms_label">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="MinimumExpanding" vsizetype="Preferred">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+           <property name="text">
+            <string>Elements:</string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="4">
+          <widget class="QPushButton" name="env_clear_button">
+           <property name="text">
+            <string>Clear</string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="2">
+          <widget class="QPushButton" name="env_edit_button">
+           <property name="text">
+            <string>Edit</string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="1">
+          <widget class="QPushButton" name="env_add_button">
+           <property name="text">
+            <string>Add</string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="3">
+          <widget class="QPushButton" name="env_save_button">
+           <property name="text">
+            <string>Save</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </item>
+      <item>
+       <widget class="QListWidget" name="env_geoms_list"/>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <spacer name="verticalSpacer">
+     <property name="orientation">
+      <enum>Qt::Vertical</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>20</width>
+       <height>59</height>
+      </size>
+     </property>
+    </spacer>
+   </item>
+  </layout>
+  <action name="actionLoadChaserMdl">
+   <property name="text">
+    <string>LoadChaserMdl</string>
+   </property>
+  </action>
+  <action name="actionLoadTargetMdl">
+   <property name="text">
+    <string>LoadTargetMdl</string>
+   </property>
+  </action>
+  <action name="actionEditChaserMdl">
+   <property name="text">
+    <string>EditChaserMdl</string>
+   </property>
+  </action>
+  <action name="actionEditTargetMdl">
+   <property name="text">
+    <string>EditTargetMdl</string>
+   </property>
+  </action>
+  <action name="actionEnvGeomAdd">
+   <property name="text">
+    <string>EnvGeomAdd</string>
+   </property>
+  </action>
+  <action name="actionEnvGeomClear">
+   <property name="text">
+    <string>EnvGeomClear</string>
+   </property>
+  </action>
+  <action name="actionLoadCompleteMdl">
+   <property name="text">
+    <string>LoadCompleteMdl</string>
+   </property>
+  </action>
+  <action name="actionEditCompleteMdl">
+   <property name="text">
+    <string>EditCompleteMdl</string>
+   </property>
+  </action>
+  <action name="actionSaveCompleteMdl">
+   <property name="text">
+    <string>SaveCompleteMdl</string>
+   </property>
+  </action>
+  <action name="actionEnvGeomEdit">
+   <property name="text">
+    <string>EnvGeomEdit</string>
+   </property>
+  </action>
+  <action name="actionEnvGeomSave">
+   <property name="text">
+    <string>EnvGeomSave</string>
+   </property>
+  </action>
+  <action name="actionSaveChaserMdl">
+   <property name="text">
+    <string>SaveChaserMdl</string>
+   </property>
+  </action>
+  <action name="actionSaveTargetMdl">
+   <property name="text">
+    <string>SaveTargetMdl</string>
+   </property>
+  </action>
+ </widget>
+ <resources/>
+ <connections>
+  <connection>
+   <sender>chaser_load_button</sender>
+   <signal>clicked()</signal>
+   <receiver>actionLoadChaserMdl</receiver>
+   <slot>trigger()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>323</x>
+     <y>58</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>target_load_button</sender>
+   <signal>clicked()</signal>
+   <receiver>actionLoadTargetMdl</receiver>
+   <slot>trigger()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>270</x>
+     <y>161</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>chaser_mdl_edit_button</sender>
+   <signal>clicked()</signal>
+   <receiver>actionEditChaserMdl</receiver>
+   <slot>trigger()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>317</x>
+     <y>58</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>target_mdl_edit_button</sender>
+   <signal>clicked()</signal>
+   <receiver>actionEditTargetMdl</receiver>
+   <slot>trigger()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>317</x>
+     <y>161</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>env_add_button</sender>
+   <signal>clicked()</signal>
+   <receiver>actionEnvGeomAdd</receiver>
+   <slot>trigger()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>256</x>
+     <y>220</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>env_clear_button</sender>
+   <signal>clicked()</signal>
+   <receiver>actionEnvGeomClear</receiver>
+   <slot>trigger()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>313</x>
+     <y>220</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>complete_load_button</sender>
+   <signal>clicked()</signal>
+   <receiver>actionLoadCompleteMdl</receiver>
+   <slot>trigger()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>270</x>
+     <y>62</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>complete_edit_button</sender>
+   <signal>clicked()</signal>
+   <receiver>actionEditCompleteMdl</receiver>
+   <slot>trigger()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>317</x>
+     <y>62</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>complete_save_button</sender>
+   <signal>clicked()</signal>
+   <receiver>actionSaveCompleteMdl</receiver>
+   <slot>trigger()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>256</x>
+     <y>94</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>env_edit_button</sender>
+   <signal>clicked()</signal>
+   <receiver>actionEnvGeomEdit</receiver>
+   <slot>trigger()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>257</x>
+     <y>338</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>chaser_save_button</sender>
+   <signal>clicked()</signal>
+   <receiver>actionSaveChaserMdl</receiver>
+   <slot>trigger()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>315</x>
+     <y>176</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>target_save_button</sender>
+   <signal>clicked()</signal>
+   <receiver>actionSaveTargetMdl</receiver>
+   <slot>trigger()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>315</x>
+     <y>279</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>env_save_button</sender>
+   <signal>clicked()</signal>
+   <receiver>actionEnvGeomSave</receiver>
+   <slot>trigger()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>255</x>
+     <y>338</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+</ui>
