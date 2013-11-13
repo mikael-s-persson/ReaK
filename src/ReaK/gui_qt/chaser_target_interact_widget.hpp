@@ -26,51 +26,50 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef REAK_CHASER_TARGET_CONFIG_WIDGET_HPP
-#define REAK_CHASER_TARGET_CONFIG_WIDGET_HPP
+#ifndef REAK_CHASER_TARGET_INTERACT_WIDGET_HPP
+#define REAK_CHASER_TARGET_INTERACT_WIDGET_HPP
 
 #include "kte_models/chaser_target_model_data.hpp"
 
-#include "rk_view3d_menu.hpp"
-
-#include "ui_chaser_target_mdl_config.h"
+#include "ui_chaser_target_interact.h"
 #include <QDockWidget>
 
 namespace ReaK {
   
 namespace rkqt {
 
-class ChaserTargetConfigWidget : public QDockWidget, private Ui::ChaserTargetMdlConfig {
+class ChaserTargetInteractWidget : public QDockWidget, private Ui::ChaserTargetInteract {
     Q_OBJECT
   
   public:
-    ChaserTargetConfigWidget(View3DMenu* aView3dMenu = NULL, QWidget * parent = NULL, Qt::WindowFlags flags = 0);
-    virtual ~ChaserTargetConfigWidget();
+    ChaserTargetInteractWidget(kte::chaser_target_data* aPSceneData, QWidget * parent = NULL, Qt::WindowFlags flags = 0);
+    virtual ~ChaserTargetInteractWidget();
     
   private slots:
     
-    void loadChaserMdl();
-    void editChaserMdl();
-    void saveChaserMdl();
+    void savePositions();
+    void loadPositions();
     
-    void loadTargetMdl();
-    void editTargetMdl();
-    void saveTargetMdl();
+    void startTargetAnimation();
+    void stopTargetAnimation();
     
-    void addEnvMdl();
-    void editEnvMdl();
-    void clearEnvMdls();
-    void saveEnvMdl();
+    void onJointChange();
+    void onTargetChange();
     
-    void loadCompleteMdl();
-    void editCompleteMdl();
-    void saveCompleteMdl();
+    void loadTargetTrajectory();
     
   public:
     
-    View3DMenu* view3d_menu;
+  signals:
     
-    kte::chaser_target_data sceneData;
+    void onStartTargetAnimation();
+    void onStopTargetAnimation();
+    
+    void onLoadTargetTrajectory(QString);
+    
+  public:
+    
+    kte::chaser_target_data* pSceneData;
     
 };
 

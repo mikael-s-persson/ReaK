@@ -16,17 +16,25 @@ if(QT_FOUND)
 #   target_link_libraries(test_CRS_planning ${SOQT4_LIBRARIES} ${QT_LIBRARIES})
   
   set( RKGUIQT_UIS
-     "${SRCROOT}${RKGUIQTDIR}/ui/rk_class_select.ui" 
-     "${SRCROOT}${RKGUIQTDIR}/ui/rk_object_tree.ui" 
-     "${SRCROOT}${RKGUIQTDIR}/ui/rk_prop_editor.ui" 
+    "${SRCROOT}${RKGUIQTDIR}/ui/rk_class_select.ui" 
+    "${SRCROOT}${RKGUIQTDIR}/ui/rk_object_tree.ui" 
+    "${SRCROOT}${RKGUIQTDIR}/ui/rk_prop_editor.ui" 
+    "${SRCROOT}${RKGUIQTDIR}/ui/chaser_target_mdl_config.ui" 
+    "${SRCROOT}${RKGUIQTDIR}/ui/manip_space_config.ui" 
+    "${SRCROOT}${RKGUIQTDIR}/ui/planner_alg_config.ui" 
+    "${SRCROOT}${RKGUIQTDIR}/ui/chaser_target_interact.ui" 
   )
   QT4_WRAP_UI( RKGUIQT_UI_HDRS ${RKGUIQT_UIS} )
   set( RKGUIQT_MOC_HDRS
-     "${SRCROOT}${RKGUIQTDIR}/objtree_qtmodel.hpp"
-     "${SRCROOT}${RKGUIQTDIR}/obj_properties_qtmodel.hpp"
-     "${SRCROOT}${RKGUIQTDIR}/rk_object_tree_widget.hpp"
-     "${SRCROOT}${RKGUIQTDIR}/rk_prop_editor_widget.hpp"
-     "${SRCROOT}${RKGUIQTDIR}/rk_view3d_menu.hpp"
+    "${SRCROOT}${RKGUIQTDIR}/objtree_qtmodel.hpp"
+    "${SRCROOT}${RKGUIQTDIR}/obj_properties_qtmodel.hpp"
+    "${SRCROOT}${RKGUIQTDIR}/rk_object_tree_widget.hpp"
+    "${SRCROOT}${RKGUIQTDIR}/rk_prop_editor_widget.hpp"
+    "${SRCROOT}${RKGUIQTDIR}/rk_view3d_menu.hpp"
+    "${SRCROOT}${RKGUIQTDIR}/chaser_target_config_widget.hpp"
+    "${SRCROOT}${RKGUIQTDIR}/planner_alg_config_widget.hpp"
+    "${SRCROOT}${RKGUIQTDIR}/manip_space_config_widget.hpp"
+    "${SRCROOT}${RKGUIQTDIR}/chaser_target_interact_widget.hpp"
   )
   QT4_WRAP_CPP( RKGUIQT_MOC_SRCS ${RKGUIQT_MOC_HDRS} OPTIONS "-DBOOST_TT_HAS_OPERATOR_HPP_INCLUDED")
   
@@ -36,6 +44,10 @@ if(QT_FOUND)
     "${SRCROOT}${RKGUIQTDIR}/rk_object_tree_widget.cpp"
     "${SRCROOT}${RKGUIQTDIR}/rk_prop_editor_widget.cpp"
     "${SRCROOT}${RKGUIQTDIR}/rk_view3d_menu.cpp"
+    "${SRCROOT}${RKGUIQTDIR}/chaser_target_config_widget.cpp"
+    "${SRCROOT}${RKGUIQTDIR}/planner_alg_config_widget.cpp"
+    "${SRCROOT}${RKGUIQTDIR}/manip_space_config_widget.cpp"
+    "${SRCROOT}${RKGUIQTDIR}/chaser_target_interact_widget.cpp"
   )
   
   set(RKGUIQT_HEADERS 
@@ -76,7 +88,7 @@ if(QT_FOUND)
     
     add_executable(planner_3Dviewer ${PLANNER_3DVIEWER_SOURCES} ${PLANNER_3DVIEWER_MOC_SRCS} ${PLANNER_3DVIEWER_UI_HDRS})
     setup_custom_target(planner_3Dviewer "${SRCROOT}${RKGUIQTDIR}")
-    target_link_libraries(planner_3Dviewer reak_gui_qt reak_topologies reak_interp reak_mbd_coin reak_core)
+    target_link_libraries(planner_3Dviewer reak_gui_qt reak_topologies reak_interp reak_mbd_coin reak_topologies reak_core)
     target_link_libraries(planner_3Dviewer ${SOQT4_LIBRARIES} ${QT_LIBRARIES})
     
 

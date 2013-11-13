@@ -148,7 +148,7 @@ Planner3DWindow::Planner3DWindow( QWidget * parent, Qt::WindowFlags flags ) :
   tabifyDockWidget(space_configs_dock, alg_configs_dock);
   
   
-  connect(alg_configs.actionExecute_Planner, SIGNAL(triggered()), this, SLOT(executePlanner()));
+//   connect(alg_configs.actionExecute_Planner, SIGNAL(triggered()), this, SLOT(executePlanner()));
   
   
   /*

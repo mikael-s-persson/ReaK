@@ -34,6 +34,11 @@
 
 #include "rk_view3d_menu.hpp"
 
+#include "chaser_target_config_widget.hpp"
+#include "chaser_target_interact_widget.hpp"
+#include "planner_alg_config_widget.hpp"
+#include "manip_space_config_widget.hpp"
+
 
 class SoSensor;
 
@@ -48,35 +53,18 @@ class CRSPlannerGUI : public QMainWindow, private Ui::CRSPlannerWindow {
     
   private slots:
     
+    void runPlanner();
+    
     void executePlanner();
     void executeDynamicPlanner();
     
     void startSolutionAnimation();
     void startTargetAnimation();
+    
     void stopSolutionAnimation();
     void stopTargetAnimation();
     
-    void onJointChange();
-    void onTargetChange();
-    
-    void onUpdateAvailableOptions();
-    
-    void onConfigsChanged();
-    void updateConfigs();
-    
-    void savePositions();
-    void loadPositions();
-    
-    void savePlannerConfig();
-    void loadPlannerConfig();
-    
-    void loadTargetTrajectory();
-    
-    void loadChaserModel();
-    void loadTargetModel();
-    void loadEnvironmentGeometry();
-    void clearEnvironmentGeometries();
-    
+    void loadTargetTrajectory(QString);
     
     friend void CRSPlannerGUI_animate_bestsol_trajectory(void*, SoSensor*);
     friend void CRSPlannerGUI_animate_target_trajectory(void*, SoSensor*);
@@ -90,11 +78,12 @@ class CRSPlannerGUI : public QMainWindow, private Ui::CRSPlannerWindow {
     CRSPlannerGUI( const CRSPlannerGUI& );
     CRSPlannerGUI& operator=( const CRSPlannerGUI& );
     
-    Ui::CRSPlannerConfig configs;
     ReaK::rkqt::View3DMenu view3d_menu;
     
-    ReaK::kte::chaser_target_data scene_data;
-    ReaK::pp::planning_option_collection plan_options;
+    ReaK::rkqt::ChaserTargetConfigWidget   ct_config;
+    ReaK::rkqt::ChaserTargetInteractWidget ct_interact;
+    ReaK::rkqt::ManipSpaceConfigWidget     space_config;
+    ReaK::rkqt::PlannerAlgConfigWidget     plan_alg_config;
     
     CRS_sol_anim_data    sol_anim;
     CRS_target_anim_data target_anim;

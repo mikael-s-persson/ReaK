@@ -1,0 +1,1427 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>ChaserTargetInteract</class>
+ <widget class="QWidget" name="ChaserTargetInteract">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>357</width>
+    <height>690</height>
+   </rect>
+  </property>
+  <property name="sizePolicy">
+   <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+    <horstretch>0</horstretch>
+    <verstretch>0</verstretch>
+   </sizepolicy>
+  </property>
+  <property name="windowTitle">
+   <string>Chaser Target Interaction</string>
+  </property>
+  <layout class="QGridLayout" name="gridLayout">
+   <property name="margin">
+    <number>1</number>
+   </property>
+   <item row="1" column="0">
+    <widget class="QGroupBox" name="chaser_config_group">
+     <property name="title">
+      <string>Chaser Configuration</string>
+     </property>
+     <layout class="QVBoxLayout" name="verticalLayout_8">
+      <item>
+       <widget class="QWidget" name="widget_7" native="true">
+        <layout class="QGridLayout" name="gridLayout_10">
+         <property name="margin">
+          <number>0</number>
+         </property>
+         <item row="5" column="0">
+          <widget class="QSlider" name="joint2_pos">
+           <property name="minimum">
+            <number>-1570</number>
+           </property>
+           <property name="maximum">
+            <number>1570</number>
+           </property>
+           <property name="singleStep">
+            <number>10</number>
+           </property>
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+          </widget>
+         </item>
+         <item row="7" column="1">
+          <widget class="QSpinBox" name="joint4_pos_spin">
+           <property name="minimum">
+            <number>-3141</number>
+           </property>
+           <property name="maximum">
+            <number>3141</number>
+           </property>
+           <property name="singleStep">
+            <number>10</number>
+           </property>
+          </widget>
+         </item>
+         <item row="3" column="1">
+          <widget class="QSpinBox" name="track_pos_spin">
+           <property name="maximum">
+            <number>3000</number>
+           </property>
+           <property name="singleStep">
+            <number>10</number>
+           </property>
+          </widget>
+         </item>
+         <item row="4" column="1">
+          <widget class="QSpinBox" name="joint1_pos_spin">
+           <property name="minimum">
+            <number>-3054</number>
+           </property>
+           <property name="maximum">
+            <number>3054</number>
+           </property>
+           <property name="singleStep">
+            <number>10</number>
+           </property>
+          </widget>
+         </item>
+         <item row="7" column="0">
+          <widget class="QSlider" name="joint4_pos">
+           <property name="minimum">
+            <number>-3141</number>
+           </property>
+           <property name="maximum">
+            <number>3141</number>
+           </property>
+           <property name="singleStep">
+            <number>10</number>
+           </property>
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+          </widget>
+         </item>
+         <item row="9" column="0">
+          <widget class="QSlider" name="joint6_pos">
+           <property name="minimum">
+            <number>-3141</number>
+           </property>
+           <property name="maximum">
+            <number>3141</number>
+           </property>
+           <property name="singleStep">
+            <number>10</number>
+           </property>
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+          </widget>
+         </item>
+         <item row="8" column="1">
+          <widget class="QSpinBox" name="joint5_pos_spin">
+           <property name="minimum">
+            <number>-1832</number>
+           </property>
+           <property name="maximum">
+            <number>1832</number>
+           </property>
+           <property name="singleStep">
+            <number>10</number>
+           </property>
+          </widget>
+         </item>
+         <item row="3" column="0">
+          <widget class="QSlider" name="track_pos">
+           <property name="maximum">
+            <number>3000</number>
+           </property>
+           <property name="singleStep">
+            <number>10</number>
+           </property>
+           <property name="pageStep">
+            <number>10</number>
+           </property>
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+          </widget>
+         </item>
+         <item row="9" column="1">
+          <widget class="QSpinBox" name="joint6_pos_spin">
+           <property name="minimum">
+            <number>-3141</number>
+           </property>
+           <property name="maximum">
+            <number>3141</number>
+           </property>
+           <property name="singleStep">
+            <number>10</number>
+           </property>
+          </widget>
+         </item>
+         <item row="5" column="1">
+          <widget class="QSpinBox" name="joint2_pos_spin">
+           <property name="minimum">
+            <number>-1570</number>
+           </property>
+           <property name="maximum">
+            <number>1570</number>
+           </property>
+           <property name="singleStep">
+            <number>10</number>
+           </property>
+          </widget>
+         </item>
+         <item row="4" column="0">
+          <widget class="QSlider" name="joint1_pos">
+           <property name="minimum">
+            <number>-3054</number>
+           </property>
+           <property name="maximum">
+            <number>3054</number>
+           </property>
+           <property name="singleStep">
+            <number>10</number>
+           </property>
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+          </widget>
+         </item>
+         <item row="6" column="0">
+          <widget class="QSlider" name="joint3_pos">
+           <property name="minimum">
+            <number>-1919</number>
+           </property>
+           <property name="maximum">
+            <number>1919</number>
+           </property>
+           <property name="singleStep">
+            <number>10</number>
+           </property>
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+          </widget>
+         </item>
+         <item row="6" column="1">
+          <widget class="QSpinBox" name="joint3_pos_spin">
+           <property name="minimum">
+            <number>-1919</number>
+           </property>
+           <property name="maximum">
+            <number>1919</number>
+           </property>
+           <property name="singleStep">
+            <number>10</number>
+           </property>
+          </widget>
+         </item>
+         <item row="8" column="0">
+          <widget class="QSlider" name="joint5_pos">
+           <property name="minimum">
+            <number>-1832</number>
+           </property>
+           <property name="maximum">
+            <number>1832</number>
+           </property>
+           <property name="singleStep">
+            <number>10</number>
+           </property>
+           <property name="value">
+            <number>0</number>
+           </property>
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="0">
+          <widget class="QLabel" name="label_16">
+           <property name="text">
+            <string>Joint Positions (track (mm) + 6 joints (mrad)):</string>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="0">
+          <widget class="QCheckBox" name="enable_ik_check">
+           <property name="text">
+            <string>Enable Inverse Kinematics</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item row="7" column="0">
+    <spacer name="verticalSpacer">
+     <property name="orientation">
+      <enum>Qt::Vertical</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>20</width>
+       <height>40</height>
+      </size>
+     </property>
+    </spacer>
+   </item>
+   <item row="6" column="0">
+    <widget class="QWidget" name="anim_traj_widget" native="true">
+     <property name="enabled">
+      <bool>false</bool>
+     </property>
+     <layout class="QGridLayout" name="gridLayout_9">
+      <property name="margin">
+       <number>0</number>
+      </property>
+      <item row="0" column="0">
+       <widget class="QPushButton" name="anim_trajectory_button">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
+        <property name="text">
+         <string>Start Animation</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="QPushButton" name="anim_traj_stop_button">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
+        <property name="text">
+         <string>Stop Animation</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item row="4" column="0">
+    <widget class="QCheckBox" name="check_trajectory">
+     <property name="text">
+      <string>Enable Target Trajectory</string>
+     </property>
+    </widget>
+   </item>
+   <item row="5" column="0">
+    <widget class="QWidget" name="widget" native="true">
+     <layout class="QHBoxLayout" name="horizontalLayout">
+      <item>
+       <widget class="QLineEdit" name="traj_filename_edit">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
+        <property name="readOnly">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="load_traj_button">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
+        <property name="text">
+         <string>...</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item row="2" column="0">
+    <widget class="QGroupBox" name="target_pose_group">
+     <property name="title">
+      <string>Target Pose</string>
+     </property>
+     <layout class="QVBoxLayout" name="verticalLayout_9">
+      <item>
+       <widget class="QWidget" name="widget_8" native="true">
+        <layout class="QGridLayout" name="gridLayout_11">
+         <property name="margin">
+          <number>0</number>
+         </property>
+         <item row="1" column="0">
+          <widget class="QSlider" name="target_x">
+           <property name="cursor">
+            <cursorShape>ArrowCursor</cursorShape>
+           </property>
+           <property name="mouseTracking">
+            <bool>false</bool>
+           </property>
+           <property name="minimum">
+            <number>-4000</number>
+           </property>
+           <property name="maximum">
+            <number>2000</number>
+           </property>
+           <property name="singleStep">
+            <number>50</number>
+           </property>
+           <property name="pageStep">
+            <number>50</number>
+           </property>
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+          </widget>
+         </item>
+         <item row="0" column="0">
+          <widget class="QLabel" name="label_18">
+           <property name="text">
+            <string>  Position (x, y, z) (mm):</string>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="0">
+          <widget class="QSlider" name="target_y">
+           <property name="minimum">
+            <number>-4000</number>
+           </property>
+           <property name="maximum">
+            <number>2000</number>
+           </property>
+           <property name="singleStep">
+            <number>50</number>
+           </property>
+           <property name="pageStep">
+            <number>50</number>
+           </property>
+           <property name="value">
+            <number>0</number>
+           </property>
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+          </widget>
+         </item>
+         <item row="5" column="0">
+          <widget class="QSlider" name="target_yaw">
+           <property name="minimum">
+            <number>-3141</number>
+           </property>
+           <property name="maximum">
+            <number>3141</number>
+           </property>
+           <property name="singleStep">
+            <number>10</number>
+           </property>
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+          </widget>
+         </item>
+         <item row="3" column="0">
+          <widget class="QSlider" name="target_z">
+           <property name="maximum">
+            <number>3000</number>
+           </property>
+           <property name="singleStep">
+            <number>10</number>
+           </property>
+           <property name="value">
+            <number>1500</number>
+           </property>
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+          </widget>
+         </item>
+         <item row="6" column="0">
+          <widget class="QSlider" name="target_pitch">
+           <property name="minimum">
+            <number>-1571</number>
+           </property>
+           <property name="maximum">
+            <number>1571</number>
+           </property>
+           <property name="singleStep">
+            <number>10</number>
+           </property>
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+          </widget>
+         </item>
+         <item row="1" column="1">
+          <widget class="QSpinBox" name="target_x_spin">
+           <property name="minimum">
+            <number>-4000</number>
+           </property>
+           <property name="maximum">
+            <number>2000</number>
+           </property>
+           <property name="singleStep">
+            <number>50</number>
+           </property>
+          </widget>
+         </item>
+         <item row="4" column="0">
+          <widget class="QLabel" name="label_19">
+           <property name="text">
+            <string>  Orientation (yaw, pitch and roll) (mrad):</string>
+           </property>
+          </widget>
+         </item>
+         <item row="7" column="0">
+          <widget class="QSlider" name="target_roll">
+           <property name="minimum">
+            <number>-3141</number>
+           </property>
+           <property name="maximum">
+            <number>3141</number>
+           </property>
+           <property name="singleStep">
+            <number>10</number>
+           </property>
+           <property name="orientation">
+            <enum>Qt::Horizontal</enum>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="1">
+          <widget class="QSpinBox" name="target_y_spin">
+           <property name="minimum">
+            <number>-4000</number>
+           </property>
+           <property name="maximum">
+            <number>2000</number>
+           </property>
+           <property name="singleStep">
+            <number>50</number>
+           </property>
+          </widget>
+         </item>
+         <item row="3" column="1">
+          <widget class="QSpinBox" name="target_z_spin">
+           <property name="maximum">
+            <number>3000</number>
+           </property>
+           <property name="singleStep">
+            <number>50</number>
+           </property>
+           <property name="value">
+            <number>1500</number>
+           </property>
+          </widget>
+         </item>
+         <item row="5" column="1">
+          <widget class="QSpinBox" name="target_yaw_spin">
+           <property name="minimum">
+            <number>-3141</number>
+           </property>
+           <property name="maximum">
+            <number>3141</number>
+           </property>
+           <property name="singleStep">
+            <number>10</number>
+           </property>
+          </widget>
+         </item>
+         <item row="6" column="1">
+          <widget class="QSpinBox" name="target_pitch_spin">
+           <property name="minimum">
+            <number>-1571</number>
+           </property>
+           <property name="maximum">
+            <number>1571</number>
+           </property>
+           <property name="singleStep">
+            <number>10</number>
+           </property>
+          </widget>
+         </item>
+         <item row="7" column="1">
+          <widget class="QSpinBox" name="target_roll_spin">
+           <property name="minimum">
+            <number>-3141</number>
+           </property>
+           <property name="maximum">
+            <number>3141</number>
+           </property>
+           <property name="singleStep">
+            <number>10</number>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item row="0" column="0">
+    <widget class="QWidget" name="widget_2" native="true">
+     <layout class="QGridLayout" name="gridLayout_2">
+      <item row="0" column="0">
+       <widget class="QPushButton" name="load_button">
+        <property name="text">
+         <string>Load Positions...</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="1">
+       <widget class="QPushButton" name="save_button">
+        <property name="text">
+         <string>Save Positions...</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+  </layout>
+  <action name="actionJointChange">
+   <property name="text">
+    <string>JointChange</string>
+   </property>
+  </action>
+  <action name="actionTargetChange">
+   <property name="text">
+    <string>TargetChange</string>
+   </property>
+  </action>
+  <action name="actionStartTargetAnimation">
+   <property name="text">
+    <string>StartTargetAnimation</string>
+   </property>
+   <property name="toolTip">
+    <string>StartTargetAnimation</string>
+   </property>
+  </action>
+  <action name="actionStopTargetAnimation">
+   <property name="text">
+    <string>StopTargetAnimation</string>
+   </property>
+   <property name="toolTip">
+    <string>StopTargetAnimation</string>
+   </property>
+  </action>
+ </widget>
+ <resources/>
+ <connections>
+  <connection>
+   <sender>target_z</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>target_z_spin</receiver>
+   <slot>setValue(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>147</x>
+     <y>358</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>319</x>
+     <y>358</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>target_y</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>actionTargetChange</receiver>
+   <slot>trigger()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>178</x>
+     <y>331</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>target_y</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>target_y_spin</receiver>
+   <slot>setValue(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>147</x>
+     <y>331</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>319</x>
+     <y>331</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>target_z</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>actionTargetChange</receiver>
+   <slot>trigger()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>178</x>
+     <y>358</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>target_x_spin</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>target_x</receiver>
+   <slot>setValue(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>319</x>
+     <y>304</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>147</x>
+     <y>304</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>target_x</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>actionTargetChange</receiver>
+   <slot>trigger()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>178</x>
+     <y>304</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>target_yaw</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>actionTargetChange</receiver>
+   <slot>trigger()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>178</x>
+     <y>404</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>target_pitch</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>actionTargetChange</receiver>
+   <slot>trigger()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>178</x>
+     <y>431</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>target_roll</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>actionTargetChange</receiver>
+   <slot>trigger()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>178</x>
+     <y>458</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>check_trajectory</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>anim_traj_widget</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>178</x>
+     <y>484</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>178</x>
+     <y>587</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>check_trajectory</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>load_traj_button</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>178</x>
+     <y>484</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>325</x>
+     <y>514</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>check_trajectory</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>traj_filename_edit</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>178</x>
+     <y>484</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>158</x>
+     <y>514</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>check_trajectory</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>target_pose_group</receiver>
+   <slot>setDisabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>178</x>
+     <y>484</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>178</x>
+     <y>394</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>anim_trajectory_button</sender>
+   <signal>clicked()</signal>
+   <receiver>actionStartTargetAnimation</receiver>
+   <slot>trigger()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>178</x>
+     <y>546</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>anim_trajectory_button</sender>
+   <signal>clicked(bool)</signal>
+   <receiver>anim_traj_stop_button</receiver>
+   <slot>setDisabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>92</x>
+     <y>546</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>264</x>
+     <y>546</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>anim_trajectory_button</sender>
+   <signal>clicked(bool)</signal>
+   <receiver>anim_trajectory_button</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>92</x>
+     <y>546</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>92</x>
+     <y>546</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>target_x</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>target_x_spin</receiver>
+   <slot>setValue(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>147</x>
+     <y>304</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>319</x>
+     <y>304</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>anim_traj_stop_button</sender>
+   <signal>clicked(bool)</signal>
+   <receiver>anim_trajectory_button</receiver>
+   <slot>setDisabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>264</x>
+     <y>546</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>92</x>
+     <y>546</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>target_y_spin</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>target_y</receiver>
+   <slot>setValue(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>319</x>
+     <y>331</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>147</x>
+     <y>331</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>anim_traj_stop_button</sender>
+   <signal>clicked(bool)</signal>
+   <receiver>anim_traj_stop_button</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>264</x>
+     <y>546</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>264</x>
+     <y>546</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>target_roll_spin</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>target_roll</receiver>
+   <slot>setValue(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>319</x>
+     <y>458</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>147</x>
+     <y>458</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>target_roll</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>target_roll_spin</receiver>
+   <slot>setValue(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>147</x>
+     <y>458</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>319</x>
+     <y>458</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>target_yaw_spin</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>target_yaw</receiver>
+   <slot>setValue(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>319</x>
+     <y>404</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>147</x>
+     <y>404</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>target_yaw</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>target_yaw_spin</receiver>
+   <slot>setValue(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>147</x>
+     <y>404</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>319</x>
+     <y>404</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>target_z_spin</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>target_z</receiver>
+   <slot>setValue(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>319</x>
+     <y>358</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>147</x>
+     <y>358</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>joint3_pos</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>actionJointChange</receiver>
+   <slot>trigger()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>178</x>
+     <y>151</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>target_pitch</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>target_pitch_spin</receiver>
+   <slot>setValue(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>147</x>
+     <y>431</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>319</x>
+     <y>431</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>target_pitch_spin</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>target_pitch</receiver>
+   <slot>setValue(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>319</x>
+     <y>431</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>147</x>
+     <y>431</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>joint2_pos</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>actionJointChange</receiver>
+   <slot>trigger()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>178</x>
+     <y>124</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>track_pos</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>actionJointChange</receiver>
+   <slot>trigger()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>178</x>
+     <y>70</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>joint5_pos</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>actionJointChange</receiver>
+   <slot>trigger()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>178</x>
+     <y>205</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>joint1_pos</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>actionJointChange</receiver>
+   <slot>trigger()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>178</x>
+     <y>97</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>joint6_pos</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>actionJointChange</receiver>
+   <slot>trigger()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>178</x>
+     <y>232</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>joint4_pos</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>actionJointChange</receiver>
+   <slot>trigger()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>178</x>
+     <y>178</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>joint3_pos</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>joint3_pos_spin</receiver>
+   <slot>setValue(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>147</x>
+     <y>151</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>319</x>
+     <y>151</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>track_pos</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>track_pos_spin</receiver>
+   <slot>setValue(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>178</x>
+     <y>70</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>178</x>
+     <y>259</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>joint1_pos</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>joint1_pos_spin</receiver>
+   <slot>setValue(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>147</x>
+     <y>97</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>319</x>
+     <y>97</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>joint2_pos</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>joint2_pos_spin</receiver>
+   <slot>setValue(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>147</x>
+     <y>124</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>319</x>
+     <y>124</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>track_pos_spin</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>track_pos</receiver>
+   <slot>setValue(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>320</x>
+     <y>70</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>149</x>
+     <y>70</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>joint1_pos_spin</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>joint1_pos</receiver>
+   <slot>setValue(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>319</x>
+     <y>97</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>147</x>
+     <y>97</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>joint5_pos_spin</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>joint5_pos</receiver>
+   <slot>setValue(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>319</x>
+     <y>205</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>147</x>
+     <y>205</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>joint4_pos</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>joint4_pos_spin</receiver>
+   <slot>setValue(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>147</x>
+     <y>178</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>319</x>
+     <y>178</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>joint4_pos_spin</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>joint4_pos</receiver>
+   <slot>setValue(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>319</x>
+     <y>178</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>147</x>
+     <y>178</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>joint2_pos_spin</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>joint2_pos</receiver>
+   <slot>setValue(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>319</x>
+     <y>124</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>147</x>
+     <y>124</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>check_trajectory</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>anim_trajectory_button</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>178</x>
+     <y>525</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>92</x>
+     <y>587</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>joint6_pos_spin</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>joint6_pos</receiver>
+   <slot>setValue(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>319</x>
+     <y>232</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>147</x>
+     <y>232</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>joint3_pos_spin</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>joint3_pos</receiver>
+   <slot>setValue(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>319</x>
+     <y>151</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>147</x>
+     <y>151</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>joint6_pos</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>joint6_pos_spin</receiver>
+   <slot>setValue(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>147</x>
+     <y>232</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>319</x>
+     <y>232</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>joint5_pos</sender>
+   <signal>valueChanged(int)</signal>
+   <receiver>joint5_pos_spin</receiver>
+   <slot>setValue(int)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>147</x>
+     <y>205</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>319</x>
+     <y>205</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>check_trajectory</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>anim_traj_stop_button</receiver>
+   <slot>setDisabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>178</x>
+     <y>525</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>264</x>
+     <y>587</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>anim_traj_stop_button</sender>
+   <signal>clicked()</signal>
+   <receiver>actionStopTargetAnimation</receiver>
+   <slot>trigger()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>264</x>
+     <y>587</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+</ui>

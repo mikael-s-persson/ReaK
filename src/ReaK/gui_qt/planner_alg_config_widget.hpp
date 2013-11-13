@@ -26,51 +26,43 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef REAK_CHASER_TARGET_CONFIG_WIDGET_HPP
-#define REAK_CHASER_TARGET_CONFIG_WIDGET_HPP
+#ifndef REAK_PLANNER_ALG_CONFIG_WIDGET_HPP
+#define REAK_PLANNER_ALG_CONFIG_WIDGET_HPP
 
-#include "kte_models/chaser_target_model_data.hpp"
+#include "path_planning/path_planner_options.hpp"
 
-#include "rk_view3d_menu.hpp"
-
-#include "ui_chaser_target_mdl_config.h"
+#include "ui_planner_alg_config.h"
 #include <QDockWidget>
 
 namespace ReaK {
   
 namespace rkqt {
 
-class ChaserTargetConfigWidget : public QDockWidget, private Ui::ChaserTargetMdlConfig {
+class PlannerAlgConfigWidget : public QDockWidget, private Ui::PlannerAlgConfig {
     Q_OBJECT
   
   public:
-    ChaserTargetConfigWidget(View3DMenu* aView3dMenu = NULL, QWidget * parent = NULL, Qt::WindowFlags flags = 0);
-    virtual ~ChaserTargetConfigWidget();
+    PlannerAlgConfigWidget(QWidget * parent = NULL, Qt::WindowFlags flags = 0);
+    virtual ~PlannerAlgConfigWidget();
     
   private slots:
     
-    void loadChaserMdl();
-    void editChaserMdl();
-    void saveChaserMdl();
+    void onUpdateAvailableOptions(int);
     
-    void loadTargetMdl();
-    void editTargetMdl();
-    void saveTargetMdl();
+    void onConfigsChanged();
+    void updateConfigs();
     
-    void addEnvMdl();
-    void editEnvMdl();
-    void clearEnvMdls();
-    void saveEnvMdl();
-    
-    void loadCompleteMdl();
-    void editCompleteMdl();
-    void saveCompleteMdl();
+    void savePlannerConfig();
+    void loadPlannerConfig();
     
   public:
     
-    View3DMenu* view3d_menu;
+    pp::planning_option_collection planOptions;
     
-    kte::chaser_target_data sceneData;
+    bool outputTiming() const;
+    bool outputNodeCounter() const;
+    bool outputMotionGraph() const;
+    bool outputSolution() const;
     
 };
 

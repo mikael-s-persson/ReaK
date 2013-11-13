@@ -26,51 +26,37 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef REAK_CHASER_TARGET_CONFIG_WIDGET_HPP
-#define REAK_CHASER_TARGET_CONFIG_WIDGET_HPP
+#ifndef REAK_MANIP_SPACE_CONFIG_WIDGET_HPP
+#define REAK_MANIP_SPACE_CONFIG_WIDGET_HPP
 
-#include "kte_models/chaser_target_model_data.hpp"
-
-#include "rk_view3d_menu.hpp"
-
-#include "ui_chaser_target_mdl_config.h"
+#include "ui_manip_space_config.h"
 #include <QDockWidget>
 
 namespace ReaK {
   
 namespace rkqt {
 
-class ChaserTargetConfigWidget : public QDockWidget, private Ui::ChaserTargetMdlConfig {
+class ManipSpaceConfigWidget : public QDockWidget, private Ui::ManipSpaceConfig {
     Q_OBJECT
   
   public:
-    ChaserTargetConfigWidget(View3DMenu* aView3dMenu = NULL, QWidget * parent = NULL, Qt::WindowFlags flags = 0);
-    virtual ~ChaserTargetConfigWidget();
+    ManipSpaceConfigWidget(QWidget * parent = NULL, Qt::WindowFlags flags = 0);
+    virtual ~ManipSpaceConfigWidget();
     
   private slots:
     
-    void loadChaserMdl();
-    void editChaserMdl();
-    void saveChaserMdl();
-    
-    void loadTargetMdl();
-    void editTargetMdl();
-    void saveTargetMdl();
-    
-    void addEnvMdl();
-    void editEnvMdl();
-    void clearEnvMdls();
-    void saveEnvMdl();
-    
-    void loadCompleteMdl();
-    void editCompleteMdl();
-    void saveCompleteMdl();
+    void onUpdateAvailableOptions();
     
   public:
     
-    View3DMenu* view3d_menu;
+    int space_order;
+    int interp_id;
+    double min_travel;
+    double max_travel;
+    bool is_temporal;
+    bool is_rate_limited;
     
-    kte::chaser_target_data sceneData;
+    int output_space_order;
     
 };
 

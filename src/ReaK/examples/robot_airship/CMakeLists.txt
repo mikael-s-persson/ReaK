@@ -23,6 +23,8 @@ setup_headers("${ROBOTAIRSHIP_HEADERS}" "${RKROBOTAIRSHIPDIR}")
 target_link_libraries(reak_robot_airship reak_topologies reak_interp reak_mbd reak_core)
 
 
+include_directories("${CMAKE_BINARY_DIR}/ReaK/gui_qt/")
+
 
 add_executable(build_airship2D "${SRCROOT}${RKROBOTAIRSHIPDIR}/build_airship2D.cpp")
 setup_custom_target(build_airship2D "${SRCROOT}${RKROBOTAIRSHIPDIR}")

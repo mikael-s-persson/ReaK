@@ -61,7 +61,7 @@ if(COIN3D_FOUND AND QT_FOUND)
     "${SRCROOT}${RKSHAPESDIR}/oi_scene_graph_kte.cpp"
   )
   
-  add_library(reak_mbd_coin STATIC ${MBDCOIN_SOURCES} $<TARGET_OBJECTS:reakobj_geom> $<TARGET_OBJECTS:reakobj_proximity> $<TARGET_OBJECTS:reakobj_mbd_kte> $<TARGET_OBJECTS:reakobj_kte_models>)
+  add_library(reak_mbd_coin STATIC ${MBDCOIN_SOURCES} $<TARGET_OBJECTS:reakobj_geom> $<TARGET_OBJECTS:reakobj_proximity> $<TARGET_OBJECTS:reakobj_mbd_kte> $<TARGET_OBJECTS:reakobj_kte_models> $<TARGET_OBJECTS:reakobj_kte_geom_models>)
   setup_custom_target(reak_mbd_coin "${SRCROOT}${RKSHAPESDIR}")
   target_link_libraries(reak_mbd_coin ${COIN3D_LIBRARIES} reak_core ${Boost_LIBRARIES})
   

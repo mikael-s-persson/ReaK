@@ -24,7 +24,10 @@
 #include "chaser_target_config_widget.hpp"
 
 #include <QDockWidget>
-#include <QTreeView>
+#include <QListView>
+#include <QFileDialog>
+#include <QFileInfo>
+#include <QMessageBox>
 
 #include "serialization/archiver_factory.hpp"
 
@@ -42,12 +45,13 @@ static QString last_used_path;
 
 
 ChaserTargetConfigWidget::ChaserTargetConfigWidget(View3DMenu* aView3dMenu, QWidget * parent, Qt::WindowFlags flags) :
-                                                   QDockWidget(parent, flags),
+                                                   QDockWidget(tr("Models"), parent, flags),
                                                    Ui::ChaserTargetMdlConfig(),
                                                    view3d_menu(aView3dMenu),
                                                    sceneData()
 {
-  setupUi(this);
+  this->QDockWidget::setWidget(new QWidget(this));
+  setupUi(this->QDockWidget::widget());
   
   connect(this->actionLoadChaserMdl, SIGNAL(triggered()), this, SLOT(loadChaserMdl()));
   connect(this->actionEditChaserMdl, SIGNAL(triggered()), this, SLOT(editChaserMdl()));
@@ -68,6 +72,10 @@ ChaserTargetConfigWidget::ChaserTargetConfigWidget(View3DMenu* aView3dMenu, QWid
   
 };
 
+ChaserTargetConfigWidget::~ChaserTargetConfigWidget() {
+  delete this->QDockWidget::widget();
+};
+
 
 
 
@@ -83,9 +91,9 @@ void ChaserTargetConfigWidget::loadChaserMdl() {
   last_used_path = QFileInfo(fileName).absolutePath();
   
   try {
-    scene_data.load_chaser(fileName.toStdString());  // "models/CRS_A465.model.rkx"
+    sceneData.load_chaser(fileName.toStdString());  // "models/CRS_A465.model.rkx"
     
-    if(!scene_data.chaser_kin_model) {
+    if(!sceneData.chaser_kin_model) {
       QMessageBox::information(this,
                   "Error!",
                   "An error occurred when loading the file! No chaser model was found!",
@@ -93,17 +101,17 @@ void ChaserTargetConfigWidget::loadChaserMdl() {
       return;
     };
     
-    this->chaser_filename_edit->setText(QString::fromStdString(scene_data.chaser_kin_model->getName()));
+    this->chaser_filename_edit->setText(QString::fromStdString(sceneData.chaser_kin_model->getName()));
     
     if(view3d_menu) {
       shared_ptr<geom::oi_scene_graph> psg = view3d_menu->getGeometryGroup("Chaser Geometry");
       psg->clearAll();
-      (*psg) << (*scene_data.chaser_geom_model);
+      (*psg) << (*sceneData.chaser_geom_model);
       
       shared_ptr<geom::oi_scene_graph> psg_kte = view3d_menu->getGeometryGroup("Chaser KTE Chain");
       psg_kte->clearAll();
       psg_kte->setCharacteristicLength( psg->computeCharacteristicLength() );
-      (*psg_kte) << (*scene_data.chaser_kin_model->getKTEChain());
+      (*psg_kte) << (*sceneData.chaser_kin_model->getKTEChain());
     };
     
   } catch(...) {
@@ -132,7 +140,7 @@ void ChaserTargetConfigWidget::saveChaserMdl() {
   last_used_path = QFileInfo(fileName).absolutePath();
   
   try {
-    scene_data.save_chaser(fileName.toStdString());
+    sceneData.save_chaser(fileName.toStdString());
   } catch(...) {
     QMessageBox::information(this,
                 "Error!",
@@ -156,9 +164,9 @@ void ChaserTargetConfigWidget::loadTargetMdl() {
   last_used_path = QFileInfo(fileName).absolutePath();
   
   try {
-    scene_data.load_target(fileName.toStdString());  // "models/airship3D.model.rkx"
+    sceneData.load_target(fileName.toStdString());  // "models/airship3D.model.rkx"
     
-    if(!scene_data.target_kin_model) {
+    if(!sceneData.target_kin_model) {
       QMessageBox::information(this,
                   "Error!",
                   "An error occurred when loading the file! No target model was found!",
@@ -166,12 +174,12 @@ void ChaserTargetConfigWidget::loadTargetMdl() {
       return;
     };
     
-    this->target_filename_edit->setText(QString::fromStdString(scene_data.target_kin_model->getName()));
+    this->target_filename_edit->setText(QString::fromStdString(sceneData.target_kin_model->getName()));
     
     if(view3d_menu) {
       shared_ptr<geom::oi_scene_graph> psg = view3d_menu->getGeometryGroup("Target Geometry");
       psg->clearAll();
-      (*psg) << (*scene_data.target_geom_model);
+      (*psg) << (*sceneData.target_geom_model);
     };
     
   } catch(...) {
@@ -200,7 +208,7 @@ void ChaserTargetConfigWidget::saveTargetMdl() {
   last_used_path = QFileInfo(fileName).absolutePath();
   
   try {
-    scene_data.save_target(fileName.toStdString());
+    sceneData.save_target(fileName.toStdString());
   } catch(...) {
     QMessageBox::information(this,
                 "Error!",
@@ -224,16 +232,16 @@ void ChaserTargetConfigWidget::addEnvMdl() {
   last_used_path = QFileInfo(fileName).absolutePath();
   
   try {
-    scene_data.load_environment(fileName.toStdString());  // "models/MD148_lab.geom.rkx"
+    sceneData.load_environment(fileName.toStdString());  // "models/MD148_lab.geom.rkx"
     
-    for(std::size_t i = this->env_geoms_list->count(); i < scene_data.env_geom_models.size(); ++i)
-      this->env_geoms_list->addItem(QString::fromStdString(scene_data.env_geom_models[i]->getName()));
+    for(std::size_t i = this->env_geoms_list->count(); i < sceneData.env_geom_models.size(); ++i)
+      this->env_geoms_list->addItem(QString::fromStdString(sceneData.env_geom_models[i]->getName()));
     
     if(view3d_menu) {
       shared_ptr<geom::oi_scene_graph> psg = view3d_menu->getGeometryGroup("Environment");
       psg->clearAll();
-      for(std::size_t i = 0; i < scene_data.env_geom_models.size(); ++i)
-        (*psg) << (*(scene_data.env_geom_models[i]));
+      for(std::size_t i = 0; i < sceneData.env_geom_models.size(); ++i)
+        (*psg) << (*(sceneData.env_geom_models[i]));
     };
     
   } catch(...) {
@@ -254,7 +262,7 @@ void ChaserTargetConfigWidget::clearEnvMdls() {
   if(view3d_menu)
     view3d_menu->getGeometryGroup("Environment")->clearAll();
   this->env_geoms_list->clear();
-  scene_data.clear_environment();
+  sceneData.clear_environment();
 };
 
 void ChaserTargetConfigWidget::saveEnvMdl() {
@@ -277,7 +285,7 @@ void ChaserTargetConfigWidget::saveEnvMdl() {
   last_used_path = QFileInfo(fileName).absolutePath();
   
   try {
-    scene_data.save_environment(this->env_geoms_list->currentRow(), fileName.toStdString());
+    sceneData.save_environment(this->env_geoms_list->currentRow(), fileName.toStdString());
   } catch(...) {
     QMessageBox::information(this,
                 "Error!",
@@ -301,40 +309,40 @@ void ChaserTargetConfigWidget::loadCompleteMdl() {
   last_used_path = QFileInfo(fileName).absolutePath();
   
   try {
-    (*serialization::open_iarchive(fileName.toStdString())) >> scene_data;
+    (*serialization::open_iarchive(fileName.toStdString())) >> sceneData;
     
-    if(!scene_data.chaser_kin_model) {
+    if(!sceneData.chaser_kin_model) {
       QMessageBox::information(this,
                   "Error!",
                   "An error occurred when loading the file! No chaser model was found!",
                   QMessageBox::Ok);
     } else {
-      this->chaser_filename_edit->setText(QString::fromStdString(scene_data.chaser_kin_model->getName()));
+      this->chaser_filename_edit->setText(QString::fromStdString(sceneData.chaser_kin_model->getName()));
       
       if(view3d_menu) {
         shared_ptr<geom::oi_scene_graph> psg_chase = view3d_menu->getGeometryGroup("Chaser Geometry");
         psg_chase->clearAll();
-        (*psg_chase) << (*scene_data.chaser_geom_model);
+        (*psg_chase) << (*sceneData.chaser_geom_model);
         
         shared_ptr<geom::oi_scene_graph> psg_kte = view3d_menu->getGeometryGroup("Chaser KTE Chain");
         psg_kte->clearAll();
         psg_kte->setCharacteristicLength( psg_chase->computeCharacteristicLength() );
-        (*psg_kte) << (*scene_data.chaser_kin_model->getKTEChain());
+        (*psg_kte) << (*sceneData.chaser_kin_model->getKTEChain());
       };
     };
     
-    if(!scene_data.target_kin_model) {
+    if(!sceneData.target_kin_model) {
       QMessageBox::information(this,
                   "Error!",
                   "An error occurred when loading the file! No target model was found!",
                   QMessageBox::Ok);
     } else {
-      this->target_filename_edit->setText(QString::fromStdString(scene_data.target_kin_model->getName()));
+      this->target_filename_edit->setText(QString::fromStdString(sceneData.target_kin_model->getName()));
       
       if(view3d_menu) {
         shared_ptr<geom::oi_scene_graph> psg_target = view3d_menu->getGeometryGroup("Target Geometry");
         psg_target->clearAll();
-        (*psg_target) << (*scene_data.target_geom_model);
+        (*psg_target) << (*sceneData.target_geom_model);
       };
     };
     
@@ -342,8 +350,8 @@ void ChaserTargetConfigWidget::loadCompleteMdl() {
       
       shared_ptr<geom::oi_scene_graph> psg_env = view3d_menu->getGeometryGroup("Environment");
       psg_env->clearAll();
-      for(std::size_t i = 0; i < scene_data.env_geom_models.size(); ++i)
-        (*psg_env) << (*(scene_data.env_geom_models[i]));
+      for(std::size_t i = 0; i < sceneData.env_geom_models.size(); ++i)
+        (*psg_env) << (*(sceneData.env_geom_models[i]));
       
     };
     
@@ -373,7 +381,7 @@ void ChaserTargetConfigWidget::saveCompleteMdl() {
   last_used_path = QFileInfo(fileName).absolutePath();
   
   try {
-    (*serialization::open_oarchive(fileName.toStdString())) << scene_data;
+    (*serialization::open_oarchive(fileName.toStdString())) << sceneData;
   } catch(...) {
     QMessageBox::information(this,
                 "Error!",

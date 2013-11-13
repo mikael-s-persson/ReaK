@@ -138,13 +138,6 @@
         </layout>
        </widget>
       </item>
-      <item>
-       <widget class="QCheckBox" name="enable_ik_check">
-        <property name="text">
-         <string>Enable Inverse Kinematics</string>
-        </property>
-       </widget>
-      </item>
      </layout>
     </widget>
    </item>

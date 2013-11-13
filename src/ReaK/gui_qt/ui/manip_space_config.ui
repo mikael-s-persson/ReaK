@@ -218,7 +218,125 @@
     </spacer>
    </item>
   </layout>
+  <action name="actionValuesChanged">
+   <property name="text">
+    <string>ValuesChanged</string>
+   </property>
+  </action>
  </widget>
  <resources/>
- <connections/>
+ <connections>
+  <connection>
+   <sender>interp_selection</sender>
+   <signal>currentIndexChanged(int)</signal>
+   <receiver>actionValuesChanged</receiver>
+   <slot>trigger()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>173</x>
+     <y>105</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>max_interval_spinbox</sender>
+   <signal>valueChanged(double)</signal>
+   <receiver>actionValuesChanged</receiver>
+   <slot>trigger()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>258</x>
+     <y>236</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>min_interval_spinbox</sender>
+   <signal>valueChanged(double)</signal>
+   <receiver>actionValuesChanged</receiver>
+   <slot>trigger()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>258</x>
+     <y>263</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>order_selection</sender>
+   <signal>currentIndexChanged(int)</signal>
+   <receiver>actionValuesChanged</receiver>
+   <slot>trigger()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>173</x>
+     <y>58</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>173</x>
+     <y>310</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>output_space_selection</sender>
+   <signal>currentIndexChanged(int)</signal>
+   <receiver>actionValuesChanged</receiver>
+   <slot>trigger()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>173</x>
+     <y>177</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>rate_limited_check</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>actionValuesChanged</receiver>
+   <slot>trigger()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>258</x>
+     <y>132</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>temporal_space_check</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>actionValuesChanged</receiver>
+   <slot>trigger()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>88</x>
+     <y>132</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
 </ui>

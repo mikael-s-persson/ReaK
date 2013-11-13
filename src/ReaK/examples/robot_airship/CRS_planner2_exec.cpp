@@ -68,7 +68,7 @@ template <typename ManipMdlType, typename InterpTag, int Order, typename ManipCS
 void CRS_execute_static_planner_impl(const ReaK::kte::chaser_target_data& scene_data, 
                                      const ReaK::pp::planning_option_collection& plan_options,
                                      SoSwitch* sw_motion_graph, SoSwitch* sw_solutions,
-                                     bool print_timing, bool print_counter, 
+                                     double min_travel, bool print_timing, bool print_counter, 
                                      const ReaK::vect_n<double>& jt_start, 
                                      const ReaK::vect_n<double>& jt_desired,
                                      ReaK::shared_ptr< ManipCSpaceTrajectory >& sol_trace) {
@@ -96,7 +96,7 @@ void CRS_execute_static_planner_impl(const ReaK::kte::chaser_target_data& scene_
   shared_ptr< static_workspace_type > workspace = 
     make_manip_static_workspace<Order>(InterpTag(),
       chaser_concrete_model, scene_data.chaser_jt_limits, 
-      plan_options.min_travel);
+      min_travel);
   
   shared_ptr< rl_jt_space_type > jt_space = 
     make_manip_rl_jt_space<Order>(chaser_concrete_model, scene_data.chaser_jt_limits);
@@ -130,7 +130,7 @@ void CRS_execute_static_planner_impl(const ReaK::kte::chaser_target_data& scene_
   
   frame_reporter_type temp_reporter(
     make_any_model_applicator< rl_jt_space_type >(rlDK_map_type(chaser_concrete_model, scene_data.chaser_jt_limits, normal_jt_space)),
-    0.5 * plan_options.min_travel, (sw_motion_graph == NULL));
+    0.5 * min_travel, (sw_motion_graph == NULL));
   
   if((sw_motion_graph == NULL) || (sw_solutions == NULL)) {
     temp_reporter.add_traced_frame(EE_frame);
@@ -289,104 +289,90 @@ void CRSPlannerGUI::executePlanner() {
   using namespace ReaK;
   using namespace pp;
   
-  shared_ptr< frame_3D<double> > EE_frame = scene_data.chaser_kin_model->getDependentFrame3D(0)->mFrame;
+  shared_ptr< frame_3D<double> > EE_frame = ct_config.sceneData.chaser_kin_model->getDependentFrame3D(0)->mFrame;
   
   vect_n<double> jt_desired(7,0.0);
-  if(configs.check_ik_goal->isChecked()) {
-    vect_n<double> jt_previous = scene_data.chaser_kin_model->getJointPositions();
-    try {
-      frame_3D<double> tf = scene_data.target_frame->getFrameRelativeTo(EE_frame);
-      EE_frame->addBefore(tf);
-      scene_data.chaser_kin_model->doInverseMotion();
-      jt_desired = scene_data.chaser_kin_model->getJointPositions();
-    } catch( optim::infeasible_problem& e ) { RK_UNUSED(e);
-      QMessageBox::critical(this,
-                    "Inverse Kinematics Error!",
-                    "The target frame cannot be reached! No inverse kinematics solution possible!",
-                    QMessageBox::Ok);
-      return;
-    };
-    scene_data.chaser_kin_model->setJointPositions(jt_previous);
-    scene_data.chaser_kin_model->doDirectMotion();
-  } else {
-    std::stringstream ss(configs.custom_goal_edit->text().toStdString());
-    ss >> jt_desired;
+  
+  vect_n<double> jt_previous = ct_config.sceneData.chaser_kin_model->getJointPositions();
+  try {
+    frame_3D<double> tf = ct_config.sceneData.target_frame->getFrameRelativeTo(EE_frame);
+    EE_frame->addBefore(tf);
+    ct_config.sceneData.chaser_kin_model->doInverseMotion();
+    jt_desired = ct_config.sceneData.chaser_kin_model->getJointPositions();
+  } catch( optim::infeasible_problem& e ) { RK_UNUSED(e);
+    QMessageBox::critical(this,
+                  "Inverse Kinematics Error!",
+                  "The target frame cannot be reached! No inverse kinematics solution possible!",
+                  QMessageBox::Ok);
+    return;
   };
+  ct_config.sceneData.chaser_kin_model->setJointPositions(jt_previous);
+  ct_config.sceneData.chaser_kin_model->doDirectMotion();
   
-  vect_n<double> jt_start;
-  if(configs.check_current_start->isChecked()) {
-    jt_start = scene_data.chaser_kin_model->getJointPositions(); 
-  } else {
-    std::stringstream ss(configs.custom_start_edit->text().toStdString());
-    ss >> jt_start;
-  };
-  
-  
-  // update the planning options record:
-  onConfigsChanged();
+  vect_n<double> jt_start = ct_config.sceneData.chaser_kin_model->getJointPositions(); 
   
   
   SoSwitch* sw_motion_graph = NULL;
-  if(configs.check_print_graph->isChecked())
+  if(plan_alg_config.outputMotionGraph())
     sw_motion_graph = view3d_menu.getDisplayGroup("Motion-Graph",true);
   
   SoSwitch* sw_solutions = NULL;
-  if(configs.check_print_best->isChecked())
+  if(plan_alg_config.outputSolution())
     sw_solutions = view3d_menu.getDisplayGroup("Solution(s)",true);
   
-  bool print_timing  = configs.check_print_timing->isChecked();
-  bool print_counter = configs.check_print_counter->isChecked();
+  bool print_timing  = plan_alg_config.outputTiming();
+  bool print_counter = plan_alg_config.outputNodeCounter();
   
   
-  if((plan_options.space_order == 0) && (plan_options.interp_id == 0)) { 
-    CRS_execute_static_planner_impl<kte::manip_P3R3R_kinematics, linear_interpolation_tag, 0>(scene_data, plan_options,
-      sw_motion_graph, sw_solutions, print_timing, print_counter, 
+  if((space_config.space_order == 0) && (space_config.interp_id == 0)) { 
+    CRS_execute_static_planner_impl<kte::manip_P3R3R_kinematics, linear_interpolation_tag, 0>(ct_config.sceneData, plan_alg_config.planOptions,
+      sw_motion_graph, sw_solutions, space_config.min_travel, print_timing, print_counter, 
       jt_start, jt_desired, sol_anim.trajectory);
   } else 
 #if 0
-  if((plan_options.space_order == 1) && (plan_options.interp_id == 0)) {
-    CRS_execute_static_planner_impl<kte::manip_P3R3R_kinematics, linear_interpolation_tag, 1>(scene_data, plan_options,
-      sw_motion_graph, sw_solutions, print_timing, print_counter, 
+  if((space_config.space_order == 1) && (space_config.interp_id == 0)) {
+    CRS_execute_static_planner_impl<kte::manip_P3R3R_kinematics, linear_interpolation_tag, 1>(ct_config.sceneData, plan_alg_config.planOptions,
+      sw_motion_graph, sw_solutions, space_config.min_travel, print_timing, print_counter, 
       jt_start, jt_desired, sol_anim.trajectory);
   } else 
-  if((plan_options.space_order == 2) && (plan_options.interp_id == 0)) {
-    CRS_execute_static_planner_impl<kte::manip_P3R3R_kinematics, linear_interpolation_tag, 2>(scene_data, plan_options,
-      sw_motion_graph, sw_solutions, print_timing, print_counter, 
+  if((space_config.space_order == 2) && (space_config.interp_id == 0)) {
+    CRS_execute_static_planner_impl<kte::manip_P3R3R_kinematics, linear_interpolation_tag, 2>(ct_config.sceneData, plan_alg_config.planOptions,
+      sw_motion_graph, sw_solutions, space_config.min_travel, print_timing, print_counter, 
       jt_start, jt_desired, sol_anim.trajectory);
   } else 
 #endif
-  if((plan_options.space_order == 1) && (plan_options.interp_id == 1)) {
-    CRS_execute_static_planner_impl<kte::manip_P3R3R_kinematics, cubic_hermite_interpolation_tag, 1>(scene_data, plan_options,
-      sw_motion_graph, sw_solutions, print_timing, print_counter, 
+  if((space_config.space_order == 1) && (space_config.interp_id == 1)) {
+    CRS_execute_static_planner_impl<kte::manip_P3R3R_kinematics, cubic_hermite_interpolation_tag, 1>(ct_config.sceneData, plan_alg_config.planOptions,
+      sw_motion_graph, sw_solutions, space_config.min_travel, print_timing, print_counter, 
       jt_start, jt_desired, sol_anim.trajectory);
   } else 
 #if 0
-  if((plan_options.space_order == 2) && (plan_options.interp_id == 1)) {
-    CRS_execute_static_planner_impl<kte::manip_P3R3R_kinematics, cubic_hermite_interpolation_tag, 2>(scene_data, plan_options,
-      sw_motion_graph, sw_solutions, print_timing, print_counter, 
+  if((space_config.space_order == 2) && (space_config.interp_id == 1)) {
+    CRS_execute_static_planner_impl<kte::manip_P3R3R_kinematics, cubic_hermite_interpolation_tag, 2>(ct_config.sceneData, plan_alg_config.planOptions,
+      sw_motion_graph, sw_solutions, space_config.min_travel, print_timing, print_counter, 
       jt_start, jt_desired, sol_anim.trajectory);
   } else 
 #endif
-  if((plan_options.space_order == 2) && (plan_options.interp_id == 2)) {
-    CRS_execute_static_planner_impl<kte::manip_P3R3R_kinematics, quintic_hermite_interpolation_tag, 2>(scene_data, plan_options,
-      sw_motion_graph, sw_solutions, print_timing, print_counter, 
+  if((space_config.space_order == 2) && (space_config.interp_id == 2)) {
+    CRS_execute_static_planner_impl<kte::manip_P3R3R_kinematics, quintic_hermite_interpolation_tag, 2>(ct_config.sceneData, plan_alg_config.planOptions,
+      sw_motion_graph, sw_solutions, space_config.min_travel, print_timing, print_counter, 
       jt_start, jt_desired, sol_anim.trajectory);
   } else 
-  if((plan_options.space_order == 1) && (plan_options.interp_id == 3)) {
-    CRS_execute_static_planner_impl<kte::manip_P3R3R_kinematics, svp_Ndof_interpolation_tag, 1>(scene_data, plan_options,
-      sw_motion_graph, sw_solutions, print_timing, print_counter, 
+  if((space_config.space_order == 1) && (space_config.interp_id == 3)) {
+    CRS_execute_static_planner_impl<kte::manip_P3R3R_kinematics, svp_Ndof_interpolation_tag, 1>(ct_config.sceneData, plan_alg_config.planOptions,
+      sw_motion_graph, sw_solutions, space_config.min_travel, print_timing, print_counter, 
       jt_start, jt_desired, sol_anim.trajectory);
   } else 
 #if 0
-  if((plan_options.space_order == 2) && (plan_options.interp_id == 3)) {
-    CRS_execute_static_planner_impl<kte::manip_P3R3R_kinematics, svp_Ndof_interpolation_tag, 2>(scene_data, plan_options,
-      sw_motion_graph, sw_solutions, print_timing, print_counter, 
+  if((space_config.space_order == 2) && (space_config.interp_id == 3)) {
+    CRS_execute_static_planner_impl<kte::manip_P3R3R_kinematics, svp_Ndof_interpolation_tag, 2>(ct_config.sceneData, plan_alg_config.planOptions,
+      sw_motion_graph, sw_solutions, space_config.min_travel, print_timing, print_counter, 
       jt_start, jt_desired, sol_anim.trajectory);
   } else 
 #endif
-  if((plan_options.space_order == 2) && (plan_options.interp_id == 4)) {
-    CRS_execute_static_planner_impl<kte::manip_P3R3R_kinematics, sap_Ndof_interpolation_tag, 2>(scene_data, plan_options,
-      sw_motion_graph, sw_solutions, print_timing, print_counter, 
+  if((space_config.space_order == 2) && (space_config.interp_id == 4)) {
+    CRS_execute_static_planner_impl<kte::manip_P3R3R_kinematics, sap_Ndof_interpolation_tag, 2>(ct_config.sceneData, plan_alg_config.planOptions,
+      sw_motion_graph, sw_solutions, space_config.min_travel, print_timing, print_counter, 
       jt_start, jt_desired, sol_anim.trajectory);
   };
   
