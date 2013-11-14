@@ -130,7 +130,7 @@ void CRS_execute_static_planner_impl(const ReaK::kte::chaser_target_data& scene_
   
   frame_reporter_type temp_reporter(
     make_any_model_applicator< rl_jt_space_type >(rlDK_map_type(chaser_concrete_model, scene_data.chaser_jt_limits, normal_jt_space)),
-    0.5 * min_travel, (sw_motion_graph == NULL));
+    0.5 * min_travel, (sw_motion_graph != NULL));
   
   if((sw_motion_graph) || (sw_solutions)) {
     temp_reporter.add_traced_frame(EE_frame);
