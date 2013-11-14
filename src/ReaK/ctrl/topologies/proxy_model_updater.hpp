@@ -182,7 +182,7 @@ class any_model_applicator : public proxy_model_applicator<JointSpace> {
         & RK_SERIAL_LOAD_WITH_NAME(inter_space);
     };
 
-    RK_RTTI_MAKE_ABSTRACT_1BASE(self,0xC240003C,1,"any_model_applicator",base_type)
+    RK_RTTI_MAKE_CONCRETE_1BASE(self,0xC240003C,1,"any_model_applicator",base_type)
     
 };
 
@@ -231,7 +231,7 @@ class any_model_applicator<JointSpace, DKTopoMap, identity_topo_map, JointSpace>
       A & RK_SERIAL_LOAD_WITH_NAME(dk_topomap);
     };
 
-    RK_RTTI_MAKE_ABSTRACT_1BASE(self,0xC240003C,1,"any_model_applicator",base_type)
+    RK_RTTI_MAKE_CONCRETE_1BASE(self,0xC240003C,1,"any_model_applicator",base_type)
     
 };
 

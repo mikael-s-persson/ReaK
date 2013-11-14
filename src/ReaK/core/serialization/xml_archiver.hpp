@@ -38,7 +38,7 @@
 #include <iostream>
 #include <utility>
 #include <string>
-
+#include <vector>
 
 namespace ReaK {
 
@@ -57,7 +57,7 @@ class xml_iarchive : public iarchive {
     void skipToEndToken(const std::string& name);
     void trimStr(std::string& s);
     bool readNamedValue(const std::string& value_name,std::string& value_str);
-    archive_object_header readHeader(const std::string& obj_name);
+    archive_object_header readHeader(const std::string& obj_name, std::vector<unsigned int>& outTypeID);
 
   protected:
 

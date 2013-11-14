@@ -235,7 +235,7 @@ class reach_time_diff_space : public differentiable_space<IndependentSpace, Spac
       base_type::load(A,base_type::getStaticObjectType()->TypeVersion());
     };
     
-    RK_RTTI_MAKE_ABSTRACT_1BASE(self,0xC2400010,1,"reach_time_diff_space",base_type)
+    RK_RTTI_MAKE_CONCRETE_1BASE(self,0xC2400010,1,"reach_time_diff_space",base_type)
 
 };
 

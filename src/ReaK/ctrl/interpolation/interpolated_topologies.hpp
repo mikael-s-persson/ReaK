@@ -328,7 +328,7 @@ class interpolated_topology_base : public BaseTopology {
       BaseTopology::load(A,BaseTopology::getStaticObjectType()->TypeVersion());
     };
 
-    RK_RTTI_MAKE_ABSTRACT_1BASE(self,0xC2400039,1,"interpolated_topology_base",BaseTopology)
+    RK_RTTI_MAKE_CONCRETE_1BASE(self,0xC2400039,1,"interpolated_topology_base",BaseTopology)
     
 };
 
@@ -505,7 +505,7 @@ class wrapped_interp_topology : public named_object {
       A & RK_SERIAL_LOAD_WITH_NAME(m_space);
     };
 
-    RK_RTTI_MAKE_ABSTRACT_1BASE(self,0xC240003D,1,"wrapped_interp_topology",named_object)
+    RK_RTTI_MAKE_CONCRETE_1BASE(self,0xC240003D,1,"wrapped_interp_topology",named_object)
     
 };
 
@@ -778,7 +778,7 @@ class interpolated_topology : public interpolated_topology_base<BaseTopology> {
       base_type::load(A,base_type::getStaticObjectType()->TypeVersion());
     };
 
-    RK_RTTI_MAKE_ABSTRACT_1BASE(self,0xC240003A,1,"interpolated_topology",base_type)
+    RK_RTTI_MAKE_CONCRETE_1BASE(self,0xC240003A,1,"interpolated_topology",base_type)
     
 };
 

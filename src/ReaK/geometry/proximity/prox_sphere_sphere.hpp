@@ -82,7 +82,7 @@ class prox_sphere_sphere : public proximity_finder_3D {
     
     virtual void RK_CALL load(ReaK::serialization::iarchive& A, unsigned int);
     
-    RK_RTTI_MAKE_ABSTRACT_1BASE(prox_sphere_sphere,0xC3200010,1,"prox_sphere_sphere",proximity_finder_3D)
+    RK_RTTI_MAKE_CONCRETE_1BASE(prox_sphere_sphere,0xC3200010,1,"prox_sphere_sphere",proximity_finder_3D)
     
 };
 

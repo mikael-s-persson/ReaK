@@ -71,7 +71,7 @@ class proximity_record_2D : public shared_object {
 
     virtual void RK_CALL load(ReaK::serialization::iarchive& A, unsigned int);
 
-    RK_RTTI_MAKE_ABSTRACT_1BASE(proximity_record_2D,0xC3200001,1,"proximity_record_2D",shared_object)
+    RK_RTTI_MAKE_CONCRETE_1BASE(proximity_record_2D,0xC3200001,1,"proximity_record_2D",shared_object)
 
 };
 

@@ -104,7 +104,7 @@ class time_poisson_topology : public time_topology
         & RK_SERIAL_LOAD_WITH_NAME(mean_discrete_time);
     };
 
-    RK_RTTI_MAKE_ABSTRACT_1BASE(time_poisson_topology,0xC240000B,1,"time_poisson_topology",time_topology)
+    RK_RTTI_MAKE_CONCRETE_1BASE(time_poisson_topology,0xC240000B,1,"time_poisson_topology",time_topology)
 
 };
 

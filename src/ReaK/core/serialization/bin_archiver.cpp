@@ -28,6 +28,8 @@
 #include "rtti/so_type.hpp"
 #include "rtti/so_type_repo.hpp"
 
+#include "archiving_exceptions.hpp"
+
 
 #include <string>
 #include <map>
@@ -162,6 +164,7 @@ bin_iarchive::~bin_iarchive() {};
 
 iarchive& RK_CALL bin_iarchive::load_serializable_ptr(serializable_shared_pointer& Item) {
   archive_object_header hdr;
+  Item = serializable_shared_pointer();
 
   std::vector<unsigned int> typeIDvect;
   unsigned int i;
@@ -176,7 +179,6 @@ iarchive& RK_CALL bin_iarchive::load_serializable_ptr(serializable_shared_pointe
   bin_iarchive::load_unsigned_int(hdr.size);
   
   if(hdr.object_ID == 0) {
-    Item = serializable_shared_pointer();
     return *this;
   };
   if((hdr.object_ID < mObjRegistry.size()) && (mObjRegistry[hdr.object_ID])) {
@@ -193,7 +195,7 @@ iarchive& RK_CALL bin_iarchive::load_serializable_ptr(serializable_shared_pointe
     if (hdr.size + start_pos != end_pos)
       file_stream->seekg(start_pos + std::streampos(hdr.size));
 
-    bin_iarchive a(ext_filename);
+    bin_iarchive a(ext_filename);  // if this throws, let it propagate up (no point catching and throwing).
     a >> Item;
 
     return *this;
@@ -203,20 +205,12 @@ iarchive& RK_CALL bin_iarchive::load_serializable_ptr(serializable_shared_pointe
   rtti::so_type::weak_pointer p( rtti::so_type_repo::getInstance().findType(&(typeIDvect[0])) );
   if((p.expired()) || (p.lock()->TypeVersion() < hdr.type_version)) {
     file_stream->ignore(hdr.size);
-    Item = serializable_shared_pointer();
-    std::stringstream ss;
-    for(std::size_t i = 0; typeIDvect[i]; ++i)
-      ss << std::hex << typeIDvect[i] << ".";
-    ss << "0";
-    RK_NOTICE(2,"Could not find the object of type " << ss.str() << " in the type repository.");
-    return *this;
+    throw unsupported_type(unsupported_type::not_found_in_repo, &(typeIDvect[0]));
   };
   ReaK::shared_ptr<shared_object> po(p.lock()->CreateObject());
   if(!po) {
     file_stream->ignore(hdr.size);
-    Item = serializable_shared_pointer();
-    RK_NOTICE(2,"Could not create the object of type '" << p.lock()->TypeName() << "' from the factory function.");
-    return *this;
+    throw unsupported_type(unsupported_type::could_not_create, &(typeIDvect[0]));
   };
 
   Item = po;

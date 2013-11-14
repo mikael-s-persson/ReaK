@@ -75,8 +75,8 @@ class circle : public shape_2D {
      */
     circle(const std::string& aName = "",
            const shared_ptr< pose_2D<double> >& aAnchor = shared_ptr< pose_2D<double> >(),
-	   const pose_2D<double>& aPose = pose_2D<double>(),
-	   double aRadius = 1.0);
+           const pose_2D<double>& aPose = pose_2D<double>(),
+           double aRadius = 1.0);
     
     /**
      * Default destructor.
@@ -92,7 +92,7 @@ class circle : public shape_2D {
 
     virtual void RK_CALL load(ReaK::serialization::iarchive& A, unsigned int);
 
-    RK_RTTI_MAKE_ABSTRACT_1BASE(circle,0xC310000C,1,"circle",shape_2D)
+    RK_RTTI_MAKE_CONCRETE_1BASE(circle,0xC310000C,1,"circle",shape_2D)
 
 };
 

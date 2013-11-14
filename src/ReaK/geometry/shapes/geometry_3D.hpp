@@ -82,7 +82,7 @@ class geometry_3D : public named_object {
      */
     geometry_3D(const std::string& aName = "",
                 const shared_ptr< pose_3D<double> >& aAnchor = shared_ptr< pose_3D<double> >(),
-		const pose_3D<double>& aPose = pose_3D<double>());
+                const pose_3D<double>& aPose = pose_3D<double>());
     
     /**
      * Default destructor.
@@ -98,7 +98,7 @@ class geometry_3D : public named_object {
 
     virtual void RK_CALL load(ReaK::serialization::iarchive& A, unsigned int);
 
-    RK_RTTI_MAKE_ABSTRACT_1BASE(geometry_3D,0xC3100001,1,"geometry_3D",named_object)
+    RK_RTTI_MAKE_CONCRETE_1BASE(geometry_3D,0xC3100001,1,"geometry_3D",named_object)
     
 };
 

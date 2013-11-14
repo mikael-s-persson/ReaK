@@ -30,6 +30,8 @@
 #include "scheme_builder.hpp"
 #include "type_schemes.hpp"
 
+#include "archiving_exceptions.hpp"
+
 #include <string>
 #include <fstream>
 #include <sstream>
@@ -509,8 +511,9 @@ bool objtree_iarchive::readNamedValue(const std::string& value_name,std::string&
   return true;
 };
 
-archive_object_header objtree_iarchive::readHeader(const std::string& obj_name) {
+archive_object_header objtree_iarchive::readHeader(const std::string& obj_name, std::vector<unsigned int>& outTypeID) {
   archive_object_header result;
+  outTypeID.clear();
   
   std::string token = readToken();
   if(token.empty())
@@ -541,18 +544,13 @@ archive_object_header objtree_iarchive::readHeader(const std::string& obj_name) 
   };
   
   std::string IDstr = values["type_ID"];
-  if(IDstr.empty())
-    result.type_ID = NULL;
-  else {
-    std::vector<unsigned int> nums;
+  if(!IDstr.empty()) {
     for(i=0;i<IDstr.size();++i) {
       std::string numstr;
       for(;((i < IDstr.size()) && (IDstr[i] != '.'));++i) 
         numstr += IDstr[i];
-      nums.push_back(strtoul(numstr.c_str(),NULL,0));
+      outTypeID.push_back(strtoul(numstr.c_str(),NULL,0));
     };
-    result.type_ID = new unsigned int[nums.size()];
-    std::copy(nums.begin(),nums.end(),result.type_ID);
   };
   
   if(values["version"].empty())
@@ -595,12 +593,12 @@ iarchive& RK_CALL objtree_iarchive::load_serializable_ptr(const std::pair<std::s
   Item.second = serializable_shared_pointer();
   typedef boost::graph_traits< object_graph >::vertex_descriptor Vertex;
   
-  archive_object_header hdr = readHeader(Item.first);
-  if((hdr.type_ID == NULL) || 
+  std::vector<unsigned int> typeID;
+  archive_object_header hdr = readHeader(Item.first, typeID);
+  if((typeID.empty()) || 
      (hdr.type_version == 0) || 
      (hdr.object_ID == 0)) {
     skipToEndToken(Item.first);
-    delete[] hdr.type_ID;
     return *this;
   };
   
@@ -608,7 +606,6 @@ iarchive& RK_CALL objtree_iarchive::load_serializable_ptr(const std::pair<std::s
      ((*obj_graph)[static_cast<Vertex>(hdr.object_ID)].p_obj)) {
     Item.second = (*obj_graph)[static_cast<Vertex>(hdr.object_ID)].p_obj;
     skipToEndToken(Item.first);
-    delete[] hdr.type_ID;
     
     // re-read the xml source
     shared_ptr< std::stringstream > tmp_ss = current_ss;
@@ -628,8 +625,9 @@ iarchive& RK_CALL objtree_iarchive::load_serializable(serializable& Item) {
 
 iarchive& RK_CALL objtree_iarchive::load_serializable(const std::pair<std::string, serializable& >& Item) {
   archive_object_header hdr;
-
-  hdr = readHeader(Item.first);
+  
+  std::vector<unsigned int> typeID;
+  hdr = readHeader(Item.first, typeID);
   if((hdr.type_ID == NULL) || (hdr.type_version == 0)) {
     skipToEndToken(Item.first);
     return *this;
@@ -638,7 +636,6 @@ iarchive& RK_CALL objtree_iarchive::load_serializable(const std::pair<std::strin
   Item.second.load(*this,hdr.type_version);
 
   skipToEndToken(Item.first);
-  delete[] hdr.type_ID;
   return *this;
 };
 

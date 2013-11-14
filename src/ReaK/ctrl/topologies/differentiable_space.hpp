@@ -251,7 +251,7 @@ class differentiable_space : public metric_space_tuple<SpaceTuple,TupleDistanceM
     
     typedef typename base_type::distance_metric_type distance_metric_type;
     typedef typename base_type::random_sampler_type random_sampler_type;
-	
+        
     BOOST_STATIC_CONSTANT(std::size_t, dimensions = base_type::dimensions);
     
     /**
@@ -279,10 +279,10 @@ class differentiable_space : public metric_space_tuple<SpaceTuple,TupleDistanceM
      * \param aDiffRules The differentiation rule tuple to initialize the diff-rule functors with.
      */
     differentiable_space(const SpaceTuple& aSpaces = SpaceTuple(), 
-			 const TupleDistanceMetric& aDist = TupleDistanceMetric(),
-			 const diff_rule_tuple& aDiffRules = diff_rule_tuple()) :
-			 base_type(aSpaces,aDist), 
-			 m_diff_rules(aDiffRules) { };
+                         const TupleDistanceMetric& aDist = TupleDistanceMetric(),
+                         const diff_rule_tuple& aDiffRules = diff_rule_tuple()) :
+                         base_type(aSpaces,aDist), 
+                         m_diff_rules(aDiffRules) { };
     
     /**
      * This function returns the differentiation functor at a given order against a given independent-space.
@@ -314,8 +314,8 @@ class differentiable_space : public metric_space_tuple<SpaceTuple,TupleDistanceM
     template <int Idx>
     typename arithmetic_tuple_element<Idx, point_type>::type 
       lift_to_space(const typename arithmetic_tuple_element<Idx-1, point_difference_type>::type& dp,
-		    const typename topology_traits< IndependentSpace >::point_difference_type& dt,
-		    const IndependentSpace& t_space) const {
+                    const typename topology_traits< IndependentSpace >::point_difference_type& dt,
+                    const IndependentSpace& t_space) const {
       typename arithmetic_tuple_element<Idx, point_type>::type result;
       get<Idx-1>(m_diff_rules).lift(result, dp, dt, t_space);
       return result;
@@ -333,8 +333,8 @@ class differentiable_space : public metric_space_tuple<SpaceTuple,TupleDistanceM
     template <int Idx>
     typename arithmetic_tuple_element<Idx, point_difference_type>::type 
       descend_to_space(const typename arithmetic_tuple_element<Idx+1, point_type>::type& v,
-		       const typename topology_traits< IndependentSpace >::point_difference_type& dt,
-		       const IndependentSpace& t_space) const {
+                       const typename topology_traits< IndependentSpace >::point_difference_type& dt,
+                       const IndependentSpace& t_space) const {
       typename arithmetic_tuple_element<Idx, point_difference_type>::type result;
       get<Idx>(m_diff_rules).descend(result, v, dt, t_space);
       return result;
@@ -354,7 +354,7 @@ class differentiable_space : public metric_space_tuple<SpaceTuple,TupleDistanceM
       A & RK_SERIAL_LOAD_WITH_NAME(m_diff_rules);
     };
     
-    RK_RTTI_MAKE_ABSTRACT_1BASE(self,0xC2400003,1,"differentiable_space",base_type)
+    RK_RTTI_MAKE_CONCRETE_1BASE(self,0xC2400003,1,"differentiable_space",base_type)
 
 };
 
@@ -454,9 +454,9 @@ typename boost::enable_if< boost::is_convertible< const IndependentSpace2&, cons
 arithmetic_tuple_element<Idx, typename differentiable_space<IndependentSpace,SpaceTuple,TupleDistanceMetric,DiffRule>::point_type> >::type::type
 #endif
   lift_to_space(const typename arithmetic_tuple_element<Idx-1, typename differentiable_space<IndependentSpace,SpaceTuple,TupleDistanceMetric,DiffRule>::point_difference_type>::type& dp,
-		const typename topology_traits< IndependentSpace2 >::point_difference_type& dt,
-		const differentiable_space<IndependentSpace,SpaceTuple,TupleDistanceMetric,DiffRule>& space,
-		const IndependentSpace2& t_space) {
+                const typename topology_traits< IndependentSpace2 >::point_difference_type& dt,
+                const differentiable_space<IndependentSpace,SpaceTuple,TupleDistanceMetric,DiffRule>& space,
+                const IndependentSpace2& t_space) {
   return space.template lift_to_space<Idx>(dp,dt,t_space);
 };
     
@@ -478,9 +478,9 @@ typename boost::enable_if< boost::is_convertible< const IndependentSpace2&, cons
 arithmetic_tuple_element<Idx, typename differentiable_space<IndependentSpace,SpaceTuple,TupleDistanceMetric,DiffRule>::point_difference_type> >::type::type
 #endif
   descend_to_space(const typename arithmetic_tuple_element<Idx+1, typename differentiable_space<IndependentSpace,SpaceTuple,TupleDistanceMetric,DiffRule>::point_type>::type& v,
-		   const typename topology_traits< IndependentSpace2 >::point_difference_type& dt,
-		   const differentiable_space<IndependentSpace,SpaceTuple,TupleDistanceMetric,DiffRule>& space,
-		   const IndependentSpace2& t_space) {
+                   const typename topology_traits< IndependentSpace2 >::point_difference_type& dt,
+                   const differentiable_space<IndependentSpace,SpaceTuple,TupleDistanceMetric,DiffRule>& space,
+                   const IndependentSpace2& t_space) {
   return space.template descend_to_space<Idx>(v,dt,t_space);
 };
 

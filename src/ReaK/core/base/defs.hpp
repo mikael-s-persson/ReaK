@@ -177,6 +177,16 @@ inline std::string RK_RELATIVE_PATH(const std::string& S) {
 
 
 
+#ifndef BOOST_NOEXCEPT_OR_NOTHROW
+
+#ifndef BOOST_NO_CXX11_NOEXCEPT
+#define BOOST_NOEXCEPT_OR_NOTHROW noexcept
+#else
+#define BOOST_NOEXCEPT_OR_NOTHROW throw()
+#endif
+
+#endif
+
 
 #ifndef BOOST_NO_CXX11_SMART_PTR
 

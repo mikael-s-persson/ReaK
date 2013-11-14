@@ -205,7 +205,7 @@ class hyperball_topology : public vector_topology<Vector>
         & RK_SERIAL_LOAD_WITH_NAME(radius_value);
     };
 
-    RK_RTTI_MAKE_ABSTRACT_1BASE(self,0xC2400008,1,"hyperball_topology",vector_topology<Vector>)
+    RK_RTTI_MAKE_CONCRETE_1BASE(self,0xC2400008,1,"hyperball_topology",vector_topology<Vector>)
     
 };
 

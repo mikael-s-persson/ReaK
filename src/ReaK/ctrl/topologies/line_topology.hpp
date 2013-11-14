@@ -315,7 +315,7 @@ class line_segment_topology : public line_topology<T>
         & RK_SERIAL_LOAD_WITH_NAME(end_pt);
     };
 
-    RK_RTTI_MAKE_ABSTRACT_1BASE(self,0xC2400006,1,"line_segment_topology",line_topology<T>)
+    RK_RTTI_MAKE_CONCRETE_1BASE(self,0xC2400006,1,"line_segment_topology",line_topology<T>)
 };
 
 template <typename T>

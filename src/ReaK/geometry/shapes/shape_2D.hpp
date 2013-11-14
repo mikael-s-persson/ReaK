@@ -61,7 +61,7 @@ class shape_2D : public geometry_2D {
      */
     shape_2D(const std::string& aName = "",
              const shared_ptr< pose_2D<double> >& aAnchor = shared_ptr< pose_2D<double> >(),
-	     const pose_2D<double>& aPose = pose_2D<double>());
+             const pose_2D<double>& aPose = pose_2D<double>());
     
     /**
      * Default destructor.

@@ -405,7 +405,7 @@ class interpolated_topology<BaseTopology, sap_Ndof_interpolation_tag> : public i
       base_type::load(A,base_type::getStaticObjectType()->TypeVersion());
     };
 
-    RK_RTTI_MAKE_ABSTRACT_1BASE(self,0xC240003A,1,"interpolated_topology",base_type)
+    RK_RTTI_MAKE_CONCRETE_1BASE(self,0xC240003A,1,"interpolated_topology",base_type)
     
 };
 

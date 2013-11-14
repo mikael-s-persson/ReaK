@@ -215,7 +215,7 @@ class hyperbox_topology : public vector_topology<Vector>
         & RK_SERIAL_LOAD_WITH_NAME(upper_corner);
     };
 
-    RK_RTTI_MAKE_ABSTRACT_1BASE(self,0xC2400009,1,"hyperbox_topology",vector_topology<Vector>)
+    RK_RTTI_MAKE_CONCRETE_1BASE(self,0xC2400009,1,"hyperbox_topology",vector_topology<Vector>)
     
 };
 

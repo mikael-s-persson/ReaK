@@ -85,7 +85,7 @@ class prox_ccylinder_box : public proximity_finder_3D {
     
     virtual void RK_CALL load(ReaK::serialization::iarchive& A, unsigned int);
     
-    RK_RTTI_MAKE_ABSTRACT_1BASE(prox_ccylinder_box,0xC3200016,1,"prox_ccylinder_box",proximity_finder_3D)
+    RK_RTTI_MAKE_CONCRETE_1BASE(prox_ccylinder_box,0xC3200016,1,"prox_ccylinder_box",proximity_finder_3D)
     
 };
 

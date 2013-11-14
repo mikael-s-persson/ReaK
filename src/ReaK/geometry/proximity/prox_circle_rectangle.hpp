@@ -83,7 +83,7 @@ class prox_circle_rectangle : public proximity_finder_2D {
     
     virtual void RK_CALL load(ReaK::serialization::iarchive& A, unsigned int);
     
-    RK_RTTI_MAKE_ABSTRACT_1BASE(prox_circle_rectangle,0xC3200007,1,"prox_circle_rectangle",proximity_finder_2D)
+    RK_RTTI_MAKE_CONCRETE_1BASE(prox_circle_rectangle,0xC3200007,1,"prox_circle_rectangle",proximity_finder_2D)
     
 };
 

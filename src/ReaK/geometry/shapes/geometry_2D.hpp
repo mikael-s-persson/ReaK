@@ -82,7 +82,7 @@ class geometry_2D : public named_object {
      */
     geometry_2D(const std::string& aName = "",
                 const shared_ptr< pose_2D<double> >& aAnchor = shared_ptr< pose_2D<double> >(),
-		const pose_2D<double>& aPose = pose_2D<double>());
+                const pose_2D<double>& aPose = pose_2D<double>());
     
     /**
      * Default destructor.
@@ -98,7 +98,7 @@ class geometry_2D : public named_object {
 
     virtual void RK_CALL load(ReaK::serialization::iarchive& A, unsigned int);
 
-    RK_RTTI_MAKE_ABSTRACT_1BASE(geometry_2D,0xC3100000,1,"geometry_2D",named_object)
+    RK_RTTI_MAKE_CONCRETE_1BASE(geometry_2D,0xC3100000,1,"geometry_2D",named_object)
 
 };
 

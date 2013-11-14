@@ -114,7 +114,8 @@ void ChaserTargetConfigWidget::loadChaserMdl() {
       (*psg_kte) << (*sceneData.chaser_kin_model->getKTEChain());
     };
     
-  } catch(...) {
+  } catch(std::exception& e) {
+    std::cout << "Got exception during loading chaser: " << e.what() << std::endl;
     QMessageBox::information(this,
                 "File Type Not Supported!",
                 "Sorry, this file-type is not supported!",
@@ -141,7 +142,8 @@ void ChaserTargetConfigWidget::saveChaserMdl() {
   
   try {
     sceneData.save_chaser(fileName.toStdString());
-  } catch(...) {
+  } catch(std::exception& e) {
+    std::cout << "Got exception during saving chaser: " << e.what() << std::endl;
     QMessageBox::information(this,
                 "Error!",
                 "An error occurred while saving the chaser model to file!",
@@ -182,7 +184,8 @@ void ChaserTargetConfigWidget::loadTargetMdl() {
       (*psg) << (*sceneData.target_geom_model);
     };
     
-  } catch(...) {
+  } catch(std::exception& e) {
+    std::cout << "Got exception during loading target: " << e.what() << std::endl;
     QMessageBox::information(this,
                 "File Type Not Supported!",
                 "Sorry, this file-type is not supported!",
@@ -209,7 +212,8 @@ void ChaserTargetConfigWidget::saveTargetMdl() {
   
   try {
     sceneData.save_target(fileName.toStdString());
-  } catch(...) {
+  } catch(std::exception& e) {
+    std::cout << "Got exception during saving target: " << e.what() << std::endl;
     QMessageBox::information(this,
                 "Error!",
                 "An error occurred while saving the target model to file!",
@@ -244,7 +248,8 @@ void ChaserTargetConfigWidget::addEnvMdl() {
         (*psg) << (*(sceneData.env_geom_models[i]));
     };
     
-  } catch(...) {
+  } catch(std::exception& e) {
+    std::cout << "Got exception during loading environment element: " << e.what() << std::endl;
     QMessageBox::information(this,
                 "File Type Not Supported!",
                 "Sorry, this file-type is not supported!",
@@ -286,7 +291,8 @@ void ChaserTargetConfigWidget::saveEnvMdl() {
   
   try {
     sceneData.save_environment(this->env_geoms_list->currentRow(), fileName.toStdString());
-  } catch(...) {
+  } catch(std::exception& e) {
+    std::cout << "Got exception during saving environment element: " << e.what() << std::endl;
     QMessageBox::information(this,
                 "Error!",
                 "An error occurred while saving the environment geometry element to file!",
@@ -355,7 +361,8 @@ void ChaserTargetConfigWidget::loadCompleteMdl() {
       
     };
     
-  } catch(...) {
+  } catch(std::exception& e) {
+    std::cout << "Got exception during loading complete scenario: " << e.what() << std::endl;
     QMessageBox::information(this,
                 "File Type Not Supported!",
                 "Sorry, this file-type is not supported!",
@@ -382,7 +389,8 @@ void ChaserTargetConfigWidget::saveCompleteMdl() {
   
   try {
     (*serialization::open_oarchive(fileName.toStdString())) << sceneData;
-  } catch(...) {
+  } catch(std::exception& e) {
+    std::cout << "Got exception during saving complete scenario: " << e.what() << std::endl;
     QMessageBox::information(this,
                 "Error!",
                 "An error occurred while saving the chaser model to file!",

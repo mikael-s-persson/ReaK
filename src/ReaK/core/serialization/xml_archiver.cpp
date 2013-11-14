@@ -27,6 +27,8 @@
 #include "rtti/so_type.hpp"
 #include "rtti/so_type_repo.hpp"
 
+#include "archiving_exceptions.hpp"
+
 #include <fstream>
 #include <algorithm>
 #include <map>
@@ -115,8 +117,9 @@ bool xml_iarchive::readNamedValue(const std::string& value_name,std::string& val
   return true;
 };
 
-archive_object_header xml_iarchive::readHeader(const std::string& obj_name) {
+archive_object_header xml_iarchive::readHeader(const std::string& obj_name, std::vector<unsigned int>& outTypeID) {
   archive_object_header result;
+  outTypeID.clear();
 
   std::string token = readToken();
   if(token.empty())
@@ -147,18 +150,13 @@ archive_object_header xml_iarchive::readHeader(const std::string& obj_name) {
   };
 
   std::string IDstr = values["type_ID"];
-  if(IDstr.empty())
-    result.type_ID = NULL;
-  else {
-    std::vector<unsigned int> nums;
+  if(!IDstr.empty()) {
     for(i=0;i<IDstr.size();++i) {
       std::string numstr;
       for(;((i < IDstr.size()) && (IDstr[i] != '.'));++i) 
-	numstr += IDstr[i];
-      nums.push_back(strtoul(numstr.c_str(),NULL,0));
+        numstr += IDstr[i];
+      outTypeID.push_back(strtoul(numstr.c_str(),NULL,0));
     };
-    result.type_ID = new unsigned int[nums.size()];
-    std::copy(nums.begin(),nums.end(),result.type_ID);
   };
 
   if(values["version"].empty())
@@ -185,7 +183,8 @@ xml_iarchive::xml_iarchive(const std::string& FileName) {
   
   file_stream = shared_ptr< std::istream >(new std::ifstream(FileName.c_str(),std::ios::in));
   
-  archive_object_header global_hdr = readHeader("reak_serialization");
+  std::vector<unsigned int> typeID;
+  archive_object_header global_hdr = readHeader("reak_serialization", typeID);
   if(global_hdr.type_version != 2)
     throw std::ios_base::failure("ReaK XML Archive is of an unknown version!");
   
@@ -195,7 +194,8 @@ xml_iarchive::xml_iarchive(std::istream& aStream) {
   
   file_stream = shared_ptr< std::istream >(&aStream, null_deleter());
   
-  archive_object_header global_hdr = readHeader("reak_serialization");
+  std::vector<unsigned int> typeID;
+  archive_object_header global_hdr = readHeader("reak_serialization", typeID);
   if(global_hdr.type_version != 2)
     throw std::ios_base::failure("ReaK XML Archive is of an unknown version!");
   
@@ -215,17 +215,16 @@ iarchive& RK_CALL xml_iarchive::load_serializable_ptr(const std::pair<std::strin
   archive_object_header hdr;
   Item.second = serializable_shared_pointer();
   
-  hdr = readHeader(Item.first);
-  if((hdr.type_ID == NULL) || (hdr.type_version == 0) || (hdr.object_ID == 0)) {
+  std::vector<unsigned int> typeID;
+  hdr = readHeader(Item.first, typeID);
+  if((typeID.empty()) || (hdr.type_version == 0) || (hdr.object_ID == 0)) {
     skipToEndToken(Item.first);
-    delete[] hdr.type_ID;
     return *this;
   };
 
   if((hdr.object_ID < mObjRegistry.size()) && (mObjRegistry[hdr.object_ID])) {
     Item.second = mObjRegistry[hdr.object_ID];
     skipToEndToken(Item.first);
-    delete[] hdr.type_ID;
     return *this;
   };
 
@@ -235,29 +234,22 @@ iarchive& RK_CALL xml_iarchive::load_serializable_ptr(const std::pair<std::strin
 
     skipToEndToken(Item.first);
 
-    try {
-      xml_iarchive a(ext_filename);
-      a & Item;
-    } catch(std::ios_base::failure e) {
-      RK_ERROR("Could not load object: " << Item.first << " - failed with message: " << e.what());
-      Item.second = serializable_shared_pointer();
-    };
+    xml_iarchive a(ext_filename);  // if this throws, let it propagate up (no point catching and throwing).
+    a & Item;
 
-    delete[] hdr.type_ID;
     return *this;
   };
 
   //Find the class in question in the repository.
-  rtti::so_type::weak_pointer p( rtti::so_type_repo::getInstance().findType(hdr.type_ID) );
-  delete[] hdr.type_ID;
+  rtti::so_type::weak_pointer p( rtti::so_type_repo::getInstance().findType(&(typeID[0])) );
   if((p.expired()) || (p.lock()->TypeVersion() < hdr.type_version)) {
     skipToEndToken(Item.first);
-    return *this;
+    throw unsupported_type(unsupported_type::not_found_in_repo, &(typeID[0]));
   };
   ReaK::shared_ptr<shared_object> po(p.lock()->CreateObject());
   if(!po) {
     skipToEndToken(Item.first);
-    return *this;
+    throw unsupported_type(unsupported_type::could_not_create, &(typeID[0]));
   };
 
   Item.second = po;
@@ -282,9 +274,10 @@ iarchive& RK_CALL xml_iarchive::load_serializable(serializable& Item) {
 
 iarchive& RK_CALL xml_iarchive::load_serializable(const std::pair<std::string, serializable& >& Item) {
   archive_object_header hdr;
-
-  hdr = readHeader(Item.first);
-  if((hdr.type_ID == NULL) || (hdr.type_version == 0)) {
+  
+  std::vector<unsigned int> typeID;
+  hdr = readHeader(Item.first, typeID);
+  if((typeID.empty()) || (hdr.type_version == 0)) {
     skipToEndToken(Item.first);
     return *this;
   };
@@ -292,7 +285,6 @@ iarchive& RK_CALL xml_iarchive::load_serializable(const std::pair<std::string, s
   Item.second.load(*this,hdr.type_version);
 
   skipToEndToken(Item.first);
-  delete[] hdr.type_ID;
   return *this;
 };
 
@@ -502,8 +494,8 @@ oarchive& RK_CALL xml_oarchive::saveToNewArchiveNamed_impl(const std::pair<std::
       ++type_ID;
     };
     (*file_stream) << "0\" version=\"" << hdr.type_version
-	        << "\" object_ID=\"" << hdr.object_ID
-	        << "\" is_external=\"true\">" << std::endl;
+                << "\" object_ID=\"" << hdr.object_ID
+                << "\" is_external=\"true\">" << std::endl;
   } else {
     already_saved = true;
 
@@ -562,8 +554,8 @@ oarchive& RK_CALL xml_oarchive::save_serializable_ptr(const std::pair<std::strin
       ++type_ID;
     };
     (*file_stream) << "0\" version=\"" << hdr.type_version
-	        << "\" object_ID=\"" << hdr.object_ID
-	        << "\" is_external=\"false\">" << std::endl;
+                << "\" object_ID=\"" << hdr.object_ID
+                << "\" is_external=\"false\">" << std::endl;
   } else {
     already_saved = true;
 

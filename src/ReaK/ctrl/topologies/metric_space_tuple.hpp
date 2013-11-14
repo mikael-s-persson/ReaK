@@ -542,7 +542,7 @@ namespace detail {
  * \tparam TupleDistanceMetric A distance metric type which models the DistanceMetricConcept and operates on a space-tuple (e.g. arithmetic_tuple).
  */
 template <typename SpaceTuple, typename TupleDistanceMetric >
-class metric_space_tuple : public serialization::serializable {
+class metric_space_tuple : public shared_object {
   protected:
     SpaceTuple m_spaces;
     TupleDistanceMetric m_dist;
@@ -733,7 +733,7 @@ class metric_space_tuple : public serialization::serializable {
         & RK_SERIAL_LOAD_WITH_NAME(m_dist);
     };
     
-    RK_RTTI_MAKE_ABSTRACT_1BASE(self,0xC240000A,1,"metric_space_tuple",serialization::serializable)
+    RK_RTTI_MAKE_CONCRETE_1BASE(self,0xC240000A,1,"metric_space_tuple",shared_object)
 
 };
 

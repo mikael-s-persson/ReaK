@@ -62,7 +62,7 @@ class shape_3D : public geometry_3D {
      */
     shape_3D(const std::string& aName = "",
              const shared_ptr< pose_3D<double> >& aAnchor = shared_ptr< pose_3D<double> >(),
-	     const pose_3D<double>& aPose = pose_3D<double>());
+             const pose_3D<double>& aPose = pose_3D<double>());
     
     /**
      * Default destructor.
