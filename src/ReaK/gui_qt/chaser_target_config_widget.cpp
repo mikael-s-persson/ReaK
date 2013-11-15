@@ -352,6 +352,10 @@ void ChaserTargetConfigWidget::loadCompleteMdl() {
       };
     };
     
+    this->env_geoms_list->clear();
+    for(std::size_t i = 0; i < sceneData.env_geom_models.size(); ++i)
+      this->env_geoms_list->addItem(QString::fromStdString(sceneData.env_geom_models[i]->getName()));
+    
     if(view3d_menu) {
       
       shared_ptr<geom::oi_scene_graph> psg_env = view3d_menu->getGeometryGroup("Environment");

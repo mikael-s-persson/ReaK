@@ -102,7 +102,7 @@ void CRS_execute_dynamic_planner_impl(const ReaK::kte::chaser_target_data& scene
   
   typedef typename subspace_traits<dynamic_workspace_type>::super_space_type dynamic_super_space_type;  // SuperSpaceType
   
-  std::size_t workspace_dims = Order * manip_pp_traits< ManipMdlType, Order >::degrees_of_freedom;
+  std::size_t workspace_dims = (Order + 1) * manip_pp_traits< ManipMdlType, Order >::degrees_of_freedom;
   
   shared_ptr< frame_3D<double> > EE_frame = chaser_concrete_model->getDependentFrame3D(0)->mFrame;
   
