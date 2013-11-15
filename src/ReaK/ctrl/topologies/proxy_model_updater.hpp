@@ -135,7 +135,7 @@ template <typename JointSpace, typename DKTopoMap,
 class any_model_applicator : public proxy_model_applicator<JointSpace> {
   public:
     typedef proxy_model_applicator<JointSpace> base_type;
-    typedef any_model_applicator<JointSpace, DKTopoMap> self;
+    typedef any_model_applicator<JointSpace, DKTopoMap, JointSpaceMapping, IntermediateSpace> self;
     typedef JointSpace joint_space;
     typedef typename topology_traits<JointSpace>::point_type point_type;
     
