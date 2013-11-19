@@ -514,6 +514,15 @@ struct is_temporal_space< temporal_space<Topology, TimeTopology, TemporalDistanc
        is_metric_space< temporal_space<Topology, TimeTopology, TemporalDistanceMetric> > { };
 
 
+template <typename Topology, typename TimeTopology, typename TemporalDistanceMetric>
+struct is_metric_symmetric< temporal_space<Topology, TimeTopology, TemporalDistanceMetric> > : 
+  boost::mpl::and_< 
+    is_metric_symmetric<Topology>, 
+    is_metric_symmetric<TimeTopology>,
+    is_metric_symmetric<TemporalDistanceMetric>
+  > { };
+
+
 };
 
 };

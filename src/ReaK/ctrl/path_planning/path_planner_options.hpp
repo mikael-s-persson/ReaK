@@ -35,6 +35,7 @@
 #include "base/defs.hpp"
 #include "base/shared_object.hpp"
 
+
 namespace ReaK {
   
 namespace pp {
@@ -109,6 +110,7 @@ const std::size_t BIDIRECTIONAL_PLANNING       = 1 << 8;
 
 /// This flag indicates a branch-and-bound pruning strategy should be use during the motion planning.
 const std::size_t USE_BRANCH_AND_BOUND_PRUNING_FLAG = 0x01 << 10;
+
 
 
 

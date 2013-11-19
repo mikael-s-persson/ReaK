@@ -320,7 +320,7 @@ class line_segment_topology : public line_topology<T>
 
 template <typename T>
 struct is_metric_space< line_segment_topology<T> > : boost::mpl::true_ { };
-	
+        
 template <typename T>
 struct is_point_distribution< line_segment_topology<T> > : boost::mpl::true_ { };
 

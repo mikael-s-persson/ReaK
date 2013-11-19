@@ -102,8 +102,8 @@ namespace pp {
     for(; first != last; ++first) {
       DistanceValue d = distance(*first);
       if(compare(d, d_best)) {
-	d_best = d;
-	result = first;
+        d_best = d;
+        result = first;
       };
     };
     return result;
@@ -521,17 +521,18 @@ namespace pp {
    * This functor template performs a linear nearest-neighbor search through a graph by invoquing 
    * the distance function of an underlying topology. The call operator will return the vertex
    * of the graph whose position value is closest to a given position value.
+   * \tparam Graph The graph type which can contain the vertices.
    * \tparam CompareFunction The functor type that can compare two distance measures (strict weak-ordering).
    */
-  template <typename CompareFunction = std::less<double> >
-  struct linear_neighbor_search {
+  template <typename Graph, typename CompareFunction, bool IsDirected >
+  struct linear_neighbor_search_base {
 
     CompareFunction m_compare;
     /**
      * Default constructor.
      * \param compare The comparison functor for ordering the distances (strict weak ordering).
      */
-    linear_neighbor_search(CompareFunction compare = CompareFunction()) : m_compare(compare) { };
+    linear_neighbor_search_base(CompareFunction compare = CompareFunction()) : m_compare(compare) { };
     
     /**
      * This call-operator finds the nearest vertex of a graph, to a given position.
@@ -543,7 +544,7 @@ namespace pp {
      * \param space The topology objects which define the space in which the positions reside.
      * \param position The property-map which can retrieve the position associated to each vertex.
      */
-    template <typename Graph, typename Topology, typename PositionMap>
+    template <typename Topology, typename PositionMap>
     typename boost::graph_traits<Graph>::vertex_descriptor operator()(const typename boost::property_traits<PositionMap>::value_type& p, 
                                                                       Graph& g, 
                                                                       const Topology& space, 
@@ -578,7 +579,7 @@ namespace pp {
      *        considered a neighbor.
      * \return The output-iterator to the end of the list of nearest neighbors (starting from "output_first").
      */
-    template <typename Graph, typename Topology, typename PositionMap, typename OutputIterator>
+    template <typename Topology, typename PositionMap, typename OutputIterator>
     OutputIterator operator()(const typename boost::property_traits<PositionMap>::value_type& p, 
                               OutputIterator output_first, 
                               Graph& g, 
@@ -609,8 +610,8 @@ namespace pp {
      */
     template <typename ForwardIter, typename Topology, typename PositionMap>
     ForwardIter operator()(const typename boost::property_traits<PositionMap>::value_type& p, 
-		           ForwardIter first, ForwardIter last, 
-			   const Topology& space, PositionMap position) const {
+                           ForwardIter first, ForwardIter last, 
+                           const Topology& space, PositionMap position) const {
       BOOST_CONCEPT_ASSERT((MetricSpaceConcept<Topology>));
       return min_dist_linear_search(first, last,
                                     detail::linear_neighbor_search_distance_functor<Topology,PositionMap>(&p, &space, position),
@@ -659,22 +660,21 @@ namespace pp {
    * This functor template performs a linear nearest-neighbor search through a graph by invoquing 
    * the distance function of an underlying topology. The call operator will return the vertex
    * of the graph whose position value is closest to a given position value.
+   * \tparam Graph The graph type which can contain the vertices.
    * \tparam CompareFunction The functor type that can compare two distance measures (strict weak-ordering).
    */
-  template <typename CompareFunction = std::less<double> >
-  struct linear_pred_succ_search {
+  template <typename Graph, typename CompareFunction>
+  struct linear_neighbor_search_base<Graph, CompareFunction, true> {
 
     CompareFunction m_compare;
     /**
      * Default constructor.
      * \param compare The comparison functor for ordering the distances (strict weak ordering).
      */
-    linear_pred_succ_search(CompareFunction compare = CompareFunction()) : m_compare(compare) { };
+    linear_neighbor_search_base(CompareFunction compare = CompareFunction()) : m_compare(compare) { };
     
     /**
      * This call-operator finds the nearest vertices of a graph, to a given position.
-     * \tparam Graph The graph type which can contain the vertices, should 
-     *         model boost::VertexListGraphConcept.
      * \tparam Topology The topology type which contains the positions.
      * \tparam PositionMap The property-map type which can store the position associated 
      *         with each vertex.
@@ -693,7 +693,7 @@ namespace pp {
      *        considered a neighbor.
      * \return The output-iterator to the end of the list of nearest neighbors (starting from "output_first").
      */
-    template <typename Graph, typename Topology, typename PositionMap, typename OutputIterator>
+    template <typename Topology, typename PositionMap, typename OutputIterator>
     std::pair< OutputIterator, OutputIterator > 
       operator()(const typename boost::property_traits<PositionMap>::value_type& p, 
                  OutputIterator pred_first, 
@@ -753,9 +753,39 @@ namespace pp {
                                     m_compare, max_neighbors, radius);
     };
   };
-
   
   
+  /**
+   * This functor template performs a linear nearest-neighbor search through a graph by invoquing 
+   * the distance function of an underlying topology. The call operator will return the vertex
+   * of the graph whose position value is closest to a given position value.
+   * \tparam Graph The graph type which can contain the vertices.
+   * \tparam CompareFunction The functor type that can compare two distance measures (strict weak-ordering).
+   */
+  template <typename Graph, typename CompareFunction = std::less<double> >
+  struct linear_neighbor_search : linear_neighbor_search_base<Graph, CompareFunction, boost::is_directed_graph<Graph>::type::value > {
+    /**
+     * Default constructor.
+     * \param compare The comparison functor for ordering the distances (strict weak ordering).
+     */
+    linear_neighbor_search(CompareFunction compare = CompareFunction()) : linear_neighbor_search_base<Graph, CompareFunction, boost::is_directed_graph<Graph>::type::value >(compare) { };
+  };
+  
+  /**
+   * This functor template performs a linear nearest-neighbor search through a graph by invoquing 
+   * the distance function of an underlying topology. The call operator will return the vertex
+   * of the graph whose position value is closest to a given position value.
+   * \tparam Graph The graph type which can contain the vertices.
+   * \tparam CompareFunction The functor type that can compare two distance measures (strict weak-ordering).
+   */
+  template <typename Graph, typename CompareFunction = std::less<double> >
+  struct linear_pred_succ_search : linear_neighbor_search_base<Graph, CompareFunction, true> {
+    /**
+     * Default constructor.
+     * \param compare The comparison functor for ordering the distances (strict weak ordering).
+     */
+    linear_pred_succ_search(CompareFunction compare = CompareFunction()) : linear_neighbor_search_base<Graph, CompareFunction, true>(compare) { };
+  };
   
 
 
@@ -844,7 +874,7 @@ namespace pp {
       BOOST_CONCEPT_ASSERT((MetricSpaceConcept<Topology>));
       typedef typename boost::graph_traits<Graph>::vertex_descriptor Vertex;
       if(m_vertex_num_divider == 0)
-	m_vertex_num_divider = 1;
+        m_vertex_num_divider = 1;
       Vertex u_min = vertex(std::rand() % num_vertices(g),g);
       double d_min;
       search(p,u_min,d_min,g,space,position);

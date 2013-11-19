@@ -164,9 +164,9 @@ namespace detail {
       using std::fabs;
       double r = fabs(get(distance_metric,get<Idx>(s))(get<Idx>(p1), get<Idx>(p2), get<Idx>(s)));
       if(result < r)
-	return r;
+        return r;
       else
-	return result;
+        return result;
     };
       
     template <typename PointDiff>
@@ -175,9 +175,9 @@ namespace detail {
       using std::fabs;
       double r = fabs(get(distance_metric,get<Idx>(s))(get<Idx>(dp), get<Idx>(s)));
       if(result < r)
-	return r;
+        return r;
       else
-	return result;
+        return result;
     };
   };
   

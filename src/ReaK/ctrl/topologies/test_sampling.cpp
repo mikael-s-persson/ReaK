@@ -81,8 +81,8 @@ int main(int argc, char** argv) {
   try {
     
     ReaK::pp::hyperbox_topology< ReaK::vect<double,2> > topo("hyperbox",
-							     ReaK::vect<double,2>(0.01,0.01), 
-							     ReaK::vect<double,2>(511.99,511.99));
+                                                             ReaK::vect<double,2>(0.01,0.01), 
+                                                             ReaK::vect<double,2>(511.99,511.99));
     
     for(unsigned int i = 0; i < vertex_count; ++i) {
       ReaK::vect<double,2> v = get(ReaK::pp::random_sampler, topo)(topo);
@@ -105,8 +105,8 @@ int main(int argc, char** argv) {
   try {
     
     ReaK::pp::hyperball_topology< ReaK::vect<double,2> > topo("hyperball",
-							      ReaK::vect<double,2>(256.0,256.0), 
-							      255.99);
+                                                              ReaK::vect<double,2>(256.0,256.0), 
+                                                              255.99);
     
     for(unsigned int i = 0; i < vertex_count; ++i) {
       ReaK::vect<double,2> v = get(ReaK::pp::random_sampler, topo)(topo);
@@ -130,18 +130,18 @@ int main(int argc, char** argv) {
     std::map< int, int> hist;
     
     ReaK::pp::time_poisson_topology topo("time_poisson",
-				         5, 
-					 40.0);
+                                         5, 
+                                         40.0);
     
     for(unsigned int i = 0; i < vertex_count; ++i) {
       if(hist.find(int(get(ReaK::pp::random_sampler, topo)(topo))) == hist.end())
-	hist[int(get(ReaK::pp::random_sampler, topo)(topo))] = 0;
+        hist[int(get(ReaK::pp::random_sampler, topo)(topo))] = 0;
       ++(hist[int(get(ReaK::pp::random_sampler, topo)(topo))]);
     };
     
     for(unsigned int i = 0; i < 512; ++i) {
       if(hist.find(i) == hist.end())
-	hist[i] = 0;
+        hist[i] = 0;
       for(int j = 0; ((j <= hist[i]) && (j < 512)); ++j) {
         world_image.ptr()[ 3 * 512 * (511 - j) + 3 * i ] = 0;
         world_image.ptr()[ 3 * 512 * (511 - j) + 3 * i + 1 ] = 0;
@@ -162,18 +162,18 @@ int main(int argc, char** argv) {
     std::map< int, int> hist;
     
     ReaK::pp::line_segment_topology<double> topo("line_segment",
-				                 0, 
-					         511.99);
+                                                 0, 
+                                                 511.99);
     
     for(unsigned int i = 0; i < vertex_count; ++i) {
       if(hist.find(int(get(ReaK::pp::random_sampler, topo)(topo))) == hist.end())
-	hist[int(get(ReaK::pp::random_sampler, topo)(topo))] = 0;
+        hist[int(get(ReaK::pp::random_sampler, topo)(topo))] = 0;
       ++(hist[int(get(ReaK::pp::random_sampler, topo)(topo))]);
     };
     
     for(unsigned int i = 0; i < 512; ++i) {
       if(hist.find(i) == hist.end())
-	hist[i] = 0;
+        hist[i] = 0;
       for(int j = 0; ((j <= hist[i]) && (j < 512)); ++j) {
         world_image.ptr()[ 3 * 512 * (511 - j) + 3 * i ] = 0;
         world_image.ptr()[ 3 * 512 * (511 - j) + 3 * i + 1 ] = 0;

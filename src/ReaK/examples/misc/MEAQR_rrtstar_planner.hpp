@@ -333,7 +333,7 @@ void MEAQR_rrtstar_planner<StateSpace, StateSpaceSystem, StateSpaceSampler>::sol
   
   if((this->m_data_structure_flags & KNN_METHOD_MASK) == LINEAR_SEARCH_KNN) {
     
-    typedef linear_pred_succ_search<> NNFinderType;
+    typedef linear_pred_succ_search<MotionGraphType> NNFinderType;
     NNFinderType nn_finder;
     
     any_knn_synchro NN_synchro;

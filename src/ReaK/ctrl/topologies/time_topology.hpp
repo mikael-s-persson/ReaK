@@ -177,7 +177,7 @@ class time_topology : public named_object
 
 template <>
 struct is_metric_space< time_topology > : boost::mpl::true_ { };
-	
+
 
 };
 

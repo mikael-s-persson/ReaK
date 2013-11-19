@@ -245,14 +245,24 @@ namespace detail {
     };
     
     static 
-    double get_distance(const BaseTopology& b_space, const rt_metric_type& rt_dist,
-                        const point_type& a, const point_type& b) {
-      return rt_dist(a.pt, b.pt, b_space.get_space_topology());
+    double get_distance(const BaseTopology& b_space, const rt_metric_type& rt_dist, const point_type& a, const point_type& b) {
+      if(a.time > b.time) // Am I trying to go backwards in time (impossible)?
+        return std::numeric_limits<double>::infinity(); //p2 is not reachable from p1.
+      double reach_time = rt_dist(a.pt, b.pt, b_space.get_space_topology());
+      if((b.time - a.time) < reach_time) // There is not enough time to reach the end-point.
+        return std::numeric_limits<double>::infinity();
+      return (b.time - a.time) + reach_time;
+      
     };
     
     static 
     double get_norm(const BaseTopology& b_space, const rt_metric_type& rt_dist, const point_difference_type& dp) {
-      return rt_dist(dp.pt, b_space.get_space_topology());
+      if(dp.time < 0.0) // Am I trying to go backwards in time (impossible)?
+        return std::numeric_limits<double>::infinity(); //p2 is not reachable from p1.
+      double reach_time = rt_dist(dp.pt, b_space.get_space_topology());
+      if(dp.time < reach_time) // There is not enough time to reach the end-point.
+        return std::numeric_limits<double>::infinity();
+      return dp.time + reach_time;
     };
     
     static 

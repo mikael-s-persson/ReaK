@@ -61,6 +61,9 @@ namespace pp {
  */
 struct svp_Ndof_interpolation_tag { };
 
+template <>
+struct is_metric_symmetric< svp_Ndof_interpolation_tag > : boost::mpl::false_ { };
+
 
 /**
  * This function template computes a Sustained Velocity Pulse (SVP) interpolation between two points in a 

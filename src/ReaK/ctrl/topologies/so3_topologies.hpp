@@ -186,7 +186,7 @@ class quaternion_topology : public named_object
 
 template <typename T>
 struct is_metric_space< quaternion_topology<T> > : boost::mpl::true_ { };
-	
+        
 template <typename T>
 struct is_point_distribution< quaternion_topology<T> > : boost::mpl::true_ { };
 
@@ -224,11 +224,11 @@ class rate_limited_quat_space : public quaternion_topology<T>
      * \param aMaxAngSpeed The maximum angular speed that limits the rate of motion between SO(3) configurations.
      */
     rate_limited_quat_space(const std::string& aName = "rate_limited_quat_space", 
-			    double aMaxAngSpeed = 1.0) : 
-			    base(aName),
-			    max_angular_speed(aMaxAngSpeed) { 
+                            double aMaxAngSpeed = 1.0) : 
+                            base(aName),
+                            max_angular_speed(aMaxAngSpeed) { 
       if(max_angular_speed < std::numeric_limits<double>::epsilon())
-	throw singularity_error("Maximum angular speed cannot be less-than or equal to 0!");
+        throw singularity_error("Maximum angular speed cannot be less-than or equal to 0!");
     };
     
     /*************************************************************************
@@ -297,7 +297,7 @@ class rate_limited_quat_space : public quaternion_topology<T>
 
 template <typename T>
 struct is_metric_space< rate_limited_quat_space<T> > : boost::mpl::true_ { };
-	
+        
 template <typename T>
 struct is_point_distribution< rate_limited_quat_space<T> > : boost::mpl::true_ { };
 
@@ -328,9 +328,9 @@ class ang_velocity_3D_topology : public hyperball_topology< vect<T,3> > {
      */
     ang_velocity_3D_topology(const std::string& aName = "ang_velocity_3D_topology",
                              double aMaxAngSpeed = 1.0) : 
-		             base(aName, 
-			          vect<T,3>(), 
-			          aMaxAngSpeed) { };
+                             base(aName, 
+                                  vect<T,3>(), 
+                                  aMaxAngSpeed) { };
     
      
 /*******************************************************************************
@@ -351,7 +351,7 @@ class ang_velocity_3D_topology : public hyperball_topology< vect<T,3> > {
 
 template <typename T>
 struct is_metric_space< ang_velocity_3D_topology<T> > : boost::mpl::true_ { };
-	
+        
 template <typename T>
 struct is_point_distribution< ang_velocity_3D_topology<T> > : boost::mpl::true_ { };
 
@@ -382,9 +382,9 @@ class ang_accel_3D_topology : public hyperball_topology< vect<T,3> > {
      */
     ang_accel_3D_topology(const std::string& aName = "ang_accel_3D_topology",
                           double aMaxAngAcc = 1.0) : 
-		          base(aName, 
-			       vect<T,3>(), 
-			       aMaxAngAcc) { };
+                          base(aName, 
+                               vect<T,3>(), 
+                               aMaxAngAcc) { };
     
      
 /*******************************************************************************
@@ -405,7 +405,7 @@ class ang_accel_3D_topology : public hyperball_topology< vect<T,3> > {
 
 template <typename T>
 struct is_metric_space< ang_accel_3D_topology<T> > : boost::mpl::true_ { };
-	
+        
 template <typename T>
 struct is_point_distribution< ang_accel_3D_topology<T> > : boost::mpl::true_ { };
 

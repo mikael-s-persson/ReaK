@@ -302,6 +302,10 @@ struct is_metric_space< manip_quasi_static_env<BaseJointSpace> > : boost::mpl::t
 template <typename BaseJointSpace>
 struct is_point_distribution< manip_quasi_static_env<BaseJointSpace> > : boost::mpl::true_ { };
 
+template <typename BaseJointSpace>
+struct is_metric_symmetric< manip_quasi_static_env<BaseJointSpace> > : 
+  is_metric_symmetric< typename manip_quasi_static_env<BaseJointSpace>::super_space_type > { };
+
 
 
 

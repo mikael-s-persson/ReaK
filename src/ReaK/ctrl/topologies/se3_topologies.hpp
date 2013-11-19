@@ -1683,7 +1683,7 @@ pose_3D<T> get_pose_3D(
                           arithmetic_tuple< unit_quat<T> > >& pt) {
   return pose_3D<T>(weak_ptr< pose_3D<T> >(),
                     get<0>(get<0>(pt)), 
-		    quaternion<T>(get<0>(get<1>(pt))));
+                    quaternion<T>(get<0>(get<1>(pt))));
 };
 
 template <typename T>

@@ -62,6 +62,9 @@ namespace pp {
  */
 struct sap_Ndof_interpolation_tag { };
 
+template <>
+struct is_metric_symmetric< sap_Ndof_interpolation_tag > : boost::mpl::false_ { };
+
 
 /**
  * This function template computes a Sustained Acceleration Pulse (SAP) interpolation between two points in a 

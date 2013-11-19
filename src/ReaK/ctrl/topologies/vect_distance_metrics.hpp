@@ -191,7 +191,7 @@ struct inf_norm_distance_metric : public serialization::serializable {
     double result = 0.0;
     for(SizeType i = 0; i < a.size(); ++i) {
       if(result < fabs(a[i]))
-	result = fabs(a[i]);
+        result = fabs(a[i]);
     };
     return result;
   };

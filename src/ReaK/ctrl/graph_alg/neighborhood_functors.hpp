@@ -69,11 +69,11 @@ namespace graph {
      *                    space (with respect to the metric used for distances in the NN search, of course).
      */
     star_neighborhood(NNFinder aFindNeighbors, 
-		      double aCSpaceDimensions, 
-		      double aGammaValue) : 
-		      find_neighbors(aFindNeighbors), 
-		      c_space_dimensions(aCSpaceDimensions),
-		      gamma_value(aGammaValue) { };
+                      double aCSpaceDimensions, 
+                      double aGammaValue) : 
+                      find_neighbors(aFindNeighbors), 
+                      c_space_dimensions(aCSpaceDimensions),
+                      gamma_value(aGammaValue) { };
     
     /**
      * This function fills the output iterator (like a back-inserter) with the neighborhood of the given
@@ -90,11 +90,11 @@ namespace graph {
      */
     template <typename OutputIterator, 
               typename Graph, 
-	      typename Topology, 
-	      typename PositionMap>
+              typename Topology, 
+              typename PositionMap>
     void operator()(const typename boost::property_traits<PositionMap>::value_type& p,
-		    OutputIterator output_first,
-		    Graph& g, const Topology& free_space, PositionMap position) const {
+                    OutputIterator output_first,
+                    Graph& g, const Topology& free_space, PositionMap position) const {
       using std::pow; 
       std::size_t N = num_vertices(g);
       std::size_t log_N = math::highest_set_bit(N) + 1;
@@ -121,11 +121,11 @@ namespace graph {
     template <typename PredIterator, 
               typename SuccIterator, 
               typename Graph, 
-	      typename Topology, 
-	      typename PositionMap>
+              typename Topology, 
+              typename PositionMap>
     void operator()(const typename boost::property_traits<PositionMap>::value_type& p,
-		    PredIterator pred_first, SuccIterator succ_first,
-		    Graph& g, const Topology& free_space, PositionMap position) const {
+                    PredIterator pred_first, SuccIterator succ_first,
+                    Graph& g, const Topology& free_space, PositionMap position) const {
       using std::pow; using std::log2;
       std::size_t N = num_vertices(g);
       std::size_t log_N = math::highest_set_bit(N) + 1;
@@ -169,11 +169,11 @@ namespace graph {
      */
     template <typename OutputIterator, 
               typename Graph, 
-	      typename Topology, 
-	      typename PositionMap>
+              typename Topology, 
+              typename PositionMap>
     void operator()(const typename boost::property_traits<PositionMap>::value_type& p,
-		    OutputIterator output_first,
-		    Graph& g, const Topology& free_space, PositionMap position) const {
+                    OutputIterator output_first,
+                    Graph& g, const Topology& free_space, PositionMap position) const {
       find_neighbors(p, output_first, g, free_space, position, 1, std::numeric_limits< double >::infinity());
     };
     
@@ -197,11 +197,11 @@ namespace graph {
     template <typename PredIterator, 
               typename SuccIterator, 
               typename Graph, 
-	      typename Topology, 
-	      typename PositionMap>
+              typename Topology, 
+              typename PositionMap>
     void operator()(const typename boost::property_traits<PositionMap>::value_type& p,
-		    PredIterator pred_first, SuccIterator succ_first,
-		    Graph& g, const Topology& free_space, PositionMap position) const {
+                    PredIterator pred_first, SuccIterator succ_first,
+                    Graph& g, const Topology& free_space, PositionMap position) const {
       find_neighbors(p, pred_first, succ_first, g, free_space, position, 1, std::numeric_limits< double >::infinity());
     };
   };

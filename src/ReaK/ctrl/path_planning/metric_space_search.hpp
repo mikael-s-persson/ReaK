@@ -98,23 +98,23 @@ class random_best_vp_chooser {
       RandomAccessIter best_pt = aEnd;
       double best_dev = -1;
       for(unsigned int i=0; i < (aEnd - aBegin) / m_divider + 1;++i) {
-	RandomAccessIter current_pt = aBegin + (get_global_rng()() % (aEnd - aBegin));
-	double current_mean = 0.0;
-	double current_dev = 0.0;
-	Point current_vp = get(aPosition, *current_pt);
-	for(unsigned int j=0; aBegin + j != aEnd; ++j) {
-	  double dist = aDistance(current_vp, get(aPosition, *(aBegin + j)), aSpace);
-	  current_mean = (current_mean * j + dist) / (j + 1);
-	  current_dev = (current_dev * j + dist * dist) / (j + 1);
-	};
-	double current_var = current_dev - current_mean * current_mean;
-	if(current_var < 0) current_var = 0.0;
-	current_dev = std::sqrt(current_var);
-	
-	if(current_dev > best_dev) {
-	  best_pt = current_pt;
-	  best_dev = current_dev;
-	};
+        RandomAccessIter current_pt = aBegin + (get_global_rng()() % (aEnd - aBegin));
+        double current_mean = 0.0;
+        double current_dev = 0.0;
+        Point current_vp = get(aPosition, *current_pt);
+        for(unsigned int j=0; aBegin + j != aEnd; ++j) {
+          double dist = aDistance(current_vp, get(aPosition, *(aBegin + j)), aSpace);
+          current_mean = (current_mean * j + dist) / (j + 1);
+          current_dev = (current_dev * j + dist * dist) / (j + 1);
+        };
+        double current_var = current_dev - current_mean * current_mean;
+        if(current_var < 0) current_var = 0.0;
+        current_dev = std::sqrt(current_var);
+        
+        if(current_dev > best_dev) {
+          best_pt = current_pt;
+          best_dev = current_dev;
+        };
       };
       return best_pt;
     };
@@ -583,12 +583,12 @@ class dvp_tree
  * \tparam Graph The graph type which can contain the vertices.
  * \tparam DVPTree The DVP-tree type that is used to perform the nearest-neighbor queries.
  */
-template <typename Graph, typename DVPTree>
-struct multi_dvp_tree_search {
+template <typename Graph, typename DVPTree, bool IsDirected>
+struct multi_dvp_tree_search_base {
   /** This associative container is used to store and access the DVP-trees. */
   typename std::map<Graph*, DVPTree*> graph_tree_map;
   
-  multi_dvp_tree_search() : graph_tree_map() { };
+  multi_dvp_tree_search_base() : graph_tree_map() { };
   
   
   /**
@@ -676,11 +676,11 @@ struct multi_dvp_tree_search {
  * \tparam DVPTree The DVP-tree type that is used to perform the nearest-neighbor queries.
  */
 template <typename Graph, typename DVPTree>
-struct multi_dvp_tree_pred_succ_search {
+struct multi_dvp_tree_search_base<Graph, DVPTree, true> {
   /** This associative container is used to store and access the DVP-trees. */
   typename std::map<Graph*, DVPTree*> graph_tree_map;
   
-  multi_dvp_tree_pred_succ_search() : graph_tree_map() { };
+  multi_dvp_tree_search_base() : graph_tree_map() { };
   
   /**
    * This call-operator finds the nearest predecesor and successor of a graph, to a given position.
@@ -762,6 +762,17 @@ struct multi_dvp_tree_pred_succ_search {
       it->second->erase(v);
   };
   
+};
+
+
+template <typename Graph, typename DVPTree>
+struct multi_dvp_tree_search : multi_dvp_tree_search_base<Graph, DVPTree, boost::is_directed_graph<Graph>::type::value > {
+  multi_dvp_tree_search() : multi_dvp_tree_search_base<Graph, DVPTree, boost::is_directed_graph<Graph>::type::value >() { };
+};
+
+template <typename Graph, typename DVPTree>
+struct multi_dvp_tree_pred_succ_search : multi_dvp_tree_search_base<Graph, DVPTree, true > {
+  multi_dvp_tree_pred_succ_search() : multi_dvp_tree_search_base<Graph, DVPTree, true >() { };
 };
 
 

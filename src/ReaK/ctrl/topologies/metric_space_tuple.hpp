@@ -294,141 +294,26 @@ namespace detail {
   struct point_difference_type_tuple : point_difference_type_tuple_impl< arithmetic_tuple_size<SpaceTuple>::type::value, SpaceTuple > { };
   
   
-
-
+  
+  
   
   template <std::size_t Size, typename SpaceTuple>
-  struct topo_dimensions_tuple_impl { 
+  struct topo_dimensions_tuple_impl;
+  
+  template <typename SpaceTuple>
+  struct topo_dimensions_tuple_impl< 0, SpaceTuple > {
     BOOST_STATIC_CONSTANT(std::size_t, value = 0);
   };
   
-#ifndef BOOST_NO_CXX11_VARIADIC_TEMPLATES
-  
-  template <std::size_t Size, typename Space0>
-  struct topo_dimensions_tuple_impl< Size, std::tuple<Space0> > {
-    BOOST_STATIC_CONSTANT(std::size_t, value = (topology_traits<Space0>::dimensions));
+  template <std::size_t Size, typename SpaceTuple>
+  struct topo_dimensions_tuple_impl {
+    BOOST_STATIC_CONSTANT(std::size_t, value = (topology_traits< typename arithmetic_tuple_element<Size-1, SpaceTuple>::type >::dimensions + topo_dimensions_tuple_impl<Size-1, SpaceTuple>::value));
   };
   
-  template <std::size_t Size, typename Space0, typename... Spaces>
-  struct topo_dimensions_tuple_impl< Size, std::tuple<Space0, Spaces...> > {
-    BOOST_STATIC_CONSTANT(std::size_t, value = (topology_traits<Space0>::dimensions + topo_dimensions_tuple_impl<Size-1, std::tuple<Spaces...> >::value));
-  };
-  
-  template <std::size_t Size, typename Space0>
-  struct topo_dimensions_tuple_impl< Size, arithmetic_tuple<Space0> > {
-    BOOST_STATIC_CONSTANT(std::size_t, value = (topology_traits<Space0>::dimensions));
-  };
-
-  template <std::size_t Size, typename Space0, typename... Spaces>
-  struct topo_dimensions_tuple_impl< Size, arithmetic_tuple<Space0, Spaces...> > {
-    BOOST_STATIC_CONSTANT(std::size_t, value = (topology_traits<Space0>::dimensions + topo_dimensions_tuple_impl<Size-1, arithmetic_tuple<Spaces...> >::value));
-  };
-  
-#else
-  template <typename SpaceTuple>
-  struct topo_dimensions_tuple_impl< 1, SpaceTuple > { 
-    BOOST_STATIC_CONSTANT(std::size_t, value = (topology_traits< typename arithmetic_tuple_element<0,SpaceTuple>::type >::dimensions));
-  };
-
-  template <typename SpaceTuple>
-  struct topo_dimensions_tuple_impl< 2, SpaceTuple > { 
-    BOOST_STATIC_CONSTANT(std::size_t, value = (topology_traits< typename arithmetic_tuple_element<0,SpaceTuple>::type >::dimensions
-                                              + topology_traits< typename arithmetic_tuple_element<1,SpaceTuple>::type >::dimensions));
-  };
-
-  template <typename SpaceTuple>
-  struct topo_dimensions_tuple_impl< 3, SpaceTuple > { 
-    BOOST_STATIC_CONSTANT(std::size_t, value = (topology_traits< typename arithmetic_tuple_element<0,SpaceTuple>::type >::dimensions
-                                              + topology_traits< typename arithmetic_tuple_element<1,SpaceTuple>::type >::dimensions
-                                              + topology_traits< typename arithmetic_tuple_element<2,SpaceTuple>::type >::dimensions));
-  };
-
-  template <typename SpaceTuple>
-  struct topo_dimensions_tuple_impl< 4, SpaceTuple > { 
-    BOOST_STATIC_CONSTANT(std::size_t, value = (topology_traits< typename arithmetic_tuple_element<0,SpaceTuple>::type >::dimensions
-                                              + topology_traits< typename arithmetic_tuple_element<1,SpaceTuple>::type >::dimensions
-                                              + topology_traits< typename arithmetic_tuple_element<2,SpaceTuple>::type >::dimensions
-                                              + topology_traits< typename arithmetic_tuple_element<3,SpaceTuple>::type >::dimensions));
-  };
-
-  template <typename SpaceTuple>
-  struct topo_dimensions_tuple_impl< 5, SpaceTuple > {
-    BOOST_STATIC_CONSTANT(std::size_t, value = (topology_traits< typename arithmetic_tuple_element<0,SpaceTuple>::type >::dimensions
-                                              + topology_traits< typename arithmetic_tuple_element<1,SpaceTuple>::type >::dimensions
-                                              + topology_traits< typename arithmetic_tuple_element<2,SpaceTuple>::type >::dimensions
-                                              + topology_traits< typename arithmetic_tuple_element<3,SpaceTuple>::type >::dimensions
-                                              + topology_traits< typename arithmetic_tuple_element<4,SpaceTuple>::type >::dimensions));
-  };
-
-  template <typename SpaceTuple>
-  struct topo_dimensions_tuple_impl< 6, SpaceTuple > { 
-    BOOST_STATIC_CONSTANT(std::size_t, value = (topology_traits< typename arithmetic_tuple_element<0,SpaceTuple>::type >::dimensions
-                                              + topology_traits< typename arithmetic_tuple_element<1,SpaceTuple>::type >::dimensions
-                                              + topology_traits< typename arithmetic_tuple_element<2,SpaceTuple>::type >::dimensions
-                                              + topology_traits< typename arithmetic_tuple_element<3,SpaceTuple>::type >::dimensions
-                                              + topology_traits< typename arithmetic_tuple_element<4,SpaceTuple>::type >::dimensions
-                                              + topology_traits< typename arithmetic_tuple_element<5,SpaceTuple>::type >::dimensions));
-  };
-
-  template <typename SpaceTuple>
-  struct topo_dimensions_tuple_impl< 7, SpaceTuple > { 
-    BOOST_STATIC_CONSTANT(std::size_t, value = (topology_traits< typename arithmetic_tuple_element<0,SpaceTuple>::type >::dimensions
-                                              + topology_traits< typename arithmetic_tuple_element<1,SpaceTuple>::type >::dimensions
-                                              + topology_traits< typename arithmetic_tuple_element<2,SpaceTuple>::type >::dimensions
-                                              + topology_traits< typename arithmetic_tuple_element<3,SpaceTuple>::type >::dimensions
-                                              + topology_traits< typename arithmetic_tuple_element<4,SpaceTuple>::type >::dimensions
-                                              + topology_traits< typename arithmetic_tuple_element<5,SpaceTuple>::type >::dimensions
-                                              + topology_traits< typename arithmetic_tuple_element<6,SpaceTuple>::type >::dimensions));
-  };
-
-  template <typename SpaceTuple>
-  struct topo_dimensions_tuple_impl< 8, SpaceTuple > { 
-    BOOST_STATIC_CONSTANT(std::size_t, value = (topology_traits< typename arithmetic_tuple_element<0,SpaceTuple>::type >::dimensions
-                                              + topology_traits< typename arithmetic_tuple_element<1,SpaceTuple>::type >::dimensions
-                                              + topology_traits< typename arithmetic_tuple_element<2,SpaceTuple>::type >::dimensions
-                                              + topology_traits< typename arithmetic_tuple_element<3,SpaceTuple>::type >::dimensions
-                                              + topology_traits< typename arithmetic_tuple_element<4,SpaceTuple>::type >::dimensions
-                                              + topology_traits< typename arithmetic_tuple_element<5,SpaceTuple>::type >::dimensions
-                                              + topology_traits< typename arithmetic_tuple_element<6,SpaceTuple>::type >::dimensions
-                                              + topology_traits< typename arithmetic_tuple_element<7,SpaceTuple>::type >::dimensions));
-  };
-
-  template <typename SpaceTuple>
-  struct topo_dimensions_tuple_impl< 9, SpaceTuple > { 
-    BOOST_STATIC_CONSTANT(std::size_t, value = (topology_traits< typename arithmetic_tuple_element<0,SpaceTuple>::type >::dimensions
-                                              + topology_traits< typename arithmetic_tuple_element<1,SpaceTuple>::type >::dimensions
-                                              + topology_traits< typename arithmetic_tuple_element<2,SpaceTuple>::type >::dimensions
-                                              + topology_traits< typename arithmetic_tuple_element<3,SpaceTuple>::type >::dimensions
-                                              + topology_traits< typename arithmetic_tuple_element<4,SpaceTuple>::type >::dimensions
-                                              + topology_traits< typename arithmetic_tuple_element<5,SpaceTuple>::type >::dimensions
-                                              + topology_traits< typename arithmetic_tuple_element<6,SpaceTuple>::type >::dimensions
-                                              + topology_traits< typename arithmetic_tuple_element<7,SpaceTuple>::type >::dimensions
-                                              + topology_traits< typename arithmetic_tuple_element<8,SpaceTuple>::type >::dimensions));
-  };
-
-  template <typename SpaceTuple>
-  struct topo_dimensions_tuple_impl< 10, SpaceTuple > { 
-    BOOST_STATIC_CONSTANT(std::size_t, value = (topology_traits< typename arithmetic_tuple_element<0,SpaceTuple>::type >::dimensions
-                                              + topology_traits< typename arithmetic_tuple_element<1,SpaceTuple>::type >::dimensions
-                                              + topology_traits< typename arithmetic_tuple_element<2,SpaceTuple>::type >::dimensions
-                                              + topology_traits< typename arithmetic_tuple_element<3,SpaceTuple>::type >::dimensions
-                                              + topology_traits< typename arithmetic_tuple_element<4,SpaceTuple>::type >::dimensions
-                                              + topology_traits< typename arithmetic_tuple_element<5,SpaceTuple>::type >::dimensions
-                                              + topology_traits< typename arithmetic_tuple_element<6,SpaceTuple>::type >::dimensions
-                                              + topology_traits< typename arithmetic_tuple_element<7,SpaceTuple>::type >::dimensions
-                                              + topology_traits< typename arithmetic_tuple_element<8,SpaceTuple>::type >::dimensions
-                                              + topology_traits< typename arithmetic_tuple_element<9,SpaceTuple>::type >::dimensions));
-  };
-
-#endif
-
   template <typename SpaceTuple>
   struct topo_dimensions_tuple : topo_dimensions_tuple_impl< arithmetic_tuple_size<SpaceTuple>::type::value, SpaceTuple > { };
   
   
-
-
-
   
   
   

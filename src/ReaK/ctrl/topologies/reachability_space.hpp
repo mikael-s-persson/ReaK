@@ -292,6 +292,9 @@ struct reach_plus_time_metric : public serialization::serializable {
 };
 
 
+template <>
+struct is_metric_symmetric< reach_plus_time_metric > : boost::mpl::false_ { };
+
 
 
 

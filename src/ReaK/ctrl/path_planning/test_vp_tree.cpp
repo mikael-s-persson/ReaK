@@ -45,27 +45,27 @@ int main() {
 
   typedef boost::no_property WorldGridEdgeProperties;
 
-  typedef boost::adjacency_list< boost::vecS, boost::vecS, boost::bidirectionalS,
+  typedef boost::adjacency_list< boost::vecS, boost::vecS, boost::undirectedS,
                                  WorldGridVertexProperties,
-	  	                 WorldGridEdgeProperties,
-		                 boost::vecS> WorldGridType;
+                                   WorldGridEdgeProperties,
+                                 boost::vecS> WorldGridType;
 
-  typedef boost::adjacency_list_traits<boost::vecS,boost::vecS,boost::bidirectionalS,boost::vecS>::vertex_descriptor VertexType;
+  typedef boost::adjacency_list_traits<boost::vecS,boost::vecS,boost::undirectedS,boost::vecS>::vertex_descriptor VertexType;
   typedef ReaK::pp::dvp_tree<VertexType, 
                              TopologyType, 
-			     boost::property_map<WorldGridType, boost::vertex_position_t>::type, 
-			     4> WorldPartition4;
+                             boost::property_map<WorldGridType, boost::vertex_position_t>::type, 
+                             4> WorldPartition4;
 
   typedef ReaK::pp::dvp_tree<VertexType, 
                              TopologyType, 
-			     boost::property_map<WorldGridType, boost::vertex_position_t>::type, 
-			     2> WorldPartition2;
+                             boost::property_map<WorldGridType, boost::vertex_position_t>::type, 
+                             2> WorldPartition2;
   
    const unsigned int grid_sizes[] = {100, 200, 300, 400, 500, 800, 1000, 1100, 1300, 1500, 1700, 
                                       1900, 2000, 2200, 2500, 3000, 3500, 4000, 4500, 5000, 6000,
- 				     7000, 8000, 9000, 10000, 12000, 15000, 20000, 25000, 30000,
+                                      7000, 8000, 9000, 10000, 12000, 15000, 20000, 25000, 30000,
                                       50000, 100000, 200000, 500000, 1000000, 2000000, 5000000};
-				     
+                                     
 //  const unsigned int grid_sizes[] = {50000, 100000, 200000, 500000, 1000000,
 //                                     2000000, 5000000, 10000000, 20000000};
   
@@ -114,7 +114,7 @@ int main() {
     };
     
     /*
-    ReaK::pp::linear_neighbor_search<> lnn_finder;
+    ReaK::pp::linear_neighbor_search<WorldGridType> lnn_finder;
     t_start = boost::posix_time::microsec_clock::local_time();
     for(unsigned int j=0;j<1000;++j) {
       lnn_finder(m_space.random_point(),grid,m_space,m_position);

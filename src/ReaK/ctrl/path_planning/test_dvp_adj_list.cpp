@@ -59,14 +59,14 @@ int main() {
     TopologyType, PositionMap,
     2, ReaK::pp::random_vp_chooser,
     ReaK::graph::d_ary_bf_tree_storage<2>,
-    boost::vecS, boost::bidirectionalS, boost::vecS > WorldPartition2BF;
+    boost::vecS, boost::undirectedS, boost::vecS > WorldPartition2BF;
   
   typedef WorldPartition2BF::adj_list_type WorldGrid2BF;
   
   const unsigned int grid_sizes[] = {100, 200, 300, 400, 500, 800, 1000, 1100, 1300, 1500, 1700, 
                                      1900, 2000, 2200, 2500, 3000, 3500, 4000, 4500, 5000, 6000,
-				     7000, 8000, 9000, 10000, 12000, 15000, 20000, 25000, 30000};
-				     
+                                     7000, 8000, 9000, 10000, 12000, 15000, 20000, 25000, 30000};
+                                     
 //  const unsigned int grid_sizes[] = {50000, 100000, 200000, 500000, 1000000,
 //                                     2000000, 5000000, 10000000, 20000000};
   

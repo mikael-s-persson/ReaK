@@ -163,6 +163,8 @@ void rrt_planner<FreeSpaceType>::solve_planning_query(planning_query<FreeSpaceTy
   typedef mg_vertex_data<FreeSpaceType> VertexProp;
   typedef mg_edge_data<FreeSpaceType> EdgeProp;
   
+  typedef typename motion_segment_directionality<FreeSpaceType>::type DirectionalityTag;
+  
   typedef mg_vertex_data<FreeSpaceType> BasicVertexProp;
   
   typedef boost::data_member_property_map<PointType, VertexProp > PositionMap;
@@ -195,7 +197,7 @@ void rrt_planner<FreeSpaceType>::solve_planning_query(planning_query<FreeSpaceTy
   typedef dvp_adjacency_list< \
     VertexProp, EdgeProp, SuperSpace, PositionMap, \
     ARITY, random_vp_chooser, TREE_STORAGE, \
-    boost::vecS, boost::bidirectionalS, boost::listS > ALTGraph; \
+    boost::vecS, DirectionalityTag, boost::listS > ALTGraph; \
   typedef typename ALTGraph::adj_list_type MotionGraphType; \
    \
   ALTGraph space_part(sup_space_ptr, pos_map); \
@@ -220,7 +222,7 @@ void rrt_planner<FreeSpaceType>::solve_planning_query(planning_query<FreeSpaceTy
     if((this->m_data_structure_flags & MOTION_GRAPH_STORAGE_MASK) == ADJ_LIST_MOTION_GRAPH) {
       
       typedef boost::adjacency_list< 
-        boost::vecS, boost::listS, boost::bidirectionalS,
+        boost::vecS, boost::listS, DirectionalityTag,
         VertexProp, EdgeProp, boost::vecS> MotionGraphType;
       
       MotionGraphType motion_graph;
@@ -230,7 +232,7 @@ void rrt_planner<FreeSpaceType>::solve_planning_query(planning_query<FreeSpaceTy
         
         any_knn_synchro NN_synchro;
         vis.m_nn_synchro = &NN_synchro;
-        linear_neighbor_search<> nn_finder;
+        linear_neighbor_search<MotionGraphType> nn_finder;
         
         RK_RRT_PLANNER_CALL_RRT_FUNCTION
         
@@ -335,7 +337,7 @@ void rrt_planner<FreeSpaceType>::solve_planning_query(planning_query<FreeSpaceTy
   typedef dvp_adjacency_list< \
     VertexProp, EdgeProp, SuperSpace, PositionMap, \
     ARITY, random_vp_chooser, TREE_STORAGE, \
-    boost::vecS, boost::bidirectionalS, boost::listS > ALTGraph; \
+    boost::vecS, DirectionalityTag, boost::listS > ALTGraph; \
   typedef typename ALTGraph::adj_list_type MotionGraphType; \
    \
   ALTGraph space_part1(sup_space_ptr, pos_map); \
@@ -366,7 +368,7 @@ void rrt_planner<FreeSpaceType>::solve_planning_query(planning_query<FreeSpaceTy
     if((this->m_data_structure_flags & MOTION_GRAPH_STORAGE_MASK) == ADJ_LIST_MOTION_GRAPH) {
       
       typedef boost::adjacency_list< 
-        boost::vecS, boost::listS, boost::bidirectionalS,
+        boost::vecS, boost::listS, DirectionalityTag,
         VertexProp, EdgeProp, boost::vecS> MotionGraphType;
       
       MotionGraphType motion_graph1;
@@ -379,7 +381,7 @@ void rrt_planner<FreeSpaceType>::solve_planning_query(planning_query<FreeSpaceTy
         
         any_knn_synchro NN_synchro;
         vis.m_nn_synchro = &NN_synchro;
-        linear_neighbor_search<> nn_finder;
+        linear_neighbor_search<MotionGraphType> nn_finder;
         
         RK_RRT_PLANNER_CALL_BIRRT_FUNCTION
         

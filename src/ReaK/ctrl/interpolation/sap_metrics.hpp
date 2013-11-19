@@ -122,6 +122,10 @@ struct sap_reach_time_metric : public serialization::serializable {
 };
 
 
+template <typename TimeSpaceType>
+struct is_metric_symmetric< sap_reach_time_metric<TimeSpaceType> > : boost::mpl::false_ { };
+
+
 
 
 };

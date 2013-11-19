@@ -364,6 +364,9 @@ struct is_metric_space< differentiable_space<IndependentSpace, SpaceTuple, Tuple
 template <typename IndependentSpace, typename SpaceTuple, typename TupleDistanceMetric, typename DiffRule>
 struct is_point_distribution< differentiable_space<IndependentSpace, SpaceTuple, TupleDistanceMetric, DiffRule> > : boost::mpl::true_ { };
 
+template <typename IndependentSpace, typename SpaceTuple, typename TupleDistanceMetric, typename DiffRule>
+struct is_metric_symmetric< differentiable_space<IndependentSpace, SpaceTuple, TupleDistanceMetric, DiffRule> > : 
+  is_metric_symmetric< metric_space_tuple<SpaceTuple, TupleDistanceMetric> > { };
 
 
 template <typename SpaceTuple, typename TupleDistanceMetric, typename DiffRule, typename IndependentSpace, typename IndependentSpace2, std::size_t Order>

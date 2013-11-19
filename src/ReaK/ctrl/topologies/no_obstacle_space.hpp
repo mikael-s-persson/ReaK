@@ -284,12 +284,20 @@ template <typename Topology,
           typename DistanceMetric,
           typename RandomSampler>
 struct is_metric_space< no_obstacle_space<Topology, DistanceMetric, RandomSampler> > : boost::mpl::true_ { };
-	
+
 template <typename Topology, 
           typename DistanceMetric,
           typename RandomSampler>
 struct is_point_distribution< no_obstacle_space<Topology, DistanceMetric, RandomSampler> > : boost::mpl::true_ { };
 
+template <typename Topology, 
+          typename DistanceMetric,
+          typename RandomSampler>
+struct is_metric_symmetric< no_obstacle_space<Topology, DistanceMetric, RandomSampler> > : 
+  boost::mpl::and_<
+    is_metric_symmetric< DistanceMetric >,
+    is_metric_symmetric< Topology >
+  > { };
 
 };
 

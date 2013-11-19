@@ -245,6 +245,10 @@ struct is_metric_space< reach_time_diff_space<IndependentSpace, SpaceTuple, Tupl
 template <typename IndependentSpace, typename SpaceTuple, typename TupleDistanceMetric>
 struct is_point_distribution< reach_time_diff_space<IndependentSpace, SpaceTuple, TupleDistanceMetric> > : boost::mpl::true_ { };
 
+template <typename IndependentSpace, typename SpaceTuple, typename TupleDistanceMetric>
+struct is_metric_symmetric< reach_time_diff_space<IndependentSpace, SpaceTuple, TupleDistanceMetric> > : 
+  is_metric_symmetric< typename reach_time_diff_space<IndependentSpace, SpaceTuple, TupleDistanceMetric>::base_type > { };
+
 
 template <typename SpaceTuple, typename TupleDistanceMetric, typename IndependentSpace, typename IndependentSpace2, std::size_t Order>
 struct derived_N_order_space< reach_time_diff_space<IndependentSpace,SpaceTuple,TupleDistanceMetric>, IndependentSpace2, Order > {

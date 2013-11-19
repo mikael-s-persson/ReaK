@@ -60,7 +60,7 @@ namespace pp {
  * Use this tag type for some class templates that are parametrized in terms of the interpolation method used overall.
  */
 struct cubic_hermite_interpolation_tag { };
-  
+
   
 namespace detail {
   

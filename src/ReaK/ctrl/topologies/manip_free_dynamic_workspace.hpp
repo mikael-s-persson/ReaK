@@ -291,6 +291,11 @@ struct is_point_distribution< manip_dynamic_env<BaseJointSpace> > : boost::mpl::
 template <typename BaseJointSpace>
 struct is_temporal_space< manip_dynamic_env<BaseJointSpace> > : boost::mpl::true_ { };
 
+template <typename BaseJointSpace>
+struct is_metric_symmetric< manip_dynamic_env<BaseJointSpace> > : 
+  is_metric_symmetric< typename manip_dynamic_env<BaseJointSpace>::super_space_type > { };
+
+
 
 
 };

@@ -202,8 +202,8 @@ class ptrobot2D_test_world : public named_object {
      * \param aRobotRadius The radius of the robot (collision radius), in pixel-units.
      */
     ptrobot2D_test_world(const std::string& aWorldMapImage, 
-			 double aMaxEdgeLength, 
-			 double aRobotRadius);
+                         double aMaxEdgeLength, 
+                         double aRobotRadius);
     
     ptrobot2D_test_world(const ptrobot2D_test_world& rhs);
     
@@ -227,7 +227,7 @@ class ptrobot2D_test_world : public named_object {
 
 template <>
 struct is_metric_space< ptrobot2D_test_world > : boost::mpl::true_ { };
-	
+        
 template <>
 struct is_point_distribution< ptrobot2D_test_world > : boost::mpl::true_ { };
 

@@ -76,6 +76,8 @@ void sbastar_planner<FreeSpaceType>::solve_planning_query(planning_query<FreeSpa
   typedef recursive_dense_mg_vertex< astar_mg_vertex<FreeSpaceType> > VertexProp;
   typedef optimal_mg_edge<FreeSpaceType> EdgeProp;
   
+  typedef typename motion_segment_directionality<FreeSpaceType>::type DirectionalityTag;
+  
   typedef mg_vertex_data<FreeSpaceType> BasicVertexProp;
   
   typedef boost::data_member_property_map<PointType, VertexProp > PositionMap;
@@ -192,7 +194,7 @@ void sbastar_planner<FreeSpaceType>::solve_planning_query(planning_query<FreeSpa
   typedef dvp_adjacency_list< \
     VertexProp, EdgeProp, SuperSpace, PositionMap, \
     ARITY, random_vp_chooser, TREE_STORAGE, \
-    boost::vecS, boost::undirectedS, boost::listS > ALTGraph; \
+    boost::vecS, DirectionalityTag, boost::listS > ALTGraph; \
   typedef typename ALTGraph::adj_list_type MotionGraphType; \
   typedef typename boost::graph_traits<MotionGraphType>::vertex_descriptor Vertex; \
    \
@@ -386,7 +388,7 @@ void sbastar_planner<FreeSpaceType>::solve_planning_query(planning_query<FreeSpa
   if((this->m_data_structure_flags & MOTION_GRAPH_STORAGE_MASK) == ADJ_LIST_MOTION_GRAPH) {
     
     typedef boost::pooled_adjacency_list< 
-      boost::undirectedS, VertexProp, EdgeProp, 
+      DirectionalityTag, VertexProp, EdgeProp, 
       boost::no_property, boost::listS> MotionGraphType;
     
     typedef typename boost::graph_traits<MotionGraphType>::vertex_descriptor Vertex;
@@ -397,7 +399,7 @@ void sbastar_planner<FreeSpaceType>::solve_planning_query(planning_query<FreeSpa
     
     if((this->m_data_structure_flags & KNN_METHOD_MASK) == LINEAR_SEARCH_KNN) {
       
-      typedef linear_neighbor_search<> NNFinderType;
+      typedef linear_neighbor_search<MotionGraphType> NNFinderType;
       NNFinderType nn_finder;
       
       ReaK::graph::star_neighborhood< NNFinderType > nc_selector(nn_finder, space_dim, 3.0 * space_Lc);

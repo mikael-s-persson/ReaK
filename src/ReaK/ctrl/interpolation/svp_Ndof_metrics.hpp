@@ -119,6 +119,9 @@ struct svp_Ndof_reach_time_metric : public serialization::serializable {
   RK_RTTI_MAKE_ABSTRACT_1BASE(self,0xC241000C,1,"svp_Ndof_reach_time_metric",serialization::serializable)
 };
 
+template <typename TimeSpaceType>
+struct is_metric_symmetric< svp_Ndof_reach_time_metric<TimeSpaceType> > : boost::mpl::false_ { };
+
 
 };
 

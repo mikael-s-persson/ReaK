@@ -56,5 +56,29 @@
 #endif
 
 
+
+#include "metric_space_concept.hpp"
+
+#include <boost/mpl/if.hpp>
+
+
+namespace ReaK {
+  
+namespace pp {
+
+template <typename FreeSpaceType>
+struct motion_segment_directionality {
+  typedef typename boost::mpl::if_<
+    is_metric_symmetric< FreeSpaceType >,
+    boost::undirectedS,
+    boost::bidirectionalS >::type type;
+};
+
+};
+
+};
+
+
+
 #endif
 

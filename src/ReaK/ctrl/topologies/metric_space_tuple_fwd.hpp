@@ -39,12 +39,35 @@
 #include "lin_alg/arithmetic_tuple.hpp"
 #include "tuple_distance_metrics.hpp"
 #include "default_random_sampler.hpp"
+#include "path_planning/metric_space_concept.hpp"
 
 #include <boost/mpl/bool_fwd.hpp>
+#include <boost/mpl/and.hpp>
 
 namespace ReaK {
 
 namespace pp {
+  
+namespace detail {
+  
+  template <std::size_t Size, typename SpaceTuple>
+  struct is_metric_symmetric_tuple_impl;
+  
+  template <typename SpaceTuple>
+  struct is_metric_symmetric_tuple_impl< 0, SpaceTuple > : boost::mpl::true_ { };
+  
+  template <std::size_t Size, typename SpaceTuple>
+  struct is_metric_symmetric_tuple_impl : 
+    boost::mpl::and_<
+      is_metric_symmetric_tuple_impl<Size-1, SpaceTuple>,
+      is_metric_symmetric< typename arithmetic_tuple_element<Size-1, SpaceTuple>::type >
+    > { };
+  
+  template <typename SpaceTuple>
+  struct is_metric_symmetric_tuple : is_metric_symmetric_tuple_impl< arithmetic_tuple_size<SpaceTuple>::type::value, SpaceTuple > { };
+  
+};
+  
   
 
 template <typename SpaceTuple, typename TupleDistanceMetric = manhattan_tuple_distance >
@@ -56,6 +79,13 @@ struct is_metric_space< metric_space_tuple<SpaceTuple, TupleDistanceMetric> > : 
 
 template <typename SpaceTuple, typename TupleDistanceMetric>
 struct is_point_distribution< metric_space_tuple<SpaceTuple, TupleDistanceMetric> > : boost::mpl::true_ { };
+
+template <typename SpaceTuple, typename TupleDistanceMetric>
+struct is_metric_symmetric< metric_space_tuple<SpaceTuple, TupleDistanceMetric> > : 
+  boost::mpl::and_< 
+    is_metric_symmetric<TupleDistanceMetric>,
+    detail::is_metric_symmetric_tuple<SpaceTuple>
+  > { };
 
 
 template <typename SpaceType, std::size_t N, typename TupleDistanceMetric = manhattan_tuple_distance >

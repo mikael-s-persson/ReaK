@@ -344,6 +344,8 @@ struct get_rate_illimited_space< interpolated_topology_base<BaseTopology> > : ge
 template <typename BaseTopology>
 struct is_temporal_space< interpolated_topology_base<BaseTopology> > : is_temporal_space< BaseTopology > { };
 
+template <typename BaseTopology>
+struct is_metric_symmetric< interpolated_topology_base<BaseTopology> > : is_metric_symmetric< BaseTopology > { };
 
 
 
@@ -520,6 +522,9 @@ struct get_rate_illimited_space< wrapped_interp_topology<BaseTopology> > : get_r
 
 template <typename BaseTopology>
 struct is_temporal_space< wrapped_interp_topology<BaseTopology> > : is_temporal_space< BaseTopology > { };
+
+template <typename BaseTopology>
+struct is_metric_symmetric< wrapped_interp_topology<BaseTopology> > : is_metric_symmetric< BaseTopology > { };
 
 
 
@@ -793,6 +798,13 @@ struct get_rate_illimited_space< interpolated_topology<BaseTopology, InterpMetho
 
 template <typename BaseTopology, typename InterpMethodTag>
 struct is_temporal_space< interpolated_topology<BaseTopology, InterpMethodTag> > : is_temporal_space< BaseTopology > { };
+
+template <typename BaseTopology, typename InterpMethodTag>
+struct is_metric_symmetric< interpolated_topology<BaseTopology, InterpMethodTag> > : 
+  boost::mpl::and_<
+    is_metric_symmetric< InterpMethodTag >,
+    is_metric_symmetric< BaseTopology >
+  > { };
 
 
 

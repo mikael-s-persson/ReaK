@@ -72,10 +72,10 @@ class time_poisson_topology : public time_topology
     
     explicit time_poisson_topology(const std::string& aName = "time_poisson_topology",
                                    double aTimeStep = 1.0,
-				   double aMeanDiscreteTime = 1.0) : 
-				   time_topology(aName),
-				   time_step(aTimeStep),
-				   mean_discrete_time(aMeanDiscreteTime) { };
+                                   double aMeanDiscreteTime = 1.0) : 
+                                   time_topology(aName),
+                                   time_step(aTimeStep),
+                                   mean_discrete_time(aMeanDiscreteTime) { };
     
     /**
      * Generates a random point in the space, uniformly distributed.
@@ -110,7 +110,7 @@ class time_poisson_topology : public time_topology
 
 template <>
 struct is_metric_space< time_poisson_topology > : boost::mpl::true_ { };
-	
+        
 template <>
 struct is_point_distribution< time_poisson_topology > : boost::mpl::true_ { };
 

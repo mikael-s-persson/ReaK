@@ -116,7 +116,7 @@ int main(int argc, char ** argv) {
   };
   
   
-  typedef boost::adjacency_list< boost::vecS, boost::vecS, boost::bidirectionalS,
+  typedef boost::adjacency_list< boost::vecS, boost::vecS, boost::undirectedS,
                                  MEAQR_vprop, boost::no_property, boost::no_property, boost::listS> WorldGridType;
   typedef boost::graph_traits< WorldGridType >::vertex_descriptor VertexType;
   typedef boost::property_map<WorldGridType, MEAQR_PointType MEAQR_vprop::* >::type PositionMapType;
@@ -179,7 +179,7 @@ int main(int argc, char ** argv) {
     
     {
       std::cout << "Linear Search ..." << std::endl;
-      ReaK::pp::linear_neighbor_search<> lnn_finder;
+      ReaK::pp::linear_neighbor_search<WorldGridType> lnn_finder;
       boost::posix_time::ptime t_start = boost::posix_time::microsec_clock::local_time();
       for(unsigned int j = 0; j < 1000; ++j) {
         lnn_finder(X8_MEAQR_space->random_point(), grid, *X8_MEAQR_space, m_position);
