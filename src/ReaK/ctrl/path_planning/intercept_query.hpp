@@ -142,14 +142,10 @@ class motion_plan_intercept_query : public planning_query<FreeSpaceType> {
       for(double t = goal_traj->get_start_time(); t < goal_traj->get_end_time() + horizon_decimation * 0.5; t += horizon_decimation) {
         try {
           point_type goal_pos = goal_traj->get_point_at_time(t);
-          std::cout << "Succeeded to find a trajectory point at time " << t << std::endl;
           if( this->space->is_free(goal_pos) ) {
             goal_knots.insert(goal_pos);
           };
-        } catch(std::exception& e) { RK_UNUSED(e);
-          std::cout << "Could not get a trajectory point at time " << t << std::endl
-                    << " what(): " << e.what() << std::endl;
-        };
+        } catch(std::exception& e) { RK_UNUSED(e); };
       };
       
       if(init_knot_count == goal_knots.size())

@@ -295,8 +295,7 @@ void CRSPlannerGUI::executePlanner() {
   
   vect_n<double> jt_previous = ct_config.sceneData.chaser_kin_model->getJointPositions();
   try {
-    frame_3D<double> tf = ct_config.sceneData.target_frame->getFrameRelativeTo(EE_frame);
-    EE_frame->addBefore(tf);
+    *EE_frame = *(ct_config.sceneData.target_frame);
     ct_config.sceneData.chaser_kin_model->doInverseMotion();
     jt_desired = ct_config.sceneData.chaser_kin_model->getJointPositions();
   } catch( optim::infeasible_problem& e ) { RK_UNUSED(e);

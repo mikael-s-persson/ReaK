@@ -106,8 +106,7 @@ void ChaserTargetInteractWidget::onTargetChange() {
   
   if( pSceneData->chaser_kin_model && this->enable_ik_check->isChecked()) {
     try {
-      frame_3D<double> tf = pSceneData->target_frame->getFrameRelativeTo(pSceneData->chaser_kin_model->getDependentFrame3D(0)->mFrame);
-      pSceneData->chaser_kin_model->getDependentFrame3D(0)->mFrame->addBefore(tf);
+      *(pSceneData->chaser_kin_model->getDependentFrame3D(0)->mFrame) = *(pSceneData->target_frame);
       pSceneData->chaser_kin_model->doInverseMotion();
     } catch( optim::infeasible_problem& e ) { RK_UNUSED(e); };
     pSceneData->chaser_kin_model->doDirectMotion();

@@ -137,8 +137,7 @@ void CRSPlannerGUI_animate_target_trajectory(void* pv, SoSensor*) {
       
       if( p->ct_config.sceneData.chaser_kin_model && p->ct_interact.isIKEnabled() && !(p->sol_anim.enabled)) {
         try {
-          frame_3D<double> tf = p->ct_config.sceneData.target_frame->getFrameRelativeTo(p->ct_config.sceneData.chaser_kin_model->getDependentFrame3D(0)->mFrame);
-          p->ct_config.sceneData.chaser_kin_model->getDependentFrame3D(0)->mFrame->addBefore(tf);
+          *(p->ct_config.sceneData.chaser_kin_model->getDependentFrame3D(0)->mFrame) = *(p->ct_config.sceneData.target_frame);
           p->ct_config.sceneData.chaser_kin_model->doInverseMotion();
         } catch( optim::infeasible_problem& e ) { RK_UNUSED(e); };
         p->ct_config.sceneData.chaser_kin_model->doDirectMotion();

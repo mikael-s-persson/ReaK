@@ -103,8 +103,7 @@ class manip_dk_ik_map : public shared_object {
         dep2d_count = ik_map.model->getDependentFrames2DCount();
       for(std::size_t i = 0; i < dep2d_count; ++i) {
         shared_ptr< frame_2D<double> > EE_frame = ik_map.model->getDependentFrame2D(i)->mFrame;
-        frame_2D<double> tf = dk_map.model->getDependentFrame2D(i)->mFrame->getFrameRelativeTo(EE_frame);
-        EE_frame->addBefore(tf);
+        *EE_frame = *(dk_map.model->getDependentFrame2D(i)->mFrame);
       };
       
       std::size_t dep3d_count = dk_map.model->getDependentFrames3DCount();
@@ -112,9 +111,7 @@ class manip_dk_ik_map : public shared_object {
         dep3d_count = ik_map.model->getDependentFrames3DCount();
       for(std::size_t i = 0; i < dep3d_count; ++i) {
         shared_ptr< frame_3D<double> > EE_frame = ik_map.model->getDependentFrame3D(i)->mFrame;
-        std::cout << " Trying to do IK on frame = \n" << dk_map.model->getDependentFrame3D(i)->mFrame->getGlobalPose() << std::endl;
-        frame_3D<double> tf = dk_map.model->getDependentFrame3D(i)->mFrame->getFrameRelativeTo(EE_frame);
-        EE_frame->addBefore(tf);
+        *EE_frame = *(dk_map.model->getDependentFrame3D(i)->mFrame);
       };
       
       return ik_map.extract_from_model(space_out);

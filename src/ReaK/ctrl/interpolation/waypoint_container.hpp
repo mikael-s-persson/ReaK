@@ -381,7 +381,8 @@ class waypoint_container_base< true, Topology, DistanceMetricBase > : public sha
         if( ( lhs.parent == rhs.parent ) && 
             ( lhs.current_wpb.first == rhs.current_wpb.first ) &&
             ( lhs.current_wpb.second == rhs.current_wpb.second ) &&
-            ( fabs(lhs.current_pt.time - rhs.current_pt.time) <= 1e-6 * (lhs.current_wpb.second->first - lhs.current_wpb.first->first) ) )
+            ( ( lhs.current_wpb.first == lhs.current_wpb.second ) ||
+              ( fabs(lhs.current_pt.time - rhs.current_pt.time) <= 1e-6 * (lhs.current_wpb.second->first - lhs.current_wpb.first->first) ) ) )
           return true;
         else 
           return false;
@@ -479,7 +480,8 @@ class waypoint_container_base< true, Topology, DistanceMetricBase > : public sha
         if( ( lhs.parent == rhs.parent ) && 
             ( lhs.current_wpb.first == rhs.current_wpb.first ) &&
             ( lhs.current_wpb.second == rhs.current_wpb.second ) &&
-            ( fabs(lhs.current_pt.time - rhs.current_pt.time) <= 1e-6 * (lhs.current_wpb.second->first - lhs.current_wpb.first->first) ) )
+            ( ( lhs.current_wpb.first == lhs.current_wpb.second ) ||
+              ( fabs(lhs.current_pt.time - rhs.current_pt.time) <= 1e-6 * (lhs.current_wpb.second->first - lhs.current_wpb.first->first) ) ) )
           return true;
         else 
           return false;

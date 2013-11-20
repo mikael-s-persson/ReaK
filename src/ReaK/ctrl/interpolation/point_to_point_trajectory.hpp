@@ -127,7 +127,7 @@ class point_to_point_trajectory : public waypoint_container<Topology,DistanceMet
       };
       
       double t_total = wpb_a.second->first - wpb_a.first->first;
-      double dt = t - wpb_a.second->first;
+      double dt = t - wpb_a.first->first;
       if( t_total < 1e-6 * fabs(wpb_a.second->first) ) {
         waypoint_pair result(wpb_a.first, wpb_a.first->second);
         result.second.time = t;
