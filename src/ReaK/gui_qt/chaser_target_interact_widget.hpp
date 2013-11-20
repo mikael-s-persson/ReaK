@@ -71,6 +71,8 @@ class ChaserTargetInteractWidget : public QDockWidget, private Ui::ChaserTargetI
     
     kte::chaser_target_data* pSceneData;
     
+    bool isIKEnabled() const;
+    
 };
 
 };

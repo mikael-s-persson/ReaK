@@ -182,37 +182,46 @@ class manip_dynamic_env : public named_object {
     
     /**
      * Parametrized constructor (this class is a RAII class).
-     * \param aMaxEdgeLength The maximum length of an added edge, in time units (e.g., seconds).
+     * \param aSpace The base joint space object to be used (copied) in this workspace.
+     * \param aApplicator The proximity-model applicator object (e.g., does direct kinematics on the proxy model).
+     * \param aMinInterval The minimum length of the travel between collision detection calls.
+     * \param aMaxHorizon The maximum time-horizon of temporal sampling, in time units (e.g., seconds).
+     * \param aTimeDelay The time delay to apply to the sampling of time points in the temporal space.
      */
     explicit
     manip_dynamic_env(const BaseJointSpace& aSpace = BaseJointSpace(),
                       const shared_ptr< applicator_type >& aApplicator = shared_ptr< applicator_type >(),
-                      double aMinInterval = 0.1, double aMaxEdgeLength = 10.0) : 
+                      double aMinInterval = 0.1, double aMaxHorizon = 10.0, double aTimeDelay = 0.0) : 
                       min_interval(aMinInterval),
                       m_space(
                         shared_ptr<super_space_base_type>(new super_space_base_type(
                           base_temporal_joint_space(
                             "manip_dynamic_env_underlying_space", 
-                            aSpace, time_poisson_topology("time-poisson topology", aMinInterval, aMaxEdgeLength)
+                            aSpace, time_poisson_topology("time-poisson topology", aMinInterval, aMaxHorizon, aTimeDelay)
                           )))),
                       m_prox_env(aApplicator) { };
     
     /**
      * Parametrized constructor (this class is a RAII class).
+     * \param aInterpTag The interpolation tag to be used on the underlying space.
+     * \param aSpace The base joint space object to be used (copied) in this workspace.
+     * \param aApplicator The proximity-model applicator object (e.g., does direct kinematics on the proxy model).
      * \param aMinInterval The minimum length of the travel between collision detection calls.
+     * \param aMaxHorizon The maximum time-horizon of temporal sampling, in time units (e.g., seconds).
+     * \param aTimeDelay The time delay to apply to the sampling of time points in the temporal space.
      */
     template <typename InterpMethodTag>
     explicit
     manip_dynamic_env(InterpMethodTag aInterpTag,
                       const BaseJointSpace& aSpace = BaseJointSpace(),
                       const shared_ptr< applicator_type >& aApplicator = shared_ptr< applicator_type >(),
-                      double aMinInterval = 0.1, double aMaxEdgeLength = 10.0) : 
+                      double aMinInterval = 0.1, double aMaxHorizon = 10.0, double aTimeDelay = 0.0) : 
                       min_interval(aMinInterval),
                       m_space(
                         shared_ptr<super_space_base_type>(new interpolated_topology<base_temporal_joint_space, InterpMethodTag>(
                           base_temporal_joint_space(
                             "manip_dynamic_env_underlying_space", 
-                            aSpace, time_poisson_topology("time-poisson topology", aMinInterval, aMaxEdgeLength)
+                            aSpace, time_poisson_topology("time-poisson topology", aMinInterval, aMaxHorizon, aTimeDelay)
                           )))),
                       m_prox_env(aApplicator) { };
     

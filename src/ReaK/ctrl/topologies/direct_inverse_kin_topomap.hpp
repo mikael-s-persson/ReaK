@@ -112,6 +112,7 @@ class manip_dk_ik_map : public shared_object {
         dep3d_count = ik_map.model->getDependentFrames3DCount();
       for(std::size_t i = 0; i < dep3d_count; ++i) {
         shared_ptr< frame_3D<double> > EE_frame = ik_map.model->getDependentFrame3D(i)->mFrame;
+        std::cout << " Trying to do IK on frame = \n" << dk_map.model->getDependentFrame3D(i)->mFrame->getGlobalPose() << std::endl;
         frame_3D<double> tf = dk_map.model->getDependentFrame3D(i)->mFrame->getFrameRelativeTo(EE_frame);
         EE_frame->addBefore(tf);
       };

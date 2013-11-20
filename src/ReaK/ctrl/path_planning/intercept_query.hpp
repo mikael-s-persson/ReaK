@@ -51,6 +51,8 @@
 
 #include "solution_path_factories.hpp"
 
+#include "optimization/optim_exceptions.hpp"
+
 #include <boost/mpl/if.hpp>
 
 #include <map>
@@ -133,6 +135,25 @@ class motion_plan_intercept_query : public planning_query<FreeSpaceType> {
     
     void clear_cached_intercepts() {
       goal_knots.clear();
+    };
+    
+    void scan_for_goal_knots() {
+      std::size_t init_knot_count = goal_knots.size();
+      for(double t = goal_traj->get_start_time(); t < goal_traj->get_end_time() + horizon_decimation * 0.5; t += horizon_decimation) {
+        try {
+          point_type goal_pos = goal_traj->get_point_at_time(t);
+          std::cout << "Succeeded to find a trajectory point at time " << t << std::endl;
+          if( this->space->is_free(goal_pos) ) {
+            goal_knots.insert(goal_pos);
+          };
+        } catch(std::exception& e) { RK_UNUSED(e);
+          std::cout << "Could not get a trajectory point at time " << t << std::endl
+                    << " what(): " << e.what() << std::endl;
+        };
+      };
+      
+      if(init_knot_count == goal_knots.size())
+        throw optim::infeasible_problem("Interception problem is infeasible! Not a single point on the target trajectory is feasible and collision-free!");
     };
     
     std::pair<point_type, double> get_distance_position_to_goal(const point_type& pos) { 
@@ -257,7 +278,9 @@ class motion_plan_intercept_query : public planning_query<FreeSpaceType> {
                                 base_type(aName, aWorld), start_pos(aStartPos), 
                                 goal_traj(aGoalTraj), max_num_results(aMaxNumResults), 
                                 maximum_horizon(aMaximumHorizon), 
-                                horizon_decimation(aHorizonDecimation) { };
+                                horizon_decimation(aHorizonDecimation) { 
+      scan_for_goal_knots();
+    };
     
     virtual ~motion_plan_intercept_query() { };
     
@@ -284,6 +307,7 @@ class motion_plan_intercept_query : public planning_query<FreeSpaceType> {
         & RK_SERIAL_LOAD_WITH_NAME(horizon_decimation);
       solutions.clear();
       goal_knots.clear();
+      scan_for_goal_knots();
     };
 
     RK_RTTI_MAKE_ABSTRACT_1BASE(self,0xC2460018,1,"motion_plan_intercept_query",base_type)

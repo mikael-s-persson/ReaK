@@ -69,13 +69,16 @@ class time_poisson_topology : public time_topology
     
     double time_step;
     double mean_discrete_time; 
+    double time_delay;
     
     explicit time_poisson_topology(const std::string& aName = "time_poisson_topology",
                                    double aTimeStep = 1.0,
-                                   double aMeanDiscreteTime = 1.0) : 
+                                   double aMeanDiscreteTime = 10.0,
+                                   double aTimeDelay = 0.0) : 
                                    time_topology(aName),
                                    time_step(aTimeStep),
-                                   mean_discrete_time(aMeanDiscreteTime) { };
+                                   mean_discrete_time(aMeanDiscreteTime),
+                                   time_delay(aTimeDelay) { };
     
     /**
      * Generates a random point in the space, uniformly distributed.
@@ -85,26 +88,32 @@ class time_poisson_topology : public time_topology
       boost::variate_generator< global_rng_type&, boost::lognormal_distribution< double > > var_gen(get_global_rng(),boost::lognormal_distribution< double >(2.0, 1.0));
       //boost::variate_generator< global_rng_type&, boost::lognormal_distribution< double > > var_gen(get_global_rng(),boost::lognormal_distribution< double >(std::log(mean_discrete_time) + 1.0, 1.0));
       //boost::variate_generator< global_rng_type&, boost::poisson_distribution< int, double > > var_gen(get_global_rng(),boost::poisson_distribution< int, double >(mean_discrete_time));
-      return time_step * int(0.5 * mean_discrete_time * point_type(var_gen()));
+      return time_step * int(0.5 * mean_discrete_time / time_step * point_type(var_gen()) + time_delay / time_step);
     };
     
 /*******************************************************************************
                    ReaK's RTTI and Serialization interfaces
 *******************************************************************************/
     
-    virtual void RK_CALL save(serialization::oarchive& A, unsigned int) const {
+    virtual void RK_CALL save(serialization::oarchive& A, unsigned int aVersion) const {
       ReaK::named_object::save(A,named_object::getStaticObjectType()->TypeVersion());
       A & RK_SERIAL_SAVE_WITH_NAME(time_step)
         & RK_SERIAL_SAVE_WITH_NAME(mean_discrete_time);
+      if(aVersion > 1)
+        A & RK_SERIAL_SAVE_WITH_NAME(time_delay);
     };
 
-    virtual void RK_CALL load(serialization::iarchive& A, unsigned int) {
+    virtual void RK_CALL load(serialization::iarchive& A, unsigned int aVersion) {
       ReaK::named_object::load(A,named_object::getStaticObjectType()->TypeVersion());
       A & RK_SERIAL_LOAD_WITH_NAME(time_step)
         & RK_SERIAL_LOAD_WITH_NAME(mean_discrete_time);
+      if(aVersion > 1)
+        A & RK_SERIAL_LOAD_WITH_NAME(time_delay);
+      else
+        time_delay = 0.0;
     };
 
-    RK_RTTI_MAKE_CONCRETE_1BASE(time_poisson_topology,0xC240000B,1,"time_poisson_topology",time_topology)
+    RK_RTTI_MAKE_CONCRETE_1BASE(time_poisson_topology,0xC240000B,2,"time_poisson_topology",time_topology)
 
 };
 

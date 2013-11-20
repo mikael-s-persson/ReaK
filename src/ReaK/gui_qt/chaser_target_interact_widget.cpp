@@ -244,6 +244,10 @@ void ChaserTargetInteractWidget::loadPositions() {
 };
 
 
+bool ChaserTargetInteractWidget::isIKEnabled() const {
+  return this->enable_ik_check->isChecked();
+};
+
 
 
 

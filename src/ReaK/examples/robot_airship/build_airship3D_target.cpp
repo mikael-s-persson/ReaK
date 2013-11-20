@@ -163,6 +163,10 @@ int main(int argc, char ** argv) {
     ));
   airship3D_grasp_frame->Position += airship3D_grasp_frame->Quat * (-0.3 * vect_k);
   
+  shared_ptr< joint_dependent_frame_3D > airship3D_dep_grasp_frame( new joint_dependent_frame_3D(airship3D_grasp_frame));
+  airship3D_dep_grasp_frame->add_joint(airship3D_frame, airship3D_joint_jac);
+  
+  
   
   
   shared_ptr<sphere> hull( new sphere("airship3D_hull", airship3D_output_frame, pose_3D<double>(), 0.93));
@@ -196,7 +200,7 @@ int main(int argc, char ** argv) {
   shared_ptr< manipulator_kinematics_model > airship3D_kin_model(new manipulator_kinematics_model("airship3D_kin_model"));
   airship3D_kin_model->setModel(airship3D_model);
   (*airship3D_kin_model) << airship3D_frame;
-  (*airship3D_kin_model) << airship3D_dep_frame;
+  (*airship3D_kin_model) << airship3D_dep_grasp_frame;
   
   
   (*serialization::open_oarchive(output_path_name + "/" + output_base_name + ".model" + output_extension))
