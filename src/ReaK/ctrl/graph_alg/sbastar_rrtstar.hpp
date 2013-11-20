@@ -143,7 +143,7 @@ namespace detail {
           double entropy = 1.0 - exp( -initial_temperature / log( double(num_vertices(g)) ) );
           double rand_value = boost::uniform_01<ReaK::pp::global_rng_type&,double>(ReaK::pp::get_global_rng())(); // generate random-number between 0 and 1.
           use_sba_sampling = (rand_value > entropy);
-        } else {
+        } else if( goal_vertex != boost::graph_traits<Graph>::null_vertex() ) {
           use_sba_sampling = (get(sba_vis.m_distance, g[goal_vertex]) != std::numeric_limits<double>::infinity());
         };
         
@@ -377,16 +377,28 @@ inline void generate_lazy_bnb_sbarrtstar_no_init(const SBAStarBundle& bdl,
                                                  double SA_init_temperature = -1.0) {
   BOOST_CONCEPT_ASSERT((SBARRTStarVisitorConcept<typename SBAStarBundle::visitor_type,typename SBAStarBundle::graph_type,typename SBAStarBundle::topology_type>));
   
-  detail::generate_sbarrtstar_no_init_impl(
-    *(bdl.m_g), bdl.m_start_vertex, goal_vertex, *(bdl.m_super_space), bdl.m_vis, 
-    branch_and_bound_connector<typename SBAStarBundle::graph_type>(
-      *(bdl.m_g),
-      bdl.m_start_vertex, 
-      goal_vertex
-    ), 
-    bdl.m_hval, bdl.m_position, bdl.m_weight, bdl.m_density, bdl.m_constriction, 
-    bdl.m_distance, bdl.m_predecessor, bdl.m_key, get_sample, 
-    bdl.m_select_neighborhood, SA_init_temperature);
+  if( goal_vertex == boost::graph_traits<typename SBAStarBundle::graph_type>::null_vertex() ) {
+    
+    detail::generate_sbarrtstar_no_init_impl(
+      *(bdl.m_g), bdl.m_start_vertex, goal_vertex, *(bdl.m_super_space), bdl.m_vis, lazy_node_connector(), 
+      bdl.m_hval, bdl.m_position, bdl.m_weight, bdl.m_density, bdl.m_constriction, 
+      bdl.m_distance, bdl.m_predecessor, bdl.m_key, get_sample, 
+      bdl.m_select_neighborhood, SA_init_temperature);
+    
+  } else {
+    
+    detail::generate_sbarrtstar_no_init_impl(
+      *(bdl.m_g), bdl.m_start_vertex, goal_vertex, *(bdl.m_super_space), bdl.m_vis, 
+      branch_and_bound_connector<typename SBAStarBundle::graph_type>(
+        *(bdl.m_g),
+        bdl.m_start_vertex, 
+        goal_vertex
+      ), 
+      bdl.m_hval, bdl.m_position, bdl.m_weight, bdl.m_density, bdl.m_constriction, 
+      bdl.m_distance, bdl.m_predecessor, bdl.m_key, get_sample, 
+      bdl.m_select_neighborhood, SA_init_temperature);
+    
+  };
 };
 
 /**

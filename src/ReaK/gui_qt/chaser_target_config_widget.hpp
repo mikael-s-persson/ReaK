@@ -68,6 +68,13 @@ class ChaserTargetConfigWidget : public QDockWidget, private Ui::ChaserTargetMdl
     
   public:
     
+  signals:
+    
+    void onTargetLoaded();
+    void onChaserLoaded();
+    
+  public:
+    
     View3DMenu* view3d_menu;
     
     kte::chaser_target_data sceneData;

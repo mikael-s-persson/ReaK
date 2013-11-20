@@ -114,6 +114,8 @@ void ChaserTargetConfigWidget::loadChaserMdl() {
       (*psg_kte) << (*sceneData.chaser_kin_model->getKTEChain());
     };
     
+    emit onChaserLoaded();
+    
   } catch(std::exception& e) {
     std::cout << "Got exception during loading chaser: " << e.what() << std::endl;
     QMessageBox::information(this,
@@ -183,6 +185,8 @@ void ChaserTargetConfigWidget::loadTargetMdl() {
       psg->clearAll();
       (*psg) << (*sceneData.target_geom_model);
     };
+    
+    emit onTargetLoaded();
     
   } catch(std::exception& e) {
     std::cout << "Got exception during loading target: " << e.what() << std::endl;
@@ -317,6 +321,8 @@ void ChaserTargetConfigWidget::loadCompleteMdl() {
   try {
     (*serialization::open_iarchive(fileName.toStdString())) >> sceneData;
     
+    this->complete_filename_edit->setText(fileName);
+    
     if(!sceneData.chaser_kin_model) {
       QMessageBox::information(this,
                   "Error!",
@@ -335,6 +341,8 @@ void ChaserTargetConfigWidget::loadCompleteMdl() {
         psg_kte->setCharacteristicLength( psg_chase->computeCharacteristicLength() );
         (*psg_kte) << (*sceneData.chaser_kin_model->getKTEChain());
       };
+      
+      emit onChaserLoaded();
     };
     
     if(!sceneData.target_kin_model) {
@@ -350,6 +358,8 @@ void ChaserTargetConfigWidget::loadCompleteMdl() {
         psg_target->clearAll();
         (*psg_target) << (*sceneData.target_geom_model);
       };
+      
+      emit onTargetLoaded();
     };
     
     this->env_geoms_list->clear();
@@ -393,6 +403,7 @@ void ChaserTargetConfigWidget::saveCompleteMdl() {
   
   try {
     (*serialization::open_oarchive(fileName.toStdString())) << sceneData;
+    this->complete_filename_edit->setText(fileName);
   } catch(std::exception& e) {
     std::cout << "Got exception during saving complete scenario: " << e.what() << std::endl;
     QMessageBox::information(this,

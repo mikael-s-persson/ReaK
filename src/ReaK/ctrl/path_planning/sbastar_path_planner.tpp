@@ -239,7 +239,7 @@ void sbastar_planner<FreeSpaceType>::solve_planning_query(planning_query<FreeSpa
         motion_graph, boost::any_cast<Vertex>( vis.m_start_node ), *sup_space_ptr, vis, \
         heuristic_map, pos_map, weight_map, dens_map, cons_map, dist_map, pred_map, \
         get(&VertexProp::key_value, motion_graph), nc_selector), \
-      boost::any_cast<Vertex>( vis.m_goal_node ) );
+      ( vis.m_goal_node.empty() ? boost::graph_traits<MotionGraphType>::null_vertex() : boost::any_cast<Vertex>( vis.m_goal_node ) ) );
   
 #define RK_SBASTAR_PLANNER_CALL_SBARRTSTAR_FUNCTION \
     ReaK::graph::generate_sbarrtstar( \
@@ -247,7 +247,7 @@ void sbastar_planner<FreeSpaceType>::solve_planning_query(planning_query<FreeSpa
         motion_graph, boost::any_cast<Vertex>( vis.m_start_node ), *sup_space_ptr, vis, \
         heuristic_map, pos_map, weight_map, dens_map, cons_map, dist_map, pred_map, \
         get(&VertexProp::key_value, motion_graph), nc_selector), \
-      boost::any_cast<Vertex>( vis.m_goal_node ), \
+      ( vis.m_goal_node.empty() ? boost::graph_traits<MotionGraphType>::null_vertex() : boost::any_cast<Vertex>( vis.m_goal_node ) ), \
       get(random_sampler, *sup_space_ptr), \
       this->m_SA_init_temperature);
   
@@ -258,7 +258,7 @@ void sbastar_planner<FreeSpaceType>::solve_planning_query(planning_query<FreeSpa
         motion_graph, boost::any_cast<Vertex>( vis.m_start_node ), *sup_space_ptr, vis, \
         heuristic_map, pos_map, weight_map, dens_map, cons_map, dist_map, pred_map, \
         get(&VertexProp::key_value, motion_graph), nc_selector), \
-      boost::any_cast<Vertex>( vis.m_goal_node ), \
+      ( vis.m_goal_node.empty() ? boost::graph_traits<MotionGraphType>::null_vertex() : boost::any_cast<Vertex>( vis.m_goal_node ) ), \
       get(random_sampler, *sup_space_ptr), \
       this->m_SA_init_temperature);
   
@@ -269,7 +269,7 @@ void sbastar_planner<FreeSpaceType>::solve_planning_query(planning_query<FreeSpa
         motion_graph, boost::any_cast<Vertex>( vis.m_start_node ), *sup_space_ptr, vis, \
         heuristic_map, pos_map, weight_map, dens_map, cons_map, dist_map, pred_map, \
         get(&VertexProp::key_value, motion_graph), nc_selector), \
-      boost::any_cast<Vertex>( vis.m_goal_node ), \
+      ( vis.m_goal_node.empty() ? boost::graph_traits<MotionGraphType>::null_vertex() : boost::any_cast<Vertex>( vis.m_goal_node ) ), \
       get(random_sampler, *sup_space_ptr), \
       this->m_SA_init_temperature);
    
@@ -300,7 +300,7 @@ void sbastar_planner<FreeSpaceType>::solve_planning_query(planning_query<FreeSpa
         motion_graph, boost::any_cast<Vertex>( vis.m_start_node ), *sup_space_ptr, vis, \
         heuristic_map, pos_map, weight_map, dens_map, cons_map, dist_map, pred_map, \
         get(&VertexProp::key_value, motion_graph), nc_selector), \
-      boost::any_cast<Vertex>( vis.m_goal_node ), \
+      ( vis.m_goal_node.empty() ? boost::graph_traits<MotionGraphType>::null_vertex() : boost::any_cast<Vertex>( vis.m_goal_node ) ), \
       this->m_init_relaxation);
   
   
@@ -310,7 +310,7 @@ void sbastar_planner<FreeSpaceType>::solve_planning_query(planning_query<FreeSpa
         motion_graph, boost::any_cast<Vertex>( vis.m_start_node ), *sup_space_ptr, vis, \
         heuristic_map, pos_map, weight_map, dens_map, cons_map, dist_map, pred_map, \
         get(&VertexProp::key_value, motion_graph), nc_selector), \
-      boost::any_cast<Vertex>( vis.m_goal_node ), \
+      ( vis.m_goal_node.empty() ? boost::graph_traits<MotionGraphType>::null_vertex() : boost::any_cast<Vertex>( vis.m_goal_node ) ), \
       get(random_sampler, *sup_space_ptr), \
       this->m_init_relaxation, this->m_SA_init_temperature);
   
@@ -321,7 +321,7 @@ void sbastar_planner<FreeSpaceType>::solve_planning_query(planning_query<FreeSpa
         motion_graph, boost::any_cast<Vertex>( vis.m_start_node ), *sup_space_ptr, vis, \
         heuristic_map, pos_map, weight_map, dens_map, cons_map, dist_map, pred_map, \
         get(&VertexProp::key_value, motion_graph), nc_selector), \
-      boost::any_cast<Vertex>( vis.m_goal_node ), \
+      ( vis.m_goal_node.empty() ? boost::graph_traits<MotionGraphType>::null_vertex() : boost::any_cast<Vertex>( vis.m_goal_node ) ), \
       get(random_sampler, *sup_space_ptr), \
       this->m_init_relaxation, this->m_SA_init_temperature);
   
@@ -332,7 +332,7 @@ void sbastar_planner<FreeSpaceType>::solve_planning_query(planning_query<FreeSpa
         motion_graph, boost::any_cast<Vertex>( vis.m_start_node ), *sup_space_ptr, vis, \
         heuristic_map, pos_map, weight_map, dens_map, cons_map, dist_map, pred_map, \
         get(&VertexProp::key_value, motion_graph), nc_selector), \
-      boost::any_cast<Vertex>( vis.m_goal_node ), \
+      ( vis.m_goal_node.empty() ? boost::graph_traits<MotionGraphType>::null_vertex() : boost::any_cast<Vertex>( vis.m_goal_node ) ), \
       get(random_sampler, *sup_space_ptr), \
       this->m_init_relaxation, this->m_SA_init_temperature);
   

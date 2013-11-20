@@ -234,6 +234,9 @@ CRSPlannerGUI::CRSPlannerGUI( QWidget * parent, Qt::WindowFlags flags ) :
   connect(&ct_interact, SIGNAL(onStopTargetAnimation()), this, SLOT(stopTargetAnimation()));
   connect(&ct_interact, SIGNAL(onLoadTargetTrajectory(QString)), this, SLOT(loadTargetTrajectory(QString)));
   
+  connect(&ct_config, SIGNAL(onChaserLoaded()), &ct_interact, SLOT(loadJointPosFromModel()));
+  connect(&ct_config, SIGNAL(onTargetLoaded()), &ct_interact, SLOT(loadTargetPosFromModel()));
+  
   connect(actionRun_Planner, SIGNAL(triggered()), this, SLOT(runPlanner()));
 //   connect(configs.actionExecutePlanner, SIGNAL(triggered()), this, SLOT(executePlanner()));
 //   connect(configs.actionExecuteDynamicPlanner, SIGNAL(triggered()), this, SLOT(executeDynamicPlanner()));

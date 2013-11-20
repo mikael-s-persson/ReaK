@@ -101,16 +101,26 @@ namespace graph {
   template <typename SBAStarBundle>
   inline void generate_lazy_bnb_sbastar_no_init(const SBAStarBundle& bdl, typename SBAStarBundle::vertex_type goal_vertex) {
     
-    detail::generate_sbastar_no_init_impl(
-      *(bdl.m_g), bdl.m_start_vertex, *(bdl.m_super_space), bdl.m_vis, 
-      branch_and_bound_connector<typename SBAStarBundle::graph_type>(
-        *(bdl.m_g),
-        bdl.m_start_vertex, 
-        goal_vertex
-      ), 
-      bdl.m_hval, bdl.m_position, bdl.m_weight, bdl.m_density, bdl.m_constriction, 
-      bdl.m_distance, bdl.m_predecessor, bdl.m_key, bdl.m_select_neighborhood);
-    
+    if( goal_vertex == boost::graph_traits<typename SBAStarBundle::graph_type>::null_vertex() ) {
+      
+      detail::generate_sbastar_no_init_impl(
+        *(bdl.m_g), bdl.m_start_vertex, *(bdl.m_super_space), bdl.m_vis, lazy_node_connector(), 
+        bdl.m_hval, bdl.m_position, bdl.m_weight, bdl.m_density, bdl.m_constriction, 
+        bdl.m_distance, bdl.m_predecessor, bdl.m_key, bdl.m_select_neighborhood);
+      
+    } else {
+      
+      detail::generate_sbastar_no_init_impl(
+        *(bdl.m_g), bdl.m_start_vertex, *(bdl.m_super_space), bdl.m_vis, 
+        branch_and_bound_connector<typename SBAStarBundle::graph_type>(
+          *(bdl.m_g),
+          bdl.m_start_vertex, 
+          goal_vertex
+        ), 
+        bdl.m_hval, bdl.m_position, bdl.m_weight, bdl.m_density, bdl.m_constriction, 
+        bdl.m_distance, bdl.m_predecessor, bdl.m_key, bdl.m_select_neighborhood);
+      
+    };
   };
 
   /**

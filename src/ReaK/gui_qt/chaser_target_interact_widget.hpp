@@ -58,7 +58,10 @@ class ChaserTargetInteractWidget : public QDockWidget, private Ui::ChaserTargetI
     
     void loadTargetTrajectory();
     
-  public:
+  public slots:
+    
+    void loadJointPosFromModel();
+    void loadTargetPosFromModel();
     
   signals:
     

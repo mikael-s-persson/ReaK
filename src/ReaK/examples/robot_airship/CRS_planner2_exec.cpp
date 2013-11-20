@@ -181,7 +181,7 @@ void CRS_execute_static_planner_impl(const ReaK::kte::chaser_target_data& scene_
         workspace, plan_options.max_vertices, plan_options.prog_interval,
         plan_options.store_policy | plan_options.knn_method,
         plan_options.planning_options,
-        0.1, 0.05, plan_options.max_travel, workspace_dims, report_chain));
+        0.1, 0.05, plan_options.max_random_walk, workspace_dims, report_chain));
     
   } else 
 #endif
@@ -192,7 +192,7 @@ void CRS_execute_static_planner_impl(const ReaK::kte::chaser_target_data& scene_
         workspace, plan_options.max_vertices, plan_options.prog_interval,
         plan_options.store_policy | plan_options.knn_method,
         plan_options.planning_options,
-        0.1, 0.05, plan_options.max_travel, workspace_dims, report_chain));
+        0.1, 0.05, plan_options.max_random_walk, workspace_dims, report_chain));
     
     tmp->set_initial_density_threshold(0.0);
     tmp->set_initial_relaxation(plan_options.init_relax);
@@ -208,7 +208,7 @@ void CRS_execute_static_planner_impl(const ReaK::kte::chaser_target_data& scene_
       new fadprm_planner< static_workspace_type >(
         workspace, plan_options.max_vertices, plan_options.prog_interval,
         plan_options.store_policy | plan_options.knn_method,
-        0.1, 0.05, plan_options.max_travel, workspace_dims, report_chain));
+        0.1, 0.05, plan_options.max_random_walk, workspace_dims, report_chain));
     
     tmp->set_initial_relaxation(plan_options.init_relax);
     

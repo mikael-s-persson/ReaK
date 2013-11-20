@@ -646,7 +646,7 @@ class waypoint_container_base< true, Topology, DistanceMetricBase > : public sha
      * \return The end time-iterator along the trajectory.
      */
     point_time_iterator end_time_travel() const {
-      return point_time_iterator(this, get_waypoint_bounds(get_end_time()));
+      return point_time_iterator(this, const_waypoint_bounds((++waypoints.rbegin()).base(),(++waypoints.rbegin()).base()));
     };
     
     /**
@@ -662,7 +662,7 @@ class waypoint_container_base< true, Topology, DistanceMetricBase > : public sha
      * \return The end fraction-iterator along the trajectory.
      */
     point_fraction_iterator end_fraction_travel() const {
-      return point_fraction_iterator(this, get_waypoint_bounds(get_end_time()));
+      return point_fraction_iterator(this, const_waypoint_bounds((++waypoints.rbegin()).base(),(++waypoints.rbegin()).base()));
     };
     
     

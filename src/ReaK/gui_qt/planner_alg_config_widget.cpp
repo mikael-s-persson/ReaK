@@ -56,7 +56,6 @@ PlannerAlgConfigWidget::PlannerAlgConfigWidget(QWidget * parent, Qt::WindowFlags
   connect(this->load_button, SIGNAL(clicked()), this, SLOT(loadPlannerConfig()));
   connect(this->save_button, SIGNAL(clicked()), this, SLOT(savePlannerConfig()));
   
-  planOptions.max_travel = 1.0;
   
   planOptions.planning_algo = 0;
   planOptions.max_vertices = 2000;
@@ -67,6 +66,7 @@ PlannerAlgConfigWidget::PlannerAlgConfigWidget(QWidget * parent, Qt::WindowFlags
   planOptions.knn_method = 2;
   planOptions.init_SA_temp = 0.0;
   planOptions.init_relax = 5.0;
+  planOptions.max_random_walk = 1.0;
   planOptions.start_delay = 20.0;
   updateConfigs();
   
@@ -82,7 +82,7 @@ PlannerAlgConfigWidget::~PlannerAlgConfigWidget() {
 void PlannerAlgConfigWidget::onConfigsChanged() {
   
   
-  planOptions.max_travel = this->max_expansion_spinbox->value();
+  planOptions.max_random_walk = this->max_expansion_spinbox->value();
   
   // planner parameters:
   planOptions.planning_algo = this->planning_algo_selection->currentIndex();
@@ -146,7 +146,7 @@ void PlannerAlgConfigWidget::onConfigsChanged() {
 void PlannerAlgConfigWidget::updateConfigs() {
   
   
-  this->max_expansion_spinbox->setValue(planOptions.max_travel);
+  this->max_expansion_spinbox->setValue(planOptions.max_random_walk);
   
   // planner parameters:
   this->planning_algo_selection->setCurrentIndex(planOptions.planning_algo);

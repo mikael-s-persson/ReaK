@@ -281,7 +281,7 @@ class frame_tracer_3D : public shared_object {
       std::vector< geom::tracer_coin3d_impl > current_trace;
       for(std::size_t i = 0; i < traced_frames.size(); ++i)
         current_trace.push_back(geom::tracer_coin3d_impl(true));
-      
+      std::cout << "Starting to register solution..." << std::endl;
       double t = 0.0;
       PtIter it = traj->begin_time_travel();
       PointType last_pt = *it;

@@ -243,6 +243,45 @@ void ChaserTargetInteractWidget::loadPositions() {
 };
 
 
+
+void ChaserTargetInteractWidget::loadJointPosFromModel() {
+  if( !pSceneData->chaser_kin_model )
+    return;
+  
+  vect_n<double> v = pSceneData->chaser_kin_model->getJointPositions();
+  
+  this->track_pos->setValue(1000.0 * v[0]);
+  this->joint1_pos->setValue(1000.0 * v[1]);
+  this->joint2_pos->setValue(1000.0 * v[2]);
+  this->joint3_pos->setValue(1000.0 * v[3]);
+  this->joint4_pos->setValue(1000.0 * v[4]);
+  this->joint5_pos->setValue(1000.0 * v[5]);
+  this->joint6_pos->setValue(1000.0 * v[6]);
+  
+  onJointChange();
+};
+
+
+void ChaserTargetInteractWidget::loadTargetPosFromModel() {
+  if( !pSceneData->target_kin_model )
+    return;
+  
+  shared_ptr< frame_3D<double> > target_state = pSceneData->target_kin_model->getFrame3D(0);
+  this->target_x->setValue(int(1000.0 * target_state->Position[0]));
+  this->target_y->setValue(int(1000.0 * target_state->Position[1]));
+  this->target_z->setValue(int(1000.0 * target_state->Position[2]));
+  euler_angles_TB<double> ea = euler_angles_TB<double>(target_state->Quat);
+  this->target_yaw->setValue(int(1000.0 * ea.yaw()));
+  this->target_pitch->setValue(int(1000.0 * ea.pitch()));
+  this->target_roll->setValue(int(1000.0 * ea.roll()));
+  
+  
+  onTargetChange();
+};
+
+
+
+
 bool ChaserTargetInteractWidget::isIKEnabled() const {
   return this->enable_ik_check->isChecked();
 };
