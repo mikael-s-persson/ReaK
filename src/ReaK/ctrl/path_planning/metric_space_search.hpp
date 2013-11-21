@@ -416,6 +416,12 @@ class dvp_tree
     std::size_t depth() const { return m_impl.depth(); };
     
     /**
+     * This function computes an approximation of the characteristic size of the vertices in the DVP tree.
+     * \return The approximation of the characteristic size of the vertices in the DVP tree.
+     */
+    double get_characteristic_size() const { return m_impl.get_characteristic_size(); };
+    
+    /**
      * Inserts a key-value (vertex).
      * \param u The vertex to be added to the DVP-tree.
      */
@@ -592,12 +598,31 @@ struct multi_dvp_tree_search_base {
   
   
   /**
+   * This function computes an approximation of the characteristic size of the vertices of a graph, to a given position.
+   * \tparam Topology The topology type which contains the positions, should model the MetricSpaceConcept.
+   * \tparam PositionMap The property-map type which can store the position associated with each vertex.
+   * \param g A graph containing the vertices from which to find the nearest-neighbor.
+   * \param space The topology objects which define the space in which the positions reside.
+   * \param position The property-map which can retrieve the position associated to each vertex.
+   * \return The approximation of the characteristic size of the vertices of the given graph.
+   */
+  template <typename Topology, typename PositionMap>
+  double get_characteristic_size(Graph& g, const Topology& space, PositionMap position) const {
+    typename std::map<Graph*,DVPTree*>::const_iterator it = graph_tree_map.find(&g);
+    if((it != graph_tree_map.end()) && (it->second))
+      return it->second->get_characteristic_size();
+    else
+      return std::numeric_limits<double>::infinity();
+  };
+  
+  
+  
+  /**
    * This call-operator finds the nearest vertex of a graph, to a given position.
    * \tparam Topology The topology type which contains the positions, should model the MetricSpaceConcept.
    * \tparam PositionMap The property-map type which can store the position associated with each vertex.
    * \param p A position in the space, to which the nearest-neighbor is sought.
-   * \param g A graph containing the vertices from which to find the nearest-neighbor, 
-   *        should be tree-structured.
+   * \param g A graph containing the vertices from which to find the nearest-neighbor.
    * \param space The topology objects which define the space in which the positions reside.
    * \param position The property-map which can retrieve the position associated to each vertex.
    */
@@ -621,8 +646,7 @@ struct multi_dvp_tree_search_base {
    * \param p A position in the space, to which the nearest-neighbors are sought.
    * \param output_first An iterator to the first place where to put the sorted list of 
    *        elements with the smallest distance.
-   * \param g A graph containing the vertices from which to find the nearest-neighbors, 
-   *        should be tree-structured.
+   * \param g A graph containing the vertices from which to find the nearest-neighbors.
    * \param space The topology objects which define the space in which the positions reside.
    * \param position The property-map which can retrieve the position associated to each vertex.
    * \param max_neighbors The maximum number of neighbors to have in the list.
@@ -682,13 +706,32 @@ struct multi_dvp_tree_search_base<Graph, DVPTree, true> {
   
   multi_dvp_tree_search_base() : graph_tree_map() { };
   
+  
+  /**
+   * This function computes an approximation of the characteristic size of the vertices of a graph, to a given position.
+   * \tparam Topology The topology type which contains the positions, should model the MetricSpaceConcept.
+   * \tparam PositionMap The property-map type which can store the position associated with each vertex.
+   * \param g A graph containing the vertices from which to find the nearest-neighbor.
+   * \param space The topology objects which define the space in which the positions reside.
+   * \param position The property-map which can retrieve the position associated to each vertex.
+   * \return The approximation of the characteristic size of the vertices of the given graph.
+   */
+  template <typename Topology, typename PositionMap>
+  double get_characteristic_size(Graph& g, const Topology& space, PositionMap position) const {
+    typename std::map<Graph*,DVPTree*>::const_iterator it = graph_tree_map.find(&g);
+    if((it != graph_tree_map.end()) && (it->second))
+      return it->second->get_characteristic_size();
+    else
+      return std::numeric_limits<double>::infinity();
+  };
+  
+  
   /**
    * This call-operator finds the nearest predecesor and successor of a graph, to a given position.
    * \tparam Topology The topology type which contains the positions, should model the MetricSpaceConcept.
    * \tparam PositionMap The property-map type which can store the position associated with each vertex.
    * \param p A position in the space, to which the nearest-neighbors are sought.
-   * \param g A graph containing the vertices from which to find the nearest-neighbor, 
-   *        should be tree-structured.
+   * \param g A graph containing the vertices from which to find the nearest-neighbor.
    * \param space The topology objects which define the space in which the positions reside.
    * \param position The property-map which can retrieve the position associated to each vertex.
    * \return A pair containing the nearest predecessor and successor vertex.
@@ -718,8 +761,7 @@ struct multi_dvp_tree_search_base<Graph, DVPTree, true> {
    *        the best predecessor elements.
    * \param succ_first An iterator to the first place where to put the sorted list of 
    *        the best successor elements.
-   * \param g A graph containing the vertices from which to find the nearest-neighbors, 
-   *        should be tree-structured.
+   * \param g A graph containing the vertices from which to find the nearest-neighbors.
    * \param space The topology objects which define the space in which the positions reside.
    * \param position The property-map which can retrieve the position associated to each vertex.
    * \param max_neighbors The maximum number of neighbors to have in the list.

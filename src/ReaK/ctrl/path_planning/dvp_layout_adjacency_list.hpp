@@ -73,15 +73,15 @@ namespace pp {
  * \tparam EdgeListS The edge list container specifier for the adjacency-list (same as EdgeListS in boost::adjacency_list).
  */
 template <typename VertexProperty,
-	  typename EdgeProperty,
-	  typename Topology,
+          typename EdgeProperty,
+          typename Topology,
           typename PositionMap,
-	  unsigned int Arity = 2,
-	  typename VPChooser = random_vp_chooser,
-	  typename TreeStorageTag = ReaK::graph::d_ary_bf_tree_storage<Arity>,
-	  typename OutEdgeListS = boost::vecS,
-	  typename DirectedS = boost::directedS,
-	  typename EdgeListS = boost::vecS >
+          unsigned int Arity = 2,
+          typename VPChooser = random_vp_chooser,
+          typename TreeStorageTag = ReaK::graph::d_ary_bf_tree_storage<Arity>,
+          typename OutEdgeListS = boost::vecS,
+          typename DirectedS = boost::directedS,
+          typename EdgeListS = boost::vecS >
 class dvp_adjacency_list
 {
   public:
@@ -110,13 +110,13 @@ class dvp_adjacency_list
     typedef typename boost::property_traits< vertex_r2b_map_type >::key_type vertex_raw_property_type;
     typedef typename boost::property_traits< edge_r2b_map_type >::key_type edge_raw_property_type;
     
-	typedef typename boost::property_map<vertex_raw_property_type, boost::vertex_key_t>::const_type key_map_type; 
+        typedef typename boost::property_map<vertex_raw_property_type, boost::vertex_key_t>::const_type key_map_type; 
     typedef boost::composite_property_map<
       boost::data_member_property_map<distance_type, edge_properties>,
       edge_r2b_map_type> distance_map_type;
     typedef boost::composite_property_map<
       PositionMap,
-	  typename boost::property_map<vertex_raw_property_type, boost::vertex_second_bundle_t>::type > position_map_type;
+          typename boost::property_map<vertex_raw_property_type, boost::vertex_second_bundle_t>::type > position_map_type;
     
     
     typedef dvp_tree_impl< 
@@ -150,29 +150,29 @@ class dvp_adjacency_list
      * \param aVPChooser The vantage-point chooser functor (policy class).
      */
     dvp_adjacency_list(const ReaK::shared_ptr<const Topology>& aSpace, 
-		       PositionMap aPosition,
-		       VPChooser aVPChooser = VPChooser()) :
-	     m_tree(),
-	     m_position(aPosition),
-	     m_vp_key(
-	       get(boost::vertex_key, vertex_raw_property_type())
-	     ),
-	     m_vp_pos(
-	       aPosition,
-	       get(boost::vertex_second_bundle, vertex_raw_property_type())
-	     ),
-	     m_impl(
-	       m_tree,
+                       PositionMap aPosition,
+                       VPChooser aVPChooser = VPChooser()) :
+             m_tree(),
+             m_position(aPosition),
+             m_vp_key(
+               get(boost::vertex_key, vertex_raw_property_type())
+             ),
+             m_vp_pos(
+               aPosition,
+               get(boost::vertex_second_bundle, vertex_raw_property_type())
+             ),
+             m_impl(
+               m_tree,
                aSpace, 
-	       get(ReaK::pp::distance_metric,*aSpace),
-	       m_vp_key,
-	       distance_map_type(
-		 boost::data_member_property_map<distance_type, edge_properties>(&edge_properties::d),
-		 get(boost::edge_raw_prop_to_bundle, m_tree)
-	       ),
-	       m_vp_pos,
-	       aVPChooser
-	     ) { };
+               get(ReaK::pp::distance_metric,*aSpace),
+               m_vp_key,
+               distance_map_type(
+                 boost::data_member_property_map<distance_type, edge_properties>(&edge_properties::d),
+                 get(boost::edge_raw_prop_to_bundle, m_tree)
+               ),
+               m_vp_pos,
+               aVPChooser
+             ) { };
     
     /**
      * Returns a graph object associated to, stored as and synchronized with this DVP tree layout.
@@ -203,6 +203,12 @@ class dvp_adjacency_list
      */
     std::size_t depth() const { return m_impl.depth(); };
     
+    /**
+     * This function computes an approximation of the characteristic size of the vertices in the DVP tree.
+     * \return The approximation of the characteristic size of the vertices in the DVP tree.
+     */
+    double get_characteristic_size() const { return m_impl.get_characteristic_size(); };
+    
     
     /**
      * Finds the nearest neighbor to a given position.
@@ -232,7 +238,7 @@ class dvp_adjacency_list
       std::vector< TreeVertex > v_list;
       m_impl.find_nearest(aPoint, back_inserter(v_list), K, R);
       for(typename std::vector< TreeVertex >::iterator it = v_list.begin(); it != v_list.end(); ++it)
-	*(aOutputBegin++) = get(m_vp_key, get(boost::vertex_raw_property, m_tree, *it));
+        *(aOutputBegin++) = get(m_vp_key, get(boost::vertex_raw_property, m_tree, *it));
       return aOutputBegin;
     };
     
@@ -252,7 +258,7 @@ class dvp_adjacency_list
       std::vector< TreeVertex > v_list;
       m_impl.find_in_range(aPoint, back_inserter(v_list), R);
       for(typename std::vector< TreeVertex >::iterator it = v_list.begin(); it != v_list.end(); ++it)
-	*(aOutputBegin++) = get(m_vp_key, get(boost::vertex_raw_property, m_tree, *it));
+        *(aOutputBegin++) = get(m_vp_key, get(boost::vertex_raw_property, m_tree, *it));
       return aOutputBegin;
     };
     

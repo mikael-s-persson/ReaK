@@ -64,6 +64,8 @@
 
 #include "metric_space_concept.hpp"
 
+#include "base/misc_math.hpp"
+
 namespace ReaK {
   
 namespace pp {
@@ -526,7 +528,7 @@ namespace pp {
    */
   template <typename Graph, typename CompareFunction, bool IsDirected >
   struct linear_neighbor_search_base {
-
+    
     CompareFunction m_compare;
     /**
      * Default constructor.
@@ -534,9 +536,46 @@ namespace pp {
      */
     linear_neighbor_search_base(CompareFunction compare = CompareFunction()) : m_compare(compare) { };
     
+    
+    /**
+     * This function computes an approximation of the characteristic size of the vertices of a graph.
+     * \tparam Topology The topology type which contains the positions.
+     * \tparam PositionMap The property-map type which can store the position associated with each vertex.
+     * \param g A graph containing the vertices from which to find the nearest-neighbor.
+     * \param space The topology objects which define the space in which the positions reside.
+     * \param position The property-map which can retrieve the position associated to each vertex.
+     */
+    template <typename Topology, typename PositionMap>
+    double get_characteristic_size(Graph& g, const Topology& space, PositionMap position) const {
+      typedef typename boost::graph_traits<Graph>::vertex_iterator VertexIter;
+      VertexIter ui, ui_end; 
+      boost::tie(ui,ui_end) = vertices(g);
+      std::size_t N     = num_vertices(g);
+      std::size_t log_N = math::highest_set_bit(N) + 1;
+      std::size_t step  = N / log_N;
+      
+      VertexIter ui_cur = ui;
+      double avg_max_dist = 0.0;
+      for(std::size_t i = 0; i < log_N; ++i) {
+        std::advance(ui_cur, step / 2);  // the double half advance is to avoid going over bound at the end.
+        double d_best = 0.0;
+        for(VertexIter ui_test = ui; ui_test != ui_end; ++ui_test) {
+          double d = get(distance_metric, space)(get(position, *ui_cur), get(position, *ui_test), space);
+          if((d != std::numeric_limits<double>::infinity()) && (d > d_best))
+            d_best = d;
+        };
+        if( d_best != 0.0 )
+          avg_max_dist += d_best;
+        std::advance(ui_cur, step / 2);
+      };
+      if( avg_max_dist != 0.0 )
+        return avg_max_dist / log_N;
+      else  // never found a finite, non-zero distance value.
+        return std::numeric_limits<double>::infinity();
+    };
+    
     /**
      * This call-operator finds the nearest vertex of a graph, to a given position.
-     * \tparam Graph The graph type which can contain the vertices, should model boost::VertexListGraphConcept.
      * \tparam Topology The topology type which contains the positions.
      * \tparam PositionMap The property-map type which can store the position associated with each vertex.
      * \param p A position in the space, to which the nearest-neighbor is sought.
@@ -561,8 +600,6 @@ namespace pp {
     
     /**
      * This call-operator finds the nearest vertices of a graph, to a given position.
-     * \tparam Graph The graph type which can contain the vertices, should 
-     *         model boost::VertexListGraphConcept.
      * \tparam Topology The topology type which contains the positions.
      * \tparam PositionMap The property-map type which can store the position associated 
      *         with each vertex.
@@ -672,6 +709,46 @@ namespace pp {
      * \param compare The comparison functor for ordering the distances (strict weak ordering).
      */
     linear_neighbor_search_base(CompareFunction compare = CompareFunction()) : m_compare(compare) { };
+    
+    /**
+     * This function computes an approximation of the characteristic size of the vertices of a graph.
+     * \tparam Topology The topology type which contains the positions.
+     * \tparam PositionMap The property-map type which can store the position associated with each vertex.
+     * \param g A graph containing the vertices from which to find the nearest-neighbor.
+     * \param space The topology objects which define the space in which the positions reside.
+     * \param position The property-map which can retrieve the position associated to each vertex.
+     */
+    template <typename Topology, typename PositionMap>
+    double get_characteristic_size(Graph& g, const Topology& space, PositionMap position) const {
+      typedef typename boost::graph_traits<Graph>::vertex_iterator VertexIter;
+      VertexIter ui, ui_end; 
+      boost::tie(ui,ui_end) = vertices(g);
+      std::size_t N     = num_vertices(g);
+      std::size_t log_N = math::highest_set_bit(N) + 1;
+      std::size_t step  = N / log_N;
+      
+      VertexIter ui_cur = ui;
+      double avg_max_dist = 0.0;
+      for(std::size_t i = 0; i < log_N; ++i) {
+        std::advance(ui_cur, step / 2);  // the double half advance is to avoid going over bound at the end.
+        double d_best = 0.0;
+        for(VertexIter ui_test = ui; ui_test != ui_end; ++ui_test) {
+          double d1 = get(distance_metric, space)(get(position, *ui_cur), get(position, *ui_test), space);
+          if((d1 != std::numeric_limits<double>::infinity()) && (d1 > d_best))
+            d_best = d1;
+          double d2 = get(distance_metric, space)(get(position, *ui_test), get(position, *ui_cur), space);
+          if((d2 != std::numeric_limits<double>::infinity()) && (d2 > d_best))
+            d_best = d2;
+        };
+        if( d_best != 0.0 )
+          avg_max_dist += d_best;
+        std::advance(ui_cur, step / 2);
+      };
+      if( avg_max_dist != 0.0 )
+        return avg_max_dist / log_N;
+      else  // never found a finite, non-zero distance value.
+        return std::numeric_limits<double>::infinity();
+    };
     
     /**
      * This call-operator finds the nearest vertices of a graph, to a given position.

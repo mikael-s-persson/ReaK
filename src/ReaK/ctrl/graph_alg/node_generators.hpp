@@ -127,6 +127,7 @@ struct rrg_node_generator {
                           typename Graph::edge_bundled > ResultType;
     using std::back_inserter;
     
+    std::size_t i = 0;
     while(true) {
       PositionValue p_new = get_sample(*space);
       
@@ -137,6 +138,9 @@ struct rrg_node_generator {
       boost::tie(x_near, was_expanded, ep) = detail::expand_to_nearest(p_new, Nc, g, vis);
       if( was_expanded )
         return ResultType(x_near, p_new, ep);
+      if( i >= 10 )
+        return ResultType(boost::graph_traits<Graph>::null_vertex(), p_new, ep);
+      ++i;
     };
     
     return ResultType();
@@ -160,6 +164,7 @@ struct rrg_node_generator {
                           typename Graph::edge_bundled > ResultType;
     using std::back_inserter;
     
+    std::size_t i = 0;
     while(true) {
       PositionValue p_new = get_sample(*space);
       
@@ -170,9 +175,10 @@ struct rrg_node_generator {
       boost::tie(x_near, was_expanded, ep) = detail::expand_to_nearest(p_new, Pred, g, vis);
       if( was_expanded )
         return ResultType(x_near, p_new, ep);
+      if( i >= 10 )
+        return ResultType(boost::graph_traits<Graph>::null_vertex(), p_new, ep);
+      ++i;
     };
-    
-    return ResultType();
   };
 
 };

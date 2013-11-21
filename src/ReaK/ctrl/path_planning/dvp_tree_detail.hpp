@@ -803,6 +803,29 @@ class dvp_tree_impl
     std::size_t depth() const { return get_depth(m_root); };
     
     /**
+     * This function computes an approximation of the characteristic size of the vertices in the DVP tree.
+     * \return The approximation of the characteristic size of the vertices in the DVP tree.
+     */
+    double get_characteristic_size() const { 
+      if(num_vertices(m_tree) == 0)
+        return std::numeric_limits<double>::infinity();
+      
+      out_edge_iter ei,ei_end;
+      double max_dist = 0.0;
+      for(boost::tie(ei,ei_end) = out_edges(m_root,m_tree); ei != ei_end; ++ei) {
+        if( ! is_edge_valid(*ei, m_tree) )
+          continue;
+        double cur_dist = get(m_mu, get(boost::edge_raw_property,m_tree,*ei));
+        if(cur_dist > max_dist)
+          max_dist = cur_dist;
+      };
+      if(max_dist != 0.0)
+        return max_dist;
+      else  // never found a finite, non-zero distance value.
+        return std::numeric_limits<double>::infinity();
+    };
+    
+    /**
      * Inserts a vertex into the tree.
      * \param up The vertex-property to be added to the DVP-tree.
      */
