@@ -85,10 +85,10 @@ class time_poisson_topology : public time_topology
      * \note This function actually returns the origin of the space.
      */
     point_type random_point() const {
-      boost::variate_generator< global_rng_type&, boost::lognormal_distribution< double > > var_gen(get_global_rng(),boost::lognormal_distribution< double >(2.0, 1.0));
+      boost::variate_generator< global_rng_type&, boost::lognormal_distribution< double > > var_gen(get_global_rng(),boost::lognormal_distribution< double >(0.0, 1.0));
       //boost::variate_generator< global_rng_type&, boost::lognormal_distribution< double > > var_gen(get_global_rng(),boost::lognormal_distribution< double >(std::log(mean_discrete_time) + 1.0, 1.0));
       //boost::variate_generator< global_rng_type&, boost::poisson_distribution< int, double > > var_gen(get_global_rng(),boost::poisson_distribution< int, double >(mean_discrete_time));
-      return time_step * int(0.5 * mean_discrete_time / time_step * point_type(var_gen()) + time_delay / time_step);
+      return time_step * int(mean_discrete_time / time_step * point_type(var_gen()) + time_delay / time_step);
     };
     
 /*******************************************************************************
