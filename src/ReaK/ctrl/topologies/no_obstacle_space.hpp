@@ -299,6 +299,13 @@ struct is_metric_symmetric< no_obstacle_space<Topology, DistanceMetric, RandomSa
     is_metric_symmetric< Topology >
   > { };
 
+template <typename Topology, 
+          typename DistanceMetric,
+          typename RandomSampler>
+struct get_proper_metric< no_obstacle_space<Topology, DistanceMetric, RandomSampler> > :
+  get_proper_metric_from_metric<DistanceMetric> { };
+
+
 };
 
 };

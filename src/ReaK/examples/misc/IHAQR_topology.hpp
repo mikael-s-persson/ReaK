@@ -44,6 +44,8 @@
 #include "topologies/basic_distance_metrics.hpp"
 #include "topologies/hyperbox_topology.hpp"
 
+#include "path_planning/proper_metric_concept.hpp"
+
 #include "interpolation/constant_trajectory.hpp"
 
 #include "path_planning/metric_space_concept.hpp"
@@ -473,6 +475,29 @@ class IHAQR_topology : public named_object
       return dx * dx;
     };
     
+    /**
+     * Returns the proper distance between two points.
+     */
+    double proper_distance(const point_type& a, const point_type& b) const {
+      if(!a.IHAQR_data)
+        compute_IHAQR_data(a);
+      if(!b.IHAQR_data)
+        compute_IHAQR_data(b);
+      vect_n<double> dx =  to_vect<double>(m_space.difference(b.x, a.x));
+      double d1 = dx * a.IHAQR_data->M * dx;
+      double d2 = dx * b.IHAQR_data->M * dx;
+      if(d1 < d2)
+        return d1;
+      return d2;
+    };
+    
+    /**
+     * Returns the proper norm of the difference between two points.
+     */
+    double proper_norm(const point_difference_type& delta) const {
+      return norm(delta);
+    };
+    
    /*************************************************************************
     *                         for PointDistributionConcept
     * **********************************************************************/
@@ -589,7 +614,10 @@ struct is_point_distribution< IHAQR_topology<StateSpace, StateSpaceSystem, State
 template <typename StateSpace, typename StateSpaceSystem, typename StateSpaceSampler>
 struct is_metric_symmetric< IHAQR_topology<StateSpace, StateSpaceSystem, StateSpaceSampler> > : boost::mpl::false_ { };
   
-  
+template <typename StateSpace, typename StateSpaceSystem, typename StateSpaceSampler>
+struct get_proper_metric< IHAQR_topology<StateSpace, StateSpaceSystem, StateSpaceSampler> > {
+  typedef default_proper_metric type;
+};
 
   
 /**

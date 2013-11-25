@@ -359,10 +359,12 @@ sap_reach_time_metric       0xC241000A   bin: 1100 0010 0100 0001 0000 0000 0000
 symmetrized_metric          0xC241000B   bin: 1100 0010 0100 0001 0000 0000 0000 1011  D-R
 svp_Ndof_reach_time_metric  0xC241000C   bin: 1100 0010 0100 0001 0000 0000 0000 1100  D-R
 sap_Ndof_reach_time_metric  0xC241000D   bin: 1100 0010 0100 0001 0000 0000 0000 1101  D-R
+default_proper_metric       0xC241000E   bin: 1100 0010 0100 0001 0000 0000 0000 1110  D-R
 
 space_only_temporal_dist    0xC2410010   bin: 1100 0010 0100 0001 0000 0000 0001 0000  D-R
 time_only_temporal_dist     0xC2410011   bin: 1100 0010 0100 0001 0000 0000 0001 0001  D-R
 reach_plus_time_metric      0xC2410012   bin: 1100 0010 0100 0001 0000 0000 0001 0010  D-R
+reach_plus_time_metric      0xC2410013   bin: 1100 0010 0100 0001 0000 0000 0001 0011  D-R
 
 goal_reach_time_heuristic   0xC2410020   bin: 1100 0010 0100 0001 0000 0000 0010 0000  D-R
 distance_to_goal_heuristic  0xC2410021   bin: 1100 0010 0100 0001 0000 0000 0010 0001  D-R

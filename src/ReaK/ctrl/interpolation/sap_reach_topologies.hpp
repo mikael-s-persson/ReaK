@@ -143,6 +143,20 @@ namespace detail {
     };
     
     static 
+    double get_proper_distance(const BaseTopology& b_space, const rt_metric_type& rt_dist,
+                               const point_type& a, const point_type& b) {
+      sap_reach_time_metric<time_topology,true> p_rt_dist(rt_dist);
+      return p_rt_dist(a, b, b_space);
+    };
+    
+    static 
+    double get_proper_norm(const BaseTopology& b_space, const rt_metric_type& rt_dist,
+                           const point_difference_type& dp) {
+      sap_reach_time_metric<time_topology,true> p_rt_dist(rt_dist);
+      return p_rt_dist(dp, b_space);
+    };
+    
+    static 
     bool is_in_bounds(const BaseTopology& b_space, const point_type& a) {
       return sap_is_in_bounds(a, b_space, time_topology());
     };
@@ -266,6 +280,22 @@ namespace detail {
     };
     
     static 
+    double get_proper_distance(const BaseTopology& b_space, const rt_metric_type& rt_dist, const point_type& a, const point_type& b) {
+      using std::fabs;
+      sap_reach_time_metric< base_time_topo, true > p_rt_dist(rt_dist);
+      double reach_time = p_rt_dist(a.pt, b.pt, b_space.get_space_topology());
+      return fabs(b.time - a.time) + reach_time;
+    };
+    
+    static 
+    double get_proper_norm(const BaseTopology& b_space, const rt_metric_type& rt_dist, const point_difference_type& dp) {
+      using std::fabs;
+      sap_reach_time_metric< base_time_topo, true > p_rt_dist(rt_dist);
+      double reach_time = p_rt_dist(dp.pt, b_space.get_space_topology());
+      return fabs(dp.time) + reach_time;
+    };
+    
+    static 
     bool is_in_bounds(const BaseTopology& b_space, const point_type& a) {
       return sap_is_in_bounds(a.pt, b_space.get_space_topology(), b_space.get_time_topology());
     };
@@ -340,6 +370,12 @@ class interpolated_topology<BaseTopology, sap_interpolation_tag> : public interp
     };
     virtual double interp_topo_get_norm(const point_difference_type& dp) const { 
       return Impl::get_norm(*this, rt_dist, dp);
+    };
+    virtual double interp_topo_get_proper_distance(const point_type& a, const point_type& b) const {
+      return Impl::get_proper_distance(*this, rt_dist, a, b);
+    };
+    virtual double interp_topo_get_proper_norm(const point_difference_type& dp) const { 
+      return Impl::get_proper_norm(*this, rt_dist, dp);
     };
     virtual bool interp_topo_is_in_bounds(const point_type& a) const { 
       return Impl::is_in_bounds(*this, a); 

@@ -41,6 +41,8 @@
 #include "temporal_distance_metrics.hpp"
 #include "default_random_sampler.hpp"
 
+#include "path_planning/proper_metric_concept.hpp"
+
 #include "base/named_object.hpp"
 
 namespace ReaK {
@@ -521,6 +523,11 @@ struct is_metric_symmetric< temporal_space<Topology, TimeTopology, TemporalDista
     is_metric_symmetric<TimeTopology>,
     is_metric_symmetric<TemporalDistanceMetric>
   > { };
+
+template <typename Topology, typename TimeTopology, typename TemporalDistanceMetric>
+struct get_proper_metric< temporal_space<Topology, TimeTopology, TemporalDistanceMetric> > :
+  get_proper_metric_from_metric<TemporalDistanceMetric> { };
+
 
 
 };

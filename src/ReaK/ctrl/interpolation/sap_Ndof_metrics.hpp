@@ -36,6 +36,8 @@
 
 #include "base/defs.hpp"
 
+#include "path_planning/proper_metric_concept.hpp"
+
 #include <boost/config.hpp>
 #include <boost/concept_check.hpp>
 
@@ -55,10 +57,10 @@ namespace pp {
  * two points in a differentiable space.
  * \tparam TimeSpaceType The time topology type against which the interpolation is done.
  */
-template <typename TimeSpaceType = time_topology>
+template <typename TimeSpaceType = time_topology, bool MakeProper = false>
 struct sap_Ndof_reach_time_metric : public serialization::serializable {
   
-  typedef sap_Ndof_reach_time_metric<TimeSpaceType> self;
+  typedef sap_Ndof_reach_time_metric<TimeSpaceType, MakeProper> self;
   
   shared_ptr<TimeSpaceType> t_space;
   
@@ -121,9 +123,112 @@ struct sap_Ndof_reach_time_metric : public serialization::serializable {
 };
 
 
-template <typename TimeSpaceType>
-struct is_metric_symmetric< sap_Ndof_reach_time_metric<TimeSpaceType> > : boost::mpl::false_ { };
 
+/**
+ * This functor class is a distance metric based on the reach-time of a SAP interpolation between
+ * two points in a differentiable space.
+ * \note This specialization is used for a proper distance metric.
+ * \tparam TimeSpaceType The time topology type against which the interpolation is done.
+ */
+template <typename TimeSpaceType>
+struct sap_Ndof_reach_time_metric<TimeSpaceType, true> : public serialization::serializable {
+  
+  typedef sap_Ndof_reach_time_metric<TimeSpaceType, true> self;
+  
+  shared_ptr<TimeSpaceType> t_space;
+  
+  sap_Ndof_reach_time_metric(const sap_Ndof_reach_time_metric<TimeSpaceType, false>& aRHS) : 
+                             t_space(aRHS.t_space) { };
+  
+  sap_Ndof_reach_time_metric(const shared_ptr<TimeSpaceType>& aTimeSpace = shared_ptr<TimeSpaceType>(new TimeSpaceType())) : 
+                             t_space(aTimeSpace) { };
+  
+  /** 
+   * This function returns the distance between two points on a topology.
+   * \tparam Point The point-type.
+   * \tparam Topology The topology.
+   * \param a The first point.
+   * \param b The second point.
+   * \param s The topology or space on which the points lie.
+   * \return The distance between two points on a topology.
+   */
+  template <typename Point, typename Topology>
+  double operator()(const Point& a, const Point& b, const Topology& s) const {
+    double d = std::numeric_limits<double>::infinity();
+    try {
+      // guarantee symmetry by computing reach-times in both directions:
+      detail::generic_interpolator_impl<sap_Ndof_interpolator,Topology,TimeSpaceType> interp;
+      interp.initialize(a, b, 0.0, s, *t_space, *this);
+      d = interp.get_minimum_travel_time();
+      interp.initialize(b, a, 0.0, s, *t_space, *this);
+      double d2 = interp.get_minimum_travel_time();
+      // pick the minimal value:
+      if( d2 < d)
+        d = d2;
+    } catch(optim::infeasible_problem& e) { RK_UNUSED(e); };
+    if( d == std::numeric_limits<double>::infinity() )
+      return get(proper_metric, s)(a, b, s);
+    return d;
+  };
+  
+  /** 
+   * This function returns the norm of a difference between two points on a topology.
+   * \tparam PointDiff The point-difference-type.
+   * \tparam Topology The topology.
+   * \param a The point-difference.
+   * \param s The topology or space on which the points lie.
+   * \return The norm of the difference between two points on a topology.
+   */
+  template <typename PointDiff, typename Topology>
+  double operator()(const PointDiff& a, const Topology& s) const {
+    typedef typename topology_traits<Topology>::point_type PointType;
+    double d = std::numeric_limits<double>::infinity();
+    try {
+      PointType p = s.adjust(s.origin(),a);
+      // guarantee symmetry by computing reach-times in both directions:
+      detail::generic_interpolator_impl<sap_Ndof_interpolator,Topology,TimeSpaceType> interp;
+      interp.initialize(s.origin(), p, 0.0, s, *t_space, *this);
+      d = interp.get_minimum_travel_time();
+      interp.initialize(p, s.origin(), 0.0, s, *t_space, *this);
+      double d2 = interp.get_minimum_travel_time();
+      // pick the minimal value:
+      if( d2 < d)
+        d = d2;
+    } catch(optim::infeasible_problem& e) { RK_UNUSED(e); };
+    if( d == std::numeric_limits<double>::infinity() )
+      return get(proper_metric, s)(a, s);
+    return d;
+  };
+  
+      
+/*******************************************************************************
+                   ReaK's RTTI and Serialization interfaces
+*******************************************************************************/
+    
+  virtual void RK_CALL save(serialization::oarchive& A, unsigned int) const {
+    A & RK_SERIAL_SAVE_WITH_NAME(t_space);
+  };
+
+  virtual void RK_CALL load(serialization::iarchive& A, unsigned int) {
+    A & RK_SERIAL_LOAD_WITH_NAME(t_space);
+  };
+
+  RK_RTTI_MAKE_ABSTRACT_1BASE(self,0xC241000D,1,"sap_Ndof_reach_time_metric",serialization::serializable)
+};
+
+
+
+template <typename TimeSpaceType>
+struct is_metric_symmetric< sap_Ndof_reach_time_metric<TimeSpaceType, false> > : boost::mpl::false_ { };
+
+template <typename TimeSpaceType>
+struct is_metric_symmetric< sap_Ndof_reach_time_metric<TimeSpaceType, true> > : boost::mpl::true_ { };
+
+
+template <typename TimeSpaceType, bool MakeProper>
+struct get_proper_metric_from_metric< sap_Ndof_reach_time_metric<TimeSpaceType, MakeProper> > {
+  typedef sap_Ndof_reach_time_metric<TimeSpaceType, true> type;
+};
 
 
 };

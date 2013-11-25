@@ -36,6 +36,7 @@
 #include <boost/config.hpp>
 
 #include "path_planning/metric_space_concept.hpp"
+#include "path_planning/proper_metric_concept.hpp"
 #include "path_planning/temporal_space_concept.hpp"
 
 #include <boost/concept_check.hpp>
@@ -127,6 +128,11 @@ class interpolated_topology_base : public BaseTopology {
       return get(distance_metric, b_space)(a, b, b_space);
     };
     
+    virtual double interp_topo_get_proper_distance(const point_type& a, const point_type& b) const {
+      const BaseTopology& b_space = static_cast<const BaseTopology&>(*this);
+      return get(proper_metric, b_space)(a, b, b_space);
+    };
+    
     virtual point_type interp_topo_move_position_toward_pred(const point_type& a, double fraction, const point_type& b,
                                                              double min_dist_interval, validity_predicate_type predicate) const {
       
@@ -166,6 +172,11 @@ class interpolated_topology_base : public BaseTopology {
     virtual double interp_topo_get_norm(const point_difference_type& dp) const {
       const BaseTopology& b_space = static_cast<const BaseTopology&>(*this);
       return get(distance_metric, b_space)(dp, b_space);
+    };
+    
+    virtual double interp_topo_get_proper_norm(const point_difference_type& dp) const {
+      const BaseTopology& b_space = static_cast<const BaseTopology&>(*this);
+      return get(proper_metric, b_space)(dp, b_space);
     };
     
     virtual bool interp_topo_is_in_bounds(const point_type& a) const {
@@ -268,6 +279,20 @@ class interpolated_topology_base : public BaseTopology {
     };
     
     
+    /**
+     * Returns the distance between two points.
+     */
+    double proper_distance(const point_type& a, const point_type& b) const {
+      return this->interp_topo_get_proper_distance(a,b);
+    };
+    
+    /**
+     * Returns the norm of the difference between two points.
+     */
+    double proper_norm(const point_difference_type& delta) const {
+      return this->interp_topo_get_proper_norm(delta);
+    };
+    
     /*************************************************************************
     *                             BoundedSpaceConcept
     * **********************************************************************/
@@ -347,6 +372,10 @@ struct is_temporal_space< interpolated_topology_base<BaseTopology> > : is_tempor
 template <typename BaseTopology>
 struct is_metric_symmetric< interpolated_topology_base<BaseTopology> > : is_metric_symmetric< BaseTopology > { };
 
+template <typename BaseTopology>
+struct get_proper_metric< interpolated_topology_base<BaseTopology> > {
+  typedef default_proper_metric type;
+};
 
 
 
@@ -457,6 +486,22 @@ class wrapped_interp_topology : public named_object {
      */
     double norm(const point_difference_type& a) const { return m_space->norm(a); };
     
+    
+    /**
+     * Computes the distance between two points in the temporal-space.
+     * \param a The first point.
+     * \param b The second point.
+     * \return The distance between a and b.
+     */
+    double proper_distance(const point_type& a, const point_type& b) const { return m_space->proper_distance(a, b); };
+    
+    /**
+     * Computes the norm of a difference between two points.
+     * \param a The difference between two points.
+     * \return The norm of a difference between two points.
+     */
+    double proper_norm(const point_difference_type& a) const { return m_space->proper_norm(a); };
+    
     /*************************************************************************
      *                             LieGroupConcept
      * **********************************************************************/
@@ -525,6 +570,11 @@ struct is_temporal_space< wrapped_interp_topology<BaseTopology> > : is_temporal_
 
 template <typename BaseTopology>
 struct is_metric_symmetric< wrapped_interp_topology<BaseTopology> > : is_metric_symmetric< BaseTopology > { };
+
+template <typename BaseTopology>
+struct get_proper_metric< wrapped_interp_topology<BaseTopology> > {
+  typedef default_proper_metric type;
+};
 
 
 
@@ -805,6 +855,12 @@ struct is_metric_symmetric< interpolated_topology<BaseTopology, InterpMethodTag>
     is_metric_symmetric< InterpMethodTag >,
     is_metric_symmetric< BaseTopology >
   > { };
+
+template <typename BaseTopology, typename InterpMethodTag>
+struct get_proper_metric< interpolated_topology<BaseTopology, InterpMethodTag> > {
+  typedef default_proper_metric type;
+};
+
 
 
 

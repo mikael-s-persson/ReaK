@@ -184,22 +184,22 @@ class gen_interpolator_recursion_impl {
     template <typename InterpolatorTuple, typename PointType, typename SpaceTuple, typename TimeSpace, typename Factory>
     static void initialize(InterpolatorTuple& interp,
                                   const PointType& start_point, const PointType& end_point, double dt,
-		                  const SpaceTuple& space, const TimeSpace& t_space, const Factory& factory) {
+                                  const SpaceTuple& space, const TimeSpace& t_space, const Factory& factory) {
       gen_interpolator_recursion_impl< Idx-1 >::initialize(interp,start_point,end_point,dt,space,t_space,factory);
       
       get<Idx>(interp).initialize(get<Idx>(start_point), get<Idx>(end_point), dt, 
-				  get<Idx>(space), t_space, factory);
+                                  get<Idx>(space), t_space, factory);
     };
     
     template <typename InterpolatorTuple, typename PointType, typename SpaceTuple, typename TimeSpace, typename Factory>
     static void compute_point(const InterpolatorTuple& interp,
                               PointType& result, const PointType& start_point, const PointType& end_point, 
-		              const SpaceTuple& space, const TimeSpace& t_space, 
-		              double dt, double dt_total, const Factory& factory) {
+                              const SpaceTuple& space, const TimeSpace& t_space, 
+                              double dt, double dt_total, const Factory& factory) {
       gen_interpolator_recursion_impl< Idx-1 >::compute_point(interp,result,start_point,end_point,space,t_space,dt,dt_total,factory);
       
       get<Idx>(interp).compute_point(get<Idx>(result), get<Idx>(start_point), get<Idx>(end_point),
-				     get<Idx>(space), t_space, dt, dt_total, factory);
+                                     get<Idx>(space), t_space, dt, dt_total, factory);
     };
     
     template <typename InterpolatorTuple>
@@ -208,9 +208,9 @@ class gen_interpolator_recursion_impl {
       
       double result_0 = get<Idx>(interp).get_minimum_travel_time();
       if( result > result_0 ) 
-	return result;
+        return result;
       else
-	return result_0;
+        return result_0;
     };
     
     
@@ -224,18 +224,18 @@ class gen_interpolator_recursion_impl<0> {
     template <typename InterpolatorTuple, typename PointType, typename SpaceTuple, typename TimeSpace, typename Factory>
     static void initialize(InterpolatorTuple& interp,
                                   const PointType& start_point, const PointType& end_point, double dt,
-		                  const SpaceTuple& space, const TimeSpace& t_space, const Factory& factory) {
+                                  const SpaceTuple& space, const TimeSpace& t_space, const Factory& factory) {
       get<0>(interp).initialize(get<0>(start_point), get<0>(end_point), dt, 
-				  get<0>(space), t_space, factory);
+                                  get<0>(space), t_space, factory);
     };
     
     template <typename InterpolatorTuple, typename PointType, typename SpaceTuple, typename TimeSpace, typename Factory>
     static void compute_point(const InterpolatorTuple& interp,
                               PointType& result, const PointType& start_point, const PointType& end_point, 
-		              const SpaceTuple& space, const TimeSpace& t_space, 
-		              double dt, double dt_total, const Factory& factory) {
+                              const SpaceTuple& space, const TimeSpace& t_space, 
+                              double dt, double dt_total, const Factory& factory) {
       get<0>(interp).compute_point(get<0>(result), get<0>(start_point), get<0>(end_point),
-				   get<0>(space), t_space, dt, dt_total, factory);
+                                   get<0>(space), t_space, dt, dt_total, factory);
     };
     
     template <typename InterpolatorTuple>
@@ -265,14 +265,14 @@ class generic_interpolator_impl< InterpolatorImpl, metric_space_tuple<SpaceTuple
     
     template <typename Factory>
     void initialize(const point_type& start_point, const point_type& end_point, double dt,
-		    const SpaceType& space, const TimeSpaceType& t_space, const Factory& factory) {
+                    const SpaceType& space, const TimeSpaceType& t_space, const Factory& factory) {
       gen_interpolator_recursion_impl< arithmetic_tuple_size< SpaceTuple >::value - 1 >::initialize(interp, start_point, end_point, dt, space, t_space, factory);
     };
     
     template <typename Factory>
     void compute_point(point_type& result, const point_type& start_point, const point_type& end_point,
-		       const SpaceType& space, const TimeSpaceType& t_space, 
-		       double dt, double dt_total, const Factory& factory) const {
+                       const SpaceType& space, const TimeSpaceType& t_space, 
+                       double dt, double dt_total, const Factory& factory) const {
       gen_interpolator_recursion_impl< arithmetic_tuple_size< SpaceTuple >::value - 1 >::compute_point(interp, result, start_point, end_point, space, t_space, dt, dt_total, factory);
     };
     
@@ -314,13 +314,13 @@ class generic_interpolator {
     
     void update_delta_value() {
       if(parent && start_point && end_point) {
-	double delta_time = end_point->time - start_point->time;
-	
-	interp.initialize(start_point->pt, end_point->pt, delta_time,
-			  parent->get_temporal_space()->get_space_topology(),
-			  parent->get_temporal_space()->get_time_topology(),
-			  *parent);
-	
+        double delta_time = end_point->time - start_point->time;
+        
+        interp.initialize(start_point->pt, end_point->pt, delta_time,
+                          parent->get_temporal_space()->get_space_topology(),
+                          parent->get_temporal_space()->get_time_topology(),
+                          *parent);
+        
       };
     };
   
@@ -348,27 +348,27 @@ class generic_interpolator {
     double travel_distance_to(const point_type& pt, const DistanceMetric& dist) const {
       BOOST_CONCEPT_ASSERT((DistanceMetricConcept<DistanceMetric,topology>));
       if(parent && start_point)
-	return dist(pt, *start_point, *(parent->get_temporal_space()));
+        return dist(pt, *start_point, *(parent->get_temporal_space()));
       else
-	return 0.0;
+        return 0.0;
     };
     
     template <typename DistanceMetric>
     double travel_distance_from(const point_type& pt, const DistanceMetric& dist) const {
       BOOST_CONCEPT_ASSERT((DistanceMetricConcept<DistanceMetric,topology>));
       if(parent && end_point)
-	return dist(*end_point, pt, *(parent->get_temporal_space()));
+        return dist(*end_point, pt, *(parent->get_temporal_space()));
       else
-	return 0.0;
+        return 0.0;
     };
     
     point_type get_point_at_time(double t) const {
       if(!parent || !start_point || !end_point)
-	return point_type();
+        return point_type();
       
       double dt_total = end_point->time - start_point->time;
       if(interp.get_minimum_travel_time() > dt_total)
-	dt_total = interp.get_minimum_travel_time();
+        dt_total = interp.get_minimum_travel_time();
       double dt = t - start_point->time;
       
       point_type result;
@@ -381,16 +381,16 @@ class generic_interpolator {
     
     double get_minimum_travel_time() const {
       if(parent && start_point && end_point)
-	return interp.get_minimum_travel_time();
+        return interp.get_minimum_travel_time();
       else 
-	return std::numeric_limits<double>::infinity();
+        return std::numeric_limits<double>::infinity();
     };
     
     bool is_segment_feasible() const {
       if(parent && start_point && end_point)
         return (interp.get_minimum_travel_time() < end_point->time - start_point->time);
       else
-	return false;
+        return false;
     };
     
 };

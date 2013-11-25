@@ -43,6 +43,8 @@
 #include "topologies/tuple_distance_metrics.hpp"
 #include "topologies/hyperbox_topology.hpp"
 
+#include "path_planning/proper_metric_concept.hpp"
+
 #include "path_planning/metric_space_concept.hpp"
 #include "path_planning/steerable_space_concept.hpp"
 
@@ -749,6 +751,24 @@ class MEAQR_topology : public named_object
       return dx * dx;
     };
     
+    /**
+     * Returns the proper distance between two points.
+     */
+    double proper_distance(const point_type& a, const point_type& b) const {
+      double d1 = distance(a,b);
+      double d2 = distance(b,a);
+      if(d1 < d2)
+        return d1;
+      return d2;
+    };
+    
+    /**
+     * Returns the proper norm of the difference between two points.
+     */
+    double proper_norm(const point_difference_type& delta) const {
+      return norm(delta);
+    };
+    
    /*************************************************************************
     *                         for PointDistributionConcept
     * **********************************************************************/
@@ -857,6 +877,10 @@ struct is_metric_symmetric< MEAQR_topology<StateSpace, StateSpaceSystem, StateSp
 template <typename StateSpace, typename StateSpaceSystem, typename StateSpaceSampler>
 struct is_steerable_space< MEAQR_topology<StateSpace, StateSpaceSystem, StateSpaceSampler> > : boost::mpl::true_ { };
 
+template <typename StateSpace, typename StateSpaceSystem, typename StateSpaceSampler>
+struct get_proper_metric< MEAQR_topology<StateSpace, StateSpaceSystem, StateSpaceSampler> > {
+  typedef default_proper_metric type;
+};
   
   
   

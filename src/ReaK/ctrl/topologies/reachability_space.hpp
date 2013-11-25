@@ -298,6 +298,76 @@ struct is_metric_symmetric< reach_plus_time_metric > : boost::mpl::false_ { };
 
 
 
+/**
+ * This class is a functor type which models the TemporalDistMetricConcept, and computes the 
+ * distance based only on the distance in the spatial dimensions (space-topology).
+ */
+struct proper_reach_plus_time_metric : public serialization::serializable {
+  
+  proper_reach_plus_time_metric() { };
+  
+  template <typename Anything>
+  proper_reach_plus_time_metric(const Anything&) { };
+  
+  /**
+   * Computes the distance by calling the distance-function of the space-topology (s) on two points (a,b).
+   * \tparam Point The point type of points on the temporal-space.
+   * \tparam TemporalTopology The temporal-space type associated to the metric, should model TemporalSpaceConcept.
+   * \param a The first point.
+   * \param b The second point.
+   * \param s The temporal-space.
+   * \return the spatial-distance between the two points.
+   */
+  template <typename Point, typename TemporalTopology>
+  double operator()(const Point& a, const Point& b, const TemporalTopology& s) const {
+    BOOST_CONCEPT_ASSERT((TemporalSpaceConcept<TemporalTopology>));
+    using std::fabs;
+    double reach_time = get(proper_metric, s.get_space_topology())(a.pt, b.pt, s.get_space_topology());
+    return fabs(b.time - a.time) + reach_time;
+  };
+  /**
+   * Computes the norm by calling the norm-function of the space-topology (s) on a point-difference (a).
+   * \tparam PointDiff The point-difference type of points on the temporal-space.
+   * \tparam TemporalTopology The temporal-space type associated to the metric, should model TemporalSpaceConcept.
+   * \param a The point-difference.
+   * \param s The temporal-space.
+   * \return The spatial-norm of the difference between the two points.
+   */
+  template <typename PointDiff, typename TemporalTopology>
+  double operator()(const PointDiff& a, const TemporalTopology& s) const {
+    BOOST_CONCEPT_ASSERT((TemporalSpaceConcept<TemporalTopology>));
+    using std::fabs;
+    double reach_time = get(proper_metric, s.get_space_topology())(a.pt, s.get_space_topology());
+    return fabs(a.time) + reach_time;
+  };
+      
+/*******************************************************************************
+                   ReaK's RTTI and Serialization interfaces
+*******************************************************************************/
+    
+    virtual void RK_CALL save(serialization::oarchive& A, unsigned int) const {
+    };
+
+    virtual void RK_CALL load(serialization::iarchive& A, unsigned int) {
+    };
+
+    RK_RTTI_MAKE_ABSTRACT_1BASE(proper_reach_plus_time_metric,0xC2410013,1,"proper_reach_plus_time_metric",serialization::serializable)
+
+};
+
+
+template <>
+struct is_metric_symmetric< proper_reach_plus_time_metric > : boost::mpl::true_ { };
+
+
+template <>
+struct get_proper_metric_from_metric< reach_plus_time_metric > {
+  typedef proper_reach_plus_time_metric type;
+};
+
+
+
+
 
 };
 
