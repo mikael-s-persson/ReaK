@@ -45,7 +45,6 @@
 #include <boost/config.hpp>
 #include <boost/concept_check.hpp>
 
-#include "topologies/basic_distance_metrics.hpp"
 #include "path_planning/bounded_space_concept.hpp"
 #include "topologies/generic_sampler_factory.hpp"
 #include "topologies/rate_limited_spaces.hpp"

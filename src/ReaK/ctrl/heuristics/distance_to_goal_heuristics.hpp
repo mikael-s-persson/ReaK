@@ -38,7 +38,6 @@
 
 #include "path_planning/spatial_trajectory_concept.hpp"
 
-#include "topologies/basic_distance_metrics.hpp"
 
 namespace ReaK {
 

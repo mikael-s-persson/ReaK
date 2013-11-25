@@ -48,7 +48,6 @@
 
 #include "proximity/proxy_query_model.hpp"  // for proxy-query class
 
-#include "basic_distance_metrics.hpp"
 #include "default_random_sampler.hpp"
 
 #ifdef BOOST_NO_CXX11_HDR_FUNCTIONAL

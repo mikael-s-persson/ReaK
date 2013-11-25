@@ -41,7 +41,6 @@
 #include "base/named_object.hpp"
 
 #include "topologies/tuple_distance_metrics.hpp"
-#include "topologies/basic_distance_metrics.hpp"
 #include "topologies/hyperbox_topology.hpp"
 
 #include "path_planning/proper_metric_concept.hpp"

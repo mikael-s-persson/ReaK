@@ -35,122 +35,35 @@
 #ifndef REAK_METRIC_SPACE_SEARCH_HPP
 #define REAK_METRIC_SPACE_SEARCH_HPP
 
-#include <boost/bind.hpp>
-#include <boost/lambda/lambda.hpp>
 #include <boost/graph/graph_concepts.hpp>
 #include <boost/property_map/property_map.hpp>
-#include <boost/graph/topology.hpp>
 #include <boost/graph/properties.hpp>
 
-#include <map>
-#include <unordered_map>
-#include <vector>
+#include <utility>  // for pair and move
+#include <vector>   // for vector
+#include <limits>   // for numeric_limits
+
 #include "metric_space_concept.hpp"
-#include "global_rng.hpp"
 
-#include "graph_alg/d_ary_bf_tree.hpp"
-#include "topological_search.hpp"
 
-#include "dvp_tree_detail.hpp"
+/****** To be replaced by BGL supplement ******/
+
+#include "graph_alg/d_ary_bf_tree.hpp"  // for default tree storage.
+
 #include "graph_alg/bgl_more_property_maps.hpp"
 #include "graph_alg/bgl_raw_property_graph.hpp"
+
+/******              end                 ******/
+
+#include "dvp_tree_detail.hpp"
+
+#include "multi_dvp_tree_search.hpp"
 
 
 namespace ReaK {
 
 namespace pp {
 
-/**
- * This class is a callable class that can be used to choose the best 
- * vantage-point to use out of a set of points. In theory, the best vantage-point 
- * is the one which deviates the most from the other points in the set, however, 
- * this functor will approximately select that point by searching for it only 
- * in a random subset of the given range of points.
- */
-class random_best_vp_chooser {
-  private:
-    unsigned int m_divider;
-  public:
-  
-    /**
-     * Default construction.
-     * \param aDivider The divider of the set (determines the fraction of the points to search), default is 10.
-     */
-    random_best_vp_chooser(unsigned int aDivider = 10) : m_divider(aDivider) { };
-    
-    /**
-     * This call-operator will choose a vantage-point from within the given range.
-     * \tparam RandomAccessIter A random-access iterator type that can describe the point-range.
-     * \tparam Topology The topology type on which the points can reside.
-     * \tparam DistanceMetric The distance-metric type over the topology type.
-     * \tparam PositionMap The property-map type that can map the vertex descriptors (which should be the value-type of the iterators) to a point (position).
-     * \param aBegin The start of the range of vertices.
-     * \param aEnd The end of the range of vertices (one element past the end).
-     * \param aSpace The topology on which the points reside.
-     * \param aDistance The distance-metric over the given topology.
-     * \param aPosition The property-map used to obtain the positions from the vertices.
-     * \return A random-access iterator to the chosen vantage-point.
-     */
-    template <typename RandomAccessIter, typename Topology, typename DistanceMetric, typename PositionMap>
-    RandomAccessIter operator() (RandomAccessIter aBegin, RandomAccessIter aEnd, const Topology& aSpace, DistanceMetric aDistance, PositionMap aPosition) {
-      BOOST_CONCEPT_ASSERT((MetricSpaceConcept<Topology>));
-      typedef typename topology_traits<Topology>::point_type Point;
-      RandomAccessIter best_pt = aEnd;
-      double best_dev = -1;
-      for(unsigned int i=0; i < (aEnd - aBegin) / m_divider + 1;++i) {
-        RandomAccessIter current_pt = aBegin + (get_global_rng()() % (aEnd - aBegin));
-        double current_mean = 0.0;
-        double current_dev = 0.0;
-        Point current_vp = get(aPosition, *current_pt);
-        for(unsigned int j=0; aBegin + j != aEnd; ++j) {
-          double dist = aDistance(current_vp, get(aPosition, *(aBegin + j)), aSpace);
-          current_mean = (current_mean * j + dist) / (j + 1);
-          current_dev = (current_dev * j + dist * dist) / (j + 1);
-        };
-        double current_var = current_dev - current_mean * current_mean;
-        if(current_var < 0) current_var = 0.0;
-        current_dev = std::sqrt(current_var);
-        
-        if(current_dev > best_dev) {
-          best_pt = current_pt;
-          best_dev = current_dev;
-        };
-      };
-      return best_pt;
-    };
-};
-
-/**
- * This class is a callable class that can be used to choose the 
- * vantage-point to use out of a set of points. This functor will 
- * select a random point from the set.
- */
-class random_vp_chooser {
-  public:
-  
-    /**
-     * Default construction.
-     */
-    random_vp_chooser() { };
-    
-    /**
-     * This call-operator will choose a vantage-point from within the given range.
-     * \tparam RandomAccessIter A random-access iterator type that can describe the point-range.
-     * \tparam Topology The topology type on which the points can reside, should model the MetricSpaceConcept.
-     * \tparam DistanceMetric The distance-metric type over the topology type.
-     * \tparam PositionMap The property-map type that can map the vertex descriptors (which should be the value-type of the iterators) to a point (position).
-     * \param aBegin The start of the range of vertices.
-     * \param aEnd The end of the range of vertices (one element past the end).
-     * \param aSpace The topology on which the points reside.
-     * \param aDistance The distance-metric over the given topology.
-     * \param aPosition The property-map used to obtain the positions from the vertices.
-     * \return A random-access iterator to the chosen vantage-point.
-     */
-    template <typename RandomAccessIter, typename Topology, typename DistanceMetric, typename PositionMap>
-    RandomAccessIter operator() (RandomAccessIter aBegin, RandomAccessIter aEnd, const Topology& aSpace, DistanceMetric aDistance, PositionMap aPosition) {
-      return aBegin + (get_global_rng()() % (aEnd - aBegin));
-    };
-};
 
 /**
  * This class is a position-caching policy class for the space partitioning trees that are indirectly 
@@ -255,17 +168,13 @@ template <typename Key,
           typename PositionMap,
           unsigned int Arity = 2,
           typename VPChooser = random_vp_chooser,
-          typename TreeStorageTag = ReaK::graph::d_ary_bf_tree_storage<Arity>,
+          typename TreeStorageTag = graph::d_ary_bf_tree_storage<Arity>,
           typename PositionCachingPolicy = position_caching_policy>
 class dvp_tree
 {
   public:
     BOOST_CONCEPT_ASSERT((MetricSpaceConcept<Topology>));
     
-    typedef typename boost::mpl::if_<
-      is_metric_symmetric<Topology>,
-      typename metric_space_traits<Topology>::distance_metric_type,
-      symmetrized_metric< typename metric_space_traits<Topology>::distance_metric_type > >::type distance_metric_type;
     typedef typename boost::property_traits<PositionMap>::value_type point_type;
     typedef double distance_type;
     
@@ -279,7 +188,7 @@ class dvp_tree
       distance_type d;
     };
     
-    typedef typename ReaK::graph::tree_storage< vertex_properties, edge_properties, TreeStorageTag>::type tree_indexer;
+    typedef typename graph::tree_storage< vertex_properties, edge_properties, TreeStorageTag>::type tree_indexer;
     typedef typename boost::property_map<tree_indexer, boost::vertex_raw_prop_to_bundle_t>::type vertex_r2b_map_type;
     typedef typename boost::property_map<tree_indexer, boost::edge_raw_prop_to_bundle_t>::type edge_r2b_map_type;
     typedef boost::data_member_property_map<Key, vertex_properties> key_map_type;
@@ -294,7 +203,6 @@ class dvp_tree
     typedef dvp_tree_impl< 
       tree_indexer,
       Topology,
-      distance_metric_type,
       vp_to_key_map_type,
       ep_to_distance_map_type,
       vp_to_pos_map_type,
@@ -323,7 +231,7 @@ class dvp_tree
      */
     template <typename Graph>
     dvp_tree(const Graph& g, 
-             const ReaK::shared_ptr<const Topology>& aSpace, 
+             const shared_ptr<const Topology>& aSpace, 
              PositionMap aPosition,
              VPChooser aVPChooser = VPChooser()) :
              m_tree(),
@@ -341,7 +249,6 @@ class dvp_tree
                aPosition,
                m_tree,
                aSpace, 
-               distance_metric_type(get(ReaK::pp::distance_metric,*aSpace)),
                m_vp_key,
                ep_to_distance_map_type(
                  distance_map_type(&edge_properties::d),
@@ -363,7 +270,7 @@ class dvp_tree
     template <typename ForwardIterator>
     dvp_tree(ForwardIterator aBegin,
              ForwardIterator aEnd,
-             const ReaK::shared_ptr<const Topology>& aSpace, 
+             const shared_ptr<const Topology>& aSpace, 
              PositionMap aPosition,
              VPChooser aVPChooser = VPChooser()) : 
              m_tree(),
@@ -382,7 +289,6 @@ class dvp_tree
                aPosition,
                m_tree,
                aSpace, 
-               distance_metric_type(get(ReaK::pp::distance_metric, *aSpace)),
                m_vp_key,
                ep_to_distance_map_type(
                  distance_map_type(&edge_properties::d),
@@ -494,19 +400,30 @@ class dvp_tree
     Key find_nearest(const point_type& aPoint) const {
       typedef typename boost::graph_traits<tree_indexer>::vertex_descriptor TreeVertex;
       TreeVertex u = m_impl.find_nearest(aPoint);
-      return m_tree[u].k;
+      if( u != boost::graph_traits<tree_indexer>::null_vertex() )
+        return m_tree[u].k;
+      else
+        return Key();
     };
     
     /**
      * Finds the nearest predecessor and successor to a given position.
-     * \note This only works for an unsymmetric metric (symmetrized in this DVP tree, but unsymmetrized for this query).
      * \param aPoint The position from which to find the nearest-neighbor of.
      * \return The vertices in the DVP-tree that are nearest predecessor and successor to the given point.
      */
     std::pair<Key, Key> find_nearest_pred_succ(const point_type& aPoint) const {
       typedef typename boost::graph_traits<tree_indexer>::vertex_descriptor TreeVertex;
       std::pair<TreeVertex, TreeVertex> u = m_impl.find_nearest_pred_succ(aPoint);
-      return std::pair<Key, Key>(m_tree[u.first].k, m_tree[u.second].k);
+      std::pair<Key, Key> result;
+      if( u.first != boost::graph_traits<tree_indexer>::null_vertex() )
+        result.first = m_tree[u.first].k;
+      else
+        result.first = Key();
+      if( u.second != boost::graph_traits<tree_indexer>::null_vertex() )
+        result.second = m_tree[u.second].k;
+      else
+        result.second = Key();
+      return result;
     };
     
     /**
@@ -532,7 +449,6 @@ class dvp_tree
     
     /**
      * Finds the K nearest predecessors and successors to a given position.
-     * \note This only works for an unsymmetric metric (symmetrized in this DVP tree, but unsymmetrized for this query).
      * \tparam OutputIterator The forward- output-iterator type which can contain the 
      *         list of nearest-neighbors.
      * \param aPoint The position from which to find the nearest-neighbors.
@@ -577,244 +493,32 @@ class dvp_tree
       return aOutputBegin;
     };
     
+    /**
+     * Finds the K nearest predecessors and successors to a given position within a given range (radius).
+     * \tparam OutputIterator The forward- output-iterator type which can contain the 
+     *         list of nearest-neighbors.
+     * \param aPoint The position from which to find the nearest-neighbors.
+     * \param aPredBegin An iterator to the first place where to put the sorted list of 
+     *        predecessor elements with the smallest distance.
+     * \param aSuccBegin An iterator to the first place where to put the sorted list of 
+     *        successor elements with the smallest distance.
+     * \param R The maximum distance value for the nearest-neighbors.
+     * \return The output-iterator to the end of the two lists of nearest neighbors (predecessors and successors).
+     */
+    template <typename OutputIterator>
+    std::pair<OutputIterator, OutputIterator> find_in_range(const point_type& aPoint, OutputIterator aPredBegin, OutputIterator aSuccBegin, distance_type R) const {
+      typedef typename boost::graph_traits<tree_indexer>::vertex_descriptor TreeVertex;
+      std::vector< TreeVertex > pred_list;
+      std::vector< TreeVertex > succ_list;
+      m_impl.find_in_range(aPoint, back_inserter(pred_list), back_inserter(succ_list), R);
+      for(typename std::vector< TreeVertex >::iterator it = pred_list.begin(); it != pred_list.end(); ++it)
+        *(aPredBegin++) = m_tree[*it].k;
+      for(typename std::vector< TreeVertex >::iterator it = succ_list.begin(); it != succ_list.end(); ++it)
+        *(aSuccBegin++) = m_tree[*it].k;
+      return std::pair<OutputIterator, OutputIterator>(aPredBegin,aSuccBegin);
+    };
     
-};
-
-
-/**
- * This class template is used as a type of kind of associative container for DVP-trees that 
- * span distinct graphs. For problems in which multiple graphs exist and nearest-neighbors 
- * may be queried from any of these graphs, one can use this class to associate each graph 
- * with a dvp-tree. This class is callable as a single query and a KNN / range query.
- * \tparam Graph The graph type which can contain the vertices.
- * \tparam DVPTree The DVP-tree type that is used to perform the nearest-neighbor queries.
- */
-template <typename Graph, typename DVPTree, bool IsDirected>
-struct multi_dvp_tree_search_base {
-  /** This associative container is used to store and access the DVP-trees. */
-  typename std::map<Graph*, DVPTree*> graph_tree_map;
-  
-  multi_dvp_tree_search_base() : graph_tree_map() { };
-  
-  
-  /**
-   * This function computes an approximation of the characteristic size of the vertices of a graph, to a given position.
-   * \tparam Topology The topology type which contains the positions, should model the MetricSpaceConcept.
-   * \tparam PositionMap The property-map type which can store the position associated with each vertex.
-   * \param g A graph containing the vertices from which to find the nearest-neighbor.
-   * \param space The topology objects which define the space in which the positions reside.
-   * \param position The property-map which can retrieve the position associated to each vertex.
-   * \return The approximation of the characteristic size of the vertices of the given graph.
-   */
-  template <typename Topology, typename PositionMap>
-  double get_characteristic_size(Graph& g, const Topology& space, PositionMap position) const {
-    typename std::map<Graph*,DVPTree*>::const_iterator it = graph_tree_map.find(&g);
-    if((it != graph_tree_map.end()) && (it->second))
-      return it->second->get_characteristic_size();
-    else
-      return std::numeric_limits<double>::infinity();
-  };
-  
-  
-  
-  /**
-   * This call-operator finds the nearest vertex of a graph, to a given position.
-   * \tparam Topology The topology type which contains the positions, should model the MetricSpaceConcept.
-   * \tparam PositionMap The property-map type which can store the position associated with each vertex.
-   * \param p A position in the space, to which the nearest-neighbor is sought.
-   * \param g A graph containing the vertices from which to find the nearest-neighbor.
-   * \param space The topology objects which define the space in which the positions reside.
-   * \param position The property-map which can retrieve the position associated to each vertex.
-   */
-  template <typename Topology, typename PositionMap>
-  typename boost::graph_traits<Graph>::vertex_descriptor operator()(const typename boost::property_traits<PositionMap>::value_type& p, 
-                                                                    Graph& g, const Topology& space, PositionMap position) const {
-    typename std::map<Graph*,DVPTree*>::const_iterator it = graph_tree_map.find(&g);
-    if((it != graph_tree_map.end()) && (it->second))
-      return it->second->find_nearest(p);
-    else
-      return typename boost::graph_traits<Graph>::vertex_descriptor();
-  };
-  
-  /**
-   * This call-operator finds the nearest vertices of a graph, to a given position.
-   * \tparam Topology The topology type which contains the positions.
-   * \tparam PositionMap The property-map type which can store the position associated 
-   *         with each vertex.
-   * \tparam OutputIterator The forward- output-iterator type which can contain the 
-   *         list of nearest-neighbors.
-   * \param p A position in the space, to which the nearest-neighbors are sought.
-   * \param output_first An iterator to the first place where to put the sorted list of 
-   *        elements with the smallest distance.
-   * \param g A graph containing the vertices from which to find the nearest-neighbors.
-   * \param space The topology objects which define the space in which the positions reside.
-   * \param position The property-map which can retrieve the position associated to each vertex.
-   * \param max_neighbors The maximum number of neighbors to have in the list.
-   * \param radius The minimum distance around the position that a vertex should be in to be 
-   *        considered a neighbor.
-   * \return The output-iterator to the end of the list of nearest neighbors (starting from "output_first").
-   */
-  template <typename Topology, typename PositionMap, typename OutputIterator>
-  OutputIterator operator()(const typename boost::property_traits<PositionMap>::value_type& p, 
-                            OutputIterator output_first, 
-                            Graph& g, const Topology& space, PositionMap position, 
-                            std::size_t max_neighbors = 1, double radius = std::numeric_limits<double>::infinity()) const {
-    typename std::map<Graph*,DVPTree*>::const_iterator it = graph_tree_map.find(&g);
-    if((it != graph_tree_map.end()) && (it->second))
-      return it->second->find_nearest(p, output_first, max_neighbors, radius);
-    else
-      return output_first;
-  };
-  
-  
-  /**
-   * This is a call-back for when a vertex has been added.
-   */
-  template <typename Vertex>
-  void added_vertex(Vertex v, Graph& g) const { 
-    typename std::map<Graph*,DVPTree*>::const_iterator it = graph_tree_map.find(&g);
-    if((it != graph_tree_map.end()) && (it->second))
-      it->second->insert(v);
-  };
-  
-  /**
-   * This is a call-back for when a vertex is about to be removed.
-   */
-  template <typename Vertex>
-  void removed_vertex(Vertex v, Graph& g) const { 
-    typename std::map<Graph*,DVPTree*>::const_iterator it = graph_tree_map.find(&g);
-    if((it != graph_tree_map.end()) && (it->second))
-      it->second->erase(v);
-  };
-  
-};
-
-
-
-/**
- * This class template is used as a type of kind of associative container for DVP-trees that 
- * span distinct graphs. For problems in which multiple graphs exist and nearest-neighbors 
- * may be queried from any of these graphs, one can use this class to associate each graph 
- * with a dvp-tree. This class is callable as a single query and a KNN / range query.
- * \tparam Graph The graph type which can contain the vertices.
- * \tparam DVPTree The DVP-tree type that is used to perform the nearest-neighbor queries.
- */
-template <typename Graph, typename DVPTree>
-struct multi_dvp_tree_search_base<Graph, DVPTree, true> {
-  /** This associative container is used to store and access the DVP-trees. */
-  typename std::map<Graph*, DVPTree*> graph_tree_map;
-  
-  multi_dvp_tree_search_base() : graph_tree_map() { };
-  
-  
-  /**
-   * This function computes an approximation of the characteristic size of the vertices of a graph, to a given position.
-   * \tparam Topology The topology type which contains the positions, should model the MetricSpaceConcept.
-   * \tparam PositionMap The property-map type which can store the position associated with each vertex.
-   * \param g A graph containing the vertices from which to find the nearest-neighbor.
-   * \param space The topology objects which define the space in which the positions reside.
-   * \param position The property-map which can retrieve the position associated to each vertex.
-   * \return The approximation of the characteristic size of the vertices of the given graph.
-   */
-  template <typename Topology, typename PositionMap>
-  double get_characteristic_size(Graph& g, const Topology& space, PositionMap position) const {
-    typename std::map<Graph*,DVPTree*>::const_iterator it = graph_tree_map.find(&g);
-    if((it != graph_tree_map.end()) && (it->second))
-      return it->second->get_characteristic_size();
-    else
-      return std::numeric_limits<double>::infinity();
-  };
-  
-  
-  /**
-   * This call-operator finds the nearest predecesor and successor of a graph, to a given position.
-   * \tparam Topology The topology type which contains the positions, should model the MetricSpaceConcept.
-   * \tparam PositionMap The property-map type which can store the position associated with each vertex.
-   * \param p A position in the space, to which the nearest-neighbors are sought.
-   * \param g A graph containing the vertices from which to find the nearest-neighbor.
-   * \param space The topology objects which define the space in which the positions reside.
-   * \param position The property-map which can retrieve the position associated to each vertex.
-   * \return A pair containing the nearest predecessor and successor vertex.
-   */
-  template <typename Topology, typename PositionMap>
-  std::pair< typename boost::graph_traits<Graph>::vertex_descriptor, 
-             typename boost::graph_traits<Graph>::vertex_descriptor > 
-    operator()(const typename boost::property_traits<PositionMap>::value_type& p, 
-               Graph& g, const Topology& space, PositionMap position) const {
-    typename std::map<Graph*,DVPTree*>::const_iterator it = graph_tree_map.find(&g);
-    if((it != graph_tree_map.end()) && (it->second))
-      return it->second->find_nearest_pred_succ(p);
-    else
-      return std::pair< typename boost::graph_traits<Graph>::vertex_descriptor, 
-                        typename boost::graph_traits<Graph>::vertex_descriptor >();
-  };
-  
-  /**
-   * This call-operator finds the nearest vertices of a graph, to a given position.
-   * \tparam Topology The topology type which contains the positions.
-   * \tparam PositionMap The property-map type which can store the position associated 
-   *         with each vertex.
-   * \tparam OutputIterator The forward- output-iterator type which can contain the 
-   *         list of nearest-neighbors.
-   * \param p A position in the space, to which the nearest-neighbors are sought.
-   * \param pred_first An iterator to the first place where to put the sorted list of 
-   *        the best predecessor elements.
-   * \param succ_first An iterator to the first place where to put the sorted list of 
-   *        the best successor elements.
-   * \param g A graph containing the vertices from which to find the nearest-neighbors.
-   * \param space The topology objects which define the space in which the positions reside.
-   * \param position The property-map which can retrieve the position associated to each vertex.
-   * \param max_neighbors The maximum number of neighbors to have in the list.
-   * \param radius The minimum distance around the position that a vertex should be in to be 
-   *        considered a neighbor.
-   * \return The output-iterator to the end of the list of nearest neighbors (starting from "output_first").
-   */
-  template <typename Topology, typename PositionMap, typename OutputIterator>
-  std::pair< OutputIterator, OutputIterator > 
-    operator()(const typename boost::property_traits<PositionMap>::value_type& p, 
-               OutputIterator pred_first, 
-               OutputIterator succ_first, 
-               Graph& g, const Topology& space, PositionMap position, 
-               std::size_t max_neighbors = 1, double radius = std::numeric_limits<double>::infinity()) const {
-    typename std::map<Graph*,DVPTree*>::const_iterator it = graph_tree_map.find(&g);
-    if((it != graph_tree_map.end()) && (it->second))
-      return it->second->find_nearest(p, pred_first, succ_first, max_neighbors, radius);
-    else
-      return std::pair< OutputIterator, OutputIterator >(pred_first, succ_first);
-  };
-  
-  
-  /**
-   * This is a call-back for when a vertex has been added.
-   */
-  template <typename Vertex>
-  void added_vertex(Vertex v, Graph& g) const { 
-    typename std::map<Graph*,DVPTree*>::const_iterator it = graph_tree_map.find(&g);
-    if((it != graph_tree_map.end()) && (it->second))
-      it->second->insert(v);
-  };
-  
-  /**
-   * This is a call-back for when a vertex is about to be removed.
-   */
-  template <typename Vertex>
-  void removed_vertex(Vertex v, Graph& g) const { 
-    typename std::map<Graph*,DVPTree*>::const_iterator it = graph_tree_map.find(&g);
-    if((it != graph_tree_map.end()) && (it->second))
-      it->second->erase(v);
-  };
-  
-};
-
-
-template <typename Graph, typename DVPTree>
-struct multi_dvp_tree_search : multi_dvp_tree_search_base<Graph, DVPTree, boost::is_directed_graph<Graph>::type::value > {
-  multi_dvp_tree_search() : multi_dvp_tree_search_base<Graph, DVPTree, boost::is_directed_graph<Graph>::type::value >() { };
-};
-
-template <typename Graph, typename DVPTree>
-struct multi_dvp_tree_pred_succ_search : multi_dvp_tree_search_base<Graph, DVPTree, true > {
-  multi_dvp_tree_pred_succ_search() : multi_dvp_tree_search_base<Graph, DVPTree, true >() { };
+    
 };
 
 

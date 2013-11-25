@@ -41,7 +41,6 @@
 
 #include <boost/concept_check.hpp>
 
-#include "topologies/basic_distance_metrics.hpp"
 #include "topologies/default_random_sampler.hpp"
 #include "topologies/rate_limited_space_metamaps.hpp"
 

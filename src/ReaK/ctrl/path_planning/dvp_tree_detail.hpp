@@ -35,27 +35,130 @@
 #ifndef REAK_DVP_TREE_DETAIL_HPP
 #define REAK_DVP_TREE_DETAIL_HPP
 
-#include <boost/bind.hpp>
 #include <boost/graph/graph_concepts.hpp>
 #include <boost/property_map/property_map.hpp>
 
-#include <unordered_map>
-#include <vector>
-#include <stack>
+#include "metric_space_concept.hpp"
+#include "proper_metric_concept.hpp"
+
+#include "global_rng.hpp"
+
+
+
+/****** To be replaced by BGL supplement ******/
 
 #include "graph_alg/tree_concepts.hpp"
 #include "graph_alg/bgl_tree_adaptor.hpp"
 #include "graph_alg/bgl_raw_property_graph.hpp"
 
-#include "metric_space_concept.hpp"
-#include "topological_search.hpp"
-#include "topologies/basic_distance_metrics.hpp"
+/******              end                 ******/
 
+
+#include <boost/mpl/if.hpp>
+#include <boost/type_traits/is_same.hpp>
+
+#include <unordered_map>
+#include <vector>
+#include <stack>
+#include <queue>
+#include <cmath>
+#include <utility>
+#include <functional>
+#include <algorithm>
 
 
 namespace ReaK {
 
 namespace pp {
+
+
+/**
+ * This class is a callable class that can be used to choose the best 
+ * vantage-point to use out of a set of points. In theory, the best vantage-point 
+ * is the one which deviates the most from the other points in the set, however, 
+ * this functor will approximately select that point by searching for it only 
+ * in a random subset of the given range of points.
+ */
+class random_best_vp_chooser {
+  private:
+    unsigned int m_divider;
+  public:
+  
+    /**
+     * Default construction.
+     * \param aDivider The divider of the set (determines the fraction of the points to search), default is 10.
+     */
+    random_best_vp_chooser(unsigned int aDivider = 10) : m_divider(aDivider) { };
+    
+    /**
+     * This call-operator will choose a vantage-point from within the given range.
+     * \tparam RandomAccessIter A random-access iterator type that can describe the point-range.
+     * \tparam DistanceMetric The distance-metric type over the topology type.
+     * \tparam PositionMap The property-map type that can map the vertex descriptors (which should be the value-type of the iterators) to a point (position).
+     * \param aBegin The start of the range of vertices.
+     * \param aEnd The end of the range of vertices (one element past the end).
+     * \param aDistance The distance-value functor.
+     * \param aPosition The property-map used to obtain the positions from the vertices.
+     * \return A random-access iterator to the chosen vantage-point.
+     */
+    template <typename RandomAccessIter, typename DistanceMetric, typename PositionMap>
+    RandomAccessIter operator() (RandomAccessIter aBegin, RandomAccessIter aEnd, DistanceMetric aDistance, PositionMap aPosition) {
+      typedef typename boost::property_traits<PositionMap>::value_type Point;
+      RandomAccessIter best_pt = aEnd;
+      double best_dev = -1;
+      for(unsigned int i=0; i < (aEnd - aBegin) / m_divider + 1;++i) {
+        RandomAccessIter current_pt = aBegin + (get_global_rng()() % (aEnd - aBegin));
+        double current_mean = 0.0;
+        double current_dev = 0.0;
+        Point current_vp = get(aPosition, *current_pt);
+        for(unsigned int j=0; aBegin + j != aEnd; ++j) {
+          double dist = aDistance(current_vp, get(aPosition, *(aBegin + j)));
+          current_mean = (current_mean * j + dist) / (j + 1);
+          current_dev = (current_dev * j + dist * dist) / (j + 1);
+        };
+        double current_var = current_dev - current_mean * current_mean;
+        if(current_var < 0) current_var = 0.0;
+        current_dev = std::sqrt(current_var);
+        
+        if(current_dev > best_dev) {
+          best_pt = current_pt;
+          best_dev = current_dev;
+        };
+      };
+      return best_pt;
+    };
+};
+
+/**
+ * This class is a callable class that can be used to choose the 
+ * vantage-point to use out of a set of points. This functor will 
+ * select a random point from the set.
+ */
+class random_vp_chooser {
+  public:
+  
+    /**
+     * Default construction.
+     */
+    random_vp_chooser() { };
+    
+    /**
+     * This call-operator will choose a vantage-point from within the given range.
+     * \tparam RandomAccessIter A random-access iterator type that can describe the point-range.
+     * \tparam DistanceMetric The distance-metric type over the topology type.
+     * \tparam PositionMap The property-map type that can map the vertex descriptors (which should be the value-type of the iterators) to a point (position).
+     * \param aBegin The start of the range of vertices.
+     * \param aEnd The end of the range of vertices (one element past the end).
+     * \param aDistance The distance-metric over the given topology.
+     * \param aPosition The property-map used to obtain the positions from the vertices.
+     * \return A random-access iterator to the chosen vantage-point.
+     */
+    template <typename RandomAccessIter, typename DistanceMetric, typename PositionMap>
+    RandomAccessIter operator() (RandomAccessIter aBegin, RandomAccessIter aEnd, DistanceMetric aDistance, PositionMap aPosition) { RK_UNUSED(aDistance); RK_UNUSED(aPosition); 
+      return aBegin + (get_global_rng()() % (aEnd - aBegin));
+    };
+};
+
 
 
 /**
@@ -65,7 +168,6 @@ namespace pp {
  * requires the space to have a metric which respects the triangular inequality.
  * \tparam TreeType The tree type to be used to store the entries of this DVP search tree.
  * \tparam Topology The topology type on which the points associated to each entry resides.
- * \tparam DistanceMetric The distance-metric type that can compute the distance between two points, should model DistanceMetricConcept over the given Topology. 
  * \tparam VertexKeyMap The property-map type that can map vertex properties of the tree to key-values (that identify the entries).
  * \tparam DistanceMap The property-map type that can map an edge property to its associated distance value (used internally).
  * \tparam PositionMap The property-map type that can map vertex properties of the tree to associated position values (positions in the topology).
@@ -74,7 +176,6 @@ namespace pp {
  */
 template <typename TreeType,
           typename Topology,
-          typename DistanceMetric,
           typename VertexKeyMap,
           typename DistanceMap,
           typename PositionMap,
@@ -84,19 +185,61 @@ class dvp_tree_impl
 {
   public:
     
+    typedef dvp_tree_impl<TreeType, Topology, VertexKeyMap, DistanceMap, PositionMap, Arity, VPChooser> self;
+    
     /** Type of the points in the topology. */ 
     typedef typename boost::property_traits<PositionMap>::value_type point_type;
     /** Type of the distance values. */ 
     typedef double distance_type;
-    /** Type of the distance metric. */ 
-    typedef DistanceMetric distance_metric;
+    
+    typedef typename metric_space_traits<Topology>::distance_metric_type distance_metric_type;
+    typedef typename get_proper_metric<Topology>::type proper_metric_type;
+    
+    struct dist_metric_only_impl {
+      shared_ptr<const Topology> p_space;
+      distance_metric_type m_distance;
+      
+      double distance(const point_type& a, const point_type& b) const {
+        return m_distance(a, b, *p_space);
+      };
+      double proper_distance(const point_type& a, const point_type& b) const {
+        return m_distance(a, b, *p_space);
+      };
+      double operator()(const point_type& a, const point_type& b) const {
+        return proper_distance(a, b, *p_space);
+      };
+      
+      dist_metric_only_impl(const shared_ptr<const Topology>& aSpace) : p_space(aSpace), m_distance(get(distance_metric, *aSpace)) { };
+    };
+    
+    struct dist_metric_pair_impl {
+      shared_ptr<const Topology> p_space;
+      distance_metric_type m_distance;
+      proper_metric_type m_proper_distance;
+      
+      double distance(const point_type& a, const point_type& b) const {
+        return m_distance(a, b, *p_space);
+      };
+      double proper_distance(const point_type& a, const point_type& b) const {
+        return m_proper_distance(a, b, *p_space);
+      };
+      double operator()(const point_type& a, const point_type& b) const {
+        return proper_distance(a, b, *p_space);
+      };
+      
+      dist_metric_pair_impl(const shared_ptr<const Topology>& aSpace) : p_space(aSpace), 
+        m_distance(get(distance_metric, *aSpace)), m_proper_distance(get(proper_metric, *aSpace)) { };
+    };
+    
+    typedef typename boost::mpl::if_<
+      boost::is_same<distance_metric_type, proper_metric_type>, 
+      dist_metric_only_impl, dist_metric_pair_impl >::type parting_metrics_type;
     
     /** Type of the key-values that identify entries of the DVP tree. */ 
     typedef typename boost::property_traits< VertexKeyMap >::value_type key_type;
     
-    typedef dvp_tree_impl<TreeType, Topology, DistanceMetric, VertexKeyMap, DistanceMap, PositionMap, Arity, VPChooser> self;
-    
-    BOOST_CONCEPT_ASSERT((DistanceMetricConcept<distance_metric, Topology>));
+    BOOST_CONCEPT_ASSERT((DistanceMetricConcept<distance_metric_type, Topology>));
+    BOOST_CONCEPT_ASSERT((DistanceMetricConcept<proper_metric_type, Topology>));
     
   private:
     
@@ -110,9 +253,11 @@ class dvp_tree_impl
     typedef typename tree_indexer::vertex_property_type vertex_property;
     typedef typename tree_indexer::edge_property_type edge_property;
     
-    
-    
-    typedef detail::compare_pair_first< distance_type, vertex_type, std::less< distance_type > > priority_compare_type;
+    struct priority_compare_type {
+      bool operator()(const std::pair<distance_type, vertex_type>& x, const std::pair<distance_type, vertex_type>& y) const {
+        return (x.first < y.first);
+      };
+    };
     typedef std::vector< std::pair< distance_type, vertex_type > > priority_queue_type;
     
     tree_indexer& m_tree;   ///< Tree storage.
@@ -122,8 +267,7 @@ class dvp_tree_impl
     DistanceMap m_mu;        ///< A map from an edge-property to a distance value.
     PositionMap m_position;  ///< A map from a vertex_property to a position value (should be Read-Write).
     
-    ReaK::shared_ptr<const Topology> m_space;  ///< The pointer to the topology.
-    distance_metric m_distance;  ///< The distance-metric functor.
+    parting_metrics_type m_distance;  ///< The distance-metric functor.
     
     VPChooser m_vp_chooser;  ///< The vantage-point chooser (functor).
     
@@ -132,13 +276,25 @@ class dvp_tree_impl
     self& operator=(const self&); 
     
     /* Simple comparison function to sort by pre-computed distance values. */
-    static bool closer(std::unordered_map<key_type,distance_type>* m, VertexKeyMap key, const vertex_property& k1, const vertex_property& k2) {
-      return (*m)[get(key,k1)] < (*m)[get(key,k2)];
+    struct closer {
+      std::unordered_map<key_type,distance_type>* p_m;
+      VertexKeyMap m_key;
+      closer(std::unordered_map<key_type,distance_type>* m, const VertexKeyMap& key) : p_m(m), m_key(key) { };
+      
+      bool operator()(const vertex_property& k1, const vertex_property& k2) const {
+        return (*p_m)[get(m_key,k1)] < (*p_m)[get(m_key,k2)];
+      };
     };
     
     /* Simple predicate function to filter out invalid vertices (invalid key-value). */
-    static bool is_vertex_prop_valid(VertexKeyMap key, const vertex_property& k1) {
-      return (get(key,k1) != reinterpret_cast<key_type>(-1));
+    struct is_vertex_prop_valid {
+      VertexKeyMap m_key;
+      is_vertex_prop_valid(const VertexKeyMap& key) : m_key(key) { };
+      
+      bool operator()(const vertex_property& k1) const {
+        // TODO Verify that this "cast of -1" is still the correct "invalid key" marker.
+        return (get(m_key,k1) != reinterpret_cast<key_type>(-1));
+      };
     };
     
     
@@ -175,12 +331,12 @@ class dvp_tree_impl
       while(!tasks.empty()) {
         construction_task cur_task = tasks.front(); tasks.pop();
         
-        PropIter vp_ind = m_vp_chooser(cur_task.first, cur_task.last, *m_space, m_distance, m_position);
+        PropIter vp_ind = m_vp_chooser(cur_task.first, cur_task.last, m_distance, m_position);
         if(vp_ind == cur_task.last)
           return;
         point_type vp_pt = get(m_position, *vp_ind);
         for(PropIter it = cur_task.first; it != cur_task.last; ++it)
-          dist_map[get(m_key,*it)] = m_distance(vp_pt, get(m_position, *it), *m_space);
+          dist_map[get(m_key,*it)] = m_distance.proper_distance(vp_pt, get(m_position, *it));
         swap(*vp_ind, *cur_task.first);
         
         vertex_type current_node;
@@ -205,7 +361,7 @@ class dvp_tree_impl
         dist_map.erase(k_tmp);
         cur_task.first++;
         if((cur_task.last - cur_task.first) < static_cast<int>(Arity)) {
-          std::sort(cur_task.first, cur_task.last, boost::bind(closer,&dist_map,m_key,_1,_2));
+          std::sort(cur_task.first, cur_task.last, closer(&dist_map,m_key));
           for(PropIter it = cur_task.first; it != cur_task.last; ++it) {
             edge_property ep;
             put(m_mu, ep, dist_map[get(m_key,*it)]);
@@ -218,7 +374,7 @@ class dvp_tree_impl
         } else {
           for(std::size_t i = Arity; i >= 1; --i) {
             std::ptrdiff_t num_children = (cur_task.last - cur_task.first) / i;
-            std::nth_element(cur_task.first, cur_task.first + (num_children-1), cur_task.last, boost::bind(closer,&dist_map,m_key,_1,_2));
+            std::nth_element(cur_task.first, cur_task.first + (num_children-1), cur_task.last, closer(&dist_map,m_key));
             PropIter temp = cur_task.first; cur_task.first += num_children;
             tasks.push(construction_task(current_node, dist_map[get(m_key,*(cur_task.first-1))], temp, cur_task.first));
           };
@@ -229,150 +385,91 @@ class dvp_tree_impl
     
     
     
-    /* Does not invalidate vertices */
-    /* Does not require persistent vertices */
-    /* NOTE This is a non-recursive version. */
-    /* This is the main nearest-neighbor query function. This takes a query point, a maximum 
-     * neighborhood radius (aSigma), aNode to start recursing from, the current max-heap of neighbors,
-     * and the maximum number of neighbors. This function can be used for any kind of NN query (single, kNN, or ranged). */
-    void find_nearest_impl(
-        const point_type& aPoint, 
-        distance_type aSigma, 
-        priority_queue_type& aList, 
-        std::size_t K) const {
+    struct nearest_search_result_set {
+      priority_queue_type Neighbors;
+      std::size_t K;
+      distance_type Radius;
       
-      std::stack< std::pair<vertex_type, distance_type> > tasks;
-      tasks.push(std::pair<vertex_type, distance_type>(m_root,0.0));
+      nearest_search_result_set(std::size_t aK, distance_type aRadius) : Neighbors(), K(aK), Radius(aRadius) { };
       
-      while(!tasks.empty()) {
-        std::pair<vertex_type, distance_type> cur_node = tasks.top(); tasks.pop();
+      void register_vantage_point(const point_type&, const point_type&,
+                                  distance_type current_dist, vertex_type current_vp, const parting_metrics_type&) {
         
-        if( cur_node.second > aSigma )
-          continue;
-        
-        distance_type current_dist = m_distance(aPoint, get(m_position, get(boost::vertex_raw_property,m_tree,cur_node.first)), *m_space);
-        if(current_dist < aSigma) { //is the vantage point within current search bound? Yes...
+        if(current_dist < Radius) { //is the vantage point within current search bound? Yes...
           //then add the vantage point to the NN list.
-          aList.push_back(std::pair<distance_type, vertex_type>(current_dist, cur_node.first));
-          std::push_heap(aList.begin(), aList.end(), priority_compare_type());
-          if(aList.size() > K) { //are there too many nearest neighbors? Yes... 
-            std::pop_heap(aList.begin(), aList.end(), priority_compare_type());
-            aList.pop_back(); //delete last element to keep aList with K elements
-            aSigma = aList.front().first; //distance of the last element is now the search bound aSigma.
+          Neighbors.push_back(std::pair<distance_type, vertex_type>(current_dist, current_vp));
+          std::push_heap(Neighbors.begin(), Neighbors.end(), priority_compare_type());
+          if(Neighbors.size() > K) { //are there too many nearest neighbors? Yes... 
+            std::pop_heap(Neighbors.begin(), Neighbors.end(), priority_compare_type());
+            Neighbors.pop_back(); //delete last element to keep Neighbors with K elements
+            Radius = Neighbors.front().first; //distance of the last element is now the search bound Radius.
           };
         };
-        out_edge_iter ei,ei_end;
-        //first, locate the partition in which aPoint is:
-        if(out_degree(cur_node.first,m_tree) == 0)
-          continue;
-        for(boost::tie(ei,ei_end) = out_edges(cur_node.first,m_tree); ei != ei_end; ++ei) {
-          if(current_dist <= get(m_mu, get(boost::edge_raw_property,m_tree,*ei))) 
-            break;
-        };
-        if(ei == ei_end) 
-          --ei; //back-track if the end was reached.
         
-        std::stack< std::pair<vertex_type, distance_type> > temp_invtasks;
-        //search in the most likely node.
-        temp_invtasks.push(std::pair<vertex_type, distance_type>(target(*ei,m_tree),0.0));
-        //find_nearest_impl(aPoint,aSigma,target(*ei,m_tree),aList,K); 
-        
-        out_edge_iter ei_left = ei;
-        out_edge_iter ei_right = ei; ++ei_right;
-        boost::tie(ei,ei_end) = out_edges(cur_node.first,m_tree); //find the bounds again (start and end).
-        bool left_stopped  = (ei_left == ei);
-        bool right_stopped = (ei_right == ei_end);
-        while(true) {
-          if(left_stopped) {
-            out_edge_iter ei_rightleft = ei_right; --ei_rightleft;
-            distance_type temp_dist = 0.0;
-            while((ei_right != ei_end) && 
-                  ((temp_dist = get(m_mu,get(boost::edge_raw_property,m_tree,*ei_rightleft)) - current_dist) < aSigma)) {
-              temp_invtasks.push(std::pair<vertex_type, distance_type>(target(*ei_right,m_tree), temp_dist));
-              //find_nearest_impl(aPoint,aSigma,target(*ei_right,m_tree),aList,K);
-              ++ei_rightleft; ++ei_right;
-            };
-            break;
-          } else if(right_stopped) {
-            out_edge_iter ei_leftleft = ei_left;
-            distance_type temp_dist = 0.0;
-            while((ei_left != ei) && 
-                  ((temp_dist = current_dist - get(m_mu,get(boost::edge_raw_property,m_tree,*(--ei_leftleft)))) < aSigma)) {
-              temp_invtasks.push(std::pair<vertex_type, distance_type>(target(*ei_leftleft,m_tree), temp_dist));
-              //find_nearest_impl(aPoint,aSigma,target(*ei_leftleft,m_tree),aList,K);
-              --ei_left;
-            };
-            break;
-          } else {
-            out_edge_iter ei_leftleft = ei_left; --ei_leftleft;
-            distance_type d1 = get(m_mu,get(boost::edge_raw_property,m_tree,*ei_leftleft)); //greater than 0 if ei_leftleft should be searched.
-            out_edge_iter ei_rightleft = ei_right; --ei_rightleft;
-            distance_type d2 = get(m_mu,get(boost::edge_raw_property,m_tree,*ei_rightleft)); //less than 0 if ei_right should be searched.
-            if(d1 + d2 > 2.0 * current_dist) { //this means that ei_leftleft's boundary is closer to aPoint.
-              if(d1 + aSigma - current_dist > 0) {
-                temp_invtasks.push(std::pair<vertex_type, distance_type>(target(*ei_leftleft,m_tree), current_dist - d1));
-                //find_nearest_impl(aPoint,aSigma,target(*ei_leftleft,m_tree),aList,K);
-                ei_left = ei_leftleft;
-                if(d2 - aSigma - current_dist < 0) {
-                  temp_invtasks.push(std::pair<vertex_type, distance_type>(target(*ei_right,m_tree), d2 - current_dist));
-                  //find_nearest_impl(aPoint,aSigma,target(*ei_right,m_tree),aList,K);
-                  ++ei_right;
-                } else
-                  right_stopped = true;
-              } else
-                break;
-            } else {
-              if(d2 - aSigma - current_dist < 0) {
-                temp_invtasks.push(std::pair<vertex_type, distance_type>(target(*ei_right,m_tree), d2 - current_dist));
-                //find_nearest_impl(aPoint,aSigma,target(*ei_right,m_tree),aList,K);
-                ++ei_right;
-                if(d1 + aSigma - current_dist > 0) {
-                  temp_invtasks.push(std::pair<vertex_type, distance_type>(target(*ei_leftleft,m_tree), current_dist - d1));
-                  //find_nearest_impl(aPoint,aSigma,target(*ei_leftleft,m_tree),aList,K);
-                  ei_left = ei_leftleft;
-                } else 
-                  left_stopped = true;
-              } else
-                break;
-            };
-          };
-          left_stopped  = (ei_left == ei);
-          right_stopped = (ei_right == ei_end);
-        };
-        
-        // reverse the temporary stack into the main stack.
-        while(!temp_invtasks.empty()) {
-          tasks.push(temp_invtasks.top());
-          temp_invtasks.pop();
-        };
       };
+      
+    };
+    
+    struct pred_succ_search_result_set {
+      priority_queue_type Pred;
+      priority_queue_type Succ;
+      std::size_t K;
+      distance_type Radius;
+      distance_type sigma_pred;
+      distance_type sigma_succ;
+      
+      pred_succ_search_result_set(std::size_t aK, distance_type aRadius) : 
+        Pred(), Succ(), K(aK), Radius(aRadius), sigma_pred(aRadius), sigma_succ(aRadius) { };
+      
+      void register_vantage_point(const point_type& query_point, const point_type& current_vp_point,
+                                  distance_type current_dist, vertex_type current_vp, const parting_metrics_type& dual_distance) {
+        
+        // using the assumption that (current_dist <= current_pred_dist)  -->  if (current_pred_dist < sigma_pred) then (current_dist < sigma_pred)
+        if(current_dist < sigma_pred) {
+          distance_type current_pred_dist = dual_distance.distance(current_vp_point, query_point);
+          if(current_pred_dist < sigma_pred) { //is the vantage point within current search bound? Yes...
+            //then add the vantage point to the NN list.
+            Pred.push_back(std::pair<distance_type, vertex_type>(current_pred_dist, current_vp));
+            std::push_heap(Pred.begin(), Pred.end(), priority_compare_type());
+            if(Pred.size() > K) { //are there too many nearest neighbors? Yes... 
+              std::pop_heap(Pred.begin(), Pred.end(), priority_compare_type());
+              Pred.pop_back(); //delete last element to keep aList with K elements
+              sigma_pred = Pred.front().first; //distance of the last element is now the search bound sigma_pred.
+            };
+          };
+        };
+        
+        // using the assumption that (current_dist <= current_succ_dist)  -->  if (current_succ_dist < sigma_succ) then (current_dist < sigma_succ)
+        if(current_dist < sigma_succ) {
+          distance_type current_succ_dist = dual_distance.distance(query_point, current_vp_point);
+          if(current_succ_dist < sigma_succ) { //is the vantage point within current search bound? Yes...
+            //then add the vantage point to the NN list.
+            Succ.push_back(std::pair<distance_type, vertex_type>(current_succ_dist, current_vp));
+            std::push_heap(Succ.begin(), Succ.end(), priority_compare_type());
+            if(Succ.size() > K) { //are there too many nearest neighbors? Yes... 
+              std::pop_heap(Succ.begin(), Succ.end(), priority_compare_type());
+              Succ.pop_back(); //delete last element to keep aList with K elements
+              sigma_succ = Succ.front().first; //distance of the last element is now the search bound sigma_succ.
+            };
+          };
+        };
+        // Radius must remain the maximum of both sigma_pred and sigma_succ (most inclusive search).
+        Radius = ( (sigma_succ > sigma_pred) ? sigma_succ : sigma_pred );
+        
+      };
+      
     };
     
     
     
-    
-    
-    
-    
-    
     /* Does not invalidate vertices */
     /* Does not require persistent vertices */
     /* NOTE This is a non-recursive version. */
-    /* NOTE This is the version applicable to symmetrized metrics (with an underlying non-symmetric distance metric). */
     /* This is the main nearest-neighbor query function. This takes a query point, a maximum 
      * neighborhood radius (aSigma), aNode to start recursing from, the current max-heap of neighbors,
      * and the maximum number of neighbors. This function can be used for any kind of NN query (single, kNN, or ranged). */
-    void find_nearest_impl(
-        const point_type& aPoint, 
-        distance_type aSigma, 
-        priority_queue_type& aPred, 
-        priority_queue_type& aSucc, 
-        std::size_t K) const {
-      
-      distance_type sigma_pred = aSigma;
-      distance_type sigma_succ = aSigma;
-      
-      typename unsymmetrize< distance_metric >::type unsym_dist = get(unsymmetrized_metric, m_distance);
+    template <typename SearchResultSet>
+    void find_nearest_impl(const point_type& aPoint, SearchResultSet& aResult) const {
       
       std::stack< std::pair<vertex_type, distance_type> > tasks;
       tasks.push(std::pair<vertex_type, distance_type>(m_root,0.0));
@@ -380,35 +477,13 @@ class dvp_tree_impl
       while(!tasks.empty()) {
         std::pair<vertex_type, distance_type> cur_node = tasks.top(); tasks.pop();
         
-        if( ( cur_node.second > sigma_pred ) && ( cur_node.second > sigma_succ ) )
+        if( cur_node.second > aResult.Radius )
           continue;
         
-        distance_type current_pred_dist = unsym_dist(get(m_position, get(boost::vertex_raw_property,m_tree,cur_node.first)), aPoint, *m_space);
-        distance_type current_succ_dist = unsym_dist(aPoint, get(m_position, get(boost::vertex_raw_property,m_tree,cur_node.first)), *m_space);
+        const point_type& current_vp = get(m_position, get(boost::vertex_raw_property,m_tree,cur_node.first));
+        distance_type current_dist = m_distance.proper_distance(aPoint, current_vp);
         
-        if(current_pred_dist < sigma_pred) { //is the vantage point within current search bound? Yes...
-          //then add the vantage point to the NN list.
-          aPred.push_back(std::pair<distance_type, vertex_type>(current_pred_dist, cur_node.first));
-          std::push_heap(aPred.begin(), aPred.end(), priority_compare_type());
-          if(aPred.size() > K) { //are there too many nearest neighbors? Yes... 
-            std::pop_heap(aPred.begin(), aPred.end(), priority_compare_type());
-            aPred.pop_back(); //delete last element to keep aList with K elements
-            sigma_pred = aPred.front().first; //distance of the last element is now the search bound sigma_pred.
-          };
-        };
-        
-        if(current_succ_dist < sigma_succ) { //is the vantage point within current search bound? Yes...
-          //then add the vantage point to the NN list.
-          aSucc.push_back(std::pair<distance_type, vertex_type>(current_succ_dist, cur_node.first));
-          std::push_heap(aSucc.begin(), aSucc.end(), priority_compare_type());
-          if(aSucc.size() > K) { //are there too many nearest neighbors? Yes... 
-            std::pop_heap(aSucc.begin(), aSucc.end(), priority_compare_type());
-            aSucc.pop_back(); //delete last element to keep aList with K elements
-            sigma_succ = aSucc.front().first; //distance of the last element is now the search bound sigma_succ.
-          };
-        };
-        
-        distance_type current_dist = (current_pred_dist < current_succ_dist ? current_pred_dist : current_succ_dist);
+        aResult.register_vantage_point(aPoint, current_vp, current_dist, cur_node.first, m_distance);
         
         out_edge_iter ei,ei_end;
         //first, locate the partition in which aPoint is:
@@ -433,20 +508,18 @@ class dvp_tree_impl
         while(true) {
           if(left_stopped) {
             out_edge_iter ei_rightleft = ei_right; --ei_rightleft;
-            distance_type temp_dist = get(m_mu,get(boost::edge_raw_property,m_tree,*ei_rightleft)) - current_dist;
+            distance_type temp_dist = 0.0;
             while((ei_right != ei_end) && 
-                  ((temp_dist < sigma_pred) || (temp_dist < sigma_succ))) {
+                  ((temp_dist = get(m_mu,get(boost::edge_raw_property,m_tree,*ei_rightleft)) - current_dist) < aResult.Radius)) {
               temp_invtasks.push(std::pair<vertex_type, distance_type>(target(*ei_right,m_tree), temp_dist));
               ++ei_rightleft; ++ei_right;
-              temp_dist = get(m_mu,get(boost::edge_raw_property,m_tree,*ei_rightleft)) - current_dist;
             };
             break;
           } else if(right_stopped) {
             out_edge_iter ei_leftleft = ei_left;
             distance_type temp_dist = 0.0;
             while((ei_left != ei) && 
-                  (((temp_dist = current_dist - get(m_mu,get(boost::edge_raw_property,m_tree,*(--ei_leftleft)))) < sigma_pred) ||
-                   (temp_dist < sigma_succ))) {
+                  ((temp_dist = current_dist - get(m_mu,get(boost::edge_raw_property,m_tree,*(--ei_leftleft)))) < aResult.Radius)) {
               temp_invtasks.push(std::pair<vertex_type, distance_type>(target(*ei_leftleft,m_tree), temp_dist));
               --ei_left;
             };
@@ -457,11 +530,10 @@ class dvp_tree_impl
             out_edge_iter ei_rightleft = ei_right; --ei_rightleft;
             distance_type d2 = get(m_mu,get(boost::edge_raw_property,m_tree,*ei_rightleft)); //less than 0 if ei_right should be searched.
             if(d1 + d2 > 2.0 * current_dist) { //this means that ei_leftleft's boundary is closer to aPoint.
-              
-              if((current_dist - d1 < sigma_pred) || (current_dist - d1 < sigma_succ)) {
+              if(d1 + aResult.Radius - current_dist > 0) {
                 temp_invtasks.push(std::pair<vertex_type, distance_type>(target(*ei_leftleft,m_tree), current_dist - d1));
                 ei_left = ei_leftleft;
-                if((d2 - current_dist < sigma_pred) || (d2 - current_dist < sigma_succ)) {
+                if(d2 - aResult.Radius - current_dist < 0) {
                   temp_invtasks.push(std::pair<vertex_type, distance_type>(target(*ei_right,m_tree), d2 - current_dist));
                   ++ei_right;
                 } else
@@ -469,10 +541,10 @@ class dvp_tree_impl
               } else
                 break;
             } else {
-              if((d2 - current_dist < sigma_pred) || (d2 - current_dist < sigma_succ)) {
+              if(d2 - aResult.Radius - current_dist < 0) {
                 temp_invtasks.push(std::pair<vertex_type, distance_type>(target(*ei_right,m_tree), d2 - current_dist));
                 ++ei_right;
-                if((current_dist - d1 < sigma_pred) || (current_dist - d1 < sigma_succ)) {
+                if(d1 + aResult.Radius - current_dist > 0) {
                   temp_invtasks.push(std::pair<vertex_type, distance_type>(target(*ei_leftleft,m_tree), current_dist - d1));
                   ei_left = ei_leftleft;
                 } else 
@@ -492,11 +564,6 @@ class dvp_tree_impl
         };
       };
     };
-    
-    
-    
-    
-    
     
     
     
@@ -508,7 +575,7 @@ class dvp_tree_impl
     vertex_type get_leaf(const point_type& aPoint, vertex_type aNode) const {
       while(out_degree(aNode,m_tree) != 0) {
         //first, locate the partition in which aPoint is:
-        distance_type current_dist = m_distance(aPoint, get(m_position, get(boost::vertex_raw_property,m_tree,aNode)), *m_space);
+        distance_type current_dist = m_distance.proper_distance(aPoint, get(m_position, get(boost::vertex_raw_property,m_tree,aNode)));
         vertex_type result = aNode;
         out_edge_iter ei,ei_end;
         for(boost::tie(ei,ei_end) = out_edges(aNode,m_tree); ei != ei_end; ++ei) {
@@ -529,7 +596,7 @@ class dvp_tree_impl
       vertex_type aAlternateBranch = boost::graph_traits<tree_indexer>::null_vertex();
 //       std::cout << "\n ------ Looking for node " << aKey << " at position: " << aPoint << std::endl;
       while(get(m_key, get(boost::vertex_raw_property,m_tree,aNode)) != aKey) { 
-        distance_type current_dist = m_distance(aPoint, get(m_position, get(boost::vertex_raw_property,m_tree,aNode)), *m_space);
+        distance_type current_dist = m_distance.proper_distance(aPoint, get(m_position, get(boost::vertex_raw_property,m_tree,aNode)));
 //         std::cout << " ---- Looking at node " << get(m_key, get(boost::vertex_raw_property,m_tree,aNode)) 
 //                   << " at position: " << get(m_position, get(boost::vertex_raw_property,m_tree,aNode))
 //                   << " at distance " << current_dist << std::endl;
@@ -573,7 +640,7 @@ class dvp_tree_impl
     void update_mu_upwards(const point_type& aPoint, vertex_type aNode) {
       while(aNode != m_root) {
         vertex_type parent = source(*(in_edges(aNode,m_tree).first), m_tree);
-        distance_type dist = m_distance(aPoint, get(m_position, get(boost::vertex_raw_property,m_tree,parent)), *m_space);
+        distance_type dist = m_distance.proper_distance(aPoint, get(m_position, get(boost::vertex_raw_property,m_tree,parent)));
         if(dist > get(m_mu, get(boost::edge_raw_property, m_tree, *(in_edges(aNode,m_tree).first))))
           put(m_mu, get(boost::edge_raw_property, m_tree, *(in_edges(aNode,m_tree).first)), dist);
         aNode = parent;
@@ -671,7 +738,6 @@ class dvp_tree_impl
      * \param aGraphPosition The property-map that takes a node of the graph and produces (or looks up) a position value.
      * \param aTree The tree object that will be used to store the DVP structure.
      * \param aSpace The topology on which the positions of the vertices reside.
-     * \param aDistance The distance metric to use to compute distances between points of the topology.
      * \param aKey The key-map to use to obtain and store the key values for a given vertex-property object.
      * \param aMu The property-map which associates a distance-value to each edge of the tree.
      * \param aPosition The property-map that can be used to obtain and store the positions of the vertices (vertex-property objects).
@@ -681,15 +747,14 @@ class dvp_tree_impl
     dvp_tree_impl(const Graph& g, 
                   GraphPositionMap aGraphPosition,
                   tree_indexer& aTree,
-                  const ReaK::shared_ptr<const Topology>& aSpace, 
-                  distance_metric aDistance,
+                  const shared_ptr<const Topology>& aSpace, 
                   VertexKeyMap aKey,
                   DistanceMap aMu,
                   PositionMap aPosition,
                   VPChooser aVPChooser) : 
                   m_tree(aTree), m_root(boost::graph_traits<tree_indexer>::null_vertex()), 
                   m_key(aKey), m_mu(aMu), m_position(aPosition),
-                  m_space(aSpace), m_distance(aDistance), 
+                  m_distance(aSpace), 
                   m_vp_chooser(aVPChooser) {
       
       if(num_vertices(g) == 0) return;
@@ -722,7 +787,6 @@ class dvp_tree_impl
      * \param aElemPosition The property-map that takes a node in the given range and produces (or looks up) a position value.
      * \param aTree The tree object that will be used to store the DVP structure.
      * \param aSpace The topology on which the positions of the vertices reside.
-     * \param aDistance The distance metric to use to compute distances between points of the topology.
      * \param aKey The key-map to use to obtain and store the key values for a given vertex-property object.
      * \param aMu The property-map which associates a distance-value to each edge of the tree.
      * \param aPosition The property-map that can be used to obtain and store the positions of the vertices (vertex-property objects).
@@ -733,15 +797,14 @@ class dvp_tree_impl
                   ForwardIterator aEnd,
                   ElemPositionMap aElemPosition,
                   tree_indexer& aTree,
-                  const ReaK::shared_ptr<const Topology>& aSpace, 
-                  distance_metric aDistance,
+                  const shared_ptr<const Topology>& aSpace, 
                   VertexKeyMap aKey,
                   DistanceMap aMu,
                   PositionMap aPosition,
                   VPChooser aVPChooser) : 
                   m_tree(aTree), m_root(boost::graph_traits<tree_indexer>::null_vertex()), 
                   m_key(aKey), m_mu(aMu), m_position(aPosition),
-                  m_space(aSpace), m_distance(aDistance), 
+                  m_distance(aSpace), 
                   m_vp_chooser(aVPChooser) {
       if(aBegin == aEnd) return;
       
@@ -764,22 +827,20 @@ class dvp_tree_impl
      * Construct an empty DVP-tree from a topology, etc..
      * \param aTree The tree object that will be used to store the DVP structure.
      * \param aSpace The topology on which the positions of the vertices reside.
-     * \param aDistance The distance metric to use to compute distances between points of the topology.
      * \param aKey The key-map to use to obtain and store the key values for a given vertex-property object.
      * \param aMu The property-map which associates a distance-value to each edge of the tree.
      * \param aPosition The property-map that can be used to obtain and store the positions of the vertices (vertex-property objects).
      * \param aVPChooser The vantage-point chooser functor (policy class).
      */
     dvp_tree_impl(tree_indexer& aTree,
-                  const ReaK::shared_ptr<const Topology>& aSpace, 
-                  distance_metric aDistance,
+                  const shared_ptr<const Topology>& aSpace, 
                   VertexKeyMap aKey,
                   DistanceMap aMu,
                   PositionMap aPosition,
                   VPChooser aVPChooser) : 
                   m_tree(aTree), m_root(boost::graph_traits<tree_indexer>::null_vertex()), 
                   m_key(aKey), m_mu(aMu), m_position(aPosition),
-                  m_space(aSpace), m_distance(aDistance), 
+                  m_distance(aSpace), 
                   m_vp_chooser(aVPChooser) { };
     
     /**
@@ -917,7 +978,7 @@ class dvp_tree_impl
           // and thus, in either case, u_realleaf should be expanded.
           edge_type l_p;
           edge_property ep;
-          put(m_mu, ep, m_distance(u_pt, get(m_position, get(boost::vertex_raw_property,m_tree,u_realleaf)), *m_space));
+          put(m_mu, ep, m_distance.proper_distance(u_pt, get(m_position, get(boost::vertex_raw_property,m_tree,u_realleaf))));
 #ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
           boost::tie(p, l_p) = add_child_vertex(u_realleaf, std::move(up), std::move(ep), m_tree);
 #else
@@ -935,7 +996,8 @@ class dvp_tree_impl
      */
     template <typename ForwardIterator>
     void insert(ForwardIterator aBegin, ForwardIterator aEnd) { 
-      std::for_each(aBegin,aEnd,boost::bind(&self::insert,this,_1));
+      for(; aBegin != aEnd; ++aBegin) 
+        insert(*aBegin);
       //TODO: There's got to be a better way to insert many elements (most likely a similar strategy to the erase multiple function).
     };
     
@@ -1075,7 +1137,7 @@ class dvp_tree_impl
         out_edge_iter ei, ei_end;
         std::vector<vertex_property> prop_list;
         remove_branch(it->first, back_inserter(prop_list), m_tree);
-        prop_list.erase( remove_if(prop_list.begin(), prop_list.end(), boost::bind(is_vertex_prop_valid, m_key, _1)), prop_list.end());
+        prop_list.erase( remove_if(prop_list.begin(), prop_list.end(), is_vertex_prop_valid(m_key)), prop_list.end());
         construct_node(u_parent, e_dist, prop_list.begin(), prop_list.end());
       };      
     };
@@ -1098,10 +1160,12 @@ class dvp_tree_impl
     vertex_type find_nearest(const point_type& aPoint) const {
       if(num_vertices(m_tree) == 0) 
         return boost::graph_traits<tree_indexer>::null_vertex();
-      priority_queue_type Q;
-      distance_type sig = std::numeric_limits<distance_type>::infinity();
-      find_nearest_impl(aPoint,sig,Q,1);
-      return Q.front().second;
+      nearest_search_result_set result_set(1, std::numeric_limits<distance_type>::infinity());
+      find_nearest_impl(aPoint, result_set);
+      if(result_set.Neighbors.size())
+        return result_set.Neighbors.front().second;
+      else
+        return boost::graph_traits<tree_indexer>::null_vertex();
     };
     
     /**
@@ -1112,10 +1176,18 @@ class dvp_tree_impl
     std::pair< vertex_type, vertex_type > find_nearest_pred_succ(const point_type& aPoint) const {
       if(num_vertices(m_tree) == 0) 
         return boost::graph_traits<tree_indexer>::null_vertex();
-      priority_queue_type Qpred, Qsucc;
-      distance_type sig = std::numeric_limits<distance_type>::infinity();
-      find_nearest_impl(aPoint, sig, Qpred, Qsucc, 1);
-      return std::pair< vertex_type, vertex_type >(Qpred.front().second, Qsucc.front().second);
+      pred_succ_search_result_set result_set(1, std::numeric_limits<distance_type>::infinity());
+      find_nearest_impl(aPoint, result_set);
+      std::pair< vertex_type, vertex_type > result;
+      if( result_set.Pred.size() )
+        result.first = result_set.Pred.front().second;
+      else
+        result.first = boost::graph_traits<tree_indexer>::null_vertex();
+      if( result_set.Succ.size() )
+        result.second = result_set.Succ.front().second;
+      else
+        result.second = boost::graph_traits<tree_indexer>::null_vertex();
+      return result;
     };
     
     /**
@@ -1133,10 +1205,10 @@ class dvp_tree_impl
     OutputIterator find_nearest(const point_type& aPoint, OutputIterator aOutputBegin, std::size_t K, distance_type R = std::numeric_limits<distance_type>::infinity()) const {
       if(num_vertices(m_tree) == 0) 
         return aOutputBegin;
-      priority_queue_type Q;
-      find_nearest_impl(aPoint,R,Q,K);
-      std::sort_heap(Q.begin(), Q.end(), priority_compare_type());
-      for(typename priority_queue_type::const_iterator it = Q.begin(); it != Q.end(); ++it)
+      nearest_search_result_set result_set(K, R);
+      find_nearest_impl(aPoint, result_set);
+      std::sort_heap(result_set.Neighbors.begin(), result_set.Neighbors.end(), priority_compare_type());
+      for(typename priority_queue_type::const_iterator it = result_set.Neighbors.begin(); it != result_set.Neighbors.end(); ++it)
         *(aOutputBegin++) = it->second;
       return aOutputBegin;
     };
@@ -1160,13 +1232,13 @@ class dvp_tree_impl
         std::size_t K, distance_type R = std::numeric_limits<distance_type>::infinity()) const {
       if(num_vertices(m_tree) == 0) 
         return std::pair< OutputIterator, OutputIterator >(aPredBegin, aSuccBegin);
-      priority_queue_type Qpred, Qsucc;
-      find_nearest_impl(aPoint, R, Qpred, Qsucc, K);
-      std::sort_heap(Qpred.begin(), Qpred.end(), priority_compare_type());
-      std::sort_heap(Qsucc.begin(), Qsucc.end(), priority_compare_type());
-      for(typename priority_queue_type::const_iterator it = Qpred.begin(); it != Qpred.end(); ++it)
+      pred_succ_search_result_set result_set(K, R);
+      find_nearest_impl(aPoint, result_set);
+      std::sort_heap(result_set.Pred.begin(), result_set.Pred.end(), priority_compare_type());
+      std::sort_heap(result_set.Succ.begin(), result_set.Succ.end(), priority_compare_type());
+      for(typename priority_queue_type::const_iterator it = result_set.Pred.begin(); it != result_set.Pred.end(); ++it)
         *(aPredBegin++) = it->second;
-      for(typename priority_queue_type::const_iterator it = Qsucc.begin(); it != Qsucc.end(); ++it)
+      for(typename priority_queue_type::const_iterator it = result_set.Succ.begin(); it != result_set.Succ.end(); ++it)
         *(aSuccBegin++) = it->second;
       return std::pair< OutputIterator, OutputIterator >(aPredBegin, aSuccBegin);
     };
@@ -1185,10 +1257,10 @@ class dvp_tree_impl
     OutputIterator find_in_range(const point_type& aPoint, OutputIterator aOutputBegin, distance_type R) const {
       if(num_vertices(m_tree) == 0) 
         return aOutputBegin;
-      priority_queue_type Q;
-      find_nearest_impl(aPoint,R,Q,num_vertices(m_tree));
-      std::sort_heap(Q.begin(), Q.end(), priority_compare_type());
-      for(typename priority_queue_type::const_iterator it = Q.begin(); it != Q.end(); ++it)
+      nearest_search_result_set result_set(num_vertices(m_tree), R);
+      find_nearest_impl(aPoint, result_set);
+      std::sort_heap(result_set.Neighbors.begin(), result_set.Neighbors.end(), priority_compare_type());
+      for(typename priority_queue_type::const_iterator it = result_set.Neighbors.begin(); it != result_set.Neighbors.end(); ++it)
         *(aOutputBegin++) = it->second;
       return aOutputBegin;
     };
@@ -1210,13 +1282,13 @@ class dvp_tree_impl
         const point_type& aPoint, OutputIterator aPredBegin, OutputIterator aSuccBegin, distance_type R) const {
       if(num_vertices(m_tree) == 0) 
         return std::pair< OutputIterator, OutputIterator >(aPredBegin, aSuccBegin);
-      priority_queue_type Qpred, Qsucc;
-      find_nearest_impl(aPoint, R, Qpred, Qsucc, num_vertices(m_tree));
-      std::sort_heap(Qpred.begin(), Qpred.end(), priority_compare_type());
-      std::sort_heap(Qsucc.begin(), Qsucc.end(), priority_compare_type());
-      for(typename priority_queue_type::const_iterator it = Qpred.begin(); it != Qpred.end(); ++it)
+      pred_succ_search_result_set result_set(num_vertices(m_tree), R);
+      find_nearest_impl(aPoint, result_set);
+      std::sort_heap(result_set.Pred.begin(), result_set.Pred.end(), priority_compare_type());
+      std::sort_heap(result_set.Succ.begin(), result_set.Succ.end(), priority_compare_type());
+      for(typename priority_queue_type::const_iterator it = result_set.Pred.begin(); it != result_set.Pred.end(); ++it)
         *(aPredBegin++) = it->second;
-      for(typename priority_queue_type::const_iterator it = Qsucc.begin(); it != Qsucc.end(); ++it)
+      for(typename priority_queue_type::const_iterator it = result_set.Succ.begin(); it != result_set.Succ.end(); ++it)
         *(aSuccBegin++) = it->second;
       return std::pair< OutputIterator, OutputIterator >(aPredBegin, aSuccBegin);
     };

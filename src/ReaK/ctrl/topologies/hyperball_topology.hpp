@@ -41,7 +41,7 @@
 #include "lin_alg/vect_concepts.hpp"
 
 #include "vector_topology.hpp"
-#include "basic_distance_metrics.hpp"
+#include "path_planning/metric_space_concept.hpp"
 #include "default_random_sampler.hpp"
 
 #include <cmath>

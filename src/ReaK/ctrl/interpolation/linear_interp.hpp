@@ -51,7 +51,6 @@
 #include <map>
 #include <limits>
 #include "lin_alg/mat_num_exceptions.hpp"
-#include "topologies/basic_distance_metrics.hpp"
 
 namespace ReaK {
 

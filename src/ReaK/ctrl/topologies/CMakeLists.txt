@@ -30,7 +30,6 @@ set(TOPOLOGIES_SOURCES
 )
 
 set(TOPOLOGIES_HEADERS 
-  "${RKTOPOLOGIESDIR}/basic_distance_metrics.hpp"
   "${RKTOPOLOGIESDIR}/default_random_sampler.hpp"
   "${RKTOPOLOGIESDIR}/differentiable_space.hpp"
   "${RKTOPOLOGIESDIR}/direct_kinematics_topomap.hpp"

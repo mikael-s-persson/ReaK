@@ -43,7 +43,6 @@
 #include <boost/config.hpp>
 #include <boost/concept_check.hpp>
 
-#include "topologies/basic_distance_metrics.hpp"
 #include "topologies/rate_limited_spaces.hpp"
 #include "topologies/time_topology.hpp"
 

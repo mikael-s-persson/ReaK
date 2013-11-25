@@ -37,7 +37,6 @@
 
 #include "gaussian_belief_state.hpp"
 #include "path_planning/metric_space_concept.hpp"
-#include "topologies/basic_distance_metrics.hpp"
 #include "topologies/default_random_sampler.hpp"
 
 #include "base/named_object.hpp"

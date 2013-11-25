@@ -37,12 +37,31 @@
 #ifndef REAK_DVP_LAYOUT_ADJACENCY_LIST_HPP
 #define REAK_DVP_LAYOUT_ADJACENCY_LIST_HPP
 
-#include <boost/graph/properties.hpp>
+#include <boost/graph/graph_concepts.hpp>
 #include <boost/property_map/property_map.hpp>
-#include "graph_alg/adj_list_tree_overlay.hpp"
-#include "graph_alg/bgl_more_property_maps.hpp"
+#include <boost/graph/properties.hpp>
 
-#include "metric_space_search.hpp"
+#include <utility>  // for pair and move
+#include <vector>   // for vector
+#include <limits>   // for numeric_limits
+
+#include "metric_space_concept.hpp"
+
+
+#include "graph_alg/adj_list_tree_overlay.hpp"
+
+/****** To be replaced by BGL supplement ******/
+
+#include "graph_alg/d_ary_bf_tree.hpp"  // for default tree storage.
+
+#include "graph_alg/bgl_more_property_maps.hpp"
+#include "graph_alg/bgl_raw_property_graph.hpp"
+
+/******              end                 ******/
+
+#include "dvp_tree_detail.hpp"
+
+#include "multi_dvp_tree_search.hpp"
 
 
 
@@ -87,7 +106,6 @@ class dvp_adjacency_list
   public:
     BOOST_CONCEPT_ASSERT((MetricSpaceConcept<Topology>));
     
-    typedef typename metric_space_traits<Topology>::distance_metric_type distance_metric;
     typedef typename topology_traits<Topology>::point_type point_type;
     typedef typename topology_traits<Topology>::point_difference_type point_difference_type;
     typedef double distance_type;
@@ -110,19 +128,18 @@ class dvp_adjacency_list
     typedef typename boost::property_traits< vertex_r2b_map_type >::key_type vertex_raw_property_type;
     typedef typename boost::property_traits< edge_r2b_map_type >::key_type edge_raw_property_type;
     
-        typedef typename boost::property_map<vertex_raw_property_type, boost::vertex_key_t>::const_type key_map_type; 
+    typedef typename boost::property_map<vertex_raw_property_type, boost::vertex_key_t>::const_type key_map_type; 
     typedef boost::composite_property_map<
       boost::data_member_property_map<distance_type, edge_properties>,
       edge_r2b_map_type> distance_map_type;
     typedef boost::composite_property_map<
       PositionMap,
-          typename boost::property_map<vertex_raw_property_type, boost::vertex_second_bundle_t>::type > position_map_type;
+      typename boost::property_map<vertex_raw_property_type, boost::vertex_second_bundle_t>::type > position_map_type;
     
     
     typedef dvp_tree_impl< 
       tree_indexer,
       Topology,
-      distance_metric,
       key_map_type,
       distance_map_type,
       position_map_type,
@@ -164,7 +181,6 @@ class dvp_adjacency_list
              m_impl(
                m_tree,
                aSpace, 
-               get(ReaK::pp::distance_metric,*aSpace),
                m_vp_key,
                distance_map_type(
                  boost::data_member_property_map<distance_type, edge_properties>(&edge_properties::d),
@@ -218,7 +234,30 @@ class dvp_adjacency_list
     adj_list_vertex_type find_nearest(const point_type& aPoint) const {
       typedef typename boost::graph_traits<tree_indexer>::vertex_descriptor TreeVertex;
       TreeVertex u = m_impl.find_nearest(aPoint);
-      return get(m_vp_key, get(boost::vertex_raw_property, m_tree, u));
+      if( u != boost::graph_traits<tree_indexer>::null_vertex() )
+        return get(m_vp_key, get(boost::vertex_raw_property, m_tree, u));
+      else
+        return boost::graph_traits< adj_list_type >::null_vertex();
+    };
+    
+    /**
+     * Finds the nearest predecessor and successor to a given position.
+     * \param aPoint The position from which to find the nearest-neighbor of.
+     * \return The vertices in the DVP-tree that are nearest predecessor and successor to the given point.
+     */
+    std::pair<adj_list_vertex_type, adj_list_vertex_type> find_nearest_pred_succ(const point_type& aPoint) const {
+      typedef typename boost::graph_traits<tree_indexer>::vertex_descriptor TreeVertex;
+      std::pair<TreeVertex, TreeVertex> u = m_impl.find_nearest_pred_succ(aPoint);
+      std::pair<adj_list_vertex_type, adj_list_vertex_type> result;
+      if( u.first != boost::graph_traits<tree_indexer>::null_vertex() )
+        result.first = get(m_vp_key, get(boost::vertex_raw_property, m_tree, u.first));
+      else
+        result.first = boost::graph_traits< adj_list_type >::null_vertex();
+      if( u.second != boost::graph_traits<tree_indexer>::null_vertex() )
+        result.second = get(m_vp_key, get(boost::vertex_raw_property, m_tree, u.second));
+      else
+        result.second = boost::graph_traits< adj_list_type >::null_vertex();
+      return result;
     };
     
     /**
@@ -243,6 +282,34 @@ class dvp_adjacency_list
     };
     
     /**
+     * Finds the K nearest predecessors and successors to a given position.
+     * \tparam OutputIterator The forward- output-iterator type which can contain the 
+     *         list of nearest-neighbors.
+     * \param aPoint The position from which to find the nearest-neighbors.
+     * \param aPredBegin An iterator to the first place where to put the sorted list of 
+     *        predecessor elements with the smallest distance.
+     * \param aSuccBegin An iterator to the first place where to put the sorted list of 
+     *        successor elements with the smallest distance.
+     * \param K The number of nearest-neighbors.
+     * \param R The maximum distance value for the nearest-neighbors.
+     * \return The output-iterator to the end of the two lists of nearest neighbors (predecessors and successors).
+     */
+    template <typename OutputIterator>
+    std::pair<OutputIterator, OutputIterator> find_nearest(const point_type& aPoint, OutputIterator aPredBegin, OutputIterator aSuccBegin, std::size_t K, distance_type R = std::numeric_limits<distance_type>::infinity()) const {
+      typedef typename boost::graph_traits<tree_indexer>::vertex_descriptor TreeVertex;
+      std::vector< TreeVertex > pred_list;
+      std::vector< TreeVertex > succ_list;
+      m_impl.find_nearest(aPoint, back_inserter(pred_list), back_inserter(succ_list), K, R);
+      for(typename std::vector< TreeVertex >::iterator it = pred_list.begin(); it != pred_list.end(); ++it)
+        *(aPredBegin++) = get(m_vp_key, get(boost::vertex_raw_property, m_tree, *it));
+      for(typename std::vector< TreeVertex >::iterator it = succ_list.begin(); it != succ_list.end(); ++it)
+        *(aSuccBegin++) = get(m_vp_key, get(boost::vertex_raw_property, m_tree, *it));
+      return std::pair<OutputIterator, OutputIterator>(aPredBegin,aSuccBegin);
+    };
+    
+    
+    
+    /**
      * Finds the nearest-neighbors to a given position within a given range (radius).
      * \tparam OutputIterator The forward- output-iterator type which can contain the 
      *         list of nearest-neighbors.
@@ -261,6 +328,32 @@ class dvp_adjacency_list
         *(aOutputBegin++) = get(m_vp_key, get(boost::vertex_raw_property, m_tree, *it));
       return aOutputBegin;
     };
+    
+    /**
+     * Finds the K nearest predecessors and successors to a given position within a given range (radius).
+     * \tparam OutputIterator The forward- output-iterator type which can contain the 
+     *         list of nearest-neighbors.
+     * \param aPoint The position from which to find the nearest-neighbors.
+     * \param aPredBegin An iterator to the first place where to put the sorted list of 
+     *        predecessor elements with the smallest distance.
+     * \param aSuccBegin An iterator to the first place where to put the sorted list of 
+     *        successor elements with the smallest distance.
+     * \param R The maximum distance value for the nearest-neighbors.
+     * \return The output-iterator to the end of the two lists of nearest neighbors (predecessors and successors).
+     */
+    template <typename OutputIterator>
+    std::pair<OutputIterator, OutputIterator> find_in_range(const point_type& aPoint, OutputIterator aPredBegin, OutputIterator aSuccBegin, distance_type R) const {
+      typedef typename boost::graph_traits<tree_indexer>::vertex_descriptor TreeVertex;
+      std::vector< TreeVertex > pred_list;
+      std::vector< TreeVertex > succ_list;
+      m_impl.find_in_range(aPoint, back_inserter(pred_list), back_inserter(succ_list), R);
+      for(typename std::vector< TreeVertex >::iterator it = pred_list.begin(); it != pred_list.end(); ++it)
+        *(aPredBegin++) = get(m_vp_key, get(boost::vertex_raw_property, m_tree, *it));
+      for(typename std::vector< TreeVertex >::iterator it = succ_list.begin(); it != succ_list.end(); ++it)
+        *(aSuccBegin++) = get(m_vp_key, get(boost::vertex_raw_property, m_tree, *it));
+      return std::pair<OutputIterator, OutputIterator>(aPredBegin,aSuccBegin);
+    };
+    
     
     
 };

@@ -38,7 +38,6 @@
 #include "path_planning/random_sampler_concept.hpp"
 #include "path_planning/metric_space_concept.hpp"
 
-#include "basic_distance_metrics.hpp"
 #include "default_random_sampler.hpp"
 
 namespace ReaK {

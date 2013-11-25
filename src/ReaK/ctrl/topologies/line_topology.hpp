@@ -44,7 +44,7 @@
 #include <cmath>
 #include "base/named_object.hpp"
 
-#include "basic_distance_metrics.hpp"
+#include "path_planning/metric_space_concept.hpp"
 #include "default_random_sampler.hpp"
 
 namespace ReaK {

@@ -42,7 +42,6 @@
 #include "base/named_object.hpp"
 
 #include "path_planning/metric_space_concept.hpp"
-#include "basic_distance_metrics.hpp"
 
 #include <cmath>
 
