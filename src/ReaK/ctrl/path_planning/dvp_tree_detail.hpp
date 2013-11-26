@@ -58,6 +58,7 @@
 #include <boost/type_traits/is_same.hpp>
 
 #include <unordered_map>
+#include <map>
 #include <vector>
 #include <stack>
 #include <queue>
@@ -260,26 +261,15 @@ class dvp_tree_impl
     };
     typedef std::vector< std::pair< distance_type, vertex_type > > priority_queue_type;
     
-    tree_indexer& m_tree;   ///< Tree storage.
-    vertex_type m_root;    ///< Root node of the tree.
     
-    VertexKeyMap m_key;      ///< A map from a vertex_property to a key_type value.
-    DistanceMap m_mu;        ///< A map from an edge-property to a distance value.
-    PositionMap m_position;  ///< A map from a vertex_property to a position value (should be Read-Write).
-    
-    parting_metrics_type m_distance;  ///< The distance-metric functor.
-    
-    VPChooser m_vp_chooser;  ///< The vantage-point chooser (functor).
-    
-    //non-copyable.
-    dvp_tree_impl(const self&);
-    self& operator=(const self&); 
+//     typedef std::unordered_map<key_type, distance_type> temporary_dist_map_type;
+    typedef std::map<key_type, distance_type> temporary_dist_map_type;
     
     /* Simple comparison function to sort by pre-computed distance values. */
     struct closer {
-      std::unordered_map<key_type,distance_type>* p_m;
+      temporary_dist_map_type* p_m;
       VertexKeyMap m_key;
-      closer(std::unordered_map<key_type,distance_type>* m, const VertexKeyMap& key) : p_m(m), m_key(key) { };
+      closer(temporary_dist_map_type* m, const VertexKeyMap& key) : p_m(m), m_key(key) { };
       
       bool operator()(const vertex_property& k1, const vertex_property& k2) const {
         return (*p_m)[get(m_key,k1)] < (*p_m)[get(m_key,k2)];
@@ -296,6 +286,25 @@ class dvp_tree_impl
         return (get(m_key,k1) != reinterpret_cast<key_type>(-1));
       };
     };
+    
+    
+    
+    
+    tree_indexer& m_tree;   ///< Tree storage.
+    vertex_type m_root;    ///< Root node of the tree.
+    
+    VertexKeyMap m_key;      ///< A map from a vertex_property to a key_type value.
+    DistanceMap m_mu;        ///< A map from an edge-property to a distance value.
+    PositionMap m_position;  ///< A map from a vertex_property to a position value (should be Read-Write).
+    
+    parting_metrics_type m_distance;  ///< The distance-metric functor.
+    
+    VPChooser m_vp_chooser;  ///< The vantage-point chooser (functor).
+    
+    //non-copyable.
+    dvp_tree_impl(const self&);
+    self& operator=(const self&); 
+    
     
     
     
@@ -322,61 +331,76 @@ class dvp_tree_impl
                         typename std::vector<vertex_property>::iterator aBegin, 
                         typename std::vector<vertex_property>::iterator aEnd) {
       typedef typename std::vector<vertex_property>::iterator PropIter;
-      using std::swap;
+//       using std::swap;
+      using std::iter_swap;
       
-      std::unordered_map<key_type, distance_type> dist_map;
+      temporary_dist_map_type dist_map;
       std::queue<construction_task> tasks;
       tasks.push(construction_task(aParentNode, aEdgeDist, aBegin, aEnd));
       
       while(!tasks.empty()) {
         construction_task cur_task = tasks.front(); tasks.pop();
         
-        PropIter vp_ind = m_vp_chooser(cur_task.first, cur_task.last, m_distance, m_position);
-        if(vp_ind == cur_task.last)
-          return;
-        point_type vp_pt = get(m_position, *vp_ind);
-        for(PropIter it = cur_task.first; it != cur_task.last; ++it)
-          dist_map[get(m_key,*it)] = m_distance.proper_distance(vp_pt, get(m_position, *it));
-        swap(*vp_ind, *cur_task.first);
+        // choose a vantage-point in the interval:
+        PropIter chosen_vp_it = m_vp_chooser(cur_task.first, cur_task.last, m_distance, m_position);
+        if(chosen_vp_it == cur_task.last)
+          continue; // no vp to be chosen in this interval (presumably, empty interval).
         
-        vertex_type current_node;
-        key_type k_tmp = get(m_key,*cur_task.first); 
+        // place the vantage-point (or pivot) at the start of interval:
+        iter_swap(chosen_vp_it, cur_task.first);
+        chosen_vp_it = cur_task.first;  //<-- chosen_vp_it is now at the start of interval.
+        cur_task.first++;               //<-- eliminate chosen_vp_it from the interval.
+        dist_map.erase( get(m_key, *chosen_vp_it) );  //<-- eliminate chosen_vp_it from the distance map.
+        
+        // update values in the dist-map with the distances to the new chosen vantage-point:
+        {
+          const point_type& chosen_vp_pt = get(m_position, *chosen_vp_it);
+          for(PropIter it = cur_task.first; it != cur_task.last; ++it)
+            dist_map[ get(m_key, *it) ] = m_distance.proper_distance(chosen_vp_pt, get(m_position, *it));
+        };
+        
+        vertex_type chosen_vp_node;
         if( cur_task.parent_node != boost::graph_traits<tree_indexer>::null_vertex() ) {
           edge_property ep;
           put(m_mu, ep, cur_task.edge_dist);
-          edge_type e;
+          boost::tie(chosen_vp_node, boost::tuples::ignore) = 
 #ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
-          boost::tie(current_node,e) = add_child_vertex(cur_task.parent_node, std::move(*cur_task.first), std::move(ep), m_tree);
+            add_child_vertex(cur_task.parent_node, std::move(*chosen_vp_it), std::move(ep), m_tree);
 #else
-          boost::tie(current_node,e) = add_child_vertex(cur_task.parent_node, *cur_task.first, ep, m_tree);
+            add_child_vertex(cur_task.parent_node, *chosen_vp_it, ep, m_tree);
 #endif
         } else {
 #ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
-          current_node = create_root(std::move(*cur_task.first), m_tree);
+          chosen_vp_node = create_root(std::move(*chosen_vp_it), m_tree);
 #else
-          current_node = create_root(*cur_task.first, m_tree);
+          chosen_vp_node = create_root(*chosen_vp_it, m_tree);
 #endif
-          m_root = current_node;
+          m_root = chosen_vp_node;
         };
-        dist_map.erase(k_tmp);
-        cur_task.first++;
+        // NOTE: (*chosen_vp_it) is presumed invalid at this point.
+        //       chosen_vp_node is now a vertex descriptor for the chosen vantage point, now a node in the tree.
+        
         if((cur_task.last - cur_task.first) < static_cast<int>(Arity)) {
+          // if not enough points for a full sub-tree, then just sort out the points 
+          //  and put them in order of distance to the chosen vantage point:
           std::sort(cur_task.first, cur_task.last, closer(&dist_map,m_key));
           for(PropIter it = cur_task.first; it != cur_task.last; ++it) {
             edge_property ep;
             put(m_mu, ep, dist_map[get(m_key,*it)]);
 #ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
-            add_child_vertex(current_node, std::move(*it), std::move(ep), m_tree);
+            add_child_vertex(chosen_vp_node, std::move(*it), std::move(ep), m_tree);
 #else
-            add_child_vertex(current_node, *it, ep, m_tree);
+            add_child_vertex(chosen_vp_node, *it, ep, m_tree);
 #endif
           };
         } else {
+          // this loop splits up the children into as equal as possible partitions.
+          // NOTE: This logic is correct, I have verified it more than once (to be sure)..
           for(std::size_t i = Arity; i >= 1; --i) {
             std::ptrdiff_t num_children = (cur_task.last - cur_task.first) / i;
             std::nth_element(cur_task.first, cur_task.first + (num_children-1), cur_task.last, closer(&dist_map,m_key));
             PropIter temp = cur_task.first; cur_task.first += num_children;
-            tasks.push(construction_task(current_node, dist_map[get(m_key,*(cur_task.first-1))], temp, cur_task.first));
+            tasks.push(construction_task(chosen_vp_node, dist_map[get(m_key,*(cur_task.first-1))], temp, cur_task.first));
           };
         };
       };
@@ -915,7 +939,9 @@ class dvp_tree_impl
         remove_branch(u_realleaf, back_inserter(prop_list), m_tree);
         m_root = boost::graph_traits<tree_indexer>::null_vertex();
         u_realleaf = m_root;
+        RK_NOTICE(1," reached!");
         construct_node(u_realleaf, 0.0, prop_list.begin(), prop_list.end()); 
+        RK_NOTICE(1," reached!");
         return;
       };
       vertex_type u_leaf = source(*(in_edges(u_realleaf,m_tree).first),m_tree);
@@ -940,7 +966,9 @@ class dvp_tree_impl
         prop_list.push_back(up);
 #endif
         remove_branch(u_leaf, back_inserter(prop_list), m_tree);
+        RK_NOTICE(1," reached!");
         construct_node(u_leaf_parent, e_dist, prop_list.begin(), prop_list.end()); 
+        RK_NOTICE(1," reached!");
       } else {
         //if it is a full-leaf, then this is a leaf node, and it is balanced but full, 
         // we should then find a non-full parent.
@@ -972,7 +1000,9 @@ class dvp_tree_impl
           prop_list.push_back(up);
 #endif
           remove_branch(p, back_inserter(prop_list), m_tree);
+          RK_NOTICE(1," reached!");
           construct_node(p_parent, e_dist, prop_list.begin(), prop_list.end());
+          RK_NOTICE(1," reached!");
         } else {
           //this means that either the root node is full or there are branches of the tree that are deeper than u_realleaf, 
           // and thus, in either case, u_realleaf should be expanded.
