@@ -103,7 +103,7 @@ class random_best_vp_chooser {
      * \return A random-access iterator to the chosen vantage-point.
      */
     template <typename RandomAccessIter, typename DistanceMetric, typename PositionMap>
-    RandomAccessIter operator() (RandomAccessIter aBegin, RandomAccessIter aEnd, DistanceMetric aDistance, PositionMap aPosition) {
+    RandomAccessIter operator() (RandomAccessIter aBegin, RandomAccessIter aEnd, DistanceMetric aDistance, PositionMap aPosition) const {
       typedef typename boost::property_traits<PositionMap>::value_type Point;
       RandomAccessIter best_pt = aEnd;
       double best_dev = -1;
@@ -155,7 +155,7 @@ class random_vp_chooser {
      * \return A random-access iterator to the chosen vantage-point.
      */
     template <typename RandomAccessIter, typename DistanceMetric, typename PositionMap>
-    RandomAccessIter operator() (RandomAccessIter aBegin, RandomAccessIter aEnd, DistanceMetric aDistance, PositionMap aPosition) { RK_UNUSED(aDistance); RK_UNUSED(aPosition); 
+    RandomAccessIter operator() (RandomAccessIter aBegin, RandomAccessIter aEnd, DistanceMetric aDistance, PositionMap aPosition) const { RK_UNUSED(aDistance); RK_UNUSED(aPosition); 
       return aBegin + (get_global_rng()() % (aEnd - aBegin));
     };
 };
@@ -307,17 +307,30 @@ class dvp_tree_impl
     
     
     
+    typedef typename std::vector<vertex_property>::iterator prop_vector_iter;
     
     struct construction_task {
-      typedef typename std::vector<vertex_property>::iterator PropIter;
+      vertex_type node;
+      prop_vector_iter first;
+      prop_vector_iter last;
       
-      vertex_type parent_node;
-      double edge_dist;
-      typename std::vector<vertex_property>::iterator first;
-      typename std::vector<vertex_property>::iterator last;
+      construction_task(vertex_type aNode, prop_vector_iter aBegin, prop_vector_iter aEnd) : 
+        node(aNode), first(aBegin), last(aEnd) { };
+    };
+    
+    prop_vector_iter rearrange_with_chosen_vp(prop_vector_iter aBegin, prop_vector_iter aEnd) const {
+      using std::iter_swap;
       
-      construction_task(vertex_type aParentNode, double aEdgeDist, PropIter aBegin, PropIter aEnd) : 
-        parent_node(aParentNode), edge_dist(aEdgeDist), first(aBegin), last(aEnd) { };
+      // choose a vantage-point in the interval:
+      prop_vector_iter chosen_vp_it = m_vp_chooser(aBegin, aEnd, m_distance, m_position);
+      if(chosen_vp_it == aEnd)
+        return aBegin; // no vp to be chosen in this interval (presumably, empty interval).
+      
+      // place the vantage-point (or pivot) at the start of interval:
+      iter_swap(chosen_vp_it, aBegin);
+      chosen_vp_it = aBegin;  //<-- chosen_vp_it is now at the start of interval.
+      
+      return chosen_vp_it;
     };
     
     
@@ -326,82 +339,49 @@ class dvp_tree_impl
     /* Does not require persistent vertices */
     /* This is the main tree construction function. It takes the vertices in the iterator range and organizes them 
      * as a sub-tree below the aParentNode node (and aEdgeDist is the minimum distance to the parent of any node in the range). */
-    void construct_node(vertex_type aParentNode, 
-                        double aEdgeDist,
-                        typename std::vector<vertex_property>::iterator aBegin, 
-                        typename std::vector<vertex_property>::iterator aEnd) {
-      typedef typename std::vector<vertex_property>::iterator PropIter;
-//       using std::swap;
-      using std::iter_swap;
+    // aNode is a valid, existing node containing the chosen vantage-point.
+    void construct_node(vertex_type aNode, prop_vector_iter aBegin, prop_vector_iter aEnd) {
       
       temporary_dist_map_type dist_map;
       std::queue<construction_task> tasks;
-      tasks.push(construction_task(aParentNode, aEdgeDist, aBegin, aEnd));
+      tasks.push(construction_task(aNode, aBegin, aEnd));
       
       while(!tasks.empty()) {
         construction_task cur_task = tasks.front(); tasks.pop();
         
-        // choose a vantage-point in the interval:
-        PropIter chosen_vp_it = m_vp_chooser(cur_task.first, cur_task.last, m_distance, m_position);
-        if(chosen_vp_it == cur_task.last)
-          continue; // no vp to be chosen in this interval (presumably, empty interval).
-        
-        // place the vantage-point (or pivot) at the start of interval:
-        iter_swap(chosen_vp_it, cur_task.first);
-        chosen_vp_it = cur_task.first;  //<-- chosen_vp_it is now at the start of interval.
-        cur_task.first++;               //<-- eliminate chosen_vp_it from the interval.
-        dist_map.erase( get(m_key, *chosen_vp_it) );  //<-- eliminate chosen_vp_it from the distance map.
-        
         // update values in the dist-map with the distances to the new chosen vantage-point:
         {
-          const point_type& chosen_vp_pt = get(m_position, *chosen_vp_it);
-          for(PropIter it = cur_task.first; it != cur_task.last; ++it)
+          const point_type& chosen_vp_pt = get(m_position, get(boost::vertex_raw_property, m_tree, cur_task.node));
+          for(prop_vector_iter it = cur_task.first; it != cur_task.last; ++it)
             dist_map[ get(m_key, *it) ] = m_distance.proper_distance(chosen_vp_pt, get(m_position, *it));
         };
         
-        vertex_type chosen_vp_node;
-        if( cur_task.parent_node != boost::graph_traits<tree_indexer>::null_vertex() ) {
-          edge_property ep;
-          put(m_mu, ep, cur_task.edge_dist);
-          boost::tie(chosen_vp_node, boost::tuples::ignore) = 
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
-            add_child_vertex(cur_task.parent_node, std::move(*chosen_vp_it), std::move(ep), m_tree);
-#else
-            add_child_vertex(cur_task.parent_node, *chosen_vp_it, ep, m_tree);
-#endif
-        } else {
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
-          chosen_vp_node = create_root(std::move(*chosen_vp_it), m_tree);
-#else
-          chosen_vp_node = create_root(*chosen_vp_it, m_tree);
-#endif
-          m_root = chosen_vp_node;
+        // this loop splits up the children into as equal as possible partitions.
+        std::size_t total_count = (cur_task.last - cur_task.first);
+        std::size_t child_count[Arity];
+        for(std::size_t i = Arity; i > 0; --i) {
+          child_count[i-1] = total_count / i;
+          total_count -= child_count[i-1];
         };
-        // NOTE: (*chosen_vp_it) is presumed invalid at this point.
-        //       chosen_vp_node is now a vertex descriptor for the chosen vantage point, now a node in the tree.
-        
-        if((cur_task.last - cur_task.first) < static_cast<int>(Arity)) {
-          // if not enough points for a full sub-tree, then just sort out the points 
-          //  and put them in order of distance to the chosen vantage point:
-          std::sort(cur_task.first, cur_task.last, closer(&dist_map,m_key));
-          for(PropIter it = cur_task.first; it != cur_task.last; ++it) {
-            edge_property ep;
-            put(m_mu, ep, dist_map[get(m_key,*it)]);
+        for(std::size_t i = 0; (i < Arity) && (child_count[i] > 0); --i) {
+          std::nth_element(cur_task.first, cur_task.first + (child_count[i]-1), 
+                           cur_task.last, closer(&dist_map,m_key));
+          prop_vector_iter temp = cur_task.first; 
+          cur_task.first += child_count[i];
+          edge_property ep;
+          put(m_mu, ep, dist_map[get(m_key,*(cur_task.first-1))]);
+          rearrange_with_chosen_vp(temp, cur_task.first);
+          dist_map.erase( get(m_key, *temp) );
+          vertex_type new_vp_node;
+          boost::tie(new_vp_node, boost::tuples::ignore) = 
 #ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
-            add_child_vertex(chosen_vp_node, std::move(*it), std::move(ep), m_tree);
+            add_child_vertex(cur_task.node, std::move(*temp), std::move(ep), m_tree);
 #else
-            add_child_vertex(chosen_vp_node, *it, ep, m_tree);
+            add_child_vertex(cur_task.node, *temp, ep, m_tree);
 #endif
-          };
-        } else {
-          // this loop splits up the children into as equal as possible partitions.
-          // NOTE: This logic is correct, I have verified it more than once (to be sure)..
-          for(std::size_t i = Arity; i >= 1; --i) {
-            std::ptrdiff_t num_children = (cur_task.last - cur_task.first) / i;
-            std::nth_element(cur_task.first, cur_task.first + (num_children-1), cur_task.last, closer(&dist_map,m_key));
-            PropIter temp = cur_task.first; cur_task.first += num_children;
-            tasks.push(construction_task(chosen_vp_node, dist_map[get(m_key,*(cur_task.first-1))], temp, cur_task.first));
-          };
+          ++temp;
+          if(temp != cur_task.first)
+            tasks.push(construction_task(new_vp_node, temp, cur_task.first));
         };
       };
     };
@@ -798,7 +778,15 @@ class dvp_tree_impl
 #endif
       };
       
-      construct_node(boost::graph_traits<tree_indexer>::null_vertex(), 0.0, v_bin.begin(), v_bin.end());
+      prop_vector_iter v_first = v_bin.begin();
+      prop_vector_iter v_last  = v_bin.end();
+      rearrange_with_chosen_vp(v_first, v_last);
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
+      m_root = create_root(std::move(*v_first), m_tree);
+#else
+      m_root = create_root(*v_first, m_tree);
+#endif
+      construct_node(m_root, ++v_first, v_last);
     };
     
     
@@ -844,7 +832,15 @@ class dvp_tree_impl
 #endif
       };
       
-      construct_node(boost::graph_traits<tree_indexer>::null_vertex(), 0.0, v_bin.begin(), v_bin.end());
+      prop_vector_iter v_first = v_bin.begin();
+      prop_vector_iter v_last  = v_bin.end();
+      rearrange_with_chosen_vp(v_first, v_last);
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
+      m_root = create_root(std::move(*v_first), m_tree);
+#else
+      m_root = create_root(*v_first, m_tree);
+#endif
+      construct_node(m_root, ++v_first, v_last);
     };
     
     /**
@@ -927,96 +923,56 @@ class dvp_tree_impl
 #endif
         return;
       };
+      
       point_type u_pt = get(m_position, up); 
-      vertex_type u_realleaf = get_leaf(u_pt,m_root);
-      if(u_realleaf == m_root) { //if the root is the leaf, it requires special attention since no parent exists.
-        std::vector<vertex_property> prop_list;
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
-        prop_list.push_back(std::move(up));
-#else
-        prop_list.push_back(up);
-#endif
-        remove_branch(u_realleaf, back_inserter(prop_list), m_tree);
-        m_root = boost::graph_traits<tree_indexer>::null_vertex();
-        u_realleaf = m_root;
-        RK_NOTICE(1," reached!");
-        construct_node(u_realleaf, 0.0, prop_list.begin(), prop_list.end()); 
-        RK_NOTICE(1," reached!");
-        return;
-      };
-      vertex_type u_leaf = source(*(in_edges(u_realleaf,m_tree).first),m_tree);
-      if((out_degree(u_leaf,m_tree) < Arity) || (!is_leaf_node(u_leaf))) {
-        // leaf node is not full of children, an additional child can be added 
-        //  (must be reconstructed to keep ordering, but this is a trivial operation O(Arity)).
-        //OR 
-        // if leaf is not really a leaf, then it means that this sub-tree is definitely not balanced and not full either,
-        //  then all the Keys ought to be collected and u_leaf ought to be reconstructed.
-        update_mu_upwards(u_pt,u_leaf);
-        distance_type e_dist = 0.0;
-        vertex_type u_leaf_parent;
-        if(u_leaf != m_root) {
-          e_dist = get(m_mu, get(boost::edge_raw_property,m_tree,*(in_edges(u_leaf,m_tree).first)));
-          u_leaf_parent = source(*(in_edges(u_leaf,m_tree).first),m_tree);
-        } else 
-          u_leaf_parent = boost::graph_traits<tree_indexer>::null_vertex();
-        std::vector<vertex_property> prop_list;
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
-        prop_list.push_back(std::move(up));
-#else
-        prop_list.push_back(up);
-#endif
-        remove_branch(u_leaf, back_inserter(prop_list), m_tree);
-        RK_NOTICE(1," reached!");
-        construct_node(u_leaf_parent, e_dist, prop_list.begin(), prop_list.end()); 
-        RK_NOTICE(1," reached!");
-      } else {
-        //if it is a full-leaf, then this is a leaf node, and it is balanced but full, 
-        // we should then find a non-full parent.
-        vertex_type p = u_leaf;   
-        int actual_depth_limit = 1;
-        int last_depth_limit = actual_depth_limit;
-        while((p != m_root) && (is_node_full(p,last_depth_limit))) {
-          p = source(*(in_edges(p,m_tree).first),m_tree);
-          last_depth_limit = ++actual_depth_limit;
-        };
-        bool is_p_full = false; 
-        if(p == m_root)
-          is_p_full = is_node_full(p,last_depth_limit);
-        if((!is_p_full) && (last_depth_limit >= 0)) {
-          //this means that we can add our key to the sub-tree of p and reconstruct from there.
-          update_mu_upwards(u_pt,p);
-          distance_type e_dist = 0.0;
-          vertex_type p_parent;
-          if(p != m_root) {
-            e_dist = get(m_mu, get(boost::edge_raw_property,m_tree,*(in_edges(p,m_tree).first)));
-            p_parent = source(*(in_edges(p,m_tree).first),m_tree);
-          } else {
-            p_parent = boost::graph_traits<tree_indexer>::null_vertex();
+      vertex_type u_subroot = get_leaf(u_pt,m_root); // <-- to store the root of subtree to reconstruct.
+      // NOTE: if the root is the leaf, it requires special attention since no parent exists.
+      if(u_subroot != m_root) {
+        vertex_type u_leaf = source(*(in_edges(u_subroot, m_tree).first),m_tree);
+        if((out_degree(u_leaf, m_tree) == Arity) && (is_leaf_node(u_leaf))) {
+          //if u_leaf is a full-leaf, then it is balanced but full, 
+          // we should then find a non-full parent.
+          int actual_depth_limit = 1;
+          int last_depth_limit = actual_depth_limit;
+          while((u_leaf != m_root) && (is_node_full(u_leaf, last_depth_limit))) {
+            u_leaf = source(*(in_edges(u_leaf, m_tree).first), m_tree);
+            last_depth_limit = ++actual_depth_limit;
           };
-          std::vector<vertex_property> prop_list;
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
-          prop_list.push_back(std::move(up));
-#else
-          prop_list.push_back(up);
-#endif
-          remove_branch(p, back_inserter(prop_list), m_tree);
-          RK_NOTICE(1," reached!");
-          construct_node(p_parent, e_dist, prop_list.begin(), prop_list.end());
-          RK_NOTICE(1," reached!");
+          bool is_p_full = false; 
+          if(u_leaf == m_root)
+            is_p_full = is_node_full(u_leaf, last_depth_limit);
+          if((!is_p_full) && (last_depth_limit >= 0)) {
+            // this means that we can add our key to the sub-tree of u_leaf and reconstruct from there.
+            u_subroot = u_leaf;
+          };
+          // else:
+          //  this means that either the root node is full or there are 
+          //  branches of the tree that are deeper than u_subroot, 
+          //  and thus, in either case, u_subroot should be expanded.
         } else {
-          //this means that either the root node is full or there are branches of the tree that are deeper than u_realleaf, 
-          // and thus, in either case, u_realleaf should be expanded.
-          edge_type l_p;
-          edge_property ep;
-          put(m_mu, ep, m_distance.proper_distance(u_pt, get(m_position, get(boost::vertex_raw_property,m_tree,u_realleaf))));
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
-          boost::tie(p, l_p) = add_child_vertex(u_realleaf, std::move(up), std::move(ep), m_tree);
-#else
-          boost::tie(p, l_p) = add_child_vertex(u_realleaf, up, ep, m_tree);
-#endif
-          update_mu_upwards(u_pt,u_realleaf);
+          //  leaf node is not full of children, an additional child can be added 
+          //  (must be reconstructed to keep ordering, but this is a trivial operation O(Arity)).
+          //OR 
+          //  if leaf is not really a leaf, then it means that this sub-tree is definitely 
+          //  not balanced and not full either,
+          //  then all the Keys ought to be collected and u_leaf ought to be reconstructed.
+          u_subroot = u_leaf;
         };
       };
+      
+      update_mu_upwards(u_pt, u_subroot);
+      std::vector<vertex_property> prop_list;
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
+      prop_list.push_back(std::move(up));
+#else
+      prop_list.push_back(up);
+#endif
+      while( out_degree(u_subroot, m_tree) > 0 ) {
+        edge_type e = *(out_edges(u_subroot, m_tree).first);
+        remove_branch(target(e, m_tree), back_inserter(prop_list), m_tree);
+      };
+      construct_node(u_subroot, prop_list.begin(), prop_list.end());
+      
     };
     /**
      * Inserts a range of vertices.
@@ -1039,36 +995,47 @@ class dvp_tree_impl
     void erase(vertex_type u_node) { 
       if(num_vertices(m_tree) == 0) 
         return;
+      std::vector<vertex_property> prop_list;
       if( (u_node == m_root) && (num_vertices(m_tree) == 1) ) {
-        std::vector<vertex_property> prop_list;
         remove_branch(m_root, back_inserter(prop_list), m_tree);
         m_root = boost::graph_traits<tree_indexer>::null_vertex();
         return;
       };
-      distance_type e_dist = 0.0;
       vertex_type u_parent = boost::graph_traits<tree_indexer>::null_vertex();
-      if(u_node != m_root) {
-        e_dist = get(m_mu, get(boost::edge_raw_property,m_tree,*(in_edges(u_node,m_tree).first)));
+      if(u_node != m_root)
         u_parent = source(*(in_edges(u_node,m_tree).first), m_tree);
+      
+      // remove-and-collect all children of u_node:
+      while( out_degree(u_node, m_tree) > 0 ) {
+        edge_type e = *(out_edges(u_node, m_tree).first);
+        remove_branch(target(e, m_tree), back_inserter(prop_list), m_tree);
+      };
+      // remove-and-discard u_node:
+      {
+        std::vector<vertex_property> throwaway_list;
+        remove_branch(u_node, back_inserter(throwaway_list), m_tree);
       };
       
-      std::vector<vertex_property> prop_list;
-      if( (out_degree(u_node, m_tree) > 0) ||
-          (u_parent == boost::graph_traits<tree_indexer>::null_vertex()) ) {
-        remove_branch(u_node, back_inserter(prop_list), m_tree);
-      } else {
-        remove_branch(u_node, back_inserter(prop_list), m_tree);
-        u_node = u_parent;
-        if(u_parent == m_root) {
-          e_dist = 0.0;
-          u_parent = boost::graph_traits<tree_indexer>::null_vertex();
-        } else {
-          e_dist = get(m_mu, get(boost::edge_raw_property,m_tree,*(in_edges(u_node,m_tree).first)));
-          u_parent = source(*(in_edges(u_node,m_tree).first), m_tree);
+      if( u_parent != boost::graph_traits<tree_indexer>::null_vertex() ) {
+        // remove-and-collect all other children of u_parent:
+        while( out_degree(u_parent, m_tree) > 0 ) {
+          edge_type e = *(out_edges(u_parent, m_tree).first);
+          remove_branch(target(e, m_tree), back_inserter(prop_list), m_tree);
         };
-        remove_branch(u_node, back_inserter(prop_list), m_tree);
+        // reconstruct parent's subtree:
+        construct_node(u_parent, prop_list.begin(), prop_list.end());
+      } else {
+        // need to re-construct the root node (u_node == m_root).
+        prop_vector_iter v_first = prop_list.begin();
+        prop_vector_iter v_last  = prop_list.end();
+        rearrange_with_chosen_vp(v_first, v_last);
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
+        m_root = create_root(std::move(*v_first), m_tree);
+#else
+        m_root = create_root(*v_first, m_tree);
+#endif
+        construct_node(m_root, ++v_first, v_last);
       };
-      construct_node(u_parent, e_dist, prop_list.begin() + 1 /* skip first node (u_node) */, prop_list.end());
     };
     
     /**
@@ -1120,9 +1087,12 @@ class dvp_tree_impl
       // First, generate the vertex-listings in preparation for the deletion.
       for(ForwardIterator first = aBegin; first != aEnd; ++first) {
         vertex_type removal_trunk = *first;
-        if(out_degree(*first, m_tree) == 0)
-          removal_trunk = source(*(in_edges(*first,m_tree).first), m_tree);
-        put(m_key, get(boost::vertex_raw_property,m_tree,*first), reinterpret_cast<key_type>(-1)); // mark as invalid, for deletion.
+        put(m_key, get(boost::vertex_raw_property, m_tree, *first), reinterpret_cast<key_type>(-1)); // mark as invalid, for deletion.
+        // go up until a valid parent node is found:
+        while( (removal_trunk != m_root) && 
+               (get(m_key, get(boost::vertex_raw_property, m_tree, removal_trunk)) == reinterpret_cast<key_type>(-1)) ) {
+          removal_trunk = source(*(in_edges(removal_trunk, m_tree).first), m_tree);
+        };
         
         bool already_collected = false;
         for(typename vertex_listing::iterator it = v_lists.begin(); it != v_lists.end(); ++it) {
@@ -1155,21 +1125,35 @@ class dvp_tree_impl
         
       };
       
-      for(typename vertex_listing::iterator it = v_lists.begin(); it != v_lists.end(); ++it) {
-        
-        distance_type e_dist = 0.0;
-        vertex_type u_parent = boost::graph_traits<tree_indexer>::null_vertex();
-        if(it->first != m_root) {
-          e_dist = get(m_mu, get(boost::edge_raw_property,m_tree,*(in_edges(it->first,m_tree).first)));
-          u_parent = source(*(in_edges(it->first, m_tree).first), m_tree);
-        };
-      
-        out_edge_iter ei, ei_end;
+      if( (v_lists.size() == 1) && (v_lists.front() == m_root) ) {
+        // need to re-construct the root node (u_node == m_root).
         std::vector<vertex_property> prop_list;
-        remove_branch(it->first, back_inserter(prop_list), m_tree);
+        remove_branch(m_root, back_inserter(prop_list), m_tree);
         prop_list.erase( remove_if(prop_list.begin(), prop_list.end(), is_vertex_prop_valid(m_key)), prop_list.end());
-        construct_node(u_parent, e_dist, prop_list.begin(), prop_list.end());
-      };      
+        prop_vector_iter v_first = prop_list.begin();
+        prop_vector_iter v_last  = prop_list.end();
+        rearrange_with_chosen_vp(v_first, v_last);
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
+        m_root = create_root(std::move(*v_first), m_tree);
+#else
+        m_root = create_root(*v_first, m_tree);
+#endif
+        construct_node(m_root, ++v_first, v_last);
+        return;
+      };
+      
+      for(typename vertex_listing::iterator it = v_lists.begin(); it != v_lists.end(); ++it) {
+        std::vector<vertex_property> prop_list;
+        // remove-and-collect all children of it->first:
+        while( out_degree(it->first, m_tree) > 0 ) {
+          edge_type e = *(out_edges(it->first, m_tree).first);
+          remove_branch(target(e, m_tree), back_inserter(prop_list), m_tree);
+        };
+        // erase removed vertices from the prop-list:
+        prop_list.erase( remove_if(prop_list.begin(), prop_list.end(), is_vertex_prop_valid(m_key)), prop_list.end());
+        // reconstruct parent's subtree:
+        construct_node(it->first, prop_list.begin(), prop_list.end());
+      };
     };
     
     /**
@@ -1177,7 +1161,8 @@ class dvp_tree_impl
      */
     void clear() {
       if( num_vertices(m_tree) == 0 ) {
-        remove_branch(m_root,m_tree);
+        std::vector<vertex_property> prop_list;
+        remove_branch(m_root, back_inserter(prop_list), m_tree);
         m_root = boost::graph_traits<tree_indexer>::null_vertex();
       };
     }; 
