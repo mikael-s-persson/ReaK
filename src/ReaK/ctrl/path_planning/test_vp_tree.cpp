@@ -24,7 +24,7 @@
 #include <iostream>
 #include <fstream>
 
-#include <boost/graph/adjacency_list.hpp>
+#include <boost/graph/adjacency_list_BC.hpp>
 #include <boost/graph/topology.hpp>
 #include <boost/graph/properties.hpp>
 
@@ -45,12 +45,10 @@ int main() {
 
   typedef boost::no_property WorldGridEdgeProperties;
 
-  typedef boost::adjacency_list< boost::vecS, boost::vecS, boost::undirectedS,
-                                 WorldGridVertexProperties,
-                                   WorldGridEdgeProperties,
-                                 boost::vecS> WorldGridType;
+  typedef boost::adjacency_list_BC< boost::vecBC, boost::vecBC, boost::undirectedS,
+                                    WorldGridVertexProperties, WorldGridEdgeProperties > WorldGridType;
 
-  typedef boost::adjacency_list_traits<boost::vecS,boost::vecS,boost::undirectedS,boost::vecS>::vertex_descriptor VertexType;
+  typedef boost::adjacency_list_BC_traits<boost::vecBC,boost::vecBC,boost::undirectedS>::vertex_descriptor VertexType;
   typedef ReaK::pp::dvp_tree<VertexType, 
                              TopologyType, 
                              boost::property_map<WorldGridType, boost::vertex_position_t>::type, 

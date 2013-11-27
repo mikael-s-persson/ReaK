@@ -36,7 +36,8 @@
 #include <boost/graph/properties.hpp>
 #include <boost/property_map/property_map.hpp>
 
-#include "bgl_more_property_tags.hpp"
+// BGL-Extra includes:
+#include <boost/graph/more_property_tags.hpp>
 
 
 namespace boost {

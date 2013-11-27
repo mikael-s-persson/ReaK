@@ -49,7 +49,9 @@
 
 #include "motion_graph_structures.hpp"
 
-#include "graph_alg/bgl_more_property_maps.hpp"
+// BGL-Extra includes:
+#include <boost/graph/more_property_maps.hpp>
+
 #include "metric_space_search.hpp"
 #include "topological_search.hpp"
 
@@ -310,7 +312,7 @@ void fadprm_planner<FreeSpaceType>::solve_planning_query(planning_query<FreeSpac
   typedef dvp_adjacency_list< \
     VertexProp, EdgeProp, SuperSpace, PositionMap, \
     ARITY, random_vp_chooser, TREE_STORAGE, \
-    boost::vecS, DirectionalityTag, boost::listS > ALTGraph; \
+    boost::vecBC, DirectionalityTag, boost::listBC > ALTGraph; \
   typedef typename ALTGraph::adj_list_type MotionGraphType; \
   typedef typename boost::graph_traits<MotionGraphType>::vertex_descriptor Vertex; \
    \
@@ -348,9 +350,7 @@ void fadprm_planner<FreeSpaceType>::solve_planning_query(planning_query<FreeSpac
   
   if((this->m_data_structure_flags & MOTION_GRAPH_STORAGE_MASK) == ADJ_LIST_MOTION_GRAPH) {
     
-    typedef boost::adjacency_list< 
-      boost::vecS, boost::vecS, DirectionalityTag,
-      VertexProp, EdgeProp, boost::no_property, boost::listS> MotionGraphType;
+    typedef boost::adjacency_list_BC< boost::vecBC, boost::vecBC, DirectionalityTag, VertexProp, EdgeProp> MotionGraphType;
     typedef typename boost::graph_traits<MotionGraphType>::vertex_descriptor Vertex;
     
     MotionGraphType motion_graph;
@@ -372,27 +372,27 @@ void fadprm_planner<FreeSpaceType>::solve_planning_query(planning_query<FreeSpac
       
     } else if((this->m_data_structure_flags & KNN_METHOD_MASK) == DVP_BF2_TREE_KNN) {
       
-      RK_FADPRM_PLANNER_SETUP_DVP_TREE_SYNCHRO(2, graph::d_ary_bf_tree_storage<2>)
+      RK_FADPRM_PLANNER_SETUP_DVP_TREE_SYNCHRO(2, boost::bfl_d_ary_tree_storage<2>)
       
       RK_FADPRM_PLANNER_MAKE_GENERATE_CALL_FADPRM_FUNCTION
       
     } else if((this->m_data_structure_flags & KNN_METHOD_MASK) == DVP_BF4_TREE_KNN) {
       
-      RK_FADPRM_PLANNER_SETUP_DVP_TREE_SYNCHRO(4, graph::d_ary_bf_tree_storage<4>)
+      RK_FADPRM_PLANNER_SETUP_DVP_TREE_SYNCHRO(4, boost::bfl_d_ary_tree_storage<4>)
       
       RK_FADPRM_PLANNER_MAKE_GENERATE_CALL_FADPRM_FUNCTION
       
-#ifdef RK_PLANNERS_ENABLE_COB_TREE
+#ifdef RK_PLANNERS_ENABLE_VEBL_TREE
       
     } else if((this->m_data_structure_flags & KNN_METHOD_MASK) == DVP_COB2_TREE_KNN) {
       
-      RK_FADPRM_PLANNER_SETUP_DVP_TREE_SYNCHRO(2, graph::d_ary_cob_tree_storage<2>)
+      RK_FADPRM_PLANNER_SETUP_DVP_TREE_SYNCHRO(2, boost::vebl_d_ary_tree_storage<2>)
       
       RK_FADPRM_PLANNER_MAKE_GENERATE_CALL_FADPRM_FUNCTION
       
     } else if((this->m_data_structure_flags & KNN_METHOD_MASK) == DVP_COB4_TREE_KNN) {
       
-      RK_FADPRM_PLANNER_SETUP_DVP_TREE_SYNCHRO(4, graph::d_ary_cob_tree_storage<4>)
+      RK_FADPRM_PLANNER_SETUP_DVP_TREE_SYNCHRO(4, boost::vebl_d_ary_tree_storage<4>)
       
       RK_FADPRM_PLANNER_MAKE_GENERATE_CALL_FADPRM_FUNCTION
         
@@ -406,7 +406,7 @@ void fadprm_planner<FreeSpaceType>::solve_planning_query(planning_query<FreeSpac
     
     if((this->m_data_structure_flags & KNN_METHOD_MASK) == DVP_BF2_TREE_KNN) {
       
-      RK_FADPRM_PLANNER_SETUP_ALT_TREE_SYNCHRO(2, graph::d_ary_bf_tree_storage<2>)
+      RK_FADPRM_PLANNER_SETUP_ALT_TREE_SYNCHRO(2, boost::bfl_d_ary_tree_storage<2>)
       
       RK_FADPRM_PLANNER_INITIALIZE_START_AND_GOAL
       
@@ -414,17 +414,17 @@ void fadprm_planner<FreeSpaceType>::solve_planning_query(planning_query<FreeSpac
       
     } else if((this->m_data_structure_flags & KNN_METHOD_MASK) == DVP_BF4_TREE_KNN) {
       
-      RK_FADPRM_PLANNER_SETUP_ALT_TREE_SYNCHRO(4, graph::d_ary_bf_tree_storage<4>)
+      RK_FADPRM_PLANNER_SETUP_ALT_TREE_SYNCHRO(4, boost::bfl_d_ary_tree_storage<4>)
       
       RK_FADPRM_PLANNER_INITIALIZE_START_AND_GOAL
       
       RK_FADPRM_PLANNER_MAKE_GENERATE_CALL_FADPRM_FUNCTION
       
-#ifdef RK_PLANNERS_ENABLE_COB_TREE
+#ifdef RK_PLANNERS_ENABLE_VEBL_TREE
       
     } else if((this->m_data_structure_flags & KNN_METHOD_MASK) == DVP_COB2_TREE_KNN) {
       
-      RK_FADPRM_PLANNER_SETUP_ALT_TREE_SYNCHRO(2, graph::d_ary_cob_tree_storage<2>)
+      RK_FADPRM_PLANNER_SETUP_ALT_TREE_SYNCHRO(2, boost::vebl_d_ary_tree_storage<2>)
       
       RK_FADPRM_PLANNER_INITIALIZE_START_AND_GOAL
       
@@ -432,7 +432,7 @@ void fadprm_planner<FreeSpaceType>::solve_planning_query(planning_query<FreeSpac
       
     } else if((this->m_data_structure_flags & KNN_METHOD_MASK) == DVP_COB4_TREE_KNN) {
       
-      RK_FADPRM_PLANNER_SETUP_ALT_TREE_SYNCHRO(4, graph::d_ary_cob_tree_storage<4>)
+      RK_FADPRM_PLANNER_SETUP_ALT_TREE_SYNCHRO(4, boost::vebl_d_ary_tree_storage<4>)
       
       RK_FADPRM_PLANNER_INITIALIZE_START_AND_GOAL
       

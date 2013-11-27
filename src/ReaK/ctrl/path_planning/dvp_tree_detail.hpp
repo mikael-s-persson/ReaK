@@ -43,15 +43,12 @@
 
 #include "global_rng.hpp"
 
+// BGL-Extra includes:
+#include <boost/graph/tree_traits.hpp>
+#include <boost/graph/tree_adaptor.hpp>
 
-
-/****** To be replaced by BGL supplement ******/
-
-#include "graph_alg/tree_concepts.hpp"
-#include "graph_alg/bgl_tree_adaptor.hpp"
+// Pending inclusion in BGL-Extra:
 #include "graph_alg/bgl_raw_property_graph.hpp"
-
-/******              end                 ******/
 
 
 #include <boost/mpl/if.hpp>
@@ -616,8 +613,6 @@ class dvp_tree_impl
         vertex_type result = aNode;
         out_edge_iter ei,ei_end;
         for(boost::tie(ei,ei_end) = out_edges(aNode,m_tree); ei != ei_end; ++ei) {
-          if( ! is_edge_valid(*ei, m_tree) )
-            continue;
           result = target(*ei,m_tree);
 //           std::cout << " -- Looking at child " << std::setw(6) << get(m_key, get(boost::vertex_raw_property, m_tree, result)) 
 //                     << " at distance " << get(m_mu, get(boost::edge_raw_property, m_tree, *ei)) << std::endl;
@@ -625,8 +620,6 @@ class dvp_tree_impl
             break;
           if(current_dist == get(m_mu, get(boost::edge_raw_property,m_tree,*ei))) {
             ++ei;
-            while( (ei != ei_end) && (!is_edge_valid(*ei, m_tree)) )
-              ++ei;
             if(ei != ei_end)
               aAlternateBranch = target(*ei,m_tree);
             break;
@@ -894,8 +887,6 @@ class dvp_tree_impl
       out_edge_iter ei,ei_end;
       double max_dist = 0.0;
       for(boost::tie(ei,ei_end) = out_edges(m_root,m_tree); ei != ei_end; ++ei) {
-        if( ! is_edge_valid(*ei, m_tree) )
-          continue;
         double cur_dist = get(m_mu, get(boost::edge_raw_property,m_tree,*ei));
         if(cur_dist > max_dist)
           max_dist = cur_dist;

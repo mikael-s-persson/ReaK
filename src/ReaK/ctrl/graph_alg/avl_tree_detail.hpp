@@ -43,17 +43,14 @@
 #include <boost/graph/graph_concepts.hpp>
 #include <boost/property_map/property_map.hpp>
 
-#include <unordered_map>
+// BGL-Extra includes:
+#include <boost/graph/tree_traits.hpp>
+#include <boost/graph/tree_adaptor.hpp>
+#include <boost/graph/bst_inorder_iterator.hpp>
+
+
 #include <vector>
-#include <stack>
 #include <queue>
-
-#include "graph_alg/tree_concepts.hpp"
-#include "graph_alg/bgl_tree_adaptor.hpp"
-#include "graph_alg/bgl_raw_property_graph.hpp"
-
-#include "graph_alg/bst_inorder_iterator.hpp"
-
 #include <iterator>
 
 
@@ -281,7 +278,7 @@ class avl_tree_impl
     typedef typename helper_type::pointer pointer;
     typedef typename helper_type::const_pointer const_pointer;
     
-    typedef bst_inorder_iterator<const TreeType, const value_type> iterator;
+    typedef boost::bst_inorder_iterator<const TreeType, const value_type> iterator;
     typedef iterator const_iterator;
     
     typedef std::reverse_iterator<iterator> reverse_iterator;
@@ -300,7 +297,7 @@ class avl_tree_impl
     typedef typename boost::graph_traits<tree_indexer>::edge_descriptor edge_type;
     typedef typename boost::graph_traits<tree_indexer>::out_edge_iterator out_edge_iter;
     typedef typename boost::graph_traits<tree_indexer>::in_edge_iterator in_edge_iter;
-    typedef typename tree_traits<tree_indexer>::child_vertex_iterator child_vertex_iter;
+    typedef typename boost::tree_traits<tree_indexer>::child_vertex_iterator child_vertex_iter;
     
     typedef typename tree_indexer::vertex_property_type vertex_property;
     typedef typename tree_indexer::edge_property_type edge_property;
@@ -644,8 +641,8 @@ class avl_tree_impl
         };
       };
       // if we reach this point, then, try to go up to some re-balanceable node.
-      detail::bst_traversal_status dummy_status = detail::OnRightBranch;
-      detail::bst_move_up_to_next(m_tree, tmp_u, dummy_status);
+      boost::graph::detail::bst_traversal_status dummy_status = boost::graph::detail::OnRightBranch;
+      boost::graph::detail::bst_move_up_to_next(m_tree, tmp_u, dummy_status);
       if(tmp_u != m_root) {
         std::pair< vertex_type, bool > imbal_u = find_imbalance_impl(tmp_u, 1);
         if(imbal_u.second) {
@@ -699,7 +696,7 @@ class avl_tree_impl
       
       if((aBefore == tree_indexer::null_vertex()) && (aAfter == tree_indexer::null_vertex())) {
         // this means that the vertex must be appended to the end. (value is greater than all elements in the tree)
-        aBefore = detail::bst_go_down_right(m_tree, m_root);
+        aBefore = boost::graph::detail::bst_go_down_right(m_tree, m_root);
 #ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
         return insert_after_terminal_impl(aBefore, std::move(aValue));
 #else
@@ -745,7 +742,7 @@ class avl_tree_impl
         };
         
         // else, aAfter is full, lets try after the previous node (which must be a leaf or non-full node):
-        aBefore = detail::bst_go_down_right(m_tree, *(child_vertices(aAfter,m_tree).first));
+        aBefore = boost::graph::detail::bst_go_down_right(m_tree, *(child_vertices(aAfter,m_tree).first));
 #ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
         return insert_after_terminal_impl(aBefore, std::move(aValue));
 #else
@@ -801,8 +798,8 @@ class avl_tree_impl
       
       // collect and remove.
       std::vector< vertex_property > collected_nodes;
-      iterator it_near(&m_tree, detail::bst_go_down_left(m_tree, mid_root));
-      iterator it_far(&m_tree, detail::bst_go_down_right(m_tree, mid_root));
+      iterator it_near(&m_tree, boost::graph::detail::bst_go_down_left(m_tree, mid_root));
+      iterator it_far(&m_tree, boost::graph::detail::bst_go_down_right(m_tree, mid_root));
       
       while(true) {
         if(it_near == aBefore) {

@@ -49,8 +49,12 @@
 
 #include "motion_graph_structures.hpp"
 
-#include "graph_alg/bgl_tree_adaptor.hpp"
-#include "graph_alg/bgl_more_property_maps.hpp"
+// BGL-Extra includes:
+#include <boost/graph/tree_adaptor.hpp>
+#include <boost/graph/more_property_tags.hpp>
+#include <boost/graph/more_property_maps.hpp>
+
+
 #include "metric_space_search.hpp"
 #include "topological_search.hpp"
 
@@ -197,7 +201,7 @@ void rrt_planner<FreeSpaceType>::solve_planning_query(planning_query<FreeSpaceTy
   typedef dvp_adjacency_list< \
     VertexProp, EdgeProp, SuperSpace, PositionMap, \
     ARITY, random_vp_chooser, TREE_STORAGE, \
-    boost::vecS, DirectionalityTag, boost::listS > ALTGraph; \
+    boost::vecBC, DirectionalityTag, boost::listBC > ALTGraph; \
   typedef typename ALTGraph::adj_list_type MotionGraphType; \
    \
   ALTGraph space_part(sup_space_ptr, pos_map); \
@@ -221,9 +225,7 @@ void rrt_planner<FreeSpaceType>::solve_planning_query(planning_query<FreeSpaceTy
     
     if((this->m_data_structure_flags & MOTION_GRAPH_STORAGE_MASK) == ADJ_LIST_MOTION_GRAPH) {
       
-      typedef boost::adjacency_list< 
-        boost::vecS, boost::listS, DirectionalityTag,
-        VertexProp, EdgeProp, boost::vecS> MotionGraphType;
+      typedef boost::adjacency_list_BC< boost::vecBC, boost::listBC, DirectionalityTag, VertexProp, EdgeProp> MotionGraphType;
       
       MotionGraphType motion_graph;
       vis.m_start_node = boost::any( create_root(vp_start, motion_graph) );
@@ -238,27 +240,27 @@ void rrt_planner<FreeSpaceType>::solve_planning_query(planning_query<FreeSpaceTy
         
       } else if((this->m_data_structure_flags & KNN_METHOD_MASK) == DVP_BF2_TREE_KNN) {
         
-        RK_RRT_PLANNER_SETUP_DVP_TREE_SYNCHRO(2, graph::d_ary_bf_tree_storage<2>)
+        RK_RRT_PLANNER_SETUP_DVP_TREE_SYNCHRO(2, boost::bfl_d_ary_tree_storage<2>)
         
         RK_RRT_PLANNER_CALL_RRT_FUNCTION
         
       } else if((this->m_data_structure_flags & KNN_METHOD_MASK) == DVP_BF4_TREE_KNN) {
         
-        RK_RRT_PLANNER_SETUP_DVP_TREE_SYNCHRO(4, graph::d_ary_bf_tree_storage<4>)
+        RK_RRT_PLANNER_SETUP_DVP_TREE_SYNCHRO(4, boost::bfl_d_ary_tree_storage<4>)
         
         RK_RRT_PLANNER_CALL_RRT_FUNCTION
       
-#ifdef RK_PLANNERS_ENABLE_COB_TREE
+#ifdef RK_PLANNERS_ENABLE_VEBL_TREE
         
       } else if((this->m_data_structure_flags & KNN_METHOD_MASK) == DVP_COB2_TREE_KNN) {
         
-        RK_RRT_PLANNER_SETUP_DVP_TREE_SYNCHRO(2, graph::d_ary_cob_tree_storage<2>)
+        RK_RRT_PLANNER_SETUP_DVP_TREE_SYNCHRO(2, boost::vebl_d_ary_tree_storage<2>)
         
         RK_RRT_PLANNER_CALL_RRT_FUNCTION
         
       } else if((this->m_data_structure_flags & KNN_METHOD_MASK) == DVP_COB4_TREE_KNN) {
         
-        RK_RRT_PLANNER_SETUP_DVP_TREE_SYNCHRO(4, graph::d_ary_cob_tree_storage<4>)
+        RK_RRT_PLANNER_SETUP_DVP_TREE_SYNCHRO(4, boost::vebl_d_ary_tree_storage<4>)
         
         RK_RRT_PLANNER_CALL_RRT_FUNCTION
         
@@ -272,27 +274,27 @@ void rrt_planner<FreeSpaceType>::solve_planning_query(planning_query<FreeSpaceTy
       
       if((this->m_data_structure_flags & KNN_METHOD_MASK) == DVP_BF2_TREE_KNN) {
         
-        RK_RRT_PLANNER_SETUP_ALT_TREE_SYNCHRO(2, graph::d_ary_bf_tree_storage<2>)
+        RK_RRT_PLANNER_SETUP_ALT_TREE_SYNCHRO(2, boost::bfl_d_ary_tree_storage<2>)
         
         RK_RRT_PLANNER_CALL_RRT_FUNCTION
         
       } else if((this->m_data_structure_flags & KNN_METHOD_MASK) == DVP_BF4_TREE_KNN) {
         
-        RK_RRT_PLANNER_SETUP_ALT_TREE_SYNCHRO(4, graph::d_ary_bf_tree_storage<4>)
+        RK_RRT_PLANNER_SETUP_ALT_TREE_SYNCHRO(4, boost::bfl_d_ary_tree_storage<4>)
         
         RK_RRT_PLANNER_CALL_RRT_FUNCTION
       
-#ifdef RK_PLANNERS_ENABLE_COB_TREE
+#ifdef RK_PLANNERS_ENABLE_VEBL_TREE
         
       } else if((this->m_data_structure_flags & KNN_METHOD_MASK) == DVP_COB2_TREE_KNN) {
         
-        RK_RRT_PLANNER_SETUP_ALT_TREE_SYNCHRO(2, graph::d_ary_cob_tree_storage<2>)
+        RK_RRT_PLANNER_SETUP_ALT_TREE_SYNCHRO(2, boost::vebl_d_ary_tree_storage<2>)
         
         RK_RRT_PLANNER_CALL_RRT_FUNCTION
         
       } else if((this->m_data_structure_flags & KNN_METHOD_MASK) == DVP_COB4_TREE_KNN) {
         
-        RK_RRT_PLANNER_SETUP_ALT_TREE_SYNCHRO(4, graph::d_ary_cob_tree_storage<4>)
+        RK_RRT_PLANNER_SETUP_ALT_TREE_SYNCHRO(4, boost::vebl_d_ary_tree_storage<4>)
         
         RK_RRT_PLANNER_CALL_RRT_FUNCTION
         
@@ -337,7 +339,7 @@ void rrt_planner<FreeSpaceType>::solve_planning_query(planning_query<FreeSpaceTy
   typedef dvp_adjacency_list< \
     VertexProp, EdgeProp, SuperSpace, PositionMap, \
     ARITY, random_vp_chooser, TREE_STORAGE, \
-    boost::vecS, DirectionalityTag, boost::listS > ALTGraph; \
+    boost::vecBC, DirectionalityTag, boost::listBC > ALTGraph; \
   typedef typename ALTGraph::adj_list_type MotionGraphType; \
    \
   ALTGraph space_part1(sup_space_ptr, pos_map); \
@@ -367,9 +369,7 @@ void rrt_planner<FreeSpaceType>::solve_planning_query(planning_query<FreeSpaceTy
     
     if((this->m_data_structure_flags & MOTION_GRAPH_STORAGE_MASK) == ADJ_LIST_MOTION_GRAPH) {
       
-      typedef boost::adjacency_list< 
-        boost::vecS, boost::listS, DirectionalityTag,
-        VertexProp, EdgeProp, boost::vecS> MotionGraphType;
+      typedef boost::adjacency_list_BC< boost::vecBC, boost::listBC, DirectionalityTag, VertexProp, EdgeProp> MotionGraphType;
       
       MotionGraphType motion_graph1;
       MotionGraphType motion_graph2;
@@ -387,27 +387,27 @@ void rrt_planner<FreeSpaceType>::solve_planning_query(planning_query<FreeSpaceTy
         
       } else if((this->m_data_structure_flags & KNN_METHOD_MASK) == DVP_BF2_TREE_KNN) {
         
-        RK_RRT_PLANNER_SETUP_TWO_DVP_TREE_SYNCHRO(2, graph::d_ary_bf_tree_storage<2>)
+        RK_RRT_PLANNER_SETUP_TWO_DVP_TREE_SYNCHRO(2, boost::bfl_d_ary_tree_storage<2>)
         
         RK_RRT_PLANNER_CALL_BIRRT_FUNCTION
         
       } else if((this->m_data_structure_flags & KNN_METHOD_MASK) == DVP_BF4_TREE_KNN) {
         
-        RK_RRT_PLANNER_SETUP_TWO_DVP_TREE_SYNCHRO(4, graph::d_ary_bf_tree_storage<4>)
+        RK_RRT_PLANNER_SETUP_TWO_DVP_TREE_SYNCHRO(4, boost::bfl_d_ary_tree_storage<4>)
         
         RK_RRT_PLANNER_CALL_BIRRT_FUNCTION
       
-#ifdef RK_PLANNERS_ENABLE_COB_TREE
+#ifdef RK_PLANNERS_ENABLE_VEBL_TREE
         
       } else if((this->m_data_structure_flags & KNN_METHOD_MASK) == DVP_COB2_TREE_KNN) {
         
-        RK_RRT_PLANNER_SETUP_TWO_DVP_TREE_SYNCHRO(2, graph::d_ary_cob_tree_storage<2>)
+        RK_RRT_PLANNER_SETUP_TWO_DVP_TREE_SYNCHRO(2, boost::vebl_d_ary_tree_storage<2>)
         
         RK_RRT_PLANNER_CALL_BIRRT_FUNCTION
         
       } else if((this->m_data_structure_flags & KNN_METHOD_MASK) == DVP_COB4_TREE_KNN) {
         
-        RK_RRT_PLANNER_SETUP_TWO_DVP_TREE_SYNCHRO(4, graph::d_ary_cob_tree_storage<4>)
+        RK_RRT_PLANNER_SETUP_TWO_DVP_TREE_SYNCHRO(4, boost::vebl_d_ary_tree_storage<4>)
         
         RK_RRT_PLANNER_CALL_BIRRT_FUNCTION
         
@@ -421,27 +421,27 @@ void rrt_planner<FreeSpaceType>::solve_planning_query(planning_query<FreeSpaceTy
       
       if((this->m_data_structure_flags & KNN_METHOD_MASK) == DVP_BF2_TREE_KNN) {
         
-        RK_RRT_PLANNER_SETUP_TWO_ALT_TREE_SYNCHRO(2, graph::d_ary_bf_tree_storage<2>)
+        RK_RRT_PLANNER_SETUP_TWO_ALT_TREE_SYNCHRO(2, boost::bfl_d_ary_tree_storage<2>)
         
         RK_RRT_PLANNER_CALL_BIRRT_FUNCTION
         
       } else if((this->m_data_structure_flags & KNN_METHOD_MASK) == DVP_BF4_TREE_KNN) {
         
-        RK_RRT_PLANNER_SETUP_TWO_ALT_TREE_SYNCHRO(4, graph::d_ary_bf_tree_storage<4>)
+        RK_RRT_PLANNER_SETUP_TWO_ALT_TREE_SYNCHRO(4, boost::bfl_d_ary_tree_storage<4>)
         
         RK_RRT_PLANNER_CALL_BIRRT_FUNCTION
       
-#ifdef RK_PLANNERS_ENABLE_COB_TREE
+#ifdef RK_PLANNERS_ENABLE_VEBL_TREE
         
       } else if((this->m_data_structure_flags & KNN_METHOD_MASK) == DVP_COB2_TREE_KNN) {
         
-        RK_RRT_PLANNER_SETUP_TWO_ALT_TREE_SYNCHRO(2, graph::d_ary_cob_tree_storage<2>)
+        RK_RRT_PLANNER_SETUP_TWO_ALT_TREE_SYNCHRO(2, boost::vebl_d_ary_tree_storage<2>)
         
         RK_RRT_PLANNER_CALL_BIRRT_FUNCTION
         
       } else if((this->m_data_structure_flags & KNN_METHOD_MASK) == DVP_COB4_TREE_KNN) {
         
-        RK_RRT_PLANNER_SETUP_TWO_ALT_TREE_SYNCHRO(4, graph::d_ary_cob_tree_storage<4>)
+        RK_RRT_PLANNER_SETUP_TWO_ALT_TREE_SYNCHRO(4, boost::vebl_d_ary_tree_storage<4>)
         
         RK_RRT_PLANNER_CALL_BIRRT_FUNCTION
         

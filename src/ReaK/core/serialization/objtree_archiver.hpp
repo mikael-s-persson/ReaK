@@ -41,9 +41,10 @@
 #include <sstream>
 #include <queue>
 
-#include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/graph_traits.hpp>
 #include <boost/graph/graph_selectors.hpp>
+
+#include <boost/graph/adjacency_list_BC.hpp>
 
 namespace ReaK {
   
@@ -62,7 +63,7 @@ struct object_graph_node {
   object_graph_node(const shared_ptr< serializable >& PObj = shared_ptr< serializable >(), const std::string& aXMLSrc = "") : p_obj(PObj), xml_src(aXMLSrc) { };
 };
 
-typedef boost::adjacency_list< boost::vecS, boost::vecS, boost::bidirectionalS, object_graph_node > object_graph;
+typedef boost::adjacency_list_BC< boost::vecBC, boost::vecBC, boost::bidirectionalS, object_graph_node > object_graph;
 typedef boost::graph_traits< object_graph >::vertex_descriptor object_node_desc;
 
 

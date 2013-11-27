@@ -49,7 +49,12 @@
 
 #include "path_planning/motion_graph_structures.hpp"
 
-#include "graph_alg/bgl_more_property_maps.hpp"
+
+// BGL-Extra includes:
+#include <boost/graph/more_property_tags.hpp>
+#include <boost/graph/more_property_maps.hpp>
+
+
 #include "path_planning/metric_space_search.hpp"
 #include "path_planning/topological_search.hpp"
 
@@ -389,8 +394,7 @@ void MEAQR_sbastar_planner<StateSpace, StateSpaceSystem, StateSpaceSampler>::sol
   path_planning_p2p_query<FreeSpaceType>* p2p_query_ptr = reinterpret_cast< path_planning_p2p_query<FreeSpaceType>* >(aQuery.castTo(path_planning_p2p_query<FreeSpaceType>::getStaticObjectType()));
   
   
-  typedef boost::adjacency_list< boost::vecS, boost::vecS, boost::bidirectionalS,
-                                 VertexProp, EdgeProp, boost::no_property, boost::listS> MotionGraphType;
+  typedef boost::adjacency_list_BC< boost::vecBC, boost::vecBC, boost::bidirectionalS, VertexProp, EdgeProp> MotionGraphType;
   typedef typename boost::graph_traits<MotionGraphType>::vertex_descriptor Vertex;
   
   MotionGraphType motion_graph;
@@ -663,26 +667,26 @@ void MEAQR_sbastar_planner<StateSpace, StateSpaceSystem, StateSpaceSampler>::sol
     
   } else if((this->m_data_structure_flags & KNN_METHOD_MASK) == DVP_BF2_TREE_KNN) {
     
-    RK_MEAQR_SBASTAR_PLANNER_SETUP_DVP_TREE_SYNCHRO(2, graph::d_ary_bf_tree_storage<2>)
+    RK_MEAQR_SBASTAR_PLANNER_SETUP_DVP_TREE_SYNCHRO(2, boost::bfl_d_ary_tree_storage<2>)
     
     RK_MEAQR_SBASTAR_PLANNER_CALL_APPROPRIATE_SBASTAR_PLANNER_FUNCTION
     
   } else if((this->m_data_structure_flags & KNN_METHOD_MASK) == DVP_BF4_TREE_KNN) {
     
-    RK_MEAQR_SBASTAR_PLANNER_SETUP_DVP_TREE_SYNCHRO(4, graph::d_ary_bf_tree_storage<4>)
+    RK_MEAQR_SBASTAR_PLANNER_SETUP_DVP_TREE_SYNCHRO(4, boost::bfl_d_ary_tree_storage<4>)
     
     RK_MEAQR_SBASTAR_PLANNER_CALL_APPROPRIATE_SBASTAR_PLANNER_FUNCTION
     
-#ifdef RK_PLANNERS_ENABLE_COB_TREE
+#ifdef RK_PLANNERS_ENABLE_VEBL_TREE
   } else if((this->m_data_structure_flags & KNN_METHOD_MASK) == DVP_COB2_TREE_KNN) {
     
-    RK_MEAQR_SBASTAR_PLANNER_SETUP_DVP_TREE_SYNCHRO(2, graph::d_ary_cob_tree_storage<2>)
+    RK_MEAQR_SBASTAR_PLANNER_SETUP_DVP_TREE_SYNCHRO(2, boost::vebl_d_ary_tree_storage<2>)
     
     RK_MEAQR_SBASTAR_PLANNER_CALL_APPROPRIATE_SBASTAR_PLANNER_FUNCTION
     
   } else if((this->m_data_structure_flags & KNN_METHOD_MASK) == DVP_COB4_TREE_KNN) {
     
-    RK_MEAQR_SBASTAR_PLANNER_SETUP_DVP_TREE_SYNCHRO(4, graph::d_ary_cob_tree_storage<4>)
+    RK_MEAQR_SBASTAR_PLANNER_SETUP_DVP_TREE_SYNCHRO(4, boost::vebl_d_ary_tree_storage<4>)
     
     RK_MEAQR_SBASTAR_PLANNER_CALL_APPROPRIATE_SBASTAR_PLANNER_FUNCTION
 #endif

@@ -46,14 +46,14 @@
 #include "metric_space_concept.hpp"
 
 
-/****** To be replaced by BGL supplement ******/
+// BGL-Extra includes:
+#include <boost/graph/more_property_tags.hpp>
+#include <boost/graph/more_property_maps.hpp>
+#include <boost/graph/bfl_d_ary_tree.hpp>  // for default tree storage.
 
-#include "graph_alg/d_ary_bf_tree.hpp"  // for default tree storage.
-
-#include "graph_alg/bgl_more_property_maps.hpp"
+// Pending inclusion in BGL-Extra:
 #include "graph_alg/bgl_raw_property_graph.hpp"
 
-/******              end                 ******/
 
 #include "dvp_tree_detail.hpp"
 
@@ -168,7 +168,7 @@ template <typename Key,
           typename PositionMap,
           unsigned int Arity = 2,
           typename VPChooser = random_vp_chooser,
-          typename TreeStorageTag = graph::d_ary_bf_tree_storage<Arity>,
+          typename TreeStorageTag = boost::bfl_d_ary_tree_storage<Arity>,
           typename PositionCachingPolicy = position_caching_policy>
 class dvp_tree
 {
@@ -379,7 +379,7 @@ class dvp_tree
       std::vector< TreeVertex > v_list;
       for(; aBegin != aEnd; ++aBegin) {
         TreeVertex u = m_impl.get_vertex(*aBegin, get(m_position, *aBegin));
-        if(is_vertex_valid(u, m_tree))
+        if( u != boost::graph_traits<tree_indexer>::null_vertex() )
           v_list.push_back(u);
       };
       m_impl.erase(v_list.begin(), v_list.end());

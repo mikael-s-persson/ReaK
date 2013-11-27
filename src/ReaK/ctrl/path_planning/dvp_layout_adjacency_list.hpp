@@ -50,14 +50,14 @@
 
 #include "graph_alg/adj_list_tree_overlay.hpp"
 
-/****** To be replaced by BGL supplement ******/
+// BGL-Extra includes:
+#include <boost/graph/more_property_maps.hpp>
+#include <boost/graph/bfl_d_ary_tree.hpp>  // for default tree storage.
 
-#include "graph_alg/d_ary_bf_tree.hpp"  // for default tree storage.
 
-#include "graph_alg/bgl_more_property_maps.hpp"
+// Pending inclusion in BGL-Extra:
 #include "graph_alg/bgl_raw_property_graph.hpp"
 
-/******              end                 ******/
 
 #include "dvp_tree_detail.hpp"
 
@@ -87,9 +87,9 @@ namespace pp {
  * \tparam Arity The arity of the tree, e.g., 2 means a binary-tree.
  * \tparam VPChooser The functor type to use to choose the vantage-point out of a set of vertices.
  * \tparam TreeStorageTag A tree-storage tag which specifies the kind of tree structure to use for the DVP tree.
- * \tparam OutEdgeListS The out-edge list container specifier for the adjacency-list (same as OutEdgeListS in boost::adjacency_list).
- * \tparam DirectedS The edge's directional specifier for the adjacency-list (same as DirectedS in boost::adjacency_list).
- * \tparam EdgeListS The edge list container specifier for the adjacency-list (same as EdgeListS in boost::adjacency_list).
+ * \tparam OutEdgeListS The out-edge list container specifier for the adjacency-list (same as OutEdgeListS in boost::adjacency_list_BC).
+ * \tparam DirectedS The edge's directional specifier for the adjacency-list (same as DirectedS in boost::adjacency_list_BC).
+ * \tparam EdgeListS The edge list container specifier for the adjacency-list (same as EdgeListS in boost::adjacency_list_BC).
  */
 template <typename VertexProperty,
           typename EdgeProperty,
@@ -97,10 +97,10 @@ template <typename VertexProperty,
           typename PositionMap,
           unsigned int Arity = 2,
           typename VPChooser = random_vp_chooser,
-          typename TreeStorageTag = ReaK::graph::d_ary_bf_tree_storage<Arity>,
-          typename OutEdgeListS = boost::vecS,
+          typename TreeStorageTag = boost::bfl_d_ary_tree_storage<Arity>,
+          typename OutEdgeListS = boost::vecBC,
           typename DirectedS = boost::directedS,
-          typename EdgeListS = boost::vecS >
+          typename EdgeListS = boost::vecBC >
 class dvp_adjacency_list
 {
   public:

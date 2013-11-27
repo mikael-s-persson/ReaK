@@ -24,7 +24,7 @@
 #include <iostream>
 #include <fstream>
 
-#include <boost/graph/adjacency_list.hpp>
+#include <boost/graph/adjacency_list_BC.hpp>
 #include <boost/graph/topology.hpp>
 #include <boost/graph/properties.hpp>
 
@@ -58,8 +58,8 @@ int main() {
     WorldGridEdgeProperties,
     TopologyType, PositionMap,
     2, ReaK::pp::random_vp_chooser,
-    ReaK::graph::d_ary_bf_tree_storage<2>,
-    boost::vecS, boost::undirectedS, boost::vecS > WorldPartition2BF;
+    boost::bfl_d_ary_tree_storage<2>,
+    boost::vecBC, boost::undirectedS, boost::vecBC > WorldPartition2BF;
   
   typedef WorldPartition2BF::adj_list_type WorldGrid2BF;
   

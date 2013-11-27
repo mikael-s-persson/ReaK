@@ -65,8 +65,9 @@
 #include "path_planning/metric_space_concept.hpp"
 #include "path_planning/random_sampler_concept.hpp"
 
-#include "graph_alg/bgl_tree_adaptor.hpp"
-#include "graph_alg/bgl_more_property_maps.hpp"
+// BGL-Extra includes:
+#include <boost/graph/tree_adaptor.hpp>
+#include <boost/graph/more_property_maps.hpp>
 
 #include "graph_alg/sbmp_visitor_concepts.hpp"
 

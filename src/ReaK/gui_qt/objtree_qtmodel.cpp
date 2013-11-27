@@ -32,7 +32,9 @@
 #include "objtree_qtmodel.hpp"
 
 #include <base/named_object.hpp>
-#include "graph_alg/bgl_tree_adaptor.hpp"
+
+// BGL-Extra includes:
+#include <boost/graph/tree_adaptor.hpp>
 
 namespace ReaK {
 

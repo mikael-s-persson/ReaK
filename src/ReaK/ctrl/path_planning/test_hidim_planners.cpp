@@ -712,7 +712,7 @@ int main(int argc, char** argv) {
     ("sba-with-bnb", "specify whether to use a Branch-and-bound or not during SBA* as a method to prune useless nodes from the motion-graph")
 #endif
     ("all-planners,a", "specify that all supported planners should be run (default if no particular planner is specified)")
-#ifdef RK_PLANNERS_ENABLE_COB_TREE
+#ifdef RK_PLANNERS_ENABLE_VEBL_TREE
     ("knn-method", po::value< std::string >()->default_value("bf2"), "specify the KNN method to use (supported options: linear, bf2, bf4, cob2, cob4) (default: bf2)")
 #else
     ("knn-method", po::value< std::string >()->default_value("bf2"), "specify the KNN method to use (supported options: linear, bf2, bf4) (default: bf2)")
@@ -755,7 +755,7 @@ int main(int argc, char** argv) {
   } else if(vm["knn-method"].as<std::string>() == "bf4") {
     data_struct_flags |= ReaK::pp::DVP_BF4_TREE_KNN;
     knn_method_str = "bf4";
-#ifdef RK_PLANNERS_ENABLE_COB_TREE
+#ifdef RK_PLANNERS_ENABLE_VEBL_TREE
   } else if(vm["knn-method"].as<std::string>() == "cob2") {
     data_struct_flags |= ReaK::pp::DVP_COB2_TREE_KNN;
     knn_method_str = "cob2";

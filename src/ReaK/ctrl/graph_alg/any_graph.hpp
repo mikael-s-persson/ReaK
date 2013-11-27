@@ -46,7 +46,8 @@
 #include <boost/type_traits.hpp>
 
 
-#include "bgl_more_property_tags.hpp"
+// BGL-Extra includes:
+#include <boost/graph/more_property_tags.hpp>
 
 
 /** Main namespace for ReaK */

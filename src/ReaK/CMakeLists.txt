@@ -91,6 +91,12 @@ if( NOT WIN32 )
 endif()
 
 
+find_package(BGLExtra REQUIRED)
+if(BGLEXTRA_FOUND)
+  message(STATUS "BGL-Extra was detected on this system: '${BGLEXTRA_INCLUDE_DIR}'")
+  include_directories(SYSTEM ${BGLEXTRA_INCLUDE_DIR})
+endif()
+
 
 
 find_package(Coin3D)

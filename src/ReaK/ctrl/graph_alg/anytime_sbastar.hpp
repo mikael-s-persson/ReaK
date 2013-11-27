@@ -58,9 +58,9 @@
 #include <boost/graph/properties.hpp>
 #include <boost/graph/detail/d_ary_heap.hpp>
 
-#include "bgl_more_property_maps.hpp"
-#include "bgl_more_property_tags.hpp"
-#include "bgl_raw_property_graph.hpp"
+// BGL-Extra includes:
+#include <boost/graph/more_property_tags.hpp>
+#include <boost/graph/more_property_maps.hpp>
 
 #include "sbastar_search.hpp"
 #include "sbastar_rrtstar.hpp"
@@ -193,10 +193,8 @@ namespace detail {
       
       typedef typename boost::graph_traits<Graph>::vertex_iterator VIter;
       VIter vi, vi_end;
-      for(boost::tie(vi, vi_end) = vertices(g); vi != vi_end; ++vi) {
-        if(is_vertex_valid(*vi,g))
-          requeue_vertex(*vi, g);
-      };
+      for(boost::tie(vi, vi_end) = vertices(g); vi != vi_end; ++vi)
+        requeue_vertex(*vi, g);
     };
     
     template <typename Graph>

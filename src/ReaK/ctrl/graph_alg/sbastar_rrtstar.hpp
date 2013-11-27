@@ -60,9 +60,9 @@
 #include <boost/graph/properties.hpp>
 #include <boost/graph/detail/d_ary_heap.hpp>
 
-#include "bgl_more_property_maps.hpp"
-#include "bgl_more_property_tags.hpp"
-#include "bgl_raw_property_graph.hpp"
+// BGL-Extra includes:
+#include <boost/graph/more_property_tags.hpp>
+#include <boost/graph/more_property_maps.hpp>
 
 #include "sbastar_search.hpp"
 #include "node_generators.hpp"

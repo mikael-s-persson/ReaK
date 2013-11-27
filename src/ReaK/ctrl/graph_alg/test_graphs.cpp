@@ -24,7 +24,6 @@
 #include <iostream>
 #include <fstream>
 
-#include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/topology.hpp>
 #include <boost/graph/properties.hpp>
 
@@ -32,7 +31,8 @@
 #include "topologies/hyperbox_topology.hpp"
 #include "lin_alg/vect_alg.hpp"
 
-#include "graph_alg/pooled_adjacency_list.hpp"
+
+#include <boost/graph/adjacency_list_BC.hpp>
 
 
 typedef ReaK::pp::hyperbox_topology< ReaK::vect<double,2> > TopologyType;
@@ -168,8 +168,8 @@ int main() {
     WorldGridEdgeProperties,
     TopologyType, PositionMap,
     2, ReaK::pp::random_vp_chooser,
-    ReaK::graph::d_ary_bf_tree_storage<2>,
-    boost::vecS, boost::bidirectionalS, boost::listS > WorldPartition2BF;
+    boost::bfl_d_ary_tree_storage<2>,
+    boost::vecBC, boost::bidirectionalS, boost::listBC > WorldPartition2BF;
   
   typedef WorldPartition2BF::adj_list_type WorldGrid2BF;
   
@@ -184,19 +184,20 @@ int main() {
     WorldGridEdgeProperties,
     TopologyType, PositionMap,
     2, ReaK::pp::random_vp_chooser,
-    ReaK::graph::d_ary_bf_tree_storage<2>,
-    boost::listS, boost::bidirectionalS, boost::listS > WorldPartition2BF_listS;
+    boost::bfl_d_ary_tree_storage<2>,
+    boost::listBC, boost::bidirectionalS, boost::listBC > WorldPartition2BF_listBC;
   
-  typedef WorldPartition2BF_listS::adj_list_type WorldGrid2BF_listS;
+  typedef WorldPartition2BF_listBC::adj_list_type WorldGrid2BF_listBC;
   
-  WorldPartition2BF_listS dvp2_ls(m_space, PositionMap(&WorldGridVertexProperties::pos));
-  WorldGrid2BF_listS g2_ls = dvp2_ls.get_adjacency_list();
+  WorldPartition2BF_listBC dvp2_ls(m_space, PositionMap(&WorldGridVertexProperties::pos));
+  WorldGrid2BF_listBC g2_ls = dvp2_ls.get_adjacency_list();
   
   if(!test_propgraph_functions(g2_ls))
     return 1;
   
   
-  typedef boost::pooled_adjacency_list<
+  typedef boost::adjacency_list_BC<
+    boost::vecBC, boost::poolBC,
     boost::bidirectionalS,
     WorldGridVertexProperties,
     WorldGridEdgeProperties> WorldGridPooled;

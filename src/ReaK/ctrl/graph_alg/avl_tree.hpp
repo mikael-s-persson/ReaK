@@ -38,8 +38,10 @@
 
 #include "graph_alg/avl_tree_detail.hpp"
 
-#include "graph_alg/d_ary_bf_tree.hpp"
-#include "graph_alg/d_ary_cob_tree.hpp"
+
+// BGL-Extra includes:
+#include <boost/graph/bfl_d_ary_tree.hpp>
+#include <boost/graph/vebl_d_ary_tree.hpp>
 
 
 namespace ReaK {
@@ -56,26 +58,26 @@ namespace graph {
  * performance in enhanced in terms for cache-locality, at the amortized expense of copies during 
  * re-balancing and re-allocation. Note also, that insertion/deletions generally invalidate existing iterators.
  * \tparam T Type of the elements. Each element in a set container is also uniquely identified by this 
- *           value (each value is itself also the element's key). Aliased as member types avlbf_set::key_type and avlbf_set::value_type.
+ *           value (each value is itself also the element's key). Aliased as member types avlbfl_set::key_type and avlbfl_set::value_type.
  * \tparam Compare A binary predicate that takes two arguments of the same type as the elements and returns a bool. 
  *                 The expression comp(a,b), where comp is an object of this type and a and b are key values, shall 
  *                 return true if a is considered to go before b in the strict weak ordering the function defines.
  */
 template <typename T, typename Compare = std::less<T> >
-struct avlbf_set : public avl_tree_impl< d_ary_bf_tree<T, 2>, Compare, detail::avl_set_style > {
-  typedef avl_tree_impl< d_ary_bf_tree<T, 2>, Compare, detail::avl_set_style > base_impl_type;
+struct avlbfl_set : public avl_tree_impl< boost::bfl_d_ary_tree<2, T>, Compare, detail::avl_set_style > {
+  typedef avl_tree_impl< boost::bfl_d_ary_tree<2, T>, Compare, detail::avl_set_style > base_impl_type;
   typedef typename base_impl_type::value_type value_type;
   typedef typename base_impl_type::allocator_type allocator_type;
   
   /**
     * Creates a AVL-tree set with no elements.
     */
-  explicit avlbf_set(const allocator_type& = allocator_type()) : base_impl_type() { };
+  explicit avlbfl_set(const allocator_type& = allocator_type()) : base_impl_type() { };
   
   /**
     * Creates a AVL-tree set with no elements.
     */
-  explicit avlbf_set(const Compare& comp, const allocator_type& = allocator_type()) : base_impl_type(comp) { };
+  explicit avlbfl_set(const Compare& comp, const allocator_type& = allocator_type()) : base_impl_type(comp) { };
   
   /**
     * Builds a AVL-tree set from an iterator range.
@@ -84,16 +86,16 @@ struct avlbf_set : public avl_tree_impl< d_ary_bf_tree<T, 2>, Compare, detail::a
     * \param comp A comparison functor.
     */
   template <typename InputIterator>
-  avlbf_set(InputIterator aFirst, InputIterator aLast, const Compare& comp = Compare(), const allocator_type& = allocator_type()) : 
-            base_impl_type(aFirst, aLast, comp) { };
+  avlbfl_set(InputIterator aFirst, InputIterator aLast, const Compare& comp = Compare(), const allocator_type& = allocator_type()) : 
+             base_impl_type(aFirst, aLast, comp) { };
         
   /**
     * Builds a AVL-tree set from an initializer_list.
     * \param aList An std::initializer_list.
     * \param comp A comparison functor.
     */  
-  avlbf_set(std::initializer_list< value_type > aList, const Compare& comp = Compare(), const allocator_type& = allocator_type()) : 
-            base_impl_type(aList, comp) { };
+  avlbfl_set(std::initializer_list< value_type > aList, const Compare& comp = Compare(), const allocator_type& = allocator_type()) : 
+             base_impl_type(aList, comp) { };
 };
 
 /**
@@ -105,26 +107,26 @@ struct avlbf_set : public avl_tree_impl< d_ary_bf_tree<T, 2>, Compare, detail::a
  * performance in enhanced in terms for cache-locality, at the amortized expense of copies during 
  * re-balancing and re-allocation. Note also, that insertion/deletions generally invalidate existing iterators.
  * \tparam T Type of the elements. Each element in a set container is also uniquely identified by this 
- *           value (each value is itself also the element's key). Aliased as member types avlbf_multiset::key_type and avlbf_multiset::value_type.
+ *           value (each value is itself also the element's key). Aliased as member types avlbfl_multiset::key_type and avlbfl_multiset::value_type.
  * \tparam Compare A binary predicate that takes two arguments of the same type as the elements and returns a bool. 
  *                 The expression comp(a,b), where comp is an object of this type and a and b are key values, shall 
  *                 return true if a is considered to go before b in the strict weak ordering the function defines.
  */
 template <typename T, typename Compare = std::less<T> >
-struct avlbf_multiset : public avl_tree_impl< d_ary_bf_tree<T, 2>, Compare, detail::avl_multiset_style > {
-  typedef avl_tree_impl< d_ary_bf_tree<T, 2>, Compare, detail::avl_multiset_style > base_impl_type;
+struct avlbfl_multiset : public avl_tree_impl< boost::bfl_d_ary_tree<2, T>, Compare, detail::avl_multiset_style > {
+  typedef avl_tree_impl< boost::bfl_d_ary_tree<2, T>, Compare, detail::avl_multiset_style > base_impl_type;
   typedef typename base_impl_type::value_type value_type;
   typedef typename base_impl_type::allocator_type allocator_type;
   
   /**
     * Creates a AVL-tree multiset with no elements.
     */
-  explicit avlbf_multiset(const allocator_type& = allocator_type()) : base_impl_type() { };
+  explicit avlbfl_multiset(const allocator_type& = allocator_type()) : base_impl_type() { };
   
   /**
     * Creates a AVL-tree multiset with no elements.
     */
-  explicit avlbf_multiset(const Compare& comp, const allocator_type& = allocator_type()) : base_impl_type(comp) { };
+  explicit avlbfl_multiset(const Compare& comp, const allocator_type& = allocator_type()) : base_impl_type(comp) { };
   
   /**
     * Builds a AVL-tree multiset from an iterator range.
@@ -133,7 +135,7 @@ struct avlbf_multiset : public avl_tree_impl< d_ary_bf_tree<T, 2>, Compare, deta
     * \param comp A comparison functor.
     */
   template <typename InputIterator>
-  avlbf_multiset(InputIterator aFirst, InputIterator aLast, const Compare& comp = Compare(), const allocator_type& = allocator_type()) : 
+  avlbfl_multiset(InputIterator aFirst, InputIterator aLast, const Compare& comp = Compare(), const allocator_type& = allocator_type()) : 
             base_impl_type(aFirst, aLast, comp) { };
         
   /**
@@ -141,7 +143,7 @@ struct avlbf_multiset : public avl_tree_impl< d_ary_bf_tree<T, 2>, Compare, deta
     * \param aList An std::initializer_list.
     * \param comp A comparison functor.
     */  
-  avlbf_multiset(std::initializer_list< value_type > aList, const Compare& comp = Compare(), const allocator_type& = allocator_type()) : 
+  avlbfl_multiset(std::initializer_list< value_type > aList, const Compare& comp = Compare(), const allocator_type& = allocator_type()) : 
             base_impl_type(aList, comp) { };
 };
 
@@ -155,28 +157,28 @@ struct avlbf_multiset : public avl_tree_impl< d_ary_bf_tree<T, 2>, Compare, deta
  * performance in enhanced in terms for cache-locality, at the amortized expense of copies during 
  * re-balancing and re-allocation. Note also, that insertion/deletions generally invalidate existing iterators.
  * \tparam Key Type of the keys. Each element in a map is uniquely identified by its key value. Aliased as 
- *             member type avlbf_map::key_type.
+ *             member type avlbfl_map::key_type.
  * \tparam T Type of the mapped value. Each element in a map stores some data as its mapped value. Aliased as 
- *           member type avlbf_map::mapped_type.
+ *           member type avlbfl_map::mapped_type.
  * \tparam Compare A binary predicate that takes two element keys as arguments and returns a bool. The 
  *                 expression comp(a,b), where comp is an object of this type and a and b are key values, 
  *                 shall return true if a is considered to go before b in the strict weak ordering the function defines.
  */
 template <typename Key, typename T, typename Compare = std::less<Key> >
-struct avlbf_map : public avl_tree_impl< d_ary_bf_tree< std::pair<Key,T>, 2>, Compare, detail::avl_map_style > {
-  typedef avl_tree_impl< d_ary_bf_tree< std::pair<Key,T>, 2>, Compare, detail::avl_map_style > base_impl_type;
+struct avlbfl_map : public avl_tree_impl< boost::bfl_d_ary_tree<2, std::pair<Key,T> >, Compare, detail::avl_map_style > {
+  typedef avl_tree_impl< boost::bfl_d_ary_tree<2, std::pair<Key,T> >, Compare, detail::avl_map_style > base_impl_type;
   typedef typename base_impl_type::value_type value_type;
   typedef typename base_impl_type::allocator_type allocator_type;
   
   /**
     * Creates a AVL-tree map with no elements.
     */
-  explicit avlbf_map(const allocator_type& = allocator_type()) : base_impl_type() { };
+  explicit avlbfl_map(const allocator_type& = allocator_type()) : base_impl_type() { };
   
   /**
     * Creates a AVL-tree map with no elements.
     */
-  explicit avlbf_map(const Compare& comp, const allocator_type& = allocator_type()) : base_impl_type(comp) { };
+  explicit avlbfl_map(const Compare& comp, const allocator_type& = allocator_type()) : base_impl_type(comp) { };
   
   /**
     * Builds a AVL-tree map from an iterator range.
@@ -185,7 +187,7 @@ struct avlbf_map : public avl_tree_impl< d_ary_bf_tree< std::pair<Key,T>, 2>, Co
     * \param comp A comparison functor.
     */
   template <typename InputIterator>
-  avlbf_map(InputIterator aFirst, InputIterator aLast, const Compare& comp = Compare(), const allocator_type& = allocator_type()) : 
+  avlbfl_map(InputIterator aFirst, InputIterator aLast, const Compare& comp = Compare(), const allocator_type& = allocator_type()) : 
             base_impl_type(aFirst, aLast, comp) { };
         
   /**
@@ -193,7 +195,7 @@ struct avlbf_map : public avl_tree_impl< d_ary_bf_tree< std::pair<Key,T>, 2>, Co
     * \param aList An std::initializer_list.
     * \param comp A comparison functor.
     */  
-  avlbf_map(std::initializer_list< value_type > aList, const Compare& comp = Compare(), const allocator_type& = allocator_type()) : 
+  avlbfl_map(std::initializer_list< value_type > aList, const Compare& comp = Compare(), const allocator_type& = allocator_type()) : 
             base_impl_type(aList, comp) { };
 };
 
@@ -206,28 +208,28 @@ struct avlbf_map : public avl_tree_impl< d_ary_bf_tree< std::pair<Key,T>, 2>, Co
  * performance in enhanced in terms for cache-locality, at the amortized expense of copies during 
  * re-balancing and re-allocation. Note also, that insertion/deletions generally invalidate existing iterators.
  * \tparam Key Type of the keys. Each element in a map is uniquely identified by its key value. Aliased as 
- *             member type avlbf_multimap::key_type.
+ *             member type avlbfl_multimap::key_type.
  * \tparam T Type of the mapped value. Each element in a map stores some data as its mapped value. Aliased as 
- *           member type avlbf_multimap::mapped_type.
+ *           member type avlbfl_multimap::mapped_type.
  * \tparam Compare A binary predicate that takes two element keys as arguments and returns a bool. The 
  *                 expression comp(a,b), where comp is an object of this type and a and b are key values, 
  *                 shall return true if a is considered to go before b in the strict weak ordering the function defines.
  */
 template <typename Key, typename T, typename Compare = std::less<Key> >
-struct avlbf_multimap : public avl_tree_impl< d_ary_bf_tree< std::pair<Key,T>, 2>, Compare, detail::avl_multimap_style > {
-  typedef avl_tree_impl< d_ary_bf_tree< std::pair<Key,T>, 2>, Compare, detail::avl_multimap_style > base_impl_type;
+struct avlbfl_multimap : public avl_tree_impl< boost::bfl_d_ary_tree<2, std::pair<Key,T> >, Compare, detail::avl_multimap_style > {
+  typedef avl_tree_impl< boost::bfl_d_ary_tree<2, std::pair<Key,T> >, Compare, detail::avl_multimap_style > base_impl_type;
   typedef typename base_impl_type::value_type value_type;
   typedef typename base_impl_type::allocator_type allocator_type;
   
   /**
     * Creates a AVL-tree multimap with no elements.
     */
-  explicit avlbf_multimap(const allocator_type& = allocator_type()) : base_impl_type() { };
+  explicit avlbfl_multimap(const allocator_type& = allocator_type()) : base_impl_type() { };
   
   /**
     * Creates a AVL-tree multimap with no elements.
     */
-  explicit avlbf_multimap(const Compare& comp, const allocator_type& = allocator_type()) : base_impl_type(comp) { };
+  explicit avlbfl_multimap(const Compare& comp, const allocator_type& = allocator_type()) : base_impl_type(comp) { };
   
   /**
     * Builds a AVL-tree multimap from an iterator range.
@@ -236,7 +238,7 @@ struct avlbf_multimap : public avl_tree_impl< d_ary_bf_tree< std::pair<Key,T>, 2
     * \param comp A comparison functor.
     */
   template <typename InputIterator>
-  avlbf_multimap(InputIterator aFirst, InputIterator aLast, const Compare& comp = Compare(), const allocator_type& = allocator_type()) : 
+  avlbfl_multimap(InputIterator aFirst, InputIterator aLast, const Compare& comp = Compare(), const allocator_type& = allocator_type()) : 
                  base_impl_type(aFirst, aLast, comp) { };
         
   /**
@@ -244,7 +246,7 @@ struct avlbf_multimap : public avl_tree_impl< d_ary_bf_tree< std::pair<Key,T>, 2
     * \param aList An std::initializer_list.
     * \param comp A comparison functor.
     */  
-  avlbf_multimap(std::initializer_list< value_type > aList, const Compare& comp = Compare(), const allocator_type& = allocator_type()) : 
+  avlbfl_multimap(std::initializer_list< value_type > aList, const Compare& comp = Compare(), const allocator_type& = allocator_type()) : 
                  base_impl_type(aList, comp) { };
 };
 
@@ -259,26 +261,26 @@ struct avlbf_multimap : public avl_tree_impl< d_ary_bf_tree< std::pair<Key,T>, 2
  * performance in enhanced in terms for cache-locality, at the amortized expense of copies during 
  * re-balancing and re-allocation. Note also, that insertion/deletions generally invalidate existing iterators.
  * \tparam T Type of the elements. Each element in a set container is also uniquely identified by this 
- *           value (each value is itself also the element's key). Aliased as member types avlcob_set::key_type and avlcob_set::value_type.
+ *           value (each value is itself also the element's key). Aliased as member types avlvebl_set::key_type and avlvebl_set::value_type.
  * \tparam Compare A binary predicate that takes two arguments of the same type as the elements and returns a bool. 
  *                 The expression comp(a,b), where comp is an object of this type and a and b are key values, shall 
  *                 return true if a is considered to go before b in the strict weak ordering the function defines.
  */
 template <typename T, typename Compare = std::less<T> >
-struct avlcob_set : public avl_tree_impl< d_ary_cob_tree<T, 2>, Compare, detail::avl_set_style > {
-  typedef avl_tree_impl< d_ary_cob_tree<T, 2>, Compare, detail::avl_set_style > base_impl_type;
+struct avlvebl_set : public avl_tree_impl< boost::vebl_d_ary_tree<2, T>, Compare, detail::avl_set_style > {
+  typedef avl_tree_impl< boost::vebl_d_ary_tree<2, T>, Compare, detail::avl_set_style > base_impl_type;
   typedef typename base_impl_type::value_type value_type;
   typedef typename base_impl_type::allocator_type allocator_type;
   
   /**
     * Creates a AVL-tree set with no elements.
     */
-  explicit avlcob_set(const allocator_type& = allocator_type()) : base_impl_type() { };
+  explicit avlvebl_set(const allocator_type& = allocator_type()) : base_impl_type() { };
   
   /**
     * Creates a AVL-tree set with no elements.
     */
-  explicit avlcob_set(const Compare& comp, const allocator_type& = allocator_type()) : base_impl_type(comp) { };
+  explicit avlvebl_set(const Compare& comp, const allocator_type& = allocator_type()) : base_impl_type(comp) { };
   
   /**
     * Builds a AVL-tree set from an iterator range.
@@ -287,7 +289,7 @@ struct avlcob_set : public avl_tree_impl< d_ary_cob_tree<T, 2>, Compare, detail:
     * \param comp A comparison functor.
     */
   template <typename InputIterator>
-  avlcob_set(InputIterator aFirst, InputIterator aLast, const Compare& comp = Compare(), const allocator_type& = allocator_type()) : 
+  avlvebl_set(InputIterator aFirst, InputIterator aLast, const Compare& comp = Compare(), const allocator_type& = allocator_type()) : 
             base_impl_type(aFirst, aLast, comp) { };
         
   /**
@@ -295,7 +297,7 @@ struct avlcob_set : public avl_tree_impl< d_ary_cob_tree<T, 2>, Compare, detail:
     * \param aList An std::initializer_list.
     * \param comp A comparison functor.
     */  
-  avlcob_set(std::initializer_list< value_type > aList, const Compare& comp = Compare(), const allocator_type& = allocator_type()) : 
+  avlvebl_set(std::initializer_list< value_type > aList, const Compare& comp = Compare(), const allocator_type& = allocator_type()) : 
             base_impl_type(aList, comp) { };
 };
 
@@ -308,26 +310,26 @@ struct avlcob_set : public avl_tree_impl< d_ary_cob_tree<T, 2>, Compare, detail:
  * performance in enhanced in terms for cache-locality, at the amortized expense of copies during 
  * re-balancing and re-allocation. Note also, that insertion/deletions generally invalidate existing iterators.
  * \tparam T Type of the elements. Each element in a set container is also uniquely identified by this 
- *           value (each value is itself also the element's key). Aliased as member types avlcob_set::key_type and avlcob_set::value_type.
+ *           value (each value is itself also the element's key). Aliased as member types avlvebl_set::key_type and avlvebl_set::value_type.
  * \tparam Compare A binary predicate that takes two arguments of the same type as the elements and returns a bool. 
  *                 The expression comp(a,b), where comp is an object of this type and a and b are key values, shall 
  *                 return true if a is considered to go before b in the strict weak ordering the function defines.
  */
 template <typename T, typename Compare = std::less<T> >
-struct avlcob_multiset : public avl_tree_impl< d_ary_cob_tree<T, 2>, Compare, detail::avl_multiset_style > {
-  typedef avl_tree_impl< d_ary_cob_tree<T, 2>, Compare, detail::avl_multiset_style > base_impl_type;
+struct avlvebl_multiset : public avl_tree_impl< boost::vebl_d_ary_tree<2, T>, Compare, detail::avl_multiset_style > {
+  typedef avl_tree_impl< boost::vebl_d_ary_tree<2, T>, Compare, detail::avl_multiset_style > base_impl_type;
   typedef typename base_impl_type::value_type value_type;
   typedef typename base_impl_type::allocator_type allocator_type;
   
   /**
     * Creates a AVL-tree multiset with no elements.
     */
-  explicit avlcob_multiset(const allocator_type& = allocator_type()) : base_impl_type() { };
+  explicit avlvebl_multiset(const allocator_type& = allocator_type()) : base_impl_type() { };
   
   /**
     * Creates a AVL-tree multiset with no elements.
     */
-  explicit avlcob_multiset(const Compare& comp, const allocator_type& = allocator_type()) : base_impl_type(comp) { };
+  explicit avlvebl_multiset(const Compare& comp, const allocator_type& = allocator_type()) : base_impl_type(comp) { };
   
   /**
     * Builds a AVL-tree multiset from an iterator range.
@@ -336,7 +338,7 @@ struct avlcob_multiset : public avl_tree_impl< d_ary_cob_tree<T, 2>, Compare, de
     * \param comp A comparison functor.
     */
   template <typename InputIterator>
-  avlcob_multiset(InputIterator aFirst, InputIterator aLast, const Compare& comp = Compare(), const allocator_type& = allocator_type()) : 
+  avlvebl_multiset(InputIterator aFirst, InputIterator aLast, const Compare& comp = Compare(), const allocator_type& = allocator_type()) : 
                   base_impl_type(aFirst, aLast, comp) { };
            
   /**
@@ -344,7 +346,7 @@ struct avlcob_multiset : public avl_tree_impl< d_ary_cob_tree<T, 2>, Compare, de
     * \param aList An std::initializer_list.
     * \param comp A comparison functor.
     */  
-  avlcob_multiset(std::initializer_list< value_type > aList, const Compare& comp = Compare(), const allocator_type& = allocator_type()) : 
+  avlvebl_multiset(std::initializer_list< value_type > aList, const Compare& comp = Compare(), const allocator_type& = allocator_type()) : 
                   base_impl_type(aList, comp) { };
 };
 
@@ -358,28 +360,28 @@ struct avlcob_multiset : public avl_tree_impl< d_ary_cob_tree<T, 2>, Compare, de
  * performance in enhanced in terms for cache-locality, at the amortized expense of copies during 
  * re-balancing and re-allocation. Note also, that insertion/deletions generally invalidate existing iterators.
  * \tparam Key Type of the keys. Each element in a map is uniquely identified by its key value. Aliased as 
- *             member type avlcob_map::key_type.
+ *             member type avlvebl_map::key_type.
  * \tparam T Type of the mapped value. Each element in a map stores some data as its mapped value. Aliased as 
- *           member type avlcob_map::mapped_type.
+ *           member type avlvebl_map::mapped_type.
  * \tparam Compare A binary predicate that takes two element keys as arguments and returns a bool. The 
  *                 expression comp(a,b), where comp is an object of this type and a and b are key values, 
  *                 shall return true if a is considered to go before b in the strict weak ordering the function defines.
  */
 template <typename Key, typename T, typename Compare = std::less<Key> >
-struct avlcob_map : public avl_tree_impl< d_ary_cob_tree< std::pair<Key,T>, 2>, Compare, detail::avl_map_style > {
-  typedef avl_tree_impl< d_ary_cob_tree< std::pair<Key,T>, 2>, Compare, detail::avl_map_style > base_impl_type;
+struct avlvebl_map : public avl_tree_impl< boost::vebl_d_ary_tree<2, std::pair<Key,T> >, Compare, detail::avl_map_style > {
+  typedef avl_tree_impl< boost::vebl_d_ary_tree<2, std::pair<Key,T> >, Compare, detail::avl_map_style > base_impl_type;
   typedef typename base_impl_type::value_type value_type;
   typedef typename base_impl_type::allocator_type allocator_type;
   
   /**
     * Creates a AVL-tree map with no elements.
     */
-  explicit avlcob_map(const allocator_type& = allocator_type()) : base_impl_type() { };
+  explicit avlvebl_map(const allocator_type& = allocator_type()) : base_impl_type() { };
   
   /**
     * Creates a AVL-tree map with no elements.
     */
-  explicit avlcob_map(const Compare& comp, const allocator_type& = allocator_type()) : base_impl_type(comp) { };
+  explicit avlvebl_map(const Compare& comp, const allocator_type& = allocator_type()) : base_impl_type(comp) { };
   
   /**
     * Builds a AVL-tree map from an iterator range.
@@ -388,7 +390,7 @@ struct avlcob_map : public avl_tree_impl< d_ary_cob_tree< std::pair<Key,T>, 2>, 
     * \param comp A comparison functor.
     */
   template <typename InputIterator>
-  avlcob_map(InputIterator aFirst, InputIterator aLast, const Compare& comp = Compare(), const allocator_type& = allocator_type()) : 
+  avlvebl_map(InputIterator aFirst, InputIterator aLast, const Compare& comp = Compare(), const allocator_type& = allocator_type()) : 
              base_impl_type(aFirst, aLast, comp) { };
         
   /**
@@ -396,7 +398,7 @@ struct avlcob_map : public avl_tree_impl< d_ary_cob_tree< std::pair<Key,T>, 2>, 
     * \param aList An std::initializer_list.
     * \param comp A comparison functor.
     */  
-  avlcob_map(std::initializer_list< value_type > aList, const Compare& comp = Compare(), const allocator_type& = allocator_type()) : 
+  avlvebl_map(std::initializer_list< value_type > aList, const Compare& comp = Compare(), const allocator_type& = allocator_type()) : 
              base_impl_type(aList, comp) { };
 };
 
@@ -409,28 +411,28 @@ struct avlcob_map : public avl_tree_impl< d_ary_cob_tree< std::pair<Key,T>, 2>, 
  * performance in enhanced in terms for cache-locality, at the amortized expense of copies during 
  * re-balancing and re-allocation. Note also, that insertion/deletions generally invalidate existing iterators.
  * \tparam Key Type of the keys. Each element in a map is uniquely identified by its key value. Aliased as 
- *             member type avlcob_multimap::key_type.
+ *             member type avlvebl_multimap::key_type.
  * \tparam T Type of the mapped value. Each element in a map stores some data as its mapped value. Aliased as 
- *           member type avlcob_multimap::mapped_type.
+ *           member type avlvebl_multimap::mapped_type.
  * \tparam Compare A binary predicate that takes two element keys as arguments and returns a bool. The 
  *                 expression comp(a,b), where comp is an object of this type and a and b are key values, 
  *                 shall return true if a is considered to go before b in the strict weak ordering the function defines.
  */
 template <typename Key, typename T, typename Compare = std::less<Key> >
-struct avlcob_multimap : public avl_tree_impl< d_ary_cob_tree< std::pair<Key,T>, 2>, Compare, detail::avl_multimap_style > {
-  typedef avl_tree_impl< d_ary_cob_tree< std::pair<Key,T>, 2>, Compare, detail::avl_multimap_style > base_impl_type;
+struct avlvebl_multimap : public avl_tree_impl< boost::vebl_d_ary_tree<2, std::pair<Key,T> >, Compare, detail::avl_multimap_style > {
+  typedef avl_tree_impl< boost::vebl_d_ary_tree<2, std::pair<Key,T> >, Compare, detail::avl_multimap_style > base_impl_type;
   typedef typename base_impl_type::value_type value_type;
   typedef typename base_impl_type::allocator_type allocator_type;
   
   /**
     * Creates a AVL-tree multimap with no elements.
     */
-  explicit avlcob_multimap(const allocator_type& = allocator_type()) : base_impl_type() { };
+  explicit avlvebl_multimap(const allocator_type& = allocator_type()) : base_impl_type() { };
   
   /**
     * Creates a AVL-tree multimap with no elements.
     */
-  explicit avlcob_multimap(const Compare& comp, const allocator_type& = allocator_type()) : base_impl_type(comp) { };
+  explicit avlvebl_multimap(const Compare& comp, const allocator_type& = allocator_type()) : base_impl_type(comp) { };
   
   /**
     * Builds a AVL-tree multimap from an iterator range.
@@ -439,7 +441,7 @@ struct avlcob_multimap : public avl_tree_impl< d_ary_cob_tree< std::pair<Key,T>,
     * \param comp A comparison functor.
     */
   template <typename InputIterator>
-  avlcob_multimap(InputIterator aFirst, InputIterator aLast, const Compare& comp = Compare(), const allocator_type& = allocator_type()) : 
+  avlvebl_multimap(InputIterator aFirst, InputIterator aLast, const Compare& comp = Compare(), const allocator_type& = allocator_type()) : 
                   base_impl_type(aFirst, aLast, comp) { };
         
   /**
@@ -447,7 +449,7 @@ struct avlcob_multimap : public avl_tree_impl< d_ary_cob_tree< std::pair<Key,T>,
     * \param aList An std::initializer_list.
     * \param comp A comparison functor.
     */  
-  avlcob_multimap(std::initializer_list< value_type > aList, const Compare& comp = Compare(), const allocator_type& = allocator_type()) : 
+  avlvebl_multimap(std::initializer_list< value_type > aList, const Compare& comp = Compare(), const allocator_type& = allocator_type()) : 
                   base_impl_type(aList, comp) { };
 };
 

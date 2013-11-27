@@ -23,12 +23,11 @@
 
 #include <iostream>
 
-#include "d_ary_bf_tree.hpp"
-#include "d_ary_cob_tree.hpp"
-#include <boost/graph/adjacency_list.hpp>
-#include "bgl_tree_adaptor.hpp"
-#include "linked_tree.hpp"
-#include "pooled_adjacency_list.hpp"
+
+// BGL-Extra includes:
+#include <boost/graph/adjacency_list_BC.hpp>
+#include <boost/graph/tree_adaptor.hpp>
+#include <boost/graph/linked_tree_BC.hpp>
 
 
 #define BOOST_TEST_DYN_LINK
@@ -40,11 +39,11 @@
 
 
 typedef boost::mpl::list< 
-  boost::adjacency_list< boost::vecS, boost::vecS, boost::bidirectionalS, int, int>,
-  boost::adjacency_list< boost::listS, boost::vecS, boost::bidirectionalS, int, int>,
-  boost::adjacency_list< boost::vecS, boost::listS, boost::bidirectionalS, int, int>,
-  boost::adjacency_list< boost::listS, boost::listS, boost::bidirectionalS, int, int>,
-  boost::pooled_adjacency_list<boost::bidirectionalS, int, int > > intint_graphtest_types;
+  boost::adjacency_list_BC< boost::vecBC, boost::vecBC, boost::bidirectionalS, int, int>,
+  boost::adjacency_list_BC< boost::listBC, boost::vecBC, boost::bidirectionalS, int, int>,
+  boost::adjacency_list_BC< boost::vecBC, boost::listBC, boost::bidirectionalS, int, int>,
+  boost::adjacency_list_BC< boost::listBC, boost::listBC, boost::bidirectionalS, int, int>,
+  boost::adjacency_list_BC< boost::vecBC, boost::poolBC, boost::bidirectionalS, int, int > > intint_graphtest_types;
 
 BOOST_AUTO_TEST_CASE_TEMPLATE( intint_bgl_mutable_graph_test, Graph, intint_graphtest_types )
 {
@@ -104,10 +103,8 @@ BOOST_AUTO_TEST_CASE_TEMPLATE( intint_bgl_mutable_graph_test, Graph, intint_grap
     BOOST_CHECK_NO_THROW( boost::tie(ei,ei_end) = out_edges(v_root,g) );
     std::vector<int> e_list;
     for(; ei != ei_end; ++ei) {
-      if(is_edge_valid(*ei,g)) {
-        BOOST_CHECK_EQUAL( g[*ei], (g[source(*ei,g)] * 1000 + g[target(*ei,g)]) );
-        e_list.push_back(g[*ei]);
-      };
+      BOOST_CHECK_EQUAL( g[*ei], (g[source(*ei,g)] * 1000 + g[target(*ei,g)]) );
+      e_list.push_back(g[*ei]);
     };
     std::sort(e_list.begin(), e_list.end());
     BOOST_CHECK_EQUAL( e_list[0], 1002);
@@ -127,10 +124,8 @@ BOOST_AUTO_TEST_CASE_TEMPLATE( intint_bgl_mutable_graph_test, Graph, intint_grap
     BOOST_CHECK_NO_THROW( boost::tie(ei,ei_end) = out_edges(v_rc[0],g) );
     std::vector<int> e_list2;
     for(; ei != ei_end; ++ei) {
-      if(is_edge_valid(*ei,g)) {
-        BOOST_CHECK_EQUAL( g[*ei], (g[source(*ei,g)] * 1000 + g[target(*ei,g)]) );
-        e_list2.push_back(g[*ei]);
-      };
+      BOOST_CHECK_EQUAL( g[*ei], (g[source(*ei,g)] * 1000 + g[target(*ei,g)]) );
+      e_list2.push_back(g[*ei]);
     };
     std::sort(e_list2.begin(), e_list2.end());
     BOOST_CHECK_EQUAL( e_list2[0], 2006);
@@ -166,11 +161,9 @@ BOOST_AUTO_TEST_CASE_TEMPLATE( intint_bgl_mutable_graph_test, Graph, intint_grap
     std::vector<int> e_list;
     std::vector<int> vp_list;
     for(; ei != ei_end; ++ei) {
-      if(is_edge_valid(*ei,g)) {
-        BOOST_CHECK_EQUAL( g[*ei], (g[source(*ei,g)] * 1000 + g[target(*ei,g)]) );
-        e_list.push_back(g[*ei]);
-        vp_list.push_back(g[target(*ei,g)]);
-      };
+      BOOST_CHECK_EQUAL( g[*ei], (g[source(*ei,g)] * 1000 + g[target(*ei,g)]) );
+      e_list.push_back(g[*ei]);
+      vp_list.push_back(g[target(*ei,g)]);
     };
     std::sort(e_list.begin(), e_list.end());
     BOOST_CHECK_EQUAL( e_list[0], 3010);
@@ -201,8 +194,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE( intint_bgl_mutable_graph_test, Graph, intint_grap
     BOOST_CHECK_NO_THROW( boost::tie(vi, vi_end) = vertices(g) );
     std::vector<int> vp_list;
     for(; vi != vi_end; ++vi)
-      if( is_vertex_valid(*vi, g) )
-        vp_list.push_back( g[*vi] );
+      vp_list.push_back( g[*vi] );
     std::sort(vp_list.begin(), vp_list.end());
     BOOST_CHECK_EQUAL( vp_list[0], 1 );
     BOOST_CHECK_EQUAL( vp_list[1], 2 );
@@ -225,8 +217,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE( intint_bgl_mutable_graph_test, Graph, intint_grap
     BOOST_CHECK_NO_THROW( boost::tie(ei, ei_end) = edges(g) );
     std::vector<int> ep_list;
     for(; ei != ei_end; ++ei)
-      if( is_edge_valid(*ei, g) )
-        ep_list.push_back( g[*ei] );
+      ep_list.push_back( g[*ei] );
     std::sort(ep_list.begin(), ep_list.end());
     BOOST_CHECK_EQUAL( ep_list[0], 1003 );
     BOOST_CHECK_EQUAL( ep_list[1], 1004 );
@@ -246,11 +237,8 @@ BOOST_AUTO_TEST_CASE_TEMPLATE( intint_bgl_mutable_graph_test, Graph, intint_grap
     VertexIter vi, vi_end;
     BOOST_CHECK_NO_THROW( boost::tie(vi, vi_end) = vertices(g) );
     std::vector<int> vp_list;
-    for(; vi != vi_end; ++vi) {
-      if( is_vertex_valid(*vi, g) ) {
-        vp_list.push_back( g[*vi] );
-      };
-    };
+    for(; vi != vi_end; ++vi)
+      vp_list.push_back( g[*vi] );
     std::sort(vp_list.begin(), vp_list.end());
     BOOST_CHECK_EQUAL( vp_list[0], 1 );
     BOOST_CHECK_EQUAL( vp_list[1], 2 );
@@ -272,11 +260,8 @@ BOOST_AUTO_TEST_CASE_TEMPLATE( intint_bgl_mutable_graph_test, Graph, intint_grap
     EdgeIter ei, ei_end;
     BOOST_CHECK_NO_THROW( boost::tie(ei, ei_end) = edges(g) );
     std::vector<int> ep_list;
-    for(; ei != ei_end; ++ei) {
-      if( is_edge_valid(*ei, g) ) {
-        ep_list.push_back( g[*ei] );
-      };
-    };
+    for(; ei != ei_end; ++ei)
+      ep_list.push_back( g[*ei] );
     std::sort(ep_list.begin(), ep_list.end());
     BOOST_CHECK_EQUAL( ep_list[0], 1003 );
     BOOST_CHECK_EQUAL( ep_list[1], 1004 );
@@ -295,11 +280,8 @@ BOOST_AUTO_TEST_CASE_TEMPLATE( intint_bgl_mutable_graph_test, Graph, intint_grap
     VertexIter vi, vi_end;
     BOOST_CHECK_NO_THROW( boost::tie(vi, vi_end) = vertices(g) );
     std::vector<int> vp_list;
-    for(; vi != vi_end; ++vi) {
-      if( is_vertex_valid(*vi, g) ) {
-        vp_list.push_back( g[*vi] );
-      };
-    };
+    for(; vi != vi_end; ++vi)
+      vp_list.push_back( g[*vi] );
     std::sort(vp_list.begin(), vp_list.end());
     BOOST_CHECK_EQUAL( vp_list[0], 1 );
     BOOST_CHECK_EQUAL( vp_list[1], 2 );
@@ -321,11 +303,8 @@ BOOST_AUTO_TEST_CASE_TEMPLATE( intint_bgl_mutable_graph_test, Graph, intint_grap
     EdgeIter ei, ei_end;
     BOOST_CHECK_NO_THROW( boost::tie(ei, ei_end) = edges(g) );
     std::vector<int> ep_list;
-    for(; ei != ei_end; ++ei) {
-      if( is_edge_valid(*ei, g) ) {
-        ep_list.push_back( g[*ei] );
-      };
-    };
+    for(; ei != ei_end; ++ei)
+      ep_list.push_back( g[*ei] );
     std::sort(ep_list.begin(), ep_list.end());
     BOOST_CHECK_EQUAL( ep_list[0], 1003 );
     BOOST_CHECK_EQUAL( ep_list[1], 1004 );
@@ -344,11 +323,8 @@ BOOST_AUTO_TEST_CASE_TEMPLATE( intint_bgl_mutable_graph_test, Graph, intint_grap
     VertexIter vi, vi_end;
     BOOST_CHECK_NO_THROW( boost::tie(vi, vi_end) = vertices(g) );
     std::vector<int> vp_list;
-    for(; vi != vi_end; ++vi) {
-      if( is_vertex_valid(*vi, g) ) {
-        vp_list.push_back( g[*vi] );
-      };
-    };
+    for(; vi != vi_end; ++vi)
+      vp_list.push_back( g[*vi] );
     std::sort(vp_list.begin(), vp_list.end());
     BOOST_CHECK_EQUAL( vp_list[0], 1 );
     BOOST_CHECK_EQUAL( vp_list[1], 2 );
@@ -369,11 +345,8 @@ BOOST_AUTO_TEST_CASE_TEMPLATE( intint_bgl_mutable_graph_test, Graph, intint_grap
     EdgeIter ei, ei_end;
     BOOST_CHECK_NO_THROW( boost::tie(ei, ei_end) = edges(g) );
     std::vector<int> ep_list;
-    for(; ei != ei_end; ++ei) {
-      if( is_edge_valid(*ei, g) ) {
-        ep_list.push_back( g[*ei] );
-      };
-    };
+    for(; ei != ei_end; ++ei)
+      ep_list.push_back( g[*ei] );
     std::sort(ep_list.begin(), ep_list.end());
     BOOST_CHECK_EQUAL( ep_list[0], 1003 );
     BOOST_CHECK_EQUAL( ep_list[1], 1004 );

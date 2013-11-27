@@ -37,8 +37,6 @@
 #include <boost/config.hpp>
 #include <boost/concept_check.hpp>
 
-#include "tree_concepts.hpp"
-
 namespace ReaK {
 
 namespace graph {

@@ -38,17 +38,18 @@
 #define REAK_MOTION_GRAPH_STRUCTURES_HPP
 
 
-// #define RK_PLANNERS_ENABLE_COB_TREE
+// #define RK_PLANNERS_ENABLE_VEBL_TREE
 // #define RK_PLANNERS_ENABLE_DVP_ADJ_LIST_LAYOUT
 
 
 #include "base/defs.hpp"
 
-#include "graph_alg/d_ary_bf_tree.hpp"
-#include "graph_alg/pooled_adjacency_list.hpp"
+// BGL-Extra includes:
+#include <boost/graph/bfl_d_ary_tree.hpp>
+#include <boost/graph/adjacency_list_BC.hpp"
 
-#ifdef RK_PLANNERS_ENABLE_COB_TREE
-#include "graph_alg/d_ary_cob_tree.hpp"
+#ifdef RK_PLANNERS_ENABLE_VEBL_TREE
+#include <boost/graph/vebl_d_ary_tree.hpp>
 #endif
 
 #ifdef RK_PLANNERS_ENABLE_DVP_ADJ_LIST_LAYOUT

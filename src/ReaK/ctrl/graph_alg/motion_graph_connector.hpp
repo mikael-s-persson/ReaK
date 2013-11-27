@@ -47,9 +47,9 @@
 #include <boost/graph/graph_concepts.hpp>
 #include <boost/graph/properties.hpp>
 
-#include "bgl_more_property_maps.hpp"
-#include "bgl_more_property_tags.hpp"
-#include "bgl_raw_property_graph.hpp"
+// BGL-Extra includes:
+#include <boost/graph/more_property_tags.hpp>
+#include <boost/graph/more_property_maps.hpp>
 
 #include <vector>
 #include <stack>

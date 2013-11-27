@@ -34,9 +34,10 @@
 
 #include <boost/graph/graph_concepts.hpp>
 #include <boost/graph/properties.hpp>
-#include <boost/graph/adjacency_list.hpp>
+#include <boost/graph/adjacency_list_BC.hpp>
 
-#include "bgl_more_property_maps.hpp"
+// BGL-Extra includes:
+#include <boost/graph/more_property_maps.hpp>
     
 namespace boost {
 
@@ -146,9 +147,8 @@ struct RawPropertyGraphConcept {
 template <typename Graph>
 struct is_raw_property_graph : boost::mpl::false_ { };
 
-template <typename OutEdgeListS, typename VertexListS, typename DirectedS, typename VertexProperty,
-          typename EdgeProperty, typename GraphProperty, typename EdgeListS>
-struct is_raw_property_graph< adjacency_list<OutEdgeListS, VertexListS, DirectedS, VertexProperty, EdgeProperty, GraphProperty, EdgeListS> > : boost::mpl::true_ { };
+template <typename OutEdgeListS, typename VertexListS, typename DirectedS, typename VertexProperty, typename EdgeProperty>
+struct is_raw_property_graph< adjacency_list_BC<OutEdgeListS, VertexListS, DirectedS, VertexProperty, EdgeProperty> > : boost::mpl::true_ { };
 
 
 

@@ -56,7 +56,8 @@
 #include "path_planning/metric_space_concept.hpp"
 #include "path_planning/random_sampler_concept.hpp"
 
-#include "bgl_more_property_maps.hpp"
+// BGL-Extra includes:
+#include <boost/graph/more_property_maps.hpp>
 
 #include "prm_connector.hpp"
 #include "sbmp_visitor_concepts.hpp"

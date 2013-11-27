@@ -43,16 +43,18 @@
 #include <algorithm>
 #include <functional>
 
-//#include "bgl_tree_adaptor.hpp"
-#include "d_ary_bf_tree.hpp"
-#include "tree_organizer_concept.hpp"
 
-#include <boost/graph/adjacency_list.hpp>
+// BGL-Extra includes:
+#include <boost/graph/adjacency_list_BC.hpp>
+#include <boost/graph/bfl_d_ary_tree.hpp>
+//#include <boost/graph/tree_adaptor.hpp>
+#include <boost/graph/more_property_tags.hpp>
+#include <boost/graph/more_property_maps.hpp>
 
-#include "bgl_more_property_tags.hpp"
-#include "bgl_more_property_maps.hpp"
+// Pending inclusion in BGL-Extra:
 #include "bgl_raw_property_graph.hpp"
 
+#include "tree_organizer_concept.hpp"
 
 
 
@@ -72,10 +74,10 @@ class alt_graph_view;  // forward-declaration.
 namespace detail {
 
 
-template <typename AdjVertexDesc, typename TreeVertexProperty, typename AdjVertexProperty>
+template <typename TreeVertexProperty, typename AdjVertexProperty>
 struct tree_vertex_properties_impl {
-  typedef tree_vertex_properties_impl<AdjVertexDesc, TreeVertexProperty, AdjVertexProperty> self;
-  AdjVertexDesc partner_node;
+  typedef tree_vertex_properties_impl<TreeVertexProperty, AdjVertexProperty> self;
+  std::size_t partner_node;
   TreeVertexProperty tree_data;
   AdjVertexProperty user_data;
 
@@ -99,9 +101,9 @@ struct tree_vertex_properties_impl {
   };
   /*
   friend
-  boost::data_member_property_map<const AdjVertexDesc, const self>
+  boost::data_member_property_map<const std::size_t, const self>
     get(boost::vertex_key_t, const self&) {
-    return boost::data_member_property_map<const AdjVertexDesc, const self>(&self::partner_node);
+    return boost::data_member_property_map<const std::size_t, const self>(&self::partner_node);
   };
 
   friend
@@ -112,16 +114,16 @@ struct tree_vertex_properties_impl {
 };
 
 
-template <typename AdjVertexDesc, typename TreeVertexProperty, typename AdjVertexProperty>
-boost::data_member_property_map<const AdjVertexDesc, const tree_vertex_properties_impl<AdjVertexDesc, TreeVertexProperty, AdjVertexProperty> >
- get(boost::vertex_key_t, const tree_vertex_properties_impl<AdjVertexDesc, TreeVertexProperty, AdjVertexProperty>&) {
-  return boost::data_member_property_map<const AdjVertexDesc, const tree_vertex_properties_impl<AdjVertexDesc, TreeVertexProperty, AdjVertexProperty> >(&tree_vertex_properties_impl<AdjVertexDesc, TreeVertexProperty, AdjVertexProperty>::partner_node);
+template <typename TreeVertexProperty, typename AdjVertexProperty>
+boost::data_member_property_map<const std::size_t, const tree_vertex_properties_impl<TreeVertexProperty, AdjVertexProperty> >
+ get(boost::vertex_key_t, const tree_vertex_properties_impl<TreeVertexProperty, AdjVertexProperty>&) {
+  return boost::data_member_property_map<const std::size_t, const tree_vertex_properties_impl<TreeVertexProperty, AdjVertexProperty> >(&tree_vertex_properties_impl<TreeVertexProperty, AdjVertexProperty>::partner_node);
 };
 
-template <typename AdjVertexDesc, typename TreeVertexProperty, typename AdjVertexProperty>
-boost::data_member_property_map<AdjVertexProperty, tree_vertex_properties_impl<AdjVertexDesc, TreeVertexProperty, AdjVertexProperty> >
- get(boost::vertex_second_bundle_t, const tree_vertex_properties_impl<AdjVertexDesc, TreeVertexProperty, AdjVertexProperty>&) {
-  return boost::data_member_property_map<AdjVertexProperty, tree_vertex_properties_impl<AdjVertexDesc, TreeVertexProperty, AdjVertexProperty> >(&tree_vertex_properties_impl<AdjVertexDesc, TreeVertexProperty, AdjVertexProperty>::user_data);
+template <typename TreeVertexProperty, typename AdjVertexProperty>
+boost::data_member_property_map<std::size_t, tree_vertex_properties_impl<TreeVertexProperty, AdjVertexProperty> >
+ get(boost::vertex_second_bundle_t, const tree_vertex_properties_impl<TreeVertexProperty, AdjVertexProperty>&) {
+  return boost::data_member_property_map<AdjVertexProperty, tree_vertex_properties_impl<TreeVertexProperty, AdjVertexProperty> >(&tree_vertex_properties_impl<TreeVertexProperty, AdjVertexProperty>::user_data);
 };
 
 
@@ -139,33 +141,24 @@ template <typename AdjListType,
 class adj_list_on_tree {
   public:
     typedef adj_list_on_tree<AdjListType, VertexProperty, TreeVertexProperty, TreeEdgeProperty, TreeStorageTag> self;
-
-    typedef AdjListType adj_list_type;
-
-    typedef typename boost::graph_traits< adj_list_type >::vertex_descriptor adj_vertex_descriptor;
-
-    typedef tree_vertex_properties_impl<adj_vertex_descriptor, TreeVertexProperty, VertexProperty> tree_vertex_properties;
-
+    
+    typedef tree_vertex_properties_impl<TreeVertexProperty, VertexProperty> tree_vertex_properties;
     typedef TreeEdgeProperty tree_edge_properties;
-
-    typedef typename tree_storage< tree_vertex_properties, tree_edge_properties, TreeStorageTag>::type tree_type;
-
-    typedef VertexProperty adj_vertex_bundled;
-    typedef typename adj_list_type::edge_bundled adj_edge_bundled;
+    
+    typedef typename boost::tree_storage< tree_vertex_properties, tree_edge_properties, TreeStorageTag>::type tree_type;
     typedef TreeVertexProperty tree_vertex_bundled;
     typedef TreeEdgeProperty tree_edge_bundled;
-
+    
+    typedef AdjListType adj_list_type;
+    typedef std::size_t adj_vertex_descriptor;
+    
+    typedef VertexProperty adj_vertex_bundled;
+    typedef typename adj_list_type::edge_bundled adj_edge_bundled;
+    
   private:
     adj_list_type m_adj_list;
     tree_type m_tree;
-
-    typedef std::priority_queue<
-      adj_vertex_descriptor,
-      std::vector< adj_vertex_descriptor >,
-      std::greater< adj_vertex_descriptor > > pnode_avail_queue;
-
-    pnode_avail_queue m_available_pnodes;
-
+    
   public:
     friend class alt_tree_view< self >;
     friend class alt_graph_view< self >;
@@ -179,33 +172,32 @@ class adj_list_on_tree {
 
 
 
-template <typename OutEdgeListS = boost::vecS,
+template <typename OutEdgeListS = boost::vecBC,
           typename DirectedS = boost::directedS,
           typename VertexProperty = boost::no_property,
           typename AdjEdgeProperty = boost::no_property,
-          typename AdjEdgeListS = boost::vecS,
-          typename TreeStorageTag = ReaK::graph::d_ary_bf_tree_storage<2> >
+          typename AdjEdgeListS = boost::vecBC,
+          typename TreeStorageTag = boost::bfl_d_ary_tree_storage<2> >
 struct adj_list_on_tree_tag {
-
-  typedef typename tree_storage_traits< TreeStorageTag >::vertex_descriptor tree_vertex_descriptor;
-  typedef typename tree_storage_traits< TreeStorageTag >::edge_descriptor tree_edge_descriptor;
-
-  struct adj_vertex_properties {
-    tree_vertex_descriptor tree_vertex;
-  };
-
-  typedef AdjEdgeProperty adj_edge_properties;
-
-  typedef boost::adjacency_list< OutEdgeListS, boost::vecS, DirectedS,
-                                 adj_vertex_properties, adj_edge_properties,
-                                 boost::no_property, AdjEdgeListS > adj_list_type;
-
+  
   template <typename TreeVertexProperty, typename TreeEdgeProperty>
   struct alt {
-    typedef detail::adj_list_on_tree<adj_list_type, VertexProperty,
-                                     TreeVertexProperty, TreeEdgeProperty, TreeStorageTag> type;
+    typedef detail::tree_vertex_properties_impl<TreeVertexProperty, VertexProperty> tree_vertex_properties;
+    typedef TreeEdgeProperty tree_edge_properties;
+    typedef typename boost::tree_storage< tree_vertex_properties, tree_edge_properties, TreeStorageTag>::type tree_type;
+    
+    typedef typename boost::graph_traits<tree_type>::vertex_descriptor tree_vertex_descriptor;
+    
+    struct adj_vertex_properties {
+      tree_vertex_descriptor tree_vertex;
+    };
+    typedef AdjEdgeProperty adj_edge_properties;
+    
+    typedef boost::adjacency_list_BC< OutEdgeListS, boost::poolBC, DirectedS, adj_vertex_properties, adj_edge_properties > adj_list_type;
+    
+    typedef detail::adj_list_on_tree<adj_list_type, VertexProperty, TreeVertexProperty, TreeEdgeProperty, TreeStorageTag> type;
   };
-
+  
 };
 
 
@@ -241,7 +233,7 @@ struct tree_storage_traits< adj_list_on_tree_tag<OutEdgeListS, DirectedS, Vertex
 template <typename AdjListOnTreeType>
 class alt_tree_view {
   private:
-    ReaK::shared_ptr< AdjListOnTreeType > m_alt;
+    shared_ptr< AdjListOnTreeType > m_alt;
 
   public:
     typedef alt_tree_view< AdjListOnTreeType > self;
@@ -274,7 +266,7 @@ class alt_tree_view {
 
     // AdjacencyGraph traits:
     typedef typename boost::graph_traits< tree_type >::adjacency_iterator adjacency_iterator;
-    typedef typename tree_traits< tree_type >::child_vertex_iterator child_vertex_iterator;
+    typedef typename boost::tree_traits< tree_type >::child_vertex_iterator child_vertex_iterator;
 
     // PropertyGraph traits:
     typedef typename tree_type::edge_property_type edge_property_type;
@@ -621,8 +613,8 @@ class alt_graph_view {
 #endif
     };
 
-    ReaK::shared_ptr< AdjListOnTreeType > m_alt;
-    ReaK::shared_ptr< mutation_visitor_base > m_vis;
+    shared_ptr< AdjListOnTreeType > m_alt;
+    shared_ptr< mutation_visitor_base > m_vis;
 
   public:
 
@@ -753,9 +745,8 @@ class alt_graph_view {
     void remove_vertex_impl(vertex_descriptor v) {
       alt_tree_view< AdjListOnTreeType > tree_view(*this);
       m_vis->remove_vertex(m_alt->m_adj_list[v].tree_vertex, tree_view);
-      m_alt->m_adj_list[v].tree_vertex = m_alt->m_tree.null_vertex();       // invalidate the graph-vertex,
-      clear_vertex(v, m_alt->m_adj_list);                                   // clear its edges, and
-      m_alt->m_available_pnodes.push(v);                                    // add it to the graveyard.
+      clear_vertex(v, m_alt->m_adj_list);
+      remove_vertex(v, m_alt->m_adj_list);
     };
 
     std::pair<edge_descriptor, bool> add_edge_impl(vertex_descriptor u, vertex_descriptor v) {
@@ -777,15 +768,7 @@ class alt_graph_view {
     // MutablePropertyGraph concept
 
     vertex_descriptor add_vertex_impl(const vertex_property_type& vp) {
-      vertex_descriptor v;
-      if( m_alt->m_available_pnodes.empty() ) {
-        // add a new node in the graph (this is safe, it will not invalidate vertex descriptors).
-        v = add_vertex(m_alt->m_adj_list);
-      } else {
-        // resurrect a node from the graveyard.
-        v = m_alt->m_available_pnodes.top();
-        m_alt->m_available_pnodes.pop();
-      };
+      vertex_descriptor v = add_vertex(m_alt->m_adj_list);
       typename tree_type::vertex_property_type tree_vp;
       tree_vp.partner_node = v;
       tree_vp.user_data = vp;
@@ -821,15 +804,7 @@ class alt_graph_view {
 
 #ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
     vertex_descriptor add_vertex_impl(vertex_property_type&& vp) {
-      vertex_descriptor v;
-      if( m_alt->m_available_pnodes.empty() ) {
-        // add a new node in the graph (this is safe, it will not invalidate vertex descriptors).
-        v = add_vertex(m_alt->m_adj_list);
-      } else {
-        // resurrect a node from the graveyard.
-        v = m_alt->m_available_pnodes.top();
-        m_alt->m_available_pnodes.pop();
-      };
+      vertex_descriptor v = add_vertex(m_alt->m_adj_list);
       typename tree_type::vertex_property_type tree_vp;
       tree_vp.partner_node = v;
       tree_vp.user_data = std::move(vp);
@@ -842,22 +817,6 @@ class alt_graph_view {
       return add_edge(u, v, std::move(ep), m_alt->m_adj_list);
     };
 #endif
-
-    // NonCompactGraphConcept
-
-    bool is_vertex_valid_impl(vertex_descriptor u) const {
-      if( ( u != null_vertex() ) &&
-          ( m_alt->m_adj_list[u].tree_vertex != m_alt->m_tree.null_vertex() ) &&
-          is_vertex_valid(m_alt->m_adj_list[u].tree_vertex, m_alt->m_tree) )
-        return true;
-      else
-        return false;
-    };
-
-    bool is_edge_valid_impl(edge_descriptor e) const {
-      return true;
-    };
-
 
     // Other useful / unclassified functions:
 
@@ -874,6 +833,8 @@ class alt_graph_view {
 #endif
     };
 
+    
+#if 0
     // this could go into NonCompactGraphConcept
     void repack_graph() {
       if(m_alt->m_available_pnodes.empty())
@@ -887,8 +848,6 @@ class alt_graph_view {
         vertex_descriptor v_end = reinterpret_cast<vertex_descriptor>(num_vertices(m_alt->m_adj_list));
         while(!m_alt->m_available_pnodes.empty()) {
           vertex_descriptor v = m_alt->m_available_pnodes.top();
-          while( ( v_end > v ) && ( !is_vertex_valid_impl(--v_end) ) )
-            /* nothing */;
           if(v > v_end) {
             ++v_end;
             break;
@@ -931,6 +890,7 @@ class alt_graph_view {
         m_alt->m_tree[ m_alt->m_adj_list[ *vi ].tree_vertex ].partner_node = *vi;
       };
     };
+#endif 
 
 };
 
@@ -1097,8 +1057,8 @@ typename boost::graph_traits< alt_tree_view<AdjListOnTreeType> >::vertex_descrip
 };
 
 template <typename AdjListOnTreeType>
-std::pair< typename tree_traits< alt_tree_view<AdjListOnTreeType> >::child_vertex_iterator,
-           typename tree_traits< alt_tree_view<AdjListOnTreeType> >::child_vertex_iterator >
+std::pair< typename boost::tree_traits< alt_tree_view<AdjListOnTreeType> >::child_vertex_iterator,
+           typename boost::tree_traits< alt_tree_view<AdjListOnTreeType> >::child_vertex_iterator >
   child_vertices(typename boost::graph_traits< alt_tree_view<AdjListOnTreeType> >::vertex_descriptor v,
                  const alt_tree_view<AdjListOnTreeType>& g) {
   return child_vertices(v,g.get_tree());
@@ -1197,23 +1157,6 @@ std::pair< typename boost::graph_traits< alt_tree_view<AdjListOnTreeType> >::ver
   return g.add_child_vertex_impl(v, std::move(vp), std::move(ep));
 };
 #endif
-
-/***********************************************************************************************
- *                             NonCompactGraphConcept
- * ********************************************************************************************/
-
-template <typename AdjListOnTreeType>
-bool is_vertex_valid(typename boost::graph_traits< alt_tree_view<AdjListOnTreeType> >::vertex_descriptor u,
-                     const alt_tree_view<AdjListOnTreeType>& g) {
-  return is_vertex_valid(u,g.get_tree());
-};
-
-template <typename AdjListOnTreeType>
-bool is_edge_valid(typename boost::graph_traits< alt_tree_view<AdjListOnTreeType> >::edge_descriptor e,
-                   const alt_tree_view<AdjListOnTreeType>& g) {
-  return is_edge_valid(e,g.get_tree());
-};
-
 
 
 
@@ -1466,23 +1409,6 @@ std::pair<typename boost::graph_traits< alt_graph_view<AdjListOnTreeType> >::edg
 };
 #endif
 
-/***********************************************************************************************
- *                             NonCompactGraphConcept
- * ********************************************************************************************/
-
-template <typename AdjListOnTreeType>
-bool is_vertex_valid(typename boost::graph_traits< alt_graph_view<AdjListOnTreeType> >::vertex_descriptor u,
-                     const alt_graph_view<AdjListOnTreeType>& g) {
-  return g.is_vertex_valid_impl(u);
-};
-
-template <typename AdjListOnTreeType>
-bool is_edge_valid(typename boost::graph_traits< alt_graph_view<AdjListOnTreeType> >::edge_descriptor e,
-                   const alt_graph_view<AdjListOnTreeType>& g) {
-  return g.is_edge_valid_impl(e);
-};
-
-
 
 };
 
@@ -1492,18 +1418,18 @@ bool is_edge_valid(typename boost::graph_traits< alt_graph_view<AdjListOnTreeTyp
 
 namespace boost {
 
-template <typename AdjVertexDesc, typename TreeVertexProperty, typename AdjVertexProperty>
-struct property_map< ReaK::graph::detail::tree_vertex_properties_impl<AdjVertexDesc, TreeVertexProperty, AdjVertexProperty>,
+template <typename TreeVertexProperty, typename AdjVertexProperty>
+struct property_map< ReaK::graph::detail::tree_vertex_properties_impl<TreeVertexProperty, AdjVertexProperty>,
                      vertex_key_t > {
-  typedef data_member_property_map<AdjVertexDesc, ReaK::graph::detail::tree_vertex_properties_impl<AdjVertexDesc, TreeVertexProperty, AdjVertexProperty> > type;
-  typedef data_member_property_map<const AdjVertexDesc, const ReaK::graph::detail::tree_vertex_properties_impl<AdjVertexDesc, TreeVertexProperty, AdjVertexProperty> > const_type;
+  typedef data_member_property_map<std::size_t, ReaK::graph::detail::tree_vertex_properties_impl<TreeVertexProperty, AdjVertexProperty> > type;
+  typedef data_member_property_map<const std::size_t, const ReaK::graph::detail::tree_vertex_properties_impl<TreeVertexProperty, AdjVertexProperty> > const_type;
 };
 
-template <typename AdjVertexDesc, typename TreeVertexProperty, typename AdjVertexProperty>
-struct property_map< ReaK::graph::detail::tree_vertex_properties_impl<AdjVertexDesc, TreeVertexProperty, AdjVertexProperty>,
+template <typename TreeVertexProperty, typename AdjVertexProperty>
+struct property_map< ReaK::graph::detail::tree_vertex_properties_impl<TreeVertexProperty, AdjVertexProperty>,
                      vertex_second_bundle_t > {
-  typedef data_member_property_map<AdjVertexProperty, ReaK::graph::detail::tree_vertex_properties_impl<AdjVertexDesc, TreeVertexProperty, AdjVertexProperty> > type;
-  typedef data_member_property_map<const AdjVertexProperty, const ReaK::graph::detail::tree_vertex_properties_impl<AdjVertexDesc, TreeVertexProperty, AdjVertexProperty> > const_type;
+  typedef data_member_property_map<AdjVertexProperty, ReaK::graph::detail::tree_vertex_properties_impl<TreeVertexProperty, AdjVertexProperty> > type;
+  typedef data_member_property_map<const AdjVertexProperty, const ReaK::graph::detail::tree_vertex_properties_impl<TreeVertexProperty, AdjVertexProperty> > const_type;
 };
 
 

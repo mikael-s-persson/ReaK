@@ -47,9 +47,14 @@
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/variant.hpp>
 
-#include "bgl_more_property_tags.hpp"
-#include "bgl_more_property_maps.hpp"
-#include "bgl_raw_property_graph.hpp"
+// BGL-Extra includes:
+#include <boost/graph/more_property_tags.hpp>
+#include <boost/graph/more_property_maps.hpp>
+
+
+// Pending inclusion in BGL-Extra:
+#include "graph_alg/bgl_raw_property_graph.hpp"
+
 
 #include <vector>
 #include <queue>

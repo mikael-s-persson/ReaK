@@ -53,7 +53,6 @@
 #include <boost/bind.hpp>
 #include <boost/graph/graph_concepts.hpp>
 #include <boost/property_map/property_map.hpp>
-#include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/topology.hpp>
 #include <boost/graph/properties.hpp>
 

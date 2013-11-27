@@ -24,7 +24,7 @@
 #include <iostream>
 #include <fstream>
 
-#include <boost/graph/adjacency_list.hpp>
+#include <boost/graph/adjacency_list_BC.hpp>
 #include <boost/graph/topology.hpp>
 #include <boost/graph/properties.hpp>
 
@@ -116,8 +116,7 @@ int main(int argc, char ** argv) {
   };
   
   
-  typedef boost::adjacency_list< boost::vecS, boost::vecS, boost::undirectedS,
-                                 MEAQR_vprop, boost::no_property, boost::no_property, boost::listS> WorldGridType;
+  typedef boost::adjacency_list_BC< boost::vecBC, boost::vecBC, boost::undirectedS, MEAQR_vprop, boost::no_property> WorldGridType;
   typedef boost::graph_traits< WorldGridType >::vertex_descriptor VertexType;
   typedef boost::property_map<WorldGridType, MEAQR_PointType MEAQR_vprop::* >::type PositionMapType;
   

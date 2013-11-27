@@ -23,12 +23,12 @@
 
 #include <iostream>
 
-#include "d_ary_bf_tree.hpp"
-#include "d_ary_cob_tree.hpp"
-#include <boost/graph/adjacency_list.hpp>
-#include "bgl_tree_adaptor.hpp"
-#include "linked_tree.hpp"
-#include "pooled_adjacency_list.hpp"
+#include <boost/graph/bfl_d_ary_tree.hpp>
+#include <boost/graph/vebl_d_ary_tree.hpp>
+#include <boost/graph/adjacency_list_BC.hpp>
+#include <boost/graph/linked_tree_BC.hpp>
+#include <boost/graph/tree_adaptor.hpp>
+#include <boost/graph/tree_traits.hpp>
 
 
 #define BOOST_TEST_DYN_LINK
@@ -40,14 +40,14 @@
 
 
 typedef boost::mpl::list< 
-  ReaK::graph::d_ary_bf_tree<int, 4, int>, 
-  ReaK::graph::d_ary_cob_tree<int, 4, int>, 
-  ReaK::graph::linked_tree<boost::vecS, boost::vecS, int, int>,
-  ReaK::graph::linked_tree<boost::listS, boost::vecS, int, int>, 
-  ReaK::graph::linked_tree<boost::vecS, boost::listS, int, int>, 
-  ReaK::graph::linked_tree<boost::listS, boost::listS, int, int>,
-  ReaK::graph::tree_storage<int, int>::type,
-  boost::pooled_adjacency_list<boost::bidirectionalS, int, int > > intint_treetest_types;
+  boost::bfl_d_ary_tree<4, int, int>, 
+  boost::vebl_d_ary_tree<4, int, int>, 
+  boost::linked_tree_BC<boost::vecBC, boost::vecBC, int, int>,
+  boost::linked_tree_BC<boost::listBC, boost::vecBC, int, int>, 
+  boost::linked_tree_BC<boost::vecBC, boost::listBC, int, int>, 
+  boost::linked_tree_BC<boost::listBC, boost::listBC, int, int>,
+  boost::tree_storage<int, int, boost::adj_list_BC_as_tree_storage<> >::type,
+  boost::tree_storage<int, int, boost::adj_list_BC_as_tree_storage<boost::vecBC, boost::poolBC> >::type > intint_treetest_types;
 
 BOOST_AUTO_TEST_CASE_TEMPLATE( intint_tree_test, TreeType, intint_treetest_types )
 {
@@ -56,7 +56,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE( intint_tree_test, TreeType, intint_treetest_types
   typedef typename boost::graph_traits<TreeType>::edge_descriptor Edge;
   typedef typename boost::graph_traits<TreeType>::out_edge_iterator OutEdgeIter;
   typedef typename boost::graph_traits<TreeType>::in_edge_iterator InEdgeIter;
-  typedef typename ReaK::graph::tree_traits<TreeType>::child_vertex_iterator ChildVertIter;
+  typedef typename boost::tree_traits<TreeType>::child_vertex_iterator ChildVertIter;
   
   TreeType g;
   
@@ -106,10 +106,8 @@ BOOST_AUTO_TEST_CASE_TEMPLATE( intint_tree_test, TreeType, intint_treetest_types
     BOOST_CHECK_NO_THROW( boost::tie(ei,ei_end) = out_edges(v_root,g) );
     std::vector<int> e_list;
     for(; ei != ei_end; ++ei) {
-      if(is_edge_valid(*ei,g)) {
-        BOOST_CHECK_EQUAL( g[*ei], (g[source(*ei,g)] * 1000 + g[target(*ei,g)]) );
-        e_list.push_back(g[*ei]);
-      };
+      BOOST_CHECK_EQUAL( g[*ei], (g[source(*ei,g)] * 1000 + g[target(*ei,g)]) );
+      e_list.push_back(g[*ei]);
     };
     std::sort(e_list.begin(), e_list.end());
     BOOST_CHECK_EQUAL( e_list[0], 1002);
@@ -121,8 +119,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE( intint_tree_test, TreeType, intint_treetest_types
     BOOST_CHECK_NO_THROW( boost::tie(cvi,cvi_end) = child_vertices(v_root,g) );
     std::vector<int> vp_list;
     for(; cvi != cvi_end; ++cvi)
-      if(is_vertex_valid(*cvi,g))
-        vp_list.push_back(g[*cvi]);
+      vp_list.push_back(g[*cvi]);
     std::sort(vp_list.begin(), vp_list.end());
     BOOST_CHECK_EQUAL( vp_list[0], 2);
     BOOST_CHECK_EQUAL( vp_list[1], 3);
@@ -132,15 +129,13 @@ BOOST_AUTO_TEST_CASE_TEMPLATE( intint_tree_test, TreeType, intint_treetest_types
     BOOST_CHECK_NO_THROW( boost::tie(cvi,cvi_end) = child_vertices(v_root,g) );
     std::vector< Vertex > v_list;
     for(; cvi != cvi_end; ++cvi) {
-      if((is_vertex_valid(*cvi,g)) && (g[*cvi] == 2)) {
+      if(g[*cvi] == 2) {
         
         BOOST_CHECK_NO_THROW( boost::tie(ei,ei_end) = out_edges(*cvi,g) );
         std::vector<int> e_list2;
         for(; ei != ei_end; ++ei) {
-          if(is_edge_valid(*ei,g)) {
-            BOOST_CHECK_EQUAL( g[*ei], (g[source(*ei,g)] * 1000 + g[target(*ei,g)]) );
-            e_list2.push_back(g[*ei]);
-          };
+          BOOST_CHECK_EQUAL( g[*ei], (g[source(*ei,g)] * 1000 + g[target(*ei,g)]) );
+          e_list2.push_back(g[*ei]);
         };
         std::sort(e_list2.begin(), e_list2.end());
         BOOST_CHECK_EQUAL( e_list2[0], 2006);
@@ -171,10 +166,8 @@ BOOST_AUTO_TEST_CASE_TEMPLATE( intint_tree_test, TreeType, intint_treetest_types
     BOOST_CHECK_NO_THROW( boost::tie(ei,ei_end) = out_edges(v_rc[1],g) );
     std::vector<int> e_list;
     for(; ei != ei_end; ++ei) {
-      if(is_edge_valid(*ei,g)) {
-        BOOST_CHECK_EQUAL( g[*ei], (g[source(*ei,g)] * 1000 + g[target(*ei,g)]) );
-        e_list.push_back(g[*ei]);
-      };
+      BOOST_CHECK_EQUAL( g[*ei], (g[source(*ei,g)] * 1000 + g[target(*ei,g)]) );
+      e_list.push_back(g[*ei]);
     };
     std::sort(e_list.begin(), e_list.end());
     BOOST_CHECK_EQUAL( e_list[0], 3010);
@@ -186,8 +179,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE( intint_tree_test, TreeType, intint_treetest_types
     BOOST_CHECK_NO_THROW( boost::tie(cvi,cvi_end) = child_vertices(v_rc[1],g) );
     std::vector<int> vp_list;
     for(; cvi != cvi_end; ++cvi)
-      if(is_vertex_valid(*cvi,g))
-        vp_list.push_back(g[*cvi]);
+      vp_list.push_back(g[*cvi]);
     std::sort(vp_list.begin(), vp_list.end());
     BOOST_CHECK_EQUAL( vp_list[0], 10);
     BOOST_CHECK_EQUAL( vp_list[1], 11);
@@ -205,10 +197,8 @@ BOOST_AUTO_TEST_CASE_TEMPLATE( intint_tree_test, TreeType, intint_treetest_types
     BOOST_CHECK_NO_THROW( boost::tie(ei,ei_end) = out_edges(v_root,g) );
     std::vector<int> e_list;
     for(; ei != ei_end; ++ei) {
-      if(is_edge_valid(*ei,g)) {
-        BOOST_CHECK_EQUAL( g[*ei], (g[source(*ei,g)] * 1000 + g[target(*ei,g)]) );
-        e_list.push_back(g[*ei]);
-      };
+      BOOST_CHECK_EQUAL( g[*ei], (g[source(*ei,g)] * 1000 + g[target(*ei,g)]) );
+      e_list.push_back(g[*ei]);
     };
     std::sort(e_list.begin(), e_list.end());
     BOOST_CHECK_EQUAL( e_list[0], 1003);
@@ -219,8 +209,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE( intint_tree_test, TreeType, intint_treetest_types
     BOOST_CHECK_NO_THROW( boost::tie(cvi,cvi_end) = child_vertices(v_root,g) );
     std::vector<int> vp_list;
     for(; cvi != cvi_end; ++cvi)
-      if(is_vertex_valid(*cvi,g))
-        vp_list.push_back(g[*cvi]);
+      vp_list.push_back(g[*cvi]);
     std::sort(vp_list.begin(), vp_list.end());
     BOOST_CHECK_EQUAL( vp_list[0], 3);
     BOOST_CHECK_EQUAL( vp_list[1], 4);
@@ -229,15 +218,13 @@ BOOST_AUTO_TEST_CASE_TEMPLATE( intint_tree_test, TreeType, intint_treetest_types
     BOOST_CHECK_NO_THROW( boost::tie(cvi,cvi_end) = child_vertices(v_root,g) );
     std::vector< Vertex > v_list;
     for(; cvi != cvi_end; ++cvi) {
-      if((is_vertex_valid(*cvi,g)) && (g[*cvi] == 3)) {
+      if(g[*cvi] == 3) {
         
         BOOST_CHECK_NO_THROW( boost::tie(ei,ei_end) = out_edges(*cvi,g) );
         std::vector<int> e_list2;
         for(; ei != ei_end; ++ei) {
-          if(is_edge_valid(*ei,g)) {
-            BOOST_CHECK_EQUAL( g[*ei], (g[source(*ei,g)] * 1000 + g[target(*ei,g)]) );
-            e_list2.push_back(g[*ei]);
-          };
+          BOOST_CHECK_EQUAL( g[*ei], (g[source(*ei,g)] * 1000 + g[target(*ei,g)]) );
+          e_list2.push_back(g[*ei]);
         };
         std::sort(e_list2.begin(), e_list2.end());
         BOOST_CHECK_EQUAL( e_list2[0], 3010);
@@ -266,10 +253,8 @@ BOOST_AUTO_TEST_CASE_TEMPLATE( intint_tree_test, TreeType, intint_treetest_types
     BOOST_CHECK_NO_THROW( boost::tie(ei,ei_end) = out_edges(v_root,g) );
     std::vector<int> e_list;
     for(; ei != ei_end; ++ei) {
-      if(is_edge_valid(*ei,g)) {
-        BOOST_CHECK_EQUAL( g[*ei], (g[source(*ei,g)] * 1000 + g[target(*ei,g)]) );
-        e_list.push_back(g[*ei]);
-      };
+      BOOST_CHECK_EQUAL( g[*ei], (g[source(*ei,g)] * 1000 + g[target(*ei,g)]) );
+      e_list.push_back(g[*ei]);
     };
     std::sort(e_list.begin(), e_list.end());
     BOOST_CHECK_EQUAL( e_list[0], 1004);
@@ -301,10 +286,8 @@ BOOST_AUTO_TEST_CASE_TEMPLATE( intint_tree_test, TreeType, intint_treetest_types
     BOOST_CHECK_NO_THROW( boost::tie(ei,ei_end) = out_edges(v_root,g) );
     std::vector<int> e_list;
     for(; ei != ei_end; ++ei) {
-      if(is_edge_valid(*ei,g)) {
-        BOOST_CHECK_EQUAL( g[*ei], (g[source(*ei,g)] * 1000 + g[target(*ei,g)]) );
-        e_list.push_back(g[*ei]);
-      };
+      BOOST_CHECK_EQUAL( g[*ei], (g[source(*ei,g)] * 1000 + g[target(*ei,g)]) );
+      e_list.push_back(g[*ei]);
     };
     std::sort(e_list.begin(), e_list.end());
     BOOST_CHECK_EQUAL( e_list[0], 1002);
@@ -315,8 +298,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE( intint_tree_test, TreeType, intint_treetest_types
     BOOST_CHECK_NO_THROW( boost::tie(cvi,cvi_end) = child_vertices(v_root,g) );
     std::vector<int> vp_list;
     for(; cvi != cvi_end; ++cvi)
-      if(is_vertex_valid(*cvi,g))
-        vp_list.push_back(g[*cvi]);
+      vp_list.push_back(g[*cvi]);
     std::sort(vp_list.begin(), vp_list.end());
     BOOST_CHECK_EQUAL( vp_list[0], 2);
     BOOST_CHECK_EQUAL( vp_list[1], 4);
@@ -325,15 +307,13 @@ BOOST_AUTO_TEST_CASE_TEMPLATE( intint_tree_test, TreeType, intint_treetest_types
     BOOST_CHECK_NO_THROW( boost::tie(cvi,cvi_end) = child_vertices(v_root,g) );
     std::vector< Vertex > v_list;
     for(; cvi != cvi_end; ++cvi) {
-      if((is_vertex_valid(*cvi,g)) && (g[*cvi] == 2)) {
+      if(g[*cvi] == 2) {
         
         BOOST_CHECK_NO_THROW( boost::tie(ei,ei_end) = out_edges(*cvi,g) );
         std::vector<int> e_list2;
         for(; ei != ei_end; ++ei) {
-          if(is_edge_valid(*ei,g)) {
-            BOOST_CHECK_EQUAL( g[*ei], (g[source(*ei,g)] * 1000 + g[target(*ei,g)]) );
-            e_list2.push_back(g[*ei]);
-          };
+          BOOST_CHECK_EQUAL( g[*ei], (g[source(*ei,g)] * 1000 + g[target(*ei,g)]) );
+          e_list2.push_back(g[*ei]);
         };
         std::sort(e_list2.begin(), e_list2.end());
         BOOST_CHECK_EQUAL( e_list2[0], 2006);
@@ -349,8 +329,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE( intint_tree_test, TreeType, intint_treetest_types
   std::vector<int> all_vertices;
   VertexIter vi, vi_end;
   for(boost::tie(vi,vi_end) = vertices(g); vi != vi_end; ++vi)
-    if(is_vertex_valid(*vi,g))
-      all_vertices.push_back(g[*vi]);
+    all_vertices.push_back(g[*vi]);
   std::sort(all_vertices.begin(), all_vertices.end());
   BOOST_CHECK_EQUAL( all_vertices[0], 1 );
   BOOST_CHECK_EQUAL( all_vertices[1], 2 );
@@ -365,11 +344,9 @@ BOOST_AUTO_TEST_CASE_TEMPLATE( intint_tree_test, TreeType, intint_treetest_types
   InEdgeIter iei, iei_end;
   unsigned int j = 0;
   for(boost::tie(iei,iei_end) = in_edges(v_rc1c[1],g); (iei != iei_end) && (j < 4); ++iei, ++j) {
-    if(is_edge_valid(*iei,g)) {
-      BOOST_CHECK_EQUAL( g[*iei], 2007 );
-      BOOST_CHECK_EQUAL( g[source(*iei,g)], 2 );
-      BOOST_CHECK_EQUAL( g[target(*iei,g)], 7 );
-    };
+    BOOST_CHECK_EQUAL( g[*iei], 2007 );
+    BOOST_CHECK_EQUAL( g[source(*iei,g)], 2 );
+    BOOST_CHECK_EQUAL( g[target(*iei,g)], 7 );
   };
   
   BOOST_CHECK_EQUAL( vp_rc[0], 2 );
