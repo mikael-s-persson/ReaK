@@ -188,9 +188,9 @@ class dvp_tree
       distance_type d;
     };
     
-    typedef typename graph::tree_storage< vertex_properties, edge_properties, TreeStorageTag>::type tree_indexer;
-    typedef typename boost::property_map<tree_indexer, boost::vertex_raw_prop_to_bundle_t>::type vertex_r2b_map_type;
-    typedef typename boost::property_map<tree_indexer, boost::edge_raw_prop_to_bundle_t>::type edge_r2b_map_type;
+    typedef typename boost::tree_storage< vertex_properties, edge_properties, TreeStorageTag>::type tree_indexer;
+    typedef typename boost::raw_vertex_to_bundle_map<tree_indexer>::type vertex_r2b_map_type;
+    typedef typename boost::raw_edge_to_bundle_map<tree_indexer>::type edge_r2b_map_type;
     typedef boost::data_member_property_map<Key, vertex_properties> key_map_type;
     typedef boost::data_member_property_map<distance_type, edge_properties> distance_map_type;
     typedef typename PositionCachingPolicy::template position_map<point_type, key_map_type, PositionMap> vertex_position_map;
@@ -238,11 +238,11 @@ class dvp_tree
              m_position(aPosition),
              m_vp_key(
                key_map_type(&vertex_properties::k),
-               get(boost::vertex_raw_prop_to_bundle, m_tree)
+               get_raw_vertex_to_bundle_map(m_tree)
              ),
              m_vp_pos(
                vertex_position_map(key_map_type(&vertex_properties::k), aPosition),
-               get(boost::vertex_raw_prop_to_bundle, m_tree)
+               get_raw_vertex_to_bundle_map(m_tree)
              ),
              m_impl(
                g,
@@ -252,7 +252,7 @@ class dvp_tree
                m_vp_key,
                ep_to_distance_map_type(
                  distance_map_type(&edge_properties::d),
-                 get(boost::edge_raw_prop_to_bundle, m_tree)
+                 get_raw_edge_to_bundle_map(m_tree)
                ),
                m_vp_pos,
                aVPChooser
@@ -277,11 +277,11 @@ class dvp_tree
              m_position(aPosition),
              m_vp_key(
                key_map_type(&vertex_properties::k),
-               get(boost::vertex_raw_prop_to_bundle, m_tree)
+               get_raw_vertex_to_bundle_map(m_tree)
              ),
              m_vp_pos(
                vertex_position_map(key_map_type(&vertex_properties::k), aPosition),
-               get(boost::vertex_raw_prop_to_bundle, m_tree)
+               get_raw_vertex_to_bundle_map(m_tree)
              ),
              m_impl(
                aBegin,
@@ -292,7 +292,7 @@ class dvp_tree
                m_vp_key,
                ep_to_distance_map_type(
                  distance_map_type(&edge_properties::d),
-                 get(boost::edge_raw_prop_to_bundle, m_tree)
+                 get_raw_edge_to_bundle_map(m_tree)
                ),
                m_vp_pos,
                aVPChooser

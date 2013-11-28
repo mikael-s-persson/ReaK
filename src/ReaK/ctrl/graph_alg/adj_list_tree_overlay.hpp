@@ -45,10 +45,10 @@
 
 
 // BGL-Extra includes:
+#include <boost/graph/more_property_tags.hpp>
 #include <boost/graph/adjacency_list_BC.hpp>
 #include <boost/graph/bfl_d_ary_tree.hpp>
 //#include <boost/graph/tree_adaptor.hpp>
-#include <boost/graph/more_property_tags.hpp>
 #include <boost/graph/more_property_maps.hpp>
 
 // Pending inclusion in BGL-Extra:
@@ -121,7 +121,7 @@ boost::data_member_property_map<const std::size_t, const tree_vertex_properties_
 };
 
 template <typename TreeVertexProperty, typename AdjVertexProperty>
-boost::data_member_property_map<std::size_t, tree_vertex_properties_impl<TreeVertexProperty, AdjVertexProperty> >
+boost::data_member_property_map<AdjVertexProperty, tree_vertex_properties_impl<TreeVertexProperty, AdjVertexProperty> >
  get(boost::vertex_second_bundle_t, const tree_vertex_properties_impl<TreeVertexProperty, AdjVertexProperty>&) {
   return boost::data_member_property_map<AdjVertexProperty, tree_vertex_properties_impl<TreeVertexProperty, AdjVertexProperty> >(&tree_vertex_properties_impl<TreeVertexProperty, AdjVertexProperty>::user_data);
 };
@@ -201,6 +201,12 @@ struct adj_list_on_tree_tag {
 };
 
 
+}; // namespace graph
+
+}; // namespace ReaK
+
+
+namespace boost {
 
 template <typename TreeVertexProperty,
           typename TreeEdgeProperty,
@@ -211,9 +217,9 @@ template <typename TreeVertexProperty,
           typename AdjEdgeListS,
           typename TreeStorageTag>
 struct tree_storage< TreeVertexProperty, TreeEdgeProperty,
-                     adj_list_on_tree_tag<OutEdgeListS, DirectedS, VertexProperty, AdjEdgeProperty, AdjEdgeListS, TreeStorageTag> > {
-  typedef adj_list_on_tree_tag<OutEdgeListS, DirectedS, VertexProperty, AdjEdgeProperty, AdjEdgeListS, TreeStorageTag> alt_tag_type;
-  typedef alt_tree_view< typename alt_tag_type::template alt<TreeVertexProperty,TreeEdgeProperty>::type > type;
+                     ReaK::graph::adj_list_on_tree_tag<OutEdgeListS, DirectedS, VertexProperty, AdjEdgeProperty, AdjEdgeListS, TreeStorageTag> > {
+  typedef ReaK::graph::adj_list_on_tree_tag<OutEdgeListS, DirectedS, VertexProperty, AdjEdgeProperty, AdjEdgeListS, TreeStorageTag> alt_tag_type;
+  typedef ReaK::graph::alt_tree_view< typename alt_tag_type::template alt<TreeVertexProperty,TreeEdgeProperty>::type > type;
 };
 
 
@@ -223,10 +229,18 @@ template <typename OutEdgeListS,
           typename AdjEdgeProperty,
           typename AdjEdgeListS,
           typename TreeStorageTag>
-struct tree_storage_traits< adj_list_on_tree_tag<OutEdgeListS, DirectedS, VertexProperty, AdjEdgeProperty, AdjEdgeListS, TreeStorageTag> > :
+struct tree_storage_traits< ReaK::graph::adj_list_on_tree_tag<OutEdgeListS, DirectedS, VertexProperty, AdjEdgeProperty, AdjEdgeListS, TreeStorageTag> > :
   tree_storage_traits< TreeStorageTag > { };
 
+};
 
+
+
+
+
+namespace ReaK {
+
+namespace graph {
 
 
 
@@ -303,19 +317,19 @@ class alt_tree_view {
 
 
     friend
-    vertex_property_type& get(boost::vertex_raw_property_t, self& g, const vertex_descriptor& v_i) {
+    vertex_property_type& get_raw_vertex_property(self& g, const vertex_descriptor& v_i) {
       return g.get_tree()[v_i];
     };
     friend
-    const vertex_property_type& get(boost::vertex_raw_property_t, const self& g, const vertex_descriptor& v_i) {
+    const vertex_property_type& get_raw_vertex_property(const self& g, const vertex_descriptor& v_i) {
       return g.get_tree()[v_i];
     };
     friend
-    edge_property_type& get(boost::edge_raw_property_t, self& g, const edge_descriptor& e_i) {
+    edge_property_type& get_raw_edge_property(self& g, const edge_descriptor& e_i) {
       return g.get_tree()[e_i];
     };
     friend
-    const edge_property_type& get(boost::edge_raw_property_t, const self& g, const edge_descriptor& e_i) {
+    const edge_property_type& get_raw_edge_property(const self& g, const edge_descriptor& e_i) {
       return g.get_tree()[e_i];
     };
 
@@ -408,33 +422,38 @@ class alt_tree_view {
 namespace boost {
 
 
-template <typename AdjListOnTreeType>
-struct is_raw_property_graph< ReaK::graph::alt_tree_view<AdjListOnTreeType> > : boost::mpl::true_ { };
-
 
 template <typename AdjListOnTreeType>
-struct property_map< ReaK::graph::alt_tree_view<AdjListOnTreeType>, vertex_raw_property_t> {
-  typedef boost::propgraph_property_map<
+struct raw_vertex_property_map< ReaK::graph::alt_tree_view<AdjListOnTreeType> > {
+  typedef boost::raw_vertex_propgraph_map<
     typename ReaK::graph::alt_tree_view<AdjListOnTreeType>::vertex_property_type,
-    ReaK::graph::alt_tree_view<AdjListOnTreeType>,
-    vertex_raw_property_t > type;
-  typedef boost::propgraph_property_map<
+    ReaK::graph::alt_tree_view<AdjListOnTreeType> > type;
+  typedef boost::raw_vertex_propgraph_map<
     const typename ReaK::graph::alt_tree_view<AdjListOnTreeType>::vertex_property_type,
-    const ReaK::graph::alt_tree_view<AdjListOnTreeType>,
-    vertex_raw_property_t > const_type;
+    const ReaK::graph::alt_tree_view<AdjListOnTreeType> > const_type;
 };
 
 template <typename AdjListOnTreeType>
-struct property_map< ReaK::graph::alt_tree_view<AdjListOnTreeType>, edge_raw_property_t> {
-  typedef boost::propgraph_property_map<
+struct raw_edge_property_map< ReaK::graph::alt_tree_view<AdjListOnTreeType> > {
+  typedef boost::raw_edge_propgraph_map<
     typename ReaK::graph::alt_tree_view<AdjListOnTreeType>::edge_property_type,
-    ReaK::graph::alt_tree_view<AdjListOnTreeType>,
-    edge_raw_property_t > type;
-  typedef boost::propgraph_property_map<
+    ReaK::graph::alt_tree_view<AdjListOnTreeType> > type;
+  typedef boost::raw_edge_propgraph_map<
     const typename ReaK::graph::alt_tree_view<AdjListOnTreeType>::edge_property_type,
-    const ReaK::graph::alt_tree_view<AdjListOnTreeType>,
-    edge_raw_property_t > const_type;
+    const ReaK::graph::alt_tree_view<AdjListOnTreeType> > const_type;
 };
+
+template <typename AdjListOnTreeType>
+struct raw_vertex_to_bundle_map< ReaK::graph::alt_tree_view<AdjListOnTreeType> > {
+  typedef data_member_property_map<
+    typename ReaK::graph::alt_tree_view<AdjListOnTreeType>::vertex_bundled,
+    typename ReaK::graph::alt_tree_view<AdjListOnTreeType>::vertex_property_type > type;
+  typedef data_member_property_map<
+    const typename ReaK::graph::alt_tree_view<AdjListOnTreeType>::vertex_bundled,
+    const typename ReaK::graph::alt_tree_view<AdjListOnTreeType>::vertex_property_type > const_type;
+};
+
+
 
 template <typename AdjListOnTreeType, typename T, typename Bundle>
 struct property_map< ReaK::graph::alt_tree_view<AdjListOnTreeType>, T Bundle::* > {
@@ -447,22 +466,6 @@ struct property_map< ReaK::graph::alt_tree_view<AdjListOnTreeType>, T Bundle::* 
     typename mpl::if_< is_vertex_bundle, vertex_bundle_t, edge_bundle_t >::type > const_type;
 };
 
-/* General template is OK for the edge_raw_prop_to_bundle_t tag.
-template <typename Graph>
-struct property_map<Graph, edge_raw_prop_to_bundle_t> {
-  typedef self_property_map< typename Graph::edge_bundled > type;
-  typedef self_property_map< const typename Graph::edge_bundled > const_type;
-};*/
-
-template <typename AdjListOnTreeType>
-struct property_map< ReaK::graph::alt_tree_view<AdjListOnTreeType>, vertex_raw_prop_to_bundle_t> {
-  typedef data_member_property_map<
-    typename ReaK::graph::alt_tree_view<AdjListOnTreeType>::vertex_bundled,
-    typename ReaK::graph::alt_tree_view<AdjListOnTreeType>::vertex_property_type > type;
-  typedef data_member_property_map<
-    const typename ReaK::graph::alt_tree_view<AdjListOnTreeType>::vertex_bundled,
-    const typename ReaK::graph::alt_tree_view<AdjListOnTreeType>::vertex_property_type > const_type;
-};
 
 
 };  // end namespace boost
@@ -475,46 +478,46 @@ namespace graph {
 
 
 template <typename AdjListOnTreeType>
-typename boost::property_map<alt_tree_view<AdjListOnTreeType>, boost::vertex_raw_property_t>::type
-  get(boost::vertex_raw_property_t tag, alt_tree_view<AdjListOnTreeType>& g) {
-  typedef typename boost::property_map<alt_tree_view<AdjListOnTreeType>, boost::vertex_raw_property_t>::type result_type;
-  return result_type(&g,tag);
+typename boost::raw_vertex_property_map< alt_tree_view<AdjListOnTreeType> >::type
+  get_raw_vertex_property_map(alt_tree_view<AdjListOnTreeType>& g) {
+  typedef typename boost::raw_vertex_property_map< alt_tree_view<AdjListOnTreeType> >::type result_type;
+  return result_type(&g);
 };
 
 template <typename AdjListOnTreeType>
-typename boost::property_map<alt_tree_view<AdjListOnTreeType>, boost::vertex_raw_property_t>::const_type
-  get(boost::vertex_raw_property_t tag, const alt_tree_view<AdjListOnTreeType>& g) {
-  typedef typename boost::property_map<alt_tree_view<AdjListOnTreeType>, boost::vertex_raw_property_t>::const_type result_type;
-  return result_type(&g,tag);
+typename boost::raw_vertex_property_map< alt_tree_view<AdjListOnTreeType> >::const_type
+  get_raw_vertex_property_map(const alt_tree_view<AdjListOnTreeType>& g) {
+  typedef typename boost::raw_vertex_property_map< alt_tree_view<AdjListOnTreeType> >::const_type result_type;
+  return result_type(&g);
 };
 
 template <typename AdjListOnTreeType>
-typename boost::property_map<alt_tree_view<AdjListOnTreeType>, boost::edge_raw_property_t>::type
-  get(boost::edge_raw_property_t tag, alt_tree_view<AdjListOnTreeType>& g) {
-  typedef typename boost::property_map<alt_tree_view<AdjListOnTreeType>, boost::edge_raw_property_t>::type result_type;
-  return result_type(&g,tag);
+typename boost::raw_edge_property_map< alt_tree_view<AdjListOnTreeType> >::type
+  get_raw_edge_property_map(alt_tree_view<AdjListOnTreeType>& g) {
+  typedef typename boost::raw_edge_property_map< alt_tree_view<AdjListOnTreeType> >::type result_type;
+  return result_type(&g);
 };
 
 template <typename AdjListOnTreeType>
-typename boost::property_map<alt_tree_view<AdjListOnTreeType>, boost::edge_raw_property_t>::const_type
-  get(boost::edge_raw_property_t tag, const alt_tree_view<AdjListOnTreeType>& g) {
-  typedef typename boost::property_map<alt_tree_view<AdjListOnTreeType>, boost::edge_raw_property_t>::const_type result_type;
-  return result_type(&g,tag);
+typename boost::raw_edge_property_map< alt_tree_view<AdjListOnTreeType> >::const_type
+  get_raw_edge_property_map(const alt_tree_view<AdjListOnTreeType>& g) {
+  typedef typename boost::raw_edge_property_map< alt_tree_view<AdjListOnTreeType> >::const_type result_type;
+  return result_type(&g);
 };
 
 
 template <typename AdjListOnTreeType>
-typename boost::property_map<alt_tree_view<AdjListOnTreeType>, boost::vertex_raw_prop_to_bundle_t>::type
-  get(boost::vertex_raw_prop_to_bundle_t, alt_tree_view<AdjListOnTreeType>& g) {
-  typedef typename boost::property_map<alt_tree_view<AdjListOnTreeType>, boost::vertex_raw_prop_to_bundle_t>::type result_type;
+typename boost::raw_vertex_to_bundle_map< alt_tree_view<AdjListOnTreeType> >::type
+  get_raw_vertex_to_bundle_map(alt_tree_view<AdjListOnTreeType>& g) {
+  typedef typename boost::raw_vertex_to_bundle_map< alt_tree_view<AdjListOnTreeType> >::type result_type;
   typedef typename alt_tree_view<AdjListOnTreeType>::vertex_property_type VProp;
   return result_type(&VProp::tree_data);
 };
 
 template <typename AdjListOnTreeType>
-typename boost::property_map<alt_tree_view<AdjListOnTreeType>, boost::vertex_raw_prop_to_bundle_t>::const_type
-  get(boost::vertex_raw_prop_to_bundle_t, const alt_tree_view<AdjListOnTreeType>& g) {
-  typedef typename boost::property_map<alt_tree_view<AdjListOnTreeType>, boost::vertex_raw_prop_to_bundle_t>::const_type result_type;
+typename boost::raw_vertex_to_bundle_map< alt_tree_view<AdjListOnTreeType> >::const_type
+  get_raw_vertex_to_bundle_map(const alt_tree_view<AdjListOnTreeType>& g) {
+  typedef typename boost::raw_vertex_to_bundle_map< alt_tree_view<AdjListOnTreeType> >::const_type result_type;
   typedef const typename alt_tree_view<AdjListOnTreeType>::vertex_property_type VProp;
   return result_type(&VProp::tree_data);
 };
@@ -1433,9 +1436,6 @@ struct property_map< ReaK::graph::detail::tree_vertex_properties_impl<TreeVertex
 };
 
 
-
-template <typename AdjListOnTreeType>
-struct is_raw_property_graph< ReaK::graph::alt_graph_view<AdjListOnTreeType> > : boost::mpl::true_ { };
 
 
 template <typename AdjListOnTreeType, typename T, typename Bundle>

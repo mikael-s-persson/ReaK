@@ -42,8 +42,8 @@
 
 typedef boost::mpl::list< 
   std::map<int, int>, 
-  ReaK::graph::avlbf_map<int, int>, 
-  ReaK::graph::avlcob_map<int, int> > intint_maptest_types;
+  ReaK::graph::avlbfl_map<int, int>, 
+  ReaK::graph::avlvebl_map<int, int> > intint_maptest_types;
 
 
 BOOST_AUTO_TEST_CASE_TEMPLATE( intint_map_test, Map, intint_maptest_types )
@@ -80,10 +80,10 @@ BOOST_AUTO_TEST_CASE_TEMPLATE( intint_map_test, Map, intint_maptest_types )
 typedef boost::mpl::list< 
   std::map<int, int>, 
   std::multimap<int, int>, 
-  ReaK::graph::avlbf_map<int, int>,
-  ReaK::graph::avlbf_multimap<int, int>, 
-  ReaK::graph::avlcob_map<int, int>, 
-  ReaK::graph::avlcob_multimap<int, int> > intint_multimaptest_types;
+  ReaK::graph::avlbfl_map<int, int>,
+  ReaK::graph::avlbfl_multimap<int, int>, 
+  ReaK::graph::avlvebl_map<int, int>, 
+  ReaK::graph::avlvebl_multimap<int, int> > intint_multimaptest_types;
 
 BOOST_AUTO_TEST_CASE_TEMPLATE( intint_multimap_test, Map, intint_multimaptest_types )
 {
@@ -199,10 +199,10 @@ BOOST_AUTO_TEST_CASE_TEMPLATE( intint_multimap_test, Map, intint_multimaptest_ty
 typedef boost::mpl::list< 
   std::set<int>, 
   std::multiset<int>, 
-  ReaK::graph::avlbf_set<int>,
-  ReaK::graph::avlbf_multiset<int>, 
-  ReaK::graph::avlcob_set<int>, 
-  ReaK::graph::avlcob_multiset<int> > int_multisettest_types;
+  ReaK::graph::avlbfl_set<int>,
+  ReaK::graph::avlbfl_multiset<int>, 
+  ReaK::graph::avlvebl_set<int>, 
+  ReaK::graph::avlvebl_multiset<int> > int_multisettest_types;
 
 BOOST_AUTO_TEST_CASE_TEMPLATE( int_multiset_test, Set, int_multisettest_types )
 {

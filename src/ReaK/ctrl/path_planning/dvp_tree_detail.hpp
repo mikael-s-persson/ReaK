@@ -259,8 +259,8 @@ class dvp_tree_impl
     typedef std::vector< std::pair< distance_type, vertex_type > > priority_queue_type;
     
     
-//     typedef std::unordered_map<key_type, distance_type> temporary_dist_map_type;
-    typedef std::map<key_type, distance_type> temporary_dist_map_type;
+    typedef std::unordered_map<key_type, distance_type> temporary_dist_map_type;
+//     typedef std::map<key_type, distance_type> temporary_dist_map_type;
     
     /* Simple comparison function to sort by pre-computed distance values. */
     struct closer {
@@ -348,7 +348,7 @@ class dvp_tree_impl
         
         // update values in the dist-map with the distances to the new chosen vantage-point:
         {
-          const point_type& chosen_vp_pt = get(m_position, get(boost::vertex_raw_property, m_tree, cur_task.node));
+          const point_type& chosen_vp_pt = get(m_position, get_raw_vertex_property(m_tree, cur_task.node));
           for(prop_vector_iter it = cur_task.first; it != cur_task.last; ++it)
             dist_map[ get(m_key, *it) ] = m_distance.proper_distance(chosen_vp_pt, get(m_position, *it));
         };
@@ -481,7 +481,7 @@ class dvp_tree_impl
         if( cur_node.second > aResult.Radius )
           continue;
         
-        const point_type& current_vp = get(m_position, get(boost::vertex_raw_property,m_tree,cur_node.first));
+        const point_type& current_vp = get(m_position, get_raw_vertex_property(m_tree,cur_node.first));
         distance_type current_dist = m_distance.proper_distance(aPoint, current_vp);
         
         aResult.register_vantage_point(aPoint, current_vp, current_dist, cur_node.first, m_distance);
@@ -491,7 +491,7 @@ class dvp_tree_impl
         if(out_degree(cur_node.first,m_tree) == 0)
           continue;
         for(boost::tie(ei,ei_end) = out_edges(cur_node.first,m_tree); ei != ei_end; ++ei) {
-          if(current_dist <= get(m_mu, get(boost::edge_raw_property,m_tree,*ei))) 
+          if(current_dist <= get(m_mu, get_raw_edge_property(m_tree,*ei))) 
             break;
         };
         if(ei == ei_end) 
@@ -511,7 +511,7 @@ class dvp_tree_impl
             out_edge_iter ei_rightleft = ei_right; --ei_rightleft;
             distance_type temp_dist = 0.0;
             while((ei_right != ei_end) && 
-                  ((temp_dist = get(m_mu,get(boost::edge_raw_property,m_tree,*ei_rightleft)) - current_dist) < aResult.Radius)) {
+                  ((temp_dist = get(m_mu,get_raw_edge_property(m_tree,*ei_rightleft)) - current_dist) < aResult.Radius)) {
               temp_invtasks.push(std::pair<vertex_type, distance_type>(target(*ei_right,m_tree), temp_dist));
               ++ei_rightleft; ++ei_right;
             };
@@ -520,16 +520,16 @@ class dvp_tree_impl
             out_edge_iter ei_leftleft = ei_left;
             distance_type temp_dist = 0.0;
             while((ei_left != ei) && 
-                  ((temp_dist = current_dist - get(m_mu,get(boost::edge_raw_property,m_tree,*(--ei_leftleft)))) < aResult.Radius)) {
+                  ((temp_dist = current_dist - get(m_mu,get_raw_edge_property(m_tree,*(--ei_leftleft)))) < aResult.Radius)) {
               temp_invtasks.push(std::pair<vertex_type, distance_type>(target(*ei_leftleft,m_tree), temp_dist));
               --ei_left;
             };
             break;
           } else {
             out_edge_iter ei_leftleft = ei_left; --ei_leftleft;
-            distance_type d1 = get(m_mu,get(boost::edge_raw_property,m_tree,*ei_leftleft)); //greater than 0 if ei_leftleft should be searched.
+            distance_type d1 = get(m_mu,get_raw_edge_property(m_tree,*ei_leftleft)); //greater than 0 if ei_leftleft should be searched.
             out_edge_iter ei_rightleft = ei_right; --ei_rightleft;
-            distance_type d2 = get(m_mu,get(boost::edge_raw_property,m_tree,*ei_rightleft)); //less than 0 if ei_right should be searched.
+            distance_type d2 = get(m_mu,get_raw_edge_property(m_tree,*ei_rightleft)); //less than 0 if ei_right should be searched.
             if(d1 + d2 > 2.0 * current_dist) { //this means that ei_leftleft's boundary is closer to aPoint.
               if(d1 + aResult.Radius - current_dist > 0) {
                 temp_invtasks.push(std::pair<vertex_type, distance_type>(target(*ei_leftleft,m_tree), current_dist - d1));
@@ -576,12 +576,12 @@ class dvp_tree_impl
     vertex_type get_leaf(const point_type& aPoint, vertex_type aNode) const {
       while(out_degree(aNode,m_tree) != 0) {
         //first, locate the partition in which aPoint is:
-        distance_type current_dist = m_distance.proper_distance(aPoint, get(m_position, get(boost::vertex_raw_property,m_tree,aNode)));
+        distance_type current_dist = m_distance.proper_distance(aPoint, get(m_position, get_raw_vertex_property(m_tree,aNode)));
         vertex_type result = aNode;
         out_edge_iter ei,ei_end;
         for(boost::tie(ei,ei_end) = out_edges(aNode,m_tree); ei != ei_end; ++ei) {
           result = target(*ei,m_tree);
-          if(current_dist <= get(m_mu, get(boost::edge_raw_property,m_tree,*ei))) 
+          if(current_dist <= get(m_mu, get_raw_edge_property(m_tree,*ei))) 
             break;
         };
         aNode = result;
@@ -596,10 +596,10 @@ class dvp_tree_impl
     vertex_type get_vertex(key_type aKey, const point_type& aPoint, vertex_type aNode) const {
       vertex_type aAlternateBranch = boost::graph_traits<tree_indexer>::null_vertex();
 //       std::cout << "\n ------ Looking for node " << aKey << " at position: " << aPoint << std::endl;
-      while(get(m_key, get(boost::vertex_raw_property,m_tree,aNode)) != aKey) { 
-        distance_type current_dist = m_distance.proper_distance(aPoint, get(m_position, get(boost::vertex_raw_property,m_tree,aNode)));
-//         std::cout << " ---- Looking at node " << get(m_key, get(boost::vertex_raw_property,m_tree,aNode)) 
-//                   << " at position: " << get(m_position, get(boost::vertex_raw_property,m_tree,aNode))
+      while(get(m_key, get_raw_vertex_property(m_tree,aNode)) != aKey) { 
+        distance_type current_dist = m_distance.proper_distance(aPoint, get(m_position, get_raw_vertex_property(m_tree,aNode)));
+//         std::cout << " ---- Looking at node " << get(m_key, get_raw_vertex_property(m_tree,aNode)) 
+//                   << " at position: " << get(m_position, get_raw_vertex_property(m_tree,aNode))
 //                   << " at distance " << current_dist << std::endl;
         //first, locate the partition in which aPoint is:
         if(out_degree(aNode,m_tree) == 0) {
@@ -614,11 +614,11 @@ class dvp_tree_impl
         out_edge_iter ei,ei_end;
         for(boost::tie(ei,ei_end) = out_edges(aNode,m_tree); ei != ei_end; ++ei) {
           result = target(*ei,m_tree);
-//           std::cout << " -- Looking at child " << std::setw(6) << get(m_key, get(boost::vertex_raw_property, m_tree, result)) 
-//                     << " at distance " << get(m_mu, get(boost::edge_raw_property, m_tree, *ei)) << std::endl;
-          if(current_dist < get(m_mu, get(boost::edge_raw_property,m_tree,*ei))) 
+//           std::cout << " -- Looking at child " << std::setw(6) << get(m_key, get_raw_vertex_property(m_tree, result)) 
+//                     << " at distance " << get(m_mu, get_raw_edge_property(m_tree, *ei)) << std::endl;
+          if(current_dist < get(m_mu, get_raw_edge_property(m_tree,*ei))) 
             break;
-          if(current_dist == get(m_mu, get(boost::edge_raw_property,m_tree,*ei))) {
+          if(current_dist == get(m_mu, get_raw_edge_property(m_tree,*ei))) {
             ++ei;
             if(ei != ei_end)
               aAlternateBranch = target(*ei,m_tree);
@@ -637,9 +637,9 @@ class dvp_tree_impl
     void update_mu_upwards(const point_type& aPoint, vertex_type aNode) {
       while(aNode != m_root) {
         vertex_type parent = source(*(in_edges(aNode,m_tree).first), m_tree);
-        distance_type dist = m_distance.proper_distance(aPoint, get(m_position, get(boost::vertex_raw_property,m_tree,parent)));
-        if(dist > get(m_mu, get(boost::edge_raw_property, m_tree, *(in_edges(aNode,m_tree).first))))
-          put(m_mu, get(boost::edge_raw_property, m_tree, *(in_edges(aNode,m_tree).first)), dist);
+        distance_type dist = m_distance.proper_distance(aPoint, get(m_position, get_raw_vertex_property(m_tree,parent)));
+        if(dist > get(m_mu, get_raw_edge_property(m_tree, *(in_edges(aNode,m_tree).first))))
+          put(m_mu, get_raw_edge_property(m_tree, *(in_edges(aNode,m_tree).first)), dist);
         aNode = parent;
       };
     };
@@ -887,7 +887,7 @@ class dvp_tree_impl
       out_edge_iter ei,ei_end;
       double max_dist = 0.0;
       for(boost::tie(ei,ei_end) = out_edges(m_root,m_tree); ei != ei_end; ++ei) {
-        double cur_dist = get(m_mu, get(boost::edge_raw_property,m_tree,*ei));
+        double cur_dist = get(m_mu, get_raw_edge_property(m_tree,*ei));
         if(cur_dist > max_dist)
           max_dist = cur_dist;
       };
@@ -1078,10 +1078,10 @@ class dvp_tree_impl
       // First, generate the vertex-listings in preparation for the deletion.
       for(ForwardIterator first = aBegin; first != aEnd; ++first) {
         vertex_type removal_trunk = *first;
-        put(m_key, get(boost::vertex_raw_property, m_tree, *first), reinterpret_cast<key_type>(-1)); // mark as invalid, for deletion.
+        put(m_key, get_raw_vertex_property(m_tree, *first), reinterpret_cast<key_type>(-1)); // mark as invalid, for deletion.
         // go up until a valid parent node is found:
         while( (removal_trunk != m_root) && 
-               (get(m_key, get(boost::vertex_raw_property, m_tree, removal_trunk)) == reinterpret_cast<key_type>(-1)) ) {
+               (get(m_key, get_raw_vertex_property(m_tree, removal_trunk)) == reinterpret_cast<key_type>(-1)) ) {
           removal_trunk = source(*(in_edges(removal_trunk, m_tree).first), m_tree);
         };
         

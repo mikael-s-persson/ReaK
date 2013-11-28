@@ -42,12 +42,12 @@
 typedef boost::mpl::list< 
   boost::bfl_d_ary_tree<4, int, int>, 
   boost::vebl_d_ary_tree<4, int, int>, 
-  boost::linked_tree_BC<boost::vecBC, boost::vecBC, int, int>,
-  boost::linked_tree_BC<boost::listBC, boost::vecBC, int, int>, 
-  boost::linked_tree_BC<boost::vecBC, boost::listBC, int, int>, 
-  boost::linked_tree_BC<boost::listBC, boost::listBC, int, int>,
-  boost::tree_storage<int, int, boost::adj_list_BC_as_tree_storage<> >::type,
-  boost::tree_storage<int, int, boost::adj_list_BC_as_tree_storage<boost::vecBC, boost::poolBC> >::type > intint_treetest_types;
+  boost::linked_tree_BC<boost::vecBC, boost::vecBC, boost::bidirectionalS, int, int>,
+  boost::linked_tree_BC<boost::listBC, boost::vecBC, boost::bidirectionalS, int, int>, 
+  boost::linked_tree_BC<boost::vecBC, boost::listBC, boost::bidirectionalS, int, int>, 
+  boost::linked_tree_BC<boost::listBC, boost::listBC, boost::bidirectionalS, int, int>,
+  boost::tree_storage<int, int, boost::adj_list_BC_as_tree_storage<boost::vecBC, boost::listBC, boost::bidirectionalS> >::type,
+  boost::tree_storage<int, int, boost::adj_list_BC_as_tree_storage<boost::vecBC, boost::poolBC, boost::bidirectionalS> >::type > intint_treetest_types;
 
 BOOST_AUTO_TEST_CASE_TEMPLATE( intint_tree_test, TreeType, intint_treetest_types )
 {
@@ -264,8 +264,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE( intint_tree_test, TreeType, intint_treetest_types
     BOOST_CHECK_NO_THROW( boost::tie(cvi,cvi_end) = child_vertices(v_root,g) );
     std::vector<int> vp_list;
     for(; cvi != cvi_end; ++cvi)
-      if(is_vertex_valid(*cvi,g))
-        vp_list.push_back(g[*cvi]);
+      vp_list.push_back(g[*cvi]);
     std::sort(vp_list.begin(), vp_list.end());
     BOOST_CHECK_EQUAL( vp_list[0], 4);
     BOOST_CHECK_EQUAL( vp_list[1], 5);

@@ -58,25 +58,25 @@ BOOST_INSTALL_PROPERTY(edge, raw_property);
 
 
 template <typename Graph>
-struct property_map<Graph, vertex_raw_property_t> { 
+struct raw_vertex_property_map {
   typedef whole_bundle_property_map<Graph, vertex_bundle_t> type;
   typedef whole_bundle_property_map<const Graph, vertex_bundle_t> const_type;
 };
 
 template <typename Graph>
-struct property_map<Graph, edge_raw_property_t> { 
+struct raw_edge_property_map {
   typedef whole_bundle_property_map<Graph, edge_bundle_t> type;
   typedef whole_bundle_property_map<const Graph, edge_bundle_t> const_type;
 };
 
 template <typename Graph>
-struct property_map<Graph, vertex_raw_prop_to_bundle_t> {
+struct raw_vertex_to_bundle_map {
   typedef self_property_map< typename Graph::vertex_bundled > type;
   typedef self_property_map< const typename Graph::vertex_bundled > const_type;
 };
 
 template <typename Graph>
-struct property_map<Graph, edge_raw_prop_to_bundle_t> {  
+struct raw_edge_to_bundle_map {
   typedef self_property_map< typename Graph::edge_bundled > type;
   typedef self_property_map< const typename Graph::edge_bundled > const_type;
 };
@@ -90,10 +90,10 @@ struct RawPropertyGraphConcept {
   typename graph_traits<Graph>::edge_descriptor e;
   Graph g;
   
-  typedef typename property_map<Graph, vertex_raw_prop_to_bundle_t>::type vertex_raw_prop_to_bundle_map;
-  typedef typename property_map<Graph, vertex_raw_property_t>::type vertex_raw_prop_map;
-  typedef typename property_map<Graph, edge_raw_prop_to_bundle_t>::type edge_raw_prop_to_bundle_map;
-  typedef typename property_map<Graph, edge_raw_property_t>::type edge_raw_prop_map;
+  typedef typename raw_vertex_to_bundle_map<Graph>::type vertex_raw_prop_to_bundle_map;
+  typedef typename raw_vertex_property_map<Graph>::type  vertex_raw_prop_map;
+  typedef typename raw_edge_to_bundle_map<Graph>::type   edge_raw_prop_to_bundle_map;
+  typedef typename raw_edge_property_map<Graph>::type    edge_raw_prop_map;
   
   vertex_raw_prop_to_bundle_map vrp_to_bundle;
   vertex_raw_prop_map vrp_map;
@@ -114,20 +114,20 @@ struct RawPropertyGraphConcept {
   
   BOOST_CONCEPT_USAGE(RawPropertyGraphConcept) 
   {
-    vrp_to_bundle = get(vertex_raw_prop_to_bundle, g);
-    vrp_map = get(vertex_raw_property, g);
-    erp_to_bundle = get(edge_raw_prop_to_bundle, g);
-    erp_map = get(edge_raw_property, g);
+    vrp_to_bundle = get_raw_vertex_to_bundle_map(g);
+    vrp_map = get_raw_vertex_property_map(g);
+    erp_to_bundle = get_raw_edge_to_bundle_map(g);
+    erp_map = get_raw_edge_property_map(g);
     
-    vb = get(vertex_raw_prop_to_bundle, g, vrp);
-    vrp = get(vertex_raw_property, g, v);
-    eb = get(edge_raw_prop_to_bundle, g, erp);
-    erp = get(edge_raw_property, g, e);
+    vb = get_raw_vertex_to_bundle(g, vrp);
+    vrp = get_raw_vertex_property(g, v);
+    eb = get_raw_edge_to_bundle(g, erp);
+    erp = get_raw_edge_property(g, e);
     
-    put(vertex_raw_prop_to_bundle, g, vrp, vb);
-    put(vertex_raw_property, g, v, vrp);
-    put(edge_raw_prop_to_bundle, g, erp, eb);
-    put(edge_raw_property, g, e, erp);
+    put_raw_vertex_to_bundle(g, vrp, vb);
+    put_raw_vertex_property(g, v, vrp);
+    put_raw_edge_to_bundle(g, erp, eb);
+    put_raw_edge_property(g, e, erp);
     
     vb = get(vrp_to_bundle, vrp);
     vrp = get(vrp_map, v);
@@ -145,102 +145,82 @@ struct RawPropertyGraphConcept {
 
 
 template <typename Graph>
-struct is_raw_property_graph : boost::mpl::false_ { };
-
-template <typename OutEdgeListS, typename VertexListS, typename DirectedS, typename VertexProperty, typename EdgeProperty>
-struct is_raw_property_graph< adjacency_list_BC<OutEdgeListS, VertexListS, DirectedS, VertexProperty, EdgeProperty> > : boost::mpl::true_ { };
-
-
-
-template <typename Graph>
-typename enable_if< is_raw_property_graph< Graph >,
-property_map<Graph, vertex_raw_property_t> >::type::type get(vertex_raw_property_t, Graph& g) {
-  typedef typename property_map<Graph, vertex_raw_property_t>::type result_type;
+typename raw_vertex_property_map<Graph>::type get_raw_vertex_property_map(Graph& g) {
+  typedef typename raw_vertex_property_map<Graph>::type result_type;
   return result_type(&g);
 };
 
 template <typename Graph>
-typename enable_if< is_raw_property_graph< Graph >,
-property_map<Graph, vertex_raw_property_t> >::type::const_type get(vertex_raw_property_t, const Graph& g) {
-  typedef typename property_map<Graph, vertex_raw_property_t>::const_type result_type;
+typename raw_vertex_property_map<Graph>::const_type get_raw_vertex_property_map(const Graph& g) {
+  typedef typename raw_vertex_property_map<Graph>::const_type result_type;
   return result_type(&g);
 };
 
 template <typename Graph>
-typename enable_if< is_raw_property_graph< Graph >,
-property_map<Graph, edge_raw_property_t> >::type::type get(edge_raw_property_t, Graph& g) {
-  typedef typename property_map<Graph, edge_raw_property_t>::type result_type;
+typename raw_edge_property_map<Graph>::type get_raw_edge_property_map(Graph& g) {
+  typedef typename raw_edge_property_map<Graph>::type result_type;
   return result_type(&g);
 };
 
 template <typename Graph>
-typename enable_if< is_raw_property_graph< Graph >,
-property_map<Graph, edge_raw_property_t> >::type::const_type get(edge_raw_property_t, const Graph& g) {
-  typedef typename property_map<Graph, edge_raw_property_t>::const_type result_type;
+typename raw_edge_property_map<Graph>::const_type get_raw_edge_property_map(const Graph& g) {
+  typedef typename raw_edge_property_map<Graph>::const_type result_type;
   return result_type(&g);
 };
 
 
 
 template <typename Graph>
-typename enable_if< is_raw_property_graph< Graph >,
-property_map<Graph, vertex_raw_prop_to_bundle_t> >::type::type get(vertex_raw_prop_to_bundle_t, Graph& g) {
-  return typename property_map<Graph, vertex_raw_prop_to_bundle_t>::type();
+typename raw_vertex_to_bundle_map<Graph>::type get_raw_vertex_to_bundle_map(Graph& g) {
+  return typename raw_vertex_to_bundle_map<Graph>::type();
 };
 
 template <typename Graph>
-typename enable_if< is_raw_property_graph< Graph >,
-property_map<Graph, vertex_raw_prop_to_bundle_t> >::type::const_type get(vertex_raw_prop_to_bundle_t, const Graph& g) {
-  return typename property_map<Graph, vertex_raw_prop_to_bundle_t>::const_type();
+typename raw_vertex_to_bundle_map<Graph>::const_type get_raw_vertex_to_bundle_map(const Graph& g) {
+  return typename raw_vertex_to_bundle_map<Graph>::const_type();
 };
 
 template <typename Graph>
-typename enable_if< is_raw_property_graph< Graph >,
-property_map<Graph, edge_raw_prop_to_bundle_t> >::type::type get(edge_raw_prop_to_bundle_t, Graph& g) {
-  return typename property_map<Graph, edge_raw_prop_to_bundle_t>::type();
+typename raw_edge_to_bundle_map<Graph>::type get_raw_edge_to_bundle_map(Graph& g) {
+  return typename raw_edge_to_bundle_map<Graph>::type();
 };
 
 template <typename Graph>
-typename enable_if< is_raw_property_graph< Graph >,
-property_map<Graph, edge_raw_prop_to_bundle_t> >::type::const_type get(edge_raw_prop_to_bundle_t, const Graph& g) {
-  return typename property_map<Graph, edge_raw_prop_to_bundle_t>::const_type();
+typename raw_edge_to_bundle_map<Graph>::const_type get_raw_edge_to_bundle_map(const Graph& g) {
+  return typename raw_edge_to_bundle_map<Graph>::const_type();
 };
 
 
 
 
 template <typename Graph, typename Vertex>
-typename enable_if< is_raw_property_graph< Graph >,
-Graph >::type::vertex_bundled& get(vertex_raw_property_t, Graph& g, Vertex v) {
+typename Graph::vertex_bundled& get_raw_vertex_property(Graph& g, Vertex v) {
   return g[v];
 };
 
 template <typename Graph, typename Vertex>
-const typename enable_if< is_raw_property_graph< Graph >,
-Graph >::type::vertex_bundled& get(vertex_raw_property_t, const Graph& g, Vertex v) {
+const typename Graph::vertex_bundled& get_raw_vertex_property(const Graph& g, Vertex v) {
   return g[v];
 };
 
 template <typename Graph, typename Edge>
-typename enable_if< is_raw_property_graph< Graph >,
-Graph >::type::edge_bundled& get(edge_raw_property_t, Graph& g, Edge e) {
+typename Graph::edge_bundled& get_raw_edge_property(Graph& g, Edge e) {
   return g[e];
 };
 
 template <typename Graph, typename Edge>
-const typename enable_if< is_raw_property_graph<Graph>,
-typename Graph::edge_bundled >::type& get(edge_raw_property_t, const Graph& g, Edge e) {
+const typename Graph::edge_bundled& get_raw_edge_property(const Graph& g, Edge e) {
   return g[e];
 };
 
 
 template <typename Graph, typename Bundle>
-Bundle& get(vertex_raw_prop_to_bundle_t, const Graph&, Bundle& b) {
+Bundle& get_raw_vertex_to_bundle(const Graph&, Bundle& b) {
   return b;
 };
 
 template <typename Graph, typename Bundle>
-Bundle& get(edge_raw_prop_to_bundle_t, const Graph&, Bundle& b) {
+Bundle& get_raw_edge_to_bundle(const Graph&, Bundle& b) {
   return b;
 };
 
@@ -249,24 +229,24 @@ Bundle& get(edge_raw_prop_to_bundle_t, const Graph&, Bundle& b) {
 #ifdef BOOST_NO_CXX11_RVALUE_REFERENCES
 
 template <typename Graph, typename Vertex, typename Bundle>
-void put(vertex_raw_property_t, Graph& g, Vertex v, const Bundle& value) {
+void put_raw_vertex_property(Graph& g, Vertex v, const Bundle& value) {
   g[v] = value;
 };
 
 template <typename Graph, typename Edge, typename Bundle>
-void put(edge_raw_property_t, Graph& g, Edge e, const Bundle& value) {
+void put_raw_edge_property(Graph& g, Edge e, const Bundle& value) {
   g[e] = value;
 };
 
 #else
 
 template <typename Graph, typename Vertex, typename Bundle>
-void put(vertex_raw_property_t, Graph& g, Vertex v, Bundle&& value) {
+void put_raw_vertex_property(Graph& g, Vertex v, Bundle&& value) {
   g[v] = std::forward<Bundle>(value);
 };
 
 template <typename Graph, typename Edge, typename Bundle>
-void put(edge_raw_property_t, Graph& g, Edge e, Bundle&& value) {
+void put_raw_edge_property(Graph& g, Edge e, Bundle&& value) {
   g[e] = std::forward<Bundle>(value);
 };
 
@@ -276,28 +256,85 @@ void put(edge_raw_property_t, Graph& g, Edge e, Bundle&& value) {
 #ifdef BOOST_NO_CXX11_RVALUE_REFERENCES
 
 template <typename Graph, typename Bundle1, typename Bundle2>
-void put(vertex_raw_prop_to_bundle_t, const Graph&, Bundle1& b1, const Bundle2& b2) {
+void put_raw_vertex_to_bundle(const Graph&, Bundle1& b1, const Bundle2& b2) {
   b1 = b2;
 };
 
 template <typename Graph, typename Bundle1, typename Bundle2>
-void put(edge_raw_prop_to_bundle_t, const Graph&, Bundle1& b1, const Bundle2& b2) {
+void put_raw_edge_to_bundle(const Graph&, Bundle1& b1, const Bundle2& b2) {
   b1 = b2;
 };
 
 #else
 
 template <typename Graph, typename Bundle1, typename Bundle2>
-void put(vertex_raw_prop_to_bundle_t, const Graph&, Bundle1& b1, Bundle2&& b2) {
+void put_raw_vertex_to_bundle(const Graph&, Bundle1& b1, Bundle2&& b2) {
   b1 = std::forward<Bundle2>(b2);
 };
 
 template <typename Graph, typename Bundle1, typename Bundle2>
-void put(edge_raw_prop_to_bundle_t, const Graph&, Bundle1& b1, Bundle2&& b2) {
+void put_raw_edge_to_bundle(const Graph&, Bundle1& b1, Bundle2&& b2) {
   b1 = std::forward<Bundle2>(b2);
 };
 
 #endif
+
+
+
+
+/**
+ * This property-map uses a graph's "get_raw_vertex_property" function to obtain the 
+ * property value associated to a given descriptor.
+ * \tparam T The value-type of the property.
+ * \tparam Graph The graph type.
+ */
+template <typename T, typename Graph>
+struct raw_vertex_propgraph_map :
+    public put_get_helper< T&, raw_vertex_propgraph_map<T, Graph> > {
+  private:
+    Graph* pg;
+  public:
+    typedef boost::mpl::true_ is_vertex_prop;
+    typedef is_const< Graph > is_const_graph;
+    typedef T value_type;
+    typedef T& reference;
+    
+    typedef typename graph_traits<Graph>::vertex_descriptor key_type;
+    typedef typename mpl::if_< is_const< T >,
+      readable_property_map_tag,
+      lvalue_property_map_tag >::type category;
+    
+    raw_vertex_propgraph_map(Graph* aPG = NULL) : pg(aPG) { };
+    reference operator[](key_type k) const { return get_raw_vertex_property(*pg,k); };
+};
+
+/**
+ * This property-map uses a graph's "get_raw_edge_property" function to obtain the 
+ * property value associated to a given descriptor.
+ * \tparam T The value-type of the property.
+ * \tparam Graph The graph type.
+ */
+template <typename T, typename Graph>
+struct raw_edge_propgraph_map :
+    public put_get_helper< T&, raw_edge_propgraph_map<T, Graph> > {
+  private:
+    Graph* pg;
+  public:
+    typedef boost::mpl::false_ is_vertex_prop;
+    typedef is_const< Graph > is_const_graph;
+    typedef T value_type;
+    typedef T& reference;
+    
+    typedef typename graph_traits<Graph>::edge_descriptor key_type;
+    typedef typename mpl::if_< is_const< T >,
+      readable_property_map_tag,
+      lvalue_property_map_tag >::type category;
+    
+    raw_edge_propgraph_map(Graph* aPG = NULL) : pg(aPG) { };
+    reference operator[](key_type k) const { return get_raw_edge_property(*pg,k); };
+};
+
+
 
 
 };

@@ -122,9 +122,9 @@ class dvp_adjacency_list
     
     typedef typename alt_tag::template alt<vertex_properties, edge_properties>::type alt_type;
     
-    typedef typename ReaK::graph::tree_storage< vertex_properties, edge_properties, alt_tag>::type tree_indexer;
-    typedef typename boost::property_map<tree_indexer, boost::vertex_raw_prop_to_bundle_t>::type vertex_r2b_map_type;
-    typedef typename boost::property_map<tree_indexer, boost::edge_raw_prop_to_bundle_t>::type edge_r2b_map_type;
+    typedef typename boost::tree_storage< vertex_properties, edge_properties, alt_tag>::type tree_indexer;
+    typedef typename boost::raw_vertex_to_bundle_map<tree_indexer>::type vertex_r2b_map_type;
+    typedef typename boost::raw_edge_to_bundle_map<tree_indexer>::type edge_r2b_map_type;
     typedef typename boost::property_traits< vertex_r2b_map_type >::key_type vertex_raw_property_type;
     typedef typename boost::property_traits< edge_r2b_map_type >::key_type edge_raw_property_type;
     
@@ -184,7 +184,7 @@ class dvp_adjacency_list
                m_vp_key,
                distance_map_type(
                  boost::data_member_property_map<distance_type, edge_properties>(&edge_properties::d),
-                 get(boost::edge_raw_prop_to_bundle, m_tree)
+                 get_raw_edge_to_bundle_map(m_tree)
                ),
                m_vp_pos,
                aVPChooser
@@ -235,7 +235,7 @@ class dvp_adjacency_list
       typedef typename boost::graph_traits<tree_indexer>::vertex_descriptor TreeVertex;
       TreeVertex u = m_impl.find_nearest(aPoint);
       if( u != boost::graph_traits<tree_indexer>::null_vertex() )
-        return get(m_vp_key, get(boost::vertex_raw_property, m_tree, u));
+        return get(m_vp_key, get_raw_vertex_property(m_tree, u));
       else
         return boost::graph_traits< adj_list_type >::null_vertex();
     };
@@ -250,11 +250,11 @@ class dvp_adjacency_list
       std::pair<TreeVertex, TreeVertex> u = m_impl.find_nearest_pred_succ(aPoint);
       std::pair<adj_list_vertex_type, adj_list_vertex_type> result;
       if( u.first != boost::graph_traits<tree_indexer>::null_vertex() )
-        result.first = get(m_vp_key, get(boost::vertex_raw_property, m_tree, u.first));
+        result.first = get(m_vp_key, get_raw_vertex_property(m_tree, u.first));
       else
         result.first = boost::graph_traits< adj_list_type >::null_vertex();
       if( u.second != boost::graph_traits<tree_indexer>::null_vertex() )
-        result.second = get(m_vp_key, get(boost::vertex_raw_property, m_tree, u.second));
+        result.second = get(m_vp_key, get_raw_vertex_property(m_tree, u.second));
       else
         result.second = boost::graph_traits< adj_list_type >::null_vertex();
       return result;
@@ -277,7 +277,7 @@ class dvp_adjacency_list
       std::vector< TreeVertex > v_list;
       m_impl.find_nearest(aPoint, back_inserter(v_list), K, R);
       for(typename std::vector< TreeVertex >::iterator it = v_list.begin(); it != v_list.end(); ++it)
-        *(aOutputBegin++) = get(m_vp_key, get(boost::vertex_raw_property, m_tree, *it));
+        *(aOutputBegin++) = get(m_vp_key, get_raw_vertex_property(m_tree, *it));
       return aOutputBegin;
     };
     
@@ -301,9 +301,9 @@ class dvp_adjacency_list
       std::vector< TreeVertex > succ_list;
       m_impl.find_nearest(aPoint, back_inserter(pred_list), back_inserter(succ_list), K, R);
       for(typename std::vector< TreeVertex >::iterator it = pred_list.begin(); it != pred_list.end(); ++it)
-        *(aPredBegin++) = get(m_vp_key, get(boost::vertex_raw_property, m_tree, *it));
+        *(aPredBegin++) = get(m_vp_key, get_raw_vertex_property(m_tree, *it));
       for(typename std::vector< TreeVertex >::iterator it = succ_list.begin(); it != succ_list.end(); ++it)
-        *(aSuccBegin++) = get(m_vp_key, get(boost::vertex_raw_property, m_tree, *it));
+        *(aSuccBegin++) = get(m_vp_key, get_raw_vertex_property(m_tree, *it));
       return std::pair<OutputIterator, OutputIterator>(aPredBegin,aSuccBegin);
     };
     
@@ -325,7 +325,7 @@ class dvp_adjacency_list
       std::vector< TreeVertex > v_list;
       m_impl.find_in_range(aPoint, back_inserter(v_list), R);
       for(typename std::vector< TreeVertex >::iterator it = v_list.begin(); it != v_list.end(); ++it)
-        *(aOutputBegin++) = get(m_vp_key, get(boost::vertex_raw_property, m_tree, *it));
+        *(aOutputBegin++) = get(m_vp_key, get_raw_vertex_property(m_tree, *it));
       return aOutputBegin;
     };
     
@@ -348,9 +348,9 @@ class dvp_adjacency_list
       std::vector< TreeVertex > succ_list;
       m_impl.find_in_range(aPoint, back_inserter(pred_list), back_inserter(succ_list), R);
       for(typename std::vector< TreeVertex >::iterator it = pred_list.begin(); it != pred_list.end(); ++it)
-        *(aPredBegin++) = get(m_vp_key, get(boost::vertex_raw_property, m_tree, *it));
+        *(aPredBegin++) = get(m_vp_key, get_raw_vertex_property(m_tree, *it));
       for(typename std::vector< TreeVertex >::iterator it = succ_list.begin(); it != succ_list.end(); ++it)
-        *(aSuccBegin++) = get(m_vp_key, get(boost::vertex_raw_property, m_tree, *it));
+        *(aSuccBegin++) = get(m_vp_key, get_raw_vertex_property(m_tree, *it));
       return std::pair<OutputIterator, OutputIterator>(aPredBegin,aSuccBegin);
     };
     

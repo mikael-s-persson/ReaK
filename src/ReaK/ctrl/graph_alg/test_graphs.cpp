@@ -24,6 +24,7 @@
 #include <iostream>
 #include <fstream>
 
+#include <boost/config.hpp>
 #include <boost/graph/topology.hpp>
 #include <boost/graph/properties.hpp>
 
@@ -60,11 +61,11 @@ bool test_propgraph_functions(Graph& g) {
   typedef typename Graph::vertex_property_type VertexProp;
   typedef typename Graph::edge_property_type EdgeProp;
   
-  typedef typename boost::property_map< Graph, boost::vertex_raw_prop_to_bundle_t>::type VProp2Bundle;
-  typedef typename boost::property_map< Graph, boost::edge_raw_prop_to_bundle_t>::type EProp2Bundle;
+  typedef typename boost::raw_vertex_to_bundle_map< Graph >::type VProp2Bundle;
+  typedef typename boost::raw_edge_to_bundle_map< Graph >::type EProp2Bundle;
   
-  VProp2Bundle vp_2_bundle = get(boost::vertex_raw_prop_to_bundle, g);
-  EProp2Bundle ep_2_bundle = get(boost::edge_raw_prop_to_bundle, g); RK_UNUSED(ep_2_bundle);
+  VProp2Bundle vp_2_bundle = get_raw_vertex_to_bundle_map(g);
+  EProp2Bundle ep_2_bundle = get_raw_edge_to_bundle_map(g); RK_UNUSED(ep_2_bundle);
   
   std::vector<WorldGridVertexProperties> pts;
   pts.push_back(WorldGridVertexProperties(ReaK::vect<double,2>(0.0,0.0)));
@@ -97,8 +98,8 @@ bool test_propgraph_functions(Graph& g) {
   };
   
   for(std::size_t i = pts_v.size() / 2; i < pts_v.size(); ++i) {
-    if( get(vp_2_bundle, get(boost::vertex_raw_property, g, pts_v[i])).pos
-        != get(boost::vertex_raw_prop_to_bundle, g, pts[i]).pos ) {
+    if( get(vp_2_bundle, get_raw_vertex_property(g, pts_v[i])).pos
+        != get_raw_vertex_to_bundle(g, pts[i]).pos ) {
       RK_ERROR("The position property of vertex " << i << " was not preserved after the removal!");
       return false;
     };
@@ -145,8 +146,8 @@ bool test_propgraph_functions(Graph& g) {
   };
   
   for(std::size_t i = 0; i < segs_e.size(); ++i) {
-    if( get(ep_2_bundle, get(boost::edge_raw_property, g, segs_e[i])).dist
-        != get(boost::edge_raw_prop_to_bundle, g, segs[i]).dist ) {
+    if( get(ep_2_bundle, get_raw_edge_property(g, segs_e[i])).dist
+        != get_raw_edge_to_bundle(g, segs[i]).dist ) {
       RK_ERROR("The dist property of edge " << i << " was not preserved in the edge-addition!");
       return false;
     };

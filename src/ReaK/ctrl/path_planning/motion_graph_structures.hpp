@@ -46,7 +46,7 @@
 
 // BGL-Extra includes:
 #include <boost/graph/bfl_d_ary_tree.hpp>
-#include <boost/graph/adjacency_list_BC.hpp"
+#include <boost/graph/adjacency_list_BC.hpp>
 
 #ifdef RK_PLANNERS_ENABLE_VEBL_TREE
 #include <boost/graph/vebl_d_ary_tree.hpp>
