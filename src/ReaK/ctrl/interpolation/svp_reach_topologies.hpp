@@ -89,6 +89,8 @@ namespace detail {
         generic_interpolator_impl<svp_interpolator,BaseTopology,time_topology> interp;
         interp.initialize(a, b, 0.0, b_space, time_topology(), rt_dist);
         double dt_min = interp.get_minimum_travel_time();
+        if( dt_min == std::numeric_limits<double>::infinity() )
+          return a;
         double dt = dt_min * fraction;
         point_type result = a;
         interp.compute_point(result, a, b, b_space, time_topology(), dt, dt_min, rt_dist);
@@ -106,6 +108,8 @@ namespace detail {
         generic_interpolator_impl<svp_interpolator,BaseTopology,time_topology> interp;
         interp.initialize(a, b, 0.0, b_space, time_topology(), rt_dist);
         double dt_min = interp.get_minimum_travel_time();
+        if( dt_min == std::numeric_limits<double>::infinity() )
+          return a;
         double dt = dt_min * fraction;
         double d = min_dist_interval;
         point_type result = a;
@@ -205,6 +209,8 @@ namespace detail {
         generic_interpolator_impl<svp_interpolator, base_space_topo, base_time_topo> interp;
         double dt_total = (b.time - a.time);  // the free time that I have along the path.
         interp.initialize(a.pt, b.pt, dt_total, b_space.get_space_topology(), b_space.get_time_topology(), rt_dist);
+        if( interp.get_minimum_travel_time() == std::numeric_limits<double>::infinity() )
+          return a;
         double dt = dt_total * fraction;
         point_type result = a;
         interp.compute_point(result.pt, a.pt, b.pt, b_space.get_space_topology(), b_space.get_time_topology(), dt, dt_total, rt_dist);
@@ -230,6 +236,8 @@ namespace detail {
         
         generic_interpolator_impl<svp_interpolator, base_space_topo, base_time_topo> interp;
         interp.initialize(a.pt, b.pt, dt_total, b_space.get_space_topology(), b_space.get_time_topology(), rt_dist);
+        if( interp.get_minimum_travel_time() == std::numeric_limits<double>::infinity() )
+          return a;
         double dt = dt_total * fraction;
         double d = min_dist_interval;
         point_type result = a;
