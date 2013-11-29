@@ -380,7 +380,7 @@ class dvp_tree_impl
           child_count[i-1] = total_count / i;
           total_count -= child_count[i-1];
         };
-        for(std::size_t i = 0; (i < Arity) && (child_count[i] > 0); --i) {
+        for(std::size_t i = 0; (i < Arity) && (child_count[i] > 0); ++i) {
           std::nth_element(cur_task.first, cur_task.first + (child_count[i]-1), 
                            cur_task.last, closer(&dist_map,m_key));
           prop_vector_iter temp = cur_task.first; 
