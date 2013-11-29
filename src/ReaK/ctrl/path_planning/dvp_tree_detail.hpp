@@ -53,9 +53,9 @@
 
 #include <boost/mpl/if.hpp>
 #include <boost/type_traits/is_same.hpp>
+#include <boost/unordered_map.hpp>
+#include <boost/unordered_set.hpp>
 
-#include <unordered_map>
-#include <map>
 #include <vector>
 #include <stack>
 #include <queue>
@@ -155,6 +155,24 @@ class random_vp_chooser {
     RandomAccessIter operator() (RandomAccessIter aBegin, RandomAccessIter aEnd, DistanceMetric aDistance, PositionMap aPosition) const { RK_UNUSED(aDistance); RK_UNUSED(aPosition); 
       return aBegin + (get_global_rng()() % (aEnd - aBegin));
     };
+};
+
+
+namespace detail {
+  
+  struct dvp_tree_key_hasher {
+    std::size_t operator()(std::size_t d) const {
+      ::boost::hash< std::size_t > hasher;
+      return hasher(d);
+    };
+    template <typename Iter>
+    std::size_t operator()(Iter it) const {
+      typedef typename std::iterator_traits<Iter>::pointer PtrType;
+      ::boost::hash< PtrType > hasher;
+      return hasher(&(*it));
+    };
+  };
+  
 };
 
 
@@ -259,8 +277,8 @@ class dvp_tree_impl
     typedef std::vector< std::pair< distance_type, vertex_type > > priority_queue_type;
     
     
-    typedef std::unordered_map<key_type, distance_type> temporary_dist_map_type;
-//     typedef std::map<key_type, distance_type> temporary_dist_map_type;
+    
+    typedef boost::unordered_map<key_type, distance_type, detail::dvp_tree_key_hasher> temporary_dist_map_type;
     
     /* Simple comparison function to sort by pre-computed distance values. */
     struct closer {
@@ -268,19 +286,21 @@ class dvp_tree_impl
       VertexKeyMap m_key;
       closer(temporary_dist_map_type* m, const VertexKeyMap& key) : p_m(m), m_key(key) { };
       
-      bool operator()(const vertex_property& k1, const vertex_property& k2) const {
-        return (*p_m)[get(m_key,k1)] < (*p_m)[get(m_key,k2)];
+      bool operator()(const vertex_property& vp1, const vertex_property& vp2) const {
+        return (*p_m)[get(m_key, vp1)] < (*p_m)[get(m_key, vp2)];
       };
     };
     
+    typedef boost::unordered_set<key_type, detail::dvp_tree_key_hasher> temporary_invalid_key_set_type;
+    
     /* Simple predicate function to filter out invalid vertices (invalid key-value). */
     struct is_vertex_prop_valid {
+      temporary_invalid_key_set_type* m_invalid_keys;
       VertexKeyMap m_key;
-      is_vertex_prop_valid(const VertexKeyMap& key) : m_key(key) { };
+      is_vertex_prop_valid(temporary_invalid_key_set_type* invalid_keys, const VertexKeyMap& key) : m_invalid_keys(invalid_keys), m_key(key) { };
       
-      bool operator()(const vertex_property& k1) const {
-        // TODO Verify that this "cast of -1" is still the correct "invalid key" marker.
-        return (get(m_key,k1) != reinterpret_cast<key_type>(-1));
+      bool operator()(const vertex_property& vp) const {
+        return (m_invalid_keys->count(get(m_key, vp)) == 0);
       };
     };
     
@@ -1074,14 +1094,16 @@ class dvp_tree_impl
                                     std::vector<vertex_type>  // the list of nodes below the re-balanced trunk.
                                   > > vertex_listing;
       vertex_listing v_lists; //will hold a list of unique nodes and all their non-erased 
+      temporary_invalid_key_set_type invalid_keys;
       
       // First, generate the vertex-listings in preparation for the deletion.
       for(ForwardIterator first = aBegin; first != aEnd; ++first) {
         vertex_type removal_trunk = *first;
-        put(m_key, get_raw_vertex_property(m_tree, *first), reinterpret_cast<key_type>(-1)); // mark as invalid, for deletion.
+        // mark as invalid, for deletion.
+        invalid_keys.insert(get(m_key, get_raw_vertex_property(m_tree, *first))); 
         // go up until a valid parent node is found:
         while( (removal_trunk != m_root) && 
-               (get(m_key, get_raw_vertex_property(m_tree, removal_trunk)) == reinterpret_cast<key_type>(-1)) ) {
+               (invalid_keys.count(get(m_key, get_raw_vertex_property(m_tree, removal_trunk))) != 0) ) {
           removal_trunk = source(*(in_edges(removal_trunk, m_tree).first), m_tree);
         };
         
@@ -1120,7 +1142,7 @@ class dvp_tree_impl
         // need to re-construct the root node (u_node == m_root).
         std::vector<vertex_property> prop_list;
         remove_branch(m_root, back_inserter(prop_list), m_tree);
-        prop_list.erase( remove_if(prop_list.begin(), prop_list.end(), is_vertex_prop_valid(m_key)), prop_list.end());
+        prop_list.erase( remove_if(prop_list.begin(), prop_list.end(), is_vertex_prop_valid(&invalid_keys, m_key)), prop_list.end());
         prop_vector_iter v_first = prop_list.begin();
         prop_vector_iter v_last  = prop_list.end();
         rearrange_with_chosen_vp(v_first, v_last);
@@ -1141,7 +1163,7 @@ class dvp_tree_impl
           remove_branch(target(e, m_tree), back_inserter(prop_list), m_tree);
         };
         // erase removed vertices from the prop-list:
-        prop_list.erase( remove_if(prop_list.begin(), prop_list.end(), is_vertex_prop_valid(m_key)), prop_list.end());
+        prop_list.erase( remove_if(prop_list.begin(), prop_list.end(), is_vertex_prop_valid(&invalid_keys, m_key)), prop_list.end());
         // reconstruct parent's subtree:
         construct_node(it->first, prop_list.begin(), prop_list.end());
       };

@@ -48,7 +48,7 @@ int main() {
   typedef boost::adjacency_list_BC< boost::vecBC, boost::vecBC, boost::undirectedS,
                                     WorldGridVertexProperties, WorldGridEdgeProperties > WorldGridType;
 
-  typedef boost::adjacency_list_BC_traits<boost::vecBC,boost::vecBC,boost::undirectedS>::vertex_descriptor VertexType;
+  typedef boost::graph_traits<WorldGridType>::vertex_descriptor VertexType;
   typedef ReaK::pp::dvp_tree<VertexType, 
                              TopologyType, 
                              boost::property_map<WorldGridType, boost::vertex_position_t>::type, 
