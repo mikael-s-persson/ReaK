@@ -89,7 +89,7 @@ class manip_3R_2D_kinematics : public inverse_kinematics_model {
       return m_joints[i];
     };
     
-    virtual std::size_t getDependentFrames2DCount() const { return 0; };
+    virtual std::size_t getDependentFrames2DCount() const { return 1; };
     
     virtual shared_ptr< joint_dependent_frame_2D > getDependentFrame2D(std::size_t i) const { 
       return m_EE;

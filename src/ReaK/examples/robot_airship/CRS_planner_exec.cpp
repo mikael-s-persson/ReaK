@@ -21,26 +21,12 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "CRS_planner_impl.h"
+#include "CRS_planner_impl.hpp"
 
-
-#include <QApplication>
 #include <QMessageBox>
-#include <QFileDialog>
-#include <QMainWindow>
-#include <QDir>
 
-
-#include "CRS_A465_geom_model.hpp"
-
-#include <Inventor/Qt/SoQt.h>
-#include <Inventor/Qt/viewers/SoQtExaminerViewer.h>
-#include <Inventor/nodes/SoSeparator.h>
 #include <Inventor/nodes/SoSwitch.h>
-#include <Inventor/nodes/SoCoordinate3.h>
-#include <Inventor/nodes/SoBaseColor.h>
-#include <Inventor/nodes/SoLineSet.h>
-#include <Inventor/sensors/SoTimerSensor.h>  // for SoTimerSensor
+#include <Inventor/nodes/SoSeparator.h>
 
 #include "shapes/oi_scene_graph.hpp"
 #include "proximity/proxy_query_model.hpp"
@@ -48,14 +34,18 @@
 #include "mbd_kte/kte_map_chain.hpp"
 #include "kte_models/manip_dynamics_model.hpp"
 
-#include "CRS_workspaces.hpp"
-#include "CRS_rrtstar_planners.hpp"
-#include "CRS_sbastar_planners.hpp"
+#include "topologies/manip_P3R3R_workspaces.hpp"
+
+
+#include "path_planning/p2p_planning_query.hpp"
+
+#include "path_planning/rrtstar_manip_planners.hpp"
+#include "path_planning/sbastar_manip_planners.hpp"
 
 #if 0
-#include "CRS_rrt_planners.hpp"
-#include "CRS_prm_planners.hpp"
-#include "CRS_fadprm_planners.hpp"
+#include "path_planning/rrt_path_planner.hpp"
+#include "path_planning/prm_path_planner.hpp"
+#include "path_planning/fadprm_path_planner.hpp"
 #endif
 
 #include "CRS_planner_data.hpp"
@@ -64,584 +54,335 @@
 
 #include "optimization/optim_exceptions.hpp"
 
+#include "topologies/manip_planning_traits.hpp"
 
-#include <chrono>
+#include "topologies/Ndof_linear_spaces.hpp"
+#include "topologies/Ndof_cubic_spaces.hpp"
+#include "topologies/Ndof_quintic_spaces.hpp"
+#include "topologies/Ndof_svp_spaces.hpp"
+#include "topologies/Ndof_sap_spaces.hpp"
 
 
-using namespace ReaK;
+
+template <typename ManipMdlType, typename InterpTag, int Order, typename ManipCSpaceTrajectory>
+void CRS_execute_static_planner_impl(const ReaK::kte::chaser_target_data& scene_data, 
+                                     const ReaK::pp::planning_option_collection& plan_options,
+                                     SoSwitch* sw_motion_graph, SoSwitch* sw_solutions,
+                                     double min_travel, bool print_timing, bool print_counter, 
+                                     const ReaK::vect_n<double>& jt_start, 
+                                     const ReaK::vect_n<double>& jt_desired,
+                                     ReaK::shared_ptr< ManipCSpaceTrajectory >& sol_trace) {
+  using namespace ReaK;
+  using namespace pp;
+  
+  shared_ptr< ManipMdlType > chaser_concrete_model = rtti::rk_dynamic_ptr_cast<ManipMdlType>(scene_data.chaser_kin_model);
+  if( !chaser_concrete_model )
+    return;
+  
+  typedef typename manip_static_workspace< ManipMdlType, Order >::rl_workspace_type static_workspace_type;
+  typedef typename manip_pp_traits< ManipMdlType, Order >::rl_jt_space_type rl_jt_space_type;
+  typedef typename manip_pp_traits< ManipMdlType, Order >::jt_space_type jt_space_type;
+  typedef typename manip_DK_map< ManipMdlType, Order >::rl_map_type rlDK_map_type;
+  
+  typedef typename topology_traits< rl_jt_space_type >::point_type rl_point_type;
+  typedef typename topology_traits< jt_space_type >::point_type point_type;
+  
+  typedef typename subspace_traits<static_workspace_type>::super_space_type static_super_space_type;  // SuperSpaceType
+  
+  std::size_t workspace_dims = (Order + 1) * manip_pp_traits< ManipMdlType, Order >::degrees_of_freedom;
+  
+  shared_ptr< frame_3D<double> > EE_frame = chaser_concrete_model->getDependentFrame3D(0)->mFrame;
+  
+  shared_ptr< static_workspace_type > workspace = 
+    make_manip_static_workspace<Order>(InterpTag(),
+      chaser_concrete_model, scene_data.chaser_jt_limits, 
+      min_travel);
+  
+  shared_ptr< rl_jt_space_type > jt_space = 
+    make_manip_rl_jt_space<Order>(chaser_concrete_model, scene_data.chaser_jt_limits);
+  
+  shared_ptr< jt_space_type > normal_jt_space = 
+    make_manip_jt_space<Order>(chaser_concrete_model, scene_data.chaser_jt_limits);
+  
+  
+  (*workspace) << scene_data.chaser_target_proxy;
+  for(std::size_t i = 0; i < scene_data.chaser_env_proxies.size(); ++i)
+    (*workspace) << scene_data.chaser_env_proxies[i];
+  
+  
+  rl_point_type start_point, goal_point;
+  point_type start_inter, goal_inter;
+  
+  start_inter = normal_jt_space->origin();
+  get<0>(start_inter) = jt_start;
+  start_point = scene_data.chaser_jt_limits->map_to_space(start_inter, *normal_jt_space, *jt_space);
+  
+  goal_inter = normal_jt_space->origin();
+  get<0>(goal_inter) = jt_desired;
+  goal_point = scene_data.chaser_jt_limits->map_to_space(goal_inter, *normal_jt_space, *jt_space);
+  
+  
+  // Create the reporter chain.
+  any_sbmp_reporter_chain< static_workspace_type > report_chain;
+  
+  // Create the frame tracing reporter.
+  typedef frame_tracer_3D< rl_jt_space_type > frame_reporter_type;
+  
+  frame_reporter_type temp_reporter(
+    make_any_model_applicator< rl_jt_space_type >(rlDK_map_type(chaser_concrete_model, scene_data.chaser_jt_limits, normal_jt_space)),
+    0.5 * min_travel, (sw_motion_graph != NULL));
+  
+  if((sw_motion_graph) || (sw_solutions)) {
+    temp_reporter.add_traced_frame(EE_frame);
+    report_chain.add_reporter( boost::ref(temp_reporter) );
+  };
+  
+  if( print_counter )
+    report_chain.add_reporter( print_sbmp_progress<>() );
+  
+  if( print_timing )
+    report_chain.add_reporter( timing_sbmp_report<>() );
+  
+  
+  
+  path_planning_p2p_query< static_workspace_type > pp_query("pp_query", workspace,
+    start_point, goal_point, plan_options.max_results);
+  
+  
+  shared_ptr< sample_based_planner< static_workspace_type > > workspace_planner;
+  
+#if 0
+  if( plan_options.planning_algo == 0 ) { // RRT
+    
+    workspace_planner = shared_ptr< sample_based_planner< static_workspace_type > >(
+      new rrt_planner< static_workspace_type >(
+        workspace, plan_options.max_vertices, plan_options.prog_interval,
+        plan_options.store_policy | plan_options.knn_method,
+        plan_options.planning_options,
+        0.1, 0.05, report_chain));
+    
+  } else 
+#endif
+  if( plan_options.planning_algo == 1 ) { // RRT*
+    
+    workspace_planner = shared_ptr< sample_based_planner< static_workspace_type > >(
+      new rrtstar_planner< static_workspace_type >(
+        workspace, plan_options.max_vertices, plan_options.prog_interval,
+        plan_options.store_policy | plan_options.knn_method,
+        plan_options.planning_options,
+        0.1, 0.05, workspace_dims, report_chain));
+    
+  } else 
+#if 0
+  if( plan_options.planning_algo == 2 ) { // PRM
+    
+    workspace_planner = shared_ptr< sample_based_planner< static_workspace_type > >(
+      new prm_planner< static_workspace_type >(
+        workspace, plan_options.max_vertices, plan_options.prog_interval,
+        plan_options.store_policy | plan_options.knn_method,
+        plan_options.planning_options,
+        0.1, 0.05, plan_options.max_random_walk, workspace_dims, report_chain));
+    
+  } else 
+#endif
+  if( plan_options.planning_algo == 3 ) { // SBA*
+    
+    shared_ptr< sbastar_planner< static_workspace_type > > tmp(
+      new sbastar_planner< static_workspace_type >(
+        workspace, plan_options.max_vertices, plan_options.prog_interval,
+        plan_options.store_policy | plan_options.knn_method,
+        plan_options.planning_options,
+        0.1, 0.05, plan_options.max_random_walk, workspace_dims, report_chain));
+    
+    tmp->set_initial_density_threshold(0.0);
+    tmp->set_initial_relaxation(plan_options.init_relax);
+    tmp->set_initial_SA_temperature(plan_options.init_SA_temp);
+    
+    workspace_planner = tmp;
+    
+  } 
+#if 0
+  else if( plan_options.planning_algo == 4 ) { // FADPRM
+    
+    shared_ptr< fadprm_planner< static_workspace_type > > tmp(
+      new fadprm_planner< static_workspace_type >(
+        workspace, plan_options.max_vertices, plan_options.prog_interval,
+        plan_options.store_policy | plan_options.knn_method,
+        0.1, 0.05, plan_options.max_random_walk, workspace_dims, report_chain));
+    
+    tmp->set_initial_relaxation(plan_options.init_relax);
+    
+    workspace_planner = tmp;
+    
+  }
+#endif
+  ;
+  
+  
+  if(!workspace_planner)
+    return;
+  
+  pp_query.reset_solution_records();
+  workspace_planner->solve_planning_query(pp_query);
+  
+  shared_ptr< seq_path_base< static_super_space_type > > bestsol_rlpath;
+  if(pp_query.solutions.size())
+    bestsol_rlpath = pp_query.solutions.begin()->second;
+  std::cout << "The shortest distance is: " << pp_query.get_best_solution_distance() << std::endl;
+  
+  sol_trace.reset();
+  if(bestsol_rlpath) {
+    sol_trace = shared_ptr<ManipCSpaceTrajectory>(new ManipCSpaceTrajectory());
+    typedef typename seq_path_base< static_super_space_type >::point_fraction_iterator PtIter;
+    typedef typename spatial_trajectory_traits<ManipCSpaceTrajectory>::point_type TCSpacePointType;
+    double t = 0.0;
+    for(PtIter it = bestsol_rlpath->begin_fraction_travel(); it != bestsol_rlpath->end_fraction_travel(); it += 0.1, t += 0.1) {
+      sol_trace->push_back( TCSpacePointType(t, get<0>(scene_data.chaser_jt_limits->map_to_space(*it, *jt_space, *normal_jt_space))) );
+    };
+  };
+  
+  
+  // Check the motion-graph separator and solution separators
+  //  add them to the switches.
+  
+  if(sw_motion_graph) {
+    SoSeparator* mg_sep = temp_reporter.get_motion_graph_tracer(EE_frame).get_separator();
+    if(mg_sep)
+      mg_sep->ref();
+    
+    sw_motion_graph->removeAllChildren();
+    if(mg_sep) {
+      sw_motion_graph->addChild(mg_sep);
+      mg_sep->unref();
+    };
+  };
+  
+  if(sw_solutions) {
+    SoSeparator* sol_sep = NULL;
+    if( temp_reporter.get_solution_count() ) {
+      sol_sep = temp_reporter.get_solution_tracer(EE_frame, 0).get_separator();
+      if(sol_sep)
+        sol_sep->ref();
+    };
+    
+    sw_solutions->removeAllChildren();
+    if(sol_sep) {
+      sw_solutions->addChild(sol_sep);
+      sol_sep->unref();
+    };
+  };
+  
+  chaser_concrete_model->setJointPositions( jt_start );
+  chaser_concrete_model->doDirectMotion();
+  
+};
+
+
+
+
+
+
 
 
 
 void CRSPlannerGUI::executePlanner() {
+  using namespace ReaK;
+  using namespace pp;
+  
+  shared_ptr< frame_3D<double> > EE_frame = ct_config.sceneData.chaser_kin_model->getDependentFrame3D(0)->mFrame;
   
   vect_n<double> jt_desired(7,0.0);
-  if(configs.check_ik_goal->isChecked()) {
-    try {
-      
-      jt_desired = mdl_data->builder.compute_inverse_kinematics(mdl_data->target_frame.getGlobalPose());
-      
-    } catch( optim::infeasible_problem& e ) { RK_UNUSED(e);
-      QMessageBox::critical(this,
-                    "Inverse Kinematics Error!",
-                    "The target frame cannot be reached! No inverse kinematics solution possible!",
-                    QMessageBox::Ok);
-      return;
+  
+  vect_n<double> jt_previous = ct_config.sceneData.chaser_kin_model->getJointPositions();
+  try {
+    *EE_frame = *(ct_config.sceneData.target_frame);
+    ct_config.sceneData.chaser_kin_model->doInverseMotion();
+    jt_desired = ct_config.sceneData.chaser_kin_model->getJointPositions();
+  } catch( optim::infeasible_problem& e ) { RK_UNUSED(e);
+    QMessageBox::critical(this,
+                  "Inverse Kinematics Error!",
+                  "The target frame cannot be reached! No inverse kinematics solution possible!",
+                  QMessageBox::Ok);
+    return;
+  };
+  ct_config.sceneData.chaser_kin_model->setJointPositions(jt_previous);
+  ct_config.sceneData.chaser_kin_model->doDirectMotion();
+  
+  vect_n<double> jt_start = ct_config.sceneData.chaser_kin_model->getJointPositions(); 
+  
+  
+  SoSwitch* sw_motion_graph = NULL;
+  if(plan_alg_config.outputMotionGraph())
+    sw_motion_graph = view3d_menu.getDisplayGroup("Motion-Graph",true);
+  
+  SoSwitch* sw_solutions = NULL;
+  if(plan_alg_config.outputSolution())
+    sw_solutions = view3d_menu.getDisplayGroup("Solution(s)",true);
+  
+  bool print_timing  = plan_alg_config.outputTiming();
+  bool print_counter = plan_alg_config.outputNodeCounter();
+  
+  try {
+    if((space_config.space_order == 0) && (space_config.interp_id == 0)) { 
+      CRS_execute_static_planner_impl<kte::manip_P3R3R_kinematics, linear_interpolation_tag, 0>(ct_config.sceneData, plan_alg_config.planOptions,
+        sw_motion_graph, sw_solutions, space_config.min_travel, print_timing, print_counter, 
+        jt_start, jt_desired, sol_anim.trajectory);
+    } else 
+#if 0
+    if((space_config.space_order == 1) && (space_config.interp_id == 0)) {
+      CRS_execute_static_planner_impl<kte::manip_P3R3R_kinematics, linear_interpolation_tag, 1>(ct_config.sceneData, plan_alg_config.planOptions,
+        sw_motion_graph, sw_solutions, space_config.min_travel, print_timing, print_counter, 
+        jt_start, jt_desired, sol_anim.trajectory);
+    } else 
+    if((space_config.space_order == 2) && (space_config.interp_id == 0)) {
+      CRS_execute_static_planner_impl<kte::manip_P3R3R_kinematics, linear_interpolation_tag, 2>(ct_config.sceneData, plan_alg_config.planOptions,
+        sw_motion_graph, sw_solutions, space_config.min_travel, print_timing, print_counter, 
+        jt_start, jt_desired, sol_anim.trajectory);
+    } else 
+#endif
+    if((space_config.space_order == 1) && (space_config.interp_id == 1)) {
+      CRS_execute_static_planner_impl<kte::manip_P3R3R_kinematics, cubic_hermite_interpolation_tag, 1>(ct_config.sceneData, plan_alg_config.planOptions,
+        sw_motion_graph, sw_solutions, space_config.min_travel, print_timing, print_counter, 
+        jt_start, jt_desired, sol_anim.trajectory);
+    } else 
+#if 0
+    if((space_config.space_order == 2) && (space_config.interp_id == 1)) {
+      CRS_execute_static_planner_impl<kte::manip_P3R3R_kinematics, cubic_hermite_interpolation_tag, 2>(ct_config.sceneData, plan_alg_config.planOptions,
+        sw_motion_graph, sw_solutions, space_config.min_travel, print_timing, print_counter, 
+        jt_start, jt_desired, sol_anim.trajectory);
+    } else 
+#endif
+    if((space_config.space_order == 2) && (space_config.interp_id == 2)) {
+      CRS_execute_static_planner_impl<kte::manip_P3R3R_kinematics, quintic_hermite_interpolation_tag, 2>(ct_config.sceneData, plan_alg_config.planOptions,
+        sw_motion_graph, sw_solutions, space_config.min_travel, print_timing, print_counter, 
+        jt_start, jt_desired, sol_anim.trajectory);
+    } else 
+    if((space_config.space_order == 1) && (space_config.interp_id == 3)) {
+      CRS_execute_static_planner_impl<kte::manip_P3R3R_kinematics, svp_Ndof_interpolation_tag, 1>(ct_config.sceneData, plan_alg_config.planOptions,
+        sw_motion_graph, sw_solutions, space_config.min_travel, print_timing, print_counter, 
+        jt_start, jt_desired, sol_anim.trajectory);
+    } else 
+#if 0
+    if((space_config.space_order == 2) && (space_config.interp_id == 3)) {
+      CRS_execute_static_planner_impl<kte::manip_P3R3R_kinematics, svp_Ndof_interpolation_tag, 2>(ct_config.sceneData, plan_alg_config.planOptions,
+        sw_motion_graph, sw_solutions, space_config.min_travel, print_timing, print_counter, 
+        jt_start, jt_desired, sol_anim.trajectory);
+    } else 
+#endif
+    if((space_config.space_order == 2) && (space_config.interp_id == 4)) {
+      CRS_execute_static_planner_impl<kte::manip_P3R3R_kinematics, sap_Ndof_interpolation_tag, 2>(ct_config.sceneData, plan_alg_config.planOptions,
+        sw_motion_graph, sw_solutions, space_config.min_travel, print_timing, print_counter, 
+        jt_start, jt_desired, sol_anim.trajectory);
     };
-  } else {
-    std::stringstream ss(configs.custom_goal_edit->text().toStdString());
-    ss >> jt_desired;
-  };
-  
-  vect_n<double> jt_start;
-  if(configs.check_current_start->isChecked()) {
-    jt_start.resize(7);
-    jt_start[0] = mdl_data->builder.track_joint_coord->q;
-    jt_start[1] = mdl_data->builder.arm_joint_1_coord->q;
-    jt_start[2] = mdl_data->builder.arm_joint_2_coord->q;
-    jt_start[3] = mdl_data->builder.arm_joint_3_coord->q;
-    jt_start[4] = mdl_data->builder.arm_joint_4_coord->q; 
-    jt_start[5] = mdl_data->builder.arm_joint_5_coord->q; 
-    jt_start[6] = mdl_data->builder.arm_joint_6_coord->q; 
-  } else {
-    std::stringstream ss(configs.custom_start_edit->text().toStdString());
-    ss >> jt_start;
-  };
-  
-  
-  // update the planning options record:
-  onConfigsChanged();
-  
-  
-  SoSeparator* mg_sep = NULL;
-  std::vector< SoSeparator* > sol_seps;
-  
-  
-  /*
-   * Below are a few rather large MACROs that are used to generate all the code for the different planner-space
-   * combinations.
-   */
-  
-#define RK_CRS_PLANNER_GENERATE_PLANNER_IC_0(WORKSPACE) \
-        typedef pp::subspace_traits<WORKSPACE>::super_space_type SuperSpaceType; \
-        shared_ptr< robot_airship::CRS3D_jspace_rl_o0_type > jt_space(new robot_airship::CRS3D_jspace_rl_o0_type(mdl_data->builder.get_rl_joint_space_0th())); \
-        shared_ptr< robot_airship::CRS3D_jspace_o0_type > normal_jt_space(new robot_airship::CRS3D_jspace_o0_type(mdl_data->builder.get_joint_space_0th())); \
-         \
-        shared_ptr<WORKSPACE>  \
-          workspace(new WORKSPACE( \
-            *jt_space, \
-            mdl_data->manip_kin_mdl, \
-            mdl_data->manip_jt_limits, \
-            plan_options->min_travel, \
-            plan_options->max_travel)); \
-        std::size_t workspace_dims = 7; RK_UNUSED(workspace_dims); \
-         \
-        (*workspace) << mdl_data->robot_lab_proxy << mdl_data->robot_airship_proxy; \
-         \
-        typedef pp::topology_traits< robot_airship::CRS3D_jspace_rl_o0_type >::point_type RLPointType; \
-        typedef pp::topology_traits< robot_airship::CRS3D_jspace_o0_type >::point_type PointType; \
-        RLPointType start_point, goal_point; \
-        PointType start_inter, goal_inter; \
-        start_inter = normal_jt_space->origin(); \
-        get<0>(start_inter) = vect<double,7>(jt_start); \
-        start_point = mdl_data->manip_jt_limits->map_to_space(start_inter, *normal_jt_space, *jt_space); \
-         \
-        goal_inter = normal_jt_space->origin(); \
-        get<0>(goal_inter) = vect<double,7>(jt_desired); \
-        goal_point = mdl_data->manip_jt_limits->map_to_space(goal_inter, *normal_jt_space, *jt_space); \
-         \
-        typedef pp::frame_tracer_3D< robot_airship::CRS3D_rlDK_o0_type, robot_airship::CRS3D_jspace_rl_o0_type, pp::identity_topo_map, pp::print_sbmp_progress<> > frame_reporter_type; \
-        frame_reporter_type temp_reporter( \
-          robot_airship::CRS3D_rlDK_o0_type(mdl_data->manip_kin_mdl, mdl_data->manip_jt_limits, normal_jt_space), \
-          jt_space, 0.5 * plan_options->min_travel); \
-        temp_reporter.add_traced_frame(mdl_data->builder.arm_joint_6_end); \
-         \
-        pp::any_sbmp_reporter_chain< WORKSPACE > report_chain; \
-        report_chain.add_reporter( boost::ref(temp_reporter) ); \
-         \
-        pp::path_planning_p2p_query< WORKSPACE > pp_query("pp_query", workspace, \
-          start_point, goal_point, plan_options->max_results);
-        
-#define RK_CRS_PLANNER_GENERATE_PLANNER_IC_1(WORKSPACE) \
-        typedef pp::subspace_traits<WORKSPACE>::super_space_type SuperSpaceType; \
-        shared_ptr< robot_airship::CRS3D_jspace_rl_o1_type > jt_space(new robot_airship::CRS3D_jspace_rl_o1_type(mdl_data->builder.get_rl_joint_space_1st())); \
-        shared_ptr< robot_airship::CRS3D_jspace_o1_type > normal_jt_space(new robot_airship::CRS3D_jspace_o1_type(mdl_data->builder.get_joint_space_1st())); \
-         \
-        shared_ptr<WORKSPACE>  \
-          workspace(new WORKSPACE( \
-            *jt_space, \
-            mdl_data->manip_kin_mdl, \
-            mdl_data->manip_jt_limits, \
-            plan_options->min_travel, \
-            plan_options->max_travel)); \
-        std::size_t workspace_dims = 14; RK_UNUSED(workspace_dims); \
-         \
-        (*workspace) << mdl_data->robot_lab_proxy << mdl_data->robot_airship_proxy; \
-         \
-        typedef pp::topology_traits< robot_airship::CRS3D_jspace_rl_o1_type >::point_type RLPointType; \
-        typedef pp::topology_traits< robot_airship::CRS3D_jspace_o1_type >::point_type PointType; \
-        RLPointType start_point, goal_point; \
-        PointType start_inter, goal_inter; \
-        start_inter = normal_jt_space->origin(); \
-        get<0>(start_inter) = vect<double,7>(jt_start); \
-        start_point = mdl_data->manip_jt_limits->map_to_space(start_inter, *normal_jt_space, *jt_space); \
-         \
-        goal_inter = normal_jt_space->origin(); \
-        get<0>(goal_inter) = vect<double,7>(jt_desired); \
-        goal_point = mdl_data->manip_jt_limits->map_to_space(goal_inter, *normal_jt_space, *jt_space); \
-         \
-        typedef pp::frame_tracer_3D< robot_airship::CRS3D_rlDK_o1_type, robot_airship::CRS3D_jspace_rl_o1_type, pp::identity_topo_map, pp::print_sbmp_progress<> > frame_reporter_type; \
-        frame_reporter_type temp_reporter( \
-          robot_airship::CRS3D_rlDK_o1_type(mdl_data->manip_kin_mdl, mdl_data->manip_jt_limits, normal_jt_space), \
-          jt_space, 0.5 * plan_options->min_travel); \
-        temp_reporter.add_traced_frame(mdl_data->builder.arm_joint_6_end); \
-         \
-        pp::any_sbmp_reporter_chain< WORKSPACE > report_chain; \
-        report_chain.add_reporter( boost::ref(temp_reporter) ); \
-         \
-        pp::path_planning_p2p_query< WORKSPACE > pp_query("pp_query", workspace, \
-          start_point, goal_point, plan_options->max_results);
-        
-#define RK_CRS_PLANNER_GENERATE_PLANNER_IC_2(WORKSPACE) \
-        typedef pp::subspace_traits<WORKSPACE>::super_space_type SuperSpaceType; \
-        shared_ptr< robot_airship::CRS3D_jspace_rl_o2_type > jt_space(new robot_airship::CRS3D_jspace_rl_o2_type(mdl_data->builder.get_rl_joint_space())); \
-        shared_ptr< robot_airship::CRS3D_jspace_o2_type > normal_jt_space(new robot_airship::CRS3D_jspace_o2_type(mdl_data->builder.get_joint_space())); \
-         \
-        shared_ptr<WORKSPACE>  \
-          workspace(new WORKSPACE( \
-            *jt_space, \
-            mdl_data->manip_kin_mdl, \
-            mdl_data->manip_jt_limits, \
-            plan_options->min_travel, \
-            plan_options->max_travel)); \
-        std::size_t workspace_dims = 21; RK_UNUSED(workspace_dims); \
-         \
-        (*workspace) << mdl_data->robot_lab_proxy << mdl_data->robot_airship_proxy; \
-         \
-        typedef pp::topology_traits< robot_airship::CRS3D_jspace_rl_o2_type >::point_type RLPointType; \
-        typedef pp::topology_traits< robot_airship::CRS3D_jspace_o2_type >::point_type PointType; \
-        RLPointType start_point, goal_point; \
-        PointType start_inter, goal_inter; \
-        start_inter = normal_jt_space->origin(); \
-        get<0>(start_inter) = vect<double,7>(jt_start); \
-        start_point = mdl_data->manip_jt_limits->map_to_space(start_inter, *normal_jt_space, *jt_space); \
-         \
-        goal_inter = normal_jt_space->origin(); \
-        get<0>(goal_inter) = vect<double,7>(jt_desired); \
-        goal_point = mdl_data->manip_jt_limits->map_to_space(goal_inter, *normal_jt_space, *jt_space); \
-         \
-        typedef pp::frame_tracer_3D< robot_airship::CRS3D_rlDK_o2_type, robot_airship::CRS3D_jspace_rl_o2_type, pp::identity_topo_map, pp::print_sbmp_progress<> > frame_reporter_type; \
-        frame_reporter_type temp_reporter( \
-          robot_airship::CRS3D_rlDK_o2_type(mdl_data->manip_kin_mdl, mdl_data->manip_jt_limits, normal_jt_space), \
-          jt_space, 0.5 * plan_options->min_travel); \
-        temp_reporter.add_traced_frame(mdl_data->builder.arm_joint_6_end); \
-         \
-        pp::any_sbmp_reporter_chain< WORKSPACE > report_chain; \
-        report_chain.add_reporter( boost::ref(temp_reporter) ); \
-         \
-        pp::path_planning_p2p_query< WORKSPACE > pp_query("pp_query", workspace, \
-          start_point, goal_point, plan_options->max_results);
-        
-        
-#if 0
-        
-#define RK_CRS_PLANNER_GENERATE_RRT_PLANNER_CALL(WORKSPACE) \
-        pp::rrt_planner< WORKSPACE > workspace_planner( \
-            workspace, plan_options->max_vertices, plan_options->prog_interval, \
-            plan_options->store_policy | plan_options->knn_method, \
-            plan_options->planning_options, 0.1, 0.05, report_chain); \
-         \
-        pp_query.reset_solution_records(); \
-        workspace_planner.solve_planning_query(pp_query); \
-         \
-        shared_ptr< pp::seq_path_base< SuperSpaceType > > bestsol_rlpath; \
-        if(pp_query.solutions.size()) \
-          bestsol_rlpath = pp_query.solutions.begin()->second; \
-        std::cout << "The shortest distance is: " << pp_query.get_best_solution_distance() << std::endl; \
-         \
-        sol_anim->bestsol_trajectory.clear(); \
-        if(bestsol_rlpath) { \
-          typedef pp::seq_path_base< SuperSpaceType >::point_fraction_iterator PtIter; \
-          for(PtIter it = bestsol_rlpath->begin_fraction_travel(); it != bestsol_rlpath->end_fraction_travel(); it += 0.1) \
-            sol_anim->bestsol_trajectory.push_back( get<0>(mdl_data->manip_jt_limits->map_to_space(*it, *jt_space, *normal_jt_space)) ); \
-        }; \
-         \
-        mg_sep = temp_reporter.get_motion_graph_tracer(mdl_data->builder.arm_joint_6_end).get_separator(); \
-        mg_sep->ref(); \
-        for(std::size_t i = 0; i < temp_reporter.get_solution_count(); ++i) { \
-          sol_seps.push_back(temp_reporter.get_solution_tracer(mdl_data->builder.arm_joint_6_end, i).get_separator()); \
-          sol_seps.back()->ref(); \
-        }; \
-         \
-        mdl_data->builder.track_joint_coord->q = get<0>(start_inter)[0]; \
-        mdl_data->builder.arm_joint_1_coord->q = get<0>(start_inter)[1]; \
-        mdl_data->builder.arm_joint_2_coord->q = get<0>(start_inter)[2]; \
-        mdl_data->builder.arm_joint_3_coord->q = get<0>(start_inter)[3]; \
-        mdl_data->builder.arm_joint_4_coord->q = get<0>(start_inter)[4]; \
-        mdl_data->builder.arm_joint_5_coord->q = get<0>(start_inter)[5]; \
-        mdl_data->builder.arm_joint_6_coord->q = get<0>(start_inter)[6]; \
-        mdl_data->kin_chain->doMotion();
-  
-#define RK_CRS_PLANNER_GENERATE_PRM_PLANNER_CALL(WORKSPACE) \
-        pp::prm_planner< WORKSPACE > workspace_planner( \
-          workspace, plan_options->max_vertices, plan_options->prog_interval, \
-          plan_options->store_policy | plan_options->knn_method, \
-          0.1, 0.05, plan_options->max_travel, workspace_dims, report_chain); \
-         \
-        pp_query.reset_solution_records(); \
-        workspace_planner.solve_planning_query(pp_query); \
-         \
-        shared_ptr< pp::seq_path_base< SuperSpaceType > > bestsol_rlpath; \
-        if(pp_query.solutions.size()) \
-          bestsol_rlpath = pp_query.solutions.begin()->second; \
-        std::cout << "The shortest distance is: " << pp_query.get_best_solution_distance() << std::endl; \
-         \
-        sol_anim->bestsol_trajectory.clear(); \
-        if(bestsol_rlpath) { \
-          typedef pp::seq_path_base< SuperSpaceType >::point_fraction_iterator PtIter; \
-          for(PtIter it = bestsol_rlpath->begin_fraction_travel(); it != bestsol_rlpath->end_fraction_travel(); it += 0.1) \
-            sol_anim->bestsol_trajectory.push_back( get<0>(mdl_data->manip_jt_limits->map_to_space(*it, *jt_space, *normal_jt_space)) ); \
-        }; \
-         \
-        mg_sep = temp_reporter.get_motion_graph_tracer(mdl_data->builder.arm_joint_6_end).get_separator(); \
-        mg_sep->ref(); \
-        for(std::size_t i = 0; i < temp_reporter.get_solution_count(); ++i) { \
-          sol_seps.push_back(temp_reporter.get_solution_tracer(mdl_data->builder.arm_joint_6_end, i).get_separator()); \
-          sol_seps.back()->ref(); \
-        }; \
-         \
-        mdl_data->builder.track_joint_coord->q = get<0>(start_inter)[0]; \
-        mdl_data->builder.arm_joint_1_coord->q = get<0>(start_inter)[1]; \
-        mdl_data->builder.arm_joint_2_coord->q = get<0>(start_inter)[2]; \
-        mdl_data->builder.arm_joint_3_coord->q = get<0>(start_inter)[3]; \
-        mdl_data->builder.arm_joint_4_coord->q = get<0>(start_inter)[4]; \
-        mdl_data->builder.arm_joint_5_coord->q = get<0>(start_inter)[5]; \
-        mdl_data->builder.arm_joint_6_coord->q = get<0>(start_inter)[6]; \
-        mdl_data->kin_chain->doMotion();
-  
-#define RK_CRS_PLANNER_GENERATE_FADPRM_PLANNER_CALL(WORKSPACE) \
-        pp::fadprm_planner< WORKSPACE > workspace_planner( \
-          workspace, plan_options->max_vertices, plan_options->prog_interval, \
-          plan_options->store_policy | plan_options->knn_method, \
-          0.1, 0.05, plan_options->max_travel, workspace_dims, report_chain); \
-         \
-        workspace_planner.set_initial_relaxation(plan_options->init_relax); \
-         \
-        pp_query.reset_solution_records(); \
-        workspace_planner.solve_planning_query(pp_query); \
-         \
-        shared_ptr< pp::seq_path_base< SuperSpaceType > > bestsol_rlpath; \
-        if(pp_query.solutions.size()) \
-          bestsol_rlpath = pp_query.solutions.begin()->second; \
-        std::cout << "The shortest distance is: " << pp_query.get_best_solution_distance() << std::endl; \
-         \
-        sol_anim->bestsol_trajectory.clear(); \
-        if(bestsol_rlpath) { \
-          typedef pp::seq_path_base< SuperSpaceType >::point_fraction_iterator PtIter; \
-          for(PtIter it = bestsol_rlpath->begin_fraction_travel(); it != bestsol_rlpath->end_fraction_travel(); it += 0.1) \
-            sol_anim->bestsol_trajectory.push_back( get<0>(mdl_data->manip_jt_limits->map_to_space(*it, *jt_space, *normal_jt_space)) ); \
-        }; \
-         \
-        mg_sep = temp_reporter.get_motion_graph_tracer(mdl_data->builder.arm_joint_6_end).get_separator(); \
-        mg_sep->ref(); \
-        for(std::size_t i = 0; i < temp_reporter.get_solution_count(); ++i) { \
-          sol_seps.push_back(temp_reporter.get_solution_tracer(mdl_data->builder.arm_joint_6_end, i).get_separator()); \
-          sol_seps.back()->ref(); \
-        }; \
-         \
-        mdl_data->builder.track_joint_coord->q = get<0>(start_inter)[0]; \
-        mdl_data->builder.arm_joint_1_coord->q = get<0>(start_inter)[1]; \
-        mdl_data->builder.arm_joint_2_coord->q = get<0>(start_inter)[2]; \
-        mdl_data->builder.arm_joint_3_coord->q = get<0>(start_inter)[3]; \
-        mdl_data->builder.arm_joint_4_coord->q = get<0>(start_inter)[4]; \
-        mdl_data->builder.arm_joint_5_coord->q = get<0>(start_inter)[5]; \
-        mdl_data->builder.arm_joint_6_coord->q = get<0>(start_inter)[6]; \
-        mdl_data->kin_chain->doMotion();
-  
-#endif
-  
-#define RK_CRS_PLANNER_GENERATE_RRTSTAR_PLANNER_CALL(WORKSPACE) \
-        pp::rrtstar_planner< WORKSPACE > workspace_planner( \
-          workspace, plan_options->max_vertices, plan_options->prog_interval, \
-          plan_options->store_policy | plan_options->knn_method, \
-          plan_options->planning_options, \
-          0.1, 0.05, workspace_dims, report_chain); \
-         \
-        pp_query.reset_solution_records(); \
-        workspace_planner.solve_planning_query(pp_query); \
-         \
-        shared_ptr< pp::seq_path_base< SuperSpaceType > > bestsol_rlpath; \
-        if(pp_query.solutions.size()) \
-          bestsol_rlpath = pp_query.solutions.begin()->second; \
-        std::cout << "The shortest distance is: " << pp_query.get_best_solution_distance() << std::endl; \
-         \
-        sol_anim->bestsol_trajectory.clear(); \
-        if(bestsol_rlpath) { \
-          typedef pp::seq_path_base< SuperSpaceType >::point_fraction_iterator PtIter; \
-          for(PtIter it = bestsol_rlpath->begin_fraction_travel(); it != bestsol_rlpath->end_fraction_travel(); it += 0.1) \
-            sol_anim->bestsol_trajectory.push_back( get<0>(mdl_data->manip_jt_limits->map_to_space(*it, *jt_space, *normal_jt_space)) ); \
-        }; \
-         \
-        mg_sep = temp_reporter.get_motion_graph_tracer(mdl_data->builder.arm_joint_6_end).get_separator(); \
-        mg_sep->ref(); \
-        for(std::size_t i = 0; i < temp_reporter.get_solution_count(); ++i) { \
-          sol_seps.push_back(temp_reporter.get_solution_tracer(mdl_data->builder.arm_joint_6_end, i).get_separator()); \
-          sol_seps.back()->ref(); \
-        }; \
-         \
-        mdl_data->builder.track_joint_coord->q = get<0>(start_inter)[0]; \
-        mdl_data->builder.arm_joint_1_coord->q = get<0>(start_inter)[1]; \
-        mdl_data->builder.arm_joint_2_coord->q = get<0>(start_inter)[2]; \
-        mdl_data->builder.arm_joint_3_coord->q = get<0>(start_inter)[3]; \
-        mdl_data->builder.arm_joint_4_coord->q = get<0>(start_inter)[4]; \
-        mdl_data->builder.arm_joint_5_coord->q = get<0>(start_inter)[5]; \
-        mdl_data->builder.arm_joint_6_coord->q = get<0>(start_inter)[6]; \
-        mdl_data->kin_chain->doMotion();
-  
-#define RK_CRS_PLANNER_GENERATE_SBASTAR_PLANNER_CALL(WORKSPACE) \
-        pp::sbastar_planner< WORKSPACE > workspace_planner( \
-          workspace, plan_options->max_vertices, plan_options->prog_interval, \
-          plan_options->store_policy | plan_options->knn_method, \
-          plan_options->planning_options, \
-          0.1, 0.05, plan_options->max_travel, workspace_dims, report_chain); \
-         \
-        workspace_planner.set_initial_density_threshold(0.0); \
-        workspace_planner.set_initial_relaxation(plan_options->init_relax); \
-        workspace_planner.set_initial_SA_temperature(plan_options->init_SA_temp); \
-         \
-        pp_query.reset_solution_records(); \
-        workspace_planner.solve_planning_query(pp_query); \
-         \
-        shared_ptr< pp::seq_path_base< SuperSpaceType > > bestsol_rlpath; \
-        if(pp_query.solutions.size()) \
-          bestsol_rlpath = pp_query.solutions.begin()->second; \
-        std::cout << "The shortest distance is: " << pp_query.get_best_solution_distance() << std::endl; \
-         \
-        sol_anim->bestsol_trajectory.clear(); \
-        if(bestsol_rlpath) { \
-          typedef pp::seq_path_base< SuperSpaceType >::point_fraction_iterator PtIter; \
-          for(PtIter it = bestsol_rlpath->begin_fraction_travel(); it != bestsol_rlpath->end_fraction_travel(); it += 0.1) \
-            sol_anim->bestsol_trajectory.push_back( get<0>(mdl_data->manip_jt_limits->map_to_space(*it, *jt_space, *normal_jt_space)) ); \
-        }; \
-         \
-        mg_sep = temp_reporter.get_motion_graph_tracer(mdl_data->builder.arm_joint_6_end).get_separator(); \
-        mg_sep->ref(); \
-        for(std::size_t i = 0; i < temp_reporter.get_solution_count(); ++i) { \
-          sol_seps.push_back(temp_reporter.get_solution_tracer(mdl_data->builder.arm_joint_6_end, i).get_separator()); \
-          sol_seps.back()->ref(); \
-        }; \
-         \
-        mdl_data->builder.track_joint_coord->q = get<0>(start_inter)[0]; \
-        mdl_data->builder.arm_joint_1_coord->q = get<0>(start_inter)[1]; \
-        mdl_data->builder.arm_joint_2_coord->q = get<0>(start_inter)[2]; \
-        mdl_data->builder.arm_joint_3_coord->q = get<0>(start_inter)[3]; \
-        mdl_data->builder.arm_joint_4_coord->q = get<0>(start_inter)[4]; \
-        mdl_data->builder.arm_joint_5_coord->q = get<0>(start_inter)[5]; \
-        mdl_data->builder.arm_joint_6_coord->q = get<0>(start_inter)[6]; \
-        mdl_data->kin_chain->doMotion();
-  
-  
-  
-  
-  switch(plan_options->planning_algo) {
-#if 0
-    case 0:  // RRT
-    {
-      
-      if((plan_options->space_order == 0) && (plan_options->interp_id == 0)) { 
-        RK_CRS_PLANNER_GENERATE_PLANNER_IC_0(robot_airship::CRS3D_workspace_o0_i1_type)
-        RK_CRS_PLANNER_GENERATE_RRT_PLANNER_CALL(robot_airship::CRS3D_workspace_o0_i1_type)
-      } else if((plan_options->space_order == 1) && (plan_options->interp_id == 0)) {
-        RK_CRS_PLANNER_GENERATE_PLANNER_IC_1(robot_airship::CRS3D_workspace_o1_i1_type)
-        RK_CRS_PLANNER_GENERATE_RRT_PLANNER_CALL(robot_airship::CRS3D_workspace_o1_i1_type)
-      } else if((plan_options->space_order == 2) && (plan_options->interp_id == 0)) {
-        RK_CRS_PLANNER_GENERATE_PLANNER_IC_2(robot_airship::CRS3D_workspace_o2_i1_type)
-        RK_CRS_PLANNER_GENERATE_RRT_PLANNER_CALL(robot_airship::CRS3D_workspace_o2_i1_type)
-      } else if((plan_options->space_order == 1) && (plan_options->interp_id == 1)) {
-        RK_CRS_PLANNER_GENERATE_PLANNER_IC_1(robot_airship::CRS3D_workspace_o1_i3_type)
-        RK_CRS_PLANNER_GENERATE_RRT_PLANNER_CALL(robot_airship::CRS3D_workspace_o1_i3_type)
-      } else if((plan_options->space_order == 2) && (plan_options->interp_id == 1)) {
-        RK_CRS_PLANNER_GENERATE_PLANNER_IC_2(robot_airship::CRS3D_workspace_o2_i3_type)
-        RK_CRS_PLANNER_GENERATE_RRT_PLANNER_CALL(robot_airship::CRS3D_workspace_o2_i3_type)
-      } else if((plan_options->space_order == 2) && (plan_options->interp_id == 2)) {
-        RK_CRS_PLANNER_GENERATE_PLANNER_IC_2(robot_airship::CRS3D_workspace_o2_i5_type)
-        RK_CRS_PLANNER_GENERATE_RRT_PLANNER_CALL(robot_airship::CRS3D_workspace_o2_i5_type)
-      } else if((plan_options->space_order == 1) && (plan_options->interp_id == 3)) {
-        RK_CRS_PLANNER_GENERATE_PLANNER_IC_1(robot_airship::CRS3D_workspace_o1_svp_type)
-        RK_CRS_PLANNER_GENERATE_RRT_PLANNER_CALL(robot_airship::CRS3D_workspace_o1_svp_type)
-      } else if((plan_options->space_order == 2) && (plan_options->interp_id == 3)) {
-        RK_CRS_PLANNER_GENERATE_PLANNER_IC_2(robot_airship::CRS3D_workspace_o2_svp_type)
-        RK_CRS_PLANNER_GENERATE_RRT_PLANNER_CALL(robot_airship::CRS3D_workspace_o2_svp_type)
-      } else if((plan_options->space_order == 2) && (plan_options->interp_id == 4)) {
-        RK_CRS_PLANNER_GENERATE_PLANNER_IC_2(robot_airship::CRS3D_workspace_o2_sap_type)
-        RK_CRS_PLANNER_GENERATE_RRT_PLANNER_CALL(robot_airship::CRS3D_workspace_o2_sap_type)
-      };
-      
-    }; break;
-#endif
-    case 1:  // RRT*
-    {
-      
-      if((plan_options->space_order == 0) && (plan_options->interp_id == 0)) { 
-        RK_CRS_PLANNER_GENERATE_PLANNER_IC_0(robot_airship::CRS3D_workspace_o0_i1_type)
-        RK_CRS_PLANNER_GENERATE_RRTSTAR_PLANNER_CALL(robot_airship::CRS3D_workspace_o0_i1_type)
-      } else if((plan_options->space_order == 1) && (plan_options->interp_id == 0)) {
-        RK_CRS_PLANNER_GENERATE_PLANNER_IC_1(robot_airship::CRS3D_workspace_o1_i1_type)
-        RK_CRS_PLANNER_GENERATE_RRTSTAR_PLANNER_CALL(robot_airship::CRS3D_workspace_o1_i1_type)
-      } else if((plan_options->space_order == 2) && (plan_options->interp_id == 0)) {
-        RK_CRS_PLANNER_GENERATE_PLANNER_IC_2(robot_airship::CRS3D_workspace_o2_i1_type)
-        RK_CRS_PLANNER_GENERATE_RRTSTAR_PLANNER_CALL(robot_airship::CRS3D_workspace_o2_i1_type)
-      } else if((plan_options->space_order == 1) && (plan_options->interp_id == 1)) {
-        RK_CRS_PLANNER_GENERATE_PLANNER_IC_1(robot_airship::CRS3D_workspace_o1_i3_type)
-        RK_CRS_PLANNER_GENERATE_RRTSTAR_PLANNER_CALL(robot_airship::CRS3D_workspace_o1_i3_type)
-      } else if((plan_options->space_order == 2) && (plan_options->interp_id == 1)) {
-        RK_CRS_PLANNER_GENERATE_PLANNER_IC_2(robot_airship::CRS3D_workspace_o2_i3_type)
-        RK_CRS_PLANNER_GENERATE_RRTSTAR_PLANNER_CALL(robot_airship::CRS3D_workspace_o2_i3_type)
-      } else if((plan_options->space_order == 2) && (plan_options->interp_id == 2)) {
-        RK_CRS_PLANNER_GENERATE_PLANNER_IC_2(robot_airship::CRS3D_workspace_o2_i5_type)
-        RK_CRS_PLANNER_GENERATE_RRTSTAR_PLANNER_CALL(robot_airship::CRS3D_workspace_o2_i5_type)
-      } else if((plan_options->space_order == 1) && (plan_options->interp_id == 3)) {
-        RK_CRS_PLANNER_GENERATE_PLANNER_IC_1(robot_airship::CRS3D_workspace_o1_svp_type)
-        RK_CRS_PLANNER_GENERATE_RRTSTAR_PLANNER_CALL(robot_airship::CRS3D_workspace_o1_svp_type)
-      } else if((plan_options->space_order == 2) && (plan_options->interp_id == 3)) {
-        RK_CRS_PLANNER_GENERATE_PLANNER_IC_2(robot_airship::CRS3D_workspace_o2_svp_type)
-        RK_CRS_PLANNER_GENERATE_RRTSTAR_PLANNER_CALL(robot_airship::CRS3D_workspace_o2_svp_type)
-      } else if((plan_options->space_order == 2) && (plan_options->interp_id == 4)) {
-        RK_CRS_PLANNER_GENERATE_PLANNER_IC_2(robot_airship::CRS3D_workspace_o2_sap_type)
-        RK_CRS_PLANNER_GENERATE_RRTSTAR_PLANNER_CALL(robot_airship::CRS3D_workspace_o2_sap_type)
-      };
-      
-    }; break;
-#if 0
-    case 2:  // PRM
-    {
-      
-      if((plan_options->space_order == 0) && (plan_options->interp_id == 0)) { 
-        RK_CRS_PLANNER_GENERATE_PLANNER_IC_0(robot_airship::CRS3D_workspace_o0_i1_type)
-        RK_CRS_PLANNER_GENERATE_PRM_PLANNER_CALL(robot_airship::CRS3D_workspace_o0_i1_type)
-      } else if((plan_options->space_order == 1) && (plan_options->interp_id == 0)) {
-        RK_CRS_PLANNER_GENERATE_PLANNER_IC_1(robot_airship::CRS3D_workspace_o1_i1_type)
-        RK_CRS_PLANNER_GENERATE_PRM_PLANNER_CALL(robot_airship::CRS3D_workspace_o1_i1_type)
-      } else if((plan_options->space_order == 2) && (plan_options->interp_id == 0)) {
-        RK_CRS_PLANNER_GENERATE_PLANNER_IC_2(robot_airship::CRS3D_workspace_o2_i1_type)
-        RK_CRS_PLANNER_GENERATE_PRM_PLANNER_CALL(robot_airship::CRS3D_workspace_o2_i1_type)
-      } else if((plan_options->space_order == 1) && (plan_options->interp_id == 1)) {
-        RK_CRS_PLANNER_GENERATE_PLANNER_IC_1(robot_airship::CRS3D_workspace_o1_i3_type)
-        RK_CRS_PLANNER_GENERATE_PRM_PLANNER_CALL(robot_airship::CRS3D_workspace_o1_i3_type)
-      } else if((plan_options->space_order == 2) && (plan_options->interp_id == 1)) {
-        RK_CRS_PLANNER_GENERATE_PLANNER_IC_2(robot_airship::CRS3D_workspace_o2_i3_type)
-        RK_CRS_PLANNER_GENERATE_PRM_PLANNER_CALL(robot_airship::CRS3D_workspace_o2_i3_type)
-      } else if((plan_options->space_order == 2) && (plan_options->interp_id == 2)) {
-        RK_CRS_PLANNER_GENERATE_PLANNER_IC_2(robot_airship::CRS3D_workspace_o2_i5_type)
-        RK_CRS_PLANNER_GENERATE_PRM_PLANNER_CALL(robot_airship::CRS3D_workspace_o2_i5_type)
-      } else if((plan_options->space_order == 1) && (plan_options->interp_id == 3)) {
-        RK_CRS_PLANNER_GENERATE_PLANNER_IC_1(robot_airship::CRS3D_workspace_o1_svp_type)
-        RK_CRS_PLANNER_GENERATE_PRM_PLANNER_CALL(robot_airship::CRS3D_workspace_o1_svp_type)
-      } else if((plan_options->space_order == 2) && (plan_options->interp_id == 3)) {
-        RK_CRS_PLANNER_GENERATE_PLANNER_IC_2(robot_airship::CRS3D_workspace_o2_svp_type)
-        RK_CRS_PLANNER_GENERATE_PRM_PLANNER_CALL(robot_airship::CRS3D_workspace_o2_svp_type)
-      } else if((plan_options->space_order == 2) && (plan_options->interp_id == 4)) {
-        RK_CRS_PLANNER_GENERATE_PLANNER_IC_2(robot_airship::CRS3D_workspace_o2_sap_type)
-        RK_CRS_PLANNER_GENERATE_PRM_PLANNER_CALL(robot_airship::CRS3D_workspace_o2_sap_type)
-      };
-      
-    }; break;
-#endif
-    case 3:  // SBA*
-    { 
-      
-      if((plan_options->space_order == 0) && (plan_options->interp_id == 0)) { 
-        RK_CRS_PLANNER_GENERATE_PLANNER_IC_0(robot_airship::CRS3D_workspace_o0_i1_type)
-        RK_CRS_PLANNER_GENERATE_SBASTAR_PLANNER_CALL(robot_airship::CRS3D_workspace_o0_i1_type)
-      } else if((plan_options->space_order == 1) && (plan_options->interp_id == 0)) {
-        RK_CRS_PLANNER_GENERATE_PLANNER_IC_1(robot_airship::CRS3D_workspace_o1_i1_type)
-        RK_CRS_PLANNER_GENERATE_SBASTAR_PLANNER_CALL(robot_airship::CRS3D_workspace_o1_i1_type)
-      } else if((plan_options->space_order == 2) && (plan_options->interp_id == 0)) {
-        RK_CRS_PLANNER_GENERATE_PLANNER_IC_2(robot_airship::CRS3D_workspace_o2_i1_type)
-        RK_CRS_PLANNER_GENERATE_SBASTAR_PLANNER_CALL(robot_airship::CRS3D_workspace_o2_i1_type)
-      } else if((plan_options->space_order == 1) && (plan_options->interp_id == 1)) {
-        RK_CRS_PLANNER_GENERATE_PLANNER_IC_1(robot_airship::CRS3D_workspace_o1_i3_type)
-        RK_CRS_PLANNER_GENERATE_SBASTAR_PLANNER_CALL(robot_airship::CRS3D_workspace_o1_i3_type)
-      } else if((plan_options->space_order == 2) && (plan_options->interp_id == 1)) {
-        RK_CRS_PLANNER_GENERATE_PLANNER_IC_2(robot_airship::CRS3D_workspace_o2_i3_type)
-        RK_CRS_PLANNER_GENERATE_SBASTAR_PLANNER_CALL(robot_airship::CRS3D_workspace_o2_i3_type)
-      } else if((plan_options->space_order == 2) && (plan_options->interp_id == 2)) {
-        RK_CRS_PLANNER_GENERATE_PLANNER_IC_2(robot_airship::CRS3D_workspace_o2_i5_type)
-        RK_CRS_PLANNER_GENERATE_SBASTAR_PLANNER_CALL(robot_airship::CRS3D_workspace_o2_i5_type)
-      } else if((plan_options->space_order == 1) && (plan_options->interp_id == 3)) {
-        RK_CRS_PLANNER_GENERATE_PLANNER_IC_1(robot_airship::CRS3D_workspace_o1_svp_type)
-        RK_CRS_PLANNER_GENERATE_SBASTAR_PLANNER_CALL(robot_airship::CRS3D_workspace_o1_svp_type)
-      } else if((plan_options->space_order == 2) && (plan_options->interp_id == 3)) {
-        RK_CRS_PLANNER_GENERATE_PLANNER_IC_2(robot_airship::CRS3D_workspace_o2_svp_type)
-        RK_CRS_PLANNER_GENERATE_SBASTAR_PLANNER_CALL(robot_airship::CRS3D_workspace_o2_svp_type)
-      } else if((plan_options->space_order == 2) && (plan_options->interp_id == 4)) {
-        RK_CRS_PLANNER_GENERATE_PLANNER_IC_2(robot_airship::CRS3D_workspace_o2_sap_type)
-        RK_CRS_PLANNER_GENERATE_SBASTAR_PLANNER_CALL(robot_airship::CRS3D_workspace_o2_sap_type)
-      };
-      
-    }; break;
-#if 0
-    case 4:  // FADPRM
-    { 
-      
-      if((plan_options->space_order == 0) && (plan_options->interp_id == 0)) { 
-        RK_CRS_PLANNER_GENERATE_PLANNER_IC_0(robot_airship::CRS3D_workspace_o0_i1_type)
-        RK_CRS_PLANNER_GENERATE_FADPRM_PLANNER_CALL(robot_airship::CRS3D_workspace_o0_i1_type)
-      } else if((plan_options->space_order == 1) && (plan_options->interp_id == 0)) {
-        RK_CRS_PLANNER_GENERATE_PLANNER_IC_1(robot_airship::CRS3D_workspace_o1_i1_type)
-        RK_CRS_PLANNER_GENERATE_FADPRM_PLANNER_CALL(robot_airship::CRS3D_workspace_o1_i1_type)
-      } else if((plan_options->space_order == 2) && (plan_options->interp_id == 0)) {
-        RK_CRS_PLANNER_GENERATE_PLANNER_IC_2(robot_airship::CRS3D_workspace_o2_i1_type)
-        RK_CRS_PLANNER_GENERATE_FADPRM_PLANNER_CALL(robot_airship::CRS3D_workspace_o2_i1_type)
-      } else if((plan_options->space_order == 1) && (plan_options->interp_id == 1)) {
-        RK_CRS_PLANNER_GENERATE_PLANNER_IC_1(robot_airship::CRS3D_workspace_o1_i3_type)
-        RK_CRS_PLANNER_GENERATE_FADPRM_PLANNER_CALL(robot_airship::CRS3D_workspace_o1_i3_type)
-      } else if((plan_options->space_order == 2) && (plan_options->interp_id == 1)) {
-        RK_CRS_PLANNER_GENERATE_PLANNER_IC_2(robot_airship::CRS3D_workspace_o2_i3_type)
-        RK_CRS_PLANNER_GENERATE_FADPRM_PLANNER_CALL(robot_airship::CRS3D_workspace_o2_i3_type)
-      } else if((plan_options->space_order == 2) && (plan_options->interp_id == 2)) {
-        RK_CRS_PLANNER_GENERATE_PLANNER_IC_2(robot_airship::CRS3D_workspace_o2_i5_type)
-        RK_CRS_PLANNER_GENERATE_FADPRM_PLANNER_CALL(robot_airship::CRS3D_workspace_o2_i5_type)
-      } else if((plan_options->space_order == 1) && (plan_options->interp_id == 3)) {
-        RK_CRS_PLANNER_GENERATE_PLANNER_IC_1(robot_airship::CRS3D_workspace_o1_svp_type)
-        RK_CRS_PLANNER_GENERATE_FADPRM_PLANNER_CALL(robot_airship::CRS3D_workspace_o1_svp_type)
-      } else if((plan_options->space_order == 2) && (plan_options->interp_id == 3)) {
-        RK_CRS_PLANNER_GENERATE_PLANNER_IC_2(robot_airship::CRS3D_workspace_o2_svp_type)
-        RK_CRS_PLANNER_GENERATE_FADPRM_PLANNER_CALL(robot_airship::CRS3D_workspace_o2_svp_type)
-      } else if((plan_options->space_order == 2) && (plan_options->interp_id == 4)) {
-        RK_CRS_PLANNER_GENERATE_PLANNER_IC_2(robot_airship::CRS3D_workspace_o2_sap_type)
-        RK_CRS_PLANNER_GENERATE_FADPRM_PLANNER_CALL(robot_airship::CRS3D_workspace_o2_sap_type)
-      };
-      
-    }; break;
-#endif
-    case 5:  // LSBA*
-    { 
-      
-    };// break;
-    case 6:  // ???
-    { 
-      
-    };// break;
-    default:
-      QMessageBox::information(this,
-                  "Planner Not Supported!",
-                  "Sorry, the planning method you selected is not yet supported!",
+  } catch(std::exception& e) {
+    std::stringstream ss;
+    ss << "An exception was raised during the planning:\nwhat(): " << e.what();
+    QMessageBox::critical(this,
+                  "Path-Planning Error!",
+                  QString::fromStdString(ss.str()),
                   QMessageBox::Ok);
   };
   
-  // Check the motion-graph separator and solution separators
-  //  add them to the switches.
-  if(mg_sep) {
-    draw_data->sw_motion_graph->removeAllChildren();
-    draw_data->sw_motion_graph->addChild(mg_sep);
-    mg_sep->unref();
-  };
-  
-  draw_data->sw_solutions->removeAllChildren();
-  if((configs.check_print_best->isChecked()) && (sol_seps.size())) {
-    draw_data->sw_solutions->addChild(sol_seps[0]);
-    sol_seps[0]->unref();
-  };
   
 };
 

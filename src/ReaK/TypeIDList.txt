@@ -200,6 +200,8 @@ manip_ERA_kinematics        0xC2100057   bin: 1100 0010 0001 0000 0000 0000 0101
 X8_quadrotor_kinematics     0xC2100058   bin: 1100 0010 0001 0000 0000 0000 0101 1000  D-R
 manip_P3R3R_kinematics      0xC2100059   bin: 1100 0010 0001 0000 0000 0000 0101 1001  D-R
 chaser_target_model_data    0xC210005A   bin: 1100 0010 0001 0000 0000 0000 0101 1010  D-R
+free_floater_2D_kinematics  0xC210005B   bin: 1100 0010 0001 0000 0000 0000 0101 1011  D-R
+free_floater_3D_kinematics  0xC210005C   bin: 1100 0010 0001 0000 0000 0000 0101 1100  D-R
 
 manipulator_kinematics_model (old) 0xC210FFFE  bin: 1100 0010 0001 0000 1111 1111 1111 1110  D-R
 manipulator_dynamics_model (old)  0xC210FFFF   bin: 1100 0010 0001 0000 1111 1111 1111 1111  D-R

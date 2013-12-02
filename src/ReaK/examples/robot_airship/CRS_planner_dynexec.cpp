@@ -21,7 +21,7 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "CRS_planner2_impl.hpp"
+#include "CRS_planner_impl.hpp"
 
 #include <QMessageBox>
 

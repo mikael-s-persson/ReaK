@@ -1,5 +1,6 @@
 
 set(KTEMODELS_SOURCES 
+  "${SRCROOT}${RKKTEMODELSDIR}/free_floating_platform.cpp"
   "${SRCROOT}${RKKTEMODELSDIR}/manip_3R3R_arm.cpp"
   "${SRCROOT}${RKKTEMODELSDIR}/manip_3R_arm.cpp"
   "${SRCROOT}${RKKTEMODELSDIR}/manip_clik_calculator.cpp"
@@ -15,6 +16,7 @@ set(KTEMODELS_SOURCES
 
 set(KTEMODELS_HEADERS 
   "${RKKTEMODELSDIR}/direct_kinematics_model.hpp"
+  "${RKKTEMODELSDIR}/free_floating_platform.hpp"
   "${RKKTEMODELSDIR}/inverse_dynamics_model.hpp"
   "${RKKTEMODELSDIR}/inverse_kinematics_model.hpp"
   "${RKKTEMODELSDIR}/manip_3R3R_arm.hpp"

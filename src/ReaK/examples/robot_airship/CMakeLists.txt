@@ -78,11 +78,6 @@ if(COIN3D_FOUND AND QT_FOUND)
   target_link_libraries(test_lab_scene reak_topologies reak_interp reak_robot_airship reak_mbd_coin reak_core)
   target_link_libraries(test_lab_scene ${SOQT4_LIBRARIES} ${QT_LIBRARIES})
   
-#   add_executable(test_CRS_planning "${SRCROOT}${RKROBOTAIRSHIPDIR}/test_CRS_planning.cpp")
-#   setup_custom_target(test_CRS_planning "${SRCROOT}${RKROBOTAIRSHIPDIR}")
-#   target_link_libraries(test_CRS_planning reak_planners reak_topologies reak_interp reak_robot_airship reak_mbd_coin reak_core)
-#   target_link_libraries(test_CRS_planning ${SOQT4_LIBRARIES} ${QT_LIBRARIES})
-  
 if(Boost_CHRONO_FOUND)
 
   include( ${QT_USE_FILE} )
@@ -92,26 +87,24 @@ if(Boost_CHRONO_FOUND)
   )
   QT4_WRAP_UI( ROBOTAIRSHIP_CRSPLANNER_UI_HDRS ${ROBOTAIRSHIP_CRSPLANNER_UIS} )
   set( ROBOTAIRSHIP_CRSPLANNER_MOC_HDRS
-     "${SRCROOT}${RKROBOTAIRSHIPDIR}/CRS_planner2_impl.hpp"
+     "${SRCROOT}${RKROBOTAIRSHIPDIR}/CRS_planner_impl.hpp"
   )
   QT4_WRAP_CPP( ROBOTAIRSHIP_CRSPLANNER_MOC_SRCS ${ROBOTAIRSHIP_CRSPLANNER_MOC_HDRS} )
   include_directories( AFTER "${CMAKE_BINARY_DIR}${RKROBOTAIRSHIPDIR}" )
   
-  set( ROBOTAIRSHIP_CRSPLANNER2_SRCS
+  set( ROBOTAIRSHIP_CRSPLANNER_SRCS
     "${SRCROOT}${RKROBOTAIRSHIPDIR}/CRS_planners_utility.cpp"
-    "${SRCROOT}${RKROBOTAIRSHIPDIR}/CRS_planner2_impl.cpp"
-    "${SRCROOT}${RKROBOTAIRSHIPDIR}/CRS_planner2_exec.cpp"
-    "${SRCROOT}${RKROBOTAIRSHIPDIR}/CRS_planner2_dynexec.cpp"
+    "${SRCROOT}${RKROBOTAIRSHIPDIR}/CRS_planner_impl.cpp"
+    "${SRCROOT}${RKROBOTAIRSHIPDIR}/CRS_planner_exec.cpp"
+    "${SRCROOT}${RKROBOTAIRSHIPDIR}/CRS_planner_dynexec.cpp"
   )
   
-  add_executable(CRS_planner2 ${ROBOTAIRSHIP_CRSPLANNER2_SRCS} ${ROBOTAIRSHIP_CRSPLANNER_MOC_SRCS} ${ROBOTAIRSHIP_CRSPLANNER_UI_HDRS})
-  setup_custom_target(CRS_planner2 "${SRCROOT}${RKROBOTAIRSHIPDIR}")
-  target_link_libraries(CRS_planner2 reak_planners reak_robot_airship reak_topologies reak_interp reak_gui_qt reak_mbd_coin reak_core)
-  target_link_libraries(CRS_planner2 ${SOQT4_LIBRARIES} ${QT_LIBRARIES})
+  add_executable(CRS_planner ${ROBOTAIRSHIP_CRSPLANNER_SRCS} ${ROBOTAIRSHIP_CRSPLANNER_MOC_SRCS} ${ROBOTAIRSHIP_CRSPLANNER_UI_HDRS})
+  setup_custom_target(CRS_planner "${SRCROOT}${RKROBOTAIRSHIPDIR}")
+  target_link_libraries(CRS_planner reak_planners reak_robot_airship reak_topologies reak_interp reak_gui_qt reak_mbd_coin reak_core)
+  target_link_libraries(CRS_planner ${SOQT4_LIBRARIES} ${QT_LIBRARIES})
   
 endif()
-
-#endif()
   
 endif()
 
