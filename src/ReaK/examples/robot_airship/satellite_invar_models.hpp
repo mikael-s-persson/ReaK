@@ -283,6 +283,8 @@ class satellite3D_imdt_sys : public satellite3D_inv_dt_system {
     
     typedef satellite3D_inv_dt_system::zero_input_trajectory zero_input_trajectory;
     
+  protected:
+    std::size_t approx_order;
     
   public:  
     
@@ -292,11 +294,13 @@ class satellite3D_imdt_sys : public satellite3D_inv_dt_system {
      * \param aMass The mass of the satellite.
      * \param aInertiaMoment The inertia tensor of the satellite.
      * \param aDt The time-step for this discrete-time system.
+     * \param aApproxOrder The order of the approximation of the transition matrices (can be 1 or 2, 1 is generally sufficient).
      */
     satellite3D_imdt_sys(const std::string& aName = "", 
                          double aMass = 1.0, 
                          const mat<double,mat_structure::symmetric>& aInertiaMoment = (mat<double,mat_structure::symmetric>(mat<double,mat_structure::identity>(3))),
-                         double aDt = 0.001); 
+                         double aDt = 0.001,
+                         std::size_t aApproxOrder = 1); 
     
     void get_state_transition_blocks(matrixA_type& A, matrixB_type& B, const state_space_type&, 
                                      const time_type&, const time_type&,
@@ -317,9 +321,11 @@ class satellite3D_imdt_sys : public satellite3D_inv_dt_system {
 
     virtual void RK_CALL save(ReaK::serialization::oarchive& A, unsigned int) const {
       satellite3D_inv_dt_system::save(A,satellite3D_inv_dt_system::getStaticObjectType()->TypeVersion());
+      A & RK_SERIAL_SAVE_WITH_NAME(approx_order);
     };
     virtual void RK_CALL load(ReaK::serialization::iarchive& A, unsigned int) {
       satellite3D_inv_dt_system::load(A,satellite3D_inv_dt_system::getStaticObjectType()->TypeVersion());
+      A & RK_SERIAL_LOAD_WITH_NAME(approx_order);
     };
 
     RK_RTTI_MAKE_CONCRETE_1BASE(satellite3D_imdt_sys,0xC2310015,1,"satellite3D_imdt_sys",satellite3D_inv_dt_system)
@@ -381,11 +387,13 @@ class satellite3D_gyro_imdt_sys : public satellite3D_imdt_sys {
      * \param aMass The mass of the satellite.
      * \param aInertiaMoment The inertia tensor of the satellite.
      * \param aDt The time-step for this discrete-time system.
+     * \param aApproxOrder The order of the approximation of the transition matrices (can be 1 or 2, 1 is generally sufficient).
      */
     satellite3D_gyro_imdt_sys(const std::string& aName = "", 
                               double aMass = 1.0, 
                               const mat<double,mat_structure::symmetric>& aInertiaMoment = (mat<double,mat_structure::symmetric>(mat<double,mat_structure::identity>(3))),
-                              double aDt = 0.001); 
+                              double aDt = 0.001,
+                              std::size_t aApproxOrder = 1); 
     
     output_type get_output(const state_space_type&, const point_type& x, const input_type& u, const time_type& t = 0.0) const;
     
@@ -475,6 +483,7 @@ class satellite3D_IMU_imdt_sys : public satellite3D_imdt_sys {
      * \param aRoomOrientation The orientation of the room (relative to which the satellite's coordinates are measured) 
      *                         relative to the inertial frame relative to which the IMU measures angular velocity.
      * \param aMagFieldVector The direction of the magnetic field (e.g., Earth's field) in the location the satellite is in.
+     * \param aApproxOrder The order of the approximation of the transition matrices (can be 1 or 2, 1 is generally sufficient).
      */
     satellite3D_IMU_imdt_sys(const std::string& aName = "", 
                              double aMass = 1.0, 
@@ -483,7 +492,8 @@ class satellite3D_IMU_imdt_sys : public satellite3D_imdt_sys {
                              const unit_quat<double>& aIMUOrientation = unit_quat<double>(),
                              const vect<double,3>& aIMULocation = (vect<double,3>()),
                              const unit_quat<double>& aRoomOrientation = unit_quat<double>(),
-                             const vect<double,3>& aMagFieldVector = (vect<double,3>(1.0,0.0,0.0))); 
+                             const vect<double,3>& aMagFieldVector = (vect<double,3>(1.0,0.0,0.0)),
+                             std::size_t aApproxOrder = 1); 
     
     output_type get_output(const state_space_type&, const point_type& x, const input_type& u, const time_type& t = 0.0) const;
     
@@ -500,15 +510,15 @@ class satellite3D_IMU_imdt_sys : public satellite3D_imdt_sys {
       satellite3D_imdt_sys::save(A,satellite3D_imdt_sys::getStaticObjectType()->TypeVersion());
       A & RK_SERIAL_SAVE_WITH_NAME(IMU_orientation)
         & RK_SERIAL_SAVE_WITH_NAME(IMU_location)
-	& RK_SERIAL_SAVE_WITH_NAME(room_orientation)
-	& RK_SERIAL_SAVE_WITH_NAME(mag_field_vector);
+        & RK_SERIAL_SAVE_WITH_NAME(room_orientation)
+        & RK_SERIAL_SAVE_WITH_NAME(mag_field_vector);
     };
     virtual void RK_CALL load(ReaK::serialization::iarchive& A, unsigned int) {
       satellite3D_imdt_sys::load(A,satellite3D_imdt_sys::getStaticObjectType()->TypeVersion());
       A & RK_SERIAL_LOAD_WITH_NAME(IMU_orientation)
         & RK_SERIAL_LOAD_WITH_NAME(IMU_location)
-	& RK_SERIAL_LOAD_WITH_NAME(room_orientation)
-	& RK_SERIAL_LOAD_WITH_NAME(mag_field_vector);
+        & RK_SERIAL_LOAD_WITH_NAME(room_orientation)
+        & RK_SERIAL_LOAD_WITH_NAME(mag_field_vector);
     };
 
     RK_RTTI_MAKE_CONCRETE_1BASE(satellite3D_IMU_imdt_sys,0xC2310017,1,"satellite3D_IMU_imdt_sys",satellite3D_imdt_sys)

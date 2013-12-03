@@ -23,8 +23,6 @@
 
 #include "CRS_planners_utility.hpp"
 
-#include "CRS_A465_geom_model.hpp"
-#include "CRS_A465_models.hpp"
 #include "proximity/proxy_query_model.hpp"
 
 #include "mbd_kte/mass_matrix_calculator.hpp"

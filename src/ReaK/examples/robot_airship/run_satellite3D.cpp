@@ -315,19 +315,22 @@ int main(int argc, char** argv) {
     ssv_ptr = shared_ptr< std::ostream >(new std::ofstream((output_stem_name + ".ssv").c_str()));
     if( vm.count("IMU") ) {
       (*ssv_ptr) << "% time meas_x meas_y meas_z meas_q0 meas_q1 meas_q2 meas_q3" 
-                 << " meas_wx meas_wy meas_wz"
-                 << " meas_ax meas_ay meas_az"
-                 << " meas_mx meas_my meas_mz"
-                 << " pos_x pos_y pos_z q0 q1 q2 q3"
+                 << " meas_wx meas_wy meas_wz" 
+                 << " meas_ax meas_ay meas_az" 
+                 << " meas_mx meas_my meas_mz" 
+                 << " f_x f_y f_z t_x t_y t_z" 
+                 << " pos_x pos_y pos_z q0 q1 q2 q3" 
                  << " vel_x vel_y vel_z ang_vel_x ang_vel_y ang_vel_z" << std::endl;
     } else if( vm.count("gyro") ) {
       (*ssv_ptr) << "% time meas_x meas_y meas_z meas_q0 meas_q1 meas_q2 meas_q3" 
-                 << " meas_wx meas_wy meas_wz"
-                 << " pos_x pos_y pos_z q0 q1 q2 q3"
+                 << " meas_wx meas_wy meas_wz" 
+                 << " f_x f_y f_z t_x t_y t_z" 
+                 << " pos_x pos_y pos_z q0 q1 q2 q3" 
                  << " vel_x vel_y vel_z ang_vel_x ang_vel_y ang_vel_z" << std::endl;
     } else {
       (*ssv_ptr) << "% time meas_x meas_y meas_z meas_q0 meas_q1 meas_q2 meas_q3" 
-                 << " pos_x pos_y pos_z q0 q1 q2 q3"  
+                 << " f_x f_y f_z t_x t_y t_z" 
+                 << " pos_x pos_y pos_z q0 q1 q2 q3" 
                  << " vel_x vel_y vel_z ang_vel_x ang_vel_y ang_vel_z" << std::endl;
     };
   };
@@ -404,7 +407,8 @@ int main(int argc, char** argv) {
       
       frame_3D<double> current_motion = get_frame_3D(x);
       
-      (*ssv_ptr)  << " " 
+                    /* input vector (all 0.0) */
+      (*ssv_ptr)  << " 0.0 0.0 0.0 0.0 0.0 0.0 " 
                   << current_motion.Position[0] << " " << current_motion.Position[1] << " " << current_motion.Position[2] << " " 
                   << current_motion.Quat[0] << " " << current_motion.Quat[1] << " " << current_motion.Quat[2] << " " << current_motion.Quat[3] << " "
                   << current_motion.Velocity[0] << " " << current_motion.Velocity[1] << " " << current_motion.Velocity[2] << " " 

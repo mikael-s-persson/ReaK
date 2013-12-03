@@ -741,7 +741,7 @@ class airship3D_inv2_dt_system : public airship3D_inv_dt_system {
       
       w *= 2.0 * mDt;
       set_block(A, mat<double,mat_structure::identity>(3) - mat<double,mat_structure::skew_symmetric>(w), 3, 3);
-            
+      
       B = mat<double,mat_structure::nil>(12,6);
       B(0,0) = 0.5 * mDt * mDt / mMass;
       B(1,1) = 0.5 * mDt * mDt / mMass;
@@ -857,7 +857,6 @@ class airship3D_inv_mom_dt_system : public airship3D_lin_dt_system {
       B(6,0) = mDt / mMass;
       B(7,1) = mDt / mMass;
       B(8,2) = mDt / mMass;
-      
       set_block(B, mDt * mInertiaMomentInv, 9, 3);
       /*
       B(9,3) = mDt;
