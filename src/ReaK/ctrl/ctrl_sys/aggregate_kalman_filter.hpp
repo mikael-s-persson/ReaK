@@ -90,16 +90,16 @@ namespace ctrl {
 template <typename LinearSystem,  
           typename StateSpaceType,
           typename BeliefState, 
-	  typename InputBelief>
+        typename InputBelief>
 typename boost::enable_if_c< is_continuous_belief_state<BeliefState>::value &&
                              (belief_state_traits<BeliefState>::representation == belief_representation::gaussian) &&
                              (belief_state_traits<BeliefState>::distribution == belief_distribution::unimodal),
 void >::type aggregate_kalman_predict(const LinearSystem& sys,
-			              const StateSpaceType& state_space,
-			              BeliefState& b_x,
-			              const InputBelief& b_u,
-			              typename hamiltonian_mat< typename mat_traits< typename covariance_mat_traits< typename continuous_belief_state_traits<BeliefState>::covariance_type >::matrix_type >::value_type >::type& Sc,
-				      typename discrete_sss_traits<LinearSystem>::time_type t = 0) {
+                                const StateSpaceType& state_space,
+                                BeliefState& b_x,
+                                const InputBelief& b_u,
+                                typename hamiltonian_mat< typename mat_traits< typename covariance_mat_traits< typename continuous_belief_state_traits<BeliefState>::covariance_type >::matrix_type >::value_type >::type& Sc,
+                              typename discrete_sss_traits<LinearSystem>::time_type t = 0) {
   //here the requirement is that the system models a linear system which is at worse a linearized system
   // - if the system is LTI or LTV, then this will result in a basic Kalman Filter (KF) update
   // - if the system is linearized, then this will result in an Extended Kalman Filter (EKF) update
@@ -173,18 +173,18 @@ void >::type aggregate_kalman_predict(const LinearSystem& sys,
 template <typename LinearSystem, 
           typename StateSpaceType,
           typename BeliefState, 
-	  typename InputBelief, 
-	  typename MeasurementBelief>
+        typename InputBelief, 
+        typename MeasurementBelief>
 typename boost::enable_if_c< is_continuous_belief_state<BeliefState>::value &&
                              (belief_state_traits<BeliefState>::representation == belief_representation::gaussian) &&
                              (belief_state_traits<BeliefState>::distribution == belief_distribution::unimodal),
 void >::type aggregate_kalman_update(const LinearSystem& sys,
-				     const StateSpaceType& state_space,
-				     BeliefState& b_x,
-				     const InputBelief& b_u,
-				     const MeasurementBelief& b_z,
-				     typename hamiltonian_mat< typename mat_traits< typename covariance_mat_traits< typename continuous_belief_state_traits<BeliefState>::covariance_type >::matrix_type >::value_type >::type& Sm,
-				     typename discrete_sss_traits<LinearSystem>::time_type t = 0) {
+                             const StateSpaceType& state_space,
+                             BeliefState& b_x,
+                             const InputBelief& b_u,
+                             const MeasurementBelief& b_z,
+                             typename hamiltonian_mat< typename mat_traits< typename covariance_mat_traits< typename continuous_belief_state_traits<BeliefState>::covariance_type >::matrix_type >::value_type >::type& Sm,
+                             typename discrete_sss_traits<LinearSystem>::time_type t = 0) {
   //here the requirement is that the system models a linear system which is at worse a linearized system
   // - if the system is LTI or LTV, then this will result in a basic Kalman Filter (KF) update
   // - if the system is linearized, then this will result in an Extended Kalman Filter (EKF) update
@@ -270,19 +270,19 @@ void >::type aggregate_kalman_update(const LinearSystem& sys,
 template <typename LinearSystem, 
           typename StateSpaceType,
           typename BeliefState, 
-	  typename InputBelief, 
-	  typename MeasurementBelief>
+        typename InputBelief, 
+        typename MeasurementBelief>
 typename boost::enable_if_c< is_continuous_belief_state<BeliefState>::value &&
                              (belief_state_traits<BeliefState>::representation == belief_representation::gaussian) &&
                              (belief_state_traits<BeliefState>::distribution == belief_distribution::unimodal),
 void >::type aggregate_kalman_filter_step(const LinearSystem& sys,
-			                  const StateSpaceType& state_space,
-					  BeliefState& b_x,
-					  const InputBelief& b_u,
-					  const MeasurementBelief& b_z,
-					  typename hamiltonian_mat< typename mat_traits< typename covariance_mat_traits< typename continuous_belief_state_traits<BeliefState>::covariance_type >::matrix_type >::value_type >::type& Sc,
-					  typename hamiltonian_mat< typename mat_traits< typename covariance_mat_traits< typename continuous_belief_state_traits<BeliefState>::covariance_type >::matrix_type >::value_type >::type& Sm,
-					  typename discrete_sss_traits<LinearSystem>::time_type t = 0) {
+                                    const StateSpaceType& state_space,
+                                BeliefState& b_x,
+                                const InputBelief& b_u,
+                                const MeasurementBelief& b_z,
+                                typename hamiltonian_mat< typename mat_traits< typename covariance_mat_traits< typename continuous_belief_state_traits<BeliefState>::covariance_type >::matrix_type >::value_type >::type& Sc,
+                                typename hamiltonian_mat< typename mat_traits< typename covariance_mat_traits< typename continuous_belief_state_traits<BeliefState>::covariance_type >::matrix_type >::value_type >::type& Sm,
+                                typename discrete_sss_traits<LinearSystem>::time_type t = 0) {
   //here the requirement is that the system models a linear system which is at worse a linearized system
   // - if the system is LTI or LTV, then this will result in a basic Kalman Filter (KF) update
   // - if the system is linearized, then this will result in an Extended Kalman Filter (EKF) update
@@ -406,7 +406,7 @@ struct AKF_belief_transfer {
    */
   template <typename StateSpaceType>
   AKF_belief_transfer(const state_space_system_ptr& aSys, 
-		      const StateSpaceType& state_space,
+                  const StateSpaceType& state_space,
                       const SystemNoiseCovar& aQ,
                       const MeasurementCovar& aR,
                       const value_type& aReupdateThreshold,
@@ -417,22 +417,22 @@ struct AKF_belief_transfer {
                       reupdate_threshold(aReupdateThreshold),
                       initial_state(aInitialState) {
     belief_state b = belief_state(initial_state, 
-				  covariance_type(state_space.difference(aInitialState, aInitialState).size(), 
-						  covariance_initial_level::no_info));
+                          covariance_type(state_space.difference(aInitialState, aInitialState).size(), 
+                                      covariance_initial_level::no_info));
     input_belief_type b_u(aInitialInput, Q);
     aggregate_kalman_predict(*sys,
-			     state_space,
+                       state_space,
                              b,
                              b_u,
                              Sc,
                              aInitialTime);
     predicted_state = b.get_mean_state();
     aggregate_kalman_update(*sys,
-			    state_space,
+                      state_space,
                             b,
                             b_u,
                             sys->get_output(state_space,
-			                    predicted_state,
+                                      predicted_state,
                                             aInitialInput,
                                             aInitialTime + sys->get_time_step()),
                             R,

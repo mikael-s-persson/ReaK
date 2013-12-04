@@ -85,12 +85,12 @@ class num_int_dtnl_sys : public named_object {
     class rate_function_impl : public state_rate_function<value_type> {
       public:
         const StateSpaceType& state_space;
-	ct_system_ptr sys;
+        ct_system_ptr sys;
         input_type current_u;
-	
-	rate_function_impl(const StateSpaceType& aStateSpace, const ct_system_ptr& aSys, const input_type& aCurrentInput) :
-	                   state_space(aStateSpace), sys(aSys), current_u(aCurrentInput) { };
-	
+        
+        rate_function_impl(const StateSpaceType& aStateSpace, const ct_system_ptr& aSys, const input_type& aCurrentInput) :
+                           state_space(aStateSpace), sys(aSys), current_u(aCurrentInput) { };
+        
     
         virtual void RK_CALL computeStateRate(double aTime,const ReaK::vect_n<value_type>& aState, ReaK::vect_n<value_type>& aStateRate) {
           using ReaK::from_vect; using ReaK::to_vect;
@@ -116,9 +116,9 @@ class num_int_dtnl_sys : public named_object {
      * \param aDt The time-step of this discrete-time system (not the integration time-step).
      */
     num_int_dtnl_sys(const ct_system_ptr& aSys, 
-		     const NumIntegrator& aInteg, 
-		     const time_difference_type& aDt, 
-		     const std::string& aName = "") : sys(aSys), integ(aInteg), dt(aDt) { 
+                     const NumIntegrator& aInteg, 
+                     const time_difference_type& aDt, 
+                     const std::string& aName = "") : sys(aSys), integ(aInteg), dt(aDt) { 
       setName(aName);
     };
     
@@ -155,7 +155,7 @@ class num_int_dtnl_sys : public named_object {
       integ.integrate(t + dt);
       size_type i = 0;
       for(typename std::vector<value_type>::const_iterator it = integ.getStateBegin(); it != integ.getStateEnd(); ++it, ++i)
-	result[i] = *it;
+        result[i] = *it;
       integ.setStateRateFunc(shared_ptr< state_rate_function<value_type> >());
       return from_vect<point_type>(result);
     };
@@ -249,9 +249,9 @@ class num_int_dtnl_sys< state_rate_function_with_io<T>, NumIntegrator<T> > : pub
      * \param aDt The time-step of this discrete-time system (not the integration time-step).
      */
     num_int_dtnl_sys(const ct_system_ptr& aSys, 
-		     const NumIntegrator<value_type>& aInteg, 
-		     const time_difference_type& aDt, 
-		     const std::string& aName = "") : sys(aSys), integ(aInteg), dt(aDt) { 
+                     const NumIntegrator<value_type>& aInteg, 
+                     const time_difference_type& aDt, 
+                     const std::string& aName = "") : sys(aSys), integ(aInteg), dt(aDt) { 
       setName(aName);
     };
     
@@ -278,7 +278,7 @@ class num_int_dtnl_sys< state_rate_function_with_io<T>, NumIntegrator<T> > : pub
     template <typename StateSpaceType>
     point_type get_next_state(const StateSpaceType&, const point_type& p, const input_type& u, const time_type& t = 0) { 
       if(!sys)
-	return p;
+        return p;
       integ.setTime(t);
       integ.clearStateVector();
       vect_n<value_type> result = to_vect<value_type>(p); 
@@ -306,8 +306,8 @@ class num_int_dtnl_sys< state_rate_function_with_io<T>, NumIntegrator<T> > : pub
       output_type y;
       
       if(sys) {
-	sys->setInput(u);
-	sys->computeOutput(t,p,y);
+        sys->setInput(u);
+        sys->computeOutput(t,p,y);
       };
       return y;
     };

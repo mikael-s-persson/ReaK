@@ -90,16 +90,16 @@ class covar_topology {
       point_difference_type() { };
       
       point_difference_type(const point_type& aSrc, 
-			    const point_type& aDst) :
+                            const point_type& aDst) :
                             M(aSrc.get_matrix() - aDst.get_matrix()) { };
       
       friend value_type norm(const self& dp) {
-	return frobenius_norm(dp.M);
+        return frobenius_norm(dp.M);
       };
       
       friend point_difference_type operator+(const point_difference_type& a, const point_difference_type& b) {
         point_difference_type result;
-	result.M = a.M + b.M;
+        result.M = a.M + b.M;
         return result;
       };
 
@@ -116,8 +116,8 @@ class covar_topology {
 
       friend point_difference_type operator-(const point_difference_type& a, const point_difference_type& b) {
         point_difference_type result;
-	result.M = a.M - b.M;
-	return result;
+        result.M = a.M - b.M;
+        return result;
       };
 
       point_difference_type& operator-=(const point_difference_type& b) {
@@ -127,12 +127,12 @@ class covar_topology {
 
       friend point_difference_type operator*(point_difference_type a, double b) {
         a.M *= b;
-	return a;
+        return a;
       };
 
       friend point_difference_type operator*(double a, point_difference_type b) {
         b.M *= a;
-	return b;
+        return b;
       };
       
       
@@ -142,11 +142,11 @@ class covar_topology {
     struct distance_metric_type {
       
       double operator()(const point_difference_type& dp, const self&) const {
-	return norm(dp);
+        return norm(dp);
       };
       
       double operator()(const point_type& a, const point_type& b, const self& s) const {
-	return this->operator()(point_difference_type(a,b),s);
+        return this->operator()(point_difference_type(a,b),s);
       };
       
     };
@@ -177,12 +177,12 @@ class covar_topology {
       boost::uniform_01<pp::global_rng_type&, double> uniform_rng(pp::get_global_rng());
       mat<value_type,mat_structure::diagonal> D(mat_size);
       for(size_type i = 0; i < mat_size; ++i)
-	D(i,i) = uniform_rng() * max_eigenvalue;
+        D(i,i) = uniform_rng() * max_eigenvalue;
       
       mat<value_type,mat_structure::skew_symmetric> S(mat_size);
       for(size_type i = 1; i < mat_size; ++i)
-	for(size_type j = 0; j < i; ++j)
-	  S(j,i) = uniform_rng() * value_type(10.0);
+        for(size_type j = 0; j < i; ++j)
+          S(j,i) = uniform_rng() * value_type(10.0);
       mat<value_type,mat_structure::square> Q(S);
       exp_PadeSAS(S,Q,QR_linlsqsolver());
       

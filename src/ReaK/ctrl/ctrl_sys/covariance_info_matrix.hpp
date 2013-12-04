@@ -82,7 +82,7 @@ class covariance_info_matrix : public named_object {
      * \param aMat The covariance matrix to which to initialize this object.
      */
     explicit covariance_info_matrix(const matrix_type& aMat = matrix_type(), 
-				    const std::string& aName = "") : mat_info(aMat) { 
+                                    const std::string& aName = "") : mat_info(aMat) { 
       setName(aName); 
       invert_Cholesky(aMat, mat_info, std::numeric_limits< value_type >::epsilon());
     };
@@ -93,9 +93,9 @@ class covariance_info_matrix : public named_object {
      * \param aLevel The information level to initialize this object with.
      */
     explicit covariance_info_matrix(size_type aSize, 
-			        covariance_initial_level aLevel = covariance_initial_level::full_info, 
-			        const std::string& aName = "") : 
-			        mat_info(aSize, value_type( ( aLevel == covariance_initial_level::no_info ? 0 : std::numeric_limits< value_type >::infinity() ) )) { 
+                                covariance_initial_level aLevel = covariance_initial_level::full_info, 
+                                const std::string& aName = "") : 
+                                mat_info(aSize, value_type( ( aLevel == covariance_initial_level::no_info ? 0 : std::numeric_limits< value_type >::infinity() ) )) { 
       setName(aName); 
     };
     

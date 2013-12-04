@@ -119,6 +119,13 @@ class satellite2D_imdt_sys : public named_object {
     time_difference_type get_time_step() const { return mDt; };
     
     /**
+     * This function sets the time-step for this discrete-time system.
+     * \param aDt The new time-step for this discrete-time system.
+     */
+    virtual void set_time_step(time_difference_type aDt) const { mDt = aDt; };
+    
+    
+    /**
      * This function computes the next state of the system, i.e., the state at one time-step after the current time.
      * \param space The state-space within which the states reside.
      * \param x The current state of the system.
@@ -240,6 +247,9 @@ class satellite2D_imdt_sys : public named_object {
     
 };
 
+template <>
+struct is_invariant_system< satellite2D_imdt_sys > : boost::mpl::true_ { };
+
 
 
 
@@ -332,6 +342,10 @@ class satellite3D_imdt_sys : public satellite3D_inv_dt_system {
     
 };
 
+template <>
+struct is_invariant_system< satellite3D_imdt_sys > : boost::mpl::true_ { };
+
+
 
 
 
@@ -416,6 +430,10 @@ class satellite3D_gyro_imdt_sys : public satellite3D_imdt_sys {
     RK_RTTI_MAKE_CONCRETE_1BASE(satellite3D_gyro_imdt_sys,0xC2310016,1,"satellite3D_gyro_imdt_sys",satellite3D_imdt_sys)
     
 };
+
+template <>
+struct is_invariant_system< satellite3D_gyro_imdt_sys > : boost::mpl::true_ { };
+
 
 
 
@@ -524,6 +542,10 @@ class satellite3D_IMU_imdt_sys : public satellite3D_imdt_sys {
     RK_RTTI_MAKE_CONCRETE_1BASE(satellite3D_IMU_imdt_sys,0xC2310017,1,"satellite3D_IMU_imdt_sys",satellite3D_imdt_sys)
     
 };
+
+template <>
+struct is_invariant_system< satellite3D_IMU_imdt_sys > : boost::mpl::true_ { };
+
 
 
 

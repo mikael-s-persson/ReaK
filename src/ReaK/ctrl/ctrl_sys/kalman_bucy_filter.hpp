@@ -46,9 +46,9 @@ namespace detail {
   
   template <typename T,
             typename LinearSystem,
-	    typename StateSpaceType,
+            typename StateSpaceType,
             typename SystemNoiseCovariance,
-	    typename MeasurementNoiseCovariance>
+            typename MeasurementNoiseCovariance>
   struct kalman_bucy_system : public state_rate_function< T > {
     
     typedef T value_type;
@@ -82,9 +82,9 @@ namespace detail {
     matrixD_type D;
     
     kalman_bucy_system(const LinearSystem& aSys, const StateSpaceType& aStateSpace,
-		       const input_type& aU, const output_type& aZ, 
-		       const SystemNoiseCovariance& aQ, const MeasurementNoiseCovariance& aR) :
-		       sys(aSys), state_space(aStateSpace), u(aU), z(aZ), Q(aQ.get_matrix()) {
+                       const input_type& aU, const output_type& aZ, 
+                       const SystemNoiseCovariance& aQ, const MeasurementNoiseCovariance& aR) :
+                       sys(aSys), state_space(aStateSpace), u(aU), z(aZ), Q(aQ.get_matrix()) {
       invert_Cholesky(aR.get_matrix(),R_inv);
       Kt.set_row_count(R_inv.get_row_count());
       Kt.set_col_count(Q.get_row_count());
@@ -95,24 +95,24 @@ namespace detail {
       vect_n<value_type> x;
       x.resize(Q.get_row_count());
       for(size_type i = 0; i < x.size(); ++i) 
-	x[i] = aState[i];
+        x[i] = aState[i];
       
       sys.get_linear_blocks(A, B, C, D, state_space, aTime, from_vect<state_type>(x), u);
       
       for(size_type j = 0; j < x.size(); ++j)
-	for(size_type i = 0; i < x.size(); ++i)
-	  P(i,j) = aState[x.size() * (j + 1) + i];
+        for(size_type i = 0; i < x.size(); ++i)
+          P(i,j) = aState[x.size() * (j + 1) + i];
       
       Kt = R_inv * C * P;
       x = A * x + B * to_vect<value_type>(u) + (to_vect<value_type>(z) - C * x - D * to_vect<value_type>(u)) * Kt;
       P = A * P + B * Q + Q * transpose_view(B) + P * (transpose_view(A) - transpose_view(C) * Kt);
       
       for(size_type i = 0; i < x.size(); ++i) 
-	aStateRate[i] = x[i];
+        aStateRate[i] = x[i];
 
       for(size_type j = 0; j < x.size(); ++j)
-	for(size_type i = 0; i < x.size(); ++i)
-	  aStateRate[x.size() * (j + 1) + i] = 0.5 * (P(i,j) + P(j,i));
+        for(size_type i = 0; i < x.size(); ++i)
+          aStateRate[x.size() * (j + 1) + i] = 0.5 * (P(i,j) + P(j,i));
     };
   };
   
@@ -126,19 +126,19 @@ namespace detail {
 template <typename LinearSystem, 
           typename StateSpaceType,
           typename BeliefState, 
-	  typename InputBelief, 
-	  typename MeasurementBelief>
+          typename InputBelief, 
+          typename MeasurementBelief>
 typename boost::enable_if_c< is_continuous_belief_state<BeliefState>::value &&
                              (belief_state_traits<BeliefState>::representation == belief_representation::gaussian) &&
                              (belief_state_traits<BeliefState>::distribution == belief_distribution::unimodal),
 void >::type kalman_bucy_filter_step(const LinearSystem& sys,
-				     integrator< typename mat_traits< typename covariance_mat_traits< typename continuous_belief_state_traits<BeliefState>::covariance_type >::matrix_type >::value_type >& integ,
-			             const StateSpaceType& state_space,
-			             BeliefState& b_x,
-			             const InputBelief& b_u,
-			             const MeasurementBelief& b_z,
-				     typename ss_system_traits<LinearSystem>::time_difference_type dt,
-				     typename ss_system_traits<LinearSystem>::time_type t = 0) {
+                                     integrator< typename mat_traits< typename covariance_mat_traits< typename continuous_belief_state_traits<BeliefState>::covariance_type >::matrix_type >::value_type >& integ,
+                                     const StateSpaceType& state_space,
+                                     BeliefState& b_x,
+                                     const InputBelief& b_u,
+                                     const MeasurementBelief& b_z,
+                                     typename ss_system_traits<LinearSystem>::time_difference_type dt,
+                                     typename ss_system_traits<LinearSystem>::time_type t = 0) {
   //here the requirement is that the system models a linear system which is at worse a linearized system
   // - if the system is LTI or LTV, then this will result in a basic Kalman Filter (KF) prediction
   // - if the system is linearized, then this will result in an Extended Kalman Filter (EKF) prediction
@@ -170,13 +170,13 @@ void >::type kalman_bucy_filter_step(const LinearSystem& sys,
     boost::shared_ptr< state_rate_function<ValueType> >( 
       new detail::kalman_bucy_system<ValueType, 
                                      LinearSystem, 
-				     StateSpaceType,
-				     InputCovType, 
-				     OutputCovType>( sys, state_space, 
-						     b_u.get_mean_state(), 
-						     b_z.get_mean_state(), 
-						     b_u.get_covariance(), 
-						     b_z.get_covariance() ) );
+                                     StateSpaceType,
+                                     InputCovType, 
+                                     OutputCovType>( sys, state_space, 
+                                                     b_u.get_mean_state(), 
+                                                     b_z.get_mean_state(), 
+                                                     b_u.get_covariance(), 
+                                                     b_z.get_covariance() ) );
     
   integ.setStateRateFunc( integ_sys );
   

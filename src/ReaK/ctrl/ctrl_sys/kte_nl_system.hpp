@@ -156,7 +156,7 @@ class kte_nl_system : public named_object {
     size_type get_input_count() const { 
       size_type sum = 0;
       for(unsigned int i = 0; i < inputs.size(); ++i)
-	sum += inputs[i]->getInputCount();
+        sum += inputs[i]->getInputCount();
       return sum; 
     };
     /**
@@ -166,7 +166,7 @@ class kte_nl_system : public named_object {
     size_type get_output_count() const {
       size_type sum = 0;
       for(unsigned int i = 0; i < outputs.size(); ++i)
-	sum += outputs[i]->getOutputCount();
+        sum += outputs[i]->getOutputCount();
       return sum;
     };
 
@@ -181,49 +181,49 @@ class kte_nl_system : public named_object {
      */
     void apply_states_and_inputs(const point_type& p, const input_type& u) const {
       if(p.size() != get_state_count()) {
-	std::cout << "Size of obtained state vector is: " << p.size() << std::endl;
-	std::cout << "But expected the size of the state vector to be: " << get_state_count() << std::endl;
-	throw std::range_error("State vector dimension mismatch!");
+        std::cout << "Size of obtained state vector is: " << p.size() << std::endl;
+        std::cout << "But expected the size of the state vector to be: " << get_state_count() << std::endl;
+        throw std::range_error("State vector dimension mismatch!");
       };
       if(u.size() != get_input_count())
-	throw std::range_error("Input vector dimension mismatch!");
+        throw std::range_error("Input vector dimension mismatch!");
       size_type i = 0;
       for(size_type j = 0; j < dofs_gen.size(); ++j) {
-	dofs_gen[j]->q = p[i++]; 
-	dofs_gen[j]->q_dot = p[i++]; 
-	dofs_gen[j]->q_ddot = 0.0;
+        dofs_gen[j]->q = p[i++]; 
+        dofs_gen[j]->q_dot = p[i++]; 
+        dofs_gen[j]->q_ddot = 0.0;
       };
       for(size_type j = 0; j < dofs_2D.size(); ++j) {
-	dofs_2D[j]->Position[0] = p[i++];
-	dofs_2D[j]->Position[1] = p[i++];
-	vect<double,2> tmp; tmp[0] = p[i++]; tmp[1] = p[i++];
-	dofs_2D[j]->Rotation = frame_2D<double>::rotation_type(tmp);
-	dofs_2D[j]->Velocity[0] = p[i++];
-	dofs_2D[j]->Velocity[1] = p[i++];
-	dofs_2D[j]->AngVelocity = p[i++];
-	dofs_2D[j]->Acceleration = vect<double,2>();
-	dofs_2D[j]->AngAcceleration = 0.0;
+        dofs_2D[j]->Position[0] = p[i++];
+        dofs_2D[j]->Position[1] = p[i++];
+        vect<double,2> tmp; tmp[0] = p[i++]; tmp[1] = p[i++];
+        dofs_2D[j]->Rotation = frame_2D<double>::rotation_type(tmp);
+        dofs_2D[j]->Velocity[0] = p[i++];
+        dofs_2D[j]->Velocity[1] = p[i++];
+        dofs_2D[j]->AngVelocity = p[i++];
+        dofs_2D[j]->Acceleration = vect<double,2>();
+        dofs_2D[j]->AngAcceleration = 0.0;
       };
       for(size_type j = 0; j < dofs_3D.size(); ++j) {
-	dofs_3D[j]->Position[0] = p[i++];
-	dofs_3D[j]->Position[1] = p[i++];
-	dofs_3D[j]->Position[2] = p[i++];
-	vect<double,4> tmp; tmp[0] = p[i++]; tmp[1] = p[i++]; tmp[2] = p[i++]; tmp[3] = p[i++];
-	dofs_3D[j]->Quat = quaternion<double>(tmp);
-	dofs_3D[j]->Velocity[0] = p[i++];
-	dofs_3D[j]->Velocity[1] = p[i++];
-	dofs_3D[j]->Velocity[2] = p[i++];
-	dofs_3D[j]->AngVelocity[0] = p[i++];
-	dofs_3D[j]->AngVelocity[1] = p[i++];
-	dofs_3D[j]->AngVelocity[2] = p[i++];
-	dofs_3D[j]->Acceleration = vect<double,3>();
-	dofs_3D[j]->AngAcceleration = vect<double,3>();
+        dofs_3D[j]->Position[0] = p[i++];
+        dofs_3D[j]->Position[1] = p[i++];
+        dofs_3D[j]->Position[2] = p[i++];
+        vect<double,4> tmp; tmp[0] = p[i++]; tmp[1] = p[i++]; tmp[2] = p[i++]; tmp[3] = p[i++];
+        dofs_3D[j]->Quat = quaternion<double>(tmp);
+        dofs_3D[j]->Velocity[0] = p[i++];
+        dofs_3D[j]->Velocity[1] = p[i++];
+        dofs_3D[j]->Velocity[2] = p[i++];
+        dofs_3D[j]->AngVelocity[0] = p[i++];
+        dofs_3D[j]->AngVelocity[1] = p[i++];
+        dofs_3D[j]->AngVelocity[2] = p[i++];
+        dofs_3D[j]->Acceleration = vect<double,3>();
+        dofs_3D[j]->AngAcceleration = vect<double,3>();
       };
       
       i = 0;
       for(size_type j = 0; j < inputs.size(); ++j)
-	for(size_type k = 0; k < inputs[j]->getInputCount(); k++)
-	  inputs[j]->setInput(k,u[i++]);
+        for(size_type k = 0; k < inputs[j]->getInputCount(); k++)
+          inputs[j]->setInput(k,u[i++]);
     };
     
     /**
@@ -248,100 +248,100 @@ class kte_nl_system : public named_object {
         chain->clearForce();
         chain->doForce();
       
-	mat<double, mat_structure::symmetric> M(dofs_gen.size() + 3 * dofs_2D.size() + 6 * dofs_3D.size());
-	vect_n<double> f(dofs_gen.size() + 3 * dofs_2D.size() + 6 * dofs_3D.size());
-	
-	for(size_type i = 0; i < dofs_gen.size(); ++i)
-	  f[i] = dofs_gen[i]->f;
-	
-	size_type base_i = dofs_gen.size();
-	for(size_type i = 0; i < dofs_2D.size(); ++i) {
-	  f[base_i + 3*i] = dofs_2D[i]->Force[0];
-	  f[base_i + 3*i + 1] = dofs_2D[i]->Force[1];
-	  f[base_i + 3*i + 2] = dofs_2D[i]->Torque;
-	};
-	
-	base_i = dofs_gen.size() + 3 * dofs_2D.size();
-	for(size_type i = 0; i < dofs_3D.size(); ++i) {
-	  f[base_i + 6*i] = dofs_3D[i]->Force[0];
-	  f[base_i + 6*i + 1] = dofs_3D[i]->Force[1];
-	  f[base_i + 6*i + 2] = dofs_3D[i]->Force[2];
-	  f[base_i + 6*i + 3] = dofs_3D[i]->Torque[0];
-	  f[base_i + 6*i + 4] = dofs_3D[i]->Torque[1];
-	  f[base_i + 6*i + 5] = dofs_3D[i]->Torque[2];
-	};
-	
-	mass_calc->getMassMatrix(M);
-	mat_vect_adaptor< vect_n<double>, mat_alignment::column_major > f_adapt(f);
-	linsolve_Cholesky(M, f_adapt);
-	
-	for(size_type i = 0; i < dofs_gen.size(); ++i) {
-	  pd[2*i] = dofs_gen[i]->q_dot;
-	  pd[2*i + 1] = f[i];
-	};
-	
-	base_i = dofs_gen.size();
-	for(size_type i = 0; i < dofs_2D.size(); ++i) {
-	  pd[2*base_i + 7*i] = dofs_2D[i]->Velocity[0];     
-	  pd[2*base_i + 7*i + 1] = dofs_2D[i]->Velocity[1]; 
-	  pd[2*base_i + 7*i + 2] = -p[2*base_i + 7*i + 3] * dofs_2D[i]->AngVelocity; 
-	  pd[2*base_i + 7*i + 3] =  p[2*base_i + 7*i + 2] * dofs_2D[i]->AngVelocity; 
-	  pd[2*base_i + 7*i + 4] = f[base_i + 3*i];       
-	  pd[2*base_i + 7*i + 5] = f[base_i + 3*i + 1];   
-	  pd[2*base_i + 7*i + 6] = f[base_i + 3*i + 2];   
-	};
-	
-	base_i = dofs_gen.size() + 3 * dofs_2D.size();
-	for(size_type i = 0; i < dofs_3D.size(); ++i) {
-	  pd[2*base_i + dofs_2D.size() + 13*i] = dofs_3D[i]->Velocity[0];
-	  pd[2*base_i + dofs_2D.size() + 13*i + 1] = dofs_3D[i]->Velocity[1];
-	  pd[2*base_i + dofs_2D.size() + 13*i + 2] = dofs_3D[i]->Velocity[2];
-	  dofs_3D[i]->UpdateQuatDot();
-	  pd[2*base_i + dofs_2D.size() + 13*i + 3] = dofs_3D[i]->QuatDot[0];
-	  pd[2*base_i + dofs_2D.size() + 13*i + 4] = dofs_3D[i]->QuatDot[1];
-	  pd[2*base_i + dofs_2D.size() + 13*i + 5] = dofs_3D[i]->QuatDot[2];
-	  pd[2*base_i + dofs_2D.size() + 13*i + 6] = dofs_3D[i]->QuatDot[3];
-	  pd[2*base_i + dofs_2D.size() + 13*i + 7] = f[base_i + 6*i];
-	  pd[2*base_i + dofs_2D.size() + 13*i + 8] = f[base_i + 6*i + 1];
-	  pd[2*base_i + dofs_2D.size() + 13*i + 9] = f[base_i + 6*i + 2];
-	  pd[2*base_i + dofs_2D.size() + 13*i + 10] = f[base_i + 6*i + 3];
-	  pd[2*base_i + dofs_2D.size() + 13*i + 11] = f[base_i + 6*i + 4];
-	  pd[2*base_i + dofs_2D.size() + 13*i + 12] = f[base_i + 6*i + 5];
-	};
+        mat<double, mat_structure::symmetric> M(dofs_gen.size() + 3 * dofs_2D.size() + 6 * dofs_3D.size());
+        vect_n<double> f(dofs_gen.size() + 3 * dofs_2D.size() + 6 * dofs_3D.size());
+        
+        for(size_type i = 0; i < dofs_gen.size(); ++i)
+          f[i] = dofs_gen[i]->f;
+        
+        size_type base_i = dofs_gen.size();
+        for(size_type i = 0; i < dofs_2D.size(); ++i) {
+          f[base_i + 3*i] = dofs_2D[i]->Force[0];
+          f[base_i + 3*i + 1] = dofs_2D[i]->Force[1];
+          f[base_i + 3*i + 2] = dofs_2D[i]->Torque;
+        };
+        
+        base_i = dofs_gen.size() + 3 * dofs_2D.size();
+        for(size_type i = 0; i < dofs_3D.size(); ++i) {
+          f[base_i + 6*i] = dofs_3D[i]->Force[0];
+          f[base_i + 6*i + 1] = dofs_3D[i]->Force[1];
+          f[base_i + 6*i + 2] = dofs_3D[i]->Force[2];
+          f[base_i + 6*i + 3] = dofs_3D[i]->Torque[0];
+          f[base_i + 6*i + 4] = dofs_3D[i]->Torque[1];
+          f[base_i + 6*i + 5] = dofs_3D[i]->Torque[2];
+        };
+        
+        mass_calc->getMassMatrix(M);
+        mat_vect_adaptor< vect_n<double>, mat_alignment::column_major > f_adapt(f);
+        linsolve_Cholesky(M, f_adapt);
+        
+        for(size_type i = 0; i < dofs_gen.size(); ++i) {
+          pd[2*i] = dofs_gen[i]->q_dot;
+          pd[2*i + 1] = f[i];
+        };
+        
+        base_i = dofs_gen.size();
+        for(size_type i = 0; i < dofs_2D.size(); ++i) {
+          pd[2*base_i + 7*i] = dofs_2D[i]->Velocity[0];     
+          pd[2*base_i + 7*i + 1] = dofs_2D[i]->Velocity[1]; 
+          pd[2*base_i + 7*i + 2] = -p[2*base_i + 7*i + 3] * dofs_2D[i]->AngVelocity; 
+          pd[2*base_i + 7*i + 3] =  p[2*base_i + 7*i + 2] * dofs_2D[i]->AngVelocity; 
+          pd[2*base_i + 7*i + 4] = f[base_i + 3*i];       
+          pd[2*base_i + 7*i + 5] = f[base_i + 3*i + 1];   
+          pd[2*base_i + 7*i + 6] = f[base_i + 3*i + 2];   
+        };
+        
+        base_i = dofs_gen.size() + 3 * dofs_2D.size();
+        for(size_type i = 0; i < dofs_3D.size(); ++i) {
+          pd[2*base_i + dofs_2D.size() + 13*i] = dofs_3D[i]->Velocity[0];
+          pd[2*base_i + dofs_2D.size() + 13*i + 1] = dofs_3D[i]->Velocity[1];
+          pd[2*base_i + dofs_2D.size() + 13*i + 2] = dofs_3D[i]->Velocity[2];
+          dofs_3D[i]->UpdateQuatDot();
+          pd[2*base_i + dofs_2D.size() + 13*i + 3] = dofs_3D[i]->QuatDot[0];
+          pd[2*base_i + dofs_2D.size() + 13*i + 4] = dofs_3D[i]->QuatDot[1];
+          pd[2*base_i + dofs_2D.size() + 13*i + 5] = dofs_3D[i]->QuatDot[2];
+          pd[2*base_i + dofs_2D.size() + 13*i + 6] = dofs_3D[i]->QuatDot[3];
+          pd[2*base_i + dofs_2D.size() + 13*i + 7] = f[base_i + 6*i];
+          pd[2*base_i + dofs_2D.size() + 13*i + 8] = f[base_i + 6*i + 1];
+          pd[2*base_i + dofs_2D.size() + 13*i + 9] = f[base_i + 6*i + 2];
+          pd[2*base_i + dofs_2D.size() + 13*i + 10] = f[base_i + 6*i + 3];
+          pd[2*base_i + dofs_2D.size() + 13*i + 11] = f[base_i + 6*i + 4];
+          pd[2*base_i + dofs_2D.size() + 13*i + 12] = f[base_i + 6*i + 5];
+        };
       } else {
-	for(size_type i = 0; i < dofs_gen.size(); ++i) {
-	  pd[2*i] = dofs_gen[i]->q_dot;
-	  pd[2*i + 1] = 0.0;
-	};
-	
-	size_type base_i = dofs_gen.size();
-	for(size_type i = 0; i < dofs_2D.size(); ++i) {
-	  pd[2*base_i + 7*i] = dofs_2D[i]->Velocity[0];     
-	  pd[2*base_i + 7*i + 1] = dofs_2D[i]->Velocity[1]; 
-	  pd[2*base_i + 7*i + 2] = -p[2*base_i + 7*i + 3] * dofs_2D[i]->AngVelocity; 
-	  pd[2*base_i + 7*i + 3] =  p[2*base_i + 7*i + 2] * dofs_2D[i]->AngVelocity; 
-	  pd[2*base_i + 7*i + 4] = 0.0;       
-	  pd[2*base_i + 7*i + 5] = 0.0;   
-	  pd[2*base_i + 7*i + 6] = 0.0;   
-	};
-	
-	base_i = dofs_gen.size() + 3 * dofs_2D.size();
-	for(size_type i = 0; i < dofs_3D.size(); ++i) {
-	  pd[2*base_i + dofs_2D.size() + 13*i] = dofs_3D[i]->Velocity[0];
-	  pd[2*base_i + dofs_2D.size() + 13*i + 1] = dofs_3D[i]->Velocity[1];
-	  pd[2*base_i + dofs_2D.size() + 13*i + 2] = dofs_3D[i]->Velocity[2];
-	  dofs_3D[i]->UpdateQuatDot();
-	  pd[2*base_i + dofs_2D.size() + 13*i + 3] = dofs_3D[i]->QuatDot[0];
-	  pd[2*base_i + dofs_2D.size() + 13*i + 4] = dofs_3D[i]->QuatDot[1];
-	  pd[2*base_i + dofs_2D.size() + 13*i + 5] = dofs_3D[i]->QuatDot[2];
-	  pd[2*base_i + dofs_2D.size() + 13*i + 6] = dofs_3D[i]->QuatDot[3];
-	  pd[2*base_i + dofs_2D.size() + 13*i + 7] = 0.0;
-	  pd[2*base_i + dofs_2D.size() + 13*i + 8] = 0.0;
-	  pd[2*base_i + dofs_2D.size() + 13*i + 9] = 0.0;
-	  pd[2*base_i + dofs_2D.size() + 13*i + 10] = 0.0;
-	  pd[2*base_i + dofs_2D.size() + 13*i + 11] = 0.0;
-	  pd[2*base_i + dofs_2D.size() + 13*i + 12] = 0.0;
-	};
+        for(size_type i = 0; i < dofs_gen.size(); ++i) {
+          pd[2*i] = dofs_gen[i]->q_dot;
+          pd[2*i + 1] = 0.0;
+        };
+        
+        size_type base_i = dofs_gen.size();
+        for(size_type i = 0; i < dofs_2D.size(); ++i) {
+          pd[2*base_i + 7*i] = dofs_2D[i]->Velocity[0];     
+          pd[2*base_i + 7*i + 1] = dofs_2D[i]->Velocity[1]; 
+          pd[2*base_i + 7*i + 2] = -p[2*base_i + 7*i + 3] * dofs_2D[i]->AngVelocity; 
+          pd[2*base_i + 7*i + 3] =  p[2*base_i + 7*i + 2] * dofs_2D[i]->AngVelocity; 
+          pd[2*base_i + 7*i + 4] = 0.0;       
+          pd[2*base_i + 7*i + 5] = 0.0;   
+          pd[2*base_i + 7*i + 6] = 0.0;   
+        };
+        
+        base_i = dofs_gen.size() + 3 * dofs_2D.size();
+        for(size_type i = 0; i < dofs_3D.size(); ++i) {
+          pd[2*base_i + dofs_2D.size() + 13*i] = dofs_3D[i]->Velocity[0];
+          pd[2*base_i + dofs_2D.size() + 13*i + 1] = dofs_3D[i]->Velocity[1];
+          pd[2*base_i + dofs_2D.size() + 13*i + 2] = dofs_3D[i]->Velocity[2];
+          dofs_3D[i]->UpdateQuatDot();
+          pd[2*base_i + dofs_2D.size() + 13*i + 3] = dofs_3D[i]->QuatDot[0];
+          pd[2*base_i + dofs_2D.size() + 13*i + 4] = dofs_3D[i]->QuatDot[1];
+          pd[2*base_i + dofs_2D.size() + 13*i + 5] = dofs_3D[i]->QuatDot[2];
+          pd[2*base_i + dofs_2D.size() + 13*i + 6] = dofs_3D[i]->QuatDot[3];
+          pd[2*base_i + dofs_2D.size() + 13*i + 7] = 0.0;
+          pd[2*base_i + dofs_2D.size() + 13*i + 8] = 0.0;
+          pd[2*base_i + dofs_2D.size() + 13*i + 9] = 0.0;
+          pd[2*base_i + dofs_2D.size() + 13*i + 10] = 0.0;
+          pd[2*base_i + dofs_2D.size() + 13*i + 11] = 0.0;
+          pd[2*base_i + dofs_2D.size() + 13*i + 12] = 0.0;
+        };
       };
       
       return pd;
@@ -367,9 +367,9 @@ class kte_nl_system : public named_object {
       
       size_type i = 0;
       for(size_type j = 0; j < outputs.size(); ++j)
-	for(size_type k = 0; k < outputs[j]->getOutputCount(); k++)
-	  y[i++] = outputs[j]->getOutput(k);
-	
+        for(size_type k = 0; k < outputs[j]->getOutputCount(); k++)
+          y[i++] = outputs[j]->getOutput(k);
+        
       return y;
     };
     

@@ -40,6 +40,7 @@
 #include "base/named_object.hpp"
 
 #include "ctrl_sys/sss_exceptions.hpp"
+#include "ctrl_sys/invariant_system_concept.hpp"
 #include "topologies/se3_topologies.hpp"
 
 #include "lin_alg/mat_alg.hpp"
@@ -116,6 +117,12 @@ class satellite3D_lin_dt_system : public named_object {
      * \return The time-step for this discrete-time system.
      */
     time_difference_type get_time_step() const { return mDt; };
+    
+    /**
+     * This function sets the time-step for this discrete-time system.
+     * \param aDt The new time-step for this discrete-time system.
+     */
+    virtual void set_time_step(time_difference_type aDt) const { mDt = aDt; };
     
     /**
      * This function computes the next state of the system, i.e., the state at one time-step after the current time.
@@ -411,6 +418,9 @@ class satellite3D_inv_dt_system : public satellite3D_lin_dt_system {
     
 };
 
+template <>
+struct is_invariant_system< satellite3D_inv_dt_system > : boost::mpl::true_ { };
+
 
 
 
@@ -490,6 +500,9 @@ class satellite3D_gyro_inv_dt_system : public satellite3D_inv_dt_system {
     RK_RTTI_MAKE_CONCRETE_1BASE(satellite3D_gyro_inv_dt_system,0xC2310019,1,"satellite3D_gyro_inv_dt_system",satellite3D_inv_dt_system)
     
 };
+
+template <>
+struct is_invariant_system< satellite3D_gyro_inv_dt_system > : boost::mpl::true_ { };
 
 
 

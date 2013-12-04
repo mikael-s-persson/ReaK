@@ -55,8 +55,11 @@
 
 #include "gaussian_belief_state.hpp"
 #include "covariance_matrix.hpp"
+#include "kalman_filter.hpp"
 
 #include "path_planning/metric_space_concept.hpp"
+
+#include <boost/mpl/and.hpp>
 
 namespace ReaK {
 
@@ -86,15 +89,19 @@ namespace ctrl {
 template <typename InvariantSystem, 
           typename StateSpaceType,
           typename BeliefState, 
-	  typename InputBelief>
-typename boost::enable_if_c< is_continuous_belief_state<BeliefState>::value &&
-                             (belief_state_traits<BeliefState>::representation == belief_representation::gaussian) &&
-                             (belief_state_traits<BeliefState>::distribution == belief_distribution::unimodal),
+          typename InputBelief>
+typename boost::enable_if< 
+  boost::mpl::and_< 
+    is_invariant_system<InvariantSystem>,
+    is_continuous_belief_state<BeliefState>,
+    boost::mpl::bool_< (belief_state_traits<BeliefState>::representation == belief_representation::gaussian) >,
+    boost::mpl::bool_< (belief_state_traits<BeliefState>::distribution == belief_distribution::unimodal) >
+  >,
 void >::type invariant_kalman_predict(const InvariantSystem& sys,
-			              const StateSpaceType& state_space,
-			              BeliefState& b_x,
-			              const InputBelief& b_u,
-				      typename discrete_sss_traits<InvariantSystem>::time_type t = 0) {
+                                      const StateSpaceType& state_space,
+                                      BeliefState& b_x,
+                                      const InputBelief& b_u,
+                                      typename discrete_sss_traits<InvariantSystem>::time_type t = 0) {
   //here the requirement is that the system models a linear system which is at worse a linearized system
   // - if the system is LTI or LTV, then this will result in a basic Kalman Filter (KF) update
   // - if the system is linearized, then this will result in an Extended Kalman Filter (EKF) update
@@ -122,6 +129,19 @@ void >::type invariant_kalman_predict(const InvariantSystem& sys,
   b_x.set_covariance( CovType( P ) );
 };
 
+
+template <typename InvariantSystem, 
+          typename StateSpaceType,
+          typename BeliefState, 
+          typename InputBelief>
+typename boost::disable_if< is_invariant_system<InvariantSystem> >,
+void >::type invariant_kalman_predict(const InvariantSystem& sys,
+                                      const StateSpaceType& state_space,
+                                      BeliefState& b_x,
+                                      const InputBelief& b_u,
+                                      typename discrete_sss_traits<InvariantSystem>::time_type t = 0) {
+  kalman_predict(sys, state_space, b_x, b_u, t);
+};
 
 
 
@@ -151,17 +171,21 @@ void >::type invariant_kalman_predict(const InvariantSystem& sys,
 template <typename InvariantSystem,  
           typename StateSpaceType,
           typename BeliefState, 
-	  typename InputBelief, 
-	  typename MeasurementBelief>
-typename boost::enable_if_c< is_continuous_belief_state<BeliefState>::value &&
-                             (belief_state_traits<BeliefState>::representation == belief_representation::gaussian) &&
-                             (belief_state_traits<BeliefState>::distribution == belief_distribution::unimodal),
+          typename InputBelief, 
+          typename MeasurementBelief>
+typename boost::enable_if< 
+  boost::mpl::and_< 
+    is_invariant_system<InvariantSystem>,
+    is_continuous_belief_state<BeliefState>,
+    boost::mpl::bool_< (belief_state_traits<BeliefState>::representation == belief_representation::gaussian) >,
+    boost::mpl::bool_< (belief_state_traits<BeliefState>::distribution == belief_distribution::unimodal) >
+  >,
 void >::type invariant_kalman_update(const InvariantSystem& sys,
-				     const StateSpaceType& state_space,
-				     BeliefState& b_x,
-				     const InputBelief& b_u,
-				     const MeasurementBelief& b_z,
-				     typename discrete_sss_traits<InvariantSystem>::time_type t = 0) {
+                                     const StateSpaceType& state_space,
+                                     BeliefState& b_x,
+                                     const InputBelief& b_u,
+                                     const MeasurementBelief& b_z,
+                                     typename discrete_sss_traits<InvariantSystem>::time_type t = 0) {
   //here the requirement is that the system models a linear system which is at worse a linearized system
   // - if the system is LTI or LTV, then this will result in a basic Kalman Filter (KF) update
   // - if the system is linearized, then this will result in an Extended Kalman Filter (EKF) update
@@ -200,6 +224,22 @@ void >::type invariant_kalman_update(const InvariantSystem& sys,
 
 
 
+template <typename InvariantSystem,  
+          typename StateSpaceType,
+          typename BeliefState, 
+          typename InputBelief, 
+          typename MeasurementBelief>
+typename boost::disable_if< is_invariant_system<InvariantSystem>,
+void >::type invariant_kalman_update(const InvariantSystem& sys,
+                                     const StateSpaceType& state_space,
+                                     BeliefState& b_x,
+                                     const InputBelief& b_u,
+                                     const MeasurementBelief& b_z,
+                                     typename discrete_sss_traits<InvariantSystem>::time_type t = 0) {
+  kalman_update(sys, state_space, b_x, b_u, b_z, t);
+};
+
+
 
 /**
  * This function template performs one complete estimation step using the (Extended) Kalman 
@@ -228,17 +268,21 @@ void >::type invariant_kalman_update(const InvariantSystem& sys,
 template <typename InvariantSystem, 
           typename StateSpaceType,
           typename BeliefState, 
-	  typename InputBelief, 
-	  typename MeasurementBelief>
-typename boost::enable_if_c< is_continuous_belief_state<BeliefState>::value &&
-                             (belief_state_traits<BeliefState>::representation == belief_representation::gaussian) &&
-                             (belief_state_traits<BeliefState>::distribution == belief_distribution::unimodal),
+          typename InputBelief, 
+          typename MeasurementBelief>
+typename boost::enable_if< 
+  boost::mpl::and_< 
+    is_invariant_system<InvariantSystem>,
+    is_continuous_belief_state<BeliefState>,
+    boost::mpl::bool_< (belief_state_traits<BeliefState>::representation == belief_representation::gaussian) >,
+    boost::mpl::bool_< (belief_state_traits<BeliefState>::distribution == belief_distribution::unimodal) >
+  >,
 void >::type invariant_kalman_filter_step(const InvariantSystem& sys,
-					  const StateSpaceType& state_space,
-					  BeliefState& b_x,
-					  const InputBelief& b_u,
-					  const MeasurementBelief& b_z,
-					  typename discrete_sss_traits<InvariantSystem>::time_type t = 0) {
+                                          const StateSpaceType& state_space,
+                                          BeliefState& b_x,
+                                          const InputBelief& b_u,
+                                          const MeasurementBelief& b_z,
+                                          typename discrete_sss_traits<InvariantSystem>::time_type t = 0) {
   //here the requirement is that the system models a linear system which is at worse a linearized system
   // - if the system is LTI or LTV, then this will result in a basic Kalman Filter (KF) update
   // - if the system is linearized, then this will result in an Extended Kalman Filter (EKF) update
@@ -281,6 +325,20 @@ void >::type invariant_kalman_filter_step(const InvariantSystem& sys,
   b_x.set_covariance( CovType( MatType( W * ((mat< ValueType, mat_structure::identity>(K.get_row_count()) - K * C) * P) * transpose_view(W) ) ) );
 };
 
+template <typename InvariantSystem, 
+          typename StateSpaceType,
+          typename BeliefState, 
+          typename InputBelief, 
+          typename MeasurementBelief>
+typename boost::disable_if< is_invariant_system<InvariantSystem>,
+void >::type invariant_kalman_filter_step(const InvariantSystem& sys,
+                                          const StateSpaceType& state_space,
+                                          BeliefState& b_x,
+                                          const InputBelief& b_u,
+                                          const MeasurementBelief& b_z,
+                                          typename discrete_sss_traits<InvariantSystem>::time_type t = 0) {
+  kalman_filter_step(sys, state_space, b_x, b_u, b_z, t);
+};
 
 
 

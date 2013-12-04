@@ -86,10 +86,10 @@ class decomp_covariance_matrix : public named_object {
      * \param aMatY The informing-inverse matrix block.
      */
     explicit decomp_covariance_matrix(const matrix_block_type& aMatX = matrix_block_type(), 
-				      const matrix_block_type& aMatY = matrix_block_type(), 
-				      const std::string& aName = "") : 
-				      mat_X(aMatX), 
-				      mat_Y(aMatY) { 
+                                      const matrix_block_type& aMatY = matrix_block_type(), 
+                                      const std::string& aName = "") : 
+                                      mat_X(aMatX), 
+                                      mat_Y(aMatY) { 
       setName(aName); 
     };
     
@@ -99,15 +99,15 @@ class decomp_covariance_matrix : public named_object {
      * \param aLevel The information level to initialize this object with.
      */
     explicit decomp_covariance_matrix(size_type aSize, 
-				      covariance_initial_level aLevel = covariance_initial_level::full_info, 
-				      const std::string& aName = "") : 
-				      mat_X(aSize, value_type(0)), 
-				      mat_Y(aSize, value_type(0)) { 
+                                      covariance_initial_level aLevel = covariance_initial_level::full_info, 
+                                      const std::string& aName = "") : 
+                                      mat_X(aSize, value_type(0)), 
+                                      mat_Y(aSize, value_type(0)) { 
       setName(aName); 
       if(aLevel == covariance_initial_level::full_info) {
-	mat_Y = mat<value_type, mat_structure::identity>(aSize);
+        mat_Y = mat<value_type, mat_structure::identity>(aSize);
       } else {
-	mat_X = mat<value_type, mat_structure::identity>(aSize);
+        mat_X = mat<value_type, mat_structure::identity>(aSize);
       };
     };
     
@@ -117,13 +117,13 @@ class decomp_covariance_matrix : public named_object {
      */
     matrix_type get_matrix() const { 
       try {
-	mat<value_type, mat_structure::square> mY_inv;
-	invert_PLU(mat_Y,mY_inv);
-	return matrix_type(mat_X * mY_inv);
+        mat<value_type, mat_structure::square> mY_inv;
+        invert_PLU(mat_Y,mY_inv);
+        return matrix_type(mat_X * mY_inv);
       } catch(singularity_error& e) {
-	mat<value_type, mat_structure::square> mY_inv;
-	pseudoinvert_QR(mat_Y,mY_inv);
-	return matrix_type(mat_X * mY_inv);
+        mat<value_type, mat_structure::square> mY_inv;
+        pseudoinvert_QR(mat_Y,mY_inv);
+        return matrix_type(mat_X * mY_inv);
       }; 
     };
     /**
@@ -132,13 +132,13 @@ class decomp_covariance_matrix : public named_object {
      */
     matrix_type get_inverse_matrix() const { 
       try {
-	mat<value_type, mat_structure::square> mX_inv;
-	invert_PLU(mat_X,mX_inv);
-	return matrix_type(mat_Y * mX_inv);
+        mat<value_type, mat_structure::square> mX_inv;
+        invert_PLU(mat_X,mX_inv);
+        return matrix_type(mat_Y * mX_inv);
       } catch(singularity_error& e) {
-	mat<value_type, mat_structure::square> mX_inv;
-	pseudoinvert_QR(mat_X,mX_inv);
-	return matrix_type(mat_Y * mX_inv);
+        mat<value_type, mat_structure::square> mX_inv;
+        pseudoinvert_QR(mat_X,mX_inv);
+        return matrix_type(mat_Y * mX_inv);
       }; 
     };
     

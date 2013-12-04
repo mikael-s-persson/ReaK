@@ -133,7 +133,7 @@ class lti_discrete_sys : public named_object {
       swap(lhs.D,rhs.D);
       swap(lhs.dt,rhs.dt);
     };
-		  
+                  
     /**
      * Standard assignment operator.
      */
@@ -141,7 +141,7 @@ class lti_discrete_sys : public named_object {
       swap(*this,rhs);
       return *this;
     };
-		  
+                  
     /**
      * Sets the discrete-time system matrix A of the discrete-time system.
      * \param aA The new discrete-time system matrix A for the system.
@@ -253,9 +253,9 @@ class lti_discrete_sys : public named_object {
     typename boost::enable_if_c< is_writable_matrix<MatrixA>::value &&
                                  is_writable_matrix<MatrixB>::value,
     void >::type get_state_transition_blocks(MatrixA& aA, MatrixB& aB, const StateSpaceType&, 
-					     const time_type& = time_type(), const time_type& = time_type(), 
-					     const point_type& = point_type(), const point_type& = point_type(), 
-					     const input_type& = input_type(), const input_type& = input_type()) const {
+                                             const time_type& = time_type(), const time_type& = time_type(), 
+                                             const point_type& = point_type(), const point_type& = point_type(), 
+                                             const input_type& = input_type(), const input_type& = input_type()) const {
       aA = A;
       aB = B;
     };
@@ -283,8 +283,8 @@ class lti_discrete_sys : public named_object {
                                  is_writable_matrix<MatrixD>::value,
     void >::type get_output_function_blocks(MatrixC& aC, MatrixD& aD, const StateSpaceType&,
                                             const time_type& = time_type(),
-					    const point_type& = point_type(),
-					    const input_type& = input_type()) const {
+                                            const point_type& = point_type(),
+                                            const input_type& = input_type()) const {
       aC = C;
       aD = D;
     };

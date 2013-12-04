@@ -70,7 +70,7 @@ namespace ctrl {
  */
 template <typename BeliefTopology, 
           typename BeliefPredictor,
-	  typename InputTrajectory>
+        typename InputTrajectory>
 class belief_predicted_trajectory {
   public:
     

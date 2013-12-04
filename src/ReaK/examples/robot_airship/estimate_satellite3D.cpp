@@ -63,6 +63,154 @@ struct sat3D_measurement_point {
 };
 
 
+
+  
+typedef ctrl::satellite3D_lin_dt_system::state_space_type      sat3D_state_space_type;
+typedef ctrl::satellite3D_lin_dt_system::point_type            sat3D_state_type;
+typedef ctrl::satellite3D_lin_dt_system::point_difference_type sat3D_state_diff_type;
+typedef ctrl::satellite3D_lin_dt_system::input_type            sat3D_input_type;
+typedef ctrl::satellite3D_lin_dt_system::output_type           sat3D_output_type;
+
+typedef pp::temporal_space<sat3D_state_space_type, pp::time_poisson_topology, pp::time_distance_only> sat3D_temp_space_type;
+typedef pp::topology_traits< sat3D_temp_space_type >::point_type temp_point_type;
+
+typedef ctrl::covariance_matrix< vect_n<double> > cov_type;
+typedef cov_type::matrix_type cov_matrix_type;
+typedef ctrl::gaussian_belief_state< sat3D_state_type,  cov_type > sat3D_state_belief_type;
+typedef ctrl::gaussian_belief_state< sat3D_input_type,  cov_type > sat3D_input_belief_type;
+typedef ctrl::gaussian_belief_state< sat3D_output_type, cov_type > sat3D_output_belief_type;
+
+
+
+template <typename Sat3DSystemType>
+std::vector< std::pair< double, vect_n<double> > > batch_KF_on_timeseries(
+    const std::vector< std::pair< double, sat3D_measurement_point > >& measurements,
+    const std::vector< std::pair< double, vect_n<double> > >& ground_truth,
+    const Sat3DSystemType& sat_sys,
+    const sat3D_state_space_type& state_space,
+    sat3D_state_belief_type b,
+    sat3D_input_belief_type b_u,
+    sat3D_output_belief_type b_z,
+    std::size_t skips = 1) {
+  using namespace ReaK;
+  
+  std::vector< std::pair< double, vect_n<double> > > result_pts;
+  
+  std::vector< std::pair< double, vect_n<double> > >::const_iterator it_orig = ground_truth.begin();
+  std::vector< std::pair< double, sat3D_measurement_point > >::const_iterator it = measurements.begin();
+  while( it != measurements.end() ) {
+    vect_n<double> z_vect(it->second.pose.size() + it->second.gyro.size() + it->second.IMU_a_m.size(), 0.0);
+    z_vect[range(0,6)] = it->second.pose;
+    if( it->second.gyro.size() ) {
+      z_vect[range(7,9)] = it->second.gyro;
+      if( it->second.IMU_a_m.size() )
+        z_vect[range(10,15)] = it->second.IMU_a_m;
+    };
+    b_z.set_mean_state(z_vect);
+    
+    b_u.set_mean_state(it->second.u);
+    
+    ctrl::invariant_kalman_filter_step(sat_sys, state_space, b, b_u, b_z, it->first);
+    
+    const sat3D_state_type& x_mean = b.get_mean_state();
+    vect_n<double> result_vect(13 + 12 + 12, 0.0);
+    result_vect[range(0,2)]   = get_position(x_mean);
+    result_vect[range(3,6)]   = get_quaternion(x_mean);
+    result_vect[range(7,9)]   = get_velocity(x_mean);
+    result_vect[range(10,12)] = get_ang_velocity(x_mean);
+    
+    if( it_orig != ground_truth.end() ) {
+      const vect_n<double>& x_true = it_orig->second;
+      
+      quaternion<double> q_orig(vect<double,4>(x_true[3], x_true[4], x_true[5], x_true[6]));
+      axis_angle<double> aa_diff = axis_angle<double>(invert(get_quaternion(x_mean)) * q_orig);
+      
+      result_vect[range(13,15)] = get_position(x_mean) - vect<double,3>(x_true[0],x_true[1],x_true[2]);
+      result_vect[range(16,18)] = aa_diff.angle() * aa_diff.axis();
+      if( x_true.size() >= 13 ) {
+        result_vect[range(19,21)] = get_velocity(x_mean) - vect<double,3>(x_true[7],x_true[8],x_true[9]);
+        result_vect[range(22,24)] = get_ang_velocity(x_mean) - vect<double,3>(x_true[10],x_true[11],x_true[12]);
+      };
+    };
+    
+    const cov_matrix_type& P_xx = b.get_covariance().get_matrix();
+    for(std::size_t l = 0; l < 12; ++l)
+      result_vect[l + 25] = b.get_covariance().get_matrix()(l,l);
+    
+    result_pts.push_back(std::make_pair(it->first, result_vect));
+    
+    for(std::size_t i = 0; i < skips; ++i) {
+      if( it != measurements.end() )
+        ++it;
+      if( it_orig != ground_truth.end() )
+        ++it_orig;
+    };
+  };
+  
+  return result_pts;
+};
+
+
+
+template <typename Sat3DSystemType>
+void generate_timeseries(
+    std::vector< std::pair< double, sat3D_measurement_point > >& measurements,
+    std::vector< std::pair< double, vect_n<double> > >& ground_truth,
+    const Sat3DSystemType& sat_sys,
+    const sat3D_state_space_type& state_space,
+    sat3D_state_type x,
+    double start_time, double end_time,
+    const mat<double,mat_structure::diagonal>& Qu,
+    const mat<double,mat_structure::diagonal>& R) {
+  using namespace ReaK;
+  
+  measurements.clear();
+  ground_truth.clear();
+  
+  double time_step = sat_sys.get_time_step();
+  for(double t = start_time; t < end_time; t += time_step) {
+    vect_n<double> u(6, 0.0);
+    u[0] = var_rnd() * sqrt(Qu(0,0));
+    u[1] = var_rnd() * sqrt(Qu(1,1));
+    u[2] = var_rnd() * sqrt(Qu(2,2));
+    u[3] = var_rnd() * sqrt(Qu(3,3));
+    u[4] = var_rnd() * sqrt(Qu(4,4));
+    u[5] = var_rnd() * sqrt(Qu(5,5));
+    
+    x = sat_sys.get_next_state(state_space, x, u, t);
+    vect_n<double> y = sat_sys.get_output(state_space, x, u, t);
+    
+    vect_n<double> truth_vect(13, 0.0);
+    truth_vect[range(0,2)]   = get_position(x);
+    truth_vect[range(3,6)]   = get_quaternion(x);
+    truth_vect[range(7,9)]   = get_velocity(x);
+    truth_vect[range(10,12)] = get_ang_velocity(x);
+    ground_truth.push_back(std::make_pair(t, truth_vect));
+    
+    sat3D_measurement_point meas;
+    meas.u = vect_n<double>(6, 0.0);
+    meas.pose = vect_n<double>(7, 0.0);
+    meas.pose[0] = y[0] + var_rnd() * sqrt(R(0,0));
+    meas.pose[1] = y[1] + var_rnd() * sqrt(R(1,1));
+    meas.pose[2] = y[2] + var_rnd() * sqrt(R(2,2));
+    
+    vect<double,3> aa_vect_noise(var_rnd() * sqrt(R(3,3)), var_rnd() * sqrt(R(4,4)), var_rnd() * sqrt(R(5,5)));
+    axis_angle<double> aa_noise(norm_2(aa_vect_noise), aa_vect_noise);
+    meas.pose[range(3,6)] = quaternion<double>(y[3],y[4],y[5],y[6]) * aa_noise.getQuaternion();
+    
+    if( y.size() >= 10 ) {
+      meas.gyro = y[range(7,9)];
+      if( y.size() >= 16 )
+        meas.IMU_a_m = y[range(10,15)];
+    };
+    measurements.push_back(std::make_pair(t, meas));
+  };
+};
+
+
+
+
+
 int main(int argc, char** argv) {
   using namespace ReaK;
   
@@ -89,11 +237,6 @@ int main(int argc, char** argv) {
     ("start-time,s", po::value< double >()->default_value(0.0), "start time of the estimation (default is 0.0)")
     ("end-time,e", po::value< double >()->default_value(1.0), "end time of the estimation (default is 1.0)")
     ("time-step,t", po::value< double >()->default_value(0.01), "time-step in the measurement files (default is 0.01)")
-    ("skips,S", po::value< unsigned int >()->default_value(1), "number of time-step skips between estimations (default is 1, i.e., one estimation point per measurement point)")
-  ;
-  
-  po::options_description sim_options("Monte-Carlo options");
-  sim_options.add_options()
     ("monte-carlo", "if set, will perform a Monte-Carlo set of randomized runs to gather estimation performance statistics")
     ("mc-runs", po::value< unsigned int >()->default_value(1000), "number of Monte-Carlo runs to perform (default is 1000)")
     ("min-skips", po::value< unsigned int >()->default_value(1), "minimum number of time-step skips between estimations when generating a series of Monte-Carlo statistics (default is 1, i.e., one estimation point per measurement point)")
@@ -150,7 +293,6 @@ int main(int argc, char** argv) {
   double start_time = vm["start-time"].as<double>();
   double end_time   = vm["end-time"].as<double>();
   double time_step  = vm["time-step"].as<double>();
-  unsigned int skips  = vm["skips"].as<unsigned int>();
   
   unsigned int mc_runs    = vm["mc-runs"].as<unsigned int>();
   unsigned int min_skips  = vm["min-skips"].as<unsigned int>();
@@ -311,27 +453,24 @@ int main(int argc, char** argv) {
   };
   
   
-  
-  std::list< std::pair< double, sat3D_measurement_point > > measurements;
-  std::list< std::pair< double, sat3D_measurement_point > > measurements_noisy;
-  std::list< std::pair< double, vect_n<double> > > ground_truth;
-  try {
-    recorder::ssv_extractor measurements_file(measurements_filename);
-    unsigned int j = 0;
-    while(true) {
-      double t;
-      measurements_file >> t;
-      std::vector<double> meas;
-      try {
-        while(true) {
-          double dummy;
-          measurements_file >> dummy;
-          meas.push_back(dummy);
-        };
-      } catch(recorder::out_of_bounds&) { };
-      measurements_file >> recorder::data_extractor::end_value_row;
-      
-      if(j == 0) {
+  std::vector< std::pair< double, sat3D_measurement_point > > measurements;
+  std::vector< std::pair< double, vect_n<double> > > ground_truth;
+  if( ! vm.count("monte-carlo") ) {
+    try {
+      recorder::ssv_extractor measurements_file(measurements_filename);
+      while(true) {
+        double t;
+        measurements_file >> t;
+        std::vector<double> meas;
+        try {
+          while(true) {
+            double dummy;
+            measurements_file >> dummy;
+            meas.push_back(dummy);
+          };
+        } catch(recorder::out_of_bounds&) { };
+        measurements_file >> recorder::data_extractor::end_value_row;
+        
         sat3D_measurement_point meas_actual, meas_noisy;
         
         /* read off the position-orientation measurements. */
@@ -403,74 +542,25 @@ int main(int argc, char** argv) {
         meas.erase(meas.begin(), meas.begin() + 6);
         
         /* now, the meas_actual and meas_noisy are fully formed. */
-        measurements.push_back( std::make_pair(t, meas_actual) );
-        measurements_noisy.push_back( std::make_pair(t, meas_noisy) );
+        measurements.push_back( std::make_pair(t, meas_noisy) );
         
         /* check if the file contains a ground-truth: */
-        if(meas.size() >= 13) {
-          ground_truth.push_back( std::make_pair(t, vect_n<double>(meas.begin(), meas.begin() + 13)) );
-          meas.erase(meas.begin(), meas.begin() + 13);
+        if(meas.size() >= 7) {
+          ground_truth.push_back( std::make_pair(t, vect_n<double>(meas.begin(), meas.end())) );
+          meas.erase(meas.begin(), meas.end());
+        } else if( vm.count("R-added") ) {
+          ground_truth.push_back( std::make_pair(t, meas_actual.pose) );
         };
         
       };
-      j = (j+1) % skips;
-    };
-  } catch(recorder::out_of_bounds&) {
-    RK_ERROR("The measurement file does not appear to have the required number of columns!");
-    return 4;
-  } catch(recorder::end_of_record&) { };
+    } catch(recorder::out_of_bounds&) {
+      RK_ERROR("The measurement file does not appear to have the required number of columns!");
+      return 4;
+    } catch(recorder::end_of_record&) { };
+  };
   
   
-  // Create the set of satellite3D systems:
   
-  // linearized systems: (still multiplicative, since the state-space takes care of state-vector operations)
-  ctrl::satellite3D_lin_dt_system sat3D_lin(
-    "satellite3D_lin", mass, inertia_tensor, time_step);
-  
-  ctrl::satellite3D_gyro_lin_dt_system sat3D_lin_gyro(
-    "satellite3D_lin_with_gyros", mass, inertia_tensor, time_step);
-  
-  
-  // invariant systems:
-  ctrl::satellite3D_inv_dt_system sat3D_inv(
-    "satellite3D_inv", mass, inertia_tensor, time_step);
-  
-  ctrl::satellite3D_gyro_inv_dt_system sat3D_inv_gyro(
-    "satellite3D_inv_with_gyros", mass, inertia_tensor, time_step);
-  
-  
-  // invariant-momemtum-tracking systems (order = 1):
-  ctrl::satellite3D_imdt_sys sat3D_invmom(
-    "satellite3D_invmom", mass, inertia_tensor, time_step);
-  
-  ctrl::satellite3D_gyro_imdt_sys sat3D_invmom_gyro(
-    "satellite3D_invmom_with_gyros", mass, inertia_tensor, time_step);
-  
-  ctrl::satellite3D_IMU_imdt_sys sat3D_invmom_IMU(
-    "satellite3D_invmom_with_IMU", mass, inertia_tensor, time_step,
-    IMU_orientation, IMU_location, earth_orientation, mag_field_direction);
-  
-  
-  // invariant-momemtum-tracking systems (order = 2 (midpoint)):
-  ctrl::satellite3D_imdt_sys sat3D_invmid(
-    "satellite3D_invmid", mass, inertia_tensor, time_step, 2);
-  
-  ctrl::satellite3D_gyro_imdt_sys sat3D_invmid_gyro(
-    "satellite3D_invmid_with_gyros", mass, inertia_tensor, time_step, 2);
-  
-  ctrl::satellite3D_IMU_imdt_sys sat3D_invmid_IMU(
-    "satellite3D_invmid_with_IMU", mass, inertia_tensor, time_step,
-    IMU_orientation, IMU_location, earth_orientation, mag_field_direction, 2);
-  
-  
-  typedef ctrl::satellite3D_lin_dt_system::state_space_type      sat3D_state_space_type;
-  typedef ctrl::satellite3D_lin_dt_system::point_type            sat3D_state_type;
-  typedef ctrl::satellite3D_lin_dt_system::point_difference_type sat3D_state_diff_type;
-  typedef ctrl::satellite3D_lin_dt_system::input_type            sat3D_input_type;
-  typedef ctrl::satellite3D_lin_dt_system::output_type           sat3D_output_type;
-  
-  typedef pp::temporal_space<sat3D_state_space_type, pp::time_poisson_topology, pp::time_distance_only> sat3D_temp_space_type;
-  typedef pp::topology_traits< sat3D_temp_space_type >::point_type temp_point_type;
   
   sat3D_temp_space_type sat_space(
     "satellite3D_temporal_space",
@@ -478,13 +568,6 @@ int main(int argc, char** argv) {
     pp::time_poisson_topology("satellite3D_time_space", time_step, (end_time - start_time) * 0.5));
   
 //   typedef pp::discrete_point_trajectory< sat3D_temp_space_type > sat_traj_type;
-  
-  
-  typedef ctrl::covariance_matrix< vect_n<double> > cov_type;
-  typedef cov_type::matrix_type cov_matrix_type;
-  typedef ctrl::gaussian_belief_state< sat3D_state_type,  cov_type > sat3D_state_belief_type;
-  typedef ctrl::gaussian_belief_state< sat3D_input_type,  cov_type > sat3D_input_belief_type;
-  typedef ctrl::gaussian_belief_state< sat3D_output_type, cov_type > sat3D_output_belief_type;
   
   
   sat3D_state_type x_init;
@@ -496,63 +579,92 @@ int main(int argc, char** argv) {
   sat3D_state_belief_type b_init(x_init, 
                                  cov_type(cov_matrix_type(mat<double,mat_structure::diagonal>(13,10.0))));
   
-  sat3D_input_belief_type  b_u(sat3D_input_type(vect_n<double>(6, 0.0)),  
-                               cov_type(cov_matrix_type(input_disturbance)));
+  sat3D_input_belief_type b_u(sat3D_input_type(vect_n<double>(6, 0.0)),  
+                              cov_type(cov_matrix_type(input_disturbance)));
   
-  sat3D_output_belief_type b_z(sat3D_output_type(vect_n<double>(6, 0.0)), 
-                               cov_type(cov_matrix_type(measurement_noise + artificial_noise)));
-  
-  boost::posix_time::ptime t1;
-  boost::posix_time::time_duration dt[4];
-  
+  if( !vm.count("gyro") && !vm.count("IMU") ) {
+    
+    // Create the set of satellite3D systems for when there is only pose measurements:
+    
+    ctrl::satellite3D_lin_dt_system sat3D_lin(
+      "satellite3D_lin", mass, inertia_tensor, time_step);
+    
+    ctrl::satellite3D_inv_dt_system sat3D_inv(
+      "satellite3D_inv", mass, inertia_tensor, time_step);
+    
+    ctrl::satellite3D_imdt_sys sat3D_invmom(
+      "satellite3D_invmom", mass, inertia_tensor, time_step);
+    
+    ctrl::satellite3D_imdt_sys sat3D_invmid(
+      "satellite3D_invmid", mass, inertia_tensor, time_step, 2);
+    
+    sat3D_output_belief_type b_z(sat3D_output_type(vect_n<double>(7, 0.0)), 
+                                 cov_type(cov_matrix_type(measurement_noise + artificial_noise)));
+    
+    if( ! vm.count("monte-carlo") ) {
+      // do a single run for each skips:
+      
+      std::vector< std::pair< double, vect_n<double> > > result_pts = 
+        batch_KF_on_timeseries(measurements, ground_truth, sat3D_lin, sat_space.get_space_topology(), b_init, b_u, b_z);
+      
+    } else {
+      // do monte-carlo runs:
+      set_frame_3D(x_init, initial_motion);
+      generate_timeseries(measurements, ground_truth, sat3D_lin, sat_space.get_space_topology(),
+                          x_init, start_time, end_time, input_disturbance, measurement_noise + artificial_noise);
+      
+    };
+    
+    
+  } else if( vm.count("gyro") && !vm.count("IMU") ) {
+    
+    // Create the set of satellite3D systems for when there is gyro measurements:
+    
+    ctrl::satellite3D_gyro_lin_dt_system sat3D_lin_gyro(
+      "satellite3D_lin_with_gyros", mass, inertia_tensor, time_step);
+    
+    ctrl::satellite3D_gyro_inv_dt_system sat3D_inv_gyro(
+      "satellite3D_inv_with_gyros", mass, inertia_tensor, time_step);
+    
+    ctrl::satellite3D_gyro_imdt_sys sat3D_invmom_gyro(
+      "satellite3D_invmom_with_gyros", mass, inertia_tensor, time_step);
+    
+    ctrl::satellite3D_gyro_imdt_sys sat3D_invmid_gyro(
+      "satellite3D_invmid_with_gyros", mass, inertia_tensor, time_step, 2);
+    
+    sat3D_output_belief_type b_z(sat3D_output_type(vect_n<double>(10, 0.0)), 
+                                 cov_type(cov_matrix_type(measurement_noise + artificial_noise)));
+    
+    
+    
+    
+  } else {
+    
+    // Create the set of satellite3D systems for when there is IMU measurements:
+    
+    ctrl::satellite3D_IMU_imdt_sys sat3D_invmom_IMU(
+      "satellite3D_invmom_with_IMU", mass, inertia_tensor, time_step,
+      IMU_orientation, IMU_location, earth_orientation, mag_field_direction);
+    
+    ctrl::satellite3D_IMU_imdt_sys sat3D_invmid_IMU(
+      "satellite3D_invmid_with_IMU", mass, inertia_tensor, time_step,
+      IMU_orientation, IMU_location, earth_orientation, mag_field_direction, 2);
+    
+    sat3D_output_belief_type b_z(sat3D_output_type(vect_n<double>(16, 0.0)), 
+                                 cov_type(cov_matrix_type(measurement_noise + artificial_noise)));
+    
+    
+    
+    
+  };
   
   
   std::cout << "Running Extended Kalman Filter..." << std::endl;
   {
-  ctrl::gaussian_belief_state< vect_n<double>, ctrl::covariance_matrix< vect_n<double> > > b = b_init;
-  ctrl::gaussian_belief_state< vect_n<double>, ctrl::covariance_matrix< vect_n<double> > > b_u(vect_n<double>(0.0,0.0,0.0,0.0,0.0,0.0), 
-                                                                                               ctrl::covariance_matrix< vect_n<double> >(Qu));
-  ctrl::gaussian_belief_state< vect_n<double>, ctrl::covariance_matrix< vect_n<double> > > b_z(vect_n<double>(0.0,0.0,0.0,0.0,0.0,0.0,0.0), 
-                                                                                               Rcov);
-  recorder::ssv_recorder results(result_filename + "_ekf.ssv");
-  results << "time" << "pos_x" << "pos_y" << "pos_z" << "q0" << "q1" << "q2" << "q3" 
-                    << "ep_x"  << "ep_y"  << "ep_z"  << "ea_x" << "ea_y" << "ea_z"
-                    << "P_xx" << "P_yy" << "P_zz" << "P_aax" << "P_aay" << "P_aaz" << recorder::data_recorder::end_name_row;
-  t1 = boost::posix_time::microsec_clock::local_time();
-  std::list< std::pair< double, vect_n<double> > >::iterator it_orig = measurements.begin();
-  for(std::list< std::pair< double, vect_n<double> > >::iterator it = measurements_noisy.begin(); it != measurements_noisy.end(); ++it, ++it_orig) {
-     
-    b_z.set_mean_state(it->second);
-    ctrl::kalman_filter_step(mdl_lin_dt,mdl_state_space,b,b_u,b_z,it->first);
+    std::vector< std::pair< double, vect_n<double> > > result_pts = 
+      batch_KF_on_timeseries(measurements, ground_truth, mdl_lin_dt, mdl_state_space, b, b_u, b_z);
     
-    vect_n<double> b_mean = b.get_mean_state();
-    quaternion<double> q_mean(vect<double,4>(b_mean[3],b_mean[4],b_mean[5],b_mean[6]));
-    b_mean[3] = q_mean[0]; b_mean[4] = q_mean[1]; b_mean[5] = q_mean[2]; b_mean[6] = q_mean[3];
-    b.set_mean_state(b_mean);
     
-    quaternion<double> q_orig(vect<double,4>(it_orig->second[0],it_orig->second[1],it_orig->second[2],it_orig->second[3]));
-    axis_angle<double> aa_diff = axis_angle<double>(invert(q_mean) * q_orig);
-    
-    const vect_n<double>& x_mean = b.get_mean_state();
-    results << it->first << x_mean[0] << x_mean[1] << x_mean[2] 
-                         << x_mean[3] << x_mean[4] << x_mean[5] << x_mean[6]
-                         << (x_mean[0] - it_orig->second[4])
-                         << (x_mean[1] - it_orig->second[5])
-                         << (x_mean[2] - it_orig->second[6])
-                         << (aa_diff.angle() * aa_diff.axis()[0])
-                         << (aa_diff.angle() * aa_diff.axis()[1])
-                         << (aa_diff.angle() * aa_diff.axis()[2])
-                         << b.get_covariance().get_matrix()(0,0)
-                         << b.get_covariance().get_matrix()(1,1)
-                         << b.get_covariance().get_matrix()(2,2)
-                         << 4 * b.get_covariance().get_matrix()(4,4)
-                         << 4 * b.get_covariance().get_matrix()(5,5)
-                         << 4 * b.get_covariance().get_matrix()(6,6)
-                         << recorder::data_recorder::end_value_row;
-    
-  };
-  results << recorder::data_recorder::flush;
-  dt[0] = boost::posix_time::microsec_clock::local_time() - t1;
   };
   std::cout << "Done." << std::endl;
 
@@ -562,29 +674,13 @@ int main(int argc, char** argv) {
   
   std::cout << "Running Invariant Extended Kalman Filter..." << std::endl;
   {
-    
-  ctrl::gaussian_belief_state< vect_n<double>, ctrl::covariance_matrix< vect_n<double> > > 
-    b(b_init.get_mean_state(),
-      ctrl::covariance_matrix< vect_n<double> >(ctrl::covariance_matrix< vect_n<double> >::matrix_type(mat<double,mat_structure::diagonal>(12,10.0))));
-  
-  ctrl::gaussian_belief_state< vect_n<double>, ctrl::covariance_matrix< vect_n<double> > > b_u(vect_n<double>(0.0,0.0,0.0,0.0,0.0,0.0), 
-                                                                                               ctrl::covariance_matrix< vect_n<double> >(Qu));
-  
-  mat<double,mat_structure::diagonal> R_inv(6);
-  R_inv(0,0) = R(0,0); R_inv(1,1) = R(1,1); R_inv(2,2) = R(2,2);
-  R_inv(3,3) = 4*R(4,4); R_inv(4,4) = 4*R(5,5); R_inv(5,5) = 4*R(6,6);
-  ctrl::covariance_matrix< vect_n<double> > Rcovinv = ctrl::covariance_matrix< vect_n<double> >(ctrl::covariance_matrix< vect_n<double> >::matrix_type(R_inv));
-  
-  ctrl::gaussian_belief_state< vect_n<double>, ctrl::covariance_matrix< vect_n<double> > > b_z(vect_n<double>(0.0,0.0,0.0,0.0,0.0,0.0,0.0), 
-                                                                                               Rcovinv);
   
   recorder::ssv_recorder results(result_filename + "_iekf.ssv");
   results << "time" << "pos_x" << "pos_y" << "pos_z" << "q0" << "q1" << "q2" << "q3" 
                     << "ep_x"  << "ep_y"  << "ep_z"  << "ea_x" << "ea_y" << "ea_z"
                     << "P_xx" << "P_yy" << "P_zz" << "P_aax" << "P_aay" << "P_aaz" << recorder::data_recorder::end_name_row;
-  t1 = boost::posix_time::microsec_clock::local_time();
-  std::list< std::pair< double, vect_n<double> > >::iterator it_orig = measurements.begin();
-  for(std::list< std::pair< double, vect_n<double> > >::iterator it = measurements_noisy.begin(); it != measurements_noisy.end(); ++it, ++it_orig) {
+  std::vector< std::pair< double, vect_n<double> > >::iterator it_orig = measurements.begin();
+  for(std::vector< std::pair< double, vect_n<double> > >::iterator it = measurements_noisy.begin(); it != measurements_noisy.end(); ++it, ++it_orig) {
     
     b_z.set_mean_state(it->second);
     ctrl::invariant_kalman_filter_step(mdl_inv_dt,mdl_state_space,b,b_u,b_z,it->first);
@@ -616,7 +712,6 @@ int main(int argc, char** argv) {
     
   };
   results << recorder::data_recorder::flush;
-  dt[1] = boost::posix_time::microsec_clock::local_time() - t1;
   };
   std::cout << "Done." << std::endl;
 
@@ -627,27 +722,11 @@ int main(int argc, char** argv) {
   
   std::cout << "Running Invariant-Momentum Kalman Filter..." << std::endl;
   {
-    
-  ctrl::gaussian_belief_state< vect_n<double>, ctrl::covariance_matrix< vect_n<double> > > 
-    b(b_init.get_mean_state(),
-      ctrl::covariance_matrix< vect_n<double> >(ctrl::covariance_matrix< vect_n<double> >::matrix_type(mat<double,mat_structure::diagonal>(12,10.0))));
-  
-  ctrl::gaussian_belief_state< vect_n<double>, ctrl::covariance_matrix< vect_n<double> > > b_u(vect_n<double>(0.0,0.0,0.0,0.0,0.0,0.0), 
-                                                                                               ctrl::covariance_matrix< vect_n<double> >(Qu));
-  
-  mat<double,mat_structure::diagonal> R_inv(6);
-  R_inv(0,0) = R(0,0); R_inv(1,1) = R(1,1); R_inv(2,2) = R(2,2);
-  R_inv(3,3) = 4*R(4,4); R_inv(4,4) = 4*R(5,5); R_inv(5,5) = 4*R(6,6);
-  ctrl::covariance_matrix< vect_n<double> > Rcovinv = ctrl::covariance_matrix< vect_n<double> >(ctrl::covariance_matrix< vect_n<double> >::matrix_type(R_inv));
-  
-  ctrl::gaussian_belief_state< vect_n<double>, ctrl::covariance_matrix< vect_n<double> > > b_z(vect_n<double>(0.0,0.0,0.0,0.0,0.0,0.0,0.0), 
-                                                                                               Rcovinv);
   
   recorder::ssv_recorder results(result_filename + "_imkf.ssv");
   results << "time" << "pos_x" << "pos_y" << "pos_z" << "q0" << "q1" << "q2" << "q3" 
                     << "ep_x"  << "ep_y"  << "ep_z"  << "ea_x" << "ea_y" << "ea_z"
                     << "P_xx" << "P_yy" << "P_zz" << "P_aax" << "P_aay" << "P_aaz" << recorder::data_recorder::end_name_row;
-  t1 = boost::posix_time::microsec_clock::local_time();
   std::list< std::pair< double, vect_n<double> > >::iterator it_orig = measurements.begin();
   for(std::list< std::pair< double, vect_n<double> > >::iterator it = measurements_noisy.begin(); it != measurements_noisy.end(); ++it, ++it_orig) {
     
@@ -681,7 +760,6 @@ int main(int argc, char** argv) {
     
   };
   results << recorder::data_recorder::flush;
-  dt[2] = boost::posix_time::microsec_clock::local_time() - t1;
   };
   std::cout << "Done." << std::endl;
   
@@ -692,27 +770,11 @@ int main(int argc, char** argv) {
   
   std::cout << "Running Invariant-Midpoint Kalman Filter..." << std::endl;
   {
-    
-  ctrl::gaussian_belief_state< vect_n<double>, ctrl::covariance_matrix< vect_n<double> > > 
-    b(b_init.get_mean_state(),
-      ctrl::covariance_matrix< vect_n<double> >(ctrl::covariance_matrix< vect_n<double> >::matrix_type(mat<double,mat_structure::diagonal>(12,10.0))));
-  
-  ctrl::gaussian_belief_state< vect_n<double>, ctrl::covariance_matrix< vect_n<double> > > b_u(vect_n<double>(0.0,0.0,0.0,0.0,0.0,0.0), 
-                                                                                               ctrl::covariance_matrix< vect_n<double> >(Qu));
-  
-  mat<double,mat_structure::diagonal> R_inv(6);
-  R_inv(0,0) = R(0,0); R_inv(1,1) = R(1,1); R_inv(2,2) = R(2,2);
-  R_inv(3,3) = 4*R(4,4); R_inv(4,4) = 4*R(5,5); R_inv(5,5) = 4*R(6,6);
-  ctrl::covariance_matrix< vect_n<double> > Rcovinv = ctrl::covariance_matrix< vect_n<double> >(ctrl::covariance_matrix< vect_n<double> >::matrix_type(R_inv));
-  
-  ctrl::gaussian_belief_state< vect_n<double>, ctrl::covariance_matrix< vect_n<double> > > b_z(vect_n<double>(0.0,0.0,0.0,0.0,0.0,0.0,0.0), 
-                                                                                               Rcovinv);
   
   recorder::ssv_recorder results(result_filename + "_imkfv2.ssv");
   results << "time" << "pos_x" << "pos_y" << "pos_z" << "q0" << "q1" << "q2" << "q3" 
                     << "ep_x"  << "ep_y"  << "ep_z"  << "ea_x" << "ea_y" << "ea_z"
                     << "P_xx" << "P_yy" << "P_zz" << "P_aax" << "P_aay" << "P_aaz" << recorder::data_recorder::end_name_row;
-  t1 = boost::posix_time::microsec_clock::local_time();
   std::list< std::pair< double, vect_n<double> > >::iterator it_orig = measurements.begin();
   for(std::list< std::pair< double, vect_n<double> > >::iterator it = measurements_noisy.begin(); it != measurements_noisy.end(); ++it, ++it_orig) {
     
@@ -746,7 +808,6 @@ int main(int argc, char** argv) {
     
   };
   results << recorder::data_recorder::flush;
-  dt[3] = boost::posix_time::microsec_clock::local_time() - t1;
   };
   std::cout << "Done." << std::endl;
   
@@ -764,120 +825,6 @@ int main(int argc, char** argv) {
   
   
 };
-
-
-
-
-
-#if 0
-  std::cout << "Running Kalman-Bucy Filter..." << std::endl;
-  {
-  ctrl::gaussian_belief_state< ctrl::covariance_matrix<double> > b = b_init;
-  recorder::ssv_recorder results(result_filename + "_kbf.ssv");
-  results << "time" << "pos_x" << "pos_y" << "pos_z" << "q0" << "q1" << "q2" << "q3" << recorder::data_recorder::end_name_row;
-  t1 = boost::posix_time::microsec_clock::local_time();
-  for(std::list< std::pair< double, vect_n<double> > >::iterator it = measurements.begin(); it != measurements.end(); ++it) {
-    ctrl::airship3D_lin_system::matrixA_type A;
-    ctrl::airship3D_lin_system::matrixB_type B;
-    ctrl::airship3D_lin_system::matrixC_type C;
-    ctrl::airship3D_lin_system::matrixD_type D;
-    mdl_lin.get_linear_blocks(A,B,C,D,it->first,b.get_mean_state(),vect_n<double>(0.0,0.0,0.0,0.0,0.0,0.0));
-    ctrl::covariance_matrix<double> Qcov(ctrl::covariance_matrix<double>::matrix_type( B * Qu * transpose(B) ));
-    
-    ctrl::kalman_bucy_filter_step(mdl_lin,integ,b,vect_n<double>(0.0,0.0,0.0,0.0,0.0,0.0),it->second,Qcov,Rcov,time_step,it->first);
-    
-    const vect_n<double>& x_mean = b.get_mean_state();
-    results << it->first << x_mean[0] << x_mean[1] << x_mean[2] 
-                         << x_mean[3] << x_mean[4] << x_mean[5] << x_mean[6] << recorder::data_recorder::end_value_row;
-    
-  };
-  results << recorder::data_recorder::flush;
-  dt[0] = boost::posix_time::microsec_clock::local_time() - t1;
-  };
-  std::cout << "Done." << std::endl;
-#endif
-  
-#if 0
-  integ.setStepSize(0.0001 * time_step);
-  std::cout << "Running Invariant Kalman-Bucy Filter..." << std::endl;
-  {
-  
-  ctrl::gaussian_belief_state< ctrl::covariance_matrix<double> > 
-    b(b_init.get_mean_state(),
-      ctrl::covariance_matrix<double>(ctrl::covariance_matrix<double>::matrix_type(mat<double,mat_structure::diagonal>(12,10.0))));
-    
-  ctrl::covariance_matrix<double> RcovInvar = ctrl::covariance_matrix<double>(ctrl::covariance_matrix<double>::matrix_type( mat_const_sub_sym_block< mat<double,mat_structure::diagonal> >(R,6,0) ));
-  recorder::ssv_recorder results(result_filename + "_ikbf.ssv");
-  results << "time" << "pos_x" << "pos_y" << "pos_z" << "q0" << "q1" << "q2" << "q3" << recorder::data_recorder::end_name_row;
-  t1 = boost::posix_time::microsec_clock::local_time();
-  for(std::list< std::pair< double, vect_n<double> > >::iterator it = measurements.begin(); it != measurements.end(); ++it) {
-    ctrl::airship3D_inv_system::matrixA_type A;
-    ctrl::airship3D_inv_system::matrixB_type B;
-    ctrl::airship3D_inv_system::matrixC_type C;
-    ctrl::airship3D_inv_system::matrixD_type D;
-    mdl_inv.get_linear_blocks(A,B,C,D,it->first,b.get_mean_state(),vect_n<double>(0.0,0.0,0.0,0.0,0.0,0.0));
-    ctrl::covariance_matrix<double> Qcov(ctrl::covariance_matrix<double>::matrix_type( B * Qu * transpose(B) ));
-    
-    ctrl::invariant_kalman_bucy_filter_step(mdl_inv,integ,b,vect_n<double>(0.0,0.0,0.0,0.0,0.0,0.0),it->second,Qcov,RcovInvar,time_step,it->first);
-    
-    vect_n<double> b_mean = b.get_mean_state();
-    quaternion<double> q_mean(vect<double,4>(b_mean[3],b_mean[4],b_mean[5],b_mean[6]));
-    b_mean[3] = q_mean[0]; b_mean[4] = q_mean[1]; b_mean[5] = q_mean[2]; b_mean[6] = q_mean[3];
-    b.set_mean_state(b_mean);
-    
-    const vect_n<double>& x_mean = b.get_mean_state();
-    results << it->first << x_mean[0] << x_mean[1] << x_mean[2] 
-                         << x_mean[3] << x_mean[4] << x_mean[5] << x_mean[6] << recorder::data_recorder::end_value_row;
-
-  };
-  results << recorder::data_recorder::flush;
-  dt[1] = boost::posix_time::microsec_clock::local_time() - t1;
-  };
-  std::cout << "Done." << std::endl;
-#endif
-  
-#if 0
-  std::cout << "Running Unscented Kalman Filter..." << std::endl;
-  {
-  ctrl::gaussian_belief_state< ctrl::covariance_matrix<double> > b = b_init;
-  recorder::ssv_recorder results(result_filename + "_ukf.ssv");
-  results << "time" << "pos_x" << "pos_y" << "pos_z" << "q0" << "q1" << "q2" << "q3" << recorder::data_recorder::end_name_row;
-  t1 = boost::posix_time::microsec_clock::local_time();
-  for(std::list< std::pair< double, vect_n<double> > >::iterator it = measurements.begin(); it != measurements.end(); ++it) {
-    ctrl::airship3D_lin_dt_system::matrixA_type A;
-    ctrl::airship3D_lin_dt_system::matrixB_type B;
-    ctrl::airship3D_lin_dt_system::matrixC_type C;
-    ctrl::airship3D_lin_dt_system::matrixD_type D;
-    mdl_lin_dt.get_linear_blocks(A,B,C,D,it->first,b.get_mean_state(),vect_n<double>(0.0,0.0,0.0,0.0,0.0,0.0));
-    ctrl::covariance_matrix<double> Qcov(ctrl::covariance_matrix<double>::matrix_type( B * Qu * transpose(B) ));
-    
-    try {
-      ctrl::unscented_kalman_filter_step(mdl_lin_dt,b,vect_n<double>(0.0,0.0,0.0,0.0,0.0,0.0),it->second,Qcov,Rcov,it->first);
-    } catch(singularity_error& e) {
-      RK_ERROR("The Unscented Kalman filtering was interupted by a singularity, at time " << it->first << " with message: " << e.what());
-      break;
-    } catch(std::exception& e) {
-      RK_ERROR("The Unscented Kalman filtering was interupted by an exception, at time " << it->first << " with message: " << e.what());   
-      break;
-    };
-    
-    vect_n<double> b_mean = b.get_mean_state();
-    quaternion<double> q_mean(vect<double,4>(b_mean[3],b_mean[4],b_mean[5],b_mean[6]));
-    b_mean[3] = q_mean[0]; b_mean[4] = q_mean[1]; b_mean[5] = q_mean[2]; b_mean[6] = q_mean[3];
-    b.set_mean_state(b_mean);
-    
-    const vect_n<double>& x_mean = b.get_mean_state();
-    results << it->first << x_mean[0] << x_mean[1] << x_mean[2] 
-                         << x_mean[3] << x_mean[4] << x_mean[5] << x_mean[6] << recorder::data_recorder::end_value_row;
-    
-  };
-  results << recorder::data_recorder::flush;
-  dt[3] = boost::posix_time::microsec_clock::local_time() - t1;
-  };
-  std::cout << "Done." << std::endl;
-#endif
-
-
 
 
 

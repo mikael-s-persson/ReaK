@@ -86,7 +86,7 @@ class gaussian_belief_space : public named_object {
       point_type b1;
             
       point_difference_type(const point_type& aB0, 
-			    const point_type& aB1) :
+                            const point_type& aB1) :
                             b0(aB0), b1(aB1) { };
       
     };
@@ -112,9 +112,9 @@ class gaussian_belief_space : public named_object {
      */
     gaussian_belief_space(const state_topology_ptr& aMeanStateSpace = state_topology_ptr(new state_topology()),
                           const covariance_topology_ptr& aCovarianceSpace = covariance_topology_ptr(new covariance_topology()),
-			  const std::string& aName = "") :
-			  mean_state_space(aMeanStateSpace),
-			  covariance_space(aCovarianceSpace) {
+                          const std::string& aName = "") :
+                          mean_state_space(aMeanStateSpace),
+                          covariance_space(aCovarianceSpace) {
       setName(aName);
     };
     
@@ -143,7 +143,7 @@ class gaussian_belief_space : public named_object {
      */
     point_type random_point() const {
       return point_type( get(pp::random_sampler, *mean_state_space)(*mean_state_space),
-			 get(pp::random_sampler, *covariance_space)(*covariance_space));
+                         get(pp::random_sampler, *covariance_space)(*covariance_space));
     };
     
     /**
@@ -172,11 +172,11 @@ class gaussian_belief_space : public named_object {
      */
     point_type adjust(const point_type& p1, const point_difference_type& dp) const {
       return point_type( mean_state_space->adjust( p1.get_mean_state(),
-						   mean_state_space->difference( dp.b0.get_mean_state(),
-									         dp.b1.get_mean_state() ) ),
-			 covariance_space->adjust( p1.get_covariance(),
-						   covariance_space->difference( dp.b0.get_covariance(),
-									         dp.b1.get_covariance() ) ) );
+                                                   mean_state_space->difference( dp.b0.get_mean_state(),
+                                                                                 dp.b1.get_mean_state() ) ),
+                         covariance_space->adjust( p1.get_covariance(),
+                                                   covariance_space->difference( dp.b0.get_covariance(),
+                                                                                 dp.b1.get_covariance() ) ) );
     };
     
     /**
@@ -239,7 +239,7 @@ struct gaussian_ML_reduction {
   template <typename BeliefPoint, typename StateSpace, typename CovarSpace, typename StateSpaceOut>
   typename pp::topology_traits<StateSpaceOut>::point_type map_to_space(const BeliefPoint& b,
                                                                        const gaussian_belief_space<StateSpace, CovarSpace>&,
-								       const StateSpaceOut&) const {
+                                                                       const StateSpaceOut&) const {
     return typename pp::topology_traits<StateSpaceOut>::point_type(b.get_mean_state());
   };
   

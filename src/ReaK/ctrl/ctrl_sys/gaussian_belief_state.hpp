@@ -366,7 +366,7 @@ struct gaussian_pdf<BeliefState, covariance_storage::decomposed> {
 /*
 template <typename Covariance, covariance_storage::tag Storage>
 scalar_type KL_divergence(const gaussian_pdf<Covariance,Storage>& N0, 
-			  const gaussian_pdf<Covariance,Storage>& N1) {
+                          const gaussian_pdf<Covariance,Storage>& N1) {
   using std::log;
   typedef typename covariance_mat_traits<Covariance>::point_type StateType;
   typedef typename state_vector_traits<StateType>::state_difference_type StateDiffType;
@@ -391,8 +391,8 @@ scalar_type KL_divergence(const gaussian_pdf<Covariance,Storage>& N0,
  */
 template <typename BeliefState, covariance_storage::tag Storage, typename Topology>
 typename gaussian_pdf<BeliefState,Storage>::scalar_type symKL_divergence(const gaussian_pdf<BeliefState,Storage>& N0, 
-									 const gaussian_pdf<BeliefState,Storage>& N1,
-									 const Topology& space) {
+                                                                         const gaussian_pdf<BeliefState,Storage>& N1,
+                                                                         const Topology& space) {
   using std::log;
   typedef typename gaussian_pdf<BeliefState,Storage>::scalar_type ScalarType;
   return ScalarType(-0.5) * log(N1(N0.mean_state, space) * N0(N1.mean_state, space)) - entropy(N0) - entropy(N1);
@@ -436,7 +436,7 @@ struct gaussian_sampler {
       mat< typename mat_traits<matrix_type>::value_type, mat_structure::square> U(aBelief.get_covariance().size()), V(aBelief.get_covariance().size());
       decompose_SVD(C,U,E,V);
       for(size_type i = 0; i < aBelief.get_covariance().size(); ++i)
-	E(i,i) = sqrt(E(i,i));
+        E(i,i) = sqrt(E(i,i));
       L = U * E;
     };
   };
@@ -580,9 +580,9 @@ class gaussian_belief_state : public virtual shared_object {
      * \param aCov The covariance of the gaussian belief-state.
      */
     gaussian_belief_state(const state_type& aMeanState = state_type(), 
-			  const covariance_type& aCov = covariance_type()) : 
-			  mean_state(aMeanState), 
-			  covar(aCov) { };
+                          const covariance_type& aCov = covariance_type()) : 
+                          mean_state(aMeanState), 
+                          covar(aCov) { };
 
     /**
      * Standard copy-constructor.
@@ -648,8 +648,8 @@ struct is_continuous_belief_state< gaussian_belief_state<Covariance,StateType> >
 template <typename StateType, typename Covariance, typename Topology>
 typename gaussian_belief_state<StateType,Covariance>::scalar_type 
  symKL_divergence(const gaussian_belief_state<StateType,Covariance>& P, 
-		  const gaussian_belief_state<StateType,Covariance>& Q,
-		  const Topology& space) {
+                  const gaussian_belief_state<StateType,Covariance>& Q,
+                  const Topology& space) {
   return symKL_divergence(P.get_pdf(),Q.get_pdf(),space.get_state_topology());
 };
 

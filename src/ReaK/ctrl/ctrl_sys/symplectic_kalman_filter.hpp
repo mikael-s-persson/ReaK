@@ -92,18 +92,18 @@ namespace ctrl {
 template <typename LinearSystem, 
           typename StateSpaceType,
           typename BeliefState, 
-	  typename InputBelief,
-	  typename PredictionCovTransMatrix>
+          typename InputBelief,
+          typename PredictionCovTransMatrix>
 typename boost::enable_if_c< is_continuous_belief_state<BeliefState>::value &&
                              (belief_state_traits<BeliefState>::representation == belief_representation::gaussian) &&
                              (belief_state_traits<BeliefState>::distribution == belief_distribution::unimodal) &&
                              is_fully_writable_matrix<PredictionCovTransMatrix>::value,
 void >::type symplectic_kalman_predict(const LinearSystem& sys,
-				       const StateSpaceType& state_space,
-				       BeliefState& b_x,
-				       const InputBelief& b_u,
-				       PredictionCovTransMatrix& Tc,
-				       typename discrete_sss_traits<LinearSystem>::time_type t = 0) {
+                                       const StateSpaceType& state_space,
+                                       BeliefState& b_x,
+                                       const InputBelief& b_u,
+                                       PredictionCovTransMatrix& Tc,
+                                       typename discrete_sss_traits<LinearSystem>::time_type t = 0) {
   //here the requirement is that the system models a linear system which is at worse a linearized system
   // - if the system is LTI or LTV, then this will result in a basic Kalman Filter (KF) prediction
   // - if the system is linearized, then this will result in an Extended Kalman Filter (EKF) prediction
@@ -176,20 +176,20 @@ void >::type symplectic_kalman_predict(const LinearSystem& sys,
 template <typename LinearSystem, 
           typename StateSpaceType,
           typename BeliefState, 
-	  typename InputBelief, 
-	  typename MeasurementBelief,
-	  typename UpdateCovTransMatrix>
+          typename InputBelief, 
+          typename MeasurementBelief,
+          typename UpdateCovTransMatrix>
 typename boost::enable_if_c< is_continuous_belief_state<BeliefState>::value &&
                              (belief_state_traits<BeliefState>::representation == belief_representation::gaussian) &&
                              (belief_state_traits<BeliefState>::distribution == belief_distribution::unimodal) &&
                              is_fully_writable_matrix<UpdateCovTransMatrix>::value,
 void >::type symplectic_kalman_update(const LinearSystem& sys,
-				      const StateSpaceType& state_space,
-				      BeliefState& b_x,
-				      const InputBelief& b_u,
-				      const MeasurementBelief& b_z,
-				      UpdateCovTransMatrix& Tm,
-				      typename discrete_sss_traits<LinearSystem>::time_type t = 0) {
+                                      const StateSpaceType& state_space,
+                                      BeliefState& b_x,
+                                      const InputBelief& b_u,
+                                      const MeasurementBelief& b_z,
+                                      UpdateCovTransMatrix& Tm,
+                                      typename discrete_sss_traits<LinearSystem>::time_type t = 0) {
   //here the requirement is that the system models a linear system which is at worse a linearized system
   // - if the system is LTI or LTV, then this will result in a basic Kalman Filter (KF) update
   // - if the system is linearized, then this will result in an Extended Kalman Filter (EKF) update
@@ -275,20 +275,20 @@ void >::type symplectic_kalman_update(const LinearSystem& sys,
 template <typename LinearSystem, 
           typename StateSpaceType,
           typename BeliefState, 
-	  typename InputBelief, 
-	  typename MeasurementBelief,
-	  typename CovTransMatrix>
+          typename InputBelief, 
+          typename MeasurementBelief,
+          typename CovTransMatrix>
 typename boost::enable_if_c< is_continuous_belief_state<BeliefState>::value &&
                              (belief_state_traits<BeliefState>::representation == belief_representation::gaussian) &&
                              (belief_state_traits<BeliefState>::distribution == belief_distribution::unimodal) &&
                              is_fully_writable_matrix<CovTransMatrix>::value,
 void >::type symplectic_kalman_filter_step(const LinearSystem& sys,
-					   const StateSpaceType& state_space,
-					   BeliefState& b_x,
-					   const InputBelief& b_u,
-					   const MeasurementBelief& b_z,
-					   CovTransMatrix& T,
-					   typename discrete_sss_traits<LinearSystem>::time_type t = 0) {
+                                           const StateSpaceType& state_space,
+                                           BeliefState& b_x,
+                                           const InputBelief& b_u,
+                                           const MeasurementBelief& b_z,
+                                           CovTransMatrix& T,
+                                           typename discrete_sss_traits<LinearSystem>::time_type t = 0) {
   //here the requirement is that the system models a linear system which is at worse a linearized system
   // - if the system is LTI or LTV, then this will result in a basic Kalman Filter (KF) update
   // - if the system is linearized, then this will result in an Extended Kalman Filter (EKF) update
@@ -429,7 +429,7 @@ struct SKF_belief_transfer {
    */
   template <typename StateSpaceType>
   SKF_belief_transfer(const state_space_system_ptr& aSys, 
-		      const StateSpaceType& state_space,
+                      const StateSpaceType& state_space,
                       const SystemNoiseCovar& aQ,
                       const MeasurementCovar& aR,
                       const value_type& aReupdateThreshold,
@@ -440,8 +440,8 @@ struct SKF_belief_transfer {
                       reupdate_threshold(aReupdateThreshold),
                       initial_state(aInitialState) {
     belief_state b = belief_state(initial_state, 
-				  covariance_type(state_space.difference(aInitialState, aInitialState).size(), 
-						  covariance_initial_level::no_info));
+                                  covariance_type(state_space.difference(aInitialState, aInitialState).size(), 
+                                                  covariance_initial_level::no_info));
     input_belief_type b_u(aInitialInput, Q);
     symplectic_kalman_predict(*sys,
                               b,
@@ -452,7 +452,7 @@ struct SKF_belief_transfer {
     symplectic_kalman_update(*sys,
                              b,
                              b_u,
-			     output_belief_type(
+                             output_belief_type(
                                sys->get_output(predicted_state,
                                                aInitialInput,
                                                aInitialTime),

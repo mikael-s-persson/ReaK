@@ -87,9 +87,9 @@ class covariance_matrix : public named_object {
      * \param aLevel The information level to initialize this object with.
      */
     explicit covariance_matrix(size_type aSize = 0, 
-			       covariance_initial_level::tag aLevel = covariance_initial_level::full_info, 
-			       const std::string& aName = "") : 
-			       mat_cov(aSize, value_type( ( aLevel == covariance_initial_level::full_info ? 0 : std::numeric_limits< value_type >::infinity() ) )) { 
+                               covariance_initial_level::tag aLevel = covariance_initial_level::full_info, 
+                               const std::string& aName = "") : 
+                               mat_cov(aSize, value_type( ( aLevel == covariance_initial_level::full_info ? 0 : std::numeric_limits< value_type >::infinity() ) )) { 
       setName(aName); 
     };
     

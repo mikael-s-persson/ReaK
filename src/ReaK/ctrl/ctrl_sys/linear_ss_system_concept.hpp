@@ -73,7 +73,7 @@ struct NonLinearSystemType {
   template <typename System, typename StateSpaceType, typename Point, typename Input, typename Time, 
             typename A_t, typename B_t, typename C_t, typename D_t>
   void constraints(const System&, const StateSpaceType&, const Point&, const Input&, const Time&, 
-		   A_t&, B_t&, C_t&, D_t&) { };
+                   A_t&, B_t&, C_t&, D_t&) { };
 };
   
 /**
@@ -89,7 +89,7 @@ struct LTISystemType {
   template <typename System, typename StateSpaceType, typename Point, typename Input, typename Time, 
             typename A_t, typename B_t, typename C_t, typename D_t>
   void constraints(const System& sys, const StateSpaceType& state_space, const Point&, const Input&, const Time&, 
-		   A_t& A, B_t& B, C_t& C, D_t& D) {
+                   A_t& A, B_t& B, C_t& C, D_t& D) {
     sys.get_linear_blocks(A,B,C,D,state_space);
   };
 };
@@ -108,7 +108,7 @@ struct LTVSystemType {
   template <typename System, typename StateSpaceType, typename Point, typename Input, typename Time, 
             typename A_t, typename B_t, typename C_t, typename D_t>
   void constraints(const System& sys, const StateSpaceType& state_space, const Point&, const Input&, const Time& t, 
-		   A_t& A, B_t& B, C_t& C, D_t& D) {
+                   A_t& A, B_t& B, C_t& C, D_t& D) {
     sys.get_linear_blocks(A,B,C,D,state_space,t);
   };
 };
@@ -127,7 +127,7 @@ struct LinearizedSystemType {
   template <typename System, typename StateSpaceType, typename Point, typename Input, typename Time, 
             typename A_t, typename B_t, typename C_t, typename D_t>
   void constraints(const System& sys, const StateSpaceType& state_space, const Point& p, const Input& u, const Time& t, 
-		   A_t& A, B_t& B, C_t& C, D_t& D) {
+                   A_t& A, B_t& B, C_t& C, D_t& D) {
     sys.get_linear_blocks(A,B,C,D,state_space,t,p,u);
   };
 };

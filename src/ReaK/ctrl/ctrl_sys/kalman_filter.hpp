@@ -80,15 +80,15 @@ namespace ctrl {
 template <typename LinearSystem, 
           typename StateSpaceType,
           typename BeliefState, 
-	  typename InputBelief>
+          typename InputBelief>
 typename boost::enable_if_c< is_continuous_belief_state<BeliefState>::value &&
                              (belief_state_traits<BeliefState>::representation == belief_representation::gaussian) &&
                              (belief_state_traits<BeliefState>::distribution == belief_distribution::unimodal),
 void >::type kalman_predict(const LinearSystem& sys, 
-			    const StateSpaceType& state_space,
-			    BeliefState& b_x,
-			    const InputBelief& b_u,
-			    typename discrete_sss_traits<LinearSystem>::time_type t = 0) { RK_UNUSED(state_space);
+                            const StateSpaceType& state_space,
+                            BeliefState& b_x,
+                            const InputBelief& b_u,
+                            typename discrete_sss_traits<LinearSystem>::time_type t = 0) { RK_UNUSED(state_space);
   //here the requirement is that the system models a linear system which is at worse a linearized system
   // - if the system is LTI or LTV, then this will result in a basic Kalman Filter (KF) prediction
   // - if the system is linearized, then this will result in an Extended Kalman Filter (EKF) prediction
@@ -135,17 +135,17 @@ void >::type kalman_predict(const LinearSystem& sys,
 template <typename LinearSystem, 
           typename StateSpaceType,
           typename BeliefState, 
-	  typename InputBelief, 
-	  typename MeasurementBelief>
+          typename InputBelief, 
+          typename MeasurementBelief>
 typename boost::enable_if_c< is_continuous_belief_state<BeliefState>::value &&
                              (belief_state_traits<BeliefState>::representation == belief_representation::gaussian) &&
                              (belief_state_traits<BeliefState>::distribution == belief_distribution::unimodal),
 void >::type kalman_update(const LinearSystem& sys,
-			   const StateSpaceType& state_space,
-			   BeliefState& b_x,
-			   const InputBelief& b_u,
-			   const MeasurementBelief& b_z,
-			   typename discrete_sss_traits<LinearSystem>::time_type t = 0) {
+                           const StateSpaceType& state_space,
+                           BeliefState& b_x,
+                           const InputBelief& b_u,
+                           const MeasurementBelief& b_z,
+                           typename discrete_sss_traits<LinearSystem>::time_type t = 0) {
   //here the requirement is that the system models a linear system which is at worse a linearized system
   // - if the system is LTI or LTV, then this will result in a basic Kalman Filter (KF) update
   // - if the system is linearized, then this will result in an Extended Kalman Filter (EKF) update
@@ -205,17 +205,17 @@ void >::type kalman_update(const LinearSystem& sys,
 template <typename LinearSystem, 
           typename StateSpaceType,
           typename BeliefState, 
-	  typename InputBelief, 
-	  typename MeasurementBelief>
+          typename InputBelief, 
+          typename MeasurementBelief>
 typename boost::enable_if_c< is_continuous_belief_state<BeliefState>::value &&
                              (belief_state_traits<BeliefState>::representation == belief_representation::gaussian) &&
                              (belief_state_traits<BeliefState>::distribution == belief_distribution::unimodal),
 void >::type kalman_filter_step(const LinearSystem& sys,
-			        const StateSpaceType& state_space,
-			        BeliefState& b_x,
-			        const InputBelief& b_u,
-			        const MeasurementBelief& b_z,
-				typename discrete_sss_traits<LinearSystem>::time_type t = 0) {
+                                const StateSpaceType& state_space,
+                                BeliefState& b_x,
+                                const InputBelief& b_u,
+                                const MeasurementBelief& b_z,
+                                typename discrete_sss_traits<LinearSystem>::time_type t = 0) {
   //here the requirement is that the system models a linear system which is at worse a linearized system
   // - if the system is LTI or LTV, then this will result in a basic Kalman Filter (KF) update
   // - if the system is linearized, then this will result in an Extended Kalman Filter (EKF) update

@@ -57,18 +57,18 @@ namespace ctrl {
 template <typename System, 
           typename StateSpaceType,
           typename BeliefState, 
-	  typename InputBelief>
+          typename InputBelief>
 typename boost::enable_if_c< is_continuous_belief_state<BeliefState>::value &&
                              (belief_state_traits<BeliefState>::representation == belief_representation::gaussian) &&
                              (belief_state_traits<BeliefState>::distribution == belief_distribution::unimodal),
 void >::type unscented_kalman_predict(const System& sys,
-				      const StateSpaceType& state_space,
-				      BeliefState& b_x,
-				      const InputBelief& b_u,
-				      typename discrete_sss_traits<System>::time_type t = 0,
-				      typename belief_state_traits<BeliefState>::scalar_type alpha = 1E-3,
-				      typename belief_state_traits<BeliefState>::scalar_type kappa = 1,
-				      typename belief_state_traits<BeliefState>::scalar_type beta = 2) {
+                                      const StateSpaceType& state_space,
+                                      BeliefState& b_x,
+                                      const InputBelief& b_u,
+                                      typename discrete_sss_traits<System>::time_type t = 0,
+                                      typename belief_state_traits<BeliefState>::scalar_type alpha = 1E-3,
+                                      typename belief_state_traits<BeliefState>::scalar_type kappa = 1,
+                                      typename belief_state_traits<BeliefState>::scalar_type beta = 2) {
   //here the requirement is that the system models a linear system which is at worse a linearized system
   // - if the system is LTI or LTV, then this will result in a basic Kalman Filter (KF) prediction
   // - if the system is linearized, then this will result in an Extended Kalman Filter (EKF) prediction
@@ -113,9 +113,9 @@ void >::type unscented_kalman_predict(const System& sys,
     ValueType min_tolerable_sigma = sqrt(svd_E(0,0)) * 1E-2;
     for(unsigned int i = 0; i < svd_E.get_row_count(); ++i) {
       if(svd_E(i,i) < min_tolerable_sigma*min_tolerable_sigma)
-	svd_E(i,i) = min_tolerable_sigma;
+        svd_E(i,i) = min_tolerable_sigma;
       else
-	svd_E(i,i) = sqrt(svd_E(i,i));      
+        svd_E(i,i) = sqrt(svd_E(i,i));      
     };
     L_p = svd_U * svd_E;
     RK_WARNING("A-Priori Covariance P, in UKF prediction is singular, SVD was used, but this could hide a flaw in the system's setup.");
@@ -171,20 +171,20 @@ void >::type unscented_kalman_predict(const System& sys,
 template <typename System, 
           typename StateSpaceType,
           typename BeliefState, 
-	  typename InputBelief, 
-	  typename MeasurementBelief>
+          typename InputBelief, 
+          typename MeasurementBelief>
 typename boost::enable_if_c< is_continuous_belief_state<BeliefState>::value &&
                              (belief_state_traits<BeliefState>::representation == belief_representation::gaussian) &&
                              (belief_state_traits<BeliefState>::distribution == belief_distribution::unimodal),
 void >::type unscented_kalman_update(const System& sys,
-				     const StateSpaceType& state_space,
-				     BeliefState& b_x,
-				     const InputBelief& b_u,
-				     const MeasurementBelief& b_z,
-				     typename discrete_sss_traits<System>::time_type t = 0,
-				     typename belief_state_traits<BeliefState>::scalar_type alpha = 1E-3,
-				     typename belief_state_traits<BeliefState>::scalar_type kappa = 1,
-				     typename belief_state_traits<BeliefState>::scalar_type beta = 2) {
+                                     const StateSpaceType& state_space,
+                                     BeliefState& b_x,
+                                     const InputBelief& b_u,
+                                     const MeasurementBelief& b_z,
+                                     typename discrete_sss_traits<System>::time_type t = 0,
+                                     typename belief_state_traits<BeliefState>::scalar_type alpha = 1E-3,
+                                     typename belief_state_traits<BeliefState>::scalar_type kappa = 1,
+                                     typename belief_state_traits<BeliefState>::scalar_type beta = 2) {
   //here the requirement is that the system models a linear system which is at worse a linearized system
   // - if the system is LTI or LTV, then this will result in a basic Kalman Filter (KF) update
   // - if the system is linearized, then this will result in an Extended Kalman Filter (EKF) update
@@ -230,9 +230,9 @@ void >::type unscented_kalman_update(const System& sys,
     ValueType min_tolerable_sigma = sqrt(svd_E(0,0)) * 1E-2;
     for(unsigned int i = 0; i < svd_E.get_row_count(); ++i) {
       if(svd_E(i,i) < min_tolerable_sigma*min_tolerable_sigma)
-	svd_E(i,i) = min_tolerable_sigma;
+        svd_E(i,i) = min_tolerable_sigma;
       else
-	svd_E(i,i) = sqrt(svd_E(i,i));      
+        svd_E(i,i) = sqrt(svd_E(i,i));      
     };
     L_p = svd_U * svd_E;
     RK_WARNING("A-Posteriori Covariance P, in UKF update is singular, SVD was used, but this could hide a flaw in the system's setup.");
@@ -310,20 +310,20 @@ void >::type unscented_kalman_update(const System& sys,
 template <typename System, 
           typename StateSpaceType,
           typename BeliefState, 
-	  typename InputBelief, 
-	  typename MeasurementBelief>
+          typename InputBelief, 
+          typename MeasurementBelief>
 typename boost::enable_if_c< is_continuous_belief_state<BeliefState>::value &&
                              (belief_state_traits<BeliefState>::representation == belief_representation::gaussian) &&
                              (belief_state_traits<BeliefState>::distribution == belief_distribution::unimodal),
 void >::type unscented_kalman_filter_step(const System& sys,
-					  const StateSpaceType& state_space,
-					  BeliefState& b_x,
-					  const InputBelief& b_u,
-					  const MeasurementBelief& b_z,
-					  typename discrete_sss_traits<System>::time_type t = 0,
-					  typename belief_state_traits<BeliefState>::scalar_type alpha = 1E-3,
-					  typename belief_state_traits<BeliefState>::scalar_type kappa = 1,
-					  typename belief_state_traits<BeliefState>::scalar_type beta = 2) {
+                                          const StateSpaceType& state_space,
+                                          BeliefState& b_x,
+                                          const InputBelief& b_u,
+                                          const MeasurementBelief& b_z,
+                                          typename discrete_sss_traits<System>::time_type t = 0,
+                                          typename belief_state_traits<BeliefState>::scalar_type alpha = 1E-3,
+                                          typename belief_state_traits<BeliefState>::scalar_type kappa = 1,
+                                          typename belief_state_traits<BeliefState>::scalar_type beta = 2) {
   unscented_kalman_predict(sys,state_space,b_x,b_u,t,alpha,kappa,beta);
   unscented_kalman_update(sys,state_space,b_x,b_u,b_z,t,alpha,kappa,beta);
 };

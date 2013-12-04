@@ -73,7 +73,7 @@ struct DiscreteNonLinearSystemType {
   template <typename System, typename StateSpaceType, typename Point, typename Input, typename Time, 
             typename A_t, typename B_t, typename C_t, typename D_t>
   void constraints(const System&, const StateSpaceType&, const Point&, const Input&, const Time&, 
-		   A_t&, B_t&, C_t&, D_t&) { };
+                   A_t&, B_t&, C_t&, D_t&) { };
 };
 
 /**
@@ -91,7 +91,7 @@ struct DiscreteLTISystemType {
   template <typename System, typename StateSpaceType, typename Point, typename Input, typename Time, 
             typename A_t, typename B_t, typename C_t, typename D_t>
   void constraints(const System& sys, const StateSpaceType& state_space, const Point&, const Input&, const Time&,  
-		   A_t& A, B_t& B, C_t& C, D_t& D) {
+                   A_t& A, B_t& B, C_t& C, D_t& D) {
     sys.get_state_transition_blocks(A, B, state_space);
     sys.get_output_function_blocks(C, D, state_space);
   };
@@ -113,7 +113,7 @@ struct DiscreteLTVSystemType {
   template <typename System, typename StateSpaceType, typename Point, typename Input, typename Time, 
             typename A_t, typename B_t, typename C_t, typename D_t>
   void constraints(const System& sys, const StateSpaceType& state_space, const Point&, const Input&, const Time& t, 
-		   A_t& A, B_t& B, C_t& C, D_t& D) {
+                   A_t& A, B_t& B, C_t& C, D_t& D) {
     sys.get_state_transition_blocks(A, B, state_space, t, t);
     sys.get_output_function_blocks(C, D, state_space, t);
   };
@@ -135,7 +135,7 @@ struct DiscreteLinearizedSystemType {
   template <typename System, typename StateSpaceType, typename Point, typename Input, typename Time, 
             typename A_t, typename B_t, typename C_t, typename D_t>
   void constraints(const System& sys, const StateSpaceType& state_space, const Point& p, const Input& u, const Time& t, 
-		   A_t& A, B_t& B, C_t& C, D_t& D) {
+                   A_t& A, B_t& B, C_t& C, D_t& D) {
     sys.get_state_transition_blocks(A, B, state_space, t, t, p, p, u, u);
     sys.get_output_function_blocks(C, D, state_space, t, p, u);
   };

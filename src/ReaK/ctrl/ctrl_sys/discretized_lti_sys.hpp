@@ -166,10 +166,10 @@ class discretized_lti_sys : public named_object {
     typename boost::enable_if_c< is_writable_matrix<MatrixA>::value &&
                                  is_writable_matrix<MatrixB>::value,
     void >::type get_state_transition_blocks(MatrixA& aA, MatrixB& aB, const StateSpaceType&, 
-					     const time_type& t_0 = time_type(), const time_type& t_1 = time_type(), 
-					     const point_type& p_0 = point_type(), const point_type& p_1 = point_type(), 
-					     const input_type& u_0 = input_type(), const input_type& u_1 = input_type()) const {
-					     RK_UNUSED(t_0); RK_UNUSED(t_1); RK_UNUSED(p_0); RK_UNUSED(p_1); RK_UNUSED(u_0); RK_UNUSED(u_1); 
+                                             const time_type& t_0 = time_type(), const time_type& t_1 = time_type(), 
+                                             const point_type& p_0 = point_type(), const point_type& p_1 = point_type(), 
+                                             const input_type& u_0 = input_type(), const input_type& u_1 = input_type()) const {
+                                             RK_UNUSED(t_0); RK_UNUSED(t_1); RK_UNUSED(p_0); RK_UNUSED(p_1); RK_UNUSED(u_0); RK_UNUSED(u_1); 
       aA = Ad;
       aB = Bd;
     };
@@ -197,9 +197,9 @@ class discretized_lti_sys : public named_object {
                                  is_writable_matrix<MatrixD>::value,
     void >::type get_output_function_blocks(MatrixC& aC, MatrixD& aD, const StateSpaceType&, 
                                             const time_type& t = time_type(),
-					    const point_type& p = point_type(),
-					    const input_type& u = input_type()) const {
-					    RK_UNUSED(t); RK_UNUSED(p); RK_UNUSED(u);
+                                            const point_type& p = point_type(),
+                                            const input_type& u = input_type()) const {
+                                            RK_UNUSED(t); RK_UNUSED(p); RK_UNUSED(u);
       aC = Cd;
       aD = Dd;
     };

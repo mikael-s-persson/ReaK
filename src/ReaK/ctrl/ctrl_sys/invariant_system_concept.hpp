@@ -43,6 +43,7 @@
 
 #include <boost/config.hpp>
 #include <boost/concept_check.hpp>
+#include <boost/mpl/bool.hpp>
 
 namespace ReaK {
 
@@ -173,6 +174,12 @@ struct InvariantContinuousSystemConcept : LinearSSSystemConcept<InvariantContinu
   };
   
 };
+
+
+
+template <typename StateSpaceSystem>
+struct is_invariant_system : boost::mpl::false_ { };
+
 
 
 };

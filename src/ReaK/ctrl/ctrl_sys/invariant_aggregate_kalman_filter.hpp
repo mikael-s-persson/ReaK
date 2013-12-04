@@ -46,18 +46,18 @@ namespace ctrl {
 
 template <typename InvariantSystem, 
           typename BeliefState, 
-	  typename SystemNoiseCovariance,
-	  typename MeasurementNoiseCovariance>
+          typename SystemNoiseCovariance,
+          typename MeasurementNoiseCovariance>
 typename boost::enable_if_c< is_continuous_belief_state<BeliefState>::value &&
                              (belief_state_traits<BeliefState>::representation == belief_representation::gaussian) &&
                              (belief_state_traits<BeliefState>::distribution == belief_distribution::unimodal),
 void >::type invariant_aggregate_kf_step(const InvariantSystem& sys,
-				         BeliefState& b,
-					 const discrete_sss_traits<InvariantSystem>::input_type& b_u,
-					 const discrete_sss_traits<InvariantSystem>::output_type& b_z,
-					 typename hamiltonian_mat< typename mat_traits< typename covariance_mat_traits< typename continuous_belief_state_traits<BeliefState>::covariance_type >::matrix_type >::value_type >::type& ScSm,
-					 typename hamiltonian_mat< typename mat_traits< typename covariance_mat_traits< typename continuous_belief_state_traits<BeliefState>::covariance_type >::matrix_type >::value_type >::type& Sc,
-					 typename discrete_sss_traits<InvariantSystem>::time_type t = 0) {
+                                         BeliefState& b,
+                                         const discrete_sss_traits<InvariantSystem>::input_type& b_u,
+                                         const discrete_sss_traits<InvariantSystem>::output_type& b_z,
+                                         typename hamiltonian_mat< typename mat_traits< typename covariance_mat_traits< typename continuous_belief_state_traits<BeliefState>::covariance_type >::matrix_type >::value_type >::type& ScSm,
+                                         typename hamiltonian_mat< typename mat_traits< typename covariance_mat_traits< typename continuous_belief_state_traits<BeliefState>::covariance_type >::matrix_type >::value_type >::type& Sc,
+                                         typename discrete_sss_traits<InvariantSystem>::time_type t = 0) {
   //here the requirement is that the system models a linear system which is at worse a linearized system
   // - if the system is LTI or LTV, then this will result in a basic Kalman Filter (KF) update
   // - if the system is linearized, then this will result in an Extended Kalman Filter (EKF) update

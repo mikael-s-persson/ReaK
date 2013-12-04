@@ -29,6 +29,7 @@
 
 #include "lin_alg/mat_alg.hpp"
 #include "ctrl_sys/sss_exceptions.hpp"
+#include "ctrl_sys/invariant_system_concept.hpp"
 
 #include "lin_alg/mat_cholesky.hpp"
 
@@ -74,18 +75,18 @@ class airship3D_lin_system : public named_object {
   public:
     
     airship3D_lin_system(const std::string& aName = "", 
-			 double aMass = 1.0, 
-			 const mat<double,mat_structure::symmetric>& aInertiaMoment = (mat<double,mat_structure::symmetric>(mat<double,mat_structure::identity>(3)))) :
-			 named_object(),
-			 mMass(aMass),
-			 mInertiaMoment(aInertiaMoment) {
+                         double aMass = 1.0, 
+                         const mat<double,mat_structure::symmetric>& aInertiaMoment = (mat<double,mat_structure::symmetric>(mat<double,mat_structure::identity>(3)))) :
+                         named_object(),
+                         mMass(aMass),
+                         mInertiaMoment(aInertiaMoment) {
       setName(aName);
       if((mInertiaMoment.get_row_count() != 3) || (mMass < std::numeric_limits< double >::epsilon()))
-	throw system_incoherency("Inertial information is improper in airship3D_lin_system's definition");
+        throw system_incoherency("Inertial information is improper in airship3D_lin_system's definition");
       try {
         invert_Cholesky(mInertiaMoment,mInertiaMomentInv);
       } catch(singularity_error&) {
-	throw system_incoherency("Inertial tensor is singular in airship3D_lin_system's definition");
+        throw system_incoherency("Inertial tensor is singular in airship3D_lin_system's definition");
       };
     }; 
   
@@ -97,18 +98,18 @@ class airship3D_lin_system : public named_object {
       vect<double,4> qd = q.getQuaternionDot(w);
       vect<double,3> aacc = mInertiaMomentInv * ( vect<double,3>(u[3],u[4],u[5]) - w % (mInertiaMoment * w) );
       return point_derivative_type(x[7],
-	                           x[8],
-				   x[9],
-				   qd[0],
-				   qd[1],
-				   qd[2],
-				   qd[3],
-				   u[0] / mMass,
-				   u[1] / mMass,
-				   u[2] / mMass,
-				   aacc[0],
-				   aacc[1],
-				   aacc[2]);
+                                   x[8],
+                                   x[9],
+                                   qd[0],
+                                   qd[1],
+                                   qd[2],
+                                   qd[3],
+                                   u[0] / mMass,
+                                   u[1] / mMass,
+                                   u[2] / mMass,
+                                   aacc[0],
+                                   aacc[1],
+                                   aacc[2]);
     };
     
     output_type get_output(const pp::vector_topology< vect_n<double> >&, const point_type& x, const input_type& u, const time_type t = 0.0) const {
@@ -156,11 +157,11 @@ class airship3D_lin_system : public named_object {
       A & RK_SERIAL_LOAD_WITH_NAME(mMass)
         & RK_SERIAL_LOAD_WITH_NAME(mInertiaMoment);
       if((mInertiaMoment.get_row_count() != 3) || (mMass < std::numeric_limits< double >::epsilon()))
-	throw system_incoherency("Inertial information is improper in airship3D_lin_system's definition");
+        throw system_incoherency("Inertial information is improper in airship3D_lin_system's definition");
       try {
         invert_Cholesky(mInertiaMoment,mInertiaMomentInv);
       } catch(singularity_error&) {
-	throw system_incoherency("Inertial tensor is singular in airship3D_lin_system's definition");
+        throw system_incoherency("Inertial tensor is singular in airship3D_lin_system's definition");
       };
     };
 
@@ -200,9 +201,9 @@ class airship3D_inv_system : public airship3D_lin_system {
     typedef mat<double,mat_structure::nil> matrixD_type;
    
     airship3D_inv_system(const std::string& aName = "", 
-			 double aMass = 1.0, 
-			 const mat<double,mat_structure::symmetric>& aInertiaMoment = (mat<double,mat_structure::symmetric>(mat<double,mat_structure::identity>(3)))) :
-			 airship3D_lin_system(aName,aMass,aInertiaMoment) { }; 
+                         double aMass = 1.0, 
+                         const mat<double,mat_structure::symmetric>& aInertiaMoment = (mat<double,mat_structure::symmetric>(mat<double,mat_structure::identity>(3)))) :
+                         airship3D_lin_system(aName,aMass,aInertiaMoment) { }; 
   
     virtual ~airship3D_inv_system() { };
         
@@ -231,29 +232,29 @@ class airship3D_inv_system : public airship3D_lin_system {
       quaternion<double> q_diff = quaternion<double>(vect<double,4>(y[3],y[4],y[5],y[6])) 
                                 * invert(quaternion<double>(vect<double,4>(x[3],x[4],x[5],x[6])));
       return invariant_error_type(y[0] - x[0],
-			          y[1] - x[1],
-			          y[2] - x[2],
-	                          2.0 * q_diff[0] * q_diff[1],
-	                          2.0 * q_diff[0] * q_diff[2],
-	                          2.0 * q_diff[0] * q_diff[3]); 
+                                  y[1] - x[1],
+                                  y[2] - x[2],
+                                  2.0 * q_diff[0] * q_diff[1],
+                                  2.0 * q_diff[0] * q_diff[2],
+                                  2.0 * q_diff[0] * q_diff[3]); 
     };
     
     point_derivative_type apply_correction(const pp::vector_topology< vect_n<double> >&, const point_type& x, const point_derivative_type& xd, const invariant_correction_type& c, const input_type& u, const time_type& t) const {
       quaternion<double> q(vect<double,4>(x[3],x[4],x[5],x[6]));
       vect<double,4> dq = q.getQuaternionDot(vect<double,3>(c[3],c[4],c[5]));
       return point_type(xd[0] + c[0],
-	                xd[1] + c[1],
-			xd[2] + c[2],
-			xd[3] + dq[0],
-			xd[4] + dq[1],
-			xd[5] + dq[2],
-			xd[6] + dq[3],
-			xd[7] + c[6],
-			xd[8] + c[7],
-			xd[9] + c[8],
-			xd[10] + c[9],
-			xd[11] + c[10],
-			xd[12] + c[11]);
+                        xd[1] + c[1],
+                        xd[2] + c[2],
+                        xd[3] + dq[0],
+                        xd[4] + dq[1],
+                        xd[5] + dq[2],
+                        xd[6] + dq[3],
+                        xd[7] + c[6],
+                        xd[8] + c[7],
+                        xd[9] + c[8],
+                        xd[10] + c[9],
+                        xd[11] + c[10],
+                        xd[12] + c[11]);
     };
     
     
@@ -272,6 +273,9 @@ class airship3D_inv_system : public airship3D_lin_system {
     
 };
 
+
+template <>
+struct is_invariant_system< airship3D_inv_system > : boost::mpl::true_ { };
 
 
 
@@ -303,13 +307,13 @@ class airship3D_lin_dt_system : public airship3D_lin_system {
   public:
     
     airship3D_lin_dt_system(const std::string& aName = "", 
-			    double aMass = 1.0, 
-			    const mat<double,mat_structure::symmetric>& aInertiaMoment = (mat<double,mat_structure::symmetric>(mat<double,mat_structure::identity>(3))),
-			    double aDt = 0.001) :
-			    airship3D_lin_system(aName,aMass,aInertiaMoment),
-			    mDt(aDt) { 
+                            double aMass = 1.0, 
+                            const mat<double,mat_structure::symmetric>& aInertiaMoment = (mat<double,mat_structure::symmetric>(mat<double,mat_structure::identity>(3))),
+                            double aDt = 0.001) :
+                            airship3D_lin_system(aName,aMass,aInertiaMoment),
+                            mDt(aDt) { 
       if(mDt < std::numeric_limits< double >::epsilon())
-	throw system_incoherency("The time step is below numerical tolerance in airship2D_lin_dt_system's definition");
+        throw system_incoherency("The time step is below numerical tolerance in airship2D_lin_dt_system's definition");
     }; 
   
     virtual ~airship3D_lin_dt_system() { };
@@ -330,13 +334,13 @@ class airship3D_lin_dt_system : public airship3D_lin_system {
       vect<double,3> w1_prev = w0 + (mInertiaMomentInv * (2.0 * half_dp - mDt * w0 % (mInertiaMoment * w0)));
       
       for(int i = 0; i < 20; ++i) {
-	vect<double,3> w1_next = mInertiaMomentInv * (half_dp 
-	                          + quaternion<double>( exp( quat<double>( (-0.25 * mDt) * w1_prev) ) ) * dp0);
-	if(norm_2(w1_next - w1_prev) < 1E-6 * norm_2(w1_next + w1_prev)) {
-	  w1_prev = w1_next;
-	  break;
-	} else
-	  w1_prev = w1_next;
+        vect<double,3> w1_next = mInertiaMomentInv * (half_dp 
+                                  + quaternion<double>( exp( quat<double>( (-0.25 * mDt) * w1_prev) ) ) * dp0);
+        if(norm_2(w1_next - w1_prev) < 1E-6 * norm_2(w1_next + w1_prev)) {
+          w1_prev = w1_next;
+          break;
+        } else
+          w1_prev = w1_next;
       };
       
       quaternion<double> q_new = quaternion<double>(vect<double,4>(x[3],x[4],x[5],x[6])) * 
@@ -355,36 +359,36 @@ class airship3D_lin_dt_system : public airship3D_lin_system {
       
         vect<double,3> w1_prev = w0 + (mInertiaMomentInv * (2.0 * half_dp - (0.01 * mDt) * w0 % (mInertiaMoment * w0)));
         quaternion<double> half_w1_prev_rot = quaternion<double>( exp( quat<double>( (0.0025 * mDt) * w1_prev) ) );
-	
+        
         for(int i = 0; i < 20; ++i) {
           vect<double,3> w1_next = mInertiaMomentInv * (half_dp 
-	                            + invert(half_w1_prev_rot) * dp0);
-	  if(norm_2(w1_next - w1_prev) < 1E-6 * norm_2(w1_next + w1_prev)) {
-	    w1_prev = w1_next;
-	    break;
-	  } else
-	    w1_prev = w1_next;
+                                    + invert(half_w1_prev_rot) * dp0);
+          if(norm_2(w1_next - w1_prev) < 1E-6 * norm_2(w1_next + w1_prev)) {
+            w1_prev = w1_next;
+            break;
+          } else
+            w1_prev = w1_next;
         };
       
         q_new = q_new * half_w0_rot * half_w1_prev_rot;
-	w0 = w1_prev;
-	half_w0_rot = half_w1_prev_rot;
+        w0 = w1_prev;
+        half_w0_rot = half_w1_prev_rot;
       };
-				 
+                                 
       vect<double,3> dv(mDt * u[0] / mMass, mDt * u[1] / mMass, mDt * u[2] / mMass);
       return point_type( x[0] + mDt * (x[7] + 0.5 * dv[0]),
-			 x[1] + mDt * (x[8] + 0.5 * dv[1]),
-			 x[2] + mDt * (x[9] + 0.5 * dv[2]),
-			 q_new[0],
-			 q_new[1],
-			 q_new[2],
-			 q_new[3],
-			 x[7] + dv[0],
-			 x[8] + dv[1],
-			 x[9] + dv[2],
-			 w0[0],
-			 w0[1],
-			 w0[2]);
+                         x[1] + mDt * (x[8] + 0.5 * dv[1]),
+                         x[2] + mDt * (x[9] + 0.5 * dv[2]),
+                         q_new[0],
+                         q_new[1],
+                         q_new[2],
+                         q_new[3],
+                         x[7] + dv[0],
+                         x[8] + dv[1],
+                         x[9] + dv[2],
+                         w0[0],
+                         w0[1],
+                         w0[2]);
     };
     
     output_type get_output(const pp::vector_topology< vect_n<double> >&, const point_type& x, const input_type& u, const time_type t = 0.0) const {
@@ -392,9 +396,9 @@ class airship3D_lin_dt_system : public airship3D_lin_system {
     };
     
     void get_state_transition_blocks(matrixA_type& A, matrixB_type& B, const pp::vector_topology< vect_n<double> >&, 
-				     const time_type& t_0, const time_type&,
-				     const point_type& p_0, const point_type&,
-				     const input_type& u_0, const input_type&) const {
+                                     const time_type& t_0, const time_type&,
+                                     const point_type& p_0, const point_type&,
+                                     const input_type& u_0, const input_type&) const {
       vect<double,3> w(-mDt * p_0[10],-mDt * p_0[11],-mDt * p_0[12]);
       
       A = mat<double,mat_structure::identity>(13);
@@ -434,7 +438,7 @@ class airship3D_lin_dt_system : public airship3D_lin_system {
     };
     
     void get_output_function_blocks(matrixC_type& C, matrixD_type& D, const pp::vector_topology< vect_n<double> >&, 
-				    const time_type&, const point_type&, const input_type&) const {
+                                    const time_type&, const point_type&, const input_type&) const {
       C = mat<double,mat_structure::nil>(7,13);
       set_block(C,mat<double,mat_structure::identity>(7),0,0);
       
@@ -588,17 +592,17 @@ class airship3D_inv_dt_system : public airship3D_lin_dt_system {
     
     
     airship3D_inv_dt_system(const std::string& aName = "", 
-			    double aMass = 1.0, 
-			    const mat<double,mat_structure::symmetric>& aInertiaMoment = (mat<double,mat_structure::symmetric>(mat<double,mat_structure::identity>(3))),
-			    double aDt = 0.001) :
-			    airship3D_lin_dt_system(aName,aMass,aInertiaMoment,aDt) { }; 
+                            double aMass = 1.0, 
+                            const mat<double,mat_structure::symmetric>& aInertiaMoment = (mat<double,mat_structure::symmetric>(mat<double,mat_structure::identity>(3))),
+                            double aDt = 0.001) :
+                            airship3D_lin_dt_system(aName,aMass,aInertiaMoment,aDt) { }; 
   
     virtual ~airship3D_inv_dt_system() { };
     
     void get_state_transition_blocks(matrixA_type& A, matrixB_type& B, const pp::vector_topology< vect_n<double> >&, 
-				     const time_type& t_0, const time_type&,
-				     const point_type& p_0, const point_type&,
-				     const input_type&, const input_type&) const {
+                                     const time_type& t_0, const time_type&,
+                                     const point_type& p_0, const point_type&,
+                                     const input_type&, const input_type&) const {
       vect<double,3> w(0.5 * p_0[10],0.5 * p_0[11],0.5 * p_0[12]);
       
       A = mat<double,mat_structure::identity>(12);
@@ -625,7 +629,7 @@ class airship3D_inv_dt_system : public airship3D_lin_dt_system {
     };
     
     void get_output_function_blocks(matrixC_type& C, matrixD_type& D, const pp::vector_topology< vect_n<double> >&, 
-				    const time_type&, const point_type&, const input_type&) const {
+                                    const time_type&, const point_type&, const input_type&) const {
       C = mat<double,mat_structure::nil>(6,12);
       set_block(C,mat<double,mat_structure::identity>(6),0,0);
       
@@ -637,29 +641,29 @@ class airship3D_inv_dt_system : public airship3D_lin_dt_system {
                                 * quaternion<double>(vect<double,4>(y[3],y[4],y[5],y[6]));
       quat<double> a = log(quat<double>(q_diff[0],q_diff[1],q_diff[2],q_diff[3]));
       return invariant_error_type(y[0] - x[0],
-			          y[1] - x[1],
-			          y[2] - x[2],
-	                          2.0 * a[1],
-	                          2.0 * a[2],
-	                          2.0 * a[3]); 
+                                  y[1] - x[1],
+                                  y[2] - x[2],
+                                  2.0 * a[1],
+                                  2.0 * a[2],
+                                  2.0 * a[3]); 
     };
     
     point_type apply_correction(const pp::vector_topology< vect_n<double> >&, const point_type& x, const invariant_correction_type& c, const input_type&, const time_type&) const {
       quaternion<double> q_new = quaternion<double>(vect<double,4>(x[3],x[4],x[5],x[6])) * 
                                  quaternion<double>(exp(quat<double>(0.0, 0.5 * c[3], 0.5 * c[4], 0.5 * c[5])));
       return point_type(x[0] + c[0],
-	                x[1] + c[1],
-			x[2] + c[2],
-			q_new[0],
-			q_new[1],
-			q_new[2],
-			q_new[3],
-			x[7] + c[6],
-			x[8] + c[7],
-			x[9] + c[8],
-			x[10] + c[9],
-			x[11] + c[10],
-			x[12] + c[11]);
+                        x[1] + c[1],
+                        x[2] + c[2],
+                        q_new[0],
+                        q_new[1],
+                        q_new[2],
+                        q_new[3],
+                        x[7] + c[6],
+                        x[8] + c[7],
+                        x[9] + c[8],
+                        x[10] + c[9],
+                        x[11] + c[10],
+                        x[12] + c[11]);
     };
     
     invariant_frame_type get_invariant_prior_frame(const pp::vector_topology< vect_n<double> >&, const point_type&, const point_type&, const input_type&, const time_type&) const {
@@ -684,6 +688,11 @@ class airship3D_inv_dt_system : public airship3D_lin_dt_system {
     RK_RTTI_MAKE_CONCRETE_1BASE(airship3D_inv_dt_system,0xC2310008,1,"airship3D_inv_dt_system",airship3D_lin_dt_system)
     
 };
+
+
+template <>
+struct is_invariant_system< airship3D_inv_dt_system > : boost::mpl::true_ { };
+
 
 
 class airship3D_inv2_dt_system : public airship3D_inv_dt_system {
@@ -777,6 +786,9 @@ class airship3D_inv2_dt_system : public airship3D_inv_dt_system {
     
 };
 
+template <>
+struct is_invariant_system< airship3D_inv2_dt_system > : boost::mpl::true_ { };
+
 
 
 
@@ -811,17 +823,17 @@ class airship3D_inv_mom_dt_system : public airship3D_lin_dt_system {
     
     
     airship3D_inv_mom_dt_system(const std::string& aName = "", 
-			        double aMass = 1.0, 
-			        const mat<double,mat_structure::symmetric>& aInertiaMoment = (mat<double,mat_structure::symmetric>(mat<double,mat_structure::identity>(3))),
-			        double aDt = 0.001) :
-			        airship3D_lin_dt_system(aName,aMass,aInertiaMoment,aDt) { }; 
+                                double aMass = 1.0, 
+                                const mat<double,mat_structure::symmetric>& aInertiaMoment = (mat<double,mat_structure::symmetric>(mat<double,mat_structure::identity>(3))),
+                                double aDt = 0.001) :
+                                airship3D_lin_dt_system(aName,aMass,aInertiaMoment,aDt) { }; 
   
     virtual ~airship3D_inv_mom_dt_system() { };
         
     void get_state_transition_blocks(matrixA_type& A, matrixB_type& B, const pp::vector_topology< vect_n<double> >&, 
-				     const time_type& t_0, const time_type&,
-				     const point_type& p_0, const point_type& p_1,
-				     const input_type&, const input_type&) const {
+                                     const time_type& t_0, const time_type&,
+                                     const point_type& p_0, const point_type& p_1,
+                                     const input_type&, const input_type&) const {
       
       /*//This is the version with rotation in the invariant prev-prior frame transition matrix.
       A = mat<double,mat_structure::identity>(12);
@@ -867,7 +879,7 @@ class airship3D_inv_mom_dt_system : public airship3D_lin_dt_system {
     };
     
     void get_output_function_blocks(matrixC_type& C, matrixD_type& D, const pp::vector_topology< vect_n<double> >&, 
-				    const time_type&, const point_type&, const input_type&) const {
+                                    const time_type&, const point_type&, const input_type&) const {
       C = mat<double,mat_structure::nil>(6,12);
       set_block(C,mat<double,mat_structure::identity>(6),0,0);
       
@@ -879,11 +891,11 @@ class airship3D_inv_mom_dt_system : public airship3D_lin_dt_system {
                                 * quaternion<double>(vect<double,4>(y[3],y[4],y[5],y[6]));
       quat<double> a = log(quat<double>(q_diff[0],q_diff[1],q_diff[2],q_diff[3]));
       return invariant_error_type(y[0] - x[0],
-			          y[1] - x[1],
-			          y[2] - x[2],
-	                          2.0 * a[1],
-	                          2.0 * a[2],
-	                          2.0 * a[3]); 
+                                  y[1] - x[1],
+                                  y[2] - x[2],
+                                  2.0 * a[1],
+                                  2.0 * a[2],
+                                  2.0 * a[3]); 
     };
     
     point_type apply_correction(const pp::vector_topology< vect_n<double> >&, const point_type& x, const invariant_correction_type& c, const input_type& u, const time_type& t) const {
@@ -898,18 +910,18 @@ class airship3D_inv_mom_dt_system : public airship3D_lin_dt_system {
       //This is the version with angular momentum.
       //vect<double,3> w_new = mInertiaMomentInv * (invert(q_diff) * (mInertiaMoment * vect<double,3>(x[10],x[11],x[12]) + vect<double,3>(c[9],c[10],c[11])));
       return point_type(x[0] + c[0],
-	                x[1] + c[1],
-			x[2] + c[2],
-			q_new[0],
-			q_new[1],
-			q_new[2],
-			q_new[3],
-			x[7] + c[6],
-			x[8] + c[7],
-			x[9] + c[8],
-			w_new[0],
-			w_new[1],
-			w_new[2]);
+                        x[1] + c[1],
+                        x[2] + c[2],
+                        q_new[0],
+                        q_new[1],
+                        q_new[2],
+                        q_new[3],
+                        x[7] + c[6],
+                        x[8] + c[7],
+                        x[9] + c[8],
+                        w_new[0],
+                        w_new[1],
+                        w_new[2]);
     };
     
     invariant_frame_type get_invariant_prior_frame(const pp::vector_topology< vect_n<double> >&, const point_type& x_prev, const point_type& x_prior, const input_type&, const time_type&) const {
@@ -947,6 +959,9 @@ class airship3D_inv_mom_dt_system : public airship3D_lin_dt_system {
     
 };
 
+template <>
+struct is_invariant_system< airship3D_inv_mom_dt_system > : boost::mpl::true_ { };
+
 
 
 
@@ -981,17 +996,17 @@ class airship3D_inv_mid_dt_system : public airship3D_lin_dt_system {
     
     
     airship3D_inv_mid_dt_system(const std::string& aName = "", 
-			        double aMass = 1.0, 
-			        const mat<double,mat_structure::symmetric>& aInertiaMoment = (mat<double,mat_structure::symmetric>(mat<double,mat_structure::identity>(3))),
-			        double aDt = 0.001) :
-			        airship3D_lin_dt_system(aName,aMass,aInertiaMoment,aDt) { }; 
+                                double aMass = 1.0, 
+                                const mat<double,mat_structure::symmetric>& aInertiaMoment = (mat<double,mat_structure::symmetric>(mat<double,mat_structure::identity>(3))),
+                                double aDt = 0.001) :
+                                airship3D_lin_dt_system(aName,aMass,aInertiaMoment,aDt) { }; 
   
     virtual ~airship3D_inv_mid_dt_system() { };
     
     void get_state_transition_blocks(matrixA_type& A, matrixB_type& B, const pp::vector_topology< vect_n<double> >&, 
-				     const time_type&, const time_type&,
-				     const point_type& p_0, const point_type& p_1,
-				     const input_type&, const input_type&) const {
+                                     const time_type&, const time_type&,
+                                     const point_type& p_0, const point_type& p_1,
+                                     const input_type&, const input_type&) const {
       
       /*//This is the version with rotation in the invariant prev-prior frame transition matrix.
       mat<double, mat_structure::square> R = (invert( quaternion<double>(vect<double,4>(p_1[3],p_1[4],p_1[5],p_1[6])))
@@ -1043,7 +1058,7 @@ class airship3D_inv_mid_dt_system : public airship3D_lin_dt_system {
     };
     
     void get_output_function_blocks(matrixC_type& C, matrixD_type& D, const pp::vector_topology< vect_n<double> >&, 
-				    const time_type&, const point_type&, const input_type&) const {
+                                    const time_type&, const point_type&, const input_type&) const {
       C = mat<double,mat_structure::nil>(6,12);
       set_block(C,mat<double,mat_structure::identity>(6),0,0);
       
@@ -1055,11 +1070,11 @@ class airship3D_inv_mid_dt_system : public airship3D_lin_dt_system {
                                 * quaternion<double>(vect<double,4>(y[3],y[4],y[5],y[6]));
       quat<double> a = log(quat<double>(q_diff[0],q_diff[1],q_diff[2],q_diff[3]));
       return invariant_error_type(y[0] - x[0],
-			          y[1] - x[1],
-			          y[2] - x[2],
-	                          2.0 * a[1],
-	                          2.0 * a[2],
-	                          2.0 * a[3]); 
+                                  y[1] - x[1],
+                                  y[2] - x[2],
+                                  2.0 * a[1],
+                                  2.0 * a[2],
+                                  2.0 * a[3]); 
     };
     
     point_type apply_correction(const pp::vector_topology< vect_n<double> >&, const point_type& x, const invariant_correction_type& c, const input_type&, const time_type&) const {
@@ -1074,18 +1089,18 @@ class airship3D_inv_mid_dt_system : public airship3D_lin_dt_system {
       //This is the version with angular momentum.
       //vect<double,3> w_new = mInertiaMomentInv * (invert(q_diff) * (mInertiaMoment * vect<double,3>(x[10],x[11],x[12]) + vect<double,3>(c[9],c[10],c[11])));
       return point_type(x[0] + c[0],
-	                x[1] + c[1],
-			x[2] + c[2],
-			q_new[0],
-			q_new[1],
-			q_new[2],
-			q_new[3],
-			x[7] + c[6],
-			x[8] + c[7],
-			x[9] + c[8],
-			w_new[0],
-			w_new[1],
-			w_new[2]);
+                        x[1] + c[1],
+                        x[2] + c[2],
+                        q_new[0],
+                        q_new[1],
+                        q_new[2],
+                        q_new[3],
+                        x[7] + c[6],
+                        x[8] + c[7],
+                        x[9] + c[8],
+                        w_new[0],
+                        w_new[1],
+                        w_new[2]);
     };
     
     invariant_frame_type get_invariant_prior_frame(const pp::vector_topology< vect_n<double> >&, const point_type& x_prev, const point_type& x_prior, const input_type&, const time_type&) const {
@@ -1122,6 +1137,9 @@ class airship3D_inv_mid_dt_system : public airship3D_lin_dt_system {
     RK_RTTI_MAKE_CONCRETE_1BASE(airship3D_inv_mid_dt_system,0xC231000C,1,"airship3D_inv_mid_dt_system",airship3D_lin_dt_system)
     
 };
+
+template <>
+struct is_invariant_system< airship3D_inv_mid_dt_system > : boost::mpl::true_ { };
 
 
 

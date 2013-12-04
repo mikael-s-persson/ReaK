@@ -130,7 +130,7 @@ class lti_system_ss : public named_object {
       swap(lhs.C,rhs.C);
       swap(lhs.D,rhs.D);
     };
-		  
+                  
     /**
      * Standard assignment operator.
      */
@@ -138,7 +138,7 @@ class lti_system_ss : public named_object {
       swap(*this,rhs);
       return *this;
     };
-		  
+                  
     /**
      * Sets the continuous-time system matrix A of the continuous-time system.
      * \param aA The new continuous-time system matrix A for the system.
