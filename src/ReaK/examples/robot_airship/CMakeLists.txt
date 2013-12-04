@@ -1,8 +1,5 @@
 
 set(ROBOTAIRSHIP_SOURCES 
-  "${SRCROOT}${RKROBOTAIRSHIPDIR}/CRS_A465_2D_analog.cpp"
-  "${SRCROOT}${RKROBOTAIRSHIPDIR}/CRS_A465_geom_model.cpp"
-  "${SRCROOT}${RKROBOTAIRSHIPDIR}/CRS_A465_models.cpp"
   "${SRCROOT}${RKROBOTAIRSHIPDIR}/satellite_basic_models.cpp"
   "${SRCROOT}${RKROBOTAIRSHIPDIR}/satellite_invar_models.cpp"
 )
@@ -11,8 +8,6 @@ set(ROBOTAIRSHIP_SOURCES
 set(ROBOTAIRSHIP_HEADERS 
   "${RKROBOTAIRSHIPDIR}/airship2D_lin_model.hpp"
   "${RKROBOTAIRSHIPDIR}/airship3D_lin_model.hpp"
-  "${RKROBOTAIRSHIPDIR}/CRS_A465_2D_analog.hpp"
-  "${RKROBOTAIRSHIPDIR}/CRS_A465_models.hpp"
   "${RKROBOTAIRSHIPDIR}/satellite_basic_models.hpp"
   "${RKROBOTAIRSHIPDIR}/satellite_invar_models.hpp"
 )
