@@ -1061,6 +1061,22 @@ struct has_allocator_vector< unit_quat<T> > {
 };
 
 
+namespace detail {
+  
+  
+  
+  template <typename T, typename Vector2>
+  inline 
+  void from_vect_impl( unit_quat<T>& lhs, const Vector2& rhs, std::size_t& i) {
+    lhs = unit_quat<T>(rhs[i], rhs[i+1], rhs[i+2], rhs[i+3]);
+    i += 4;
+  };
+  
+  
+};
+
+
+
 #ifndef BOOST_NO_CXX11_EXTERN_TEMPLATE
 
 extern template class quat<double>;

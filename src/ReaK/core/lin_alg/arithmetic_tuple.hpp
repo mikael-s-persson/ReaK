@@ -543,7 +543,7 @@ namespace detail {
   template <typename Vector1, typename Vector2>
   inline 
   typename boost::enable_if<
-    is_readable_vector< Vector1 >,
+    is_writable_vector< Vector1 >,
   void >::type from_vect_impl( Vector1& lhs, const Vector2& rhs, std::size_t& i) {
     for(std::size_t j = 0; j < rhs.size(); ++j, ++i)
       lhs[j] = rhs[i];
@@ -553,7 +553,7 @@ namespace detail {
   inline 
   typename boost::disable_if<
     boost::mpl::or_<
-      is_readable_vector< Scalar >,
+      is_writable_vector< Scalar >,
       is_arithmetic_tuple< Scalar >
     >,
   void >::type from_vect_impl( Scalar& lhs, const Vector& rhs, std::size_t& i) {

@@ -156,7 +156,7 @@ void >::type kalman_update(const LinearSystem& sys,
   BOOST_CONCEPT_ASSERT((ContinuousBeliefStateConcept<MeasurementBelief>));
   
   typedef typename pp::topology_traits<StateSpaceType>::point_type StateType;
-  typedef typename pp::topology_traits<StateSpaceType>::point_type StateDiffType;
+  typedef typename pp::topology_traits<StateSpaceType>::point_difference_type StateDiffType;
   typedef typename continuous_belief_state_traits<BeliefState>::covariance_type CovType;
   typedef typename covariance_mat_traits< CovType >::matrix_type MatType;
   typedef typename mat_traits<MatType>::value_type ValueType;
@@ -226,7 +226,7 @@ void >::type kalman_filter_step(const LinearSystem& sys,
   BOOST_CONCEPT_ASSERT((ContinuousBeliefStateConcept<MeasurementBelief>));
   
   typedef typename pp::topology_traits<StateSpaceType>::point_type StateType;
-  typedef typename pp::topology_traits<StateSpaceType>::point_type StateDiffType;
+  typedef typename pp::topology_traits<StateSpaceType>::point_difference_type StateDiffType;
   typedef typename continuous_belief_state_traits<BeliefState>::covariance_type CovType;
   typedef typename covariance_mat_traits< CovType >::matrix_type MatType;
   typedef typename mat_traits<MatType>::value_type ValueType;

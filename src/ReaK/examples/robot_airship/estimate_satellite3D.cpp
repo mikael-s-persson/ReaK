@@ -24,22 +24,15 @@
 
 #include "satellite_invar_models.hpp"
 
-#include "serialization/xml_archiver.hpp"
-#include "recorders/ssv_recorder.hpp"
-
 
 #include "ctrl_sys/kalman_filter.hpp"
-#include "ctrl_sys/kalman_bucy_filter.hpp"
 #include "ctrl_sys/invariant_kalman_filter.hpp"
-#include "ctrl_sys/invariant_kalman_bucy_filter.hpp"
-#include "ctrl_sys/unscented_kalman_filter.hpp"
 
 #include "ctrl_sys/gaussian_belief_state.hpp"
 #include "ctrl_sys/covariance_matrix.hpp"
 
-#include "integrators/fixed_step_integrators.hpp"
-
-#include "boost/date_time/posix_time/posix_time.hpp"
+#include "serialization/archiver_factory.hpp"
+#include "recorders/ssv_recorder.hpp"
 
 #include <boost/random/linear_congruential.hpp>
 #include <boost/random.hpp>
@@ -54,6 +47,10 @@ namespace fs = boost::filesystem;
 
 
 
+  
+boost::variate_generator< boost::minstd_rand, boost::normal_distribution<double> > var_rnd = 
+  boost::variate_generator< boost::minstd_rand, boost::normal_distribution<double> >(boost::minstd_rand(), boost::normal_distribution<double>());
+
 
 struct sat3D_measurement_point {
   ReaK::vect_n<double> pose;
@@ -65,27 +62,27 @@ struct sat3D_measurement_point {
 
 
   
-typedef ctrl::satellite3D_lin_dt_system::state_space_type      sat3D_state_space_type;
-typedef ctrl::satellite3D_lin_dt_system::point_type            sat3D_state_type;
-typedef ctrl::satellite3D_lin_dt_system::point_difference_type sat3D_state_diff_type;
-typedef ctrl::satellite3D_lin_dt_system::input_type            sat3D_input_type;
-typedef ctrl::satellite3D_lin_dt_system::output_type           sat3D_output_type;
+typedef ReaK::ctrl::satellite3D_lin_dt_system::state_space_type      sat3D_state_space_type;
+typedef ReaK::ctrl::satellite3D_lin_dt_system::point_type            sat3D_state_type;
+typedef ReaK::ctrl::satellite3D_lin_dt_system::point_difference_type sat3D_state_diff_type;
+typedef ReaK::ctrl::satellite3D_lin_dt_system::input_type            sat3D_input_type;
+typedef ReaK::ctrl::satellite3D_lin_dt_system::output_type           sat3D_output_type;
 
-typedef pp::temporal_space<sat3D_state_space_type, pp::time_poisson_topology, pp::time_distance_only> sat3D_temp_space_type;
-typedef pp::topology_traits< sat3D_temp_space_type >::point_type temp_point_type;
+typedef ReaK::pp::temporal_space<sat3D_state_space_type, ReaK::pp::time_poisson_topology, ReaK::pp::time_distance_only> sat3D_temp_space_type;
+typedef ReaK::pp::topology_traits< sat3D_temp_space_type >::point_type temp_point_type;
 
-typedef ctrl::covariance_matrix< vect_n<double> > cov_type;
+typedef ReaK::ctrl::covariance_matrix< ReaK::vect_n<double> > cov_type;
 typedef cov_type::matrix_type cov_matrix_type;
-typedef ctrl::gaussian_belief_state< sat3D_state_type,  cov_type > sat3D_state_belief_type;
-typedef ctrl::gaussian_belief_state< sat3D_input_type,  cov_type > sat3D_input_belief_type;
-typedef ctrl::gaussian_belief_state< sat3D_output_type, cov_type > sat3D_output_belief_type;
+typedef ReaK::ctrl::gaussian_belief_state< sat3D_state_type,  cov_type > sat3D_state_belief_type;
+typedef ReaK::ctrl::gaussian_belief_state< sat3D_input_type,  cov_type > sat3D_input_belief_type;
+typedef ReaK::ctrl::gaussian_belief_state< sat3D_output_type, cov_type > sat3D_output_belief_type;
 
 
 
 template <typename Sat3DSystemType>
-std::vector< std::pair< double, vect_n<double> > > batch_KF_on_timeseries(
+std::vector< std::pair< double, ReaK::vect_n<double> > > batch_KF_on_timeseries(
     const std::vector< std::pair< double, sat3D_measurement_point > >& measurements,
-    const std::vector< std::pair< double, vect_n<double> > >& ground_truth,
+    const std::vector< std::pair< double, ReaK::vect_n<double> > >& ground_truth,
     const Sat3DSystemType& sat_sys,
     const sat3D_state_space_type& state_space,
     sat3D_state_belief_type b,
@@ -123,7 +120,7 @@ std::vector< std::pair< double, vect_n<double> > > batch_KF_on_timeseries(
       const vect_n<double>& x_true = it_orig->second;
       
       quaternion<double> q_orig(vect<double,4>(x_true[3], x_true[4], x_true[5], x_true[6]));
-      axis_angle<double> aa_diff = axis_angle<double>(invert(get_quaternion(x_mean)) * q_orig);
+      axis_angle<double> aa_diff = axis_angle<double>(invert(get_quaternion(x_mean).as_rotation()) * q_orig);
       
       result_vect[range(13,15)] = get_position(x_mean) - vect<double,3>(x_true[0],x_true[1],x_true[2]);
       result_vect[range(16,18)] = aa_diff.angle() * aa_diff.axis();
@@ -135,7 +132,7 @@ std::vector< std::pair< double, vect_n<double> > > batch_KF_on_timeseries(
     
     const cov_matrix_type& P_xx = b.get_covariance().get_matrix();
     for(std::size_t l = 0; l < 12; ++l)
-      result_vect[l + 25] = b.get_covariance().get_matrix()(l,l);
+      result_vect[l + 25] = P_xx(l,l);
     
     result_pts.push_back(std::make_pair(it->first, result_vect));
     
@@ -155,19 +152,21 @@ std::vector< std::pair< double, vect_n<double> > > batch_KF_on_timeseries(
 template <typename Sat3DSystemType>
 void generate_timeseries(
     std::vector< std::pair< double, sat3D_measurement_point > >& measurements,
-    std::vector< std::pair< double, vect_n<double> > >& ground_truth,
+    std::vector< std::pair< double, ReaK::vect_n<double> > >& ground_truth,
     const Sat3DSystemType& sat_sys,
     const sat3D_state_space_type& state_space,
     sat3D_state_type x,
     double start_time, double end_time,
-    const mat<double,mat_structure::diagonal>& Qu,
-    const mat<double,mat_structure::diagonal>& R) {
+    const cov_matrix_type& Qu,
+    const cov_matrix_type& R,
+    ReaK::shared_ptr< ReaK::recorder::ssv_recorder > stat_results = ReaK::shared_ptr< ReaK::recorder::ssv_recorder >() ) {
   using namespace ReaK;
   
   measurements.clear();
   ground_truth.clear();
   
   double time_step = sat_sys.get_time_step();
+  std::vector< double > std_devs(R.get_row_count() + R.get_row_count() / 3, 0.0);
   for(double t = start_time; t < end_time; t += time_step) {
     vect_n<double> u(6, 0.0);
     u[0] = var_rnd() * sqrt(Qu(0,0));
@@ -196,16 +195,215 @@ void generate_timeseries(
     
     vect<double,3> aa_vect_noise(var_rnd() * sqrt(R(3,3)), var_rnd() * sqrt(R(4,4)), var_rnd() * sqrt(R(5,5)));
     axis_angle<double> aa_noise(norm_2(aa_vect_noise), aa_vect_noise);
-    meas.pose[range(3,6)] = quaternion<double>(y[3],y[4],y[5],y[6]) * aa_noise.getQuaternion();
+    quaternion<double> y_quat(vect<double,4>(y[3],y[4],y[5],y[6]));
+    y_quat *= aa_noise.getQuaternion();
+    meas.pose[range(3,6)] = vect<double,4>(y_quat[0], y_quat[1], y_quat[2], y_quat[3]);
+    
+    std::size_t k = ground_truth.size();
+    if( stat_results ) {
+      std_devs[0] = ( ( k - 1 ) * std_devs[0] + (meas.pose[0] - y[0]) * (meas.pose[0] - y[0]) ) / k;
+      std_devs[1] = ( ( k - 1 ) * std_devs[1] + (meas.pose[1] - y[1]) * (meas.pose[1] - y[1]) ) / k;
+      std_devs[2] = ( ( k - 1 ) * std_devs[2] + (meas.pose[2] - y[2]) * (meas.pose[2] - y[2]) ) / k;
+      std_devs[3] = ( ( k - 1 ) * std_devs[3] + aa_vect_noise[0] * aa_vect_noise[0] ) / k;
+      std_devs[4] = ( ( k - 1 ) * std_devs[4] + aa_vect_noise[1] * aa_vect_noise[1] ) / k;
+      std_devs[5] = ( ( k - 1 ) * std_devs[5] + aa_vect_noise[2] * aa_vect_noise[2] ) / k;
+      
+      std_devs[6] = ( ( k - 1 ) * std_devs[6] + ( (meas.pose[0] - y[0]) * (meas.pose[0] - y[0])
+                                                + (meas.pose[1] - y[1]) * (meas.pose[1] - y[1])
+                                                + (meas.pose[2] - y[2]) * (meas.pose[2] - y[2]) ) ) / k;
+      std_devs[7] = ( ( k - 1 ) * std_devs[7] + norm_2_sqr(aa_vect_noise) ) / k;
+    };
     
     if( y.size() >= 10 ) {
       meas.gyro = y[range(7,9)];
-      if( y.size() >= 16 )
+      meas.gyro[0] += var_rnd() * sqrt(R(6,6));
+      meas.gyro[1] += var_rnd() * sqrt(R(7,7));
+      meas.gyro[2] += var_rnd() * sqrt(R(8,8));
+      if( stat_results ) {
+        std_devs[8]  = ( ( k - 1 ) * std_devs[8] + (meas.gyro[0] - y[7]) * (meas.gyro[0] - y[7]) ) / k;
+        std_devs[9]  = ( ( k - 1 ) * std_devs[9] + (meas.gyro[1] - y[8]) * (meas.gyro[1] - y[8]) ) / k;
+        std_devs[10] = ( ( k - 1 ) * std_devs[10] + (meas.gyro[2] - y[9]) * (meas.gyro[2] - y[9]) ) / k;
+        std_devs[11] = ( ( k - 1 ) * std_devs[11] + ( (meas.gyro[0] - y[7]) * (meas.gyro[0] - y[7])
+                                                    + (meas.gyro[1] - y[8]) * (meas.gyro[1] - y[8])
+                                                    + (meas.gyro[2] - y[9]) * (meas.gyro[2] - y[9]) ) ) / k;
+      };
+      if( y.size() >= 16 ) {
         meas.IMU_a_m = y[range(10,15)];
+        meas.IMU_a_m[0] += var_rnd() * sqrt(R(9,9));
+        meas.IMU_a_m[1] += var_rnd() * sqrt(R(10,10));
+        meas.IMU_a_m[2] += var_rnd() * sqrt(R(11,11));
+        meas.IMU_a_m[3] += var_rnd() * sqrt(R(12,12));
+        meas.IMU_a_m[4] += var_rnd() * sqrt(R(13,13));
+        meas.IMU_a_m[5] += var_rnd() * sqrt(R(14,14));
+        if( stat_results ) {
+          std_devs[12] = ( ( k - 1 ) * std_devs[12] + (meas.IMU_a_m[0] - y[10]) * (meas.IMU_a_m[0] - y[10]) ) / k;
+          std_devs[13] = ( ( k - 1 ) * std_devs[13] + (meas.IMU_a_m[1] - y[11]) * (meas.IMU_a_m[1] - y[11]) ) / k;
+          std_devs[14] = ( ( k - 1 ) * std_devs[14] + (meas.IMU_a_m[2] - y[12]) * (meas.IMU_a_m[2] - y[12]) ) / k;
+          std_devs[16] = ( ( k - 1 ) * std_devs[16] + (meas.IMU_a_m[3] - y[13]) * (meas.IMU_a_m[3] - y[13]) ) / k;
+          std_devs[17] = ( ( k - 1 ) * std_devs[17] + (meas.IMU_a_m[4] - y[14]) * (meas.IMU_a_m[4] - y[14]) ) / k;
+          std_devs[18] = ( ( k - 1 ) * std_devs[18] + (meas.IMU_a_m[5] - y[15]) * (meas.IMU_a_m[5] - y[15]) ) / k;
+          
+          std_devs[15] = ( ( k - 1 ) * std_devs[15] + ( (meas.IMU_a_m[0] - y[10]) * (meas.IMU_a_m[0] - y[10])
+                                                      + (meas.IMU_a_m[1] - y[11]) * (meas.IMU_a_m[1] - y[11])
+                                                      + (meas.IMU_a_m[2] - y[12]) * (meas.IMU_a_m[2] - y[12]) ) ) / k;
+          std_devs[19] = ( ( k - 1 ) * std_devs[19] + ( (meas.IMU_a_m[3] - y[13]) * (meas.IMU_a_m[3] - y[13])
+                                                      + (meas.IMU_a_m[4] - y[14]) * (meas.IMU_a_m[4] - y[14])
+                                                      + (meas.IMU_a_m[5] - y[15]) * (meas.IMU_a_m[5] - y[15]) ) ) / k;
+        };
+      };
     };
     measurements.push_back(std::make_pair(t, meas));
   };
+  
+  if( stat_results ) {
+    for(std::size_t i = 0; i < std_devs.size(); ++i)
+      (*stat_results) << std::sqrt(std_devs[i]);
+    (*stat_results) << recorder::data_recorder::end_value_row << recorder::data_recorder::flush;
+  };
 };
+
+
+
+
+
+
+template <typename Sat3DSystemType>
+void do_all_single_runs(
+    const std::string& output_stem_name,
+    const std::string& filter_name,
+    const std::vector< std::pair< double, sat3D_measurement_point > >& measurements,
+    const std::vector< std::pair< double, ReaK::vect_n<double> > >& ground_truth,
+    Sat3DSystemType& sat_sys,
+    const sat3D_state_space_type& state_space,
+    const sat3D_state_belief_type& b,
+    sat3D_input_belief_type b_u,
+    const sat3D_output_belief_type& b_z,
+    double time_step, unsigned int min_skips, unsigned int max_skips) {
+  using namespace ReaK;
+  
+  cov_matrix_type Qu = b_u.get_covariance().get_matrix();
+  
+  for(unsigned int skips = min_skips; skips <= max_skips; ++skips) {
+    
+    sat_sys.set_time_step(skips * time_step);
+    
+    b_u.set_covariance(cov_type(cov_matrix_type((1.0 / double(skips)) * Qu)));
+    
+    std::vector< std::pair< double, vect_n<double> > > result_pts = 
+      batch_KF_on_timeseries(measurements, ground_truth, sat_sys, state_space, b, b_u, b_z, skips);
+    
+    std::stringstream ss;
+    ss << output_stem_name << "_" << std::setfill('0') << std::setw(4) << int(1000 * skips * time_step) << "_" << filter_name << ".ssv";
+    recorder::ssv_recorder results(ss.str());
+    results << "time" 
+            << "pos_x" << "pos_y" << "pos_z" << "q0" << "q1" << "q2" << "q3" 
+            << "vel_x" << "vel_y" << "vel_z" << "avel_x" << "avel_y" << "avel_z"
+            << "ep_x"  << "ep_y"  << "ep_z"  << "ea_x" << "ea_y" << "ea_z"
+            << "ev_x"  << "ev_y"  << "ev_z"  << "ew_x" << "ew_y" << "ew_z"
+            << "P_xx" << "P_yy" << "P_zz" << "P_aax" << "P_aay" << "P_aaz"
+            << "P_vvx" << "P_vvy" << "P_vvz" << "P_wwx" << "P_wwy" << "P_wwz" << recorder::data_recorder::end_name_row;
+    for(std::size_t i = 0; i < result_pts.size(); ++i) {
+      results << result_pts[i].first;
+      for(std::size_t j = 0; j < result_pts[i].second.size(); ++j)
+        results << result_pts[i].second[j];
+      results << recorder::data_recorder::end_value_row;
+    };
+    results << recorder::data_recorder::flush;
+  };
+  
+  sat_sys.set_time_step(time_step);
+  
+};
+
+
+
+
+
+template <typename Sat3DSystemType>
+void do_single_monte_carlo_run(
+    std::map< std::string, ReaK::shared_ptr< ReaK::recorder::ssv_recorder > >& results_map,
+    const std::string& output_stem_name,
+    const std::string& filter_name,
+    const std::vector< std::pair< double, sat3D_measurement_point > >& measurements,
+    const std::vector< std::pair< double, ReaK::vect_n<double> > >& ground_truth,
+    Sat3DSystemType& sat_sys,
+    const sat3D_state_space_type& state_space,
+    const sat3D_state_belief_type& b,
+    sat3D_input_belief_type b_u,
+    const sat3D_output_belief_type& b_z,
+    double time_step, unsigned int min_skips, unsigned int max_skips) {
+  using namespace ReaK;
+  
+  cov_matrix_type Qu = b_u.get_covariance().get_matrix();
+  
+  for(unsigned int skips = min_skips; skips <= max_skips; ++skips) {
+    
+    sat_sys.set_time_step(skips * time_step);
+    
+    b_u.set_covariance(cov_type(cov_matrix_type((1.0 / double(skips)) * Qu)));
+    
+    std::vector< std::pair< double, vect_n<double> > > result_pts = 
+      batch_KF_on_timeseries(measurements, ground_truth, sat_sys, state_space, b, b_u, b_z, skips);
+    
+    std::vector< double > std_devs(28, 0.0);
+    for(std::size_t i = 0; i < result_pts.size(); ++i) {
+      
+      // state vector component errors:
+      for(std::size_t j = 13; j < 25; ++j)
+        std_devs[j - 13] = ( i * std_devs[j - 13] + result_pts[i].second[j] * result_pts[i].second[j] ) / (i + 1);
+      
+      // position distance error:
+      std_devs[12] = ( i * std_devs[12] + ( result_pts[i].second[13] * result_pts[i].second[13]
+                                          + result_pts[i].second[14] * result_pts[i].second[14]
+                                          + result_pts[i].second[15] * result_pts[i].second[15] ) ) / (i + 1);
+      
+      // rotation angle error:
+      std_devs[13] = ( i * std_devs[13] + ( result_pts[i].second[16] * result_pts[i].second[16]
+                                          + result_pts[i].second[17] * result_pts[i].second[17]
+                                          + result_pts[i].second[18] * result_pts[i].second[18] ) ) / (i + 1);
+      
+      // speed error:
+      std_devs[14] = ( i * std_devs[14] + ( result_pts[i].second[19] * result_pts[i].second[19]
+                                          + result_pts[i].second[20] * result_pts[i].second[20]
+                                          + result_pts[i].second[21] * result_pts[i].second[21] ) ) / (i + 1);
+      
+      // angular speed error:
+      std_devs[15] = ( i * std_devs[15] + ( result_pts[i].second[22] * result_pts[i].second[22]
+                                          + result_pts[i].second[23] * result_pts[i].second[23]
+                                          + result_pts[i].second[24] * result_pts[i].second[24] ) ) / (i + 1);
+      
+      // average estimated covariances:
+      for(std::size_t j = 25; j < 37; ++j)
+        std_devs[j - 25 + 16] = ( i * std_devs[j - 25 + 16] + result_pts[i].second[j] ) / (i + 1);
+      
+    };
+    
+    std::stringstream ss;
+    ss << "_" << std::setfill('0') << std::setw(4) << int(1000 * skips * time_step) << "_" << filter_name;
+    std::string file_middle = ss.str();
+    shared_ptr< recorder::ssv_recorder >& results = results_map[file_middle];
+    if( !results ) {
+      results = shared_ptr< recorder::ssv_recorder >(new recorder::ssv_recorder(output_stem_name + file_middle + "_stddevs.ssv"));
+      (*results) << "ep_x"  << "ep_y"  << "ep_z"  << "ea_x" << "ea_y" << "ea_z"
+                  << "ev_x"  << "ev_y"  << "ev_z"  << "ew_x" << "ew_y" << "ew_z"
+                  << "ep_m"  << "ea_m"  << "ev_m"  << "ew_m" 
+                  << "P_xx" << "P_yy" << "P_zz" << "P_aax" << "P_aay" << "P_aaz"
+                  << "P_vvx" << "P_vvy" << "P_vvz" << "P_wwx" << "P_wwy" << "P_wwz" 
+                  << recorder::data_recorder::end_name_row;
+    };
+    
+    for(std::size_t j = 0; j < 18; ++j)
+      (*results) << std::sqrt(std_devs[j]); // turn variances into std-devs.
+    (*results) << recorder::data_recorder::end_value_row << recorder::data_recorder::flush;
+    
+  };
+  
+  sat_sys.set_time_step(time_step);
+  
+  
+};
+
+
 
 
 
@@ -222,7 +420,7 @@ int main(int argc, char** argv) {
   
   po::options_description io_options("I/O options");
   io_options.add_options()
-    ("measurements,m", po::value< std::string >()->default_value("sim_results/satellite3D/output_record.ssv"), "specify the filename for the satellite's initial conditions (default is 'models/satellite3D_init.rkx')")
+    ("measurements,m", "specify the filename for the satellite's initial conditions")
     ("init,i", po::value< std::string >()->default_value("models/satellite3D_init.rkx"), "specify the filename for the satellite's initial conditions, only used when Monte-Carlo simulations are done (default is 'models/satellite3D_init.rkx')")
     ("inertia,I", po::value< std::string >()->default_value("models/satellite3D_inertia.rkx"), "specify the filename for the satellite's inertial data (default is 'models/satellite3D_inertia.rkx')")
     ("Q-matrix,Q", po::value< std::string >()->default_value("models/satellite3D_Q.rkx"), "specify the filename for the satellite's input disturbance covariance matrix (default is 'models/satellite3D_Q.rkx')")
@@ -230,6 +428,7 @@ int main(int argc, char** argv) {
     ("R-added,A", "specify the filename for the satellite's artificial measurement noise covariance matrix")
     ("IMU-config", po::value< std::string >()->default_value("models/satellite3D_IMU_config.rkx"), "specify the filename for the satellite's IMU configuration data, specifying its placement on the satellite and the inertial / magnetic-field frame it is relative to (default is 'models/satellite3D_IMU_config.rkx')")
     ("output,o", po::value< std::string >()->default_value("est_results/satellite3D/output_record"), "specify the filename stem (without extension) for the output of the results (default is 'sim_results/satellite3D/output_record')")
+    ("generate-meas-file,g", "if set, the measurement file will be generated from the output of a simulation with the given initial conditions (default is not)")
   ;
   
   po::options_description sim_options("Simulation options");
@@ -270,7 +469,7 @@ int main(int argc, char** argv) {
   po::store(po::parse_command_line(argc, argv, cmdline_options), vm);
   po::notify(vm);
   
-  
+  var_rnd.engine().seed(static_cast<unsigned int>(std::time(NULL)));
   
   std::string output_path_name = vm["output"].as<std::string>();
   std::string output_stem_name = output_path_name;
@@ -299,24 +498,9 @@ int main(int argc, char** argv) {
   unsigned int max_skips  = vm["max-skips"].as<unsigned int>();
   
   
-  boost::variate_generator< boost::minstd_rand, boost::normal_distribution<double> > var_rnd(boost::minstd_rand(static_cast<unsigned int>(time(NULL))), boost::normal_distribution<double>());
-  
-  
-  /* measurement file */
-  std::string measurements_filename;
-  if( ! vm.count("monte-carlo") ) {
-    measurements_filename = vm["measurements"].as<std::string>();
-    
-    if( ! fs::exists( fs::path( measurements_filename ) ) ) {
-      std::cout << "Measurements file does not exist!" << std::endl;
-      return 3;
-    };
-  };
-  
-  
   /* initial states */
   frame_3D<double> initial_motion;
-  if( vm.count("monte-carlo") ) {
+  if( vm.count("init") ) {
     try {
       
       std::string init_filename = vm["init"].as<std::string>();
@@ -400,7 +584,6 @@ int main(int argc, char** argv) {
     RK_ERROR("An exception occurred during the loading of the measurement noise covariance matrix!");
     return 14;
   };
-  double Rq0 = (measurement_noise(3,3) + measurement_noise(4,4) + measurement_noise(5,5)) / 12.0;
   
   
   /* artificial measurement noise */
@@ -414,7 +597,7 @@ int main(int argc, char** argv) {
         return 6;
       };
       
-      *(serialization::open_iarchive(R_filename))
+      *(serialization::open_iarchive(R_added_filename))
         & RK_SERIAL_LOAD_WITH_NAME(artificial_noise);
       
     } catch(...) {
@@ -455,9 +638,9 @@ int main(int argc, char** argv) {
   
   std::vector< std::pair< double, sat3D_measurement_point > > measurements;
   std::vector< std::pair< double, vect_n<double> > > ground_truth;
-  if( ! vm.count("monte-carlo") ) {
+  if( (!vm.count("monte-carlo")) && vm.count("measurements") && fs::exists( fs::path( vm["measurements"].as<std::string>() ) ) ) {
     try {
-      recorder::ssv_extractor measurements_file(measurements_filename);
+      recorder::ssv_extractor measurements_file(vm["measurements"].as<std::string>());
       while(true) {
         double t;
         measurements_file >> t;
@@ -573,7 +756,7 @@ int main(int argc, char** argv) {
   sat3D_state_type x_init;
   set_position(x_init, vect<double,3>(0.0, 0.0, 0.0));
   set_velocity(x_init, vect<double,3>(0.0, 0.0, 0.0));
-  set_quaternion(x_init, quaternion<double>());
+  set_quaternion(x_init, unit_quat<double>());
   set_ang_velocity(x_init, vect<double,3>(0.0, 0.0, 0.0));
   
   sat3D_state_belief_type b_init(x_init, 
@@ -602,16 +785,128 @@ int main(int argc, char** argv) {
                                  cov_type(cov_matrix_type(measurement_noise + artificial_noise)));
     
     if( ! vm.count("monte-carlo") ) {
+      
+      if( measurements.size() == 0 ) {
+        // must generate the measurements and ground_truth vectors:
+        set_frame_3D(x_init, initial_motion);
+        generate_timeseries(measurements, ground_truth, sat3D_lin, sat_space.get_space_topology(),
+                            x_init, start_time, end_time, cov_matrix_type(input_disturbance), 
+                            cov_matrix_type(measurement_noise + artificial_noise));
+        
+        // and output those if asked for it:
+        if( vm.count("generate-meas-file") ) {
+          recorder::ssv_recorder measurements_gen(output_stem_name + "_meas.ssv");
+          measurements_gen << "p_x" << "p_y" << "p_z" << "q_0" << "q_1" << "q_2" << "q_2"
+                           << "f_x" << "f_y" << "f_z" << "t_x" << "t_y" << "t_z" 
+                           << "p_x_true" << "p_y_true" << "p_z_true" << "q_0_true" << "q_1_true" << "q_2_true" << "q_2_true"
+                           << "v_x_true" << "v_y_true" << "v_z_true" << "w_x_true" << "w_y_true" << "w_z_true" 
+                           << recorder::data_recorder::end_name_row;
+          
+          for(std::size_t i = 0; i < measurements.size(); ++i) {
+            const sat3D_measurement_point& m = measurements[i].second;
+            measurements_gen << m.pose[0] << m.pose[1] << m.pose[2] 
+                             << m.pose[3] << m.pose[4] << m.pose[5] << m.pose[6] 
+                             << m.u[0] << m.u[1] << m.u[2] 
+                             << m.u[3] << m.u[4] << m.u[5];
+            const vect_n<double>& g = ground_truth[i].second;
+            measurements_gen << g[0] << g[1] << g[2] << g[3] << g[4] << g[5] << g[6] 
+                             << g[7] << g[8] << g[9] << g[10] << g[11] << g[12];
+            measurements_gen << recorder::data_recorder::end_value_row;
+          };
+          measurements_gen << recorder::data_recorder::flush;
+        };
+      };
+      
       // do a single run for each skips:
       
-      std::vector< std::pair< double, vect_n<double> > > result_pts = 
-        batch_KF_on_timeseries(measurements, ground_truth, sat3D_lin, sat_space.get_space_topology(), b_init, b_u, b_z);
+      std::cout << "Running estimators on data series.." << std::flush;
+      
+      if( vm.count("mekf") ) {
+        do_all_single_runs(output_stem_name, "mekf", measurements, ground_truth, sat3D_lin, 
+                          sat_space.get_space_topology(), b_init, b_u, b_z, time_step, min_skips, max_skips);
+      };
+      
+      std::cout << "." << std::flush;
+      
+      if( vm.count("iekf") ) {
+        do_all_single_runs(output_stem_name, "iekf", measurements, ground_truth, sat3D_inv, 
+                          sat_space.get_space_topology(), b_init, b_u, b_z, time_step, min_skips, max_skips);
+      };
+      
+      std::cout << "." << std::flush;
+      
+      if( vm.count("imkf") ) {
+        do_all_single_runs(output_stem_name, "imkf", measurements, ground_truth, sat3D_invmom, 
+                          sat_space.get_space_topology(), b_init, b_u, b_z, time_step, min_skips, max_skips);
+      };
+      
+      std::cout << "." << std::flush;
+      
+      if( vm.count("imkfv2") ) {
+        do_all_single_runs(output_stem_name, "imkfv2", measurements, ground_truth, sat3D_invmid, 
+                           sat_space.get_space_topology(), b_init, b_u, b_z, time_step, min_skips, max_skips);
+      };
+      
+      std::cout << "." << std::flush;
+      
+      std::cout << "Finished!" << std::endl;
       
     } else {
       // do monte-carlo runs:
       set_frame_3D(x_init, initial_motion);
-      generate_timeseries(measurements, ground_truth, sat3D_lin, sat_space.get_space_topology(),
-                          x_init, start_time, end_time, input_disturbance, measurement_noise + artificial_noise);
+      std::map< std::string, shared_ptr< recorder::ssv_recorder > > results_map;
+      shared_ptr< recorder::ssv_recorder > ground_truth_stats(new recorder::ssv_recorder(output_stem_name + "_meas_stddevs.ssv"));
+      (*ground_truth_stats) << "ep_x"  << "ep_y" << "ep_z"  << "ea_x" << "ea_y" << "ea_z"
+                            << "ep_m"  << "ea_m" 
+                            << recorder::data_recorder::end_name_row;
+      
+      std::cout << "Running Monte-Carlo Simulations..." << std::endl;
+      
+      for(unsigned int mc_i = 0; mc_i < mc_runs; ++mc_i) {
+        
+        std::cout << "\r" << std::setw(10) << mc_i << std::flush;
+        
+        generate_timeseries(measurements, ground_truth, sat3D_lin, sat_space.get_space_topology(),
+                            x_init, start_time, end_time, cov_matrix_type(input_disturbance), 
+                            cov_matrix_type(measurement_noise + artificial_noise), ground_truth_stats);
+        
+        std::cout << "." << std::flush;
+        
+        if( vm.count("mekf") ) {
+          do_single_monte_carlo_run(
+            results_map, output_stem_name, "mekf", measurements, ground_truth, sat3D_lin, 
+            sat_space.get_space_topology(), b_init, b_u, b_z, time_step, min_skips, max_skips);
+        };
+        
+        std::cout << "." << std::flush;
+        
+        if( vm.count("iekf") ) {
+          do_single_monte_carlo_run(
+            results_map, output_stem_name, "iekf", measurements, ground_truth, sat3D_inv, 
+            sat_space.get_space_topology(), b_init, b_u, b_z, time_step, min_skips, max_skips);
+        };
+        
+        std::cout << "." << std::flush;
+        
+        if( vm.count("imkf") ) {
+          do_single_monte_carlo_run(
+            results_map, output_stem_name, "imkf", measurements, ground_truth, sat3D_invmom, 
+            sat_space.get_space_topology(), b_init, b_u, b_z, time_step, min_skips, max_skips);
+        };
+        
+        std::cout << "." << std::flush;
+        
+        if( vm.count("imkfv2") ) {
+          do_single_monte_carlo_run(
+            results_map, output_stem_name, "imkfv2", measurements, ground_truth, sat3D_invmid, 
+            sat_space.get_space_topology(), b_init, b_u, b_z, time_step, min_skips, max_skips);
+        };
+        
+        std::cout << "." << std::flush;
+        
+      };
+      
+      std::cout << "Finished!" << std::endl;
       
     };
     
@@ -635,8 +930,133 @@ int main(int argc, char** argv) {
     sat3D_output_belief_type b_z(sat3D_output_type(vect_n<double>(10, 0.0)), 
                                  cov_type(cov_matrix_type(measurement_noise + artificial_noise)));
     
-    
-    
+    if( ! vm.count("monte-carlo") ) {
+      
+      if( measurements.size() == 0 ) {
+        // must generate the measurements and ground_truth vectors:
+        set_frame_3D(x_init, initial_motion);
+        generate_timeseries(measurements, ground_truth, sat3D_lin_gyro, sat_space.get_space_topology(),
+                            x_init, start_time, end_time, cov_matrix_type(input_disturbance), 
+                            cov_matrix_type(measurement_noise + artificial_noise));
+        
+        // and output those if asked for it:
+        if( vm.count("generate-meas-file") ) {
+          recorder::ssv_recorder measurements_gen(output_stem_name + "_meas.ssv");
+          measurements_gen << "p_x" << "p_y" << "p_z" << "q_0" << "q_1" << "q_2" << "q_2"
+                           << "w_x" << "w_y" << "w_z" 
+                           << "f_x" << "f_y" << "f_z" << "t_x" << "t_y" << "t_z" 
+                           << "p_x_true" << "p_y_true" << "p_z_true" << "q_0_true" << "q_1_true" << "q_2_true" << "q_2_true"
+                           << "v_x_true" << "v_y_true" << "v_z_true" << "w_x_true" << "w_y_true" << "w_z_true" 
+                           << recorder::data_recorder::end_name_row;
+          
+          for(std::size_t i = 0; i < measurements.size(); ++i) {
+            const sat3D_measurement_point& m = measurements[i].second;
+            measurements_gen << m.pose[0] << m.pose[1] << m.pose[2] 
+                             << m.pose[3] << m.pose[4] << m.pose[5] << m.pose[6]
+                             << m.gyro[0] << m.gyro[1] << m.gyro[2]
+                             << m.u[0] << m.u[1] << m.u[2] << m.u[3] << m.u[4] << m.u[5];
+            const vect_n<double>& g = ground_truth[i].second;
+            measurements_gen << g[0] << g[1] << g[2] << g[3] << g[4] << g[5] << g[6]
+                             << g[7] << g[8] << g[9] << g[10] << g[11] << g[12];
+            measurements_gen << recorder::data_recorder::end_value_row;
+          };
+          measurements_gen << recorder::data_recorder::flush;
+        };
+      };
+      
+      // do a single run for each skips:
+      
+      std::cout << "Running estimators on data series.." << std::flush;
+      
+      if( vm.count("mekf") ) {
+        do_all_single_runs(output_stem_name, "mekf_gyro", measurements, ground_truth, sat3D_lin_gyro, 
+                          sat_space.get_space_topology(), b_init, b_u, b_z, time_step, min_skips, max_skips);
+      };
+      
+      std::cout << "." << std::flush;
+      
+      if( vm.count("iekf") ) {
+        do_all_single_runs(output_stem_name, "iekf_gyro", measurements, ground_truth, sat3D_inv_gyro, 
+                          sat_space.get_space_topology(), b_init, b_u, b_z, time_step, min_skips, max_skips);
+      };
+      
+      std::cout << "." << std::flush;
+      
+      if( vm.count("imkf") ) {
+        do_all_single_runs(output_stem_name, "imkf_gyro", measurements, ground_truth, sat3D_invmom_gyro, 
+                          sat_space.get_space_topology(), b_init, b_u, b_z, time_step, min_skips, max_skips);
+      };
+      
+      std::cout << "." << std::flush;
+      
+      if( vm.count("imkfv2") ) {
+        do_all_single_runs(output_stem_name, "imkfv2_gyro", measurements, ground_truth, sat3D_invmid_gyro, 
+                          sat_space.get_space_topology(), b_init, b_u, b_z, time_step, min_skips, max_skips);
+      };
+      
+      std::cout << "." << std::flush;
+      
+      std::cout << "Finished!" << std::endl;
+      
+    } else {
+      // do monte-carlo runs:
+      set_frame_3D(x_init, initial_motion);
+      std::map< std::string, shared_ptr< recorder::ssv_recorder > > results_map;
+      shared_ptr< recorder::ssv_recorder > ground_truth_stats(new recorder::ssv_recorder(output_stem_name + "_meas_gyro_stddevs.ssv"));
+      (*ground_truth_stats) << "ep_x"  << "ep_y" << "ep_z" << "ea_x" << "ea_y" << "ea_z"
+                            << "ep_m"  << "ea_m" 
+                            << "ew_x"  << "ew_y" << "ew_z" << "ew_m" 
+                            << recorder::data_recorder::end_name_row;
+      
+      std::cout << "Running Monte-Carlo Simulations..." << std::endl;
+      
+      for(unsigned int mc_i = 0; mc_i < mc_runs; ++mc_i) {
+        
+        std::cout << "\r" << std::setw(10) << mc_i << std::flush;
+        
+        generate_timeseries(measurements, ground_truth, sat3D_lin_gyro, sat_space.get_space_topology(),
+                            x_init, start_time, end_time, cov_matrix_type(input_disturbance), 
+                            cov_matrix_type(measurement_noise + artificial_noise), ground_truth_stats);
+        
+        std::cout << "." << std::flush;
+        
+        if( vm.count("mekf") ) {
+          do_single_monte_carlo_run(
+            results_map, output_stem_name, "mekf_gyro", measurements, ground_truth, sat3D_lin_gyro, 
+            sat_space.get_space_topology(), b_init, b_u, b_z, time_step, min_skips, max_skips);
+        };
+        
+        std::cout << "." << std::flush;
+        
+        if( vm.count("iekf") ) {
+          do_single_monte_carlo_run(
+            results_map, output_stem_name, "iekf_gyro", measurements, ground_truth, sat3D_inv_gyro, 
+            sat_space.get_space_topology(), b_init, b_u, b_z, time_step, min_skips, max_skips);
+        };
+        
+        std::cout << "." << std::flush;
+        
+        if( vm.count("imkf") ) {
+          do_single_monte_carlo_run(
+            results_map, output_stem_name, "imkf_gyro", measurements, ground_truth, sat3D_invmom_gyro, 
+            sat_space.get_space_topology(), b_init, b_u, b_z, time_step, min_skips, max_skips);
+        };
+        
+        std::cout << "." << std::flush;
+        
+        if( vm.count("imkfv2") ) {
+          do_single_monte_carlo_run(
+            results_map, output_stem_name, "imkfv2_gyro", measurements, ground_truth, sat3D_invmid_gyro, 
+            sat_space.get_space_topology(), b_init, b_u, b_z, time_step, min_skips, max_skips);
+        };
+        
+        std::cout << "." << std::flush;
+        
+      };
+      
+      std::cout << "Finished!" << std::endl;
+      
+    };
     
   } else {
     
@@ -653,175 +1073,131 @@ int main(int argc, char** argv) {
     sat3D_output_belief_type b_z(sat3D_output_type(vect_n<double>(16, 0.0)), 
                                  cov_type(cov_matrix_type(measurement_noise + artificial_noise)));
     
-    
-    
-    
-  };
-  
-  
-  std::cout << "Running Extended Kalman Filter..." << std::endl;
-  {
-    std::vector< std::pair< double, vect_n<double> > > result_pts = 
-      batch_KF_on_timeseries(measurements, ground_truth, mdl_lin_dt, mdl_state_space, b, b_u, b_z);
-    
-    
-  };
-  std::cout << "Done." << std::endl;
-
-  
-  
-
-  
-  std::cout << "Running Invariant Extended Kalman Filter..." << std::endl;
-  {
-  
-  recorder::ssv_recorder results(result_filename + "_iekf.ssv");
-  results << "time" << "pos_x" << "pos_y" << "pos_z" << "q0" << "q1" << "q2" << "q3" 
-                    << "ep_x"  << "ep_y"  << "ep_z"  << "ea_x" << "ea_y" << "ea_z"
-                    << "P_xx" << "P_yy" << "P_zz" << "P_aax" << "P_aay" << "P_aaz" << recorder::data_recorder::end_name_row;
-  std::vector< std::pair< double, vect_n<double> > >::iterator it_orig = measurements.begin();
-  for(std::vector< std::pair< double, vect_n<double> > >::iterator it = measurements_noisy.begin(); it != measurements_noisy.end(); ++it, ++it_orig) {
-    
-    b_z.set_mean_state(it->second);
-    ctrl::invariant_kalman_filter_step(mdl_inv_dt,mdl_state_space,b,b_u,b_z,it->first);
-    
-    vect_n<double> b_mean = b.get_mean_state();
-    quaternion<double> q_mean(vect<double,4>(b_mean[3],b_mean[4],b_mean[5],b_mean[6]));
-    b_mean[3] = q_mean[0]; b_mean[4] = q_mean[1]; b_mean[5] = q_mean[2]; b_mean[6] = q_mean[3];
-    b.set_mean_state(b_mean);
-    
-    quaternion<double> q_orig(vect<double,4>(it_orig->second[0],it_orig->second[1],it_orig->second[2],it_orig->second[3]));
-    axis_angle<double> aa_diff = axis_angle<double>(invert(q_mean) * q_orig);
-    
-    const vect_n<double>& x_mean = b.get_mean_state();
-    results << it->first << x_mean[0] << x_mean[1] << x_mean[2] 
-                         << x_mean[3] << x_mean[4] << x_mean[5] << x_mean[6]
-                         << (x_mean[0] - it_orig->second[4])
-                         << (x_mean[1] - it_orig->second[5])
-                         << (x_mean[2] - it_orig->second[6])
-                         << (aa_diff.angle() * aa_diff.axis()[0])
-                         << (aa_diff.angle() * aa_diff.axis()[1])
-                         << (aa_diff.angle() * aa_diff.axis()[2])
-                         << b.get_covariance().get_matrix()(0,0)
-                         << b.get_covariance().get_matrix()(1,1)
-                         << b.get_covariance().get_matrix()(2,2)
-                         << b.get_covariance().get_matrix()(3,3)
-                         << b.get_covariance().get_matrix()(4,4)
-                         << b.get_covariance().get_matrix()(5,5)
-                         << recorder::data_recorder::end_value_row;
-    
-  };
-  results << recorder::data_recorder::flush;
-  };
-  std::cout << "Done." << std::endl;
-
-  
-  
-  
-
-  
-  std::cout << "Running Invariant-Momentum Kalman Filter..." << std::endl;
-  {
-  
-  recorder::ssv_recorder results(result_filename + "_imkf.ssv");
-  results << "time" << "pos_x" << "pos_y" << "pos_z" << "q0" << "q1" << "q2" << "q3" 
-                    << "ep_x"  << "ep_y"  << "ep_z"  << "ea_x" << "ea_y" << "ea_z"
-                    << "P_xx" << "P_yy" << "P_zz" << "P_aax" << "P_aay" << "P_aaz" << recorder::data_recorder::end_name_row;
-  std::list< std::pair< double, vect_n<double> > >::iterator it_orig = measurements.begin();
-  for(std::list< std::pair< double, vect_n<double> > >::iterator it = measurements_noisy.begin(); it != measurements_noisy.end(); ++it, ++it_orig) {
-    
-    b_z.set_mean_state(it->second);
-    ctrl::invariant_kalman_filter_step(mdl_inv_mom_dt,mdl_state_space,b,b_u,b_z,it->first);
-    
-    vect_n<double> b_mean = b.get_mean_state();
-    quaternion<double> q_mean(vect<double,4>(b_mean[3],b_mean[4],b_mean[5],b_mean[6]));
-    b_mean[3] = q_mean[0]; b_mean[4] = q_mean[1]; b_mean[5] = q_mean[2]; b_mean[6] = q_mean[3];
-    b.set_mean_state(b_mean);
-    
-    quaternion<double> q_orig(vect<double,4>(it_orig->second[0],it_orig->second[1],it_orig->second[2],it_orig->second[3]));
-    axis_angle<double> aa_diff = axis_angle<double>(invert(q_mean) * q_orig);
-    
-    const vect_n<double>& x_mean = b.get_mean_state();
-    results << it->first << x_mean[0] << x_mean[1] << x_mean[2] 
-                         << x_mean[3] << x_mean[4] << x_mean[5] << x_mean[6] 
-                         << (x_mean[0] - it_orig->second[4])
-                         << (x_mean[1] - it_orig->second[5])
-                         << (x_mean[2] - it_orig->second[6])
-                         << (aa_diff.angle() * aa_diff.axis()[0])
-                         << (aa_diff.angle() * aa_diff.axis()[1])
-                         << (aa_diff.angle() * aa_diff.axis()[2])
-                         << b.get_covariance().get_matrix()(0,0)
-                         << b.get_covariance().get_matrix()(1,1)
-                         << b.get_covariance().get_matrix()(2,2)
-                         << b.get_covariance().get_matrix()(3,3)
-                         << b.get_covariance().get_matrix()(4,4)
-                         << b.get_covariance().get_matrix()(5,5)
-                         << recorder::data_recorder::end_value_row;
-    
-  };
-  results << recorder::data_recorder::flush;
-  };
-  std::cout << "Done." << std::endl;
-  
-  
-  
-  
-
-  
-  std::cout << "Running Invariant-Midpoint Kalman Filter..." << std::endl;
-  {
-  
-  recorder::ssv_recorder results(result_filename + "_imkfv2.ssv");
-  results << "time" << "pos_x" << "pos_y" << "pos_z" << "q0" << "q1" << "q2" << "q3" 
-                    << "ep_x"  << "ep_y"  << "ep_z"  << "ea_x" << "ea_y" << "ea_z"
-                    << "P_xx" << "P_yy" << "P_zz" << "P_aax" << "P_aay" << "P_aaz" << recorder::data_recorder::end_name_row;
-  std::list< std::pair< double, vect_n<double> > >::iterator it_orig = measurements.begin();
-  for(std::list< std::pair< double, vect_n<double> > >::iterator it = measurements_noisy.begin(); it != measurements_noisy.end(); ++it, ++it_orig) {
-    
-    b_z.set_mean_state(it->second);
-    ctrl::invariant_kalman_filter_step(mdl_inv_mid_dt,mdl_state_space,b,b_u,b_z,it->first);
-    
-    vect_n<double> b_mean = b.get_mean_state();
-    quaternion<double> q_mean(vect<double,4>(b_mean[3],b_mean[4],b_mean[5],b_mean[6]));
-    b_mean[3] = q_mean[0]; b_mean[4] = q_mean[1]; b_mean[5] = q_mean[2]; b_mean[6] = q_mean[3];
-    b.set_mean_state(b_mean);
-    
-    quaternion<double> q_orig(vect<double,4>(it_orig->second[0],it_orig->second[1],it_orig->second[2],it_orig->second[3]));
-    axis_angle<double> aa_diff = axis_angle<double>(invert(q_mean) * q_orig);
-    
-    const vect_n<double>& x_mean = b.get_mean_state();
-    results << it->first << x_mean[0] << x_mean[1] << x_mean[2] 
-                         << x_mean[3] << x_mean[4] << x_mean[5] << x_mean[6] 
-                         << (x_mean[0] - it_orig->second[4])
-                         << (x_mean[1] - it_orig->second[5])
-                         << (x_mean[2] - it_orig->second[6])
-                         << (aa_diff.angle() * aa_diff.axis()[0])
-                         << (aa_diff.angle() * aa_diff.axis()[1])
-                         << (aa_diff.angle() * aa_diff.axis()[2])
-                         << b.get_covariance().get_matrix()(0,0)
-                         << b.get_covariance().get_matrix()(1,1)
-                         << b.get_covariance().get_matrix()(2,2)
-                         << b.get_covariance().get_matrix()(3,3)
-                         << b.get_covariance().get_matrix()(4,4)
-                         << b.get_covariance().get_matrix()(5,5)
-                         << recorder::data_recorder::end_value_row;
+    if( ! vm.count("monte-carlo") ) {
+      
+      if( measurements.size() == 0 ) {
+        // must generate the measurements and ground_truth vectors:
+        set_frame_3D(x_init, initial_motion);
+        generate_timeseries(measurements, ground_truth, sat3D_invmom_IMU, sat_space.get_space_topology(),
+                            x_init, start_time, end_time, cov_matrix_type(input_disturbance), 
+                            cov_matrix_type(measurement_noise + artificial_noise));
+        
+        // and output those if asked for it:
+        if( vm.count("generate-meas-file") ) {
+          recorder::ssv_recorder measurements_gen(output_stem_name + "_meas.ssv");
+          measurements_gen << "p_x" << "p_y" << "p_z" << "q_0" << "q_1" << "q_2" << "q_2"
+                           << "w_x" << "w_y" << "w_z" 
+                           << "acc_x" << "acc_y" << "acc_z" << "mag_x" << "mag_y" << "mag_z" 
+                           << "f_x" << "f_y" << "f_z" << "t_x" << "t_y" << "t_z" 
+                           << "p_x_true" << "p_y_true" << "p_z_true" << "q_0_true" << "q_1_true" << "q_2_true" << "q_2_true"
+                           << "v_x_true" << "v_y_true" << "v_z_true" << "w_x_true" << "w_y_true" << "w_z_true" 
+                           << recorder::data_recorder::end_name_row;
+          
+          for(std::size_t i = 0; i < measurements.size(); ++i) {
+            const sat3D_measurement_point& m = measurements[i].second;
+            measurements_gen << m.pose[0] << m.pose[1] << m.pose[2] 
+                             << m.pose[3] << m.pose[4] << m.pose[5] << m.pose[6]
+                             << m.gyro[0] << m.gyro[1] << m.gyro[2]
+                             << m.IMU_a_m[0] << m.IMU_a_m[1] << m.IMU_a_m[2] 
+                             << m.IMU_a_m[3] << m.IMU_a_m[4] << m.IMU_a_m[5];
+            measurements_gen << m.u[0] << m.u[1] << m.u[2] << m.u[3] << m.u[4] << m.u[5];
+            const vect_n<double>& g = ground_truth[i].second;
+            measurements_gen << g[0] << g[1] << g[2] << g[3] << g[4] << g[5] << g[6]
+                             << g[7] << g[8] << g[9] << g[10] << g[11] << g[12];
+            measurements_gen << recorder::data_recorder::end_value_row;
+          };
+          measurements_gen << recorder::data_recorder::flush;
+        };
+      };
+      
+      // do a single run for each skips:
+      
+      std::cout << "Running estimators on data series.." << std::flush;
+      
+      if( vm.count("mekf") ) {
+        std::cerr << "Warning: The multiplicative extended Kalman filter (MEKF) is not available for full IMU measurements!" << std::endl;
+      };
+      
+      std::cout << "." << std::flush;
+      
+      if( vm.count("iekf") ) {
+        std::cerr << "Warning: The invariant extended Kalman filter (IEKF) is not available for full IMU measurements!" << std::endl;
+      };
+      
+      std::cout << "." << std::flush;
+      
+      if( vm.count("imkf") ) {
+        do_all_single_runs(output_stem_name, "imkf_IMU", measurements, ground_truth, sat3D_invmom_IMU, 
+                          sat_space.get_space_topology(), b_init, b_u, b_z, time_step, min_skips, max_skips);
+      };
+      
+      std::cout << "." << std::flush;
+      
+      if( vm.count("imkfv2") ) {
+        do_all_single_runs(output_stem_name, "imkfv2_IMU", measurements, ground_truth, sat3D_invmid_IMU, 
+                          sat_space.get_space_topology(), b_init, b_u, b_z, time_step, min_skips, max_skips);
+      };
+      
+      std::cout << "." << std::flush;
+      
+      std::cout << "Finished!" << std::endl;
+      
+    } else {
+      // do monte-carlo runs:
+      set_frame_3D(x_init, initial_motion);
+      std::map< std::string, shared_ptr< recorder::ssv_recorder > > results_map;
+      shared_ptr< recorder::ssv_recorder > ground_truth_stats(new recorder::ssv_recorder(output_stem_name + "_meas_IMU_stddevs.ssv"));
+      (*ground_truth_stats) << "ep_x"  << "ep_y" << "ep_z" << "ea_x" << "ea_y" << "ea_z"
+                            << "ep_m"  << "ea_m" 
+                            << "ew_x"  << "ew_y" << "ew_z" << "ew_m" 
+                            << "eacc_x"  << "eacc_y" << "eacc_z" << "eacc_m" 
+                            << "emag_y"  << "emag_y" << "emag_z" << "emag_m" 
+                            << recorder::data_recorder::end_name_row;
+      
+      if( vm.count("mekf") ) {
+        std::cerr << "Warning: The multiplicative extended Kalman filter (MEKF) is not available for full IMU measurements!" << std::endl;
+      };
+      
+      if( vm.count("iekf") ) {
+        std::cerr << "Warning: The invariant extended Kalman filter (IEKF) is not available for full IMU measurements!" << std::endl;
+      };
+      
+      std::cout << "Running Monte-Carlo Simulations..." << std::endl;
+      
+      for(unsigned int mc_i = 0; mc_i < mc_runs; ++mc_i) {
+        
+        std::cout << "\r" << std::setw(10) << mc_i << std::flush;
+        
+        generate_timeseries(measurements, ground_truth, sat3D_invmom_IMU, sat_space.get_space_topology(),
+                            x_init, start_time, end_time, cov_matrix_type(input_disturbance), 
+                            cov_matrix_type(measurement_noise + artificial_noise), ground_truth_stats);
+        
+        std::cout << "." << std::flush;
+        
+        if( vm.count("imkf") ) {
+          do_single_monte_carlo_run(
+            results_map, output_stem_name, "imkf_IMU", measurements, ground_truth, sat3D_invmom_IMU, 
+            sat_space.get_space_topology(), b_init, b_u, b_z, time_step, min_skips, max_skips);
+        };
+        
+        std::cout << "." << std::flush;
+        
+        if( vm.count("imkfv2") ) {
+          do_single_monte_carlo_run(
+            results_map, output_stem_name, "imkfv2_IMU", measurements, ground_truth, sat3D_invmid_IMU, 
+            sat_space.get_space_topology(), b_init, b_u, b_z, time_step, min_skips, max_skips);
+        };
+        
+        std::cout << "." << std::flush;
+        
+      };
+      
+      std::cout << "Finished!" << std::endl;
+      
+    };
     
   };
-  results << recorder::data_recorder::flush;
-  };
-  std::cout << "Done." << std::endl;
   
-  
-  
-  {
-  recorder::ssv_recorder results(result_filename + "_times.ssv");
-  results << "step_count" << "ekf(ms)" << "iekf(ms)" << "imkfv1(ms)" << "imkfv2(ms)" << recorder::data_recorder::end_name_row;
-  results << double(measurements_noisy.size()) << double(dt[0].total_milliseconds())
-                                               << double(dt[1].total_milliseconds())
-                                               << double(dt[2].total_milliseconds())
-                                               << double(dt[3].total_milliseconds())
-                                               << recorder::data_recorder::end_value_row << recorder::data_recorder::flush;
-  };
   
   
 };

@@ -122,7 +122,7 @@ class satellite2D_imdt_sys : public named_object {
      * This function sets the time-step for this discrete-time system.
      * \param aDt The new time-step for this discrete-time system.
      */
-    virtual void set_time_step(time_difference_type aDt) const { mDt = aDt; };
+    virtual void set_time_step(time_difference_type aDt) { mDt = aDt; };
     
     
     /**

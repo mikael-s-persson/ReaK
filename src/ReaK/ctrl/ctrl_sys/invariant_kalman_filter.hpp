@@ -134,7 +134,7 @@ template <typename InvariantSystem,
           typename StateSpaceType,
           typename BeliefState, 
           typename InputBelief>
-typename boost::disable_if< is_invariant_system<InvariantSystem> >,
+typename boost::disable_if< is_invariant_system<InvariantSystem>,
 void >::type invariant_kalman_predict(const InvariantSystem& sys,
                                       const StateSpaceType& state_space,
                                       BeliefState& b_x,

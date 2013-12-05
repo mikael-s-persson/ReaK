@@ -122,7 +122,7 @@ class satellite3D_lin_dt_system : public named_object {
      * This function sets the time-step for this discrete-time system.
      * \param aDt The new time-step for this discrete-time system.
      */
-    virtual void set_time_step(time_difference_type aDt) const { mDt = aDt; };
+    virtual void set_time_step(time_difference_type aDt) { mDt = aDt; };
     
     /**
      * This function computes the next state of the system, i.e., the state at one time-step after the current time.
