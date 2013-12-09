@@ -45,6 +45,8 @@
 #include "linear_ss_system_concept.hpp"
 #include <lin_alg/arithmetic_tuple.hpp>
 
+#include "path_planning/metric_space_concept.hpp"
+
 namespace ReaK {
 
 namespace ctrl {
@@ -168,6 +170,8 @@ template <typename DiscreteSystem, typename StateSpaceType, typename SystemType 
 struct DiscreteLinearSSSConcept : DiscreteSSSConcept<DiscreteSystem,StateSpaceType> {
   SystemType sys_type;
   
+  typename discrete_sss_traits<DiscreteSystem>::point_difference_type dp;
+  
   typename discrete_linear_sss_traits<DiscreteSystem>::matrixA_type A;
   typename discrete_linear_sss_traits<DiscreteSystem>::matrixB_type B;
   typename discrete_linear_sss_traits<DiscreteSystem>::matrixC_type C;
@@ -177,13 +181,13 @@ struct DiscreteLinearSSSConcept : DiscreteSSSConcept<DiscreteSystem,StateSpaceTy
   {
     using ReaK::to_vect;
     using ReaK::from_vect;
-    typedef typename discrete_sss_traits<DiscreteSystem>::point_type StateType;
+    typedef typename discrete_sss_traits<DiscreteSystem>::point_difference_type StateDiffType;
     typedef typename discrete_sss_traits<DiscreteSystem>::output_type OutputType;
     typedef typename mat_traits<typename discrete_linear_sss_traits<DiscreteSystem>::matrixA_type>::value_type ValueType;
     
     sys_type.constraints(this->sys, this->state_space, this->p, this->u, this->t, A, B, C, D);
-    this->p = from_vect<StateType>(A * to_vect<ValueType>(this->p) + B * to_vect<ValueType>(this->u));
-    this->y = from_vect<OutputType>(C * to_vect<ValueType>(this->p) + D * to_vect<ValueType>(this->u));
+    this->dp = from_vect<StateDiffType>(A * to_vect<ValueType>(this->dp) + B * to_vect<ValueType>(this->u));
+    this->y  = from_vect<OutputType>(C * to_vect<ValueType>(this->dp) + D * to_vect<ValueType>(this->u));
   };
   
 };
