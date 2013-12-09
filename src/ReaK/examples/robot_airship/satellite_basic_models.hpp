@@ -62,6 +62,7 @@ namespace ctrl {
  * which is an invariant variational method that guarantees conservation of angular momentum 
  * when no actuation is applied, i.e., it is an efficient and highly stable method.
  * Also, this system operates within a first-order (once-differentiable) SE(3) topology.
+ * \note THIS CLASS SHOULD NOT BE USED FOR THE LINEARIZATION / KALMAN-FILTERING.
  */
 class satellite3D_lin_dt_system : public named_object {
   public:
@@ -122,7 +123,7 @@ class satellite3D_lin_dt_system : public named_object {
      * This function sets the time-step for this discrete-time system.
      * \param aDt The new time-step for this discrete-time system.
      */
-    virtual void set_time_step(time_difference_type aDt) const { mDt = aDt; };
+    virtual void set_time_step(time_difference_type aDt) { mDt = aDt; };
     
     /**
      * This function computes the next state of the system, i.e., the state at one time-step after the current time.
@@ -219,6 +220,7 @@ class satellite3D_lin_dt_system : public named_object {
  * method that guarantees conservation of angular momentum when no actuation is applied, i.e., 
  * it is an efficient and highly stable method. Also, this system operates within a first-order 
  * (once-differentiable) SE(3) topology.
+ * \note THIS CLASS SHOULD NOT BE USED FOR THE LINEARIZATION / KALMAN-FILTERING.
  */
 class satellite3D_gyro_lin_dt_system : public satellite3D_lin_dt_system {
   public:
@@ -236,7 +238,7 @@ class satellite3D_gyro_lin_dt_system : public satellite3D_lin_dt_system {
   
     BOOST_STATIC_CONSTANT(std::size_t, dimensions = 13);
     BOOST_STATIC_CONSTANT(std::size_t, input_dimensions = 6);
-    BOOST_STATIC_CONSTANT(std::size_t, output_dimensions = 14);
+    BOOST_STATIC_CONSTANT(std::size_t, output_dimensions = 10);
     
     typedef satellite3D_lin_dt_system::matrixA_type matrixA_type;
     typedef satellite3D_lin_dt_system::matrixB_type matrixB_type;
@@ -454,8 +456,8 @@ class satellite3D_gyro_inv_dt_system : public satellite3D_inv_dt_system {
   
     BOOST_STATIC_CONSTANT(std::size_t, dimensions = 13);
     BOOST_STATIC_CONSTANT(std::size_t, input_dimensions = 6);
-    BOOST_STATIC_CONSTANT(std::size_t, output_dimensions = 14);
-    BOOST_STATIC_CONSTANT(std::size_t, invariant_error_dimensions = 12);
+    BOOST_STATIC_CONSTANT(std::size_t, output_dimensions = 10);
+    BOOST_STATIC_CONSTANT(std::size_t, invariant_error_dimensions = 9);
     BOOST_STATIC_CONSTANT(std::size_t, invariant_correction_dimensions = 12);
     
     typedef satellite3D_inv_dt_system::matrixA_type matrixA_type;

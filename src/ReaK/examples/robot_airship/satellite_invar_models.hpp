@@ -122,7 +122,7 @@ class satellite2D_imdt_sys : public named_object {
      * This function sets the time-step for this discrete-time system.
      * \param aDt The new time-step for this discrete-time system.
      */
-    virtual void set_time_step(time_difference_type aDt) const { mDt = aDt; };
+    virtual void set_time_step(time_difference_type aDt) { mDt = aDt; };
     
     
     /**
@@ -382,8 +382,8 @@ class satellite3D_gyro_imdt_sys : public satellite3D_imdt_sys {
   
     BOOST_STATIC_CONSTANT(std::size_t, dimensions = 13);
     BOOST_STATIC_CONSTANT(std::size_t, input_dimensions = 6);
-    BOOST_STATIC_CONSTANT(std::size_t, output_dimensions = 14);
-    BOOST_STATIC_CONSTANT(std::size_t, invariant_error_dimensions = 12);
+    BOOST_STATIC_CONSTANT(std::size_t, output_dimensions = 10);
+    BOOST_STATIC_CONSTANT(std::size_t, invariant_error_dimensions = 9);
     BOOST_STATIC_CONSTANT(std::size_t, invariant_correction_dimensions = 12);
     
     typedef satellite3D_imdt_sys::matrixA_type matrixA_type;
@@ -470,8 +470,8 @@ class satellite3D_IMU_imdt_sys : public satellite3D_imdt_sys {
   
     BOOST_STATIC_CONSTANT(std::size_t, dimensions = 13);
     BOOST_STATIC_CONSTANT(std::size_t, input_dimensions = 6);
-    BOOST_STATIC_CONSTANT(std::size_t, output_dimensions = 20);
-    BOOST_STATIC_CONSTANT(std::size_t, invariant_error_dimensions = 12);
+    BOOST_STATIC_CONSTANT(std::size_t, output_dimensions = 16);
+    BOOST_STATIC_CONSTANT(std::size_t, invariant_error_dimensions = 15);
     BOOST_STATIC_CONSTANT(std::size_t, invariant_correction_dimensions = 12);
     
     typedef satellite3D_imdt_sys::matrixA_type matrixA_type;

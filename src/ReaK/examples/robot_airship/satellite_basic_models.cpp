@@ -94,7 +94,9 @@ satellite3D_lin_dt_system::point_type satellite3D_lin_dt_system::get_next_state(
       q_new, 
       w0));
 };
-    
+
+
+
 void satellite3D_lin_dt_system::get_state_transition_blocks(
   satellite3D_lin_dt_system::matrixA_type& A, 
   satellite3D_lin_dt_system::matrixB_type& B, 
@@ -107,47 +109,62 @@ void satellite3D_lin_dt_system::get_state_transition_blocks(
   const satellite3D_lin_dt_system::input_type&) const {
   
   vect<double,3> w = -mDt * get_ang_velocity(p_0);
-      
-  A = mat_ident<double>(13);
-  A(0,7) = mDt;
-  A(1,8) = mDt;  
-  A(2,9) = mDt;
+  
+  A = mat_ident<double>(12);
+  A(0,3) = mDt;
+  A(1,4) = mDt;  
+  A(2,5) = mDt;
+  
   mat<double,mat_structure::square> JinvWJ(mInertiaMomentInv * mat<double,mat_structure::skew_symmetric>(w) * mInertiaMoment);
-  set_block(A, mat_ident<double>(3) + JinvWJ, 10, 10);
+  set_block(A, mat_ident<double>(3) + JinvWJ, 9, 9);
   
   w -= 0.5 * (mInertiaMomentInv * ( (mDt * mDt) * vect<double,3>(u_0[3], u_0[4], u_0[5]) - w % (mInertiaMoment * w) ) );
-  w *= 0.5;
-  set_block(A, mat_vect_adaptor<vect<double,3>,mat_alignment::row_major>(w), 3, 4);
-  set_block(A, mat_ident<double>(3) + mat<double,mat_structure::skew_symmetric>(w), 4, 4);
-  w *= -1.0;
-  set_block(A, mat_vect_adaptor<vect<double,3>,mat_alignment::column_major>(w), 4, 3);
   
-  const unit_quat<double>& q = get_quaternion(p_0);
-  w[0] = -0.5 * mDt * q[1];
-  w[1] = -0.5 * mDt * q[2];
-  w[2] = -0.5 * mDt * q[3];
+  set_block(A, mat_ident<double>(3) + mat<double,mat_structure::skew_symmetric>(w), 6, 6);
+  /* This part is wrong (for q-q, not a-a). */
+//   w *= 0.5;
+//   set_block(A, mat_vect_adaptor<vect<double,3>,mat_alignment::row_major>(w), 3, 4);
+//   set_block(A, mat_ident<double>(3) + mat<double,mat_structure::skew_symmetric>(w), 4, 4);
+//   w *= -1.0;
+//   set_block(A, mat_vect_adaptor<vect<double,3>,mat_alignment::column_major>(w), 4, 3);
+  /* . */
+  
   JinvWJ = mat_ident<double>(3) + 0.5 * JinvWJ;
-  vect<double,3> w_JinvWJ = w * JinvWJ;
-  set_block(A, mat_vect_adaptor< vect<double,3>, mat_alignment::row_major >(w_JinvWJ),3,10);
-  set_block(A, ((0.5 * mDt * q[0]) * mat_ident<double>(3) - mat<double,mat_structure::skew_symmetric>(w)) * JinvWJ,4,10);
+//   const unit_quat<double>& q = get_quaternion(p_0);
   
-  B = mat<double,mat_structure::nil>(13,6);
+  set_block(A, mDt * JinvWJ, 6, 9);
+  /* This part is wrong (for q-w, not a-w). */
+//   w[0] = -0.5 * mDt * q[1];
+//   w[1] = -0.5 * mDt * q[2];
+//   w[2] = -0.5 * mDt * q[3];
+//   vect<double,3> w_JinvWJ = w * JinvWJ;
+//   set_block(A, mat_vect_adaptor< vect<double,3>, mat_alignment::row_major >(w_JinvWJ),3,10);
+//   set_block(A, ((0.5 * mDt * q[0]) * mat_ident<double>(3) - mat<double,mat_structure::skew_symmetric>(w)) * JinvWJ,4,10);
+  /* . */
+  
+  
+  B = mat<double,mat_structure::nil>(12,6);
   B(0,0) = 0.5 * mDt * mDt / mMass;
   B(1,1) = 0.5 * mDt * mDt / mMass;
   B(2,2) = 0.5 * mDt * mDt / mMass;
+  B(3,0) = mDt / mMass;
+  B(4,1) = mDt / mMass;
+  B(5,2) = mDt / mMass;
   
-  w *= mDt * 0.5;
-  vect<double,3> w_Jinv = w * mInertiaMomentInv;
-  set_block(B, mat_vect_adaptor< vect<double,3>, mat_alignment::row_major >( w_Jinv ), 3, 3);
-  set_block(B, (0.25 * mDt * mDt * q[0]) * mInertiaMomentInv - mat<double,mat_structure::skew_symmetric>(w) * mInertiaMomentInv, 4, 3);
+  set_block(B, (0.5 * mDt * mDt) * mInertiaMomentInv, 6, 3);
+  /* This part is wrong (for q-t, not a-t). */
+//   w = -0.25 * mDt * mDt * vect<double,3>(q[1], q[2], q[3]);
+//   vect<double,3> w_Jinv = w * mInertiaMomentInv;
+//   set_block(B, mat_vect_adaptor< vect<double,3>, mat_alignment::row_major >( w_Jinv ), 3, 3);
+//   set_block(B, (0.25 * mDt * mDt * q[0]) * mInertiaMomentInv - mat<double,mat_structure::skew_symmetric>(w) * mInertiaMomentInv, 4, 3);
+  /* . */
   
-  B(7,0) = mDt / mMass;
-  B(8,1) = mDt / mMass;
-  B(9,2) = mDt / mMass;
-  set_block(B, mDt * mInertiaMomentInv, 10, 3);
+  set_block(B, mDt * mInertiaMomentInv, 9, 3);
   
 };
-    
+
+
+
 satellite3D_lin_dt_system::output_type satellite3D_lin_dt_system::get_output(
   const satellite3D_lin_dt_system::state_space_type&, 
   const satellite3D_lin_dt_system::point_type& x, 
@@ -157,7 +174,9 @@ satellite3D_lin_dt_system::output_type satellite3D_lin_dt_system::get_output(
   const unit_quat<double>& q = get_quaternion(x);
   return satellite3D_lin_dt_system::output_type(pos[0], pos[1], pos[2], q[0], q[1], q[2], q[3]);
 };
-    
+
+
+
 void satellite3D_lin_dt_system::get_output_function_blocks(
   satellite3D_lin_dt_system::matrixC_type& C, 
   satellite3D_lin_dt_system::matrixD_type& D, 
@@ -167,9 +186,11 @@ void satellite3D_lin_dt_system::get_output_function_blocks(
   const satellite3D_lin_dt_system::input_type&) const {
   C = mat<double,mat_structure::nil>(7,13);
   set_block(C,mat<double,mat_structure::identity>(7),0,0);
-      
+  
   D = mat<double,mat_structure::nil>(7,6);
 };
+
+
 
 
 
@@ -191,7 +212,6 @@ satellite3D_gyro_lin_dt_system::output_type satellite3D_gyro_lin_dt_system::get_
   return satellite3D_gyro_lin_dt_system::output_type(
     pos[0], pos[1], pos[2], 
     q[0], q[1], q[2], q[3], 
-    q[0], q[1], q[2], q[3], 
     w[0], w[1], w[2]);
 };
     
@@ -202,10 +222,9 @@ void satellite3D_gyro_lin_dt_system::get_output_function_blocks(
   const satellite3D_gyro_lin_dt_system::time_type&, 
   const satellite3D_gyro_lin_dt_system::point_type&, 
   const satellite3D_gyro_lin_dt_system::input_type&) const {
-  C = mat<double,mat_structure::nil>(14,13);
+  C = mat<double,mat_structure::nil>(10,13);
   set_block(C,mat<double,mat_structure::identity>(7),0,0);
-  set_block(C,mat<double,mat_structure::identity>(4),7,3);
-  set_block(C,mat<double,mat_structure::identity>(3),11,10);
+  set_block(C,mat<double,mat_structure::identity>(3),7,3);
   
   D = mat<double,mat_structure::nil>(14,6);
 };
@@ -219,11 +238,13 @@ void satellite3D_gyro_lin_dt_system::get_output_function_blocks(
 
 
 
-    
+
 satellite3D_inv_dt_system::satellite3D_inv_dt_system(
   const std::string& aName, double aMass, const mat<double,mat_structure::symmetric>& aInertiaMoment, double aDt) :
   satellite3D_lin_dt_system(aName,aMass,aInertiaMoment,aDt) { }; 
-    
+
+
+
 void satellite3D_inv_dt_system::get_state_transition_blocks(
   satellite3D_inv_dt_system::matrixA_type& A, 
   satellite3D_inv_dt_system::matrixB_type& B, 
@@ -238,31 +259,33 @@ void satellite3D_inv_dt_system::get_state_transition_blocks(
   vect<double,3> w = 0.5 * get_ang_velocity(p_0);
   
   A = mat_ident<double>(12);
-  A(0,6) = mDt;
-  A(1,7) = mDt;
-  A(2,8) = mDt;
+  A(0,3) = mDt;
+  A(1,4) = mDt;
+  A(2,5) = mDt;
   
   mat<double,mat_structure::square> T(mInertiaMomentInv * (mat<double,mat_structure::skew_symmetric>(w) * mInertiaMoment
                                                         - mat<double,mat_structure::skew_symmetric>(mInertiaMoment * w)));
   
-  set_block(A, mat<double,mat_structure::diagonal>(3,mDt) - (0.5 * mDt * mDt) * T, 3, 9);
+  set_block(A, mat<double,mat_structure::diagonal>(3,mDt) - (0.5 * mDt * mDt) * T, 6, 9);
   set_block(A, mat_ident<double>(3) - mDt * T, 9, 9);
   
   w *= 2.0 * mDt;
-  set_block(A, mat_ident<double>(3) - mat<double,mat_structure::skew_symmetric>(w), 3, 3);
+  set_block(A, mat_ident<double>(3) - mat<double,mat_structure::skew_symmetric>(w), 6, 6);
   
   B = mat<double,mat_structure::nil>(12,6);
   B(0,0) = 0.5 * mDt * mDt / mMass;
   B(1,1) = 0.5 * mDt * mDt / mMass;
   B(2,2) = 0.5 * mDt * mDt / mMass;
-  set_block(B, (0.5 * mDt * mDt) * mInertiaMomentInv, 3, 3);
-  B(6,0) = mDt / mMass;
-  B(7,1) = mDt / mMass;
-  B(8,2) = mDt / mMass;
+  B(3,0) = mDt / mMass;
+  B(4,1) = mDt / mMass;
+  B(5,2) = mDt / mMass;
+  set_block(B, (0.5 * mDt * mDt) * mInertiaMomentInv, 6, 3);
   set_block(B, mDt * mInertiaMomentInv, 9, 3);
   
 };
-    
+
+
+
 void satellite3D_inv_dt_system::get_output_function_blocks(
   satellite3D_inv_dt_system::matrixC_type& C, 
   satellite3D_inv_dt_system::matrixD_type& D, 
@@ -271,11 +294,14 @@ void satellite3D_inv_dt_system::get_output_function_blocks(
   const satellite3D_inv_dt_system::point_type&, 
   const satellite3D_inv_dt_system::input_type&) const {
   C = mat<double,mat_structure::nil>(6,12);
-  set_block(C,mat<double,mat_structure::identity>(6),0,0);
-      
+  set_block(C,mat_ident<double>(3),0,0);
+  set_block(C,mat_ident<double>(3),3,6);
+  
   D = mat<double,mat_structure::nil>(6,6);
 };
-    
+
+
+
 satellite3D_inv_dt_system::invariant_error_type satellite3D_inv_dt_system::get_invariant_error(
   const satellite3D_inv_dt_system::state_space_type&, 
   const satellite3D_inv_dt_system::point_type& x, 
@@ -290,7 +316,9 @@ satellite3D_inv_dt_system::invariant_error_type satellite3D_inv_dt_system::get_i
     y[0] - pos[0], y[1] - pos[1], y[2] - pos[2],
     2.0 * a[0], 2.0 * a[1], 2.0 * a[2]); 
 };
-    
+
+
+
 satellite3D_inv_dt_system::point_type satellite3D_inv_dt_system::apply_correction(
   const satellite3D_inv_dt_system::state_space_type&, 
   const satellite3D_inv_dt_system::point_type& x, 
@@ -298,13 +326,13 @@ satellite3D_inv_dt_system::point_type satellite3D_inv_dt_system::apply_correctio
   const satellite3D_inv_dt_system::input_type&, 
   const satellite3D_inv_dt_system::time_type&) const {
   
-  unit_quat<double> q_diff = exp( 0.5 * vect<double,3>(c[3],c[4],c[5]) );
+  unit_quat<double> q_diff = exp( 0.5 * vect<double,3>(c[6],c[7],c[8]) );
   unit_quat<double> q_new = get_quaternion(x) * q_diff;
   
   return satellite3D_inv_dt_system::point_type(
     make_arithmetic_tuple(
       get_position(x) + vect<double,3>(c[0],c[1],c[2]),
-      get_velocity(x) + vect<double,3>(c[6],c[7],c[8])
+      get_velocity(x) + vect<double,3>(c[3],c[4],c[5])
     ),
     make_arithmetic_tuple(
       q_new,
@@ -312,6 +340,8 @@ satellite3D_inv_dt_system::point_type satellite3D_inv_dt_system::apply_correctio
     )
   );
 };
+
+
 
 
 
@@ -331,10 +361,9 @@ satellite3D_gyro_inv_dt_system::output_type satellite3D_gyro_inv_dt_system::get_
   return satellite3D_gyro_inv_dt_system::output_type(
     pos[0], pos[1], pos[2], 
     q[0], q[1], q[2], q[3], 
-    q[0], q[1], q[2], q[3], 
     w[0], w[1], w[2]);
 };
-    
+
 void satellite3D_gyro_inv_dt_system::get_output_function_blocks(
   satellite3D_gyro_inv_dt_system::matrixC_type& C, 
   satellite3D_gyro_inv_dt_system::matrixD_type& D, 
@@ -343,10 +372,10 @@ void satellite3D_gyro_inv_dt_system::get_output_function_blocks(
   const satellite3D_gyro_inv_dt_system::point_type&, 
   const satellite3D_gyro_inv_dt_system::input_type&) const {
   
-  C = mat<double,mat_structure::nil>(12,12);
-  set_block(C,mat<double,mat_structure::identity>(6),0,0);
-  set_block(C,mat<double,mat_structure::identity>(3),6,3);
-  set_block(C,mat<double,mat_structure::identity>(3),9,9);
+  C = mat<double,mat_structure::nil>(9,12);
+  set_block(C,mat_ident<double>(3),0,0);
+  set_block(C,mat_ident<double>(3),3,6);
+  set_block(C,mat_ident<double>(3),6,9);
   
   D = mat<double,mat_structure::nil>(12,6);
 };
@@ -360,14 +389,11 @@ satellite3D_gyro_inv_dt_system::invariant_error_type satellite3D_gyro_inv_dt_sys
   
   unit_quat<double> q_diff = invert(get_quaternion(x)) * unit_quat<double>(y[3],y[4],y[5],y[6]);
   vect<double,3> a = log(q_diff);
-  unit_quat<double> q_diff_IMU = invert(get_quaternion(x)) * unit_quat<double>(y[7],y[8],y[9],y[10]);
-  vect<double,3> a_IMU = log(q_diff_IMU);
   const vect<double,3>& pos = get_position(x);
-  vect<double,3> dw_IMU = q_diff_IMU.as_rotation() * vect<double,3>(y[11],y[12],y[13]) - get_ang_velocity(x);
+  vect<double,3> dw_IMU = q_diff.as_rotation() * vect<double,3>(y[7],y[8],y[9]) - get_ang_velocity(x);
   return satellite3D_gyro_inv_dt_system::invariant_error_type(
     y[0] - pos[0], y[1] - pos[1], y[2] - pos[2],
     2.0 * a[0], 2.0 * a[1], 2.0 * a[2],
-    2.0 * a_IMU[0], 2.0 * a_IMU[1], 2.0 * a_IMU[2],
     dw_IMU[0], dw_IMU[1], dw_IMU[2]); 
 };
 
