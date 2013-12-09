@@ -6,8 +6,6 @@ set(ROBOTAIRSHIP_SOURCES
 
 
 set(ROBOTAIRSHIP_HEADERS 
-  "${RKROBOTAIRSHIPDIR}/airship2D_lin_model.hpp"
-  "${RKROBOTAIRSHIPDIR}/airship3D_lin_model.hpp"
   "${RKROBOTAIRSHIPDIR}/satellite_basic_models.hpp"
   "${RKROBOTAIRSHIPDIR}/satellite_invar_models.hpp"
 )
@@ -20,25 +18,6 @@ target_link_libraries(reak_robot_airship reak_topologies reak_interp reak_mbd re
 
 include_directories("${CMAKE_BINARY_DIR}/ReaK/gui_qt/")
 
-
-add_executable(build_airship2D "${SRCROOT}${RKROBOTAIRSHIPDIR}/build_airship2D.cpp")
-setup_custom_target(build_airship2D "${SRCROOT}${RKROBOTAIRSHIPDIR}")
-target_link_libraries(build_airship2D reak_mbd reak_core)
-
-add_executable(run_airship2D "${SRCROOT}${RKROBOTAIRSHIPDIR}/run_airship2D.cpp")
-setup_custom_target(run_airship2D "${SRCROOT}${RKROBOTAIRSHIPDIR}")
-target_link_libraries(run_airship2D reak_topologies reak_interp reak_mbd reak_core)
-
-add_executable(estimate_airship2D "${SRCROOT}${RKROBOTAIRSHIPDIR}/estimate_airship2D.cpp")
-setup_custom_target(estimate_airship2D "${SRCROOT}${RKROBOTAIRSHIPDIR}")
-target_link_libraries(estimate_airship2D reak_topologies reak_interp reak_mbd reak_core)
-
-
-  
-add_executable(build_airship3D "${SRCROOT}${RKROBOTAIRSHIPDIR}/build_airship3D.cpp")
-setup_custom_target(build_airship3D "${SRCROOT}${RKROBOTAIRSHIPDIR}")
-target_link_libraries(build_airship3D reak_topologies reak_interp reak_mbd reak_core)
-  
 
 add_executable(build_airship3D_transforms "${SRCROOT}${RKROBOTAIRSHIPDIR}/build_airship3D_transforms.cpp")
 setup_custom_target(build_airship3D_transforms "${SRCROOT}${RKROBOTAIRSHIPDIR}")
@@ -93,39 +72,8 @@ if(COIN3D_FOUND AND QT_FOUND)
   
 endif()
 
-add_executable(run_airship3D "${SRCROOT}${RKROBOTAIRSHIPDIR}/run_airship3D.cpp")
-setup_custom_target(run_airship3D "${SRCROOT}${RKROBOTAIRSHIPDIR}")
-target_link_libraries(run_airship3D reak_topologies reak_interp reak_mbd reak_core)
-
-add_executable(estimate_airship3D "${SRCROOT}${RKROBOTAIRSHIPDIR}/estimate_airship3D.cpp")
-setup_custom_target(estimate_airship3D "${SRCROOT}${RKROBOTAIRSHIPDIR}")
-target_link_libraries(estimate_airship3D reak_topologies reak_interp reak_core)
-
-add_executable(estimate_airship3D_range "${SRCROOT}${RKROBOTAIRSHIPDIR}/estimate_airship3D_range.cpp")
-setup_custom_target(estimate_airship3D_range "${SRCROOT}${RKROBOTAIRSHIPDIR}")
-target_link_libraries(estimate_airship3D_range reak_topologies reak_interp reak_core)
-
-add_executable(estimate_airship3D_spins "${SRCROOT}${RKROBOTAIRSHIPDIR}/estimate_airship3D_spins.cpp")
-setup_custom_target(estimate_airship3D_spins "${SRCROOT}${RKROBOTAIRSHIPDIR}")
-target_link_libraries(estimate_airship3D_spins reak_topologies reak_interp reak_core)
-
-add_executable(estimate_satellite3D_spins "${SRCROOT}${RKROBOTAIRSHIPDIR}/estimate_satellite3D_spins.cpp")
-setup_custom_target(estimate_satellite3D_spins "${SRCROOT}${RKROBOTAIRSHIPDIR}")
-target_link_libraries(estimate_satellite3D_spins reak_topologies reak_interp reak_robot_airship reak_core)
-
-add_executable(estimate_airship3D_mc "${SRCROOT}${RKROBOTAIRSHIPDIR}/estimate_airship3D_mc.cpp")
-setup_custom_target(estimate_airship3D_mc "${SRCROOT}${RKROBOTAIRSHIPDIR}")
-target_link_libraries(estimate_airship3D_mc reak_topologies reak_interp reak_mbd reak_core)
-
-
 add_executable(estimate_satellite3D "${SRCROOT}${RKROBOTAIRSHIPDIR}/estimate_satellite3D.cpp")
 setup_custom_target(estimate_satellite3D "${SRCROOT}${RKROBOTAIRSHIPDIR}")
 target_link_libraries(estimate_satellite3D reak_topologies reak_interp reak_robot_airship reak_core)
-
-
-add_executable(run_satellite3D "${SRCROOT}${RKROBOTAIRSHIPDIR}/run_satellite3D.cpp")
-setup_custom_target(run_satellite3D "${SRCROOT}${RKROBOTAIRSHIPDIR}")
-target_link_libraries(run_satellite3D reak_topologies reak_interp reak_robot_airship reak_core)
-
 
 

@@ -398,6 +398,16 @@ void do_single_monte_carlo_run(
 
 
 
+static std::string strip_quotes(const std::string& s) {
+  std::size_t first = 0;
+  while( ( first < s.length() ) && ( std::isspace(s[first]) || (s[first] == '"') ) )
+    ++first;
+  std::size_t last = s.length();
+  while( ( last > 0 ) && ( std::isspace(s[last-1]) || (s[last-1] == '"') ) )
+    --last;
+  return s.substr(first, last - first);
+};
+
 
 
 
@@ -412,12 +422,12 @@ int main(int argc, char** argv) {
   
   po::options_description io_options("I/O options");
   io_options.add_options()
-    ("measurements,m", "specify the filename for the satellite's initial conditions")
+    ("measurements,m", po::value< std::string >(), "specify the filename for the satellite's initial conditions")
     ("init,i",         po::value< std::string >()->default_value("models/satellite3D_init.rkx"), "specify the filename for the satellite's initial conditions, only used when Monte-Carlo simulations are done (default is 'models/satellite3D_init.rkx')")
     ("inertia,I",      po::value< std::string >()->default_value("models/satellite3D_inertia.rkx"), "specify the filename for the satellite's inertial data (default is 'models/satellite3D_inertia.rkx')")
     ("Q-matrix,Q",     po::value< std::string >()->default_value("models/satellite3D_Q.rkx"), "specify the filename for the satellite's input disturbance covariance matrix (default is 'models/satellite3D_Q.rkx')")
     ("R-matrix,R",     po::value< std::string >()->default_value("models/satellite3D_R.rkx"), "specify the filename for the satellite's measurement noise covariance matrix (default is 'models/satellite3D_R.rkx')")
-    ("R-added,A",      "specify the filename for the satellite's artificial measurement noise covariance matrix")
+    ("R-added,A",      po::value< std::string >(), "specify the filename for the satellite's artificial measurement noise covariance matrix")
     ("IMU-config",     po::value< std::string >()->default_value("models/satellite3D_IMU_config.rkx"), "specify the filename for the satellite's IMU configuration data, specifying its placement on the satellite and the inertial / magnetic-field frame it is relative to (default is 'models/satellite3D_IMU_config.rkx')")
     ("output,o",       po::value< std::string >()->default_value("est_results/satellite3D/output_record"), "specify the filename stem (without extension) for the output of the results (default is 'sim_results/satellite3D/output_record')")
     ("generate-meas-file,g", "if set, the measurement file will be generated from the output of a simulation with the given initial conditions (default is not)")
@@ -466,7 +476,7 @@ int main(int argc, char** argv) {
   var_rnd.engine().seed(static_cast<unsigned int>(std::time(NULL)));
   
   
-  std::string output_path_name = vm["output"].as<std::string>();
+  std::string output_path_name = strip_quotes(vm["output"].as<std::string>());
   std::string output_stem_name = output_path_name;
   if(output_stem_name[output_stem_name.size()-1] == '/')
     output_stem_name += "output_record";
@@ -484,7 +494,7 @@ int main(int argc, char** argv) {
     fs::create_directory(output_path_name.c_str());
   
   
-  std::string sys_output_path_name = vm["system-output"].as<std::string>();
+  std::string sys_output_path_name = strip_quotes(vm["system-output"].as<std::string>());
   std::string sys_output_stem_name = sys_output_path_name;
   if( vm.count("generate-mdl-files") ) {
     if(sys_output_stem_name[sys_output_stem_name.size()-1] == '/')
@@ -517,7 +527,7 @@ int main(int argc, char** argv) {
   if( vm.count("init") ) {
     try {
       
-      std::string init_filename = vm["init"].as<std::string>();
+      std::string init_filename = strip_quotes(vm["init"].as<std::string>());
       
       if( vm.count("generate-mdl-files") ) {
         *(serialization::open_oarchive(init_filename))
@@ -531,8 +541,8 @@ int main(int argc, char** argv) {
         *(serialization::open_iarchive(init_filename))
           & RK_SERIAL_LOAD_WITH_NAME(initial_motion);
       };
-    } catch(...) {
-      RK_ERROR("An exception occurred during the loading of the initial conditions!");
+    } catch(std::exception& e) {
+      RK_ERROR("An exception occurred during the loading of the initial conditions! what(): '" << e.what() << "'.");
       return 11;
     };
   };
@@ -543,7 +553,7 @@ int main(int argc, char** argv) {
   ReaK::mat<double,ReaK::mat_structure::symmetric> inertia_tensor(1.0, 0.0, 0.0, 1.0, 0.0, 1.0);
   try {
     
-    std::string inertia_filename = vm["inertia"].as<std::string>();
+    std::string inertia_filename = strip_quotes(vm["inertia"].as<std::string>());
     
     if( vm.count("generate-mdl-files") ) {
       *(serialization::open_oarchive(inertia_filename))
@@ -559,8 +569,8 @@ int main(int argc, char** argv) {
         & RK_SERIAL_LOAD_WITH_NAME(mass)
         & RK_SERIAL_LOAD_WITH_NAME(inertia_tensor);
     };
-  } catch(...) {
-    RK_ERROR("An exception occurred during the loading of the initial conditions!");
+  } catch(std::exception& e) {
+    RK_ERROR("An exception occurred during the loading of the inertia matrix! what(): '" << e.what() << "'.");
     return 12;
   };
   
@@ -569,7 +579,7 @@ int main(int argc, char** argv) {
   mat<double,mat_structure::diagonal> input_disturbance(6,true);
   try {
     
-    std::string Qu_filename = vm["Q-matrix"].as<std::string>();
+    std::string Qu_filename = strip_quotes(vm["Q-matrix"].as<std::string>());
     
     if( vm.count("generate-mdl-files") ) {
       *(serialization::open_oarchive(Qu_filename))
@@ -583,8 +593,8 @@ int main(int argc, char** argv) {
       *(serialization::open_iarchive(Qu_filename))
         & RK_SERIAL_LOAD_WITH_NAME(input_disturbance);
     };
-  } catch(...) {
-    RK_ERROR("An exception occurred during the loading of the input disturbance covariance matrix!");
+  } catch(std::exception& e) {
+    RK_ERROR("An exception occurred during the loading of the input disturbance covariance matrix! what(): '" << e.what() << "'.");
     return 13;
   };
   
@@ -597,7 +607,7 @@ int main(int argc, char** argv) {
     m_noise_size = 15;
   mat<double,mat_structure::diagonal> measurement_noise(m_noise_size,true);
   try {
-    std::string R_filename  = vm["R-matrix"].as<std::string>();
+    std::string R_filename  = strip_quotes(vm["R-matrix"].as<std::string>());
     
     if( vm.count("generate-mdl-files") ) {
       *(serialization::open_oarchive(R_filename))
@@ -611,8 +621,8 @@ int main(int argc, char** argv) {
       *(serialization::open_iarchive(R_filename))
         & RK_SERIAL_LOAD_WITH_NAME(measurement_noise);
     };
-  } catch(...) {
-    RK_ERROR("An exception occurred during the loading of the measurement noise covariance matrix!");
+  } catch(std::exception& e) {
+    RK_ERROR("An exception occurred during the loading of the measurement noise covariance matrix! what(): '" << e.what() << "'.");
     return 14;
   };
   
@@ -621,7 +631,7 @@ int main(int argc, char** argv) {
   mat<double,mat_structure::diagonal> artificial_noise(m_noise_size,0.0);
   if( vm.count("R-added") ) {
     try {
-      std::string R_added_filename  = vm["R-added"].as<std::string>();
+      std::string R_added_filename  = strip_quotes(vm["R-added"].as<std::string>());
       
       if( vm.count("generate-mdl-files") ) {
         *(serialization::open_oarchive(R_added_filename))
@@ -635,8 +645,8 @@ int main(int argc, char** argv) {
         *(serialization::open_iarchive(R_added_filename))
           & RK_SERIAL_LOAD_WITH_NAME(artificial_noise);
       };
-    } catch(...) {
-      RK_ERROR("An exception occurred during the loading of the artificial measurement noise covariance matrix!");
+    } catch(std::exception& e) {
+      RK_ERROR("An exception occurred during the loading of the artificial measurement noise covariance matrix! what(): '" << e.what() << "'.");
       return 3;
     };
   };
@@ -651,7 +661,7 @@ int main(int argc, char** argv) {
   if( vm.count("IMU") ) {
     try {
       
-      std::string IMUconf_filename  = vm["IMU-config"].as<std::string>();
+      std::string IMUconf_filename  = strip_quotes(vm["IMU-config"].as<std::string>());
       
       if( vm.count("generate-mdl-files") ) {
         *(serialization::open_oarchive(IMUconf_filename))
@@ -671,8 +681,8 @@ int main(int argc, char** argv) {
           & RK_SERIAL_LOAD_WITH_NAME(earth_orientation)
           & RK_SERIAL_LOAD_WITH_NAME(mag_field_direction);
       };
-    } catch(...) {
-      RK_ERROR("An exception occurred during the loading of the measurement noise covariance matrix!");
+    } catch(std::exception& e) {
+      RK_ERROR("An exception occurred during the loading of the IMU configuration file! what(): '" << e.what() << "'.");
       return 14;
     };
   };
@@ -680,9 +690,9 @@ int main(int argc, char** argv) {
   
   std::vector< std::pair< double, sat3D_measurement_point > > measurements;
   std::vector< std::pair< double, sat3D_state_type > > ground_truth;
-  if( (!vm.count("monte-carlo")) && vm.count("measurements") && fs::exists( fs::path( vm["measurements"].as<std::string>() ) ) ) {
+  if( (!vm.count("monte-carlo")) && vm.count("measurements") && fs::exists( fs::path( strip_quotes(vm["measurements"].as<std::string>()) ) ) ) {
     try {
-      recorder::ssv_extractor measurements_file(vm["measurements"].as<std::string>());
+      recorder::ssv_extractor measurements_file(strip_quotes(vm["measurements"].as<std::string>()));
       while(true) {
         double t;
         measurements_file >> t;
@@ -816,7 +826,7 @@ int main(int argc, char** argv) {
   set_ang_velocity(x_init, vect<double,3>(0.0, 0.0, 0.0));
   
   sat3D_state_belief_type b_init(x_init, 
-                                 cov_type(cov_matrix_type(mat<double,mat_structure::diagonal>(13,10.0))));
+                                 cov_type(cov_matrix_type(mat<double,mat_structure::diagonal>(12,10.0))));
   
   sat3D_input_belief_type b_u(sat3D_input_type(vect_n<double>(6, 0.0)),  
                               cov_type(cov_matrix_type(input_disturbance)));
@@ -870,13 +880,15 @@ int main(int argc, char** argv) {
         // and output those if asked for it:
         if( vm.count("generate-meas-file") ) {
           recorder::ssv_recorder measurements_gen(output_stem_name + "_meas.ssv");
-          measurements_gen << "p_x" << "p_y" << "p_z" << "q_0" << "q_1" << "q_2" << "q_2"
+          measurements_gen << "time" 
+                           << "p_x" << "p_y" << "p_z" << "q_0" << "q_1" << "q_2" << "q_2" 
                            << "f_x" << "f_y" << "f_z" << "t_x" << "t_y" << "t_z" 
-                           << "p_x_true" << "p_y_true" << "p_z_true" << "q_0_true" << "q_1_true" << "q_2_true" << "q_2_true"
+                           << "p_x_true" << "p_y_true" << "p_z_true" << "q_0_true" << "q_1_true" << "q_2_true" << "q_2_true" 
                            << "v_x_true" << "v_y_true" << "v_z_true" << "w_x_true" << "w_y_true" << "w_z_true" 
                            << recorder::data_recorder::end_name_row;
           
           for(std::size_t i = 0; i < measurements.size(); ++i) {
+            measurements_gen << measurements[i].first;
             const sat3D_measurement_point& m = measurements[i].second;
             measurements_gen << m.pose[0] << m.pose[1] << m.pose[2] 
                              << m.pose[3] << m.pose[4] << m.pose[5] << m.pose[6] 
@@ -1027,7 +1039,8 @@ int main(int argc, char** argv) {
         // and output those if asked for it:
         if( vm.count("generate-meas-file") ) {
           recorder::ssv_recorder measurements_gen(output_stem_name + "_meas.ssv");
-          measurements_gen << "p_x" << "p_y" << "p_z" << "q_0" << "q_1" << "q_2" << "q_2"
+          measurements_gen << "time" 
+                           << "p_x" << "p_y" << "p_z" << "q_0" << "q_1" << "q_2" << "q_2"
                            << "w_x" << "w_y" << "w_z" 
                            << "f_x" << "f_y" << "f_z" << "t_x" << "t_y" << "t_z" 
                            << "p_x_true" << "p_y_true" << "p_z_true" << "q_0_true" << "q_1_true" << "q_2_true" << "q_2_true"
@@ -1035,6 +1048,7 @@ int main(int argc, char** argv) {
                            << recorder::data_recorder::end_name_row;
           
           for(std::size_t i = 0; i < measurements.size(); ++i) {
+            measurements_gen << measurements[i].first;
             const sat3D_measurement_point& m = measurements[i].second;
             measurements_gen << m.pose[0] << m.pose[1] << m.pose[2] 
                              << m.pose[3] << m.pose[4] << m.pose[5] << m.pose[6]
@@ -1178,7 +1192,8 @@ int main(int argc, char** argv) {
         // and output those if asked for it:
         if( vm.count("generate-meas-file") ) {
           recorder::ssv_recorder measurements_gen(output_stem_name + "_meas.ssv");
-          measurements_gen << "p_x" << "p_y" << "p_z" << "q_0" << "q_1" << "q_2" << "q_2"
+          measurements_gen << "time" 
+                           << "p_x" << "p_y" << "p_z" << "q_0" << "q_1" << "q_2" << "q_2"
                            << "w_x" << "w_y" << "w_z" 
                            << "acc_x" << "acc_y" << "acc_z" << "mag_x" << "mag_y" << "mag_z" 
                            << "f_x" << "f_y" << "f_z" << "t_x" << "t_y" << "t_z" 
@@ -1187,6 +1202,7 @@ int main(int argc, char** argv) {
                            << recorder::data_recorder::end_name_row;
           
           for(std::size_t i = 0; i < measurements.size(); ++i) {
+            measurements_gen << measurements[i].first;
             const sat3D_measurement_point& m = measurements[i].second;
             measurements_gen << m.pose[0] << m.pose[1] << m.pose[2] 
                              << m.pose[3] << m.pose[4] << m.pose[5] << m.pose[6]

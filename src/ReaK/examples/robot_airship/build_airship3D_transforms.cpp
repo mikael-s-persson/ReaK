@@ -22,8 +22,6 @@
  */
 
 
-#include "airship3D_lin_model.hpp"
-
 #include "serialization/xml_archiver.hpp"
 
 #include "kinetostatics/rotations_3D.hpp"
