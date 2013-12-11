@@ -83,8 +83,6 @@ class belief_predicted_trajectory : public pp::waypoint_container< pp::temporal_
     typedef BeliefPredictor predictor_type;
     
     typedef shared_ptr<topology> topology_ptr;
-    typedef typename pp::temporal_space_traits<topology>::time_topology time_topology;
-    typedef typename pp::temporal_space_traits<topology>::space_topology space_topology;
     
     typedef typename base_class_type::waypoint_descriptor waypoint_descriptor;
     typedef typename base_class_type::const_waypoint_descriptor const_waypoint_descriptor;
@@ -93,12 +91,14 @@ class belief_predicted_trajectory : public pp::waypoint_container< pp::temporal_
     
     typedef typename base_class_type::waypoint_pair waypoint_pair;
     
-    typedef typename pp::temporal_space_traits< topology >::point_type point_type;
-    typedef typename pp::temporal_space_traits< topology >::point_difference_type point_difference_type;
+    typedef typename pp::topology_traits< topology >::point_type point_type;
+    typedef typename pp::topology_traits< topology >::point_difference_type point_difference_type;
     
+    typedef typename pp::temporal_space_traits<topology>::time_topology time_topology;
     typedef typename pp::topology_traits<time_topology>::point_type time_type;
     typedef typename pp::topology_traits<time_topology>::point_difference_type time_difference_type;
     
+    typedef typename pp::temporal_space_traits<topology>::space_topology space_topology;
     typedef typename pp::topology_traits<space_topology>::point_type belief_state;
     typedef typename pp::topology_traits<space_topology>::point_difference_type belief_state_diff;
     
@@ -118,28 +118,24 @@ class belief_predicted_trajectory : public pp::waypoint_container< pp::temporal_
     waypoint_descriptor updated_end;
     
     virtual double travel_distance_impl(const point_type& a, const point_type& b) const {
-      return std::fabs(b.time - a.time);
+      using std::fabs;
+      return fabs(b.time - a.time);
     };
     
-    waypoint_pair get_point_at_time_impl(double t, const const_waypoint_bounds& wpb_a) const {
-      
-      if( wpb_a.first == wpb_a.second ) {
-        // one way or another, the point is at the boundary:
-        waypoint_pair result(wpb_a.first, wpb_a.first->second);
-        result.second.time = t;
-        return result;
+    waypoint_pair get_point_at_time_impl(double t, const_waypoint_bounds wpb_a) const {
+      if( t > get_current_horizon() ) {
+        set_minimal_horizon(t);
+        wpb_a.second = updated_end;
+        --wpb_a.second;
+        wpb_a.first = wpb_a.second;
+        if( wpb_a.second->first > t )
+          --wpb_a.first;
       };
       
-      typename predictor_map_type::iterator it_int = pred_segments.find(&(wpb_a.first->second));
-      
-      if(it_int == interp_segments.end()) {
-        return waypoint_pair( wpb_a.first,
-          (interp_segments[&(wpb_a.first->second)] = interp_fact.create_interpolator(&(wpb_a.first->second),&(wpb_a.second->second)))
-          .get_point_at_time(t));
-      } else if(it_int->second.get_end_point() != &(wpb_a.second->second)) {
-        it_int->second.set_segment(&(wpb_a.first->second),&(wpb_a.second->second));
-      };
-      return waypoint_pair(wpb_a.first, it_int->second.get_point_at_time(t));
+      if( ( wpb_a.first == wpb_a.second ) || ( (t - wpb_a.first->first) <= (wpb_a.second->first - t) ) )
+        return waypoint_pair(wpb_a.first, point_type(t, wpb_a.first->second.pt));
+      else
+        return waypoint_pair(wpb_a.first, point_type(t, wpb_a.second->second.pt));
     };
     
     virtual waypoint_pair move_time_diff_from_impl(const point_type& a, const const_waypoint_bounds& wpb_a, double dt) const {
@@ -250,6 +246,42 @@ class belief_predicted_trajectory : public pp::waypoint_container< pp::temporal_
       updated_end = this->waypoints.end();
       
     };
+    
+    
+    /**
+     * Resets the initial point of the predicted trajector with a point and an associated time. 
+     * This function triggers the elimination of all waypoints prior to this time and triggers 
+     * the recomputation of the belief predictions of all waypoints after this time.
+     * \param pt The point that will become the first, initial waypoint.
+     */
+    void set_start_point(const point_type& pt, const predictor_type& pred) {
+      using std::fabs;
+      
+      waypoint_descriptor it = this->waypoints.lower_bound(pt.time - 0.5 * pred.get_time_step());
+      // check if the time difference is too much:
+      if( fabs(pt.time - it->first) > 1e-4 * pred.get_time_step() ) {
+        // we have to completely reset the entire container:
+        pred_segments.clear();
+        this->waypoints.clear();
+        this->push_back(pt);
+        updated_end = this->waypoints.begin();
+        pred_segments[&(updated_end->second)] = pred;
+        ++updated_end;
+        return;
+      };
+      
+      // trim away the starting part of the trajectory:
+      for(waypoint_descriptor it2 = this->waypoints.begin(); it2 != it; ++it2)
+        pred_segments.erase(&(it2->second));
+      this->waypoints.erase(waypoints.begin(), it);
+      // reset the start point and predictor, and reset the horizon:
+      pred_segments[&(it->second)] = pred;
+      it->second = pt;
+      updated_end = it; ++updated_end;
+    };
+    
+    
+    
     
     
     

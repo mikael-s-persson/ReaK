@@ -387,6 +387,56 @@ struct KF_belief_transfer {
 
 
 
+/**
+ * This class is a factory class for cubic Hermite interpolators on a temporal differentiable space.
+ * \tparam LinearSystem A discrete state-space system modeling the DiscreteLinearSSSConcept 
+ *         at least as a DiscreteLinearizedSystemType.
+ */
+template <typename LinearSystem>
+class KF_belief_transfer_factory : public serialization::serializable {
+  public:
+    typedef KF_belief_transfer_factory<LinearSystem> self;
+    typedef TemporalTopology topology;
+    typedef typename topology_traits<TemporalTopology>::point_type point_type;
+    typedef generic_interpolator<self,cubic_hermite_interpolator> interpolator_type;
+    
+    typedef LinearSystem state_space_system;
+    typedef shared_ptr< state_space_system > state_space_system_ptr;
+    
+    BOOST_CONCEPT_ASSERT((TemporalSpaceConcept<TemporalTopology>));
+  private:
+    state_space_system_ptr sys; ///< Holds the reference to the system used for the filter.
+    mat<double,mat_structure::symmetric> Q; ///< Holds the system's input noise covariance matrix.
+    mat<double,mat_structure::symmetric> R; ///< Holds the system's output measurement's covariance matrix.
+  public:
+    KF_belief_transfer_factory(const shared_ptr<topology>& aSpace = shared_ptr<topology>()) : space(aSpace) { };
+    
+    void set_state_space_system(const state_space_system_ptr& aSys) { sys = aSys; };
+    const state_space_system_ptr& get_state_space_system() const { return sys; };
+    
+    interpolator_type create_interpolator(const point_type* pp1, const point_type* pp2) const {
+      return interpolator_type(this, pp1, pp2);
+    };
+    
+    
+/*******************************************************************************
+                   ReaK's RTTI and Serialization interfaces
+*******************************************************************************/
+    
+    virtual void RK_CALL save(serialization::oarchive& A, unsigned int) const {
+      A & RK_SERIAL_SAVE_WITH_NAME(sys);
+    };
+    
+    virtual void RK_CALL load(serialization::iarchive& A, unsigned int) {
+      A & RK_SERIAL_LOAD_WITH_NAME(sys);
+    };
+    
+    RK_RTTI_MAKE_ABSTRACT_1BASE(self,0xC2430002,1,"KF_belief_transfer_factory",serialization::serializable)
+};
+
+
+
+
 
 
 
