@@ -277,7 +277,12 @@ satellite3D_IMU_imdt_sys    0xC2310017   bin: 1100 0010 0011 0001 0000 0000 0001
 satellite3D_gyro_lin_dt_system 0xC2310018 bin:1100 0010 0011 0001 0000 0000 0001 1000  D-R
 satellite3D_gyro_inv_dt_system 0xC2310019 bin:1100 0010 0011 0001 0000 0000 0001 1001  D-R
 
-
+//Kalman filtering classes  0xC232****
+KF_belief_transfer_factory  0xC2320001   bin: 1100 0010 0011 0010 0000 0000 0000 0001  D-R
+IKF_belief_transfer_factory 0xC2320002   bin: 1100 0010 0011 0010 0000 0000 0000 0010  D-R
+SKF_belief_transfer_factory 0xC2320003   bin: 1100 0010 0011 0010 0000 0000 0000 0011  D-R
+ISKF_belief_transfer_factory 0xC2320004  bin: 1100 0010 0011 0010 0000 0000 0000 0100  D-R
+AKF_belief_transfer_factory 0xC2320005   bin: 1100 0010 0011 0010 0000 0000 0000 0101  D-R
 
 
 

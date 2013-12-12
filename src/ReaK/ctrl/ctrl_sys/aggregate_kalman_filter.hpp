@@ -344,117 +344,88 @@ void >::type aggregate_kalman_filter_step(const LinearSystem& sys,
 
 
 
-
-
 /**
  * This class template can be used as a belief-state predictor (and transfer) that uses the 
  * Aggregate Kalman Filter method. This class template models the BeliefTransferConcept and 
  * the BeliefPredictorConcept.
- * \tparam LinearSystem A discrete state-space system modeling the DiscreteLinearSSSConcept 
- *         at least as a DiscreteLinearizedSystemType.
- * \tparam BeliefState A belief state type modeling the ContinuousBeliefStateConcept with
- *         a unimodular gaussian representation.
- * \tparam SystemNoiseCovar A covariance matrix type modeling the CovarianceMatrixConcept.
- * \tparam MeasurementCovar A covariance matrix type modeling the CovarianceMatrixConcept.
+ * \tparam AKFTransferFactory The factory type which can create this kalman predictor.
+ * \tparam BeliefSpace The belief-space type on which to operate.
  */
-template <typename LinearSystem,
-          typename BeliefState = gaussian_belief_state<typename discrete_sss_traits<LinearSystem>::point_type, decomp_covariance_matrix< typename discrete_sss_traits<LinearSystem>::point_type > >,
-          typename SystemNoiseCovar = covariance_matrix< typename discrete_sss_traits< LinearSystem >::input_type >,
-          typename MeasurementCovar = covariance_matrix< typename discrete_sss_traits< LinearSystem >::output_type > >
+template <typename AKFTransferFactory, typename BeliefSpace>
 struct AKF_belief_transfer {
+  typedef AKF_belief_transfer<AKFTransferFactory, BeliefSpace> self;
+  typedef BeliefSpace belief_space;
+  typedef typename pp::topology_traits<BeliefSpace>::point_type belief_state;
   
-  BOOST_CONCEPT_ASSERT((ContinuousBeliefStateConcept<BeliefState>));
-  
-  typedef AKF_belief_transfer<LinearSystem, BeliefState, SystemNoiseCovar, MeasurementCovar> self;
-  typedef BeliefState belief_state;
-  typedef LinearSystem state_space_system;
-  typedef shared_ptr< LinearSystem > state_space_system_ptr;
+  typedef typename AKFTransferFactory::state_space_system state_space_system;
   typedef typename discrete_sss_traits< state_space_system >::time_type time_type;
   typedef typename discrete_sss_traits< state_space_system >::time_difference_type time_difference_type;
 
   typedef typename belief_state_traits< belief_state >::state_type state_type;
+  
+  typedef double value_type;
   typedef typename continuous_belief_state_traits<BeliefState>::covariance_type covariance_type;
   typedef typename covariance_mat_traits< covariance_type >::matrix_type matrix_type;
-  typedef typename mat_traits< matrix_type >::value_type value_type;
-  typedef typename mat_traits< matrix_type >::size_type mat_size_type;
-
+  
   typedef typename discrete_sss_traits< state_space_system >::input_type input_type;
   typedef typename discrete_sss_traits< state_space_system >::output_type output_type;
   
-  typedef gaussian_belief_state<input_type, SystemNoiseCovar> input_belief_type;
-  typedef gaussian_belief_state<output_type, MeasurementCovar> output_belief_type;
-
-  state_space_system_ptr sys; ///< Holds the reference to the system used for the filter.
-  SystemNoiseCovar Q; ///< Holds the system's input noise covariance matrix.
-  MeasurementCovar R; ///< Holds the system's output measurement's covariance matrix.
-  value_type reupdate_threshold; ///< The threshold at which the state change is considered too high and the state transition matrices are recomputed.
+  typedef covariance_matrix< vect_n<double> > io_covariance_type;
+  typedef gaussian_belief_state<input_type,  io_covariance_type> input_belief_type;
+  typedef gaussian_belief_state<output_type, io_covariance_type> output_belief_type;
+  
+  BOOST_CONCEPT_ASSERT((ContinuousBeliefStateConcept<belief_state>));
+  
+  const AKFTransferFactory* factory;
+  
   state_type initial_state; ///< The initial mean-state at which the predictor is linearized (if non-linear).
   state_type predicted_state; ///< The predicted mean-state at which the updator is linearized (if non-linear). 
-  typename hamiltonian_mat< mat_value_type >::type Sc; ///< Holds the prediction scattering matrix.
-  typename hamiltonian_mat< mat_value_type >::type Sm; ///< Holds the updating scattering matrix.
-
+  hamiltonian_mat< double >::type Sc; ///< Holds the prediction scattering matrix.
+  hamiltonian_mat< double >::type Sm; ///< Holds the updating scattering matrix.
+  
+  AKF_belief_transfer() : factory(NULL) { };
+  
   /**
    * Parametrized constructor.
-   * \param aSys The pointer to the system used for the filter.
-   * \param state_space The state-space in which to operate.
-   * \param aQ The system's input noise covariance matrix.
-   * \param aR The system's output measurement's covariance matrix.
-   * \param aReupdateThreshold The threshold at which the state change is considered too high and the state transition matrices are recomputed.
-   * \param aInitialState The initial mean-state at which the predictor is linearized (if non-linear).
-   * \param aInitialInput The input at the time of the initial state.
-   * \param aInitialTime The time of the initial state.
+   * \param aFactory A pointer to the factory object that is creating this object.
+   * \param b_space The belief-space in which to operate.
+   * \param b_x The initial belief-state at which the predictor is linearized (if non-linear).
+   * \param t The time of the initial state.
+   * \param u The input at the time of the initial state.
    */
-  template <typename StateSpaceType>
-  AKF_belief_transfer(const state_space_system_ptr& aSys, 
-                  const StateSpaceType& state_space,
-                      const SystemNoiseCovar& aQ,
-                      const MeasurementCovar& aR,
-                      const value_type& aReupdateThreshold,
-                      const state_type& aInitialState,
-                      const input_type& aInitialInput,
-                      const time_type& aInitialTime) : 
-                      sys(aSys), Q(aQ), R(aR),
-                      reupdate_threshold(aReupdateThreshold),
-                      initial_state(aInitialState) {
-    belief_state b = belief_state(initial_state, 
-                          covariance_type(state_space.difference(aInitialState, aInitialState).size(), 
-                                      covariance_initial_level::no_info));
-    input_belief_type b_u(aInitialInput, Q);
-    aggregate_kalman_predict(*sys,
-                       state_space,
-                             b,
-                             b_u,
-                             Sc,
-                             aInitialTime);
+  AKF_belief_transfer(const AKFTransferFactory* aFactory,
+                      const belief_space& b_space,
+                      const belief_state* b_x,
+                      const time_type& t,
+                      const input_type& u) : 
+                      factory(aFactory),
+                      initial_state(b_x->get_mean_state()) {
+    belief_state b = *b_x;
+    input_belief_type b_u(u, io_covariance_type(factory->get_input_disturbance_cov()));
+    aggregate_kalman_predict(*(factory->get_state_space_system()), 
+                             b_space.get_state_topology(),
+                             b, b_u, Sc, t);
     predicted_state = b.get_mean_state();
-    aggregate_kalman_update(*sys,
-                      state_space,
-                            b,
-                            b_u,
-                            sys->get_output(state_space,
-                                      predicted_state,
-                                            aInitialInput,
-                                            aInitialTime + sys->get_time_step()),
-                            R,
-                            Sm,
-                            aInitialTime + sys->get_time_step());
+    output_belief_type b_y(factory->get_state_space_system()->get_output(b_space.get_state_topology(), predicted_state, u, t + factory->get_state_space_system()->get_time_step()), io_covariance_type(factory->get_measurement_noise_cov()));
+    aggregate_kalman_update(*(factory->get_state_space_system()), 
+                            b_space.get_state_topology(),
+                            b, b_u, b_y, Sm, t + factory->get_state_space_system()->get_time_step());
   };
   
   /**
    * Returns the time-step of the predictor.
    * \return The time-step of the predictor.
    */
-  time_difference_type get_time_step() const { return sys->get_time_step(); };
-
+  time_difference_type get_time_step() const { return factory->get_time_step(); };
+  
   /**
    * Returns a reference to the underlying state-space system.
    * \return A reference to the underlying state-space system.
    */
-  const state_space_system& get_ss_system() const { return *sys; };
-
+  const state_space_system& get_ss_system() const { return factory->get_state_space_system(); };
+  
   /**
    * Returns the belief-state at the next time instant.
-   * \tparam BeliefSpace The belief-space type on which to operate.
    * \param b_space The belief-space on which the belief-states lie.
    * \param b The current belief-state.
    * \param t The current time.
@@ -462,38 +433,36 @@ struct AKF_belief_transfer {
    * \param y The output that was measured at the next time instant.
    * \return the belief-state at the next time instant.
    */
-  template <typename BeliefSpace>
-  belief_state get_next_belief(const BeliefSpace& b_space, belief_state b, const time_type& t, const input_type& u, const input_type& y) {
+  belief_state get_next_belief(const belief_space& b_space, belief_state b, const time_type& t, const input_type& u, const output_type& y) {
     initial_state = b.get_mean_state();
-    input_belief_type b_u(u, Q);
-    output_belief_type b_z(y, R);
-    aggregate_kalman_predict(*sys,b_space.get_state_topology(),b,b_u,Sc,t);
+    input_belief_type b_u(u, io_covariance_type(factory->get_input_disturbance_cov()));
+    aggregate_kalman_predict(*(factory->get_state_space_system()), b_space.get_state_topology(), b, b_u, Sc, t);
     predicted_state = b.get_mean_state();
-    aggregate_kalman_update(*sys,b_space.get_state_topology(),b,b_u,b_z,Sm,t);
+    output_belief_type b_y(y, io_covariance_type(factory->get_measurement_noise_cov()))
+    aggregate_kalman_update(*(factory->get_state_space_system()), b_space.get_state_topology(), b, b_u, b_y, Sm, t + factory->get_state_space_system()->get_time_step());
     return b;
   };
   
   /**
    * Returns the prediction belief-state at the next time instant.
-   * \tparam BeliefSpace The belief-space type on which to operate.
    * \param b_space The belief-space on which the belief-states lie.
    * \param b The current belief-state.
    * \param t The current time.
    * \param u The current input given to the system.
    * \return the belief-state at the next time instant, predicted by the filter.
    */
-  template <typename BeliefSpace>
-  belief_state predict_belief(const BeliefSpace& b_space, belief_state b, const time_type& t, const input_type& u) {
-    if( norm( b_space.get_state_topology().difference(b.get_mean_state(), initial_state) ) > reupdate_threshold ) {
+  belief_state predict_belief(const belief_space& b_space, belief_state b, const time_type& t, const input_type& u) {
+    double dist = get(pp::distance_metric, b_space.get_state_topology())(b.get_mean_state(), initial_state, b_space.get_state_topology());
+    if( dist > factory->get_reupdate_threshold() ) {
       initial_state = b.get_mean_state();
-      input_belief_type b_u(u, Q);
-      aggregate_kalman_predict(*sys,b_space.get_state_topology(),b,b_u,Sc,t);
+      input_belief_type b_u(u, io_covariance_type(factory->get_input_disturbance_cov()));
+      aggregate_kalman_predict(*(factory->get_state_space_system()), b_space.get_state_topology(), b, b_u, Sc, t);
     } else {
-      b.set_mean_state( sys->get_next_state(b_space.get_state_topology(), b.get_mean_state(), u, t));
-      mat_size_type N = Sc.get_row_count() / 2;
-      typename hamiltonian_mat< mat_value_type >::type P_h =
-        star_product( ( mat<value_type,mat_structure::identity>(N) & b.get_covariance().get_matrix()             |
-                        mat<value_type,mat_structure::nil>(N)      & mat<value_type,mat_structure::identity>(N)  ) , 
+      b.set_mean_state( factory->get_state_space_system()->get_next_state(b_space.get_state_topology(), b.get_mean_state(), u, t) );
+      std::size_t N = Sc.get_row_count() / 2;
+      hamiltonian_mat< double >::type P_h =
+        star_product( ( mat<double,mat_structure::identity>(N) & b.get_covariance().get_matrix()         |
+                        mat<double,mat_structure::nil>(N)      & mat<double,mat_structure::identity>(N)  ) , 
                       Sc );
       b.set_covariance( covariance_type( matrix_type( sub(P_h)(range(0,N-1),range(N,2*N-1)) ) ) ); 
     };
@@ -502,25 +471,24 @@ struct AKF_belief_transfer {
   
   /**
    * Converts a prediction belief-state into an updated belief-state which assumes the most likely measurement.
-   * \tparam BeliefSpace The belief-space type on which to operate.
    * \param b_space The belief-space on which the belief-states lie.
    * \param b The current prediction's belief-state.
    * \param t The current time.
    * \param u The current input given to the system.
    * \return the updated belief-state when assuming the most likely measurement.
    */
-  template <typename BeliefSpace>
-  belief_state prediction_to_ML_belief(const BeliefSpace& b_space, belief_state b, const time_type& t, const input_type& u) {
-    if( norm( b_space.get_state_topology().difference(b.get_mean_state(), predicted_state) ) > reupdate_threshold ) {
+  belief_state prediction_to_ML_belief(const belief_space& b_space, belief_state b, const time_type& t, const input_type& u) {
+    double dist = get(pp::distance_metric, b_space.get_state_topology())(b.get_mean_state(), predicted_state, b_space.get_state_topology());
+    if( dist > factory->get_reupdate_threshold() ) {
       predicted_state = b.get_mean_state();
-      input_belief_type b_u(u, Q);
-      output_belief_type b_z(sys->get_output(b_space.get_state_topology(),predicted_state,u,t + sys->get_time_step()), R);
-      aggregate_kalman_update(*sys,b_space.get_state_topology(),b,b_u,b_z,Sm,t);
+      input_belief_type b_u(u, io_covariance_type(factory->get_input_disturbance_cov()));
+      output_belief_type b_y(factory->get_state_space_system()->get_output(b_space.get_state_topology(), predicted_state, u, t + factory->get_state_space_system()->get_time_step()), io_covariance_type(factory->get_measurement_noise_cov()));
+      aggregate_kalman_update(*(factory->get_state_space_system()), b_space.get_state_topology(), b, b_u, b_y, Sm, t + factory->get_state_space_system()->get_time_step());
     } else {
-      mat_size_type N = Sm.get_row_count() / 2;
-      typename hamiltonian_mat< mat_value_type >::type P_h =
-        star_product( ( mat<value_type,mat_structure::identity>(N) & b.get_covariance().get_matrix()             |
-                        mat<value_type,mat_structure::nil>(N)      & mat<value_type,mat_structure::identity>(N)  ) , 
+      std::size_t N = Sm.get_row_count() / 2;
+      hamiltonian_mat< double >::type P_h =
+        star_product( ( mat<double,mat_structure::identity>(N) & b.get_covariance().get_matrix()         |
+                        mat<double,mat_structure::nil>(N)      & mat<double,mat_structure::identity>(N)  ) , 
                       Sm );
       b.set_covariance( covariance_type( matrix_type( sub(P_h)(range(0,N-1),range(N,2*N-1)) ) ) );
     };
@@ -529,16 +497,14 @@ struct AKF_belief_transfer {
   
   /**
    * Returns the prediction belief-state at the next time instant, assuming the upcoming measurement to be the most likely one.
-   * \tparam BeliefSpace The belief-space type on which to operate.
    * \param b_space The belief-space on which the belief-states lie.
    * \param b The current belief-state.
    * \param t The current time.
    * \param u The current input given to the system.
    * \return the belief-state at the next time instant, predicted by the filter.
    */
-  template <typename BeliefSpace>
-  belief_state predict_ML_belief(const BeliefSpace& b_space, belief_state b, const time_type& t, const input_type& u) {
-    return prediction_to_ML_belief(b_space, predict_belief(b_space, b, t, u),t,u);
+  belief_state predict_ML_belief(const belief_space& b_space, belief_state b, const time_type& t, const input_type& u) {
+    return prediction_to_ML_belief(b_space, predict_belief(b_space, b, t, u), t, u);
   };
   
 };
@@ -546,9 +512,132 @@ struct AKF_belief_transfer {
 
 
 
-
-
-
+/**
+ * This class is a factory class for Aggregate Kalman filtering predictors on a belief-space.
+ * \tparam LinearSystem A discrete state-space system modeling the DiscreteLinearSSSConcept 
+ *         at least as a DiscreteLinearizedSystemType.
+ */
+template <typename LinearSystem>
+class AKF_belief_transfer_factory : public serialization::serializable {
+  public:
+    typedef AKF_belief_transfer_factory<LinearSystem> self;
+    
+    typedef LinearSystem state_space_system;
+    typedef shared_ptr< state_space_system > state_space_system_ptr;
+    typedef covariance_matrix< vect_n<double> > covariance_type;
+    typedef covariance_mat_traits< covariance_type >::matrix_type matrix_type;
+    
+    typedef typename discrete_sss_traits< state_space_system >::time_type time_type;
+    typedef typename discrete_sss_traits< state_space_system >::time_difference_type time_difference_type;
+    
+    typedef typename discrete_sss_traits< state_space_system >::input_type input_type;
+    
+    template <typename BeliefSpace>
+    struct predictor {
+      typedef AKF_belief_transfer<self, BeliefSpace> type;
+    };
+    
+  private:
+    state_space_system_ptr sys; ///< Holds the reference to the system used for the filter.
+    matrix_type Q; ///< Holds the system's input noise covariance matrix.
+    matrix_type R; ///< Holds the system's output measurement's covariance matrix.
+    double reupdate_threshold; ///< The threshold at which the state change is considered too high and the state transition matrices are recomputed.
+    
+  public:
+    
+    
+    /**
+     * Parametrized constructor.
+     * \param aSys The reference to the system used for the filter.
+     * \param aQ The system's input noise covariance matrix.
+     * \param aR The system's output measurement's covariance matrix.
+     * \param aReupdateThreshold The threshold at which the state change is considered too high and the state transition matrices are recomputed.
+     */
+    AKF_belief_transfer_factory(const state_space_system_ptr& aSys = state_space_system_ptr(), 
+                                const matrix_type& aQ = matrix_type(),
+                                const matrix_type& aR = matrix_type(), 
+                                double aReupdateThreshold = 1e-6) : 
+                                sys(aSys), Q(aQ), R(aR), reupdate_threshold(aReupdateThreshold) { };
+    
+    /**
+     * Returns the time-step of the discrete-time system.
+     * \return The time-step of the discrete-time system.
+     */
+    time_difference_type get_time_step() const { return sys->get_time_step(); };
+    
+    /**
+     * Sets the state-space system used by this kalman filter transfer factory.
+     * \param aSys The new state-space system, by shared-pointer.
+     */
+    void set_state_space_system(const state_space_system_ptr& aSys) { sys = aSys; };
+    /**
+     * Gets the state-space system used by this kalman filter transfer factory.
+     * \param aSys The new state-space system, by shared-pointer.
+     */
+    const state_space_system_ptr& get_state_space_system() const { return sys; };
+    
+    /**
+     * Sets the system input disturbance covariance matrix used by this kalman filter transfer factory.
+     * \param aQ The new system input disturbance covariance matrix.
+     */
+    void set_input_disturbance_cov(const matrix_type& aQ) { Q = aQ; };
+    /**
+     * Returns the system input disturbance covariance matrix used by this kalman filter transfer factory.
+     * \return The system input disturbance covariance matrix.
+     */
+    const matrix_type& get_input_disturbance_cov() const { return Q; };
+    
+    /**
+     * Sets the system measurement noise covariance matrix used by this kalman filter transfer factory.
+     * \param aR The new system measurement noise covariance matrix.
+     */
+    void set_measurement_noise_cov(const matrix_type& aR) { R = aR; };
+    /**
+     * Returns the system measurement noise covariance matrix used by this kalman filter transfer factory.
+     * \return The system measurement noise covariance matrix.
+     */
+    const matrix_type& get_measurement_noise_cov() const { return R; };
+    
+    /**
+     * Sets the re-updating threshold (w.r.t. state-space metric) used by kalman filter predictors.
+     * \param aReupdateThreshold The new re-updating threshold (w.r.t. state-space metric).
+     */
+    void set_reupdate_threshold(double aReupdateThreshold) const { reupdate_threshold = aReupdateThreshold; };
+    /**
+     * Returns the re-updating threshold (w.r.t. state-space metric) used by kalman filter predictors.
+     * \return The re-updating threshold (w.r.t. state-space metric).
+     */
+    double get_reupdate_threshold() const { return reupdate_threshold; };
+    
+    template <typename BeliefSpace>
+    AKF_belief_transfer<self, BeliefSpace> 
+        create_predictor(const BeliefSpace& b_space, 
+                         const typename pp::topology_traits<BeliefSpace>::point_type* pb, 
+                         const time_type& t, const input_type& u) const {
+      return AKF_belief_transfer<self, BeliefSpace>(this, b_space, pb, t, u);
+    };
+    
+    
+/*******************************************************************************
+                   ReaK's RTTI and Serialization interfaces
+*******************************************************************************/
+    
+    virtual void RK_CALL save(serialization::oarchive& A, unsigned int) const {
+      A & RK_SERIAL_SAVE_WITH_NAME(sys)
+        & RK_SERIAL_SAVE_WITH_NAME(Q)
+        & RK_SERIAL_SAVE_WITH_NAME(R)
+        & RK_SERIAL_SAVE_WITH_NAME(reupdate_threshold);
+    };
+    
+    virtual void RK_CALL load(serialization::iarchive& A, unsigned int) {
+      A & RK_SERIAL_LOAD_WITH_NAME(sys)
+        & RK_SERIAL_LOAD_WITH_NAME(Q)
+        & RK_SERIAL_LOAD_WITH_NAME(R)
+        & RK_SERIAL_LOAD_WITH_NAME(reupdate_threshold);
+    };
+    
+    RK_RTTI_MAKE_ABSTRACT_1BASE(self,0xC2320005,1,"AKF_belief_transfer_factory",serialization::serializable)
+};
 
 
 

@@ -87,7 +87,7 @@ class interpolated_trajectory : public waypoint_container<Topology,DistanceMetri
     
     typedef std::map< const point_type*, interpolator_type > interpolator_map_type;
     
-  private:
+  protected:
     
     interpolator_factory_type interp_fact;
     mutable interpolator_map_type interp_segments; //this is mutable for JIT construction of it.
@@ -206,7 +206,7 @@ class interpolated_trajectory : public waypoint_container<Topology,DistanceMetri
                             base_class_type(aSpace, aStart, aEnd, aDist), interp_fact(aInterpFactory), interp_segments() { 
       interp_fact.set_temporal_space(this->space);
     };
-			
+    
     /**
      * Constructs the trajectory from a range of points and their space.
      * \tparam ForwardIter A forward-iterator type for getting points to initialize the trajectory with.

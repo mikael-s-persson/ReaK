@@ -68,11 +68,11 @@ namespace ctrl {
  * Models: SpatialTrajectoryConcept, PredictedTrajectoryConcept.
  * 
  * \tparam BeliefTopology The topology of the belief-space, should model the BeliefSpaceConcept.
- * \tparam BeliefPredictor The belief-state predictor function type, should model BeliefPredictorConcept.
+ * \tparam BeliefPredictorFactory The belief-state predictor factory type, should produce predictors that model BeliefPredictorConcept.
  * \tparam InputTrajectory The input vector trajectory to provide input vectors at any given time, should model the SpatialTrajectoryConcept over a vector-topology of input vectors.
  */
 template <typename BeliefTopology, 
-          typename BeliefPredictor,
+          typename BeliefPredictorFactory,
           typename InputTrajectory>
 class belief_predicted_trajectory : public pp::waypoint_container< pp::temporal_space<BeliefTopology, pp::time_poisson_topology, pp::time_distance_only> > {
   public:
@@ -80,7 +80,6 @@ class belief_predicted_trajectory : public pp::waypoint_container< pp::temporal_
     typedef belief_predicted_trajectory<BeliefTopology,BeliefPredictor,InputTrajectory> self;
     typedef pp::temporal_space<BeliefTopology, pp::time_poisson_topology, pp::time_distance_only> topology;
     typedef pp::waypoint_container< topology > base_class_type;
-    typedef BeliefPredictor predictor_type;
     
     typedef shared_ptr<topology> topology_ptr;
     
@@ -102,17 +101,22 @@ class belief_predicted_trajectory : public pp::waypoint_container< pp::temporal_
     typedef typename pp::topology_traits<space_topology>::point_type belief_state;
     typedef typename pp::topology_traits<space_topology>::point_difference_type belief_state_diff;
     
-    typedef typename discrete_sss_traits< predictor_type >::input_type input_type;
+    typedef typename BeliefPredictorFactory::template predictor<space_topology>::type predictor_type;
+    
+    typedef typename belief_transfer_traits<predictor_type>::state_space_system state_space_system;
+    typedef typename discrete_sss_traits<state_space_system>::input_type input_type;
+    
     
     BOOST_CONCEPT_ASSERT((pp::TemporalSpaceConcept<topology>));
     BOOST_CONCEPT_ASSERT((BeliefSpaceConcept<space_topology>));
-    BOOST_CONCEPT_ASSERT((BeliefPredictorConcept<BeliefPredictor, space_topology>));
-    BOOST_CONCEPT_ASSERT((SpatialTrajectoryConcept<InputTrajectory, pp::vector_topology<input_type> >));
+    BOOST_CONCEPT_ASSERT((BeliefPredictorConcept<predictor_type, space_topology>));
+    
     
     typedef std::map< const point_type*, predictor_type > predictor_map_type;
     
-  private:
+  protected:
     InputTrajectory input;
+    BeliefPredictorFactory pred_factory;
     mutable predictor_map_type pred_segments;
     
     waypoint_descriptor updated_end;
@@ -147,21 +151,28 @@ class belief_predicted_trajectory : public pp::waypoint_container< pp::temporal_
     
   public:
     
+    
     /**
-     * Parametrized constructor.
-     * \param aInitialPoint The starting belief-point of the predicted trajectory.
-     * \param aInitialPredictor The predictor functor associated to the starting belief-point.
-     * \param aSpace The belief-state temporal topology object.
-     * \param aInputTrajectory The input-vector trajectory used to compute the input vectors necessary for the belief prediction.
+     * Default constructor.
      */
-    belief_predicted_trajectory(const point_type& aInitialPoint,
-                                const predictor_type& aInitialPredictor,
-                                const topology_ptr& aSpace = topology_ptr(new topology()),
-                                const InputTrajectory& aInputTrajectory = InputTrajectory()) :
-                                waypoints(1,container_value(aInitialPoint.time, waypoint(aInitialPoint,aInitialPredictor))),
-                                space(aSpace),
-                                input(aInputTrajectory),
-                                updated_end(waypoints.end()) { };
+    belief_predicted_trajectory() : base_class_type(), input(), pred_factory(), pred_segments() { };
+    
+    /**
+     * Constructs the trajectory from a space, assumes the start and end are at the origin 
+     * of the space.
+     * \param aSpace The space on which the trajectory is.
+     * \param aInitialPoint The starting belief-point of the predicted trajectory.
+     * \param aInputTrajectory The input-vector trajectory used to compute the input vectors necessary for the belief prediction.
+     * \param aPredictorFactory The predictor factory associated to this belief-predictor.
+     */
+    explicit belief_predicted_trajectory(const shared_ptr<topology>& aSpace, 
+                                         const point_type& aInitialPoint,
+                                         const InputTrajectory& aInputTrajectory = InputTrajectory(),
+                                         const BeliefPredictorFactory& aPredFactory = BeliefPredictorFactory()) : 
+                                         base_class_type(aSpace), input(aInputTrajectory), 
+                                         pred_factory(aPredFactory), pred_segments() { 
+      set_start_point(aInitialPoint);
+    };
     
     /**
      * Standard swap function.
@@ -176,6 +187,7 @@ class belief_predicted_trajectory : public pp::waypoint_container< pp::temporal_
       lhs.updated_end = lhs.waypoints.lower_bound(lhs_horiz);
       rhs.updated_end = rhs.waypoints.lower_bound(rhs_horiz);
       
+      swap(lhs.pred_factory, rhs.pred_factory);
       swap(lhs.pred_segments, rhs.pred_segments);
       swap(lhs.input, rhs.input);
     };
@@ -211,15 +223,17 @@ class belief_predicted_trajectory : public pp::waypoint_container< pp::temporal_
       if(it == this->waypoints.end()) {
         // must perform predictions from end to past time t.
         while( last_valid->first < t ) {
-          const predictor_type& pred = pred_segments[&(last_valid->second)];
+          predictor_type& pred = pred_segments[&(last_valid->second)];
+          input_type u = input.get_point_at_time(last_valid->first);
+          pred = pred_factory.create_predictor(
+            this->space->get_space_topology(), 
+            &(last_valid->second.pt), last_valid->first, u);
           this->push_back( point_type( 
             last_valid->first + pred.get_time_step(), 
             pred.predict_belief(
-              space->get_space_topology(), 
-              last_valid->second.pt, last_valid->first, 
-              input.get_point_at_time(last_valid->first))));
+              this->space->get_space_topology(), 
+              last_valid->second.pt, last_valid->first, u)));
           ++last_valid;
-          pred_segments[&(last_valid->second)] = pred;
         };
         updated_end = waypoints.end();
       };
@@ -254,18 +268,21 @@ class belief_predicted_trajectory : public pp::waypoint_container< pp::temporal_
      * the recomputation of the belief predictions of all waypoints after this time.
      * \param pt The point that will become the first, initial waypoint.
      */
-    void set_start_point(const point_type& pt, const predictor_type& pred) {
+    void set_start_point(const point_type& pt) {
       using std::fabs;
       
-      waypoint_descriptor it = this->waypoints.lower_bound(pt.time - 0.5 * pred.get_time_step());
+      waypoint_descriptor it = this->waypoints.lower_bound(pt.time - 0.5 * pred_factory.get_time_step());
       // check if the time difference is too much:
-      if( fabs(pt.time - it->first) > 1e-4 * pred.get_time_step() ) {
+      if( (it == this->waypoints.end()) || (fabs(pt.time - it->first) > 1e-4 * pred_factory.get_time_step()) ) {
         // we have to completely reset the entire container:
         pred_segments.clear();
         this->waypoints.clear();
         this->push_back(pt);
         updated_end = this->waypoints.begin();
-        pred_segments[&(updated_end->second)] = pred;
+        pred_segments[&(updated_end->second)] = pred_factory.create_predictor(
+          this->space->get_space_topology(), 
+          &(updated_end->second.pt), updated_end->first, 
+          input.get_point_at_time(updated_end->first));
         ++updated_end;
         return;
       };
@@ -275,16 +292,42 @@ class belief_predicted_trajectory : public pp::waypoint_container< pp::temporal_
         pred_segments.erase(&(it2->second));
       this->waypoints.erase(waypoints.begin(), it);
       // reset the start point and predictor, and reset the horizon:
-      pred_segments[&(it->second)] = pred;
       it->second = pt;
+      pred_segments[&(it->second)] = pred_factory.create_predictor(
+        this->space->get_space_topology(), 
+        &(it->second.pt), it->first, 
+        input.get_point_at_time(it->first));
       updated_end = it; ++updated_end;
     };
     
     
+/*******************************************************************************
+                   ReaK's RTTI and Serialization interfaces
+*******************************************************************************/
     
+    virtual void RK_CALL save(serialization::oarchive& A, unsigned int) const {
+      base_class_type::save(A,base_class_type::getStaticObjectType()->TypeVersion());
+      A & RK_SERIAL_SAVE_WITH_NAME(input)
+        & RK_SERIAL_SAVE_WITH_NAME(pred_factory);
+    };
     
+    virtual void RK_CALL load(serialization::iarchive& A, unsigned int) {
+      base_class_type::load(A,base_class_type::getStaticObjectType()->TypeVersion());
+      A & RK_SERIAL_LOAD_WITH_NAME(input)
+        & RK_SERIAL_LOAD_WITH_NAME(pred_factory);
+      pred_segments.clear();
+      updated_end = this->waypoints.begin();
+      if( updated_end != this->waypoints.end() ) {
+        pred_segments[&(last_valid->second)] = pred_factory.create_predictor(
+          this->space->get_space_topology(), 
+          &(updated_end->second.pt), updated_end->first, 
+          input.get_point_at_time(updated_end->first)
+        );
+        ++updated_end;
+      };
+    };
     
-    
+    RK_RTTI_MAKE_CONCRETE_1BASE(self,0xC2320000,1,"belief_predicted_trajectory",base_class_type)
     
 };
 
