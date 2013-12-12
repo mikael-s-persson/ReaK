@@ -53,17 +53,17 @@ namespace pp {
  * 
  * Required concepts:
  * 
- * The topology should model the TemporalSpaceConcept.
+ * The PredictedTrajectory should model the SpatialTrajectoryConcept on the given Topology.
  * 
- * The trajectory should model the SpatialTrajectoryConcept on the given topology.
+ * The Topology should model the TemporalSpaceConcept.
  * 
  * Valid expressions:
  * 
  * std::pair< const_waypoint_descriptor, point_type> w_p;  A waypoint is a pair of a const-waypoint descriptor and a point on the topology.
  * 
- * p.set_initial_point(pt, t);  The initial point (pt) at time (t) can be set to seed the predicted trajectory (p).
+ * p.set_initial_point(pt);  The initial temporal point (pt) can be set to seed the predicted trajectory (p).
  * 
- * p.set_initial_point(w_p, t);  The initial waypoint (w_p) at time (t) can be set to seed the predicted trajectory (p).
+ * p.set_initial_point(w_p);  The initial temporal waypoint (w_p) can be set to seed the predicted trajectory (p).
  * 
  * \tparam PredictedTrajectory The trajectory type to be checked for compliance to this concept.
  * \tparam Topology The temporal-topology type that can contain the trajectory.
@@ -73,8 +73,8 @@ struct PredictedTrajectoryConcept : public SpatialTrajectoryConcept<PredictedTra
   
   BOOST_CONCEPT_USAGE(PredictedTrajectoryConcept)
   {
-    this->p.set_initial_point(this->pt, this->t);
-    this->p.set_initial_point(this->w_p, this->t);
+    this->p.set_initial_point(this->pt);
+    this->p.set_initial_point(this->w_p);
   };
   
 };

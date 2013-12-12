@@ -1,10 +1,8 @@
 /**
  * \file maximum_likelihood_mapping.hpp
  * 
- * This library provides a class template which can join together a state-vector topology
- * and a covariance matrix topology (see covar_topology.hpp) to create a Gaussian belief-state
- * topology. The distance pseudo-metric used is the symmetric KL-divergence between two 
- * belief-states.
+ * This library provides a class template which can map belief-state points into points of a 
+ * compatibly state-space topology. 
  * 
  * \author Sven Mikael Persson <mikael.s.persson@gmail.com>
  * \date July 2011
@@ -32,12 +30,17 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef REAK_GAUSSIAN_BELIEF_SPACE_HPP
-#define REAK_GAUSSIAN_BELIEF_SPACE_HPP
+#ifndef REAK_MAXIMUM_LIKELIHOOD_MAPPING_HPP
+#define REAK_MAXIMUM_LIKELIHOOD_MAPPING_HPP
 
 #include "base/named_object.hpp"
 
+#include "path_planning/metric_space_concept.hpp"
+#include "path_planning/temporal_space_concept.hpp"
+
 #include "belief_state_concept.hpp"
+
+#include <boost/utility.hpp>
 
 namespace ReaK {
 
@@ -50,27 +53,44 @@ namespace ctrl {
  * by making the assumption of maximum likelihood. In other words, this mapping reduces
  * belief-states into their most likely value only.
  * 
- * Models: BijectionConcept between a BeliefSpace class and a compatible state topology.
+ * Models: BijectionConcept between a belief-state topology and a compatible state topology.
  */
-template <typename BeliefSpace>
 struct maximum_likelihood_map : public named_object {
   
-  typedef maximum_likelihood_map<BeliefSpace> self;
-  
-  typedef typename pp::topology_traits< BeliefSpace >::point_type belief_state_type;
-  typedef belief_state_traits< belief_state_type >::state_type state_type;
+  typedef maximum_likelihood_map self;
   
   maximum_likelihood_map() : named_object() { setName("maximum_likelihood_map"); };
   
   /**
    * This function extracts the most-likely-value from a belief-state.
+   * \tparam BeliefSpace A belief-state topoloogy whose state-space is compatible with the given state-space topology.
    * \tparam StateSpaceOut A state-space topology whose point-types are compatible with the state type that the belief-state type would produce.
    * \param b The belief-state from which the maximum likelihood value is sought.
    * \return The maximum likelihood value of the belief-state.
    */
-  template <typename StateSpaceOut>
-  state_type map_to_space(const belief_state_type& b, const BeliefSpace&, const StateSpaceOut&) const {
-    return state_type(b.get_most_likely_state());
+  template <typename BeliefSpace, typename StateSpaceOut>
+  typename boost::enable_if<
+    is_temporal_space<BeliefSpace>,
+    pp::topology_traits<StateSpaceOut> >::type::point_type
+      map_to_space(const typename pp::topology_traits<BeliefSpace>::point_type& b, const BeliefSpace&, const StateSpaceOut&) const {
+    typedef typename pp::topology_traits<StateSpaceOut>::point_type OutPointType;
+    return OutPointType(b.time, b.pt.get_most_likely_state());
+  };
+  
+  /**
+   * This function extracts the most-likely-value from a belief-state.
+   * \tparam BeliefSpace A belief-state topoloogy whose state-space is compatible with the given state-space topology.
+   * \tparam StateSpaceOut A state-space topology whose point-types are compatible with the state type that the belief-state type would produce.
+   * \param b The belief-state from which the maximum likelihood value is sought.
+   * \return The maximum likelihood value of the belief-state.
+   */
+  template <typename BeliefSpace, typename StateSpaceOut>
+  typename boost::disable_if<
+    is_temporal_space<BeliefSpace>,
+    pp::topology_traits<StateSpaceOut> >::type::point_type
+      map_to_space(const typename pp::topology_traits<BeliefSpace>::point_type& b, const BeliefSpace&, const StateSpaceOut&) const {
+    typedef typename pp::topology_traits<StateSpaceOut>::point_type OutPointType;
+    return OutPointType(b.get_most_likely_state());
   };
   
 /*******************************************************************************
