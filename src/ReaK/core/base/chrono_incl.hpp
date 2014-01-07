@@ -43,9 +43,12 @@
 
 // must use standard chrono library because most supported versions of boost, up to 1.48 are broken for C++11 under GCC 4.7 or higher.
 #include <chrono>
+#include <ratio>
 
 namespace ReaKaux {
-
+  
+  using std::ratio;
+  
   namespace chrono {
     
     using std::chrono::duration;
@@ -76,9 +79,12 @@ namespace ReaKaux {
 
 // must use the Boost.Chrono library, because there was some indication that the gnu implementation is broken.
 #include <boost/chrono/chrono.hpp>
+#include <boost/ratio/ratio.hpp>
 
 namespace ReaKaux {
-
+  
+  using boost::ratio;
+  
   namespace chrono {
     
     using boost::chrono::duration;

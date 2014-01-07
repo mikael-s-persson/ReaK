@@ -85,7 +85,7 @@ BOOST_AUTO_TEST_CASE( ssv_record_extract_test )
   
 };
 
-
+// NOTE: also test the value-vector input-output.
 BOOST_AUTO_TEST_CASE( tsv_record_extract_test )
 {
   using namespace ReaK;
@@ -100,7 +100,9 @@ BOOST_AUTO_TEST_CASE( tsv_record_extract_test )
       BOOST_CHECK_NO_THROW( output_rec << "x" << "2*x" << "x^2" );
       BOOST_CHECK_NO_THROW( output_rec << data_recorder::end_name_row );
       for(double x = 0; x < 10.1; x += 0.5) {
-        BOOST_CHECK_NO_THROW( output_rec << x << 2*x << x*x );
+        std::vector<double> v_vect(3, 0.0);
+        v_vect[0] = x; v_vect[1] = 2*x; v_vect[2] = x*x; 
+        BOOST_CHECK_NO_THROW( output_rec << v_vect );
         BOOST_CHECK_NO_THROW( output_rec << data_recorder::end_value_row );
       };
       BOOST_CHECK_NO_THROW( output_rec << data_recorder::flush );
@@ -118,11 +120,11 @@ BOOST_AUTO_TEST_CASE( tsv_record_extract_test )
       BOOST_CHECK( s2 == "2*x" );
       BOOST_CHECK( s3 == "x^2" );
       for(double x = 0; x < 10.1; x += 0.5) {
-        double v1, v2, v3;
-        BOOST_CHECK_NO_THROW( input_rec >> v1 >> v2 >> v3 );
-        BOOST_CHECK_CLOSE( v1, x, 1e-6 );
-        BOOST_CHECK_CLOSE( v2, (2.0*x), 1e-6 );
-        BOOST_CHECK_CLOSE( v3, (x*x), 1e-6 );
+        std::vector<double> v_vect(3, 0.0);
+        BOOST_CHECK_NO_THROW( input_rec >> v_vect );
+        BOOST_CHECK_CLOSE( v_vect[0], x, 1e-6 );
+        BOOST_CHECK_CLOSE( v_vect[1], (2.0*x), 1e-6 );
+        BOOST_CHECK_CLOSE( v_vect[2], (x*x), 1e-6 );
         BOOST_CHECK_NO_THROW( input_rec >> data_extractor::end_value_row );
       };
       BOOST_CHECK_NO_THROW( input_rec >> data_extractor::close );
@@ -133,6 +135,7 @@ BOOST_AUTO_TEST_CASE( tsv_record_extract_test )
 };
 
 
+// NOTE: also test the named-value-row input-output.
 BOOST_AUTO_TEST_CASE( bin_record_extract_test )
 {
   using namespace ReaK;
@@ -146,9 +149,12 @@ BOOST_AUTO_TEST_CASE( bin_record_extract_test )
       
       BOOST_CHECK_NO_THROW( output_rec << "x" << "2*x" << "x^2" );
       BOOST_CHECK_NO_THROW( output_rec << data_recorder::end_name_row );
+      named_value_row vr = output_rec.getFreshNamedValueRow();
       for(double x = 0; x < 10.1; x += 0.5) {
-        BOOST_CHECK_NO_THROW( output_rec << x << 2*x << x*x );
-        BOOST_CHECK_NO_THROW( output_rec << data_recorder::end_value_row );
+        vr["x"] = x;
+        vr["2*x"] = 2*x;
+        vr["x^2"] = x*x;
+        BOOST_CHECK_NO_THROW( output_rec << vr );
       };
       BOOST_CHECK_NO_THROW( output_rec << data_recorder::flush );
     };
@@ -164,13 +170,12 @@ BOOST_AUTO_TEST_CASE( bin_record_extract_test )
       BOOST_CHECK( s1 == "x" );
       BOOST_CHECK( s2 == "2*x" );
       BOOST_CHECK( s3 == "x^2" );
+      named_value_row vr = input_rec.getFreshNamedValueRow();
       for(double x = 0; x < 10.1; x += 0.5) {
-        double v1, v2, v3;
-        BOOST_CHECK_NO_THROW( input_rec >> v1 >> v2 >> v3 );
-        BOOST_CHECK_CLOSE( v1, x, 1e-6 );
-        BOOST_CHECK_CLOSE( v2, (2.0*x), 1e-6 );
-        BOOST_CHECK_CLOSE( v3, (x*x), 1e-6 );
-        BOOST_CHECK_NO_THROW( input_rec >> data_extractor::end_value_row );
+        BOOST_CHECK_NO_THROW( input_rec >> vr );
+        BOOST_CHECK_CLOSE( vr["x"], x, 1e-6 );
+        BOOST_CHECK_CLOSE( vr["2*x"], (2.0*x), 1e-6 );
+        BOOST_CHECK_CLOSE( vr["x^2"], (x*x), 1e-6 );
       };
       BOOST_CHECK_NO_THROW( input_rec >> data_extractor::close );
     };

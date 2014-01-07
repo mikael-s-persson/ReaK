@@ -890,15 +890,9 @@ int main(int argc, char** argv) {
           for(std::size_t i = 0; i < measurements.size(); ++i) {
             measurements_gen << measurements[i].first;
             const sat3D_measurement_point& m = measurements[i].second;
-            measurements_gen << m.pose[0] << m.pose[1] << m.pose[2] 
-                             << m.pose[3] << m.pose[4] << m.pose[5] << m.pose[6] 
-                             << m.u[0] << m.u[1] << m.u[2] 
-                             << m.u[3] << m.u[4] << m.u[5];
+            measurements_gen << m.pose << m.u;
             const sat3D_state_type& g = ground_truth[i].second;
-            measurements_gen << get_position(g)[0] << get_position(g)[1] << get_position(g)[2] 
-                             << get_quaternion(g)[0] << get_quaternion(g)[1] << get_quaternion(g)[2] << get_quaternion(g)[3] 
-                             << get_velocity(g)[0] << get_velocity(g)[1] << get_velocity(g)[2] 
-                             << get_ang_velocity(g)[0] << get_ang_velocity(g)[1] << get_ang_velocity(g)[2];
+            measurements_gen << get_position(g) << get_quaternion(g) << get_velocity(g) << get_ang_velocity(g);
             measurements_gen << recorder::data_recorder::end_value_row;
             
             if( vm.count("xml") + vm.count("protobuf") + vm.count("binary") > 0 ) {
@@ -1050,15 +1044,9 @@ int main(int argc, char** argv) {
           for(std::size_t i = 0; i < measurements.size(); ++i) {
             measurements_gen << measurements[i].first;
             const sat3D_measurement_point& m = measurements[i].second;
-            measurements_gen << m.pose[0] << m.pose[1] << m.pose[2] 
-                             << m.pose[3] << m.pose[4] << m.pose[5] << m.pose[6]
-                             << m.gyro[0] << m.gyro[1] << m.gyro[2]
-                             << m.u[0] << m.u[1] << m.u[2] << m.u[3] << m.u[4] << m.u[5];
+            measurements_gen << m.pose << m.gyro << m.u;
             const sat3D_state_type& g = ground_truth[i].second;
-            measurements_gen << get_position(g)[0] << get_position(g)[1] << get_position(g)[2] 
-                             << get_quaternion(g)[0] << get_quaternion(g)[1] << get_quaternion(g)[2] << get_quaternion(g)[3] 
-                             << get_velocity(g)[0] << get_velocity(g)[1] << get_velocity(g)[2] 
-                             << get_ang_velocity(g)[0] << get_ang_velocity(g)[1] << get_ang_velocity(g)[2];
+            measurements_gen << get_position(g) << get_quaternion(g) << get_velocity(g) << get_ang_velocity(g);
             measurements_gen << recorder::data_recorder::end_value_row;
             
             if( vm.count("xml") + vm.count("protobuf") + vm.count("binary") > 0 ) {
@@ -1204,17 +1192,9 @@ int main(int argc, char** argv) {
           for(std::size_t i = 0; i < measurements.size(); ++i) {
             measurements_gen << measurements[i].first;
             const sat3D_measurement_point& m = measurements[i].second;
-            measurements_gen << m.pose[0] << m.pose[1] << m.pose[2] 
-                             << m.pose[3] << m.pose[4] << m.pose[5] << m.pose[6]
-                             << m.gyro[0] << m.gyro[1] << m.gyro[2]
-                             << m.IMU_a_m[0] << m.IMU_a_m[1] << m.IMU_a_m[2] 
-                             << m.IMU_a_m[3] << m.IMU_a_m[4] << m.IMU_a_m[5];
-            measurements_gen << m.u[0] << m.u[1] << m.u[2] << m.u[3] << m.u[4] << m.u[5];
+            measurements_gen << m.pose << m.gyro << m.IMU_a_m << m.u;
             const sat3D_state_type& g = ground_truth[i].second;
-            measurements_gen << get_position(g)[0] << get_position(g)[1] << get_position(g)[2] 
-                             << get_quaternion(g)[0] << get_quaternion(g)[1] << get_quaternion(g)[2] << get_quaternion(g)[3] 
-                             << get_velocity(g)[0] << get_velocity(g)[1] << get_velocity(g)[2] 
-                             << get_ang_velocity(g)[0] << get_ang_velocity(g)[1] << get_ang_velocity(g)[2];
+            measurements_gen << get_position(g) << get_quaternion(g) << get_velocity(g) << get_ang_velocity(g);
             measurements_gen << recorder::data_recorder::end_value_row;
             
             if( vm.count("xml") + vm.count("protobuf") + vm.count("binary") > 0 ) {

@@ -43,6 +43,7 @@
 #include <exception>
 #include <vector>
 #include <queue>
+#include <map>
 #include <iostream>
 
 #include "base/shared_object.hpp"
@@ -104,6 +105,58 @@ class improper_flag : public std::exception {
     };
 };
 
+
+/* forward-declarations */
+class data_recorder;
+class data_extractor;
+
+
+
+/**
+ * This class is used to represent a complete row of entries (values) for a data recorder or extractor, 
+ * each associated with a column-name (names must be unique).
+ * \note Objects of this class are created using the 'getFreshNamedValueRow' function in the data recorder / extractor classes.
+ */
+class named_value_row {
+  private:
+    const std::map<std::string, std::size_t>* p_named_indices;
+    std::vector<double> values;
+    
+    explicit named_value_row(const std::map<std::string, std::size_t>& aMap) : p_named_indices(&aMap), values(aMap.size(), 0.0) { };
+    
+  public:
+    
+    friend class data_recorder;
+    friend class data_extractor;
+    
+    /**
+     * Entry-access function. This function can be used to obtain write-access to an entry associated to a given name.
+     * \param s The name of the entry addressed.
+     * \return A reference to the entry corresponding to the given name.
+     */
+    double& operator[](const std::string& s) {
+      std::map<std::string, std::size_t>::const_iterator it = p_named_indices->find(s);
+      if( it == p_named_indices->end() )
+        throw out_of_bounds();
+      return values[ it->second ];
+    };
+    /**
+     * Entry-access function. This function can be used to obtain read-access to an entry associated to a given name.
+     * \param s The name of the entry addressed.
+     * \return The entry corresponding to the given name.
+     */
+    double operator[](const std::string& s) const {
+      std::map<std::string, std::size_t>::const_iterator it = p_named_indices->find(s);
+      if( it == p_named_indices->end() )
+        throw out_of_bounds();
+      return values[ it->second ];
+    };
+    
+};
+  
+
+
+
 /**
  * This class is the basis for all data recording classes. This class handles the basic
  * operations for buffering of the data and column name records.
@@ -116,6 +169,7 @@ class data_recorder : public shared_object {
     unsigned int flushSampleRate; ///< Holds the sample rate at which the data is automatically flushed to the file.
     unsigned int maxBufferSize; ///< Holds the maximum size for the data buffer, overload will trigger a file-flush.
     std::vector<std::string> names; ///< Holds the list of column names.
+    mutable std::map<std::string, std::size_t> named_indices; ///< Holds the map from the column names to the index within a value-row.
     std::queue<double> values_rm; ///< Holds the data buffer.
     shared_ptr<std::ostream> out_stream; ///< Holds the output-stream of the data record.
     
@@ -144,6 +198,20 @@ class data_recorder : public shared_object {
     virtual void setStreamImpl(const shared_ptr<std::ostream>& aStreamPtr) = 0;
     
   public:
+    
+    /**
+     * This function is the factory to create named-value-row objects to represent a row of entries, addressable by name.
+     * \return A fresh object that is ready to accept all the values of a row of entries to the data recorder.
+     */
+    named_value_row getFreshNamedValueRow() const {
+      return named_value_row(named_indices);
+    };
+    
+    /**
+     * This function returns the number of columns in this recorder.
+     * \return The number of columns in this recorder.
+     */
+    unsigned int getColCount() const { return colCount; };
     
     /// Data record-specific flags for special operations.
     enum flag {
@@ -179,14 +247,34 @@ class data_recorder : public shared_object {
     data_recorder& operator <<(double value);
     
     /**
+     * Operator to record an entire row of named entries.
+     */
+    data_recorder& operator <<(const named_value_row& values);
+    
+    /**
      * Operator to record a column name.
      */
     data_recorder& operator <<(const std::string& name);
     
     /**
+     * Operator to record a column name.
+     */
+    data_recorder& operator <<(const char* name) { return (*this) << std::string(name); };
+    
+    /**
      * Operator to issue a special operation's flag.
      */
     data_recorder& operator <<(flag some_flag);
+    
+    /**
+     * Operator to record a vector of in-order (nameless) entries.
+     */
+    template <typename Vector>
+    data_recorder& operator <<(const Vector& values) {
+      for(std::size_t i = 0; i < values.size(); ++i)
+        (*this) << values[i];
+      return *this;
+    };
     
     /**
      * Sets the stream.
@@ -229,6 +317,8 @@ class data_recorder : public shared_object {
         & RK_SERIAL_LOAD_WITH_NAME(maxBufferSize)
         & RK_SERIAL_LOAD_WITH_NAME(names);
       colCount = aColCount;
+      for(std::size_t i = 0; i < colCount; ++i)
+        named_indices[names[i]] = i;
       rowCount = 0;
       currentColumn = 0;
       values_rm = std::queue<double>();
@@ -254,6 +344,7 @@ class data_extractor : public shared_object {
     unsigned int flushSampleRate; ///< Holds the sample rate at which the data is automatically flushed to the file.
     unsigned int minBufferSize; ///< Holds the minimum size for the data buffer, underload will trigger a file-read.
     std::vector<std::string> names; ///< Holds the list of column names.
+    mutable std::map<std::string, std::size_t> named_indices; ///< Holds the map from the column names to the index within a value-row.
     std::queue<double> values_rm; ///< Holds the data buffer.
     shared_ptr<std::istream> in_stream; ///< Holds the input-stream of the data record.
     
@@ -284,6 +375,18 @@ class data_extractor : public shared_object {
     virtual void setStreamImpl(const shared_ptr<std::istream>& aStreamPtr) = 0;
     
   public:
+    
+    /**
+     * This function is the factory to create named-value-row objects to represent a row of entries, addressable by name.
+     * \return A fresh object that is ready to accept all the values of a row of entries to the data recorder.
+     */
+    named_value_row getFreshNamedValueRow() const {
+      if( named_indices.size() != names.size() ) {
+        for(std::size_t i = 0; i < names.size(); ++i)
+          named_indices[names[i]] = i;
+      };
+      return named_value_row(named_indices);
+    };
     
     /**
      * This function returns the number of columns in this extractor.
@@ -319,19 +422,34 @@ class data_extractor : public shared_object {
     virtual ~data_extractor();
     
     /**
-     * Operator to record a data entry.
+     * Operator to extract a data entry.
      */
     data_extractor& operator >>(double& value);
     
     /**
-     * Operator to record a column name.
+     * Operator to extract a column name.
      */
     data_extractor& operator >>(std::string& name);
+    
+    /**
+     * Operator to extract an entire row of named entries.
+     */
+    data_extractor& operator >>(named_value_row& values);
     
     /**
      * Operator to issue a special operation's flag.
      */
     data_extractor& operator >>(flag some_flag);
+    
+    /**
+     * Operator to extract a vector of in-order (nameless) entries.
+     */
+    template <typename Vector>
+    data_extractor& operator >>(Vector& values) {
+      for(std::size_t i = 0; i < values.size(); ++i)
+        (*this) >> values[i];
+      return *this;
+    };
     
     /**
      * Sets the stream.
@@ -374,6 +492,8 @@ class data_extractor : public shared_object {
         & RK_SERIAL_LOAD_WITH_NAME(minBufferSize)
         & RK_SERIAL_LOAD_WITH_NAME(names);
       colCount = aColCount;
+      for(std::size_t i = 0; i < names.size(); ++i)
+        named_indices[names[i]] = i;
       currentColumn = 0;
       currentNameCol = 0;
       values_rm = std::queue<double>();

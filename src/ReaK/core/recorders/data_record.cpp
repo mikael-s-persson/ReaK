@@ -40,7 +40,7 @@ void data_recorder::record_process::operator()() {
   while(parent.colCount != 0) {
     {
       if((parent.rowCount > parent.maxBufferSize) || (currentIter % iterStep == 0))
-	parent.writeRow();
+        parent.writeRow();
     };
     if(currentIter == 1000) {
       boost::posix_time::ptime current_time = boost::posix_time::microsec_clock::local_time();
@@ -80,6 +80,14 @@ data_recorder& data_recorder::operator <<(double value) {
   return *this;
 };
 
+data_recorder& data_recorder::operator <<(const named_value_row& values) {
+  if(colCount == 0) 
+    return *this;
+  for(std::vector<double>::const_iterator it = values.values.begin(); it != values.values.end(); ++it)
+    (*this) << (*it);
+  return (*this) << end_value_row;
+};
+
 data_recorder& data_recorder::operator <<(const std::string& name) {
   if(colCount == 0) {
     ReaKaux::unique_lock< ReaKaux::mutex > lock_here(access_mutex);
@@ -94,6 +102,8 @@ data_recorder& data_recorder::operator <<(flag some_flag) {
       throw improper_flag();
     ReaKaux::unique_lock< ReaKaux::mutex > lock_here(access_mutex);
     colCount = names.size();
+    for(std::size_t i = 0; i < colCount; ++i)
+      named_indices[names[i]] = i;
     lock_here.unlock();
     writeNames();
     lock_here.lock();
@@ -183,9 +193,9 @@ data_extractor& data_extractor::operator >>(double& value) {
   if(colCount != 0) {
     if(currentColumn < colCount) {
       if(values_rm.empty()) {
-	while((values_rm.size() < minBufferSize) && (readRow())) ;
-	if(values_rm.empty())
-	  throw end_of_record();
+        while((values_rm.size() < minBufferSize) && (readRow())) ;
+        if(values_rm.empty())
+          throw end_of_record();
       };
       ReaKaux::unique_lock< ReaKaux::mutex > lock_here(access_mutex);
       value = values_rm.front();
@@ -205,6 +215,14 @@ data_extractor& data_extractor::operator >>(std::string& name) {
   } else
     throw out_of_bounds();
   return *this;
+};
+
+data_extractor& data_extractor::operator >>(named_value_row& values) {
+  if(colCount == 0) 
+    return *this;
+  for(std::vector<double>::iterator it = values.values.begin(); it != values.values.end(); ++it)
+    (*this) >> (*it);
+  return (*this) >> end_value_row;
 };
 
 data_extractor& data_extractor::operator >>(flag some_flag) {
@@ -239,8 +257,11 @@ data_extractor& data_extractor::operator >>(flag some_flag) {
 
 void data_extractor::setFileName(const std::string& aFilename) {
   shared_ptr<std::ifstream> file_in(new std::ifstream(aFilename.c_str()));
-  if(file_in->is_open())
+  if(file_in->is_open()) {
     setStreamImpl(file_in);
+    for(std::size_t i = 0; i < colCount; ++i)
+      named_indices[names[i]] = i;
+  };
 };
 
 #if 0
