@@ -20,10 +20,14 @@ endif()
 if(NOT EXISTS "${OUTPUTROOT}")
   set(OUTPUTROOT "${CODEROOT}")
 endif()
+message(STATUS "Configured to output to: ${OUTPUTROOT}")
 
 
-# set(CMAKE_BUILD_TYPE Release)
-set(CMAKE_BUILD_TYPE Debug)
+if(NOT CMAKE_BUILD_TYPE)
+  set(CMAKE_BUILD_TYPE Release)
+endif()
+message(STATUS "Configured for build-type: ${CMAKE_BUILD_TYPE}")
+
 
 enable_testing()
 

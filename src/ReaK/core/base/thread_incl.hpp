@@ -39,16 +39,9 @@
 
 
 
-//  C++11 thread features in GCC 4.8.0 and later
-//
-#if __GNUC__ < 4 || (__GNUC__ == 4 && __GNUC_MINOR__ < 8) || !defined(__GXX_EXPERIMENTAL_CXX0X__)
-#define BOOST_NO_CXX11_HDR_THREAD
-#else
-#undef BOOST_NO_CXX11_HDR_THREAD
-#endif
-
-
-#ifndef BOOST_NO_CXX11_HDR_THREAD
+//  C++11 thread features in GCC 4.7.0 and later
+//  NOTE: This does not include futures and the notify-all-at-exit, because they are not fully supported.
+#if __GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 7) || !defined(__GXX_EXPERIMENTAL_CXX0X__)
 
 // This is a bit nasty...
 #ifndef _GLIBCXX_USE_SCHED_YIELD
