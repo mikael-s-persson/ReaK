@@ -25,6 +25,7 @@
 #include "tsv_recorder.hpp"
 #include "bin_recorder.hpp"
 #include "tcp_recorder.hpp"
+#include "udp_recorder.hpp"
 
 #include <sstream>
 
@@ -254,6 +255,82 @@ BOOST_AUTO_TEST_CASE( tcp_record_extract_test )
   BOOST_CHECK( server_worked );
   
 };
+
+
+#if 1
+
+struct udp_server_runner {
+  bool* succeeded;
+  unsigned int* num_points;
+  udp_server_runner(bool* aSucceeded, unsigned int* aNumPoints) : succeeded(aSucceeded), num_points(aNumPoints) { };
+  
+  void operator()() {
+    
+    using namespace ReaK;
+    using namespace recorder;
+    
+    try {
+      udp_recorder output_rec("127.0.0.1:17018");
+      output_rec << "x" << "2*x" << "x^2" << data_recorder::end_name_row;
+      
+      for(double x = 0.0; x < 10.1; x += 0.5) {
+        output_rec << x << 2*x << x*x << data_recorder::end_value_row;
+        *num_points += 1;
+      };
+      output_rec << data_recorder::flush;
+    } catch(...) {
+      *succeeded = false;
+      return;
+    };
+    
+    *succeeded = true;
+  };  
+  
+};
+
+
+BOOST_AUTO_TEST_CASE( udp_record_extract_test )
+{
+  
+  using namespace ReaK;
+  using namespace recorder;
+  
+  bool server_worked = false;
+  unsigned int server_sent = 0;
+  
+  udp_server_runner srv(&server_worked, &server_sent);
+  ReaKaux::thread server_thd( srv );
+  
+  // it is necessary to give some time for the server to get up and waiting before a client can be created:
+  ReaKaux::this_thread::yield();
+  
+  udp_extractor input_rec("127.0.0.1:17018");
+  
+  BOOST_CHECK_EQUAL( input_rec.getColCount(), 3 );
+  
+  std::string s1, s2, s3;
+  BOOST_CHECK_NO_THROW( input_rec >> s1 >> s2 >> s3 );
+  BOOST_CHECK( s1 == "x" );
+  BOOST_CHECK( s2 == "2*x" );
+  BOOST_CHECK( s3 == "x^2" );
+  
+  for(double x = 0; x < 10.1; x += 0.5) {
+    double v1, v2, v3;
+    BOOST_CHECK_NO_THROW( input_rec >> v1 >> v2 >> v3 );
+//     std::cout << v1 << " : " << v2 << " | " << (2.0*x) << " " << v3 << " | " << (x*x) << std::endl;
+    BOOST_CHECK_CLOSE( v1, x, 1e-6 );
+    BOOST_CHECK_CLOSE( v2, (2.0*x), 1e-6 );
+    BOOST_CHECK_CLOSE( v3, (x*x), 1e-6 );
+    BOOST_CHECK_NO_THROW( input_rec >> data_extractor::end_value_row );
+  };
+  
+  BOOST_CHECK_NO_THROW( server_thd.join() );
+  BOOST_CHECK_EQUAL( server_sent, 21 );
+  BOOST_CHECK( server_worked );
+  
+};
+#endif
+
 
 
 
