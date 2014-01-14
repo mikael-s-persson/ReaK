@@ -213,7 +213,8 @@ CRSPlannerGUI::CRSPlannerGUI( QWidget * parent, Qt::WindowFlags flags ) :
     ct_config(&view3d_menu, this),
     ct_interact(&ct_config.sceneData, this),
     space_config(this), 
-    plan_alg_config(this) {
+    plan_alg_config(this),
+    target_pred_config(this) {
   setupUi(this);
   
   
@@ -221,11 +222,13 @@ CRSPlannerGUI::CRSPlannerGUI( QWidget * parent, Qt::WindowFlags flags ) :
   addDockWidget(Qt::LeftDockWidgetArea, &ct_interact);
   addDockWidget(Qt::LeftDockWidgetArea, &space_config);
   addDockWidget(Qt::LeftDockWidgetArea, &plan_alg_config);
+  addDockWidget(Qt::LeftDockWidgetArea, &target_pred_config);
   
   
   tabifyDockWidget(&space_config, &ct_config);
   tabifyDockWidget(&ct_config, &plan_alg_config);
   tabifyDockWidget(&plan_alg_config, &ct_interact);
+  tabifyDockWidget(&ct_interact, &target_pred_config);
   
   
   connect(actionStart_Sol_Anim, SIGNAL(triggered()), this, SLOT(startSolutionAnimation()));

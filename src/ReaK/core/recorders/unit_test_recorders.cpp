@@ -229,7 +229,7 @@ BOOST_AUTO_TEST_CASE( tcp_record_extract_test )
   ReaKaux::thread server_thd( srv );
   
   // it is necessary to give some time for the server to get up and waiting before a client can be created:
-//   ReaKaux::this_thread::sleep_for(ReaKaux::chrono::nanoseconds(10000));
+  ReaKaux::this_thread::sleep_for(ReaKaux::chrono::nanoseconds(10000));
   ReaKaux::this_thread::yield();
   
   tcp_extractor input_rec("127.0.0.1:17017");
@@ -270,7 +270,7 @@ struct udp_server_runner {
     using namespace recorder;
     
     try {
-      udp_recorder output_rec("127.0.0.1:17018");
+      udp_recorder output_rec("17018");
       output_rec << "x" << "2*x" << "x^2" << data_recorder::end_name_row;
       
       for(double x = 0.0; x < 10.1; x += 0.5) {
@@ -302,6 +302,7 @@ BOOST_AUTO_TEST_CASE( udp_record_extract_test )
   ReaKaux::thread server_thd( srv );
   
   // it is necessary to give some time for the server to get up and waiting before a client can be created:
+  ReaKaux::this_thread::sleep_for(ReaKaux::chrono::nanoseconds(10000));
   ReaKaux::this_thread::yield();
   
   udp_extractor input_rec("127.0.0.1:17018");

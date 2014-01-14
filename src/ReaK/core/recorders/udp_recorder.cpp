@@ -39,9 +39,9 @@ class udp_server_impl {
     boost::asio::ip::udp::socket socket;
     boost::asio::basic_streambuf<> row_buf;
     
-    udp_server_impl(const std::string& ip4_address, std::size_t port_num) : 
+    udp_server_impl(std::size_t port_num) : 
       io_service(), 
-      endpoint(boost::asio::ip::address_v4::from_string(ip4_address), port_num), 
+      endpoint(boost::asio::ip::udp::v4(), port_num), 
       socket(io_service) {
       
       {
@@ -49,6 +49,7 @@ class udp_server_impl {
         boost::asio::ip::tcp::acceptor tcp_acceptor(tcp_io_service, boost::asio::ip::tcp::endpoint(boost::asio::ip::tcp::v4(), port_num));
         boost::asio::ip::tcp::socket tcp_socket(tcp_io_service);
         tcp_acceptor.accept(tcp_socket);
+        endpoint.address(tcp_socket.remote_endpoint().address());
       };
       
       socket.open(boost::asio::ip::udp::v4());
@@ -135,28 +136,20 @@ void udp_recorder::setFileName(const std::string& aFileName) {
     
     ReaKaux::unique_lock< ReaKaux::mutex > lock_here(access_mutex);
     
-    std::size_t i = aFileName.find(':');
-    std::string ip4addr = aFileName.substr(0, i);
     std::size_t portnum = 17000;
-    if(++i < aFileName.size()) {
-      std::stringstream ss( aFileName.substr(i, aFileName.size() - i) );
-      ss >> portnum;
-    };
-    pimpl = shared_ptr<udp_server_impl>(new udp_server_impl(ip4addr, portnum));
+    std::stringstream ss( aFileName );
+    ss >> portnum;
+    pimpl = shared_ptr<udp_server_impl>(new udp_server_impl(portnum));
     colCount = names.size();
     lock_here.unlock();
     writeNames();
   } else {
     ReaKaux::unique_lock< ReaKaux::mutex > lock_here(access_mutex);
     
-    std::size_t i = aFileName.find(':');
-    std::string ip4addr = aFileName.substr(0, i);
     std::size_t portnum = 17000;
-    if(++i < aFileName.size()) {
-      std::stringstream ss( aFileName.substr(i, aFileName.size() - i) );
-      ss >> portnum;
-    };
-    pimpl = shared_ptr<udp_server_impl>(new udp_server_impl(ip4addr, portnum));
+    std::stringstream ss( aFileName );
+    ss >> portnum;
+    pimpl = shared_ptr<udp_server_impl>(new udp_server_impl(portnum));
   };
 };
 

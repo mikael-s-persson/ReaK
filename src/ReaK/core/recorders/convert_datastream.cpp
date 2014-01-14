@@ -26,6 +26,7 @@
 #include "tsv_recorder.hpp"
 #include "bin_recorder.hpp"
 #include "tcp_recorder.hpp"
+#include "udp_recorder.hpp"
 
 #include <sstream>
 
@@ -120,6 +121,10 @@ int main(int argc, char** argv) {
     std::stringstream ss;
     ss << vm["output-port"].as<unsigned int>();
     data_out = shared_ptr< data_recorder >(new tcp_recorder(ss.str()));
+  } else if(vm.count("output-udp")) {
+    std::stringstream ss;
+    ss << vm["output-port"].as<unsigned int>();
+    data_out = shared_ptr< data_recorder >(new udp_recorder(ss.str()));
   } else {
     if(vm.count("output-format"))
       output_extension = strip_quotes(vm["output-format"].as<std::string>());
@@ -150,10 +155,14 @@ int main(int argc, char** argv) {
     input_extension = input_file_name.substr(p+1);
   };
   
-  if(vm.count("input-ip")) {
+  if(vm.count("input-ip") && !vm.count("input-udp")) {
     std::stringstream ss;
     ss << vm["input-ip"].as<std::string>() << ":" << vm["input-port"].as<unsigned int>();
     data_in = shared_ptr< data_extractor >(new tcp_extractor(ss.str()));
+  } else if(vm.count("input-ip")) {
+    std::stringstream ss;
+    ss << vm["input-ip"].as<std::string>() << ":" << vm["input-port"].as<unsigned int>();
+    data_in = shared_ptr< data_extractor >(new udp_extractor(ss.str()));
   } else {
     if(vm.count("input-format"))
       input_extension = strip_quotes(vm["input-format"].as<std::string>());

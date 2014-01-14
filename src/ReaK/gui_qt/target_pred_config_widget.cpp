@@ -27,6 +27,7 @@
 #include <QFileDialog>
 #include <QFileInfo>
 #include <QMessageBox>
+#include <QMainWindow>
 
 #include "serialization/archiver_factory.hpp"
 
@@ -40,13 +41,24 @@ static QString last_used_path;
 
 
 TargetPredConfigWidget::TargetPredConfigWidget(QWidget * parent, Qt::WindowFlags flags) :
-                                               QDockWidget(tr("Predictor"), parent, flags),
-                                               Ui::TargetPredConfig(),
-                                               inertia_tensor(1.0, 0.0, 0.0, 1.0, 0.0, 1.0),
-                                               IMU_orientation(),
-                                               IMU_location(),
-                                               earth_orientation(),
-                                               mag_field_direction(1.0,0.0,0.0)
+  QDockWidget(tr("Predictor"), parent, flags),
+  Ui::TargetPredConfig(),
+  inertia_tensor(1.0, 0.0, 0.0, 1.0, 0.0, 1.0),
+  IMU_orientation(),
+  IMU_location(),
+  earth_orientation(),
+  mag_field_direction(1.0,0.0,0.0),
+  objtree_sch_bld(),
+  ot_inertia_graph(shared_ptr< serialization::object_graph >(new serialization::object_graph())),
+  ot_inertia_root(add_vertex(*ot_inertia_graph)),
+  ot_inertia_widget(ot_inertia_graph, ot_inertia_root),
+  ot_inertia_propedit(&(ot_inertia_widget.mdl)),
+  ot_inertia_edit(ot_inertia_propedit.mdl.get_object_editor()),
+  ot_IMU_graph(shared_ptr< serialization::object_graph >(new serialization::object_graph())),
+  ot_IMU_root(add_vertex(*ot_IMU_graph)),
+  ot_IMU_widget(ot_IMU_graph, ot_IMU_root),
+  ot_IMU_propedit(&(ot_IMU_widget.mdl)),
+  ot_IMU_edit(ot_IMU_propedit.mdl.get_object_editor())
 {
   this->QDockWidget::setWidget(new QWidget(this));
   setupUi(this->QDockWidget::widget());
@@ -55,6 +67,28 @@ TargetPredConfigWidget::TargetPredConfigWidget(QWidget * parent, Qt::WindowFlags
   connect(this->actionValuesChanged, SIGNAL(triggered()), this, SLOT(onConfigsChanged()));
   connect(this->load_button, SIGNAL(clicked()), this, SLOT(loadPredictorConfig()));
   connect(this->save_button, SIGNAL(clicked()), this, SLOT(savePredictorConfig()));
+  
+  connect(this->I_load_button, SIGNAL(clicked()), this, SLOT(loadInertiaTensor()));
+  connect(this->I_edit_button, SIGNAL(clicked()), this, SLOT(editInertiaTensor()));
+  connect(this->I_save_button, SIGNAL(clicked()), this, SLOT(saveInertiaTensor()));
+  
+  connect(this->IMU_load_button, SIGNAL(clicked()), this, SLOT(loadIMUConfig()));
+  connect(this->IMU_edit_button, SIGNAL(clicked()), this, SLOT(editIMUConfig()));
+  connect(this->IMU_save_button, SIGNAL(clicked()), this, SLOT(saveIMUConfig()));
+  
+  objtree_sch_bld << inertia_tensor << IMU_orientation << IMU_location << earth_orientation << mag_field_direction;
+  
+  {
+    serialization::objtree_oarchive ot_oarch(ot_inertia_graph, ot_inertia_root);
+    ot_oarch << inertia_tensor;
+    ot_inertia_widget.mdl.refreshObjTree();
+  };
+  
+  {
+    serialization::objtree_oarchive ot_oarch(ot_inertia_graph, ot_inertia_root);
+    ot_oarch << IMU_orientation << IMU_location << earth_orientation << mag_field_direction;
+    ot_IMU_widget.mdl.refreshObjTree();
+  };
   
   
   updateConfigs();
@@ -336,6 +370,145 @@ void TargetPredConfigWidget::loadPredictorConfig() {
   
   updateConfigs();
 };
+
+
+
+
+    
+void TargetPredConfigWidget::saveInertiaTensor() {
+  QString fileName = QFileDialog::getSaveFileName(
+    this, tr("Save Inertia Information..."), last_used_path,
+    tr("Target Inertia Information (*.rkx *.xml *.rkb *.pbuf)"));
+  
+  if( fileName == tr("") )
+    return;
+  
+  last_used_path = QFileInfo(fileName).absolutePath();
+  
+  onConfigsChanged();
+  
+  double mass = this->getMass();
+  
+  try {
+    (*serialization::open_oarchive(fileName.toStdString())) 
+      & RK_SERIAL_SAVE_WITH_NAME(mass)
+      & RK_SERIAL_SAVE_WITH_NAME(inertia_tensor);
+  } catch(...) {
+    QMessageBox::information(this,
+                "File Type Not Supported!",
+                "Sorry, this file-type is not supported!",
+                QMessageBox::Ok);
+    return;
+  };
+  
+};
+
+void TargetPredConfigWidget::editInertiaTensor() {
+  /*
+  QMainWindow window(this, Qt::Popup | Qt::Dialog);
+  window.resize(400, 500);
+  window.move(100, 100);  
+  window.setWindowTitle("Edit Inertia Tensor");
+  
+  window.addDockWidget(Qt::RightDockWidgetArea, &ot_inertia_widget);
+  window.addDockWidget(Qt::RightDockWidgetArea, &ot_inertia_propedit);
+  
+  window.setWindowModality(Qt::WindowModal);
+  window.show();*/
+};
+
+void TargetPredConfigWidget::loadInertiaTensor() {
+  QString fileName = QFileDialog::getOpenFileName(
+    this, tr("Open Inertia Information..."), last_used_path,
+    tr("Target Inertia Information (*.rkx *.xml *.rkb *.pbuf)"));
+  
+  if( fileName == tr("") )
+    return;
+  
+  last_used_path = QFileInfo(fileName).absolutePath();
+  
+  double mass = 0.0;
+  
+  try {
+    (*serialization::open_iarchive(fileName.toStdString())) 
+      & RK_SERIAL_LOAD_WITH_NAME(mass)
+      & RK_SERIAL_LOAD_WITH_NAME(inertia_tensor);
+      
+  } catch(...) {
+    QMessageBox::information(this,
+                "File Type Not Supported!",
+                "Sorry, this file-type is not supported!",
+                QMessageBox::Ok);
+    return;
+  };
+  
+  this->mass_spin->setValue(mass);
+  
+  updateConfigs();
+};
+
+
+void TargetPredConfigWidget::saveIMUConfig() {
+  QString fileName = QFileDialog::getSaveFileName(
+    this, tr("Save IMU Configurations..."), last_used_path,
+    tr("Target IMU Configurations (*.rkx *.xml *.rkb *.pbuf)"));
+  
+  if( fileName == tr("") )
+    return;
+  
+  last_used_path = QFileInfo(fileName).absolutePath();
+  
+  onConfigsChanged();
+  
+  try {
+    (*serialization::open_oarchive(fileName.toStdString())) 
+      & RK_SERIAL_SAVE_WITH_NAME(IMU_orientation)
+      & RK_SERIAL_SAVE_WITH_NAME(IMU_location)
+      & RK_SERIAL_SAVE_WITH_NAME(earth_orientation)
+      & RK_SERIAL_SAVE_WITH_NAME(mag_field_direction);
+  } catch(...) {
+    QMessageBox::information(this,
+                "File Type Not Supported!",
+                "Sorry, this file-type is not supported!",
+                QMessageBox::Ok);
+    return;
+  };
+  
+};
+
+void TargetPredConfigWidget::editIMUConfig() {
+  
+};
+
+void TargetPredConfigWidget::loadIMUConfig() {
+  QString fileName = QFileDialog::getOpenFileName(
+    this, tr("Open IMU Configurations..."), last_used_path,
+    tr("Target IMU Configurations (*.rkx *.xml *.rkb *.pbuf)"));
+  
+  if( fileName == tr("") )
+    return;
+  
+  last_used_path = QFileInfo(fileName).absolutePath();
+  
+  try {
+    (*serialization::open_iarchive(fileName.toStdString())) 
+      & RK_SERIAL_LOAD_WITH_NAME(IMU_orientation)
+      & RK_SERIAL_LOAD_WITH_NAME(IMU_location)
+      & RK_SERIAL_LOAD_WITH_NAME(earth_orientation)
+      & RK_SERIAL_LOAD_WITH_NAME(mag_field_direction);
+      
+  } catch(...) {
+    QMessageBox::information(this,
+                "File Type Not Supported!",
+                "Sorry, this file-type is not supported!",
+                QMessageBox::Ok);
+    return;
+  };
+  
+  updateConfigs();
+};
+
+
 
 
 

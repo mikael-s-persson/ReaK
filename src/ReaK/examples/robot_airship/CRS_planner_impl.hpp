@@ -38,6 +38,7 @@
 #include "chaser_target_interact_widget.hpp"
 #include "planner_alg_config_widget.hpp"
 #include "manip_space_config_widget.hpp"
+#include "target_pred_config_widget.hpp"
 
 
 class SoSensor;
@@ -84,6 +85,7 @@ class CRSPlannerGUI : public QMainWindow, private Ui::CRSPlannerWindow {
     ReaK::rkqt::ChaserTargetInteractWidget ct_interact;
     ReaK::rkqt::ManipSpaceConfigWidget     space_config;
     ReaK::rkqt::PlannerAlgConfigWidget     plan_alg_config;
+    ReaK::rkqt::TargetPredConfigWidget     target_pred_config;
     
     CRS_sol_anim_data    sol_anim;
     CRS_target_anim_data target_anim;

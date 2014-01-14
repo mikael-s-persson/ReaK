@@ -38,6 +38,11 @@
 #include "kinetostatics/quat_alg.hpp"
 
 #include "ui_target_predictor_config.h"
+
+#include "rk_object_tree_widget.hpp"
+#include "rk_prop_editor_widget.hpp"
+#include "serialization/scheme_builder.hpp"
+
 #include <QDockWidget>
 
 namespace ReaK {
@@ -61,6 +66,14 @@ class TargetPredConfigWidget : public QDockWidget, private Ui::TargetPredConfig 
     void savePredictorConfig();
     void loadPredictorConfig();
     
+    void saveInertiaTensor();
+    void editInertiaTensor();
+    void loadInertiaTensor();
+    
+    void saveIMUConfig();
+    void editIMUConfig();
+    void loadIMUConfig();
+    
   private:
     
     mat<double,mat_structure::symmetric> inertia_tensor;
@@ -69,6 +82,21 @@ class TargetPredConfigWidget : public QDockWidget, private Ui::TargetPredConfig 
     vect<double,3> IMU_location;
     unit_quat<double> earth_orientation;
     vect<double,3> mag_field_direction;
+    
+    
+    serialization::scheme_builder objtree_sch_bld;
+    
+    shared_ptr< serialization::object_graph > ot_inertia_graph;
+    serialization::object_node_desc ot_inertia_root;
+    ObjectTreeWidget ot_inertia_widget;
+    PropEditorWidget ot_inertia_propedit;
+    serialization::objtree_editor& ot_inertia_edit;
+    
+    shared_ptr< serialization::object_graph > ot_IMU_graph;
+    serialization::object_node_desc ot_IMU_root;
+    ObjectTreeWidget ot_IMU_widget;
+    PropEditorWidget ot_IMU_propedit;
+    serialization::objtree_editor& ot_IMU_edit;
     
   public:
     
