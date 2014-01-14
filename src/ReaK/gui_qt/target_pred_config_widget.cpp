@@ -51,14 +51,10 @@ TargetPredConfigWidget::TargetPredConfigWidget(QWidget * parent, Qt::WindowFlags
   objtree_sch_bld(),
   ot_inertia_graph(shared_ptr< serialization::object_graph >(new serialization::object_graph())),
   ot_inertia_root(add_vertex(*ot_inertia_graph)),
-  ot_inertia_widget(ot_inertia_graph, ot_inertia_root),
-  ot_inertia_propedit(&(ot_inertia_widget.mdl)),
-  ot_inertia_edit(ot_inertia_propedit.mdl.get_object_editor()),
+  ot_inertia_win(this, Qt::Popup | Qt::Dialog),
   ot_IMU_graph(shared_ptr< serialization::object_graph >(new serialization::object_graph())),
   ot_IMU_root(add_vertex(*ot_IMU_graph)),
-  ot_IMU_widget(ot_IMU_graph, ot_IMU_root),
-  ot_IMU_propedit(&(ot_IMU_widget.mdl)),
-  ot_IMU_edit(ot_IMU_propedit.mdl.get_object_editor())
+  ot_IMU_win(this, Qt::Popup | Qt::Dialog)
 {
   this->QDockWidget::setWidget(new QWidget(this));
   setupUi(this->QDockWidget::widget());
@@ -79,15 +75,33 @@ TargetPredConfigWidget::TargetPredConfigWidget(QWidget * parent, Qt::WindowFlags
   objtree_sch_bld << inertia_tensor << IMU_orientation << IMU_location << earth_orientation << mag_field_direction;
   
   {
+    ot_inertia_widget = new ObjectTreeWidget(ot_inertia_graph, ot_inertia_root);
+    ot_inertia_propedit = new PropEditorWidget(&(ot_inertia_widget->mdl));
+    ot_inertia_edit = &(ot_inertia_propedit->mdl.get_object_editor());
     serialization::objtree_oarchive ot_oarch(ot_inertia_graph, ot_inertia_root);
     ot_oarch << inertia_tensor;
-    ot_inertia_widget.mdl.refreshObjTree();
+    ot_inertia_widget->mdl.refreshObjTree();
+    
+    ot_inertia_win.resize(400, 500);
+    ot_inertia_win.move(100, 100);  
+    ot_inertia_win.setWindowTitle("Edit Inertia Tensor");
+    ot_inertia_win.addDockWidget(Qt::RightDockWidgetArea, ot_inertia_widget);
+    ot_inertia_win.addDockWidget(Qt::RightDockWidgetArea, ot_inertia_propedit);
   };
   
   {
+    ot_IMU_widget = new ObjectTreeWidget(ot_IMU_graph, ot_IMU_root);
+    ot_IMU_propedit = new PropEditorWidget(&(ot_IMU_widget->mdl));
+    ot_IMU_edit = &(ot_IMU_propedit->mdl.get_object_editor());
     serialization::objtree_oarchive ot_oarch(ot_inertia_graph, ot_inertia_root);
     ot_oarch << IMU_orientation << IMU_location << earth_orientation << mag_field_direction;
-    ot_IMU_widget.mdl.refreshObjTree();
+    ot_IMU_widget->mdl.refreshObjTree();
+    
+    ot_IMU_win.resize(400, 500);
+    ot_IMU_win.move(100, 100);  
+    ot_IMU_win.setWindowTitle("Edit IMU Configurations");
+    ot_IMU_win.addDockWidget(Qt::RightDockWidgetArea, ot_IMU_widget);
+    ot_IMU_win.addDockWidget(Qt::RightDockWidgetArea, ot_IMU_propedit);
   };
   
   
@@ -404,17 +418,7 @@ void TargetPredConfigWidget::saveInertiaTensor() {
 };
 
 void TargetPredConfigWidget::editInertiaTensor() {
-  /*
-  QMainWindow window(this, Qt::Popup | Qt::Dialog);
-  window.resize(400, 500);
-  window.move(100, 100);  
-  window.setWindowTitle("Edit Inertia Tensor");
-  
-  window.addDockWidget(Qt::RightDockWidgetArea, &ot_inertia_widget);
-  window.addDockWidget(Qt::RightDockWidgetArea, &ot_inertia_propedit);
-  
-  window.setWindowModality(Qt::WindowModal);
-  window.show();*/
+  ot_inertia_win.show();
 };
 
 void TargetPredConfigWidget::loadInertiaTensor() {
@@ -477,7 +481,7 @@ void TargetPredConfigWidget::saveIMUConfig() {
 };
 
 void TargetPredConfigWidget::editIMUConfig() {
-  
+  ot_IMU_win.show();
 };
 
 void TargetPredConfigWidget::loadIMUConfig() {

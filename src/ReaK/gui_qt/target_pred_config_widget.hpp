@@ -45,6 +45,8 @@
 
 #include <QDockWidget>
 
+#include <QMainWindow>
+
 namespace ReaK {
   
 namespace rkqt {
@@ -88,15 +90,17 @@ class TargetPredConfigWidget : public QDockWidget, private Ui::TargetPredConfig 
     
     shared_ptr< serialization::object_graph > ot_inertia_graph;
     serialization::object_node_desc ot_inertia_root;
-    ObjectTreeWidget ot_inertia_widget;
-    PropEditorWidget ot_inertia_propedit;
-    serialization::objtree_editor& ot_inertia_edit;
+    ObjectTreeWidget* ot_inertia_widget;
+    PropEditorWidget* ot_inertia_propedit;
+    serialization::objtree_editor* ot_inertia_edit;
+    QMainWindow ot_inertia_win;
     
     shared_ptr< serialization::object_graph > ot_IMU_graph;
     serialization::object_node_desc ot_IMU_root;
-    ObjectTreeWidget ot_IMU_widget;
-    PropEditorWidget ot_IMU_propedit;
-    serialization::objtree_editor& ot_IMU_edit;
+    ObjectTreeWidget* ot_IMU_widget;
+    PropEditorWidget* ot_IMU_propedit;
+    serialization::objtree_editor* ot_IMU_edit;
+    QMainWindow ot_IMU_win;
     
   public:
     
