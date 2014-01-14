@@ -50,6 +50,12 @@
 namespace ReaK {
   
 namespace rkqt {
+  
+/* forward-decl */
+namespace detail {
+  struct inertia_tensor_storage_impl;
+  struct IMU_config_storage_impl;
+};
 
 class TargetPredConfigWidget : public QDockWidget, private Ui::TargetPredConfig {
     Q_OBJECT
@@ -78,13 +84,8 @@ class TargetPredConfigWidget : public QDockWidget, private Ui::TargetPredConfig 
     
   private:
     
-    mat<double,mat_structure::symmetric> inertia_tensor;
-    
-    unit_quat<double> IMU_orientation;
-    vect<double,3> IMU_location;
-    unit_quat<double> earth_orientation;
-    vect<double,3> mag_field_direction;
-    
+    shared_ptr<detail::inertia_tensor_storage_impl> inertia_storage;
+    shared_ptr<detail::IMU_config_storage_impl> IMU_storage;
     
     serialization::scheme_builder objtree_sch_bld;
     
@@ -106,15 +107,15 @@ class TargetPredConfigWidget : public QDockWidget, private Ui::TargetPredConfig 
     
     double getTimeStep() const;
     double getMass() const;
-    const mat<double,mat_structure::symmetric>& getInertiaTensor() const { return inertia_tensor; };
+    const mat<double,mat_structure::symmetric>& getInertiaTensor() const;
     
     mat<double,mat_structure::diagonal> getInputDisturbance() const;
     mat<double,mat_structure::diagonal> getMeasurementNoise() const;
     
-    const unit_quat<double>& getIMUOrientation() const { return IMU_orientation; };
-    const vect<double,3>&    getIMULocation() const { return IMU_location; };
-    const unit_quat<double>& getEarthOrientation() const { return earth_orientation; };
-    const vect<double,3>&    getMagFieldDirection() const { return mag_field_direction; };
+    const unit_quat<double>& getIMUOrientation() const;
+    const vect<double,3>&    getIMULocation() const;
+    const unit_quat<double>& getEarthOrientation() const;
+    const vect<double,3>&    getMagFieldDirection() const;
     
     double getTimeHorizon() const;
     double getPThreshold() const;

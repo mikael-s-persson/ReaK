@@ -232,7 +232,7 @@ xml_field_editor::xml_field_editor(objtree_editor* aParent,
                                    src_markers(),
                                    field_schemes(),
                                    field_names() { 
-                                     
+  
   shared_ptr< serializable > cur_ptr = (*(p_parent->get_object_graph()))[node].p_obj;
   if(!cur_ptr) 
     return;

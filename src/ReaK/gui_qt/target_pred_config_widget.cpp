@@ -36,18 +36,63 @@ namespace ReaK {
 namespace rkqt {
 
 
+namespace detail {
+  
+  struct inertia_tensor_storage_impl : public shared_object {
+    
+    mat<double,mat_structure::symmetric> inertia_tensor;
+    
+    inertia_tensor_storage_impl() : inertia_tensor(1.0, 0.0, 0.0, 1.0, 0.0, 1.0) { };
+    
+    virtual void RK_CALL save(ReaK::serialization::oarchive& A, unsigned int) const {
+      A & RK_SERIAL_SAVE_WITH_NAME(inertia_tensor);
+    };
+    virtual void RK_CALL load(ReaK::serialization::iarchive& A, unsigned int) {
+      A & RK_SERIAL_LOAD_WITH_NAME(inertia_tensor);
+    };
+    RK_RTTI_MAKE_CONCRETE_1BASE(inertia_tensor_storage_impl,0xBEEF0001,1,"inertia_tensor_storage_impl",shared_object)
+  };
+    
+  struct IMU_config_storage_impl : public shared_object {
+    
+    unit_quat<double> IMU_orientation;
+    vect<double,3> IMU_location;
+    unit_quat<double> earth_orientation;
+    vect<double,3> mag_field_direction;
+    
+    IMU_config_storage_impl() : IMU_orientation(), IMU_location(),
+                                earth_orientation(), mag_field_direction(1.0,0.0,0.0) { };
+    
+    virtual void RK_CALL save(ReaK::serialization::oarchive& A, unsigned int) const {
+      A & RK_SERIAL_SAVE_WITH_NAME(IMU_orientation)
+        & RK_SERIAL_SAVE_WITH_NAME(IMU_location)
+        & RK_SERIAL_SAVE_WITH_NAME(earth_orientation)
+        & RK_SERIAL_SAVE_WITH_NAME(mag_field_direction);
+    };
+    virtual void RK_CALL load(ReaK::serialization::iarchive& A, unsigned int) {
+      A & RK_SERIAL_LOAD_WITH_NAME(IMU_orientation)
+        & RK_SERIAL_LOAD_WITH_NAME(IMU_location)
+        & RK_SERIAL_LOAD_WITH_NAME(earth_orientation)
+        & RK_SERIAL_LOAD_WITH_NAME(mag_field_direction);
+    };
+    RK_RTTI_MAKE_CONCRETE_1BASE(IMU_config_storage_impl,0xBEEF0002,1,"IMU_config_storage_impl",shared_object)
+  };
+  
+};
+
+
+
 static QString last_used_path;
+
+
 
 
 
 TargetPredConfigWidget::TargetPredConfigWidget(QWidget * parent, Qt::WindowFlags flags) :
   QDockWidget(tr("Predictor"), parent, flags),
   Ui::TargetPredConfig(),
-  inertia_tensor(1.0, 0.0, 0.0, 1.0, 0.0, 1.0),
-  IMU_orientation(),
-  IMU_location(),
-  earth_orientation(),
-  mag_field_direction(1.0,0.0,0.0),
+  inertia_storage(new detail::inertia_tensor_storage_impl()),
+  IMU_storage(new detail::IMU_config_storage_impl()),
   objtree_sch_bld(),
   ot_inertia_graph(shared_ptr< serialization::object_graph >(new serialization::object_graph())),
   ot_inertia_root(add_vertex(*ot_inertia_graph)),
@@ -72,14 +117,13 @@ TargetPredConfigWidget::TargetPredConfigWidget(QWidget * parent, Qt::WindowFlags
   connect(this->IMU_edit_button, SIGNAL(clicked()), this, SLOT(editIMUConfig()));
   connect(this->IMU_save_button, SIGNAL(clicked()), this, SLOT(saveIMUConfig()));
   
-  objtree_sch_bld << inertia_tensor << IMU_orientation << IMU_location << earth_orientation << mag_field_direction;
+  objtree_sch_bld << inertia_storage << IMU_storage;
   
   {
     ot_inertia_widget = new ObjectTreeWidget(ot_inertia_graph, ot_inertia_root);
     ot_inertia_propedit = new PropEditorWidget(&(ot_inertia_widget->mdl));
     ot_inertia_edit = &(ot_inertia_propedit->mdl.get_object_editor());
-    serialization::objtree_oarchive ot_oarch(ot_inertia_graph, ot_inertia_root);
-    ot_oarch << inertia_tensor;
+    ot_inertia_edit->add_new_object(inertia_storage);
     ot_inertia_widget->mdl.refreshObjTree();
     
     ot_inertia_win.resize(400, 500);
@@ -93,8 +137,7 @@ TargetPredConfigWidget::TargetPredConfigWidget(QWidget * parent, Qt::WindowFlags
     ot_IMU_widget = new ObjectTreeWidget(ot_IMU_graph, ot_IMU_root);
     ot_IMU_propedit = new PropEditorWidget(&(ot_IMU_widget->mdl));
     ot_IMU_edit = &(ot_IMU_propedit->mdl.get_object_editor());
-    serialization::objtree_oarchive ot_oarch(ot_inertia_graph, ot_inertia_root);
-    ot_oarch << IMU_orientation << IMU_location << earth_orientation << mag_field_direction;
+    ot_IMU_edit->add_new_object(IMU_storage);
     ot_IMU_widget->mdl.refreshObjTree();
     
     ot_IMU_win.resize(400, 500);
@@ -123,6 +166,10 @@ double TargetPredConfigWidget::getMass() const {
   return this->mass_spin->value();
 };
 
+
+const mat<double,mat_structure::symmetric>& TargetPredConfigWidget::getInertiaTensor() const { return inertia_storage->inertia_tensor; };
+    
+
 mat<double,mat_structure::diagonal> TargetPredConfigWidget::getInputDisturbance() const {
   mat<double,mat_structure::diagonal> result(6,true);
   result(2,2) = result(1,1) = result(0,0) = this->Qf_spin->value();
@@ -150,6 +197,23 @@ mat<double,mat_structure::diagonal> TargetPredConfigWidget::getMeasurementNoise(
   };
   
   return result;
+};
+
+
+const unit_quat<double>& TargetPredConfigWidget::getIMUOrientation() const { 
+  return IMU_storage->IMU_orientation;
+};
+
+const vect<double,3>& TargetPredConfigWidget::getIMULocation() const { 
+  return IMU_storage->IMU_location;
+};
+
+const unit_quat<double>& TargetPredConfigWidget::getEarthOrientation() const { 
+  return IMU_storage->earth_orientation;
+};
+
+const vect<double,3>& TargetPredConfigWidget::getMagFieldDirection() const { 
+  return IMU_storage->mag_field_direction;
 };
 
 
@@ -270,12 +334,12 @@ void TargetPredConfigWidget::savePredictorConfig() {
       & RK_SERIAL_SAVE_WITH_NAME(filtering_method)
       & RK_SERIAL_SAVE_WITH_NAME(predictive_assumption)
       & RK_SERIAL_SAVE_WITH_NAME(mass)
-      & RK_SERIAL_SAVE_WITH_NAME(inertia_tensor)
+      & RK_SERIAL_SAVE_WITH_ALIAS("inertia_tensor", inertia_storage->inertia_tensor)
       & RK_SERIAL_SAVE_WITH_NAME(time_step)
-      & RK_SERIAL_SAVE_WITH_NAME(IMU_orientation)
-      & RK_SERIAL_SAVE_WITH_NAME(IMU_location)
-      & RK_SERIAL_SAVE_WITH_NAME(earth_orientation)
-      & RK_SERIAL_SAVE_WITH_NAME(mag_field_direction)
+      & RK_SERIAL_SAVE_WITH_ALIAS("IMU_orientation", IMU_storage->IMU_orientation)
+      & RK_SERIAL_SAVE_WITH_ALIAS("IMU_location", IMU_storage->IMU_location)
+      & RK_SERIAL_SAVE_WITH_ALIAS("earth_orientation", IMU_storage->earth_orientation)
+      & RK_SERIAL_SAVE_WITH_ALIAS("mag_field_direction", IMU_storage->mag_field_direction)
       & RK_SERIAL_SAVE_WITH_NAME(input_disturbance)
       & RK_SERIAL_SAVE_WITH_NAME(measurement_noise)
       & RK_SERIAL_SAVE_WITH_NAME(max_time_horizon)
@@ -316,12 +380,12 @@ void TargetPredConfigWidget::loadPredictorConfig() {
       & RK_SERIAL_LOAD_WITH_NAME(filtering_method)
       & RK_SERIAL_LOAD_WITH_NAME(predictive_assumption)
       & RK_SERIAL_LOAD_WITH_NAME(mass)
-      & RK_SERIAL_LOAD_WITH_NAME(inertia_tensor)
+      & RK_SERIAL_LOAD_WITH_ALIAS("inertia_tensor", inertia_storage->inertia_tensor)
       & RK_SERIAL_LOAD_WITH_NAME(time_step)
-      & RK_SERIAL_LOAD_WITH_NAME(IMU_orientation)
-      & RK_SERIAL_LOAD_WITH_NAME(IMU_location)
-      & RK_SERIAL_LOAD_WITH_NAME(earth_orientation)
-      & RK_SERIAL_LOAD_WITH_NAME(mag_field_direction)
+      & RK_SERIAL_LOAD_WITH_ALIAS("IMU_orientation", IMU_storage->IMU_orientation)
+      & RK_SERIAL_LOAD_WITH_ALIAS("IMU_location", IMU_storage->IMU_location)
+      & RK_SERIAL_LOAD_WITH_ALIAS("earth_orientation", IMU_storage->earth_orientation)
+      & RK_SERIAL_LOAD_WITH_ALIAS("mag_field_direction", IMU_storage->mag_field_direction)
       & RK_SERIAL_LOAD_WITH_NAME(input_disturbance)
       & RK_SERIAL_LOAD_WITH_NAME(measurement_noise)
       & RK_SERIAL_LOAD_WITH_NAME(max_time_horizon)
@@ -406,7 +470,7 @@ void TargetPredConfigWidget::saveInertiaTensor() {
   try {
     (*serialization::open_oarchive(fileName.toStdString())) 
       & RK_SERIAL_SAVE_WITH_NAME(mass)
-      & RK_SERIAL_SAVE_WITH_NAME(inertia_tensor);
+      & RK_SERIAL_SAVE_WITH_ALIAS("inertia_tensor", inertia_storage->inertia_tensor);
   } catch(...) {
     QMessageBox::information(this,
                 "File Type Not Supported!",
@@ -436,7 +500,7 @@ void TargetPredConfigWidget::loadInertiaTensor() {
   try {
     (*serialization::open_iarchive(fileName.toStdString())) 
       & RK_SERIAL_LOAD_WITH_NAME(mass)
-      & RK_SERIAL_LOAD_WITH_NAME(inertia_tensor);
+      & RK_SERIAL_LOAD_WITH_ALIAS("inertia_tensor", inertia_storage->inertia_tensor);
       
   } catch(...) {
     QMessageBox::information(this,
@@ -466,10 +530,10 @@ void TargetPredConfigWidget::saveIMUConfig() {
   
   try {
     (*serialization::open_oarchive(fileName.toStdString())) 
-      & RK_SERIAL_SAVE_WITH_NAME(IMU_orientation)
-      & RK_SERIAL_SAVE_WITH_NAME(IMU_location)
-      & RK_SERIAL_SAVE_WITH_NAME(earth_orientation)
-      & RK_SERIAL_SAVE_WITH_NAME(mag_field_direction);
+      & RK_SERIAL_SAVE_WITH_ALIAS("IMU_orientation", IMU_storage->IMU_orientation)
+      & RK_SERIAL_SAVE_WITH_ALIAS("IMU_location", IMU_storage->IMU_location)
+      & RK_SERIAL_SAVE_WITH_ALIAS("earth_orientation", IMU_storage->earth_orientation)
+      & RK_SERIAL_SAVE_WITH_ALIAS("mag_field_direction", IMU_storage->mag_field_direction);
   } catch(...) {
     QMessageBox::information(this,
                 "File Type Not Supported!",
@@ -496,10 +560,10 @@ void TargetPredConfigWidget::loadIMUConfig() {
   
   try {
     (*serialization::open_iarchive(fileName.toStdString())) 
-      & RK_SERIAL_LOAD_WITH_NAME(IMU_orientation)
-      & RK_SERIAL_LOAD_WITH_NAME(IMU_location)
-      & RK_SERIAL_LOAD_WITH_NAME(earth_orientation)
-      & RK_SERIAL_LOAD_WITH_NAME(mag_field_direction);
+      & RK_SERIAL_LOAD_WITH_ALIAS("IMU_orientation", IMU_storage->IMU_orientation)
+      & RK_SERIAL_LOAD_WITH_ALIAS("IMU_location", IMU_storage->IMU_location)
+      & RK_SERIAL_LOAD_WITH_ALIAS("earth_orientation", IMU_storage->earth_orientation)
+      & RK_SERIAL_LOAD_WITH_ALIAS("mag_field_direction", IMU_storage->mag_field_direction);
       
   } catch(...) {
     QMessageBox::information(this,

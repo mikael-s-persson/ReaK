@@ -99,7 +99,7 @@ class HIRES_iv_problem : public iv_problem<T> {
     
     typedef HIRES_iv_problem<T> self;
     typedef iv_problem<T> base_type;
-    RK_RTTI_MAKE_ABSTRACT_1BASE(self,0xC22FFFF1,1,"HIRES_iv_problem",base_type)
+    RK_RTTI_MAKE_CONCRETE_1BASE(self,0xC22FFFF1,1,"HIRES_iv_problem",base_type)
 };
 
 
@@ -245,7 +245,7 @@ class Pollution_iv_problem : public iv_problem<T> {
     
     typedef Pollution_iv_problem<T> self;
     typedef iv_problem<T> base_type;
-    RK_RTTI_MAKE_ABSTRACT_1BASE(self,0xC22FFFF2,1,"Pollution_iv_problem",base_type)
+    RK_RTTI_MAKE_CONCRETE_1BASE(self,0xC22FFFF2,1,"Pollution_iv_problem",base_type)
 };
 
 
@@ -338,7 +338,7 @@ class RingModulator_iv_problem : public iv_problem<T> {
     
     typedef RingModulator_iv_problem<T> self;
     typedef iv_problem<T> base_type;
-    RK_RTTI_MAKE_ABSTRACT_1BASE(self,0xC22FFFF3,1,"RingModulator_iv_problem",base_type)
+    RK_RTTI_MAKE_CONCRETE_1BASE(self,0xC22FFFF3,1,"RingModulator_iv_problem",base_type)
 };
 
 
@@ -809,7 +809,7 @@ class AkzoNobel_iv_problem : public iv_problem<T> {
     
     typedef AkzoNobel_iv_problem<T> self;
     typedef iv_problem<T> base_type;
-    RK_RTTI_MAKE_ABSTRACT_1BASE(self,0xC22FFFF4,1,"AkzoNobel_iv_problem",base_type)
+    RK_RTTI_MAKE_CONCRETE_1BASE(self,0xC22FFFF4,1,"AkzoNobel_iv_problem",base_type)
 };
 
 
@@ -918,7 +918,7 @@ class Pleiades_iv_problem : public iv_problem<T> {
     
     typedef Pleiades_iv_problem<T> self;
     typedef iv_problem<T> base_type;
-    RK_RTTI_MAKE_ABSTRACT_1BASE(self,0xC22FFFF5,1,"Pleiades_iv_problem",base_type)
+    RK_RTTI_MAKE_CONCRETE_1BASE(self,0xC22FFFF5,1,"Pleiades_iv_problem",base_type)
 };
 
 
@@ -961,7 +961,7 @@ class VanDerPol_iv_problem : public iv_problem<T> {
     
     typedef VanDerPol_iv_problem<T> self;
     typedef iv_problem<T> base_type;
-    RK_RTTI_MAKE_ABSTRACT_1BASE(self,0xC22FFFF6,1,"VanDerPol_iv_problem",base_type)
+    RK_RTTI_MAKE_CONCRETE_1BASE(self,0xC22FFFF6,1,"VanDerPol_iv_problem",base_type)
 };
 
 
@@ -1002,7 +1002,7 @@ class VanDerPolMod_iv_problem : public iv_problem<T> {
     
     typedef VanDerPolMod_iv_problem<T> self;
     typedef iv_problem<T> base_type;
-    RK_RTTI_MAKE_ABSTRACT_1BASE(self,0xC22FFFF7,1,"VanDerPolMod_iv_problem",base_type)
+    RK_RTTI_MAKE_CONCRETE_1BASE(self,0xC22FFFF7,1,"VanDerPolMod_iv_problem",base_type)
 };
 
 
@@ -1048,7 +1048,7 @@ class Orego_iv_problem : public iv_problem<T> {
     
     typedef Orego_iv_problem<T> self;
     typedef iv_problem<T> base_type;
-    RK_RTTI_MAKE_ABSTRACT_1BASE(self,0xC22FFFF8,1,"Orego_iv_problem",base_type)
+    RK_RTTI_MAKE_CONCRETE_1BASE(self,0xC22FFFF8,1,"Orego_iv_problem",base_type)
 };
 
 
@@ -1095,7 +1095,7 @@ class Rober_iv_problem : public iv_problem<T> {
     
     typedef Rober_iv_problem<T> self;
     typedef iv_problem<T> base_type;
-    RK_RTTI_MAKE_ABSTRACT_1BASE(self,0xC22FFFF9,1,"Rober_iv_problem",base_type)
+    RK_RTTI_MAKE_CONCRETE_1BASE(self,0xC22FFFF9,1,"Rober_iv_problem",base_type)
 };
 
 
@@ -1148,7 +1148,7 @@ class E5_iv_problem : public iv_problem<T> {
     
     typedef E5_iv_problem<T> self;
     typedef iv_problem<T> base_type;
-    RK_RTTI_MAKE_ABSTRACT_1BASE(self,0xC22FFFFA,1,"E5_iv_problem",base_type)
+    RK_RTTI_MAKE_CONCRETE_1BASE(self,0xC22FFFFA,1,"E5_iv_problem",base_type)
 };
 
 
