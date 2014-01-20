@@ -37,12 +37,10 @@
 
 #if defined(RK_ENABLE_TEST_URRT_PLANNER) || defined(RK_ENABLE_TEST_BRRT_PLANNER)
 #include "rrt_path_planner.hpp"
-#include "rrt_path_planner.tpp"
 #endif
 
 #if defined(RK_ENABLE_TEST_PRM_PLANNER)
 #include "prm_path_planner.hpp"
-#include "prm_path_planner.tpp"
 #endif
 
 #if defined(RK_ENABLE_TEST_RRTSTAR_PLANNER)
@@ -52,7 +50,6 @@
 
 #if defined(RK_ENABLE_TEST_FADPRM_PLANNER)
 #include "fadprm_path_planner.hpp"
-#include "fadprm_path_planner.tpp"
 #endif
 
 #if defined(RK_ENABLE_TEST_SBASTAR_PLANNER)

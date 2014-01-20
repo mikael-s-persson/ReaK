@@ -14,6 +14,8 @@ set(PATH_PLANNING_HEADERS
   "${RKPATHPLANNINGDIR}/dvp_tree_detail.hpp"
   "${RKPATHPLANNINGDIR}/extrapolator_concept.hpp"
   "${RKPATHPLANNINGDIR}/fadprm_path_planner.hpp"
+  "${RKPATHPLANNINGDIR}/fadprm_path_planner.tpp"
+  "${RKPATHPLANNINGDIR}/fadprm_manip_planners.hpp"
   "${RKPATHPLANNINGDIR}/frame_tracer_coin3d.hpp"
   "${RKPATHPLANNINGDIR}/global_rng.hpp"
   "${RKPATHPLANNINGDIR}/interpolator_concept.hpp"
@@ -28,14 +30,21 @@ set(PATH_PLANNING_HEADERS
   "${RKPATHPLANNINGDIR}/planning_visitors.hpp"
   "${RKPATHPLANNINGDIR}/predicted_trajectory_concept.hpp"
   "${RKPATHPLANNINGDIR}/prm_path_planner.hpp"
+  "${RKPATHPLANNINGDIR}/prm_path_planner.tpp"
+  "${RKPATHPLANNINGDIR}/prm_manip_planners.hpp"
   "${RKPATHPLANNINGDIR}/prob_distribution_concept.hpp"
   "${RKPATHPLANNINGDIR}/random_sampler_concept.hpp"
   "${RKPATHPLANNINGDIR}/reachability_sort.hpp"
   "${RKPATHPLANNINGDIR}/reachability_space_concept.hpp"
   "${RKPATHPLANNINGDIR}/rrt_path_planner.hpp"
+  "${RKPATHPLANNINGDIR}/rrt_path_planner.tpp"
+  "${RKPATHPLANNINGDIR}/rrt_manip_planners.hpp"
   "${RKPATHPLANNINGDIR}/rrtstar_path_planner.hpp"
   "${RKPATHPLANNINGDIR}/rrtstar_path_planner.tpp"
+  "${RKPATHPLANNINGDIR}/rrtstar_manip_planners.hpp"
   "${RKPATHPLANNINGDIR}/sbastar_path_planner.hpp"
+  "${RKPATHPLANNINGDIR}/sbastar_path_planner.tpp"
+  "${RKPATHPLANNINGDIR}/sbastar_manip_planners.hpp"
   "${RKPATHPLANNINGDIR}/sbmp_point_recorder.hpp"
   "${RKPATHPLANNINGDIR}/sbmp_reporter_concept.hpp"
   "${RKPATHPLANNINGDIR}/seq_path_base.hpp"
@@ -60,10 +69,16 @@ set(PATH_PLANNING_HEADERS
 
 
 set(PLANNERS_SOURCES 
+  "${SRCROOT}${RKPATHPLANNINGDIR}/extern_templates/rrt_manip_planners_static.cpp"
+#   "${SRCROOT}${RKPATHPLANNINGDIR}/extern_templates/rrt_manip_planners_dynamic.cpp"
   "${SRCROOT}${RKPATHPLANNINGDIR}/extern_templates/rrtstar_manip_planners_static.cpp"
   "${SRCROOT}${RKPATHPLANNINGDIR}/extern_templates/rrtstar_manip_planners_dynamic.cpp"
   "${SRCROOT}${RKPATHPLANNINGDIR}/extern_templates/sbastar_manip_planners_static.cpp"
   "${SRCROOT}${RKPATHPLANNINGDIR}/extern_templates/sbastar_manip_planners_dynamic.cpp"
+  "${SRCROOT}${RKPATHPLANNINGDIR}/extern_templates/prm_manip_planners_static.cpp"
+  "${SRCROOT}${RKPATHPLANNINGDIR}/extern_templates/prm_manip_planners_dynamic.cpp"
+  "${SRCROOT}${RKPATHPLANNINGDIR}/extern_templates/fadprm_manip_planners_static.cpp"
+  "${SRCROOT}${RKPATHPLANNINGDIR}/extern_templates/fadprm_manip_planners_dynamic.cpp"
 )
 
 
