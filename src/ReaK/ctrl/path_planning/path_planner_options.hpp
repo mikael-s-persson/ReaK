@@ -129,6 +129,64 @@ class planning_option_collection : public shared_object {
     double max_random_walk;
     double start_delay;
     
+    planning_option_collection() : 
+      planning_algo(0),
+      max_vertices(5000),
+      prog_interval(10),
+      max_results(50),
+      planning_options(0),
+      store_policy(0),
+      knn_method(0),
+      init_SA_temp(0.0),
+      init_relax(0.0),
+      max_random_walk(1.0),
+      start_delay(20.0) { };
+    
+    
+    std::string get_knn_method_str() const {
+      switch(knn_method & KNN_METHOD_MASK) {
+        case LINEAR_SEARCH_KNN:
+          return "linear";
+        case DVP_BF2_TREE_KNN:
+          return "bf2";
+        case DVP_BF4_TREE_KNN:
+          return "bf4";
+        case DVP_COB2_TREE_KNN:
+          return "cob2";
+        case DVP_COB4_TREE_KNN:
+          return "cob4";
+        default:
+          return "";
+      };
+    };
+    
+    std::string get_mg_storage_str() const {
+      switch(store_policy & MOTION_GRAPH_STORAGE_MASK) {
+        case ADJ_LIST_MOTION_GRAPH:
+          return "adj-list";
+        case DVP_ADJ_LIST_MOTION_GRAPH:
+          return "dvp-adj-list";
+        case LINKED_TREE_MOTION_GRAPH:
+          return "linked-tree";
+        default:
+          return "";
+      };
+    };
+    
+    std::string get_planner_qualifier_str() const {
+      std::string result = "";
+      if( planning_options & BIDIRECTIONAL_PLANNING ) 
+        result += "_bidir";
+      if( planning_options & USE_BRANCH_AND_BOUND_PRUNING_FLAG )
+        result += "_bnb";
+      if( planning_options & PLAN_WITH_ANYTIME_HEURISTIC )
+        result += "_any";
+      if( planning_options & PLAN_WITH_VORONOI_PULL )
+        result += "_sa";
+      return result;
+    };
+    
+    
 /*******************************************************************************
                    ReaK's RTTI and Serialization interfaces
 *******************************************************************************/

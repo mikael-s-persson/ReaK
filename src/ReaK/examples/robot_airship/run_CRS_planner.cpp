@@ -52,7 +52,8 @@
 #endif
 
 #include "path_planning/p2p_planning_query.hpp"
-#include "path_planning/path_planner_options.hpp"
+
+#include "path_planning/path_planner_options_po.hpp"
 
 #include "optimization/optim_exceptions.hpp"
 
@@ -201,6 +202,9 @@ Input files:
 
 int main(int argc, char** argv) {
   
+  using namespace ReaK;
+  using namespace pp;
+  
   std::string config_file;
   
   po::options_description generic_options("Generic options");
@@ -212,7 +216,6 @@ int main(int argc, char** argv) {
   
   po::options_description io_options("I/O options");
   io_options.add_options()
-    ("planner-options", po::value< std::string >(), "specify the file containing the planner-options data.")
     ("chaser-target-env", po::value< std::string >(), "specify the file containing the chaser-target-env models.")
     ("space-definition", po::value< std::string >(), "specify the file containing the space settings (order, interp, etc.).")
     ("start-configuration", po::value< std::string >(), "specify the file containing the start configuration of the chaser (P3R3R-manipulator), if not specified, the chaser configuration of the chaser model will be used.")
@@ -254,36 +257,9 @@ int main(int argc, char** argv) {
     available_algs = available_alg_names.str();
   };
   
-  po::options_description planner_select_options("Planner selection options");
+  po::options_description planner_select_options = get_planning_option_po_desc();
   planner_select_options.add_options()
-    ("bi-directional", "specify whether to use a bi-directional algorithm or not during planning. Only supported for some algorithms (RRT).")
-    ("with-bnb", "specify whether to use a Branch-and-bound or not during planning to prune useless nodes from the motion-graph. Only supported for optimizing algorithms.")
-    ("relaxation-factor", po::value< double >()->default_value(0.0), "specify the initial relaxation factor for the algorithm (default: 0.0). Only supported for heuristic-driven algorithms.")
-    ("density-cutoff", po::value< double >()->default_value(0.0), "specify the density cutoff (default: 0.0). Only supported for density-driven algorithms.")
-    ("with-voronoi-pull", "specify whether to use a Voronoi pull or not to add an exploratory bias to the search (default: not).")
-    ("sa-temperature", po::value< double >()->default_value(-1.0), "specify the initial Simulated Annealing temperature for algorithms that work on a exploration-exploitation schedule (e.g., SA-SBA*).")
-    ("planner-alg", po::value< std::string >(), "specify the planner algorithm to use, can be any of (" + available_algs + ").")
-
-    ("knn-method", po::value< std::string >(), 
-#ifdef RK_PLANNERS_ENABLE_VEBL_TREE
-     "specify the KNN method to use (supported options: linear, bf2, bf4, cob2, cob4) (default: bf2)"
-#else
-     "specify the KNN method to use (supported options: linear, bf2, bf4) (default: bf2)"
-#endif
-    )
-
-    ("mg-storage", po::value< std::string >(), 
-#ifdef RK_PLANNERS_ENABLE_DVP_ADJ_LIST_LAYOUT
-     "specify the KNN method to use (supported options: adj-list, dvp-adj-list) (default: adj-list)"
-#else
-     "specify the KNN method to use (supported options: adj-list) (default: adj-list)"
-#endif
-    )
-    
-    ("max-vertices", po::value< std::size_t >()->default_value(5000), "maximum number of vertices during runs (default is 5000)")
-    ("max-results", po::value< std::size_t >()->default_value(50), "maximum number of result-paths during runs (default is 50)")
-    ("prog-interval", po::value< std::size_t >()->default_value(10), "number of vertices between progress reports during runs (default is 10)")
-  ;
+    ("planner-alg", po::value< std::string >(), "specify the planner algorithm to use, can be any of (" + available_algs + ").");
   
   po::options_description generate_options("File generation options");
   generate_options.add_options()
@@ -350,104 +326,15 @@ int main(int argc, char** argv) {
   fs::create_directory(output_path_name.c_str());
   
   
-  ReaK::pp::planning_option_collection plan_options;
-  /* default planner options: */
-  plan_options.planning_algo = 0;
-  plan_options.planning_options = 0;
-  plan_options.max_vertices = 5000;
-  plan_options.prog_interval = 10;
-  plan_options.max_results = 50;
-  plan_options.knn_method = 0;
-  plan_options.store_policy = 0;
-  plan_options.init_SA_temp = 0.0;
-  plan_options.init_relax = 0.0;
-  plan_options.max_random_walk = 1.0;
-  plan_options.start_delay = 20.0;
+  planning_option_collection plan_options = get_planning_option_from_po(vm);
+  
+  std::string knn_method_str = plan_options.get_knn_method_str();
+  std::string mg_storage_str = plan_options.get_mg_storage_str();
+  std::string planner_qualifier_str = plan_options.get_planner_qualifier_str();
   
   
-  /* NOTE: Insert input-file loading code here. */
-  
-  
-  if( vm["max-vertices"].as< std::size_t >() != 5000 )
-    plan_options.max_vertices = vm["max-vertices"].as< std::size_t >();
-  if( vm["max-results"].as< std::size_t >() != 50 )
-    plan_options.max_results = vm["max-results"].as< std::size_t >();
-  if( vm["prog-interval"].as< std::size_t >() != 10 )
-    plan_options.prog_interval = vm["prog-interval"].as< std::size_t >();
-  
-  if(vm.count("knn-method")) {
-    plan_options.knn_method = 0;
-    if((vm["knn-method"].as<std::string>() == "linear") && (vm["mg-storage"].as<std::string>() == "adj-list"))
-      plan_options.knn_method |= ReaK::pp::LINEAR_SEARCH_KNN;
-    else if(vm["knn-method"].as<std::string>() == "bf4")
-      plan_options.knn_method |= ReaK::pp::DVP_BF4_TREE_KNN;
-#ifdef RK_PLANNERS_ENABLE_VEBL_TREE
-    else if(vm["knn-method"].as<std::string>() == "cob2")
-      plan_options.knn_method |= ReaK::pp::DVP_COB2_TREE_KNN;
-    else if(vm["knn-method"].as<std::string>() == "cob4")
-      plan_options.knn_method |= ReaK::pp::DVP_COB4_TREE_KNN;
-#endif
-    else
-      plan_options.knn_method |= ReaK::pp::DVP_BF2_TREE_KNN;
-  };
-  
-  std::string knn_method_str = "bf2";
-  if( plan_options.knn_method & ReaK::pp::LINEAR_SEARCH_KNN )
-    knn_method_str = "linear";
-  else if( plan_options.knn_method & ReaK::pp::DVP_BF4_TREE_KNN )
-    knn_method_str = "bf4";
-  else if( plan_options.knn_method & ReaK::pp::DVP_COB2_TREE_KNN )
-    knn_method_str = "cob2";
-  else if( plan_options.knn_method & ReaK::pp::DVP_COB4_TREE_KNN )
-    knn_method_str = "cob4";
-  
-  if( vm.count("mg-storage") ) {
-    plan_options.store_policy = 0;
-#ifdef RK_PLANNERS_ENABLE_DVP_ADJ_LIST_LAYOUT
-    if(vm["mg-storage"].as<std::string>() == "dvp-adj-list")
-      plan_options.store_policy |= ReaK::pp::DVP_ADJ_LIST_MOTION_GRAPH;
-    else 
-#endif
-      plan_options.store_policy |= ReaK::pp::ADJ_LIST_MOTION_GRAPH;
-  };
-  
-  std::string mg_storage_str = "adj-list";
-  if( plan_options.store_policy & ReaK::pp::DVP_ADJ_LIST_MOTION_GRAPH )
-    mg_storage_str = "dvp-adj-list";
-  
-  
-  plan_options.planning_options |= ReaK::pp::LAZY_COLLISION_CHECKING;  // never use eager, always lazy, if supported.
-  std::string planner_qualifier_str = "";
-  
-  if( vm.count("bi-directional") )  {
-    plan_options.planning_options |= ReaK::pp::BIDIRECTIONAL_PLANNING;
-    planner_qualifier_str += "_bidir";
-  };
-  
-  if( vm.count("with-bnb") ) {
-    plan_options.planning_options |= ReaK::pp::USE_BRANCH_AND_BOUND_PRUNING_FLAG;
-    planner_qualifier_str += "_bnb";
-  };
-  
-  if(vm["relaxation-factor"].as<double>() > 1e-6) {
-    plan_options.init_relax = vm["relaxation-factor"].as<double>();
-    plan_options.planning_options |= ReaK::pp::PLAN_WITH_ANYTIME_HEURISTIC;
-    planner_qualifier_str += "_any";
-  };
-  
-  if(vm["sa-temperature"].as<double>() > -1.0)  // default has been overriden
-    plan_options.init_relax = vm["sa-temperature"].as<double>();
-  
-  if( vm.count("with-voronoi-pull") ) {
-    plan_options.planning_options |= ReaK::pp::PLAN_WITH_VORONOI_PULL;
-    planner_qualifier_str += "_sa";
-  };
-  
-//   ("density-cutoff", po::value< double >()->default_value(0.0), "specify the density cutoff (default: 0.0). Only supported for density-driven algorithms.")
-  
-  
-  ReaK::shared_ptr< ReaK::pp::ptrobot2D_test_world > world_map =
-    ReaK::shared_ptr< ReaK::pp::ptrobot2D_test_world >(new ReaK::pp::ptrobot2D_test_world(world_file_name, 20, 1.0));
+  shared_ptr< ptrobot2D_test_world > world_map =
+    shared_ptr< ptrobot2D_test_world >(new ptrobot2D_test_world(world_file_name, 20, 1.0));
   
   if(vm.count("monte-carlo")) {
     
@@ -459,12 +346,12 @@ int main(int argc, char** argv) {
     
     std::stringstream time_ss, cost_ss, sol_ss;
     
-    //typedef ReaK::pp::timing_sbmp_report< ReaK::pp::least_cost_sbmp_report<> > ReporterType;
-    ReaK::pp::any_sbmp_reporter_chain< ReaK::pp::ptrobot2D_test_world > report_chain;
-    report_chain.add_reporter( ReaK::pp::timing_sbmp_report<>(time_ss) );
-    report_chain.add_reporter( ReaK::pp::least_cost_sbmp_report<>(cost_ss, &sol_ss) );
+    //typedef timing_sbmp_report< least_cost_sbmp_report<> > ReporterType;
+    any_sbmp_reporter_chain< ptrobot2D_test_world > report_chain;
+    report_chain.add_reporter( timing_sbmp_report<>(time_ss) );
+    report_chain.add_reporter( least_cost_sbmp_report<>(cost_ss, &sol_ss) );
     
-    ReaK::pp::path_planning_p2p_query< ReaK::pp::ptrobot2D_test_world > mc_query(
+    path_planning_p2p_query< ptrobot2D_test_world > mc_query(
       "mc_planning_query",
       world_map,
       world_map->get_start_pos(),
@@ -477,7 +364,7 @@ int main(int argc, char** argv) {
     
 #ifdef RK_ENABLE_TEST_RRT_PLANNER
     if(vm["planner-alg"].as< std::string >() == "rrt") {
-      ReaK::pp::rrt_planner< ReaK::pp::ptrobot2D_test_world > rrt_plan(
+      rrt_planner< ptrobot2D_test_world > rrt_plan(
         world_map, plan_options.max_vertices, plan_options.prog_interval, plan_options.store_policy | plan_options.knn_method, 
         plan_options.planning_options, 0.1, 0.05, report_chain);
       
@@ -487,7 +374,7 @@ int main(int argc, char** argv) {
     
 #ifdef RK_ENABLE_TEST_PRM_PLANNER
     if(vm["planner-alg"].as< std::string >() == "prm") {
-      ReaK::pp::prm_planner< ReaK::pp::ptrobot2D_test_world > prm_plan(
+      prm_planner< ptrobot2D_test_world > prm_plan(
         world_map, plan_options.max_vertices, plan_options.prog_interval, plan_options.store_policy | plan_options.knn_method, 
         0.1, 0.05, world_map->get_max_edge_length(), 2, report_chain);
       
@@ -497,7 +384,7 @@ int main(int argc, char** argv) {
     
 #ifdef RK_ENABLE_TEST_FADPRM_PLANNER
     if(vm["planner-alg"].as< std::string >() == "fadprm") {
-      ReaK::pp::fadprm_planner< ReaK::pp::ptrobot2D_test_world > fadprm_plan(
+      fadprm_planner< ptrobot2D_test_world > fadprm_plan(
         world_map, plan_options.max_vertices, plan_options.prog_interval, plan_options.store_policy | plan_options.knn_method, 
         0.1, 0.05, world_map->get_max_edge_length(), 2, report_chain);
       
@@ -509,7 +396,7 @@ int main(int argc, char** argv) {
     
 #ifdef RK_ENABLE_TEST_SBASTAR_PLANNER
     if(vm["planner-alg"].as< std::string >() == "sba_star") {
-      ReaK::pp::sbastar_planner< ReaK::pp::ptrobot2D_test_world > sbastar_plan(
+      sbastar_planner< ptrobot2D_test_world > sbastar_plan(
         world_map, plan_options.max_vertices, plan_options.prog_interval, plan_options.store_policy | plan_options.knn_method, 
         plan_options.planning_options, 0.1, 0.05, world_map->get_max_edge_length(), 2, report_chain);
       
@@ -523,7 +410,7 @@ int main(int argc, char** argv) {
     
 #ifdef RK_ENABLE_TEST_RRTSTAR_PLANNER
     if(vm["planner-alg"].as< std::string >() == "rrt_star") {
-      ReaK::pp::rrtstar_planner< ReaK::pp::ptrobot2D_test_world > rrtstar_plan(
+      rrtstar_planner< ptrobot2D_test_world > rrtstar_plan(
         world_map, plan_options.max_vertices, plan_options.prog_interval, plan_options.store_policy | plan_options.knn_method, 
         plan_options.planning_options, 0.1, 0.05, 2, report_chain);
       
@@ -539,31 +426,31 @@ int main(int argc, char** argv) {
   
   if(vm.count("single-run")) {
     
-    ReaK::pp::path_planning_p2p_query< ReaK::pp::ptrobot2D_test_world > sr_query(
+    path_planning_p2p_query< ptrobot2D_test_world > sr_query(
       "sr_planning_query",
       world_map,
       world_map->get_start_pos(),
       world_map->get_goal_pos(),
       plan_options.max_results);
     
-    ReaK::pp::differ_sbmp_report_to_space<> image_report("", 0.25 * world_map->get_max_edge_length());
+    differ_sbmp_report_to_space<> image_report("", 0.25 * world_map->get_max_edge_length());
     
     std::cout << "Outputting " << vm["planner-alg"].as< std::string >() << " with " << planner_qualifier_str << ", " << mg_storage_str << ", " << knn_method_str << std::endl;
     
     std::string qualified_output_path = output_path_name + "/" + vm["planner-alg"].as< std::string >() + planner_qualifier_str;
     fs::create_directory(qualified_output_path.c_str());
     
-    ReaK::pp::any_sbmp_reporter_chain< ReaK::pp::ptrobot2D_test_world > report_chain;
+    any_sbmp_reporter_chain< ptrobot2D_test_world > report_chain;
     image_report.file_path = qualified_output_path + "/" + world_file_name_only + "_";
     report_chain.add_reporter( image_report );
-    report_chain.add_reporter( ReaK::pp::print_sbmp_progress<>() );
+    report_chain.add_reporter( print_sbmp_progress<>() );
     
-    ReaK::shared_ptr< ReaK::pp::sample_based_planner< ReaK::pp::ptrobot2D_test_world > > p_planner;
+    shared_ptr< sample_based_planner< ptrobot2D_test_world > > p_planner;
     
 #ifdef RK_ENABLE_TEST_RRT_PLANNER
     if(vm["planner-alg"].as< std::string >() == "rrt") {
-      p_planner = ReaK::shared_ptr< ReaK::pp::sample_based_planner< ReaK::pp::ptrobot2D_test_world > >(
-        new ReaK::pp::rrt_planner< ReaK::pp::ptrobot2D_test_world >(
+      p_planner = shared_ptr< sample_based_planner< ptrobot2D_test_world > >(
+        new rrt_planner< ptrobot2D_test_world >(
           world_map, plan_options.max_vertices, plan_options.prog_interval, plan_options.store_policy | plan_options.knn_method, 
           plan_options.planning_options, 0.1, 0.05, report_chain)
       );
@@ -572,8 +459,8 @@ int main(int argc, char** argv) {
     
 #ifdef RK_ENABLE_TEST_PRM_PLANNER
     if(vm["planner-alg"].as< std::string >() == "prm") {
-      p_planner = ReaK::shared_ptr< ReaK::pp::sample_based_planner< ReaK::pp::ptrobot2D_test_world > >(
-        new ReaK::pp::prm_planner< ReaK::pp::ptrobot2D_test_world > prm_plan(
+      p_planner = shared_ptr< sample_based_planner< ptrobot2D_test_world > >(
+        new prm_planner< ptrobot2D_test_world > prm_plan(
         world_map, plan_options.max_vertices, plan_options.prog_interval, plan_options.store_policy | plan_options.knn_method, 
         0.1, 0.05, world_map->get_max_edge_length(), 2, report_chain)
       );
@@ -582,8 +469,8 @@ int main(int argc, char** argv) {
     
 #ifdef RK_ENABLE_TEST_FADPRM_PLANNER
     if(vm["planner-alg"].as< std::string >() == "fadprm") {
-      ReaK::shared_ptr< ReaK::pp::fadprm_planner< ReaK::pp::ptrobot2D_test_world > > tmp(
-        new ReaK::pp::fadprm_planner< ReaK::pp::ptrobot2D_test_world > fadprm_plan(
+      shared_ptr< fadprm_planner< ptrobot2D_test_world > > tmp(
+        new fadprm_planner< ptrobot2D_test_world > fadprm_plan(
         world_map, plan_options.max_vertices, plan_options.prog_interval, plan_options.store_policy | plan_options.knn_method, 
         0.1, 0.05, world_map->get_max_edge_length(), 2, report_chain)
       );
@@ -595,8 +482,8 @@ int main(int argc, char** argv) {
     
 #ifdef RK_ENABLE_TEST_SBASTAR_PLANNER
     if(vm["planner-alg"].as< std::string >() == "sba_star") {
-      ReaK::shared_ptr< ReaK::pp::sbastar_planner< ReaK::pp::ptrobot2D_test_world > > tmp(
-        new ReaK::pp::sbastar_planner< ReaK::pp::ptrobot2D_test_world > sbastar_plan(
+      shared_ptr< sbastar_planner< ptrobot2D_test_world > > tmp(
+        new sbastar_planner< ptrobot2D_test_world > sbastar_plan(
         world_map, plan_options.max_vertices, plan_options.prog_interval, plan_options.store_policy | plan_options.knn_method, 
         plan_options.planning_options, 0.1, 0.05, world_map->get_max_edge_length(), 2, report_chain)
       );
@@ -610,8 +497,8 @@ int main(int argc, char** argv) {
     
 #ifdef RK_ENABLE_TEST_RRTSTAR_PLANNER
     if(vm["planner-alg"].as< std::string >() == "rrt_star") {
-      p_planner = ReaK::shared_ptr< ReaK::pp::sample_based_planner< ReaK::pp::ptrobot2D_test_world > >(
-        new ReaK::pp::rrtstar_planner< ReaK::pp::ptrobot2D_test_world > rrtstar_plan(
+      p_planner = shared_ptr< sample_based_planner< ptrobot2D_test_world > >(
+        new rrtstar_planner< ptrobot2D_test_world > rrtstar_plan(
         world_map, plan_options.max_vertices, plan_options.prog_interval, plan_options.store_policy | plan_options.knn_method, 
         plan_options.planning_options, 0.1, 0.05, 2, report_chain)
       );
