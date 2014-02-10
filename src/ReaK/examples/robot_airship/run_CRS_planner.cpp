@@ -54,6 +54,8 @@
 #include "path_planning/p2p_planning_query.hpp"
 
 #include "path_planning/path_planner_options_po.hpp"
+#include "path_planning/planning_space_options_po.hpp"
+#include "kte_models/chaser_target_model_data_po.hpp"
 
 #include "optimization/optim_exceptions.hpp"
 
@@ -82,14 +84,181 @@ namespace fs = boost::filesystem;
 
 
 
-typedef ReaK::pp::ptrobot2D_test_world TestTopology;
-typedef ReaK::pp::timing_sbmp_report< ReaK::pp::least_cost_sbmp_report<> > MCReporterType;
 
+
+
+
+template <typename ManipMdlType, typename InterpTag, int Order>
+void CRS_execute_static_planner_impl(const ReaK::kte::chaser_target_data& scene_data, 
+                                     const ReaK::pp::planning_option_collection& plan_options,
+                                     const ReaK::pp::planning_space_options& space_def,
+                                     const ReaK::vect_n<double>& jt_start, 
+                                     const ReaK::vect_n<double>& jt_desired) {
+  using namespace ReaK;
+  using namespace pp;
+  
+  shared_ptr< ManipMdlType > chaser_concrete_model = rtti::rk_dynamic_ptr_cast<ManipMdlType>(scene_data.chaser_kin_model);
+  if( !chaser_concrete_model )
+    return;
+  
+  typedef typename manip_static_workspace< ManipMdlType, Order >::rl_workspace_type static_workspace_type;
+  typedef typename manip_pp_traits< ManipMdlType, Order >::rl_jt_space_type rl_jt_space_type;
+  typedef typename manip_pp_traits< ManipMdlType, Order >::jt_space_type jt_space_type;
+  typedef typename manip_DK_map< ManipMdlType, Order >::rl_map_type rlDK_map_type;
+  
+  typedef typename topology_traits< rl_jt_space_type >::point_type rl_point_type;
+  typedef typename topology_traits< jt_space_type >::point_type point_type;
+  
+  typedef typename subspace_traits<static_workspace_type>::super_space_type static_super_space_type;  // SuperSpaceType
+  
+  std::size_t workspace_dims = (Order + 1) * manip_pp_traits< ManipMdlType, Order >::degrees_of_freedom;
+  
+  // Create the planning spaces:
+  shared_ptr< static_workspace_type > workspace = 
+    make_manip_static_workspace<Order>(InterpTag(),
+      chaser_concrete_model, scene_data.chaser_jt_limits, space_def.min_travel);
+  
+  shared_ptr< rl_jt_space_type > jt_space = 
+    make_manip_rl_jt_space<Order>(chaser_concrete_model, scene_data.chaser_jt_limits);
+  
+  shared_ptr< jt_space_type > normal_jt_space = 
+    make_manip_jt_space<Order>(chaser_concrete_model, scene_data.chaser_jt_limits);
+  
+  (*workspace) << scene_data.chaser_target_proxy;
+  for(std::size_t i = 0; i < scene_data.chaser_env_proxies.size(); ++i)
+    (*workspace) << scene_data.chaser_env_proxies[i];
+  
+  
+  // Create the start and goal points:
+  rl_point_type start_point, goal_point;
+  point_type start_inter, goal_inter;
+  
+  start_inter = normal_jt_space->origin();
+  get<0>(start_inter) = jt_start;
+  start_point = scene_data.chaser_jt_limits->map_to_space(start_inter, *normal_jt_space, *jt_space);
+  
+  goal_inter = normal_jt_space->origin();
+  get<0>(goal_inter) = jt_desired;
+  goal_point = scene_data.chaser_jt_limits->map_to_space(goal_inter, *normal_jt_space, *jt_space);
+  
+  
+  // Create the reporter chain.
+  any_sbmp_reporter_chain< static_workspace_type > report_chain;
+  
+  report_chain.add_reporter( print_sbmp_progress<>() );
+  report_chain.add_reporter( timing_sbmp_report<>() );
+  
+  
+  // Create the point-to-point query:
+  path_planning_p2p_query< static_workspace_type > pp_query("pp_query", workspace,
+    start_point, goal_point, plan_options.max_results);
+  
+  
+  // Create the planner:
+  shared_ptr< sample_based_planner< static_workspace_type > > workspace_planner;
+  
+#ifdef RK_ENABLE_TEST_RRT_PLANNER
+  if( plan_options.planning_algo == 0 ) { // RRT
+    
+    workspace_planner = shared_ptr< sample_based_planner< static_workspace_type > >(
+      new rrt_planner< static_workspace_type >(
+        workspace, plan_options.max_vertices, plan_options.prog_interval,
+        plan_options.store_policy | plan_options.knn_method,
+        plan_options.planning_options,
+        0.1, 0.05, report_chain));
+    
+  } else 
+#endif
+#ifdef RK_ENABLE_TEST_RRTSTAR_PLANNER
+  if( plan_options.planning_algo == 1 ) { // RRT*
+    
+    workspace_planner = shared_ptr< sample_based_planner< static_workspace_type > >(
+      new rrtstar_planner< static_workspace_type >(
+        workspace, plan_options.max_vertices, plan_options.prog_interval,
+        plan_options.store_policy | plan_options.knn_method,
+        plan_options.planning_options,
+        0.1, 0.05, workspace_dims, report_chain));
+    
+  } else 
+#endif
+#ifdef RK_ENABLE_TEST_PRM_PLANNER
+  if( plan_options.planning_algo == 2 ) { // PRM
+    
+    workspace_planner = shared_ptr< sample_based_planner< static_workspace_type > >(
+      new prm_planner< static_workspace_type >(
+        workspace, plan_options.max_vertices, plan_options.prog_interval,
+        plan_options.store_policy | plan_options.knn_method,
+        plan_options.planning_options,
+        0.1, 0.05, plan_options.max_random_walk, workspace_dims, report_chain));
+    
+  } else 
+#endif
+#ifdef RK_ENABLE_TEST_FADPRM_PLANNER
+  if( plan_options.planning_algo == 4 ) { // FADPRM
+    
+    shared_ptr< fadprm_planner< static_workspace_type > > tmp(
+      new fadprm_planner< static_workspace_type >(
+        workspace, plan_options.max_vertices, plan_options.prog_interval,
+        plan_options.store_policy | plan_options.knn_method,
+        0.1, 0.05, plan_options.max_random_walk, workspace_dims, report_chain));
+    
+    tmp->set_initial_relaxation(plan_options.init_relax);
+    
+    workspace_planner = tmp;
+    
+  } else 
+#endif
+#ifdef RK_ENABLE_TEST_SBASTAR_PLANNER
+  if( plan_options.planning_algo == 3 ) { // SBA*
+    
+    shared_ptr< sbastar_planner< static_workspace_type > > tmp(
+      new sbastar_planner< static_workspace_type >(
+        workspace, plan_options.max_vertices, plan_options.prog_interval,
+        plan_options.store_policy | plan_options.knn_method,
+        plan_options.planning_options,
+        0.1, 0.05, plan_options.max_random_walk, workspace_dims, report_chain));
+    
+    tmp->set_initial_density_threshold(0.0);
+    tmp->set_initial_relaxation(plan_options.init_relax);
+    tmp->set_initial_SA_temperature(plan_options.init_SA_temp);
+    
+    workspace_planner = tmp;
+    
+  } else 
+#endif
+  { };
+  
+  if(!workspace_planner)
+    return;
+  
+  
+  // Solve the planning problem:
+  pp_query.reset_solution_records();
+  workspace_planner->solve_planning_query(pp_query);
+  
+  
+  // Report the results:
+  shared_ptr< seq_path_base< static_super_space_type > > bestsol_rlpath;
+  if(pp_query.solutions.size())
+    bestsol_rlpath = pp_query.solutions.begin()->second;
+  std::cout << "The shortest distance is: " << pp_query.get_best_solution_distance() << std::endl;
+  
+  
+  // Restore model's state:
+  chaser_concrete_model->setJointPositions( jt_start );
+  chaser_concrete_model->doDirectMotion();
+  
+};
+
+
+
+
+template <typename Topology>
 void run_monte_carlo_tests(
     std::size_t mc_run_count,
     std::size_t mc_num_records,
-    ReaK::pp::sample_based_planner< TestTopology >& planner,
-    ReaK::pp::planning_query< TestTopology >& mc_query,
+    ReaK::pp::sample_based_planner< Topology >& planner,
+    ReaK::pp::planning_query< Topology >& mc_query,
     std::stringstream& time_rec_ss,
     std::stringstream& cost_rec_ss,
     std::stringstream& sol_rec_ss,
@@ -191,10 +360,10 @@ Input files:
                     Monte-Carlo needs.
  - chaser-target data : instance of the chaser_target_data class. Contains the KTE / geom / proxy 
                         models for the chaser, target and environment for the planning scenario.
- - start joint position  (could be embedded in the chaser model)
- - target pose           (could be embedded in the target model)
  - space configuration : specifies the order, interpolator, min/max travel, temporality, 
                          rate-limited'ness, and output space-order.
+ - start joint position  (could be embedded in the chaser model)
+ - target pose           (could be embedded in the target model)
 
 *****************************************************************************************************/
 
@@ -204,6 +373,7 @@ int main(int argc, char** argv) {
   
   using namespace ReaK;
   using namespace pp;
+  using namespace kte;
   
   std::string config_file;
   
@@ -216,8 +386,6 @@ int main(int argc, char** argv) {
   
   po::options_description io_options("I/O options");
   io_options.add_options()
-    ("chaser-target-env", po::value< std::string >(), "specify the file containing the chaser-target-env models.")
-    ("space-definition", po::value< std::string >(), "specify the file containing the space settings (order, interp, etc.).")
     ("start-configuration", po::value< std::string >(), "specify the file containing the start configuration of the chaser (P3R3R-manipulator), if not specified, the chaser configuration of the chaser model will be used.")
     ("target-pose", po::value< std::string >(), "specify the file containing the target pose of the capture target (satellite / airship), if not specified, the pose of the target model will be used.")
     
@@ -261,6 +429,10 @@ int main(int argc, char** argv) {
   planner_select_options.add_options()
     ("planner-alg", po::value< std::string >(), "specify the planner algorithm to use, can be any of (" + available_algs + ").");
   
+  po::options_description space_def_options = get_planning_space_options_po_desc();
+  
+  po::options_description scene_data_options = get_chaser_target_data_po_desc();
+  
   po::options_description generate_options("File generation options");
   generate_options.add_options()
     ("generate-all-files", po::value< std::string >(), "specify that all configuration files should be generated with the given file-name prefix (file-name without suffix and extension).")
@@ -278,10 +450,12 @@ int main(int argc, char** argv) {
   
   
   po::options_description cmdline_options;
-  cmdline_options.add(generic_options).add(io_options).add(mc_options).add(single_options).add(planner_select_options).add(generate_options);
+  cmdline_options.add(generic_options).add(io_options).add(mc_options).add(single_options)
+                 .add(planner_select_options).add(scene_data_options).add(space_def_options).add(generate_options);
   
   po::options_description config_file_options;
-  config_file_options.add(io_options).add(mc_options).add(single_options).add(planner_select_options);
+  config_file_options.add(io_options).add(mc_options).add(single_options)
+                     .add(planner_select_options).add(scene_data_options).add(space_def_options);
   
   po::variables_map vm;
   po::store(po::parse_command_line(argc, argv, cmdline_options), vm);
@@ -316,9 +490,6 @@ int main(int argc, char** argv) {
     return 2;
   };
   
-  std::string world_file_name = vm["input-file"].as<std::string>();
-  std::string world_file_name_only(std::find(world_file_name.rbegin(),world_file_name.rend(),'/').base(), std::find(world_file_name.rbegin(),world_file_name.rend(),'.').base()-1);
-  
   std::string output_path_name = vm["output-path"].as<std::string>();
   while(output_path_name[output_path_name.length()-1] == '/') 
     output_path_name.erase(output_path_name.length()-1, 1);
@@ -333,8 +504,170 @@ int main(int argc, char** argv) {
   std::string planner_qualifier_str = plan_options.get_planner_qualifier_str();
   
   
+  planning_space_options space_def = get_planning_space_options_from_po(vm);
+  
+  chaser_target_data scene_data = get_chaser_target_data_from_po(vm);
+  
+  vect_n<double> jt_start = scene_data.chaser_kin_model->getJointPositions(); 
+  if( vm.count("start-configuration") ) {
+    try {
+      vect_n<double> jt_start_tmp = jt_start; 
+      (*serialization::open_iarchive(vm["start-configuration"].as< std::string >()))
+        >> jt_start_tmp;
+      jt_start = jt_start_tmp;
+    } catch(std::exception& e) { 
+      std::cerr << "Error: Could not load the start-configuration file!" << std::endl;
+    };
+  };
+  
+  frame_3D<double> target_frame = scene_data.target_frame->getGlobalFrame();
+  if( vm.count("target-pose") ) {
+    try {
+      frame_3D<double> target_frame_tmp = target_frame;
+      (*serialization::open_iarchive(vm["target-pose"].as< std::string >()))
+        >> target_frame_tmp;
+      target_frame = target_frame_tmp;
+    } catch(std::exception& e) { 
+      std::cerr << "Error: Could not load the target-pose file!" << std::endl;
+    };
+  };
+  
+  shared_ptr< frame_3D<double> > dep_EE_frame = scene_data.chaser_kin_model->getDependentFrame3D(0)->mFrame;
+  
+  vect_n<double> jt_desired(7,0.0);
+  try {
+    *dep_EE_frame = target_frame;
+    scene_data.chaser_kin_model->doInverseMotion();
+    jt_desired = scene_data.chaser_kin_model->getJointPositions();
+  } catch( optim::infeasible_problem& e ) { RK_UNUSED(e);
+    std::cerr << "Error: The target frame cannot be reached! No inverse kinematics solution possible!" << std::endl;
+    return 10;
+  };
+  scene_data.chaser_kin_model->setJointPositions(jt_start);
+  scene_data.chaser_kin_model->doDirectMotion();
+  
+  
+  
+  // Do the generations if required:
+  
+  if( vm.count("generate-all-files") + vm.count("generate-planner-options") > 0 ) {
+    std::string file_name;
+    if( vm.count("generate-planner-options") == 0 ) {
+      file_name = vm["generate-all-files"].as< std::string >() + "_planner";
+    } else {
+      file_name = vm["generate-planner-options"].as< std::string >();
+    };
+    if( vm.count("generate-protobuf") ) 
+      file_name += ".pbuf";
+    else if( vm.count("generate-binary") )
+      file_name += ".rkb";
+    else 
+      file_name += ".rkx";
+    
+    try {
+      (*serialization::open_oarchive(file_name)) << plan_options;
+    } catch( std::exception& e ) { 
+      std::cerr << "Error: Could not generate the planner options file!" << std::endl;
+    };
+  };
+  
+  if( vm.count("generate-all-files") + vm.count("generate-chaser-target-env") > 0 ) {
+    std::string file_name;
+    if( vm.count("generate-chaser-target-env") == 0 ) {
+      file_name = vm["generate-all-files"].as< std::string >() + "_models";
+    } else {
+      file_name = vm["generate-chaser-target-env"].as< std::string >();
+    };
+    if( vm.count("generate-protobuf") ) 
+      file_name += ".pbuf";
+    else if( vm.count("generate-binary") )
+      file_name += ".rkb";
+    else 
+      file_name += ".rkx";
+    
+    try {
+      (*serialization::open_oarchive(file_name)) << scene_data;
+    } catch( std::exception& e ) { 
+      std::cerr << "Error: Could not generate the chaser-target-env model file!" << std::endl;
+    };
+  };
+  
+  if( vm.count("generate-all-files") + vm.count("generate-space-definition") > 0 ) {
+    std::string file_name;
+    if( vm.count("generate-space-definition") == 0 ) {
+      file_name = vm["generate-all-files"].as< std::string >() + "_space";
+    } else {
+      file_name = vm["generate-space-definition"].as< std::string >();
+    };
+    if( vm.count("generate-protobuf") ) 
+      file_name += ".pbuf";
+    else if( vm.count("generate-binary") )
+      file_name += ".rkb";
+    else 
+      file_name += ".rkx";
+    
+    try {
+      (*serialization::open_oarchive(file_name)) << space_def;
+    } catch( std::exception& e ) { 
+      std::cerr << "Error: Could not generate the space-definition file!" << std::endl;
+    };
+  };
+  
+  if( vm.count("generate-all-files") + vm.count("generate-start-config") > 0 ) {
+    std::string file_name;
+    if( vm.count("generate-start-config") == 0 ) {
+      file_name = vm["generate-all-files"].as< std::string >() + "_start_config";
+    } else {
+      file_name = vm["generate-start-config"].as< std::string >();
+    };
+    if( vm.count("generate-protobuf") ) 
+      file_name += ".pbuf";
+    else if( vm.count("generate-binary") )
+      file_name += ".rkb";
+    else 
+      file_name += ".rkx";
+    
+    try {
+      (*serialization::open_oarchive(file_name)) << jt_start;
+    } catch( std::exception& e ) { 
+      std::cerr << "Error: Could not generate the start-configuration file!" << std::endl;
+    };
+  };
+  
+  if( vm.count("generate-all-files") + vm.count("generate-target-pose") > 0 ) {
+    std::string file_name;
+    if( vm.count("generate-target-pose") == 0 ) {
+      file_name = vm["generate-all-files"].as< std::string >() + "_target_pose";
+    } else {
+      file_name = vm["generate-target-pose"].as< std::string >();
+    };
+    if( vm.count("generate-protobuf") ) 
+      file_name += ".pbuf";
+    else if( vm.count("generate-binary") )
+      file_name += ".rkb";
+    else 
+      file_name += ".rkx";
+    
+    try {
+      (*serialization::open_oarchive(file_name)) << target_frame;
+    } catch( std::exception& e ) { 
+      std::cerr << "Error: Could not generate the target-pose file!" << std::endl;
+    };
+  };
+  
+  
+  
   shared_ptr< ptrobot2D_test_world > world_map =
     shared_ptr< ptrobot2D_test_world >(new ptrobot2D_test_world(world_file_name, 20, 1.0));
+  
+  path_planning_p2p_query< ptrobot2D_test_world > pp_query(
+    "planning_query",
+    world_map,
+    world_map->get_start_pos(),
+    world_map->get_goal_pos(),
+    plan_options.max_results);
+  
+  any_sbmp_reporter_chain< ptrobot2D_test_world > report_chain;
   
   if(vm.count("monte-carlo")) {
     
@@ -346,77 +679,80 @@ int main(int argc, char** argv) {
     
     std::stringstream time_ss, cost_ss, sol_ss;
     
-    //typedef timing_sbmp_report< least_cost_sbmp_report<> > ReporterType;
-    any_sbmp_reporter_chain< ptrobot2D_test_world > report_chain;
     report_chain.add_reporter( timing_sbmp_report<>(time_ss) );
     report_chain.add_reporter( least_cost_sbmp_report<>(cost_ss, &sol_ss) );
-    
-    path_planning_p2p_query< ptrobot2D_test_world > mc_query(
-      "mc_planning_query",
-      world_map,
-      world_map->get_start_pos(),
-      world_map->get_goal_pos(),
-      plan_options.max_results);
     
     std::cout << "Running " << vm["planner-alg"].as< std::string >() << " with " << planner_qualifier_str << ", " << mg_storage_str << ", " << knn_method_str << std::endl;
     timing_output << vm["planner-alg"].as< std::string >() << ", " << planner_qualifier_str << ", " << mg_storage_str << ", " << knn_method_str << std::endl;
     sol_events_output << vm["planner-alg"].as< std::string >() << ", Solutions" << std::endl;
     
+    shared_ptr< sample_based_planner< ptrobot2D_test_world > > p_planner;
+    
 #ifdef RK_ENABLE_TEST_RRT_PLANNER
     if(vm["planner-alg"].as< std::string >() == "rrt") {
-      rrt_planner< ptrobot2D_test_world > rrt_plan(
-        world_map, plan_options.max_vertices, plan_options.prog_interval, plan_options.store_policy | plan_options.knn_method, 
-        plan_options.planning_options, 0.1, 0.05, report_chain);
-      
-      run_monte_carlo_tests(mc_run_count, mc_max_vertices_100, rrt_plan, mc_query, time_ss, cost_ss, sol_ss, timing_output, sol_events_output);
+      p_planner = shared_ptr< sample_based_planner< ptrobot2D_test_world > >(
+        new rrt_planner< ptrobot2D_test_world >(
+          world_map, plan_options.max_vertices, plan_options.prog_interval, plan_options.store_policy | plan_options.knn_method, 
+          plan_options.planning_options, 0.1, 0.05, report_chain)
+      );
     };
 #endif
     
 #ifdef RK_ENABLE_TEST_PRM_PLANNER
     if(vm["planner-alg"].as< std::string >() == "prm") {
-      prm_planner< ptrobot2D_test_world > prm_plan(
+      p_planner = shared_ptr< sample_based_planner< ptrobot2D_test_world > >(
+        new prm_planner< ptrobot2D_test_world > prm_plan(
         world_map, plan_options.max_vertices, plan_options.prog_interval, plan_options.store_policy | plan_options.knn_method, 
-        0.1, 0.05, world_map->get_max_edge_length(), 2, report_chain);
-      
-      run_monte_carlo_tests(mc_run_count, mc_max_vertices_100, prm_plan, mc_query, time_ss, cost_ss, sol_ss, timing_output, sol_events_output);
+        0.1, 0.05, world_map->get_max_edge_length(), 2, report_chain)
+      );
     };
 #endif
     
 #ifdef RK_ENABLE_TEST_FADPRM_PLANNER
     if(vm["planner-alg"].as< std::string >() == "fadprm") {
-      fadprm_planner< ptrobot2D_test_world > fadprm_plan(
+      shared_ptr< fadprm_planner< ptrobot2D_test_world > > tmp(
+        new fadprm_planner< ptrobot2D_test_world > fadprm_plan(
         world_map, plan_options.max_vertices, plan_options.prog_interval, plan_options.store_policy | plan_options.knn_method, 
-        0.1, 0.05, world_map->get_max_edge_length(), 2, report_chain);
+        0.1, 0.05, world_map->get_max_edge_length(), 2, report_chain)
+      );
+      tmp->set_initial_relaxation(plan_options.init_relax);
       
-      fadprm_plan.set_initial_relaxation(plan_options.init_relax);
-      
-      run_monte_carlo_tests(mc_run_count, mc_max_vertices_100, fadprm_plan, mc_query, time_ss, cost_ss, sol_ss, timing_output, sol_events_output);
+      p_planner = tmp;
     };
 #endif
     
 #ifdef RK_ENABLE_TEST_SBASTAR_PLANNER
     if(vm["planner-alg"].as< std::string >() == "sba_star") {
-      sbastar_planner< ptrobot2D_test_world > sbastar_plan(
+      shared_ptr< sbastar_planner< ptrobot2D_test_world > > tmp(
+        new sbastar_planner< ptrobot2D_test_world > sbastar_plan(
         world_map, plan_options.max_vertices, plan_options.prog_interval, plan_options.store_policy | plan_options.knn_method, 
-        plan_options.planning_options, 0.1, 0.05, world_map->get_max_edge_length(), 2, report_chain);
+        plan_options.planning_options, 0.1, 0.05, world_map->get_max_edge_length(), 2, report_chain)
+      );
+      tmp->set_initial_density_threshold(0.0);
+      tmp->set_initial_relaxation(plan_options.init_relax);
+      tmp->set_initial_SA_temperature(plan_options.init_SA_temp);
       
-      sbastar_plan.set_initial_density_threshold(0.0);
-      sbastar_plan.set_initial_relaxation(plan_options.init_relax);
-      sbastar_plan.set_initial_SA_temperature(plan_options.init_SA_temp);
-      
-      run_monte_carlo_tests(mc_run_count, mc_max_vertices_100, sbastar_plan, mc_query, time_ss, cost_ss, sol_ss, timing_output, sol_events_output);
+      p_planner = tmp;
     };
 #endif
     
 #ifdef RK_ENABLE_TEST_RRTSTAR_PLANNER
     if(vm["planner-alg"].as< std::string >() == "rrt_star") {
-      rrtstar_planner< ptrobot2D_test_world > rrtstar_plan(
+      p_planner = shared_ptr< sample_based_planner< ptrobot2D_test_world > >(
+        new rrtstar_planner< ptrobot2D_test_world > rrtstar_plan(
         world_map, plan_options.max_vertices, plan_options.prog_interval, plan_options.store_policy | plan_options.knn_method, 
-        plan_options.planning_options, 0.1, 0.05, 2, report_chain);
-      
-      run_monte_carlo_tests(mc_run_count, mc_max_vertices_100, rrtstar_plan, mc_query, time_ss, cost_ss, sol_ss, timing_output, sol_events_output);
+        plan_options.planning_options, 0.1, 0.05, 2, report_chain)
+      );
     };
 #endif
+    
+    if(!p_planner) {
+      std::cout << "Error: Failed to construct a suitable planner! The planner was selected as '" << vm["planner-alg"].as<std::string>() << "'." << std::endl;
+      return 4;
+    };
+    
+    run_monte_carlo_tests(mc_run_count, mc_max_vertices_100, *p_planner, pp_query, time_ss, cost_ss, sol_ss, timing_output, sol_events_output);
+    
     std::cout << "Done!" << std::endl;
     
   };
@@ -426,21 +762,13 @@ int main(int argc, char** argv) {
   
   if(vm.count("single-run")) {
     
-    path_planning_p2p_query< ptrobot2D_test_world > sr_query(
-      "sr_planning_query",
-      world_map,
-      world_map->get_start_pos(),
-      world_map->get_goal_pos(),
-      plan_options.max_results);
-    
-    differ_sbmp_report_to_space<> image_report("", 0.25 * world_map->get_max_edge_length());
     
     std::cout << "Outputting " << vm["planner-alg"].as< std::string >() << " with " << planner_qualifier_str << ", " << mg_storage_str << ", " << knn_method_str << std::endl;
     
     std::string qualified_output_path = output_path_name + "/" + vm["planner-alg"].as< std::string >() + planner_qualifier_str;
     fs::create_directory(qualified_output_path.c_str());
     
-    any_sbmp_reporter_chain< ptrobot2D_test_world > report_chain;
+    differ_sbmp_report_to_space<> image_report("", 0.25 * world_map->get_max_edge_length());
     image_report.file_path = qualified_output_path + "/" + world_file_name_only + "_";
     report_chain.add_reporter( image_report );
     report_chain.add_reporter( print_sbmp_progress<>() );
@@ -510,8 +838,8 @@ int main(int argc, char** argv) {
       return 4;
     };
     
-    sr_query.reset_solution_records();
-    p_planner->solve_planning_query(sr_query);
+    pp_query.reset_solution_records();
+    p_planner->solve_planning_query(pp_query);
     
     std::cout << "Done!" << std::endl;
     

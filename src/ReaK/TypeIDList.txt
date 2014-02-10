@@ -470,8 +470,8 @@ any_sbmp_reporter_chain     0xC2460015   bin: 1100 0010 0100 0110 0000 0000 0001
 planning_query              0xC2460016   bin: 1100 0010 0100 0110 0000 0000 0001 0110  D-R
 path_planning_p2p_query     0xC2460017   bin: 1100 0010 0100 0110 0000 0000 0001 0111  D-R
 motion_plan_intercept_query 0xC2460018   bin: 1100 0010 0100 0110 0000 0000 0001 1000  D-R
-                            0xC2460019   bin: 1100 0010 0100 0110 0000 0000 0001 1001  D-R
-                            0xC246001A   bin: 1100 0010 0100 0110 0000 0000 0001 1010  D-R
+planning_option_collection  0xC2460019   bin: 1100 0010 0100 0110 0000 0000 0001 1001  D-R
+planning_space_options      0xC246001A   bin: 1100 0010 0100 0110 0000 0000 0001 1010  D-R
 
 
 
