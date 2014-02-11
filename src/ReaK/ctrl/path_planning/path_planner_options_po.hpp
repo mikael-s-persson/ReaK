@@ -51,6 +51,8 @@ boost::program_options::options_description get_planning_option_po_desc() {
   planner_alg_options.add_options()
     ("planner-options", po::value< std::string >(), "specify the file containing the planner-options data.")
     
+    ("planner-alg", po::value< std::string >(), "specify the planner algorithm to use, can be any of (rrt, rrt_star, prm, sba_star, fadprm).")
+    
     ("max-vertices", po::value< std::size_t >()->default_value(5000), "maximum number of vertices during runs (default is 5000)")
     ("max-results", po::value< std::size_t >()->default_value(50), "maximum number of result-paths during runs (default is 50)")
     ("prog-interval", po::value< std::size_t >()->default_value(10), "number of vertices between progress reports during runs (default is 10)")
@@ -91,6 +93,18 @@ planning_option_collection get_planning_option_from_po(boost::program_options::v
       (*serialization::open_iarchive(vm["planner-options"].as< std::string >()))
         >> plan_options;
     } catch( std::exception& e ) { };
+  };
+  
+  if( vm.count("planner-alg") ) {
+    plan_options.planning_algo = 0; // RRT (default)
+    if( vm["planner-alg"].as<std::string>() == "rrt_star" )
+      plan_options.planning_algo = 1;
+    else if( vm["planner-alg"].as<std::string>() == "prm" )
+      plan_options.planning_algo = 2;
+    else if( vm["planner-alg"].as<std::string>() == "sba_star" )
+      plan_options.planning_algo = 3;
+    else if( vm["planner-alg"].as<std::string>() == "fadprm" )
+      plan_options.planning_algo = 4;
   };
   
   if( vm["max-vertices"].as< std::size_t >() != 5000 )

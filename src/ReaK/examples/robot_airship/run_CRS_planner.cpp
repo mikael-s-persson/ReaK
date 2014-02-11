@@ -59,8 +59,19 @@
 
 #include "optimization/optim_exceptions.hpp"
 
+#include "mbd_kte/inertia.hpp"
+#include "mbd_kte/driving_actuator.hpp"
+#include "mbd_kte/state_measures.hpp"
+#include "mbd_kte/free_joints.hpp"
 #include "mbd_kte/kte_map_chain.hpp"
+
 #include "kte_models/manip_dynamics_model.hpp"
+
+#include "shapes/colored_model.hpp"
+#include "shapes/sphere.hpp"
+#include "shapes/box.hpp"
+#include "shapes/coord_arrows_3D.hpp"
+#include "proximity/proxy_query_model.hpp"
 
 #include "topologies/manip_planning_traits.hpp"
 #include "topologies/manip_P3R3R_workspaces.hpp"
@@ -71,8 +82,8 @@
 #include "topologies/Ndof_sap_spaces.hpp"
 
 
-#include "basic_sbmp_reporters.hpp"
-#include "vlist_sbmp_report.hpp"
+#include "path_planning/basic_sbmp_reporters.hpp"
+#include "path_planning/vlist_sbmp_report.hpp"
 
 
 
@@ -99,9 +110,13 @@ struct monte_carlo_engine {
   monte_carlo_engine(std::size_t aMCRuns, 
                      const std::string& aPlannerName,
                      const std::string& aOutputPathStem) : 
-                     mc_run_count(aMCRuns),
-                     timing_output(aOutputPathStem + "_times.txt"),
-                     sol_events_output(aOutputPathStem + "_solutions.txt") {
+                     mc_run_count(aMCRuns) {
+    
+    fs::create_directory(aOutputPathStem.c_str());
+    
+    timing_output.open(aOutputPathStem + "/" + aPlannerName + "_times.txt");
+    sol_events_output.open(aOutputPathStem + "/" + aPlannerName + "_solutions.txt");
+    
     timing_output << aPlannerName << std::endl;
     sol_events_output << aPlannerName << ", Solutions" << std::endl;
     std::cout << "Running " << aPlannerName << std::endl;
@@ -113,8 +128,8 @@ struct monte_carlo_engine {
     ReaK::shared_ptr< ReaK::pp::any_sbmp_reporter_chain< Topology > > report_chain(
       new ReaK::pp::any_sbmp_reporter_chain< Topology >());
     
-    report_chain->add_reporter( timing_sbmp_report<>(time_ss) );
-    report_chain->add_reporter( least_cost_sbmp_report<>(cost_ss, &sol_ss) );
+    report_chain->add_reporter( ReaK::pp::timing_sbmp_report<>(time_ss) );
+    report_chain->add_reporter( ReaK::pp::least_cost_sbmp_report<>(cost_ss, &sol_ss) );
     
     return report_chain;
   };
@@ -217,8 +232,12 @@ struct single_run_engine {
   single_run_engine(const std::string& aPlannerName,
                     const std::string& aOutputPathStem) {
     
+    fs::create_directory(aOutputPathStem.c_str());
+    
     std::string qualified_output_path = aOutputPathStem + "/" + aPlannerName;
     fs::create_directory(qualified_output_path.c_str());
+    
+    // TODO: open some output file to output the qualified_output_path folder.
     
     std::cout << "Outputting " << aPlannerName << std::endl;
     
@@ -230,7 +249,7 @@ struct single_run_engine {
     ReaK::shared_ptr< ReaK::pp::any_sbmp_reporter_chain< Topology > > report_chain(
       new ReaK::pp::any_sbmp_reporter_chain< Topology >());
     
-    report_chain->add_reporter( print_sbmp_progress<>() );
+    report_chain->add_reporter( ReaK::pp::print_sbmp_progress<>() );
     
     return report_chain;
   };
@@ -247,6 +266,7 @@ struct single_run_engine {
     std::cout << "Done!" << std::endl;
     
     // Report the results:
+    // TODO: output something... (I don't know exactly, maybe vlist printer).
 //     shared_ptr< seq_path_base< static_super_space_type > > bestsol_rlpath;
 //     if(pp_query.solutions.size())
 //       bestsol_rlpath = pp_query.solutions.begin()->second;
@@ -283,12 +303,9 @@ void CRS_execute_static_planner(const ReaK::kte::chaser_target_data& scene_data,
   typedef typename manip_static_workspace< ManipMdlType, Order >::rl_workspace_type static_workspace_type;
   typedef typename manip_pp_traits< ManipMdlType, Order >::rl_jt_space_type rl_jt_space_type;
   typedef typename manip_pp_traits< ManipMdlType, Order >::jt_space_type jt_space_type;
-  typedef typename manip_DK_map< ManipMdlType, Order >::rl_map_type rlDK_map_type;
   
   typedef typename topology_traits< rl_jt_space_type >::point_type rl_point_type;
   typedef typename topology_traits< jt_space_type >::point_type point_type;
-  
-  typedef typename subspace_traits<static_workspace_type>::super_space_type static_super_space_type;  // SuperSpaceType
   
   std::size_t workspace_dims = (Order + 1) * manip_pp_traits< ManipMdlType, Order >::degrees_of_freedom;
   
@@ -322,7 +339,7 @@ void CRS_execute_static_planner(const ReaK::kte::chaser_target_data& scene_data,
   
   
   // Create the reporter chain.
-  any_sbmp_reporter_chain< static_workspace_type > p_report_chain = engine.create_reporter(workspace);
+  shared_ptr< any_sbmp_reporter_chain< static_workspace_type > > p_report_chain = engine.create_reporter(workspace);
   
   // Create the point-to-point query:
   path_planning_p2p_query< static_workspace_type > pp_query("pp_query", workspace,
@@ -429,46 +446,46 @@ void CRS_launch_static_planner(const ReaK::kte::chaser_target_data& scene_data,
   
   try {
     if((space_def.get_space_order() == 0) && (space_def.get_interp_id() == 0)) { 
-      CRS_execute_static_planner<kte::manip_P3R3R_kinematics, linear_interpolation_tag, 0>(
-        scene_data, plan_options, space_def, mc_eng, jt_start, jt_desired);
+      CRS_execute_static_planner<ReaK::kte::manip_P3R3R_kinematics, ReaK::pp::linear_interpolation_tag, 0>(
+        scene_data, plan_options, space_def, engine, jt_start, jt_desired);
     } else 
 #if 0
     if((space_def.get_space_order() == 1) && (space_def.get_interp_id() == 0)) {
-      CRS_execute_static_planner<kte::manip_P3R3R_kinematics, linear_interpolation_tag, 1>(
-        scene_data, plan_options, space_def, mc_eng, jt_start, jt_desired);
+      CRS_execute_static_planner<ReaK::kte::manip_P3R3R_kinematics, ReaK::pp::linear_interpolation_tag, 1>(
+        scene_data, plan_options, space_def, engine, jt_start, jt_desired);
     } else 
     if((space_def.get_space_order() == 2) && (space_def.get_interp_id() == 0)) {
-      CRS_execute_static_planner<kte::manip_P3R3R_kinematics, linear_interpolation_tag, 2>(
-        scene_data, plan_options, space_def, mc_eng, jt_start, jt_desired);
+      CRS_execute_static_planner<ReaK::kte::manip_P3R3R_kinematics, ReaK::pp::linear_interpolation_tag, 2>(
+        scene_data, plan_options, space_def, engine, jt_start, jt_desired);
     } else 
 #endif
     if((space_def.get_space_order() == 1) && (space_def.get_interp_id() == 1)) {
-      CRS_execute_static_planner<kte::manip_P3R3R_kinematics, cubic_hermite_interpolation_tag, 1>(
-        scene_data, plan_options, space_def, mc_eng, jt_start, jt_desired);
+      CRS_execute_static_planner<ReaK::kte::manip_P3R3R_kinematics, ReaK::pp::cubic_hermite_interpolation_tag, 1>(
+        scene_data, plan_options, space_def, engine, jt_start, jt_desired);
     } else 
 #if 0
     if((space_def.get_space_order() == 2) && (space_def.get_interp_id() == 1)) {
-      CRS_execute_static_planner<kte::manip_P3R3R_kinematics, cubic_hermite_interpolation_tag, 2>(
-        scene_data, plan_options, space_def, mc_eng, jt_start, jt_desired);
+      CRS_execute_static_planner<ReaK::kte::manip_P3R3R_kinematics, ReaK::pp::cubic_hermite_interpolation_tag, 2>(
+        scene_data, plan_options, space_def, engine, jt_start, jt_desired);
     } else 
 #endif
     if((space_def.get_space_order() == 2) && (space_def.get_interp_id() == 2)) {
-      CRS_execute_static_planner<kte::manip_P3R3R_kinematics, quintic_hermite_interpolation_tag, 2>(
-        scene_data, plan_options, space_def, mc_eng, jt_start, jt_desired);
+      CRS_execute_static_planner<ReaK::kte::manip_P3R3R_kinematics, ReaK::pp::quintic_hermite_interpolation_tag, 2>(
+        scene_data, plan_options, space_def, engine, jt_start, jt_desired);
     } else 
     if((space_def.get_space_order() == 1) && (space_def.get_interp_id() == 3)) {
-      CRS_execute_static_planner<kte::manip_P3R3R_kinematics, svp_Ndof_interpolation_tag, 1>(
-        scene_data, plan_options, space_def, mc_eng, jt_start, jt_desired);
+      CRS_execute_static_planner<ReaK::kte::manip_P3R3R_kinematics, ReaK::pp::svp_Ndof_interpolation_tag, 1>(
+        scene_data, plan_options, space_def, engine, jt_start, jt_desired);
     } else 
 #if 0
     if((space_def.get_space_order() == 2) && (space_def.get_interp_id() == 3)) {
-      CRS_execute_static_planner<kte::manip_P3R3R_kinematics, svp_Ndof_interpolation_tag, 2>(
-        scene_data, plan_options, space_def, mc_eng, jt_start, jt_desired);
+      CRS_execute_static_planner<ReaK::kte::manip_P3R3R_kinematics, ReaK::pp::svp_Ndof_interpolation_tag, 2>(
+        scene_data, plan_options, space_def, engine, jt_start, jt_desired);
     } else 
 #endif
     if((space_def.get_space_order() == 2) && (space_def.get_interp_id() == 4)) {
-      CRS_execute_static_planner<kte::manip_P3R3R_kinematics, sap_Ndof_interpolation_tag, 2>(
-        scene_data, plan_options, space_def, mc_eng, jt_start, jt_desired);
+      CRS_execute_static_planner<ReaK::kte::manip_P3R3R_kinematics, ReaK::pp::sap_Ndof_interpolation_tag, 2>(
+        scene_data, plan_options, space_def, engine, jt_start, jt_desired);
     };
   } catch(std::exception& e) {
     std::cerr << "Error: An exception was raised during the planning:\nwhat(): " << e.what() << std::endl;
@@ -520,45 +537,22 @@ int main(int argc, char** argv) {
     ("start-configuration", po::value< std::string >(), "specify the file containing the start configuration of the chaser (P3R3R-manipulator), if not specified, the chaser configuration of the chaser model will be used.")
     ("target-pose", po::value< std::string >(), "specify the file containing the target pose of the capture target (satellite / airship), if not specified, the pose of the target model will be used.")
     
-    ("output-path,o", po::value< std::string >()->default_value("pp_results"), "specify the output path (default is pp_results)")
+    ("output-path,o", po::value< std::string >()->default_value("pp_results"), "specify the output path (default is pp_results).")
+    ("result-file-prefix", po::value< std::string >(), "specify the prefix to apply to the result output files.")
   ;
   
   po::options_description mc_options("Monte-Carlo options");
   mc_options.add_options()
-    ("monte-carlo,m", "specify that monte-carlo runs should be performed (default is not)")
-    ("mc-runs", po::value< std::size_t >()->default_value(100), "number of monte-carlo runs to average out (default is 100)")
+    ("monte-carlo,m", "specify that monte-carlo runs should be performed (default is not).")
+    ("mc-runs", po::value< std::size_t >()->default_value(100), "number of monte-carlo runs to average out (default is 100).")
   ;
   
   po::options_description single_options("Single-run options");
   single_options.add_options()
-    ("single-run,s", "specify that single runs should be performed (default is not)")
+    ("single-run,s", "specify that single runs should be performed (default is not).")
   ;
   
-  std::string available_algs;
-  {
-    std::stringstream available_alg_names;
-    std::ostream_iterator< const char* > alg_names_iter(available_alg_names, ", ");
-#ifdef RK_ENABLE_TEST_RRT_PLANNER
-    *(alg_names_iter++) = "rrt";
-#endif
-#ifdef RK_ENABLE_TEST_RRTSTAR_PLANNER
-    *(alg_names_iter++) = "rrt_star";
-#endif
-#ifdef RK_ENABLE_TEST_PRM_PLANNER
-    *(alg_names_iter++) = "prm";
-#endif
-#ifdef RK_ENABLE_TEST_FADPRM_PLANNER
-    *(alg_names_iter++) = "fadprm";
-#endif
-#ifdef RK_ENABLE_TEST_SBASTAR_PLANNER
-    *(alg_names_iter++) = "sba_star";
-#endif
-    available_algs = available_alg_names.str();
-  };
-  
   po::options_description planner_select_options = get_planning_option_po_desc();
-  planner_select_options.add_options()
-    ("planner-alg", po::value< std::string >(), "specify the planner algorithm to use, can be any of (" + available_algs + ").");
   
   po::options_description space_def_options = get_planning_space_options_po_desc();
   
@@ -615,17 +609,16 @@ int main(int argc, char** argv) {
     return 1;
   };
   
-  if( !vm.count("planner-alg") || ( available_algs.find(vm["planner-alg"].as<std::string>()) == std::string::npos ) ) {
-    std::cout << "Error: Invalid planning algorithm selected! The planner '" << vm["planner-alg"].as<std::string>() << "' is not supported, the list of supported algorithms is (" << available_algs << ")." << std::endl;
-    std::cout << cmdline_options << std::endl;
-    return 2;
-  };
-  
   std::string output_path_name = vm["output-path"].as<std::string>();
   while(output_path_name[output_path_name.length()-1] == '/') 
     output_path_name.erase(output_path_name.length()-1, 1);
   
   fs::create_directory(output_path_name.c_str());
+  
+  std::string result_file_prefix = "CRS_static_scene";
+  if( vm.count("result-file-prefix") )
+    result_file_prefix = vm["result-file-prefix"].as<std::string>();
+  
   
   
   planning_option_collection plan_options = get_planning_option_from_po(vm);
@@ -633,51 +626,62 @@ int main(int argc, char** argv) {
   std::string knn_method_str = plan_options.get_knn_method_str();
   std::string mg_storage_str = plan_options.get_mg_storage_str();
   std::string planner_qualifier_str = plan_options.get_planner_qualifier_str();
-  std::string planner_name_str = vm["planner-alg"].as< std::string >() + "_" + planner_qualifier_str + "_" + mg_storage_str + "_" + knn_method_str;
+  std::string planner_name_str = plan_options.get_planning_algo_str() + "_" + planner_qualifier_str + "_" + mg_storage_str + "_" + knn_method_str;
   
   
   planning_space_options space_def = get_planning_space_options_from_po(vm);
   
   chaser_target_data scene_data = get_chaser_target_data_from_po(vm);
   
-  vect_n<double> jt_start = scene_data.chaser_kin_model->getJointPositions(); 
-  if( vm.count("start-configuration") ) {
-    try {
-      vect_n<double> jt_start_tmp = jt_start; 
-      (*serialization::open_iarchive(vm["start-configuration"].as< std::string >()))
-        >> jt_start_tmp;
-      jt_start = jt_start_tmp;
-    } catch(std::exception& e) { 
-      std::cerr << "Error: Could not load the start-configuration file!" << std::endl;
+  vect_n<double> jt_start(7,0.0);
+  if( scene_data.chaser_kin_model ) {
+    jt_start = scene_data.chaser_kin_model->getJointPositions(); 
+    if( vm.count("start-configuration") ) {
+      try {
+        vect_n<double> jt_start_tmp = jt_start; 
+        (*serialization::open_iarchive(vm["start-configuration"].as< std::string >()))
+          >> jt_start_tmp;
+        jt_start = jt_start_tmp;
+      } catch(std::exception& e) { 
+        std::cerr << "Error: Could not load the start-configuration file!" << std::endl;
+      };
     };
   };
   
-  frame_3D<double> target_frame = scene_data.target_frame->getGlobalFrame();
-  if( vm.count("target-pose") ) {
-    try {
-      frame_3D<double> target_frame_tmp = target_frame;
-      (*serialization::open_iarchive(vm["target-pose"].as< std::string >()))
-        >> target_frame_tmp;
-      target_frame = target_frame_tmp;
-    } catch(std::exception& e) { 
-      std::cerr << "Error: Could not load the target-pose file!" << std::endl;
+  frame_3D<double> target_frame;
+  if( scene_data.target_kin_model ) {
+    target_frame = scene_data.target_kin_model->getFrame3D(0)->getGlobalFrame();
+    if( vm.count("target-pose") ) {
+      try {
+        frame_3D<double> target_frame_tmp = target_frame;
+        (*serialization::open_iarchive(vm["target-pose"].as< std::string >()))
+          >> target_frame_tmp;
+        target_frame = target_frame_tmp;
+        *(scene_data.target_kin_model->getFrame3D(0)) = target_frame;
+        scene_data.target_kin_model->doDirectMotion();
+      } catch(std::exception& e) { 
+        std::cerr << "Error: Could not load the target-pose file!" << std::endl;
+      };
     };
   };
   
-  shared_ptr< frame_3D<double> > dep_EE_frame = scene_data.chaser_kin_model->getDependentFrame3D(0)->mFrame;
   
   vect_n<double> jt_desired(7,0.0);
-  try {
-    *dep_EE_frame = target_frame;
-    scene_data.chaser_kin_model->doInverseMotion();
-    jt_desired = scene_data.chaser_kin_model->getJointPositions();
-  } catch( optim::infeasible_problem& e ) { RK_UNUSED(e);
-    std::cerr << "Error: The target frame cannot be reached! No inverse kinematics solution possible!" << std::endl;
-    return 10;
+  if( scene_data.chaser_kin_model ) {
+    shared_ptr< frame_3D<double> > dep_EE_frame = scene_data.chaser_kin_model->getDependentFrame3D(0)->mFrame;
+    if( vm.count("monte-carlo") + vm.count("single-run") > 0 ) {
+      try {
+        *dep_EE_frame = scene_data.target_frame->getGlobalFrame();
+        scene_data.chaser_kin_model->doInverseMotion();
+        jt_desired = scene_data.chaser_kin_model->getJointPositions();
+      } catch( optim::infeasible_problem& e ) { RK_UNUSED(e);
+        std::cerr << "Error: The target frame cannot be reached! No inverse kinematics solution possible!" << std::endl;
+        return 10;
+      };
+      scene_data.chaser_kin_model->setJointPositions(jt_start);
+      scene_data.chaser_kin_model->doDirectMotion();
+    };
   };
-  scene_data.chaser_kin_model->setJointPositions(jt_start);
-  scene_data.chaser_kin_model->doDirectMotion();
-  
   
   
   // Do the generations if required:
@@ -792,7 +796,7 @@ int main(int argc, char** argv) {
   
   if(vm.count("monte-carlo")) {
     
-    monte_carlo_engine mc_eng(vm["mc-runs"].as<std::size_t>(), planner_name_str, output_path_name + "/" + world_file_name_only);
+    monte_carlo_engine mc_eng(vm["mc-runs"].as<std::size_t>(), planner_name_str, output_path_name + "/" + result_file_prefix);
     
     CRS_launch_static_planner(scene_data, plan_options, space_def, mc_eng, jt_start, jt_desired);
     
@@ -803,7 +807,7 @@ int main(int argc, char** argv) {
   
   if(vm.count("single-run")) {
     
-    single_run_engine sr_eng(planner_name_str, output_path_name + "/" + world_file_name_only);
+    single_run_engine sr_eng(planner_name_str, output_path_name + "/" + result_file_prefix);
     
     CRS_launch_static_planner(scene_data, plan_options, space_def, sr_eng, jt_start, jt_desired);
     

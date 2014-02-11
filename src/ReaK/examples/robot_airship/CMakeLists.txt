@@ -72,6 +72,12 @@ if(COIN3D_FOUND AND QT_FOUND)
   
 endif()
 
+
+add_executable(run_CRS_planner "${SRCROOT}${RKROBOTAIRSHIPDIR}/run_CRS_planner.cpp")
+setup_custom_target(run_CRS_planner "${SRCROOT}${RKROBOTAIRSHIPDIR}")
+target_link_libraries(run_CRS_planner reak_planners reak_robot_airship reak_topologies reak_interp reak_mbd reak_core)
+
+
 add_executable(estimate_satellite3D "${SRCROOT}${RKROBOTAIRSHIPDIR}/estimate_satellite3D.cpp")
 setup_custom_target(estimate_satellite3D "${SRCROOT}${RKROBOTAIRSHIPDIR}")
 target_link_libraries(estimate_satellite3D reak_topologies reak_interp reak_robot_airship reak_core)

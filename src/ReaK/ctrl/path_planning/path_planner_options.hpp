@@ -143,6 +143,23 @@ class planning_option_collection : public shared_object {
       start_delay(20.0) { };
     
     
+    std::string get_planning_algo_str() const {
+      switch(planning_algo) {
+        case 0:
+          return "rrt";
+        case 1:
+          return "rrt_star";
+        case 2:
+          return "prm";
+        case 3:
+          return "sba_star";
+        case 4:
+          return "fadprm";
+        default:
+          return "rrt";
+      };
+    };
+    
     std::string get_knn_method_str() const {
       switch(knn_method & KNN_METHOD_MASK) {
         case LINEAR_SEARCH_KNN:
