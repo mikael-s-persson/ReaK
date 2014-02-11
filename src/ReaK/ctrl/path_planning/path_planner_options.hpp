@@ -163,11 +163,11 @@ class planning_option_collection : public shared_object {
     std::string get_mg_storage_str() const {
       switch(store_policy & MOTION_GRAPH_STORAGE_MASK) {
         case ADJ_LIST_MOTION_GRAPH:
-          return "adj-list";
+          return "adj_list";
         case DVP_ADJ_LIST_MOTION_GRAPH:
-          return "dvp-adj-list";
+          return "dvp_adj_list";
         case LINKED_TREE_MOTION_GRAPH:
-          return "linked-tree";
+          return "linked_tree";
         default:
           return "";
       };
