@@ -154,7 +154,7 @@ planning_option_collection get_planning_option_from_po(boost::program_options::v
   };
   
   if(vm["sa-temperature"].as<double>() > -1.0)  // default has been overriden
-    plan_options.init_relax = vm["sa-temperature"].as<double>();
+    plan_options.init_SA_temp = vm["sa-temperature"].as<double>();
   
   if( vm.count("with-voronoi-pull") )
     plan_options.planning_options |= PLAN_WITH_VORONOI_PULL;

@@ -111,7 +111,7 @@ struct sbastar_density_calculator {
     ++count;
   };
 #endif
-#if 1
+#if 0
   // keep the sample similarity weighted by the sample probability (and its binomial converse).
   // that is, assume the existing density to reflect the overall density and the newly computed 
   // sample similarity to reflect the density in its relatively probable region (binomial).
@@ -119,6 +119,21 @@ struct sbastar_density_calculator {
     using std::pow;
     double correct_factor = 1.0 / pow(2.0 * M_PI, (double(space_dim) - 1.0) / 2.0);
     density = density * (1.0 - correct_factor * samp_sim) + correct_factor * samp_sim * samp_sim;
+    ++count;
+  };
+#endif
+#if 1
+  // consider the sample similarity as the portion of volume that overlaps between the two samples.
+  // keep the density as the fraction of Voronoi volume being eaten-up by the new sample.
+  //  this assumes that the distribution of the volume of samp_sim is uniform over the free and already-eaten-up volumes.
+  void register_sample(double& density, std::size_t& count, double samp_sim, std::size_t space_dim) const {
+    // (1.0 - density)  <--- remaining volume.
+    // samp_sim         <--- "eaten-up" volume by new sample.
+    // (1.0 - density) * samp_sim  <--- part of remaining volume that is eaten-up by the new sample.
+    // (1.0 - density) * 0.5 * samp_sim  <--- Voronoi volume that is eaten-up by the new sample.
+    // (1.0 - new_dens) = (1.0 - density) - (1.0 - density) * 0.5 * samp_sim  <--- new remaining Voronoi volume.
+    // new_dens = density + (1.0 - density) * 0.5 * samp_sim
+    density += 0.5 * (1.0 - density) * samp_sim;
     ++count;
   };
 #endif

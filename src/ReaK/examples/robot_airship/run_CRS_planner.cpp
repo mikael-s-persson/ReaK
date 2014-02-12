@@ -156,6 +156,8 @@ struct monte_carlo_engine {
       cost_ss.clear();
       sol_ss.clear();
       
+      std::cout << "\r" << std::setw(10) << i << std::flush;
+      
       mc_query.reset_solution_records();
       planner->reset_internal_state();
       planner->solve_planning_query(mc_query);
