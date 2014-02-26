@@ -1,7 +1,7 @@
 /**
  * \file sbastar_bidir.hpp
  *
- * This library provides function templates and concepts that implement a Sampling-based A* search
+ * This library provides function templates and concepts that implement a Bi-directional Sampling-based A* search
  * algorithm. A SBA* uses the A* search algorithm to drive the expansion of a roadmap into the free-space 
  * in order to connect a start and goal location. This algorithm has many customization points because there 
  * are many choices to be made in the method, such as how to find nearest neighbors for attempting to 
@@ -92,7 +92,6 @@ namespace detail {
   template <typename UniformCostVisitor,
             typename UpdatableQueue, 
             typename IndexInHeapMap,
-            typename AStarHeuristicMap, 
             typename PositionMap, 
             typename WeightMap,
             typename DensityMap,
