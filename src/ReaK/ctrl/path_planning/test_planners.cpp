@@ -200,6 +200,7 @@ int main(int argc, char** argv) {
   
   po::options_description planner_select_options("Planner selection options");
   planner_select_options.add_options()
+    ("max-edge-length", po::value< double >()->default_value(20.0), "maximum length (in pixels) of edges of the motion-graph (default is 20).")
 #ifdef RK_ENABLE_TEST_URRT_PLANNER
     ("rrt", "specify that the uni-directional RRT algorithm should be run")
 #endif
@@ -328,9 +329,11 @@ int main(int argc, char** argv) {
   };
 #endif
   
+  double max_radius = vm["max-edge-length"].as<double>();
+  
   
   ReaK::shared_ptr< ReaK::pp::ptrobot2D_test_world > world_map =
-    ReaK::shared_ptr< ReaK::pp::ptrobot2D_test_world >(new ReaK::pp::ptrobot2D_test_world(world_file_name, 20, 1.0));
+    ReaK::shared_ptr< ReaK::pp::ptrobot2D_test_world >(new ReaK::pp::ptrobot2D_test_world(world_file_name, max_radius, 1.0));
   
   if(vm.count("monte-carlo")) {
     
