@@ -108,6 +108,7 @@ struct branch_and_bound_connector {
   typedef typename boost::graph_traits<Graph>::vertex_descriptor Vertex;
   typedef typename Graph::edge_bundled EdgeProp;
   typedef typename boost::graph_traits<Graph>::out_edge_iterator OutEdgeIter;
+  typedef typename boost::graph_traits<Graph>::in_edge_iterator InEdgeIter;
   
   typedef boost::vector_property_map<std::size_t> IndexInHeapMap;
   typedef boost::vector_property_map<double> KeyMap;
@@ -116,8 +117,6 @@ struct branch_and_bound_connector {
   
   Vertex start_vertex;
   Vertex goal_vertex;
-  
-  lazy_node_connector node_connector;
   
   mutable IndexInHeapMap index_in_heap;
   mutable KeyMap key;
@@ -130,7 +129,6 @@ struct branch_and_bound_connector {
                              Vertex aGoalVertex) : 
                              start_vertex(aStartVertex), 
                              goal_vertex(aGoalVertex),
-                             node_connector(),
                              index_in_heap(), key(),
                              Q(key, index_in_heap, KeyCompareType()) { 
     
@@ -141,20 +139,13 @@ struct branch_and_bound_connector {
   };
   
   
-  template <typename Topology,
-            typename ConnectorVisitor,
-            typename PositionMap,
-            typename DistanceMap,
-            typename PredecessorMap,
+  template <typename Topology, typename ConnectorVisitor,
+            typename PositionMap, typename DistanceMap, typename PredecessorMap,
             typename WeightMap>
   void update_successors(
-      Vertex v, 
-      Graph& g,
-      const Topology& super_space,
-      const ConnectorVisitor& conn_vis,
-      PositionMap position,
-      DistanceMap distance,
-      PredecessorMap predecessor,
+      Vertex v, Graph& g,
+      const Topology& super_space, const ConnectorVisitor& conn_vis,
+      PositionMap position, DistanceMap distance, PredecessorMap predecessor,
       WeightMap weight) const {
     
     // need to update all the children of the v node:
@@ -180,16 +171,64 @@ struct branch_and_bound_connector {
       };
     };
     
-    // prune all the worst nodes:
-    double top_value = get(key, Q.top());
-    while(top_value > get(distance, g[goal_vertex])) {
-      conn_vis.vertex_to_be_removed(Q.top(), g);
-      clear_vertex(Q.top(), g);
-      remove_vertex(Q.top(), g);
-      Q.pop();
-      top_value = get(key, Q.top());
+    if( get(predecessor, g[goal_vertex]) != boost::graph_traits<Graph>::null_vertex() ) {
+      // prune all the worst nodes:
+      double top_value = get(key, Q.top());
+      while(top_value > get(distance, g[goal_vertex])) {
+        conn_vis.vertex_to_be_removed(Q.top(), g);
+        clear_vertex(Q.top(), g);
+        remove_vertex(Q.top(), g);
+        Q.pop();
+        top_value = get(key, Q.top());
+      };
     };
   };
+  
+  template <typename Topology, typename ConnectorVisitor,
+            typename PositionMap, typename FwdDistanceMap, typename SuccessorMap,
+            typename WeightMap>
+  void update_predecessors(
+      Vertex v, Graph& g,
+      const Topology& super_space, const ConnectorVisitor& conn_vis,
+      PositionMap position, FwdDistanceMap fwd_distance, SuccessorMap successor,
+      WeightMap weight) const {
+    
+    // need to update all the children of the v node:
+    std::stack< Vertex > incons;
+    incons.push(v);
+    while(!incons.empty()) {
+      Vertex t = incons.top(); incons.pop();
+      InEdgeIter ei, ei_end;
+      for(boost::tie(ei,ei_end) = in_edges(t, g); ei != ei_end; ++ei) {
+        Vertex s = source(*ei, g);
+        if(t == s)
+          s = target(*eo, g);
+        if(t != get(successor, g[s]))
+          continue;
+        put(fwd_distance, g[s], get(fwd_distance, g[t]) + get(weight, g[*ei]));
+        
+        conn_vis.affected_vertex(s,g);  // affected by changed distance value.
+        
+        put(key, s, get(fwd_distance, g[s]) + get(ReaK::pp::distance_metric, super_space)(get(position, g[start_vertex]), get(position, g[s]), super_space) );
+        Q.push_or_update(s);
+        
+        incons.push(s);
+      };
+    };
+    
+    if( get(successor, g[start_vertex]) != boost::graph_traits<Graph>::null_vertex() ) {
+      // prune all the worst nodes:
+      double top_value = get(key, Q.top());
+      while(top_value > get(fwd_distance, g[start_vertex])) {
+        conn_vis.vertex_to_be_removed(Q.top(), g);
+        clear_vertex(Q.top(), g);
+        remove_vertex(Q.top(), g);
+        Q.pop();
+        top_value = get(key, Q.top());
+      };
+    };
+  };
+  
   
   
   
@@ -235,26 +274,15 @@ struct branch_and_bound_connector {
    *        vertices of the graph that ought to be connected to a new 
    *        vertex. The list should be sorted in order of increasing "distance".
    */
-  template <typename Graph2,
-            typename Topology,
-            typename ConnectorVisitor,
-            typename PositionMap,
-            typename DistanceMap,
-            typename PredecessorMap,
-            typename WeightMap,
-            typename NcSelector>
+  template <typename Graph2, typename Topology, typename ConnectorVisitor,
+            typename PositionMap, typename DistanceMap, typename PredecessorMap,
+            typename WeightMap, typename NcSelector>
   typename boost::enable_if< boost::is_undirected_graph<Graph2> >::type operator()(
       const typename boost::property_traits<PositionMap>::value_type& p, 
-      Vertex& x_near, 
-      EdgeProp& eprop, 
-      Graph2& g,
-      const Topology& super_space,
-      const ConnectorVisitor& conn_vis,
-      PositionMap position,
-      DistanceMap distance,
-      PredecessorMap predecessor,
-      WeightMap weight,
-      NcSelector select_neighborhood) const {
+      Vertex& x_near, EdgeProp& eprop, Graph2& g,
+      const Topology& super_space, const ConnectorVisitor& conn_vis,
+      PositionMap position, DistanceMap distance, PredecessorMap predecessor,
+      WeightMap weight, NcSelector select_neighborhood) const {
     
     BOOST_CONCEPT_ASSERT((ReaK::pp::MetricSpaceConcept<Topology>));
     BOOST_CONCEPT_ASSERT((BNBConnectorVisitorConcept<ConnectorVisitor,Graph2,Topology>));
@@ -262,7 +290,8 @@ struct branch_and_bound_connector {
     double dist_from_start = get(ReaK::pp::distance_metric, super_space)(get(position, g[start_vertex]), p, super_space);
     double dist_to_goal = get(ReaK::pp::distance_metric, super_space)(p, get(position, g[goal_vertex]), super_space);
     
-    if(dist_from_start + dist_to_goal > get(distance, g[goal_vertex]))
+    if( ( get(predecessor, g[goal_vertex]) != boost::graph_traits<Graph>::null_vertex() ) && 
+        ( dist_from_start + dist_to_goal > get(distance, g[goal_vertex]) ) )
       return;
     
     std::vector<Vertex> Nc;
@@ -271,9 +300,17 @@ struct branch_and_bound_connector {
     Vertex v = conn_vis.create_vertex(p, g);
     put(index_in_heap,v, static_cast<std::size_t>(-1));
     
-    node_connector.connect_predecessor(v, x_near, eprop, g, super_space, conn_vis, position, distance, predecessor, weight, Nc);
+    if( x_near != boost::graph_traits<Graph>::null_vertex() ) {
+      conn_vis.travel_explored(x_near, v, g);
+      conn_vis.travel_succeeded(x_near, v, g);
+      conn_vis.affected_vertex(x_near, g);
+    };
     
-    if(get(distance, g[v]) + dist_to_goal > get(distance, g[goal_vertex])) {
+    lazy_node_connector::connect_best_predecessor(v, x_near, eprop, g, super_space, conn_vis, position, distance, predecessor, weight, Nc);
+    pruned_node_connector::create_pred_edge(v, x_near, eprop, g, conn_vis, distance, predecessor);
+    
+    if( ( get(predecessor, g[goal_vertex]) != boost::graph_traits<Graph>::null_vertex() ) && 
+        ( get(distance, g[v]) + dist_to_goal > get(distance, g[goal_vertex]) ) ) {
       conn_vis.vertex_to_be_removed(v, g);
       clear_vertex(v, g);
       remove_vertex(v, g);
@@ -283,7 +320,7 @@ struct branch_and_bound_connector {
     put(key, v, get(distance, g[v]) + dist_to_goal );
     Q.push(v);
     
-    node_connector.connect_successors(v, x_near, g, super_space, conn_vis, position, distance, predecessor, weight, Nc);
+    lazy_node_connector::connect_successors(v, x_near, g, super_space, conn_vis, position, distance, predecessor, weight, Nc);
     update_successors(v, g, super_space, conn_vis, position, distance, predecessor, weight);
     
   };
@@ -331,26 +368,15 @@ struct branch_and_bound_connector {
    *        vertices of the graph that ought to be connected to a new 
    *        vertex. The list should be sorted in order of increasing "distance".
    */
-  template <typename Graph2,
-            typename Topology,
-            typename ConnectorVisitor,
-            typename PositionMap,
-            typename DistanceMap,
-            typename PredecessorMap,
-            typename WeightMap,
-            typename NcSelector>
+  template <typename Graph2, typename Topology, typename ConnectorVisitor,
+            typename PositionMap, typename DistanceMap, typename PredecessorMap,
+            typename WeightMap, typename NcSelector>
   typename boost::enable_if< boost::is_directed_graph<Graph2> >::type operator()(
       const typename boost::property_traits<PositionMap>::value_type& p, 
-      Vertex& x_near, 
-      EdgeProp& eprop, 
-      Graph2& g,
-      const Topology& super_space,
-      const ConnectorVisitor& conn_vis,
-      PositionMap position,
-      DistanceMap distance,
-      PredecessorMap predecessor,
-      WeightMap weight,
-      NcSelector select_neighborhood) const {
+      Vertex& x_near, EdgeProp& eprop, Graph2& g,
+      const Topology& super_space, const ConnectorVisitor& conn_vis,
+      PositionMap position, DistanceMap distance, PredecessorMap predecessor,
+      WeightMap weight, NcSelector select_neighborhood) const {
     
     BOOST_CONCEPT_ASSERT((ReaK::pp::MetricSpaceConcept<Topology>));
     BOOST_CONCEPT_ASSERT((BNBConnectorVisitorConcept<ConnectorVisitor,Graph2,Topology>));
@@ -358,7 +384,8 @@ struct branch_and_bound_connector {
     double dist_from_start = get(ReaK::pp::distance_metric, super_space)(get(position, g[start_vertex]), p, super_space);
     double dist_to_goal = get(ReaK::pp::distance_metric, super_space)(p, get(position, g[goal_vertex]), super_space);
     
-    if(dist_from_start + dist_to_goal > get(distance, g[goal_vertex]))
+    if( ( get(predecessor, g[goal_vertex]) != boost::graph_traits<Graph>::null_vertex() ) && 
+        ( dist_from_start + dist_to_goal > get(distance, g[goal_vertex]) ) )
       return;
     
     std::vector<Vertex> Pred, Succ;
@@ -367,9 +394,17 @@ struct branch_and_bound_connector {
     Vertex v = conn_vis.create_vertex(p, g);
     put(index_in_heap,v, static_cast<std::size_t>(-1));
     
-    node_connector.connect_predecessor(v, x_near, eprop, g, super_space, conn_vis, position, distance, predecessor, weight, Pred);
+    if( x_near != boost::graph_traits<Graph>::null_vertex() ) {
+      conn_vis.travel_explored(x_near, v, g);
+      conn_vis.travel_succeeded(x_near, v, g);
+      conn_vis.affected_vertex(x_near, g);
+    };
     
-    if(get(distance, g[v]) + dist_to_goal > get(distance, g[goal_vertex])) {
+    lazy_node_connector::connect_best_predecessor(v, x_near, eprop, g, super_space, conn_vis, position, distance, predecessor, weight, Pred);
+    pruned_node_connector::create_pred_edge(v, x_near, eprop, g, conn_vis, distance, predecessor);
+    
+    if( ( get(predecessor, g[goal_vertex]) != boost::graph_traits<Graph>::null_vertex() ) && 
+        ( get(distance, g[v]) + dist_to_goal > get(distance, g[goal_vertex]) ) ) {
       conn_vis.vertex_to_be_removed(v, g);
       clear_vertex(v, g);
       remove_vertex(v, g);
@@ -379,10 +414,169 @@ struct branch_and_bound_connector {
     put(key, v, get(distance, g[v]) + dist_to_goal );
     Q.push(v);
     
-    node_connector.connect_successors(v, x_near, g, super_space, conn_vis, position, distance, predecessor, weight, Succ);
+    lazy_node_connector::connect_successors(v, x_near, g, super_space, conn_vis, position, distance, predecessor, weight, Succ);
     update_successors(v, g, super_space, conn_vis, position, distance, predecessor, weight);
     
   };
+  
+  
+  
+  
+  template <typename Graph, typename Topology, typename ConnectorVisitor,
+            typename PositionMap, typename DistanceMap, typename PredecessorMap,
+            typename FwdDistanceMap, typename SuccessorMap, typename WeightMap, typename NcSelector>
+  typename boost::enable_if< boost::is_undirected_graph<Graph> >::type operator()(
+      const typename boost::property_traits<PositionMap>::value_type& p, 
+      typename boost::graph_traits<Graph>::vertex_descriptor& x_pred, 
+      typename Graph::edge_bundled& eprop_pred, 
+      typename boost::graph_traits<Graph>::vertex_descriptor& x_succ, 
+      typename Graph::edge_bundled& eprop_succ, 
+      Graph& g, const Topology& super_space, const ConnectorVisitor& conn_vis,
+      PositionMap position, DistanceMap distance, PredecessorMap predecessor,
+      FwdDistanceMap fwd_distance, SuccessorMap successor,
+      WeightMap weight, NcSelector select_neighborhood) const {
+    
+    BOOST_CONCEPT_ASSERT((ReaK::pp::MetricSpaceConcept<Topology>));
+    BOOST_CONCEPT_ASSERT((MotionGraphConnectorVisitorConcept<ConnectorVisitor,Graph,Topology>));
+    
+    typedef typename boost::graph_traits<Graph>::vertex_descriptor Vertex;
+    typedef typename Graph::edge_bundled EdgeProp;
+    using std::back_inserter;
+    
+    double dist_from_start = get(ReaK::pp::distance_metric, super_space)(get(position, g[start_vertex]), p, super_space);
+    double dist_to_goal = get(ReaK::pp::distance_metric, super_space)(p, get(position, g[goal_vertex]), super_space);
+    
+    if( ( get(predecessor, g[goal_vertex]) != boost::graph_traits<Graph>::null_vertex() ) && 
+        ( dist_from_start + dist_to_goal > get(distance, g[goal_vertex]) ) )
+      return;
+    
+    std::vector<Vertex> Nc;
+    select_neighborhood(p, back_inserter(Nc), g, super_space, boost::bundle_prop_to_vertex_prop(position, g)); 
+    
+    Vertex v = conn_vis.create_vertex(p, g);
+    put(index_in_heap,v, static_cast<std::size_t>(-1));
+    
+    if( x_pred != boost::graph_traits<Graph>::null_vertex() ) {
+      conn_vis.travel_explored(x_pred, v, g);
+      conn_vis.travel_succeeded(x_pred, v, g);
+      conn_vis.affected_vertex(x_pred, g);
+    };
+    if( x_succ != boost::graph_traits<Graph>::null_vertex() ) {
+      conn_vis.travel_explored(v, x_succ, g);
+      conn_vis.travel_succeeded(v, x_succ, g);
+      conn_vis.affected_vertex(x_succ, g);
+    };
+    
+    lazy_node_connector::connect_best_predecessor(v, x_pred, eprop_pred, g, super_space, conn_vis, position, distance, predecessor, weight, Nc);
+    lazy_node_connector::connect_best_successor(v, x_succ, eprop_succ, g, super_space, conn_vis, position, fwd_distance, successor, weight, Nc);
+    
+    if( ( x_pred == boost::graph_traits<Graph>::null_vertex() ) &&
+        ( x_succ == boost::graph_traits<Graph>::null_vertex() ) ){
+      conn_vis.vertex_to_be_removed(v, g);
+      clear_vertex(v, g);
+      remove_vertex(v, g);
+      return;
+    };
+    
+    if( x_pred != boost::graph_traits<Graph>::null_vertex() )
+      pruned_node_connector::create_pred_edge(v, x_pred, eprop_pred, g, conn_vis, distance, predecessor);
+    if( x_succ != boost::graph_traits<Graph>::null_vertex() )
+      pruned_node_connector::create_succ_edge(v, x_succ, eprop_succ, g, conn_vis, fwd_distance, successor);
+    
+    if( ( get(predecessor, g[goal_vertex]) != boost::graph_traits<Graph>::null_vertex() ) && 
+        ( get(distance, g[v]) + dist_to_goal > get(distance, g[goal_vertex]) ) ) {
+      conn_vis.vertex_to_be_removed(v, g);
+      clear_vertex(v, g);
+      remove_vertex(v, g);
+      return;
+    };
+    put(key, v, get(distance, g[v]) + dist_to_goal );
+    Q.push(v);
+    
+    lazy_node_connector::connect_successors(v, x_pred, g, super_space, conn_vis, position, distance, predecessor, weight, Nc, successor);
+    update_successors(v, g, super_space, conn_vis, position, distance, predecessor, weight);
+    lazy_node_connector::connect_predecessors(v, x_succ, g, super_space, conn_vis, position, fwd_distance, successor, weight, Nc, predecessor);
+    update_predecessors(v, g, super_space, conn_vis, position, fwd_distance, successor, weight);
+  };
+  
+  template <typename Graph, typename Topology, typename ConnectorVisitor,
+            typename PositionMap, typename DistanceMap, typename PredecessorMap,
+            typename FwdDistanceMap, typename SuccessorMap, typename WeightMap, typename NcSelector>
+  typename boost::enable_if< boost::is_directed_graph<Graph> >::type operator()(
+      const typename boost::property_traits<PositionMap>::value_type& p, 
+      typename boost::graph_traits<Graph>::vertex_descriptor& x_pred, 
+      typename Graph::edge_bundled& eprop_pred, 
+      typename boost::graph_traits<Graph>::vertex_descriptor& x_succ, 
+      typename Graph::edge_bundled& eprop_succ, 
+      Graph& g, const Topology& super_space, const ConnectorVisitor& conn_vis,
+      PositionMap position, DistanceMap distance, PredecessorMap predecessor,
+      FwdDistanceMap fwd_distance, SuccessorMap successor,
+      WeightMap weight, NcSelector select_neighborhood) const {
+    
+    BOOST_CONCEPT_ASSERT((ReaK::pp::MetricSpaceConcept<Topology>));
+    BOOST_CONCEPT_ASSERT((MotionGraphConnectorVisitorConcept<ConnectorVisitor,Graph,Topology>));
+    
+    typedef typename boost::graph_traits<Graph>::vertex_descriptor Vertex;
+    typedef typename Graph::edge_bundled EdgeProp;
+    using std::back_inserter;
+    
+    double dist_from_start = get(ReaK::pp::distance_metric, super_space)(get(position, g[start_vertex]), p, super_space);
+    double dist_to_goal = get(ReaK::pp::distance_metric, super_space)(p, get(position, g[goal_vertex]), super_space);
+    
+    if( ( get(predecessor, g[goal_vertex]) != boost::graph_traits<Graph>::null_vertex() ) && 
+        ( dist_from_start + dist_to_goal > get(distance, g[goal_vertex]) ) )
+      return;
+    
+    std::vector<Vertex> Pred, Succ;
+    select_neighborhood(p, back_inserter(Pred), back_inserter(Succ), g, super_space, boost::bundle_prop_to_vertex_prop(position, g)); 
+    
+    Vertex v = conn_vis.create_vertex(p, g);
+    put(index_in_heap,v, static_cast<std::size_t>(-1));
+    
+    if( x_pred != boost::graph_traits<Graph>::null_vertex() ) {
+      conn_vis.travel_explored(x_pred, v, g);
+      conn_vis.travel_succeeded(x_pred, v, g);
+      conn_vis.affected_vertex(x_pred, g);
+    };
+    if( x_succ != boost::graph_traits<Graph>::null_vertex() ) {
+      conn_vis.travel_explored(v, x_succ, g);
+      conn_vis.travel_succeeded(v, x_succ, g);
+      conn_vis.affected_vertex(x_succ, g);
+    };
+    
+    lazy_node_connector::connect_best_predecessor(v, x_pred, eprop_pred, g, super_space, conn_vis, position, distance, predecessor, weight, Pred);
+    lazy_node_connector::connect_best_successor(v, x_succ, eprop_succ, g, super_space, conn_vis, position, fwd_distance, successor, weight, Succ);
+    
+    if( ( x_pred == boost::graph_traits<Graph>::null_vertex() ) &&
+        ( x_succ == boost::graph_traits<Graph>::null_vertex() ) ){
+      conn_vis.vertex_to_be_removed(v, g);
+      clear_vertex(v, g);
+      remove_vertex(v, g);
+      return;
+    };
+    
+    if( x_pred != boost::graph_traits<Graph>::null_vertex() )
+      pruned_node_connector::create_pred_edge(v, x_pred, eprop_pred, g, conn_vis, distance, predecessor);
+    if( x_succ != boost::graph_traits<Graph>::null_vertex() )
+      pruned_node_connector::create_succ_edge(v, x_succ, eprop_succ, g, conn_vis, fwd_distance, successor);
+    
+    if( ( get(predecessor, g[goal_vertex]) != boost::graph_traits<Graph>::null_vertex() ) && 
+        ( get(distance, g[v]) + dist_to_goal > get(distance, g[goal_vertex]) ) ) {
+      conn_vis.vertex_to_be_removed(v, g);
+      clear_vertex(v, g);
+      remove_vertex(v, g);
+      return;
+    };
+    put(key, v, get(distance, g[v]) + dist_to_goal );
+    Q.push(v);
+    
+    lazy_node_connector::connect_successors(v, x_pred, g, super_space, conn_vis, position, distance, predecessor, weight, Succ, successor);
+    update_successors(v, g, super_space, conn_vis, position, distance, predecessor, weight);
+    lazy_node_connector::connect_predecessors(v, x_succ, g, super_space, conn_vis, position, fwd_distance, successor, weight, Pred, predecessor);
+    update_predecessors(v, g, super_space, conn_vis, position, fwd_distance, successor, weight);
+  };
+  
+  
   
 };
 

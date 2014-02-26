@@ -1,17 +1,17 @@
 /**
- * \file lazy_connector.hpp
+ * \file pruned_connector.hpp
  *
- * This library provides a class template and concept that implement a Lazy Motion-graph Connector. 
- * A Lazy-Connector uses the accumulated distance to assess the local optimality of the wirings on a motion-graph.
+ * This library provides a class template and concept that implement a Pruned Motion-graph Connector. 
+ * A Pruned-Connector uses the accumulated distance to assess the local optimality of the wirings on a motion-graph.
  * This algorithm has many customization points because it can be used in many different sampling-based 
  * motion-planners.
  * 
  * \author Sven Mikael Persson <mikael.s.persson@gmail.com>
- * \date May 2013
+ * \date February 2014
  */
 
 /*
- *    Copyright 2013 Sven Mikael Persson
+ *    Copyright 2014 Sven Mikael Persson
  *
  *    THIS SOFTWARE IS DISTRIBUTED UNDER THE TERMS OF THE GNU GENERAL PUBLIC LICENSE v3 (GPLv3).
  *
@@ -32,8 +32,8 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef REAK_LAZY_CONNECTOR_HPP
-#define REAK_LAZY_CONNECTOR_HPP
+#ifndef REAK_PRUNED_CONNECTOR_HPP
+#define REAK_PRUNED_CONNECTOR_HPP
 
 #include <utility>
 #include <iterator>
@@ -43,7 +43,6 @@
 #include "path_planning/metric_space_concept.hpp"
 
 #include "sbmp_visitor_concepts.hpp"
-#include "pruned_connector.hpp"
 
 #include <boost/graph/graph_concepts.hpp>
 #include <boost/graph/properties.hpp>
@@ -61,26 +60,39 @@ namespace ReaK {
 
 /** Main namespace for ReaK.Graph */
 namespace graph {
+
+
+namespace detail {
   
+  template <typename Graph>
+  struct null_vertex_prop_map { };
+  
+  template <typename Graph, typename T>
+  typename boost::graph_traits<Graph>::vertex_descriptor get(null_vertex_prop_map<Graph>, const T&) {
+    return boost::graph_traits<Graph>::null_vertex();
+  };
+  
+};
+
   
   
 /**
- * This callable class template implements a Lazy Motion-graph Connector. 
- * A Lazy-Connector uses the accumulated distance to assess the local optimality of the wirings on a motion-graph.
+ * This callable class template implements a Pruned Motion-graph Connector. 
+ * A Pruned-Connector uses the accumulated distance to assess the local optimality of the wirings on a motion-graph.
  * The call operator accepts a visitor object to provide customized behavior because it can be used in many 
  * different sampling-based motion-planners. The visitor must model the MotionGraphConnectorVisitorConcept concept.
  */
-struct lazy_node_connector {
+struct pruned_node_connector {
   
   template <typename Vertex, typename EdgeProp, typename Graph,
             typename Topology, typename ConnectorVisitor,
-            typename PositionMap, typename DistanceMap, typename PredecessorMap,
+            typename PositionMap, typename DistanceMap, typename PredecessorMap, 
             typename WeightMap>
   static void connect_best_predecessor(
       Vertex v, Vertex& x_near, EdgeProp& eprop, Graph& g,
       const Topology& super_space, const ConnectorVisitor& conn_vis,
       PositionMap position, DistanceMap distance, PredecessorMap predecessor,
-      WeightMap weight, std::vector<Vertex>& Pred) const {
+      WeightMap weight, std::vector<Vertex>& Pred) {
     
     Vertex x_near_original = x_near;
     double d_near = std::numeric_limits<double>::infinity();
@@ -92,15 +104,14 @@ struct lazy_node_connector {
           (get(predecessor, g[*it]) == boost::graph_traits<Graph>::null_vertex()) )
         continue;
       
-      double tentative_weight = get(ReaK::pp::distance_metric, super_space)(get(position,g[*it]), get(position,g[v]), super_space);
-      double d_out = tentative_weight + get(distance, g[*it]);
-      if(d_out < d_near) {
-        // edge could be useful as an in-edge to v.
-        EdgeProp eprop2; bool can_connect;
-        boost::tie(can_connect, eprop2) = conn_vis.can_be_connected(*it, v, g);
-        conn_vis.travel_explored(*it, v, g);
-        if(can_connect) {
-          conn_vis.travel_succeeded(*it, v, g);
+      EdgeProp eprop2; bool can_connect;
+      boost::tie(can_connect, eprop2) = conn_vis.can_be_connected(*it, v, g);
+      conn_vis.travel_explored(*it, v, g);
+      if(can_connect) {
+        conn_vis.travel_succeeded(*it, v, g);
+        double d_out = get(weight, eprop2) + get(distance, g[*it]);
+        if(d_out < d_near) {
+          // edge will be useful as an in-edge to v.
           x_near = *it;
           d_near = d_out;
 #ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
@@ -108,11 +119,11 @@ struct lazy_node_connector {
 #else
           eprop  = eprop2;
 #endif
-        } else {
-          conn_vis.travel_failed(*it, v, g);
         };
-        conn_vis.affected_vertex(*it, g);  // affected by travel attempts.
+      } else {
+        conn_vis.travel_failed(*it, v, g);
       };
+      conn_vis.affected_vertex(*it, g);  // affected by travel attempts.
     };
     conn_vis.affected_vertex(v,g);  // affected by travel attempts and new in-going edge.
   };
@@ -137,15 +148,14 @@ struct lazy_node_connector {
           (get(successor, g[*it]) == boost::graph_traits<Graph>::null_vertex()) )
         continue;
       
-      double tentative_weight = get(ReaK::pp::distance_metric, super_space)(get(position,g[v]), get(position,g[*it]), super_space);
-      double d_in = tentative_weight + get(distance, g[*it]);
-      if(d_in < d_near) {
-        // edge could be useful as an in-edge to v.
-        EdgeProp eprop2; bool can_connect;
-        boost::tie(can_connect, eprop2) = conn_vis.can_be_connected(v, *it, g);
-        conn_vis.travel_explored(v, *it, g);
-        if(can_connect) {
-          conn_vis.travel_succeeded(v, *it, g);
+      EdgeProp eprop2; bool can_connect;
+      boost::tie(can_connect, eprop2) = conn_vis.can_be_connected(v, *it, g);
+      conn_vis.travel_explored(v, *it, g);
+      double d_in = get(weight, eprop2) + get(fwd_distance, g[*it]);
+      if(can_connect) {
+        conn_vis.travel_succeeded(v, *it, g);
+        if(d_in < d_near) {
+          // edge will be useful as an in-edge to v.
           x_near = *it;
           d_near = d_in;
 #ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
@@ -153,15 +163,14 @@ struct lazy_node_connector {
 #else
           eprop  = eprop2;
 #endif
-        } else {
-          conn_vis.travel_failed(v, *it, g);
         };
-        conn_vis.affected_vertex(*it, g);  // affected by travel attempts.
+      } else {
+        conn_vis.travel_failed(v, *it, g);
       };
+      conn_vis.affected_vertex(*it, g);  // affected by travel attempts.
     };
-    conn_vis.affected_vertex(v,g);  // affected by travel attempts and new in-going edge.
+    conn_vis.affected_vertex(v, g);  // affected by travel attempts and new in-going edge.
   };
-  
   
   template <typename Vertex, typename Graph,
             typename Topology, typename ConnectorVisitor,
@@ -180,15 +189,14 @@ struct lazy_node_connector {
           (get(predecessor, g[*it]) != boost::graph_traits<Graph>::null_vertex()) )
         continue;
       
-      double tentative_weight = get(ReaK::pp::distance_metric, super_space)(get(position,g[*it]), get(position,g[v]), super_space);
-      double d_in  = tentative_weight + get(fwd_distance, g[v]);
-      if(d_in < get(fwd_distance, g[*it])) {
-        // edge is useful as an in-edge to (*it).
-        EdgeProp eprop2; bool can_connect;
-        boost::tie(can_connect, eprop2) = conn_vis.can_be_connected(*it, v, g);
-        conn_vis.travel_explored(*it, v, g);
-        if(can_connect) {
-          conn_vis.travel_succeeded(*it, v, g);
+      EdgeProp eprop2; bool can_connect;
+      boost::tie(can_connect, eprop2) = conn_vis.can_be_connected(*it, v, g);
+      conn_vis.travel_explored(*it, v, g);
+      if(can_connect) {
+        conn_vis.travel_succeeded(*it, v, g);
+        double d_in = get(weight, eprop2) + get(fwd_distance, g[v]);
+        if(d_in < get(fwd_distance, g[*it])) {
+          // edge is useful as an in-edge to (*it).
 #ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
           std::pair<Edge, bool> e_new = add_edge(*it, v, std::move(eprop2), g);
 #else
@@ -202,11 +210,11 @@ struct lazy_node_connector {
             if( ( old_succ != *it ) && ( old_succ != boost::graph_traits<Graph>::null_vertex() ) )
               remove_edge(*it, old_succ, g);
           };
-        } else {
-          conn_vis.travel_failed(*it, v, g);
         };
-        conn_vis.affected_vertex(*it, g);  // affected by travel attempts.
+      } else {
+        conn_vis.travel_failed(v, *it, g);
       };
+      conn_vis.affected_vertex(*it, g);  // affected by travel attempts.
     };
     conn_vis.affected_vertex(v,g);  // affected by travel attempts and new out-going edges.
   };
@@ -240,15 +248,14 @@ struct lazy_node_connector {
           (get(successor, g[*it]) != boost::graph_traits<Graph>::null_vertex()) )
         continue;
       
-      double tentative_weight = get(ReaK::pp::distance_metric, super_space)(get(position,g[v]), get(position,g[*it]), super_space);
-      double d_in  = tentative_weight + get(distance, g[v]);
-      if(d_in < get(distance, g[*it])) {
-        // edge is useful as an in-edge to (*it).
-        EdgeProp eprop2; bool can_connect;
-        boost::tie(can_connect, eprop2) = conn_vis.can_be_connected(v, *it, g);
-        conn_vis.travel_explored(v, *it, g);
-        if(can_connect) {
-          conn_vis.travel_succeeded(v, *it, g);
+      EdgeProp eprop2; bool can_connect;
+      boost::tie(can_connect, eprop2) = conn_vis.can_be_connected(v, *it, g);
+      conn_vis.travel_explored(v, *it, g);
+      if(can_connect) {
+        conn_vis.travel_succeeded(v, *it, g);
+        double d_in = get(weight, eprop2) + get(distance, g[v]);
+        if(d_in < get(distance, g[*it])) {
+          // edge is useful as an in-edge to (*it).
 #ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
           std::pair<Edge, bool> e_new = add_edge(v, *it, std::move(eprop2), g);
 #else
@@ -262,11 +269,11 @@ struct lazy_node_connector {
             if( ( old_pred != *it ) && ( old_pred != boost::graph_traits<Graph>::null_vertex() ) )
               remove_edge(old_pred, *it, g);
           };
-        } else {
-          conn_vis.travel_failed(*it, v, g);
         };
-        conn_vis.affected_vertex(*it, g);  // affected by travel attempts.
+      } else {
+        conn_vis.travel_failed(*it, v, g);
       };
+      conn_vis.affected_vertex(*it, g);  // affected by travel attempts.
     };
     conn_vis.affected_vertex(v,g);  // affected by travel attempts and new out-going edges.
   };
@@ -281,6 +288,102 @@ struct lazy_node_connector {
       WeightMap weight, std::vector<Vertex>& Succ) {
     connect_successors(v, x_near, g, super_space, conn_vis, position, distance, predecessor, weight, Succ,
                        detail::null_vertex_prop_map<Graph>());
+  };
+  
+  template <typename Vertex, typename Graph,
+            typename ConnectorVisitor,
+            typename DistanceMap, typename PredecessorMap,
+            typename WeightMap>
+  static void update_successors(
+      Vertex v, Graph& g, const ConnectorVisitor& conn_vis,
+      DistanceMap distance, PredecessorMap predecessor, WeightMap weight) {
+    typedef typename boost::graph_traits<Graph>::out_edge_iterator OutEdgeIter;
+    
+    // need to update all the children of the v node:
+    std::stack<Vertex> incons;
+    incons.push(v);
+    while(!incons.empty()) {
+      Vertex s = incons.top(); incons.pop();
+      OutEdgeIter eo, eo_end;
+      for(boost::tie(eo,eo_end) = out_edges(s,g); eo != eo_end; ++eo) {
+        Vertex t = target(*eo, g);
+        if(t == s)
+          t = source(*eo, g);
+        if(s != get(predecessor, g[t]))
+          continue;
+        put(distance, g[t], get(distance, g[s]) + get(weight, g[*eo]));
+        conn_vis.affected_vertex(t,g);  // affected by changed distance value.
+        incons.push(t);
+      };
+    };
+  };
+  
+  template <typename Vertex, typename Graph,
+            typename ConnectorVisitor,
+            typename FwdDistanceMap, typename SuccessorMap,
+            typename WeightMap>
+  static void update_predecessors(
+      Vertex v, Graph& g, const ConnectorVisitor& conn_vis, 
+      FwdDistanceMap fwd_distance, SuccessorMap successor, WeightMap weight) {
+    typedef typename boost::graph_traits<Graph>::in_edge_iterator InEdgeIter;
+    
+    // need to update all the children of the v node:
+    std::stack<Vertex> incons;
+    incons.push(v);
+    while(!incons.empty()) {
+      Vertex t = incons.top(); incons.pop();
+      InEdgeIter ei, ei_end;
+      for(boost::tie(ei,ei_end) = in_edges(t,g); ei != ei_end; ++ei) {
+        Vertex s = source(*ei, g);
+        if(t == s)
+          s = target(*ei, g);
+        if(t != get(successor, g[s]))
+          continue;
+        put(fwd_distance, g[s], get(fwd_distance, g[t]) + get(weight, g[*ei]));
+        conn_vis.affected_vertex(s,g);  // affected by changed distance value.
+        incons.push(s);
+      };
+    };
+  };
+  
+  template <typename Vertex, typename EdgeProp, typename Graph,
+            typename ConnectorVisitor,
+            typename DistanceMap, typename PredecessorMap>
+  static void create_pred_edge(
+      Vertex v, Vertex& x_near, EdgeProp& eprop, Graph& g,
+      const ConnectorVisitor& conn_vis, 
+      DistanceMap distance, PredecessorMap predecessor) {
+    typedef typename boost::graph_traits<Graph>::edge_descriptor Edge;
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
+    std::pair<Edge, bool> e_new = add_edge(x_near, v, std::move(eprop), g);
+#else
+    std::pair<Edge, bool> e_new = add_edge(x_near, v, eprop, g);
+#endif
+    if(e_new.second) {
+      put(distance, g[v], d_near);
+      put(predecessor, g[v], x_near);
+      conn_vis.edge_added(e_new.first, g);
+    };
+  };
+  
+  template <typename Vertex, typename EdgeProp, typename Graph,
+            typename ConnectorVisitor,
+            typename FwdDistanceMap, typename SuccessorMap>
+  static void create_succ_edge(
+      Vertex v, Vertex& x_near, EdgeProp& eprop, Graph& g,
+      const ConnectorVisitor& conn_vis,
+      FwdDistanceMap fwd_distance, SuccessorMap successor) {
+    typedef typename boost::graph_traits<Graph>::edge_descriptor Edge;
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
+    std::pair<Edge, bool> e_new = add_edge(v, x_near, std::move(eprop), g);
+#else
+    std::pair<Edge, bool> e_new = add_edge(v, x_near, eprop, g);
+#endif
+    if(e_new.second) {
+      put(fwd_distance, g[v], d_near);
+      put(successor, g[v], x_near);
+      conn_vis.edge_added(e_new.first, g);
+    };
   };
   
   
@@ -332,9 +435,9 @@ struct lazy_node_connector {
   typename boost::enable_if< boost::is_undirected_graph<Graph> >::type operator()(
       const typename boost::property_traits<PositionMap>::value_type& p, 
       typename boost::graph_traits<Graph>::vertex_descriptor& x_near, 
-      typename Graph::edge_bundled& eprop, 
-      Graph& g, const Topology& super_space, const ConnectorVisitor& conn_vis,
-      PositionMap position, DistanceMap distance, PredecessorMap predecessor,
+      typename Graph::edge_bundled& eprop, Graph& g,
+      const Topology& super_space, const ConnectorVisitor& conn_vis,
+      PositionMap position, DistanceMap distance, PredecessorMap predecessor, 
       WeightMap weight, NcSelector select_neighborhood) const {
     
     BOOST_CONCEPT_ASSERT((ReaK::pp::MetricSpaceConcept<Topology>));
@@ -363,9 +466,9 @@ struct lazy_node_connector {
       return;
     };
     
-    pruned_node_connector::create_pred_edge(v, x_near, eprop, g, conn_vis, distance, predecessor);
+    create_pred_edge(v, x_near, eprop, g, conn_vis, distance, predecessor);
     connect_successors(v, x_near, g, super_space, conn_vis, position, distance, predecessor, weight, Nc);
-    pruned_node_connector::update_successors(v, g, conn_vis, distance, predecessor, weight);
+    update_successors(v, g, conn_vis, distance, predecessor, weight);
     
   };
   
@@ -418,8 +521,8 @@ struct lazy_node_connector {
   typename boost::enable_if< boost::is_directed_graph<Graph> >::type operator()(
       const typename boost::property_traits<PositionMap>::value_type& p, 
       typename boost::graph_traits<Graph>::vertex_descriptor& x_near, 
-      typename Graph::edge_bundled& eprop, 
-      Graph& g, const Topology& super_space, const ConnectorVisitor& conn_vis,
+      typename Graph::edge_bundled& eprop, Graph& g,
+      const Topology& super_space, const ConnectorVisitor& conn_vis,
       PositionMap position, DistanceMap distance, PredecessorMap predecessor,
       WeightMap weight, NcSelector select_neighborhood) const {
     
@@ -449,9 +552,9 @@ struct lazy_node_connector {
       return;
     };
     
-    pruned_node_connector::create_pred_edge(v, x_near, eprop, g, conn_vis, distance, predecessor);
+    create_pred_edge(v, x_near, eprop, g, conn_vis, distance, predecessor);
     connect_successors(v, x_near, g, super_space, conn_vis, position, distance, predecessor, weight, Succ);
-    pruned_node_connector::update_successors(v, g, conn_vis, distance, predecessor, weight);
+    update_successors(v, g, conn_vis, distance, predecessor, weight);
     
   };
   
@@ -508,14 +611,14 @@ struct lazy_node_connector {
     };
     
     if( x_pred != boost::graph_traits<Graph>::null_vertex() )
-      pruned_node_connector::create_pred_edge(v, x_pred, eprop_pred, g, conn_vis, distance, predecessor);
+      create_pred_edge(v, x_pred, eprop_pred, g, conn_vis, distance, predecessor);
     if( x_succ != boost::graph_traits<Graph>::null_vertex() )
-      pruned_node_connector::create_succ_edge(v, x_succ, eprop_succ, g, conn_vis, fwd_distance, successor);
+      create_succ_edge(v, x_succ, eprop_succ, g, conn_vis, fwd_distance, successor);
     
     connect_successors(v, x_pred, g, super_space, conn_vis, position, distance, predecessor, weight, Nc, successor);
-    pruned_node_connector::update_successors(v, g, conn_vis, distance, predecessor, weight);
+    update_successors(v, g, conn_vis, distance, predecessor, weight);
     connect_predecessors(v, x_succ, g, super_space, conn_vis, position, fwd_distance, successor, weight, Nc, predecessor);
-    pruned_node_connector::update_predecessors(v, g, conn_vis, fwd_distance, successor, weight);
+    update_predecessors(v, g, conn_vis, fwd_distance, successor, weight);
   };
   
   template <typename Graph, typename Topology, typename ConnectorVisitor,
@@ -567,14 +670,14 @@ struct lazy_node_connector {
     };
     
     if( x_pred != boost::graph_traits<Graph>::null_vertex() )
-      pruned_node_connector::create_pred_edge(v, x_pred, eprop_pred, g, conn_vis, distance, predecessor);
+      create_pred_edge(v, x_pred, eprop_pred, g, conn_vis, distance, predecessor);
     if( x_succ != boost::graph_traits<Graph>::null_vertex() )
-      pruned_node_connector::create_succ_edge(v, x_succ, eprop_succ, g, conn_vis, fwd_distance, successor);
+      create_succ_edge(v, x_succ, eprop_succ, g, conn_vis, fwd_distance, successor);
     
     connect_successors(v, x_pred, g, super_space, conn_vis, position, distance, predecessor, weight, Succ, successor);
-    pruned_node_connector::update_successors(v, g, conn_vis, distance, predecessor, weight);
+    update_successors(v, g, conn_vis, distance, predecessor, weight);
     connect_predecessors(v, x_succ, g, super_space, conn_vis, position, fwd_distance, successor, weight, Pred, predecessor);
-    pruned_node_connector::update_predecessors(v, g, conn_vis, fwd_distance, successor, weight);
+    update_predecessors(v, g, conn_vis, fwd_distance, successor, weight);
   };
   
   

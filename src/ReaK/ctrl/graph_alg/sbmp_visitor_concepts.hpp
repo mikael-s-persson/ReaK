@@ -228,6 +228,46 @@ struct node_pulling_visitor_archetype {
   };
 };
 
+/**
+  * This concept class defines what is required of a class to serve as a visitor to a motion-planning 
+  * algorithm that pulls nodes backwards towards some sample-point (i.e., attempt to steer (reverse-time), 
+  * at least, partially towards a point). This is typical of RRT-style motion-planners.
+  * 
+  * Required concepts:
+  * 
+  * Valid expressions:
+  * 
+  * tie(p,b,ep) = vis.steer_back_to_position(p,u,g);  This function is called to attempt to steer backwards in time from vertex u to position p, it returns a std::pair with the position that could be reached and a boolean value to indicate whether any significant motion occurred (collision-free).
+  * 
+  * \tparam Visitor The visitor class to be checked for modeling this concept.
+  * \tparam Graph The graph on which the visitor class is required to work with.
+  * \tparam Topology The topology that provides the positions with which the visitor class is required to work.
+  */
+template <typename Visitor, typename Graph, typename Topology>
+struct NodeBackPullingVisitorConcept {
+  Visitor vis;
+  Graph g;
+  bool b;
+  typename boost::graph_traits<Graph>::vertex_descriptor u;
+  typename ReaK::pp::topology_traits<Topology>::point_type p;
+  typename Graph::edge_bundled ep;
+  
+  BOOST_CONCEPT_USAGE(NodeBackPullingVisitorConcept) {
+    boost::tie(p, b, ep) = vis.steer_back_to_position(p, u, g);
+  };
+};
+
+/**
+  * This class is simply an archetype visitor for NodeBackPullingVisitorConcept.
+  */
+struct node_back_pulling_visitor_archetype {
+  template <typename Position, typename Vertex, typename Graph>
+  boost::tuple<Position, bool, typename Graph::edge_bundled> steer_back_to_position(const Position& p, Vertex, Graph&) const { 
+    typedef typename Graph::edge_bundled EdgeProp;
+    return boost::tuple<Position, bool, EdgeProp>(p, false, EdgeProp());
+  };
+};
+
 
 
 /**
@@ -268,6 +308,50 @@ struct node_pushing_visitor_archetype {
   typedef typename ReaK::pp::topology_traits<Topology>::point_type PointType;
   template <typename Vertex, typename Graph>
   boost::tuple<PointType, bool, typename Graph::edge_bundled> random_walk(Vertex, Graph&) const { 
+    typedef typename Graph::edge_bundled EdgeProp;
+    return boost::tuple<PointType, bool, EdgeProp>(PointType(), false, EdgeProp());
+  };
+};
+
+
+/**
+  * This concept class defines what is required of a class to serve as a visitor to a motion-planning 
+  * algorithm that retracts existing nodes backwards towards some unspecified direction (i.e., attempt to steer, 
+  * at least, partially, backwards towards some random or guided direction). This is typical of PRM-style 
+  * motion-planners and of what one could call "pushed" expansion algorithms (SBA*, FADPRM, etc.).
+  * 
+  * Required concepts:
+  * 
+  * Valid expressions:
+  * 
+  * tie(p,b,ep) = vis.random_back_walk(u, g);  This function is called to perform the retraction of the roadmap from a given vertex (u) in the graph (g). This function returns a newly generated position value that is a candidate to be added to the graph, and with an edge-property object associated with a new edge.
+  * 
+  * \tparam Visitor The visitor class to be checked for modeling this concept.
+  * \tparam Graph The graph on which the visitor class is required to work with.
+  * \tparam Topology The topology that provides the positions with which the visitor class is required to work.
+  */
+template <typename Visitor, typename Graph, typename Topology>
+struct NodeBackPushingVisitorConcept {
+  Visitor vis;
+  Graph g;
+  bool b;
+  typename boost::graph_traits<Graph>::vertex_descriptor u;
+  typename ReaK::pp::topology_traits<Topology>::point_type p;
+  typename Graph::edge_bundled ep;
+  
+  BOOST_CONCEPT_USAGE(NodeBackPushingVisitorConcept) {
+    boost::tie(p, b, ep) = vis.random_back_walk(u, g);
+  };
+};
+
+/**
+  * This class is simply an archetype visitor for NodeBackPushingVisitorConcept.
+  */
+template <typename Topology>
+struct node_back_pushing_visitor_archetype {
+  typedef typename ReaK::pp::topology_traits<Topology>::point_type PointType;
+  template <typename Vertex, typename Graph>
+  boost::tuple<PointType, bool, typename Graph::edge_bundled> random_back_walk(Vertex, Graph&) const { 
     typedef typename Graph::edge_bundled EdgeProp;
     return boost::tuple<PointType, bool, EdgeProp>(PointType(), false, EdgeProp());
   };
