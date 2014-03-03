@@ -49,6 +49,7 @@
 #include "lin_alg/mat_exp_methods.hpp"
 #include "path_planning/global_rng.hpp"
 #include "path_planning/metric_space_concept.hpp"
+#include "path_planning/reversible_space_concept.hpp"
 #include "topologies/default_random_sampler.hpp"
 
 namespace ReaK {
@@ -77,7 +78,7 @@ class covar_topology {
     typedef typename covariance_mat_traits<Covariance>::value_type value_type;
     
     BOOST_STATIC_CONSTANT(std::size_t, dimensions = point_type::dimensions);
-        
+    
     /**
      * This nested class implements the point-difference type for the covariance topology.
      * It implements a simple linear interpolation of the covariance matrices and uses 
@@ -102,34 +103,34 @@ class covar_topology {
         result.M = a.M + b.M;
         return result;
       };
-
+      
       point_difference_type& operator+=(const point_difference_type& b) {
         M += b.M;
         return *this;
       };
-
+      
       point_difference_type operator-() const {
         point_difference_type result;
         result.M = -M;
         return result;
       };
-
+      
       friend point_difference_type operator-(const point_difference_type& a, const point_difference_type& b) {
         point_difference_type result;
         result.M = a.M - b.M;
         return result;
       };
-
+      
       point_difference_type& operator-=(const point_difference_type& b) {
         M -= b.M;
         return *this;
       };
-
+      
       friend point_difference_type operator*(point_difference_type a, double b) {
         a.M *= b;
         return a;
       };
-
+      
       friend point_difference_type operator*(double a, point_difference_type b) {
         b.M *= a;
         return b;
@@ -167,7 +168,7 @@ class covar_topology {
      */
     explicit covar_topology(size_type aSize = 0, const value_type& aMaxEigenValue = value_type(1.0)) 
       : max_eigenvalue(aMaxEigenValue), mat_size(aSize) { };
-                     
+    
     /**
      * Generates a random covariance matrix.
      * \return A random covariance matrix.
@@ -188,7 +189,7 @@ class covar_topology {
       
       return point_type(matrix_type(transpose_view(Q) * (D * Q)));
     };
-
+    
     /**
      * Computes the difference between two covariance matrices.
      * \param a The first covariance matrix.
@@ -198,7 +199,7 @@ class covar_topology {
     point_difference_type difference(const point_type& a, const point_type& b) const {
       return point_difference_type(a,b);
     };
-
+    
     /**
      * Adds a given covariance matrix difference to a given covariance matrix.
      * \param a A covariance matrix.
@@ -208,7 +209,7 @@ class covar_topology {
     point_type adjust(const point_type& a, const point_difference_type& delta) const {
       return point_type(matrix_type( a.get_matrix() + delta.M ));
     };
-  
+    
     /**
      * Returns the origin of the topology (a nil covariance matrix).
      * \return The origin of the topology (a nil covariance matrix).
@@ -216,7 +217,7 @@ class covar_topology {
     point_type origin() const {
       return point_type(matrix_type( mat<value_type,mat_structure::nil>(mat_size) ));
     };
-
+    
     /**
      * Computes the covariance matrix which is the linear interpolation between two matrices, by a fraction.
      * \param a The first covariance matrix.
@@ -226,6 +227,17 @@ class covar_topology {
      */
     point_type move_position_toward(const point_type& a, double fraction, const point_type& b) const {
       return point_type(matrix_type(value_type(1.0 - fraction) * a.get_matrix() + value_type(fraction) * b.get_matrix()));
+    };
+    
+    /**
+     * Computes the covariance matrix which is the linear interpolation between two matrices, by a backward fraction.
+     * \param a The first covariance matrix.
+     * \param fraction The scalar fraction at which the evaluate the linear interpolation, from b to a.
+     * \param b The second covariance matrix.
+     * \return The interpolated covariance matrix.
+     */
+    point_type move_position_back_to(const point_type& a, double fraction, const point_type& b) const {
+      return point_type(matrix_type(value_type(fraction) * a.get_matrix() + value_type(1.0 - fraction) * b.get_matrix()));
     };
     
     
@@ -240,6 +252,20 @@ typename covar_topology<Covariance>::distance_metric_type get(ReaK::pp::distance
 
 
 };
+
+
+namespace pp {
+
+
+template <typename Covariance>
+struct is_metric_space< ctrl::covar_topology<Covariance> > : boost::mpl::true_ { };
+
+template <typename Covariance>
+struct is_reversible_space< ctrl::covar_topology<Covariance> > : boost::mpl::true_ { };
+
+
+};
+
 
 };
 

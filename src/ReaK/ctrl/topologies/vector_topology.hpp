@@ -42,6 +42,9 @@
 
 #include "base/named_object.hpp"
 
+#include "path_planning/metric_space_concept.hpp"
+#include "path_planning/reversible_space_concept.hpp"
+
 namespace ReaK {
 
 namespace pp {
@@ -108,7 +111,15 @@ class vector_topology : public named_object
     point_type move_position_toward(const point_type& a, double fraction, const point_type& b) const 
     {
       return a + (b - a) * fraction;
-    }
+    };
+    
+    /**
+     * Returns a point which is at a backward fraction between two points a to b.
+     */
+    point_type move_position_back_to(const point_type& a, double fraction, const point_type& b) const 
+    {
+      return b + (a - b) * fraction;
+    };
     
 /*******************************************************************************
                    ReaK's RTTI and Serialization interfaces
@@ -125,6 +136,12 @@ class vector_topology : public named_object
     RK_RTTI_MAKE_CONCRETE_1BASE(self,0xC2400007,1,"vector_topology",named_object)
     
 };
+
+template <typename Vector>
+struct is_metric_space< vector_topology<Vector> > : boost::mpl::true_ { };
+
+template <typename Vector>
+struct is_reversible_space< vector_topology<Vector> > : boost::mpl::true_ { };
 
 
 

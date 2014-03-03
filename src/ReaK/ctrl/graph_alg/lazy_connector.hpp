@@ -80,7 +80,7 @@ struct lazy_node_connector {
       Vertex v, Vertex& x_near, EdgeProp& eprop, Graph& g,
       const Topology& super_space, const ConnectorVisitor& conn_vis,
       PositionMap position, DistanceMap distance, PredecessorMap predecessor,
-      WeightMap weight, std::vector<Vertex>& Pred) const {
+      WeightMap weight, std::vector<Vertex>& Pred) {
     
     Vertex x_near_original = x_near;
     double d_near = std::numeric_limits<double>::infinity();
@@ -138,7 +138,7 @@ struct lazy_node_connector {
         continue;
       
       double tentative_weight = get(ReaK::pp::distance_metric, super_space)(get(position,g[v]), get(position,g[*it]), super_space);
-      double d_in = tentative_weight + get(distance, g[*it]);
+      double d_in = tentative_weight + get(fwd_distance, g[*it]);
       if(d_in < d_near) {
         // edge could be useful as an in-edge to v.
         EdgeProp eprop2; bool can_connect;
@@ -363,7 +363,7 @@ struct lazy_node_connector {
       return;
     };
     
-    pruned_node_connector::create_pred_edge(v, x_near, eprop, g, conn_vis, distance, predecessor);
+    pruned_node_connector::create_pred_edge(v, x_near, eprop, g, conn_vis, distance, predecessor, weight);
     connect_successors(v, x_near, g, super_space, conn_vis, position, distance, predecessor, weight, Nc);
     pruned_node_connector::update_successors(v, g, conn_vis, distance, predecessor, weight);
     
@@ -449,7 +449,7 @@ struct lazy_node_connector {
       return;
     };
     
-    pruned_node_connector::create_pred_edge(v, x_near, eprop, g, conn_vis, distance, predecessor);
+    pruned_node_connector::create_pred_edge(v, x_near, eprop, g, conn_vis, distance, predecessor, weight);
     connect_successors(v, x_near, g, super_space, conn_vis, position, distance, predecessor, weight, Succ);
     pruned_node_connector::update_successors(v, g, conn_vis, distance, predecessor, weight);
     
@@ -477,7 +477,6 @@ struct lazy_node_connector {
     BOOST_CONCEPT_ASSERT((MotionGraphConnectorVisitorConcept<ConnectorVisitor,Graph,Topology>));
     
     typedef typename boost::graph_traits<Graph>::vertex_descriptor Vertex;
-    typedef typename Graph::edge_bundled EdgeProp;
     using std::back_inserter;
     
     std::vector<Vertex> Nc;
@@ -508,9 +507,9 @@ struct lazy_node_connector {
     };
     
     if( x_pred != boost::graph_traits<Graph>::null_vertex() )
-      pruned_node_connector::create_pred_edge(v, x_pred, eprop_pred, g, conn_vis, distance, predecessor);
+      pruned_node_connector::create_pred_edge(v, x_pred, eprop_pred, g, conn_vis, distance, predecessor, weight);
     if( x_succ != boost::graph_traits<Graph>::null_vertex() )
-      pruned_node_connector::create_succ_edge(v, x_succ, eprop_succ, g, conn_vis, fwd_distance, successor);
+      pruned_node_connector::create_succ_edge(v, x_succ, eprop_succ, g, conn_vis, fwd_distance, successor, weight);
     
     connect_successors(v, x_pred, g, super_space, conn_vis, position, distance, predecessor, weight, Nc, successor);
     pruned_node_connector::update_successors(v, g, conn_vis, distance, predecessor, weight);
@@ -536,7 +535,6 @@ struct lazy_node_connector {
     BOOST_CONCEPT_ASSERT((MotionGraphConnectorVisitorConcept<ConnectorVisitor,Graph,Topology>));
     
     typedef typename boost::graph_traits<Graph>::vertex_descriptor Vertex;
-    typedef typename Graph::edge_bundled EdgeProp;
     using std::back_inserter;
     
     std::vector<Vertex> Pred, Succ;
@@ -567,9 +565,9 @@ struct lazy_node_connector {
     };
     
     if( x_pred != boost::graph_traits<Graph>::null_vertex() )
-      pruned_node_connector::create_pred_edge(v, x_pred, eprop_pred, g, conn_vis, distance, predecessor);
+      pruned_node_connector::create_pred_edge(v, x_pred, eprop_pred, g, conn_vis, distance, predecessor, weight);
     if( x_succ != boost::graph_traits<Graph>::null_vertex() )
-      pruned_node_connector::create_succ_edge(v, x_succ, eprop_succ, g, conn_vis, fwd_distance, successor);
+      pruned_node_connector::create_succ_edge(v, x_succ, eprop_succ, g, conn_vis, fwd_distance, successor, weight);
     
     connect_successors(v, x_pred, g, super_space, conn_vis, position, distance, predecessor, weight, Succ, successor);
     pruned_node_connector::update_successors(v, g, conn_vis, distance, predecessor, weight);

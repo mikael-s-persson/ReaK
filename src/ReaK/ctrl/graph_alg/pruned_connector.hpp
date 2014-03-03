@@ -72,6 +72,19 @@ namespace detail {
     return boost::graph_traits<Graph>::null_vertex();
   };
   
+  template <typename Graph, typename T>
+  void put(null_vertex_prop_map<Graph>, const T&, typename boost::graph_traits<Graph>::vertex_descriptor) { };
+  
+  struct infinite_double_value_prop_map { };
+  
+  template <typename T>
+  double get(infinite_double_value_prop_map, const T&) {
+    return std::numeric_limits<double>::infinity();
+  };
+  
+  template <typename T>
+  void put(infinite_double_value_prop_map, const T&, double) { };
+  
 };
 
   
@@ -348,12 +361,14 @@ struct pruned_node_connector {
   
   template <typename Vertex, typename EdgeProp, typename Graph,
             typename ConnectorVisitor,
-            typename DistanceMap, typename PredecessorMap>
+            typename DistanceMap, typename PredecessorMap,
+            typename WeightMap>
   static void create_pred_edge(
       Vertex v, Vertex& x_near, EdgeProp& eprop, Graph& g,
       const ConnectorVisitor& conn_vis, 
-      DistanceMap distance, PredecessorMap predecessor) {
+      DistanceMap distance, PredecessorMap predecessor, WeightMap weight) {
     typedef typename boost::graph_traits<Graph>::edge_descriptor Edge;
+    double d_near = get(weight, eprop) + get(distance, g[x_near]);
 #ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
     std::pair<Edge, bool> e_new = add_edge(x_near, v, std::move(eprop), g);
 #else
@@ -368,12 +383,14 @@ struct pruned_node_connector {
   
   template <typename Vertex, typename EdgeProp, typename Graph,
             typename ConnectorVisitor,
-            typename FwdDistanceMap, typename SuccessorMap>
+            typename FwdDistanceMap, typename SuccessorMap,
+            typename WeightMap>
   static void create_succ_edge(
       Vertex v, Vertex& x_near, EdgeProp& eprop, Graph& g,
       const ConnectorVisitor& conn_vis,
-      FwdDistanceMap fwd_distance, SuccessorMap successor) {
+      FwdDistanceMap fwd_distance, SuccessorMap successor, WeightMap weight) {
     typedef typename boost::graph_traits<Graph>::edge_descriptor Edge;
+    double d_near = get(weight, eprop) + get(fwd_distance, g[x_near]);
 #ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
     std::pair<Edge, bool> e_new = add_edge(v, x_near, std::move(eprop), g);
 #else
@@ -466,7 +483,7 @@ struct pruned_node_connector {
       return;
     };
     
-    create_pred_edge(v, x_near, eprop, g, conn_vis, distance, predecessor);
+    create_pred_edge(v, x_near, eprop, g, conn_vis, distance, predecessor, weight);
     connect_successors(v, x_near, g, super_space, conn_vis, position, distance, predecessor, weight, Nc);
     update_successors(v, g, conn_vis, distance, predecessor, weight);
     
@@ -552,7 +569,7 @@ struct pruned_node_connector {
       return;
     };
     
-    create_pred_edge(v, x_near, eprop, g, conn_vis, distance, predecessor);
+    create_pred_edge(v, x_near, eprop, g, conn_vis, distance, predecessor, weight);
     connect_successors(v, x_near, g, super_space, conn_vis, position, distance, predecessor, weight, Succ);
     update_successors(v, g, conn_vis, distance, predecessor, weight);
     
@@ -580,7 +597,6 @@ struct pruned_node_connector {
     BOOST_CONCEPT_ASSERT((MotionGraphConnectorVisitorConcept<ConnectorVisitor,Graph,Topology>));
     
     typedef typename boost::graph_traits<Graph>::vertex_descriptor Vertex;
-    typedef typename Graph::edge_bundled EdgeProp;
     using std::back_inserter;
     
     std::vector<Vertex> Nc;
@@ -611,9 +627,9 @@ struct pruned_node_connector {
     };
     
     if( x_pred != boost::graph_traits<Graph>::null_vertex() )
-      create_pred_edge(v, x_pred, eprop_pred, g, conn_vis, distance, predecessor);
+      create_pred_edge(v, x_pred, eprop_pred, g, conn_vis, distance, predecessor, weight);
     if( x_succ != boost::graph_traits<Graph>::null_vertex() )
-      create_succ_edge(v, x_succ, eprop_succ, g, conn_vis, fwd_distance, successor);
+      create_succ_edge(v, x_succ, eprop_succ, g, conn_vis, fwd_distance, successor, weight);
     
     connect_successors(v, x_pred, g, super_space, conn_vis, position, distance, predecessor, weight, Nc, successor);
     update_successors(v, g, conn_vis, distance, predecessor, weight);
@@ -639,7 +655,6 @@ struct pruned_node_connector {
     BOOST_CONCEPT_ASSERT((MotionGraphConnectorVisitorConcept<ConnectorVisitor,Graph,Topology>));
     
     typedef typename boost::graph_traits<Graph>::vertex_descriptor Vertex;
-    typedef typename Graph::edge_bundled EdgeProp;
     using std::back_inserter;
     
     std::vector<Vertex> Pred, Succ;
@@ -670,9 +685,9 @@ struct pruned_node_connector {
     };
     
     if( x_pred != boost::graph_traits<Graph>::null_vertex() )
-      create_pred_edge(v, x_pred, eprop_pred, g, conn_vis, distance, predecessor);
+      create_pred_edge(v, x_pred, eprop_pred, g, conn_vis, distance, predecessor, weight);
     if( x_succ != boost::graph_traits<Graph>::null_vertex() )
-      create_succ_edge(v, x_succ, eprop_succ, g, conn_vis, fwd_distance, successor);
+      create_succ_edge(v, x_succ, eprop_succ, g, conn_vis, fwd_distance, successor, weight);
     
     connect_successors(v, x_pred, g, super_space, conn_vis, position, distance, predecessor, weight, Succ, successor);
     update_successors(v, g, conn_vis, distance, predecessor, weight);

@@ -85,7 +85,6 @@ namespace detail {
 
 
 
-
 /**
  * This struct contains the data required on a per-vertex basis for any basic path-planning algorithm.
  * \tparam Topology The topology type on which the planning is performed.
@@ -121,8 +120,6 @@ void print_mg_vertex(std::ostream& out, const mg_vertex_data<Topology>& vp) {
   for(std::size_t i = 0; i < v_pos.size(); ++i)
     out << " " << std::setw(10) << v_pos[i];
 };
-
-
 
 /**
  * This class template can be used as a type-erased encapsulation of a graph used by any basic path-planning algorithm.
@@ -166,8 +163,6 @@ class any_motion_graph : public graph::type_erased_graph<Graph> {
 
 
 
-
-
 /**
  * This struct contains the data required on a per-vertex basis for any optimal path-planning algorithm.
  * \tparam Topology The topology type on which the planning is performed.
@@ -207,8 +202,6 @@ void print_mg_vertex(std::ostream& out, const optimal_mg_vertex<Topology>& vp) {
     out << " " << std::setw(10) << v_pos[i];
   out << " " << std::setw(10) << vp.distance_accum;
 };
-
-
 
 /**
  * This class template can be used as a type-erased encapsulation of a graph used by any optimal path-planning algorithm.
@@ -256,6 +249,67 @@ class any_optimal_motion_graph : public any_motion_graph<Topology, Graph> {
 
 
 
+/**
+ * This struct contains the data required on a per-vertex basis for any optimal path-planning algorithm.
+ * \tparam Topology The topology type on which the planning is performed.
+ */
+template <typename Topology>
+struct bidir_optimal_mg_vertex : optimal_mg_vertex<Topology> {
+  /// The foward travel-distance accumulated in the vertex, i.e., the travel-distance to the goal vertex from this vertex.
+  double fwd_distance_accum;
+  /// The successor associated to the vertex, e.g., following the successor links starting at the start node yields a trace of the optimal path.
+  std::size_t successor;
+};
+
+template <typename Topology>
+void print_mg_vertex(std::ostream& out, const bidir_optimal_mg_vertex<Topology>& vp) {
+  using ReaK::to_vect;
+  vect_n<double> v_pos = to_vect<double>(vp.position);
+  for(std::size_t i = 0; i < v_pos.size(); ++i)
+    out << " " << std::setw(10) << v_pos[i];
+  out << " " << std::setw(10) << vp.distance_accum;
+  out << " " << std::setw(10) << vp.fwd_distance_accum;
+};
+
+/**
+ * This class template can be used as a type-erased encapsulation of a graph used by any optimal path-planning algorithm.
+ * \tparam Topology The topology type on which the planning is performed.
+ * \tparam Graph The graph type used by the path-planning algorithm.
+ */
+template <typename Topology, typename Graph>
+class any_bidir_optimal_motion_graph : public any_optimal_motion_graph<Topology, Graph> {
+  protected:
+    typedef any_bidir_optimal_motion_graph<Topology, Graph> self;
+    typedef any_optimal_motion_graph<Topology, Graph> base_type;
+    typedef typename base_type::original_graph_type original_graph_type;
+    typedef typename base_type::real_vertex_desc real_vertex_desc;
+    typedef typename base_type::real_edge_desc real_edge_desc;
+    
+    virtual void* get_property_by_ptr(const std::string& aProperty, const boost::any& aElement) const {
+      
+      if(aProperty == "vertex_fwd_distance_accum")
+        return static_cast<void*>(&((*(this->p_graph))[boost::any_cast<real_vertex_desc>(aElement)].fwd_distance_accum));
+      if(aProperty == "vertex_successor")
+        return static_cast<void*>(&((*(this->p_graph))[boost::any_cast<real_vertex_desc>(aElement)].successor));
+      
+      return base_type::get_property_by_ptr(aProperty, aElement);
+    };
+    
+    virtual boost::any get_property_by_any(const std::string& aProperty, const boost::any& aElement) const {
+      
+      if(aProperty == "vertex_fwd_distance_accum")
+        return boost::any((*(this->p_graph))[boost::any_cast<real_vertex_desc>(aElement)].fwd_distance_accum);
+      if(aProperty == "vertex_successor")
+        return boost::any((*(this->p_graph))[boost::any_cast<real_vertex_desc>(aElement)].successor);
+      
+      return base_type::get_property_by_any(aProperty, aElement);
+    };
+    
+  public:
+    
+    any_bidir_optimal_motion_graph(original_graph_type* aPGraph) : base_type(aPGraph) { };
+    
+};
 
 
 
@@ -273,7 +327,6 @@ struct astar_mg_vertex : optimal_mg_vertex<Topology> {
   boost::default_color_type astar_color;
 };
 
-
 template <typename Topology>
 void print_mg_vertex(std::ostream& out, const astar_mg_vertex<Topology>& vp) {
   using ReaK::to_vect;
@@ -284,8 +337,6 @@ void print_mg_vertex(std::ostream& out, const astar_mg_vertex<Topology>& vp) {
       << " " << std::setw(10) << vp.heuristic_value 
       << " " << std::setw(10) << vp.key_value;
 };
-
-
 
 /**
  * This class template can be used as a type-erased encapsulation of a graph used by any A*-like path-planning algorithm.
@@ -331,6 +382,70 @@ class any_astar_motion_graph : public any_optimal_motion_graph<Topology, Graph> 
     
 };
 
+
+
+/**
+ * This struct contains the data required on a per-vertex basis for any A*-like path-planning algorithm (heuristically driven).
+ * \tparam Topology The topology type on which the planning is performed.
+ */
+template <typename Topology>
+struct bidir_astar_mg_vertex : bidir_optimal_mg_vertex<Topology> {
+  /// The key-value associated to the vertex, computed by the algorithm (usually a combination of accumulated and heuristic distances).
+  double key_value;
+  /// The color-value associated to the vertex, computed by the algorithm.
+  boost::default_color_type astar_color;
+};
+
+template <typename Topology>
+void print_mg_vertex(std::ostream& out, const bidir_astar_mg_vertex<Topology>& vp) {
+  using ReaK::to_vect;
+  vect_n<double> v_pos = to_vect<double>(vp.position);
+  for(std::size_t i = 0; i < v_pos.size(); ++i)
+    out << " " << std::setw(10) << v_pos[i];
+  out << " " << std::setw(10) << vp.distance_accum
+      << " " << std::setw(10) << vp.fwd_distance_accum 
+      << " " << std::setw(10) << vp.key_value;
+};
+
+/**
+ * This class template can be used as a type-erased encapsulation of a graph used by any A*-like path-planning algorithm.
+ * \tparam Topology The topology type on which the planning is performed.
+ * \tparam Graph The graph type used by the path-planning algorithm.
+ */
+template <typename Topology, typename Graph>
+class any_bidir_astar_motion_graph : public any_bidir_optimal_motion_graph<Topology, Graph> {
+  protected:
+    typedef any_bidir_astar_motion_graph<Topology, Graph> self;
+    typedef any_bidir_optimal_motion_graph<Topology, Graph> base_type;
+    typedef typename base_type::original_graph_type original_graph_type;
+    typedef typename base_type::real_vertex_desc real_vertex_desc;
+    typedef typename base_type::real_edge_desc real_edge_desc;
+    
+    virtual void* get_property_by_ptr(const std::string& aProperty, const boost::any& aElement) const {
+      
+      if(aProperty == "vertex_key_value")
+        return static_cast<void*>(&((*(this->p_graph))[boost::any_cast<real_vertex_desc>(aElement)].key_value));
+      if(aProperty == "vertex_astar_color")
+        return static_cast<void*>(&((*(this->p_graph))[boost::any_cast<real_vertex_desc>(aElement)].astar_color));
+      
+      return base_type::get_property_by_ptr(aProperty, aElement);
+    };
+    
+    virtual boost::any get_property_by_any(const std::string& aProperty, const boost::any& aElement) const {
+      
+      if(aProperty == "vertex_key_value")
+        return boost::any((*(this->p_graph))[boost::any_cast<real_vertex_desc>(aElement)].key_value);
+      if(aProperty == "vertex_astar_color")
+        return boost::any((*(this->p_graph))[boost::any_cast<real_vertex_desc>(aElement)].astar_color);
+      
+      return base_type::get_property_by_any(aProperty, aElement);
+    };
+    
+  public:
+    
+    any_bidir_astar_motion_graph(original_graph_type* aPGraph) : base_type(aPGraph) { };
+    
+};
 
 
 
@@ -464,8 +579,6 @@ class any_recursive_dense_mg : public BaseMotionGraph {
 };
 
 
-
-
 template <typename Topology, typename Graph>
 struct te_mg_selector {
   typedef typename Graph::vertex_bundled VertexProp;
@@ -506,11 +619,6 @@ struct te_mg_selector {
 
 
 
-
-
-
-
-
 /**
  * This stateless functor type can be used to print out the information about an A*-like motion-graph vertex.
  * This is a printing policy type for the vlist_sbmp_report class.
@@ -538,16 +646,17 @@ struct mg_vertex_printer : serialization::serializable {
 };
 
 
-
 const std::size_t BASE_MOTION_GRAPH_KIND_MASK         = 0x0F;
 const std::size_t BASIC_MOTION_GRAPH_KIND             = 0x00;
 const std::size_t OPTIMAL_MOTION_GRAPH_KIND           = 0x01;
 const std::size_t ASTAR_MOTION_GRAPH_KIND             = 0x03;
+const std::size_t BIDIR_MOTION_GRAPH_KIND             = 0x04;
+const std::size_t BIDIR_OPTIMAL_MOTION_GRAPH_KIND     = 0x05;
+const std::size_t BIDIR_ASTAR_MOTION_GRAPH_KIND       = 0x07;
 
 const std::size_t DENSITY_MOTION_GRAPH_KIND_MASK      = 0xF0;
 const std::size_t DENSE_MOTION_GRAPH_KIND             = 0x10;
 const std::size_t RECURSIVE_DENSE_MOTION_GRAPH_KIND   = 0x20;
-
 
 
 /**
@@ -579,11 +688,18 @@ struct any_mg_vertex_printer : serialization::serializable {
     
     if( graph_kind & OPTIMAL_MOTION_GRAPH_KIND ) {
       out << " " << std::setw(10) << get_dyn_prop<const double&>("vertex_distance_accum", u, g);
+      if( graph_kind & BIDIR_MOTION_GRAPH_KIND ) {
+        out << " " << std::setw(10) << get_dyn_prop<const double&>("vertex_fwd_distance_accum", u, g);
+      };
     };
     
     if( graph_kind & ASTAR_MOTION_GRAPH_KIND ) {
-      out << " " << std::setw(10) << get_dyn_prop<const double&>("vertex_heuristic_value", u, g) 
-          << " " << std::setw(10) << get_dyn_prop<const double&>("vertex_key_value", u, g);
+      if( graph_kind & BIDIR_MOTION_GRAPH_KIND ) {
+        out << " " << std::setw(10) << get_dyn_prop<const double&>("vertex_key_value", u, g);
+      } else {
+        out << " " << std::setw(10) << get_dyn_prop<const double&>("vertex_heuristic_value", u, g) 
+            << " " << std::setw(10) << get_dyn_prop<const double&>("vertex_key_value", u, g);
+      };
     };
     
     if( graph_kind & DENSE_MOTION_GRAPH_KIND ) {

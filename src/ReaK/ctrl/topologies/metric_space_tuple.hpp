@@ -338,6 +338,11 @@ namespace detail {
         get<Order>(pr) = get<Order>(s).move_position_toward(get<Order>(p1),d,get<Order>(p2));
       };
       
+      static void move_position_back_to(const SpaceTuple& s, point_type& pr, const point_type& p1, double d, const point_type& p2) {
+        metric_space_tuple_impl<Order-1,SpaceTuple>::move_position_back_to(s,pr,p1,d,p2);
+        get<Order>(pr) = get<Order>(s).move_position_back_to(get<Order>(p1),d,get<Order>(p2));
+      };
+      
       static void origin(const SpaceTuple& s, point_type& p) {
         metric_space_tuple_impl<Order-1,SpaceTuple>::origin(s,p);
         get<Order>(p) = get<Order>(s).origin();
@@ -380,6 +385,10 @@ namespace detail {
       
       static void move_position_toward(const SpaceTuple& s, point_type& pr, const point_type& p1, double d, const point_type& p2) {
         get<0>(pr) = get<0>(s).move_position_toward(get<0>(p1),d,get<0>(p2));
+      };
+      
+      static void move_position_back_to(const SpaceTuple& s, point_type& pr, const point_type& p1, double d, const point_type& p2) {
+        get<0>(pr) = get<0>(s).move_position_back_to(get<0>(p1),d,get<0>(p2));
       };
       
       static void origin(const SpaceTuple& s, point_type& p) {
@@ -534,6 +543,15 @@ class metric_space_tuple : public shared_object {
     point_type move_position_toward(const point_type& p1, double d, const point_type& p2) const {
       point_type result;
       detail::metric_space_tuple_impl< arithmetic_tuple_size< SpaceTuple >::value - 1, SpaceTuple>::move_position_toward(m_spaces,result,p1,d,p2);
+      return result;
+    };
+    
+    /**
+     * Returns a point which is at a fraction between two points a to b.
+     */
+    point_type move_position_back_to(const point_type& p1, double d, const point_type& p2) const {
+      point_type result;
+      detail::metric_space_tuple_impl< arithmetic_tuple_size< SpaceTuple >::value - 1, SpaceTuple>::move_position_back_to(m_spaces,result,p1,d,p2);
       return result;
     };
     

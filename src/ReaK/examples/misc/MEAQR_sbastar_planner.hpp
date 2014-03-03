@@ -481,137 +481,89 @@ void MEAQR_sbastar_planner<StateSpace, StateSpaceSystem, StateSpaceSampler>::sol
   
   
   
+#define RK_MEAQR_SBASTAR_PLANNER_MAKE_SBASTAR_BUNDLE \
+      ReaK::graph::make_sbastar_bundle( \
+        motion_graph, boost::any_cast<Vertex>( vis.m_start_node ), \
+        this->m_space->get_super_space(), vis, \
+        nc_selector, get(&VertexProp::key_value, motion_graph), \
+        pos_map, weight_map, dens_map, cons_map, dist_map, pred_map, \
+        heuristic_map)
+
+#define RK_MEAQR_SBASTAR_PLANNER_MAKE_SBASTAR_BUNDLE_WITH_GOAL \
+      ReaK::graph::make_sbastar_bundle( \
+        motion_graph, boost::any_cast<Vertex>( vis.m_start_node ), \
+        ( vis.m_goal_node.empty() ? boost::graph_traits<MotionGraphType>::null_vertex() : boost::any_cast<Vertex>( vis.m_goal_node ) ), \
+        this->m_space->get_super_space(), vis, \
+        nc_selector, get(&VertexProp::key_value, motion_graph), \
+        pos_map, weight_map, dens_map, cons_map, dist_map, pred_map, \
+        heuristic_map)
+  
   
 #define RK_MEAQR_SBASTAR_PLANNER_CALL_SBASTAR_FUNCTION \
     ReaK::graph::generate_sbastar( \
-      ReaK::graph::make_sbastar_bundle( \
-        motion_graph, start_node, this->m_space->get_super_space(), vis, \
-        heuristic_map,  \
-        pos_map,  \
-        weight_map, \
-        dens_map,  \
-        cons_map,  \
-        dist_map, \
-        pred_map,  \
-        get(&VertexProp::key_value, motion_graph),  \
-        nc_selector)\
-      );
-  
-  
+      RK_MEAQR_SBASTAR_PLANNER_MAKE_SBASTAR_BUNDLE);
+
 #define RK_MEAQR_SBASTAR_PLANNER_CALL_LAZY_SBASTAR_FUNCTION \
     ReaK::graph::generate_lazy_sbastar( \
-      ReaK::graph::make_sbastar_bundle( \
-        motion_graph, start_node, this->m_space->get_super_space(), vis, \
-        heuristic_map,  \
-        pos_map,  \
-        weight_map, \
-        dens_map,  \
-        cons_map,  \
-        dist_map, \
-        pred_map,  \
-        get(&VertexProp::key_value, motion_graph),  \
-        nc_selector)\
-      );
-  
-  
+      RK_MEAQR_SBASTAR_PLANNER_MAKE_SBASTAR_BUNDLE);
+
+#define RK_MEAQR_SBASTAR_PLANNER_CALL_LAZY_BNB_SBASTAR_FUNCTION \
+    ReaK::graph::generate_lazy_bnb_sbastar( \
+      RK_MEAQR_SBASTAR_PLANNER_MAKE_SBASTAR_BUNDLE_WITH_GOAL);
+
+
 #define RK_MEAQR_SBASTAR_PLANNER_CALL_SBARRTSTAR_FUNCTION \
     ReaK::graph::generate_sbarrtstar( \
-      ReaK::graph::make_sbastar_bundle( \
-        motion_graph, start_node, this->m_space->get_super_space(), vis, \
-        heuristic_map,  \
-        pos_map,  \
-        weight_map, \
-        dens_map,  \
-        cons_map,  \
-        dist_map, \
-        pred_map,  \
-        get(&VertexProp::key_value, motion_graph),  \
-        nc_selector), \
+      RK_MEAQR_SBASTAR_PLANNER_MAKE_SBASTAR_BUNDLE, \
       get(random_sampler, this->m_space->get_super_space()), \
       this->m_SA_init_temperature);
-  
-  
+
 #define RK_MEAQR_SBASTAR_PLANNER_CALL_LAZY_SBARRTSTAR_FUNCTION \
     ReaK::graph::generate_lazy_sbarrtstar( \
-      ReaK::graph::make_sbastar_bundle( \
-        motion_graph, start_node, this->m_space->get_super_space(), vis, \
-        heuristic_map,  \
-        pos_map,  \
-        weight_map, \
-        dens_map,  \
-        cons_map,  \
-        dist_map, \
-        pred_map,  \
-        get(&VertexProp::key_value, motion_graph),  \
-        nc_selector), \
+      RK_MEAQR_SBASTAR_PLANNER_MAKE_SBASTAR_BUNDLE, \
       get(random_sampler, this->m_space->get_super_space()), \
       this->m_SA_init_temperature);
-   
-   
-   
-   
+
+#define RK_MEAQR_SBASTAR_PLANNER_CALL_LAZY_BNB_SBARRTSTAR_FUNCTION \
+    ReaK::graph::generate_lazy_bnb_sbarrtstar( \
+      RK_MEAQR_SBASTAR_PLANNER_MAKE_SBASTAR_BUNDLE_WITH_GOAL, \
+      get(random_sampler, this->m_space->get_super_space()), \
+      this->m_SA_init_temperature);
+
+
+
+
 #define RK_MEAQR_SBASTAR_PLANNER_CALL_ANYTIME_SBASTAR_FUNCTION \
     ReaK::graph::generate_anytime_sbastar( \
-      ReaK::graph::make_sbastar_bundle( \
-        motion_graph, start_node, this->m_space->get_super_space(), vis, \
-        heuristic_map,  \
-        pos_map,  \
-        weight_map, \
-        dens_map,  \
-        cons_map,  \
-        dist_map, \
-        pred_map,  \
-        get(&VertexProp::key_value, motion_graph),  \
-        nc_selector), \
+      RK_MEAQR_SBASTAR_PLANNER_MAKE_SBASTAR_BUNDLE, \
       this->m_init_relaxation);
-  
-  
+
 #define RK_MEAQR_SBASTAR_PLANNER_CALL_ANYTIME_LAZY_SBASTAR_FUNCTION \
     ReaK::graph::generate_anytime_lazy_sbastar( \
-      ReaK::graph::make_sbastar_bundle( \
-        motion_graph, start_node, this->m_space->get_super_space(), vis, \
-        heuristic_map,  \
-        pos_map,  \
-        weight_map, \
-        dens_map,  \
-        cons_map,  \
-        dist_map, \
-        pred_map,  \
-        get(&VertexProp::key_value, motion_graph),  \
-        nc_selector), \
+      RK_MEAQR_SBASTAR_PLANNER_MAKE_SBASTAR_BUNDLE, \
+      this->m_init_relaxation);
+  
+#define RK_MEAQR_SBASTAR_PLANNER_CALL_ANYTIME_LAZY_BNB_SBASTAR_FUNCTION \
+    ReaK::graph::generate_anytime_lazy_bnb_sbastar( \
+      RK_MEAQR_SBASTAR_PLANNER_MAKE_SBASTAR_BUNDLE_WITH_GOAL, \
       this->m_init_relaxation);
   
   
 #define RK_MEAQR_SBASTAR_PLANNER_CALL_ANYTIME_SBARRTSTAR_FUNCTION \
     ReaK::graph::generate_anytime_sbarrtstar( \
-      ReaK::graph::make_sbastar_bundle( \
-        motion_graph, start_node, this->m_space->get_super_space(), vis, \
-        heuristic_map,  \
-        pos_map,  \
-        weight_map, \
-        dens_map,  \
-        cons_map,  \
-        dist_map, \
-        pred_map,  \
-        get(&VertexProp::key_value, motion_graph),  \
-        nc_selector), \
+      RK_MEAQR_SBASTAR_PLANNER_MAKE_SBASTAR_BUNDLE, \
       get(random_sampler, this->m_space->get_super_space()), \
       this->m_init_relaxation, this->m_SA_init_temperature);
   
-  
 #define RK_MEAQR_SBASTAR_PLANNER_CALL_ANYTIME_LAZY_SBARRTSTAR_FUNCTION \
     ReaK::graph::generate_anytime_lazy_sbarrtstar( \
-      ReaK::graph::make_sbastar_bundle( \
-        motion_graph, start_node, this->m_space->get_super_space(), vis, \
-        heuristic_map,  \
-        pos_map,  \
-        weight_map, \
-        dens_map,  \
-        cons_map,  \
-        dist_map, \
-        pred_map,  \
-        get(&VertexProp::key_value, motion_graph),  \
-        nc_selector), \
+      RK_MEAQR_SBASTAR_PLANNER_MAKE_SBASTAR_BUNDLE, \
+      get(random_sampler, this->m_space->get_super_space()), \
+      this->m_init_relaxation, this->m_SA_init_temperature);
+  
+#define RK_MEAQR_SBASTAR_PLANNER_CALL_ANYTIME_LAZY_BNB_SBARRTSTAR_FUNCTION \
+    ReaK::graph::generate_anytime_lazy_bnb_sbarrtstar( \
+      RK_MEAQR_SBASTAR_PLANNER_MAKE_SBASTAR_BUNDLE_WITH_GOAL, \
       get(random_sampler, this->m_space->get_super_space()), \
       this->m_init_relaxation, this->m_SA_init_temperature);
   
@@ -627,9 +579,17 @@ void MEAQR_sbastar_planner<StateSpace, StateSpaceSystem, StateSpaceSampler>::sol
           }; \
         } else { /* assume lazy collision checking */ \
           if((this->m_planning_method_flags & ADDITIONAL_PLANNING_BIAS_MASK) & PLAN_WITH_VORONOI_PULL) { \
-            RK_MEAQR_SBASTAR_PLANNER_CALL_ANYTIME_LAZY_SBARRTSTAR_FUNCTION \
+            if(this->m_planning_method_flags & USE_BRANCH_AND_BOUND_PRUNING_FLAG) { \
+              RK_MEAQR_SBASTAR_PLANNER_CALL_ANYTIME_LAZY_BNB_SBARRTSTAR_FUNCTION \
+            } else { /* assume nominal method only. */ \
+              RK_MEAQR_SBASTAR_PLANNER_CALL_ANYTIME_LAZY_SBARRTSTAR_FUNCTION \
+            }; \
           } else { /* assume nominal method only. */ \
-            RK_MEAQR_SBASTAR_PLANNER_CALL_ANYTIME_LAZY_SBASTAR_FUNCTION \
+            if(this->m_planning_method_flags & USE_BRANCH_AND_BOUND_PRUNING_FLAG) { \
+              RK_MEAQR_SBASTAR_PLANNER_CALL_ANYTIME_LAZY_BNB_SBASTAR_FUNCTION \
+            } else { /* assume nominal method only. */ \
+              RK_MEAQR_SBASTAR_PLANNER_CALL_ANYTIME_LAZY_SBASTAR_FUNCTION \
+            }; \
           }; \
         }; \
       } else { \
@@ -641,9 +601,17 @@ void MEAQR_sbastar_planner<StateSpace, StateSpaceSystem, StateSpaceSampler>::sol
           }; \
         } else { /* assume lazy collision checking */ \
           if((this->m_planning_method_flags & ADDITIONAL_PLANNING_BIAS_MASK) & PLAN_WITH_VORONOI_PULL) { \
-            RK_MEAQR_SBASTAR_PLANNER_CALL_LAZY_SBARRTSTAR_FUNCTION \
+            if(this->m_planning_method_flags & USE_BRANCH_AND_BOUND_PRUNING_FLAG) { \
+              RK_MEAQR_SBASTAR_PLANNER_CALL_LAZY_BNB_SBARRTSTAR_FUNCTION \
+            } else { /* assume nominal method only. */ \
+              RK_MEAQR_SBASTAR_PLANNER_CALL_LAZY_SBARRTSTAR_FUNCTION \
+            }; \
           } else { /* assume nominal method only. */ \
-            RK_MEAQR_SBASTAR_PLANNER_CALL_LAZY_SBASTAR_FUNCTION \
+            if(this->m_planning_method_flags & USE_BRANCH_AND_BOUND_PRUNING_FLAG) { \
+              RK_MEAQR_SBASTAR_PLANNER_CALL_LAZY_BNB_SBASTAR_FUNCTION \
+            } else { /* assume nominal method only. */ \
+              RK_MEAQR_SBASTAR_PLANNER_CALL_LAZY_SBASTAR_FUNCTION \
+            }; \
           }; \
         }; \
       };
@@ -695,13 +663,17 @@ void MEAQR_sbastar_planner<StateSpace, StateSpaceSystem, StateSpaceSampler>::sol
 #undef RK_MEAQR_SBASTAR_PLANNER_INIT_START_AND_GOAL_NODE
 #undef RK_MEAQR_SBASTAR_PLANNER_SETUP_DVP_TREE_SYNCHRO
 #undef RK_MEAQR_SBASTAR_PLANNER_CALL_SBARRTSTAR_FUNCTION
-#undef RK_MEAQR_SBASTAR_PLANNER_CALL_SBASTAR_FUNCTION
 #undef RK_MEAQR_SBASTAR_PLANNER_CALL_LAZY_SBARRTSTAR_FUNCTION
+#undef RK_MEAQR_SBASTAR_PLANNER_CALL_LAZY_BNB_SBARRTSTAR_FUNCTION
+#undef RK_MEAQR_SBASTAR_PLANNER_CALL_SBASTAR_FUNCTION
 #undef RK_MEAQR_SBASTAR_PLANNER_CALL_LAZY_SBASTAR_FUNCTION
+#undef RK_MEAQR_SBASTAR_PLANNER_CALL_LAZY_BNB_SBASTAR_FUNCTION
 #undef RK_MEAQR_SBASTAR_PLANNER_CALL_ANYTIME_SBARRTSTAR_FUNCTION
-#undef RK_MEAQR_SBASTAR_PLANNER_CALL_ANYTIME_SBASTAR_FUNCTION
 #undef RK_MEAQR_SBASTAR_PLANNER_CALL_ANYTIME_LAZY_SBARRTSTAR_FUNCTION
+#undef RK_MEAQR_SBASTAR_PLANNER_CALL_ANYTIME_LAZY_BNB_SBARRTSTAR_FUNCTION
+#undef RK_MEAQR_SBASTAR_PLANNER_CALL_ANYTIME_SBASTAR_FUNCTION
 #undef RK_MEAQR_SBASTAR_PLANNER_CALL_ANYTIME_LAZY_SBASTAR_FUNCTION
+#undef RK_MEAQR_SBASTAR_PLANNER_CALL_ANYTIME_LAZY_BNB_SBASTAR_FUNCTION
 #undef RK_MEAQR_SBASTAR_PLANNER_CALL_APPROPRIATE_SBASTAR_PLANNER_FUNCTION
   
 };

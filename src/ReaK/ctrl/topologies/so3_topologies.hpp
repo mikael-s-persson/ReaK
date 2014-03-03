@@ -166,7 +166,14 @@ class quaternion_topology : public named_object
     {
       return unit(a * pow( conj(a) * b, fraction ));
     };
-
+    
+    /**
+     * Returns a point which is at a backward fraction between two points a to b. This function uses SLERP.
+     */
+    point_type move_position_back_to(const point_type& a, double fraction, const point_type& b) const 
+    {
+      return unit(a * pow( conj(a) * b, (1.0 - fraction) ));
+    };
     
 /*******************************************************************************
                    ReaK's RTTI and Serialization interfaces
@@ -186,7 +193,10 @@ class quaternion_topology : public named_object
 
 template <typename T>
 struct is_metric_space< quaternion_topology<T> > : boost::mpl::true_ { };
-        
+
+template <typename T>
+struct is_reversible_space< quaternion_topology<T> > : boost::mpl::true_ { };
+
 template <typename T>
 struct is_point_distribution< quaternion_topology<T> > : boost::mpl::true_ { };
 
@@ -297,7 +307,10 @@ class rate_limited_quat_space : public quaternion_topology<T>
 
 template <typename T>
 struct is_metric_space< rate_limited_quat_space<T> > : boost::mpl::true_ { };
-        
+
+template <typename T>
+struct is_reversible_space< rate_limited_quat_space<T> > : boost::mpl::true_ { };
+
 template <typename T>
 struct is_point_distribution< rate_limited_quat_space<T> > : boost::mpl::true_ { };
 
@@ -351,7 +364,10 @@ class ang_velocity_3D_topology : public hyperball_topology< vect<T,3> > {
 
 template <typename T>
 struct is_metric_space< ang_velocity_3D_topology<T> > : boost::mpl::true_ { };
-        
+
+template <typename T>
+struct is_reversible_space< ang_velocity_3D_topology<T> > : boost::mpl::true_ { };
+
 template <typename T>
 struct is_point_distribution< ang_velocity_3D_topology<T> > : boost::mpl::true_ { };
 
@@ -405,7 +421,10 @@ class ang_accel_3D_topology : public hyperball_topology< vect<T,3> > {
 
 template <typename T>
 struct is_metric_space< ang_accel_3D_topology<T> > : boost::mpl::true_ { };
-        
+
+template <typename T>
+struct is_reversible_space< ang_accel_3D_topology<T> > : boost::mpl::true_ { };
+
 template <typename T>
 struct is_point_distribution< ang_accel_3D_topology<T> > : boost::mpl::true_ { };
 

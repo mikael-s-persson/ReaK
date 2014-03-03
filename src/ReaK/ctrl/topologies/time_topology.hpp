@@ -42,6 +42,7 @@
 #include "base/named_object.hpp"
 
 #include "path_planning/metric_space_concept.hpp"
+#include "path_planning/reversible_space_concept.hpp"
 
 #include <cmath>
 
@@ -125,7 +126,7 @@ class time_topology : public named_object
     /*************************************************************************
     *                             LieGroupConcept
     * **********************************************************************/
-
+    
     /**
      * Returns a point which is at a fraction between two points a to b.
      */
@@ -133,7 +134,15 @@ class time_topology : public named_object
     {
       return a + (b - a) * fraction;
     };
-
+    
+    /**
+     * Returns a point which is at a backward fraction between two points a to b.
+     */
+    point_type move_position_back_to(const point_type& a, double fraction, const point_type& b) const 
+    {
+      return b + (a - b) * fraction;
+    };
+    
     /**
      * Returns the norm of the difference between two points.
      */
@@ -176,6 +185,9 @@ class time_topology : public named_object
 
 template <>
 struct is_metric_space< time_topology > : boost::mpl::true_ { };
+
+template <>
+struct is_reversible_space< time_topology > : boost::mpl::true_ { };
 
 
 };

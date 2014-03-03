@@ -224,6 +224,9 @@ template <typename Vector, typename DistanceMetric>
 struct is_metric_space< hyperbox_topology<Vector, DistanceMetric> > : boost::mpl::true_ { };
 
 template <typename Vector, typename DistanceMetric>
+struct is_reversible_space< hyperbox_topology<Vector, DistanceMetric> > : boost::mpl::true_ { };
+
+template <typename Vector, typename DistanceMetric>
 struct is_point_distribution< hyperbox_topology<Vector, DistanceMetric> > : boost::mpl::true_ { };
 
 template <typename Vector, typename DistanceMetric>

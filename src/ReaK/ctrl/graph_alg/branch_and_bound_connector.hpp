@@ -202,7 +202,7 @@ struct branch_and_bound_connector {
       for(boost::tie(ei,ei_end) = in_edges(t, g); ei != ei_end; ++ei) {
         Vertex s = source(*ei, g);
         if(t == s)
-          s = target(*eo, g);
+          s = target(*ei, g);
         if(t != get(successor, g[s]))
           continue;
         put(fwd_distance, g[s], get(fwd_distance, g[t]) + get(weight, g[*ei]));
@@ -307,7 +307,7 @@ struct branch_and_bound_connector {
     };
     
     lazy_node_connector::connect_best_predecessor(v, x_near, eprop, g, super_space, conn_vis, position, distance, predecessor, weight, Nc);
-    pruned_node_connector::create_pred_edge(v, x_near, eprop, g, conn_vis, distance, predecessor);
+    pruned_node_connector::create_pred_edge(v, x_near, eprop, g, conn_vis, distance, predecessor, weight);
     
     if( ( get(predecessor, g[goal_vertex]) != boost::graph_traits<Graph>::null_vertex() ) && 
         ( get(distance, g[v]) + dist_to_goal > get(distance, g[goal_vertex]) ) ) {
@@ -401,7 +401,7 @@ struct branch_and_bound_connector {
     };
     
     lazy_node_connector::connect_best_predecessor(v, x_near, eprop, g, super_space, conn_vis, position, distance, predecessor, weight, Pred);
-    pruned_node_connector::create_pred_edge(v, x_near, eprop, g, conn_vis, distance, predecessor);
+    pruned_node_connector::create_pred_edge(v, x_near, eprop, g, conn_vis, distance, predecessor, weight);
     
     if( ( get(predecessor, g[goal_vertex]) != boost::graph_traits<Graph>::null_vertex() ) && 
         ( get(distance, g[v]) + dist_to_goal > get(distance, g[goal_vertex]) ) ) {
@@ -422,16 +422,16 @@ struct branch_and_bound_connector {
   
   
   
-  template <typename Graph, typename Topology, typename ConnectorVisitor,
+  template <typename Graph2, typename Topology, typename ConnectorVisitor,
             typename PositionMap, typename DistanceMap, typename PredecessorMap,
             typename FwdDistanceMap, typename SuccessorMap, typename WeightMap, typename NcSelector>
-  typename boost::enable_if< boost::is_undirected_graph<Graph> >::type operator()(
+  typename boost::enable_if< boost::is_undirected_graph<Graph2> >::type operator()(
       const typename boost::property_traits<PositionMap>::value_type& p, 
-      typename boost::graph_traits<Graph>::vertex_descriptor& x_pred, 
-      typename Graph::edge_bundled& eprop_pred, 
-      typename boost::graph_traits<Graph>::vertex_descriptor& x_succ, 
-      typename Graph::edge_bundled& eprop_succ, 
-      Graph& g, const Topology& super_space, const ConnectorVisitor& conn_vis,
+      Vertex& x_pred, 
+      EdgeProp& eprop_pred, 
+      Vertex& x_succ, 
+      EdgeProp& eprop_succ, 
+      Graph2& g, const Topology& super_space, const ConnectorVisitor& conn_vis,
       PositionMap position, DistanceMap distance, PredecessorMap predecessor,
       FwdDistanceMap fwd_distance, SuccessorMap successor,
       WeightMap weight, NcSelector select_neighborhood) const {
@@ -439,8 +439,6 @@ struct branch_and_bound_connector {
     BOOST_CONCEPT_ASSERT((ReaK::pp::MetricSpaceConcept<Topology>));
     BOOST_CONCEPT_ASSERT((MotionGraphConnectorVisitorConcept<ConnectorVisitor,Graph,Topology>));
     
-    typedef typename boost::graph_traits<Graph>::vertex_descriptor Vertex;
-    typedef typename Graph::edge_bundled EdgeProp;
     using std::back_inserter;
     
     double dist_from_start = get(ReaK::pp::distance_metric, super_space)(get(position, g[start_vertex]), p, super_space);
@@ -479,9 +477,9 @@ struct branch_and_bound_connector {
     };
     
     if( x_pred != boost::graph_traits<Graph>::null_vertex() )
-      pruned_node_connector::create_pred_edge(v, x_pred, eprop_pred, g, conn_vis, distance, predecessor);
+      pruned_node_connector::create_pred_edge(v, x_pred, eprop_pred, g, conn_vis, distance, predecessor, weight);
     if( x_succ != boost::graph_traits<Graph>::null_vertex() )
-      pruned_node_connector::create_succ_edge(v, x_succ, eprop_succ, g, conn_vis, fwd_distance, successor);
+      pruned_node_connector::create_succ_edge(v, x_succ, eprop_succ, g, conn_vis, fwd_distance, successor, weight);
     
     if( ( get(predecessor, g[goal_vertex]) != boost::graph_traits<Graph>::null_vertex() ) && 
         ( get(distance, g[v]) + dist_to_goal > get(distance, g[goal_vertex]) ) ) {
@@ -499,16 +497,16 @@ struct branch_and_bound_connector {
     update_predecessors(v, g, super_space, conn_vis, position, fwd_distance, successor, weight);
   };
   
-  template <typename Graph, typename Topology, typename ConnectorVisitor,
+  template <typename Graph2, typename Topology, typename ConnectorVisitor,
             typename PositionMap, typename DistanceMap, typename PredecessorMap,
             typename FwdDistanceMap, typename SuccessorMap, typename WeightMap, typename NcSelector>
-  typename boost::enable_if< boost::is_directed_graph<Graph> >::type operator()(
+  typename boost::enable_if< boost::is_directed_graph<Graph2> >::type operator()(
       const typename boost::property_traits<PositionMap>::value_type& p, 
-      typename boost::graph_traits<Graph>::vertex_descriptor& x_pred, 
-      typename Graph::edge_bundled& eprop_pred, 
-      typename boost::graph_traits<Graph>::vertex_descriptor& x_succ, 
-      typename Graph::edge_bundled& eprop_succ, 
-      Graph& g, const Topology& super_space, const ConnectorVisitor& conn_vis,
+      Vertex& x_pred, 
+      EdgeProp& eprop_pred, 
+      Vertex& x_succ, 
+      EdgeProp& eprop_succ, 
+      Graph2& g, const Topology& super_space, const ConnectorVisitor& conn_vis,
       PositionMap position, DistanceMap distance, PredecessorMap predecessor,
       FwdDistanceMap fwd_distance, SuccessorMap successor,
       WeightMap weight, NcSelector select_neighborhood) const {
@@ -516,8 +514,6 @@ struct branch_and_bound_connector {
     BOOST_CONCEPT_ASSERT((ReaK::pp::MetricSpaceConcept<Topology>));
     BOOST_CONCEPT_ASSERT((MotionGraphConnectorVisitorConcept<ConnectorVisitor,Graph,Topology>));
     
-    typedef typename boost::graph_traits<Graph>::vertex_descriptor Vertex;
-    typedef typename Graph::edge_bundled EdgeProp;
     using std::back_inserter;
     
     double dist_from_start = get(ReaK::pp::distance_metric, super_space)(get(position, g[start_vertex]), p, super_space);
@@ -556,9 +552,9 @@ struct branch_and_bound_connector {
     };
     
     if( x_pred != boost::graph_traits<Graph>::null_vertex() )
-      pruned_node_connector::create_pred_edge(v, x_pred, eprop_pred, g, conn_vis, distance, predecessor);
+      pruned_node_connector::create_pred_edge(v, x_pred, eprop_pred, g, conn_vis, distance, predecessor, weight);
     if( x_succ != boost::graph_traits<Graph>::null_vertex() )
-      pruned_node_connector::create_succ_edge(v, x_succ, eprop_succ, g, conn_vis, fwd_distance, successor);
+      pruned_node_connector::create_succ_edge(v, x_succ, eprop_succ, g, conn_vis, fwd_distance, successor, weight);
     
     if( ( get(predecessor, g[goal_vertex]) != boost::graph_traits<Graph>::null_vertex() ) && 
         ( get(distance, g[v]) + dist_to_goal > get(distance, g[goal_vertex]) ) ) {

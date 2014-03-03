@@ -45,6 +45,7 @@
 #include "subspace_concept.hpp"
 
 #include <boost/mpl/if.hpp>
+#include <boost/type_traits/is_convertible.hpp>
 
 namespace ReaK {
   
@@ -105,7 +106,8 @@ struct planning_visitor_base {
   template <typename Vertex, typename Graph>
   void dispatched_register_solution(Vertex start, Vertex goal, Vertex, Graph& g, 
                                     const optimal_mg_vertex<space_type>&) const {
-    if((in_degree(goal, g)) && (g[goal].distance_accum < m_query->get_best_solution_distance())) {
+    if((g[goal].predecessor != boost::graph_traits<Graph>::null_vertex()) && 
+       (g[goal].distance_accum < m_query->get_best_solution_distance())) {
       solution_record_ptr srp = m_query->register_solution(start, goal, 0.0, g);
       if(srp)
         m_planner->report_solution(srp);
@@ -124,8 +126,40 @@ struct planning_visitor_base {
   
   
 /***************************************************
+                Dispatched initializers for the derived classes to use in "initialize_vertex"
+***************************************************/
+  
+  template <typename Vertex, typename Graph>
+  void dispatched_initialize_vertex(mg_vertex_data<space_type>&, Vertex, Graph&) const {};
+  
+  template <typename Vertex, typename Graph>
+  void dispatched_initialize_vertex(optimal_mg_vertex<space_type>& vp, Vertex, Graph&) const {
+    vp.distance_accum = std::numeric_limits<double>::infinity();
+    vp.predecessor = boost::graph_traits<Graph>::null_vertex();
+  };
+  
+  template <typename Vertex, typename Graph>
+  void dispatched_initialize_vertex(astar_mg_vertex<space_type>& vp, Vertex, Graph&) const {
+    vp.distance_accum = std::numeric_limits<double>::infinity();
+    vp.predecessor = boost::graph_traits<Graph>::null_vertex();
+    vp.heuristic_value = m_query->get_heuristic_to_goal(vp.position);
+  };
+  
+  template <typename Vertex, typename Graph>
+  void dispatched_initialize_vertex(bidir_astar_mg_vertex<space_type>& vp, Vertex, Graph& g) const {
+    vp.distance_accum = get(distance_metric, m_query->space->get_super_space())(
+      g[boost::any_cast<Vertex>(m_start_node)].position, 
+      vp.position, m_query->space->get_super_space());
+    vp.predecessor = boost::graph_traits<Graph>::null_vertex();
+    vp.fwd_distance_accum = m_query->get_heuristic_to_goal(vp.position);
+    vp.successor = boost::graph_traits<Graph>::null_vertex();
+  };
+  
+  
+/***************************************************
                 SBMPVisitorConcept
 ***************************************************/
+  
   
   template <typename Vertex, typename Graph>
   void vertex_added(Vertex u, Graph& g) const {
@@ -136,7 +170,8 @@ struct planning_visitor_base {
     // Call progress reporter...
     m_planner->report_progress(g);
     
-    if((m_planner->get_planning_method_flags() & PLANNING_DIRECTIONALITY_MASK) == BIDIRECTIONAL_PLANNING)
+    if(((m_planner->get_planning_method_flags() & PLANNING_DIRECTIONALITY_MASK) == BIDIRECTIONAL_PLANNING) &&
+       (!boost::is_convertible<typename Graph::vertex_bundled*, optimal_mg_vertex<space_type>* >::type::value))
       return;  // do not check goal connection for a bi-directional planner (wait for "joining vertex").
     
     if(!m_goal_node.empty()) {
@@ -150,7 +185,8 @@ struct planning_visitor_base {
   void edge_added(Edge e, Graph& g) const { 
     typedef typename boost::graph_traits<Graph>::vertex_descriptor Vertex;
     
-    if( ((m_planner->get_planning_method_flags() & PLANNING_DIRECTIONALITY_MASK) == BIDIRECTIONAL_PLANNING) ||
+    if( (((m_planner->get_planning_method_flags() & PLANNING_DIRECTIONALITY_MASK) == BIDIRECTIONAL_PLANNING) &&
+         (!boost::is_convertible<typename Graph::vertex_bundled*, optimal_mg_vertex<space_type>* >::type::value)) ||
         (!m_goal_node.empty()) )
       return;  // do not check goal connection for a bi-directional planner (wait for "joining vertex") or a planner that contains the goal node.
     
@@ -257,6 +293,53 @@ struct planning_visitor_base {
     return get(distance_metric, space.get_super_space())(p_src, p_result, space.get_super_space());
   };
   
+  
+  // case 1 : space is steerable, mg is optimal
+  template <typename SwitchFreeSpace>
+  typename boost::enable_if< is_steerable_space< SwitchFreeSpace >,
+  double >::type dispatched_steer_back_to_position(const SwitchFreeSpace& space, 
+                                                   const point_type& p_src, const point_type& p_dest, 
+                                                   point_type& p_result, double fraction, 
+                                                   optimal_mg_edge<space_type>& ep_result) const {
+    boost::tie(p_result, ep_result.steer_record) = space.steer_position_back_to(p_src, fraction, p_dest);
+    ep_result.weight = get(distance_metric, space.get_super_space())(p_result, p_dest, space.get_super_space());
+    return ep_result.weight;
+  };
+  
+  // case 2 : space is not steerable, mg is optimal
+  template <typename SwitchFreeSpace>
+  typename boost::disable_if< is_steerable_space< SwitchFreeSpace >,
+  double >::type dispatched_steer_back_to_position(const SwitchFreeSpace& space, 
+                                                   const point_type& p_src, const point_type& p_dest, 
+                                                   point_type& p_result, double fraction, 
+                                                   optimal_mg_edge<space_type>& ep_result) const {
+    p_result = space.move_position_back_to(p_src, fraction, p_dest);
+    ep_result.weight = get(distance_metric, space.get_super_space())(p_result, p_dest, space.get_super_space());
+    return ep_result.weight;
+  };
+  
+  // case 3 : space is steerable, mg is basic
+  template <typename SwitchFreeSpace>
+  typename boost::enable_if< is_steerable_space< SwitchFreeSpace >,
+  double >::type dispatched_steer_back_to_position(const SwitchFreeSpace& space, 
+                                                   const point_type& p_src, const point_type& p_dest, 
+                                                   point_type& p_result, double fraction, 
+                                                   mg_edge_data<space_type>& ep_result) const {
+    boost::tie(p_result, ep_result.steer_record) = space.steer_position_back_to(p_src, fraction, p_dest);
+    return get(distance_metric, space.get_super_space())(p_result, p_dest, space.get_super_space());
+  };
+  
+  // case 4 : space is not steerable, mg is basic
+  template <typename SwitchFreeSpace>
+  typename boost::disable_if< is_steerable_space< SwitchFreeSpace >,
+  double >::type dispatched_steer_back_to_position(const SwitchFreeSpace& space, 
+                                                   const point_type& p_src, const point_type& p_dest, 
+                                                   point_type& p_result, double fraction, 
+                                                   mg_edge_data<space_type>&) const {
+    p_result = space.move_position_back_to(p_src, fraction, p_dest);
+    return get(distance_metric, space.get_super_space())(p_result, p_dest, space.get_super_space());
+  };
+  
 /***************************************************
                 NodePullingVisitorConcept
 ***************************************************/
@@ -268,6 +351,24 @@ struct planning_visitor_base {
     ResultType result;
     double traveled_dist = dispatched_steer_towards_position(*(m_query->space), g[u].position, p, get<0>(result), 1.0, get<2>(result));
     double best_case_dist = get(distance_metric, m_query->space->get_super_space())(g[u].position, p, m_query->space->get_super_space());
+    get<1>(result) = (!std::isinf(traveled_dist)) && 
+                     (traveled_dist < 2.0 * best_case_dist) && 
+                     (traveled_dist > m_planner->get_steer_progress_tolerance() * best_case_dist);
+//     RK_NOTICE(1," Found a travel distance of " << traveled_dist << " in the STEER_TOWARDS_POSITION routine.");
+    return result;
+  };
+  
+/***************************************************
+                NodeBackPullingVisitorConcept
+***************************************************/
+  
+  template <typename Vertex, typename Graph>
+  boost::tuple<point_type, bool, typename Graph::edge_bundled> steer_back_to_position(const point_type& p, Vertex u, Graph& g) const {
+    typedef typename Graph::edge_bundled EdgeProp;
+    typedef boost::tuple<point_type, bool, EdgeProp> ResultType;
+    ResultType result;
+    double traveled_dist = dispatched_steer_back_to_position(*(m_query->space), p, g[u].position, get<0>(result), 1.0, get<2>(result));
+    double best_case_dist = get(distance_metric, m_query->space->get_super_space())(p, g[u].position, m_query->space->get_super_space());
     get<1>(result) = (!std::isinf(traveled_dist)) && 
                      (traveled_dist < 2.0 * best_case_dist) && 
                      (traveled_dist > m_planner->get_steer_progress_tolerance() * best_case_dist);
@@ -329,6 +430,42 @@ struct planning_visitor_base {
   };
   
   
+/***************************************************
+                NodeBackPushingVisitorConcept
+***************************************************/
+  
+  template <typename Vertex, typename Graph>
+  boost::tuple<point_type, bool, typename Graph::edge_bundled> random_back_walk(Vertex u, Graph& g) const {
+    typedef typename Graph::edge_bundled EdgeProp;
+    typedef boost::tuple<point_type, bool, EdgeProp > ResultType;
+    
+    const super_space_type& sup_space = m_query->space->get_super_space();
+    typename point_distribution_traits< super_space_type >::random_sampler_type get_sample = get(random_sampler, sup_space);
+    
+    unsigned int i = 0;
+    point_type p_rnd = get_sample(sup_space);
+    point_difference_type dp_rnd = sup_space.difference(p_rnd, sup_space.origin());
+    ResultType result;
+    do {
+      p_rnd = sup_space.adjust(g[u].position, -dp_rnd);
+      double dist = get(distance_metric, sup_space)(p_rnd, g[u].position, sup_space);
+      double target_dist = boost::uniform_01<global_rng_type&,double>(get_global_rng())() * m_planner->get_sampling_radius();
+      double traveled_dist = dispatched_steer_back_to_position(*(m_query->space), p_rnd, g[u].position, 
+                                                               get<0>(result), target_dist / dist, get<2>(result));
+      if( (!std::isinf(traveled_dist)) && (traveled_dist > m_planner->get_steer_progress_tolerance() * target_dist) ) {
+        get<1>(result) = true;
+//         RK_NOTICE(1," Found a travel distance of " << traveled_dist << " in the RANDOM_BACK_WALK routine.");
+        return result;
+      } else {
+        p_rnd = get_sample(sup_space);
+        dp_rnd = sup_space.difference(p_rnd, sup_space.origin());
+      };
+    } while(++i <= 10);
+    get<1>(result) = false;
+    return result;
+  };
+  
+  
   
 };
 
@@ -360,7 +497,9 @@ struct planning_visitor : planning_visitor_base< planning_visitor<FreeSpaceType>
 ***************************************************/
   
   template <typename Vertex, typename Graph>
-  void initialize_vertex(Vertex, const Graph&) const { };
+  void initialize_vertex(Vertex u, Graph& g) const { 
+    base_type::dispatched_initialize_vertex(g[u], u, g);
+  };
   template <typename Vertex, typename Graph>
   void discover_vertex(Vertex, const Graph&) const { };
   template <typename Vertex, typename Graph>
@@ -402,6 +541,7 @@ struct heuristic_plan_visitor : planning_visitor_base< heuristic_plan_visitor<Fr
   
   typedef typename base_type::planner_base_type planner_base_type;
   typedef typename base_type::query_type query_type;
+  typedef typename base_type::space_type space_type;
   
   heuristic_plan_visitor(planner_base_type* aPlanner,
                          query_type* aQuery = NULL,
@@ -416,7 +556,7 @@ struct heuristic_plan_visitor : planning_visitor_base< heuristic_plan_visitor<Fr
   
   template <typename Vertex, typename Graph>
   void initialize_vertex(Vertex u, Graph& g) const { 
-    g[u].heuristic_value = this->m_query->get_heuristic_to_goal(g[u].position);
+    base_type::dispatched_initialize_vertex(g[u], u, g);
   };
   template <typename Vertex, typename Graph>
   void discover_vertex(Vertex, const Graph&) const { };
@@ -427,7 +567,7 @@ struct heuristic_plan_visitor : planning_visitor_base< heuristic_plan_visitor<Fr
   template <typename Vertex, typename Graph>
   bool has_search_potential(Vertex u, const Graph& g) const { 
     if(this->m_goal_node.empty())
-      return ( g[u].heuristic_value > std::numeric_limits<double>::epsilon() * g[boost::any_cast<Vertex>(this->m_start_node)].heuristic_value );
+      return true;
     else
       return ( u != boost::any_cast<Vertex>(this->m_goal_node) );
   };

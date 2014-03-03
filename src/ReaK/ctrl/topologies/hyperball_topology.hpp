@@ -213,6 +213,9 @@ template <typename Vector>
 struct is_metric_space< hyperball_topology<Vector> > : boost::mpl::true_ { };
 
 template <typename Vector>
+struct is_reversible_space< hyperball_topology<Vector> > : boost::mpl::true_ { };
+
+template <typename Vector>
 struct is_point_distribution< hyperball_topology<Vector> > : boost::mpl::true_ { };
 
 

@@ -37,6 +37,7 @@
 #include <boost/config.hpp>
 
 #include "path_planning/metric_space_concept.hpp"
+#include "path_planning/reversible_space_concept.hpp"
 #include "path_planning/temporal_space_concept.hpp"
 #include "temporal_distance_metrics.hpp"
 #include "default_random_sampler.hpp"
@@ -452,11 +453,11 @@ class temporal_space : public named_object {
     double norm(const point_difference_type& a) const {
       return dist(a, *this);
     };
-
+    
     /*************************************************************************
     *                             LieGroupConcept
     * **********************************************************************/
-
+    
     /**
      * Returns a point which is at a fraction between two points a to b.
      * \param a The first point.
@@ -468,7 +469,19 @@ class temporal_space : public named_object {
       return point_type(time.move_position_toward(a.time, fraction, b.time),
                         space.move_position_toward(a.pt, fraction, b.pt));
     };
-
+    
+    /**
+     * Returns a point which is at a backward fraction between two points a to b.
+     * \param a The first point.
+     * \param fraction The backward fraction between the two points (0 to 1).
+     * \param b The second point.
+     * \return The point which is at a backward fraction between two points.
+     */
+    point_type move_position_back_to(const point_type& a, double fraction, const point_type& b) const {
+      return point_type(time.move_position_back_to(a.time, fraction, b.time),
+                        space.move_position_back_to(a.pt, fraction, b.pt));
+    };
+    
     /*************************************************************************
     *                             PointDistributionConcept
     * **********************************************************************/
@@ -507,6 +520,9 @@ class temporal_space : public named_object {
 
 template <typename Topology, typename TimeTopology, typename TemporalDistanceMetric>
 struct is_metric_space< temporal_space<Topology, TimeTopology, TemporalDistanceMetric> > : boost::mpl::and_< is_metric_space<Topology>, is_metric_space<TimeTopology> > { };
+
+template <typename Topology, typename TimeTopology, typename TemporalDistanceMetric>
+struct is_reversible_space< temporal_space<Topology, TimeTopology, TemporalDistanceMetric> > : boost::mpl::and_< is_reversible_space<Topology>, is_reversible_space<TimeTopology> > { };
 
 template <typename Topology, typename TimeTopology, typename TemporalDistanceMetric>
 struct is_point_distribution< temporal_space<Topology, TimeTopology, TemporalDistanceMetric> > : boost::mpl::and_< is_point_distribution<Topology>, is_point_distribution<TimeTopology> > { };

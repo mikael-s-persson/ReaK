@@ -38,6 +38,7 @@
 #include "path_planning/metric_space_concept.hpp"
 #include "path_planning/proper_metric_concept.hpp"
 #include "path_planning/temporal_space_concept.hpp"
+#include "path_planning/reversible_space_concept.hpp"
 
 #include <boost/concept_check.hpp>
 
@@ -122,6 +123,10 @@ class interpolated_topology_base : public BaseTopology {
       return static_cast<const BaseTopology&>(*this).move_position_toward(a, fraction, b);
     };
     
+    virtual point_type interp_topo_move_position_back_to(const point_type& a, double fraction, const point_type& b) const {
+      return static_cast<const BaseTopology&>(*this).move_position_back_to(a, fraction, b);
+    };
+    
     virtual double interp_topo_get_distance(const point_type& a, const point_type& b) const {
       const BaseTopology& b_space = static_cast<const BaseTopology&>(*this);
       return get(distance_metric, b_space)(a, b, b_space);
@@ -158,6 +163,34 @@ class interpolated_topology_base : public BaseTopology {
         return a;
       
       return this->interp_topo_move_position_toward(a, fraction, b);
+    };
+    
+    virtual point_type interp_topo_move_position_back_to_pred(const point_type& a, double fraction, const point_type& b,
+                                                              double min_dist_interval, validity_predicate_type predicate) const {
+      
+      double dist_tot = this->interp_topo_get_distance(a, b);
+      if(dist_tot == std::numeric_limits<double>::infinity())
+        return b;
+      if(dist_tot < min_dist_interval)
+        return this->interp_topo_move_position_back_to(a, fraction, b);
+      
+      double dist_inter = dist_tot * fraction;
+      double dist_cur = min_dist_interval;
+      point_type result = b;
+      point_type last_result = b;
+      while(dist_cur < dist_inter) {
+        result = this->interp_topo_move_position_back_to(a, dist_cur / dist_tot, b);
+        if( !predicate(result) )
+          return last_result;
+        dist_cur += min_dist_interval;
+        last_result = result;
+      };
+      if((fraction == 1.0)) //these equal comparison are used for when exact end fractions are used.
+        return b;
+      else if(fraction == 0.0)
+        return a;
+      
+      return this->interp_topo_move_position_back_to(a, fraction, b);
     };
     
     virtual double interp_topo_get_distance_pred(const point_type& a, const point_type& b, double min_dist_interval, validity_predicate_type predicate) const {
@@ -340,6 +373,21 @@ class interpolated_topology_base : public BaseTopology {
       return this->interp_topo_move_position_toward_pred(a, fraction, b, min_dist_interval, predicate);
     };
     
+    /**
+     * Returns a point which is at a fraction between two points a to b.
+     */
+    point_type move_position_back_to(const point_type& a, double fraction, const point_type& b) const {
+      return this->interp_topo_move_position_back_to(a, fraction, b);
+    };
+    
+    /**
+     * Returns a point which is at a fraction between two points a to b.
+     */
+    point_type move_position_back_to(const point_type& a, double fraction, const point_type& b,
+                                     double min_dist_interval, validity_predicate_type predicate) const {
+      return this->interp_topo_move_position_back_to_pred(a, fraction, b, min_dist_interval, predicate);
+    };
+    
 /*******************************************************************************
                    ReaK's RTTI and Serialization interfaces
 *******************************************************************************/
@@ -358,6 +406,9 @@ class interpolated_topology_base : public BaseTopology {
 
 template <typename BaseTopology>
 struct is_metric_space< interpolated_topology_base<BaseTopology> > : boost::mpl::true_ { };
+
+template <typename BaseTopology>
+struct is_reversible_space< interpolated_topology_base<BaseTopology> > : boost::mpl::true_ { };
 
 template <typename BaseTopology>
 struct is_point_distribution< interpolated_topology_base<BaseTopology> > : boost::mpl::true_ { };
@@ -521,6 +572,22 @@ class wrapped_interp_topology : public named_object {
       return m_space->move_position_toward(a, fraction, b, min_dist_interval, predicate);
     };
     
+    /**
+     * Returns a point which is at a backward fraction between two points a to b.
+     * \param a The first point.
+     * \param fraction The backward fraction between the two points (0 to 1).
+     * \param b The second point.
+     * \return The point which is at a backward fraction between two points.
+     */
+    point_type move_position_back_to(const point_type& a, double fraction, const point_type& b) const {
+      return m_space->move_position_back_to(a, fraction, b);
+    };
+    
+    point_type move_position_back_to(const point_type& a, double fraction, const point_type& b,
+                                     double min_dist_interval, validity_predicate_type predicate) const {
+      return m_space->move_position_back_to(a, fraction, b, min_dist_interval, predicate);
+    };
+    
     /*************************************************************************
      *                             PointDistributionConcept
      * **********************************************************************/
@@ -557,6 +624,9 @@ class wrapped_interp_topology : public named_object {
 
 template <typename BaseTopology>
 struct is_metric_space< wrapped_interp_topology<BaseTopology> > : boost::mpl::true_ { };
+
+template <typename BaseTopology>
+struct is_reversible_space< wrapped_interp_topology<BaseTopology> > : boost::mpl::true_ { };
 
 template <typename BaseTopology>
 struct is_point_distribution< wrapped_interp_topology<BaseTopology> > : boost::mpl::true_ { };
@@ -733,6 +803,156 @@ namespace detail {
   
   
   
+  template <typename InterpMethodTag, typename BaseTopology>
+  typename boost::disable_if< is_temporal_space< BaseTopology >,
+  typename topology_traits< BaseTopology >::point_type >::type interp_topo_move_pt_back_impl(
+    const BaseTopology& b_space, 
+    const typename topology_traits< BaseTopology >::point_type& a, 
+    double fraction, 
+    const typename topology_traits< BaseTopology >::point_type& b,
+    double dist_tot) {
+    typedef typename get_tagged_spatial_interpolator< InterpMethodTag, BaseTopology, time_topology>::type InterpType;
+    typedef typename get_tagged_spatial_interpolator< InterpMethodTag, BaseTopology, time_topology>::pseudo_factory_type InterpFactoryType;
+    typedef typename topology_traits< BaseTopology >::point_type PointType;
+    
+    if(dist_tot == std::numeric_limits<double>::infinity())
+      return b;
+    if(fraction == 1.0) //these equal comparison are used for when exact end fractions are used.
+      return a;
+    if(fraction == 0.0)
+      return b;
+    
+    InterpType interp;
+    interp.initialize(a, b, dist_tot, b_space, time_topology(), InterpFactoryType());
+    double dist_inter = dist_tot * (1.0 - fraction);
+    PointType result = a;
+    interp.compute_point(result, a, b, b_space, time_topology(), dist_inter, dist_tot, InterpFactoryType());
+    return result;
+  };
+  
+  template <typename InterpMethodTag, typename BaseTopology>
+  typename boost::enable_if< is_temporal_space< BaseTopology >,
+  typename topology_traits< BaseTopology >::point_type >::type interp_topo_move_pt_back_impl(
+    const BaseTopology& b_space, 
+    const typename topology_traits< BaseTopology >::point_type& a, 
+    double fraction, 
+    const typename topology_traits< BaseTopology >::point_type& b,
+    double dist_tot) {
+    
+    if(a.time > b.time) // Am I trying to go backwards in time (impossible)?
+      return b; //a is not reachable from b.
+    
+    typedef typename temporal_space_traits< BaseTopology >::space_topology SpaceTopoType;
+    typedef typename get_tagged_spatial_interpolator< InterpMethodTag, SpaceTopoType, time_topology>::type InterpType;
+    typedef typename get_tagged_spatial_interpolator< InterpMethodTag, SpaceTopoType, time_topology>::pseudo_factory_type InterpFactoryType;
+    typedef typename topology_traits< BaseTopology >::point_type PointType;
+    
+    if(dist_tot == std::numeric_limits<double>::infinity())
+      return b;
+    if(fraction == 1.0) //these equal comparison are used for when exact end fractions are used.
+      return a;
+    if(fraction == 0.0)
+      return b;
+    
+    InterpType interp;
+    double dt_total = (b.time - a.time);  // the free time that I have along the path.
+    interp.initialize(a.pt, b.pt, dt_total, b_space.get_space_topology(), b_space.get_time_topology(), InterpFactoryType());
+    double dt = dt_total * (1.0 - fraction);
+    PointType result = a;
+    interp.compute_point(result.pt, a.pt, b.pt, b_space.get_space_topology(), b_space.get_time_topology(), dt, dt_total, InterpFactoryType());
+    result.time = a.time + dt;
+    return result;
+  };
+  
+  
+  
+  template <typename InterpMethodTag, typename BaseTopology, typename PredFunction>
+  typename boost::disable_if< is_temporal_space< BaseTopology >,
+  typename topology_traits< BaseTopology >::point_type >::type interp_topo_move_pt_back_impl(
+    const BaseTopology& b_space, 
+    const typename topology_traits< BaseTopology >::point_type& a, 
+    double fraction, 
+    const typename topology_traits< BaseTopology >::point_type& b,
+    double dist_tot, double min_interval, PredFunction predicate) {
+    typedef typename get_tagged_spatial_interpolator< InterpMethodTag, BaseTopology, time_topology>::type InterpType;
+    typedef typename get_tagged_spatial_interpolator< InterpMethodTag, BaseTopology, time_topology>::pseudo_factory_type InterpFactoryType;
+    typedef typename topology_traits< BaseTopology >::point_type PointType;
+    
+    if(dist_tot == std::numeric_limits<double>::infinity())
+      return b;
+    if(dist_tot < min_interval)
+      return interp_topo_move_pt_back_impl<InterpMethodTag>(b_space, a, fraction, b, dist_tot);
+    
+    InterpType interp;
+    interp.initialize(a, b, dist_tot, b_space, time_topology(), InterpFactoryType());
+    double dist_inter = dist_tot * (1.0 - fraction);
+    double dist_cur = dist_tot - min_interval;
+    PointType result = b;
+    PointType last_result = b;
+    while(dist_cur > dist_inter) {
+      interp.compute_point(result, a, b, b_space, time_topology(), dist_cur, dist_tot, InterpFactoryType());
+      if(!predicate(result))
+        return last_result;
+      dist_cur -= min_interval;
+      last_result = result;
+    };
+    if(fraction == 1.0) //these equal comparison are used for when exact end fractions are used.
+      return a;
+    if(fraction == 0.0)
+      return b;
+    interp.compute_point(result, a, b, b_space, time_topology(), dist_inter, dist_tot, InterpFactoryType());
+    return result;
+  };
+  
+  template <typename InterpMethodTag, typename BaseTopology, typename PredFunction>
+  typename boost::enable_if< is_temporal_space< BaseTopology >,
+  typename topology_traits< BaseTopology >::point_type >::type interp_topo_move_pt_back_impl(
+    const BaseTopology& b_space, 
+    const typename topology_traits< BaseTopology >::point_type& a, 
+    double fraction, 
+    const typename topology_traits< BaseTopology >::point_type& b,
+    double dist_tot, double min_interval, PredFunction predicate) {
+    
+    if(a.time > b.time) // Am I trying to go backwards in time (impossible)?
+      return b; //a is not reachable from b.
+    
+    typedef typename temporal_space_traits< BaseTopology >::space_topology SpaceTopoType;
+    typedef typename get_tagged_spatial_interpolator< InterpMethodTag, SpaceTopoType, time_topology>::type InterpType;
+    typedef typename get_tagged_spatial_interpolator< InterpMethodTag, SpaceTopoType, time_topology>::pseudo_factory_type InterpFactoryType;
+    typedef typename topology_traits< BaseTopology >::point_type PointType;
+    
+    if(dist_tot == std::numeric_limits<double>::infinity())
+      return b;
+    if(dist_tot < min_interval)
+      return interp_topo_move_pt_back_impl<InterpMethodTag>(b_space, a, fraction, b, dist_tot);
+    
+    InterpType interp;
+    double dt_total = (b.time - a.time);  // the free time that I have along the path.
+    interp.initialize(a.pt, b.pt, dt_total, b_space.get_space_topology(), b_space.get_time_topology(), InterpFactoryType());
+    double dt = dt_total * (1.0 - fraction);
+    double d = dt_total - min_interval;
+    PointType result = b;
+    PointType last_result = b;
+    while(d > dt) {
+      interp.compute_point(result.pt, a.pt, b.pt, b_space.get_space_topology(), b_space.get_time_topology(), d, dt_total, InterpFactoryType());
+      result.time = a.time + d;
+      if(!predicate(result))
+        return last_result;
+      d -= min_interval;
+      last_result = result;
+    };
+    if(fraction == 1.0) //these equal comparison are used for when exact end fractions are used.
+      return a;
+    if(fraction == 0.0)
+      return b;
+    interp.compute_point(result.pt, a.pt, b.pt, b_space.get_space_topology(), b_space.get_time_topology(), dt, dt_total, InterpFactoryType());
+    result.time = a.time + dt;
+    return result;
+  };
+  
+  
+  
+  
 };
 
 
@@ -773,6 +993,17 @@ class interpolated_topology : public interpolated_topology_base<BaseTopology> {
     virtual point_type interp_topo_move_position_toward_pred(const point_type& a, double fraction, const point_type& b,
                                                         double min_dist_interval, validity_predicate_type predicate) const {
       return detail::interp_topo_move_pt_impl<InterpMethodTag, BaseTopology, validity_predicate_type>(
+        static_cast<const BaseTopology&>(*this), a, fraction, b, this->interp_topo_get_distance(a, b), min_dist_interval, predicate);
+    };
+    
+    virtual point_type interp_topo_move_position_back_to(const point_type& a, double fraction, const point_type& b) const {
+      return detail::interp_topo_move_pt_back_impl<InterpMethodTag, BaseTopology>(
+        static_cast<const BaseTopology&>(*this), a, fraction, b, this->interp_topo_get_distance(a, b));
+    };
+    
+    virtual point_type interp_topo_move_position_back_to_pred(const point_type& a, double fraction, const point_type& b,
+                                                              double min_dist_interval, validity_predicate_type predicate) const {
+      return detail::interp_topo_move_pt_back_impl<InterpMethodTag, BaseTopology, validity_predicate_type>(
         static_cast<const BaseTopology&>(*this), a, fraction, b, this->interp_topo_get_distance(a, b), min_dist_interval, predicate);
     };
     
@@ -838,6 +1069,9 @@ class interpolated_topology : public interpolated_topology_base<BaseTopology> {
 
 template <typename BaseTopology, typename InterpMethodTag>
 struct is_metric_space< interpolated_topology<BaseTopology, InterpMethodTag> > : boost::mpl::true_ { };
+
+template <typename BaseTopology, typename InterpMethodTag>
+struct is_reversible_space< interpolated_topology<BaseTopology, InterpMethodTag> > : boost::mpl::true_ { };
 
 template <typename BaseTopology, typename InterpMethodTag>
 struct is_point_distribution< interpolated_topology<BaseTopology, InterpMethodTag> > : boost::mpl::true_ { };

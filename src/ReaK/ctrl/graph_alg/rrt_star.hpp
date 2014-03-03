@@ -74,8 +74,11 @@
 #include "neighborhood_functors.hpp"
 #include "node_generators.hpp"
 
+#include "pruned_connector.hpp"
 #include "lazy_connector.hpp"
 #include "branch_and_bound_connector.hpp"
+
+#include "optimization/optim_exceptions.hpp"
 
 namespace ReaK {
   
@@ -85,69 +88,69 @@ namespace graph {
 namespace detail {
   
   
-  template <typename RRGVisitor,
-            typename PositionMap, 
-            typename WeightMap,
-            typename DistanceMap,  
-            typename PredecessorMap>
+  template <typename Graph, typename RRGVisitor, typename PositionMap, 
+            typename WeightMap, typename DistanceMap, typename PredecessorMap,
+            typename FwdDistanceMap = infinite_double_value_prop_map,  
+            typename SuccessorMap = null_vertex_prop_map<Graph> >
   struct rrt_conn_visitor
   {
     
     rrt_conn_visitor(RRGVisitor vis, PositionMap pos, WeightMap weight, 
-                     DistanceMap dist, PredecessorMap pred) : 
+                     DistanceMap dist, PredecessorMap pred, 
+                     FwdDistanceMap fwd_dist = FwdDistanceMap(),
+                     SuccessorMap succ = SuccessorMap()) : 
                      m_vis(vis), m_position(pos), m_weight(weight), 
-                     m_distance(dist), m_predecessor(pred) { };
+                     m_distance(dist), m_predecessor(pred),
+                     m_fwd_distance(fwd_dist), m_successor(succ) { };
     
     typedef typename boost::property_traits<PositionMap>::value_type PositionValue;
+    typedef typename boost::graph_traits<Graph>::vertex_descriptor Vertex;
+    typedef typename Graph::vertex_bundled VertexProp;
+    typedef typename boost::graph_traits<Graph>::edge_descriptor Edge;
+    typedef typename Graph::edge_bundled EdgeProp;
     
-    template <class Graph>
-    typename boost::graph_traits<Graph>::vertex_descriptor create_vertex(const PositionValue& p, Graph& g) const {
-      typedef typename boost::graph_traits<Graph>::vertex_descriptor Vertex;
-      typedef typename Graph::vertex_bundled VertexProp;
+    Vertex create_vertex(const PositionValue& p, Graph& g) const {
       
       VertexProp up;
       put(m_position, up, p);
       put(m_distance, up, std::numeric_limits<double>::infinity());
+      put(m_predecessor, up, boost::graph_traits<Graph>::null_vertex());
+      put(m_fwd_distance, up, std::numeric_limits<double>::infinity());
+      put(m_successor, up, boost::graph_traits<Graph>::null_vertex());
 #ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
       Vertex u = add_vertex(std::move(up), g);
 #else
       Vertex u = add_vertex(up, g);
 #endif
-      put(m_predecessor, g[u], u);
       m_vis.vertex_added(u,g);
       
       return u;
     };
     
-    template <typename Vertex, typename Graph>
     void vertex_to_be_removed(Vertex u, Graph& g) const {
       m_vis.vertex_to_be_removed(u,g);
     };
     
-    template <typename Vertex, typename Graph>
     void vertex_added(Vertex v, Graph& g) const { m_vis.vertex_added(v,g); };
-    template <typename Edge, typename Graph>
     void edge_added(Edge e, Graph& g) const { m_vis.edge_added(e,g); };
     
-    template <typename Vertex, typename Graph>
     void travel_explored(Vertex u, Vertex v, Graph& g) const { };
-    template <typename Vertex, typename Graph>
     void travel_succeeded(Vertex u, Vertex v, Graph& g) const { };
-    template <typename Vertex, typename Graph>
     void travel_failed(Vertex u, Vertex v, Graph& g) const { };
-    template <typename Vertex, typename Graph>
     void affected_vertex(Vertex, Graph&) const { };
     
     bool keep_going() const { return m_vis.keep_going(); };
     
-    template <typename Vertex, typename Graph>
-    std::pair<bool, typename Graph::edge_bundled> can_be_connected(Vertex u, Vertex v, Graph& g) const { 
+    std::pair<bool, EdgeProp> can_be_connected(Vertex u, Vertex v, Graph& g) const { 
       return m_vis.can_be_connected(u,v,g);
     };
     
-    template <typename PositionValue, typename Vertex, typename Graph>
-    boost::tuple<PositionValue, bool, typename Graph::edge_bundled> steer_towards_position(const PositionValue& p, Vertex u, Graph& g) const { 
+    boost::tuple<PositionValue, bool, EdgeProp> steer_towards_position(const PositionValue& p, Vertex u, Graph& g) const { 
       return m_vis.steer_towards_position(p, u, g);
+    };
+    
+    boost::tuple<PositionValue, bool, EdgeProp> steer_back_to_position(const PositionValue& p, Vertex u, Graph& g) const { 
+      return this->m_vis.steer_back_to_position(p, u, g);
     };
     
     RRGVisitor m_vis;
@@ -155,23 +158,18 @@ namespace detail {
     WeightMap m_weight;  // needed by generate_rrt_star_loop (given to connector call)
     DistanceMap m_distance;
     PredecessorMap m_predecessor;
+    FwdDistanceMap m_fwd_distance;
+    SuccessorMap m_successor;
   };
   
   
-  template <typename Graph,
-            typename Topology,
-            typename RRTStarConnVisitor,
-            typename MotionGraphConnector,
-            typename PositionMap,
-            typename NodeGenerator,
-            typename NcSelector>
-  inline void generate_rrt_star_loop(Graph& g,
-                                     const Topology& super_space,
-                                     RRTStarConnVisitor conn_vis,
-                                     MotionGraphConnector connect_vertex,
-                                     PositionMap position,
-                                     NodeGenerator node_generator_func,
-                                     NcSelector select_neighborhood) {
+  template <typename Graph, typename Topology, typename RRTStarConnVisitor,
+            typename MotionGraphConnector, typename PositionMap,
+            typename NodeGenerator, typename NcSelector>
+  void generate_rrt_star_loop(
+    Graph& g, const Topology& super_space, RRTStarConnVisitor conn_vis,
+    MotionGraphConnector connect_vertex, PositionMap position,
+    NodeGenerator node_generator_func, NcSelector select_neighborhood) {
     typedef typename boost::property_traits<PositionMap>::value_type PositionValue;
     typedef typename boost::graph_traits<Graph>::vertex_descriptor Vertex;
     typedef typename Graph::edge_bundled EdgeProp;
@@ -193,41 +191,84 @@ namespace detail {
 
   };
   
-  
-  template <typename Graph,
-            typename Topology,
-            typename RRGVisitor,
-            typename PositionMap,
-            typename CostMap,
-            typename PredecessorMap,
-            typename WeightMap,
-            typename NodeGenerator,
-            typename NcSelector>
-  inline void generate_rrt_star_loop(Graph& g,
-                                     const Topology& super_space,
-                                     RRGVisitor vis,
-                                     PositionMap position,
-                                     CostMap cost,
-                                     PredecessorMap pred,
-                                     WeightMap weight,
-                                     NodeGenerator node_generator_func,
-                                     NcSelector select_neighborhood) {
+  template <typename Graph, typename Topology,
+            typename RRTStarConnVisitor, typename MotionGraphConnector,
+            typename PositionMap, typename NodeGenerator, typename NcSelector>
+  void generate_rrt_star_bidir_loop(
+      Graph& g, const Topology& super_space, RRTStarConnVisitor conn_vis,
+      MotionGraphConnector connect_vertex, PositionMap position,
+      NodeGenerator node_generator_func, NcSelector select_neighborhood) {
+    typedef typename boost::property_traits<PositionMap>::value_type PositionValue;
+    typedef typename boost::graph_traits<Graph>::vertex_descriptor Vertex;
+    typedef typename Graph::edge_bundled EdgeProp;
     
-    rrt_conn_visitor<RRGVisitor, PositionMap, WeightMap, CostMap, PredecessorMap> 
-      conn_vis(vis, position, weight, cost, pred);
+    while(conn_vis.keep_going()) {
+      
+      Vertex x_near_pred, x_near_succ; 
+      PositionValue p_new_pred, p_new_succ; 
+      EdgeProp ep_pred, ep_succ;
+      boost::tie(x_near_pred, p_new_pred, ep_pred, x_near_succ, p_new_succ, ep_succ) = 
+        node_generator_func(g, conn_vis, boost::bundle_prop_to_vertex_prop(position, g));
+      
+      if( x_near_pred != boost::graph_traits<Graph>::null_vertex() ) {
+        Vertex x_near_other = boost::graph_traits<Graph>::null_vertex();
+        EdgeProp ep_other;
+        connect_vertex(p_new_pred, x_near_pred, ep_pred, x_near_other, ep_other, g, 
+                       super_space, conn_vis, conn_vis.m_position, 
+                       conn_vis.m_distance, conn_vis.m_predecessor, 
+                       conn_vis.m_fwd_distance, conn_vis.m_successor, 
+                       conn_vis.m_weight, select_neighborhood);
+      };
+      if( x_near_succ != boost::graph_traits<Graph>::null_vertex() ) {
+        Vertex x_near_other = boost::graph_traits<Graph>::null_vertex();
+        EdgeProp ep_other;
+        connect_vertex(p_new_succ, x_near_other, ep_other, x_near_succ, ep_succ, g, 
+                       super_space, conn_vis, conn_vis.m_position, 
+                       conn_vis.m_distance, conn_vis.m_predecessor, 
+                       conn_vis.m_fwd_distance, conn_vis.m_successor, 
+                       conn_vis.m_weight, select_neighborhood);
+      };
+      
+    };
+
+  };
+  
+  
+  template <typename Graph, typename Topology, typename RRGVisitor,
+            typename PositionMap, typename DistanceMap, typename PredecessorMap,
+            typename WeightMap, typename NodeGenerator, typename NcSelector>
+  void generate_rrt_star_loop(
+    Graph& g, const Topology& super_space, RRGVisitor vis, PositionMap position, 
+    DistanceMap distance, PredecessorMap pred,
+    WeightMap weight, NodeGenerator node_generator_func, NcSelector select_neighborhood) {
+    
+    rrt_conn_visitor<Graph, RRGVisitor, PositionMap, WeightMap, DistanceMap, PredecessorMap> 
+      conn_vis(vis, position, weight, distance, pred);
     
     generate_rrt_star_loop(g, super_space, conn_vis, lazy_node_connector(),
                            position, node_generator_func, select_neighborhood);
     
   };
   
+  template <typename Graph, typename Topology, typename RRGVisitor, typename PositionMap,
+            typename DistanceMap, typename PredecessorMap,
+            typename FwdDistanceMap, typename SuccessorMap,
+            typename WeightMap, typename NodeGenerator, typename NcSelector>
+  void generate_rrt_star_bidir_loop(
+      Graph& g, const Topology& super_space, RRGVisitor vis, PositionMap position,
+      DistanceMap distance, PredecessorMap pred, FwdDistanceMap fwd_distance, SuccessorMap succ,
+      WeightMap weight, NodeGenerator node_generator_func, NcSelector select_neighborhood) {
+    
+    rrt_conn_visitor<Graph, RRGVisitor, PositionMap, WeightMap, 
+                     DistanceMap, PredecessorMap, FwdDistanceMap, SuccessorMap> 
+      conn_vis(vis, position, weight, distance, pred, fwd_distance, succ);
+    
+    generate_rrt_star_loop(g, super_space, conn_vis, lazy_node_connector(),
+                           position, node_generator_func, select_neighborhood);
+    
+  };
   
-  
-  
-  
-
 };
-
 
 
 
@@ -237,7 +278,7 @@ namespace detail {
   * \tparam Topology A topology type that will represent the space in which the configurations (or positions) exist, should model BGL's Topology concept
   * \tparam RRGVisitor An RRT* visitor type that implements the customizations to this RRT* algorithm, should model the RRGVisitorConcept.
   * \tparam PositionMap A property-map type that can store the configurations (or positions) of the vertices.
-  * \tparam CostMap This property-map type is used to store the estimated cost-to-go of each vertex to the start (or goal).
+  * \tparam DistanceMap This property-map type is used to store the estimated cost-to-go of each vertex to the start (or goal).
   * \tparam PredecessorMap This property-map type is used to store the predecessor of each vertex.
   * \tparam WeightMap This property-map type is used to store the weights of the edges of the graph (cost of travel along an edge).
   * \tparam RandomSampler This is a random-sampler over the topology (see pp::RandomSamplerConcept).
@@ -252,7 +293,7 @@ namespace detail {
   * \param position A mapping that implements the MutablePropertyMap Concept. Also,
   *        the value_type of this map should be the same type as the topology's 
   *        value_type.
-  * \param cost The property-map which stores the estimated cost-to-go of each vertex to the start (or goal).
+  * \param distance The property-map which stores the estimated cost-to-go of each vertex to the start (or goal).
   * \param pred The property-map which stores the predecessor of each vertex.
   * \param weight The property-map which stores the weight of each edge of the graph (the cost of travel
   *        along the edge).
@@ -261,62 +302,93 @@ namespace detail {
   *        nearest neighbor search of a point to a graph in the topology. (see star_neighborhood)
   * 
   */
-template <typename Graph,
-          typename Topology,
-          typename RRGVisitor,
-          typename PositionMap,
-          typename CostMap,
+template <typename Graph, typename Topology, typename RRGVisitor,
+          typename PositionMap, typename DistanceMap,
           typename PredecessorMap,
           typename WeightMap,
           typename RandomSampler,
           typename NcSelector>
-inline void generate_rrt_star(Graph& g,
-                              const Topology& super_space,
-                              RRGVisitor vis,
-                              PositionMap position,
-                              CostMap cost,
-                              PredecessorMap pred,
-                              WeightMap weight,
-                              RandomSampler get_sample,
-                              NcSelector select_neighborhood) {
+void generate_rrt_star(
+    Graph& g, const Topology& super_space, RRGVisitor vis,
+    PositionMap position, DistanceMap distance, PredecessorMap pred,
+    WeightMap weight, RandomSampler get_sample, NcSelector select_neighborhood) {
   BOOST_CONCEPT_ASSERT((RRGVisitorConcept<RRGVisitor,Graph,Topology>));
   BOOST_CONCEPT_ASSERT((ReaK::pp::MetricSpaceConcept<Topology>));
   BOOST_CONCEPT_ASSERT((ReaK::pp::RandomSamplerConcept<RandomSampler,Topology>));
   
-  typedef typename boost::property_traits<PositionMap>::value_type PositionValue;
-  typedef typename boost::graph_traits<Graph>::vertex_descriptor Vertex;
-  typedef typename Graph::vertex_bundled VertexProp;
+  if(num_vertices(g) == 0) 
+    throw optim::infeasible_problem("Cannot solve a RRT* problem without start position!");
   
-  if(num_vertices(g) == 0) {
-    PositionValue p = get_sample(super_space);
-    while(!vis.is_position_free(p))
-      p = get_sample(super_space);
-    VertexProp up;
-    put(position, up, p);
-    put(cost, up, 0.0);
-    put(pred, up, boost::graph_traits<Graph>::null_vertex());
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
-    Vertex u = add_vertex(std::move(up),g);
-#else
-    Vertex u = add_vertex(up,g);
-#endif
-    vis.vertex_added(u, g);
-  };
+  detail::rrt_conn_visitor<Graph, RRGVisitor, PositionMap, WeightMap, DistanceMap, PredecessorMap> 
+    conn_vis(vis, position, weight, distance, pred);
   
-  detail::rrt_conn_visitor<RRGVisitor, PositionMap, WeightMap, CostMap, PredecessorMap> 
-    conn_vis(vis, position, weight, cost, pred);
-  
-  detail::generate_rrt_star_loop(
-    g, super_space, conn_vis,
-    lazy_node_connector(),
-    position,
+  detail::generate_rrt_star_loop(g, super_space, conn_vis,
+    lazy_node_connector(), position,
     rrg_node_generator<Topology, RandomSampler, NcSelector>(&super_space, get_sample, select_neighborhood),
     select_neighborhood);
   
 };
 
 
-
+/**
+  * This function template is the Bi-directional RRT* algorithm (refer to rrt_star_bidir.hpp dox).
+  * \tparam Graph A mutable graph type that will represent the generated tree, should model boost::VertexListGraphConcept and boost::MutableGraphConcept
+  * \tparam Topology A topology type that will represent the space in which the configurations (or positions) exist, should model BGL's Topology concept
+  * \tparam RRGVisitor An RRT* visitor type that implements the customizations to this RRT* algorithm, should model the RRGVisitorConcept.
+  * \tparam PositionMap A property-map type that can store the configurations (or positions) of the vertices.
+  * \tparam DistanceMap This property-map type is used to store the estimated cost-to-go of each vertex from the start.
+  * \tparam PredecessorMap This property-map type is used to store the predecessor of each vertex.
+  * \tparam FwdDistanceMap This property-map type is used to store the estimated cost-to-go of each vertex to the goal.
+  * \tparam SuccessorMap This property-map type is used to store the successor of each vertex.
+  * \tparam WeightMap This property-map type is used to store the weights of the edges of the graph (cost of travel along an edge).
+  * \tparam RandomSampler This is a random-sampler over the topology (see pp::RandomSamplerConcept).
+  * \tparam NcSelector A functor type which can perform a neighborhood search of a point to a graph in the topology (see topological_search.hpp).
+  * \param g A mutable graph that should initially store the starting and goal 
+  *        vertex and will store the generated graph once the algorithm has finished.
+  * \param super_space A topology (as defined by the Boost Graph Library). Note 
+  *        that it should represent the entire configuration space (not collision-free space).
+  * \param vis A RRT* visitor implementing the RRGVisitorConcept. This is the 
+  *        main point of customization and recording of results that the 
+  *        user can implement.
+  * \param position A mapping that implements the MutablePropertyMap Concept. Also,
+  *        the value_type of this map should be the same type as the topology's 
+  *        value_type.
+  * \param distance The property-map which stores the estimated cost-to-go of each vertex from the start.
+  * \param pred The property-map which stores the predecessor of each vertex.
+  * \param fwd_distance The property-map which stores the estimated cost-to-go of each vertex to the goal.
+  * \param succ The property-map which stores the successor of each vertex.
+  * \param weight The property-map which stores the weight of each edge of the graph (the cost of travel
+  *        along the edge).
+  * \param get_sample A random sampler of positions in the free-space (obstacle-free sub-set of the topology).
+  * \param select_neighborhood A callable object (functor) which can perform a 
+  *        nearest neighbor search of a point to a graph in the topology. (see star_neighborhood)
+  * 
+  */
+template <typename Graph, typename Topology, typename RRGVisitor, typename PositionMap,
+          typename DistanceMap, typename PredecessorMap,
+          typename FwdDistanceMap, typename SuccessorMap,
+          typename WeightMap, typename RandomSampler, typename NcSelector>
+void generate_rrt_star_bidir(
+    Graph& g, const Topology& super_space, RRGVisitor vis, PositionMap position,
+    DistanceMap distance, PredecessorMap pred, FwdDistanceMap fwd_distance, SuccessorMap succ,
+    WeightMap weight, RandomSampler get_sample, NcSelector select_neighborhood) {
+  BOOST_CONCEPT_ASSERT((RRGBidirVisitorConcept<RRGVisitor,Graph,Topology>));
+  BOOST_CONCEPT_ASSERT((ReaK::pp::MetricSpaceConcept<Topology>));
+  BOOST_CONCEPT_ASSERT((ReaK::pp::RandomSamplerConcept<RandomSampler,Topology>));
+  
+  if(num_vertices(g) == 0) 
+    throw optim::infeasible_problem("Cannot solve a bi-directional RRT* problem without start and goal positions!");
+  
+  detail::rrt_conn_visitor<Graph, RRGVisitor, PositionMap, WeightMap, 
+                           DistanceMap, PredecessorMap, FwdDistanceMap, SuccessorMap> 
+    conn_vis(vis, position, weight, distance, pred, fwd_distance, succ);
+  
+  detail::generate_rrt_star_bidir_loop(g, super_space, conn_vis,
+    lazy_node_connector(), position,
+    rrg_bidir_generator<Topology, RandomSampler, NcSelector, PredecessorMap, SuccessorMap>(&super_space, get_sample, select_neighborhood, pred, succ),
+    select_neighborhood);
+  
+};
 
 
 /**
@@ -326,7 +398,7 @@ inline void generate_rrt_star(Graph& g,
   * \tparam Topology A topology type that will represent the space in which the configurations (or positions) exist, should model BGL's Topology concept
   * \tparam RRGVisitor An RRT* visitor type that implements the customizations to this RRT* algorithm, should model the RRGVisitorConcept.
   * \tparam PositionMap A property-map type that can store the configurations (or positions) of the vertices.
-  * \tparam CostMap This property-map type is used to store the estimated cost-to-go of each vertex to the start (or goal).
+  * \tparam DistanceMap This property-map type is used to store the estimated cost-to-go of each vertex to the start (or goal).
   * \tparam PredecessorMap This property-map type is used to store the predecessor of each vertex.
   * \tparam WeightMap This property-map type is used to store the weights of the edges of the graph (cost of travel along an edge).
   * \tparam RandomSampler This is a random-sampler over the topology (see pp::RandomSamplerConcept).
@@ -343,7 +415,7 @@ inline void generate_rrt_star(Graph& g,
   * \param position A mapping that implements the MutablePropertyMap Concept. Also,
   *        the value_type of this map should be the same type as the topology's 
   *        value_type.
-  * \param cost The property-map which stores the estimated cost-to-go of each vertex to the start (or goal).
+  * \param distance The property-map which stores the estimated cost-to-go of each vertex to the start (or goal).
   * \param pred The property-map which stores the predecessor of each vertex.
   * \param weight The property-map which stores the weight of each edge of the graph (the cost of travel
   *        along the edge).
@@ -352,26 +424,15 @@ inline void generate_rrt_star(Graph& g,
   *        nearest neighbor search of a point to a graph in the topology. (see star_neighborhood)
   * 
   */
-template <typename Graph,
-          typename Topology,
-          typename RRGVisitor,
-          typename PositionMap,
-          typename CostMap,
-          typename PredecessorMap,
-          typename WeightMap,
-          typename RandomSampler,
-          typename NcSelector>
-inline void generate_bnb_rrt_star(Graph& g,
-                                  typename boost::graph_traits<Graph>::vertex_descriptor start_vertex,
-                                  typename boost::graph_traits<Graph>::vertex_descriptor goal_vertex,
-                                  const Topology& super_space,
-                                  RRGVisitor vis,
-                                  PositionMap position,
-                                  CostMap cost,
-                                  PredecessorMap pred,
-                                  WeightMap weight,
-                                  RandomSampler get_sample,
-                                  NcSelector select_neighborhood) {
+template <typename Graph, typename Topology, typename RRGVisitor, typename PositionMap,
+          typename DistanceMap, typename PredecessorMap,
+          typename WeightMap, typename RandomSampler, typename NcSelector>
+void generate_bnb_rrt_star(Graph& g,
+    typename boost::graph_traits<Graph>::vertex_descriptor start_vertex,
+    typename boost::graph_traits<Graph>::vertex_descriptor goal_vertex,
+    const Topology& super_space, RRGVisitor vis, PositionMap position,
+    DistanceMap distance, PredecessorMap pred, WeightMap weight,
+    RandomSampler get_sample, NcSelector select_neighborhood) {
   BOOST_CONCEPT_ASSERT((RRGVisitorConcept<RRGVisitor,Graph,Topology>));
   BOOST_CONCEPT_ASSERT((ReaK::pp::MetricSpaceConcept<Topology>));
   BOOST_CONCEPT_ASSERT((ReaK::pp::RandomSamplerConcept<RandomSampler,Topology>));
@@ -379,29 +440,89 @@ inline void generate_bnb_rrt_star(Graph& g,
   if( (num_vertices(g) == 0) ||
       ( start_vertex == boost::graph_traits<Graph>::null_vertex() ) ||
       ( goal_vertex  == boost::graph_traits<Graph>::null_vertex() ) ) {
-    generate_rrt_star(g,super_space,vis,position,cost,pred,weight,get_sample,select_neighborhood);
+    generate_rrt_star(g,super_space,vis,position,distance,pred,weight,get_sample,select_neighborhood);
     return;
   };
   
-  detail::rrt_conn_visitor<RRGVisitor, PositionMap, WeightMap, CostMap, PredecessorMap> 
-    conn_vis(vis, position, weight, cost, pred);
+  detail::rrt_conn_visitor<Graph, RRGVisitor, PositionMap, WeightMap, DistanceMap, PredecessorMap> 
+    conn_vis(vis, position, weight, distance, pred);
   
-  detail::generate_rrt_star_loop(
-    g, super_space, conn_vis,
-    branch_and_bound_connector<Graph>(
-      g,
-      start_vertex, 
-      goal_vertex
-    ), 
-    position,
+  detail::generate_rrt_star_loop(g, super_space, conn_vis,
+    branch_and_bound_connector<Graph>(g, start_vertex, goal_vertex), position,
     rrg_node_generator<Topology, RandomSampler, NcSelector>(&super_space, get_sample, select_neighborhood),
     select_neighborhood);
   
 };
 
 
-
-
+/**
+  * This function template is the Bi-directional RRT* algorithm (refer to rrt_star_bidir.hpp dox).
+  * This function uses a branch-and-bound heuristic to limit the number of nodes.
+  * \tparam Graph A mutable graph type that will represent the generated tree, should model boost::VertexListGraphConcept and boost::MutableGraphConcept
+  * \tparam Topology A topology type that will represent the space in which the configurations (or positions) exist, should model BGL's Topology concept
+  * \tparam RRGVisitor An RRT* visitor type that implements the customizations to this RRT* algorithm, should model the RRGVisitorConcept.
+  * \tparam PositionMap A property-map type that can store the configurations (or positions) of the vertices.
+  * \tparam DistanceMap This property-map type is used to store the estimated cost-to-go of each vertex from the start.
+  * \tparam PredecessorMap This property-map type is used to store the predecessor of each vertex.
+  * \tparam FwdDistanceMap This property-map type is used to store the estimated cost-to-go of each vertex to the goal.
+  * \tparam SuccessorMap This property-map type is used to store the successor of each vertex.
+  * \tparam WeightMap This property-map type is used to store the weights of the edges of the graph (cost of travel along an edge).
+  * \tparam RandomSampler This is a random-sampler over the topology (see pp::RandomSamplerConcept).
+  * \tparam NcSelector A functor type which can perform a neighborhood search of a point to a graph in the topology (see topological_search.hpp).
+  * \param g A mutable graph that should initially store the starting and goal 
+  *        vertex and will store the generated graph once the algorithm has finished.
+  * \param start_vertex The vertex from which the motion-graph is grown.
+  * \param goal_vertex The vertex which we want to connect to the motion-graph.
+  * \param super_space A topology (as defined by the Boost Graph Library). Note 
+  *        that it should represent the entire configuration space (not collision-free space).
+  * \param vis A RRT* visitor implementing the RRGVisitorConcept. This is the 
+  *        main point of customization and recording of results that the 
+  *        user can implement.
+  * \param position A mapping that implements the MutablePropertyMap Concept. Also,
+  *        the value_type of this map should be the same type as the topology's 
+  *        value_type.
+  * \param distance The property-map which stores the estimated cost-to-go of each vertex from the start.
+  * \param pred The property-map which stores the predecessor of each vertex.
+  * \param fwd_distance The property-map which stores the estimated cost-to-go of each vertex to the goal.
+  * \param succ The property-map which stores the successor of each vertex.
+  * \param weight The property-map which stores the weight of each edge of the graph (the cost of travel
+  *        along the edge).
+  * \param get_sample A random sampler of positions in the free-space (obstacle-free sub-set of the topology).
+  * \param select_neighborhood A callable object (functor) which can perform a 
+  *        nearest neighbor search of a point to a graph in the topology. (see star_neighborhood)
+  * 
+  */
+template <typename Graph, typename Topology, typename RRGVisitor, typename PositionMap,
+          typename DistanceMap, typename PredecessorMap,
+          typename FwdDistanceMap, typename SuccessorMap,
+          typename WeightMap, typename RandomSampler, typename NcSelector>
+void generate_bnb_rrt_star_bidir( Graph& g,
+    typename boost::graph_traits<Graph>::vertex_descriptor start_vertex,
+    typename boost::graph_traits<Graph>::vertex_descriptor goal_vertex,
+    const Topology& super_space, RRGVisitor vis, PositionMap position,
+    DistanceMap distance, PredecessorMap pred, FwdDistanceMap fwd_distance, SuccessorMap succ,
+    WeightMap weight, RandomSampler get_sample, NcSelector select_neighborhood) {
+  BOOST_CONCEPT_ASSERT((RRGBidirVisitorConcept<RRGVisitor,Graph,Topology>));
+  BOOST_CONCEPT_ASSERT((ReaK::pp::MetricSpaceConcept<Topology>));
+  BOOST_CONCEPT_ASSERT((ReaK::pp::RandomSamplerConcept<RandomSampler,Topology>));
+  
+  if( (num_vertices(g) == 0) ||
+      ( start_vertex == boost::graph_traits<Graph>::null_vertex() ) ||
+      ( goal_vertex  == boost::graph_traits<Graph>::null_vertex() ) ) {
+    generate_rrt_star_bidir(g,super_space,vis,position,distance,pred,fwd_distance,succ,weight,get_sample,select_neighborhood);
+    return;
+  };
+  
+  detail::rrt_conn_visitor<Graph, RRGVisitor, PositionMap, WeightMap, 
+                           DistanceMap, PredecessorMap, FwdDistanceMap, SuccessorMap> 
+    conn_vis(vis, position, weight, distance, pred, fwd_distance, succ);
+  
+  detail::generate_rrt_star_bidir_loop(g, super_space, conn_vis,
+    branch_and_bound_connector<Graph>(g, start_vertex, goal_vertex), position,
+    rrg_bidir_generator<Topology, RandomSampler, NcSelector, PredecessorMap, SuccessorMap>(&super_space, get_sample, select_neighborhood, pred, succ),
+    select_neighborhood);
+  
+};
 
 
 

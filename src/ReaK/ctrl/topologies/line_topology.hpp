@@ -45,6 +45,7 @@
 #include "base/named_object.hpp"
 
 #include "path_planning/metric_space_concept.hpp"
+#include "path_planning/reversible_space_concept.hpp"
 #include "default_random_sampler.hpp"
 
 namespace ReaK {
@@ -145,8 +146,15 @@ class line_topology : public named_object
     point_type move_position_toward(const point_type& a, double fraction, const point_type& b) const 
     {
       return a + (b - a) * fraction;
+    };
+    
+    /**
+     * Returns a point which is at a backward fraction between two points a to b.
+     */
+    point_type move_position_back_to(const point_type& a, double fraction, const point_type& b) const 
+    {
+      return b + (a - b) * fraction;
     }
-
     
 /*******************************************************************************
                    ReaK's RTTI and Serialization interfaces
@@ -166,6 +174,9 @@ class line_topology : public named_object
 
 template <typename T>
 struct is_metric_space< line_topology<T> > : boost::mpl::true_ { };
+
+template <typename T>
+struct is_reversible_space< line_topology<T> > : boost::mpl::true_ { };
 
 
 
@@ -320,7 +331,10 @@ class line_segment_topology : public line_topology<T>
 
 template <typename T>
 struct is_metric_space< line_segment_topology<T> > : boost::mpl::true_ { };
-        
+
+template <typename T>
+struct is_reversible_space< line_segment_topology<T> > : boost::mpl::true_ { };
+
 template <typename T>
 struct is_point_distribution< line_segment_topology<T> > : boost::mpl::true_ { };
 

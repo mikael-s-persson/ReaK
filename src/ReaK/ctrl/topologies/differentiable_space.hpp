@@ -362,6 +362,10 @@ template <typename IndependentSpace, typename SpaceTuple, typename TupleDistance
 struct is_metric_space< differentiable_space<IndependentSpace, SpaceTuple, TupleDistanceMetric, DiffRule> > : boost::mpl::true_ { };
 
 template <typename IndependentSpace, typename SpaceTuple, typename TupleDistanceMetric, typename DiffRule>
+struct is_reversible_space< differentiable_space<IndependentSpace, SpaceTuple, TupleDistanceMetric, DiffRule> > : 
+  is_reversible_space< metric_space_tuple<SpaceTuple, TupleDistanceMetric> > { };
+
+template <typename IndependentSpace, typename SpaceTuple, typename TupleDistanceMetric, typename DiffRule>
 struct is_point_distribution< differentiable_space<IndependentSpace, SpaceTuple, TupleDistanceMetric, DiffRule> > : boost::mpl::true_ { };
 
 template <typename IndependentSpace, typename SpaceTuple, typename TupleDistanceMetric, typename DiffRule>

@@ -70,12 +70,139 @@ namespace ReaK {
 namespace pp {
 
 
+template <typename FreeSpaceType, typename IsBidirPlanner>
+struct sbastar_planner_bundle {
+  
+  typedef boost::mpl::and_< IsBidirPlanner, is_reversible_space<FreeSpaceType> > is_bidir;
+  
+  typedef typename subspace_traits<FreeSpaceType>::super_space_type super_space_type;
+  typedef typename topology_traits<super_space_type>::point_type point_type;
+  
+  typedef typename boost::mpl::if_< is_bidir,
+    recursive_dense_mg_vertex< bidir_astar_mg_vertex<FreeSpaceType> >,
+    recursive_dense_mg_vertex< astar_mg_vertex<FreeSpaceType> > >::type vertex_prop;
+  typedef mg_vertex_data<FreeSpaceType> basic_vertex_prop;
+  typedef optimal_mg_edge<FreeSpaceType> edge_prop;
+  
+  typedef typename motion_segment_directionality<FreeSpaceType>::type directionality_tag;
+  
+  typedef density_plan_visitor<FreeSpaceType, sbastar_density_calculator> visitor_type;
+  
+  typedef boost::data_member_property_map<point_type, vertex_prop > position_map;
+  typedef boost::data_member_property_map<double, vertex_prop> density_map;
+  typedef boost::data_member_property_map<double, vertex_prop> constriction_map;
+  typedef boost::data_member_property_map<double, vertex_prop> distance_map;
+  typedef boost::data_member_property_map<double, vertex_prop> fwd_distance_map;
+  typedef boost::data_member_property_map<std::size_t, vertex_prop> predecessor_map;
+  typedef typename boost::mpl::if_< is_bidir,
+    boost::data_member_property_map<std::size_t, vertex_prop>,
+    ReaK::graph::detail::null_vertex_prop_map<Graph> >::type successor_map;
+  typedef boost::data_member_property_map<double, edge_prop > weight_map;
+  
+  struct ls_motion_graph {
+    typedef boost::adjacency_list_BC< boost::vecBC, boost::poolBC,
+      directionality_tag, vertex_prop, edge_prop> type;
+    typedef typename boost::graph_traits<type>::vertex_descriptor vertex_type;
+    
+    typedef linear_neighbor_search<MotionGraphType> nn_finder_type;
+    static nn_finder_type get_nn_finder() { return nn_finder_type(); };
+    
+    typedef any_knn_synchro nn_synchro_type;
+    static nn_synchro_type get_nn_synchro() {
+      return nn_synchro_type();
+    };
+    
+    static type get_motion_graph() {
+      return type();
+    };
+  };
+  
+  template <unsigned int Arity, typename TreeStorageTag>
+  struct dvp_motion_graph {
+    typedef boost::adjacency_list_BC< boost::vecBC, boost::poolBC,
+      directionality_tag, vertex_prop, edge_prop> type;
+    typedef typename boost::graph_traits<type>::vertex_descriptor vertex_type;
+    
+    typedef linear_neighbor_search<MotionGraphType> nn_finder_type;
+    static nn_finder_type get_nn_finder() { return nn_finder_type; };
+    
+    typedef typename boost::property_map< type, point_type basic_vertex_prop::* >::type graph_position_map;
+    typedef dvp_tree<vertex_type, super_space_type, graph_position_map, Arity, random_vp_chooser, TreeStorageTag > space_part_type;
+    static space_part_type get_space_part(type& mg, shared_ptr<const super_space_type> s_ptr) {
+      return space_part_type(mg, s_ptr, get(&basic_vertex_prop::position, mg));
+    };
+    
+    typedef multi_dvp_tree_search<type, space_part_type> nn_finder_type;
+    static nn_finder_type get_nn_finder(type& mg, space_part_type& space_part) { 
+      nn_finder_type nn_finder;
+      nn_finder.graph_tree_map[&mg] = &space_part;
+      return nn_finder;
+    };
+    
+    typedef type_erased_knn_synchro< type, nn_finder_type > nn_synchro_type;
+    static nn_synchro_type get_nn_synchro(nn_finder_type& nn_finder) {
+      return nn_synchro_type(nn_finder);
+    };
+    
+    static type get_motion_graph() {
+      return type();
+    };
+  };
+  
+  template <unsigned int Arity, typename TreeStorageTag>
+  struct alt_motion_graph {
+    typedef dvp_adjacency_list< vertex_prop, edge_prop, super_space_type, 
+      position_map, Arity, random_vp_chooser, TreeStorageTag,
+      boost::vecBC, directionality_tag, boost::listBC > alt_graph_type;
+    typedef typename alt_graph_type::adj_list_type type;
+    typedef alt_graph_type space_part_type;
+    
+    static space_part_type get_space_part(shared_ptr<const super_space_type> s_ptr) {
+      return space_part_type(s_ptr, position_map(&vertex_prop::position));
+    };
+    
+    typedef multi_dvp_tree_search<type, space_part_type> nn_finder_type;
+    static nn_finder_type get_nn_finder(type& mg, space_part_type& space_part) { 
+      nn_finder_type nn_finder;
+      nn_finder.graph_tree_map[&mg] = &space_part;
+      return nn_finder;
+    };
+    
+    typedef any_knn_synchro nn_synchro_type;
+    static nn_synchro_type get_nn_synchro() {
+      return nn_synchro_type();
+    };
+    
+    static type get_motion_graph(space_part_type& space_part) {
+      return space_part.get_adjacency_list();
+    };
+  };
+  
+  typedef ReaK::graph::sbastar_bundle<Graph, super_space_type, visitor_type, NcSelector,
+          typename boost::property_map<Graph, double vertex_prop::*>::type, 
+          position_map, weight_map, density_map, constriction_map, 
+          distance_map, predecessor_map, fwd_distance_map, successor_map > type;
+};
+
+
+
 template <typename FreeSpaceType>
 void sbastar_planner<FreeSpaceType>::solve_planning_query(planning_query<FreeSpaceType>& aQuery) {
   
   this->reset_internal_state();
   
+  double space_dim = double( this->get_space_dimensionality() );
+  double space_Lc = aQuery.get_heuristic_to_goal( aQuery.get_start_position() );
+  
+  density_plan_visitor<FreeSpaceType, sbastar_density_calculator> vis(
+    this, &aQuery, NULL, boost::any(), boost::any(), 
+    this->m_init_dens_threshold);
+  
+  path_planning_p2p_query<FreeSpaceType>* p2p_query_ptr = reinterpret_cast< path_planning_p2p_query<FreeSpaceType>* >(aQuery.castTo(path_planning_p2p_query<FreeSpaceType>::getStaticObjectType()));
+  
   typedef typename subspace_traits<FreeSpaceType>::super_space_type SuperSpace;
+  shared_ptr<const SuperSpace> sup_space_ptr(&(this->m_space->get_super_space()),null_deleter());
+  
   typedef typename topology_traits<SuperSpace>::point_type PointType;
   
   typedef recursive_dense_mg_vertex< astar_mg_vertex<FreeSpaceType> > VertexProp;
@@ -106,76 +233,21 @@ void sbastar_planner<FreeSpaceType>::solve_planning_query(planning_query<FreeSpa
   typedef boost::data_member_property_map<double, EdgeProp > WeightMap;
   WeightMap weight_map = WeightMap(&EdgeProp::weight);
   
-  double space_dim = double( this->get_space_dimensionality() );
-  double space_Lc = aQuery.get_heuristic_to_goal( aQuery.get_start_position() );
-  
-  shared_ptr<const SuperSpace> sup_space_ptr(&(this->m_space->get_super_space()),null_deleter());
-  
-  density_plan_visitor<FreeSpaceType, sbastar_density_calculator> vis(
-    this, &aQuery, NULL, boost::any(), boost::any(), 
-    this->m_init_dens_threshold);
-  
-  path_planning_p2p_query<FreeSpaceType>* p2p_query_ptr = reinterpret_cast< path_planning_p2p_query<FreeSpaceType>* >(aQuery.castTo(path_planning_p2p_query<FreeSpaceType>::getStaticObjectType()));
-  
   // Some MACROs to reduce the size of the code below.
   
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
-
-#define RK_SBASTAR_PLANNER_INIT_START_AND_GOAL_NODE \
-  VertexProp vp_start; \
-  vp_start.position = aQuery.get_start_position(); \
-  Vertex start_node = add_vertex(std::move(vp_start), motion_graph); \
-  motion_graph[start_node].constriction = 0.0; \
-  motion_graph[start_node].collision_count = 0; \
-  motion_graph[start_node].density = 0.0; \
-  motion_graph[start_node].expansion_trials = 0; \
-  motion_graph[start_node].heuristic_value = aQuery.get_heuristic_to_goal(motion_graph[start_node].position); \
-  motion_graph[start_node].distance_accum = 0.0; \
-  motion_graph[start_node].predecessor = start_node; \
-  vis.m_start_node = boost::any( start_node ); \
-  if( p2p_query_ptr ) { \
-    VertexProp vp_goal; \
-    vp_goal.position = p2p_query_ptr->goal_pos; \
-    Vertex goal_node  = add_vertex(std::move(vp_goal),  motion_graph); \
-    motion_graph[goal_node].constriction = 0.0; \
-    motion_graph[goal_node].collision_count = 0; \
-    motion_graph[goal_node].density = 0.0; \
-    motion_graph[goal_node].expansion_trials = 0; \
-    motion_graph[goal_node].heuristic_value = 0.0; \
-    motion_graph[goal_node].distance_accum = std::numeric_limits<double>::infinity(); \
-    motion_graph[goal_node].predecessor = goal_node; \
-    vis.m_goal_node = boost::any( goal_node ); \
-  };
-    
-#else
-    
 #define RK_SBASTAR_PLANNER_INIT_START_AND_GOAL_NODE \
   VertexProp vp_start; \
   vp_start.position = aQuery.get_start_position(); \
   Vertex start_node = add_vertex(vp_start, motion_graph); \
-  motion_graph[start_node].constriction = 0.0; \
-  motion_graph[start_node].collision_count = 0; \
-  motion_graph[start_node].density = 0.0; \
-  motion_graph[start_node].expansion_trials = 0; \
-  motion_graph[start_node].heuristic_value = aQuery.get_heuristic_to_goal(motion_graph[start_node].position); \
-  motion_graph[start_node].distance_accum = 0.0; \
-  motion_graph[start_node].predecessor = start_node; \
   vis.m_start_node = boost::any( start_node ); \
   if( p2p_query_ptr ) { \
     VertexProp vp_goal; \
     vp_goal.position = p2p_query_ptr->goal_pos; \
     Vertex goal_node  = add_vertex(vp_goal,  motion_graph); \
-    motion_graph[goal_node].constriction = 0.0; \
-    motion_graph[goal_node].collision_count = 0; \
-    motion_graph[goal_node].density = 0.0; \
-    motion_graph[goal_node].expansion_trials = 0; \
-    motion_graph[goal_node].heuristic_value = 0.0; \
-    motion_graph[goal_node].distance_accum = std::numeric_limits<double>::infinity(); \
-    motion_graph[goal_node].predecessor = goal_node; \
     vis.m_goal_node = boost::any( goal_node ); \
-  };
-  
-#endif
+    vis.initialize_vertex(goal_node, motion_graph); \
+  };\
+  vis.initialize_vertex(start_node, motion_graph);
   
   
 #define RK_SBASTAR_PLANNER_SETUP_DVP_TREE_SYNCHRO(ARITY, TREE_STORAGE) \
@@ -219,62 +291,53 @@ void sbastar_planner<FreeSpaceType>::solve_planning_query(planning_query<FreeSpa
   
   
   
-  
-    
-    
-#define RK_SBASTAR_PLANNER_CALL_SBASTAR_FUNCTION \
-    ReaK::graph::generate_sbastar( \
+#define RK_SBASTAR_PLANNER_MAKE_SBASTAR_BUNDLE \
       ReaK::graph::make_sbastar_bundle( \
         motion_graph, boost::any_cast<Vertex>( vis.m_start_node ), *sup_space_ptr, vis, \
-        heuristic_map, pos_map, weight_map, dens_map, cons_map, dist_map, pred_map, \
-        get(&VertexProp::key_value, motion_graph), nc_selector)\
-      );
+        nc_selector, get(&VertexProp::key_value, motion_graph), \
+        pos_map, weight_map, dens_map, cons_map, dist_map, pred_map, \
+        heuristic_map)
+
+#define RK_SBASTAR_PLANNER_MAKE_SBASTAR_BUNDLE_WITH_GOAL \
+      ReaK::graph::make_sbastar_bundle( \
+        motion_graph, boost::any_cast<Vertex>( vis.m_start_node ), \
+        ( vis.m_goal_node.empty() ? boost::graph_traits<MotionGraphType>::null_vertex() : boost::any_cast<Vertex>( vis.m_goal_node ) ), \
+        *sup_space_ptr, vis, \
+        nc_selector, get(&VertexProp::key_value, motion_graph), \
+        pos_map, weight_map, dens_map, cons_map, dist_map, pred_map, \
+        heuristic_map)
+
+
+#define RK_SBASTAR_PLANNER_CALL_SBASTAR_FUNCTION \
+    ReaK::graph::generate_sbastar( \
+      RK_SBASTAR_PLANNER_MAKE_SBASTAR_BUNDLE );
   
   
 #define RK_SBASTAR_PLANNER_CALL_LAZY_SBASTAR_FUNCTION \
     ReaK::graph::generate_lazy_sbastar( \
-      ReaK::graph::make_sbastar_bundle( \
-        motion_graph, boost::any_cast<Vertex>( vis.m_start_node ), *sup_space_ptr, vis, \
-        heuristic_map, pos_map, weight_map, dens_map, cons_map, dist_map, pred_map, \
-        get(&VertexProp::key_value, motion_graph), nc_selector) );
+      RK_SBASTAR_PLANNER_MAKE_SBASTAR_BUNDLE );
   
 #define RK_SBASTAR_PLANNER_CALL_LAZY_BNB_SBASTAR_FUNCTION \
     ReaK::graph::generate_lazy_bnb_sbastar( \
-      ReaK::graph::make_sbastar_bundle( \
-        motion_graph, boost::any_cast<Vertex>( vis.m_start_node ), *sup_space_ptr, vis, \
-        heuristic_map, pos_map, weight_map, dens_map, cons_map, dist_map, pred_map, \
-        get(&VertexProp::key_value, motion_graph), nc_selector), \
-      ( vis.m_goal_node.empty() ? boost::graph_traits<MotionGraphType>::null_vertex() : boost::any_cast<Vertex>( vis.m_goal_node ) ) );
+      RK_SBASTAR_PLANNER_MAKE_SBASTAR_BUNDLE_WITH_GOAL );
   
 #define RK_SBASTAR_PLANNER_CALL_SBARRTSTAR_FUNCTION \
     ReaK::graph::generate_sbarrtstar( \
-      ReaK::graph::make_sbastar_bundle( \
-        motion_graph, boost::any_cast<Vertex>( vis.m_start_node ), *sup_space_ptr, vis, \
-        heuristic_map, pos_map, weight_map, dens_map, cons_map, dist_map, pred_map, \
-        get(&VertexProp::key_value, motion_graph), nc_selector), \
-      ( vis.m_goal_node.empty() ? boost::graph_traits<MotionGraphType>::null_vertex() : boost::any_cast<Vertex>( vis.m_goal_node ) ), \
+      RK_SBASTAR_PLANNER_MAKE_SBASTAR_BUNDLE_WITH_GOAL, \
       get(random_sampler, *sup_space_ptr), \
       this->m_SA_init_temperature);
   
   
 #define RK_SBASTAR_PLANNER_CALL_LAZY_SBARRTSTAR_FUNCTION \
     ReaK::graph::generate_lazy_sbarrtstar( \
-      ReaK::graph::make_sbastar_bundle( \
-        motion_graph, boost::any_cast<Vertex>( vis.m_start_node ), *sup_space_ptr, vis, \
-        heuristic_map, pos_map, weight_map, dens_map, cons_map, dist_map, pred_map, \
-        get(&VertexProp::key_value, motion_graph), nc_selector), \
-      ( vis.m_goal_node.empty() ? boost::graph_traits<MotionGraphType>::null_vertex() : boost::any_cast<Vertex>( vis.m_goal_node ) ), \
+      RK_SBASTAR_PLANNER_MAKE_SBASTAR_BUNDLE_WITH_GOAL, \
       get(random_sampler, *sup_space_ptr), \
       this->m_SA_init_temperature);
   
   
 #define RK_SBASTAR_PLANNER_CALL_LAZY_BNB_SBARRTSTAR_FUNCTION \
     ReaK::graph::generate_lazy_bnb_sbarrtstar( \
-      ReaK::graph::make_sbastar_bundle( \
-        motion_graph, boost::any_cast<Vertex>( vis.m_start_node ), *sup_space_ptr, vis, \
-        heuristic_map, pos_map, weight_map, dens_map, cons_map, dist_map, pred_map, \
-        get(&VertexProp::key_value, motion_graph), nc_selector), \
-      ( vis.m_goal_node.empty() ? boost::graph_traits<MotionGraphType>::null_vertex() : boost::any_cast<Vertex>( vis.m_goal_node ) ), \
+      RK_SBASTAR_PLANNER_MAKE_SBASTAR_BUNDLE_WITH_GOAL, \
       get(random_sampler, *sup_space_ptr), \
       this->m_SA_init_temperature);
    
@@ -283,61 +346,39 @@ void sbastar_planner<FreeSpaceType>::solve_planning_query(planning_query<FreeSpa
   
 #define RK_SBASTAR_PLANNER_CALL_ANYTIME_SBASTAR_FUNCTION \
     ReaK::graph::generate_anytime_sbastar( \
-      ReaK::graph::make_sbastar_bundle( \
-        motion_graph, boost::any_cast<Vertex>( vis.m_start_node ), *sup_space_ptr, vis, \
-        heuristic_map, pos_map, weight_map, dens_map, cons_map, dist_map, pred_map, \
-        get(&VertexProp::key_value, motion_graph), nc_selector), \
+      RK_SBASTAR_PLANNER_MAKE_SBASTAR_BUNDLE, \
       this->m_init_relaxation);
   
   
 #define RK_SBASTAR_PLANNER_CALL_ANYTIME_LAZY_SBASTAR_FUNCTION \
     ReaK::graph::generate_anytime_lazy_sbastar( \
-      ReaK::graph::make_sbastar_bundle( \
-        motion_graph, boost::any_cast<Vertex>( vis.m_start_node ), *sup_space_ptr, vis, \
-        heuristic_map, pos_map, weight_map, dens_map, cons_map, dist_map, pred_map, \
-        get(&VertexProp::key_value, motion_graph), nc_selector), \
+      RK_SBASTAR_PLANNER_MAKE_SBASTAR_BUNDLE, \
       this->m_init_relaxation);
   
   
 #define RK_SBASTAR_PLANNER_CALL_ANYTIME_LAZY_BNB_SBASTAR_FUNCTION \
     ReaK::graph::generate_anytime_lazy_bnb_sbastar( \
-      ReaK::graph::make_sbastar_bundle( \
-        motion_graph, boost::any_cast<Vertex>( vis.m_start_node ), *sup_space_ptr, vis, \
-        heuristic_map, pos_map, weight_map, dens_map, cons_map, dist_map, pred_map, \
-        get(&VertexProp::key_value, motion_graph), nc_selector), \
-      ( vis.m_goal_node.empty() ? boost::graph_traits<MotionGraphType>::null_vertex() : boost::any_cast<Vertex>( vis.m_goal_node ) ), \
+      RK_SBASTAR_PLANNER_MAKE_SBASTAR_BUNDLE_WITH_GOAL, \
       this->m_init_relaxation);
   
   
 #define RK_SBASTAR_PLANNER_CALL_ANYTIME_SBARRTSTAR_FUNCTION \
     ReaK::graph::generate_anytime_sbarrtstar( \
-      ReaK::graph::make_sbastar_bundle( \
-        motion_graph, boost::any_cast<Vertex>( vis.m_start_node ), *sup_space_ptr, vis, \
-        heuristic_map, pos_map, weight_map, dens_map, cons_map, dist_map, pred_map, \
-        get(&VertexProp::key_value, motion_graph), nc_selector), \
-      ( vis.m_goal_node.empty() ? boost::graph_traits<MotionGraphType>::null_vertex() : boost::any_cast<Vertex>( vis.m_goal_node ) ), \
+      RK_SBASTAR_PLANNER_MAKE_SBASTAR_BUNDLE_WITH_GOAL, \
       get(random_sampler, *sup_space_ptr), \
       this->m_init_relaxation, this->m_SA_init_temperature);
   
   
 #define RK_SBASTAR_PLANNER_CALL_ANYTIME_LAZY_SBARRTSTAR_FUNCTION \
     ReaK::graph::generate_anytime_lazy_sbarrtstar( \
-      ReaK::graph::make_sbastar_bundle( \
-        motion_graph, boost::any_cast<Vertex>( vis.m_start_node ), *sup_space_ptr, vis, \
-        heuristic_map, pos_map, weight_map, dens_map, cons_map, dist_map, pred_map, \
-        get(&VertexProp::key_value, motion_graph), nc_selector), \
-      ( vis.m_goal_node.empty() ? boost::graph_traits<MotionGraphType>::null_vertex() : boost::any_cast<Vertex>( vis.m_goal_node ) ), \
+      RK_SBASTAR_PLANNER_MAKE_SBASTAR_BUNDLE_WITH_GOAL, \
       get(random_sampler, *sup_space_ptr), \
       this->m_init_relaxation, this->m_SA_init_temperature);
   
   
 #define RK_SBASTAR_PLANNER_CALL_ANYTIME_LAZY_BNB_SBARRTSTAR_FUNCTION \
     ReaK::graph::generate_anytime_lazy_bnb_sbarrtstar( \
-      ReaK::graph::make_sbastar_bundle( \
-        motion_graph, boost::any_cast<Vertex>( vis.m_start_node ), *sup_space_ptr, vis, \
-        heuristic_map, pos_map, weight_map, dens_map, cons_map, dist_map, pred_map, \
-        get(&VertexProp::key_value, motion_graph), nc_selector), \
-      ( vis.m_goal_node.empty() ? boost::graph_traits<MotionGraphType>::null_vertex() : boost::any_cast<Vertex>( vis.m_goal_node ) ), \
+      RK_SBASTAR_PLANNER_MAKE_SBASTAR_BUNDLE_WITH_GOAL, \
       get(random_sampler, *sup_space_ptr), \
       this->m_init_relaxation, this->m_SA_init_temperature);
   
@@ -493,6 +534,8 @@ void sbastar_planner<FreeSpaceType>::solve_planning_query(planning_query<FreeSpa
 #undef RK_SBASTAR_PLANNER_INIT_START_AND_GOAL_NODE
 #undef RK_SBASTAR_PLANNER_SETUP_DVP_TREE_SYNCHRO
 #undef RK_SBASTAR_PLANNER_SETUP_ALT_TREE_SYNCHRO
+#undef RK_SBASTAR_PLANNER_MAKE_SBASTAR_BUNDLE
+#undef RK_SBASTAR_PLANNER_MAKE_SBASTAR_BUNDLE_WITH_GOAL
 #undef RK_SBASTAR_PLANNER_CALL_SBASTAR_FUNCTION
 #undef RK_SBASTAR_PLANNER_CALL_LAZY_SBASTAR_FUNCTION
 #undef RK_SBASTAR_PLANNER_CALL_LAZY_BNB_SBASTAR_FUNCTION

@@ -46,6 +46,7 @@
 #include <boost/concept_check.hpp>
 
 #include "path_planning/bounded_space_concept.hpp"
+#include "path_planning/reversible_space_concept.hpp"
 #include "topologies/generic_sampler_factory.hpp"
 #include "topologies/rate_limited_spaces.hpp"
 
@@ -129,6 +130,56 @@ namespace detail {
         return result;
       } catch(optim::infeasible_problem& e) { RK_UNUSED(e);
         return a;
+      };
+    };
+    
+    static 
+    point_type move_pt_back_to(const BaseTopology& b_space, const rt_metric_type& rt_dist, 
+                               const point_type& a, double fraction, const point_type& b) {
+      try {
+        generic_interpolator_impl<svp_interpolator,BaseTopology,time_topology> interp;
+        interp.initialize(a, b, 0.0, b_space, time_topology(), rt_dist);
+        double dt_min = interp.get_minimum_travel_time();
+        if( dt_min == std::numeric_limits<double>::infinity() )
+          return b;
+        double dt = dt_min * (1.0 - fraction);
+        point_type result = b;
+        interp.compute_point(result, a, b, b_space, time_topology(), dt, dt_min, rt_dist);
+        return result;
+      } catch(optim::infeasible_problem& e) { RK_UNUSED(e);
+        return b;
+      };
+    };
+    
+    static 
+    point_type move_pt_back_to(const BaseTopology& b_space, const rt_metric_type& rt_dist, 
+                               const point_type& a, double fraction, const point_type& b,
+                               double min_dist_interval, validity_predicate_type predicate) {
+      try {
+        generic_interpolator_impl<svp_interpolator,BaseTopology,time_topology> interp;
+        interp.initialize(a, b, 0.0, b_space, time_topology(), rt_dist);
+        double dt_min = interp.get_minimum_travel_time();
+        if( dt_min == std::numeric_limits<double>::infinity() )
+          return b;
+        double dt = dt_min * (1.0 - fraction);
+        double d = dt_min - min_dist_interval;
+        point_type result = b;
+        point_type last_result = b;
+        while(d > dt) {
+          interp.compute_point(result, a, b, b_space, time_topology(), d, dt_min, rt_dist);
+          if(!predicate(result))
+            return last_result;
+          d -= min_dist_interval;
+          last_result = result;
+        };
+        if(fraction == 1.0) //these equal comparison are used for when exact end fractions are used.
+          return a;
+        if(fraction == 0.0)
+          return b;
+        interp.compute_point(result, a, b, b_space, time_topology(), dt, dt_min, rt_dist);
+        return result;
+      } catch(optim::infeasible_problem& e) { RK_UNUSED(e);
+        return b;
       };
     };
     
@@ -263,6 +314,70 @@ namespace detail {
     };
     
     static 
+    point_type move_pt_back_to(const BaseTopology& b_space, const rt_metric_type& rt_dist, 
+                               const point_type& a, double fraction, const point_type& b) {
+      
+      if(a.time > b.time) // Am I trying to go backwards in time (impossible)?
+        return b; //a is not reachable from b.
+      
+      try {
+        generic_interpolator_impl<svp_interpolator, base_space_topo, base_time_topo> interp;
+        double dt_total = (b.time - a.time);  // the free time that I have along the path.
+        interp.initialize(a.pt, b.pt, dt_total, b_space.get_space_topology(), b_space.get_time_topology(), rt_dist);
+        if( interp.get_minimum_travel_time() == std::numeric_limits<double>::infinity() )
+          return b;
+        double dt = dt_total * (1.0 - fraction);
+        point_type result = b;
+        interp.compute_point(result.pt, a.pt, b.pt, b_space.get_space_topology(), b_space.get_time_topology(), dt, dt_total, rt_dist);
+        result.time = a.time + dt;
+        return result;
+      } catch(optim::infeasible_problem& e) { RK_UNUSED(e);
+        return b;
+      };
+    };
+    
+    static 
+    point_type move_pt_back_to(const BaseTopology& b_space, const rt_metric_type& rt_dist, 
+                               const point_type& a, double fraction, const point_type& b,
+                               double min_dist_interval, validity_predicate_type predicate) {
+      
+      if(a.time > b.time) // Am I trying to go backwards in time (impossible)?
+        return b; //a is not reachable from b.
+      
+      try {
+        double dt_total = (b.time - a.time);  // the free time that I have along the path.
+        if(dt_total < min_dist_interval)
+          return move_pt_back_to(b_space, rt_dist, a, fraction, b);
+        
+        generic_interpolator_impl<svp_interpolator, base_space_topo, base_time_topo> interp;
+        interp.initialize(a.pt, b.pt, dt_total, b_space.get_space_topology(), b_space.get_time_topology(), rt_dist);
+        if( interp.get_minimum_travel_time() == std::numeric_limits<double>::infinity() )
+          return b;
+        double dt = dt_total * (1.0 - fraction);
+        double d = dt_total - min_dist_interval;
+        point_type result = b;
+        point_type last_result = b;
+        while(d > dt) {
+          interp.compute_point(result.pt, a.pt, b.pt, b_space.get_space_topology(), b_space.get_time_topology(), d, dt_total, rt_dist);
+          result.time = a.time + d;
+          if(!predicate(result))
+            return last_result;
+          d -= min_dist_interval;
+          last_result = result;
+        };
+        if(fraction == 1.0) //these equal comparison are used for when exact end fractions are used.
+          return a;
+        if(fraction == 0.0)
+          return b;
+        interp.compute_point(result.pt, a.pt, b.pt, b_space.get_space_topology(), b_space.get_time_topology(), dt, dt_total, rt_dist);
+        result.time = a.time + dt;
+        return result;
+      } catch(optim::infeasible_problem& e) { RK_UNUSED(e);
+        return b;
+      };
+    };
+    
+    static 
     double get_distance(const BaseTopology& b_space, const rt_metric_type& rt_dist, const point_type& a, const point_type& b) {
       if(a.time > b.time) // Am I trying to go backwards in time (impossible)?
         return std::numeric_limits<double>::infinity(); //p2 is not reachable from p1.
@@ -368,6 +483,15 @@ class interpolated_topology<BaseTopology, svp_interpolation_tag> : public interp
     virtual point_type interp_topo_move_position_toward_pred(const point_type& a, double fraction, const point_type& b,
                                                              double min_dist_interval, validity_predicate_type predicate) const {
       return Impl::move_pt_toward(*this, rt_dist, a, fraction, b, min_dist_interval, predicate);
+    };
+    
+    virtual point_type interp_topo_move_position_back_to(const point_type& a, double fraction, const point_type& b) const {
+      return Impl::move_pt_back_to(*this, rt_dist, a, fraction, b);
+    };
+    
+    virtual point_type interp_topo_move_position_back_to_pred(const point_type& a, double fraction, const point_type& b,
+                                                              double min_dist_interval, validity_predicate_type predicate) const {
+      return Impl::move_pt_back_to(*this, rt_dist, a, fraction, b, min_dist_interval, predicate);
     };
     
     virtual double interp_topo_get_distance(const point_type& a, const point_type& b) const {

@@ -239,6 +239,25 @@ ptrobot2D_test_world::point_type ptrobot2D_test_world::move_position_toward(cons
     return m_space.move_position_toward(p1, fraction, p2);
 };
 
+ptrobot2D_test_world::point_type ptrobot2D_test_world::move_position_back_to(const ptrobot2D_test_world::point_type& p1, double fraction, const ptrobot2D_test_world::point_type& p2) const {
+  double dist = m_distance(p1, p2, m_space);
+  if(dist * fraction > max_edge_length)
+    fraction = max_edge_length / dist;
+  double d = 1.0;
+  while(d < dist * fraction) {
+    if (!pimpl->is_free(m_space.move_position_back_to(p1, (d / dist), p2))) {
+      return m_space.move_position_back_to(p1,((d - 1.0) / dist), p2);
+    };
+    d += 1.0;
+  };
+  if(fraction == 1.0) //these equal comparison are used for when exact end fractions are used.
+    return p1;
+  else if(fraction == 0.0)
+    return p2;
+  else
+    return m_space.move_position_back_to(p1, fraction, p2);
+};
+
 std::pair<ptrobot2D_test_world::point_type, bool> ptrobot2D_test_world::random_walk(const ptrobot2D_test_world::point_type& p_u) const {
   ptrobot2D_test_world::point_type p_rnd, p_v;
   unsigned int i = 0;
@@ -253,6 +272,10 @@ std::pair<ptrobot2D_test_world::point_type, bool> ptrobot2D_test_world::random_w
     return std::make_pair(p_v, false);
   };
   return std::make_pair(p_v, true);
+};
+
+std::pair<ptrobot2D_test_world::point_type, bool> ptrobot2D_test_world::random_back_walk(const ptrobot2D_test_world::point_type& p_u) const {
+  return random_walk(p_u);
 };
 
 double ptrobot2D_test_world::bird_fly_to_goal(const ptrobot2D_test_world::point_type& p_u) const {

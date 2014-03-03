@@ -179,6 +179,14 @@ class manip_dynamic_env : public named_object {
       return m_space.move_position_toward(p1, fraction, p2, min_interval, is_free_predicate(this));
     };
     
+    /**
+     * Returns a point which is at a backward fraction between two points a to b, or as 
+     * far as it can get before a collision.
+     */
+    point_type move_position_back_to(const point_type& p1, double fraction, const point_type& p2) const {
+      return m_space.move_position_back_to(p1, fraction, p2, min_interval, is_free_predicate(this));
+    };
+    
     
     /**
      * Parametrized constructor (this class is a RAII class).
@@ -293,7 +301,10 @@ class manip_dynamic_env : public named_object {
 
 template <typename BaseJointSpace>
 struct is_metric_space< manip_dynamic_env<BaseJointSpace> > : boost::mpl::true_ { };
-        
+
+template <typename BaseJointSpace>
+struct is_reversible_space< manip_dynamic_env<BaseJointSpace> > : boost::mpl::true_ { };
+
 template <typename BaseJointSpace>
 struct is_point_distribution< manip_dynamic_env<BaseJointSpace> > : boost::mpl::true_ { };
 

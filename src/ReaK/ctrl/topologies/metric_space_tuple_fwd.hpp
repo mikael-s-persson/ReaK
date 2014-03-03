@@ -66,6 +66,23 @@ namespace detail {
   template <typename SpaceTuple>
   struct is_metric_symmetric_tuple : is_metric_symmetric_tuple_impl< arithmetic_tuple_size<SpaceTuple>::type::value, SpaceTuple > { };
   
+  
+  template <std::size_t Size, typename SpaceTuple>
+  struct is_reversible_space_tuple_impl;
+  
+  template <typename SpaceTuple>
+  struct is_reversible_space_tuple_impl< 0, SpaceTuple > : boost::mpl::true_ { };
+  
+  template <std::size_t Size, typename SpaceTuple>
+  struct is_reversible_space_tuple_impl : 
+    boost::mpl::and_<
+      is_reversible_space_tuple_impl<Size-1, SpaceTuple>,
+      is_reversible_space< typename arithmetic_tuple_element<Size-1, SpaceTuple>::type >
+    > { };
+  
+  template <typename SpaceTuple>
+  struct is_reversible_space_tuple : is_reversible_space_tuple_impl< arithmetic_tuple_size<SpaceTuple>::type::value, SpaceTuple > { };
+  
 };
   
   
@@ -76,6 +93,10 @@ class metric_space_tuple;
 
 template <typename SpaceTuple, typename TupleDistanceMetric>
 struct is_metric_space< metric_space_tuple<SpaceTuple, TupleDistanceMetric> > : boost::mpl::true_ { };
+
+template <typename SpaceTuple, typename TupleDistanceMetric>
+struct is_reversible_space< metric_space_tuple<SpaceTuple, TupleDistanceMetric> > : 
+  detail::is_reversible_space_tuple<SpaceTuple> { };
 
 template <typename SpaceTuple, typename TupleDistanceMetric>
 struct is_point_distribution< metric_space_tuple<SpaceTuple, TupleDistanceMetric> > : boost::mpl::true_ { };

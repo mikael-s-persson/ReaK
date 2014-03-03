@@ -669,6 +669,32 @@ struct rrg_visitor_archetype :
   rrt_visitor_archetype, 
   node_reconnect_visitor_archetype { };
 
+/**
+  * This concept class defines what is required of a class to serve as a visitor to the bi-directional RRG algorithm.
+  * 
+  * Required concepts:
+  * 
+  * the visitor should model RRGVisitorConcept, and NodeBackPullingVisitorConcept.
+  * 
+  * \tparam Visitor The visitor class to be checked for modeling this concept.
+  * \tparam Graph The graph on which the visitor class is required to work with.
+  * \tparam Topology The topology that provides the positions with which the visitor class is required to work.
+  */
+template <typename Visitor, typename Graph, typename Topology>
+struct RRGBidirVisitorConcept : RRGVisitorConcept<Visitor,Graph,Topology> {
+  
+  BOOST_CONCEPT_ASSERT((NodeBackPullingVisitorConcept<Visitor,Graph,Topology>));
+  
+  BOOST_CONCEPT_USAGE(RRGBidirVisitorConcept) { };
+};
+
+/**
+  * This class is simply an archetype visitor for RRGBidirVisitorConcept.
+  */
+struct rrg_bidir_visitor_archetype : 
+  rrg_visitor_archetype, 
+  node_back_pulling_visitor_archetype { };
+
 
 
 /**

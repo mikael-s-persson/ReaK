@@ -75,14 +75,6 @@ struct density_plan_visitor : planning_visitor_base< density_plan_visitor<FreeSp
                 NodeExploringVisitorConcept
 ***************************************************/
   
-  template <typename SpaceType, typename Vertex, typename Graph>
-  void dispatched_initialize_vertex(mg_vertex_data<SpaceType>&, Vertex, Graph&) const {};
-  
-  template <typename SpaceType, typename Vertex, typename Graph>
-  void dispatched_initialize_vertex(astar_mg_vertex<SpaceType>& vp, Vertex, Graph&) const {
-    vp.heuristic_value = this->m_query->get_heuristic_to_goal(vp.position);
-  };
-  
   template <typename Vertex, typename Graph>
   void init_nonrecursive_density(Vertex u, Graph& g) const {
     m_density_calc.update_density(u, g, *(this->m_query->space), 
@@ -105,13 +97,13 @@ struct density_plan_visitor : planning_visitor_base< density_plan_visitor<FreeSp
   
   template <typename BaseType, typename Vertex, typename Graph>
   void dispatched_initialize_vertex(dense_mg_vertex<BaseType>& vp, Vertex u, Graph& g) const {
-    dispatched_initialize_vertex(static_cast<BaseType&>(vp),u,g);
+    base_type::dispatched_initialize_vertex(static_cast<BaseType&>(vp),u,g);
     init_nonrecursive_density(u, g);
   };
   
   template <typename BaseType, typename Vertex, typename Graph>
   void dispatched_initialize_vertex(recursive_dense_mg_vertex<BaseType>& vp, Vertex u, Graph& g) const {
-    dispatched_initialize_vertex(static_cast<BaseType&>(vp),u,g);
+    base_type::dispatched_initialize_vertex(static_cast<BaseType&>(vp),u,g);
     init_recursive_density(u, g);
   };
   
@@ -131,6 +123,9 @@ struct density_plan_visitor : planning_visitor_base< density_plan_visitor<FreeSp
   };
   bool dispatched_heuristic_potential(const astar_mg_vertex<space_type>& vp, const astar_mg_vertex<space_type>& sp) const {
     return ( vp.heuristic_value > std::numeric_limits<double>::epsilon() * sp.heuristic_value );
+  };
+  bool dispatched_heuristic_potential(const bidir_astar_mg_vertex<space_type>& vp, const bidir_astar_mg_vertex<space_type>& sp) const {
+    return ( vp.fwd_distance_accum > std::numeric_limits<double>::epsilon() * sp.fwd_distance_accum );
   };
   
   template <typename BaseType>

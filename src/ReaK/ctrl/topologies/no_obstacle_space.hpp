@@ -37,6 +37,7 @@
 
 #include "path_planning/random_sampler_concept.hpp"
 #include "path_planning/metric_space_concept.hpp"
+#include "path_planning/reversible_space_concept.hpp"
 
 #include "default_random_sampler.hpp"
 
@@ -167,10 +168,29 @@ class no_obstacle_space : public named_object {
     };
     
     /**
+     * Returns a point which is at a backward fraction between two points a to b, or as 
+     * far as it can get before a collision.
+     */
+    point_type move_position_back_to(const point_type& p1, double fraction, const point_type& p2) const {
+      double total_dist = m_distance(p1, p2, m_space);
+      if(total_dist * fraction > max_edge_length)
+        return m_space.move_position_back_to(p1, max_edge_length / total_dist, p2);
+      else
+        return m_space.move_position_back_to(p1, fraction, p2);
+    };
+    
+    /**
      * Returns a random point fairly near to the given point.
      */
     std::pair<point_type, bool> random_walk(const point_type& p_u) const {
-      return std::pair<point_type, bool>(move_position_toward(p_u, 1.0, m_rand_sampler(m_space)), true);
+      return std::pair<point_type, bool>(move_position_toward(p_u, 1.0, m_space.adjust(p_u, m_space.difference(m_rand_sampler(m_space), m_space.origin()))), true);
+    };
+    
+    /**
+     * Returns a random point fairly near to the given point.
+     */
+    std::pair<point_type, bool> random_back_walk(const point_type& p_u) const {
+      return std::pair<point_type, bool>(move_position_back_to(m_space.adjust(p_u, - m_space.difference(m_rand_sampler(m_space), m_space.origin())), 1.0, p_u), true);
     };
     
     /**
@@ -283,6 +303,11 @@ template <typename Topology,
           typename DistanceMetric,
           typename RandomSampler>
 struct is_metric_space< no_obstacle_space<Topology, DistanceMetric, RandomSampler> > : boost::mpl::true_ { };
+
+template <typename Topology, 
+          typename DistanceMetric,
+          typename RandomSampler>
+struct is_reversible_space< no_obstacle_space<Topology, DistanceMetric, RandomSampler> > : is_reversible_space<Topology> { };
 
 template <typename Topology, 
           typename DistanceMetric,

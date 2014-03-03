@@ -243,6 +243,10 @@ template <typename IndependentSpace, typename SpaceTuple, typename TupleDistance
 struct is_metric_space< reach_time_diff_space<IndependentSpace, SpaceTuple, TupleDistanceMetric> > : boost::mpl::true_ { };
 
 template <typename IndependentSpace, typename SpaceTuple, typename TupleDistanceMetric>
+struct is_reversible_space< reach_time_diff_space<IndependentSpace, SpaceTuple, TupleDistanceMetric> > : 
+  is_reversible_space< typename reach_time_diff_space<IndependentSpace, SpaceTuple, TupleDistanceMetric>::base_type > { };
+
+template <typename IndependentSpace, typename SpaceTuple, typename TupleDistanceMetric>
 struct is_point_distribution< reach_time_diff_space<IndependentSpace, SpaceTuple, TupleDistanceMetric> > : boost::mpl::true_ { };
 
 template <typename IndependentSpace, typename SpaceTuple, typename TupleDistanceMetric>

@@ -42,6 +42,7 @@
 
 #include "path_planning/random_sampler_concept.hpp"
 #include "path_planning/metric_space_concept.hpp"
+#include "path_planning/reversible_space_concept.hpp"
 
 #include "default_random_sampler.hpp"
 
@@ -176,9 +177,20 @@ class ptrobot2D_test_world : public named_object {
     point_type move_position_toward(const point_type& p1, double fraction, const point_type& p2) const;
     
     /**
+     * Returns a point which is at a backward fraction between two points a to b, or as 
+     * far as it can get before a collision.
+     */
+    point_type move_position_back_to(const point_type& p1, double fraction, const point_type& p2) const;
+    
+    /**
      * Returns a random point fairly near to the given point.
      */
     std::pair<point_type, bool> random_walk(const point_type& p_u) const;
+    
+    /**
+     * Returns a random point fairly near to the given point.
+     */
+    std::pair<point_type, bool> random_back_walk(const point_type& p_u) const;
     
     double bird_fly_to_goal(const point_type& p_u) const;
     
@@ -226,7 +238,10 @@ class ptrobot2D_test_world : public named_object {
 
 template <>
 struct is_metric_space< ptrobot2D_test_world > : boost::mpl::true_ { };
-        
+
+template <>
+struct is_reversible_space< ptrobot2D_test_world > : boost::mpl::true_ { };
+
 template <>
 struct is_point_distribution< ptrobot2D_test_world > : boost::mpl::true_ { };
 
