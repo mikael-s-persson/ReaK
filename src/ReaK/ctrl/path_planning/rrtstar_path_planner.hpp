@@ -75,6 +75,11 @@ class rrtstar_planner : public sample_based_planner<FreeSpaceType> {
     typedef typename topology_traits< super_space_type >::point_type point_type;
     typedef typename topology_traits< super_space_type >::point_difference_type point_difference_type;
     
+  protected:
+    
+    template <typename RRTStarFactory>
+    void solve_planning_query_impl(planning_query<FreeSpaceType>& aQuery);
+    
   public:
     
     /**

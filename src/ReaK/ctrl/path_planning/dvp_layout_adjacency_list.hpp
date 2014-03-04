@@ -106,6 +106,9 @@ class dvp_adjacency_list
   public:
     BOOST_CONCEPT_ASSERT((MetricSpaceConcept<Topology>));
     
+    typedef dvp_adjacency_list<VertexProperty, EdgeProperty, Topology, PositionMap,
+                               Arity, VPChooser, TreeStorageTag, OutEdgeListS, DirectedS, EdgeListS> self;
+    
     typedef typename topology_traits<Topology>::point_type point_type;
     typedef typename topology_traits<Topology>::point_difference_type point_difference_type;
     typedef double distance_type;
@@ -154,6 +157,10 @@ class dvp_adjacency_list
     position_map_type m_vp_pos;
     dvp_impl_type m_impl;
     
+    // non-copyable: (because of shared-state)
+    dvp_adjacency_list(const self&);
+    self& operator=(const self&);
+    
     
   public:
     
@@ -189,6 +196,33 @@ class dvp_adjacency_list
                m_vp_pos,
                aVPChooser
              ) { };
+    
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
+    
+    /**
+     * Move constructor. 
+     * \note This invalidates the adjacency-list obtained from the moved-from object.
+     */
+    dvp_adjacency_list(self&& rhs) BOOST_NOEXCEPT :
+                       m_tree(std::move(rhs.m_tree)),
+                       m_position(std::move(rhs.m_position)),
+                       m_vp_key(std::move(rhs.m_vp_key)),
+                       m_vp_pos(std::move(rhs.m_vp_pos)),
+                       m_impl(m_tree, std::move(rhs.m_impl)) { };
+    
+    /**
+     * Move assignment. 
+     * \note This invalidates the adjacency-list obtained from the moved-from object.
+     */
+    self& operator=(self&& rhs) BOOST_NOEXCEPT {
+      m_tree = std::move(rhs.m_tree);
+      m_position = std::move(rhs.m_position);
+      m_vp_key = std::move(rhs.m_vp_key);
+      m_vp_pos = std::move(rhs.m_vp_pos);
+      m_impl.reassign_moved(m_tree, std::move(rhs.m_impl));
+      return *this;
+    };
+#endif
     
     /**
      * Returns a graph object associated to, stored as and synchronized with this DVP tree layout.

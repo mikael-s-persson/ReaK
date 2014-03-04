@@ -307,7 +307,7 @@ class dvp_tree_impl
     
     
     
-    tree_indexer& m_tree;   ///< Tree storage.
+    tree_indexer* m_tree;   ///< Tree storage.
     vertex_type m_root;    ///< Root node of the tree.
     
     VertexKeyMap m_key;      ///< A map from a vertex_property to a key_type value.
@@ -368,7 +368,7 @@ class dvp_tree_impl
         
         // update values in the dist-map with the distances to the new chosen vantage-point:
         {
-          const point_type& chosen_vp_pt = get(m_position, get_raw_vertex_property(m_tree, cur_task.node));
+          const point_type& chosen_vp_pt = get(m_position, get_raw_vertex_property(*m_tree, cur_task.node));
           for(prop_vector_iter it = cur_task.first; it != cur_task.last; ++it)
             dist_map[ get(m_key, *it) ] = m_distance.proper_distance(chosen_vp_pt, get(m_position, *it));
         };
@@ -392,9 +392,9 @@ class dvp_tree_impl
           vertex_type new_vp_node;
           boost::tie(new_vp_node, boost::tuples::ignore) = 
 #ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
-            add_child_vertex(cur_task.node, std::move(*temp), std::move(ep), m_tree);
+            add_child_vertex(cur_task.node, std::move(*temp), std::move(ep), *m_tree);
 #else
-            add_child_vertex(cur_task.node, *temp, ep, m_tree);
+            add_child_vertex(cur_task.node, *temp, ep, *m_tree);
 #endif
           ++temp;
           if(temp != cur_task.first)
@@ -501,17 +501,17 @@ class dvp_tree_impl
         if( cur_node.second > aResult.Radius )
           continue;
         
-        const point_type& current_vp = get(m_position, get_raw_vertex_property(m_tree,cur_node.first));
+        const point_type& current_vp = get(m_position, get_raw_vertex_property(*m_tree,cur_node.first));
         distance_type current_dist = m_distance.proper_distance(aPoint, current_vp);
         
         aResult.register_vantage_point(aPoint, current_vp, current_dist, cur_node.first, m_distance);
         
         out_edge_iter ei,ei_end;
         //first, locate the partition in which aPoint is:
-        if(out_degree(cur_node.first,m_tree) == 0)
+        if(out_degree(cur_node.first,*m_tree) == 0)
           continue;
-        for(boost::tie(ei,ei_end) = out_edges(cur_node.first,m_tree); ei != ei_end; ++ei) {
-          if(current_dist <= get(m_mu, get_raw_edge_property(m_tree,*ei))) 
+        for(boost::tie(ei,ei_end) = out_edges(cur_node.first,*m_tree); ei != ei_end; ++ei) {
+          if(current_dist <= get(m_mu, get_raw_edge_property(*m_tree,*ei))) 
             break;
         };
         if(ei == ei_end) 
@@ -519,11 +519,11 @@ class dvp_tree_impl
         
         std::stack< std::pair<vertex_type, distance_type> > temp_invtasks;
         //search in the most likely node.
-        temp_invtasks.push(std::pair<vertex_type, distance_type>(target(*ei,m_tree),0.0));
+        temp_invtasks.push(std::pair<vertex_type, distance_type>(target(*ei,*m_tree),0.0));
         
         out_edge_iter ei_left = ei;
         out_edge_iter ei_right = ei; ++ei_right;
-        boost::tie(ei,ei_end) = out_edges(cur_node.first,m_tree); //find the bounds again (start and end).
+        boost::tie(ei,ei_end) = out_edges(cur_node.first,*m_tree); //find the bounds again (start and end).
         bool left_stopped  = (ei_left == ei);
         bool right_stopped = (ei_right == ei_end);
         while(true) {
@@ -531,8 +531,8 @@ class dvp_tree_impl
             out_edge_iter ei_rightleft = ei_right; --ei_rightleft;
             distance_type temp_dist = 0.0;
             while((ei_right != ei_end) && 
-                  ((temp_dist = get(m_mu,get_raw_edge_property(m_tree,*ei_rightleft)) - current_dist) < aResult.Radius)) {
-              temp_invtasks.push(std::pair<vertex_type, distance_type>(target(*ei_right,m_tree), temp_dist));
+                  ((temp_dist = get(m_mu,get_raw_edge_property(*m_tree,*ei_rightleft)) - current_dist) < aResult.Radius)) {
+              temp_invtasks.push(std::pair<vertex_type, distance_type>(target(*ei_right,*m_tree), temp_dist));
               ++ei_rightleft; ++ei_right;
             };
             break;
@@ -540,22 +540,22 @@ class dvp_tree_impl
             out_edge_iter ei_leftleft = ei_left;
             distance_type temp_dist = 0.0;
             while((ei_left != ei) && 
-                  ((temp_dist = current_dist - get(m_mu,get_raw_edge_property(m_tree,*(--ei_leftleft)))) < aResult.Radius)) {
-              temp_invtasks.push(std::pair<vertex_type, distance_type>(target(*ei_leftleft,m_tree), temp_dist));
+                  ((temp_dist = current_dist - get(m_mu,get_raw_edge_property(*m_tree,*(--ei_leftleft)))) < aResult.Radius)) {
+              temp_invtasks.push(std::pair<vertex_type, distance_type>(target(*ei_leftleft,*m_tree), temp_dist));
               --ei_left;
             };
             break;
           } else {
             out_edge_iter ei_leftleft = ei_left; --ei_leftleft;
-            distance_type d1 = get(m_mu,get_raw_edge_property(m_tree,*ei_leftleft)); //greater than 0 if ei_leftleft should be searched.
+            distance_type d1 = get(m_mu,get_raw_edge_property(*m_tree,*ei_leftleft)); //greater than 0 if ei_leftleft should be searched.
             out_edge_iter ei_rightleft = ei_right; --ei_rightleft;
-            distance_type d2 = get(m_mu,get_raw_edge_property(m_tree,*ei_rightleft)); //less than 0 if ei_right should be searched.
+            distance_type d2 = get(m_mu,get_raw_edge_property(*m_tree,*ei_rightleft)); //less than 0 if ei_right should be searched.
             if(d1 + d2 > 2.0 * current_dist) { //this means that ei_leftleft's boundary is closer to aPoint.
               if(d1 + aResult.Radius - current_dist > 0) {
-                temp_invtasks.push(std::pair<vertex_type, distance_type>(target(*ei_leftleft,m_tree), current_dist - d1));
+                temp_invtasks.push(std::pair<vertex_type, distance_type>(target(*ei_leftleft,*m_tree), current_dist - d1));
                 ei_left = ei_leftleft;
                 if(d2 - aResult.Radius - current_dist < 0) {
-                  temp_invtasks.push(std::pair<vertex_type, distance_type>(target(*ei_right,m_tree), d2 - current_dist));
+                  temp_invtasks.push(std::pair<vertex_type, distance_type>(target(*ei_right,*m_tree), d2 - current_dist));
                   ++ei_right;
                 } else
                   right_stopped = true;
@@ -563,10 +563,10 @@ class dvp_tree_impl
                 break;
             } else {
               if(d2 - aResult.Radius - current_dist < 0) {
-                temp_invtasks.push(std::pair<vertex_type, distance_type>(target(*ei_right,m_tree), d2 - current_dist));
+                temp_invtasks.push(std::pair<vertex_type, distance_type>(target(*ei_right,*m_tree), d2 - current_dist));
                 ++ei_right;
                 if(d1 + aResult.Radius - current_dist > 0) {
-                  temp_invtasks.push(std::pair<vertex_type, distance_type>(target(*ei_leftleft,m_tree), current_dist - d1));
+                  temp_invtasks.push(std::pair<vertex_type, distance_type>(target(*ei_leftleft,*m_tree), current_dist - d1));
                   ei_left = ei_leftleft;
                 } else 
                   left_stopped = true;
@@ -594,14 +594,14 @@ class dvp_tree_impl
     /* This function does a single nearest-neighbor query to find the tree-leaf that is closest to 
      * the given point (starts to recurse from aNode). */
     vertex_type get_leaf(const point_type& aPoint, vertex_type aNode) const {
-      while(out_degree(aNode,m_tree) != 0) {
+      while(out_degree(aNode,*m_tree) != 0) {
         //first, locate the partition in which aPoint is:
-        distance_type current_dist = m_distance.proper_distance(aPoint, get(m_position, get_raw_vertex_property(m_tree,aNode)));
+        distance_type current_dist = m_distance.proper_distance(aPoint, get(m_position, get_raw_vertex_property(*m_tree,aNode)));
         vertex_type result = aNode;
         out_edge_iter ei,ei_end;
-        for(boost::tie(ei,ei_end) = out_edges(aNode,m_tree); ei != ei_end; ++ei) {
-          result = target(*ei,m_tree);
-          if(current_dist <= get(m_mu, get_raw_edge_property(m_tree,*ei))) 
+        for(boost::tie(ei,ei_end) = out_edges(aNode,*m_tree); ei != ei_end; ++ei) {
+          result = target(*ei,*m_tree);
+          if(current_dist <= get(m_mu, get_raw_edge_property(*m_tree,*ei))) 
             break;
         };
         aNode = result;
@@ -616,13 +616,13 @@ class dvp_tree_impl
     vertex_type get_vertex(key_type aKey, const point_type& aPoint, vertex_type aNode) const {
       vertex_type aAlternateBranch = boost::graph_traits<tree_indexer>::null_vertex();
 //       std::cout << "\n ------ Looking for node " << aKey << " at position: " << aPoint << std::endl;
-      while(get(m_key, get_raw_vertex_property(m_tree,aNode)) != aKey) { 
-        distance_type current_dist = m_distance.proper_distance(aPoint, get(m_position, get_raw_vertex_property(m_tree,aNode)));
-//         std::cout << " ---- Looking at node " << get(m_key, get_raw_vertex_property(m_tree,aNode)) 
-//                   << " at position: " << get(m_position, get_raw_vertex_property(m_tree,aNode))
+      while(get(m_key, get_raw_vertex_property(*m_tree,aNode)) != aKey) { 
+        distance_type current_dist = m_distance.proper_distance(aPoint, get(m_position, get_raw_vertex_property(*m_tree,aNode)));
+//         std::cout << " ---- Looking at node " << get(m_key, get_raw_vertex_property(*m_tree,aNode)) 
+//                   << " at position: " << get(m_position, get_raw_vertex_property(*m_tree,aNode))
 //                   << " at distance " << current_dist << std::endl;
         //first, locate the partition in which aPoint is:
-        if(out_degree(aNode,m_tree) == 0) {
+        if(out_degree(aNode,*m_tree) == 0) {
           if(aAlternateBranch != boost::graph_traits<tree_indexer>::null_vertex()) {
             aNode = aAlternateBranch;
             aAlternateBranch = boost::graph_traits<tree_indexer>::null_vertex();
@@ -632,16 +632,16 @@ class dvp_tree_impl
         };
         vertex_type result = aNode;
         out_edge_iter ei,ei_end;
-        for(boost::tie(ei,ei_end) = out_edges(aNode,m_tree); ei != ei_end; ++ei) {
-          result = target(*ei,m_tree);
-//           std::cout << " -- Looking at child " << std::setw(6) << get(m_key, get_raw_vertex_property(m_tree, result)) 
-//                     << " at distance " << get(m_mu, get_raw_edge_property(m_tree, *ei)) << std::endl;
-          if(current_dist < get(m_mu, get_raw_edge_property(m_tree,*ei))) 
+        for(boost::tie(ei,ei_end) = out_edges(aNode,*m_tree); ei != ei_end; ++ei) {
+          result = target(*ei,*m_tree);
+//           std::cout << " -- Looking at child " << std::setw(6) << get(m_key, get_raw_vertex_property(*m_tree, result)) 
+//                     << " at distance " << get(m_mu, get_raw_edge_property(*m_tree, *ei)) << std::endl;
+          if(current_dist < get(m_mu, get_raw_edge_property(*m_tree,*ei))) 
             break;
-          if(current_dist == get(m_mu, get_raw_edge_property(m_tree,*ei))) {
+          if(current_dist == get(m_mu, get_raw_edge_property(*m_tree,*ei))) {
             ++ei;
             if(ei != ei_end)
-              aAlternateBranch = target(*ei,m_tree);
+              aAlternateBranch = target(*ei,*m_tree);
             break;
           };
         };
@@ -656,10 +656,10 @@ class dvp_tree_impl
     /* This function updates the edge distance values as a consequence of a new point being added. */
     void update_mu_upwards(const point_type& aPoint, vertex_type aNode) {
       while(aNode != m_root) {
-        vertex_type parent = source(*(in_edges(aNode,m_tree).first), m_tree);
-        distance_type dist = m_distance.proper_distance(aPoint, get(m_position, get_raw_vertex_property(m_tree,parent)));
-        if(dist > get(m_mu, get_raw_edge_property(m_tree, *(in_edges(aNode,m_tree).first))))
-          put(m_mu, get_raw_edge_property(m_tree, *(in_edges(aNode,m_tree).first)), dist);
+        vertex_type parent = source(*(in_edges(aNode,*m_tree).first), *m_tree);
+        distance_type dist = m_distance.proper_distance(aPoint, get(m_position, get_raw_vertex_property(*m_tree,parent)));
+        if(dist > get(m_mu, get_raw_edge_property(*m_tree, *(in_edges(aNode,*m_tree).first))))
+          put(m_mu, get_raw_edge_property(*m_tree, *(in_edges(aNode,*m_tree).first)), dist);
         aNode = parent;
       };
     };
@@ -668,10 +668,10 @@ class dvp_tree_impl
     /* Does not require persistent vertices */
     /* This function determines if a given node has no children or if all its children have no children. */
     bool is_leaf_node(vertex_type aNode) const {
-      if(out_degree(aNode,m_tree) == 0) return true;
+      if(out_degree(aNode,*m_tree) == 0) return true;
       out_edge_iter ei,ei_end;
-      for(boost::tie(ei,ei_end) = out_edges(aNode,m_tree); ei != ei_end; ++ei) {
-        if(out_degree(target(*ei,m_tree),m_tree) != 0)
+      for(boost::tie(ei,ei_end) = out_edges(aNode,*m_tree); ei != ei_end; ++ei) {
+        if(out_degree(target(*ei,*m_tree),*m_tree) != 0)
           return false;
       };
       return true;
@@ -692,21 +692,21 @@ class dvp_tree_impl
         if(cur_task.second < depth_limit)
           depth_limit = cur_task.second;
         
-        if((out_degree(cur_task.first, m_tree) == 0) && (cur_task.second == 0))
+        if((out_degree(cur_task.first, *m_tree) == 0) && (cur_task.second == 0))
           continue;
         
         --(cur_task.second);
         
-        if(((out_degree(cur_task.first, m_tree) != 0) && (cur_task.second < 0)) || 
-           (out_degree(cur_task.first, m_tree) < Arity) ||
+        if(((out_degree(cur_task.first, *m_tree) != 0) && (cur_task.second < 0)) || 
+           (out_degree(cur_task.first, *m_tree) < Arity) ||
            ((cur_task.second > 0) && (is_leaf_node(cur_task.first))) ) {
           depth_limit = cur_task.second;
           return false;
         };
         
         out_edge_iter ei,ei_end;
-        for(boost::tie(ei,ei_end) = out_edges(cur_task.first,m_tree); ei != ei_end; ++ei)
-          tasks.push(std::pair< vertex_type, int >(target(*ei,m_tree), cur_task.second));
+        for(boost::tie(ei,ei_end) = out_edges(cur_task.first,*m_tree); ei != ei_end; ++ei)
+          tasks.push(std::pair< vertex_type, int >(target(*ei,*m_tree), cur_task.second));
         
       };
       return (depth_limit == 0);
@@ -722,9 +722,9 @@ class dvp_tree_impl
       while(!tasks.empty()) {
         vertex_type current_node = tasks.front(); tasks.pop();
         out_edge_iter ei,ei_end;
-        for(boost::tie(ei,ei_end) = out_edges(current_node,m_tree); ei != ei_end; ++ei) {
-          aList.push_back(target(*ei,m_tree));
-          tasks.push(target(*ei,m_tree));
+        for(boost::tie(ei,ei_end) = out_edges(current_node,*m_tree); ei != ei_end; ++ei) {
+          aList.push_back(target(*ei,*m_tree));
+          tasks.push(target(*ei,*m_tree));
         };
       };
     };
@@ -737,8 +737,8 @@ class dvp_tree_impl
     std::size_t get_depth(vertex_type aNode) const {
       std::size_t max_depth = 0;
       out_edge_iter ei,ei_end;
-      for(boost::tie(ei,ei_end) = out_edges(aNode,m_tree); ei != ei_end; ++ei) {
-        std::size_t temp = get_depth(target(*ei,m_tree));
+      for(boost::tie(ei,ei_end) = out_edges(aNode,*m_tree); ei != ei_end; ++ei) {
+        std::size_t temp = get_depth(target(*ei,*m_tree));
         if(temp > max_depth)
           max_depth = temp;
       };
@@ -769,7 +769,7 @@ class dvp_tree_impl
                   DistanceMap aMu,
                   PositionMap aPosition,
                   VPChooser aVPChooser) : 
-                  m_tree(aTree), m_root(boost::graph_traits<tree_indexer>::null_vertex()), 
+                  m_tree(&aTree), m_root(boost::graph_traits<tree_indexer>::null_vertex()), 
                   m_key(aKey), m_mu(aMu), m_position(aPosition),
                   m_distance(aSpace), 
                   m_vp_chooser(aVPChooser) {
@@ -795,9 +795,9 @@ class dvp_tree_impl
       prop_vector_iter v_last  = v_bin.end();
       rearrange_with_chosen_vp(v_first, v_last);
 #ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
-      m_root = create_root(std::move(*v_first), m_tree);
+      m_root = create_root(std::move(*v_first), *m_tree);
 #else
-      m_root = create_root(*v_first, m_tree);
+      m_root = create_root(*v_first, *m_tree);
 #endif
       construct_node(m_root, ++v_first, v_last);
     };
@@ -827,7 +827,7 @@ class dvp_tree_impl
                   DistanceMap aMu,
                   PositionMap aPosition,
                   VPChooser aVPChooser) : 
-                  m_tree(aTree), m_root(boost::graph_traits<tree_indexer>::null_vertex()), 
+                  m_tree(&aTree), m_root(boost::graph_traits<tree_indexer>::null_vertex()), 
                   m_key(aKey), m_mu(aMu), m_position(aPosition),
                   m_distance(aSpace), 
                   m_vp_chooser(aVPChooser) {
@@ -849,9 +849,9 @@ class dvp_tree_impl
       prop_vector_iter v_last  = v_bin.end();
       rearrange_with_chosen_vp(v_first, v_last);
 #ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
-      m_root = create_root(std::move(*v_first), m_tree);
+      m_root = create_root(std::move(*v_first), *m_tree);
 #else
-      m_root = create_root(*v_first, m_tree);
+      m_root = create_root(*v_first, *m_tree);
 #endif
       construct_node(m_root, ++v_first, v_last);
     };
@@ -871,21 +871,67 @@ class dvp_tree_impl
                   DistanceMap aMu,
                   PositionMap aPosition,
                   VPChooser aVPChooser) : 
-                  m_tree(aTree), m_root(boost::graph_traits<tree_indexer>::null_vertex()), 
+                  m_tree(&aTree), m_root(boost::graph_traits<tree_indexer>::null_vertex()), 
                   m_key(aKey), m_mu(aMu), m_position(aPosition),
                   m_distance(aSpace), 
                   m_vp_chooser(aVPChooser) { };
+    
+    
+    //sort-of copyable:
+    dvp_tree_impl(tree_indexer& aTree, const self& rhs) : 
+        m_tree(&aTree), 
+        m_root(get_root_vertex(aTree)), 
+        m_key(rhs.m_key), 
+        m_mu(rhs.m_mu), 
+        m_position(rhs.m_position), 
+        m_distance(rhs.m_distance),
+        m_vp_chooser(rhs.m_vp_chooser) { };
+    void reassign_copied(tree_indexer& aTree, const self& rhs) BOOST_NOEXCEPT {
+      m_tree = &aTree;
+      m_root = get_root_vertex(aTree);
+      m_key = rhs.m_key;
+      m_mu = rhs.m_mu;
+      m_position = rhs.m_position;
+      m_distance = rhs.m_distance;
+      m_vp_chooser = rhs.m_vp_chooser;
+    };
+    
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
+    //sort-of movable:
+    dvp_tree_impl(tree_indexer& aTree, self&& rhs) BOOST_NOEXCEPT : 
+        m_tree(&aTree), 
+        m_root(get_root_vertex(aTree)), 
+        m_key(std::move(rhs.m_key)), 
+        m_mu(std::move(rhs.m_mu)), 
+        m_position(std::move(rhs.m_position)), 
+        m_distance(std::move(rhs.m_distance)),
+        m_vp_chooser(std::move(rhs.m_vp_chooser)) {
+      rhs.m_tree = NULL;
+      rhs.m_root = boost::graph_traits<tree_indexer>::null_vertex();
+    };
+    void reassign_moved(tree_indexer& aTree, self&& rhs) BOOST_NOEXCEPT {
+      m_tree = &aTree;
+      m_root = get_root_vertex(aTree);
+      rhs.m_tree = NULL;
+      rhs.m_root = boost::graph_traits<tree_indexer>::null_vertex();
+      m_key = std::move(rhs.m_key);
+      m_mu = std::move(rhs.m_mu);
+      m_position = std::move(rhs.m_position);
+      m_distance = std::move(rhs.m_distance);
+      m_vp_chooser = std::move(rhs.m_vp_chooser);
+    };
+#endif
     
     /**
      * Checks if the DVP-tree is empty.
      * \return True if the DVP-tree is empty.
      */
-    bool empty() const { return (num_vertices(m_tree) == 0); };
+    bool empty() const { return (num_vertices(*m_tree) == 0); };
     /**
      * Returns the size of the DVP-tree (the number of vertices it contains.
      * \return The size of the DVP-tree (the number of vertices it contains.
      */
-    std::size_t size() const { return num_vertices(m_tree); };
+    std::size_t size() const { return num_vertices(*m_tree); };
     
     /**
      * Returns the depth of the tree.
@@ -901,13 +947,13 @@ class dvp_tree_impl
      * \return The approximation of the characteristic size of the vertices in the DVP tree.
      */
     double get_characteristic_size() const { 
-      if(num_vertices(m_tree) == 0)
+      if(num_vertices(*m_tree) == 0)
         return std::numeric_limits<double>::infinity();
       
       out_edge_iter ei,ei_end;
       double max_dist = 0.0;
-      for(boost::tie(ei,ei_end) = out_edges(m_root,m_tree); ei != ei_end; ++ei) {
-        double cur_dist = get(m_mu, get_raw_edge_property(m_tree,*ei));
+      for(boost::tie(ei,ei_end) = out_edges(m_root,*m_tree); ei != ei_end; ++ei) {
+        double cur_dist = get(m_mu, get_raw_edge_property(*m_tree,*ei));
         if(cur_dist > max_dist)
           max_dist = cur_dist;
       };
@@ -926,11 +972,11 @@ class dvp_tree_impl
 #else
     void insert(const vertex_property& up) {
 #endif
-      if(num_vertices(m_tree) == 0) {
+      if(num_vertices(*m_tree) == 0) {
 #ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
-        m_root = create_root(std::move(up), m_tree); 
+        m_root = create_root(std::move(up), *m_tree); 
 #else
-        m_root = create_root(up, m_tree); 
+        m_root = create_root(up, *m_tree); 
 #endif
         return;
       };
@@ -939,14 +985,14 @@ class dvp_tree_impl
       vertex_type u_subroot = get_leaf(u_pt,m_root); // <-- to store the root of subtree to reconstruct.
       // NOTE: if the root is the leaf, it requires special attention since no parent exists.
       if(u_subroot != m_root) {
-        vertex_type u_leaf = source(*(in_edges(u_subroot, m_tree).first),m_tree);
-        if((out_degree(u_leaf, m_tree) == Arity) && (is_leaf_node(u_leaf))) {
+        vertex_type u_leaf = source(*(in_edges(u_subroot, *m_tree).first),*m_tree);
+        if((out_degree(u_leaf, *m_tree) == Arity) && (is_leaf_node(u_leaf))) {
           //if u_leaf is a full-leaf, then it is balanced but full, 
           // we should then find a non-full parent.
           int actual_depth_limit = 1;
           int last_depth_limit = actual_depth_limit;
           while((u_leaf != m_root) && (is_node_full(u_leaf, last_depth_limit))) {
-            u_leaf = source(*(in_edges(u_leaf, m_tree).first), m_tree);
+            u_leaf = source(*(in_edges(u_leaf, *m_tree).first), *m_tree);
             last_depth_limit = ++actual_depth_limit;
           };
           bool is_p_full = false; 
@@ -978,9 +1024,9 @@ class dvp_tree_impl
 #else
       prop_list.push_back(up);
 #endif
-      while( out_degree(u_subroot, m_tree) > 0 ) {
-        edge_type e = *(out_edges(u_subroot, m_tree).first);
-        remove_branch(target(e, m_tree), back_inserter(prop_list), m_tree);
+      while( out_degree(u_subroot, *m_tree) > 0 ) {
+        edge_type e = *(out_edges(u_subroot, *m_tree).first);
+        remove_branch(target(e, *m_tree), back_inserter(prop_list), *m_tree);
       };
       construct_node(u_subroot, prop_list.begin(), prop_list.end());
       
@@ -1004,34 +1050,34 @@ class dvp_tree_impl
      * \param u_node The vertex to be removed from the DVP-tree.
      */
     void erase(vertex_type u_node) { 
-      if(num_vertices(m_tree) == 0) 
+      if(num_vertices(*m_tree) == 0) 
         return;
       std::vector<vertex_property> prop_list;
-      if( (u_node == m_root) && (num_vertices(m_tree) == 1) ) {
-        remove_branch(m_root, back_inserter(prop_list), m_tree);
+      if( (u_node == m_root) && (num_vertices(*m_tree) == 1) ) {
+        remove_branch(m_root, back_inserter(prop_list), *m_tree);
         m_root = boost::graph_traits<tree_indexer>::null_vertex();
         return;
       };
       vertex_type u_parent = boost::graph_traits<tree_indexer>::null_vertex();
       if(u_node != m_root)
-        u_parent = source(*(in_edges(u_node,m_tree).first), m_tree);
+        u_parent = source(*(in_edges(u_node,*m_tree).first), *m_tree);
       
       // remove-and-collect all children of u_node:
-      while( out_degree(u_node, m_tree) > 0 ) {
-        edge_type e = *(out_edges(u_node, m_tree).first);
-        remove_branch(target(e, m_tree), back_inserter(prop_list), m_tree);
+      while( out_degree(u_node, *m_tree) > 0 ) {
+        edge_type e = *(out_edges(u_node, *m_tree).first);
+        remove_branch(target(e, *m_tree), back_inserter(prop_list), *m_tree);
       };
       // remove-and-discard u_node:
       {
         std::vector<vertex_property> throwaway_list;
-        remove_branch(u_node, back_inserter(throwaway_list), m_tree);
+        remove_branch(u_node, back_inserter(throwaway_list), *m_tree);
       };
       
       if( u_parent != boost::graph_traits<tree_indexer>::null_vertex() ) {
         // remove-and-collect all other children of u_parent:
-        while( out_degree(u_parent, m_tree) > 0 ) {
-          edge_type e = *(out_edges(u_parent, m_tree).first);
-          remove_branch(target(e, m_tree), back_inserter(prop_list), m_tree);
+        while( out_degree(u_parent, *m_tree) > 0 ) {
+          edge_type e = *(out_edges(u_parent, *m_tree).first);
+          remove_branch(target(e, *m_tree), back_inserter(prop_list), *m_tree);
         };
         // reconstruct parent's subtree:
         construct_node(u_parent, prop_list.begin(), prop_list.end());
@@ -1041,9 +1087,9 @@ class dvp_tree_impl
         prop_vector_iter v_last  = prop_list.end();
         rearrange_with_chosen_vp(v_first, v_last);
 #ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
-        m_root = create_root(std::move(*v_first), m_tree);
+        m_root = create_root(std::move(*v_first), *m_tree);
 #else
-        m_root = create_root(*v_first, m_tree);
+        m_root = create_root(*v_first, *m_tree);
 #endif
         construct_node(m_root, ++v_first, v_last);
       };
@@ -1088,7 +1134,7 @@ class dvp_tree_impl
      */
     template <typename ForwardIterator>
     void erase(ForwardIterator aBegin, ForwardIterator aEnd) { 
-      if(num_vertices(m_tree) == 0) return;
+      if(num_vertices(*m_tree) == 0) return;
       
       typedef std::list< std::pair< vertex_type,   // the node at the trunk of the sub-tree to be re-balanced.
                                     std::vector<vertex_type>  // the list of nodes below the re-balanced trunk.
@@ -1100,11 +1146,11 @@ class dvp_tree_impl
       for(ForwardIterator first = aBegin; first != aEnd; ++first) {
         vertex_type removal_trunk = *first;
         // mark as invalid, for deletion.
-        invalid_keys.insert(get(m_key, get_raw_vertex_property(m_tree, *first))); 
+        invalid_keys.insert(get(m_key, get_raw_vertex_property(*m_tree, *first))); 
         // go up until a valid parent node is found:
         while( (removal_trunk != m_root) && 
-               (invalid_keys.count(get(m_key, get_raw_vertex_property(m_tree, removal_trunk))) != 0) ) {
-          removal_trunk = source(*(in_edges(removal_trunk, m_tree).first), m_tree);
+               (invalid_keys.count(get(m_key, get_raw_vertex_property(*m_tree, removal_trunk))) != 0) ) {
+          removal_trunk = source(*(in_edges(removal_trunk, *m_tree).first), *m_tree);
         };
         
         bool already_collected = false;
@@ -1141,15 +1187,15 @@ class dvp_tree_impl
       if( (v_lists.size() == 1) && (v_lists.front() == m_root) ) {
         // need to re-construct the root node (u_node == m_root).
         std::vector<vertex_property> prop_list;
-        remove_branch(m_root, back_inserter(prop_list), m_tree);
+        remove_branch(m_root, back_inserter(prop_list), *m_tree);
         prop_list.erase( remove_if(prop_list.begin(), prop_list.end(), is_vertex_prop_valid(&invalid_keys, m_key)), prop_list.end());
         prop_vector_iter v_first = prop_list.begin();
         prop_vector_iter v_last  = prop_list.end();
         rearrange_with_chosen_vp(v_first, v_last);
 #ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
-        m_root = create_root(std::move(*v_first), m_tree);
+        m_root = create_root(std::move(*v_first), *m_tree);
 #else
-        m_root = create_root(*v_first, m_tree);
+        m_root = create_root(*v_first, *m_tree);
 #endif
         construct_node(m_root, ++v_first, v_last);
         return;
@@ -1158,9 +1204,9 @@ class dvp_tree_impl
       for(typename vertex_listing::iterator it = v_lists.begin(); it != v_lists.end(); ++it) {
         std::vector<vertex_property> prop_list;
         // remove-and-collect all children of it->first:
-        while( out_degree(it->first, m_tree) > 0 ) {
-          edge_type e = *(out_edges(it->first, m_tree).first);
-          remove_branch(target(e, m_tree), back_inserter(prop_list), m_tree);
+        while( out_degree(it->first, *m_tree) > 0 ) {
+          edge_type e = *(out_edges(it->first, *m_tree).first);
+          remove_branch(target(e, *m_tree), back_inserter(prop_list), *m_tree);
         };
         // erase removed vertices from the prop-list:
         prop_list.erase( remove_if(prop_list.begin(), prop_list.end(), is_vertex_prop_valid(&invalid_keys, m_key)), prop_list.end());
@@ -1173,9 +1219,9 @@ class dvp_tree_impl
      * Clears the DVP-tree. 
      */
     void clear() {
-      if( num_vertices(m_tree) == 0 ) {
+      if( num_vertices(*m_tree) == 0 ) {
         std::vector<vertex_property> prop_list;
-        remove_branch(m_root, back_inserter(prop_list), m_tree);
+        remove_branch(m_root, back_inserter(prop_list), *m_tree);
         m_root = boost::graph_traits<tree_indexer>::null_vertex();
       };
     }; 
@@ -1186,7 +1232,7 @@ class dvp_tree_impl
      * \return The vertex in the DVP-tree that is closest to the given point.
      */
     vertex_type find_nearest(const point_type& aPoint) const {
-      if(num_vertices(m_tree) == 0) 
+      if(num_vertices(*m_tree) == 0) 
         return boost::graph_traits<tree_indexer>::null_vertex();
       nearest_search_result_set result_set(1, std::numeric_limits<distance_type>::infinity());
       find_nearest_impl(aPoint, result_set);
@@ -1202,7 +1248,7 @@ class dvp_tree_impl
      * \return The predecessor and successor vertex in the DVP-tree that is closest to the given point.
      */
     std::pair< vertex_type, vertex_type > find_nearest_pred_succ(const point_type& aPoint) const {
-      if(num_vertices(m_tree) == 0) 
+      if(num_vertices(*m_tree) == 0) 
         return boost::graph_traits<tree_indexer>::null_vertex();
       pred_succ_search_result_set result_set(1, std::numeric_limits<distance_type>::infinity());
       find_nearest_impl(aPoint, result_set);
@@ -1231,7 +1277,7 @@ class dvp_tree_impl
      */
     template <typename OutputIterator>
     OutputIterator find_nearest(const point_type& aPoint, OutputIterator aOutputBegin, std::size_t K, distance_type R = std::numeric_limits<distance_type>::infinity()) const {
-      if(num_vertices(m_tree) == 0) 
+      if(num_vertices(*m_tree) == 0) 
         return aOutputBegin;
       nearest_search_result_set result_set(K, R);
       find_nearest_impl(aPoint, result_set);
@@ -1258,7 +1304,7 @@ class dvp_tree_impl
     std::pair< OutputIterator, OutputIterator > find_nearest(
         const point_type& aPoint, OutputIterator aPredBegin, OutputIterator aSuccBegin, 
         std::size_t K, distance_type R = std::numeric_limits<distance_type>::infinity()) const {
-      if(num_vertices(m_tree) == 0) 
+      if(num_vertices(*m_tree) == 0) 
         return std::pair< OutputIterator, OutputIterator >(aPredBegin, aSuccBegin);
       pred_succ_search_result_set result_set(K, R);
       find_nearest_impl(aPoint, result_set);
@@ -1283,9 +1329,9 @@ class dvp_tree_impl
      */
     template <typename OutputIterator>
     OutputIterator find_in_range(const point_type& aPoint, OutputIterator aOutputBegin, distance_type R) const {
-      if(num_vertices(m_tree) == 0) 
+      if(num_vertices(*m_tree) == 0) 
         return aOutputBegin;
-      nearest_search_result_set result_set(num_vertices(m_tree), R);
+      nearest_search_result_set result_set(num_vertices(*m_tree), R);
       find_nearest_impl(aPoint, result_set);
       std::sort_heap(result_set.Neighbors.begin(), result_set.Neighbors.end(), priority_compare_type());
       for(typename priority_queue_type::const_iterator it = result_set.Neighbors.begin(); it != result_set.Neighbors.end(); ++it)
@@ -1308,9 +1354,9 @@ class dvp_tree_impl
     template <typename OutputIterator>
     std::pair< OutputIterator, OutputIterator > find_in_range(
         const point_type& aPoint, OutputIterator aPredBegin, OutputIterator aSuccBegin, distance_type R) const {
-      if(num_vertices(m_tree) == 0) 
+      if(num_vertices(*m_tree) == 0) 
         return std::pair< OutputIterator, OutputIterator >(aPredBegin, aSuccBegin);
-      pred_succ_search_result_set result_set(num_vertices(m_tree), R);
+      pred_succ_search_result_set result_set(num_vertices(*m_tree), R);
       find_nearest_impl(aPoint, result_set);
       std::sort_heap(result_set.Pred.begin(), result_set.Pred.end(), priority_compare_type());
       std::sort_heap(result_set.Succ.begin(), result_set.Succ.end(), priority_compare_type());

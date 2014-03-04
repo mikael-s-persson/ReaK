@@ -175,6 +175,8 @@ class dvp_tree
   public:
     BOOST_CONCEPT_ASSERT((MetricSpaceConcept<Topology>));
     
+    typedef dvp_tree<Key, Topology, PositionMap, Arity, VPChooser, TreeStorageTag, PositionCachingPolicy> self;
+    
     typedef typename boost::property_traits<PositionMap>::value_type point_type;
     typedef double distance_type;
     
@@ -297,8 +299,40 @@ class dvp_tree
                m_vp_pos,
                aVPChooser
              ) { };
-  
     
+    dvp_tree(const self& rhs) :
+             m_tree(rhs.m_tree),
+             m_position(rhs.m_position),
+             m_vp_key(rhs.m_vp_key),
+             m_vp_pos(rhs.m_vp_pos),
+             m_impl(m_tree, rhs.m_impl) { };
+    
+    self& operator=(const self& rhs) {
+      m_tree = rhs.m_tree;
+      m_position = rhs.m_position;
+      m_vp_key = rhs.m_vp_key;
+      m_vp_pos = rhs.m_vp_pos;
+      m_impl.reassign_copied(m_tree, rhs.m_impl);
+      return *this;
+    };
+    
+#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
+    dvp_tree(self&& rhs) BOOST_NOEXCEPT :
+             m_tree(std::move(rhs.m_tree)),
+             m_position(std::move(rhs.m_position)),
+             m_vp_key(std::move(rhs.m_vp_key)),
+             m_vp_pos(std::move(rhs.m_vp_pos)),
+             m_impl(m_tree, std::move(rhs.m_impl)) { };
+    
+    self& operator=(self&& rhs) BOOST_NOEXCEPT {
+      m_tree = std::move(rhs.m_tree);
+      m_position = std::move(rhs.m_position);
+      m_vp_key = std::move(rhs.m_vp_key);
+      m_vp_pos = std::move(rhs.m_vp_pos);
+      m_impl.reassign_moved(m_tree, std::move(rhs.m_impl));
+      return *this;
+    };
+#endif
     
     /**
      * Checks if the DVP-tree is empty.
