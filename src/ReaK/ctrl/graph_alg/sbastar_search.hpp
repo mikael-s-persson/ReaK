@@ -324,7 +324,7 @@ namespace detail {
       typedef typename Graph::edge_bundled EdgeProp;
       typedef boost::tuple< Vertex, PositionValue, EdgeProp > ResultType;
       
-      PositionValue p_new; bool walk_succeeded; EdgeProp ep_new;
+      PositionValue p_new; bool walk_succeeded = false; EdgeProp ep_new;
       boost::tie(p_new, walk_succeeded, ep_new) = sba_vis.random_walk(u, g);
       if( walk_succeeded )
         return ResultType(u, p_new, ep_new);
@@ -351,7 +351,8 @@ namespace detail {
       typedef boost::tuple< Vertex, PositionValue, EdgeProp, Vertex, PositionValue, EdgeProp > ResultType;
       
       PositionValue p_exp, p_ret; 
-      bool was_expanded, was_retracted; 
+      bool was_expanded = false;
+      bool was_retracted = false; 
       EdgeProp ep_exp, ep_ret;
       if( get(sba_vis.m_predecessor, g[u]) != boost::graph_traits<Graph>::null_vertex() )
         boost::tie(p_exp, was_expanded, ep_exp) = sba_vis.random_walk(u, g);

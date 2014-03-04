@@ -70,8 +70,8 @@ namespace ReaK {
 namespace pp {
 
 
-template <typename FreeSpaceType, typename IsBidirPlanner>
-struct sbastar_planner_bundle {
+template <typename FreeSpaceType, typename IsBidirPlanner = boost::mpl::false_>
+struct sbastar_bundle_factory {
   
   typedef boost::mpl::and_< IsBidirPlanner, is_reversible_space<FreeSpaceType> > is_bidir;
   
@@ -94,9 +94,14 @@ struct sbastar_planner_bundle {
   typedef boost::data_member_property_map<double, vertex_prop> distance_map;
   typedef boost::data_member_property_map<double, vertex_prop> fwd_distance_map;
   typedef boost::data_member_property_map<std::size_t, vertex_prop> predecessor_map;
-  typedef typename boost::mpl::if_< is_bidir,
-    boost::data_member_property_map<std::size_t, vertex_prop>,
-    ReaK::graph::detail::null_vertex_prop_map<Graph> >::type successor_map;
+  
+  template <typename Graph>
+  struct successor_map {
+    typedef typename boost::mpl::if_< is_bidir,
+      boost::data_member_property_map<std::size_t, vertex_prop>,
+      ReaK::graph::detail::null_vertex_prop_map<Graph> >::type type;
+  };
+  
   typedef boost::data_member_property_map<double, edge_prop > weight_map;
   
   struct ls_motion_graph {
@@ -104,11 +109,16 @@ struct sbastar_planner_bundle {
       directionality_tag, vertex_prop, edge_prop> type;
     typedef typename boost::graph_traits<type>::vertex_descriptor vertex_type;
     
-    typedef linear_neighbor_search<MotionGraphType> nn_finder_type;
-    static nn_finder_type get_nn_finder() { return nn_finder_type(); };
+    struct space_part_type {
+      template <typename GraphPositionMap>
+      space_part_type(const type&, const shared_ptr<const super_space_type>&, GraphPositionMap) { };
+    };
+    
+    typedef linear_neighbor_search<type> nn_finder_type;
+    static nn_finder_type get_nn_finder(type&, space_part_type&) { return nn_finder_type(); };
     
     typedef any_knn_synchro nn_synchro_type;
-    static nn_synchro_type get_nn_synchro() {
+    static nn_synchro_type get_nn_synchro(nn_finder_type& ) {
       return nn_synchro_type();
     };
     
@@ -122,9 +132,6 @@ struct sbastar_planner_bundle {
     typedef boost::adjacency_list_BC< boost::vecBC, boost::poolBC,
       directionality_tag, vertex_prop, edge_prop> type;
     typedef typename boost::graph_traits<type>::vertex_descriptor vertex_type;
-    
-    typedef linear_neighbor_search<MotionGraphType> nn_finder_type;
-    static nn_finder_type get_nn_finder() { return nn_finder_type; };
     
     typedef typename boost::property_map< type, point_type basic_vertex_prop::* >::type graph_position_map;
     typedef dvp_tree<vertex_type, super_space_type, graph_position_map, Arity, random_vp_chooser, TreeStorageTag > space_part_type;
@@ -149,6 +156,8 @@ struct sbastar_planner_bundle {
     };
   };
   
+#ifdef RK_PLANNERS_ENABLE_DVP_ADJ_LIST_LAYOUT
+  
   template <unsigned int Arity, typename TreeStorageTag>
   struct alt_motion_graph {
     typedef dvp_adjacency_list< vertex_prop, edge_prop, super_space_type, 
@@ -156,10 +165,7 @@ struct sbastar_planner_bundle {
       boost::vecBC, directionality_tag, boost::listBC > alt_graph_type;
     typedef typename alt_graph_type::adj_list_type type;
     typedef alt_graph_type space_part_type;
-    
-    static space_part_type get_space_part(shared_ptr<const super_space_type> s_ptr) {
-      return space_part_type(s_ptr, position_map(&vertex_prop::position));
-    };
+    typedef typename boost::graph_traits<type>::vertex_descriptor vertex_type;
     
     typedef multi_dvp_tree_search<type, space_part_type> nn_finder_type;
     static nn_finder_type get_nn_finder(type& mg, space_part_type& space_part) { 
@@ -169,7 +175,7 @@ struct sbastar_planner_bundle {
     };
     
     typedef any_knn_synchro nn_synchro_type;
-    static nn_synchro_type get_nn_synchro() {
+    static nn_synchro_type get_nn_synchro(nn_finder_type& ) {
       return nn_synchro_type();
     };
     
@@ -178,309 +184,316 @@ struct sbastar_planner_bundle {
     };
   };
   
-  typedef ReaK::graph::sbastar_bundle<Graph, super_space_type, visitor_type, NcSelector,
-          typename boost::property_map<Graph, double vertex_prop::*>::type, 
-          position_map, weight_map, density_map, constriction_map, 
-          distance_map, predecessor_map, fwd_distance_map, successor_map > type;
+#endif
+  
+  template <typename MotionGraphType>
+  static void init_motion_graph(MotionGraphType& motion_graph, visitor_type& vis, planning_query<FreeSpaceType>& query) {
+    typedef typename boost::graph_traits<MotionGraphType>::vertex_descriptor Vertex;
+    vertex_prop vp_start;
+    vp_start.position = query.get_start_position();
+    Vertex start_node = add_vertex(vp_start, motion_graph);
+    vis.m_start_node = boost::any( start_node );
+    path_planning_p2p_query<FreeSpaceType>* p2p_query_ptr = reinterpret_cast< path_planning_p2p_query<FreeSpaceType>* >(query.castTo(path_planning_p2p_query<FreeSpaceType>::getStaticObjectType()));
+    if( p2p_query_ptr ) {
+      vertex_prop vp_goal;
+      vp_goal.position = p2p_query_ptr->goal_pos;
+      Vertex goal_node  = add_vertex(vp_goal,  motion_graph);
+      vis.m_goal_node = boost::any( goal_node );
+      vis.initialize_vertex(goal_node, motion_graph);
+    };
+    vis.initialize_vertex(start_node, motion_graph);
+  };
+  
+  
+  template <typename VertexProp>
+  static
+  typename boost::disable_if< boost::is_convertible<VertexProp*, bidir_optimal_mg_vertex<FreeSpaceType>*>,
+  fwd_distance_map >::type dispatched_make_fwd_dist_map() {
+    return fwd_distance_map(&VertexProp::heuristic_value);
+  };
+  
+  template <typename VertexProp>
+  static
+  typename boost::enable_if< boost::is_convertible<VertexProp*, bidir_optimal_mg_vertex<FreeSpaceType>*>,
+  fwd_distance_map >::type dispatched_make_fwd_dist_map() {
+    return fwd_distance_map(&VertexProp::fwd_distance_accum);
+  };
+  
+  template <typename MotionGraphType, typename VertexProp>
+  static
+  typename boost::disable_if< boost::is_convertible<VertexProp*, bidir_optimal_mg_vertex<FreeSpaceType>*>,
+  typename successor_map<MotionGraphType>::type >::type dispatched_make_succ_map() {
+    return typename successor_map<MotionGraphType>::type();
+  };
+  
+  template <typename MotionGraphType, typename VertexProp>
+  static
+  typename boost::enable_if< boost::is_convertible<VertexProp*, bidir_optimal_mg_vertex<FreeSpaceType>*>,
+  typename successor_map<MotionGraphType>::type >::type dispatched_make_succ_map() {
+    return typename successor_map<MotionGraphType>::type(&VertexProp::successor);
+  };
+  
+  template <typename MotionGraphType, typename NcSelector>
+  static
+  ReaK::graph::sbastar_bundle<
+    MotionGraphType, super_space_type, visitor_type, NcSelector,
+    typename boost::property_map<MotionGraphType, double vertex_prop::*>::type, 
+    position_map, weight_map, density_map, constriction_map, 
+    distance_map, predecessor_map, fwd_distance_map, typename successor_map<MotionGraphType>::type >
+      make_bundle(MotionGraphType& motion_graph, 
+                  visitor_type& vis, NcSelector nc_selector, 
+                  shared_ptr<const super_space_type> s_ptr) {
+    typedef typename boost::graph_traits<MotionGraphType>::vertex_descriptor Vertex;
+    return ReaK::graph::make_sbastar_bundle(
+        motion_graph, boost::any_cast<Vertex>( vis.m_start_node ),
+        ( vis.m_goal_node.empty() ? boost::graph_traits<MotionGraphType>::null_vertex() : boost::any_cast<Vertex>( vis.m_goal_node ) ),
+        *s_ptr, vis, nc_selector, 
+        get(&vertex_prop::key_value, motion_graph),
+        position_map(&vertex_prop::position), 
+        weight_map(&edge_prop::weight), 
+        density_map(&vertex_prop::density), 
+        constriction_map(&vertex_prop::constriction), 
+        distance_map(&vertex_prop::distance_accum), 
+        predecessor_map(&vertex_prop::predecessor),
+        dispatched_make_fwd_dist_map<vertex_prop>(),
+        dispatched_make_succ_map<MotionGraphType, vertex_prop>());
+  };
+  
+  
+  template <typename CallBidir, typename MotionGraphType, typename NcSelector> 
+  static
+  typename boost::disable_if< CallBidir >::type
+    dispatched_make_call_to_planner(MotionGraphType& motion_graph, visitor_type& vis, NcSelector nc_selector, 
+                                    shared_ptr<const super_space_type> s_ptr, std::size_t method_flags, 
+                                    double init_relax, double init_temp) {
+    using namespace graph;
+    
+    if(((method_flags & ADDITIONAL_PLANNING_BIAS_MASK) & PLAN_WITH_ANYTIME_HEURISTIC) && (init_relax > 1e-6)) {
+      if((method_flags & COLLISION_CHECKING_POLICY_MASK) == EAGER_COLLISION_CHECKING) {
+        if((method_flags & ADDITIONAL_PLANNING_BIAS_MASK) & PLAN_WITH_VORONOI_PULL) {
+          generate_anytime_sbarrtstar( make_bundle(motion_graph, vis, nc_selector, s_ptr), get(random_sampler, *s_ptr), init_relax, init_temp);
+        } else { /* assume nominal method only. */
+          generate_anytime_sbastar( make_bundle(motion_graph, vis, nc_selector, s_ptr), init_relax);
+        };
+      } else { /* assume lazy collision checking */
+        if((method_flags & ADDITIONAL_PLANNING_BIAS_MASK) & PLAN_WITH_VORONOI_PULL) {
+          if(method_flags & USE_BRANCH_AND_BOUND_PRUNING_FLAG) {
+            generate_anytime_lazy_bnb_sbarrtstar( make_bundle(motion_graph, vis, nc_selector, s_ptr), get(random_sampler, *s_ptr), init_relax, init_temp);
+          } else { /* assume nominal method only. */
+            generate_anytime_lazy_sbarrtstar( make_bundle(motion_graph, vis, nc_selector, s_ptr), get(random_sampler, *s_ptr), init_relax, init_temp);
+          };
+        } else { /* assume nominal method only. */
+          if(method_flags & USE_BRANCH_AND_BOUND_PRUNING_FLAG) {
+            generate_anytime_lazy_bnb_sbastar( make_bundle(motion_graph, vis, nc_selector, s_ptr), init_relax);
+          } else { /* assume nominal method only. */
+            generate_anytime_lazy_sbastar( make_bundle(motion_graph, vis, nc_selector, s_ptr), init_relax);
+          };
+        };
+      };
+    } else {
+      if((method_flags & COLLISION_CHECKING_POLICY_MASK) == EAGER_COLLISION_CHECKING) {
+        if((method_flags & ADDITIONAL_PLANNING_BIAS_MASK) & PLAN_WITH_VORONOI_PULL) {
+          generate_sbarrtstar( make_bundle(motion_graph, vis, nc_selector, s_ptr), get(random_sampler, *s_ptr), init_temp);
+        } else { /* assume nominal method only. */
+          generate_sbastar( make_bundle(motion_graph, vis, nc_selector, s_ptr) );
+        };
+      } else { /* assume lazy collision checking */
+        if((method_flags & ADDITIONAL_PLANNING_BIAS_MASK) & PLAN_WITH_VORONOI_PULL) {
+          if(method_flags & USE_BRANCH_AND_BOUND_PRUNING_FLAG) {
+            generate_lazy_bnb_sbarrtstar( make_bundle(motion_graph, vis, nc_selector, s_ptr), get(random_sampler, *s_ptr), init_temp);
+          } else { /* assume nominal method only. */
+            generate_lazy_sbarrtstar( make_bundle(motion_graph, vis, nc_selector, s_ptr), get(random_sampler, *s_ptr), init_temp);
+          };
+        } else { /* assume nominal method only. */
+          if(method_flags & USE_BRANCH_AND_BOUND_PRUNING_FLAG) {
+            generate_lazy_bnb_sbastar( make_bundle(motion_graph, vis, nc_selector, s_ptr) );
+          } else { /* assume nominal method only. */
+            generate_lazy_sbastar( make_bundle(motion_graph, vis, nc_selector, s_ptr) );
+          };
+        };
+      };
+    };
+    
+  };
+  
+  template <typename CallBidir, typename MotionGraphType, typename NcSelector> 
+  static
+  typename boost::enable_if< CallBidir >::type
+    dispatched_make_call_to_planner(MotionGraphType& motion_graph, visitor_type& vis, NcSelector nc_selector, 
+                                    shared_ptr<const super_space_type> s_ptr, std::size_t method_flags, 
+                                    double init_relax, double init_temp) {
+    using namespace graph;
+    
+    if(((method_flags & ADDITIONAL_PLANNING_BIAS_MASK) & PLAN_WITH_ANYTIME_HEURISTIC) && (init_relax > 1e-6)) {
+      if((method_flags & COLLISION_CHECKING_POLICY_MASK) == EAGER_COLLISION_CHECKING) {
+        if((method_flags & ADDITIONAL_PLANNING_BIAS_MASK) & PLAN_WITH_VORONOI_PULL) {
+          generate_anytime_sbarrtstar_bidir( make_bundle(motion_graph, vis, nc_selector, s_ptr), get(random_sampler, *s_ptr), init_relax, init_temp);
+        } else { /* assume nominal method only. */
+          generate_anytime_sbastar_bidir( make_bundle(motion_graph, vis, nc_selector, s_ptr), init_relax);
+        };
+      } else { /* assume lazy collision checking */
+        if((method_flags & ADDITIONAL_PLANNING_BIAS_MASK) & PLAN_WITH_VORONOI_PULL) {
+          if(method_flags & USE_BRANCH_AND_BOUND_PRUNING_FLAG) {
+            generate_anytime_lazy_bnb_sbarrtstar_bidir( make_bundle(motion_graph, vis, nc_selector, s_ptr), get(random_sampler, *s_ptr), init_relax, init_temp);
+          } else { /* assume nominal method only. */
+            generate_anytime_lazy_sbarrtstar_bidir( make_bundle(motion_graph, vis, nc_selector, s_ptr), get(random_sampler, *s_ptr), init_relax, init_temp);
+          };
+        } else { /* assume nominal method only. */
+          if(method_flags & USE_BRANCH_AND_BOUND_PRUNING_FLAG) {
+            generate_anytime_lazy_bnb_sbastar_bidir( make_bundle(motion_graph, vis, nc_selector, s_ptr), init_relax);
+          } else { /* assume nominal method only. */
+            generate_anytime_lazy_sbastar_bidir( make_bundle(motion_graph, vis, nc_selector, s_ptr), init_relax);
+          };
+        };
+      };
+    } else {
+      if((method_flags & COLLISION_CHECKING_POLICY_MASK) == EAGER_COLLISION_CHECKING) {
+        if((method_flags & ADDITIONAL_PLANNING_BIAS_MASK) & PLAN_WITH_VORONOI_PULL) {
+          generate_sbarrtstar_bidir( make_bundle(motion_graph, vis, nc_selector, s_ptr), get(random_sampler, *s_ptr), init_temp);
+        } else { /* assume nominal method only. */
+          generate_sbastar_bidir( make_bundle(motion_graph, vis, nc_selector, s_ptr) );
+        };
+      } else { /* assume lazy collision checking */
+        if((method_flags & ADDITIONAL_PLANNING_BIAS_MASK) & PLAN_WITH_VORONOI_PULL) {
+          if(method_flags & USE_BRANCH_AND_BOUND_PRUNING_FLAG) {
+            generate_lazy_bnb_sbarrtstar_bidir( make_bundle(motion_graph, vis, nc_selector, s_ptr), get(random_sampler, *s_ptr), init_temp);
+          } else { /* assume nominal method only. */
+            generate_lazy_sbarrtstar_bidir( make_bundle(motion_graph, vis, nc_selector, s_ptr), get(random_sampler, *s_ptr), init_temp);
+          };
+        } else { /* assume nominal method only. */
+          if(method_flags & USE_BRANCH_AND_BOUND_PRUNING_FLAG) {
+            generate_lazy_bnb_sbastar_bidir( make_bundle(motion_graph, vis, nc_selector, s_ptr) );
+          } else { /* assume nominal method only. */
+            generate_lazy_sbastar_bidir( make_bundle(motion_graph, vis, nc_selector, s_ptr) );
+          };
+        };
+      };
+    };
+    
+  };
+  
+  template <typename MotionGraphType, typename NcSelector> 
+  static
+  void make_call_to_planner(MotionGraphType& motion_graph, visitor_type& vis, NcSelector nc_selector, 
+                            shared_ptr<const super_space_type> s_ptr, std::size_t method_flags, 
+                            double init_relax, double init_temp) {
+    dispatched_make_call_to_planner<is_bidir>(motion_graph, vis, nc_selector, s_ptr, method_flags, init_relax, init_temp);
+  };
+  
+  
 };
 
 
 
 template <typename FreeSpaceType>
-void sbastar_planner<FreeSpaceType>::solve_planning_query(planning_query<FreeSpaceType>& aQuery) {
+template <typename SBAStarFactory>
+void sbastar_planner<FreeSpaceType>::solve_planning_query_impl(planning_query<FreeSpaceType>& aQuery) {
   
   this->reset_internal_state();
   
   double space_dim = double( this->get_space_dimensionality() );
   double space_Lc = aQuery.get_heuristic_to_goal( aQuery.get_start_position() );
   
-  density_plan_visitor<FreeSpaceType, sbastar_density_calculator> vis(
-    this, &aQuery, NULL, boost::any(), boost::any(), 
-    this->m_init_dens_threshold);
-  
-  path_planning_p2p_query<FreeSpaceType>* p2p_query_ptr = reinterpret_cast< path_planning_p2p_query<FreeSpaceType>* >(aQuery.castTo(path_planning_p2p_query<FreeSpaceType>::getStaticObjectType()));
-  
-  typedef typename subspace_traits<FreeSpaceType>::super_space_type SuperSpace;
+  typedef typename subspace_traits<FreeSpaceType>::super_space_type  SuperSpace;
   shared_ptr<const SuperSpace> sup_space_ptr(&(this->m_space->get_super_space()),null_deleter());
   
-  typedef typename topology_traits<SuperSpace>::point_type PointType;
-  
-  typedef recursive_dense_mg_vertex< astar_mg_vertex<FreeSpaceType> > VertexProp;
-  typedef optimal_mg_edge<FreeSpaceType> EdgeProp;
-  
-  typedef typename motion_segment_directionality<FreeSpaceType>::type DirectionalityTag;
-  
-  typedef mg_vertex_data<FreeSpaceType> BasicVertexProp;
-  
-  typedef boost::data_member_property_map<PointType, VertexProp > PositionMap;
-  PositionMap pos_map = PositionMap(&VertexProp::position);
-  
-  typedef boost::data_member_property_map<double, VertexProp> DensityMap;
-  DensityMap dens_map = DensityMap(&VertexProp::density);
-  
-  typedef boost::data_member_property_map<double, VertexProp> ConstrictionMap;
-  ConstrictionMap cons_map = ConstrictionMap(&VertexProp::constriction);
-  
-  typedef boost::data_member_property_map<double, VertexProp> DistanceMap;
-  DistanceMap dist_map = DistanceMap(&VertexProp::distance_accum);
-  
-  typedef boost::data_member_property_map<double, VertexProp> HeuristicMap;
-  HeuristicMap heuristic_map = HeuristicMap(&VertexProp::heuristic_value);
-  
-  typedef boost::data_member_property_map<std::size_t, VertexProp> PredecessorMap;
-  PredecessorMap pred_map = PredecessorMap(&VertexProp::predecessor);
-  
-  typedef boost::data_member_property_map<double, EdgeProp > WeightMap;
-  WeightMap weight_map = WeightMap(&EdgeProp::weight);
   
   // Some MACROs to reduce the size of the code below.
   
-#define RK_SBASTAR_PLANNER_INIT_START_AND_GOAL_NODE \
-  VertexProp vp_start; \
-  vp_start.position = aQuery.get_start_position(); \
-  Vertex start_node = add_vertex(vp_start, motion_graph); \
-  vis.m_start_node = boost::any( start_node ); \
-  if( p2p_query_ptr ) { \
-    VertexProp vp_goal; \
-    vp_goal.position = p2p_query_ptr->goal_pos; \
-    Vertex goal_node  = add_vertex(vp_goal,  motion_graph); \
-    vis.m_goal_node = boost::any( goal_node ); \
-    vis.initialize_vertex(goal_node, motion_graph); \
-  };\
-  vis.initialize_vertex(start_node, motion_graph);
+#define RK_SBASTAR_PLANNER_SETUP_LS_OR_DVP_SUPPORT_STRUCTURES                                           \
+    typedef typename MGFactory::type         MotionGraphType;                                           \
+    MotionGraphType motion_graph = MGFactory::get_motion_graph();                                       \
+    SBAStarFactory::init_motion_graph(motion_graph, vis, aQuery);                                       \
+                                                                                                        \
+    typedef typename MGFactory::space_part_type     SpacePartType;                                      \
+    typedef typename SBAStarFactory::basic_vertex_prop   BasicVProp;                                    \
+    SpacePartType space_part(motion_graph, sup_space_ptr, get(&BasicVProp::position, motion_graph));    \
+                                                                                                        \
+    typedef typename MGFactory::nn_finder_type      NNFinderType;                                       \
+    NNFinderType nn_finder = MGFactory::get_nn_finder(motion_graph, space_part);                        \
+                                                                                                        \
+    ReaK::graph::star_neighborhood< NNFinderType > nc_selector(nn_finder, space_dim, 3.0 * space_Lc);   \
+                                                                                                        \
+    typedef typename MGFactory::nn_synchro_type NNSynchroType;                                          \
+    NNSynchroType NN_synchro = MGFactory::get_nn_synchro(nn_finder);                                    \
+    vis.m_nn_synchro = &NN_synchro;
   
   
-#define RK_SBASTAR_PLANNER_SETUP_DVP_TREE_SYNCHRO(ARITY, TREE_STORAGE) \
-  typedef typename boost::property_map< MotionGraphType, PointType BasicVertexProp::* >::type GraphPositionMap; \
-  typedef dvp_tree<Vertex, SuperSpace, GraphPositionMap, ARITY, random_vp_chooser, TREE_STORAGE > SpacePartType; \
-  SpacePartType space_part(motion_graph, sup_space_ptr, get(&BasicVertexProp::position, motion_graph)); \
-    \
-  typedef multi_dvp_tree_search<MotionGraphType, SpacePartType> NNFinderType; \
-  NNFinderType nn_finder; \
-  nn_finder.graph_tree_map[&motion_graph] = &space_part; \
-    \
-  type_erased_knn_synchro< MotionGraphType, NNFinderType > NN_synchro(nn_finder); \
-  vis.m_nn_synchro = &NN_synchro; \
-    \
-  ReaK::graph::star_neighborhood< NNFinderType > nc_selector(nn_finder, space_dim, 3.0 * space_Lc);
-
-//   ReaK::graph::fixed_neighborhood< NNFinderType > nc_selector(nn_finder, 10, this->get_sampling_radius());
-
-
-#define RK_SBASTAR_PLANNER_SETUP_ALT_TREE_SYNCHRO(ARITY, TREE_STORAGE) \
-  typedef dvp_adjacency_list< \
-    VertexProp, EdgeProp, SuperSpace, PositionMap, \
-    ARITY, random_vp_chooser, TREE_STORAGE, \
-    boost::vecBC, DirectionalityTag, boost::listBC > ALTGraph; \
-  typedef typename ALTGraph::adj_list_type MotionGraphType; \
-  typedef typename boost::graph_traits<MotionGraphType>::vertex_descriptor Vertex; \
-   \
-  ALTGraph space_part(sup_space_ptr, pos_map); \
-  MotionGraphType motion_graph = space_part.get_adjacency_list(); \
-   \
-  typedef multi_dvp_tree_search<MotionGraphType, ALTGraph> NNFinderType; \
-  NNFinderType nn_finder; \
-  nn_finder.graph_tree_map[&motion_graph] = &space_part; \
-   \
-  any_knn_synchro NN_synchro; \
-  vis.m_nn_synchro = &NN_synchro; \
-   \
-  ReaK::graph::star_neighborhood< NNFinderType > nc_selector(nn_finder, space_dim, 3.0 * space_Lc);
+#define RK_SBASTAR_PLANNER_SETUP_ALT_SUPPORT_STRUCTURES                                                 \
+    typedef typename MGFactory::type         MotionGraphType;                                           \
+    typedef typename MGFactory::space_part_type     SpacePartType;                                      \
+    typedef typename SBAStarFactory::position_map        PosMap;                                        \
+    typedef typename SBAStarFactory::vertex_prop         VProp;                                         \
+    SpacePartType space_part(sup_space_ptr, PosMap(&VProp::position));                                  \
+                                                                                                        \
+    MotionGraphType motion_graph = MGFactory::get_motion_graph(space_part);                             \
+                                                                                                        \
+    typedef typename MGFactory::nn_finder_type      NNFinderType;                                       \
+    NNFinderType nn_finder = MGFactory::get_nn_finder(motion_graph, space_part);                        \
+                                                                                                        \
+    ReaK::graph::star_neighborhood< NNFinderType > nc_selector(nn_finder, space_dim, 3.0 * space_Lc);   \
+                                                                                                        \
+    typedef typename MGFactory::nn_synchro_type NNSynchroType;                                          \
+    NNSynchroType NN_synchro = MGFactory::get_nn_synchro(nn_finder);                                    \
+    vis.m_nn_synchro = &NN_synchro;                                                                     \
+                                                                                                        \
+    SBAStarFactory::init_motion_graph(motion_graph, vis, aQuery); 
   
-//   ReaK::graph::fixed_neighborhood< NNFinderType > nc_selector(nn_finder, 10, this->get_sampling_radius());
+//     ReaK::graph::fixed_neighborhood< NNFinderType > nc_selector(nn_finder, 10, this->get_sampling_radius()); 
   
   
-  
-#define RK_SBASTAR_PLANNER_MAKE_SBASTAR_BUNDLE \
-      ReaK::graph::make_sbastar_bundle( \
-        motion_graph, boost::any_cast<Vertex>( vis.m_start_node ), *sup_space_ptr, vis, \
-        nc_selector, get(&VertexProp::key_value, motion_graph), \
-        pos_map, weight_map, dens_map, cons_map, dist_map, pred_map, \
-        heuristic_map)
-
-#define RK_SBASTAR_PLANNER_MAKE_SBASTAR_BUNDLE_WITH_GOAL \
-      ReaK::graph::make_sbastar_bundle( \
-        motion_graph, boost::any_cast<Vertex>( vis.m_start_node ), \
-        ( vis.m_goal_node.empty() ? boost::graph_traits<MotionGraphType>::null_vertex() : boost::any_cast<Vertex>( vis.m_goal_node ) ), \
-        *sup_space_ptr, vis, \
-        nc_selector, get(&VertexProp::key_value, motion_graph), \
-        pos_map, weight_map, dens_map, cons_map, dist_map, pred_map, \
-        heuristic_map)
-
-
-#define RK_SBASTAR_PLANNER_CALL_SBASTAR_FUNCTION \
-    ReaK::graph::generate_sbastar( \
-      RK_SBASTAR_PLANNER_MAKE_SBASTAR_BUNDLE );
-  
-  
-#define RK_SBASTAR_PLANNER_CALL_LAZY_SBASTAR_FUNCTION \
-    ReaK::graph::generate_lazy_sbastar( \
-      RK_SBASTAR_PLANNER_MAKE_SBASTAR_BUNDLE );
-  
-#define RK_SBASTAR_PLANNER_CALL_LAZY_BNB_SBASTAR_FUNCTION \
-    ReaK::graph::generate_lazy_bnb_sbastar( \
-      RK_SBASTAR_PLANNER_MAKE_SBASTAR_BUNDLE_WITH_GOAL );
-  
-#define RK_SBASTAR_PLANNER_CALL_SBARRTSTAR_FUNCTION \
-    ReaK::graph::generate_sbarrtstar( \
-      RK_SBASTAR_PLANNER_MAKE_SBASTAR_BUNDLE_WITH_GOAL, \
-      get(random_sampler, *sup_space_ptr), \
-      this->m_SA_init_temperature);
-  
-  
-#define RK_SBASTAR_PLANNER_CALL_LAZY_SBARRTSTAR_FUNCTION \
-    ReaK::graph::generate_lazy_sbarrtstar( \
-      RK_SBASTAR_PLANNER_MAKE_SBASTAR_BUNDLE_WITH_GOAL, \
-      get(random_sampler, *sup_space_ptr), \
-      this->m_SA_init_temperature);
-  
-  
-#define RK_SBASTAR_PLANNER_CALL_LAZY_BNB_SBARRTSTAR_FUNCTION \
-    ReaK::graph::generate_lazy_bnb_sbarrtstar( \
-      RK_SBASTAR_PLANNER_MAKE_SBASTAR_BUNDLE_WITH_GOAL, \
-      get(random_sampler, *sup_space_ptr), \
-      this->m_SA_init_temperature);
-   
-  
-  
-  
-#define RK_SBASTAR_PLANNER_CALL_ANYTIME_SBASTAR_FUNCTION \
-    ReaK::graph::generate_anytime_sbastar( \
-      RK_SBASTAR_PLANNER_MAKE_SBASTAR_BUNDLE, \
-      this->m_init_relaxation);
-  
-  
-#define RK_SBASTAR_PLANNER_CALL_ANYTIME_LAZY_SBASTAR_FUNCTION \
-    ReaK::graph::generate_anytime_lazy_sbastar( \
-      RK_SBASTAR_PLANNER_MAKE_SBASTAR_BUNDLE, \
-      this->m_init_relaxation);
-  
-  
-#define RK_SBASTAR_PLANNER_CALL_ANYTIME_LAZY_BNB_SBASTAR_FUNCTION \
-    ReaK::graph::generate_anytime_lazy_bnb_sbastar( \
-      RK_SBASTAR_PLANNER_MAKE_SBASTAR_BUNDLE_WITH_GOAL, \
-      this->m_init_relaxation);
-  
-  
-#define RK_SBASTAR_PLANNER_CALL_ANYTIME_SBARRTSTAR_FUNCTION \
-    ReaK::graph::generate_anytime_sbarrtstar( \
-      RK_SBASTAR_PLANNER_MAKE_SBASTAR_BUNDLE_WITH_GOAL, \
-      get(random_sampler, *sup_space_ptr), \
-      this->m_init_relaxation, this->m_SA_init_temperature);
-  
-  
-#define RK_SBASTAR_PLANNER_CALL_ANYTIME_LAZY_SBARRTSTAR_FUNCTION \
-    ReaK::graph::generate_anytime_lazy_sbarrtstar( \
-      RK_SBASTAR_PLANNER_MAKE_SBASTAR_BUNDLE_WITH_GOAL, \
-      get(random_sampler, *sup_space_ptr), \
-      this->m_init_relaxation, this->m_SA_init_temperature);
-  
-  
-#define RK_SBASTAR_PLANNER_CALL_ANYTIME_LAZY_BNB_SBARRTSTAR_FUNCTION \
-    ReaK::graph::generate_anytime_lazy_bnb_sbarrtstar( \
-      RK_SBASTAR_PLANNER_MAKE_SBASTAR_BUNDLE_WITH_GOAL, \
-      get(random_sampler, *sup_space_ptr), \
-      this->m_init_relaxation, this->m_SA_init_temperature);
-  
-  
-#define RK_SBASTAR_PLANNER_CALL_APPROPRIATE_SBASTAR_PLANNER_FUNCTION \
-      if(((this->m_planning_method_flags & ADDITIONAL_PLANNING_BIAS_MASK) & PLAN_WITH_ANYTIME_HEURISTIC) && (this->m_init_relaxation > 1e-6)) { \
-        if((this->m_planning_method_flags & COLLISION_CHECKING_POLICY_MASK) == EAGER_COLLISION_CHECKING) { \
-          if((this->m_planning_method_flags & ADDITIONAL_PLANNING_BIAS_MASK) & PLAN_WITH_VORONOI_PULL) { \
-            RK_SBASTAR_PLANNER_CALL_ANYTIME_SBARRTSTAR_FUNCTION \
-          } else { /* assume nominal method only. */ \
-            RK_SBASTAR_PLANNER_CALL_ANYTIME_SBASTAR_FUNCTION \
-          }; \
-        } else { /* assume lazy collision checking */ \
-          if((this->m_planning_method_flags & ADDITIONAL_PLANNING_BIAS_MASK) & PLAN_WITH_VORONOI_PULL) { \
-            if(this->m_planning_method_flags & USE_BRANCH_AND_BOUND_PRUNING_FLAG) { \
-              RK_SBASTAR_PLANNER_CALL_ANYTIME_LAZY_BNB_SBARRTSTAR_FUNCTION \
-            } else { /* assume nominal method only. */ \
-              RK_SBASTAR_PLANNER_CALL_ANYTIME_LAZY_SBARRTSTAR_FUNCTION \
-            }; \
-          } else { /* assume nominal method only. */ \
-            if(this->m_planning_method_flags & USE_BRANCH_AND_BOUND_PRUNING_FLAG) { \
-              RK_SBASTAR_PLANNER_CALL_ANYTIME_LAZY_BNB_SBASTAR_FUNCTION \
-            } else { /* assume nominal method only. */ \
-              RK_SBASTAR_PLANNER_CALL_ANYTIME_LAZY_SBASTAR_FUNCTION \
-            }; \
-          }; \
-        }; \
-      } else { \
-        if((this->m_planning_method_flags & COLLISION_CHECKING_POLICY_MASK) == EAGER_COLLISION_CHECKING) { \
-          if((this->m_planning_method_flags & ADDITIONAL_PLANNING_BIAS_MASK) & PLAN_WITH_VORONOI_PULL) { \
-            RK_SBASTAR_PLANNER_CALL_SBARRTSTAR_FUNCTION \
-          } else { /* assume nominal method only. */ \
-            RK_SBASTAR_PLANNER_CALL_SBASTAR_FUNCTION \
-          }; \
-        } else { /* assume lazy collision checking */ \
-          if((this->m_planning_method_flags & ADDITIONAL_PLANNING_BIAS_MASK) & PLAN_WITH_VORONOI_PULL) { \
-            if(this->m_planning_method_flags & USE_BRANCH_AND_BOUND_PRUNING_FLAG) { \
-              RK_SBASTAR_PLANNER_CALL_LAZY_BNB_SBARRTSTAR_FUNCTION \
-            } else { /* assume nominal method only. */ \
-              RK_SBASTAR_PLANNER_CALL_LAZY_SBARRTSTAR_FUNCTION \
-            }; \
-          } else { /* assume nominal method only. */ \
-            if(this->m_planning_method_flags & USE_BRANCH_AND_BOUND_PRUNING_FLAG) { \
-              RK_SBASTAR_PLANNER_CALL_LAZY_BNB_SBASTAR_FUNCTION \
-            } else { /* assume nominal method only. */ \
-              RK_SBASTAR_PLANNER_CALL_LAZY_SBASTAR_FUNCTION \
-            }; \
-          }; \
-        }; \
-      };
-  
+  typedef typename SBAStarFactory::visitor_type VisitorType;
+  VisitorType vis( this, &aQuery, NULL, boost::any(), boost::any(), this->m_init_dens_threshold);
   
   if((this->m_data_structure_flags & MOTION_GRAPH_STORAGE_MASK) == ADJ_LIST_MOTION_GRAPH) {
     
-    typedef boost::adjacency_list_BC< boost::vecBC, boost::poolBC,
-      DirectionalityTag, VertexProp, EdgeProp> MotionGraphType;
-    
-    typedef typename boost::graph_traits<MotionGraphType>::vertex_descriptor Vertex;
-    
-    MotionGraphType motion_graph;
-    
-    RK_SBASTAR_PLANNER_INIT_START_AND_GOAL_NODE
-    
     if((this->m_data_structure_flags & KNN_METHOD_MASK) == LINEAR_SEARCH_KNN) {
       
-      typedef linear_neighbor_search<MotionGraphType> NNFinderType;
-      NNFinderType nn_finder;
+      typedef typename SBAStarFactory::ls_motion_graph MGFactory;
       
-      ReaK::graph::star_neighborhood< NNFinderType > nc_selector(nn_finder, space_dim, 3.0 * space_Lc);
-//       ReaK::graph::fixed_neighborhood< NNFinderType > nc_selector(nn_finder, 10, this->get_sampling_radius());
+      RK_SBASTAR_PLANNER_SETUP_LS_OR_DVP_SUPPORT_STRUCTURES
       
-      any_knn_synchro NN_synchro;
-      vis.m_nn_synchro = &NN_synchro;
-      
-      RK_SBASTAR_PLANNER_CALL_APPROPRIATE_SBASTAR_PLANNER_FUNCTION
+      SBAStarFactory::make_call_to_planner(motion_graph, vis, nc_selector, sup_space_ptr, 
+                                          this->m_planning_method_flags, this->m_init_relaxation, this->m_SA_init_temperature);
       
     } else if((this->m_data_structure_flags & KNN_METHOD_MASK) == DVP_BF2_TREE_KNN) {
       
-      RK_SBASTAR_PLANNER_SETUP_DVP_TREE_SYNCHRO(2, boost::bfl_d_ary_tree_storage<2>)
+      typedef typename SBAStarFactory::template dvp_motion_graph< 2, boost::bfl_d_ary_tree_storage<2> > MGFactory;
       
-      RK_SBASTAR_PLANNER_CALL_APPROPRIATE_SBASTAR_PLANNER_FUNCTION
+      RK_SBASTAR_PLANNER_SETUP_LS_OR_DVP_SUPPORT_STRUCTURES
+      
+      SBAStarFactory::make_call_to_planner(motion_graph, vis, nc_selector, sup_space_ptr, 
+                                          this->m_planning_method_flags, this->m_init_relaxation, this->m_SA_init_temperature);
       
     } else if((this->m_data_structure_flags & KNN_METHOD_MASK) == DVP_BF4_TREE_KNN) {
       
-      RK_SBASTAR_PLANNER_SETUP_DVP_TREE_SYNCHRO(4, boost::bfl_d_ary_tree_storage<4>)
+      typedef typename SBAStarFactory::template dvp_motion_graph< 4, boost::bfl_d_ary_tree_storage<4> > MGFactory;
       
-      RK_SBASTAR_PLANNER_CALL_APPROPRIATE_SBASTAR_PLANNER_FUNCTION
+      RK_SBASTAR_PLANNER_SETUP_LS_OR_DVP_SUPPORT_STRUCTURES
+      
+      SBAStarFactory::make_call_to_planner(motion_graph, vis, nc_selector, sup_space_ptr, 
+                                          this->m_planning_method_flags, this->m_init_relaxation, this->m_SA_init_temperature);
       
 #ifdef RK_PLANNERS_ENABLE_VEBL_TREE
-      
+        
     } else if((this->m_data_structure_flags & KNN_METHOD_MASK) == DVP_COB2_TREE_KNN) {
       
-      RK_SBASTAR_PLANNER_SETUP_DVP_TREE_SYNCHRO(2, boost::vebl_d_ary_tree_storage<2>)
+      typedef typename SBAStarFactory::template dvp_motion_graph< 2, boost::vebl_d_ary_tree_storage<2> > MGFactory;
       
-      RK_SBASTAR_PLANNER_CALL_APPROPRIATE_SBASTAR_PLANNER_FUNCTION
+      RK_SBASTAR_PLANNER_SETUP_LS_OR_DVP_SUPPORT_STRUCTURES
+      
+      SBAStarFactory::make_call_to_planner(motion_graph, vis, nc_selector, sup_space_ptr, 
+                                          this->m_planning_method_flags, this->m_init_relaxation, this->m_SA_init_temperature);
       
     } else if((this->m_data_structure_flags & KNN_METHOD_MASK) == DVP_COB4_TREE_KNN) {
       
-      RK_SBASTAR_PLANNER_SETUP_DVP_TREE_SYNCHRO(4, boost::vebl_d_ary_tree_storage<4>)
+      typedef typename SBAStarFactory::template dvp_motion_graph< 4, boost::vebl_d_ary_tree_storage<4> > MGFactory;
       
-      RK_SBASTAR_PLANNER_CALL_APPROPRIATE_SBASTAR_PLANNER_FUNCTION
-        
+      RK_SBASTAR_PLANNER_SETUP_LS_OR_DVP_SUPPORT_STRUCTURES
+      
+      SBAStarFactory::make_call_to_planner(motion_graph, vis, nc_selector, sup_space_ptr, 
+                                          this->m_planning_method_flags, this->m_init_relaxation, this->m_SA_init_temperature);
+      
 #endif
       
     };
@@ -491,64 +504,68 @@ void sbastar_planner<FreeSpaceType>::solve_planning_query(planning_query<FreeSpa
     
     if((this->m_data_structure_flags & KNN_METHOD_MASK) == DVP_BF2_TREE_KNN) {
       
-      RK_SBASTAR_PLANNER_SETUP_ALT_TREE_SYNCHRO(2, boost::bfl_d_ary_tree_storage<2>)
+      typedef typename SBAStarFactory::template alt_motion_graph< 2, boost::bfl_d_ary_tree_storage<2> > MGFactory;
       
-      RK_SBASTAR_PLANNER_INIT_START_AND_GOAL_NODE
+      RK_SBASTAR_PLANNER_SETUP_ALT_SUPPORT_STRUCTURES
       
-      RK_SBASTAR_PLANNER_CALL_APPROPRIATE_SBASTAR_PLANNER_FUNCTION
+      SBAStarFactory::make_call_to_planner(motion_graph, vis, nc_selector, sup_space_ptr, 
+                                          this->m_planning_method_flags, this->m_init_relaxation, this->m_SA_init_temperature);
       
     } else if((this->m_data_structure_flags & KNN_METHOD_MASK) == DVP_BF4_TREE_KNN) {
       
-      RK_SBASTAR_PLANNER_SETUP_ALT_TREE_SYNCHRO(4, boost::bfl_d_ary_tree_storage<4>)
+      typedef typename SBAStarFactory::template alt_motion_graph< 4, boost::bfl_d_ary_tree_storage<4> > MGFactory;
       
-      RK_SBASTAR_PLANNER_INIT_START_AND_GOAL_NODE
+      RK_SBASTAR_PLANNER_SETUP_ALT_SUPPORT_STRUCTURES
       
-      RK_SBASTAR_PLANNER_CALL_APPROPRIATE_SBASTAR_PLANNER_FUNCTION
+      SBAStarFactory::make_call_to_planner(motion_graph, vis, nc_selector, sup_space_ptr, 
+                                          this->m_planning_method_flags, this->m_init_relaxation, this->m_SA_init_temperature);
       
 #ifdef RK_PLANNERS_ENABLE_VEBL_TREE
       
     } else if((this->m_data_structure_flags & KNN_METHOD_MASK) == DVP_COB2_TREE_KNN) {
       
-      RK_SBASTAR_PLANNER_SETUP_ALT_TREE_SYNCHRO(2, boost::vebl_d_ary_tree_storage<2>)
+      typedef typename SBAStarFactory::template alt_motion_graph< 2, boost::vebl_d_ary_tree_storage<2> > MGFactory;
       
-      RK_SBASTAR_PLANNER_INIT_START_AND_GOAL_NODE
+      RK_SBASTAR_PLANNER_SETUP_ALT_SUPPORT_STRUCTURES
       
-      RK_SBASTAR_PLANNER_CALL_APPROPRIATE_SBASTAR_PLANNER_FUNCTION
+      SBAStarFactory::make_call_to_planner(motion_graph, vis, nc_selector, sup_space_ptr, 
+                                          this->m_planning_method_flags, this->m_init_relaxation, this->m_SA_init_temperature);
       
     } else if((this->m_data_structure_flags & KNN_METHOD_MASK) == DVP_COB4_TREE_KNN) {
       
-      RK_SBASTAR_PLANNER_SETUP_ALT_TREE_SYNCHRO(4, boost::vebl_d_ary_tree_storage<4>)
+      typedef typename SBAStarFactory::template alt_motion_graph< 4, boost::vebl_d_ary_tree_storage<4> > MGFactory;
       
-      RK_SBASTAR_PLANNER_INIT_START_AND_GOAL_NODE
+      RK_SBASTAR_PLANNER_SETUP_ALT_SUPPORT_STRUCTURES
       
-      RK_SBASTAR_PLANNER_CALL_APPROPRIATE_SBASTAR_PLANNER_FUNCTION
+      SBAStarFactory::make_call_to_planner(motion_graph, vis, nc_selector, sup_space_ptr, 
+                                          this->m_planning_method_flags, this->m_init_relaxation, this->m_SA_init_temperature);
         
 #endif
       
     };
-      
+    
 #endif
     
   };
   
-#undef RK_SBASTAR_PLANNER_INIT_START_AND_GOAL_NODE
-#undef RK_SBASTAR_PLANNER_SETUP_DVP_TREE_SYNCHRO
-#undef RK_SBASTAR_PLANNER_SETUP_ALT_TREE_SYNCHRO
-#undef RK_SBASTAR_PLANNER_MAKE_SBASTAR_BUNDLE
-#undef RK_SBASTAR_PLANNER_MAKE_SBASTAR_BUNDLE_WITH_GOAL
-#undef RK_SBASTAR_PLANNER_CALL_SBASTAR_FUNCTION
-#undef RK_SBASTAR_PLANNER_CALL_LAZY_SBASTAR_FUNCTION
-#undef RK_SBASTAR_PLANNER_CALL_LAZY_BNB_SBASTAR_FUNCTION
-#undef RK_SBASTAR_PLANNER_CALL_SBARRTSTAR_FUNCTION
-#undef RK_SBASTAR_PLANNER_CALL_LAZY_SBARRTSTAR_FUNCTION
-#undef RK_SBASTAR_PLANNER_CALL_LAZY_BNB_SBARRTSTAR_FUNCTION
-#undef RK_SBASTAR_PLANNER_CALL_ANYTIME_SBASTAR_FUNCTION
-#undef RK_SBASTAR_PLANNER_CALL_ANYTIME_LAZY_SBASTAR_FUNCTION
-#undef RK_SBASTAR_PLANNER_CALL_ANYTIME_LAZY_BNB_SBASTAR_FUNCTION
-#undef RK_SBASTAR_PLANNER_CALL_ANYTIME_SBARRTSTAR_FUNCTION
-#undef RK_SBASTAR_PLANNER_CALL_ANYTIME_LAZY_SBARRTSTAR_FUNCTION
-#undef RK_SBASTAR_PLANNER_CALL_ANYTIME_LAZY_BNB_SBARRTSTAR_FUNCTION
-#undef RK_SBASTAR_PLANNER_CALL_APPROPRIATE_SBASTAR_PLANNER_FUNCTION
+#undef RK_SBASTAR_PLANNER_SETUP_LS_OR_DVP_SUPPORT_STRUCTURES
+#undef RK_SBASTAR_PLANNER_SETUP_ALT_SUPPORT_STRUCTURES
+  
+};
+
+
+template <typename FreeSpaceType>
+void sbastar_planner<FreeSpaceType>::solve_planning_query(planning_query<FreeSpaceType>& aQuery) {
+  
+  if((this->m_planning_method_flags & PLANNING_DIRECTIONALITY_MASK) == UNIDIRECTIONAL_PLANNING) {
+    
+    this->solve_planning_query_impl< sbastar_bundle_factory<FreeSpaceType> >(aQuery);
+    
+  } else {  /* NOTE: Bi-directional version: */
+    
+    this->solve_planning_query_impl< sbastar_bundle_factory<FreeSpaceType, boost::mpl::true_ > >(aQuery);
+    
+  };
   
 };
 

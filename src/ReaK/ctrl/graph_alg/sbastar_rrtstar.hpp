@@ -244,7 +244,7 @@ namespace detail {
       } else {
         
         boost::tie(x_near_pred, p_new_pred, ep_pred, x_near_succ, p_new_succ, ep_succ) = 
-          node_generator_func(g, sba_vis, boost::bundle_prop_to_vertex_prop(sba_vis.m_position, g));
+          rrt_generate_node(g, sba_vis, boost::bundle_prop_to_vertex_prop(sba_vis.m_position, g));
         
         ++num_rrt_vertices;
       };

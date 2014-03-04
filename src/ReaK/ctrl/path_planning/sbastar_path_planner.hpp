@@ -89,6 +89,9 @@ class sbastar_planner : public sample_based_planner<FreeSpaceType> {
     double m_init_relaxation;
     double m_SA_init_temperature;
     
+    template <typename SBAStarFactory>
+    void solve_planning_query_impl(planning_query<FreeSpaceType>& aQuery);
+    
   public:
     
     /**
