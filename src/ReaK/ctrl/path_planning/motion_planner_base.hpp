@@ -197,6 +197,18 @@ class sample_based_planner : public planner_base<FreeSpaceType> {
   public:
     
     /**
+     * Returns an identifier of the kind of motion-graph used by this planner.
+     * Possible values are: 
+     * In BASE_MOTION_GRAPH_KIND_MASK: 
+     * BASIC_MOTION_GRAPH_KIND, OPTIMAL_MOTION_GRAPH_KIND, ASTAR_MOTION_GRAPH_KIND, 
+     * BIDIR_MOTION_GRAPH_KIND, BIDIR_OPTIMAL_MOTION_GRAPH_KIND, or BIDIR_ASTAR_MOTION_GRAPH_KIND.
+     * In DENSITY_MOTION_GRAPH_KIND_MASK:
+     * DENSE_MOTION_GRAPH_KIND or RECURSIVE_DENSE_MOTION_GRAPH_KIND.
+     * \return the identifier of the kind of motion-graph used by this planner.
+     */
+    virtual std::size_t get_motion_graph_kind() const { return BASIC_MOTION_GRAPH_KIND; };
+    
+    /**
      * Returns the maximum number of samples to generate during the motion planning.
      * \return the maximum number of samples to generate during the motion planning.
      */

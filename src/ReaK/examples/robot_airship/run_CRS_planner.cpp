@@ -24,34 +24,18 @@
 #include <iostream>
 #include <fstream>
 
-// #define RK_ENABLE_TEST_RRT_PLANNER
-#define RK_ENABLE_TEST_RRTSTAR_PLANNER
-// #define RK_ENABLE_TEST_PRM_PLANNER
-// #define RK_ENABLE_TEST_FADPRM_PLANNER
-#define RK_ENABLE_TEST_SBASTAR_PLANNER
 
+#define RK_DISABLE_RRT_PLANNER
+// #define RK_DISABLE_RRTSTAR_PLANNER
+#define RK_DISABLE_PRM_PLANNER
+#define RK_DISABLE_FADPRM_PLANNER
+// #define RK_DISABLE_SBASTAR_PLANNER
 
-#if defined(RK_ENABLE_TEST_RRT_PLANNER)
-#include "path_planning/rrt_path_planner.hpp"
-#endif
+// disable template definitions for the planners, because this program uses extern templates for the planners:
+#define RK_DISABLE_PLANNER_DEFINITIONS
 
-#if defined(RK_ENABLE_TEST_PRM_PLANNER)
-#include "path_planning/prm_path_planner.hpp"
-#endif
+#include "path_planning/planner_exec_engines.hpp"
 
-#if defined(RK_ENABLE_TEST_RRTSTAR_PLANNER)
-#include "path_planning/rrtstar_manip_planners.hpp"
-#endif
-
-#if defined(RK_ENABLE_TEST_FADPRM_PLANNER)
-#include "path_planning/fadprm_path_planner.hpp"
-#endif
-
-#if defined(RK_ENABLE_TEST_SBASTAR_PLANNER)
-#include "path_planning/sbastar_manip_planners.hpp"
-#endif
-
-#include "path_planning/p2p_planning_query.hpp"
 
 #include "path_planning/path_planner_options_po.hpp"
 #include "path_planning/planning_space_options_po.hpp"
@@ -82,210 +66,11 @@
 #include "topologies/Ndof_sap_spaces.hpp"
 
 
-#include "path_planning/basic_sbmp_reporters.hpp"
-#include "path_planning/vlist_sbmp_report.hpp"
-
-
-
 #include <boost/program_options.hpp>
 #include <boost/filesystem.hpp>
 
 namespace po = boost::program_options;
 namespace fs = boost::filesystem;
-
-
-namespace {
-
-struct monte_carlo_engine {
-  
-  std::size_t mc_run_count;
-  
-  std::ofstream timing_output;
-  std::ofstream sol_events_output;
-  
-  std::stringstream time_ss;
-  std::stringstream cost_ss;
-  std::stringstream sol_ss;
-  
-  monte_carlo_engine(std::size_t aMCRuns, 
-                     const std::string& aPlannerName,
-                     const std::string& aOutputPathStem) : 
-                     mc_run_count(aMCRuns) {
-    
-    fs::create_directory(aOutputPathStem.c_str());
-    
-    timing_output.open(aOutputPathStem + "/" + aPlannerName + "_times.txt");
-    sol_events_output.open(aOutputPathStem + "/" + aPlannerName + "_solutions.txt");
-    
-    timing_output << aPlannerName << std::endl;
-    sol_events_output << aPlannerName << ", Solutions" << std::endl;
-    std::cout << "Running " << aPlannerName << std::endl;
-  };
-  
-  template <typename Topology>
-  ReaK::shared_ptr< ReaK::pp::any_sbmp_reporter_chain< Topology > > create_reporter(ReaK::shared_ptr< Topology >) {
-    
-    ReaK::shared_ptr< ReaK::pp::any_sbmp_reporter_chain< Topology > > report_chain(
-      new ReaK::pp::any_sbmp_reporter_chain< Topology >());
-    
-    report_chain->add_reporter( ReaK::pp::timing_sbmp_report<>(time_ss) );
-    report_chain->add_reporter( ReaK::pp::least_cost_sbmp_report<>(cost_ss, &sol_ss) );
-    
-    return report_chain;
-  };
-  
-  template <typename Topology>
-  void operator()(const ReaK::pp::planning_option_collection& plan_options,
-                  ReaK::shared_ptr< ReaK::pp::sample_based_planner< Topology > > planner,
-                  ReaK::pp::planning_query< Topology >& mc_query) {
-    std::size_t mc_num_records = plan_options.max_vertices / plan_options.prog_interval;
-    
-    std::vector< double > vertex_counts(mc_num_records, 0.0);
-    std::vector< std::size_t > num_remaining_planners(mc_num_records, 0);
-    std::vector< std::size_t > num_successful_planners(mc_num_records, 0);
-    std::vector< double > time_values(mc_num_records, 0.0);
-    std::vector< double > best_costs(mc_num_records, 1.0e10);
-    std::vector< double > worst_costs(mc_num_records, 0.0);
-    std::vector< double > avg_costs(mc_num_records, 0.0);
-    
-    cost_ss << std::fixed;
-    sol_ss << std::fixed;
-    
-    for(std::size_t i = 0; i < mc_run_count; ++i) {
-      time_ss.clear();
-      cost_ss.clear();
-      sol_ss.clear();
-      
-      std::cout << "\r" << std::setw(10) << i << std::flush;
-      
-      mc_query.reset_solution_records();
-      planner->reset_internal_state();
-      planner->solve_planning_query(mc_query);
-      
-      std::size_t v_count = 0, t_val = 0; 
-      std::string tmp;
-      std::size_t j = 0;
-      while( std::getline(time_ss, tmp) && (tmp.size()) ) {
-        std::stringstream ss_tmp(tmp);
-        ss_tmp >> v_count >> t_val;
-        vertex_counts[j] = (double(v_count) + double(num_remaining_planners[j]) * vertex_counts[j]) / double(num_remaining_planners[j] + 1);
-        time_values[j] = (double(t_val) + double(num_remaining_planners[j]) * time_values[j]) / double(num_remaining_planners[j] + 1);
-        num_remaining_planners[j] += 1; 
-        ++j;
-      };
-      
-      double c_val = 1e10;
-      j = 0;
-      while( std::getline(cost_ss, tmp) && (tmp.size()) ) {
-        std::stringstream ss_tmp(tmp);
-        ss_tmp >> v_count >> c_val;
-        if(c_val < best_costs[j])
-          best_costs[j] = c_val;
-        if(c_val > worst_costs[j])
-          worst_costs[j] = c_val;
-        if(c_val < 1.0e9) {
-          avg_costs[j] = (double(c_val) + double(num_successful_planners[j]) * avg_costs[j]) / double(num_successful_planners[j] + 1);
-          num_successful_planners[j] += 1;
-        };
-        ++j;
-      };
-      
-      while(j < mc_num_records) {
-        if(c_val < best_costs[j])
-          best_costs[j] = c_val;
-        if(c_val > worst_costs[j])
-          worst_costs[j] = c_val;
-        if(c_val < 1.0e9) {
-          avg_costs[j] = (double(c_val) + double(num_successful_planners[j]) * avg_costs[j]) / double(num_successful_planners[j] + 1);
-          num_successful_planners[j] += 1;
-        };
-        ++j;
-      };
-      
-      std::string first_sol_event;
-      std::getline(sol_ss, first_sol_event);
-      if(first_sol_event != "")
-        sol_events_output << first_sol_event << std::endl;
-    };
-    for(std::size_t i = 0; i < mc_num_records; ++i) {
-      timing_output << std::setw(9) << i 
-            << " " << std::setw(9) << vertex_counts[i] 
-            << " " << std::setw(9) << num_remaining_planners[i] 
-            << " " << std::setw(9) << num_successful_planners[i] 
-            << " " << std::setw(9) << time_values[i] 
-            << " " << std::setw(9) << best_costs[i] 
-            << " " << std::setw(9) << worst_costs[i] 
-            << " " << std::setw(9) << avg_costs[i] << std::endl; 
-    };
-    
-    std::cout << "Done!" << std::endl;
-    
-    
-  };
-  
-  
-};
-
-
-
-
-struct single_run_engine {
-  
-  single_run_engine(const std::string& aPlannerName,
-                    const std::string& aOutputPathStem) {
-    
-    fs::create_directory(aOutputPathStem.c_str());
-    
-    std::string qualified_output_path = aOutputPathStem + "/" + aPlannerName;
-    fs::create_directory(qualified_output_path.c_str());
-    
-    // TODO: open some output file to output the qualified_output_path folder.
-    
-    std::cout << "Outputting " << aPlannerName << std::endl;
-    
-  };
-  
-  template <typename Topology>
-  ReaK::shared_ptr< ReaK::pp::any_sbmp_reporter_chain< Topology > > create_reporter(ReaK::shared_ptr< Topology >) {
-    
-    ReaK::shared_ptr< ReaK::pp::any_sbmp_reporter_chain< Topology > > report_chain(
-      new ReaK::pp::any_sbmp_reporter_chain< Topology >());
-    
-    report_chain->add_reporter( ReaK::pp::print_sbmp_progress<>() );
-    
-    return report_chain;
-  };
-  
-  template <typename Topology>
-  void operator()(const ReaK::pp::planning_option_collection& plan_options,
-                  ReaK::shared_ptr< ReaK::pp::sample_based_planner< Topology > > planner,
-                  ReaK::pp::planning_query< Topology >& pp_query) {
-    
-    pp_query.reset_solution_records();
-    planner->reset_internal_state();
-    planner->solve_planning_query(pp_query);
-    
-    std::cout << "Done!" << std::endl;
-    
-    // Report the results:
-    // TODO: output something... (I don't know exactly, maybe vlist printer).
-//     shared_ptr< seq_path_base< static_super_space_type > > bestsol_rlpath;
-//     if(pp_query.solutions.size())
-//       bestsol_rlpath = pp_query.solutions.begin()->second;
-    
-    std::cout << "The shortest distance is: " << pp_query.get_best_solution_distance() << std::endl;
-    
-    
-  };
-  
-  
-};
-
-
-
-};
-
-
 
 
 template <typename ManipMdlType, typename InterpTag, int Order, typename PlanEngine>
@@ -340,93 +125,7 @@ void CRS_execute_static_planner(const ReaK::kte::chaser_target_data& scene_data,
   goal_point = scene_data.chaser_jt_limits->map_to_space(goal_inter, *normal_jt_space, *jt_space);
   
   
-  // Create the reporter chain.
-  shared_ptr< any_sbmp_reporter_chain< static_workspace_type > > p_report_chain = engine.create_reporter(workspace);
-  
-  // Create the point-to-point query:
-  path_planning_p2p_query< static_workspace_type > pp_query("pp_query", workspace,
-    start_point, goal_point, plan_options.max_results);
-  
-  // Create the planner:
-  shared_ptr< sample_based_planner< static_workspace_type > > workspace_planner;
-  
-#ifdef RK_ENABLE_TEST_RRT_PLANNER
-  if( plan_options.planning_algo == 0 ) { // RRT
-    
-    workspace_planner = shared_ptr< sample_based_planner< static_workspace_type > >(
-      new rrt_planner< static_workspace_type >(
-        workspace, plan_options.max_vertices, plan_options.prog_interval,
-        plan_options.store_policy | plan_options.knn_method,
-        plan_options.planning_options,
-        0.1, 0.05, *p_report_chain));
-    
-  } else 
-#endif
-#ifdef RK_ENABLE_TEST_RRTSTAR_PLANNER
-  if( plan_options.planning_algo == 1 ) { // RRT*
-    
-    workspace_planner = shared_ptr< sample_based_planner< static_workspace_type > >(
-      new rrtstar_planner< static_workspace_type >(
-        workspace, plan_options.max_vertices, plan_options.prog_interval,
-        plan_options.store_policy | plan_options.knn_method,
-        plan_options.planning_options,
-        0.1, 0.05, workspace_dims, *p_report_chain));
-    
-  } else 
-#endif
-#ifdef RK_ENABLE_TEST_PRM_PLANNER
-  if( plan_options.planning_algo == 2 ) { // PRM
-    
-    workspace_planner = shared_ptr< sample_based_planner< static_workspace_type > >(
-      new prm_planner< static_workspace_type >(
-        workspace, plan_options.max_vertices, plan_options.prog_interval,
-        plan_options.store_policy | plan_options.knn_method,
-        plan_options.planning_options,
-        0.1, 0.05, plan_options.max_random_walk, workspace_dims, *p_report_chain));
-    
-  } else 
-#endif
-#ifdef RK_ENABLE_TEST_FADPRM_PLANNER
-  if( plan_options.planning_algo == 4 ) { // FADPRM
-    
-    shared_ptr< fadprm_planner< static_workspace_type > > tmp(
-      new fadprm_planner< static_workspace_type >(
-        workspace, plan_options.max_vertices, plan_options.prog_interval,
-        plan_options.store_policy | plan_options.knn_method,
-        0.1, 0.05, plan_options.max_random_walk, workspace_dims, *p_report_chain));
-    
-    tmp->set_initial_relaxation(plan_options.init_relax);
-    
-    workspace_planner = tmp;
-    
-  } else 
-#endif
-#ifdef RK_ENABLE_TEST_SBASTAR_PLANNER
-  if( plan_options.planning_algo == 3 ) { // SBA*
-    
-    shared_ptr< sbastar_planner< static_workspace_type > > tmp(
-      new sbastar_planner< static_workspace_type >(
-        workspace, plan_options.max_vertices, plan_options.prog_interval,
-        plan_options.store_policy | plan_options.knn_method,
-        plan_options.planning_options,
-        0.1, 0.05, plan_options.max_random_walk, workspace_dims, *p_report_chain));
-    
-    tmp->set_initial_density_threshold(0.0);
-    tmp->set_initial_relaxation(plan_options.init_relax);
-    tmp->set_initial_SA_temperature(plan_options.init_SA_temp);
-    
-    workspace_planner = tmp;
-    
-  } else 
-#endif
-  { };
-  
-  if(!workspace_planner)
-    return;
-  
-  
-  // Solve the planning problem:
-  engine(plan_options, workspace_planner, pp_query);
+  execute_p2p_planner(workspace, plan_options, workspace_dims, engine, start_point, goal_point);
   
   
   // Restore model's state:
@@ -446,7 +145,6 @@ void CRS_launch_static_planner(const ReaK::kte::chaser_target_data& scene_data,
                                const ReaK::vect_n<double>& jt_start, 
                                const ReaK::vect_n<double>& jt_desired) {
   
-  try {
     if((space_def.get_space_order() == 0) && (space_def.get_interp_id() == 0)) { 
       CRS_execute_static_planner<ReaK::kte::manip_P3R3R_kinematics, ReaK::pp::linear_interpolation_tag, 0>(
         scene_data, plan_options, space_def, engine, jt_start, jt_desired);
@@ -489,9 +187,6 @@ void CRS_launch_static_planner(const ReaK::kte::chaser_target_data& scene_data,
       CRS_execute_static_planner<ReaK::kte::manip_P3R3R_kinematics, ReaK::pp::sap_Ndof_interpolation_tag, 2>(
         scene_data, plan_options, space_def, engine, jt_start, jt_desired);
     };
-  } catch(std::exception& e) {
-    std::cerr << "Error: An exception was raised during the planning:\nwhat(): " << e.what() << std::endl;
-  };
   
 };
 
@@ -795,24 +490,25 @@ int main(int argc, char** argv) {
   
   
   // Do the Monte-Carlo runs if required:
-  
   if(vm.count("monte-carlo")) {
-    
-    monte_carlo_engine mc_eng(vm["mc-runs"].as<std::size_t>(), planner_name_str, output_path_name + "/" + result_file_prefix);
-    
-    CRS_launch_static_planner(scene_data, plan_options, space_def, mc_eng, jt_start, jt_desired);
-    
+    monte_carlo_mp_engine mc_eng(vm["mc-runs"].as<std::size_t>(), planner_name_str, output_path_name + "/" + result_file_prefix);
+    try {
+      CRS_launch_static_planner(scene_data, plan_options, space_def, mc_eng, jt_start, jt_desired);
+    } catch(std::exception& e) {
+      std::cerr << "Error: An exception was raised during the planning:\nwhat(): " << e.what() << std::endl;
+      return 2;
+    };
   };
   
-  
   // Do a single run if required:
-  
   if(vm.count("single-run")) {
-    
-    single_run_engine sr_eng(planner_name_str, output_path_name + "/" + result_file_prefix);
-    
-    CRS_launch_static_planner(scene_data, plan_options, space_def, sr_eng, jt_start, jt_desired);
-    
+    vlist_print_mp_engine sr_eng(planner_name_str, output_path_name + "/" + result_file_prefix);
+    try {
+      CRS_launch_static_planner(scene_data, plan_options, space_def, sr_eng, jt_start, jt_desired);
+    } catch(std::exception& e) {
+      std::cerr << "Error: An exception was raised during the planning:\nwhat(): " << e.what() << std::endl;
+      return 3;
+    };
   };
   
   return 0;

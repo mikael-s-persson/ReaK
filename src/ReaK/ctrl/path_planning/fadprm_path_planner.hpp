@@ -79,6 +79,8 @@ class fadprm_planner : public sample_based_planner<FreeSpaceType> {
     
   public:
     
+    virtual std::size_t get_motion_graph_kind() const { return ASTAR_MOTION_GRAPH_KIND | DENSE_MOTION_GRAPH_KIND; };
+    
     /**
      * This function computes a valid path in the C-free. If it cannot 
      * achieve a valid path, an exception will be thrown. This algorithmic

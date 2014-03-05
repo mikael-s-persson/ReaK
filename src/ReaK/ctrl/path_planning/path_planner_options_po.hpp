@@ -57,8 +57,11 @@ boost::program_options::options_description get_planning_option_po_desc() {
     ("max-results", po::value< std::size_t >()->default_value(50), "maximum number of result-paths during runs (default is 50)")
     ("prog-interval", po::value< std::size_t >()->default_value(10), "number of vertices between progress reports during runs (default is 10)")
     
-    ("bi-directional", "specify whether to use a bi-directional algorithm or not during planning. Only supported for some algorithms (RRT).")
-    ("with-bnb", "specify whether to use a Branch-and-bound or not during planning to prune useless nodes from the motion-graph. Only supported for optimizing algorithms.")
+    ("max-random-walk", po::value< double >()->default_value(1.0), "specify the maximum random-walk distance allowed in the algorithm (default: 1.0). Only meaningful for expanding algorithms (SBA*, FADPRM, PRM).")
+    
+    ("no-lazy-connect", "if set, disable lazy connection strategy during planning.")
+    ("bi-directional", "specify whether to use a bi-directional algorithm or not during planning. Only supported for some algorithms (RRT, RRT*, SBA*).")
+    ("with-bnb", "specify whether to use a Branch-and-bound or not during planning to prune useless nodes from the motion-graph. Only supported for optimizing algorithms (RRT*, SBA*).")
     ("relaxation-factor", po::value< double >()->default_value(0.0), "specify the initial relaxation factor for the algorithm (default: 0.0). Only supported for heuristic-driven algorithms.")
 //     ("density-cutoff", po::value< double >()->default_value(0.0), "specify the density cutoff (default: 0.0). Only supported for density-driven algorithms.")
     ("with-voronoi-pull", "specify whether to use a Voronoi pull or not to add an exploratory bias to the search (default: not).")
@@ -140,7 +143,8 @@ planning_option_collection get_planning_option_from_po(boost::program_options::v
       plan_options.store_policy |= ADJ_LIST_MOTION_GRAPH;
   };
   
-  plan_options.planning_options |= LAZY_COLLISION_CHECKING;  // never use eager, always lazy, if supported.
+  if( !vm.count("no-lazy-connect") )
+    plan_options.planning_options |= LAZY_COLLISION_CHECKING;  // use lazy, if supported.
   
   if( vm.count("bi-directional") )
     plan_options.planning_options |= BIDIRECTIONAL_PLANNING;
@@ -155,6 +159,9 @@ planning_option_collection get_planning_option_from_po(boost::program_options::v
   
   if(vm["sa-temperature"].as<double>() > -1.0)  // default has been overriden
     plan_options.init_SA_temp = vm["sa-temperature"].as<double>();
+  
+  if(vm["max-random-walk"].as<double>() != 1.0)
+    plan_options.max_random_walk = vm["max-random-walk"].as<double>();
   
   if( vm.count("with-voronoi-pull") )
     plan_options.planning_options |= PLAN_WITH_VORONOI_PULL;

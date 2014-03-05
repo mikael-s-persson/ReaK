@@ -94,6 +94,13 @@ class sbastar_planner : public sample_based_planner<FreeSpaceType> {
     
   public:
     
+    virtual std::size_t get_motion_graph_kind() const { 
+      if((this->m_planning_method_flags & PLANNING_DIRECTIONALITY_MASK) == UNIDIRECTIONAL_PLANNING)
+        return ASTAR_MOTION_GRAPH_KIND | RECURSIVE_DENSE_MOTION_GRAPH_KIND;
+      else 
+        return BIDIR_ASTAR_MOTION_GRAPH_KIND | RECURSIVE_DENSE_MOTION_GRAPH_KIND;
+    };
+    
     /**
      * This function computes a valid path in the C-free. If it cannot 
      * achieve a valid path, an exception will be thrown. This algorithmic

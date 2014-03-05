@@ -77,6 +77,8 @@ class prm_planner : public sample_based_planner<FreeSpaceType> {
     
   public:
     
+    virtual std::size_t get_motion_graph_kind() const { return ASTAR_MOTION_GRAPH_KIND | DENSE_MOTION_GRAPH_KIND; };
+    
     /**
      * This function is called to reset the internal state of the planner.
      */

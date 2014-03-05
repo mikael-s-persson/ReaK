@@ -30,39 +30,18 @@
 #include "interpolation/sustained_velocity_pulse.hpp"
 
 
-#define RK_ENABLE_TEST_URRT_PLANNER
-#define RK_ENABLE_TEST_BRRT_PLANNER
-#define RK_ENABLE_TEST_RRTSTAR_PLANNER
-#define RK_ENABLE_TEST_PRM_PLANNER
-#define RK_ENABLE_TEST_FADPRM_PLANNER
-#define RK_ENABLE_TEST_SBASTAR_PLANNER
+// #define RK_DISABLE_RRT_PLANNER
+// #define RK_DISABLE_RRTSTAR_PLANNER
+// #define RK_DISABLE_PRM_PLANNER
+// #define RK_DISABLE_FADPRM_PLANNER
+// #define RK_DISABLE_SBASTAR_PLANNER
+
+#include "planner_exec_engines.hpp"
 
 
-#if defined(RK_ENABLE_TEST_URRT_PLANNER) || defined(RK_ENABLE_TEST_BRRT_PLANNER)
-#include "rrt_path_planner.hpp"
-#include "rrt_path_planner.tpp"
-#endif
+#include "path_planning/path_planner_options_po.hpp"
 
-#if defined(RK_ENABLE_TEST_PRM_PLANNER)
-#include "prm_path_planner.hpp"
-#include "prm_path_planner.tpp"
-#endif
-
-#if defined(RK_ENABLE_TEST_RRTSTAR_PLANNER)
-#include "rrtstar_path_planner.hpp"
-#include "rrtstar_path_planner.tpp"
-#endif
-
-#if defined(RK_ENABLE_TEST_FADPRM_PLANNER)
-#include "fadprm_path_planner.hpp"
-#include "fadprm_path_planner.tpp"
-#endif
-
-#if defined(RK_ENABLE_TEST_SBASTAR_PLANNER)
-#include "sbastar_path_planner.hpp"
-#include "sbastar_path_planner.tpp"
-#endif
-
+#include "optimization/optim_exceptions.hpp"
 
 #include "basic_sbmp_reporters.hpp"
 #include "vlist_sbmp_report.hpp"
@@ -75,594 +54,24 @@ namespace po = boost::program_options;
 namespace fs = boost::filesystem;
 
 
-
-
-
-
-#define RK_HIDIM_PLANNER_DO_RRT     0x00000001
-#define RK_HIDIM_PLANNER_DO_BIRRT   0x00000002
-#define RK_HIDIM_PLANNER_DO_PRM     0x00000004
-#define RK_HIDIM_PLANNER_DO_FADPRM  0x00000008
-#define RK_HIDIM_PLANNER_DO_SBASTAR 0x00000010
-#define RK_HIDIM_PLANNER_DO_RRTSTAR 0x00000020
-
-
 #ifndef RK_HIDIM_PLANNER_N
 #define RK_HIDIM_PLANNER_N 3
 #endif
 
 
 
-
-std::size_t mc_run_count = 0;
-std::size_t mc_max_vertices = 0;
-std::size_t mc_prog_interval = 0;
-std::size_t mc_max_vertices_100 = 0;
-std::size_t mc_results = 0;
-std::size_t mc_flags = 0;
-
-std::size_t sr_max_vertices = 0;
-std::size_t sr_prog_interval = 0;
-std::size_t sr_results = 0;
-
-std::size_t data_struct_flags = 0;
-std::string data_struct_str = "";
-
-
-#ifdef RK_ENABLE_TEST_FADPRM_PLANNER
-double fadprm_relaxation = 0.0;
-#endif
-
-#ifdef RK_ENABLE_TEST_RRTSTAR_PLANNER
-std::size_t rrtstar_opt_flags = ReaK::pp::UNIDIRECTIONAL_PLANNING;
-std::string rrtstar_qualifier = "";
-#endif
-
-#ifdef RK_ENABLE_TEST_SBASTAR_PLANNER
-double sba_density_cutoff = 0.0;
-double sba_relaxation = 0.0;
-double sba_sa_temperature = 0.0;
-bool sba_use_voronoi_pull = false;
-std::size_t sba_opt_flags = ReaK::pp::UNIDIRECTIONAL_PLANNING | ReaK::pp::LAZY_COLLISION_CHECKING;
-std::string sba_qualifier = "_lazy";
-#endif
-
-
-
-
-
-
-
-template <typename SpaceType>
-void single_run_planners_on_space(ReaK::shared_ptr< SpaceType > world_map, const std::string& aFilePath, const std::string& aSpaceName) {
-  
-  using namespace ReaK;
-  using namespace pp;
-  
-  std::cout << "*****************************************************************" << std::endl
-            << "*            Running single runs on '" << world_map->getName() << "'" << std::endl
-            << "*****************************************************************" << std::endl;
-  
-  
-  path_planning_p2p_query< SpaceType > sr_query(
-    "sr_hidim_planning_query",
-    world_map,
-    world_map->get_start_pos(),
-    world_map->get_goal_pos(),
-    sr_results);
-  
-#ifdef RK_ENABLE_TEST_URRT_PLANNER
-  
-  if(mc_flags & RK_HIDIM_PLANNER_DO_RRT) {
-    
-    std::cout << "Running RRT with Uni-dir, " << data_struct_str << std::endl;
-    {
-      
-      fs::create_directory((aFilePath + "/rrt/").c_str());
-      
-      any_sbmp_reporter_chain< SpaceType > report_chain;
-      
-      std::ofstream cost_out(aFilePath + "/rrt/" + aSpaceName + "_times.txt");
-      std::ofstream sol_out(aFilePath + "/rrt/" + aSpaceName + "_solutions.txt");
-      report_chain.add_reporter( least_cost_sbmp_report<>(cost_out, &sol_out) );
-      
-      report_chain.add_reporter( print_sbmp_progress<>() );
-      
-      report_chain.add_reporter( vlist_sbmp_report< any_mg_vertex_printer<SpaceType> >(
-        aFilePath + "/rrt/" + aSpaceName + "_", 
-        any_mg_vertex_printer<SpaceType>( BASIC_MOTION_GRAPH_KIND )));
-      
-      rrt_planner< SpaceType > rrt_plan(
-          world_map, sr_max_vertices, sr_prog_interval, data_struct_flags, 
-          UNIDIRECTIONAL_PLANNING, 0.1, 0.05, report_chain);
-      
-      sr_query.reset_solution_records();
-      rrt_plan.solve_planning_query(sr_query);
-      
-    };
-    std::cout << "Done!" << std::endl;
-    
-  };
-  
-#endif
-  
-  
-#ifdef RK_ENABLE_TEST_BRRT_PLANNER
-  
-  if(mc_flags & RK_HIDIM_PLANNER_DO_BIRRT) {
-    
-    std::cout << "Running RRT with Bi-dir, " << data_struct_str << std::endl;
-    {
-      
-      fs::create_directory((aFilePath + "/birrt/").c_str());
-      
-      any_sbmp_reporter_chain< SpaceType > report_chain;
-      
-      std::ofstream cost_out(aFilePath + "/birrt/" + aSpaceName + "_times.txt");
-      std::ofstream sol_out(aFilePath + "/birrt/" + aSpaceName + "_solutions.txt");
-      report_chain.add_reporter( least_cost_sbmp_report<>(cost_out, &sol_out) );
-      
-      report_chain.add_reporter( print_sbmp_progress<>() );
-      
-      report_chain.add_reporter( vlist_sbmp_report< any_mg_vertex_printer<SpaceType> >(
-        aFilePath + "/birrt/" + aSpaceName + "_", 
-        any_mg_vertex_printer<SpaceType>( BASIC_MOTION_GRAPH_KIND )));
-      
-      rrt_planner< SpaceType > rrt_plan(
-          world_map, sr_max_vertices, sr_prog_interval, data_struct_flags, 
-          BIDIRECTIONAL_PLANNING, 0.1, 0.05, report_chain);
-      
-      sr_query.reset_solution_records();
-      rrt_plan.solve_planning_query(sr_query);
-      
-    };
-    std::cout << "Done!" << std::endl;
-    
-  };
-  
-#endif
-  
-  
-  
-#ifdef RK_ENABLE_TEST_PRM_PLANNER
-  
-  if(mc_flags & RK_HIDIM_PLANNER_DO_PRM) {
-    
-    std::cout << "Running PRM with " << data_struct_str << std::endl;
-    {
-      
-      fs::create_directory((aFilePath + "/prm/").c_str());
-      
-      any_sbmp_reporter_chain< SpaceType > report_chain;
-      
-      std::ofstream cost_out(aFilePath + "/prm/" + aSpaceName + "_times.txt");
-      std::ofstream sol_out(aFilePath + "/prm/" + aSpaceName + "_solutions.txt");
-      report_chain.add_reporter( least_cost_sbmp_report<>(cost_out, &sol_out) );
-      
-      report_chain.add_reporter( print_sbmp_progress<>() );
-      
-      report_chain.add_reporter( vlist_sbmp_report< any_mg_vertex_printer<SpaceType> >(
-        aFilePath + "/prm/" + aSpaceName + "_", 
-        any_mg_vertex_printer<SpaceType>( ASTAR_MOTION_GRAPH_KIND | DENSE_MOTION_GRAPH_KIND )));
-      
-      prm_planner< SpaceType > prm_plan(
-        world_map, sr_max_vertices, sr_prog_interval, data_struct_flags, 
-        0.1, 0.05, world_map->get_max_edge_length(), RK_HIDIM_PLANNER_N, report_chain);
-      
-      sr_query.reset_solution_records();
-      prm_plan.solve_planning_query(sr_query);
-      
-    };
-    std::cout << "Done!" << std::endl;
-    
-  };
-  
-#endif
-  
-  
-  
-#ifdef RK_ENABLE_TEST_FADPRM_PLANNER
-  
-  if(mc_flags & RK_HIDIM_PLANNER_DO_FADPRM) {
-    
-    std::cout << "Running FADPRM with " << data_struct_str << std::endl;
-    {
-      
-      fs::create_directory((aFilePath + "/fadprm/").c_str());
-      
-      any_sbmp_reporter_chain< SpaceType > report_chain;
-      
-      std::ofstream cost_out(aFilePath + "/fadprm/" + aSpaceName + "_times.txt");
-      std::ofstream sol_out(aFilePath + "/fadprm/" + aSpaceName + "_solutions.txt");
-      report_chain.add_reporter( least_cost_sbmp_report<>(cost_out, &sol_out) );
-      
-      report_chain.add_reporter( print_sbmp_progress<>() );
-      
-      report_chain.add_reporter( vlist_sbmp_report< any_mg_vertex_printer<SpaceType> >(
-        aFilePath + "/fadprm/" + aSpaceName + "_", 
-        any_mg_vertex_printer<SpaceType>( ASTAR_MOTION_GRAPH_KIND | DENSE_MOTION_GRAPH_KIND )));
-      
-      fadprm_planner< SpaceType > fadprm_plan(
-        world_map, sr_max_vertices, sr_prog_interval, data_struct_flags, 
-        0.1, 0.05, world_map->get_max_edge_length(), RK_HIDIM_PLANNER_N, report_chain);
-      
-      fadprm_plan.set_initial_relaxation(fadprm_relaxation);
-      
-      sr_query.reset_solution_records();
-      fadprm_plan.solve_planning_query(sr_query);
-      
-    };
-    std::cout << "Done!" << std::endl;
-    
-  };
-  
-#endif
-  
-  
-  
-#ifdef RK_ENABLE_TEST_SBASTAR_PLANNER
-  
-  if(mc_flags & RK_HIDIM_PLANNER_DO_SBASTAR) {
-    
-    std::cout << "Running SBA* with " << data_struct_str << std::endl;
-    {
-      
-      fs::create_directory((aFilePath + "/sbastar" + sba_qualifier + "/").c_str());
-      
-      any_sbmp_reporter_chain< SpaceType > report_chain;
-      
-      std::ofstream cost_out(aFilePath + "/sbastar" + sba_qualifier + "/" + aSpaceName + "_times.txt");
-      std::ofstream sol_out(aFilePath + "/sbastar" + sba_qualifier + "/" + aSpaceName + "_solutions.txt");
-      report_chain.add_reporter( least_cost_sbmp_report<>(cost_out, &sol_out) );
-      
-      report_chain.add_reporter( print_sbmp_progress<>() );
-      
-      report_chain.add_reporter( vlist_sbmp_report< any_mg_vertex_printer<SpaceType> >(
-        aFilePath + "/sbastar" + sba_qualifier + "/" + aSpaceName + "_", 
-        any_mg_vertex_printer<SpaceType>( ASTAR_MOTION_GRAPH_KIND | RECURSIVE_DENSE_MOTION_GRAPH_KIND )));
-      
-      sbastar_planner< SpaceType > sbastar_plan(
-        world_map, sr_max_vertices, sr_prog_interval, data_struct_flags, sba_opt_flags,
-        0.1, 0.05, world_map->get_max_edge_length(), RK_HIDIM_PLANNER_N, report_chain);
-      
-      sbastar_plan.set_initial_density_threshold(sba_density_cutoff);
-      sbastar_plan.set_initial_relaxation(sba_relaxation);
-      sbastar_plan.set_initial_SA_temperature(sba_sa_temperature);
-      
-      sr_query.reset_solution_records();
-      sbastar_plan.solve_planning_query(sr_query);
-      
-    };
-    std::cout << "Done!" << std::endl;
-    
-  };
-    
-#endif
-  
-  
-#ifdef RK_ENABLE_TEST_RRTSTAR_PLANNER
-  
-  if(mc_flags & RK_HIDIM_PLANNER_DO_RRTSTAR) {
-    
-    std::cout << "Running RRT* with Uni-dir, " << data_struct_str << std::endl;
-    {
-      
-      fs::create_directory((aFilePath + "/rrt_star" + rrtstar_qualifier + "/").c_str());
-      
-      any_sbmp_reporter_chain< SpaceType > report_chain;
-      
-      std::ofstream cost_out(aFilePath + "/rrt_star" + rrtstar_qualifier + "/" + aSpaceName + "_times.txt");
-      std::ofstream sol_out(aFilePath + "/rrt_star" + rrtstar_qualifier + "/" + aSpaceName + "_solutions.txt");
-      report_chain.add_reporter( least_cost_sbmp_report<>(cost_out, &sol_out) );
-      
-      report_chain.add_reporter( print_sbmp_progress<>() );
-      
-      report_chain.add_reporter( vlist_sbmp_report< any_mg_vertex_printer<SpaceType> >(
-        aFilePath + "/rrt_star" + rrtstar_qualifier + "/" + aSpaceName + "_", 
-        any_mg_vertex_printer<SpaceType>( OPTIMAL_MOTION_GRAPH_KIND )));
-      
-      rrtstar_planner< SpaceType > rrtstar_plan(
-        world_map, sr_max_vertices, sr_prog_interval, data_struct_flags, rrtstar_opt_flags,
-        0.1, 0.05, RK_HIDIM_PLANNER_N, report_chain);
-      
-      sr_query.reset_solution_records();
-      rrtstar_plan.solve_planning_query(sr_query);
-      
-    };
-    std::cout << "Done!" << std::endl;
-    
-  };
-    
-#endif
-  
-  
-};
-
-
-
-
-
-template <typename SpaceType>
-void run_monte_carlo_tests(
-    ReaK::pp::sample_based_planner< SpaceType >& planner,
-    ReaK::pp::planning_query< SpaceType >& mc_query,
-    std::stringstream& time_rec_ss,
-    std::stringstream& cost_rec_ss,
-    std::stringstream& sol_rec_ss,
-    std::ostream& result_output,
-    std::ostream& first_sol_event_output) {
-  std::vector< double > vertex_counts(mc_max_vertices_100, 0.0);
-  std::vector< std::size_t > num_remaining_planners(mc_max_vertices_100, 0);
-  std::vector< std::size_t > num_successful_planners(mc_max_vertices_100, 0);
-  
-  std::vector< double > time_values(mc_max_vertices_100, 0.0);
-  std::vector< double > best_costs(mc_max_vertices_100, 1.0e10);
-  std::vector< double > worst_costs(mc_max_vertices_100, 0.0);
-  std::vector< double > avg_costs(mc_max_vertices_100, 0.0);
-  
-  cost_rec_ss << std::fixed;
-  sol_rec_ss << std::fixed;
-  
-  for(std::size_t i = 0; i < mc_run_count; ++i) {
-    time_rec_ss.clear();
-    time_rec_ss.seekg(0, time_rec_ss.end);
-    cost_rec_ss.clear();
-    cost_rec_ss.seekg(0, cost_rec_ss.end);
-    sol_rec_ss.clear();
-    sol_rec_ss.seekg(0, sol_rec_ss.end);
-    
-    mc_query.reset_solution_records();
-    planner.reset_internal_state();
-    planner.solve_planning_query(mc_query);
-    
-    std::size_t v_count = 0, t_val = 0; 
-    std::string tmp;
-    std::size_t j = 0;
-    while( std::getline(time_rec_ss, tmp) && (tmp.size()) ) {
-      std::stringstream ss_tmp(tmp);
-      ss_tmp >> v_count >> t_val;
-      vertex_counts[j] = (double(v_count) + double(num_remaining_planners[j]) * vertex_counts[j]) / double(num_remaining_planners[j] + 1);
-      time_values[j] = (double(t_val) + double(num_remaining_planners[j]) * time_values[j]) / double(num_remaining_planners[j] + 1);
-      num_remaining_planners[j] += 1; 
-      ++j;
-    };
-    
-    double c_val = 1e10;
-    j = 0;
-    while( std::getline(cost_rec_ss, tmp) && (tmp.size()) ) {
-      std::stringstream ss_tmp(tmp);
-      ss_tmp >> v_count >> c_val;
-      if(c_val < best_costs[j])
-        best_costs[j] = c_val;
-      if(c_val > worst_costs[j])
-        worst_costs[j] = c_val;
-      if(c_val < 1.0e9) {
-        avg_costs[j] = (double(c_val) + double(num_successful_planners[j]) * avg_costs[j]) / double(num_successful_planners[j] + 1);
-        num_successful_planners[j] += 1;
-      };
-      ++j;
-    };
-    
-    while(j < mc_max_vertices_100) {
-      if(c_val < best_costs[j])
-        best_costs[j] = c_val;
-      if(c_val > worst_costs[j])
-        worst_costs[j] = c_val;
-      if(c_val < 1.0e9) {
-        avg_costs[j] = (double(c_val) + double(num_successful_planners[j]) * avg_costs[j]) / double(num_successful_planners[j] + 1);
-        num_successful_planners[j] += 1;
-      };
-      ++j;
-    };
-    
-    std::string first_sol_event;
-    std::getline(sol_rec_ss, first_sol_event);
-    if(first_sol_event != "")
-      first_sol_event_output << first_sol_event << std::endl;
-  };
-  for(std::size_t i = 0; i < mc_max_vertices_100; ++i) {
-    result_output << std::setw(9) << i 
-           << " " << std::setw(9) << vertex_counts[i] 
-           << " " << std::setw(9) << num_remaining_planners[i] 
-           << " " << std::setw(9) << num_successful_planners[i] 
-           << " " << std::setw(9) << time_values[i] 
-           << " " << std::setw(9) << best_costs[i] 
-           << " " << std::setw(9) << worst_costs[i] 
-           << " " << std::setw(9) << avg_costs[i] << std::endl; 
-  };
-};
-
-
-template <typename SpaceType>
-void test_planners_on_space(ReaK::shared_ptr< SpaceType > world_map, 
-                            std::ostream& timing_output, std::ostream& sol_events_output) {
-  
-  using namespace ReaK;
-  using namespace pp;
-  
-  std::cout << "*****************************************************************" << std::endl
-            << "*            Running tests on '" << world_map->getName() << "'" << std::endl
-            << "*****************************************************************" << std::endl;
-  
-  std::stringstream time_ss, cost_ss, sol_ss;
-  
-  //typedef timing_sbmp_report< least_cost_sbmp_report<> > ReporterType;
-  any_sbmp_reporter_chain< SpaceType > report_chain;
-  report_chain.add_reporter( timing_sbmp_report<>(time_ss) );
-  report_chain.add_reporter( least_cost_sbmp_report<>(cost_ss, &sol_ss) );
-  
-  path_planning_p2p_query< SpaceType > mc_query(
-    "mc_planning_query",
-    world_map,
-    world_map->get_start_pos(),
-    world_map->get_goal_pos(),
-    mc_results);
-  
-  
-#ifdef RK_ENABLE_TEST_URRT_PLANNER
-  
-  if(mc_flags & RK_HIDIM_PLANNER_DO_RRT) {
-    
-    std::cout << "Running RRT with Uni-dir, " << data_struct_str << std::endl;
-    timing_output << "RRT, Uni-dir, " << data_struct_str << std::endl;
-    sol_events_output << "RRT, Uni-dir, Solution Events" << std::endl;
-    {
-      
-      rrt_planner< SpaceType > rrt_plan(
-        world_map, mc_max_vertices, mc_prog_interval, data_struct_flags, 
-        UNIDIRECTIONAL_PLANNING, 0.1, 0.05, report_chain);
-      
-      run_monte_carlo_tests(rrt_plan, mc_query, time_ss, cost_ss, sol_ss, timing_output, sol_events_output);
-      
-    };
-    std::cout << "Done!" << std::endl;
-    
-  };
-  
-#endif
-  
-  
-#ifdef RK_ENABLE_TEST_BRRT_PLANNER
-  
-  if(mc_flags & RK_HIDIM_PLANNER_DO_BIRRT) {
-    
-    std::cout << "Running RRT with Bi-dir, " << data_struct_str << std::endl;
-    timing_output << "RRT, Bi-dir, " << data_struct_str << std::endl;
-    sol_events_output << "RRT, Bi-dir, Solution Events" << std::endl;
-    {
-      
-      rrt_planner< SpaceType > rrt_plan(
-        world_map, mc_max_vertices, mc_prog_interval, data_struct_flags, 
-        BIDIRECTIONAL_PLANNING, 0.1, 0.05, report_chain);
-      
-      run_monte_carlo_tests(rrt_plan, mc_query, time_ss, cost_ss, sol_ss, timing_output, sol_events_output);
-      
-    };
-    std::cout << "Done!" << std::endl;
-    
-  };
-  
-#endif
-  
-  
-  
-#ifdef RK_ENABLE_TEST_PRM_PLANNER
-  
-  if(mc_flags & RK_HIDIM_PLANNER_DO_PRM) {
-    
-    std::cout << "Running PRM with " << data_struct_str << std::endl;
-    timing_output << "PRM, " << data_struct_str << std::endl;
-    sol_events_output << "PRM, Solution Events" << std::endl;
-    {
-      
-      prm_planner< SpaceType > prm_plan(
-        world_map, mc_max_vertices, mc_prog_interval, data_struct_flags, 
-        0.1, 0.05, world_map->get_max_edge_length(), RK_HIDIM_PLANNER_N, report_chain);
-      
-      run_monte_carlo_tests(prm_plan, mc_query, time_ss, cost_ss, sol_ss, timing_output, sol_events_output);
-      
-    };
-    std::cout << "Done!" << std::endl;
-    
-  };
-  
-#endif
-  
-  
-  
-#ifdef RK_ENABLE_TEST_FADPRM_PLANNER
-  
-  if(mc_flags & RK_HIDIM_PLANNER_DO_FADPRM) {
-    
-    std::cout << "Running FADPRM with " << data_struct_str << std::endl;
-    timing_output << "FADPRM, " << data_struct_str << std::endl;
-    sol_events_output << "FADPRM, Solution Events" << std::endl;
-    {
-      
-      fadprm_planner< SpaceType > fadprm_plan(
-        world_map, mc_max_vertices, mc_prog_interval, data_struct_flags, 
-        0.1, 0.05, world_map->get_max_edge_length(), RK_HIDIM_PLANNER_N, report_chain);
-      
-      fadprm_plan.set_initial_relaxation(fadprm_relaxation);
-      
-      run_monte_carlo_tests(fadprm_plan, mc_query, time_ss, cost_ss, sol_ss, timing_output, sol_events_output);
-      
-    };
-    std::cout << "Done!" << std::endl;
-    
-  };
-  
-#endif
-  
-  
-  
-#ifdef RK_ENABLE_TEST_SBASTAR_PLANNER
-  
-  if(mc_flags & RK_HIDIM_PLANNER_DO_SBASTAR) {
-    
-    std::cout << "Running SBA* with " << data_struct_str << std::endl;
-    timing_output << "SBA*, " << data_struct_str << std::endl;
-    sol_events_output << "SBA*, Solution Events" << std::endl;
-    {
-      
-      sbastar_planner< SpaceType > sbastar_plan(
-        world_map, mc_max_vertices, mc_prog_interval, data_struct_flags, sba_opt_flags,
-        0.1, 0.05, world_map->get_max_edge_length(), RK_HIDIM_PLANNER_N, report_chain);
-      
-      sbastar_plan.set_initial_density_threshold(sba_density_cutoff);
-      sbastar_plan.set_initial_relaxation(sba_relaxation);
-      sbastar_plan.set_initial_SA_temperature(sba_sa_temperature);
-      
-      run_monte_carlo_tests(sbastar_plan, mc_query, time_ss, cost_ss, sol_ss, timing_output, sol_events_output);
-      
-    };
-    std::cout << "Done!" << std::endl;
-    
-  };
-    
-#endif
-  
-  
-#ifdef RK_ENABLE_TEST_RRTSTAR_PLANNER
-  
-  if(mc_flags & RK_HIDIM_PLANNER_DO_RRTSTAR) {
-    
-    std::cout << "Running RRT* with Uni-dir, " << data_struct_str << std::endl;
-    timing_output << "RRT*, Uni-dir, " << data_struct_str << std::endl;
-    sol_events_output << "RRT*, Uni-dir, Solution Events" << std::endl;
-    {
-      
-      rrtstar_planner< SpaceType > rrtstar_plan(
-        world_map, mc_max_vertices, mc_prog_interval, data_struct_flags, rrtstar_opt_flags,
-        0.1, 0.05, RK_HIDIM_PLANNER_N, report_chain);
-      
-      run_monte_carlo_tests(rrtstar_plan, mc_query, time_ss, cost_ss, sol_ss, timing_output, sol_events_output);
-      
-    };
-    std::cout << "Done!" << std::endl;
-    
-  };
-    
-#endif
-  
-  
-};
-
-
-
-
-
-
-
-
-
-
 int main(int argc, char** argv) {
   
+  using namespace ReaK;
+  using namespace pp;
+  
+  std::string config_file;
   
   po::options_description generic_options("Generic options");
   generic_options.add_options()
     ("help,h", "produce this help message.")
+    ("config,c", po::value< std::string >(&config_file)->default_value("test_hidim_planners.cfg"),
+                  "configuration file-name (can contain any or all options, will be overriden by command-line options).")
   ;
   
   po::options_description io_options("I/O options");
@@ -672,69 +81,58 @@ int main(int argc, char** argv) {
   
   po::options_description mc_options("Monte-Carlo options");
   mc_options.add_options()
-    ("monte-carlo,m", "specify that monte-carlo runs should be performed (default is not)")
-    ("mc-runs", po::value< std::size_t >()->default_value(500), "number of monte-carlo runs to average out")
-    ("mc-vertices", po::value< std::size_t >()->default_value(20000), "maximum number of vertices during monte-carlo runs")
-    ("mc-prog-interval", po::value< std::size_t >()->default_value(100), "number of vertices between progress reports during monte-carlo runs")
-    ("mc-results", po::value< std::size_t >()->default_value(5), "maximum number of result-paths during monte-carlo runs")
+    ("monte-carlo,m", "specify that monte-carlo runs should be performed (default is not).")
+    ("mc-runs", po::value< std::size_t >()->default_value(100), "number of monte-carlo runs to average out (default is 100).")
   ;
   
   po::options_description single_options("Single-run options");
   single_options.add_options()
-    ("single-run,s", "specify that single runs should be performed (default is not)")
-    ("max-vertices", po::value< std::size_t >()->default_value(5000), "maximum number of vertices during single runs (default is 5000)")
-    ("max-results", po::value< std::size_t >()->default_value(50), "maximum number of result-paths during single runs (default is 50)")
-    ("prog-interval", po::value< std::size_t >()->default_value(10), "number of vertices between progress reports during single runs (default is 10)")
+    ("single-run,s", "specify that single runs should be performed (default is not).")
   ;
   
-  po::options_description planner_select_options("Planner selection options");
+  po::options_description planner_select_options = get_planning_option_po_desc();
   planner_select_options.add_options()
-#ifdef RK_ENABLE_TEST_URRT_PLANNER
-    ("rrt", "specify that the uni-directional RRT algorithm should be run")
-#endif
-#ifdef RK_ENABLE_TEST_BRRT_PLANNER
-    ("bi-rrt", "specify that the bi-directional RRT algorithm should be run")
-#endif
-#ifdef RK_ENABLE_TEST_RRTSTAR_PLANNER
-    ("rrt-star", "specify that the RRT* algorithm should be run")
-    ("rrt-star-with-bnb", "specify whether to use a Branch-and-bound or not during RRT* as a method to prune useless nodes from the motion-graph")
-#endif
-#ifdef RK_ENABLE_TEST_PRM_PLANNER
-    ("prm", "specify that the PRM algorithm should be run")
-#endif
-#ifdef RK_ENABLE_TEST_FADPRM_PLANNER
-    ("fadprm", "specify that the FADPRM algorithm should be run")
-    ("fadprm-relaxation", po::value< double >()->default_value(10.0), "specify the initial relaxation factor for the FADPRM algorithm (default: 10.0)")
-#endif
-#ifdef RK_ENABLE_TEST_SBASTAR_PLANNER
-    ("sba-star", "specify that the SBA* algorithm should be run")
-    ("sba-density-cutoff", po::value< double >()->default_value(0.5), "specify the density cutoff for the SBA* algorithm")
-    ("sba-relaxation", po::value< double >()->default_value(0.0), "specify the initial relaxation factor for the Anytime SBA* algorithm")
-    ("sba-with-voronoi-pull", "specify whether to use a Voronoi pull or not as a method to add an exploratory bias to the search")
-    ("sba-sa-temperature", po::value< double >()->default_value(-1.0), "specify the initial Simulated Annealing temperature for the SBA*-RRT* algorithms")
-    ("sba-with-bnb", "specify whether to use a Branch-and-bound or not during SBA* as a method to prune useless nodes from the motion-graph")
-#endif
-    ("all-planners,a", "specify that all supported planners should be run (default if no particular planner is specified)")
-#ifdef RK_PLANNERS_ENABLE_VEBL_TREE
-    ("knn-method", po::value< std::string >()->default_value("bf2"), "specify the KNN method to use (supported options: linear, bf2, bf4, cob2, cob4) (default: bf2)")
-#else
-    ("knn-method", po::value< std::string >()->default_value("bf2"), "specify the KNN method to use (supported options: linear, bf2, bf4) (default: bf2)")
-#endif
-#ifdef RK_PLANNERS_ENABLE_DVP_ADJ_LIST_LAYOUT
-    ("mg-storage", po::value< std::string >()->default_value("adj-list"), "specify the KNN method to use (supported options: adj-list, dvp-adj-list) (default: adj-list)")
-#else
-    ("mg-storage", po::value< std::string >()->default_value("adj-list"), "specify the KNN method to use (supported options: adj-list) (default: adj-list)")
-#endif
+    ("max-edge-length", po::value< double >(), "maximum length of edges of the motion-graph (default is 0.2*sqrt(N)).")
+  ;
+  
+  po::options_description generate_options("File generation options");
+  generate_options.add_options()
+    ("generate-all-files", po::value< std::string >(), "specify that all configuration files should be generated with the given file-name prefix (file-name without suffix and extension).")
+    ("generate-planner-options", po::value< std::string >(), "specify that the planner options file should be generated with the given file-name prefix (file-name without extension).")
+    
+    ("generate-xml",      "if set, output results in XML format (rkx) (default).")
+    ("generate-protobuf", "if set, output results in protobuf format (pbuf).")
+    ("generate-binary",   "if set, output results in binary format (rkb).")
   ;
   
   po::options_description cmdline_options;
-  cmdline_options.add(generic_options).add(io_options).add(mc_options).add(single_options).add(planner_select_options);
+  cmdline_options.add(generic_options).add(io_options).add(mc_options).add(single_options)
+                 .add(planner_select_options).add(generate_options);
+  
+  po::options_description config_file_options;
+  config_file_options.add(io_options).add(mc_options).add(single_options).add(planner_select_options);
   
   po::variables_map vm;
   po::store(po::parse_command_line(argc, argv, cmdline_options), vm);
   po::notify(vm);
   
+  {
+    std::ifstream ifs(config_file.c_str());
+    if(ifs) {
+      po::store(po::parse_config_file(ifs, config_file_options), vm);
+      po::notify(vm);
+    };
+  };
+  
+  
   if(vm.count("help")) {
+    std::cout << cmdline_options << std::endl;
+    return 0;
+  };
+  
+  if( vm.count("monte-carlo") + vm.count("single-run")
+       + vm.count("generate-all-files") + vm.count("generate-planner-options") < 1 ) {
+    std::cout << "Error: There was no action specified! This program is designed to perform Monte-Carlo runs, single runs (with output), or generate the configuration files to construct scenarios. You must specify at least one of these actions to be performed!" << std::endl;
     std::cout << cmdline_options << std::endl;
     return 1;
   };
@@ -745,122 +143,46 @@ int main(int argc, char** argv) {
   
   fs::create_directory(output_path_name.c_str());
   
-  bool run_all_planners = false;
-  if(vm.count("all-planners") || (vm.count("rrt") + vm.count("bi-rrt") + vm.count("rrt-star") + vm.count("prm") + vm.count("fadprm") + vm.count("sba-star") == 0)) 
-    run_all_planners = true;
+  
+  planning_option_collection plan_options = get_planning_option_from_po(vm);
+  
+  std::string knn_method_str = plan_options.get_knn_method_str();
+  std::string mg_storage_str = plan_options.get_mg_storage_str();
+  std::string planner_qualifier_str = plan_options.get_planner_qualifier_str();
+  std::string planner_name_str = plan_options.get_planning_algo_str() + "_" + planner_qualifier_str + "_" + mg_storage_str + "_" + knn_method_str;
+  
+  double max_radius = 0.2 * std::sqrt(double(RK_HIDIM_PLANNER_N));
+  if( vm.count("max-edge-length") )
+    max_radius = vm["max-edge-length"].as<double>();
+  plan_options.max_random_walk = max_radius;
   
   
-  data_struct_flags = 0;
-  std::string knn_method_str = "bf2";
-  if((vm["knn-method"].as<std::string>() == "linear") && (vm["mg-storage"].as<std::string>() == "adj-list")) {
-    data_struct_flags |= ReaK::pp::LINEAR_SEARCH_KNN;
-    knn_method_str = "linear";
-  } else if(vm["knn-method"].as<std::string>() == "bf4") {
-    data_struct_flags |= ReaK::pp::DVP_BF4_TREE_KNN;
-    knn_method_str = "bf4";
-#ifdef RK_PLANNERS_ENABLE_VEBL_TREE
-  } else if(vm["knn-method"].as<std::string>() == "cob2") {
-    data_struct_flags |= ReaK::pp::DVP_COB2_TREE_KNN;
-    knn_method_str = "cob2";
-  } else if(vm["knn-method"].as<std::string>() == "cob4") {
-    data_struct_flags |= ReaK::pp::DVP_COB4_TREE_KNN;
-    knn_method_str = "cob4";
-#endif
-  } else {
-    data_struct_flags |= ReaK::pp::DVP_BF2_TREE_KNN;
+  // Do the generations if required:
+  
+  if( vm.count("generate-all-files") + vm.count("generate-planner-options") > 0 ) {
+    std::string file_name;
+    if( vm.count("generate-planner-options") == 0 ) {
+      file_name = vm["generate-all-files"].as< std::string >() + "_planner";
+    } else {
+      file_name = vm["generate-planner-options"].as< std::string >();
+    };
+    if( vm.count("generate-protobuf") ) 
+      file_name += ".pbuf";
+    else if( vm.count("generate-binary") )
+      file_name += ".rkb";
+    else 
+      file_name += ".rkx";
+    
+    try {
+      (*serialization::open_oarchive(file_name)) << plan_options;
+    } catch( std::exception& e ) { 
+      std::cerr << "Error: Could not generate the planner options file!" << std::endl;
+    };
+    if( vm.count("monte-carlo") + vm.count("single-run") == 0 ) // only wanted to generate planner-option file.
+      return 0;
   };
   
-  std::string mg_storage_str = "adj-list";
-#ifdef RK_PLANNERS_ENABLE_DVP_ADJ_LIST_LAYOUT
-  if(vm["mg-storage"].as<std::string>() == "dvp-adj-list") {
-    data_struct_flags |= ReaK::pp::DVP_ADJ_LIST_MOTION_GRAPH;
-    mg_storage_str = "dvp-adj-list";
-  } else 
-#endif
-  {
-    data_struct_flags |= ReaK::pp::ADJ_LIST_MOTION_GRAPH;
-  };
   
-  data_struct_str = mg_storage_str + ", " + knn_method_str;
-  
-  
-#ifdef RK_ENABLE_TEST_FADPRM_PLANNER
-  fadprm_relaxation       = vm["fadprm-relaxation"].as<double>();
-#endif
-  
-#ifdef RK_ENABLE_TEST_RRTSTAR_PLANNER
-  rrtstar_opt_flags = ReaK::pp::UNIDIRECTIONAL_PLANNING;
-  rrtstar_qualifier = "";
-  
-  if( vm.count("rrt-star-with-bnb") ) {
-    rrtstar_opt_flags |= ReaK::pp::USE_BRANCH_AND_BOUND_PRUNING_FLAG;
-    rrtstar_qualifier += "_bnb";
-  };
-#endif
-  
-  
-#ifdef RK_ENABLE_TEST_SBASTAR_PLANNER
-  sba_opt_flags = ReaK::pp::UNIDIRECTIONAL_PLANNING | ReaK::pp::LAZY_COLLISION_CHECKING;
-  sba_qualifier = "_lazy";
-  
-  if(vm["sba-relaxation"].as<double>() > 1e-6) {
-    sba_opt_flags |= ReaK::pp::PLAN_WITH_ANYTIME_HEURISTIC;
-    sba_qualifier += "_any";
-  };
-  
-  if( vm.count("sba-with-voronoi-pull") ) {
-    sba_opt_flags |= ReaK::pp::PLAN_WITH_VORONOI_PULL;
-    sba_qualifier += "_sa";
-  };
-  
-  if( vm.count("sba-with-bnb") ) {
-    sba_opt_flags |= ReaK::pp::USE_BRANCH_AND_BOUND_PRUNING_FLAG;
-    sba_qualifier += "_bnb";
-  };
-  
-  sba_density_cutoff   = vm["sba-density-cutoff"].as<double>();
-  sba_relaxation       = vm["sba-relaxation"].as<double>();
-  sba_sa_temperature   = vm["sba-sa-temperature"].as<double>();
-  sba_use_voronoi_pull = vm.count("sba-with-voronoi-pull");
-#endif
-  
-  
-  
-#ifdef RK_ENABLE_TEST_URRT_PLANNER
-  if(run_all_planners || vm.count("rrt"))
-    mc_flags |= RK_HIDIM_PLANNER_DO_RRT;
-#endif
-#ifdef RK_ENABLE_TEST_BRRT_PLANNER
-  if(run_all_planners || vm.count("bi-rrt"))
-    mc_flags |= RK_HIDIM_PLANNER_DO_BIRRT;
-#endif
-#ifdef RK_ENABLE_TEST_RRTSTAR_PLANNER
-  if(run_all_planners || vm.count("rrt-star"))
-    mc_flags |= RK_HIDIM_PLANNER_DO_RRTSTAR;
-#endif
-#ifdef RK_ENABLE_TEST_PRM_PLANNER
-  if(run_all_planners || vm.count("prm"))
-    mc_flags |= RK_HIDIM_PLANNER_DO_PRM;
-#endif
-#ifdef RK_ENABLE_TEST_FADPRM_PLANNER
-  if(run_all_planners || vm.count("fadprm"))
-    mc_flags |= RK_HIDIM_PLANNER_DO_FADPRM;
-#endif
-#ifdef RK_ENABLE_TEST_SBASTAR_PLANNER
-  if(run_all_planners || vm.count("sba-star"))
-    mc_flags |= RK_HIDIM_PLANNER_DO_SBASTAR;
-#endif
-  
-  
-  mc_run_count        = vm["mc-runs"].as<std::size_t>();
-  mc_max_vertices     = vm["mc-vertices"].as<std::size_t>();
-  mc_prog_interval    = vm["mc-prog-interval"].as<std::size_t>();
-  mc_max_vertices_100 = mc_max_vertices / mc_prog_interval;
-  mc_results          = vm["mc-results"].as<std::size_t>();
-  
-  sr_max_vertices     = vm["max-vertices"].as<std::size_t>();
-  sr_prog_interval    = vm["prog-interval"].as<std::size_t>();
-  sr_results          = vm["max-results"].as<std::size_t>();
   
   std::string world_ND_name = "world_";
   { std::stringstream ss_tmp;
@@ -873,7 +195,7 @@ int main(int argc, char** argv) {
     space_ND_name += ss_tmp.str();
   };
   
-  ReaK::vect<double, RK_HIDIM_PLANNER_N > lb, ub, start_pt, goal_pt;
+  vect<double, RK_HIDIM_PLANNER_N > lb, ub, start_pt, goal_pt;
   for(std::size_t i = 0; i < RK_HIDIM_PLANNER_N; ++i) {
     lb[i] = 0.0;
     ub[i] = 1.0;
@@ -881,29 +203,36 @@ int main(int argc, char** argv) {
     goal_pt[i] = 0.95;
   };
   
-  typedef ReaK::pp::no_obstacle_space< ReaK::pp::hyperbox_topology< ReaK::vect<double, RK_HIDIM_PLANNER_N > > > WorldNDType;
+  typedef no_obstacle_space< hyperbox_topology< vect<double, RK_HIDIM_PLANNER_N > > > WorldNDType;
   
-  ReaK::shared_ptr< WorldNDType > world_ND =
-    ReaK::shared_ptr< WorldNDType >(
+  shared_ptr< WorldNDType > world_ND =
+    shared_ptr< WorldNDType >(
       new WorldNDType(
         world_ND_name + "_no_obstacles",
-        ReaK::pp::hyperbox_topology< ReaK::vect<double, RK_HIDIM_PLANNER_N > >(world_ND_name, lb, ub),
-        0.2 * std::sqrt(double(RK_HIDIM_PLANNER_N))));
+        hyperbox_topology< vect<double, RK_HIDIM_PLANNER_N > >(world_ND_name, lb, ub),
+        max_radius));
   world_ND->set_start_pos(start_pt);
   world_ND->set_goal_pos(goal_pt);
   
-  if(vm.count("single-run")) {
-    single_run_planners_on_space(world_ND, output_path_name, space_ND_name);
-  };
-  
   if(vm.count("monte-carlo")) {
-    std::ofstream timing_output(output_path_name + "/" + space_ND_name + "_times.txt");
-    std::ofstream sol_events_output(output_path_name + "/" + space_ND_name + "_solutions.txt");
-    
-    test_planners_on_space(world_ND, timing_output, sol_events_output);
+    monte_carlo_mp_engine mc_eng(vm["mc-runs"].as<std::size_t>(), planner_name_str, output_path_name + "/" + space_ND_name);
+    try {
+      execute_p2p_planner(world_ND, plan_options, RK_HIDIM_PLANNER_N, mc_eng, world_ND->get_start_pos(), world_ND->get_goal_pos());
+    } catch(std::exception& e) {
+      std::cerr << "Error: An exception was raised during the planning:\nwhat(): " << e.what() << std::endl;
+      return 2;
+    };
   };
   
-  
+  if(vm.count("single-run")) {
+    vlist_print_mp_engine sr_eng(planner_name_str, output_path_name + "/" + space_ND_name);
+    try {
+      execute_p2p_planner(world_ND, plan_options, RK_HIDIM_PLANNER_N, sr_eng, world_ND->get_start_pos(), world_ND->get_goal_pos());
+    } catch(std::exception& e) {
+      std::cerr << "Error: An exception was raised during the planning:\nwhat(): " << e.what() << std::endl;
+      return 3;
+    };
+  };
   
   return 0;
 };
