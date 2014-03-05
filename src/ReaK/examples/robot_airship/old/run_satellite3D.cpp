@@ -27,7 +27,7 @@
 #include <boost/random.hpp>
 #include <boost/random/normal_distribution.hpp>
 
-#include "satellite_invar_models.hpp"
+#include "ss_systems/satellite_invar_models.hpp"
 
 #include "topologies/temporal_space.hpp"
 #include "interpolation/discrete_point_trajectory.hpp"

@@ -34,7 +34,7 @@
 #ifndef RK_X8_QUADROTOR_GEOM_HPP
 #define RK_X8_QUADROTOR_GEOM_HPP
 
-#include "X8_quadrotor_model.hpp"
+#include "kte_models/uav_kinematics.hpp"
 
 #include <string>
 
@@ -68,7 +68,7 @@ class X8_quadrotor_geom : public named_object {
      * This function may be useful to either create the preset X8 quadrotor model or to create a 
      * complete model that can be saved to an xml file and modified subsequently.
      */
-    void create_geom_from_preset(const kte::X8_quadrotor_kinematics& aModel);
+    void create_geom_from_preset(const kte::UAV_kinematics& aModel);
     
     /**
      * This function returns the geometric model that represents the CRS A465 robot in a rendered scene.

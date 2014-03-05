@@ -42,11 +42,8 @@
 #include "satellite_basic_models.hpp"
 
 #include "lin_alg/mat_alg.hpp"
-#include "ctrl_sys/sss_exceptions.hpp"
 #include "topologies/se3_topologies.hpp"
 #include "topologies/se2_topologies.hpp"
-
-#include "lin_alg/mat_cholesky.hpp"
 
 namespace ReaK {
 

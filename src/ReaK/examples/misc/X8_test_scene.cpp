@@ -7,11 +7,11 @@
  */
 
 
-#include "X8_quadrotor_model.hpp"
+#include "kte_models/uav_kinematics.hpp"
 #include "X8_quadrotor_geom.hpp"
 #include "IHAQR_topology.hpp"
 #include "MEAQR_topology.hpp"
-#include "quadrotor_system.hpp"
+#include "ss_systems/quadrotor_system.hpp"
 #include "topologies/se3_random_samplers.hpp"
 
 #include "MEAQR_rrtstar_planner.hpp"
@@ -62,7 +62,7 @@ struct planner_params {
 
 
 struct all_robot_info {
-  shared_ptr<kte::X8_quadrotor_kinematics> builder;
+  shared_ptr<kte::UAV_kinematics> builder;
   geom::X8_quadrotor_geom geom_builder;
   shared_ptr< kte::kte_map_chain > kin_chain;
   shared_ptr< frame_3D<double> > target_frame;
@@ -236,7 +236,7 @@ int main(int argc, char ** argv) {
   
   all_robot_info r_info;
   
-  r_info.builder = shared_ptr< kte::X8_quadrotor_kinematics >(new kte::X8_quadrotor_kinematics());
+  r_info.builder = shared_ptr< kte::UAV_kinematics >(new kte::UAV_kinematics());
   r_info.kin_chain = r_info.builder->getKTEChain();
   r_info.geom_builder.create_geom_from_preset(*r_info.builder);
   

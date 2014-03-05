@@ -1,13 +1,11 @@
 
 set(ROBOTAIRSHIP_SOURCES 
-  "${SRCROOT}${RKROBOTAIRSHIPDIR}/satellite_basic_models.cpp"
-  "${SRCROOT}${RKROBOTAIRSHIPDIR}/satellite_invar_models.cpp"
+#   "${SRCROOT}${RKROBOTAIRSHIPDIR}/satellite_invar_models.cpp"
 )
 
 
 set(ROBOTAIRSHIP_HEADERS 
-  "${RKROBOTAIRSHIPDIR}/satellite_basic_models.hpp"
-  "${RKROBOTAIRSHIPDIR}/satellite_invar_models.hpp"
+#   "${RKROBOTAIRSHIPDIR}/satellite_invar_models.hpp"
 )
 
 add_library(reak_robot_airship STATIC ${ROBOTAIRSHIP_SOURCES})
@@ -65,7 +63,7 @@ if(COIN3D_FOUND AND QT_FOUND)
     
     add_executable(CRS_planner ${ROBOTAIRSHIP_CRSPLANNER_SRCS} ${ROBOTAIRSHIP_CRSPLANNER_MOC_SRCS} ${ROBOTAIRSHIP_CRSPLANNER_UI_HDRS})
     setup_custom_target(CRS_planner "${SRCROOT}${RKROBOTAIRSHIPDIR}")
-    target_link_libraries(CRS_planner reak_planners reak_robot_airship reak_topologies reak_interp reak_gui_qt reak_mbd_coin reak_core)
+    target_link_libraries(CRS_planner reak_planners reak_ss_systems reak_topologies reak_interp reak_gui_qt reak_mbd_coin reak_core)
     target_link_libraries(CRS_planner ${SOQT4_LIBRARIES} ${QT_LIBRARIES})
     
   endif()
@@ -80,6 +78,6 @@ target_link_libraries(run_CRS_planner reak_planners reak_robot_airship reak_topo
 
 add_executable(estimate_satellite3D "${SRCROOT}${RKROBOTAIRSHIPDIR}/estimate_satellite3D.cpp")
 setup_custom_target(estimate_satellite3D "${SRCROOT}${RKROBOTAIRSHIPDIR}")
-target_link_libraries(estimate_satellite3D reak_topologies reak_interp reak_robot_airship reak_core)
+target_link_libraries(estimate_satellite3D reak_ss_systems reak_topologies reak_interp reak_robot_airship reak_core)
 
 

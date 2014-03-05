@@ -11,6 +11,7 @@ set(KTEMODELS_SOURCES
   "${SRCROOT}${RKKTEMODELSDIR}/manip_P3R3R_arm.cpp"
   "${SRCROOT}${RKKTEMODELSDIR}/manip_SCARA_arm.cpp"
   "${SRCROOT}${RKKTEMODELSDIR}/manip_SSRMS_arm.cpp"
+  "${SRCROOT}${RKKTEMODELSDIR}/uav_kinematics.cpp"
 )
 
 
@@ -29,6 +30,7 @@ set(KTEMODELS_HEADERS
   "${RKKTEMODELSDIR}/manip_P3R3R_arm.hpp"
   "${RKKTEMODELSDIR}/manip_SCARA_arm.hpp"
   "${RKKTEMODELSDIR}/manip_SSRMS_arm.hpp"
+  "${RKKTEMODELSDIR}/uav_kinematics.hpp"
 )
 
 add_library(reakobj_kte_models OBJECT ${KTEMODELS_SOURCES})
@@ -38,11 +40,13 @@ setup_headers("${KTEMODELS_HEADERS}" "${RKKTEMODELSDIR}")
 
 set(KTEGEOMMODELS_SOURCES 
   "${SRCROOT}${RKKTEMODELSDIR}/chaser_target_model_data.cpp"
+  "${SRCROOT}${RKKTEMODELSDIR}/navigation_model_data.cpp"
 )
 
 
 set(KTEGEOMMODELS_HEADERS 
   "${RKKTEMODELSDIR}/chaser_target_model_data.hpp"
+  "${RKKTEMODELSDIR}/navigation_model_data.hpp"
 )
 
 add_library(reakobj_kte_geom_models OBJECT ${KTEGEOMMODELS_SOURCES})

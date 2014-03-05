@@ -7,11 +7,11 @@
  */
 
 
-#include "X8_quadrotor_model.hpp"
+#include "kte_models/uav_kinematics.hpp"
 #include "X8_quadrotor_geom.hpp"
 #include "IHAQR_topology.hpp"
 #include "MEAQR_topology.hpp"
-#include "quadrotor_system.hpp"
+#include "ss_systems/quadrotor_system.hpp"
 #include "topologies/se3_random_samplers.hpp"
 
 #include "MEAQR_rrtstar_planner.hpp"
@@ -53,7 +53,7 @@ int main(int argc, char ** argv) {
     return 1;
   };
   
-  shared_ptr<kte::X8_quadrotor_kinematics> builder   = shared_ptr< kte::X8_quadrotor_kinematics >(new kte::X8_quadrotor_kinematics());
+  shared_ptr<kte::UAV_kinematics> builder   = shared_ptr< kte::UAV_kinematics >(new kte::UAV_kinematics());
   shared_ptr< kte::kte_map_chain >         kin_chain = builder->getKTEChain();
   
   geom::X8_quadrotor_geom geom_builder;

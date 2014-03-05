@@ -39,12 +39,10 @@
 
 #include "base/named_object.hpp"
 
-#include "ctrl_sys/sss_exceptions.hpp"
 #include "ctrl_sys/invariant_system_concept.hpp"
 #include "topologies/se3_topologies.hpp"
 
 #include "lin_alg/mat_alg.hpp"
-#include "lin_alg/mat_cholesky.hpp"
 
 namespace ReaK {
 
@@ -183,25 +181,8 @@ class satellite3D_lin_dt_system : public named_object {
                    ReaK's RTTI and Serialization interfaces
 *******************************************************************************/
 
-    virtual void RK_CALL save(ReaK::serialization::oarchive& A, unsigned int) const {
-      named_object::save(A,named_object::getStaticObjectType()->TypeVersion());
-      A & RK_SERIAL_SAVE_WITH_NAME(mMass)
-        & RK_SERIAL_SAVE_WITH_NAME(mInertiaMoment)
-        & RK_SERIAL_SAVE_WITH_NAME(mDt);
-    };
-    virtual void RK_CALL load(ReaK::serialization::iarchive& A, unsigned int) {
-      named_object::load(A,named_object::getStaticObjectType()->TypeVersion());
-      A & RK_SERIAL_LOAD_WITH_NAME(mMass)
-        & RK_SERIAL_LOAD_WITH_NAME(mInertiaMoment)
-        & RK_SERIAL_LOAD_WITH_NAME(mDt);
-      if((mInertiaMoment.get_row_count() != 3) || (mMass < std::numeric_limits< double >::epsilon()))
-        throw system_incoherency("Inertial information is improper in satellite3D_lin_dt_system's definition");
-      try {
-        invert_Cholesky(mInertiaMoment,mInertiaMomentInv);
-      } catch(singularity_error&) {
-        throw system_incoherency("Inertial tensor is singular in satellite3D_lin_dt_system's definition");
-      };
-    };
+    virtual void RK_CALL save(ReaK::serialization::oarchive& A, unsigned int) const;
+    virtual void RK_CALL load(ReaK::serialization::iarchive& A, unsigned int);
 
     RK_RTTI_MAKE_CONCRETE_1BASE(satellite3D_lin_dt_system,0xC2310013,1,"satellite3D_lin_dt_system",named_object)
     

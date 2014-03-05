@@ -1,7 +1,7 @@
 /**
- * \file X8_quadrotor_model.hpp
+ * \file uav_kinematics.hpp
  * 
- * This library declares a class to represent a kte-based model of a X8 Quadrotor
+ * This library declares a class to represent a kte-based model of the kinematics a UAV.
  * 
  * \author Mikael Persson, <mikael.s.persson@gmail.com>
  * \date February 2013
@@ -29,8 +29,8 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef REAK_X8_QUADROTOR_HPP
-#define REAK_X8_QUADROTOR_HPP
+#ifndef REAK_UAV_KINEMATICS_HPP
+#define REAK_UAV_KINEMATICS_HPP
 
 #include "base/defs.hpp"
 #include "kte_models/inverse_kinematics_model.hpp"
@@ -43,10 +43,9 @@ namespace kte {
 
 
 /**
- * This class to represent a kte-based model of a ERA manipulator, i.e., 
- * the European Robotic Arm manipulator.
+ * This class to represent a kte-based model of a UAV.
  */
-class X8_quadrotor_kinematics : public inverse_kinematics_model {
+class UAV_kinematics : public inverse_kinematics_model {
   private:
     shared_ptr< frame_3D<double> > m_base_frame;
     shared_ptr< frame_3D<double> > m_motion_frame;
@@ -60,10 +59,10 @@ class X8_quadrotor_kinematics : public inverse_kinematics_model {
     /**
      * Default constructor.
      */
-    X8_quadrotor_kinematics(const std::string& aName = "",
-                            const shared_ptr< frame_3D<double> >& aBaseFrame = shared_ptr< frame_3D<double> >(new frame_3D<double>()));
+    UAV_kinematics(const std::string& aName = "",
+                   const shared_ptr< frame_3D<double> >& aBaseFrame = shared_ptr< frame_3D<double> >(new frame_3D<double>()));
     
-    virtual ~X8_quadrotor_kinematics() { };
+    virtual ~UAV_kinematics() { };
     
     virtual std::size_t getJointPositionsCount() const { return 7; };
     
@@ -126,7 +125,7 @@ class X8_quadrotor_kinematics : public inverse_kinematics_model {
     
     virtual void RK_CALL load(serialization::iarchive& A, unsigned int);
     
-    RK_RTTI_MAKE_CONCRETE_1BASE(X8_quadrotor_kinematics, 0xC2100058, 1, "X8_quadrotor_kinematics", inverse_kinematics_model)
+    RK_RTTI_MAKE_CONCRETE_1BASE(UAV_kinematics, 0xC2100058, 1, "UAV_kinematics", inverse_kinematics_model)
     
 };
 

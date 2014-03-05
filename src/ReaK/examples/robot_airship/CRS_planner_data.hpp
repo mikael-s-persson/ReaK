@@ -24,7 +24,7 @@
 #ifndef REAK_CRS_PLANNER_DATA_HPP
 #define REAK_CRS_PLANNER_DATA_HPP
 
-#include "satellite_invar_models.hpp"
+#include "ss_systems/satellite_invar_models.hpp"
 #include "interpolation/discrete_point_trajectory.hpp"
 
 class SoTimerSensor;

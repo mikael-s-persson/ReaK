@@ -26,7 +26,7 @@
 
 #include "CRS_planner_data.hpp"
 
-#include "satellite_invar_models.hpp"
+#include "ss_systems/satellite_invar_models.hpp"
 #include "ctrl_sys/invariant_kalman_filter.hpp"
 #include "ctrl_sys/gaussian_belief_space.hpp"
 #include "ctrl_sys/covar_topology.hpp"

@@ -49,7 +49,7 @@ namespace ReaK {
 namespace geom {
 
 
-void X8_quadrotor_geom::create_geom_from_preset(const kte::X8_quadrotor_kinematics& aModel) {
+void X8_quadrotor_geom::create_geom_from_preset(const kte::UAV_kinematics& aModel) {
   
   shared_ptr< frame_3D<double> > out_frame = aModel.getDependentFrame3D(0)->mFrame;
   shared_ptr< coord_arrows_3D > body_frame_arrows(new coord_arrows_3D("body_frame_arrows",out_frame,pose_3D<double>(),0.3));

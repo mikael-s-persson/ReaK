@@ -34,7 +34,7 @@
 
 #include "IHAQR_topology.hpp"
 #include "MEAQR_topology.hpp"
-#include "quadrotor_system.hpp"
+#include "ss_systems/quadrotor_system.hpp"
 #include "topologies/se3_random_samplers.hpp"
 
 #include "mbd_kte/kte_map_chain.hpp"

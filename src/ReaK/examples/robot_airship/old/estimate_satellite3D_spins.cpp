@@ -22,7 +22,7 @@
  */
 
 
-#include "satellite_invar_models.hpp"
+#include "ss_systems/satellite_invar_models.hpp"
 
 #include "serialization/xml_archiver.hpp"
 #include "recorders/ssv_recorder.hpp"

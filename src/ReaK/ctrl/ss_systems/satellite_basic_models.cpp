@@ -23,15 +23,13 @@
 
 #include "satellite_basic_models.hpp"
 
+#include "ctrl_sys/sss_exceptions.hpp"
+
 #include "lin_alg/mat_cholesky.hpp"
 
 namespace ReaK {
 
 namespace ctrl {
-
-
-  
-
 
 
 
@@ -188,6 +186,27 @@ void satellite3D_lin_dt_system::get_output_function_blocks(
   set_block(C,mat<double,mat_structure::identity>(7),0,0);
   
   D = mat<double,mat_structure::nil>(7,6);
+};
+
+void RK_CALL satellite3D_lin_dt_system::save(ReaK::serialization::oarchive& A, unsigned int) const {
+  named_object::save(A,named_object::getStaticObjectType()->TypeVersion());
+  A & RK_SERIAL_SAVE_WITH_NAME(mMass)
+    & RK_SERIAL_SAVE_WITH_NAME(mInertiaMoment)
+    & RK_SERIAL_SAVE_WITH_NAME(mDt);
+};
+
+void RK_CALL satellite3D_lin_dt_system::load(ReaK::serialization::iarchive& A, unsigned int) {
+  named_object::load(A,named_object::getStaticObjectType()->TypeVersion());
+  A & RK_SERIAL_LOAD_WITH_NAME(mMass)
+    & RK_SERIAL_LOAD_WITH_NAME(mInertiaMoment)
+    & RK_SERIAL_LOAD_WITH_NAME(mDt);
+  if((mInertiaMoment.get_row_count() != 3) || (mMass < std::numeric_limits< double >::epsilon()))
+    throw system_incoherency("Inertial information is improper in satellite3D_lin_dt_system's definition");
+  try {
+    invert_Cholesky(mInertiaMoment,mInertiaMomentInv);
+  } catch(singularity_error&) {
+    throw system_incoherency("Inertial tensor is singular in satellite3D_lin_dt_system's definition");
+  };
 };
 
 
