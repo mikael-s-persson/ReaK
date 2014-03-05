@@ -43,6 +43,8 @@
 #include "rk_prop_editor_widget.hpp"
 #include "serialization/scheme_builder.hpp"
 
+#include "../examples/robot_airship/target_predict_data.hpp"
+
 #include <QDockWidget>
 
 #include <QMainWindow>
@@ -125,6 +127,10 @@ class TargetPredConfigWidget : public QDockWidget, private Ui::TargetPredConfig 
     bool useUDP() const;
     bool useTCP() const;
     std::string getStartScript() const;
+    
+    satellite_predict_data pred_anim_data;
+    
+    void startStatePrediction();
     
 };
 

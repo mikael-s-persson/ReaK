@@ -96,10 +96,10 @@ TargetPredConfigWidget::TargetPredConfigWidget(QWidget * parent, Qt::WindowFlags
   objtree_sch_bld(),
   ot_inertia_graph(shared_ptr< serialization::object_graph >(new serialization::object_graph())),
   ot_inertia_root(add_vertex(*ot_inertia_graph)),
-  ot_inertia_win(this, Qt::Popup | Qt::Dialog),
+  ot_inertia_win(this, Qt::WindowFlags(Qt::Popup | Qt::Dialog)),
   ot_IMU_graph(shared_ptr< serialization::object_graph >(new serialization::object_graph())),
   ot_IMU_root(add_vertex(*ot_IMU_graph)),
-  ot_IMU_win(this, Qt::Popup | Qt::Dialog)
+  ot_IMU_win(this, Qt::WindowFlags(Qt::Popup | Qt::Dialog))
 {
   this->QDockWidget::setWidget(new QWidget(this));
   setupUi(this->QDockWidget::widget());
@@ -577,7 +577,11 @@ void TargetPredConfigWidget::loadIMUConfig() {
 };
 
 
-
+void TargetPredConfigWidget::startStatePrediction() {
+  
+  
+  
+};
 
 
 };

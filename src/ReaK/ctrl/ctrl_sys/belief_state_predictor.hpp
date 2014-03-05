@@ -76,7 +76,7 @@ template <typename BeliefTopology,
 class belief_predicted_trajectory : public pp::waypoint_container< pp::temporal_space<BeliefTopology, pp::time_poisson_topology, pp::time_distance_only> > {
   public:
     
-    typedef belief_predicted_trajectory<BeliefTopology,BeliefPredictor,InputTrajectory> self;
+    typedef belief_predicted_trajectory<BeliefTopology,BeliefPredictorFactory,InputTrajectory> self;
     typedef pp::temporal_space<BeliefTopology, pp::time_poisson_topology, pp::time_distance_only> topology;
     typedef pp::waypoint_container< topology > base_class_type;
     
@@ -135,8 +135,8 @@ class belief_predicted_trajectory : public pp::waypoint_container< pp::temporal_
     };
     
     waypoint_pair get_point_at_time_impl(double t, const_waypoint_bounds wpb_a) const {
-      if( t > get_current_horizon() ) {
-        set_minimal_horizon(t);
+      if( t > this->get_current_horizon() ) {
+        this->set_minimal_horizon(t);
         wpb_a.second = updated_end;
         --wpb_a.second;
         wpb_a.first = wpb_a.second;
@@ -236,7 +236,7 @@ class belief_predicted_trajectory : public pp::waypoint_container< pp::temporal_
       // must deal with the waypoint container separately due to completely retarded STL iterator invalidation guarantees:
       bool is_end = (rhs.updated_end == rhs.waypoints.end());
       swap(static_cast<base_class_type&>(*this), static_cast<base_class_type&>(rhs)); // preserves iterators, except "end".
-      if(is_end) {
+      if(is_end)
         updated_end = this->waypoints.end();
       else
         updated_end = rhs.updated_end;
@@ -276,7 +276,7 @@ class belief_predicted_trajectory : public pp::waypoint_container< pp::temporal_
       
       waypoint_descriptor last_valid = updated_end; --last_valid;
       while( ( updated_end != this->waypoints.end() ) && ( last_valid->first < t ) ) {
-        switch pred_assumption {
+        switch(pred_assumption) {
           case no_measurements:
             updated_end->second.pt = pred_segments[&(last_valid->second)].predict_belief(
               this->space->get_space_topology(), 
@@ -290,6 +290,7 @@ class belief_predicted_trajectory : public pp::waypoint_container< pp::temporal_
               input.get_point_at_time(last_valid->first));
             break;
           default:
+            break;
         };
         ++last_valid; ++updated_end;
       };
@@ -302,7 +303,7 @@ class belief_predicted_trajectory : public pp::waypoint_container< pp::temporal_
           pred = pred_factory.create_predictor(
             this->space->get_space_topology(), 
             &(last_valid->second.pt), last_valid->first, u);
-          switch pred_assumption {
+          switch(pred_assumption) {
             case no_measurements:
               this->push_back( point_type( 
                 last_valid->first + pred.get_time_step(), 
@@ -318,6 +319,7 @@ class belief_predicted_trajectory : public pp::waypoint_container< pp::temporal_
                   last_valid->second.pt, last_valid->first, u)));
               break;
             default:
+              break;
           };
           ++last_valid;
         };
@@ -424,7 +426,7 @@ class belief_predicted_trajectory : public pp::waypoint_container< pp::temporal_
       pred_segments.clear();
       updated_end = this->waypoints.begin();
       if( updated_end != this->waypoints.end() ) {
-        pred_segments[&(last_valid->second)] = pred_factory.create_predictor(
+        pred_segments[&(updated_end->second)] = pred_factory.create_predictor(
           this->space->get_space_topology(), 
           &(updated_end->second.pt), updated_end->first, 
           input.get_point_at_time(updated_end->first)

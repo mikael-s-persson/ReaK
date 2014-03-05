@@ -73,7 +73,7 @@ class gaussian_belief_space : public named_object {
     typedef typename pp::topology_traits<StateTopology>::point_type mean_state_type;
     typedef typename pp::topology_traits<StateTopology>::point_difference_type mean_state_diff_type;
     
-    typedef typename gaussian_belief_state< mean_state_type, covariance_type > point_type;
+    typedef gaussian_belief_state< mean_state_type, covariance_type > point_type;
     
     BOOST_CONCEPT_ASSERT((pp::TopologyConcept<StateTopology>));
     BOOST_CONCEPT_ASSERT((pp::TopologyConcept<CovarianceTopology>));

@@ -70,7 +70,7 @@ struct maximum_likelihood_map : public named_object {
    */
   template <typename BeliefSpace, typename StateSpaceOut>
   typename boost::enable_if<
-    is_temporal_space<BeliefSpace>,
+    pp::is_temporal_space<BeliefSpace>,
     pp::topology_traits<StateSpaceOut> >::type::point_type
       map_to_space(const typename pp::topology_traits<BeliefSpace>::point_type& b, const BeliefSpace&, const StateSpaceOut&) const {
     typedef typename pp::topology_traits<StateSpaceOut>::point_type OutPointType;
@@ -86,7 +86,7 @@ struct maximum_likelihood_map : public named_object {
    */
   template <typename BeliefSpace, typename StateSpaceOut>
   typename boost::disable_if<
-    is_temporal_space<BeliefSpace>,
+    pp::is_temporal_space<BeliefSpace>,
     pp::topology_traits<StateSpaceOut> >::type::point_type
       map_to_space(const typename pp::topology_traits<BeliefSpace>::point_type& b, const BeliefSpace&, const StateSpaceOut&) const {
     typedef typename pp::topology_traits<StateSpaceOut>::point_type OutPointType;
