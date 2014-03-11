@@ -579,6 +579,109 @@ void TargetPredConfigWidget::loadIMUConfig() {
 
 void TargetPredConfigWidget::startStatePrediction() {
   
+  using namespace ctrl;
+  
+  typedef satellite_predict_data::system_type SysType;
+  
+  switch(this->kf_model_selection->currentIndex()) {
+    case 0:  // IEKF
+      satellite3D_system = shared_ptr< SysType >(
+        new satellite3D_inv_dt_system("satellite3D_inv", getMass(), getInertiaTensor(), getTimeStep())
+      );
+      break;
+    case 1:  // IMKF
+      satellite3D_system = shared_ptr< SysType >(
+        new satellite3D_imdt_sys("satellite3D_invmom", getMass(), getInertiaTensor(), getTimeStep())
+      );
+      break;
+    case 2:  // IMKFv2
+      satellite3D_system = shared_ptr< SysType >(
+        new satellite3D_imdt_sys("satellite3D_invmom", getMass(), getInertiaTensor(), getTimeStep(), 2)
+      );
+      break;
+  };
+  
+  
+  typedef satellite_predict_data::state_space_type StateSpaceType;
+  typedef pp::topology_traits< StateSpaceType >::point_type StatePointType;
+  
+  typedef satellite_predict_data::temp_state_space_type TempStateSpaceType;
+  
+  shared_ptr< TempStateSpaceType > sat_temp_space(new TempStateSpaceType(
+    "satellite3D_temporal_space",
+    StateSpaceType(),
+    pp::time_poisson_topology("satellite3D_time_space", getTimeStep(), getTimeHorizon())));
+  
+  
+  typedef satellite_predict_data::input_type InputType;
+  typedef satellite_predict_data::input_traj_type InputTrajType;
+  
+  InputTrajType in_cst_traj( InputType(0.0,0.0,0.0,0.0,0.0,0.0) );
+  
+  
+  typedef satellite_predict_data::pred_factory_type PredFactoryType;
+  typedef PredFactoryType::matrix_type NoiseMatType;
+  
+  
+  typedef satellite_predict_data::covar_type StateCovarType;
+  typedef satellite_predict_data::covar_space_type CovarSpaceType;
+  typedef satellite_predict_data::belief_space_type BeliefSpaceType;
+  typedef pp::topology_traits< BeliefSpaceType >::point_type BeliefPointType;
+  
+  
+  StatePointType x_init;
+  set_position(x_init, vect<double,3>(0.0, 0.0, 0.0));
+  set_velocity(x_init, vect<double,3>(0.0, 0.0, 0.0));
+  set_quaternion(x_init, unit_quat<double>());
+  set_ang_velocity(x_init, vect<double,3>(0.0, 0.0, 0.0));
+  
+  BeliefPointType b_init(x_init, StateCovarType(StateCovarType::matrix_type(mat<double,mat_structure::diagonal>(12,100.0))));
+  
+  
+  typedef satellite_predict_data::belief_pred_traj_type BeliefPredTrajType;
+  
+  BeliefPredTrajType::assumption pred_assumpt = BeliefPredTrajType::no_measurements;
+  switch(this->predict_assumption_selection->currentIndex()) {
+    case 0:  // No future measurements
+      pred_assumpt = BeliefPredTrajType::no_measurements;
+      break;
+    case 1:  // Maximum-likelihood Measurements
+      pred_assumpt = BeliefPredTrajType::most_likely_measurements;
+      break;
+    case 2:  // Full certainty
+      // FIXME: make this into what it really should be (what is that? ... no sure)
+      pred_assumpt = BeliefPredTrajType::most_likely_measurements;
+      break;
+  };
+  
+//   typedef pp::temporal_space<BeliefTopology, pp::time_poisson_topology, pp::time_distance_only> topology;
+  typedef BeliefPredTrajType::topology TempBeliefSpaceType;
+  typedef pp::topology_traits< TempBeliefSpaceType >::point_type TempBeliefPointType;
+  
+  shared_ptr< TempBeliefSpaceType > sat_temp_belief_space(new TempBeliefSpaceType(
+    "satellite3D_temporal_belief_space",
+    BeliefSpaceType(shared_ptr< StateSpaceType > (new StateSpaceType()), 
+                    shared_ptr< CovarSpaceType >(new CovarSpaceType(12)), "satellite3D_belief_space"),
+    pp::time_poisson_topology("satellite3D_time_space", getTimeStep(), getTimeHorizon())));
+  
+  
+  pred_anim_data.predictor = shared_ptr< BeliefPredTrajType >(new BeliefPredTrajType(
+    sat_temp_belief_space, 
+    TempBeliefPointType(0.0, b_init), 
+    in_cst_traj,
+    PredFactoryType(satellite3D_system, NoiseMatType(getInputDisturbance()), NoiseMatType(getMeasurementNoise())),
+    pred_assumpt
+  ));
+  
+  
+  typedef satellite_predict_data::ML_traj_type MLTrajType;
+  
+  pred_anim_data.trajectory = shared_ptr< MLTrajType >(new MLTrajType(sat_temp_space, pred_anim_data.predictor));
+  
+  
+  // NOTE: at this point, I have constructed the trajectories needed for planning.
+  //  Now, I need to start streaming measurements into it, and do so until I have good enough
+  //  estimates to be able to construct a real predicted trajectory.
   
   
 };

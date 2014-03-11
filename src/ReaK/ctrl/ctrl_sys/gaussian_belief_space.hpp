@@ -41,6 +41,8 @@
 
 #include "base/named_object.hpp"
 
+#include <boost/mpl/and.hpp>
+
 namespace ReaK {
 
 namespace ctrl {
@@ -74,22 +76,11 @@ class gaussian_belief_space : public named_object {
     typedef typename pp::topology_traits<StateTopology>::point_difference_type mean_state_diff_type;
     
     typedef gaussian_belief_state< mean_state_type, covariance_type > point_type;
+    typedef std::pair< point_type, point_type > point_difference_type;
     
     BOOST_CONCEPT_ASSERT((pp::TopologyConcept<StateTopology>));
     BOOST_CONCEPT_ASSERT((pp::TopologyConcept<CovarianceTopology>));
 
-    /**
-     * This nested class represents the difference between two belief-states (with some fraction).
-     */
-    struct point_difference_type {
-      point_type b0;
-      point_type b1;
-            
-      point_difference_type(const point_type& aB0, 
-                            const point_type& aB1) :
-                            b0(aB0), b1(aB1) { };
-      
-    };
     
     BOOST_STATIC_CONSTANT(std::size_t, dimensions = 0);
     
@@ -134,7 +125,7 @@ class gaussian_belief_space : public named_object {
      * \return The symmetric KL-divergence between the two end belief-states.
      */
     double norm(const point_difference_type& dp) const {
-      return double( symKL_divergence(dp.b0,dp.b1,*this) );
+      return double( symKL_divergence(dp.first, dp.second, *this) );
     };
     
     /**
@@ -153,7 +144,7 @@ class gaussian_belief_space : public named_object {
      * \return The difference between the two belief-states.
      */
     point_difference_type difference(const point_type& p1, const point_type& p2) const {
-      return point_difference_type(p1,p2);
+      return point_difference_type(p1, p2);
     };
     
     /**
@@ -172,12 +163,63 @@ class gaussian_belief_space : public named_object {
      */
     point_type adjust(const point_type& p1, const point_difference_type& dp) const {
       return point_type( mean_state_space->adjust( p1.get_mean_state(),
-                                                   mean_state_space->difference( dp.b0.get_mean_state(),
-                                                                                 dp.b1.get_mean_state() ) ),
+                                                   mean_state_space->difference( dp.first.get_mean_state(),
+                                                                                 dp.second.get_mean_state() ) ),
                          covariance_space->adjust( p1.get_covariance(),
-                                                   covariance_space->difference( dp.b0.get_covariance(),
-                                                                                 dp.b1.get_covariance() ) ) );
+                                                   covariance_space->difference( dp.first.get_covariance(),
+                                                                                 dp.second.get_covariance() ) ) );
     };
+    
+    
+    /*************************************************************************
+    *                             LieGroupConcept
+    * **********************************************************************/
+    
+    /**
+     * Returns a point which is at a fraction between two points a to b.
+     */
+    point_type move_position_toward(const point_type& p1, double d, const point_type& p2) const {
+      return point_type( 
+        mean_state_space->move_position_toward( p1.get_mean_state(), d, p2.get_mean_state()),
+        covariance_space->move_position_toward( p1.get_covariance(), d, p2.get_covariance()) 
+      );
+    };
+    
+    /**
+     * Returns a point which is at a fraction between two points a to b.
+     */
+    point_type move_position_back_to(const point_type& p1, double d, const point_type& p2) const {
+      return point_type( 
+        mean_state_space->move_position_back_to( p1.get_mean_state(), d, p2.get_mean_state()),
+        covariance_space->move_position_back_to( p1.get_covariance(), d, p2.get_covariance()) 
+      );
+    };
+    
+    
+    /*************************************************************************
+    *                             BoundedSpaceConcept
+    * **********************************************************************/
+    
+    /**
+     * Brings a given point back with the bounds of the space.
+     */
+    void bring_point_in_bounds(point_type& p1) const {
+      mean_state_type m = p1.get_mean_state();
+      mean_state_space->bring_point_in_bounds(m);
+      p1.set_mean_state(m);
+      covariance_type C = p1.get_covariance();
+      covariance_space->bring_point_in_bounds(C);
+      p1.set_covariance(C);
+    };
+    
+    /**
+     * Returns the addition of a point-difference to a point.
+     */
+    bool is_in_bounds(const point_type& p1) const {
+      return (mean_state_space->is_in_bounds(p1.get_mean_state()) &&
+              covariance_space->is_in_bounds(p1.get_covariance()));
+    };
+    
     
     /**
      * Returns the state-topology on which the mean-states lie.
@@ -248,6 +290,28 @@ struct gaussian_ML_reduction {
 
 
 };
+
+
+namespace pp {
+
+template <typename StateTopology, typename CovarianceTopology>
+struct is_metric_space< ctrl::gaussian_belief_space<StateTopology, CovarianceTopology> > : 
+  boost::mpl::and_< is_metric_space<StateTopology>, is_metric_space<CovarianceTopology> > { };
+
+template <typename StateTopology, typename CovarianceTopology>
+struct is_reversible_space< ctrl::gaussian_belief_space<StateTopology, CovarianceTopology> > : 
+  boost::mpl::and_< is_reversible_space<StateTopology>, is_reversible_space<CovarianceTopology> > { };
+
+template <typename StateTopology, typename CovarianceTopology>
+struct is_point_distribution< ctrl::gaussian_belief_space<StateTopology, CovarianceTopology> > : 
+  boost::mpl::and_< is_point_distribution<StateTopology>, is_point_distribution<CovarianceTopology> > { };
+
+template <typename StateTopology, typename CovarianceTopology>
+struct is_metric_symmetric< ctrl::gaussian_belief_space<StateTopology, CovarianceTopology> > : 
+  boost::mpl::and_< is_metric_symmetric<StateTopology>, is_metric_symmetric<CovarianceTopology> > { };
+
+};
+
 
 };
 

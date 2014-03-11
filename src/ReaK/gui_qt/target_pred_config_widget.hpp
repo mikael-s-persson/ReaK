@@ -105,6 +105,8 @@ class TargetPredConfigWidget : public QDockWidget, private Ui::TargetPredConfig 
     serialization::objtree_editor* ot_IMU_edit;
     QMainWindow ot_IMU_win;
     
+    shared_ptr< ctrl::satellite3D_inv_dt_system > satellite3D_system;
+    
   public:
     
     double getTimeStep() const;

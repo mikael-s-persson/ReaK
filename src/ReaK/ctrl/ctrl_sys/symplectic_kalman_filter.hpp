@@ -380,6 +380,7 @@ struct SKF_belief_transfer {
   typedef typename pp::topology_traits<BeliefSpace>::point_type belief_state;
   
   typedef typename SKFTransferFactory::state_space_system state_space_system;
+  typedef shared_ptr< state_space_system > state_space_system_ptr;
   typedef typename discrete_sss_traits< state_space_system >::time_type time_type;
   typedef typename discrete_sss_traits< state_space_system >::time_difference_type time_difference_type;
 
@@ -445,7 +446,7 @@ struct SKF_belief_transfer {
    * Returns a reference to the underlying state-space system.
    * \return A reference to the underlying state-space system.
    */
-  const state_space_system& get_ss_system() const { return factory->get_state_space_system(); };
+  const state_space_system_ptr& get_ss_system() const { return factory->get_state_space_system(); };
   
   /**
    * Returns the belief-state at the next time instant.

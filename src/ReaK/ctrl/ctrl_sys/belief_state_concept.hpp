@@ -307,8 +307,6 @@ struct ContinuousBeliefSpaceConcept : BeliefSpaceConcept<ContBeliefSpace> {
  */
 template <typename BeliefTransfer>
 struct belief_transfer_traits {
-  /** The belief-state type associated to the transfer function */
-  typedef typename BeliefTransfer::belief_state belief_state;
   /** The state-space system type associated to the transfer function */
   typedef typename BeliefTransfer::state_space_system state_space_system;
   /** The time type associated to the transfer function */
@@ -327,15 +325,13 @@ struct belief_transfer_traits {
  * 
  * The associated belief state should model BeliefStateConcept.
  * 
- * The associated state-space system should model SSSystemConcept.
- * 
  * The associated belief-space should model the pp::TopologyConcept.
  * 
  * Valid expressions:
  * 
  * dt = f.get_time_step();  The time-step of the transfer function can be obtained.
  * 
- * sys = f.get_ss_system();  The state-space system can be obtained from the transfer function.
+ * sys = *f.get_ss_system();  The state-space system can be obtained from the transfer function.
  * 
  * b = f.get_next_belief(belief_space, b, t, u, y);  The next belief state (b) can be obtained from the current belief-state (b), current time (t), current input (u), and next measurement (y).
  *
@@ -344,14 +340,13 @@ struct belief_transfer_traits {
  */
 template <typename BeliefTransfer, typename BeliefSpaceType>
 struct BeliefTransferConcept {
-  typedef typename belief_transfer_traits< BeliefTransfer >::belief_state BeliefState;
+  typedef typename pp::topology_traits< BeliefSpaceType >::point_type BeliefState;
   typedef typename belief_transfer_traits< BeliefTransfer >::state_space_system StateSpaceSystem;
   typedef typename belief_transfer_traits< BeliefTransfer >::time_type TimeType;
   typedef typename belief_transfer_traits< BeliefTransfer >::time_difference_type TimeDiffType;
   
   BOOST_CONCEPT_ASSERT((BeliefStateConcept< BeliefState >));
   BOOST_CONCEPT_ASSERT((BeliefSpaceConcept< BeliefSpaceType >));
-  BOOST_CONCEPT_ASSERT((SSSystemConcept< StateSpaceSystem, typename belief_space_traits<BeliefSpaceType>::state_topology >));
   
   BeliefTransfer f;
   typename ss_system_traits<StateSpaceSystem>::input_type u;
@@ -365,7 +360,7 @@ struct BeliefTransferConcept {
   BOOST_CONCEPT_USAGE(BeliefTransferConcept)
   {
     dt = f.get_time_step();
-    sys = f.get_ss_system();
+    sys = *f.get_ss_system();
     b = f.get_next_belief(belief_space, b, t, u, y);
   };
 };

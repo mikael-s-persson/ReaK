@@ -37,6 +37,7 @@
 #define REAK_COVAR_TOPOLOGY_HPP
 
 #include "base/defs.hpp"
+#include "base/named_object.hpp"
 
 #include "covariance_concept.hpp"
 #include "lin_alg/mat_norms.hpp"
@@ -69,7 +70,7 @@ namespace ctrl {
  * \tparam Covariance A covariance matrix type, modeling CovarianceMatrixConcept.
  */
 template <typename Covariance>
-class covar_topology {
+class covar_topology : public named_object {
   public:
     typedef covar_topology<Covariance> self;
     typedef Covariance point_type; 
@@ -215,7 +216,7 @@ class covar_topology {
      * \return The origin of the topology (a nil covariance matrix).
      */
     point_type origin() const {
-      return point_type(matrix_type( mat<value_type,mat_structure::nil>(mat_size) ));
+      return point_type(matrix_type( mat<value_type,mat_structure::nil>(mat_size, mat_size) ));
     };
     
     /**
@@ -241,6 +242,38 @@ class covar_topology {
     };
     
     
+    /*************************************************************************
+    *                             BoundedSpaceConcept
+    * **********************************************************************/
+    
+    /**
+     * Brings a given point back with the bounds of the space.
+     */
+    void bring_point_in_bounds(point_type& p1) const { return; };
+    
+    /**
+     * Returns the addition of a point-difference to a point.
+     */
+    bool is_in_bounds(const point_type& p1) const { return true; };
+    
+    
+/*******************************************************************************
+                   ReaK's RTTI and Serialization interfaces
+*******************************************************************************/
+
+    virtual void RK_CALL save(serialization::oarchive& A, unsigned int) const {
+      ReaK::named_object::save(A,named_object::getStaticObjectType()->TypeVersion());
+      A & RK_SERIAL_SAVE_WITH_NAME(max_eigenvalue)
+        & RK_SERIAL_SAVE_WITH_NAME(mat_size);
+    };
+
+    virtual void RK_CALL load(serialization::iarchive& A, unsigned int) {
+      ReaK::named_object::load(A,named_object::getStaticObjectType()->TypeVersion());
+      A & RK_SERIAL_LOAD_WITH_NAME(max_eigenvalue)
+        & RK_SERIAL_LOAD_WITH_NAME(mat_size);
+    };
+
+    RK_RTTI_MAKE_CONCRETE_1BASE(self,0xC230000B,1,"covar_topology",named_object)
     
 };
 

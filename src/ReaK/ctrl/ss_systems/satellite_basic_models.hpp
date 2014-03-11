@@ -69,6 +69,7 @@ class satellite3D_lin_dt_system : public named_object {
     
     typedef pp::topology_traits< state_space_type >::point_type point_type;
     typedef pp::topology_traits< state_space_type >::point_difference_type point_difference_type;
+    typedef pp::topology_traits< state_space_type >::point_difference_type point_derivative_type;
     
     typedef double time_type;
     typedef double time_difference_type;
@@ -210,6 +211,7 @@ class satellite3D_gyro_lin_dt_system : public satellite3D_lin_dt_system {
     
     typedef satellite3D_lin_dt_system::point_type point_type;
     typedef satellite3D_lin_dt_system::point_difference_type point_difference_type;
+    typedef satellite3D_lin_dt_system::point_derivative_type point_derivative_type;
     
     typedef satellite3D_lin_dt_system::time_type time_type;
     typedef satellite3D_lin_dt_system::time_difference_type time_difference_type;
@@ -287,6 +289,7 @@ class satellite3D_inv_dt_system : public satellite3D_lin_dt_system {
     
     typedef satellite3D_lin_dt_system::point_type point_type;
     typedef satellite3D_lin_dt_system::point_difference_type point_difference_type;
+    typedef satellite3D_lin_dt_system::point_derivative_type point_derivative_type;
   
     typedef satellite3D_lin_dt_system::time_type time_type;
     typedef satellite3D_lin_dt_system::time_difference_type time_difference_type;
@@ -424,6 +427,7 @@ class satellite3D_gyro_inv_dt_system : public satellite3D_inv_dt_system {
     
     typedef satellite3D_inv_dt_system::point_type point_type;
     typedef satellite3D_inv_dt_system::point_difference_type point_difference_type;
+    typedef satellite3D_inv_dt_system::point_derivative_type point_derivative_type;
     
     typedef satellite3D_inv_dt_system::time_type time_type;
     typedef satellite3D_inv_dt_system::time_difference_type time_difference_type;

@@ -45,6 +45,9 @@
 
 #include "interpolation/waypoint_container.hpp"
 
+
+#include "base/thread_incl.hpp"
+
 #include <map>
 #include <iterator>
 
@@ -89,6 +92,9 @@ class belief_predicted_trajectory : public pp::waypoint_container< pp::temporal_
     
     typedef typename base_class_type::waypoint_pair waypoint_pair;
     
+    typedef typename base_class_type::point_time_iterator point_time_iterator;
+    typedef typename base_class_type::point_fraction_iterator point_fraction_iterator;
+    
     typedef typename pp::topology_traits< topology >::point_type point_type;
     typedef typename pp::topology_traits< topology >::point_difference_type point_difference_type;
     
@@ -125,6 +131,7 @@ class belief_predicted_trajectory : public pp::waypoint_container< pp::temporal_
     InputTrajectory input;
     BeliefPredictorFactory pred_factory;
     assumption pred_assumption;
+    mutable ReaKaux::recursive_mutex pred_seg_mutex;
     mutable predictor_map_type pred_segments;
     
     waypoint_descriptor updated_end;
@@ -135,8 +142,12 @@ class belief_predicted_trajectory : public pp::waypoint_container< pp::temporal_
     };
     
     waypoint_pair get_point_at_time_impl(double t, const_waypoint_bounds wpb_a) const {
+      ReaKaux::unique_lock<ReaKaux::recursive_mutex> lock_this(pred_seg_mutex);
+      
       if( t > this->get_current_horizon() ) {
-        this->set_minimal_horizon(t);
+        // this const-cast is safe because set-min-horiz only changes values within the waypoints container, 
+        // but does not add elements to the container (does not invalidate iterators).
+        const_cast<self*>(this)->set_minimal_horizon(t);  
         wpb_a.second = updated_end;
         --wpb_a.second;
         wpb_a.first = wpb_a.second;
@@ -151,6 +162,8 @@ class belief_predicted_trajectory : public pp::waypoint_container< pp::temporal_
     };
     
     virtual waypoint_pair move_time_diff_from_impl(const point_type& a, const const_waypoint_bounds& wpb_a, double dt) const {
+      ReaKaux::unique_lock<ReaKaux::recursive_mutex> lock_this(pred_seg_mutex);
+      
       if( ( a.time + dt >= wpb_a.first->first ) && ( a.time + dt <= wpb_a.second->first ) )
         return get_point_at_time_impl(a.time + dt, wpb_a);
       else
@@ -163,7 +176,9 @@ class belief_predicted_trajectory : public pp::waypoint_container< pp::temporal_
     /**
      * Default constructor.
      */
-    belief_predicted_trajectory() : base_class_type(), input(), pred_factory(), pred_assumption(no_measurements), pred_segments(), updated_end(this->waypoints.end()) { };
+    belief_predicted_trajectory() : base_class_type(), input(), pred_factory(), 
+                                    pred_assumption(no_measurements), pred_seg_mutex(), 
+                                    pred_segments(), updated_end(this->waypoints.end()) { };
     
     /**
      * Constructs the trajectory from a space, assumes the start and end are at the origin 
@@ -182,6 +197,7 @@ class belief_predicted_trajectory : public pp::waypoint_container< pp::temporal_
                                          base_class_type(aSpace), input(aInputTrajectory), 
                                          pred_factory(aPredFactory), 
                                          pred_assumption(aPredAssumption), 
+                                         pred_seg_mutex(), 
                                          pred_segments(), updated_end(this->waypoints.begin()) { 
       set_initial_point(aInitialPoint);
     };
@@ -191,6 +207,8 @@ class belief_predicted_trajectory : public pp::waypoint_container< pp::temporal_
      */
     friend void swap(self& lhs, self& rhs) BOOST_NOEXCEPT_OR_NOTHROW {
       using std::swap;
+      if( &lhs == &rhs ) // prevent dead-lock
+        return;
       
       // this little tricky piece of code is due to iterators being invalidated across the container-swap.
       time_type lhs_horiz = lhs.get_current_horizon();
@@ -202,7 +220,11 @@ class belief_predicted_trajectory : public pp::waypoint_container< pp::temporal_
       swap(lhs.input, rhs.input);
       swap(lhs.pred_factory, rhs.pred_factory);
       swap(lhs.pred_assumption, rhs.pred_assumption);
-      swap(lhs.pred_segments, rhs.pred_segments);
+      {
+        ReaKaux::unique_lock<ReaKaux::recursive_mutex> lock_lhs(lhs.pred_seg_mutex);
+        ReaKaux::unique_lock<ReaKaux::recursive_mutex> lock_rhs(rhs.pred_seg_mutex);
+        swap(lhs.pred_segments, rhs.pred_segments);
+      };
     };
     
     /**
@@ -211,13 +233,15 @@ class belief_predicted_trajectory : public pp::waypoint_container< pp::temporal_
     belief_predicted_trajectory(const self& rhs) : 
                                 base_class_type(static_cast<const base_class_type&>(rhs)),
                                 input(rhs.input), pred_factory(rhs.pred_factory), 
-                                pred_assumption(rhs.pred_assumption), pred_segments(), updated_end(this->waypoints.end()) {
+                                pred_assumption(rhs.pred_assumption), pred_seg_mutex(), 
+                                pred_segments(), updated_end(this->waypoints.end()) {
+      ReaKaux::unique_lock<ReaKaux::recursive_mutex> lock_rhs(rhs.pred_seg_mutex);
       waypoint_descriptor last_valid = this->waypoints.begin();
       for(waypoint_descriptor it = rhs.waypoints.begin(); it != rhs.updated_end; ++it, ++last_valid) {
         pred_segments[&(last_valid->second)] = pred_factory.create_predictor(
           this->space->get_space_topology(), 
           &(last_valid->second.pt), last_valid->first, 
-          input.get_point_at_time(last_valid->first));
+          input.get_point_at_time(last_valid->first).pt);
       };
       updated_end = last_valid;
     };
@@ -230,9 +254,11 @@ class belief_predicted_trajectory : public pp::waypoint_container< pp::temporal_
     belief_predicted_trajectory(self&& rhs) BOOST_NOEXCEPT_OR_NOTHROW : 
                                 base_class_type(),
                                 input(std::move(rhs.input)), pred_factory(std::move(rhs.pred_factory)), 
-                                pred_assumption(rhs.pred_assumption), 
-                                pred_segments(std::move(rhs.pred_segments)), updated_end(this->waypoints.end()) {
+                                pred_assumption(rhs.pred_assumption), pred_seg_mutex(), 
+                                pred_segments(), updated_end(this->waypoints.end()) {
       using std::swap;
+      ReaKaux::unique_lock<ReaKaux::recursive_mutex> lock_rhs(rhs.pred_seg_mutex);
+      pred_segments = std::move(rhs.pred_segments);
       // must deal with the waypoint container separately due to completely retarded STL iterator invalidation guarantees:
       bool is_end = (rhs.updated_end == rhs.waypoints.end());
       swap(static_cast<base_class_type&>(*this), static_cast<base_class_type&>(rhs)); // preserves iterators, except "end".
@@ -261,6 +287,7 @@ class belief_predicted_trajectory : public pp::waypoint_container< pp::temporal_
      * \return The horizon for the predictions currently up-to-date in this trajectory.
      */
     time_type get_current_horizon() const {
+      ReaKaux::unique_lock<ReaKaux::recursive_mutex> lock_this(pred_seg_mutex);
       waypoint_descriptor last_valid = updated_end; --last_valid;
       return last_valid->first;
     };
@@ -271,6 +298,7 @@ class belief_predicted_trajectory : public pp::waypoint_container< pp::temporal_
      * \param t The new minimal horizon for the predictions up-to-date in this trajectory.
      */
     void set_minimal_horizon(const time_type& t) {
+      ReaKaux::unique_lock<ReaKaux::recursive_mutex> lock_this(pred_seg_mutex);
       
       waypoint_descriptor it = this->waypoints.lower_bound(t);
       
@@ -281,13 +309,13 @@ class belief_predicted_trajectory : public pp::waypoint_container< pp::temporal_
             updated_end->second.pt = pred_segments[&(last_valid->second)].predict_belief(
               this->space->get_space_topology(), 
               last_valid->second.pt, last_valid->first, 
-              input.get_point_at_time(last_valid->first));
+              input.get_point_at_time(last_valid->first).pt);
             break;
           case most_likely_measurements:
             updated_end->second.pt = pred_segments[&(last_valid->second)].predict_ML_belief(
               this->space->get_space_topology(), 
               last_valid->second.pt, last_valid->first, 
-              input.get_point_at_time(last_valid->first));
+              input.get_point_at_time(last_valid->first).pt);
             break;
           default:
             break;
@@ -299,7 +327,7 @@ class belief_predicted_trajectory : public pp::waypoint_container< pp::temporal_
         // must perform predictions from end to past time t.
         while( last_valid->first < t ) {
           predictor_type& pred = pred_segments[&(last_valid->second)];
-          input_type u = input.get_point_at_time(last_valid->first);
+          input_type u = input.get_point_at_time(last_valid->first).pt;
           pred = pred_factory.create_predictor(
             this->space->get_space_topology(), 
             &(last_valid->second.pt), last_valid->first, u);
@@ -340,8 +368,10 @@ class belief_predicted_trajectory : public pp::waypoint_container< pp::temporal_
         return;
       };
       
+      ReaKaux::unique_lock<ReaKaux::recursive_mutex> lock_this(pred_seg_mutex);
+      
       waypoint_descriptor it = this->waypoints.lower_bound(t);
-      ++it; // <- this means that the pruning "conservative", and also, will always keep the beginning iterator.
+      ++it; // <- this means that the pruning is "conservative", and also, will always keep the beginning iterator.
       for(waypoint_descriptor it2 = it; it2 != this->waypoints.end(); ++it2)
         pred_segments.erase(&(it2->second));
       this->erase(it, this->waypoints.end());
@@ -358,6 +388,7 @@ class belief_predicted_trajectory : public pp::waypoint_container< pp::temporal_
      */
     void set_initial_point(const point_type& pt) {
       using std::fabs;
+      ReaKaux::unique_lock<ReaKaux::recursive_mutex> lock_this(pred_seg_mutex);
       
       waypoint_descriptor it = this->waypoints.lower_bound(pt.time - 0.5 * pred_factory.get_time_step());
       // check if the time difference is too much:
@@ -370,7 +401,7 @@ class belief_predicted_trajectory : public pp::waypoint_container< pp::temporal_
         pred_segments[&(updated_end->second)] = pred_factory.create_predictor(
           this->space->get_space_topology(), 
           &(updated_end->second.pt), updated_end->first, 
-          input.get_point_at_time(updated_end->first));
+          input.get_point_at_time(updated_end->first).pt);
         ++updated_end;
         return;
       };
@@ -384,7 +415,7 @@ class belief_predicted_trajectory : public pp::waypoint_container< pp::temporal_
       pred_segments[&(it->second)] = pred_factory.create_predictor(
         this->space->get_space_topology(), 
         &(it->second.pt), it->first, 
-        input.get_point_at_time(it->first));
+        input.get_point_at_time(it->first).pt);
       updated_end = it; ++updated_end;
     };
     
@@ -403,6 +434,8 @@ class belief_predicted_trajectory : public pp::waypoint_container< pp::temporal_
 *******************************************************************************/
     
     virtual void RK_CALL save(serialization::oarchive& A, unsigned int) const {
+      ReaKaux::unique_lock<ReaKaux::recursive_mutex> lock_this(pred_seg_mutex);
+      
       base_class_type::save(A,base_class_type::getStaticObjectType()->TypeVersion());
       std::size_t prediction_assumption = pred_assumption;
       A & RK_SERIAL_SAVE_WITH_NAME(input)
@@ -411,6 +444,8 @@ class belief_predicted_trajectory : public pp::waypoint_container< pp::temporal_
     };
     
     virtual void RK_CALL load(serialization::iarchive& A, unsigned int) {
+      ReaKaux::unique_lock<ReaKaux::recursive_mutex> lock_this(pred_seg_mutex);
+      
       base_class_type::load(A,base_class_type::getStaticObjectType()->TypeVersion());
       std::size_t prediction_assumption = 0;
       A & RK_SERIAL_LOAD_WITH_NAME(input)
@@ -429,7 +464,7 @@ class belief_predicted_trajectory : public pp::waypoint_container< pp::temporal_
         pred_segments[&(updated_end->second)] = pred_factory.create_predictor(
           this->space->get_space_topology(), 
           &(updated_end->second.pt), updated_end->first, 
-          input.get_point_at_time(updated_end->first)
+          input.get_point_at_time(updated_end->first).pt
         );
         ++updated_end;
       };
