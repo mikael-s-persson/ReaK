@@ -31,6 +31,9 @@
 
 #include "serialization/archiver_factory.hpp"
 
+#include "recorders/tcp_recorder.hpp"
+#include "recorders/udp_recorder.hpp"
+
 namespace ReaK {
   
 namespace rkqt {
@@ -577,6 +580,92 @@ void TargetPredConfigWidget::loadIMUConfig() {
 };
 
 
+
+struct prediction_updater {
+  
+  typedef satellite_predict_data::system_type SysType;
+  typedef satellite_predict_data::temp_state_space_type TempStateSpaceType;
+  typedef satellite_predict_data::belief_space_type BeliefSpaceType;
+  typedef pp::topology_traits< BeliefSpaceType >::point_type BeliefPointType;
+  typedef satellite_predict_data::belief_pred_traj_type BeliefPredTrajType;
+  typedef BeliefPredTrajType::topology TempBeliefSpaceType;
+  typedef pp::topology_traits< TempBeliefSpaceType >::point_type TempBeliefPointType;
+  
+  typedef satellite_predict_data::input_type InputType;
+  typedef ctrl::discrete_sss_traits< SysType >::output_type OutputType;
+  typedef ctrl::covariance_matrix< vect_n<double> > IOCovType;
+  typedef ctrl::gaussian_belief_state< InputType,  IOCovType > InputBeliefType;
+  typedef ctrl::gaussian_belief_state< OutputType, IOCovType > OutputBeliefType;
+  
+  shared_ptr< BeliefPredTrajType > predictor;
+  
+  shared_ptr< SysType > satellite3D_system;
+  shared_ptr< TempStateSpaceType > sat_temp_space;
+  
+  recorder::named_value_row nvr_in;
+  shared_ptr< recorder::data_extractor > data_in;
+  
+  BeliefPointType b;
+  InputBeliefType b_u;
+  OutputBeliefType b_z;
+  
+  double last_time;
+  double diff_tolerance;
+  
+  prediction_updater(
+    shared_ptr< BeliefPredTrajType > aPredictor,
+    shared_ptr< SysType > aSatSys,
+    shared_ptr< TempStateSpaceType > aSatTempSpace,
+    recorder::named_value_row aNVRIn,
+    shared_ptr< recorder::data_extractor > aDataIn,
+    BeliefPointType aB,
+    InputBeliefType aBU,
+    OutputBeliefType aBZ,
+    double aLastTime, 
+    double aDiffTolerance
+  ) : 
+    predictor(aPredictor),
+    satellite3D_system(aSatSys),
+    sat_temp_space(aSatTempSpace), 
+    nvr_in(aNVRIn), data_in(aDataIn),
+    b(aB), b_u(aBU), b_z(aBZ),
+    last_time(aLastTime), diff_tolerance(aDiffTolerance) { };
+  
+  int operator()() {
+    
+    TempBeliefPointType b_pred;
+    
+    try {
+      while ( true ) {
+        
+        (*data_in) >> nvr_in;
+        
+        b_z.set_mean_state(vect_n<double>(
+          nvr_in["p_x"], nvr_in["p_y"], nvr_in["p_z"],
+          nvr_in["q_0"], nvr_in["q_1"], nvr_in["q_2"], nvr_in["q_3"]));
+        
+        invariant_kalman_filter_step(*satellite3D_system, 
+                                     sat_temp_space->get_space_topology(), 
+                                     b, b_u, b_z, last_time);
+        
+        last_time = nvr_in["time"];
+        
+        b_pred = predictor->get_point_at_time(last_time);
+        
+        if( predictor->get_temporal_space().get_space_topology().distance(b, b_pred.pt) > diff_tolerance )
+          predictor->set_initial_point(TempBeliefPointType(last_time, b));
+        
+      };
+    } catch (std::exception& e) {
+      return 0;
+    };
+    
+  };
+  
+};
+
+
+
 void TargetPredConfigWidget::startStatePrediction() {
   
   using namespace ctrl;
@@ -678,11 +767,103 @@ void TargetPredConfigWidget::startStatePrediction() {
   
   pred_anim_data.trajectory = shared_ptr< MLTrajType >(new MLTrajType(sat_temp_space, pred_anim_data.predictor));
   
+  typedef discrete_sss_traits< SysType >::output_type OutputType;
+  typedef covariance_matrix< vect_n<double> > IOCovType;
+  typedef IOCovType::matrix_type IOCovMatrixType;
+  typedef gaussian_belief_state< InputType,  IOCovType > InputBeliefType;
+  typedef gaussian_belief_state< OutputType, IOCovType > OutputBeliefType;
   
   // NOTE: at this point, I have constructed the trajectories needed for planning.
   //  Now, I need to start streaming measurements into it, and do so until I have good enough
   //  estimates to be able to construct a real predicted trajectory.
   
+  
+  shared_ptr< recorder::data_extractor > data_in;
+  {
+    std::stringstream ss;
+    ss << getServerAddress() << ":" << getPortNumber();
+    if( useTCP() )
+      data_in = shared_ptr< recorder::data_extractor >(new recorder::tcp_extractor(ss.str()));
+    else 
+      data_in = shared_ptr< recorder::data_extractor >(new recorder::udp_extractor(ss.str()));
+  };
+  
+  std::vector<std::string> names_in(data_in->getColCount(), "");
+  for(std::size_t i = 0; i < names_in.size(); ++i)
+    (*data_in) >> names_in[i];
+  
+  if( ( names_in.size() < 8 ) ||
+      ( names_in[0] != "time" ) ||
+      ( names_in[1] != "p_x" ) ||
+      ( names_in[2] != "p_y" ) ||
+      ( names_in[3] != "p_z" ) ||
+      ( names_in[4] != "q_0" ) ||
+      ( names_in[5] != "q_1" ) ||
+      ( names_in[6] != "q_2" ) ||
+      ( names_in[7] != "q_3" ) ) {
+    QMessageBox::information(this,
+                "Data stream seems to be corrupt!",
+                "The meta-data obtained from the data-stream is corrupt or of the wrong format!",
+                QMessageBox::Ok);
+    return;
+  };
+  
+  recorder::named_value_row nvr_in  = data_in->getFreshNamedValueRow();
+  
+  InputBeliefType b_u;
+  OutputBeliefType b_z;
+  BeliefPointType b = b_init;
+  
+  b_u.set_mean_state(vect_n<double>(0.0,0.0,0.0,0.0,0.0,0.0));
+  b_u.set_covariance(IOCovType(IOCovMatrixType(getInputDisturbance())));
+  b_z.set_mean_state(vect_n<double>(0.0,0.0,0.0,1.0,0.0,0.0,0.0));
+  b_z.set_covariance(IOCovType(IOCovMatrixType(getMeasurementNoise())));
+  
+  double last_time = 0.0;
+  double current_Pnorm = norm_2(b.get_covariance().get_matrix());
+  
+  try {
+    while ( current_Pnorm > getPThreshold() ) {
+      
+      (*data_in) >> nvr_in;
+      
+      b_z.set_mean_state(vect_n<double>(
+        nvr_in["p_x"], nvr_in["p_y"], nvr_in["p_z"],
+        nvr_in["q_0"], nvr_in["q_1"], nvr_in["q_2"], nvr_in["q_3"]));
+      
+      invariant_kalman_filter_step(*satellite3D_system, 
+                                  sat_temp_space->get_space_topology(), 
+                                  b, b_u, b_z, last_time);
+      
+//       const StatePointType& x_mean = b.get_mean_state();
+//       result_vect[range(0,2)]   = get_position(x_mean);
+//       result_vect[range(3,6)]   = get_quaternion(x_mean);
+//       result_vect[range(7,9)]   = get_velocity(x_mean);
+//       result_vect[range(10,12)] = get_ang_velocity(x_mean);
+      
+      current_Pnorm = norm_2(b.get_covariance().get_matrix());
+      last_time = nvr_in["time"];
+      
+    };
+  } catch (std::exception& e) {
+    QMessageBox::information(this,
+                "Error!",
+                "An error occurred during the initial phase of measurement streaming!",
+                QMessageBox::Ok);
+    return;
+  };
+  
+  pred_anim_data.predictor->set_initial_point(TempBeliefPointType(last_time, b));
+  
+  // Start a thread that will update the predictor as new data comes in.
+  
+  ReaKaux::thread t(prediction_updater(
+    pred_anim_data.predictor,
+    satellite3D_system,
+    sat_temp_space, nvr_in, data_in,
+    b, b_u, b_z, last_time,  getPThreshold()));
+  
+  t.detach();
   
 };
 

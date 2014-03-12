@@ -128,9 +128,6 @@ struct gaussian_pdf {
     using std::sqrt;
     using std::exp;
     using ReaK::to_vect;
-    typedef typename pp::topology_traits<Topology>::point_difference_type state_difference_type;
-    BOOST_CONCEPT_ASSERT((ReadableVectorConcept<state_difference_type>));
-    BOOST_CONCEPT_ASSERT((CovarianceMatrixConcept<covariance_type, state_difference_type>));
     
     if(factor <= scalar_type(0))
       return scalar_type(0);
