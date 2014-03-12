@@ -52,8 +52,6 @@ ChaserTargetInteractWidget::ChaserTargetInteractWidget(
   this->QDockWidget::setWidget(new QWidget(this));
   setupUi(this->QDockWidget::widget());
   
-  connect(actionStartTargetAnimation, SIGNAL(triggered()), this, SLOT(startTargetAnimation()));
-  connect(actionStopTargetAnimation, SIGNAL(triggered()), this, SLOT(stopTargetAnimation()));
   connect(actionJointChange, SIGNAL(triggered()), this, SLOT(onJointChange()));
   connect(actionTargetChange, SIGNAL(triggered()), this, SLOT(onTargetChange()));
   
@@ -135,15 +133,6 @@ void ChaserTargetInteractWidget::loadTargetTrajectory() {
   this->traj_filename_edit->setText(fileInf.baseName());
   
 };
-
-void ChaserTargetInteractWidget::startTargetAnimation() {
-  emit onStartTargetAnimation();
-};
-
-void ChaserTargetInteractWidget::stopTargetAnimation() {
-  emit onStopTargetAnimation();
-};
-
 
 
 

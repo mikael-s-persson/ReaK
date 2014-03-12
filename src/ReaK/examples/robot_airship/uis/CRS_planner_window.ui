@@ -40,6 +40,8 @@
     <addaction name="actionRun_Planner"/>
     <addaction name="actionStart_Sol_Anim"/>
     <addaction name="actionStop_Sol_Anim"/>
+    <addaction name="actionStart_Target_Anim"/>
+    <addaction name="actionStop_Target_Anim"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuRun"/>
@@ -81,8 +83,24 @@
    </property>
   </action>
   <action name="actionStop_Sol_Anim">
+   <property name="enabled">
+    <bool>true</bool>
+   </property>
    <property name="text">
     <string>Stop Sol. Anim.</string>
+   </property>
+  </action>
+  <action name="actionStart_Target_Anim">
+   <property name="text">
+    <string>Start Target Anim.</string>
+   </property>
+  </action>
+  <action name="actionStop_Target_Anim">
+   <property name="enabled">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Stop Target Anim.</string>
    </property>
   </action>
  </widget>

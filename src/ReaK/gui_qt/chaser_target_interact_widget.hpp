@@ -50,9 +50,6 @@ class ChaserTargetInteractWidget : public QDockWidget, private Ui::ChaserTargetI
     void savePositions();
     void loadPositions();
     
-    void startTargetAnimation();
-    void stopTargetAnimation();
-    
     void onJointChange();
     void onTargetChange();
     
@@ -64,9 +61,6 @@ class ChaserTargetInteractWidget : public QDockWidget, private Ui::ChaserTargetI
     void loadTargetPosFromModel();
     
   signals:
-    
-    void onStartTargetAnimation();
-    void onStopTargetAnimation();
     
     void onLoadTargetTrajectory(QString);
     

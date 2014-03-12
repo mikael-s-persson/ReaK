@@ -120,16 +120,28 @@ void CRSPlannerGUI::stopSolutionAnimation() {
 void CRSPlannerGUI_animate_target_trajectory(void* pv, SoSensor*) {
   CRSPlannerGUI* p = static_cast<CRSPlannerGUI*>(pv);
   
-  static shared_ptr< CRS_target_anim_data::trajectory_type > target_traj    = p->target_anim.trajectory;
-  static CRS_target_anim_data::trajectory_type::point_time_iterator cur_pit = target_traj->begin_time_travel();
   static ReaKaux::chrono::high_resolution_clock::time_point animation_start = ReaKaux::chrono::high_resolution_clock::now();
   
-  if(!target_traj) {
-    target_traj = p->target_anim.trajectory;
-    cur_pit = target_traj->begin_time_travel();
+  static shared_ptr< CRS_target_anim_data::trajectory_type > target_traj;
+  static shared_ptr< satellite_predict_data::ML_traj_type > pred_traj;
+  
+  static shared_ptr< CRS_target_anim_data::trajectory_type::point_time_iterator > cur_pit_ptr;
+  static shared_ptr< satellite_predict_data::ML_traj_type::point_time_iterator > pred_pit_ptr;
+  
+  if(!target_traj && !pred_traj) {
     animation_start = ReaKaux::chrono::high_resolution_clock::now();
+    target_traj = p->target_anim.trajectory;
+    pred_traj = p->target_pred_config.pred_anim_data.trajectory;
+    if( target_traj ) 
+      cur_pit_ptr.reset(new CRS_target_anim_data::trajectory_type::point_time_iterator(target_traj->begin_time_travel()));
+    else if( pred_traj )
+      pred_pit_ptr.reset(new satellite_predict_data::ML_traj_type::point_time_iterator(pred_traj->begin_time_travel()));
+    else
+      return;
   };
-  if( (p->target_anim.enabled) && ( (*cur_pit).time < target_traj->get_end_time() ) ) {
+  
+  if( target_traj && p->target_anim.enabled && ( (*(*cur_pit_ptr)).time < target_traj->get_end_time() ) ) {
+    CRS_target_anim_data::trajectory_type::point_time_iterator& cur_pit = *cur_pit_ptr;
     if( (*cur_pit).time <= 0.001 * (ReaKaux::chrono::duration_cast<ReaKaux::chrono::milliseconds>(ReaKaux::chrono::high_resolution_clock::now() - animation_start)).count() ) {
       cur_pit += 0.1;
       *(p->ct_config.sceneData.target_kin_model->getFrame3D(0)) = get_frame_3D((*cur_pit).pt); 
@@ -142,29 +154,57 @@ void CRSPlannerGUI_animate_target_trajectory(void* pv, SoSensor*) {
         } catch( optim::infeasible_problem& e ) { RK_UNUSED(e); };
         p->ct_config.sceneData.chaser_kin_model->doDirectMotion();
       };
-    
+    };
+  } else if( pred_traj && p->target_pred_config.pred_anim_data.enabled && 
+             ( (*(*pred_pit_ptr)).time < p->target_pred_config.getTimeHorizon() ) ) {
+    satellite_predict_data::ML_traj_type::point_time_iterator& pred_pit = *pred_pit_ptr;
+    if( (*pred_pit).time <= 0.001 * (ReaKaux::chrono::duration_cast<ReaKaux::chrono::milliseconds>(ReaKaux::chrono::high_resolution_clock::now() - animation_start)).count() ) {
+      pred_pit += 0.1;
+      *(p->ct_config.sceneData.target_kin_model->getFrame3D(0)) = get_frame_3D((*pred_pit).pt); 
+      p->ct_config.sceneData.target_kin_model->doDirectMotion();
+      
+      if( p->ct_config.sceneData.chaser_kin_model && p->ct_interact.isIKEnabled() && !(p->sol_anim.enabled)) {
+        try {
+          *(p->ct_config.sceneData.chaser_kin_model->getDependentFrame3D(0)->mFrame) = *(p->ct_config.sceneData.target_frame);
+          p->ct_config.sceneData.chaser_kin_model->doInverseMotion();
+        } catch( optim::infeasible_problem& e ) { RK_UNUSED(e); };
+        p->ct_config.sceneData.chaser_kin_model->doDirectMotion();
+      };
     };
   } else {
-    p->target_anim.animation_timer->unschedule();
-    animation_start = ReaKaux::chrono::high_resolution_clock::now();
-    target_traj.reset();
+    if( target_traj ) {
+      p->target_anim.animation_timer->unschedule();
+      cur_pit_ptr.reset();
+      target_traj.reset();
+    } else {
+      p->target_pred_config.pred_anim_data.animation_timer->unschedule();
+      pred_pit_ptr.reset();
+      pred_traj.reset();
+    };
   };
 };
 
 void CRSPlannerGUI::startTargetAnimation() {
-  if( !target_anim.trajectory || !ct_config.sceneData.target_kin_model ) {
+  if( !( target_anim.trajectory || target_pred_config.pred_anim_data.trajectory ) 
+      || !ct_config.sceneData.target_kin_model ) {
     QMessageBox::critical(this,
                   "Animation Error!",
                   "The target trajectory is missing (not loaded or erroneous)! Cannot animate target!",
                   QMessageBox::Ok);
     return;
   };
-  target_anim.enabled = true;
-  target_anim.animation_timer->schedule();
+  if( target_anim.trajectory ) {
+    target_anim.enabled = true;
+    target_anim.animation_timer->schedule();
+  } else {
+    target_pred_config.pred_anim_data.enabled = true;
+    target_pred_config.pred_anim_data.animation_timer->schedule();
+  };
 };
 
 void CRSPlannerGUI::stopTargetAnimation() {
   target_anim.enabled = false;
+  target_pred_config.pred_anim_data.enabled = false;
 };
 
 void CRSPlannerGUI::loadTargetTrajectory(QString fileName) {
@@ -177,7 +217,8 @@ void CRSPlannerGUI::loadTargetTrajectory(QString fileName) {
 
 void CRSPlannerGUI::startCompleteAnimation() {
   
-  if( !sol_anim.trajectory || !target_anim.trajectory || !ct_config.sceneData.chaser_kin_model || !ct_config.sceneData.target_kin_model ) {
+  if( !sol_anim.trajectory || !( target_anim.trajectory || target_pred_config.pred_anim_data.trajectory ) 
+      || !ct_config.sceneData.chaser_kin_model || !ct_config.sceneData.target_kin_model ) {
     QMessageBox::critical(this,
                   "Animation Error!",
                   "One of the trajectories is missing (not loaded or erroneous)! Cannot animate chaser and target!",
@@ -185,14 +226,20 @@ void CRSPlannerGUI::startCompleteAnimation() {
     return;
   };
   sol_anim.enabled = true;
-  target_anim.enabled = true;
   sol_anim.animation_timer->schedule();
-  target_anim.animation_timer->schedule();
+  if( target_anim.trajectory ) {
+    target_anim.enabled = true;
+    target_anim.animation_timer->schedule();
+  } else {
+    target_pred_config.pred_anim_data.enabled = true;
+    target_pred_config.pred_anim_data.animation_timer->schedule();
+  };
 };
 
 void CRSPlannerGUI::stopCompleteAnimation() {
   sol_anim.enabled = false;
   target_anim.enabled = false;
+  target_pred_config.pred_anim_data.enabled = false;
 };
 
 
@@ -233,8 +280,8 @@ CRSPlannerGUI::CRSPlannerGUI( QWidget * parent, Qt::WindowFlags flags ) :
   
   connect(actionStart_Sol_Anim, SIGNAL(triggered()), this, SLOT(startSolutionAnimation()));
   connect(actionStop_Sol_Anim, SIGNAL(triggered()), this, SLOT(stopSolutionAnimation()));
-  connect(&ct_interact, SIGNAL(onStartTargetAnimation()), this, SLOT(startTargetAnimation()));
-  connect(&ct_interact, SIGNAL(onStopTargetAnimation()), this, SLOT(stopTargetAnimation()));
+  connect(actionStart_Target_Anim, SIGNAL(triggered()), this, SLOT(startTargetAnimation()));
+  connect(actionStop_Target_Anim, SIGNAL(triggered()), this, SLOT(stopTargetAnimation()));
   connect(&ct_interact, SIGNAL(onLoadTargetTrajectory(QString)), this, SLOT(loadTargetTrajectory(QString)));
   
   connect(&ct_config, SIGNAL(onChaserLoaded()), &ct_interact, SLOT(loadJointPosFromModel()));
@@ -258,12 +305,14 @@ CRSPlannerGUI::CRSPlannerGUI( QWidget * parent, Qt::WindowFlags flags ) :
   
   sol_anim.animation_timer    = new SoTimerSensor(CRSPlannerGUI_animate_bestsol_trajectory, this);
   target_anim.animation_timer = new SoTimerSensor(CRSPlannerGUI_animate_target_trajectory, this);
+  target_pred_config.pred_anim_data.animation_timer = new SoTimerSensor(CRSPlannerGUI_animate_target_trajectory, this);
   
 };
 
 
 CRSPlannerGUI::~CRSPlannerGUI() {
   
+  delete target_pred_config.pred_anim_data.animation_timer;
   delete target_anim.animation_timer;
   delete sol_anim.animation_timer;
   

@@ -612,6 +612,8 @@ struct prediction_updater {
   double last_time;
   double diff_tolerance;
   
+  static volatile bool should_stop;
+  
   prediction_updater(
     shared_ptr< BeliefPredTrajType > aPredictor,
     shared_ptr< SysType > aSatSys,
@@ -636,7 +638,7 @@ struct prediction_updater {
     TempBeliefPointType b_pred;
     
     try {
-      while ( true ) {
+      while ( !should_stop ) {
         
         (*data_in) >> nvr_in;
         
@@ -659,11 +661,15 @@ struct prediction_updater {
     } catch (std::exception& e) {
       return 0;
     };
-    
+    return 0;
   };
+  
+  static shared_ptr< ReaKaux::thread > executer;
   
 };
 
+volatile bool prediction_updater::should_stop = false;
+shared_ptr< ReaKaux::thread > prediction_updater::executer = shared_ptr< ReaKaux::thread >();
 
 
 void TargetPredConfigWidget::startStatePrediction() {
@@ -857,13 +863,18 @@ void TargetPredConfigWidget::startStatePrediction() {
   
   // Start a thread that will update the predictor as new data comes in.
   
-  ReaKaux::thread t(prediction_updater(
+  if( prediction_updater::executer ) {
+    prediction_updater::should_stop = true;
+    prediction_updater::executer->join();
+  };
+  
+  prediction_updater::should_stop = false;
+  prediction_updater::executer = shared_ptr< ReaKaux::thread >(new ReaKaux::thread(
+    prediction_updater(
     pred_anim_data.predictor,
     satellite3D_system,
     sat_temp_space, nvr_in, data_in,
-    b, b_u, b_z, last_time,  getPThreshold()));
-  
-  t.detach();
+    b, b_u, b_z, last_time,  getPThreshold())));
   
 };
 

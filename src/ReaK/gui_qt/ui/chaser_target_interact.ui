@@ -258,7 +258,7 @@
      </layout>
     </widget>
    </item>
-   <item row="7" column="0">
+   <item row="6" column="0">
     <spacer name="verticalSpacer">
      <property name="orientation">
       <enum>Qt::Vertical</enum>
@@ -270,38 +270,6 @@
       </size>
      </property>
     </spacer>
-   </item>
-   <item row="6" column="0">
-    <widget class="QWidget" name="anim_traj_widget" native="true">
-     <property name="enabled">
-      <bool>false</bool>
-     </property>
-     <layout class="QGridLayout" name="gridLayout_9">
-      <property name="margin">
-       <number>0</number>
-      </property>
-      <item row="0" column="0">
-       <widget class="QPushButton" name="anim_trajectory_button">
-        <property name="enabled">
-         <bool>false</bool>
-        </property>
-        <property name="text">
-         <string>Start Animation</string>
-        </property>
-       </widget>
-      </item>
-      <item row="0" column="1">
-       <widget class="QPushButton" name="anim_traj_stop_button">
-        <property name="enabled">
-         <bool>false</bool>
-        </property>
-        <property name="text">
-         <string>Stop Animation</string>
-        </property>
-       </widget>
-      </item>
-     </layout>
-    </widget>
    </item>
    <item row="4" column="0">
     <widget class="QCheckBox" name="check_trajectory">
@@ -754,22 +722,6 @@
   <connection>
    <sender>check_trajectory</sender>
    <signal>toggled(bool)</signal>
-   <receiver>anim_traj_widget</receiver>
-   <slot>setEnabled(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>178</x>
-     <y>484</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>178</x>
-     <y>587</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>check_trajectory</sender>
-   <signal>toggled(bool)</signal>
    <receiver>load_traj_button</receiver>
    <slot>setEnabled(bool)</slot>
    <hints>
@@ -816,54 +768,6 @@
    </hints>
   </connection>
   <connection>
-   <sender>anim_trajectory_button</sender>
-   <signal>clicked()</signal>
-   <receiver>actionStartTargetAnimation</receiver>
-   <slot>trigger()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>178</x>
-     <y>546</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>-1</x>
-     <y>-1</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>anim_trajectory_button</sender>
-   <signal>clicked(bool)</signal>
-   <receiver>anim_traj_stop_button</receiver>
-   <slot>setDisabled(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>92</x>
-     <y>546</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>264</x>
-     <y>546</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>anim_trajectory_button</sender>
-   <signal>clicked(bool)</signal>
-   <receiver>anim_trajectory_button</receiver>
-   <slot>setEnabled(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>92</x>
-     <y>546</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>92</x>
-     <y>546</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
    <sender>target_x</sender>
    <signal>valueChanged(int)</signal>
    <receiver>target_x_spin</receiver>
@@ -880,22 +784,6 @@
    </hints>
   </connection>
   <connection>
-   <sender>anim_traj_stop_button</sender>
-   <signal>clicked(bool)</signal>
-   <receiver>anim_trajectory_button</receiver>
-   <slot>setDisabled(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>264</x>
-     <y>546</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>92</x>
-     <y>546</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
    <sender>target_y_spin</sender>
    <signal>valueChanged(int)</signal>
    <receiver>target_y</receiver>
@@ -908,22 +796,6 @@
     <hint type="destinationlabel">
      <x>147</x>
      <y>331</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>anim_traj_stop_button</sender>
-   <signal>clicked(bool)</signal>
-   <receiver>anim_traj_stop_button</receiver>
-   <slot>setEnabled(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>264</x>
-     <y>546</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>264</x>
-     <y>546</y>
     </hint>
    </hints>
   </connection>
@@ -1312,22 +1184,6 @@
    </hints>
   </connection>
   <connection>
-   <sender>check_trajectory</sender>
-   <signal>toggled(bool)</signal>
-   <receiver>anim_trajectory_button</receiver>
-   <slot>setEnabled(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>178</x>
-     <y>525</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>92</x>
-     <y>587</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
    <sender>joint6_pos_spin</sender>
    <signal>valueChanged(int)</signal>
    <receiver>joint6_pos</receiver>
@@ -1388,38 +1244,6 @@
     <hint type="destinationlabel">
      <x>319</x>
      <y>205</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>check_trajectory</sender>
-   <signal>toggled(bool)</signal>
-   <receiver>anim_traj_stop_button</receiver>
-   <slot>setDisabled(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>178</x>
-     <y>525</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>264</x>
-     <y>587</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>anim_traj_stop_button</sender>
-   <signal>clicked()</signal>
-   <receiver>actionStopTargetAnimation</receiver>
-   <slot>trigger()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>264</x>
-     <y>587</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>-1</x>
-     <y>-1</y>
     </hint>
    </hints>
   </connection>
