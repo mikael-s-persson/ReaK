@@ -133,6 +133,7 @@ class TargetPredConfigWidget : public QDockWidget, private Ui::TargetPredConfig 
     satellite_predict_data pred_anim_data;
     
     void startStatePrediction();
+    void stopStatePrediction();
     
 };
 

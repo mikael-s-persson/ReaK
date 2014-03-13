@@ -28,6 +28,7 @@
 #include <QFileInfo>
 #include <QMessageBox>
 #include <QMainWindow>
+#include <QProcess>
 
 #include "serialization/archiver_factory.hpp"
 
@@ -580,6 +581,7 @@ void TargetPredConfigWidget::loadIMUConfig() {
 };
 
 
+namespace {
 
 struct prediction_updater {
   
@@ -666,13 +668,24 @@ struct prediction_updater {
   
   static shared_ptr< ReaKaux::thread > executer;
   
+  static QProcess side_script;
+  
 };
 
 volatile bool prediction_updater::should_stop = false;
 shared_ptr< ReaKaux::thread > prediction_updater::executer = shared_ptr< ReaKaux::thread >();
+QProcess prediction_updater::side_script;
+
+};
 
 
 void TargetPredConfigWidget::startStatePrediction() {
+  
+  std::string start_script = getStartScript();
+  if( start_script != "" ) {
+    prediction_updater::side_script.kill();
+    prediction_updater::side_script.start(QString::fromStdString(start_script));
+  };
   
   using namespace ctrl;
   
@@ -866,6 +879,7 @@ void TargetPredConfigWidget::startStatePrediction() {
   if( prediction_updater::executer ) {
     prediction_updater::should_stop = true;
     prediction_updater::executer->join();
+    prediction_updater::executer.reset();
   };
   
   prediction_updater::should_stop = false;
@@ -875,6 +889,19 @@ void TargetPredConfigWidget::startStatePrediction() {
     satellite3D_system,
     sat_temp_space, nvr_in, data_in,
     b, b_u, b_z, last_time,  getPThreshold())));
+  
+};
+
+
+void TargetPredConfigWidget::stopStatePrediction() {
+  
+  if( prediction_updater::executer ) {
+    prediction_updater::should_stop = true;
+    prediction_updater::executer->join();
+    prediction_updater::executer.reset();
+  };
+  
+  prediction_updater::side_script.kill();
   
 };
 
