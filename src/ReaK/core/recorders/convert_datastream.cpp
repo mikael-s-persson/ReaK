@@ -27,6 +27,7 @@
 #include "bin_recorder.hpp"
 #include "tcp_recorder.hpp"
 #include "udp_recorder.hpp"
+#include "raw_udp_recorder.hpp"
 
 #include <sstream>
 
@@ -74,11 +75,14 @@ int main(int argc, char** argv) {
     ("input-ip,I",      po::value< std::string >(), "specify the IP-address of the data-server")
     ("input-port,P",    po::value< unsigned int >()->default_value(17017), "specify the IP-port to connect to the data-server (default is 17017)")
     ("input-udp,U",     "if set, will try to listen to an input UDP data-stream")
+    ("input-raw-udp,R", "if set, will try to listen to an input RAW UDP data-stream, for this to work, you must specify the list of columns via the 'keep-columns' option")
     ("input-format,F",  po::value< std::string >(), "specify the format for the input file (default is to use the file-extension of input-file (ssv, tsv, bin, etc.), or if piped, use 'ssv')")
     ("output,o",        po::value< std::string >(), "specify the filename for the output file for the datastream (default is to output to the console 'stdout', for piping the output)")
     ("output-port,p",   po::value< unsigned int >()->default_value(17017), "specify the IP-port for the data-server that will be created (default is 17017)")
     ("output-tcp,t",    "if set, will output a TCP data-stream")
     ("output-udp,u",    "if set, will output a UDP data-stream")
+    ("output-raw-udp,r","if set, will output a RAW UDP data-stream")
+    ("output-ip",       po::value< std::string >(), "specify the IP-address of the RAW UDP data-stream, this is because a raw udp stream is connection-less and requires a pre-defined output IP-address")
     ("output-format,f", po::value< std::string >(), "specify the format for the output file (default is to use the file-extension of input-file (ssv, tsv, bin, etc.), or if piped, use 'ssv')")
   ;
   
@@ -125,6 +129,10 @@ int main(int argc, char** argv) {
     std::stringstream ss;
     ss << vm["output-port"].as<unsigned int>();
     data_out = shared_ptr< data_recorder >(new udp_recorder(ss.str()));
+  } else if(vm.count("output-raw-udp")) {
+    std::stringstream ss;
+    ss << vm["output-ip"].as<std::string>() << ":" << vm["output-port"].as<unsigned int>();
+    data_out = shared_ptr< data_recorder >(new raw_udp_recorder(ss.str()));
   } else {
     if(vm.count("output-format"))
       output_extension = strip_quotes(vm["output-format"].as<std::string>());
@@ -155,15 +163,15 @@ int main(int argc, char** argv) {
     input_extension = input_file_name.substr(p+1);
   };
   
-  if(vm.count("input-ip") && !vm.count("input-udp")) {
+  if(vm.count("input-ip") && !vm.count("input-udp") && !vm.count("input-raw-udp")) {
     std::stringstream ss;
     ss << vm["input-ip"].as<std::string>() << ":" << vm["input-port"].as<unsigned int>();
     data_in = shared_ptr< data_extractor >(new tcp_extractor(ss.str()));
-  } else if(vm.count("input-ip")) {
+  } else if(vm.count("input-ip") && !vm.count("input-raw-udp")) {
     std::stringstream ss;
     ss << vm["input-ip"].as<std::string>() << ":" << vm["input-port"].as<unsigned int>();
     data_in = shared_ptr< data_extractor >(new udp_extractor(ss.str()));
-  } else {
+  } else if(!vm.count("input-raw-udp")) {
     if(vm.count("input-format"))
       input_extension = strip_quotes(vm["input-format"].as<std::string>());
     if(input_extension == "ssv") {
@@ -185,31 +193,56 @@ int main(int argc, char** argv) {
   };
   
   
-  std::vector<std::string> names_in(data_in->getColCount(), "");
-  for(std::size_t i = 0; i < names_in.size(); ++i)
-    (*data_in) >> names_in[i];
-  
-  std::string time_name;
-  if(vm.count("time-column-sync")) {
-    if( std::find(names_in.begin(), names_in.end(), strip_quotes(vm["time-column-sync"].as<std::string>())) != names_in.end() ) {
-      time_name = strip_quotes(vm["time-column-sync"].as<std::string>());
-    };
-  };
-  
+  std::vector<std::string> names_in;
   std::vector<std::string> names_out;
-  if(vm.count("keep-columns")) {
+  std::string time_name;
+  if(!vm.count("input-raw-udp")) {
+    names_in.resize(data_in->getColCount(), "");
+    for(std::size_t i = 0; i < names_in.size(); ++i)
+      (*data_in) >> names_in[i];
+    
+    if(vm.count("keep-columns")) {
+      std::string tmp_keep_columns = strip_quotes(vm["keep-columns"].as<std::string>());
+      for(std::string::iterator it = tmp_keep_columns.begin(); it != tmp_keep_columns.end(); ++it) {
+        std::string::iterator it_next = std::find(it, tmp_keep_columns.end(), ';');
+        std::string new_name(it, it_next);
+        if( std::find(names_in.begin(), names_in.end(), new_name) != names_in.end() )
+          names_out.push_back(new_name);
+        if(it_next == tmp_keep_columns.end())
+          break;
+        it = it_next;
+      };
+    } else {
+      names_out = names_in;
+    };
+    
+  } else if(vm.count("input-raw-udp") && vm.count("keep-columns")) {
+    std::stringstream ss;
+    ss << vm["input-ip"].as<std::string>() << ":" << vm["input-port"].as<unsigned int>();
+    shared_ptr< raw_udp_extractor > data_in_tmp(new raw_udp_extractor());
+    data_in = data_in_tmp;
+    
     std::string tmp_keep_columns = strip_quotes(vm["keep-columns"].as<std::string>());
     for(std::string::iterator it = tmp_keep_columns.begin(); it != tmp_keep_columns.end(); ++it) {
       std::string::iterator it_next = std::find(it, tmp_keep_columns.end(), ';');
       std::string new_name(it, it_next);
-      if( std::find(names_in.begin(), names_in.end(), new_name) != names_in.end() )
-        names_out.push_back(new_name);
+      data_in_tmp->addName(new_name);
+      names_in.push_back(new_name);
+      names_out.push_back(new_name);
       if(it_next == tmp_keep_columns.end())
         break;
       it = it_next;
     };
+    
   } else {
-    names_out = names_in;
+    std::cerr << "Error! Infeasible input specifications! Either you requested raw-udp stream by mistake, or you forgot to specify the 'keep-columns' names for the raw-udp input stream." << std::endl;
+    return 2;
+  };
+  
+  if(vm.count("time-column-sync")) {
+    if( std::find(names_in.begin(), names_in.end(), strip_quotes(vm["time-column-sync"].as<std::string>())) != names_in.end() ) {
+      time_name = strip_quotes(vm["time-column-sync"].as<std::string>());
+    };
   };
   
   for(std::size_t i = 0; i < names_out.size(); ++i)

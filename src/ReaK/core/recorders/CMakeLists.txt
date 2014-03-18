@@ -6,6 +6,7 @@ set(RECORDERS_SOURCES
   "${SRCROOT}${RKRECORDERSDIR}/bin_recorder.cpp"
   "${SRCROOT}${RKRECORDERSDIR}/tcp_recorder.cpp"
   "${SRCROOT}${RKRECORDERSDIR}/udp_recorder.cpp"
+  "${SRCROOT}${RKRECORDERSDIR}/raw_udp_recorder.cpp"
 )
 
 set(RECORDERS_HEADERS 
@@ -15,6 +16,7 @@ set(RECORDERS_HEADERS
   "${RKRECORDERSDIR}/bin_recorder.hpp"
   "${RKRECORDERSDIR}/tcp_recorder.hpp"
   "${RKRECORDERSDIR}/udp_recorder.hpp"
+  "${RKRECORDERSDIR}/raw_udp_recorder.hpp"
 )
 
 
