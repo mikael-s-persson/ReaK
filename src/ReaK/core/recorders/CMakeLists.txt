@@ -1,6 +1,7 @@
 
 set(RECORDERS_SOURCES 
   "${SRCROOT}${RKRECORDERSDIR}/data_record.cpp"
+  "${SRCROOT}${RKRECORDERSDIR}/data_record_options.cpp"
   "${SRCROOT}${RKRECORDERSDIR}/ssv_recorder.cpp"
   "${SRCROOT}${RKRECORDERSDIR}/tsv_recorder.cpp"
   "${SRCROOT}${RKRECORDERSDIR}/bin_recorder.cpp"
@@ -11,6 +12,7 @@ set(RECORDERS_SOURCES
 
 set(RECORDERS_HEADERS 
   "${RKRECORDERSDIR}/data_record.hpp"
+  "${RKRECORDERSDIR}/data_record_options.hpp"
   "${RKRECORDERSDIR}/ssv_recorder.hpp"
   "${RKRECORDERSDIR}/tsv_recorder.hpp"
   "${RKRECORDERSDIR}/bin_recorder.hpp"
