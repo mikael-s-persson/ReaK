@@ -35,6 +35,8 @@
 #include "base/defs.hpp"
 #include "base/named_object.hpp"
 
+#include "base/global_rng.hpp"
+
 #include "motion_planner_base.hpp"
 #include "planning_queries.hpp"
 #include "any_sbmp_reporter.hpp"

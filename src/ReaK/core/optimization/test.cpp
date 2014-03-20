@@ -31,7 +31,7 @@
 #include "quasi_newton_methods.hpp"
 #include "trust_region_search.hpp"
 
-#include "path_planning/global_rng.hpp"
+#include "base/global_rng.hpp"
 
 #include <iostream>
 
@@ -114,7 +114,7 @@ int main() {
 //   std::cout << "  Nelder-Mead method started at " << x_2D << std::endl;
   double initial_spread = 0.5;
 //   for(unsigned int i = 0; i < 20; ++i) {
-//     ReaK::optim::nelder_mead_method(banana_function, x_2D, initial_spread, ReaK::pp::get_global_rng(), 1e-7);
+//     ReaK::optim::nelder_mead_method(banana_function, x_2D, initial_spread, ReaK::get_global_rng(), 1e-7);
 //     initial_spread *= 0.8;
 //   };
 //   std::cout << "    found optimum: " << x_2D << " after " << evalCount << " function evaluations." << std::endl;
@@ -216,7 +216,7 @@ int main() {
   std::cout << "  Nelder-Mead method started at " << x_2D << std::endl;
   initial_spread = 0.5;
   for(unsigned int i = 0; i < 20; ++i) {
-    ReaK::optim::nelder_mead_method(easy_function, x_2D, initial_spread, ReaK::pp::get_global_rng(), 1e-6);
+    ReaK::optim::nelder_mead_method(easy_function, x_2D, initial_spread, ReaK::get_global_rng(), 1e-6);
     initial_spread *= 0.8;
   };
   std::cout << "    found optimum: " << x_2D << " after " << evalCount << " function evaluations." << std::endl;

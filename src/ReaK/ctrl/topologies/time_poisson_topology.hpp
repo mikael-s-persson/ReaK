@@ -43,7 +43,7 @@
 #include "time_topology.hpp"
 #include <boost/random/variate_generator.hpp>
 #include <boost/random/lognormal_distribution.hpp>
-#include "path_planning/global_rng.hpp"
+#include "base/global_rng.hpp"
 
 #include "default_random_sampler.hpp"
 

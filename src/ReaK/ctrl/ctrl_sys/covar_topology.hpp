@@ -48,7 +48,7 @@
 
 #include "lin_alg/mat_qr_decomp.hpp"
 #include "lin_alg/mat_exp_methods.hpp"
-#include "path_planning/global_rng.hpp"
+#include "base/global_rng.hpp"
 #include "path_planning/metric_space_concept.hpp"
 #include "path_planning/reversible_space_concept.hpp"
 #include "topologies/default_random_sampler.hpp"
@@ -176,7 +176,7 @@ class covar_topology : public named_object {
      */
     point_type random_point() const 
     {
-      boost::uniform_01<pp::global_rng_type&, double> uniform_rng(pp::get_global_rng());
+      boost::uniform_01<global_rng_type&, double> uniform_rng(get_global_rng());
       mat<value_type,mat_structure::diagonal> D(mat_size);
       for(size_type i = 0; i < mat_size; ++i)
         D(i,i) = uniform_rng() * max_eigenvalue;

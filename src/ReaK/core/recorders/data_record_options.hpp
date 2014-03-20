@@ -63,11 +63,29 @@ struct data_stream_options {
     raw_udp_stream
   } kind; ///< Stores the kind of stream (format) to use.
   
+  std::string get_extension() const {
+    switch(kind) {
+      case binary:
+        return "bin";
+      case space_separated:
+        return "ssv";
+      case tab_separated:
+        return "tsv";
+      default:
+        return "";
+    };
+  };
+  
   /// Stores the file-name (or the ip:port name) for the stream.
   std::string file_name;
   
   /// Stores the names to put on a recorder or to keep from an extractor, will be ignored if empty.
   std::vector< std::string > names;
+  
+  data_stream_options& add_name(const std::string& aName) {
+    names.push_back(aName);
+    return *this;
+  };
   
   /// Stores the name of time-sync column for when streaming is paced with time.
   std::string time_sync_name;

@@ -38,7 +38,7 @@
 #include "base/defs.hpp"
 #include <boost/config.hpp> // For BOOST_STATIC_CONSTANT
 
-#include "path_planning/global_rng.hpp"
+#include "base/global_rng.hpp"
 #include <boost/random/uniform_01.hpp>
 
 #include <cmath>

@@ -44,7 +44,7 @@
 #include "vector_topology.hpp"
 #include "vect_distance_metrics.hpp"
 #include "default_random_sampler.hpp"
-#include "path_planning/global_rng.hpp"
+#include "base/global_rng.hpp"
 
 #include <cmath>
 
@@ -98,7 +98,7 @@ class hyperbox_topology : public vector_topology<Vector>
      * Generates a random point in the space, uniformly distributed.
      */
     point_type random_point() const {
-      boost::uniform_01<pp::global_rng_type&,double> var_rnd(pp::get_global_rng());
+      boost::uniform_01<global_rng_type&,double> var_rnd(get_global_rng());
       
       point_type p = lower_corner;
       for(typename vect_traits<point_type>::size_type i = 0; i < p.size(); ++i)

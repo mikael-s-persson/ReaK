@@ -17,7 +17,6 @@ set(PATH_PLANNING_HEADERS
   "${RKPATHPLANNINGDIR}/fadprm_path_planner.tpp"
   "${RKPATHPLANNINGDIR}/fadprm_manip_planners.hpp"
   "${RKPATHPLANNINGDIR}/frame_tracer_coin3d.hpp"
-  "${RKPATHPLANNINGDIR}/global_rng.hpp"
   "${RKPATHPLANNINGDIR}/interpolator_concept.hpp"
   "${RKPATHPLANNINGDIR}/metric_space_concept.hpp"
   "${RKPATHPLANNINGDIR}/metric_space_search.hpp"

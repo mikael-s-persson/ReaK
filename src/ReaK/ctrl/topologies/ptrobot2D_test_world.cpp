@@ -34,7 +34,7 @@
 
 #include <string>
 
-#include "path_planning/global_rng.hpp"
+#include "base/global_rng.hpp"
 
 namespace ReaK {
 

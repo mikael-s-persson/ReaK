@@ -47,7 +47,7 @@
 
 #include <boost/noncopyable.hpp>
 
-#include "path_planning/global_rng.hpp"
+#include "base/global_rng.hpp"
 
 #include <boost/random/normal_distribution.hpp>
 
@@ -470,7 +470,7 @@ struct gaussian_sampler {
     using ReaK::to_vect;
     using ReaK::from_vect;
     
-    boost::variate_generator< pp::global_rng_type&, boost::normal_distribution<scalar_type> > var_rnd(pp::get_global_rng(), boost::normal_distribution<scalar_type>());
+    boost::variate_generator< global_rng_type&, boost::normal_distribution<scalar_type> > var_rnd(get_global_rng(), boost::normal_distribution<scalar_type>());
     
     typedef typename pp::topology_traits<Topology>::point_difference_type state_difference_type;
     BOOST_CONCEPT_ASSERT((WritableVectorConcept<state_difference_type>));

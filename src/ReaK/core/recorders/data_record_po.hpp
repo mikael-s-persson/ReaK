@@ -47,59 +47,50 @@ namespace ReaK {
 /** Main namespace for ReaK's Data Recorders and Extractors */
 namespace recorder {
 
-namespace detail {
-  
-  static std::string strip_quotes(const std::string& s) {
-    std::size_t first = 0;
-    while( ( first < s.length() ) && ( std::isspace(s[first]) || (s[first] == '"') ) )
-      ++first;
-    std::size_t last = s.length();
-    while( ( last > 0 ) && ( std::isspace(s[last-1]) || (s[last-1] == '"') ) )
-      --last;
-    return s.substr(first, last - first);
-  };
-  
-};
-
 /**
  * This function constructs a Boost.Program-Options descriptor for data-streaming options.
  * This function can either construct options for input, output, or both.
  */
 boost::program_options::options_description get_data_stream_options_po_desc(bool aInput, bool aOutput = false) {
+  using boost::program_options::options_description;
+  using boost::program_options::value;
   
+  options_description result;
   
-  po::options_description io_options("I/O options");
   if( aInput ) {
-    io_options.add_options()
-      ("input",         po::value< std::string >(), "specify the filename for the input data-stream")
-      ("input-ip",      po::value< std::string >(), "specify the IP-address of the data-server")
-      ("input-port",    po::value< unsigned int >()->default_value(17017), "specify the IP-port to connect to the data-server (default is 17017)")
+    options_description input_options("Data-stream Input Options");
+    input_options.add_options()
+      ("input",         value< std::string >(), "specify the filename for the input data-stream")
+      ("input-ip",      value< std::string >(), "specify the IP-address of the data-server")
+      ("input-port",    value< unsigned int >()->default_value(17017), "specify the IP-port to connect to the data-server (default is 17017)")
       ("input-tcp",     "if set, will try to listen to an input TCP data-stream")
       ("input-udp",     "if set, will try to listen to an input UDP data-stream")
       ("input-raw-udp", "if set, will try to listen to an input RAW UDP data-stream, for this to work, you must specify the list of columns via the 'keep-columns' option")
-      ("input-format",  po::value< std::string >(), "specify the format for the input file (default is to use the file-extension of input-file (ssv, tsv, bin, etc.), or if piped, use 'ssv')")
+      ("input-format",  value< std::string >(), "specify the format for the input file (default is to use the file-extension of input-file (ssv, tsv, bin, etc.), or if piped, use 'ssv')")
     ;
+    result.add(input_options);
   };
   if( aOutput ) {
-    io_options.add_options()
-      ("output",        po::value< std::string >(), "specify the filename for the output file for the datastream (default is to output to the console 'stdout', for piping the output)")
-      ("output-ip",     po::value< std::string >(), "specify the IP-address of the RAW UDP data-stream, this is because a raw udp stream is connection-less and requires a pre-defined output IP-address")
-      ("output-port",   po::value< unsigned int >()->default_value(17017), "specify the IP-port for the data-server that will be created (default is 17017)")
+    options_description output_options("Data-stream Output Options");
+    output_options.add_options()
+      ("output",        value< std::string >(), "specify the filename for the output file for the datastream (default is to output to the console 'stdout', for piping the output)")
+      ("output-ip",     value< std::string >(), "specify the IP-address of the RAW UDP data-stream, this is because a raw udp stream is connection-less and requires a pre-defined output IP-address")
+      ("output-port",   value< unsigned int >()->default_value(17017), "specify the IP-port for the data-server that will be created (default is 17017)")
       ("output-tcp",    "if set, will output a TCP data-stream")
       ("output-udp",    "if set, will output a UDP data-stream")
       ("output-raw-udp","if set, will output a RAW UDP data-stream")
-      ("output-format", po::value< std::string >(), "specify the format for the output file (default is to use the file-extension of input-file (ssv, tsv, bin, etc.), or if piped, use 'ssv')")
+      ("output-format", value< std::string >(), "specify the format for the output file (default is to use the file-extension of input-file (ssv, tsv, bin, etc.), or if piped, use 'ssv')")
     ;
+    result.add(output_options);
   };
   
-  po::options_description filt_options("Filtering options");
+  options_description filt_options("Data-stream Filtering Options");
   filt_options.add_options()
-    ("time-column-sync", po::value< std::string >(), "name of the time-column from the datastream to use as a timed-output, i.e., for a network streaming, this will deliver the rows at each correct time")
-    ("keep-columns",     po::value< std::string >(), "specify a semi-colon-separated list of the columns to output (keep) in the datastream")
+    ("time-column-sync", value< std::string >(), "name of the time-column from the datastream to use as a timed-output, i.e., for a network streaming, this will deliver the rows at each correct time")
+    ("keep-columns",     value< std::string >(), "specify a semi-colon-separated list of the columns to output (keep) in the datastream")
   ;
   
-  po::options_description result;
-  result.add(io_options).add(filt_options);
+  result.add(filt_options);
   
   return result;
 };
@@ -118,14 +109,14 @@ data_stream_options get_data_stream_options_from_po(boost::program_options::vari
     
     std::string input_extension = "ssv";
     if(vm.count("input")) {
-      result.file_name = detail::strip_quotes(vm["input"].as<std::string>());
+      result.file_name = vm["input"].as<std::string>();
       std::size_t p = result.file_name.find_last_of('.');
       input_extension = result.file_name.substr(p+1);
     } else {
       result.file_name = "stdin";
     };
     if(vm.count("input-format"))
-      input_extension = detail::strip_quotes(vm["input-format"].as<std::string>());
+      input_extension = vm["input-format"].as<std::string>();
     
     if( vm.count("input-tcp") + vm.count("input-udp") + vm.count("input-raw-udp") > 0 ) {
       std::stringstream ss;
@@ -153,12 +144,12 @@ data_stream_options get_data_stream_options_from_po(boost::program_options::vari
     
     std::string output_extension = "ssv";
     if(vm.count("output-format"))
-      output_extension = detail::strip_quotes( vm["output-format"].as< std::string >() );
+      output_extension = vm["output-format"].as< std::string >();
     
     // take care of 'file_name' and 'kind':
     if(vm.count("output-tcp") + vm.count("output-udp") + vm.count("output-raw-udp") == 0) {
       if(vm.count("output")) {
-        result.file_name = detail::strip_quotes(vm["output"].as<std::string>());
+        result.file_name = vm["output"].as<std::string>();
         
         std::string output_path_name = result.file_name;
         std::size_t p = output_path_name.find_last_of('/');
@@ -171,8 +162,8 @@ data_stream_options get_data_stream_options_from_po(boost::program_options::vari
         if(!output_path_name.empty())
           boost::filesystem::create_directory(output_path_name.c_str());
         
-        std::size_t p_dot = output_file_name.find_last_of('.');
-        output_extension = output_file_name.substr(p_dot + 1);
+        std::size_t p_dot = result.file_name.find_last_of('.');
+        output_extension = result.file_name.substr(p_dot + 1);
         
       } else {
         result.file_name = "stdout";
@@ -203,7 +194,7 @@ data_stream_options get_data_stream_options_from_po(boost::program_options::vari
   };
   
   if(vm.count("keep-columns")) {
-    std::string tmp_keep_columns = detail::strip_quotes(vm["keep-columns"].as<std::string>());
+    std::string tmp_keep_columns = vm["keep-columns"].as<std::string>();
     for(std::string::iterator it = tmp_keep_columns.begin(); it != tmp_keep_columns.end(); ++it) {
       std::string::iterator it_next = std::find(it, tmp_keep_columns.end(), ';');
       std::string new_name(it, it_next);
@@ -215,7 +206,7 @@ data_stream_options get_data_stream_options_from_po(boost::program_options::vari
   };
   
   if(vm.count("time-column-sync"))
-    result.time_sync_name = detail::strip_quotes(vm["time-column-sync"].as<std::string>());
+    result.time_sync_name = vm["time-column-sync"].as<std::string>();
   
   return result;
 };

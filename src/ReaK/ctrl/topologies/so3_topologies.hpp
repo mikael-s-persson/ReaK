@@ -41,6 +41,8 @@
 
 #include "base/named_object.hpp"
 
+#include "base/global_rng.hpp"
+
 #include "tuple_distance_metrics.hpp"
 
 #include "hyperball_topology.hpp"
@@ -110,7 +112,7 @@ class quaternion_topology : public named_object
      * Generates a random point in the space, uniformly distributed.
      */
     point_type random_point() const {
-      boost::variate_generator< pp::global_rng_type&, boost::normal_distribution<typename vect_traits<point_difference_type>::value_type> > var_rnd(pp::get_global_rng(), boost::normal_distribution<typename vect_traits<point_difference_type>::value_type>());
+      boost::variate_generator< global_rng_type&, boost::normal_distribution<typename vect_traits<point_difference_type>::value_type> > var_rnd(get_global_rng(), boost::normal_distribution<typename vect_traits<point_difference_type>::value_type>());
       return point_type(var_rnd(),var_rnd(),var_rnd(),var_rnd());
       //According to most sources, normalizing a vector of Normal-distributed components will yield a uniform 
       // distribution of the components on the unit hyper-sphere. N.B., the normalization happens in the 

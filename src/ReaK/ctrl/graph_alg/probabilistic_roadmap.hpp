@@ -56,6 +56,8 @@
 #include "path_planning/metric_space_concept.hpp"
 #include "path_planning/random_sampler_concept.hpp"
 
+#include "base/global_rng.hpp"
+
 // BGL-Extra includes:
 #include <boost/graph/more_property_maps.hpp>
 
@@ -221,7 +223,7 @@ namespace detail {
     
     while(vis.keep_going()) {
       
-      double rand_value = boost::uniform_01<ReaK::pp::global_rng_type&,double>(ReaK::pp::get_global_rng())(); // generate random-number between 0 and 1.
+      double rand_value = boost::uniform_01<ReaK::global_rng_type&,double>(ReaK::get_global_rng())(); // generate random-number between 0 and 1.
       
       if(rand_value > expand_probability) {
         //Construction node:

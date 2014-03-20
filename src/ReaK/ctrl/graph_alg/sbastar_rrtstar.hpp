@@ -53,7 +53,7 @@
 
 #include "path_planning/metric_space_concept.hpp"
 #include "path_planning/random_sampler_concept.hpp"
-#include "path_planning/global_rng.hpp"
+#include "base/global_rng.hpp"
 
 #include <boost/tuple/tuple.hpp>
 #include <boost/graph/graph_concepts.hpp>
@@ -163,7 +163,7 @@ namespace detail {
     
     while (!Q.empty() && sba_vis.keep_going()) { 
       double entropy = 1.0 - exp( -initial_temperature / log( double(num_vertices(g)) ) );
-      double rand_value = boost::uniform_01<ReaK::pp::global_rng_type&,double>(ReaK::pp::get_global_rng())(); // generate random-number between 0 and 1.
+      double rand_value = boost::uniform_01<ReaK::global_rng_type&,double>(ReaK::get_global_rng())(); // generate random-number between 0 and 1.
       bool use_sba_sampling = (rand_value > entropy);
       
       PositionValue p_new; Vertex x_near; EdgeProp eprop;
@@ -219,7 +219,7 @@ namespace detail {
     
     while (!Q.empty() && sba_vis.keep_going()) { 
       double entropy = 1.0 - exp( -initial_temperature / log( double(num_vertices(g)) ) );
-      double rand_value = boost::uniform_01<ReaK::pp::global_rng_type&,double>(ReaK::pp::get_global_rng())(); // generate random-number between 0 and 1.
+      double rand_value = boost::uniform_01<ReaK::global_rng_type&,double>(ReaK::get_global_rng())(); // generate random-number between 0 and 1.
       bool use_sba_sampling = (rand_value > entropy);
       
       Vertex x_near_pred, x_near_succ; 

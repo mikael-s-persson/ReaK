@@ -41,7 +41,7 @@
 #include "metric_space_concept.hpp"
 #include "proper_metric_concept.hpp"
 
-#include "global_rng.hpp"
+#include "base/global_rng.hpp"
 
 // BGL-Extra includes:
 #include <boost/graph/tree_traits.hpp>
