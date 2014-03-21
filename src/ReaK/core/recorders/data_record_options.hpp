@@ -63,6 +63,10 @@ struct data_stream_options {
     raw_udp_stream
   } kind; ///< Stores the kind of stream (format) to use.
   
+  /**
+   * This function returns the file-extension for the data-stream file (if it's a file-based stream).
+   * \return The file-extension for the data-stream file (if it's a file-based stream).
+   */
   std::string get_extension() const {
     switch(kind) {
       case binary:
@@ -82,6 +86,11 @@ struct data_stream_options {
   /// Stores the names to put on a recorder or to keep from an extractor, will be ignored if empty.
   std::vector< std::string > names;
   
+  /**
+   * This function adds a name to the 'names' vector.
+   * \param aName The name to be added to the 'names' vector.
+   * \return A reference to this object.
+   */
   data_stream_options& add_name(const std::string& aName) {
     names.push_back(aName);
     return *this;
