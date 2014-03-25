@@ -23,7 +23,7 @@
 
 
 #include "ss_systems/satellite_invar_models.hpp"
-
+#include "ss_systems/satellite_modeling_po.hpp"
 
 #include "ctrl_sys/kalman_filter.hpp"
 #include "ctrl_sys/invariant_kalman_filter.hpp"
@@ -426,39 +426,18 @@ int main(int argc, char** argv) {
   
   po::options_description io_options("I/O options");
   io_options.add_options()
-    ("init,i",         po::value< std::string >()->default_value("models/satellite3D_init.rkx"), "specify the filename for the satellite's initial conditions, only used when Monte-Carlo simulations are done (default is 'models/satellite3D_init.rkx')")
-    ("inertia,I",      po::value< std::string >()->default_value("models/satellite3D_inertia.rkx"), "specify the filename for the satellite's inertial data (default is 'models/satellite3D_inertia.rkx')")
-    ("Q-matrix,Q",     po::value< std::string >()->default_value("models/satellite3D_Q.rkx"), "specify the filename for the satellite's input disturbance covariance matrix (default is 'models/satellite3D_Q.rkx')")
-    ("R-matrix,R",     po::value< std::string >()->default_value("models/satellite3D_R.rkx"), "specify the filename for the satellite's measurement noise covariance matrix (default is 'models/satellite3D_R.rkx')")
-    ("R-added,A",      po::value< std::string >(), "specify the filename for the satellite's artificial measurement noise covariance matrix")
-    ("IMU-config",     po::value< std::string >()->default_value("models/satellite3D_IMU_config.rkx"), "specify the filename for the satellite's IMU configuration data, specifying its placement on the satellite and the inertial / magnetic-field frame it is relative to (default is 'models/satellite3D_IMU_config.rkx')")
     ("generate-meas", "if set, the measurements used for the estimation will be generated from a simulation with the given initial conditions (default is not)")
     ("generate-meas-file,g", "if set, the measurement file will be generated from the output of a simulation with the given initial conditions (default is not)")
-    ("generate-mdl-files,G", "if set, the output will be the generation of all the modeling files (with default values)")
-    ("system-output",  po::value< std::string >()->default_value("models/satellite3D"), "specify the filename-stem for the output of the satellite system, when 'generate-files' is set (default is 'models/satellite3D')")
   ;
   
   po::options_description sim_options("Simulation options");
   sim_options.add_options()
     ("start-time,s", po::value< double >()->default_value(0.0), "start time of the estimation (default is 0.0)")
     ("end-time,e",   po::value< double >()->default_value(1.0), "end time of the estimation (default is 1.0)")
-    ("time-step,t",  po::value< double >()->default_value(0.01), "time-step in the measurement files (default is 0.01)")
     ("monte-carlo",  "if set, will perform a Monte-Carlo set of randomized runs to gather estimation performance statistics")
     ("mc-runs",      po::value< unsigned int >()->default_value(1000), "number of Monte-Carlo runs to perform (default is 1000)")
     ("min-skips",    po::value< unsigned int >()->default_value(1), "minimum number of time-step skips between estimations when generating a series of Monte-Carlo statistics (default is 1, i.e., one estimation point per measurement point)")
     ("max-skips",    po::value< unsigned int >()->default_value(1), "maximum number of time-step skips between estimations when generating a series of Monte-Carlo statistics (default is 1, i.e., one estimation point per measurement point)")
-  ;
-  
-  po::options_description model_options("Modeling options");
-  sim_options.add_options()
-    ("gyro",  "if set, a set of gyros is added to the model (angular velocity measurements). This requires the 'R-matrix' file to contain a 9x9 matrix.")
-    ("IMU",   "if set, a set of gyros is added to the model (angular velocity, magnetic field, and accelerometer measurements).\
- This requires the 'R-matrix' file to contain a 15x15 matrix. This option also automatically implies the 'midpoint' option.\
- This option will trigger the use of the 'IMU-config' file to obtain the information necessary about the IMU and the Earth's inertial frame.")
-//     ("mekf",   "if set, results for the multiplicative extended Kalman filter (MEKF) will be generated.")
-    ("iekf",   "if set, results for the invariant extended Kalman filter (IEKF) will be generated.")
-    ("imkf",   "if set, results for the invariant momentum-tracking Kalman filter (IMKF) will be generated.")
-    ("imkfv2", "if set, results for the invariant midpoint Kalman filter (IMKFv2) will be generated.")
   ;
   
   po::options_description output_options("Output options (at least one must be set)");
@@ -468,6 +447,8 @@ int main(int argc, char** argv) {
     ("protobuf,p", "if set, output results in protobuf format (pbuf)")
     ("binary,b",   "if set, output results in binary format (rkb)")
   ;
+  
+  po::options_description model_options = ctrl::get_satellite_model_options_po_desc(true);
   
   po::options_description data_io_options = recorder::get_data_stream_options_po_desc(true, true);
   
@@ -520,6 +501,14 @@ int main(int argc, char** argv) {
   recorder::data_stream_options data_out_stem_opt = data_out_opt;
   data_out_stem_opt.file_name = output_stem_name;
   
+  ctrl::satellite_model_options sat_options;
+  try {
+    sat_options = ctrl::get_satellite_model_options_from_po(vm);
+  } catch(std::exception& e) {
+    std::cerr << "Error! Creation of satellite modeling options failed! With exception: " << e.what() << std::endl;
+    return 2;
+  };
+  
   std::string sys_output_stem_name = vm["system-output"].as<std::string>();
   if( !sys_output_stem_name.empty() ) {
     std::string sys_output_path_name = sys_output_stem_name;
@@ -543,177 +532,12 @@ int main(int argc, char** argv) {
   
   double start_time = vm["start-time"].as<double>();
   double end_time   = vm["end-time"].as<double>();
-  double time_step  = vm["time-step"].as<double>();
   
   unsigned int mc_runs    = vm["mc-runs"].as<unsigned int>();
   unsigned int min_skips  = vm["min-skips"].as<unsigned int>();
   unsigned int max_skips  = vm["max-skips"].as<unsigned int>();
   
-  
-  /* initial states */
-  frame_3D<double> initial_motion;
-  if( vm.count("init") ) {
-    try {
-      
-      std::string init_filename = vm["init"].as<std::string>();
-      
-      if( vm.count("generate-mdl-files") ) {
-        *(serialization::open_oarchive(init_filename))
-          & RK_SERIAL_SAVE_WITH_NAME(initial_motion);
-      } else {
-        if( ! fs::exists( fs::path( init_filename ) ) ) {
-          std::cout << "Initial-conditions file does not exist!" << std::endl;
-          return 3;
-        };
-        
-        *(serialization::open_iarchive(init_filename))
-          & RK_SERIAL_LOAD_WITH_NAME(initial_motion);
-      };
-    } catch(std::exception& e) {
-      RK_ERROR("An exception occurred during the loading of the initial conditions! what(): '" << e.what() << "'.");
-      return 11;
-    };
-  };
-  
-  
-  /* inertial data */
-  double mass = 1.0;
-  ReaK::mat<double,ReaK::mat_structure::symmetric> inertia_tensor(1.0, 0.0, 0.0, 1.0, 0.0, 1.0);
-  try {
-    
-    std::string inertia_filename = vm["inertia"].as<std::string>();
-    
-    if( vm.count("generate-mdl-files") ) {
-      *(serialization::open_oarchive(inertia_filename))
-        & RK_SERIAL_SAVE_WITH_NAME(mass)
-        & RK_SERIAL_SAVE_WITH_NAME(inertia_tensor);
-    } else {
-      if( ! fs::exists( fs::path( inertia_filename ) ) ) {
-        std::cout << "Inertial-information file does not exist!" << std::endl;
-        return 4;
-      };
-      
-      *(serialization::open_iarchive(inertia_filename))
-        & RK_SERIAL_LOAD_WITH_NAME(mass)
-        & RK_SERIAL_LOAD_WITH_NAME(inertia_tensor);
-    };
-  } catch(std::exception& e) {
-    RK_ERROR("An exception occurred during the loading of the inertia matrix! what(): '" << e.what() << "'.");
-    return 12;
-  };
-  
-  
-  /* input disturbance */
-  mat<double,mat_structure::diagonal> input_disturbance(6,true);
-  try {
-    
-    std::string Qu_filename = vm["Q-matrix"].as<std::string>();
-    
-    if( vm.count("generate-mdl-files") ) {
-      *(serialization::open_oarchive(Qu_filename))
-        & RK_SERIAL_SAVE_WITH_NAME(input_disturbance);
-    } else {
-      if( ! fs::exists( fs::path( Qu_filename ) ) ) {
-        std::cout << "Input disturbance covariance matrix file does not exist!" << std::endl;
-        return 5;
-      };
-      
-      *(serialization::open_iarchive(Qu_filename))
-        & RK_SERIAL_LOAD_WITH_NAME(input_disturbance);
-    };
-  } catch(std::exception& e) {
-    RK_ERROR("An exception occurred during the loading of the input disturbance covariance matrix! what(): '" << e.what() << "'.");
-    return 13;
-  };
-  
-  
-  /* measurement noise */
-  std::size_t m_noise_size = 6;
-  if( vm.count("gyro") )
-    m_noise_size = 9;
-  if( vm.count("IMU") )
-    m_noise_size = 15;
-  mat<double,mat_structure::diagonal> measurement_noise(m_noise_size,true);
-  try {
-    std::string R_filename  = vm["R-matrix"].as<std::string>();
-    
-    if( vm.count("generate-mdl-files") ) {
-      *(serialization::open_oarchive(R_filename))
-        & RK_SERIAL_SAVE_WITH_NAME(measurement_noise);
-    } else {
-      if( ! fs::exists( fs::path( R_filename ) ) ) {
-        std::cout << "Measurement noise covariance matrix file does not exist!" << std::endl;
-        return 6;
-      };
-      
-      *(serialization::open_iarchive(R_filename))
-        & RK_SERIAL_LOAD_WITH_NAME(measurement_noise);
-    };
-  } catch(std::exception& e) {
-    RK_ERROR("An exception occurred during the loading of the measurement noise covariance matrix! what(): '" << e.what() << "'.");
-    return 14;
-  };
-  
-  
-  /* artificial measurement noise */
-  mat<double,mat_structure::diagonal> artificial_noise(m_noise_size,0.0);
-  if( vm.count("R-added") ) {
-    try {
-      std::string R_added_filename  = vm["R-added"].as<std::string>();
-      
-      if( vm.count("generate-mdl-files") ) {
-        *(serialization::open_oarchive(R_added_filename))
-          & RK_SERIAL_SAVE_WITH_NAME(artificial_noise);
-      } else {
-        if( ! fs::exists( fs::path( R_added_filename ) ) ) {
-          std::cout << "Artificial noise covariance matrix file does not exist!" << std::endl;
-          return 6;
-        };
-        
-        *(serialization::open_iarchive(R_added_filename))
-          & RK_SERIAL_LOAD_WITH_NAME(artificial_noise);
-      };
-    } catch(std::exception& e) {
-      RK_ERROR("An exception occurred during the loading of the artificial measurement noise covariance matrix! what(): '" << e.what() << "'.");
-      return 3;
-    };
-  };
-  double RAq0 = (artificial_noise(3,3) + artificial_noise(4,4) + artificial_noise(5,5)) / 12.0;
-  
-  
-  /* IMU configuration data */
-  unit_quat<double> IMU_orientation;
-  vect<double,3> IMU_location;
-  unit_quat<double> earth_orientation;
-  vect<double,3> mag_field_direction(1.0,0.0,0.0);
-  if( vm.count("IMU") ) {
-    try {
-      
-      std::string IMUconf_filename  = vm["IMU-config"].as<std::string>();
-      
-      if( vm.count("generate-mdl-files") ) {
-        *(serialization::open_oarchive(IMUconf_filename))
-          & RK_SERIAL_SAVE_WITH_NAME(IMU_orientation)
-          & RK_SERIAL_SAVE_WITH_NAME(IMU_location)
-          & RK_SERIAL_SAVE_WITH_NAME(earth_orientation)
-          & RK_SERIAL_SAVE_WITH_NAME(mag_field_direction);
-      } else {
-        if( ! fs::exists( fs::path( IMUconf_filename ) ) ) {
-          std::cout << "IMU configuration data file does not exist!" << std::endl;
-          return 6;
-        };
-        
-        *(serialization::open_iarchive(IMUconf_filename))
-          & RK_SERIAL_LOAD_WITH_NAME(IMU_orientation)
-          & RK_SERIAL_LOAD_WITH_NAME(IMU_location)
-          & RK_SERIAL_LOAD_WITH_NAME(earth_orientation)
-          & RK_SERIAL_LOAD_WITH_NAME(mag_field_direction);
-      };
-    } catch(std::exception& e) {
-      RK_ERROR("An exception occurred during the loading of the IMU configuration file! what(): '" << e.what() << "'.");
-      return 14;
-    };
-  };
+  double RAq0 = (sat_options.artificial_noise(3,3) + sat_options.artificial_noise(4,4) + sat_options.artificial_noise(5,5)) / 12.0;
   
   
   std::vector< std::pair< double, sat3D_measurement_point > > measurements;
@@ -738,53 +562,53 @@ int main(int argc, char** argv) {
         };
         meas_actual.pose = vect_n<double>(meas.begin(), meas.begin() + 7);
         meas_noisy.pose = meas_actual.pose;
-        if( vm.count("R-added") ) {
+        if( sat_options.artificial_noise.get_row_count() >= 6 ) {
           meas_noisy.pose += vect_n<double>(
-            var_rnd() * sqrt(artificial_noise(0,0)),
-            var_rnd() * sqrt(artificial_noise(1,1)),
-            var_rnd() * sqrt(artificial_noise(2,2)),
+            var_rnd() * sqrt(sat_options.artificial_noise(0,0)),
+            var_rnd() * sqrt(sat_options.artificial_noise(1,1)),
+            var_rnd() * sqrt(sat_options.artificial_noise(2,2)),
             var_rnd() * sqrt(RAq0),
-            var_rnd() * sqrt(0.25 * artificial_noise(3,3)),
-            var_rnd() * sqrt(0.25 * artificial_noise(4,4)),
-            var_rnd() * sqrt(0.25 * artificial_noise(5,5))
+            var_rnd() * sqrt(0.25 * sat_options.artificial_noise(3,3)),
+            var_rnd() * sqrt(0.25 * sat_options.artificial_noise(4,4)),
+            var_rnd() * sqrt(0.25 * sat_options.artificial_noise(5,5))
           );
         };
         meas.erase(meas.begin(), meas.begin() + 7);
         
         /* read off the IMU/gyro angular velocity measurements. */
-        if( vm.count("gyro") || vm.count("IMU") ) {
+        if( sat_options.get_meas_error_count() >= 9 ) {
           if(meas.size() < 3) {
             RK_ERROR("The measurement file does not contain the angular velocity measurements!");
             return 4;
           };
           meas_actual.gyro = vect_n<double>(meas.begin(), meas.begin() + 3);
           meas_noisy.gyro  = meas_actual.gyro;
-          if( vm.count("R-added") && (artificial_noise.get_row_count() >= 9) ) {
+          if( sat_options.artificial_noise.get_row_count() >= 9 ) {
             meas_noisy.gyro += vect_n<double>(
-              var_rnd() * sqrt(artificial_noise(6,6)),
-              var_rnd() * sqrt(artificial_noise(7,7)),
-              var_rnd() * sqrt(artificial_noise(8,8))
+              var_rnd() * sqrt(sat_options.artificial_noise(6,6)),
+              var_rnd() * sqrt(sat_options.artificial_noise(7,7)),
+              var_rnd() * sqrt(sat_options.artificial_noise(8,8))
             );
           };
           meas.erase(meas.begin(), meas.begin() + 3);
         };
         
         /* read off the IMU accel-mag measurements. */
-        if( vm.count("IMU") ) {
+        if( sat_options.get_meas_error_count() >= 15 ) {
           if(meas.size() < 6) {
             RK_ERROR("The measurement file does not contain the accelerometer and magnetometer measurements!");
             return 4;
           };
           meas_actual.IMU_a_m = vect_n<double>(meas.begin(), meas.begin() + 6);
           meas_noisy.IMU_a_m  = meas_actual.IMU_a_m;
-          if( vm.count("R-added") && (artificial_noise.get_row_count() >= 15) ) {
+          if( sat_options.artificial_noise.get_row_count() >= 15 ) {
             meas_noisy.IMU_a_m += vect_n<double>(
-              var_rnd() * sqrt(artificial_noise( 9, 9)),
-              var_rnd() * sqrt(artificial_noise(10,10)),
-              var_rnd() * sqrt(artificial_noise(11,11)),
-              var_rnd() * sqrt(artificial_noise(12,12)),
-              var_rnd() * sqrt(artificial_noise(13,13)),
-              var_rnd() * sqrt(artificial_noise(14,14))
+              var_rnd() * sqrt(sat_options.artificial_noise( 9, 9)),
+              var_rnd() * sqrt(sat_options.artificial_noise(10,10)),
+              var_rnd() * sqrt(sat_options.artificial_noise(11,11)),
+              var_rnd() * sqrt(sat_options.artificial_noise(12,12)),
+              var_rnd() * sqrt(sat_options.artificial_noise(13,13)),
+              var_rnd() * sqrt(sat_options.artificial_noise(14,14))
             );
           };
           meas.erase(meas.begin(), meas.begin() + 6);
@@ -813,7 +637,7 @@ int main(int argc, char** argv) {
           };
           ground_truth.push_back( std::make_pair(t, x) );
           meas.erase(meas.begin(), meas.end());
-        } else if( vm.count("R-added") ) {
+        } else if( sat_options.artificial_noise.get_row_count() >= 6 ) {
           sat3D_state_type x;
           set_position(x, vect<double,3>(meas_actual.pose[0],meas_actual.pose[1],meas_actual.pose[2]));
           set_quaternion(x, unit_quat<double>(meas_actual.pose[3],meas_actual.pose[4],meas_actual.pose[5],meas_actual.pose[6]));
@@ -830,7 +654,7 @@ int main(int argc, char** argv) {
   sat3D_temp_space_type sat_space(
     "satellite3D_temporal_space",
     sat3D_state_space_type(),
-    pp::time_poisson_topology("satellite3D_time_space", time_step, (end_time - start_time) * 0.5));
+    pp::time_poisson_topology("satellite3D_time_space", sat_options.time_step, (end_time - start_time) * 0.5));
   
   typedef pp::discrete_point_trajectory< sat3D_temp_space_type > sat3D_traj_type;
   
@@ -849,23 +673,23 @@ int main(int argc, char** argv) {
                                  cov_type(cov_matrix_type(mat<double,mat_structure::diagonal>(12,10.0))));
   
   sat3D_input_belief_type b_u(sat3D_input_type(vect_n<double>(6, 0.0)),  
-                              cov_type(cov_matrix_type(input_disturbance)));
+                              cov_type(cov_matrix_type(sat_options.input_disturbance)));
   
   if( !vm.count("gyro") && !vm.count("IMU") ) {
     
     // Create the set of satellite3D systems for when there is only pose measurements:
     
     ctrl::satellite3D_inv_dt_system sat3D_inv(
-      "satellite3D_inv", mass, inertia_tensor, time_step);
+      "satellite3D_inv", sat_options.mass, sat_options.inertia_tensor, sat_options.time_step);
     
     ctrl::satellite3D_imdt_sys sat3D_invmom(
-      "satellite3D_invmom", mass, inertia_tensor, time_step);
+      "satellite3D_invmom", sat_options.mass, sat_options.inertia_tensor, sat_options.time_step);
     
     ctrl::satellite3D_imdt_sys sat3D_invmid(
-      "satellite3D_invmid", mass, inertia_tensor, time_step, 2);
+      "satellite3D_invmid", sat_options.mass, sat_options.inertia_tensor, sat_options.time_step, 2);
     
     sat3D_output_belief_type b_z(sat3D_output_type(vect_n<double>(7, 0.0)), 
-                                 cov_type(cov_matrix_type(measurement_noise + artificial_noise)));
+                                 cov_type(cov_matrix_type(sat_options.measurement_noise + sat_options.artificial_noise)));
     
     
     if( vm.count("generate-mdl-files") ) {
@@ -892,10 +716,10 @@ int main(int argc, char** argv) {
       
       if( measurements.size() == 0 ) {
         // must generate the measurements and ground_truth vectors:
-        set_frame_3D(x_init, initial_motion);
+        set_frame_3D(x_init, sat_options.initial_motion);
         generate_timeseries(measurements, ground_truth, sat3D_inv, sat_space.get_space_topology(),
-                            x_init, start_time, end_time, cov_matrix_type(input_disturbance), 
-                            cov_matrix_type(measurement_noise + artificial_noise));
+                            x_init, start_time, end_time, cov_matrix_type(sat_options.input_disturbance), 
+                            cov_matrix_type(sat_options.measurement_noise + sat_options.artificial_noise));
         
         // and output those if asked for it:
         if( vm.count("generate-meas-file") ) {
@@ -933,21 +757,21 @@ int main(int argc, char** argv) {
       
       if( vm.count("iekf") ) {
         do_all_single_runs(data_out_stem_opt, "iekf", measurements, ground_truth, sat3D_inv, 
-                          sat_space.get_space_topology(), b_init, b_u, b_z, time_step, min_skips, max_skips);
+                          sat_space.get_space_topology(), b_init, b_u, b_z, sat_options.time_step, min_skips, max_skips);
       };
       
       std::cout << "." << std::flush;
       
       if( vm.count("imkf") ) {
         do_all_single_runs(data_out_stem_opt, "imkf", measurements, ground_truth, sat3D_invmom, 
-                          sat_space.get_space_topology(), b_init, b_u, b_z, time_step, min_skips, max_skips);
+                          sat_space.get_space_topology(), b_init, b_u, b_z, sat_options.time_step, min_skips, max_skips);
       };
       
       std::cout << "." << std::flush;
       
       if( vm.count("imkfv2") ) {
         do_all_single_runs(data_out_stem_opt, "imkfv2", measurements, ground_truth, sat3D_invmid, 
-                           sat_space.get_space_topology(), b_init, b_u, b_z, time_step, min_skips, max_skips);
+                           sat_space.get_space_topology(), b_init, b_u, b_z, sat_options.time_step, min_skips, max_skips);
       };
       
       std::cout << "." << std::flush;
@@ -956,7 +780,7 @@ int main(int argc, char** argv) {
       
     } else {
       // do monte-carlo runs:
-      set_frame_3D(x_init, initial_motion);
+      set_frame_3D(x_init, sat_options.initial_motion);
       
       recorder::data_stream_options data_stddev_opt = data_out_opt;
       data_stddev_opt.file_name = output_stem_name + "_meas_stddevs." + data_stddev_opt.get_extension();
@@ -975,15 +799,15 @@ int main(int argc, char** argv) {
         std::cout << "\r" << std::setw(10) << mc_i << std::flush;
         
         generate_timeseries(measurements, ground_truth, sat3D_inv, sat_space.get_space_topology(),
-                            x_init, start_time, end_time, cov_matrix_type(input_disturbance), 
-                            cov_matrix_type(measurement_noise + artificial_noise), data_stddev);
+                            x_init, start_time, end_time, cov_matrix_type(sat_options.input_disturbance), 
+                            cov_matrix_type(sat_options.measurement_noise + sat_options.artificial_noise), data_stddev);
         
         std::cout << "." << std::flush;
         
         if( vm.count("iekf") ) {
           do_single_monte_carlo_run(
             results_map, data_out_stem_opt, "iekf", measurements, ground_truth, sat3D_inv, 
-            sat_space.get_space_topology(), b_init, b_u, b_z, time_step, min_skips, max_skips);
+            sat_space.get_space_topology(), b_init, b_u, b_z, sat_options.time_step, min_skips, max_skips);
         };
         
         std::cout << "." << std::flush;
@@ -991,7 +815,7 @@ int main(int argc, char** argv) {
         if( vm.count("imkf") ) {
           do_single_monte_carlo_run(
             results_map, data_out_stem_opt, "imkf", measurements, ground_truth, sat3D_invmom, 
-            sat_space.get_space_topology(), b_init, b_u, b_z, time_step, min_skips, max_skips);
+            sat_space.get_space_topology(), b_init, b_u, b_z, sat_options.time_step, min_skips, max_skips);
         };
         
         std::cout << "." << std::flush;
@@ -999,7 +823,7 @@ int main(int argc, char** argv) {
         if( vm.count("imkfv2") ) {
           do_single_monte_carlo_run(
             results_map, data_out_stem_opt, "imkfv2", measurements, ground_truth, sat3D_invmid, 
-            sat_space.get_space_topology(), b_init, b_u, b_z, time_step, min_skips, max_skips);
+            sat_space.get_space_topology(), b_init, b_u, b_z, sat_options.time_step, min_skips, max_skips);
         };
         
         std::cout << "." << std::flush;
@@ -1016,16 +840,16 @@ int main(int argc, char** argv) {
     // Create the set of satellite3D systems for when there is gyro measurements:
     
     ctrl::satellite3D_gyro_inv_dt_system sat3D_inv_gyro(
-      "satellite3D_inv_with_gyros", mass, inertia_tensor, time_step);
+      "satellite3D_inv_with_gyros", sat_options.mass, sat_options.inertia_tensor, sat_options.time_step);
     
     ctrl::satellite3D_gyro_imdt_sys sat3D_invmom_gyro(
-      "satellite3D_invmom_with_gyros", mass, inertia_tensor, time_step);
+      "satellite3D_invmom_with_gyros", sat_options.mass, sat_options.inertia_tensor, sat_options.time_step);
     
     ctrl::satellite3D_gyro_imdt_sys sat3D_invmid_gyro(
-      "satellite3D_invmid_with_gyros", mass, inertia_tensor, time_step, 2);
+      "satellite3D_invmid_with_gyros", sat_options.mass, sat_options.inertia_tensor, sat_options.time_step, 2);
     
     sat3D_output_belief_type b_z(sat3D_output_type(vect_n<double>(10, 0.0)), 
-                                 cov_type(cov_matrix_type(measurement_noise + artificial_noise)));
+                                 cov_type(cov_matrix_type(sat_options.measurement_noise + sat_options.artificial_noise)));
     
     
     if( vm.count("generate-mdl-files") ) {
@@ -1052,10 +876,10 @@ int main(int argc, char** argv) {
       
       if( measurements.size() == 0 ) {
         // must generate the measurements and ground_truth vectors:
-        set_frame_3D(x_init, initial_motion);
+        set_frame_3D(x_init, sat_options.initial_motion);
         generate_timeseries(measurements, ground_truth, sat3D_inv_gyro, sat_space.get_space_topology(),
-                            x_init, start_time, end_time, cov_matrix_type(input_disturbance), 
-                            cov_matrix_type(measurement_noise + artificial_noise));
+                            x_init, start_time, end_time, cov_matrix_type(sat_options.input_disturbance), 
+                            cov_matrix_type(sat_options.measurement_noise + sat_options.artificial_noise));
         
         // and output those if asked for it:
         if( vm.count("generate-meas-file") ) {
@@ -1094,21 +918,21 @@ int main(int argc, char** argv) {
       
       if( vm.count("iekf") ) {
         do_all_single_runs(data_out_stem_opt, "iekf_gyro", measurements, ground_truth, sat3D_inv_gyro, 
-                          sat_space.get_space_topology(), b_init, b_u, b_z, time_step, min_skips, max_skips);
+                          sat_space.get_space_topology(), b_init, b_u, b_z, sat_options.time_step, min_skips, max_skips);
       };
       
       std::cout << "." << std::flush;
       
       if( vm.count("imkf") ) {
         do_all_single_runs(data_out_stem_opt, "imkf_gyro", measurements, ground_truth, sat3D_invmom_gyro, 
-                          sat_space.get_space_topology(), b_init, b_u, b_z, time_step, min_skips, max_skips);
+                          sat_space.get_space_topology(), b_init, b_u, b_z, sat_options.time_step, min_skips, max_skips);
       };
       
       std::cout << "." << std::flush;
       
       if( vm.count("imkfv2") ) {
         do_all_single_runs(data_out_stem_opt, "imkfv2_gyro", measurements, ground_truth, sat3D_invmid_gyro, 
-                          sat_space.get_space_topology(), b_init, b_u, b_z, time_step, min_skips, max_skips);
+                          sat_space.get_space_topology(), b_init, b_u, b_z, sat_options.time_step, min_skips, max_skips);
       };
       
       std::cout << "." << std::flush;
@@ -1117,7 +941,7 @@ int main(int argc, char** argv) {
       
     } else {
       // do monte-carlo runs:
-      set_frame_3D(x_init, initial_motion);
+      set_frame_3D(x_init, sat_options.initial_motion);
       
       recorder::data_stream_options data_stddev_opt = data_out_opt;
       data_stddev_opt.file_name = output_stem_name + "_meas_gyro_stddevs." + data_stddev_opt.get_extension();
@@ -1138,15 +962,15 @@ int main(int argc, char** argv) {
         std::cout << "\r" << std::setw(10) << mc_i << std::flush;
         
         generate_timeseries(measurements, ground_truth, sat3D_inv_gyro, sat_space.get_space_topology(),
-                            x_init, start_time, end_time, cov_matrix_type(input_disturbance), 
-                            cov_matrix_type(measurement_noise + artificial_noise), data_stddev);
+                            x_init, start_time, end_time, cov_matrix_type(sat_options.input_disturbance), 
+                            cov_matrix_type(sat_options.measurement_noise + sat_options.artificial_noise), data_stddev);
         
         std::cout << "." << std::flush;
         
         if( vm.count("iekf") ) {
           do_single_monte_carlo_run(
             results_map, data_out_stem_opt, "iekf_gyro", measurements, ground_truth, sat3D_inv_gyro, 
-            sat_space.get_space_topology(), b_init, b_u, b_z, time_step, min_skips, max_skips);
+            sat_space.get_space_topology(), b_init, b_u, b_z, sat_options.time_step, min_skips, max_skips);
         };
         
         std::cout << "." << std::flush;
@@ -1154,7 +978,7 @@ int main(int argc, char** argv) {
         if( vm.count("imkf") ) {
           do_single_monte_carlo_run(
             results_map, data_out_stem_opt, "imkf_gyro", measurements, ground_truth, sat3D_invmom_gyro, 
-            sat_space.get_space_topology(), b_init, b_u, b_z, time_step, min_skips, max_skips);
+            sat_space.get_space_topology(), b_init, b_u, b_z, sat_options.time_step, min_skips, max_skips);
         };
         
         std::cout << "." << std::flush;
@@ -1162,7 +986,7 @@ int main(int argc, char** argv) {
         if( vm.count("imkfv2") ) {
           do_single_monte_carlo_run(
             results_map, data_out_stem_opt, "imkfv2_gyro", measurements, ground_truth, sat3D_invmid_gyro, 
-            sat_space.get_space_topology(), b_init, b_u, b_z, time_step, min_skips, max_skips);
+            sat_space.get_space_topology(), b_init, b_u, b_z, sat_options.time_step, min_skips, max_skips);
         };
         
         std::cout << "." << std::flush;
@@ -1178,15 +1002,15 @@ int main(int argc, char** argv) {
     // Create the set of satellite3D systems for when there is IMU measurements:
     
     ctrl::satellite3D_IMU_imdt_sys sat3D_invmom_IMU(
-      "satellite3D_invmom_with_IMU", mass, inertia_tensor, time_step,
-      IMU_orientation, IMU_location, earth_orientation, mag_field_direction);
+      "satellite3D_invmom_with_IMU", sat_options.mass, sat_options.inertia_tensor, sat_options.time_step,
+      sat_options.IMU_orientation, sat_options.IMU_location, sat_options.earth_orientation, sat_options.mag_field_direction);
     
     ctrl::satellite3D_IMU_imdt_sys sat3D_invmid_IMU(
-      "satellite3D_invmid_with_IMU", mass, inertia_tensor, time_step,
-      IMU_orientation, IMU_location, earth_orientation, mag_field_direction, 2);
+      "satellite3D_invmid_with_IMU", sat_options.mass, sat_options.inertia_tensor, sat_options.time_step,
+      sat_options.IMU_orientation, sat_options.IMU_location, sat_options.earth_orientation, sat_options.mag_field_direction, 2);
     
     sat3D_output_belief_type b_z(sat3D_output_type(vect_n<double>(16, 0.0)), 
-                                 cov_type(cov_matrix_type(measurement_noise + artificial_noise)));
+                                 cov_type(cov_matrix_type(sat_options.measurement_noise + sat_options.artificial_noise)));
     
     
     if( vm.count("generate-mdl-files") ) {
@@ -1208,10 +1032,10 @@ int main(int argc, char** argv) {
       
       if( measurements.size() == 0 ) {
         // must generate the measurements and ground_truth vectors:
-        set_frame_3D(x_init, initial_motion);
+        set_frame_3D(x_init, sat_options.initial_motion);
         generate_timeseries(measurements, ground_truth, sat3D_invmom_IMU, sat_space.get_space_topology(),
-                            x_init, start_time, end_time, cov_matrix_type(input_disturbance), 
-                            cov_matrix_type(measurement_noise + artificial_noise));
+                            x_init, start_time, end_time, cov_matrix_type(sat_options.input_disturbance), 
+                            cov_matrix_type(sat_options.measurement_noise + sat_options.artificial_noise));
         
         // and output those if asked for it:
         if( vm.count("generate-meas-file") ) {
@@ -1258,14 +1082,14 @@ int main(int argc, char** argv) {
       
       if( vm.count("imkf") ) {
         do_all_single_runs(data_out_stem_opt, "imkf_IMU", measurements, ground_truth, sat3D_invmom_IMU, 
-                          sat_space.get_space_topology(), b_init, b_u, b_z, time_step, min_skips, max_skips);
+                          sat_space.get_space_topology(), b_init, b_u, b_z, sat_options.time_step, min_skips, max_skips);
       };
       
       std::cout << "." << std::flush;
       
       if( vm.count("imkfv2") ) {
         do_all_single_runs(data_out_stem_opt, "imkfv2_IMU", measurements, ground_truth, sat3D_invmid_IMU, 
-                          sat_space.get_space_topology(), b_init, b_u, b_z, time_step, min_skips, max_skips);
+                          sat_space.get_space_topology(), b_init, b_u, b_z, sat_options.time_step, min_skips, max_skips);
       };
       
       std::cout << "." << std::flush;
@@ -1274,7 +1098,7 @@ int main(int argc, char** argv) {
       
     } else {
       // do monte-carlo runs:
-      set_frame_3D(x_init, initial_motion);
+      set_frame_3D(x_init, sat_options.initial_motion);
       
       recorder::data_stream_options data_stddev_opt = data_out_opt;
       data_stddev_opt.file_name = output_stem_name + "_meas_gyro_stddevs." + data_stddev_opt.get_extension();
@@ -1301,15 +1125,15 @@ int main(int argc, char** argv) {
         std::cout << "\r" << std::setw(10) << mc_i << std::flush;
         
         generate_timeseries(measurements, ground_truth, sat3D_invmom_IMU, sat_space.get_space_topology(),
-                            x_init, start_time, end_time, cov_matrix_type(input_disturbance), 
-                            cov_matrix_type(measurement_noise + artificial_noise), data_stddev);
+                            x_init, start_time, end_time, cov_matrix_type(sat_options.input_disturbance), 
+                            cov_matrix_type(sat_options.measurement_noise + sat_options.artificial_noise), data_stddev);
         
         std::cout << "." << std::flush;
         
         if( vm.count("imkf") ) {
           do_single_monte_carlo_run(
             results_map, data_out_stem_opt, "imkf_IMU", measurements, ground_truth, sat3D_invmom_IMU, 
-            sat_space.get_space_topology(), b_init, b_u, b_z, time_step, min_skips, max_skips);
+            sat_space.get_space_topology(), b_init, b_u, b_z, sat_options.time_step, min_skips, max_skips);
         };
         
         std::cout << "." << std::flush;
@@ -1317,7 +1141,7 @@ int main(int argc, char** argv) {
         if( vm.count("imkfv2") ) {
           do_single_monte_carlo_run(
             results_map, data_out_stem_opt, "imkfv2_IMU", measurements, ground_truth, sat3D_invmid_IMU, 
-            sat_space.get_space_topology(), b_init, b_u, b_z, time_step, min_skips, max_skips);
+            sat_space.get_space_topology(), b_init, b_u, b_z, sat_options.time_step, min_skips, max_skips);
         };
         
         std::cout << "." << std::flush;

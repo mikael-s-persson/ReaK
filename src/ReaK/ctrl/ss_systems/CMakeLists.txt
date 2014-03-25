@@ -3,6 +3,7 @@ set(SSSYSTEMS_SOURCES
   "${SRCROOT}${RKSSSYSTEMSDIR}/quadrotor_system.cpp"
   "${SRCROOT}${RKSSSYSTEMSDIR}/satellite_basic_models.cpp"
   "${SRCROOT}${RKSSSYSTEMSDIR}/satellite_invar_models.cpp"
+  "${SRCROOT}${RKSSSYSTEMSDIR}/satellite_modeling_options.cpp"
 )
 
 
@@ -10,6 +11,8 @@ set(SSSYSTEMS_HEADERS
   "${RKSSSYSTEMSDIR}/quadrotor_system.hpp"
   "${RKSSSYSTEMSDIR}/satellite_basic_models.hpp"
   "${RKSSSYSTEMSDIR}/satellite_invar_models.hpp"
+  "${RKSSSYSTEMSDIR}/satellite_modeling_options.hpp"
+  "${RKSSSYSTEMSDIR}/satellite_modeling_po.hpp"
 )
 
 add_library(reak_ss_systems STATIC ${SSSYSTEMS_SOURCES})

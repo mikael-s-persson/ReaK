@@ -39,6 +39,8 @@
 #include "lin_alg/mat_alg_symmetric.hpp"
 #include "lin_alg/mat_alg_diagonal.hpp"
 
+#include "serialization/archiver.hpp"
+
 #include <string>
 
 /** Main namespace for ReaK */
@@ -86,6 +88,51 @@ struct satellite_model_options {
   /// Stores the initial motion of the satellite.
   frame_3D<double> initial_motion;
   
+  enum available_measurements {
+    pose_measures = 0,
+    gyro_measures = 8,
+    IMU_measures = 24
+  };
+  
+  enum model_kind {
+    invariant = 0,
+    invar_mom,
+    invar_mom2
+  };
+  
+  /// Stores the kind of system used to model the satellite (OR-combination of 'available_measurements' 'model_kind').
+  int system_kind;
+  
+  std::size_t get_measurement_count() const {
+    switch(system_kind & 24) {
+      case 8:
+        return 10;
+      case 24:
+        return 16;
+      default:
+        return 7;
+    };
+  };
+  
+  std::size_t get_meas_error_count() const {
+    switch(system_kind & 24) {
+      case 8:
+        return 9;
+      case 24:
+        return 15;
+      default:
+        return 6;
+    };
+  };
+  
+protected:
+  
+  virtual void load_all_configs_impl(serialization::iarchive& in);
+  virtual void save_all_configs_impl(serialization::oarchive& out) const;
+  
+public:
+  
+  
   /**
    * Default constructor.
    */
@@ -95,9 +142,25 @@ struct satellite_model_options {
                               measurement_noise(6, 0.0),
                               IMU_orientation(), 
                               IMU_location(), 
-                              Earth_orientation(), 
+                              earth_orientation(), 
                               mag_field_direction(),
-                              initial_motion() { };
+                              initial_motion(),
+                              system_kind(invariant | pose_measures) { };
+  
+  virtual ~satellite_model_options() { };
+  
+  /**
+   * Loads all the configurations from the given file-name (ReaK archive).
+   * \param aFileName The file-name of the ReaK archive from which to load all the configurations.
+   */
+  void load_all_configs(const std::string& aFileName);
+  
+  /**
+   * Saves all the configurations to the given file-name (ReaK archive).
+   * \param aFileName The file-name of the ReaK archive to which to save all the configurations.
+   */
+  void save_all_configs(const std::string& aFileName) const;
+  
   
   /**
    * Loads the mass configurations (mass and inertia-tensor) from the given file-name (ReaK archive).
@@ -177,6 +240,65 @@ struct satellite_model_options {
   
 };
 
+
+
+/**
+ * This class stores a number of options related to the state prediction of satellite 
+ * systems (see satellite_invar_models.hpp).
+ * \note This class is mainly intended to be used with satellite_predictor_po (program-options).
+ */
+struct satellite_predictor_options : satellite_model_options {
+  
+  /// Stores the prediction time horizon, for when using the satellite model for state predictions.
+  double predict_time_horizon;
+  
+  /// Stores the threshold on the norm (Frobenius) of the state covariance matrix P, this threshold is used to start the prediction after sufficient online estimation.
+  double predict_Pnorm_threshold;
+  
+  /// Distinguishes different types of prediction assumptions.
+  enum predict_assumption_type {
+    /// Assume that no measurements are made from the start of the predictions onward, i.e., pure a priori predictions. This gives the worst case uncertainty evaluations.
+    no_measurements = 0,
+    /// Assume that every measurement from the start of the predictions onward is equal to the most likely (mode) measurement given the a priori state prediction. This gives the best case uncertainty evaluations.
+    most_likely_measurements,
+    /// Discard the covariance calculations from the start of the predictions onward, i.e., do only state predictions, with no uncertainty evaluations.
+    full_certainty
+  };
+  
+  /// Stores the type of prediction assumption to be applied when computing the state predictions.
+  predict_assumption_type predict_assumption;
+  
+protected:
+  
+  void load_all_configs_impl(serialization::iarchive& in);
+  void save_all_configs_impl(serialization::oarchive& out) const;
+  
+  void load_predict_configs_impl(serialization::iarchive& in);
+  void save_predict_configs_impl(serialization::oarchive& out) const;
+  
+public:
+  
+  /**
+   * Default constructor.
+   */
+  satellite_predictor_options() : predict_time_horizon(100.0), 
+                                  predict_Pnorm_threshold(1.0), 
+                                  predict_assumption(no_measurements) { };
+  
+  
+  /**
+   * Loads the prediction configurations from the given file-name (ReaK archive).
+   * \param aFileName The file-name of the ReaK archive from which to load the prediction configurations.
+   */
+  void load_prediction_configs(const std::string& aFileName);
+  
+  /**
+   * Saves the prediction configurations to the given file-name (ReaK archive).
+   * \param aFileName The file-name of the ReaK archive to which to save the prediction configurations.
+   */
+  void save_prediction_configs(const std::string& aFileName) const;
+  
+};
 
 
 };

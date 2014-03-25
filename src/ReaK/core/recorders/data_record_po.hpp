@@ -151,16 +151,7 @@ data_stream_options get_data_stream_options_from_po(boost::program_options::vari
       if(vm.count("output")) {
         result.file_name = vm["output"].as<std::string>();
         
-        std::string output_path_name = result.file_name;
-        std::size_t p = output_path_name.find_last_of('/');
-        if(p == std::string::npos)
-          output_path_name = "";
-        else
-          output_path_name.erase(p);
-        while(output_path_name[output_path_name.length()-1] == '/') 
-          output_path_name.erase(output_path_name.length()-1, 1);
-        if(!output_path_name.empty())
-          boost::filesystem::create_directory(output_path_name.c_str());
+        boost::filesystem::create_directories(boost::filesystem::path(result.file_name).parent_path());
         
         std::size_t p_dot = result.file_name.find_last_of('.');
         output_extension = result.file_name.substr(p_dot + 1);
