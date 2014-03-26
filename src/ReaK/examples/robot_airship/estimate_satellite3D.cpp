@@ -61,23 +61,19 @@ struct sat3D_measurement_point {
 };
 
 
-
-  
-typedef ReaK::ctrl::satellite3D_lin_dt_system::state_space_type      sat3D_state_space_type;
-typedef ReaK::ctrl::satellite3D_lin_dt_system::point_type            sat3D_state_type;
-typedef ReaK::ctrl::satellite3D_lin_dt_system::point_difference_type sat3D_state_diff_type;
-typedef ReaK::ctrl::satellite3D_lin_dt_system::input_type            sat3D_input_type;
-typedef ReaK::ctrl::satellite3D_lin_dt_system::output_type           sat3D_output_type;
-
-typedef ReaK::pp::temporal_space<sat3D_state_space_type, ReaK::pp::time_poisson_topology, ReaK::pp::time_distance_only> sat3D_temp_space_type;
+typedef ReaK::ctrl::satellite_model_options::state_space_type      sat3D_state_space_type;
+typedef ReaK::ctrl::satellite_model_options::temp_state_space_type sat3D_temp_space_type;
+typedef ReaK::ctrl::satellite_model_options::state_type            sat3D_state_type;
+typedef ReaK::ctrl::satellite_model_options::input_type            sat3D_input_type;
+typedef ReaK::ctrl::satellite_model_options::output_type           sat3D_output_type;
 typedef ReaK::pp::topology_traits< sat3D_temp_space_type >::point_type sat3D_temp_point_type;
 
-typedef ReaK::ctrl::covariance_matrix< ReaK::vect_n<double> > cov_type;
+typedef ReaK::ctrl::satellite_model_options::covar_type cov_type;
 typedef cov_type::matrix_type cov_matrix_type;
-typedef ReaK::ctrl::gaussian_belief_state< sat3D_state_type,  cov_type > sat3D_state_belief_type;
-typedef ReaK::ctrl::gaussian_belief_state< sat3D_input_type,  cov_type > sat3D_input_belief_type;
-typedef ReaK::ctrl::gaussian_belief_state< sat3D_output_type, cov_type > sat3D_output_belief_type;
-
+typedef ReaK::ctrl::satellite_model_options::state_belief_type  sat3D_state_belief_type;
+typedef ReaK::ctrl::satellite_model_options::input_belief_type  sat3D_input_belief_type;
+typedef ReaK::ctrl::satellite_model_options::output_belief_type sat3D_output_belief_type;
+  
 
 
 template <typename Sat3DSystemType>
@@ -163,13 +159,7 @@ void generate_timeseries(
   double time_step = sat_sys.get_time_step();
   std::vector< double > std_devs(R.get_row_count() + R.get_row_count() / 3, 0.0);
   for(double t = start_time; t < end_time; t += time_step) {
-    vect_n<double> u(6, 0.0);
-    u[0] = var_rnd() * sqrt(Qu(0,0));
-    u[1] = var_rnd() * sqrt(Qu(1,1));
-    u[2] = var_rnd() * sqrt(Qu(2,2));
-    u[3] = var_rnd() * sqrt(Qu(3,3));
-    u[4] = var_rnd() * sqrt(Qu(4,4));
-    u[5] = var_rnd() * sqrt(Qu(5,5));
+    vect_n<double> u = ctrl::sample_gaussian_point(vect_n<double>(6, 0.0), Qu);
     
     x = sat_sys.get_next_state(state_space, x, u, t);
     vect_n<double> y = sat_sys.get_output(state_space, x, u, t);
@@ -260,7 +250,7 @@ void generate_timeseries(
 template <typename Sat3DSystemType>
 void do_all_single_runs(
     ReaK::recorder::data_stream_options output_opt,
-    const std::string& filter_name,
+    const ReaK::ctrl::satellite_model_options& sat_options,
     const std::vector< std::pair< double, sat3D_measurement_point > >& measurements,
     const std::vector< std::pair< double, sat3D_state_type > >& ground_truth,
     Sat3DSystemType& sat_sys,
@@ -268,14 +258,14 @@ void do_all_single_runs(
     const sat3D_state_belief_type& b,
     sat3D_input_belief_type b_u,
     const sat3D_output_belief_type& b_z,
-    double time_step, unsigned int min_skips, unsigned int max_skips) {
+    unsigned int min_skips, unsigned int max_skips) {
   using namespace ReaK;
   
   cov_matrix_type Qu = b_u.get_covariance().get_matrix();
   
   for(unsigned int skips = min_skips; skips <= max_skips; ++skips) {
     
-    sat_sys.set_time_step(skips * time_step);
+    sat_sys.set_time_step(skips * sat_options.time_step);
     
     b_u.set_covariance(cov_type(cov_matrix_type((1.0 / double(skips)) * Qu)));
     
@@ -283,24 +273,11 @@ void do_all_single_runs(
       batch_KF_on_timeseries(measurements, ground_truth, sat_sys, state_space, b, b_u, b_z, skips);
     
     std::stringstream ss;
-    ss << "_" << std::setfill('0') << std::setw(4) << int(1000 * skips * time_step) << "_" << filter_name << ".";
+    ss << "_" << std::setfill('0') << std::setw(4) << int(1000 * skips * sat_options.time_step) << "_" << sat_options.get_kf_accronym() << ".";
     
     recorder::data_stream_options cur_out_opt = output_opt;
     cur_out_opt.file_name += ss.str() + cur_out_opt.get_extension();
-    cur_out_opt.names.clear();
-    cur_out_opt
-      .add_name("time").add_name("pos_x").add_name("pos_y").add_name("pos_z")
-      .add_name("q0").add_name("q1").add_name("q2").add_name("q3")
-      .add_name("vel_x").add_name("vel_y").add_name("vel_z")
-      .add_name("avel_x").add_name("avel_y").add_name("avel_z")
-      .add_name("ep_x").add_name("ep_y").add_name("ep_z")
-      .add_name("ea_x").add_name("ea_y").add_name("ea_z")
-      .add_name("ev_x").add_name("ev_y").add_name("ev_z")
-      .add_name("ew_x").add_name("ew_y").add_name("ew_z")
-      .add_name("P_xx").add_name("P_yy").add_name("P_zz")
-      .add_name("P_aax").add_name("P_aay").add_name("P_aaz")
-      .add_name("P_vvx").add_name("P_vvy").add_name("P_vvz")
-      .add_name("P_wwx").add_name("P_wwy").add_name("P_wwz");
+    sat_options.imbue_names_for_state_estimates(cur_out_opt);
     shared_ptr< recorder::data_recorder > results = cur_out_opt.create_recorder();
     for(std::size_t i = 0; i < result_pts.size(); ++i) {
       (*results) << result_pts[i].first;
@@ -311,7 +288,7 @@ void do_all_single_runs(
     (*results) << recorder::data_recorder::flush;
   };
   
-  sat_sys.set_time_step(time_step);
+  sat_sys.set_time_step(sat_options.time_step);
   
 };
 
@@ -323,7 +300,7 @@ template <typename Sat3DSystemType>
 void do_single_monte_carlo_run(
     std::map< std::string, ReaK::shared_ptr< ReaK::recorder::data_recorder > >& results_map,
     ReaK::recorder::data_stream_options output_opt,
-    const std::string& filter_name,
+    const ReaK::ctrl::satellite_model_options& sat_options,
     const std::vector< std::pair< double, sat3D_measurement_point > >& measurements,
     const std::vector< std::pair< double, sat3D_state_type > >& ground_truth,
     Sat3DSystemType& sat_sys,
@@ -331,14 +308,14 @@ void do_single_monte_carlo_run(
     const sat3D_state_belief_type& b,
     sat3D_input_belief_type b_u,
     const sat3D_output_belief_type& b_z,
-    double time_step, unsigned int min_skips, unsigned int max_skips) {
+    unsigned int min_skips, unsigned int max_skips) {
   using namespace ReaK;
   
   cov_matrix_type Qu = b_u.get_covariance().get_matrix();
   
   for(unsigned int skips = min_skips; skips <= max_skips; ++skips) {
     
-    sat_sys.set_time_step(skips * time_step);
+    sat_sys.set_time_step(skips * sat_options.time_step);
     
     b_u.set_covariance(cov_type(cov_matrix_type((1.0 / double(skips)) * Qu)));
     
@@ -379,23 +356,13 @@ void do_single_monte_carlo_run(
     };
     
     std::stringstream ss;
-    ss << "_" << std::setfill('0') << std::setw(4) << int(1000 * skips * time_step) << "_" << filter_name;
+    ss << "_" << std::setfill('0') << std::setw(4) << int(1000 * skips * sat_options.time_step) << "_" << sat_options.get_kf_accronym();
     std::string file_middle = ss.str();
     shared_ptr< recorder::data_recorder >& results = results_map[file_middle];
     if( !results ) {
       recorder::data_stream_options cur_out_opt = output_opt;
       cur_out_opt.file_name += file_middle + "_stddevs." + cur_out_opt.get_extension();
-      cur_out_opt.names.clear();
-      cur_out_opt
-        .add_name("ep_x").add_name("ep_y").add_name("ep_z")
-        .add_name("ea_x").add_name("ea_y").add_name("ea_z")
-        .add_name("ev_x").add_name("ev_y").add_name("ev_z")
-        .add_name("ew_x").add_name("ew_y").add_name("ew_z")
-        .add_name("ep_m").add_name("ea_m").add_name("ev_m").add_name("ew_m")
-        .add_name("P_xx").add_name("P_yy").add_name("P_zz")
-        .add_name("P_aax").add_name("P_aay").add_name("P_aaz")
-        .add_name("P_vvx").add_name("P_vvy").add_name("P_vvz")
-        .add_name("P_wwx").add_name("P_wwy").add_name("P_wwz");
+      sat_options.imbue_names_for_state_estimates_stddevs(cur_out_opt);
       results = cur_out_opt.create_recorder();
     };
     
@@ -405,7 +372,7 @@ void do_single_monte_carlo_run(
     
   };
   
-  sat_sys.set_time_step(time_step);
+  sat_sys.set_time_step(sat_options.time_step);
   
   
 };
@@ -649,64 +616,33 @@ int main(int argc, char** argv) {
   };
   
   
-  
-  
-  sat3D_temp_space_type sat_space(
-    "satellite3D_temporal_space",
-    sat3D_state_space_type(),
-    pp::time_poisson_topology("satellite3D_time_space", sat_options.time_step, (end_time - start_time) * 0.5));
+  shared_ptr< sat3D_temp_space_type > sat_space = sat_options.get_temporal_state_space(start_time, end_time);
   
   typedef pp::discrete_point_trajectory< sat3D_temp_space_type > sat3D_traj_type;
   
   shared_ptr< sat3D_traj_type > traj_ptr;
   if( vm.count("generate-meas-file") && vm.count("output-traj-file") )
-    traj_ptr = shared_ptr< sat3D_traj_type >(new sat3D_traj_type( shared_ptr< sat3D_temp_space_type >(&sat_space, null_deleter()) ));
+    traj_ptr = shared_ptr< sat3D_traj_type >(new sat3D_traj_type( sat_space ));
   
-  
-  sat3D_state_type x_init;
+  sat3D_state_belief_type b_init = sat_options.get_init_state_belief(10.0);
+  sat3D_state_type x_init = b_init.get_mean_state();
   set_position(x_init, vect<double,3>(0.0, 0.0, 0.0));
   set_velocity(x_init, vect<double,3>(0.0, 0.0, 0.0));
   set_quaternion(x_init, unit_quat<double>());
   set_ang_velocity(x_init, vect<double,3>(0.0, 0.0, 0.0));
+  b_init.set_mean_state(x_init);
   
-  sat3D_state_belief_type b_init(x_init, 
-                                 cov_type(cov_matrix_type(mat<double,mat_structure::diagonal>(12,10.0))));
-  
-  sat3D_input_belief_type b_u(sat3D_input_type(vect_n<double>(6, 0.0)),  
-                              cov_type(cov_matrix_type(sat_options.input_disturbance)));
+  sat3D_input_belief_type b_u = sat_options.get_zero_input_belief();
+  sat3D_output_belief_type b_z = sat_options.get_zero_output_belief();
   
   if( !vm.count("gyro") && !vm.count("IMU") ) {
     
     // Create the set of satellite3D systems for when there is only pose measurements:
-    
-    ctrl::satellite3D_inv_dt_system sat3D_inv(
-      "satellite3D_inv", sat_options.mass, sat_options.inertia_tensor, sat_options.time_step);
-    
-    ctrl::satellite3D_imdt_sys sat3D_invmom(
-      "satellite3D_invmom", sat_options.mass, sat_options.inertia_tensor, sat_options.time_step);
-    
-    ctrl::satellite3D_imdt_sys sat3D_invmid(
-      "satellite3D_invmid", sat_options.mass, sat_options.inertia_tensor, sat_options.time_step, 2);
-    
-    sat3D_output_belief_type b_z(sat3D_output_type(vect_n<double>(7, 0.0)), 
-                                 cov_type(cov_matrix_type(sat_options.measurement_noise + sat_options.artificial_noise)));
-    
+    shared_ptr< ctrl::satellite_model_options::system_base_type > satellite3D_system = sat_options.get_base_sat_system();
     
     if( vm.count("generate-mdl-files") ) {
       try {
-        shared_ptr< ctrl::satellite3D_inv_dt_system > satellite3D_system = 
-          shared_ptr< ctrl::satellite3D_inv_dt_system >(&sat3D_inv, null_deleter());
-        *(serialization::open_oarchive(sys_output_stem_name + "_inv_mdl.rkx"))
-          & RK_SERIAL_SAVE_WITH_NAME(satellite3D_system);
-        
-        satellite3D_system = 
-          shared_ptr< ctrl::satellite3D_inv_dt_system >(&sat3D_invmom, null_deleter());
-        *(serialization::open_oarchive(sys_output_stem_name + "_invmom_mdl.rkx"))
-          & RK_SERIAL_SAVE_WITH_NAME(satellite3D_system);
-        
-        satellite3D_system = 
-          shared_ptr< ctrl::satellite3D_inv_dt_system >(&sat3D_invmid, null_deleter());
-        *(serialization::open_oarchive(sys_output_stem_name + "_invmid_mdl.rkx"))
+        *(serialization::open_oarchive(sys_output_stem_name + sat_options.get_sys_abbreviation() + "_mdl.rkx"))
           & RK_SERIAL_SAVE_WITH_NAME(satellite3D_system);
       } catch(...) {
         RK_ERROR("An exception occurred during the saving the satellite system file!");
@@ -717,7 +653,7 @@ int main(int argc, char** argv) {
       if( measurements.size() == 0 ) {
         // must generate the measurements and ground_truth vectors:
         set_frame_3D(x_init, sat_options.initial_motion);
-        generate_timeseries(measurements, ground_truth, sat3D_inv, sat_space.get_space_topology(),
+        generate_timeseries(measurements, ground_truth, *satellite3D_system, sat_space->get_space_topology(),
                             x_init, start_time, end_time, cov_matrix_type(sat_options.input_disturbance), 
                             cov_matrix_type(sat_options.measurement_noise + sat_options.artificial_noise));
         
@@ -725,16 +661,7 @@ int main(int argc, char** argv) {
         if( vm.count("generate-meas-file") ) {
           recorder::data_stream_options data_meas_opt = data_out_opt;
           data_meas_opt.file_name = output_stem_name + "_meas." + data_meas_opt.get_extension();
-          data_meas_opt.names.clear();
-          data_meas_opt
-            .add_name("time").add_name("p_x").add_name("p_y").add_name("p_z")
-            .add_name("q_0").add_name("q_1").add_name("q_2").add_name("q_3")
-            .add_name("f_x").add_name("f_y").add_name("f_z")
-            .add_name("t_x").add_name("t_y").add_name("t_z")
-            .add_name("p_x_true").add_name("p_y_true").add_name("p_z_true")
-            .add_name("q_0_true").add_name("q_1_true").add_name("q_2_true").add_name("q_3_true")
-            .add_name("v_x_true").add_name("v_y_true").add_name("v_z_true")
-            .add_name("w_x_true").add_name("w_y_true").add_name("w_z_true"); 
+          sat_options.imbue_names_for_generated_meas(data_meas_opt);
           shared_ptr< recorder::data_recorder > data_meas = data_meas_opt.create_recorder();
           for(std::size_t i = 0; i < measurements.size(); ++i) {
             (*data_meas) << measurements[i].first;
@@ -753,26 +680,10 @@ int main(int argc, char** argv) {
       
       // do a single run for each skips:
       
-      std::cout << "Running estimators on data series.." << std::flush;
+      std::cout << "Running estimator on data series.." << std::flush;
       
-      if( vm.count("iekf") ) {
-        do_all_single_runs(data_out_stem_opt, "iekf", measurements, ground_truth, sat3D_inv, 
-                          sat_space.get_space_topology(), b_init, b_u, b_z, sat_options.time_step, min_skips, max_skips);
-      };
-      
-      std::cout << "." << std::flush;
-      
-      if( vm.count("imkf") ) {
-        do_all_single_runs(data_out_stem_opt, "imkf", measurements, ground_truth, sat3D_invmom, 
-                          sat_space.get_space_topology(), b_init, b_u, b_z, sat_options.time_step, min_skips, max_skips);
-      };
-      
-      std::cout << "." << std::flush;
-      
-      if( vm.count("imkfv2") ) {
-        do_all_single_runs(data_out_stem_opt, "imkfv2", measurements, ground_truth, sat3D_invmid, 
-                           sat_space.get_space_topology(), b_init, b_u, b_z, sat_options.time_step, min_skips, max_skips);
-      };
+      do_all_single_runs(data_out_stem_opt, sat_options, measurements, ground_truth, *satellite3D_system, 
+                         sat_space->get_space_topology(), b_init, b_u, b_z, min_skips, max_skips);
       
       std::cout << "." << std::flush;
       
@@ -784,10 +695,7 @@ int main(int argc, char** argv) {
       
       recorder::data_stream_options data_stddev_opt = data_out_opt;
       data_stddev_opt.file_name = output_stem_name + "_meas_stddevs." + data_stddev_opt.get_extension();
-      data_stddev_opt.names.clear();
-      data_stddev_opt
-        .add_name("ep_x").add_name("ep_y").add_name("ep_z")
-        .add_name("ea_x").add_name("ea_y").add_name("ea_z").add_name("ep_m").add_name("ea_m"); 
+      sat_options.imbue_names_for_meas_stddevs(data_stddev_opt);
       shared_ptr< recorder::data_recorder > data_stddev = data_stddev_opt.create_recorder();
       
       std::map< std::string, shared_ptr< recorder::data_recorder > > results_map;
@@ -798,33 +706,15 @@ int main(int argc, char** argv) {
         
         std::cout << "\r" << std::setw(10) << mc_i << std::flush;
         
-        generate_timeseries(measurements, ground_truth, sat3D_inv, sat_space.get_space_topology(),
+        generate_timeseries(measurements, ground_truth, *satellite3D_system, sat_space->get_space_topology(),
                             x_init, start_time, end_time, cov_matrix_type(sat_options.input_disturbance), 
                             cov_matrix_type(sat_options.measurement_noise + sat_options.artificial_noise), data_stddev);
         
         std::cout << "." << std::flush;
         
-        if( vm.count("iekf") ) {
-          do_single_monte_carlo_run(
-            results_map, data_out_stem_opt, "iekf", measurements, ground_truth, sat3D_inv, 
-            sat_space.get_space_topology(), b_init, b_u, b_z, sat_options.time_step, min_skips, max_skips);
-        };
-        
-        std::cout << "." << std::flush;
-        
-        if( vm.count("imkf") ) {
-          do_single_monte_carlo_run(
-            results_map, data_out_stem_opt, "imkf", measurements, ground_truth, sat3D_invmom, 
-            sat_space.get_space_topology(), b_init, b_u, b_z, sat_options.time_step, min_skips, max_skips);
-        };
-        
-        std::cout << "." << std::flush;
-        
-        if( vm.count("imkfv2") ) {
-          do_single_monte_carlo_run(
-            results_map, data_out_stem_opt, "imkfv2", measurements, ground_truth, sat3D_invmid, 
-            sat_space.get_space_topology(), b_init, b_u, b_z, sat_options.time_step, min_skips, max_skips);
-        };
+        do_single_monte_carlo_run(
+          results_map, data_out_stem_opt, sat_options, measurements, ground_truth, *satellite3D_system, 
+          sat_space->get_space_topology(), b_init, b_u, b_z, min_skips, max_skips);
         
         std::cout << "." << std::flush;
         
@@ -838,35 +728,11 @@ int main(int argc, char** argv) {
   } else if( vm.count("gyro") && !vm.count("IMU") ) {
     
     // Create the set of satellite3D systems for when there is gyro measurements:
-    
-    ctrl::satellite3D_gyro_inv_dt_system sat3D_inv_gyro(
-      "satellite3D_inv_with_gyros", sat_options.mass, sat_options.inertia_tensor, sat_options.time_step);
-    
-    ctrl::satellite3D_gyro_imdt_sys sat3D_invmom_gyro(
-      "satellite3D_invmom_with_gyros", sat_options.mass, sat_options.inertia_tensor, sat_options.time_step);
-    
-    ctrl::satellite3D_gyro_imdt_sys sat3D_invmid_gyro(
-      "satellite3D_invmid_with_gyros", sat_options.mass, sat_options.inertia_tensor, sat_options.time_step, 2);
-    
-    sat3D_output_belief_type b_z(sat3D_output_type(vect_n<double>(10, 0.0)), 
-                                 cov_type(cov_matrix_type(sat_options.measurement_noise + sat_options.artificial_noise)));
-    
+    shared_ptr< ctrl::satellite_model_options::system_gyro_type > satellite3D_system = sat_options.get_gyro_sat_system();
     
     if( vm.count("generate-mdl-files") ) {
       try {
-        shared_ptr< ctrl::satellite3D_inv_dt_system > satellite3D_system = 
-          shared_ptr< ctrl::satellite3D_inv_dt_system >(&sat3D_inv_gyro, null_deleter());
-        *(serialization::open_oarchive(sys_output_stem_name + "_inv_gyro_mdl.rkx"))
-          & RK_SERIAL_SAVE_WITH_NAME(satellite3D_system);
-        
-        satellite3D_system = 
-          shared_ptr< ctrl::satellite3D_inv_dt_system >(&sat3D_invmom_gyro, null_deleter());
-        *(serialization::open_oarchive(sys_output_stem_name + "_invmom_gyro_mdl.rkx"))
-          & RK_SERIAL_SAVE_WITH_NAME(satellite3D_system);
-        
-        satellite3D_system = 
-          shared_ptr< ctrl::satellite3D_inv_dt_system >(&sat3D_invmid_gyro, null_deleter());
-        *(serialization::open_oarchive(sys_output_stem_name + "_invmid_gyro_mdl.rkx"))
+        *(serialization::open_oarchive(sys_output_stem_name + sat_options.get_sys_abbreviation() + "_mdl.rkx"))
           & RK_SERIAL_SAVE_WITH_NAME(satellite3D_system);
       } catch(...) {
         RK_ERROR("An exception occurred during the saving the satellite system file!");
@@ -877,7 +743,7 @@ int main(int argc, char** argv) {
       if( measurements.size() == 0 ) {
         // must generate the measurements and ground_truth vectors:
         set_frame_3D(x_init, sat_options.initial_motion);
-        generate_timeseries(measurements, ground_truth, sat3D_inv_gyro, sat_space.get_space_topology(),
+        generate_timeseries(measurements, ground_truth, *satellite3D_system, sat_space->get_space_topology(),
                             x_init, start_time, end_time, cov_matrix_type(sat_options.input_disturbance), 
                             cov_matrix_type(sat_options.measurement_noise + sat_options.artificial_noise));
         
@@ -885,17 +751,7 @@ int main(int argc, char** argv) {
         if( vm.count("generate-meas-file") ) {
           recorder::data_stream_options data_meas_opt = data_out_opt;
           data_meas_opt.file_name = output_stem_name + "_meas." + data_meas_opt.get_extension();
-          data_meas_opt.names.clear();
-          data_meas_opt
-            .add_name("time").add_name("p_x").add_name("p_y").add_name("p_z")
-            .add_name("q_0").add_name("q_1").add_name("q_2").add_name("q_3")
-            .add_name("w_x").add_name("w_y").add_name("w_z")
-            .add_name("f_x").add_name("f_y").add_name("f_z")
-            .add_name("t_x").add_name("t_y").add_name("t_z")
-            .add_name("p_x_true").add_name("p_y_true").add_name("p_z_true")
-            .add_name("q_0_true").add_name("q_1_true").add_name("q_2_true").add_name("q_3_true")
-            .add_name("v_x_true").add_name("v_y_true").add_name("v_z_true")
-            .add_name("w_x_true").add_name("w_y_true").add_name("w_z_true"); 
+          sat_options.imbue_names_for_generated_meas(data_meas_opt);
           shared_ptr< recorder::data_recorder > data_meas = data_meas_opt.create_recorder();
           for(std::size_t i = 0; i < measurements.size(); ++i) {
             (*data_meas) << measurements[i].first;
@@ -916,24 +772,8 @@ int main(int argc, char** argv) {
       
       std::cout << "Running estimators on data series.." << std::flush;
       
-      if( vm.count("iekf") ) {
-        do_all_single_runs(data_out_stem_opt, "iekf_gyro", measurements, ground_truth, sat3D_inv_gyro, 
-                          sat_space.get_space_topology(), b_init, b_u, b_z, sat_options.time_step, min_skips, max_skips);
-      };
-      
-      std::cout << "." << std::flush;
-      
-      if( vm.count("imkf") ) {
-        do_all_single_runs(data_out_stem_opt, "imkf_gyro", measurements, ground_truth, sat3D_invmom_gyro, 
-                          sat_space.get_space_topology(), b_init, b_u, b_z, sat_options.time_step, min_skips, max_skips);
-      };
-      
-      std::cout << "." << std::flush;
-      
-      if( vm.count("imkfv2") ) {
-        do_all_single_runs(data_out_stem_opt, "imkfv2_gyro", measurements, ground_truth, sat3D_invmid_gyro, 
-                          sat_space.get_space_topology(), b_init, b_u, b_z, sat_options.time_step, min_skips, max_skips);
-      };
+      do_all_single_runs(data_out_stem_opt, sat_options, measurements, ground_truth, *satellite3D_system, 
+                         sat_space->get_space_topology(), b_init, b_u, b_z, min_skips, max_skips);
       
       std::cout << "." << std::flush;
       
@@ -945,12 +785,7 @@ int main(int argc, char** argv) {
       
       recorder::data_stream_options data_stddev_opt = data_out_opt;
       data_stddev_opt.file_name = output_stem_name + "_meas_gyro_stddevs." + data_stddev_opt.get_extension();
-      data_stddev_opt.names.clear();
-      data_stddev_opt
-        .add_name("ep_x").add_name("ep_y").add_name("ep_z")
-        .add_name("ea_x").add_name("ea_y").add_name("ea_z")
-        .add_name("ep_m").add_name("ea_m")
-        .add_name("ew_x").add_name("ew_y").add_name("ew_z").add_name("ew_m");
+      sat_options.imbue_names_for_meas_stddevs(data_stddev_opt);
       shared_ptr< recorder::data_recorder > data_stddev = data_stddev_opt.create_recorder();
       
       std::map< std::string, shared_ptr< recorder::data_recorder > > results_map;
@@ -961,33 +796,15 @@ int main(int argc, char** argv) {
         
         std::cout << "\r" << std::setw(10) << mc_i << std::flush;
         
-        generate_timeseries(measurements, ground_truth, sat3D_inv_gyro, sat_space.get_space_topology(),
+        generate_timeseries(measurements, ground_truth, *satellite3D_system, sat_space->get_space_topology(),
                             x_init, start_time, end_time, cov_matrix_type(sat_options.input_disturbance), 
                             cov_matrix_type(sat_options.measurement_noise + sat_options.artificial_noise), data_stddev);
         
         std::cout << "." << std::flush;
         
-        if( vm.count("iekf") ) {
-          do_single_monte_carlo_run(
-            results_map, data_out_stem_opt, "iekf_gyro", measurements, ground_truth, sat3D_inv_gyro, 
-            sat_space.get_space_topology(), b_init, b_u, b_z, sat_options.time_step, min_skips, max_skips);
-        };
-        
-        std::cout << "." << std::flush;
-        
-        if( vm.count("imkf") ) {
-          do_single_monte_carlo_run(
-            results_map, data_out_stem_opt, "imkf_gyro", measurements, ground_truth, sat3D_invmom_gyro, 
-            sat_space.get_space_topology(), b_init, b_u, b_z, sat_options.time_step, min_skips, max_skips);
-        };
-        
-        std::cout << "." << std::flush;
-        
-        if( vm.count("imkfv2") ) {
-          do_single_monte_carlo_run(
-            results_map, data_out_stem_opt, "imkfv2_gyro", measurements, ground_truth, sat3D_invmid_gyro, 
-            sat_space.get_space_topology(), b_init, b_u, b_z, sat_options.time_step, min_skips, max_skips);
-        };
+        do_single_monte_carlo_run(
+          results_map, data_out_stem_opt, sat_options, measurements, ground_truth, *satellite3D_system, 
+          sat_space->get_space_topology(), b_init, b_u, b_z, min_skips, max_skips);
         
         std::cout << "." << std::flush;
         
@@ -1000,29 +817,11 @@ int main(int argc, char** argv) {
   } else {
     
     // Create the set of satellite3D systems for when there is IMU measurements:
-    
-    ctrl::satellite3D_IMU_imdt_sys sat3D_invmom_IMU(
-      "satellite3D_invmom_with_IMU", sat_options.mass, sat_options.inertia_tensor, sat_options.time_step,
-      sat_options.IMU_orientation, sat_options.IMU_location, sat_options.earth_orientation, sat_options.mag_field_direction);
-    
-    ctrl::satellite3D_IMU_imdt_sys sat3D_invmid_IMU(
-      "satellite3D_invmid_with_IMU", sat_options.mass, sat_options.inertia_tensor, sat_options.time_step,
-      sat_options.IMU_orientation, sat_options.IMU_location, sat_options.earth_orientation, sat_options.mag_field_direction, 2);
-    
-    sat3D_output_belief_type b_z(sat3D_output_type(vect_n<double>(16, 0.0)), 
-                                 cov_type(cov_matrix_type(sat_options.measurement_noise + sat_options.artificial_noise)));
-    
+    shared_ptr< ctrl::satellite_model_options::system_IMU_type > satellite3D_system = sat_options.get_IMU_sat_system();
     
     if( vm.count("generate-mdl-files") ) {
       try {
-        shared_ptr< ctrl::satellite3D_inv_dt_system > satellite3D_system = 
-          shared_ptr< ctrl::satellite3D_inv_dt_system >(&sat3D_invmom_IMU, null_deleter());
-        *(serialization::open_oarchive(sys_output_stem_name + "_invmom_IMU_mdl.rkx"))
-          & RK_SERIAL_SAVE_WITH_NAME(satellite3D_system);
-        
-        satellite3D_system = 
-          shared_ptr< ctrl::satellite3D_inv_dt_system >(&sat3D_invmid_IMU, null_deleter());
-        *(serialization::open_oarchive(sys_output_stem_name + "_invmid_IMU_mdl.rkx"))
+        *(serialization::open_oarchive(sys_output_stem_name + sat_options.get_sys_abbreviation() + "_mdl.rkx"))
           & RK_SERIAL_SAVE_WITH_NAME(satellite3D_system);
       } catch(...) {
         RK_ERROR("An exception occurred during the saving the satellite system file!");
@@ -1033,7 +832,7 @@ int main(int argc, char** argv) {
       if( measurements.size() == 0 ) {
         // must generate the measurements and ground_truth vectors:
         set_frame_3D(x_init, sat_options.initial_motion);
-        generate_timeseries(measurements, ground_truth, sat3D_invmom_IMU, sat_space.get_space_topology(),
+        generate_timeseries(measurements, ground_truth, *satellite3D_system, sat_space->get_space_topology(),
                             x_init, start_time, end_time, cov_matrix_type(sat_options.input_disturbance), 
                             cov_matrix_type(sat_options.measurement_noise + sat_options.artificial_noise));
         
@@ -1041,19 +840,7 @@ int main(int argc, char** argv) {
         if( vm.count("generate-meas-file") ) {
           recorder::data_stream_options data_meas_opt = data_out_opt;
           data_meas_opt.file_name = output_stem_name + "_meas." + data_meas_opt.get_extension();
-          data_meas_opt.names.clear();
-          data_meas_opt
-            .add_name("time").add_name("p_x").add_name("p_y").add_name("p_z")
-            .add_name("q_0").add_name("q_1").add_name("q_2").add_name("q_3")
-            .add_name("w_x").add_name("w_y").add_name("w_z")
-            .add_name("acc_x").add_name("acc_y").add_name("acc_z")
-            .add_name("mag_x").add_name("mag_y").add_name("mag_z")
-            .add_name("f_x").add_name("f_y").add_name("f_z")
-            .add_name("t_x").add_name("t_y").add_name("t_z")
-            .add_name("p_x_true").add_name("p_y_true").add_name("p_z_true")
-            .add_name("q_0_true").add_name("q_1_true").add_name("q_2_true").add_name("q_3_true")
-            .add_name("v_x_true").add_name("v_y_true").add_name("v_z_true")
-            .add_name("w_x_true").add_name("w_y_true").add_name("w_z_true"); 
+          sat_options.imbue_names_for_generated_meas(data_meas_opt);
           shared_ptr< recorder::data_recorder > data_meas = data_meas_opt.create_recorder();
           for(std::size_t i = 0; i < measurements.size(); ++i) {
             (*data_meas) << measurements[i].first;
@@ -1074,23 +861,10 @@ int main(int argc, char** argv) {
       
       std::cout << "Running estimators on data series.." << std::flush;
       
-      if( vm.count("iekf") ) {
-        std::cerr << "Warning: The invariant extended Kalman filter (IEKF) is not available for full IMU measurements!" << std::endl;
-      };
-      
       std::cout << "." << std::flush;
       
-      if( vm.count("imkf") ) {
-        do_all_single_runs(data_out_stem_opt, "imkf_IMU", measurements, ground_truth, sat3D_invmom_IMU, 
-                          sat_space.get_space_topology(), b_init, b_u, b_z, sat_options.time_step, min_skips, max_skips);
-      };
-      
-      std::cout << "." << std::flush;
-      
-      if( vm.count("imkfv2") ) {
-        do_all_single_runs(data_out_stem_opt, "imkfv2_IMU", measurements, ground_truth, sat3D_invmid_IMU, 
-                          sat_space.get_space_topology(), b_init, b_u, b_z, sat_options.time_step, min_skips, max_skips);
-      };
+      do_all_single_runs(data_out_stem_opt, sat_options, measurements, ground_truth, *satellite3D_system, 
+                         sat_space->get_space_topology(), b_init, b_u, b_z, min_skips, max_skips);
       
       std::cout << "." << std::flush;
       
@@ -1102,14 +876,7 @@ int main(int argc, char** argv) {
       
       recorder::data_stream_options data_stddev_opt = data_out_opt;
       data_stddev_opt.file_name = output_stem_name + "_meas_gyro_stddevs." + data_stddev_opt.get_extension();
-      data_stddev_opt.names.clear();
-      data_stddev_opt
-        .add_name("ep_x").add_name("ep_y").add_name("ep_z")
-        .add_name("ea_x").add_name("ea_y").add_name("ea_z")
-        .add_name("ep_m").add_name("ea_m")
-        .add_name("ew_x").add_name("ew_y").add_name("ew_z").add_name("ew_m")
-        .add_name("eacc_x").add_name("eacc_y").add_name("eacc_z").add_name("eacc_m")
-        .add_name("emag_x").add_name("emag_y").add_name("emag_z").add_name("emag_m");
+      sat_options.imbue_names_for_meas_stddevs(data_stddev_opt);
       shared_ptr< recorder::data_recorder > data_stddev = data_stddev_opt.create_recorder();
       
       std::map< std::string, shared_ptr< recorder::data_recorder > > results_map;
@@ -1124,25 +891,15 @@ int main(int argc, char** argv) {
         
         std::cout << "\r" << std::setw(10) << mc_i << std::flush;
         
-        generate_timeseries(measurements, ground_truth, sat3D_invmom_IMU, sat_space.get_space_topology(),
+        generate_timeseries(measurements, ground_truth, *satellite3D_system, sat_space->get_space_topology(),
                             x_init, start_time, end_time, cov_matrix_type(sat_options.input_disturbance), 
                             cov_matrix_type(sat_options.measurement_noise + sat_options.artificial_noise), data_stddev);
         
         std::cout << "." << std::flush;
         
-        if( vm.count("imkf") ) {
-          do_single_monte_carlo_run(
-            results_map, data_out_stem_opt, "imkf_IMU", measurements, ground_truth, sat3D_invmom_IMU, 
-            sat_space.get_space_topology(), b_init, b_u, b_z, sat_options.time_step, min_skips, max_skips);
-        };
-        
-        std::cout << "." << std::flush;
-        
-        if( vm.count("imkfv2") ) {
-          do_single_monte_carlo_run(
-            results_map, data_out_stem_opt, "imkfv2_IMU", measurements, ground_truth, sat3D_invmid_IMU, 
-            sat_space.get_space_topology(), b_init, b_u, b_z, sat_options.time_step, min_skips, max_skips);
-        };
+        do_single_monte_carlo_run(
+          results_map, data_out_stem_opt, sat_options, measurements, ground_truth, *satellite3D_system, 
+          sat_space->get_space_topology(), b_init, b_u, b_z, min_skips, max_skips);
         
         std::cout << "." << std::flush;
         

@@ -473,7 +473,6 @@ struct gaussian_sampler {
     boost::variate_generator< global_rng_type&, boost::normal_distribution<scalar_type> > var_rnd(get_global_rng(), boost::normal_distribution<scalar_type>());
     
     typedef typename pp::topology_traits<Topology>::point_difference_type state_difference_type;
-    BOOST_CONCEPT_ASSERT((WritableVectorConcept<state_difference_type>));
     BOOST_CONCEPT_ASSERT((CovarianceMatrixConcept<covariance_type,state_difference_type>));
     
     vect_n<scalar_type> z = to_vect<scalar_type>(space.difference(mean_state, mean_state));
@@ -484,6 +483,112 @@ struct gaussian_sampler {
   };
   
 };
+
+
+template <typename Vector, typename Matrix>
+typename boost::enable_if< 
+  boost::mpl::and_<
+    is_writable_vector<Vector>,
+    is_readable_matrix<Matrix>
+  >,
+Vector >::type sample_gaussian_point(const Vector& mean, const Matrix& cov) {
+  typedef typename mat_traits<Matrix>::value_type ValueType;
+  typedef typename mat_traits<Matrix>::size_type SizeType;
+  using std::sqrt;
+  
+  mat< ValueType, mat_structure::square> L;
+  try {
+    decompose_Cholesky(cov,L);
+  } catch(singularity_error&) { 
+    mat< ValueType, mat_structure::diagonal> E(cov.get_row_count());
+    mat< ValueType, mat_structure::square> U(cov.get_row_count()), V(cov.get_row_count());
+    decompose_SVD(cov,U,E,V);
+    for(SizeType i = 0; i < cov.get_row_count(); ++i)
+      E(i,i) = sqrt(E(i,i));
+    L = U * E;
+  };
+  
+  boost::variate_generator< global_rng_type&, boost::normal_distribution<ValueType> > var_rnd(get_global_rng(), boost::normal_distribution<ValueType>());
+  
+  Vector z = mean;
+  for(SizeType i = 0; i < z.size(); ++i)
+    z[i] = var_rnd();
+  
+  return mean + L * z;
+};
+
+template <typename Vector, typename ValueType>
+typename boost::enable_if< 
+  is_writable_vector<Vector>,
+Vector >::type sample_gaussian_point(Vector mean, const mat<ValueType, mat_structure::diagonal>& cov) {
+  typedef typename mat_traits< mat<ValueType, mat_structure::diagonal> >::size_type SizeType;
+  using std::sqrt;
+  
+  boost::variate_generator< global_rng_type&, boost::normal_distribution<ValueType> > var_rnd(get_global_rng(), boost::normal_distribution<ValueType>());
+  
+  for(SizeType i = 0; i < mean.size(); ++i)
+    mean[i] += var_rnd() * sqrt(cov(i,i));
+  
+  return mean;
+};
+
+
+
+template <typename StateSpace, typename Matrix>
+typename boost::enable_if< 
+  is_readable_matrix<Matrix>,
+typename pp::topology_traits<StateSpace>::point_type >::type 
+  sample_gaussian_point(const StateSpace& space, 
+                        const typename pp::topology_traits<StateSpace>::point_type& mean, 
+                        const Matrix& cov) {
+  typedef typename pp::topology_traits<StateSpace>::point_difference_type DiffType;
+  typedef typename mat_traits<Matrix>::value_type ValueType;
+  typedef typename mat_traits<Matrix>::size_type SizeType;
+  using std::sqrt;
+  using ReaK::to_vect;
+  using ReaK::from_vect;
+  
+  mat< ValueType, mat_structure::square> L;
+  try {
+    decompose_Cholesky(cov,L);
+  } catch(singularity_error&) { 
+    mat< ValueType, mat_structure::diagonal> E(cov.get_row_count());
+    mat< ValueType, mat_structure::square> U(cov.get_row_count()), V(cov.get_row_count());
+    decompose_SVD(cov,U,E,V);
+    for(SizeType i = 0; i < cov.get_row_count(); ++i)
+      E(i,i) = sqrt(E(i,i));
+    L = U * E;
+  };
+  
+  boost::variate_generator< global_rng_type&, boost::normal_distribution<ValueType> > var_rnd(get_global_rng(), boost::normal_distribution<ValueType>());
+  
+  vect_n<ValueType> z = to_vect<ValueType>(space.difference(mean, mean));
+  for(SizeType i = 0; i < z.size(); ++i)
+    z[i] = var_rnd();
+  
+  return space.adjust(mean, from_vect<DiffType>(L * z));
+};
+
+template <typename StateSpace, typename ValueType>
+typename pp::topology_traits<StateSpace>::point_type 
+  sample_gaussian_point(const StateSpace& space, 
+                        const typename pp::topology_traits<StateSpace>::point_type& mean, 
+                        const mat<ValueType, mat_structure::diagonal>& cov) {
+  typedef typename pp::topology_traits<StateSpace>::point_difference_type DiffType;
+  typedef typename mat_traits< mat<ValueType, mat_structure::diagonal> >::size_type SizeType;
+  using std::sqrt;
+  using ReaK::to_vect;
+  using ReaK::from_vect;
+  
+  boost::variate_generator< global_rng_type&, boost::normal_distribution<ValueType> > var_rnd(get_global_rng(), boost::normal_distribution<ValueType>());
+  
+  vect_n<ValueType> z = to_vect<ValueType>(space.difference(mean, mean));
+  for(SizeType i = 0; i < z.size(); ++i)
+    z[i] = var_rnd() * sqrt(cov(i,i));
+  
+  return space.adjust(mean, from_vect<DiffType>(z));
+};
+
 
 
 

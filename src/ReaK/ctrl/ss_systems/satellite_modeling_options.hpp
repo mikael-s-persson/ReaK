@@ -36,10 +36,24 @@
 
 #include "satellite_invar_models.hpp"
 
+#include "ctrl_sys/discrete_sss_concept.hpp"
+#include "ctrl_sys/covar_topology.hpp"
+#include "ctrl_sys/covariance_matrix.hpp"
+#include "ctrl_sys/gaussian_belief_space.hpp"
+#include "topologies/temporal_space.hpp"
+#include "topologies/vector_topology.hpp"
+#include "topologies/time_poisson_topology.hpp"
+#include "ctrl_sys/invariant_kalman_filter.hpp"
+#include "ctrl_sys/belief_state_predictor.hpp"
+#include "ctrl_sys/maximum_likelihood_mapping.hpp"
+#include "interpolation/constant_trajectory.hpp"
+#include "path_planning/transformed_trajectory.hpp"
+
 #include "lin_alg/mat_alg_symmetric.hpp"
 #include "lin_alg/mat_alg_diagonal.hpp"
 
 #include "serialization/archiver.hpp"
+#include "recorders/data_record_options.hpp"
 
 #include <string>
 
@@ -56,6 +70,26 @@ namespace ctrl {
  * \note This class is mainly intended to be used with satellite_modeling_po (program-options).
  */
 struct satellite_model_options {
+  
+  
+  typedef satellite3D_inv_dt_system system_base_type;
+  typedef satellite3D_gyro_inv_dt_system system_gyro_type;
+  typedef satellite3D_IMU_imdt_sys system_IMU_type;
+  
+  typedef discrete_sss_traits< system_base_type >::point_type state_type;
+  typedef discrete_sss_traits< system_base_type >::input_type input_type;
+  typedef discrete_sss_traits< system_base_type >::output_type output_type;
+  
+  typedef covariance_matrix< vect_n<double> > covar_type;
+  typedef gaussian_belief_state< state_type,  covar_type > state_belief_type;
+  typedef gaussian_belief_state< input_type,  covar_type > input_belief_type;
+  typedef gaussian_belief_state< output_type, covar_type > output_belief_type;
+  
+  typedef system_base_type::state_space_type state_space_type;
+  typedef pp::temporal_space<state_space_type, pp::time_poisson_topology, pp::time_distance_only> temp_state_space_type;
+  
+  typedef covar_topology< covar_type > covar_space_type;
+  typedef gaussian_belief_space<state_space_type, covar_space_type> belief_space_type;
   
   
   /// Stores the time-step of the system (if discrete-time).
@@ -125,6 +159,61 @@ struct satellite_model_options {
     };
   };
   
+  std::string get_kf_accronym() const {
+    std::string result;
+    switch(system_kind & 7) {
+      case invariant:
+        result = "iekf";
+        break;
+      case invar_mom2:
+        result = "imkfv2";
+        break;
+      case invar_mom:
+      default:
+        result = "imkf";
+        break;
+    };
+    switch(system_kind & 24) {
+      case 8:
+        result += "_gyro";
+        break;
+      case 24:
+        result += "_IMU";
+        break;
+      default:
+        break;
+    };
+    return result;
+  };
+  
+  std::string get_sys_abbreviation() const {
+    std::string result;
+    switch(system_kind & 7) {
+      case invariant:
+        result = "inv";
+        break;
+      case invar_mom2:
+        result = "invmid";
+        break;
+      case invar_mom:
+      default:
+        result = "invmom";
+        break;
+    };
+    switch(system_kind & 24) {
+      case 8:
+        result += "_gyro";
+        break;
+      case 24:
+        result += "_IMU";
+        break;
+      default:
+        break;
+    };
+    return result;
+  };
+  
+  
 protected:
   
   virtual void load_all_configs_impl(serialization::iarchive& in);
@@ -132,6 +221,54 @@ protected:
   
 public:
   
+  shared_ptr< temp_state_space_type > get_temporal_state_space(double aStartTime = 0.0, double aEndTime = 1.0) const;
+  
+  shared_ptr< state_space_type > get_state_space() const;
+  
+  /**
+   * Constructs a base satellite system.
+   * \return A newly created base satellite system (as shared-pointer).
+   */
+  shared_ptr< system_base_type > get_base_sat_system() const;
+  
+  /**
+   * Constructs a satellite system (with gyro).
+   * \return A newly created gyro satellite system (as shared-pointer).
+   */
+  shared_ptr< system_gyro_type > get_gyro_sat_system() const;
+  
+  /**
+   * Constructs a satellite system (with IMU).
+   * \return A newly created IMU satellite system (as shared-pointer).
+   */
+  shared_ptr< system_IMU_type > get_IMU_sat_system() const;
+  
+  /**
+   * Create a belief point for the state, with mean set to initial-motion.
+   * \param aCovDiag The initial diagonal values for the covariant matrix (should be high).
+   * \return A belief point for the state, with mean set to initial-motion and high covariance.
+   */
+  state_belief_type get_init_state_belief(double aCovDiag = 10.0) const;
+  
+  /**
+   * Create a belief point for the input, assuming zero-mean.
+   * \return A belief point for the input, with zero mean and input-disturbance covariance.
+   */
+  input_belief_type get_zero_input_belief() const;
+  
+  /**
+   * Create a belief point for the measurement vector, assuming zero-mean.
+   * \return A belief point for the measurement vector, with zero mean and measurement-noise covariance.
+   */
+  output_belief_type get_zero_output_belief() const;
+  
+  void imbue_names_for_generated_meas(recorder::data_stream_options& data_opt) const;
+  
+  void imbue_names_for_meas_stddevs(recorder::data_stream_options& data_opt) const;
+  
+  void imbue_names_for_state_estimates(recorder::data_stream_options& data_opt) const;
+  
+  void imbue_names_for_state_estimates_stddevs(recorder::data_stream_options& data_opt) const;
   
   /**
    * Default constructor.
@@ -248,6 +385,20 @@ public:
  * \note This class is mainly intended to be used with satellite_predictor_po (program-options).
  */
 struct satellite_predictor_options : satellite_model_options {
+  
+  typedef satellite_model_options::system_base_type system_base_type;
+  typedef satellite_model_options::system_gyro_type system_gyro_type;
+  typedef satellite_model_options::system_IMU_type system_IMU_type;
+  
+  typedef satellite_model_options::input_type input_type;
+  typedef satellite_model_options::state_space_type state_space_type;
+  typedef satellite_model_options::temp_state_space_type temp_state_space_type;
+  typedef satellite_model_options::belief_space_type belief_space_type;
+  
+  typedef pp::constant_trajectory< pp::vector_topology< input_type > > input_cst_traj_type;
+  typedef IKF_belief_transfer_factory< system_base_type > pred_factory_type;
+  typedef belief_predicted_trajectory< belief_space_type, pred_factory_type, input_cst_traj_type > belief_pred_traj_type;
+  typedef pp::transformed_trajectory< temp_state_space_type, belief_pred_traj_type, maximum_likelihood_map> ML_pred_traj_type;
   
   /// Stores the prediction time horizon, for when using the satellite model for state predictions.
   double predict_time_horizon;

@@ -260,7 +260,49 @@ satellite3D_gyro_imdt_sys::satellite3D_gyro_imdt_sys(
   double aMass, 
   const mat<double,mat_structure::symmetric>& aInertiaMoment,
   double aDt, std::size_t aApproxOrder) :
-  satellite3D_imdt_sys(aName, aMass, aInertiaMoment, aDt, aApproxOrder) { }; 
+  satellite3D_gyro_inv_dt_system(aName, aMass, aInertiaMoment, aDt), approx_order(aApproxOrder) { }; 
+
+
+
+void satellite3D_gyro_imdt_sys::get_state_transition_blocks(
+  satellite3D_gyro_imdt_sys::matrixA_type& A, 
+  satellite3D_gyro_imdt_sys::matrixB_type& B, 
+  const satellite3D_gyro_imdt_sys::state_space_type&, 
+  const satellite3D_gyro_imdt_sys::time_type&, 
+  const satellite3D_gyro_imdt_sys::time_type&,
+  const satellite3D_gyro_imdt_sys::point_type& p_0, 
+  const satellite3D_gyro_imdt_sys::point_type& p_1,
+  const satellite3D_gyro_imdt_sys::input_type&, 
+  const satellite3D_gyro_imdt_sys::input_type&) const {
+  
+  
+  A = mat_ident<double>(12);
+  A(0,3) = mDt;
+  A(1,4) = mDt;
+  A(2,5) = mDt;
+  
+  if(approx_order > 1) { // second-order approx:
+    mat<double, mat_structure::square> R = (invert( get_quaternion(p_1) ) * get_quaternion(p_0)).as_rotation().getMat();
+    mat<double, mat_structure::square> RJRJ = mat<double, mat_structure::square>(transpose_view(R) * mInertiaMomentInv * R * mInertiaMoment);
+    set_block(A, (0.5 * mDt) * (mat_ident<double>(3) + RJRJ), 6, 9);
+    set_block(A, RJRJ, 9, 9);
+  } else { // first-order approx:
+    A(6, 9) = mDt;  //
+    A(7,10) = mDt;  // set_block(A, mDt * mat_ident<double>(3), 6, 9);
+    A(8,11) = mDt;  // 
+  };
+  
+  B = mat<double,mat_structure::nil>(12,6);
+  B(0,0) = 0.5 * mDt * mDt / mMass;
+  B(1,1) = 0.5 * mDt * mDt / mMass;
+  B(2,2) = 0.5 * mDt * mDt / mMass;
+  B(3,0) = mDt / mMass;
+  B(4,1) = mDt / mMass;
+  B(5,2) = mDt / mMass;
+  set_block(B, (0.5 * mDt * mDt) * mInertiaMomentInv, 6, 3);
+  set_block(B, mDt * mInertiaMomentInv, 9, 3);
+  
+};
 
 
   

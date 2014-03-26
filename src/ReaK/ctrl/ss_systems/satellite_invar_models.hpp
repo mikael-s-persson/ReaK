@@ -361,24 +361,24 @@ struct is_invariant_system< satellite3D_imdt_sys > : boost::mpl::true_ { };
  * when no actuation is applied, i.e., it is an efficient and highly stable method.
  * Also, this system operates within a first-order (once-differentiable) SE(3) topology.
  */
-class satellite3D_gyro_imdt_sys : public satellite3D_imdt_sys {
+class satellite3D_gyro_imdt_sys : public satellite3D_gyro_inv_dt_system {
   public:
     
-    typedef satellite3D_imdt_sys::state_space_type state_space_type;
+    typedef satellite3D_gyro_inv_dt_system::state_space_type state_space_type;
     
-    typedef satellite3D_imdt_sys::point_type point_type;
-    typedef satellite3D_imdt_sys::point_difference_type point_difference_type;
+    typedef satellite3D_gyro_inv_dt_system::point_type point_type;
+    typedef satellite3D_gyro_inv_dt_system::point_difference_type point_difference_type;
   
-    typedef satellite3D_imdt_sys::time_type time_type;
-    typedef satellite3D_imdt_sys::time_difference_type time_difference_type;
-    typedef satellite3D_imdt_sys::point_derivative_type point_derivative_type;
+    typedef satellite3D_gyro_inv_dt_system::time_type time_type;
+    typedef satellite3D_gyro_inv_dt_system::time_difference_type time_difference_type;
+    typedef satellite3D_gyro_inv_dt_system::point_derivative_type point_derivative_type;
   
-    typedef satellite3D_imdt_sys::input_type input_type;
-    typedef satellite3D_imdt_sys::output_type output_type;
+    typedef satellite3D_gyro_inv_dt_system::input_type input_type;
+    typedef satellite3D_gyro_inv_dt_system::output_type output_type;
   
-    typedef satellite3D_imdt_sys::invariant_error_type invariant_error_type;
-    typedef satellite3D_imdt_sys::invariant_correction_type invariant_correction_type;
-    typedef satellite3D_imdt_sys::invariant_frame_type invariant_frame_type;
+    typedef satellite3D_gyro_inv_dt_system::invariant_error_type invariant_error_type;
+    typedef satellite3D_gyro_inv_dt_system::invariant_correction_type invariant_correction_type;
+    typedef satellite3D_gyro_inv_dt_system::invariant_frame_type invariant_frame_type;
   
     BOOST_STATIC_CONSTANT(std::size_t, dimensions = 13);
     BOOST_STATIC_CONSTANT(std::size_t, input_dimensions = 6);
@@ -386,12 +386,15 @@ class satellite3D_gyro_imdt_sys : public satellite3D_imdt_sys {
     BOOST_STATIC_CONSTANT(std::size_t, invariant_error_dimensions = 9);
     BOOST_STATIC_CONSTANT(std::size_t, invariant_correction_dimensions = 12);
     
-    typedef satellite3D_imdt_sys::matrixA_type matrixA_type;
-    typedef satellite3D_imdt_sys::matrixB_type matrixB_type;
-    typedef satellite3D_imdt_sys::matrixC_type matrixC_type;
-    typedef satellite3D_imdt_sys::matrixD_type matrixD_type;
+    typedef satellite3D_gyro_inv_dt_system::matrixA_type matrixA_type;
+    typedef satellite3D_gyro_inv_dt_system::matrixB_type matrixB_type;
+    typedef satellite3D_gyro_inv_dt_system::matrixC_type matrixC_type;
+    typedef satellite3D_gyro_inv_dt_system::matrixD_type matrixD_type;
     
-    typedef satellite3D_imdt_sys::zero_input_trajectory zero_input_trajectory;
+    typedef satellite3D_gyro_inv_dt_system::zero_input_trajectory zero_input_trajectory;
+    
+  protected:
+    std::size_t approx_order;
     
   public:
     
@@ -409,6 +412,11 @@ class satellite3D_gyro_imdt_sys : public satellite3D_imdt_sys {
                               double aDt = 0.001,
                               std::size_t aApproxOrder = 1); 
     
+    void get_state_transition_blocks(matrixA_type& A, matrixB_type& B, const state_space_type&, 
+                                     const time_type&, const time_type&,
+                                     const point_type& p_0, const point_type& p_1,
+                                     const input_type&, const input_type&) const;
+    
     output_type get_output(const state_space_type&, const point_type& x, const input_type& u, const time_type& t = 0.0) const;
     
     void get_output_function_blocks(matrixC_type& C, matrixD_type& D, const state_space_type&, 
@@ -421,13 +429,15 @@ class satellite3D_gyro_imdt_sys : public satellite3D_imdt_sys {
 *******************************************************************************/
 
     virtual void RK_CALL save(ReaK::serialization::oarchive& A, unsigned int) const {
-      satellite3D_imdt_sys::save(A,satellite3D_imdt_sys::getStaticObjectType()->TypeVersion());
+      satellite3D_gyro_inv_dt_system::save(A,satellite3D_gyro_inv_dt_system::getStaticObjectType()->TypeVersion());
+      A & RK_SERIAL_SAVE_WITH_NAME(approx_order);
     };
     virtual void RK_CALL load(ReaK::serialization::iarchive& A, unsigned int) {
-      satellite3D_imdt_sys::load(A,satellite3D_imdt_sys::getStaticObjectType()->TypeVersion());
+      satellite3D_gyro_inv_dt_system::load(A,satellite3D_gyro_inv_dt_system::getStaticObjectType()->TypeVersion());
+      A & RK_SERIAL_LOAD_WITH_NAME(approx_order);
     };
 
-    RK_RTTI_MAKE_CONCRETE_1BASE(satellite3D_gyro_imdt_sys,0xC2310016,1,"satellite3D_gyro_imdt_sys",satellite3D_imdt_sys)
+    RK_RTTI_MAKE_CONCRETE_1BASE(satellite3D_gyro_imdt_sys,0xC2310016,1,"satellite3D_gyro_imdt_sys",satellite3D_gyro_inv_dt_system)
     
 };
 
