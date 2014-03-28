@@ -52,6 +52,8 @@ namespace recorder {
  */
 class vector_recorder : public data_recorder {
   protected:
+    std::vector< vect_n<double> >* vec_data;
+    
     virtual void writeRow();
     virtual void writeNames();
     virtual void setStreamImpl(const shared_ptr<std::ostream>& aStreamPtr) { };
@@ -66,12 +68,16 @@ class vector_recorder : public data_recorder {
     /**
      * Constructor that opens a file with name aFileName.
      */
-    explicit vector_recorder(const std::string& aFileName);
+    explicit vector_recorder(std::vector< vect_n<double> >* aVecData);
     
     /**
      * Destructor, closes the file.
      */
     virtual ~vector_recorder();
+    
+    void setVecData(std::vector< vect_n<double> >* aVecData);
+    
+    std::vector< vect_n<double> >* getVecData() const { return vec_data; };
     
     virtual void setFileName(const std::string& aFileName);
     
@@ -82,7 +88,7 @@ class vector_recorder : public data_recorder {
       data_recorder::load(A,data_recorder::getStaticObjectType()->TypeVersion());
     };
     
-    RK_RTTI_MAKE_CONCRETE_1BASE(raw_udp_recorder,0x81100007,1,"raw_udp_recorder",data_recorder)
+    RK_RTTI_MAKE_CONCRETE_1BASE(vector_recorder,0x81100008,1,"vector_recorder",data_recorder)
 };
 
 
@@ -94,13 +100,15 @@ class vector_recorder : public data_recorder {
  * extractor just reads out the rows of values received, the meta-data is provided by
  * the user before doing any read operations.
  */
-class raw_udp_extractor : public data_extractor {
+class vector_extractor : public data_extractor {
   protected:
+    const std::vector< vect_n<double> >* vec_data;
+    std::size_t cur_vec_index;
+    
     virtual bool readRow();
     virtual bool readNames();
     virtual void setStreamImpl(const shared_ptr<std::istream>& aStreamPtr) { };
     
-    shared_ptr<raw_udp_client_impl> pimpl;
   public:
     
     void addName(const std::string& s);
@@ -108,12 +116,21 @@ class raw_udp_extractor : public data_extractor {
     /**
      * Default constructor.
      */
-    raw_udp_extractor();
+    vector_extractor();
+    
+    /**
+     * Constructor that opens a file with name aFileName.
+     */
+    explicit vector_extractor(const std::vector< vect_n<double> >* aVecData);
     
     /**
      * Destructor, closes the file.
      */
-    virtual ~raw_udp_extractor();
+    virtual ~vector_extractor();
+    
+    void setVecData(const std::vector< vect_n<double> >* aVecData);
+    
+    const std::vector< vect_n<double> >& getVecData() const { return *vec_data; };
     
     virtual void setFileName(const std::string& aFilename);
     
@@ -124,7 +141,7 @@ class raw_udp_extractor : public data_extractor {
       data_extractor::load(A,data_extractor::getStaticObjectType()->TypeVersion());
     };
     
-    RK_RTTI_MAKE_CONCRETE_1BASE(raw_udp_extractor,0x81200007,1,"raw_udp_extractor",data_extractor)
+    RK_RTTI_MAKE_CONCRETE_1BASE(vector_extractor,0x81200008,1,"vector_extractor",data_extractor)
 };
 
 
