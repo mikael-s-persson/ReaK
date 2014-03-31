@@ -27,6 +27,7 @@
 #include "tcp_recorder.hpp"
 #include "udp_recorder.hpp"
 #include "raw_udp_recorder.hpp"
+#include "vector_recorder.hpp"
 
 #include <sstream>
 
@@ -401,6 +402,59 @@ BOOST_AUTO_TEST_CASE( raw_udp_record_extract_test )
   BOOST_CHECK_NO_THROW( server_thd.join() );
   BOOST_CHECK_EQUAL( server_sent, 21 );
   BOOST_CHECK( server_worked );
+  
+};
+
+
+
+
+
+BOOST_AUTO_TEST_CASE( vector_record_extract_test )
+{
+  using namespace ReaK;
+  using namespace recorder;
+  
+  {
+    std::vector< vect_n<double> > vec;
+    {
+      vector_recorder output_rec;
+      output_rec.setVecData(&vec);
+      
+      BOOST_CHECK_NO_THROW( output_rec << "x" << "2*x" << "x^2" );
+      BOOST_CHECK_NO_THROW( output_rec << data_recorder::end_name_row );
+      for(double x = 0; x < 10.1; x += 0.5) {
+        BOOST_CHECK_NO_THROW( output_rec << x << 2*x << x*x );
+        BOOST_CHECK_NO_THROW( output_rec << data_recorder::end_value_row );
+      };
+      BOOST_CHECK_NO_THROW( output_rec << data_recorder::flush );
+    };
+    
+    {
+      vector_extractor input_rec;
+      input_rec.setVecData(&vec);
+      
+      input_rec.addName("x");
+      input_rec.addName("2*x");
+      input_rec.addName("x^2");
+      BOOST_CHECK_EQUAL( input_rec.getColCount(), 3 );
+      
+      std::string s1, s2, s3;
+      BOOST_CHECK_NO_THROW( input_rec >> s1 >> s2 >> s3 );
+      BOOST_CHECK( s1 == "x" );
+      BOOST_CHECK( s2 == "2*x" );
+      BOOST_CHECK( s3 == "x^2" );
+      for(double x = 0; x < 10.1; x += 0.5) {
+        double v1, v2, v3;
+        BOOST_CHECK_NO_THROW( input_rec >> v1 >> v2 >> v3 );
+        BOOST_CHECK_CLOSE( v1, x, 1e-6 );
+        BOOST_CHECK_CLOSE( v2, (2.0*x), 1e-6 );
+        BOOST_CHECK_CLOSE( v3, (x*x), 1e-6 );
+        BOOST_CHECK_NO_THROW( input_rec >> data_extractor::end_value_row );
+      };
+      BOOST_CHECK_NO_THROW( input_rec >> data_extractor::close );
+    };
+    
+  };
   
 };
 
