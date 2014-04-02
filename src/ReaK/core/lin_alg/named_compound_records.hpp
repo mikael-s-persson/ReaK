@@ -96,7 +96,7 @@ class named_compound_record {
     /**
      * Default constructor.
      */
-    named_compound_record() : compounds(), nvr_data() { };
+    explicit named_compound_record(const named_value_row& aNameRow) : compounds(), nvr_data(aNameRow) { };
     
     /**
      * This class is a proxy for the conversions to and from an internal vector representation
@@ -107,14 +107,14 @@ class named_compound_record {
       
       compound_vect() : data() { };
       // needed to overcome the templated operator / constructor:
-      compound_vect(const compound& rhs) : data(rhs.data) { };
-      compound_vect& operator=(const compound& rhs) {
+      compound_vect(const compound_vect& rhs) : data(rhs.data) { };
+      compound_vect& operator=(const compound_vect& rhs) {
         data = rhs.data;
         return *this;
       };
 #ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
-      compound_vect(compound&& rhs) : data(std::move(rhs.data)) { };
-      compound_vect& operator=(compound&& rhs) {
+      compound_vect(compound_vect&& rhs) : data(std::move(rhs.data)) { };
+      compound_vect& operator=(compound_vect&& rhs) {
         data = std::move(rhs.data);
         return *this;
       };

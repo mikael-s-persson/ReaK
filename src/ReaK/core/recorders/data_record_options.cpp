@@ -29,6 +29,7 @@
 #include "tcp_recorder.hpp"
 #include "udp_recorder.hpp"
 #include "raw_udp_recorder.hpp"
+#include "vector_recorder.hpp"
 
 
 namespace ReaK {
@@ -57,6 +58,9 @@ shared_ptr< data_recorder > data_stream_options::create_recorder() const {
       break;
     case raw_udp_stream:
       result = shared_ptr< data_recorder >(new raw_udp_recorder());
+      break;
+    case vector_stream:
+      result = shared_ptr< data_recorder >(new vector_recorder());
       break;
   };
   
@@ -98,6 +102,9 @@ std::pair< shared_ptr< data_extractor >, std::vector< std::string > > data_strea
     case raw_udp_stream:
       result.first = shared_ptr< data_extractor >(new raw_udp_extractor());
       break;
+    case vector_stream:
+      result.first = shared_ptr< data_extractor >(new vector_extractor());
+      break;
   };
   
   if(file_name != "stdin") {
@@ -106,7 +113,7 @@ std::pair< shared_ptr< data_extractor >, std::vector< std::string > > data_strea
     result.first->setStream(std::cin);
   };
   
-  if( kind != raw_udp_stream ) {
+  if( ( kind != raw_udp_stream ) && ( kind != vector_stream ) ) {
     result.second.resize(result.first->getColCount(), "");
     for(std::size_t i = 0; i < result.second.size(); ++i)
       (*result.first) >> result.second[i];
@@ -118,12 +125,20 @@ std::pair< shared_ptr< data_extractor >, std::vector< std::string > > data_strea
     if( !time_sync_name.empty() &&
         ( std::find(result.second.begin(), result.second.end(), time_sync_name) == result.second.end() ) )
       throw std::invalid_argument(time_sync_name + " as time-sync column-name");
-  } else {
+  } else if( kind == raw_udp_stream ) {
     if( names.size() == 0 )
       throw std::invalid_argument("empty names for a raw-udp-extractor");
     result.second = names;
     
     raw_udp_extractor* data_in_tmp = static_cast< raw_udp_extractor* >(result.first.get());
+    for(std::vector< std::string >::const_iterator it = names.begin(), it_end = names.end(); it != it_end; ++it)
+      data_in_tmp->addName(*it);
+  } else {
+    if( names.size() == 0 )
+      throw std::invalid_argument("empty names for a vector-extractor");
+    result.second = names;
+    
+    vector_extractor* data_in_tmp = static_cast< vector_extractor* >(result.first.get());
     for(std::vector< std::string >::const_iterator it = names.begin(), it_end = names.end(); it != it_end; ++it)
       data_in_tmp->addName(*it);
   };

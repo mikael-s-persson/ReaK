@@ -60,7 +60,8 @@ struct data_stream_options {
     tab_separated,
     tcp_stream,
     udp_stream,
-    raw_udp_stream
+    raw_udp_stream,
+    vector_stream
   } kind; ///< Stores the kind of stream (format) to use.
   
   /**
