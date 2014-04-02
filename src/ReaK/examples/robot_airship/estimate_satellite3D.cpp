@@ -73,38 +73,64 @@ typedef cov_type::matrix_type cov_matrix_type;
 typedef ReaK::ctrl::satellite_model_options::state_belief_type  sat3D_state_belief_type;
 typedef ReaK::ctrl::satellite_model_options::input_belief_type  sat3D_input_belief_type;
 typedef ReaK::ctrl::satellite_model_options::output_belief_type sat3D_output_belief_type;
-  
 
 
-template <typename Sat3DSystemType>
-std::vector< std::pair< double, ReaK::vect_n<double> > > batch_KF_on_timeseries(
-    const std::vector< std::pair< double, sat3D_measurement_point > >& measurements,
-    const std::vector< std::pair< double, sat3D_state_type > >& ground_truth,
-    const Sat3DSystemType& sat_sys,
-    const sat3D_state_space_type& state_space,
-    sat3D_state_belief_type b,
-    sat3D_input_belief_type b_u,
-    sat3D_output_belief_type b_z,
-    std::size_t skips = 1) {
-  using namespace ReaK;
+
+struct sat3D_meas_true_from_vectors {
+  const std::vector< std::pair< double, sat3D_measurement_point > >* measurements;
+  const std::vector< std::pair< double, sat3D_state_type > >* ground_truth;
+  std::size_t skips;
   
-  std::vector< std::pair< double, vect_n<double> > > result_pts;
+  std::vector< std::pair< double, sat3D_measurement_point > >::const_iterator cur_meas;
+  std::vector< std::pair< double, sat3D_state_type > >::const_iterator cur_true;
   
-  std::vector< std::pair< double, sat3D_state_type > >::const_iterator it_orig = ground_truth.begin();
-  std::vector< std::pair< double, sat3D_measurement_point > >::const_iterator it = measurements.begin();
-  while( it != measurements.end() ) {
-    vect_n<double> z_vect(it->second.pose.size() + it->second.gyro.size() + it->second.IMU_a_m.size(), 0.0);
-    z_vect[range(0,6)] = it->second.pose;
-    if( it->second.gyro.size() ) {
-      z_vect[range(7,9)] = it->second.gyro;
-      if( it->second.IMU_a_m.size() )
-        z_vect[range(10,15)] = it->second.IMU_a_m;
+  double get_current_time() const { return cur_meas->first; };
+  const sat3D_measurement_point& get_current_measurement() const { return cur_meas->second; };
+  const sat3D_state_type* get_current_gnd_truth_ptr() const { 
+    if(ground_truth && ground_truth->size())
+      return &(cur_true->second); 
+    else
+      return NULL;
+  };
+  
+  bool step_once() {
+    for(std::size_t i = 0; i < skips; ++i) {
+      if( cur_meas != measurements->end() )
+        ++cur_meas;
+      else
+        return false;
+      if( ground_truth && cur_true != ground_truth->end() )
+        ++cur_true;
     };
-    b_z.set_mean_state(z_vect);
-    
-    b_u.set_mean_state(it->second.u);
-    
-    ctrl::invariant_kalman_filter_step(sat_sys, state_space, b, b_u, b_z, it->first);
+    return true;
+  };
+  
+  sat3D_meas_true_from_vectors(const std::vector< std::pair< double, sat3D_measurement_point > >* aMeasurements,
+                               const std::vector< std::pair< double, sat3D_state_type > >* aGroundTruth = NULL,
+                               std::size_t aSkips = 1) :
+                               measurements(aMeasurements), ground_truth(aGroundTruth), skips(aSkips) { 
+    cur_meas = measurements->begin();
+    if(ground_truth)
+      cur_true = ground_truth->begin();
+  };
+  
+  
+  
+  
+};
+
+
+struct sat3D_result_to_vector {
+  std::vector< std::pair< double, ReaK::vect_n<double> > >* data;
+  
+  sat3D_result_to_vector(std::vector< std::pair< double, ReaK::vect_n<double> > >* aData) : data(aData) { };
+  
+  void add_record(const sat3D_state_belief_type& b,
+                  const sat3D_input_belief_type& b_u, 
+                  const sat3D_output_belief_type& b_z,
+                  double time,
+                  const sat3D_state_type* true_state = NULL) {
+    using namespace ReaK;
     
     const sat3D_state_type& x_mean = b.get_mean_state();
     vect_n<double> result_vect(13 + 12 + 12, 0.0);
@@ -113,30 +139,167 @@ std::vector< std::pair< double, ReaK::vect_n<double> > > batch_KF_on_timeseries(
     result_vect[range(7,9)]   = get_velocity(x_mean);
     result_vect[range(10,12)] = get_ang_velocity(x_mean);
     
-    if( it_orig != ground_truth.end() ) {
-      axis_angle<double> aa_diff(invert(get_quaternion(x_mean).as_rotation()) * get_quaternion(it_orig->second).as_rotation());
-      result_vect[range(13,15)] = get_position(x_mean) - get_position(it_orig->second);
+    if( true_state ) {
+      axis_angle<double> aa_diff(invert(get_quaternion(x_mean).as_rotation()) * get_quaternion(*true_state).as_rotation());
+      result_vect[range(13,15)] = get_position(x_mean) - get_position(*true_state);
       result_vect[range(16,18)] = aa_diff.angle() * aa_diff.axis();
-      result_vect[range(19,21)] = get_velocity(x_mean) - get_velocity(it_orig->second);
-      result_vect[range(22,24)] = get_ang_velocity(x_mean) - get_ang_velocity(it_orig->second);
+      result_vect[range(19,21)] = get_velocity(x_mean) - get_velocity(*true_state);
+      result_vect[range(22,24)] = get_ang_velocity(x_mean) - get_ang_velocity(*true_state);
+    } else {
+      const vect_n<double>& z = b_z.get_mean_state();
+      axis_angle<double> aa_diff(invert(get_quaternion(x_mean).as_rotation()) * quaternion<double>(z[range(3,6)]));
+      result_vect[range(13,15)] = get_position(x_mean) - z[range(0,2)];
+      result_vect[range(16,18)] = aa_diff.angle() * aa_diff.axis();
+      result_vect[range(19,21)] = vect<double,3>(0.0,0.0,0.0);
+      if( z.size() >= 10 )
+        result_vect[range(22,24)] = get_ang_velocity(x_mean) - z[range(7,9)];
+      else
+        result_vect[range(22,24)] = vect<double,3>(0.0,0.0,0.0);
     };
     
     const cov_matrix_type& P_xx = b.get_covariance().get_matrix();
     for(std::size_t l = 0; l < 12; ++l)
       result_vect[l + 25] = P_xx(l,l);
     
-    result_pts.push_back(std::make_pair(it->first, result_vect));
+    data->push_back(std::make_pair(time, result_vect));
     
-    for(std::size_t i = 0; i < skips; ++i) {
-      if( it != measurements.end() )
-        ++it;
-      if( it_orig != ground_truth.end() )
-        ++it_orig;
-    };
   };
   
-  return result_pts;
 };
+
+
+
+template <typename MeasureProvider, typename ResultLogger, typename Sat3DSystemType>
+void batch_KF_on_timeseries(
+    MeasureProvider meas_provider, 
+    ResultLogger result_logger,
+    const Sat3DSystemType& sat_sys,
+    const sat3D_state_space_type& state_space,
+    sat3D_state_belief_type b,
+    sat3D_input_belief_type b_u,
+    sat3D_output_belief_type b_z) {
+  using namespace ReaK;
+  
+  do {
+    const sat3D_measurement_point& cur_meas = meas_provider.get_current_measurement();
+    vect_n<double> z_vect(cur_meas.pose.size() + cur_meas.gyro.size() + cur_meas.IMU_a_m.size(), 0.0);
+    z_vect[range(0,6)] = cur_meas.pose;
+    if( cur_meas.gyro.size() ) {
+      z_vect[range(7,9)] = cur_meas.gyro;
+      if( cur_meas.IMU_a_m.size() )
+        z_vect[range(10,15)] = cur_meas.IMU_a_m;
+    };
+    b_z.set_mean_state(z_vect);
+    b_u.set_mean_state(cur_meas.u);
+    
+    ctrl::invariant_kalman_filter_step(sat_sys, state_space, b, b_u, b_z, meas_provider.get_current_time());
+    
+    result_logger.add_record(b, b_u, b_z, meas_provider.get_current_time(), 
+                             meas_provider.get_current_gnd_truth_ptr());
+    
+  } while( meas_provider.step_once() );
+};
+
+
+
+
+template <typename MeasureProvider, typename ResultLogger, typename Sat3DSystemType>
+void batch_KF_no_meas_predict(
+    MeasureProvider meas_provider, 
+    ResultLogger result_logger,
+    const Sat3DSystemType& sat_sys,
+    const sat3D_state_space_type& state_space,
+    double start_time,
+    sat3D_state_belief_type b,
+    sat3D_input_belief_type b_u,
+    sat3D_output_belief_type b_z) {
+  using namespace ReaK;
+  
+  // filtering phase:
+  do {
+    const sat3D_measurement_point& cur_meas = meas_provider.get_current_measurement();
+    vect_n<double> z_vect(cur_meas.pose.size() + cur_meas.gyro.size() + cur_meas.IMU_a_m.size(), 0.0);
+    z_vect[range(0,6)] = cur_meas.pose;
+    if( cur_meas.gyro.size() ) {
+      z_vect[range(7,9)] = cur_meas.gyro;
+      if( cur_meas.IMU_a_m.size() )
+        z_vect[range(10,15)] = cur_meas.IMU_a_m;
+    };
+    b_z.set_mean_state(z_vect);
+    b_u.set_mean_state(cur_meas.u);
+    
+    ctrl::invariant_kalman_filter_step(sat_sys, state_space, b, b_u, b_z, meas_provider.get_current_time());
+    
+    result_logger.add_record(b, b_u, b_z, meas_provider.get_current_time(), 
+                             meas_provider.get_current_gnd_truth_ptr());
+    
+  } while( meas_provider.step_once() && ( meas_provider.get_current_time() < start_time ) );
+  
+  // prediction phase:
+  do {
+    b_u.set_mean_state(meas_provider.get_current_measurement().u);
+    
+    ctrl::invariant_kalman_predict(sat_sys, state_space, b, b_u, meas_provider.get_current_time());
+    
+    result_logger.add_record(b, b_u, b_z, meas_provider.get_current_time(), 
+                             meas_provider.get_current_gnd_truth_ptr());
+    
+  } while( meas_provider.step_once() );
+};
+
+
+
+
+template <typename MeasureProvider, typename ResultLogger, typename Sat3DSystemType>
+void batch_KF_ML_meas_predict(
+    MeasureProvider meas_provider, 
+    ResultLogger result_logger,
+    const Sat3DSystemType& sat_sys,
+    const sat3D_state_space_type& state_space,
+    double start_time,
+    sat3D_state_belief_type b,
+    sat3D_input_belief_type b_u,
+    sat3D_output_belief_type b_z) {
+  using namespace ReaK;
+  
+  // filtering phase:
+  do {
+    const sat3D_measurement_point& cur_meas = meas_provider.get_current_measurement();
+    vect_n<double> z_vect(cur_meas.pose.size() + cur_meas.gyro.size() + cur_meas.IMU_a_m.size(), 0.0);
+    z_vect[range(0,6)] = cur_meas.pose;
+    if( cur_meas.gyro.size() ) {
+      z_vect[range(7,9)] = cur_meas.gyro;
+      if( cur_meas.IMU_a_m.size() )
+        z_vect[range(10,15)] = cur_meas.IMU_a_m;
+    };
+    b_z.set_mean_state(z_vect);
+    b_u.set_mean_state(cur_meas.u);
+    
+    ctrl::invariant_kalman_filter_step(sat_sys, state_space, b, b_u, b_z, meas_provider.get_current_time());
+    
+    result_logger.add_record(b, b_u, b_z, meas_provider.get_current_time(), 
+                             meas_provider.get_current_gnd_truth_ptr());
+    
+  } while( meas_provider.step_once() && ( meas_provider.get_current_time() < start_time ) );
+  
+  // prediction phase:
+  do {
+    b_u.set_mean_state(meas_provider.get_current_measurement().u);
+    
+    ctrl::invariant_kalman_predict(sat_sys, state_space, b, b_u, meas_provider.get_current_time());
+    
+    // apply ML assumption:
+    b_z.set_mean_state(sat_sys.get_output(state_space, b.get_mean_state(), b_u.get_mean_state(), meas_provider.get_current_time()));
+    ctrl::invariant_kalman_update(sat_sys, state_space, b, b_u, b_z, meas_provider.get_current_time());
+    
+    result_logger.add_record(b, b_u, b_z, meas_provider.get_current_time(), 
+                             meas_provider.get_current_gnd_truth_ptr());
+    
+  } while( meas_provider.step_once() );
+};
+
+
+
 
 
 
@@ -269,8 +432,11 @@ void do_all_single_runs(
     
     b_u.set_covariance(cov_type(cov_matrix_type((1.0 / double(skips)) * Qu)));
     
-    std::vector< std::pair< double, vect_n<double> > > result_pts = 
-      batch_KF_on_timeseries(measurements, ground_truth, sat_sys, state_space, b, b_u, b_z, skips);
+    std::vector< std::pair< double, vect_n<double> > > result_pts;
+    batch_KF_on_timeseries(
+      sat3D_meas_true_from_vectors(&measurements, &ground_truth, skips),
+      sat3D_result_to_vector(&result_pts), 
+      sat_sys, state_space, b, b_u, b_z);
     
     std::stringstream ss;
     ss << "_" << std::setfill('0') << std::setw(4) << int(1000 * skips * sat_options.time_step) << "_" << sat_options.get_kf_accronym() << ".";
@@ -292,6 +458,59 @@ void do_all_single_runs(
   
 };
 
+
+
+template <typename Sat3DSystemType>
+void do_all_prediction_runs(
+    ReaK::recorder::data_stream_options output_opt,
+    const ReaK::ctrl::satellite_predictor_options& sat_options,
+    const std::vector< std::pair< double, sat3D_measurement_point > >& measurements,
+    const std::vector< std::pair< double, sat3D_state_type > >& ground_truth,
+    Sat3DSystemType& sat_sys,
+    const sat3D_state_space_type& state_space,
+    const sat3D_state_belief_type& b,
+    sat3D_input_belief_type b_u,
+    const sat3D_output_belief_type& b_z,
+    double start_intervals) {
+  using namespace ReaK;
+  
+  if(measurements.size() == 0)
+    return;
+  
+  cov_matrix_type Qu = b_u.get_covariance().get_matrix();
+  double end_time = (measurements.end()-1)->first;
+  
+  for(double start_time = measurements.begin()->first + start_intervals; start_time < end_time; start_time += start_intervals) {
+    std::vector< std::pair< double, vect_n<double> > > result_pts;
+    if(sat_options.predict_assumption == ctrl::satellite_predictor_options::no_measurements) {
+      batch_KF_no_meas_predict(
+        sat3D_meas_true_from_vectors(&measurements, &ground_truth),
+        sat3D_result_to_vector(&result_pts), 
+        sat_sys, state_space, start_time, b, b_u, b_z);
+    } else {
+      batch_KF_ML_meas_predict(
+        sat3D_meas_true_from_vectors(&measurements, &ground_truth),
+        sat3D_result_to_vector(&result_pts), 
+        sat_sys, state_space, start_time, b, b_u, b_z);
+    };
+    
+    std::stringstream ss;
+    ss << "_" << std::setfill('0') << std::setw(5) << int(100 * (start_time - measurements.begin()->first)) << "_" << sat_options.get_kf_accronym() << ".";
+    
+    recorder::data_stream_options cur_out_opt = output_opt;
+    cur_out_opt.file_name += ss.str() + cur_out_opt.get_extension();
+    sat_options.imbue_names_for_state_estimates(cur_out_opt);
+    shared_ptr< recorder::data_recorder > results = cur_out_opt.create_recorder();
+    for(std::size_t i = 0; i < result_pts.size(); ++i) {
+      (*results) << result_pts[i].first;
+      for(std::size_t j = 0; j < result_pts[i].second.size(); ++j)
+        (*results) << result_pts[i].second[j];
+      (*results) << recorder::data_recorder::end_value_row;
+    };
+    (*results) << recorder::data_recorder::flush;
+  };
+  
+};
 
 
 
@@ -319,8 +538,11 @@ void do_single_monte_carlo_run(
     
     b_u.set_covariance(cov_type(cov_matrix_type((1.0 / double(skips)) * Qu)));
     
-    std::vector< std::pair< double, vect_n<double> > > result_pts = 
-      batch_KF_on_timeseries(measurements, ground_truth, sat_sys, state_space, b, b_u, b_z, skips);
+    std::vector< std::pair< double, vect_n<double> > > result_pts;
+    batch_KF_on_timeseries(
+      sat3D_meas_true_from_vectors(&measurements, &ground_truth, skips),
+      sat3D_result_to_vector(&result_pts), 
+      sat_sys, state_space, b, b_u, b_z);
     
     std::vector< double > std_devs(28, 0.0);
     for(std::size_t i = 0; i < result_pts.size(); ++i) {
@@ -405,6 +627,8 @@ int main(int argc, char** argv) {
     ("mc-runs",      po::value< unsigned int >()->default_value(1000), "number of Monte-Carlo runs to perform (default is 1000)")
     ("min-skips",    po::value< unsigned int >()->default_value(1), "minimum number of time-step skips between estimations when generating a series of Monte-Carlo statistics (default is 1, i.e., one estimation point per measurement point)")
     ("max-skips",    po::value< unsigned int >()->default_value(1), "maximum number of time-step skips between estimations when generating a series of Monte-Carlo statistics (default is 1, i.e., one estimation point per measurement point)")
+    ("prediction-runs", "if set, will perform prediction runs instead of estimation runs")
+    ("prediction-interval", po::value< double >()->default_value(1.0), "time interval between new trials of the predictor on the data")
   ;
   
   po::options_description output_options("Output options (at least one must be set)");
@@ -468,9 +692,9 @@ int main(int argc, char** argv) {
   recorder::data_stream_options data_out_stem_opt = data_out_opt;
   data_out_stem_opt.file_name = output_stem_name;
   
-  ctrl::satellite_model_options sat_options;
+  ctrl::satellite_predictor_options sat_options;
   try {
-    sat_options = ctrl::get_satellite_model_options_from_po(vm);
+    sat_options = ctrl::get_satellite_predictor_options_from_po(vm);
   } catch(std::exception& e) {
     std::cerr << "Error! Creation of satellite modeling options failed! With exception: " << e.what() << std::endl;
     return 2;
@@ -680,12 +904,21 @@ int main(int argc, char** argv) {
       
       // do a single run for each skips:
       
-      std::cout << "Running estimator on data series.." << std::flush;
-      
-      do_all_single_runs(data_out_stem_opt, sat_options, measurements, ground_truth, *satellite3D_system, 
-                         sat_space->get_space_topology(), b_init, b_u, b_z, min_skips, max_skips);
-      
-      std::cout << "." << std::flush;
+      if(!vm.count("prediction-runs")) {
+        std::cout << "Running estimator on data series.." << std::flush;
+        
+        do_all_single_runs(data_out_stem_opt, sat_options, measurements, ground_truth, *satellite3D_system, 
+                          sat_space->get_space_topology(), b_init, b_u, b_z, min_skips, max_skips);
+        
+        std::cout << "." << std::flush;
+      } else {
+        std::cout << "Running predictor on data series.." << std::flush;
+        
+        do_all_prediction_runs(data_out_stem_opt, sat_options, measurements, ground_truth, *satellite3D_system, 
+                               sat_space->get_space_topology(), b_init, b_u, b_z, vm["prediction-interval"].as<double>());
+        
+        std::cout << "." << std::flush;
+      };
       
       std::cout << "Finished!" << std::endl;
       
@@ -770,12 +1003,21 @@ int main(int argc, char** argv) {
       
       // do a single run for each skips:
       
-      std::cout << "Running estimators on data series.." << std::flush;
-      
-      do_all_single_runs(data_out_stem_opt, sat_options, measurements, ground_truth, *satellite3D_system, 
-                         sat_space->get_space_topology(), b_init, b_u, b_z, min_skips, max_skips);
-      
-      std::cout << "." << std::flush;
+      if(!vm.count("prediction-runs")) {
+        std::cout << "Running estimator on data series.." << std::flush;
+        
+        do_all_single_runs(data_out_stem_opt, sat_options, measurements, ground_truth, *satellite3D_system, 
+                          sat_space->get_space_topology(), b_init, b_u, b_z, min_skips, max_skips);
+        
+        std::cout << "." << std::flush;
+      } else {
+        std::cout << "Running predictor on data series.." << std::flush;
+        
+        do_all_prediction_runs(data_out_stem_opt, sat_options, measurements, ground_truth, *satellite3D_system, 
+                               sat_space->get_space_topology(), b_init, b_u, b_z, vm["prediction-interval"].as<double>());
+        
+        std::cout << "." << std::flush;
+      };
       
       std::cout << "Finished!" << std::endl;
       
@@ -859,14 +1101,21 @@ int main(int argc, char** argv) {
       
       // do a single run for each skips:
       
-      std::cout << "Running estimators on data series.." << std::flush;
-      
-      std::cout << "." << std::flush;
-      
-      do_all_single_runs(data_out_stem_opt, sat_options, measurements, ground_truth, *satellite3D_system, 
-                         sat_space->get_space_topology(), b_init, b_u, b_z, min_skips, max_skips);
-      
-      std::cout << "." << std::flush;
+      if(!vm.count("prediction-runs")) {
+        std::cout << "Running estimator on data series.." << std::flush;
+        
+        do_all_single_runs(data_out_stem_opt, sat_options, measurements, ground_truth, *satellite3D_system, 
+                          sat_space->get_space_topology(), b_init, b_u, b_z, min_skips, max_skips);
+        
+        std::cout << "." << std::flush;
+      } else {
+        std::cout << "Running predictor on data series.." << std::flush;
+        
+        do_all_prediction_runs(data_out_stem_opt, sat_options, measurements, ground_truth, *satellite3D_system, 
+                               sat_space->get_space_topology(), b_init, b_u, b_z, vm["prediction-interval"].as<double>());
+        
+        std::cout << "." << std::flush;
+      };
       
       std::cout << "Finished!" << std::endl;
       
