@@ -115,15 +115,16 @@ struct sat3D_meas_true_from_vectors {
   };
   
   
-  
-  
 };
 
 
-struct sat3D_result_to_vector {
-  std::vector< std::pair< double, ReaK::vect_n<double> > >* data;
+struct sat3D_estimate_result_to_recorder {
+  ReaK::shared_ptr< ReaK::recorder::data_recorder > rec;
   
-  sat3D_result_to_vector(std::vector< std::pair< double, ReaK::vect_n<double> > >* aData) : data(aData) { };
+  sat3D_estimate_result_to_recorder(const ReaK::shared_ptr< ReaK::recorder::data_recorder >& aRec) : rec(aRec) { };
+  
+  void initialize() { };
+  void finalize() { };
   
   void add_record(const sat3D_state_belief_type& b,
                   const sat3D_input_belief_type& b_u, 
@@ -133,39 +134,101 @@ struct sat3D_result_to_vector {
     using namespace ReaK;
     
     const sat3D_state_type& x_mean = b.get_mean_state();
-    vect_n<double> result_vect(13 + 12 + 12, 0.0);
-    result_vect[range(0,2)]   = get_position(x_mean);
-    result_vect[range(3,6)]   = get_quaternion(x_mean);
-    result_vect[range(7,9)]   = get_velocity(x_mean);
-    result_vect[range(10,12)] = get_ang_velocity(x_mean);
+    (*rec) << time 
+           << get_position(x_mean) << get_quaternion(x_mean)
+           << get_velocity(x_mean) << get_ang_velocity(x_mean);
     
     if( true_state ) {
       axis_angle<double> aa_diff(invert(get_quaternion(x_mean).as_rotation()) * get_quaternion(*true_state).as_rotation());
-      result_vect[range(13,15)] = get_position(x_mean) - get_position(*true_state);
-      result_vect[range(16,18)] = aa_diff.angle() * aa_diff.axis();
-      result_vect[range(19,21)] = get_velocity(x_mean) - get_velocity(*true_state);
-      result_vect[range(22,24)] = get_ang_velocity(x_mean) - get_ang_velocity(*true_state);
+      (*rec) << (get_position(x_mean) - get_position(*true_state)) 
+             << (aa_diff.angle() * aa_diff.axis())
+             << (get_velocity(x_mean) - get_velocity(*true_state))
+             << (get_ang_velocity(x_mean) - get_ang_velocity(*true_state));
     } else {
       const vect_n<double>& z = b_z.get_mean_state();
       axis_angle<double> aa_diff(invert(get_quaternion(x_mean).as_rotation()) * quaternion<double>(z[range(3,6)]));
-      result_vect[range(13,15)] = get_position(x_mean) - z[range(0,2)];
-      result_vect[range(16,18)] = aa_diff.angle() * aa_diff.axis();
-      result_vect[range(19,21)] = vect<double,3>(0.0,0.0,0.0);
+      (*rec) << (get_position(x_mean) - z[range(0,2)]) 
+             << (aa_diff.angle() * aa_diff.axis())
+             << vect<double,3>(0.0,0.0,0.0);
       if( z.size() >= 10 )
-        result_vect[range(22,24)] = get_ang_velocity(x_mean) - z[range(7,9)];
+        (*rec) << (get_ang_velocity(x_mean) - z[range(7,9)]);
       else
-        result_vect[range(22,24)] = vect<double,3>(0.0,0.0,0.0);
+        (*rec) << vect<double,3>(0.0,0.0,0.0);
     };
     
     const cov_matrix_type& P_xx = b.get_covariance().get_matrix();
     for(std::size_t l = 0; l < 12; ++l)
-      result_vect[l + 25] = P_xx(l,l);
+      (*rec) << P_xx(l,l);
     
-    data->push_back(std::make_pair(time, result_vect));
-    
+    (*rec) << recorder::data_recorder::end_value_row;
   };
   
 };
+
+
+
+struct sat3D_collect_stddevs {
+  ReaK::vect_n< double > stddevs;
+  std::size_t counter;
+  ReaK::shared_ptr< ReaK::recorder::data_recorder > rec;
+  
+  sat3D_collect_stddevs(const ReaK::shared_ptr< ReaK::recorder::data_recorder >& aRec) : stddevs(28, 0.0), counter(0), rec(aRec) { };
+  
+  void initialize() { 
+    stddevs = ReaK::vect_n< double >(28, 0.0);
+    counter = 0;
+  };
+  
+  void finalize() {
+    for(std::size_t j = 0; j < 28; ++j)
+      (*rec) << std::sqrt(stddevs[j]); // turn variances into std-devs.
+    (*rec) << ReaK::recorder::data_recorder::end_value_row << ReaK::recorder::data_recorder::flush;
+  };
+  
+  void add_record(const sat3D_state_belief_type& b,
+                  const sat3D_input_belief_type& b_u, 
+                  const sat3D_output_belief_type& b_z,
+                  double time,
+                  const sat3D_state_type* true_state = NULL) {
+    using namespace ReaK;
+    
+    const sat3D_state_type& x_mean = b.get_mean_state();
+    vect<double,3> pos_err, aa_err, vel_err, ang_vel_err;
+    if( true_state ) {
+      axis_angle<double> aa_diff(invert(get_quaternion(x_mean).as_rotation()) * get_quaternion(*true_state).as_rotation());
+      pos_err     = get_position(x_mean) - get_position(*true_state);
+      aa_err      = aa_diff.angle() * aa_diff.axis();
+      vel_err     = get_velocity(x_mean) - get_velocity(*true_state);
+      ang_vel_err = get_ang_velocity(x_mean) - get_ang_velocity(*true_state);
+    } else {
+      const vect_n<double>& z = b_z.get_mean_state();
+      axis_angle<double> aa_diff(invert(get_quaternion(x_mean).as_rotation()) * quaternion<double>(z[range(3,6)]));
+      pos_err     = get_position(x_mean) - z[range(0,2)];
+      aa_err      = aa_diff.angle() * aa_diff.axis();
+      vel_err     = vect<double,3>(0.0,0.0,0.0);
+      if( z.size() >= 10 )
+        ang_vel_err = get_ang_velocity(x_mean) - z[range(7,9)];
+      else
+        ang_vel_err = vect<double,3>(0.0,0.0,0.0);
+    };
+    stddevs[range(0,2)]  = ( counter * stddevs[range(0,2)] + elem_product(pos_err, pos_err) ) / (counter + 1);
+    stddevs[range(3,5)]  = ( counter * stddevs[range(3,5)] + elem_product(aa_err, aa_err) ) / (counter + 1);
+    stddevs[range(6,8)]  = ( counter * stddevs[range(6,8)] + elem_product(vel_err, vel_err) ) / (counter + 1);
+    stddevs[range(9,11)] = ( counter * stddevs[range(9,11)] + elem_product(ang_vel_err, ang_vel_err) ) / (counter + 1);
+    
+    stddevs[12] = ( counter * stddevs[12] + pos_err * pos_err ) / (counter + 1);
+    stddevs[13] = ( counter * stddevs[13] + aa_err * aa_err ) / (counter + 1);
+    stddevs[14] = ( counter * stddevs[14] + vel_err * vel_err ) / (counter + 1);
+    stddevs[15] = ( counter * stddevs[15] + ang_vel_err * ang_vel_err ) / (counter + 1);
+    
+    const cov_matrix_type& P_xx = b.get_covariance().get_matrix();
+    for(std::size_t l = 0; l < 12; ++l)
+      stddevs[l + 16] = ( counter * stddevs[l + 16] + P_xx(l,l) ) / (counter + 1);
+    
+    ++counter;
+  };
+};
+
 
 
 
@@ -179,6 +242,8 @@ void batch_KF_on_timeseries(
     sat3D_input_belief_type b_u,
     sat3D_output_belief_type b_z) {
   using namespace ReaK;
+  
+  result_logger.initialize();
   
   do {
     const sat3D_measurement_point& cur_meas = meas_provider.get_current_measurement();
@@ -198,6 +263,8 @@ void batch_KF_on_timeseries(
                              meas_provider.get_current_gnd_truth_ptr());
     
   } while( meas_provider.step_once() );
+  
+  result_logger.finalize();
 };
 
 
@@ -320,78 +387,46 @@ void generate_timeseries(
   ground_truth.clear();
   
   double time_step = sat_sys.get_time_step();
-  std::vector< double > std_devs(R.get_row_count() + R.get_row_count() / 3, 0.0);
+  vect_n< double > std_devs(R.get_row_count() + R.get_row_count() / 3, 0.0);
   for(double t = start_time; t < end_time; t += time_step) {
     vect_n<double> u = ctrl::sample_gaussian_point(vect_n<double>(6, 0.0), Qu);
     
     x = sat_sys.get_next_state(state_space, x, u, t);
-    vect_n<double> y = sat_sys.get_output(state_space, x, u, t);
-    
     ground_truth.push_back(std::make_pair(t, x));
+    
+    vect_n<double> y       = sat_sys.get_output(state_space, x, u, t);
+    vect_n<double> y_noise = ctrl::sample_gaussian_point(sat_sys.get_invariant_error(state_space, x, u, y, t), R);
     
     sat3D_measurement_point meas;
     meas.u = vect_n<double>(6, 0.0);
     meas.pose = vect_n<double>(7, 0.0);
-    meas.pose[0] = y[0] + var_rnd() * sqrt(R(0,0));
-    meas.pose[1] = y[1] + var_rnd() * sqrt(R(1,1));
-    meas.pose[2] = y[2] + var_rnd() * sqrt(R(2,2));
+    meas.pose[range(0,2)] = y[range(0,2)] + y_noise[range(0,2)];
     
-    vect<double,3> aa_vect_noise(var_rnd() * sqrt(R(3,3)), var_rnd() * sqrt(R(4,4)), var_rnd() * sqrt(R(5,5)));
-    axis_angle<double> aa_noise(norm_2(aa_vect_noise), aa_vect_noise);
-    quaternion<double> y_quat(vect<double,4>(y[3],y[4],y[5],y[6]));
-    y_quat *= aa_noise.getQuaternion();
+    vect<double,3> aa_noise(y_noise[3],y_noise[4],y_noise[5]);
+    quaternion<double> y_quat(y[range(3,6)]);
+    y_quat *= axis_angle<double>(norm_2(aa_noise), aa_noise).getQuaternion();
     meas.pose[range(3,6)] = vect<double,4>(y_quat[0], y_quat[1], y_quat[2], y_quat[3]);
     
     std::size_t k = ground_truth.size();
     if( stat_results ) {
-      std_devs[0] = ( ( k - 1 ) * std_devs[0] + (meas.pose[0] - y[0]) * (meas.pose[0] - y[0]) ) / k;
-      std_devs[1] = ( ( k - 1 ) * std_devs[1] + (meas.pose[1] - y[1]) * (meas.pose[1] - y[1]) ) / k;
-      std_devs[2] = ( ( k - 1 ) * std_devs[2] + (meas.pose[2] - y[2]) * (meas.pose[2] - y[2]) ) / k;
-      std_devs[3] = ( ( k - 1 ) * std_devs[3] + aa_vect_noise[0] * aa_vect_noise[0] ) / k;
-      std_devs[4] = ( ( k - 1 ) * std_devs[4] + aa_vect_noise[1] * aa_vect_noise[1] ) / k;
-      std_devs[5] = ( ( k - 1 ) * std_devs[5] + aa_vect_noise[2] * aa_vect_noise[2] ) / k;
-      
-      std_devs[6] = ( ( k - 1 ) * std_devs[6] + ( (meas.pose[0] - y[0]) * (meas.pose[0] - y[0])
-                                                + (meas.pose[1] - y[1]) * (meas.pose[1] - y[1])
-                                                + (meas.pose[2] - y[2]) * (meas.pose[2] - y[2]) ) ) / k;
-      std_devs[7] = ( ( k - 1 ) * std_devs[7] + norm_2_sqr(aa_vect_noise) ) / k;
+      std_devs[range(0,5)] = ( ( k - 1 ) * std_devs[range(0,5)] + elem_product(y_noise[range(0,5)], y_noise[range(0,5)]) ) / k;
+      std_devs[6] = ( ( k - 1 ) * std_devs[6] + norm_2_sqr(y_noise[range(0,2)]) ) / k;
+      std_devs[7] = ( ( k - 1 ) * std_devs[7] + norm_2_sqr(aa_noise) ) / k;
     };
     
     if( y.size() >= 10 ) {
-      meas.gyro = y[range(7,9)];
-      meas.gyro[0] += var_rnd() * sqrt(R(6,6));
-      meas.gyro[1] += var_rnd() * sqrt(R(7,7));
-      meas.gyro[2] += var_rnd() * sqrt(R(8,8));
+      meas.gyro = y[range(7,9)] + y_noise[range(6,8)];
       if( stat_results ) {
-        std_devs[8]  = ( ( k - 1 ) * std_devs[8] + (meas.gyro[0] - y[7]) * (meas.gyro[0] - y[7]) ) / k;
-        std_devs[9]  = ( ( k - 1 ) * std_devs[9] + (meas.gyro[1] - y[8]) * (meas.gyro[1] - y[8]) ) / k;
-        std_devs[10] = ( ( k - 1 ) * std_devs[10] + (meas.gyro[2] - y[9]) * (meas.gyro[2] - y[9]) ) / k;
-        std_devs[11] = ( ( k - 1 ) * std_devs[11] + ( (meas.gyro[0] - y[7]) * (meas.gyro[0] - y[7])
-                                                    + (meas.gyro[1] - y[8]) * (meas.gyro[1] - y[8])
-                                                    + (meas.gyro[2] - y[9]) * (meas.gyro[2] - y[9]) ) ) / k;
+        std_devs[range(8,10)]  = ( ( k - 1 ) * std_devs[range(8,10)] + elem_product(y_noise[range(6,8)], y_noise[range(6,8)]) ) / k;
+        std_devs[11] = ( ( k - 1 ) * std_devs[11] + norm_2_sqr(y_noise[range(6,8)]) ) / k;
       };
       if( y.size() >= 16 ) {
-        meas.IMU_a_m = y[range(10,15)];
-        meas.IMU_a_m[0] += var_rnd() * sqrt(R(9,9));
-        meas.IMU_a_m[1] += var_rnd() * sqrt(R(10,10));
-        meas.IMU_a_m[2] += var_rnd() * sqrt(R(11,11));
-        meas.IMU_a_m[3] += var_rnd() * sqrt(R(12,12));
-        meas.IMU_a_m[4] += var_rnd() * sqrt(R(13,13));
-        meas.IMU_a_m[5] += var_rnd() * sqrt(R(14,14));
+        meas.IMU_a_m = y[range(10,15)] + y_noise[range(9,14)];
         if( stat_results ) {
-          std_devs[12] = ( ( k - 1 ) * std_devs[12] + (meas.IMU_a_m[0] - y[10]) * (meas.IMU_a_m[0] - y[10]) ) / k;
-          std_devs[13] = ( ( k - 1 ) * std_devs[13] + (meas.IMU_a_m[1] - y[11]) * (meas.IMU_a_m[1] - y[11]) ) / k;
-          std_devs[14] = ( ( k - 1 ) * std_devs[14] + (meas.IMU_a_m[2] - y[12]) * (meas.IMU_a_m[2] - y[12]) ) / k;
-          std_devs[16] = ( ( k - 1 ) * std_devs[16] + (meas.IMU_a_m[3] - y[13]) * (meas.IMU_a_m[3] - y[13]) ) / k;
-          std_devs[17] = ( ( k - 1 ) * std_devs[17] + (meas.IMU_a_m[4] - y[14]) * (meas.IMU_a_m[4] - y[14]) ) / k;
-          std_devs[18] = ( ( k - 1 ) * std_devs[18] + (meas.IMU_a_m[5] - y[15]) * (meas.IMU_a_m[5] - y[15]) ) / k;
-          
-          std_devs[15] = ( ( k - 1 ) * std_devs[15] + ( (meas.IMU_a_m[0] - y[10]) * (meas.IMU_a_m[0] - y[10])
-                                                      + (meas.IMU_a_m[1] - y[11]) * (meas.IMU_a_m[1] - y[11])
-                                                      + (meas.IMU_a_m[2] - y[12]) * (meas.IMU_a_m[2] - y[12]) ) ) / k;
-          std_devs[19] = ( ( k - 1 ) * std_devs[19] + ( (meas.IMU_a_m[3] - y[13]) * (meas.IMU_a_m[3] - y[13])
-                                                      + (meas.IMU_a_m[4] - y[14]) * (meas.IMU_a_m[4] - y[14])
-                                                      + (meas.IMU_a_m[5] - y[15]) * (meas.IMU_a_m[5] - y[15]) ) ) / k;
+          std_devs[range(12,14)]  = ( ( k - 1 ) * std_devs[range(12,14)] + elem_product(y_noise[range(9,11)], y_noise[range(9,11)]) ) / k;
+          std_devs[15] = ( ( k - 1 ) * std_devs[15] + norm_2_sqr(y_noise[range(9,11)]) ) / k;
+          std_devs[range(16,18)]  = ( ( k - 1 ) * std_devs[range(16,18)] + elem_product(y_noise[range(12,14)], y_noise[range(12,14)]) ) / k;
+          std_devs[19] = ( ( k - 1 ) * std_devs[19] + norm_2_sqr(y_noise[range(12,14)]) ) / k;
         };
       };
     };
@@ -432,26 +467,17 @@ void do_all_single_runs(
     
     b_u.set_covariance(cov_type(cov_matrix_type((1.0 / double(skips)) * Qu)));
     
-    std::vector< std::pair< double, vect_n<double> > > result_pts;
-    batch_KF_on_timeseries(
-      sat3D_meas_true_from_vectors(&measurements, &ground_truth, skips),
-      sat3D_result_to_vector(&result_pts), 
-      sat_sys, state_space, b, b_u, b_z);
-    
     std::stringstream ss;
     ss << "_" << std::setfill('0') << std::setw(4) << int(1000 * skips * sat_options.time_step) << "_" << sat_options.get_kf_accronym() << ".";
-    
     recorder::data_stream_options cur_out_opt = output_opt;
     cur_out_opt.file_name += ss.str() + cur_out_opt.get_extension();
     sat_options.imbue_names_for_state_estimates(cur_out_opt);
-    shared_ptr< recorder::data_recorder > results = cur_out_opt.create_recorder();
-    for(std::size_t i = 0; i < result_pts.size(); ++i) {
-      (*results) << result_pts[i].first;
-      for(std::size_t j = 0; j < result_pts[i].second.size(); ++j)
-        (*results) << result_pts[i].second[j];
-      (*results) << recorder::data_recorder::end_value_row;
-    };
-    (*results) << recorder::data_recorder::flush;
+    
+    batch_KF_on_timeseries(
+      sat3D_meas_true_from_vectors(&measurements, &ground_truth, skips),
+      sat3D_estimate_result_to_recorder(cur_out_opt.create_recorder()), 
+      sat_sys, state_space, b, b_u, b_z);
+    
   };
   
   sat_sys.set_time_step(sat_options.time_step);
@@ -481,33 +507,23 @@ void do_all_prediction_runs(
   double end_time = (measurements.end()-1)->first;
   
   for(double start_time = measurements.begin()->first + start_intervals; start_time < end_time; start_time += start_intervals) {
-    std::vector< std::pair< double, vect_n<double> > > result_pts;
+    std::stringstream ss;
+    ss << "_" << std::setfill('0') << std::setw(5) << int(100 * (start_time - measurements.begin()->first)) << "_" << sat_options.get_kf_accronym() << ".";
+    recorder::data_stream_options cur_out_opt = output_opt;
+    cur_out_opt.file_name += ss.str() + cur_out_opt.get_extension();
+    sat_options.imbue_names_for_state_estimates(cur_out_opt);
+    
     if(sat_options.predict_assumption == ctrl::satellite_predictor_options::no_measurements) {
       batch_KF_no_meas_predict(
         sat3D_meas_true_from_vectors(&measurements, &ground_truth),
-        sat3D_result_to_vector(&result_pts), 
+        sat3D_estimate_result_to_recorder(cur_out_opt.create_recorder()), 
         sat_sys, state_space, start_time, b, b_u, b_z);
     } else {
       batch_KF_ML_meas_predict(
         sat3D_meas_true_from_vectors(&measurements, &ground_truth),
-        sat3D_result_to_vector(&result_pts), 
+        sat3D_estimate_result_to_recorder(cur_out_opt.create_recorder()), 
         sat_sys, state_space, start_time, b, b_u, b_z);
     };
-    
-    std::stringstream ss;
-    ss << "_" << std::setfill('0') << std::setw(5) << int(100 * (start_time - measurements.begin()->first)) << "_" << sat_options.get_kf_accronym() << ".";
-    
-    recorder::data_stream_options cur_out_opt = output_opt;
-    cur_out_opt.file_name += ss.str() + cur_out_opt.get_extension();
-    sat_options.imbue_names_for_state_estimates(cur_out_opt);
-    shared_ptr< recorder::data_recorder > results = cur_out_opt.create_recorder();
-    for(std::size_t i = 0; i < result_pts.size(); ++i) {
-      (*results) << result_pts[i].first;
-      for(std::size_t j = 0; j < result_pts[i].second.size(); ++j)
-        (*results) << result_pts[i].second[j];
-      (*results) << recorder::data_recorder::end_value_row;
-    };
-    (*results) << recorder::data_recorder::flush;
   };
   
 };
@@ -538,45 +554,6 @@ void do_single_monte_carlo_run(
     
     b_u.set_covariance(cov_type(cov_matrix_type((1.0 / double(skips)) * Qu)));
     
-    std::vector< std::pair< double, vect_n<double> > > result_pts;
-    batch_KF_on_timeseries(
-      sat3D_meas_true_from_vectors(&measurements, &ground_truth, skips),
-      sat3D_result_to_vector(&result_pts), 
-      sat_sys, state_space, b, b_u, b_z);
-    
-    std::vector< double > std_devs(28, 0.0);
-    for(std::size_t i = 0; i < result_pts.size(); ++i) {
-      
-      // state vector component errors:
-      for(std::size_t j = 13; j < 25; ++j)
-        std_devs[j - 13] = ( i * std_devs[j - 13] + result_pts[i].second[j] * result_pts[i].second[j] ) / (i + 1);
-      
-      // position distance error:
-      std_devs[12] = ( i * std_devs[12] + ( result_pts[i].second[13] * result_pts[i].second[13]
-                                          + result_pts[i].second[14] * result_pts[i].second[14]
-                                          + result_pts[i].second[15] * result_pts[i].second[15] ) ) / (i + 1);
-      
-      // rotation angle error:
-      std_devs[13] = ( i * std_devs[13] + ( result_pts[i].second[16] * result_pts[i].second[16]
-                                          + result_pts[i].second[17] * result_pts[i].second[17]
-                                          + result_pts[i].second[18] * result_pts[i].second[18] ) ) / (i + 1);
-      
-      // speed error:
-      std_devs[14] = ( i * std_devs[14] + ( result_pts[i].second[19] * result_pts[i].second[19]
-                                          + result_pts[i].second[20] * result_pts[i].second[20]
-                                          + result_pts[i].second[21] * result_pts[i].second[21] ) ) / (i + 1);
-      
-      // angular speed error:
-      std_devs[15] = ( i * std_devs[15] + ( result_pts[i].second[22] * result_pts[i].second[22]
-                                          + result_pts[i].second[23] * result_pts[i].second[23]
-                                          + result_pts[i].second[24] * result_pts[i].second[24] ) ) / (i + 1);
-      
-      // average estimated covariances:
-      for(std::size_t j = 25; j < 37; ++j)
-        std_devs[j - 25 + 16] = ( i * std_devs[j - 25 + 16] + result_pts[i].second[j] ) / (i + 1);
-      
-    };
-    
     std::stringstream ss;
     ss << "_" << std::setfill('0') << std::setw(4) << int(1000 * skips * sat_options.time_step) << "_" << sat_options.get_kf_accronym();
     std::string file_middle = ss.str();
@@ -588,16 +565,132 @@ void do_single_monte_carlo_run(
       results = cur_out_opt.create_recorder();
     };
     
-    for(std::size_t j = 0; j < 18; ++j)
-      (*results) << std::sqrt(std_devs[j]); // turn variances into std-devs.
-    (*results) << recorder::data_recorder::end_value_row << recorder::data_recorder::flush;
+    batch_KF_on_timeseries(
+      sat3D_meas_true_from_vectors(&measurements, &ground_truth, skips),
+      sat3D_collect_stddevs(results), 
+      sat_sys, state_space, b, b_u, b_z);
     
   };
   
   sat_sys.set_time_step(sat_options.time_step);
   
+};
+
+
+template <typename Sat3DSystemType>
+void get_timeseries_from_rec(
+    const ReaK::shared_ptr< ReaK::recorder::data_extractor >& data_in,
+    const std::vector<std::string>& names_in,
+    const ReaK::ctrl::satellite_model_options& sat_options,
+    std::vector< std::pair< double, sat3D_measurement_point > >& measurements,
+    std::vector< std::pair< double, sat3D_state_type > >& ground_truth,
+    const Sat3DSystemType& sat_sys,
+    const sat3D_state_space_type& state_space ) {
+  using namespace ReaK;
+  
+  measurements.clear();
+  ground_truth.clear();
+  
+  double RAq0 = (sat_options.artificial_noise(3,3) + sat_options.artificial_noise(4,4) + sat_options.artificial_noise(5,5)) / 12.0;
+  
+  try {
+    recorder::named_value_row nvr_in = data_in->getFreshNamedValueRow();
+    while(true) {
+      (*data_in) >> nvr_in;
+      
+      double t = nvr_in[ names_in[0] ];
+      vect_n<double> meas(names_in.size(), 0.0);
+      for(std::size_t i = 1; i < names_in.size(); ++i)
+        meas[i] = nvr_in[ names_in[i] ];
+      
+      sat3D_measurement_point meas_actual, meas_noisy;
+      
+      /* read off the position-orientation measurements. */
+      if(meas.size() < 7)
+        throw std::invalid_argument("The measurement file does not even contain the position and quaternion measurements!");
+      
+      std::size_t i_off = 0;
+      meas_actual.pose = meas[range(0,6)];
+      meas_noisy.pose = meas_actual.pose;
+      if( sat_options.artificial_noise.get_row_count() >= 6 ) {
+        meas_noisy.pose += vect_n<double>(
+          var_rnd() * sqrt(sat_options.artificial_noise(0,0)),
+          var_rnd() * sqrt(sat_options.artificial_noise(1,1)),
+          var_rnd() * sqrt(sat_options.artificial_noise(2,2)),
+          var_rnd() * sqrt(RAq0),
+          var_rnd() * sqrt(0.25 * sat_options.artificial_noise(3,3)),
+          var_rnd() * sqrt(0.25 * sat_options.artificial_noise(4,4)),
+          var_rnd() * sqrt(0.25 * sat_options.artificial_noise(5,5))
+        );
+      };
+      i_off += 7;
+      
+      /* read off the IMU/gyro angular velocity measurements. */
+      if( sat_options.get_meas_error_count() >= 9 ) {
+        if(meas.size() < i_off + 3)
+          throw std::invalid_argument("The measurement file does not contain the angular velocity measurements!");
+        meas_actual.gyro = meas[range(i_off, i_off + 2)];
+        meas_noisy.gyro  = meas_actual.gyro;
+        if( sat_options.artificial_noise.get_row_count() >= 9 ) {
+          meas_noisy.gyro += vect_n<double>(
+            var_rnd() * sqrt(sat_options.artificial_noise(6,6)),
+            var_rnd() * sqrt(sat_options.artificial_noise(7,7)),
+            var_rnd() * sqrt(sat_options.artificial_noise(8,8))
+          );
+        };
+        i_off += 3;
+      };
+      
+      /* read off the IMU accel-mag measurements. */
+      if( sat_options.get_meas_error_count() >= 15 ) {
+        if(meas.size() < i_off + 6)
+          throw std::invalid_argument("The measurement file does not contain the accelerometer and magnetometer measurements!");
+        meas_actual.IMU_a_m = meas[range(i_off, i_off + 5)];
+        meas_noisy.IMU_a_m  = meas_actual.IMU_a_m;
+        if( sat_options.artificial_noise.get_row_count() >= 15 ) {
+          meas_noisy.IMU_a_m += vect_n<double>(
+            var_rnd() * sqrt(sat_options.artificial_noise( 9, 9)),
+            var_rnd() * sqrt(sat_options.artificial_noise(10,10)),
+            var_rnd() * sqrt(sat_options.artificial_noise(11,11)),
+            var_rnd() * sqrt(sat_options.artificial_noise(12,12)),
+            var_rnd() * sqrt(sat_options.artificial_noise(13,13)),
+            var_rnd() * sqrt(sat_options.artificial_noise(14,14))
+          );
+        };
+        i_off += 6;
+      };
+      
+      /* read off the input vector. */
+      if(meas.size() < i_off + 6)
+        throw std::invalid_argument("The measurement file does not contain the input force-torque vector measurements!");
+      meas_actual.u = meas[range(i_off, i_off + 6)];
+      meas_noisy.u  = meas_actual.u;
+      
+      /* now, the meas_actual and meas_noisy are fully formed. */
+      measurements.push_back( std::make_pair(t, meas_noisy) );
+      
+      /* check if the file contains a ground-truth: */
+      if(meas.size() >= i_off + 7) {
+        sat3D_state_type x;
+        set_position(x, vect<double,3>(meas[range(i_off, i_off + 3)]));
+        set_quaternion(x, unit_quat<double>(meas[i_off + 3],meas[i_off + 4],meas[i_off + 5],meas[i_off + 6]));
+        if(meas.size() >= 13) {
+          set_velocity(x, vect<double,3>(meas[i_off + 7],meas[i_off + 8],meas[i_off + 9]));
+          set_ang_velocity(x, vect<double,3>(meas[i_off + 10],meas[i_off + 11],meas[i_off + 12]));
+        };
+        ground_truth.push_back( std::make_pair(t, x) );
+      } else if( sat_options.artificial_noise.get_row_count() >= 6 ) {
+        sat3D_state_type x;
+        set_position(x, vect<double,3>(meas_actual.pose[0],meas_actual.pose[1],meas_actual.pose[2]));
+        set_quaternion(x, unit_quat<double>(meas_actual.pose[3],meas_actual.pose[4],meas_actual.pose[5],meas_actual.pose[6]));
+        ground_truth.push_back( std::make_pair(t, x) );
+      };
+      
+    };
+  } catch(recorder::end_of_record&) { };
   
 };
+
 
 
 
@@ -728,8 +821,29 @@ int main(int argc, char** argv) {
   unsigned int min_skips  = vm["min-skips"].as<unsigned int>();
   unsigned int max_skips  = vm["max-skips"].as<unsigned int>();
   
-  double RAq0 = (sat_options.artificial_noise(3,3) + sat_options.artificial_noise(4,4) + sat_options.artificial_noise(5,5)) / 12.0;
   
+  shared_ptr< sat3D_temp_space_type > sat_space = sat_options.get_temporal_state_space(start_time, end_time);
+  
+  typedef pp::discrete_point_trajectory< sat3D_temp_space_type > sat3D_traj_type;
+  
+  shared_ptr< sat3D_traj_type > traj_ptr;
+  if( vm.count("generate-meas-file") && vm.count("output-traj-file") )
+    traj_ptr = shared_ptr< sat3D_traj_type >(new sat3D_traj_type( sat_space ));
+  
+  sat3D_state_belief_type b_init = sat_options.get_init_state_belief(10.0);
+  sat3D_state_type x_init = b_init.get_mean_state();
+  set_position(x_init, vect<double,3>(0.0, 0.0, 0.0));
+  set_velocity(x_init, vect<double,3>(0.0, 0.0, 0.0));
+  set_quaternion(x_init, unit_quat<double>());
+  set_ang_velocity(x_init, vect<double,3>(0.0, 0.0, 0.0));
+  b_init.set_mean_state(x_init);
+  
+  sat3D_input_belief_type b_u = sat_options.get_zero_input_belief();
+  sat3D_output_belief_type b_z = sat_options.get_zero_output_belief();
+  
+  
+  
+  double RAq0 = (sat_options.artificial_noise(3,3) + sat_options.artificial_noise(4,4) + sat_options.artificial_noise(5,5)) / 12.0;
   
   std::vector< std::pair< double, sat3D_measurement_point > > measurements;
   std::vector< std::pair< double, sat3D_state_type > > ground_truth;
@@ -839,25 +953,6 @@ int main(int argc, char** argv) {
     } catch(recorder::end_of_record&) { };
   };
   
-  
-  shared_ptr< sat3D_temp_space_type > sat_space = sat_options.get_temporal_state_space(start_time, end_time);
-  
-  typedef pp::discrete_point_trajectory< sat3D_temp_space_type > sat3D_traj_type;
-  
-  shared_ptr< sat3D_traj_type > traj_ptr;
-  if( vm.count("generate-meas-file") && vm.count("output-traj-file") )
-    traj_ptr = shared_ptr< sat3D_traj_type >(new sat3D_traj_type( sat_space ));
-  
-  sat3D_state_belief_type b_init = sat_options.get_init_state_belief(10.0);
-  sat3D_state_type x_init = b_init.get_mean_state();
-  set_position(x_init, vect<double,3>(0.0, 0.0, 0.0));
-  set_velocity(x_init, vect<double,3>(0.0, 0.0, 0.0));
-  set_quaternion(x_init, unit_quat<double>());
-  set_ang_velocity(x_init, vect<double,3>(0.0, 0.0, 0.0));
-  b_init.set_mean_state(x_init);
-  
-  sat3D_input_belief_type b_u = sat_options.get_zero_input_belief();
-  sat3D_output_belief_type b_z = sat_options.get_zero_output_belief();
   
   if( !vm.count("gyro") && !vm.count("IMU") ) {
     

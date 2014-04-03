@@ -2378,7 +2378,8 @@ template <typename Vector>
 typename boost::enable_if<
   is_readable_vector<Vector>,
 vect_copy<Vector> >::type::type unit(const Vector& v) {
-  typename vect_copy<Vector>::type result(v);
+  typename vect_copy<Vector>::type result;
+  result = v;
   result /= norm_2(result);
   return result;
 };
@@ -2495,7 +2496,8 @@ typename boost::enable_if<
 vect_copy<Vector1> >::type::type operator +(const Vector1& v1, const Vector2& v2) {
   if(v1.size() != v2.size())
     throw std::range_error("Vector size mismatch.");
-  typename vect_copy<Vector1>::type result(v1);
+  typename vect_copy<Vector1>::type result;
+  result = v1;
   result += v2;
   return result;
 };
@@ -2509,7 +2511,8 @@ typename boost::enable_if<
   is_readable_vector<Vector>,
 vect_copy<Vector> >::type::type operator -(const Vector& v) {
   typedef typename vect_traits<Vector>::size_type SizeType;
-  typename vect_copy<Vector>::type result(v);
+  typename vect_copy<Vector>::type result;
+  result = v;
   for(SizeType i = 0; i < v.size(); ++i)
     result[i] = -result[i];
   return result;
@@ -2528,7 +2531,8 @@ typename boost::enable_if<
 vect_copy<Vector1> >::type::type operator -(const Vector1& v1, const Vector2& v2) {
   if(v1.size() != v2.size())
     throw std::range_error("Vector size mismatch.");
-  typename vect_copy<Vector1>::type result(v1);
+  typename vect_copy<Vector1>::type result;
+  result = v1;
   result -= v2;
   return result;
 };
@@ -2565,7 +2569,8 @@ typename boost::enable_if<
     boost::mpl::not_< is_readable_matrix<T> >
   >,
 vect_copy<Vector> >::type::type operator *(const Vector& v, const T& S) {
-  typename vect_copy<Vector>::type result(v);
+  typename vect_copy<Vector>::type result;
+  result = v;
   result *= S;
   return result;
 };
@@ -2582,7 +2587,8 @@ typename boost::enable_if<
     boost::mpl::not_< is_readable_matrix<T> >
   >,
 vect_copy<Vector> >::type::type operator *(const T& S, const Vector& v) {
-  typename vect_copy<Vector>::type result(v);
+  typename vect_copy<Vector>::type result;
+  result = v;
   result *= S;
   return result;
 };
@@ -2599,11 +2605,33 @@ typename boost::enable_if<
     boost::mpl::not_< is_readable_matrix<T> >
   >,
 vect_copy<Vector> >::type::type operator /(const Vector& v, const T& S) {
-  typename vect_copy<Vector>::type result(v);
+  typename vect_copy<Vector>::type result;
+  result = v;
   result /= S;
   return result;
 };
 
+
+/**
+ * Element-wise product of two vectors.
+ * \test PASSED
+ */
+template <typename Vector1, typename Vector2>
+typename boost::enable_if<
+  boost::mpl::and_<
+    is_writable_vector<Vector1>,
+    is_readable_vector<Vector2>
+  >,
+vect_copy<Vector1> >::type::type elem_product(const Vector1& v1, const Vector2& v2) {
+  if(v1.size() != v2.size())
+    throw std::range_error("Vector size mismatch.");
+  typedef typename vect_traits<Vector1>::size_type SizeType;
+  typename vect_copy<Vector1>::type result;
+  result = v1;
+  for(SizeType i = 0; i < result.size(); ++i)
+    result[i] *= v2[i];
+  return result;
+};
 
 
 
