@@ -577,21 +577,17 @@ void do_single_monte_carlo_run(
 };
 
 
-template <typename Sat3DSystemType>
+static
 void get_timeseries_from_rec(
     const ReaK::shared_ptr< ReaK::recorder::data_extractor >& data_in,
     const std::vector<std::string>& names_in,
     const ReaK::ctrl::satellite_model_options& sat_options,
     std::vector< std::pair< double, sat3D_measurement_point > >& measurements,
-    std::vector< std::pair< double, sat3D_state_type > >& ground_truth,
-    const Sat3DSystemType& sat_sys,
-    const sat3D_state_space_type& state_space ) {
+    std::vector< std::pair< double, sat3D_state_type > >& ground_truth) {
   using namespace ReaK;
   
   measurements.clear();
   ground_truth.clear();
-  
-  double RAq0 = (sat_options.artificial_noise(3,3) + sat_options.artificial_noise(4,4) + sat_options.artificial_noise(5,5)) / 12.0;
   
   try {
     recorder::named_value_row nvr_in = data_in->getFreshNamedValueRow();
@@ -609,62 +605,41 @@ void get_timeseries_from_rec(
       if(meas.size() < 7)
         throw std::invalid_argument("The measurement file does not even contain the position and quaternion measurements!");
       
-      std::size_t i_off = 0;
-      meas_actual.pose = meas[range(0,6)];
-      meas_noisy.pose = meas_actual.pose;
-      if( sat_options.artificial_noise.get_row_count() >= 6 ) {
-        meas_noisy.pose += vect_n<double>(
-          var_rnd() * sqrt(sat_options.artificial_noise(0,0)),
-          var_rnd() * sqrt(sat_options.artificial_noise(1,1)),
-          var_rnd() * sqrt(sat_options.artificial_noise(2,2)),
-          var_rnd() * sqrt(RAq0),
-          var_rnd() * sqrt(0.25 * sat_options.artificial_noise(3,3)),
-          var_rnd() * sqrt(0.25 * sat_options.artificial_noise(4,4)),
-          var_rnd() * sqrt(0.25 * sat_options.artificial_noise(5,5))
-        );
-      };
-      i_off += 7;
+      vect_n<double> added_noise = ctrl::sample_gaussian_point(vect_n<double>(sat_options.artificial_noise.get_row_count(), 0.0), sat_options.artificial_noise);
       
-      /* read off the IMU/gyro angular velocity measurements. */
-      if( sat_options.get_meas_error_count() >= 9 ) {
+      meas_actual.pose = meas[range(0,6)];
+      meas_noisy.pose[range(0,2)] = meas_actual.pose[range(0,2)] + added_noise[range(0,2)];
+      
+      vect<double,3> aa_noise(added_noise[3], added_noise[4], added_noise[5]);
+      quaternion<double> y_quat(meas_actual.pose[range(3,6)]);
+      y_quat *= axis_angle<double>(norm_2(aa_noise), aa_noise).getQuaternion();
+      meas_noisy.pose[range(3,6)] = vect<double,4>(y_quat[0], y_quat[1], y_quat[2], y_quat[3]);
+      
+      std::size_t i_off = 7;
+      
+      if( added_noise.size() >= 9 ) {
+        /* read off the IMU/gyro angular velocity measurements. */
         if(meas.size() < i_off + 3)
           throw std::invalid_argument("The measurement file does not contain the angular velocity measurements!");
         meas_actual.gyro = meas[range(i_off, i_off + 2)];
-        meas_noisy.gyro  = meas_actual.gyro;
-        if( sat_options.artificial_noise.get_row_count() >= 9 ) {
-          meas_noisy.gyro += vect_n<double>(
-            var_rnd() * sqrt(sat_options.artificial_noise(6,6)),
-            var_rnd() * sqrt(sat_options.artificial_noise(7,7)),
-            var_rnd() * sqrt(sat_options.artificial_noise(8,8))
-          );
-        };
+        meas_noisy.gyro = meas_actual.gyro + added_noise[range(6,8)];
         i_off += 3;
-      };
-      
-      /* read off the IMU accel-mag measurements. */
-      if( sat_options.get_meas_error_count() >= 15 ) {
-        if(meas.size() < i_off + 6)
-          throw std::invalid_argument("The measurement file does not contain the accelerometer and magnetometer measurements!");
-        meas_actual.IMU_a_m = meas[range(i_off, i_off + 5)];
-        meas_noisy.IMU_a_m  = meas_actual.IMU_a_m;
-        if( sat_options.artificial_noise.get_row_count() >= 15 ) {
-          meas_noisy.IMU_a_m += vect_n<double>(
-            var_rnd() * sqrt(sat_options.artificial_noise( 9, 9)),
-            var_rnd() * sqrt(sat_options.artificial_noise(10,10)),
-            var_rnd() * sqrt(sat_options.artificial_noise(11,11)),
-            var_rnd() * sqrt(sat_options.artificial_noise(12,12)),
-            var_rnd() * sqrt(sat_options.artificial_noise(13,13)),
-            var_rnd() * sqrt(sat_options.artificial_noise(14,14))
-          );
+        if( added_noise.size() >= 15 ) {
+          /* read off the IMU accel-mag measurements. */
+          if(meas.size() < i_off + 6)
+            throw std::invalid_argument("The measurement file does not contain the accelerometer and magnetometer measurements!");
+          meas_actual.IMU_a_m = meas[range(i_off, i_off + 5)];
+          meas_noisy.IMU_a_m = meas_actual.IMU_a_m + added_noise[range(9,14)];
+          i_off += 6;
         };
-        i_off += 6;
       };
       
       /* read off the input vector. */
       if(meas.size() < i_off + 6)
         throw std::invalid_argument("The measurement file does not contain the input force-torque vector measurements!");
-      meas_actual.u = meas[range(i_off, i_off + 6)];
+      meas_actual.u = meas[range(i_off, i_off + 5)];
       meas_noisy.u  = meas_actual.u;
+      i_off += 6;
       
       /* now, the meas_actual and meas_noisy are fully formed. */
       measurements.push_back( std::make_pair(t, meas_noisy) );
@@ -672,9 +647,9 @@ void get_timeseries_from_rec(
       /* check if the file contains a ground-truth: */
       if(meas.size() >= i_off + 7) {
         sat3D_state_type x;
-        set_position(x, vect<double,3>(meas[range(i_off, i_off + 3)]));
+        set_position(x, vect<double,3>(meas[i_off], meas[i_off + 1], meas[i_off + 2]));
         set_quaternion(x, unit_quat<double>(meas[i_off + 3],meas[i_off + 4],meas[i_off + 5],meas[i_off + 6]));
-        if(meas.size() >= 13) {
+        if(meas.size() >= i_off + 13) {
           set_velocity(x, vect<double,3>(meas[i_off + 7],meas[i_off + 8],meas[i_off + 9]));
           set_ang_velocity(x, vect<double,3>(meas[i_off + 10],meas[i_off + 11],meas[i_off + 12]));
         };
@@ -824,12 +799,6 @@ int main(int argc, char** argv) {
   
   shared_ptr< sat3D_temp_space_type > sat_space = sat_options.get_temporal_state_space(start_time, end_time);
   
-  typedef pp::discrete_point_trajectory< sat3D_temp_space_type > sat3D_traj_type;
-  
-  shared_ptr< sat3D_traj_type > traj_ptr;
-  if( vm.count("generate-meas-file") && vm.count("output-traj-file") )
-    traj_ptr = shared_ptr< sat3D_traj_type >(new sat3D_traj_type( sat_space ));
-  
   sat3D_state_belief_type b_init = sat_options.get_init_state_belief(10.0);
   sat3D_state_type x_init = b_init.get_mean_state();
   set_position(x_init, vect<double,3>(0.0, 0.0, 0.0));
@@ -841,118 +810,8 @@ int main(int argc, char** argv) {
   sat3D_input_belief_type b_u = sat_options.get_zero_input_belief();
   sat3D_output_belief_type b_z = sat_options.get_zero_output_belief();
   
-  
-  
-  double RAq0 = (sat_options.artificial_noise(3,3) + sat_options.artificial_noise(4,4) + sat_options.artificial_noise(5,5)) / 12.0;
-  
   std::vector< std::pair< double, sat3D_measurement_point > > measurements;
   std::vector< std::pair< double, sat3D_state_type > > ground_truth;
-  if( (!vm.count("monte-carlo")) && data_in ) {
-    try {
-      recorder::named_value_row nvr_in = data_in->getFreshNamedValueRow();
-      while(true) {
-        (*data_in) >> nvr_in;
-        
-        double t = nvr_in[ names_in[0] ];
-        std::vector<double> meas;
-        for(std::size_t i = 1; i < names_in.size(); ++i)
-          meas.push_back( nvr_in[ names_in[i] ] );
-        
-        sat3D_measurement_point meas_actual, meas_noisy;
-        
-        /* read off the position-orientation measurements. */
-        if(meas.size() < 7) {
-          RK_ERROR("The measurement file does not even contain the position and quaternion measurements!");
-          return 4;
-        };
-        meas_actual.pose = vect_n<double>(meas.begin(), meas.begin() + 7);
-        meas_noisy.pose = meas_actual.pose;
-        if( sat_options.artificial_noise.get_row_count() >= 6 ) {
-          meas_noisy.pose += vect_n<double>(
-            var_rnd() * sqrt(sat_options.artificial_noise(0,0)),
-            var_rnd() * sqrt(sat_options.artificial_noise(1,1)),
-            var_rnd() * sqrt(sat_options.artificial_noise(2,2)),
-            var_rnd() * sqrt(RAq0),
-            var_rnd() * sqrt(0.25 * sat_options.artificial_noise(3,3)),
-            var_rnd() * sqrt(0.25 * sat_options.artificial_noise(4,4)),
-            var_rnd() * sqrt(0.25 * sat_options.artificial_noise(5,5))
-          );
-        };
-        meas.erase(meas.begin(), meas.begin() + 7);
-        
-        /* read off the IMU/gyro angular velocity measurements. */
-        if( sat_options.get_meas_error_count() >= 9 ) {
-          if(meas.size() < 3) {
-            RK_ERROR("The measurement file does not contain the angular velocity measurements!");
-            return 4;
-          };
-          meas_actual.gyro = vect_n<double>(meas.begin(), meas.begin() + 3);
-          meas_noisy.gyro  = meas_actual.gyro;
-          if( sat_options.artificial_noise.get_row_count() >= 9 ) {
-            meas_noisy.gyro += vect_n<double>(
-              var_rnd() * sqrt(sat_options.artificial_noise(6,6)),
-              var_rnd() * sqrt(sat_options.artificial_noise(7,7)),
-              var_rnd() * sqrt(sat_options.artificial_noise(8,8))
-            );
-          };
-          meas.erase(meas.begin(), meas.begin() + 3);
-        };
-        
-        /* read off the IMU accel-mag measurements. */
-        if( sat_options.get_meas_error_count() >= 15 ) {
-          if(meas.size() < 6) {
-            RK_ERROR("The measurement file does not contain the accelerometer and magnetometer measurements!");
-            return 4;
-          };
-          meas_actual.IMU_a_m = vect_n<double>(meas.begin(), meas.begin() + 6);
-          meas_noisy.IMU_a_m  = meas_actual.IMU_a_m;
-          if( sat_options.artificial_noise.get_row_count() >= 15 ) {
-            meas_noisy.IMU_a_m += vect_n<double>(
-              var_rnd() * sqrt(sat_options.artificial_noise( 9, 9)),
-              var_rnd() * sqrt(sat_options.artificial_noise(10,10)),
-              var_rnd() * sqrt(sat_options.artificial_noise(11,11)),
-              var_rnd() * sqrt(sat_options.artificial_noise(12,12)),
-              var_rnd() * sqrt(sat_options.artificial_noise(13,13)),
-              var_rnd() * sqrt(sat_options.artificial_noise(14,14))
-            );
-          };
-          meas.erase(meas.begin(), meas.begin() + 6);
-        };
-        
-        /* read off the input vector. */
-        if(meas.size() < 6) {
-          RK_ERROR("The measurement file does not contain the input force-torque vector measurements!");
-          return 4;
-        };
-        meas_actual.u = vect_n<double>(meas.begin(), meas.begin() + 6);
-        meas_noisy.u  = meas_actual.u;
-        meas.erase(meas.begin(), meas.begin() + 6);
-        
-        /* now, the meas_actual and meas_noisy are fully formed. */
-        measurements.push_back( std::make_pair(t, meas_noisy) );
-        
-        /* check if the file contains a ground-truth: */
-        if(meas.size() >= 7) {
-          sat3D_state_type x;
-          set_position(x, vect<double,3>(meas[0],meas[1],meas[2]));
-          set_quaternion(x, unit_quat<double>(meas[3],meas[4],meas[5],meas[6]));
-          if(meas.size() >= 13) {
-            set_velocity(x, vect<double,3>(meas[7],meas[8],meas[9]));
-            set_ang_velocity(x, vect<double,3>(meas[10],meas[11],meas[12]));
-          };
-          ground_truth.push_back( std::make_pair(t, x) );
-          meas.erase(meas.begin(), meas.end());
-        } else if( sat_options.artificial_noise.get_row_count() >= 6 ) {
-          sat3D_state_type x;
-          set_position(x, vect<double,3>(meas_actual.pose[0],meas_actual.pose[1],meas_actual.pose[2]));
-          set_quaternion(x, unit_quat<double>(meas_actual.pose[3],meas_actual.pose[4],meas_actual.pose[5],meas_actual.pose[6]));
-          ground_truth.push_back( std::make_pair(t, x) );
-        };
-        
-      };
-    } catch(recorder::end_of_record&) { };
-  };
-  
   
   if( !vm.count("gyro") && !vm.count("IMU") ) {
     
@@ -969,32 +828,14 @@ int main(int argc, char** argv) {
       };
     } else if( ! vm.count("monte-carlo") ) {
       
-      if( measurements.size() == 0 ) {
+      if( data_in ) {
+        get_timeseries_from_rec(data_in, names_in, sat_options, measurements, ground_truth);
+      } else {
         // must generate the measurements and ground_truth vectors:
         set_frame_3D(x_init, sat_options.initial_motion);
         generate_timeseries(measurements, ground_truth, *satellite3D_system, sat_space->get_space_topology(),
                             x_init, start_time, end_time, cov_matrix_type(sat_options.input_disturbance), 
                             cov_matrix_type(sat_options.measurement_noise + sat_options.artificial_noise));
-        
-        // and output those if asked for it:
-        if( vm.count("generate-meas-file") ) {
-          recorder::data_stream_options data_meas_opt = data_out_opt;
-          data_meas_opt.file_name = output_stem_name + "_meas." + data_meas_opt.get_extension();
-          sat_options.imbue_names_for_generated_meas(data_meas_opt);
-          shared_ptr< recorder::data_recorder > data_meas = data_meas_opt.create_recorder();
-          for(std::size_t i = 0; i < measurements.size(); ++i) {
-            (*data_meas) << measurements[i].first;
-            const sat3D_measurement_point& m = measurements[i].second;
-            (*data_meas) << m.pose << m.u;
-            const sat3D_state_type& g = ground_truth[i].second;
-            (*data_meas) << get_position(g) << get_quaternion(g) << get_velocity(g) << get_ang_velocity(g);
-            (*data_meas) << recorder::data_recorder::end_value_row;
-            if( vm.count("output-traj-file") ) {
-              traj_ptr->push_back(sat3D_temp_point_type(ground_truth[i].first, g));
-            };
-          };
-          (*data_meas) << recorder::data_recorder::flush;
-        };
       };
       
       // do a single run for each skips:
@@ -1068,32 +909,14 @@ int main(int argc, char** argv) {
       };
     } else if( ! vm.count("monte-carlo") ) {
       
-      if( measurements.size() == 0 ) {
+      if( data_in ) {
+        get_timeseries_from_rec(data_in, names_in, sat_options, measurements, ground_truth);
+      } else {
         // must generate the measurements and ground_truth vectors:
         set_frame_3D(x_init, sat_options.initial_motion);
         generate_timeseries(measurements, ground_truth, *satellite3D_system, sat_space->get_space_topology(),
                             x_init, start_time, end_time, cov_matrix_type(sat_options.input_disturbance), 
                             cov_matrix_type(sat_options.measurement_noise + sat_options.artificial_noise));
-        
-        // and output those if asked for it:
-        if( vm.count("generate-meas-file") ) {
-          recorder::data_stream_options data_meas_opt = data_out_opt;
-          data_meas_opt.file_name = output_stem_name + "_meas." + data_meas_opt.get_extension();
-          sat_options.imbue_names_for_generated_meas(data_meas_opt);
-          shared_ptr< recorder::data_recorder > data_meas = data_meas_opt.create_recorder();
-          for(std::size_t i = 0; i < measurements.size(); ++i) {
-            (*data_meas) << measurements[i].first;
-            const sat3D_measurement_point& m = measurements[i].second;
-            (*data_meas) << m.pose << m.gyro << m.u;
-            const sat3D_state_type& g = ground_truth[i].second;
-            (*data_meas) << get_position(g) << get_quaternion(g) << get_velocity(g) << get_ang_velocity(g);
-            (*data_meas) << recorder::data_recorder::end_value_row;
-            if( vm.count("output-traj-file") ) {
-              traj_ptr->push_back(sat3D_temp_point_type(ground_truth[i].first, g));
-            };
-          };
-          (*data_meas) << recorder::data_recorder::flush;
-        };
       };
       
       // do a single run for each skips:
@@ -1166,32 +989,14 @@ int main(int argc, char** argv) {
       };
     } else if( ! vm.count("monte-carlo") ) {
       
-      if( measurements.size() == 0 ) {
+      if( data_in ) {
+        get_timeseries_from_rec(data_in, names_in, sat_options, measurements, ground_truth);
+      } else {
         // must generate the measurements and ground_truth vectors:
         set_frame_3D(x_init, sat_options.initial_motion);
         generate_timeseries(measurements, ground_truth, *satellite3D_system, sat_space->get_space_topology(),
                             x_init, start_time, end_time, cov_matrix_type(sat_options.input_disturbance), 
                             cov_matrix_type(sat_options.measurement_noise + sat_options.artificial_noise));
-        
-        // and output those if asked for it:
-        if( vm.count("generate-meas-file") ) {
-          recorder::data_stream_options data_meas_opt = data_out_opt;
-          data_meas_opt.file_name = output_stem_name + "_meas." + data_meas_opt.get_extension();
-          sat_options.imbue_names_for_generated_meas(data_meas_opt);
-          shared_ptr< recorder::data_recorder > data_meas = data_meas_opt.create_recorder();
-          for(std::size_t i = 0; i < measurements.size(); ++i) {
-            (*data_meas) << measurements[i].first;
-            const sat3D_measurement_point& m = measurements[i].second;
-            (*data_meas) << m.pose << m.gyro << m.IMU_a_m << m.u;
-            const sat3D_state_type& g = ground_truth[i].second;
-            (*data_meas) << get_position(g) << get_quaternion(g) << get_velocity(g) << get_ang_velocity(g);
-            (*data_meas) << recorder::data_recorder::end_value_row;
-            if( vm.count("output-traj-file") ) {
-              traj_ptr->push_back(sat3D_temp_point_type(ground_truth[i].first, g));
-            };
-          };
-          (*data_meas) << recorder::data_recorder::flush;
-        };
       };
       
       // do a single run for each skips:
@@ -1255,35 +1060,53 @@ int main(int argc, char** argv) {
     
   };
   
-  if( vm.count("generate-meas-file") && ( vm.count("xml") + vm.count("protobuf") + vm.count("binary") > 0 ) ) {
+  
+  typedef pp::discrete_point_trajectory< sat3D_temp_space_type > sat3D_traj_type;
+  shared_ptr< sat3D_traj_type > traj_ptr;
+  if( vm.count("generate-meas-file") && vm.count("output-traj-file") )
+    traj_ptr = shared_ptr< sat3D_traj_type >(new sat3D_traj_type( sat_space ));
+  
+  // and output those if asked for it:
+  if( (!vm.count("monte-carlo")) && vm.count("generate-meas-file") ) {
+    recorder::data_stream_options data_meas_opt = data_out_opt;
+    data_meas_opt.file_name = output_stem_name + "_meas." + data_meas_opt.get_extension();
+    sat_options.imbue_names_for_generated_meas(data_meas_opt);
+    shared_ptr< recorder::data_recorder > data_meas = data_meas_opt.create_recorder();
+    for(std::size_t i = 0; i < measurements.size(); ++i) {
+      (*data_meas) << measurements[i].first;
+      const sat3D_measurement_point& m = measurements[i].second;
+      (*data_meas) << m.pose << m.gyro << m.IMU_a_m << m.u;  // if gyro-IMU not present, vectors will be zero-sized, not written to stream.
+      if(ground_truth.size() == measurements.size()) {
+        const sat3D_state_type& g = ground_truth[i].second;
+        (*data_meas) << get_position(g) << get_quaternion(g) << get_velocity(g) << get_ang_velocity(g);
+        (*data_meas) << recorder::data_recorder::end_value_row;
+        if( traj_ptr )
+          traj_ptr->push_back(sat3D_temp_point_type(ground_truth[i].first, g));
+      };
+    };
+    (*data_meas) << recorder::data_recorder::flush;
+  };
+  
+  
+  if( vm.count("generate-meas-file") && (traj_ptr) && ( vm.count("xml") + vm.count("protobuf") + vm.count("binary") > 0 ) ) {
     std::cout << "Saving the generated trajectory.." << std::flush;
-    
     std::cout << "." << std::flush;
     
-    if( vm.count("xml") ) {
-      
+    if( vm.count("xml") )
       *(serialization::open_oarchive(output_stem_name + "_traj.rkx"))
         & RK_SERIAL_SAVE_WITH_ALIAS("se3_trajectory", traj_ptr);
-      
-    };
     
     std::cout << "." << std::flush;
     
-    if( vm.count("protobuf") ) {
-      
+    if( vm.count("protobuf") )
       *(serialization::open_oarchive(output_stem_name + "_traj.pbuf"))
         & RK_SERIAL_SAVE_WITH_ALIAS("se3_trajectory", traj_ptr);
-      
-    };
     
     std::cout << "." << std::flush;
     
-    if( vm.count("binary") ) {
-      
+    if( vm.count("binary") )
       *(serialization::open_oarchive(output_stem_name + "_traj.rkb"))
         & RK_SERIAL_SAVE_WITH_ALIAS("se3_trajectory", traj_ptr);
-      
-    };
     
     std::cout << "Finished!" << std::endl;
   };
