@@ -118,6 +118,121 @@ struct sat3D_meas_true_from_vectors {
 };
 
 
+
+struct sat3D_meas_true_from_extractor {
+  ReaK::shared_ptr< ReaK::recorder::data_extractor > data_in;
+  ReaK::ctrl::satellite_model_options sat_options;
+  std::size_t skips;
+  
+  ReaK::recorder::named_value_row nvr_in;
+  double time_val;
+  sat3D_measurement_point meas_pt;
+  sat3D_state_type gnd_pt;
+  bool has_ground_truth;
+  
+  double get_current_time() const { return time_val; };
+  const sat3D_measurement_point& get_current_measurement() const { return meas_pt; };
+  const sat3D_state_type* get_current_gnd_truth_ptr() const { 
+    if(has_ground_truth)
+      return &gnd_pt; 
+    else
+      return NULL;
+  };
+  
+  bool step_once() {
+    using namespace ReaK;
+    try {
+      (*data_in) >> nvr_in;
+      
+      time_val = nvr_in["time"];
+      
+      meas_pt.pose.resize(7);
+      meas_pt.pose[0] = nvr_in["p_x"];
+      meas_pt.pose[1] = nvr_in["p_y"];
+      meas_pt.pose[2] = nvr_in["p_z"];
+      meas_pt.pose[3] = nvr_in["q_0"];
+      meas_pt.pose[4] = nvr_in["q_1"];
+      meas_pt.pose[5] = nvr_in["q_2"];
+      meas_pt.pose[6] = nvr_in["q_3"];
+      
+      meas_pt.u.resize(6);
+      meas_pt.u[0] = nvr_in["f_x"];
+      meas_pt.u[1] = nvr_in["f_y"];
+      meas_pt.u[2] = nvr_in["f_z"];
+      meas_pt.u[3] = nvr_in["t_x"];
+      meas_pt.u[4] = nvr_in["t_y"];
+      meas_pt.u[5] = nvr_in["t_z"];
+      
+      try {
+        meas_pt.gyro.resize(3);
+        meas_pt.gyro[0] = nvr_in["w_x"];
+        meas_pt.gyro[1] = nvr_in["w_y"];
+        meas_pt.gyro[2] = nvr_in["w_z"];
+      } catch(ReaK::recorder::out_of_bounds& e) { RK_UNUSED(e); 
+        meas_pt.gyro.resize(0);
+      };
+      
+      try {
+        meas_pt.IMU_a_m.resize(6);
+        meas_pt.IMU_a_m[0] = nvr_in["acc_x"];
+        meas_pt.IMU_a_m[1] = nvr_in["acc_y"];
+        meas_pt.IMU_a_m[2] = nvr_in["acc_z"];
+        meas_pt.IMU_a_m[0] = nvr_in["mag_x"];
+        meas_pt.IMU_a_m[1] = nvr_in["mag_y"];
+        meas_pt.IMU_a_m[2] = nvr_in["mag_z"];
+      } catch(ReaK::recorder::out_of_bounds& e) { RK_UNUSED(e); 
+        meas_pt.IMU_a_m.resize(0);
+      };
+      
+      try {
+        set_position(gnd_pt, vect<double,3>(nvr_in["p_x_true"], nvr_in["p_y_true"], nvr_in["p_z_true"]));
+        set_quaternion(gnd_pt, unit_quat<double>(nvr_in["q_0_true"], nvr_in["q_1_true"], nvr_in["q_2_true"], nvr_in["q_3_true"]));
+        set_velocity(gnd_pt, vect<double,3>(nvr_in["v_x_true"], nvr_in["v_y_true"], nvr_in["v_z_true"]));
+        set_ang_velocity(gnd_pt, vect<double,3>(nvr_in["w_x_true"], nvr_in["w_y_true"], nvr_in["w_z_true"]));
+      } catch(ReaK::recorder::out_of_bounds& e) { RK_UNUSED(e); 
+        set_position(gnd_pt, vect<double,3>(meas_pt.pose[0],meas_pt.pose[1],meas_pt.pose[2]));
+        set_quaternion(gnd_pt, unit_quat<double>(meas_pt.pose[3],meas_pt.pose[4],meas_pt.pose[5],meas_pt.pose[6]));
+        set_velocity(gnd_pt, vect<double,3>(0.0, 0.0, 0.0));
+        set_ang_velocity(gnd_pt, vect<double,3>(0.0, 0.0, 0.0));
+      };
+      
+      vect_n<double> added_noise = ctrl::sample_gaussian_point(vect_n<double>(sat_options.artificial_noise.get_row_count(), 0.0), sat_options.artificial_noise);
+      if(sat_options.artificial_noise.get_row_count() < 6) 
+        added_noise.resize(6, 0.0);
+      
+      meas_pt.pose[range(0,2)] = meas_pt.pose[range(0,2)] + added_noise[range(0,2)];
+      vect<double,3> aa_noise(added_noise[3], added_noise[4], added_noise[5]);
+      quaternion<double> y_quat(meas_pt.pose[range(3,6)]);
+      y_quat *= axis_angle<double>(norm_2(aa_noise), aa_noise).getQuaternion();
+      meas_pt.pose[range(3,6)] = vect<double,4>(y_quat[0], y_quat[1], y_quat[2], y_quat[3]);
+      
+      if( ( meas_pt.gyro.size() ) && ( added_noise.size() >= 9 ) )
+        meas_pt.gyro += added_noise[range(6,8)];
+      if( ( meas_pt.IMU_a_m.size() ) && ( added_noise.size() >= 15 ) )
+        meas_pt.IMU_a_m += added_noise[range(9,14)];
+      
+    } catch(recorder::end_of_record&) { 
+      return false;
+    };
+    
+    return true;
+  };
+  
+  sat3D_meas_true_from_extractor(const ReaK::shared_ptr< ReaK::recorder::data_extractor >& aDataIn,
+                                 const ReaK::ctrl::satellite_model_options& aSatOptions,
+                                 std::size_t aSkips = 1) :
+                                 data_in(aDataIn), sat_options(aSatOptions), 
+                                 skips(aSkips), nvr_in(data_in->getFreshNamedValueRow()), 
+                                 time_val(0.0), has_ground_truth(false) { 
+    step_once();
+  };
+  
+  
+};
+
+
+
+
 struct sat3D_estimate_result_to_recorder {
   ReaK::shared_ptr< ReaK::recorder::data_recorder > rec;
   
@@ -446,6 +561,30 @@ void generate_timeseries(
 
 
 template <typename Sat3DSystemType>
+void do_online_run(
+    ReaK::recorder::data_stream_options output_opt,
+    const ReaK::ctrl::satellite_model_options& sat_options,
+    const ReaK::shared_ptr< ReaK::recorder::data_extractor >& data_in,
+    Sat3DSystemType& sat_sys,
+    const sat3D_state_space_type& state_space,
+    const sat3D_state_belief_type& b,
+    sat3D_input_belief_type b_u,
+    const sat3D_output_belief_type& b_z) {
+  
+  std::stringstream ss;
+  ss << "_" << std::setfill('0') << std::setw(4) << int(1000 * sat_options.time_step) << "_" << sat_options.get_kf_accronym() << ".";
+  ReaK::recorder::data_stream_options cur_out_opt = output_opt;
+  cur_out_opt.file_name += ss.str() + cur_out_opt.get_extension();
+  sat_options.imbue_names_for_state_estimates(cur_out_opt);
+  
+  batch_KF_on_timeseries(
+    sat3D_meas_true_from_extractor(data_in, sat_options),
+    sat3D_estimate_result_to_recorder(cur_out_opt.create_recorder()), 
+    sat_sys, state_space, b, b_u, b_z);
+  
+};
+
+template <typename Sat3DSystemType>
 void do_all_single_runs(
     ReaK::recorder::data_stream_options output_opt,
     const ReaK::ctrl::satellite_model_options& sat_options,
@@ -487,6 +626,40 @@ void do_all_single_runs(
 
 
 template <typename Sat3DSystemType>
+void do_online_prediction(
+    ReaK::recorder::data_stream_options output_opt,
+    const ReaK::ctrl::satellite_predictor_options& sat_options,
+    const ReaK::shared_ptr< ReaK::recorder::data_extractor >& data_in,
+    Sat3DSystemType& sat_sys,
+    const sat3D_state_space_type& state_space,
+    const sat3D_state_belief_type& b,
+    sat3D_input_belief_type b_u,
+    const sat3D_output_belief_type& b_z,
+    double start_time) {
+  using namespace ReaK;
+  
+  std::stringstream ss;
+  ss << "_" << std::setfill('0') << std::setw(5) << int(100 * start_time) << "_" << sat_options.get_kf_accronym() << ".";
+  ReaK::recorder::data_stream_options cur_out_opt = output_opt;
+  cur_out_opt.file_name += ss.str() + cur_out_opt.get_extension();
+  sat_options.imbue_names_for_state_estimates(cur_out_opt);
+  
+  if(sat_options.predict_assumption == ReaK::ctrl::satellite_predictor_options::no_measurements) {
+    batch_KF_no_meas_predict(
+      sat3D_meas_true_from_extractor(data_in, sat_options),
+      sat3D_estimate_result_to_recorder(cur_out_opt.create_recorder()), 
+      sat_sys, state_space, start_time, b, b_u, b_z);
+  } else {
+    batch_KF_ML_meas_predict(
+      sat3D_meas_true_from_extractor(data_in, sat_options),
+      sat3D_estimate_result_to_recorder(cur_out_opt.create_recorder()), 
+      sat_sys, state_space, start_time, b, b_u, b_z);
+  };
+  
+};
+
+
+template <typename Sat3DSystemType>
 void do_all_prediction_runs(
     ReaK::recorder::data_stream_options output_opt,
     const ReaK::ctrl::satellite_predictor_options& sat_options,
@@ -503,7 +676,6 @@ void do_all_prediction_runs(
   if(measurements.size() == 0)
     return;
   
-  cov_matrix_type Qu = b_u.get_covariance().get_matrix();
   double end_time = (measurements.end()-1)->first;
   
   for(double start_time = measurements.begin()->first + start_intervals; start_time < end_time; start_time += start_intervals) {
@@ -606,6 +778,8 @@ void get_timeseries_from_rec(
         throw std::invalid_argument("The measurement file does not even contain the position and quaternion measurements!");
       
       vect_n<double> added_noise = ctrl::sample_gaussian_point(vect_n<double>(sat_options.artificial_noise.get_row_count(), 0.0), sat_options.artificial_noise);
+      if(sat_options.artificial_noise.get_row_count() < 6) 
+        added_noise.resize(6, 0.0);
       
       meas_actual.pose = meas[range(0,6)];
       meas_noisy.pose[range(0,2)] = meas_actual.pose[range(0,2)] + added_noise[range(0,2)];
@@ -697,6 +871,7 @@ int main(int argc, char** argv) {
     ("max-skips",    po::value< unsigned int >()->default_value(1), "maximum number of time-step skips between estimations when generating a series of Monte-Carlo statistics (default is 1, i.e., one estimation point per measurement point)")
     ("prediction-runs", "if set, will perform prediction runs instead of estimation runs")
     ("prediction-interval", po::value< double >()->default_value(1.0), "time interval between new trials of the predictor on the data")
+    ("online-run", "if set, will perform estimation or prediction online (no pre-buffering of data stream)")
   ;
   
   po::options_description output_options("Output options (at least one must be set)");
@@ -826,6 +1001,25 @@ int main(int argc, char** argv) {
         RK_ERROR("An exception occurred during the saving the satellite system file!");
         return 14;
       };
+    } else if( vm.count("online-run") ) {
+      
+      if( !data_in ) {
+        RK_ERROR("Must have a defined input data-stream in order to run the estimator online!");
+        return 15;
+      };
+      
+      if(!vm.count("prediction-runs")) {
+        
+        do_online_run(data_out_stem_opt, sat_options, data_in, *satellite3D_system, 
+                      sat_space->get_space_topology(), b_init, b_u, b_z);
+        
+      } else if( !vm.count("monte-carlo") ) {
+        
+        do_online_prediction(data_out_stem_opt, sat_options, data_in, *satellite3D_system, 
+                             sat_space->get_space_topology(), b_init, b_u, b_z, vm["prediction-interval"].as<double>());
+        
+      };
+      
     } else if( ! vm.count("monte-carlo") ) {
       
       if( data_in ) {
@@ -907,6 +1101,25 @@ int main(int argc, char** argv) {
         RK_ERROR("An exception occurred during the saving the satellite system file!");
         return 14;
       };
+    } else if( vm.count("online-run") ) {
+      
+      if( !data_in ) {
+        RK_ERROR("Must have a defined input data-stream in order to run the estimator online!");
+        return 15;
+      };
+      
+      if(!vm.count("prediction-runs")) {
+        
+        do_online_run(data_out_stem_opt, sat_options, data_in, *satellite3D_system, 
+                      sat_space->get_space_topology(), b_init, b_u, b_z);
+        
+      } else if( !vm.count("monte-carlo") ) {
+        
+        do_online_prediction(data_out_stem_opt, sat_options, data_in, *satellite3D_system, 
+                             sat_space->get_space_topology(), b_init, b_u, b_z, vm["prediction-interval"].as<double>());
+        
+      };
+      
     } else if( ! vm.count("monte-carlo") ) {
       
       if( data_in ) {
@@ -987,6 +1200,25 @@ int main(int argc, char** argv) {
         RK_ERROR("An exception occurred during the saving the satellite system file!");
         return 14;
       };
+    } else if( vm.count("online-run") ) {
+      
+      if( !data_in ) {
+        RK_ERROR("Must have a defined input data-stream in order to run the estimator online!");
+        return 15;
+      };
+      
+      if(!vm.count("prediction-runs")) {
+        
+        do_online_run(data_out_stem_opt, sat_options, data_in, *satellite3D_system, 
+                      sat_space->get_space_topology(), b_init, b_u, b_z);
+        
+      } else if( !vm.count("monte-carlo") ) {
+        
+        do_online_prediction(data_out_stem_opt, sat_options, data_in, *satellite3D_system, 
+                             sat_space->get_space_topology(), b_init, b_u, b_z, vm["prediction-interval"].as<double>());
+        
+      };
+      
     } else if( ! vm.count("monte-carlo") ) {
       
       if( data_in ) {
