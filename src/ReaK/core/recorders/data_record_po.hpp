@@ -142,12 +142,9 @@ data_stream_options get_data_stream_options_from_po(boost::program_options::vari
   } else {
     // load options for output.
     
-    std::string output_extension = "ssv";
-    if(vm.count("output-format"))
-      output_extension = vm["output-format"].as< std::string >();
-    
     // take care of 'file_name' and 'kind':
     if(vm.count("output-tcp") + vm.count("output-udp") + vm.count("output-raw-udp") == 0) {
+      std::string output_extension = "ssv";
       if(vm.count("output")) {
         result.file_name = vm["output"].as<std::string>();
         
@@ -159,6 +156,9 @@ data_stream_options get_data_stream_options_from_po(boost::program_options::vari
       } else {
         result.file_name = "stdout";
       };
+      
+      if(vm.count("output-format"))
+        output_extension = vm["output-format"].as< std::string >();
       
       if(output_extension == "ssv") {
         result.kind = data_stream_options::space_separated;

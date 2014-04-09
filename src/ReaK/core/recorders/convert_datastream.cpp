@@ -58,6 +58,11 @@ int main(int argc, char** argv) {
   po::store(po::parse_command_line(argc, argv, cmdline_options), vm);
   po::notify(vm);
   
+  if(vm.count("help")) {
+    std::cout << cmdline_options << std::endl;
+    return 1;
+  };
+  
   try {
     data_stream_options data_in_opt  = get_data_stream_options_from_po(vm, false);
     data_stream_options data_out_opt = get_data_stream_options_from_po(vm, true);

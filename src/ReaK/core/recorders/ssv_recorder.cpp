@@ -82,6 +82,8 @@ bool ssv_extractor::readRow() {
   if((in_stream) && (*in_stream) && (colCount > 0)) {
     std::string temp;
     std::getline(*in_stream, temp, '\n');
+    if(!(*in_stream))
+      return false;
     std::stringstream ss(temp);
     for(unsigned int i = 0; i < colCount; ++i) {
       double tmp = 0;
@@ -91,6 +93,8 @@ bool ssv_extractor::readRow() {
       values_rm.push(tmp);
     };
   };
+  if((in_stream) && !(*in_stream))
+    return false;
   return true;
 };
 

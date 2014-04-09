@@ -219,10 +219,30 @@ satellite3D_imdt_sys::point_type satellite3D_imdt_sys::apply_correction(
   const satellite3D_imdt_sys::input_type&, 
   const satellite3D_imdt_sys::time_type&) const {
   
+//   std::cout << " (Apply Correction) Got quaternion: " << get_quaternion(x) << std::endl;
+//   std::cout << " (Apply Correction) Got position: " << get_position(x) << std::endl;
+//   std::cout << " (Apply Correction) Got correction: " << c << std::endl;
+  
   unit_quat<double> q_diff = exp( 0.5 * vect<double,3>(c[6],c[7],c[8]) );
+//   std::cout << " (Apply Correction) Got quat-diff: " << q_diff << std::endl;
   unit_quat<double> q_new = get_quaternion(x) * q_diff;
-      
+//   std::cout << " (Apply Correction) Got quat-new: " << q_new << std::endl;
+  
   vect<double,3> w_new = mInertiaMomentInv * (invert(q_diff).as_rotation() * (mInertiaMoment * get_ang_velocity(x) + vect<double,3>(c[9],c[10],c[11])));
+//   std::cout << " (Apply Correction) Got w-new: " << w_new << std::endl;
+  
+//   std::cout << " (Apply Correction) Got corrected state: " << 
+//     to_vect<double>(satellite3D_imdt_sys::point_type(
+//       make_arithmetic_tuple(
+//         get_position(x) + vect<double,3>(c[0],c[1],c[2]),
+//         get_velocity(x) + vect<double,3>(c[3],c[4],c[5])
+//       ),
+//       make_arithmetic_tuple(
+//         q_new,
+//         w_new
+//       )
+//     )) << std::endl;
+  
   return satellite3D_imdt_sys::point_type(
     make_arithmetic_tuple(
       get_position(x) + vect<double,3>(c[0],c[1],c[2]),

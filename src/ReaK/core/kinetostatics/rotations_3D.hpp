@@ -104,8 +104,8 @@ class rot_mat_3D : public serialization::serializable {
      * \test PASSED
      */
     explicit rot_mat_3D(const_reference a11, const_reference a12, const_reference a13, 
-			const_reference a21, const_reference a22, const_reference a23, 
-			const_reference a31, const_reference a32, const_reference a33) {
+                        const_reference a21, const_reference a22, const_reference a23, 
+                        const_reference a31, const_reference a32, const_reference a33) {
       q[0] = a11; q[1] = a21; q[2] = a31;
       q[3] = a12; q[4] = a22; q[5] = a32;
       q[6] = a13; q[7] = a23; q[8] = a33;
@@ -185,7 +185,7 @@ class rot_mat_3D : public serialization::serializable {
     explicit rot_mat_3D(const Matrix& M, typename boost::enable_if_c< is_readable_matrix<Matrix>::value &&
                                                                       !boost::is_same<Matrix,self>::value, void* >::type dummy = NULL) {
       if((M.get_col_count() != 3) || (M.get_row_count() != 3))
-	throw std::range_error("Right-hand-side of assignment to a 3D rotation matrix is not of dimension 3x3!");
+        throw std::range_error("Right-hand-side of assignment to a 3D rotation matrix is not of dimension 3x3!");
       vect<value_type,3> v1(M(0,0),M(1,0),M(2,0));
       q[0] = v1[0];
       q[1] = v1[1];
@@ -226,7 +226,7 @@ class rot_mat_3D : public serialization::serializable {
      */
     value_type operator [](size_type i) const {
       if(i >= 9)
-	throw std::range_error("Matrix index out of range.");
+        throw std::range_error("Matrix index out of range.");
       return q[i];
     };
 
@@ -236,7 +236,7 @@ class rot_mat_3D : public serialization::serializable {
      */
     value_type operator ()(size_type i,size_type j) const {
       if((i >= 3) || (j >= 3))
-	throw std::range_error("Matrix index out of range.");
+        throw std::range_error("Matrix index out of range.");
       return q[j*3+i];
     };
     
@@ -265,7 +265,7 @@ class rot_mat_3D : public serialization::serializable {
                                  !boost::is_same<Matrix,self>::value,
     self& >::type operator =(const Matrix& M) {
       if((M.get_col_count() != 3) || (M.get_row_count() != 3))
-	throw std::range_error("Right-hand-side of assignment to a 3D rotation matrix is not of dimension 3x3!");
+        throw std::range_error("Right-hand-side of assignment to a 3D rotation matrix is not of dimension 3x3!");
       vect<value_type,3> v1(M(0,0),M(1,0),M(2,0));
       q[0] = v1[0];
       q[1] = v1[1];
@@ -337,14 +337,14 @@ class rot_mat_3D : public serialization::serializable {
     typename boost::enable_if_c< is_fully_writable_matrix<Matrix>::value,
     Matrix >::type operator *(const self& M1, const Matrix& M2) {
       if(M2.get_row_count() != 3)
-	throw std::range_error("Matrix M's row count is not 3, 3D rotation impossible!");
+        throw std::range_error("Matrix M's row count is not 3, 3D rotation impossible!");
       Matrix result(M2);
       for(size_type i=0;i<3;++i)
-	for(size_type jj=0;jj<result.get_col_count();++jj) {
-	  result(i,jj) = 0;
-	  for(size_type j=0;j<3;++j)
-	    result(i,jj) += M1.q[j*3+i] * M2(j,jj);
-	};
+        for(size_type jj=0;jj<result.get_col_count();++jj) {
+          result(i,jj) = 0;
+          for(size_type j=0;j<3;++j)
+            result(i,jj) += M1.q[j*3+i] * M2(j,jj);
+        };
       return result;
     };
 
@@ -358,7 +358,7 @@ class rot_mat_3D : public serialization::serializable {
       for(size_type i=0;i<result.get_row_count();++i)
         for(size_type jj=0;jj<3;++jj) {
           result(i,jj) = 0;
-	  for(size_type j=0;j<3;++j)
+          for(size_type j=0;j<3;++j)
             result(i,jj) += M1(i,j) * M2.q[jj*3+j];
         };
       return result;
@@ -494,24 +494,24 @@ class rot_mat_3D : public serialization::serializable {
     virtual void RK_CALL save(serialization::oarchive& A, unsigned int) const {
       A & RK_SERIAL_SAVE_WITH_ALIAS("r11",q[0])
         & RK_SERIAL_SAVE_WITH_ALIAS("r21",q[1])
-	& RK_SERIAL_SAVE_WITH_ALIAS("r31",q[2])
-	& RK_SERIAL_SAVE_WITH_ALIAS("r12",q[3])
-	& RK_SERIAL_SAVE_WITH_ALIAS("r22",q[4])
-	& RK_SERIAL_SAVE_WITH_ALIAS("r32",q[5])
-	& RK_SERIAL_SAVE_WITH_ALIAS("r13",q[6])
-	& RK_SERIAL_SAVE_WITH_ALIAS("r23",q[7])
-	& RK_SERIAL_SAVE_WITH_ALIAS("r33",q[8]);
+        & RK_SERIAL_SAVE_WITH_ALIAS("r31",q[2])
+        & RK_SERIAL_SAVE_WITH_ALIAS("r12",q[3])
+        & RK_SERIAL_SAVE_WITH_ALIAS("r22",q[4])
+        & RK_SERIAL_SAVE_WITH_ALIAS("r32",q[5])
+        & RK_SERIAL_SAVE_WITH_ALIAS("r13",q[6])
+        & RK_SERIAL_SAVE_WITH_ALIAS("r23",q[7])
+        & RK_SERIAL_SAVE_WITH_ALIAS("r33",q[8]);
     };
     virtual void RK_CALL load(serialization::iarchive& A, unsigned int) {
       A & RK_SERIAL_LOAD_WITH_ALIAS("r11",q[0])
         & RK_SERIAL_LOAD_WITH_ALIAS("r21",q[1])
-	& RK_SERIAL_LOAD_WITH_ALIAS("r31",q[2])
-	& RK_SERIAL_LOAD_WITH_ALIAS("r12",q[3])
-	& RK_SERIAL_LOAD_WITH_ALIAS("r22",q[4])
-	& RK_SERIAL_LOAD_WITH_ALIAS("r32",q[5])
-	& RK_SERIAL_LOAD_WITH_ALIAS("r13",q[6])
-	& RK_SERIAL_LOAD_WITH_ALIAS("r23",q[7])
-	& RK_SERIAL_LOAD_WITH_ALIAS("r33",q[8]);
+        & RK_SERIAL_LOAD_WITH_ALIAS("r31",q[2])
+        & RK_SERIAL_LOAD_WITH_ALIAS("r12",q[3])
+        & RK_SERIAL_LOAD_WITH_ALIAS("r22",q[4])
+        & RK_SERIAL_LOAD_WITH_ALIAS("r32",q[5])
+        & RK_SERIAL_LOAD_WITH_ALIAS("r13",q[6])
+        & RK_SERIAL_LOAD_WITH_ALIAS("r23",q[7])
+        & RK_SERIAL_LOAD_WITH_ALIAS("r33",q[8]);
     };
     
     RK_RTTI_MAKE_ABSTRACT_1BASE(self,0x00000018,1,"rot_mat_3D",serialization::serializable)
@@ -975,8 +975,8 @@ class quaternion : public serialization::serializable {
       value_type t23(value_type(2.0)*q[2]*q[3]);
       value_type t33(value_type(2.0)*q[3]*q[3]);
       return mat<value_type, mat_structure::square>(value_type(1.0) - t22 - t33,       t12 - t03,       t02 + t13,
-						          t12 + t03, value_type(1.0) - t11 - t33,       t23 - t01,
-						          t13 - t02,       t01 + t23, value_type(1.0) - t11 - t22);
+                                                          t12 + t03, value_type(1.0) - t11 - t33,       t23 - t01,
+                                                          t13 - t02,       t01 + t23, value_type(1.0) - t11 - t22);
     };
 
     /**
@@ -994,8 +994,8 @@ class quaternion : public serialization::serializable {
       value_type t23(value_type(2.0)*q[2]*q[3]);
       value_type t33(value_type(2.0)*q[3]*q[3]);
       return rot_mat_3D<value_type>(value_type(1.0) - t22 - t33,       t12 - t03,       t02 + t13,
-			                  t12 + t03, value_type(1.0) - t11 - t33,       t23 - t01,
-			                  t13 - t02,       t01 + t23, value_type(1.0) - t11 - t22);
+                                          t12 + t03, value_type(1.0) - t11 - t33,       t23 - t01,
+                                          t13 - t02,       t01 + t23, value_type(1.0) - t11 - t22);
     };
 
     /**
@@ -1004,7 +1004,7 @@ class quaternion : public serialization::serializable {
      */
     const_reference operator [](size_type i) const {
       if(i >= 4)
-	throw std::range_error("Matrix index out of range.");
+        throw std::range_error("Matrix index out of range.");
       return q[i];
     };
 
@@ -1106,8 +1106,8 @@ class quaternion : public serialization::serializable {
     typename boost::enable_if< 
       boost::mpl::and_<
         is_readable_matrix<Matrix>,
-	boost::mpl::not_< boost::is_same< Matrix, trans_mat_3D<value_type> > >,
-	boost::mpl::not_< boost::is_same< Matrix, rot_mat_3D<value_type> > >
+        boost::mpl::not_< boost::is_same< Matrix, trans_mat_3D<value_type> > >,
+        boost::mpl::not_< boost::is_same< Matrix, rot_mat_3D<value_type> > >
       >,
     Matrix >::type operator *(const self& Q, const Matrix& M) {
       return Q.getRotMat() * M;
@@ -1122,8 +1122,8 @@ class quaternion : public serialization::serializable {
     typename boost::enable_if< 
       boost::mpl::and_<
         is_readable_matrix<Matrix>,
-	boost::mpl::not_< boost::is_same< Matrix, trans_mat_3D<value_type> > >,
-	boost::mpl::not_< boost::is_same< Matrix, rot_mat_3D<value_type> > >
+        boost::mpl::not_< boost::is_same< Matrix, trans_mat_3D<value_type> > >,
+        boost::mpl::not_< boost::is_same< Matrix, rot_mat_3D<value_type> > >
       >,
     Matrix >::type operator *(const Matrix& M, const self& Q) {
       return M * Q.getRotMat();
@@ -1205,9 +1205,9 @@ class quaternion : public serialization::serializable {
      */
     vect<value_type,4> getQuaternionDot(const vect<value_type,3>& Omega) const {
       return vect<value_type,4>(-value_type(0.5)*(q[1]*Omega.q[0] + q[2]*Omega.q[1] + q[3]*Omega.q[2]),
-				 value_type(0.5)*(q[0]*Omega.q[0] - q[3]*Omega.q[1] + q[2]*Omega.q[2]),
-				 value_type(0.5)*(q[0]*Omega.q[1] + q[3]*Omega.q[0] - q[1]*Omega.q[2]),
-				 value_type(0.5)*(q[0]*Omega.q[2] - q[2]*Omega.q[0] + q[1]*Omega.q[1]));
+                                 value_type(0.5)*(q[0]*Omega.q[0] - q[3]*Omega.q[1] + q[2]*Omega.q[2]),
+                                 value_type(0.5)*(q[0]*Omega.q[1] + q[3]*Omega.q[0] - q[1]*Omega.q[2]),
+                                 value_type(0.5)*(q[0]*Omega.q[2] - q[2]*Omega.q[0] + q[1]*Omega.q[1]));
     };
 
     /**
@@ -1216,8 +1216,8 @@ class quaternion : public serialization::serializable {
      */
     vect<value_type,3> getOmega(const vect<value_type,4>& QuaternionDot) const {
       return vect<value_type,3>(value_type(2.0)*(-q[1]*QuaternionDot.q[0] + q[0]*QuaternionDot.q[1] + q[3]*QuaternionDot.q[2] - q[2]*QuaternionDot.q[3]),
-				value_type(2.0)*(-q[2]*QuaternionDot.q[0] - q[3]*QuaternionDot.q[1] + q[0]*QuaternionDot.q[2] + q[1]*QuaternionDot.q[3]),
-				value_type(2.0)*(-q[3]*QuaternionDot.q[0] + q[2]*QuaternionDot.q[1] - q[1]*QuaternionDot.q[2] + q[0]*QuaternionDot.q[3]));
+                                value_type(2.0)*(-q[2]*QuaternionDot.q[0] - q[3]*QuaternionDot.q[1] + q[0]*QuaternionDot.q[2] + q[1]*QuaternionDot.q[3]),
+                                value_type(2.0)*(-q[3]*QuaternionDot.q[0] + q[2]*QuaternionDot.q[1] - q[1]*QuaternionDot.q[2] + q[0]*QuaternionDot.q[3]));
     };
 
     /**
@@ -1226,9 +1226,9 @@ class quaternion : public serialization::serializable {
      */
     vect<value_type,4> getQuaternionDotDot(const vect<value_type,4>& QD, const vect<value_type,3>& W, const vect<value_type,3>& WD) const {
       return vect<value_type,4>(-value_type(0.5)*( q[1]*WD.q[0] + q[2]*WD.q[1] + q[3]*WD.q[2] + QD.q[1]*W.q[0] + QD.q[2]*W.q[1] + QD.q[3]*W.q[2]),
-				 value_type(0.5)*( q[0]*WD.q[0] - q[3]*WD.q[1] + q[2]*WD.q[2] + QD.q[0]*W.q[0] - QD.q[3]*W.q[1] + QD.q[2]*W.q[2]),
-				 value_type(0.5)*( q[3]*WD.q[0] + q[0]*WD.q[1] - q[1]*WD.q[2] + QD.q[3]*W.q[0] + QD.q[0]*W.q[1] - QD.q[1]*W.q[2]),
-				 value_type(0.5)*(-q[2]*WD.q[0] + q[1]*WD.q[1] + q[0]*WD.q[2] - QD.q[2]*W.q[0] + QD.q[1]*W.q[1] + QD.q[0]*W.q[2]));
+                                 value_type(0.5)*( q[0]*WD.q[0] - q[3]*WD.q[1] + q[2]*WD.q[2] + QD.q[0]*W.q[0] - QD.q[3]*W.q[1] + QD.q[2]*W.q[2]),
+                                 value_type(0.5)*( q[3]*WD.q[0] + q[0]*WD.q[1] - q[1]*WD.q[2] + QD.q[3]*W.q[0] + QD.q[0]*W.q[1] - QD.q[1]*W.q[2]),
+                                 value_type(0.5)*(-q[2]*WD.q[0] + q[1]*WD.q[1] + q[0]*WD.q[2] - QD.q[2]*W.q[0] + QD.q[1]*W.q[1] + QD.q[0]*W.q[2]));
     };
 
     /**
@@ -1237,8 +1237,8 @@ class quaternion : public serialization::serializable {
      */
     vect<value_type,3> getOmegaDot(const vect<value_type,4>& QD, const vect<value_type,4>& QDD) const {
       return vect<value_type,3>(value_type(2.0)*(-q[1]*QDD.q[0] + q[0]*QDD.q[1] + q[3]*QDD.q[2] - q[2]*QDD.q[3] - QD.q[1]*QD.q[0] + QD.q[0]*QD.q[1] + QD.q[3]*QD.q[2] - QD.q[2]*QD.q[3]),
-				value_type(2.0)*(-q[2]*QDD.q[0] - q[3]*QDD.q[1] + q[0]*QDD.q[2] + q[1]*QDD.q[3] - QD.q[2]*QD.q[0] - QD.q[3]*QD.q[1] + QD.q[0]*QD.q[2] + QD.q[1]*QD.q[3]),
-				value_type(2.0)*(-q[3]*QDD.q[0] + q[2]*QDD.q[1] - q[1]*QDD.q[2] + q[0]*QDD.q[3] - QD.q[3]*QD.q[0] + QD.q[2]*QD.q[1] - QD.q[1]*QD.q[2] + QD.q[0]*QD.q[3]));
+                                value_type(2.0)*(-q[2]*QDD.q[0] - q[3]*QDD.q[1] + q[0]*QDD.q[2] + q[1]*QDD.q[3] - QD.q[2]*QD.q[0] - QD.q[3]*QD.q[1] + QD.q[0]*QD.q[2] + QD.q[1]*QD.q[3]),
+                                value_type(2.0)*(-q[3]*QDD.q[0] + q[2]*QDD.q[1] - q[1]*QDD.q[2] + q[0]*QDD.q[3] - QD.q[3]*QD.q[0] + QD.q[2]*QD.q[1] - QD.q[1]*QD.q[2] + QD.q[0]*QD.q[3]));
     };
 
 /*******************************************************************************
@@ -1311,8 +1311,8 @@ class quaternion : public serialization::serializable {
       value_type t23(value_type(2.0)*q[2]*q[3]);
       value_type t33(value_type(2.0)*q[3]*q[3]);
       return mat<value_type,mat_structure::symmetric>(value_type(1.0) - t22 - t33,             t12,             t13,
-			                                               value_type(1.0) - t11 - t33,             t23,
-			                                                                value_type(1.0) - t11 - t22);
+                                                                       value_type(1.0) - t11 - t33,             t23,
+                                                                                        value_type(1.0) - t11 - t22);
     };
 
     /**
@@ -1333,14 +1333,14 @@ class quaternion : public serialization::serializable {
     virtual void RK_CALL save(serialization::oarchive& A, unsigned int) const {
       A & RK_SERIAL_SAVE_WITH_NAME(q[0])
         & RK_SERIAL_SAVE_WITH_NAME(q[1])
-	& RK_SERIAL_SAVE_WITH_NAME(q[2])
-	& RK_SERIAL_SAVE_WITH_NAME(q[3]);
+        & RK_SERIAL_SAVE_WITH_NAME(q[2])
+        & RK_SERIAL_SAVE_WITH_NAME(q[3]);
     };
     virtual void RK_CALL load(serialization::iarchive& A, unsigned int) {
       A & RK_SERIAL_LOAD_WITH_NAME(q[0])
         & RK_SERIAL_LOAD_WITH_NAME(q[1])
-	& RK_SERIAL_LOAD_WITH_NAME(q[2])
-	& RK_SERIAL_LOAD_WITH_NAME(q[3]);
+        & RK_SERIAL_LOAD_WITH_NAME(q[2])
+        & RK_SERIAL_LOAD_WITH_NAME(q[3]);
     };
     
     RK_RTTI_MAKE_ABSTRACT_1BASE(self,0x0000001A,1,"quaternion",serialization::serializable)
@@ -1591,9 +1591,9 @@ class euler_angles_TB : public serialization::serializable {
       value_type sphi = sin(value_type(0.5)*q[2]);
 
       return quaternion<value_type>(cphi*ctheta*cpsi + sphi*stheta*spsi,
-				    sphi*ctheta*cpsi - cphi*stheta*spsi,
-				    cphi*stheta*cpsi + sphi*ctheta*spsi,
-				    cphi*ctheta*spsi - sphi*stheta*cpsi);
+                                    sphi*ctheta*cpsi - cphi*stheta*spsi,
+                                    cphi*stheta*cpsi + sphi*ctheta*spsi,
+                                    cphi*ctheta*spsi - sphi*stheta*cpsi);
     };
 
     /**
@@ -1611,8 +1611,8 @@ class euler_angles_TB : public serialization::serializable {
       value_type c3(cos(q[2]));
 
       return rot_mat_3D<value_type>(c1 * c2,-(s1 * c3) + (c1 * s2 * s3), (s1 * s3) + (c1 * s2 * c3),
-				    s1 * c2, (c1 * c3) + (s1 * s2 * s3),-(c1 * s3) + (s1 * s2 * c3),
-				    -s2    ,                    c2 * s3,                    c2 * c3);
+                                    s1 * c2, (c1 * c3) + (s1 * s2 * s3),-(c1 * s3) + (s1 * s2 * c3),
+                                    -s2    ,                    c2 * s3,                    c2 * c3);
     };
 
     /**
@@ -1630,8 +1630,8 @@ class euler_angles_TB : public serialization::serializable {
       value_type c3(cos(q[2]));
 
       return mat<value_type,mat_structure::square>( c1 * c2,-(s1 * c3) + (c1 * s2 * s3), (s1 * s3) + (c1 * s2 * c3),
-						    s1 * c2, (c1 * c3) + (s1 * s2 * s3),-(c1 * s3) + (s1 * s2 * c3),
-						    -s2    ,                    c2 * s3,                    c2 * c3);
+                                                    s1 * c2, (c1 * c3) + (s1 * s2 * s3),-(c1 * s3) + (s1 * s2 * c3),
+                                                    -s2    ,                    c2 * s3,                    c2 * c3);
     };
 
 /*******************************************************************************
@@ -1727,8 +1727,8 @@ class euler_angles_TB : public serialization::serializable {
     typename boost::enable_if< 
       boost::mpl::and_<
         is_readable_matrix<Matrix>,
-	boost::mpl::not_< boost::is_same< Matrix, trans_mat_3D<value_type> > >,
-	boost::mpl::not_< boost::is_same< Matrix, rot_mat_3D<value_type> > >
+        boost::mpl::not_< boost::is_same< Matrix, trans_mat_3D<value_type> > >,
+        boost::mpl::not_< boost::is_same< Matrix, rot_mat_3D<value_type> > >
       >,
     Matrix >::type operator *(const self& E, const Matrix& M) {
       return E.getRotMat() * M;
@@ -1743,8 +1743,8 @@ class euler_angles_TB : public serialization::serializable {
     typename boost::enable_if< 
       boost::mpl::and_<
         is_readable_matrix<Matrix>,
-	boost::mpl::not_< boost::is_same< Matrix, trans_mat_3D<value_type> > >,
-	boost::mpl::not_< boost::is_same< Matrix, rot_mat_3D<value_type> > >
+        boost::mpl::not_< boost::is_same< Matrix, trans_mat_3D<value_type> > >,
+        boost::mpl::not_< boost::is_same< Matrix, rot_mat_3D<value_type> > >
       >,
     Matrix >::type operator *(const Matrix& M, const self& E) {
       return M * E.getRotMat();
@@ -1809,17 +1809,17 @@ class euler_angles_TB : public serialization::serializable {
       self result;
 
       if((R2 != value_type(1.0)) && (R2 != value_type(-1.0))) {
-	value_type R0(c1 * c2);
-	value_type R1(-(s1 * c3) + (c1 * s2 * s3));
-	value_type R5(-(c1 * s3) + (s1 * s2 * c3));
-	value_type R8(c2 * c3);
+        value_type R0(c1 * c2);
+        value_type R1(-(s1 * c3) + (c1 * s2 * s3));
+        value_type R5(-(c1 * s3) + (s1 * s2 * c3));
+        value_type R8(c2 * c3);
         result.q[1] = asin(-R2);
         value_type cp = value_type(1.0)/cos(result.q[1]);
         result.q[2] = atan2(cp*R5,cp*R8);
         result.q[0] = atan2(cp*R1,cp*R0);
       } else {
-	value_type R3(s1 * c2);
-	result.q[0] = value_type(0.0);
+        value_type R3(s1 * c2);
+        result.q[0] = value_type(0.0);
         result.q[2] = atan2(-R2*R3,R2*s2);
         result.q[1] = -R2*value_type(1.57079632679489662);
       };
@@ -1889,12 +1889,12 @@ class euler_angles_TB : public serialization::serializable {
     virtual void RK_CALL save(serialization::oarchive& A, unsigned int) const {
       A & RK_SERIAL_SAVE_WITH_NAME(q[0])
         & RK_SERIAL_SAVE_WITH_NAME(q[1])
-	& RK_SERIAL_SAVE_WITH_NAME(q[2]);
+        & RK_SERIAL_SAVE_WITH_NAME(q[2]);
     };
     virtual void RK_CALL load(serialization::iarchive& A, unsigned int) {
       A & RK_SERIAL_LOAD_WITH_NAME(q[0])
         & RK_SERIAL_LOAD_WITH_NAME(q[1])
-	& RK_SERIAL_LOAD_WITH_NAME(q[2]);
+        & RK_SERIAL_LOAD_WITH_NAME(q[2]);
     };
     
     RK_RTTI_MAKE_ABSTRACT_1BASE(self,0x0000001B,1,"euler_angles_TB",serialization::serializable)
@@ -1959,7 +1959,19 @@ class axis_angle : public serialization::serializable {
      * Constructor from angle and axis.
      * \test PASSED
      */
-    axis_angle(const value_type& aAngle,const vect<value_type,3>& aAxis) : mAngle(aAngle), mAxis(unit(aAxis)) { };
+    axis_angle(const value_type& aAngle,const vect<value_type,3>& aAxis) : mAngle(aAngle) { 
+      using std::sqrt;
+      value_type tmp = norm_2(aAxis);
+      if(tmp > value_type(0.0000001)) {
+        mAxis.q[0] = aAxis[0] / tmp;
+        mAxis.q[1] = aAxis[1] / tmp;
+        mAxis.q[2] = aAxis[2] / tmp;
+      } else {
+        mAxis.q[0] = value_type(1.0);
+        mAxis.q[1] = value_type(0.0);
+        mAxis.q[2] = value_type(0.0);
+      };
+    };
 
     /**
      * Copy-constructor.
@@ -1977,19 +1989,19 @@ class axis_angle : public serialization::serializable {
       vect<value_type, 4> v(Q.q[0],Q.q[1],Q.q[2],Q.q[3]); v = unit(v);
       value_type tmp(sqrt(v[1]*v[1] + v[2]*v[2] + v[3]*v[3]));
       if(tmp > value_type(0.0000001)) {
-	mAxis.q[0] = v[1] / tmp;
-	mAxis.q[1] = v[2] / tmp;
-	mAxis.q[2] = v[3] / tmp;
-	if( v[0] < value_type(0.0) ) {
-	  mAngle = value_type(2.0) * acos(-v[0]);
-	  mAxis = -mAxis;
-	} else
-	  mAngle = value_type(2.0) * acos(v[0]);
+        mAxis.q[0] = v[1] / tmp;
+        mAxis.q[1] = v[2] / tmp;
+        mAxis.q[2] = v[3] / tmp;
+        if( v[0] < value_type(0.0) ) {
+          mAngle = value_type(2.0) * acos(-v[0]);
+          mAxis = -mAxis;
+        } else
+          mAngle = value_type(2.0) * acos(v[0]);
       } else {
-	mAxis.q[0] = value_type(1.0);
-	mAxis.q[1] = value_type(0.0);
-	mAxis.q[2] = value_type(0.0);
-	mAngle = value_type(0.0);
+        mAxis.q[0] = value_type(1.0);
+        mAxis.q[1] = value_type(0.0);
+        mAxis.q[2] = value_type(0.0);
+        mAngle = value_type(0.0);
       };
     };
 
@@ -2002,16 +2014,16 @@ class axis_angle : public serialization::serializable {
       using std::acos;
       value_type tmp(value_type(0.5)*(trace(R) - value_type(1.0)));
       if(tmp > value_type(0.0000001)) {
-	mAngle = acos(tmp);
-	value_type cosec_a = value_type(0.5) / sin(mAngle);
-	mAxis.q[0] = (R.q[5] - R.q[7]) * cosec_a;
-	mAxis.q[1] = (R.q[6] - R.q[2]) * cosec_a;
-	mAxis.q[2] = (R.q[1] - R.q[3]) * cosec_a;
+        mAngle = acos(tmp);
+        value_type cosec_a = value_type(0.5) / sin(mAngle);
+        mAxis.q[0] = (R.q[5] - R.q[7]) * cosec_a;
+        mAxis.q[1] = (R.q[6] - R.q[2]) * cosec_a;
+        mAxis.q[2] = (R.q[1] - R.q[3]) * cosec_a;
       } else {
-	mAxis.q[0] = value_type(1.0);
-	mAxis.q[1] = value_type(0.0);
-	mAxis.q[2] = value_type(0.0);
-	mAngle = value_type(0.0);
+        mAxis.q[0] = value_type(1.0);
+        mAxis.q[1] = value_type(0.0);
+        mAxis.q[2] = value_type(0.0);
+        mAngle = value_type(0.0);
       };
     };
 
@@ -2039,15 +2051,15 @@ class axis_angle : public serialization::serializable {
 
       value_type tmp(sqrt(value_type(1.0)-q[0]*q[0]));
       if(tmp > value_type(0.0000001)) {
-	mAxis.q[0] = q[1] / tmp;
-	mAxis.q[1] = q[2] / tmp;
-	mAxis.q[2] = q[3] / tmp;
-	mAngle = value_type(2.0) * acos(q[0]);
+        mAxis.q[0] = q[1] / tmp;
+        mAxis.q[1] = q[2] / tmp;
+        mAxis.q[2] = q[3] / tmp;
+        mAngle = value_type(2.0) * acos(q[0]);
       } else {
-	mAxis.q[0] = value_type(1.0);
-	mAxis.q[1] = value_type(0.0);
-	mAxis.q[2] = value_type(0.0);
-	mAngle = value_type(0.0);
+        mAxis.q[0] = value_type(1.0);
+        mAxis.q[1] = value_type(0.0);
+        mAxis.q[2] = value_type(0.0);
+        mAngle = value_type(0.0);
       };
     };
 
@@ -2161,8 +2173,8 @@ class axis_angle : public serialization::serializable {
       value_type t03(sin_a*mAxis.q[2]);
 
       return rot_mat_3D<value_type>(t11,t12-t03,t13+t02,
-				    t12+t03,t22,t23-t01,
-				    t13-t02,t23+t01,t33);
+                                    t12+t03,t22,t23-t01,
+                                    t13-t02,t23+t01,t33);
     };
 
     /**
@@ -2186,8 +2198,8 @@ class axis_angle : public serialization::serializable {
       value_type t03(sin_a*mAxis.q[2]);
 
       return mat<value_type,mat_structure::square>(t11,t12-t03,t13+t02,
-						   t12+t03,t22,t23-t01,
-						   t13-t02,t23+t01,t33);
+                                                   t12+t03,t22,t23-t01,
+                                                   t13-t02,t23+t01,t33);
     };
 
 /*******************************************************************************
@@ -2282,8 +2294,8 @@ class axis_angle : public serialization::serializable {
     typename boost::enable_if< 
       boost::mpl::and_<
         is_readable_matrix<Matrix>,
-	boost::mpl::not_< boost::is_same< Matrix, trans_mat_3D<value_type> > >,
-	boost::mpl::not_< boost::is_same< Matrix, rot_mat_3D<value_type> > >
+        boost::mpl::not_< boost::is_same< Matrix, trans_mat_3D<value_type> > >,
+        boost::mpl::not_< boost::is_same< Matrix, rot_mat_3D<value_type> > >
       >,
     Matrix >::type operator *(const self& A, const Matrix& M) {
       return A.getRotMat() * M;
@@ -2298,8 +2310,8 @@ class axis_angle : public serialization::serializable {
     typename boost::enable_if< 
       boost::mpl::and_<
         is_readable_matrix<Matrix>,
-	boost::mpl::not_< boost::is_same< Matrix, trans_mat_3D<value_type> > >,
-	boost::mpl::not_< boost::is_same< Matrix, rot_mat_3D<value_type> > >
+        boost::mpl::not_< boost::is_same< Matrix, trans_mat_3D<value_type> > >,
+        boost::mpl::not_< boost::is_same< Matrix, rot_mat_3D<value_type> > >
       >,
     Matrix >::type operator *(const Matrix& M, const self& A) {
       return M * A.getRotMat();
@@ -2401,8 +2413,8 @@ class axis_angle : public serialization::serializable {
       value_type t13(one_minus_ca*mAxis.q[0]*mAxis.q[2]);
       value_type t23(one_minus_ca*mAxis.q[1]*mAxis.q[2]);
       return mat<value_type,mat_structure::symmetric>(t11,t12,t13,
-				      	                  t22,t23,  
-					                      t33);
+                                                                t22,t23,  
+                                                              t33);
     };
 
     /**
@@ -2416,7 +2428,7 @@ class axis_angle : public serialization::serializable {
       value_type t02(sin_a*mAxis.q[1]);
       value_type t03(sin_a*mAxis.q[2]);
       return mat<value_type,mat_structure::skew_symmetric>(-t03, t02,
-		                                                -t01);
+                                                                -t01);
     };
     
         
@@ -2490,8 +2502,8 @@ class trans_mat_3D : public serialization::serializable {
     value_type q[16];
 
     trans_mat_3D(const_reference a11, const_reference a12, const_reference a13, const_reference a14, 
-		 const_reference a21, const_reference a22, const_reference a23, const_reference a24, 
-		 const_reference a31, const_reference a32, const_reference a33, const_reference a34) {
+                 const_reference a21, const_reference a22, const_reference a23, const_reference a24, 
+                 const_reference a31, const_reference a32, const_reference a33, const_reference a34) {
       q[0] = a11; q[1] = a21; q[2] = a31; q[3] = value_type(0.0);
       q[4] = a12; q[5] = a22; q[6] = a32; q[7] = value_type(0.0);
       q[8] = a13; q[9] = a23; q[10] = a33; q[11] = value_type(0.0);
@@ -2572,7 +2584,7 @@ class trans_mat_3D : public serialization::serializable {
                                                                         !boost::is_same<Matrix,self>::value &&
                                                                         !boost::is_same<Matrix,rot_mat_3D<value_type> >::value, void* >::type dummy = NULL) {
       if((M.get_row_count() != 4) || (M.get_col_count() != 4)) 
-	throw std::range_error("Matrix for creating the 3D transformation matrix is not of correct dimensions!");
+        throw std::range_error("Matrix for creating the 3D transformation matrix is not of correct dimensions!");
       vect<value_type,3> v1 = unit(vect<value_type,3>(M(0,0),M(1,0),M(2,0)));
       q[0] = v1[0];
       q[1] = v1[1];
@@ -2601,7 +2613,7 @@ class trans_mat_3D : public serialization::serializable {
      * \test PASSED
      */
     explicit trans_mat_3D(const quaternion<value_type>& Q, 
-			  const translation_type& V = translation_type(value_type(0.0),value_type(0.0),value_type(0.0))) {
+                          const translation_type& V = translation_type(value_type(0.0),value_type(0.0),value_type(0.0))) {
       rot_mat_3D<value_type> R(Q.getRotMat());
       q[0] = R.q[0];
       q[1] = R.q[1];
@@ -2626,7 +2638,7 @@ class trans_mat_3D : public serialization::serializable {
      * \test PASSED
      */
     explicit trans_mat_3D(const euler_angles_TB<value_type>& E, 
-			  const translation_type& V = translation_type(value_type(0.0),value_type(0.0),value_type(0.0))) {
+                          const translation_type& V = translation_type(value_type(0.0),value_type(0.0),value_type(0.0))) {
       rot_mat_3D<value_type> R(E.getRotMat());
       q[0] = R.q[0];
       q[1] = R.q[1];
@@ -2651,7 +2663,7 @@ class trans_mat_3D : public serialization::serializable {
      * \test PASSED
      */
     explicit trans_mat_3D(const axis_angle<value_type>& A, 
-			  const translation_type& V = translation_type(value_type(0.0),value_type(0.0),value_type(0.0))) {
+                          const translation_type& V = translation_type(value_type(0.0),value_type(0.0),value_type(0.0))) {
       rot_mat_3D<value_type> R(A.getRotMat());
       q[0] = R.q[0];
       q[1] = R.q[1];
@@ -2676,7 +2688,7 @@ class trans_mat_3D : public serialization::serializable {
      * \test PASSED
      */
     explicit trans_mat_3D(const rot_mat_3D<value_type>& R, 
-			  const translation_type& V = translation_type(value_type(0.0),value_type(0.0),value_type(0.0))) {
+                          const translation_type& V = translation_type(value_type(0.0),value_type(0.0),value_type(0.0))) {
       q[0] = R.q[0];
       q[1] = R.q[1];
       q[2] = R.q[2];
@@ -2721,8 +2733,8 @@ class trans_mat_3D : public serialization::serializable {
      */
     rot_mat_3D<value_type> getRotMat() const {
       return rot_mat_3D<value_type>(q[0],q[4],q[8],
-			            q[1],q[5],q[9],
-			            q[2],q[6],q[10]);
+                                    q[1],q[5],q[9],
+                                    q[2],q[6],q[10]);
     };
 
     /**
@@ -2813,7 +2825,7 @@ class trans_mat_3D : public serialization::serializable {
      */
     const_reference operator [](size_type i) const {
       if(i >= 16)
-	throw std::range_error("Matrix index out of range.");
+        throw std::range_error("Matrix index out of range.");
       return q[i];
     };
 
@@ -2823,7 +2835,7 @@ class trans_mat_3D : public serialization::serializable {
      */
     const_reference operator ()(size_type i,size_type j) const {
       if((i >= 4) || (j >= 4))
-	throw std::range_error("Matrix index out of range.");
+        throw std::range_error("Matrix index out of range.");
       return q[j*4+i];
     };
     
@@ -2865,12 +2877,12 @@ class trans_mat_3D : public serialization::serializable {
     typename boost::enable_if< 
       boost::mpl::and_<
         is_readable_matrix<Matrix>,
-	boost::mpl::not_< boost::is_same< Matrix, self > >,
-	boost::mpl::not_< boost::is_same< Matrix, rot_mat_3D<value_type> > >
+        boost::mpl::not_< boost::is_same< Matrix, self > >,
+        boost::mpl::not_< boost::is_same< Matrix, rot_mat_3D<value_type> > >
       >, 
     self& >::type operator =(const Matrix& M) {
       if((M.get_row_count() != 4) || (M.get_col_count() != 4)) 
-	throw std::range_error("Matrix for creating the 3D transformation matrix is not of correct dimensions!");
+        throw std::range_error("Matrix for creating the 3D transformation matrix is not of correct dimensions!");
       vect<value_type,3> v1 = unit(vect<value_type,3>(M(0,0),M(1,0),M(2,0)));
       q[0] = v1[0];
       q[1] = v1[1];
@@ -3063,8 +3075,8 @@ class trans_mat_3D : public serialization::serializable {
     typename boost::enable_if< 
       boost::mpl::and_<
         is_readable_matrix<Matrix>,
-	boost::mpl::not_< boost::is_same< Matrix, trans_mat_3D<value_type> > >,
-	boost::mpl::not_< boost::is_same< Matrix, rot_mat_3D<value_type> > >
+        boost::mpl::not_< boost::is_same< Matrix, trans_mat_3D<value_type> > >,
+        boost::mpl::not_< boost::is_same< Matrix, rot_mat_3D<value_type> > >
       >,
     Matrix >::type operator *(const self& M1, const Matrix& M2) {
       return Matrix(M1.getMat() * M2);
@@ -3079,8 +3091,8 @@ class trans_mat_3D : public serialization::serializable {
     typename boost::enable_if< 
       boost::mpl::and_<
         is_readable_matrix<Matrix>,
-	boost::mpl::not_< boost::is_same< Matrix, trans_mat_3D<value_type> > >,
-	boost::mpl::not_< boost::is_same< Matrix, rot_mat_3D<value_type> > >
+        boost::mpl::not_< boost::is_same< Matrix, trans_mat_3D<value_type> > >,
+        boost::mpl::not_< boost::is_same< Matrix, rot_mat_3D<value_type> > >
       >,
     Matrix >::type operator *(const Matrix& M1, const self& M2) {
       return Matrix(M1 * M2.getMat());
@@ -3115,9 +3127,9 @@ class trans_mat_3D : public serialization::serializable {
     friend
     vect<value_type,4> operator *(const self& M, const vect<value_type,4>& V) {
       return vect<value_type,4>( M.q[0]*V[0] + M.q[4]*V[1] + M.q[8] *V[2] + M.q[12]*V[3],
-				 M.q[1]*V[0] + M.q[5]*V[1] + M.q[9] *V[2] + M.q[13]*V[3],
-				 M.q[2]*V[0] + M.q[6]*V[1] + M.q[10]*V[2] + M.q[14]*V[3],
-				 V[3]);
+                                 M.q[1]*V[0] + M.q[5]*V[1] + M.q[9] *V[2] + M.q[13]*V[3],
+                                 M.q[2]*V[0] + M.q[6]*V[1] + M.q[10]*V[2] + M.q[14]*V[3],
+                                 V[3]);
     };
 
 /*******************************************************************************
@@ -3156,8 +3168,8 @@ class trans_mat_3D : public serialization::serializable {
      */
     vect<value_type,3> rotate(const vect<value_type,3>& V) const {
       return vect<value_type,3>(q[0]*V[0] + q[4]*V[1] + q[8]*V[2],
-				q[1]*V[0] + q[5]*V[1] + q[9]*V[2],
-				q[2]*V[0] + q[6]*V[1] + q[10]*V[2]);
+                                q[1]*V[0] + q[5]*V[1] + q[9]*V[2],
+                                q[2]*V[0] + q[6]*V[1] + q[10]*V[2]);
     };
 
 /*******************************************************************************
@@ -3209,8 +3221,8 @@ class trans_mat_3D : public serialization::serializable {
     friend
     self invert(const self& M) {
       return self(M.q[0],M.q[1],M.q[2],-M.q[0]*M.q[12]-M.q[1]*M.q[13]-M.q[2]*M.q[14],
-		  M.q[4],M.q[5],M.q[6],-M.q[4]*M.q[12]-M.q[5]*M.q[13]-M.q[6]*M.q[14],
-		  M.q[8],M.q[9],M.q[10],-M.q[8]*M.q[12]-M.q[9]*M.q[13]-M.q[10]*M.q[14]);
+                  M.q[4],M.q[5],M.q[6],-M.q[4]*M.q[12]-M.q[5]*M.q[13]-M.q[6]*M.q[14],
+                  M.q[8],M.q[9],M.q[10],-M.q[8]*M.q[12]-M.q[9]*M.q[13]-M.q[10]*M.q[14]);
     };
 
     /**
@@ -3236,30 +3248,30 @@ class trans_mat_3D : public serialization::serializable {
     virtual void RK_CALL save(serialization::oarchive& A, unsigned int) const {
       A & RK_SERIAL_SAVE_WITH_ALIAS("r11",q[0])
         & RK_SERIAL_SAVE_WITH_ALIAS("r21",q[1])
-	& RK_SERIAL_SAVE_WITH_ALIAS("r31",q[2])
-	& RK_SERIAL_SAVE_WITH_ALIAS("r12",q[4])
-	& RK_SERIAL_SAVE_WITH_ALIAS("r22",q[5])
-	& RK_SERIAL_SAVE_WITH_ALIAS("r32",q[6])
-	& RK_SERIAL_SAVE_WITH_ALIAS("r13",q[8])
-	& RK_SERIAL_SAVE_WITH_ALIAS("r23",q[9])
-	& RK_SERIAL_SAVE_WITH_ALIAS("r33",q[10])
-	& RK_SERIAL_SAVE_WITH_ALIAS("t_x",q[12])
-	& RK_SERIAL_SAVE_WITH_ALIAS("t_y",q[13])
-	& RK_SERIAL_SAVE_WITH_ALIAS("t_z",q[14]);
+        & RK_SERIAL_SAVE_WITH_ALIAS("r31",q[2])
+        & RK_SERIAL_SAVE_WITH_ALIAS("r12",q[4])
+        & RK_SERIAL_SAVE_WITH_ALIAS("r22",q[5])
+        & RK_SERIAL_SAVE_WITH_ALIAS("r32",q[6])
+        & RK_SERIAL_SAVE_WITH_ALIAS("r13",q[8])
+        & RK_SERIAL_SAVE_WITH_ALIAS("r23",q[9])
+        & RK_SERIAL_SAVE_WITH_ALIAS("r33",q[10])
+        & RK_SERIAL_SAVE_WITH_ALIAS("t_x",q[12])
+        & RK_SERIAL_SAVE_WITH_ALIAS("t_y",q[13])
+        & RK_SERIAL_SAVE_WITH_ALIAS("t_z",q[14]);
     };
     virtual void RK_CALL load(serialization::iarchive& A, unsigned int) {
       A & RK_SERIAL_LOAD_WITH_ALIAS("r11",q[0])
         & RK_SERIAL_LOAD_WITH_ALIAS("r21",q[1])
-	& RK_SERIAL_LOAD_WITH_ALIAS("r31",q[2])
-	& RK_SERIAL_LOAD_WITH_ALIAS("r12",q[4])
-	& RK_SERIAL_LOAD_WITH_ALIAS("r22",q[5])
-	& RK_SERIAL_LOAD_WITH_ALIAS("r32",q[6])
-	& RK_SERIAL_LOAD_WITH_ALIAS("r13",q[8])
-	& RK_SERIAL_LOAD_WITH_ALIAS("r23",q[9])
-	& RK_SERIAL_LOAD_WITH_ALIAS("r33",q[10])
-	& RK_SERIAL_LOAD_WITH_ALIAS("t_x",q[12])
-	& RK_SERIAL_LOAD_WITH_ALIAS("t_y",q[13])
-	& RK_SERIAL_LOAD_WITH_ALIAS("t_z",q[14]);
+        & RK_SERIAL_LOAD_WITH_ALIAS("r31",q[2])
+        & RK_SERIAL_LOAD_WITH_ALIAS("r12",q[4])
+        & RK_SERIAL_LOAD_WITH_ALIAS("r22",q[5])
+        & RK_SERIAL_LOAD_WITH_ALIAS("r32",q[6])
+        & RK_SERIAL_LOAD_WITH_ALIAS("r13",q[8])
+        & RK_SERIAL_LOAD_WITH_ALIAS("r23",q[9])
+        & RK_SERIAL_LOAD_WITH_ALIAS("r33",q[10])
+        & RK_SERIAL_LOAD_WITH_ALIAS("t_x",q[12])
+        & RK_SERIAL_LOAD_WITH_ALIAS("t_y",q[13])
+        & RK_SERIAL_LOAD_WITH_ALIAS("t_z",q[14]);
       q[3] = 0.0; q[7] = 0.0; q[11] = 0.0; q[15] = 1.0;
     };
 

@@ -95,9 +95,8 @@ struct sat3D_meas_true_from_vectors {
   
   bool step_once() {
     for(std::size_t i = 0; i < skips; ++i) {
-      if( cur_meas != measurements->end() )
-        ++cur_meas;
-      else
+      ++cur_meas;
+      if( cur_meas == measurements->end() )
         return false;
       if( ground_truth && cur_true != ground_truth->end() )
         ++cur_true;
@@ -177,9 +176,9 @@ struct sat3D_meas_true_from_extractor {
         meas_pt.IMU_a_m[0] = nvr_in["acc_x"];
         meas_pt.IMU_a_m[1] = nvr_in["acc_y"];
         meas_pt.IMU_a_m[2] = nvr_in["acc_z"];
-        meas_pt.IMU_a_m[0] = nvr_in["mag_x"];
-        meas_pt.IMU_a_m[1] = nvr_in["mag_y"];
-        meas_pt.IMU_a_m[2] = nvr_in["mag_z"];
+        meas_pt.IMU_a_m[3] = nvr_in["mag_x"];
+        meas_pt.IMU_a_m[4] = nvr_in["mag_y"];
+        meas_pt.IMU_a_m[5] = nvr_in["mag_z"];
       } catch(ReaK::recorder::out_of_bounds& e) { RK_UNUSED(e); 
         meas_pt.IMU_a_m.resize(0);
       };
@@ -239,7 +238,9 @@ struct sat3D_estimate_result_to_recorder {
   sat3D_estimate_result_to_recorder(const ReaK::shared_ptr< ReaK::recorder::data_recorder >& aRec) : rec(aRec) { };
   
   void initialize() { };
-  void finalize() { };
+  void finalize() {
+    (*rec) << ReaK::recorder::data_recorder::flush;
+  };
   
   void add_record(const sat3D_state_belief_type& b,
                   const sat3D_input_belief_type& b_u, 
@@ -397,6 +398,8 @@ void batch_KF_no_meas_predict(
     sat3D_output_belief_type b_z) {
   using namespace ReaK;
   
+  result_logger.initialize();
+  
   // filtering phase:
   do {
     const sat3D_measurement_point& cur_meas = meas_provider.get_current_measurement();
@@ -427,6 +430,8 @@ void batch_KF_no_meas_predict(
                              meas_provider.get_current_gnd_truth_ptr());
     
   } while( meas_provider.step_once() );
+  
+  result_logger.finalize();
 };
 
 
@@ -443,6 +448,8 @@ void batch_KF_ML_meas_predict(
     sat3D_input_belief_type b_u,
     sat3D_output_belief_type b_z) {
   using namespace ReaK;
+  
+  result_logger.initialize();
   
   // filtering phase:
   do {
@@ -478,6 +485,8 @@ void batch_KF_ML_meas_predict(
                              meas_provider.get_current_gnd_truth_ptr());
     
   } while( meas_provider.step_once() );
+  
+  result_logger.finalize();
 };
 
 
@@ -639,7 +648,7 @@ void do_online_prediction(
   using namespace ReaK;
   
   std::stringstream ss;
-  ss << "_" << std::setfill('0') << std::setw(5) << int(100 * start_time) << "_" << sat_options.get_kf_accronym() << ".";
+  ss << "_pred_" << std::setfill('0') << std::setw(5) << int(100 * start_time) << "_" << sat_options.get_kf_accronym() << ".";
   ReaK::recorder::data_stream_options cur_out_opt = output_opt;
   cur_out_opt.file_name += ss.str() + cur_out_opt.get_extension();
   sat_options.imbue_names_for_state_estimates(cur_out_opt);
@@ -679,8 +688,9 @@ void do_all_prediction_runs(
   double end_time = (measurements.end()-1)->first;
   
   for(double start_time = measurements.begin()->first + start_intervals; start_time < end_time; start_time += start_intervals) {
+    
     std::stringstream ss;
-    ss << "_" << std::setfill('0') << std::setw(5) << int(100 * (start_time - measurements.begin()->first)) << "_" << sat_options.get_kf_accronym() << ".";
+    ss << "_pred_" << std::setfill('0') << std::setw(5) << int(100 * (start_time - measurements.begin()->first)) << "_" << sat_options.get_kf_accronym() << ".";
     recorder::data_stream_options cur_out_opt = output_opt;
     cur_out_opt.file_name += ss.str() + cur_out_opt.get_extension();
     sat_options.imbue_names_for_state_estimates(cur_out_opt);
@@ -696,6 +706,7 @@ void do_all_prediction_runs(
         sat3D_estimate_result_to_recorder(cur_out_opt.create_recorder()), 
         sat_sys, state_space, start_time, b, b_u, b_z);
     };
+    
   };
   
 };
@@ -761,27 +772,33 @@ void get_timeseries_from_rec(
   measurements.clear();
   ground_truth.clear();
   
+  std::cout << "Reading data file..." << std::endl;
+  
   try {
     recorder::named_value_row nvr_in = data_in->getFreshNamedValueRow();
     while(true) {
       (*data_in) >> nvr_in;
       
-      double t = nvr_in[ names_in[0] ];
-      vect_n<double> meas(names_in.size(), 0.0);
-      for(std::size_t i = 1; i < names_in.size(); ++i)
-        meas[i] = nvr_in[ names_in[i] ];
       
-      sat3D_measurement_point meas_actual, meas_noisy;
+      double t = nvr_in["time"];
       
-      /* read off the position-orientation measurements. */
-      if(meas.size() < 7)
-        throw std::invalid_argument("The measurement file does not even contain the position and quaternion measurements!");
+      sat3D_measurement_point meas_actual;
+      sat3D_measurement_point meas_noisy;
+      
+      meas_actual.pose.resize(7);
+      meas_actual.pose[0] = nvr_in["p_x"];
+      meas_actual.pose[1] = nvr_in["p_y"];
+      meas_actual.pose[2] = nvr_in["p_z"];
+      meas_actual.pose[3] = nvr_in["q_0"];
+      meas_actual.pose[4] = nvr_in["q_1"];
+      meas_actual.pose[5] = nvr_in["q_2"];
+      meas_actual.pose[6] = nvr_in["q_3"];
       
       vect_n<double> added_noise = ctrl::sample_gaussian_point(vect_n<double>(sat_options.artificial_noise.get_row_count(), 0.0), sat_options.artificial_noise);
       if(sat_options.artificial_noise.get_row_count() < 6) 
         added_noise.resize(6, 0.0);
       
-      meas_actual.pose = meas[range(0,6)];
+      meas_noisy.pose.resize(7);
       meas_noisy.pose[range(0,2)] = meas_actual.pose[range(0,2)] + added_noise[range(0,2)];
       
       vect<double,3> aa_noise(added_noise[3], added_noise[4], added_noise[5]);
@@ -789,54 +806,64 @@ void get_timeseries_from_rec(
       y_quat *= axis_angle<double>(norm_2(aa_noise), aa_noise).getQuaternion();
       meas_noisy.pose[range(3,6)] = vect<double,4>(y_quat[0], y_quat[1], y_quat[2], y_quat[3]);
       
-      std::size_t i_off = 7;
-      
       if( added_noise.size() >= 9 ) {
         /* read off the IMU/gyro angular velocity measurements. */
-        if(meas.size() < i_off + 3)
-          throw std::invalid_argument("The measurement file does not contain the angular velocity measurements!");
-        meas_actual.gyro = meas[range(i_off, i_off + 2)];
+        meas_actual.gyro.resize(3);
+        meas_actual.gyro[0] = nvr_in["w_x"];
+        meas_actual.gyro[1] = nvr_in["w_y"];
+        meas_actual.gyro[2] = nvr_in["w_z"];
         meas_noisy.gyro = meas_actual.gyro + added_noise[range(6,8)];
-        i_off += 3;
         if( added_noise.size() >= 15 ) {
           /* read off the IMU accel-mag measurements. */
-          if(meas.size() < i_off + 6)
-            throw std::invalid_argument("The measurement file does not contain the accelerometer and magnetometer measurements!");
-          meas_actual.IMU_a_m = meas[range(i_off, i_off + 5)];
+          meas_actual.IMU_a_m.resize(6);
+          meas_actual.IMU_a_m[0] = nvr_in["acc_x"];
+          meas_actual.IMU_a_m[1] = nvr_in["acc_y"];
+          meas_actual.IMU_a_m[2] = nvr_in["acc_z"];
+          meas_actual.IMU_a_m[3] = nvr_in["mag_x"];
+          meas_actual.IMU_a_m[4] = nvr_in["mag_y"];
+          meas_actual.IMU_a_m[5] = nvr_in["mag_z"];
           meas_noisy.IMU_a_m = meas_actual.IMU_a_m + added_noise[range(9,14)];
-          i_off += 6;
         };
       };
       
       /* read off the input vector. */
-      if(meas.size() < i_off + 6)
-        throw std::invalid_argument("The measurement file does not contain the input force-torque vector measurements!");
-      meas_actual.u = meas[range(i_off, i_off + 5)];
+      meas_actual.u.resize(6);
+      meas_actual.u[0] = nvr_in["f_x"];
+      meas_actual.u[1] = nvr_in["f_y"];
+      meas_actual.u[2] = nvr_in["f_z"];
+      meas_actual.u[3] = nvr_in["t_x"];
+      meas_actual.u[4] = nvr_in["t_y"];
+      meas_actual.u[5] = nvr_in["t_z"];
       meas_noisy.u  = meas_actual.u;
-      i_off += 6;
       
       /* now, the meas_actual and meas_noisy are fully formed. */
       measurements.push_back( std::make_pair(t, meas_noisy) );
       
+      std::cout << "\r" << std::setw(10) << measurements.size() << std::flush;
+      
       /* check if the file contains a ground-truth: */
-      if(meas.size() >= i_off + 7) {
+      try {
         sat3D_state_type x;
-        set_position(x, vect<double,3>(meas[i_off], meas[i_off + 1], meas[i_off + 2]));
-        set_quaternion(x, unit_quat<double>(meas[i_off + 3],meas[i_off + 4],meas[i_off + 5],meas[i_off + 6]));
-        if(meas.size() >= i_off + 13) {
-          set_velocity(x, vect<double,3>(meas[i_off + 7],meas[i_off + 8],meas[i_off + 9]));
-          set_ang_velocity(x, vect<double,3>(meas[i_off + 10],meas[i_off + 11],meas[i_off + 12]));
+        set_position(x, vect<double,3>(nvr_in["p_x_true"], nvr_in["p_y_true"], nvr_in["p_z_true"]));
+        set_quaternion(x, unit_quat<double>(nvr_in["q_0_true"], nvr_in["q_1_true"], nvr_in["q_2_true"], nvr_in["q_3_true"]));
+        set_velocity(x, vect<double,3>(nvr_in["v_x_true"], nvr_in["v_y_true"], nvr_in["v_z_true"]));
+        set_ang_velocity(x, vect<double,3>(nvr_in["w_x_true"], nvr_in["w_y_true"], nvr_in["w_z_true"]));
+        ground_truth.push_back( std::make_pair(t, x) );
+      } catch(ReaK::recorder::out_of_bounds& e) { RK_UNUSED(e); 
+        if( sat_options.artificial_noise.get_row_count() >= 6 ) {
+          sat3D_state_type x;
+          set_position(x, vect<double,3>(meas_actual.pose[0],meas_actual.pose[1],meas_actual.pose[2]));
+          set_quaternion(x, unit_quat<double>(meas_actual.pose[3],meas_actual.pose[4],meas_actual.pose[5],meas_actual.pose[6]));
+          set_velocity(x, vect<double,3>(0.0, 0.0, 0.0));
+          set_ang_velocity(x, vect<double,3>(0.0, 0.0, 0.0));
+          ground_truth.push_back( std::make_pair(t, x) );
         };
-        ground_truth.push_back( std::make_pair(t, x) );
-      } else if( sat_options.artificial_noise.get_row_count() >= 6 ) {
-        sat3D_state_type x;
-        set_position(x, vect<double,3>(meas_actual.pose[0],meas_actual.pose[1],meas_actual.pose[2]));
-        set_quaternion(x, unit_quat<double>(meas_actual.pose[3],meas_actual.pose[4],meas_actual.pose[5],meas_actual.pose[6]));
-        ground_truth.push_back( std::make_pair(t, x) );
       };
       
     };
   } catch(recorder::end_of_record&) { };
+  
+  std::cout << "\nDone!" << std::endl;
   
 };
 
@@ -893,6 +920,10 @@ int main(int argc, char** argv) {
   po::store(po::parse_command_line(argc, argv, cmdline_options), vm);
   po::notify(vm);
   
+  if(vm.count("help")) {
+    std::cout << cmdline_options << std::endl;
+    return 1;
+  };
   
   recorder::data_stream_options data_in_opt;
   shared_ptr< recorder::data_extractor > data_in;
@@ -907,8 +938,8 @@ int main(int argc, char** argv) {
     };
   };
   
+  
   recorder::data_stream_options data_out_opt;
-  shared_ptr< recorder::data_recorder > data_out;
   std::string output_stem_name;
   try {
     data_out_opt = recorder::get_data_stream_options_from_po(vm, true);
@@ -920,14 +951,11 @@ int main(int argc, char** argv) {
       std::size_t last_dot   = output_stem_name.find_last_of('.');
       last_dot = ( last_dot == std::string::npos ? 0 : last_dot );
       std::size_t last_slash = output_stem_name.find_last_of('/');
-      last_dot = ( last_slash == std::string::npos ? 0 : last_slash );
+      last_slash = ( last_slash == std::string::npos ? 0 : last_slash );
       if( last_dot > last_slash ) 
         output_stem_name.erase(output_stem_name.begin() + last_dot, output_stem_name.end());
     };
     
-    if(!vm.count("output-traj-file")) {
-      data_out = data_out_opt.create_recorder();
-    };
   } catch(std::invalid_argument& e) {
     std::cerr << "Error! Creation of output data-stream failed! Invalid argument: " << e.what() << std::endl;
     return 1;
@@ -943,7 +971,9 @@ int main(int argc, char** argv) {
     return 2;
   };
   
-  std::string sys_output_stem_name = vm["system-output"].as<std::string>();
+  std::string sys_output_stem_name;
+  if( vm.count("system-output") )
+    sys_output_stem_name = vm["system-output"].as<std::string>();
   if( !sys_output_stem_name.empty() ) {
     std::string sys_output_path_name = sys_output_stem_name;
     if( vm.count("generate-mdl-files") ) {
@@ -974,7 +1004,7 @@ int main(int argc, char** argv) {
   
   shared_ptr< sat3D_temp_space_type > sat_space = sat_options.get_temporal_state_space(start_time, end_time);
   
-  sat3D_state_belief_type b_init = sat_options.get_init_state_belief(10.0);
+  sat3D_state_belief_type b_init = sat_options.get_init_state_belief(100.0);
   sat3D_state_type x_init = b_init.get_mean_state();
   set_position(x_init, vect<double,3>(0.0, 0.0, 0.0));
   set_velocity(x_init, vect<double,3>(0.0, 0.0, 0.0));
@@ -1056,7 +1086,7 @@ int main(int argc, char** argv) {
       // do monte-carlo runs:
       set_frame_3D(x_init, sat_options.initial_motion);
       
-      recorder::data_stream_options data_stddev_opt = data_out_opt;
+      recorder::data_stream_options data_stddev_opt = data_out_stem_opt;
       data_stddev_opt.file_name = output_stem_name + "_meas_stddevs." + data_stddev_opt.get_extension();
       sat_options.imbue_names_for_meas_stddevs(data_stddev_opt);
       shared_ptr< recorder::data_recorder > data_stddev = data_stddev_opt.create_recorder();
@@ -1156,7 +1186,7 @@ int main(int argc, char** argv) {
       // do monte-carlo runs:
       set_frame_3D(x_init, sat_options.initial_motion);
       
-      recorder::data_stream_options data_stddev_opt = data_out_opt;
+      recorder::data_stream_options data_stddev_opt = data_out_stem_opt;
       data_stddev_opt.file_name = output_stem_name + "_meas_gyro_stddevs." + data_stddev_opt.get_extension();
       sat_options.imbue_names_for_meas_stddevs(data_stddev_opt);
       shared_ptr< recorder::data_recorder > data_stddev = data_stddev_opt.create_recorder();
@@ -1255,7 +1285,7 @@ int main(int argc, char** argv) {
       // do monte-carlo runs:
       set_frame_3D(x_init, sat_options.initial_motion);
       
-      recorder::data_stream_options data_stddev_opt = data_out_opt;
+      recorder::data_stream_options data_stddev_opt = data_out_stem_opt;
       data_stddev_opt.file_name = output_stem_name + "_meas_gyro_stddevs." + data_stddev_opt.get_extension();
       sat_options.imbue_names_for_meas_stddevs(data_stddev_opt);
       shared_ptr< recorder::data_recorder > data_stddev = data_stddev_opt.create_recorder();
@@ -1300,7 +1330,7 @@ int main(int argc, char** argv) {
   
   // and output those if asked for it:
   if( (!vm.count("monte-carlo")) && vm.count("generate-meas-file") ) {
-    recorder::data_stream_options data_meas_opt = data_out_opt;
+    recorder::data_stream_options data_meas_opt = data_out_stem_opt;
     data_meas_opt.file_name = output_stem_name + "_meas." + data_meas_opt.get_extension();
     sat_options.imbue_names_for_generated_meas(data_meas_opt);
     shared_ptr< recorder::data_recorder > data_meas = data_meas_opt.create_recorder();

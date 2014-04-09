@@ -113,8 +113,12 @@ satellite_model_options::input_belief_type satellite_model_options::get_zero_inp
 satellite_model_options::output_belief_type satellite_model_options::get_zero_output_belief() const {
   vect_n<double> z(get_measurement_count(), 0.0);
   z[3] = 1.0;
-  return output_belief_type(output_type(z), 
-                            covar_type(covar_type::matrix_type(measurement_noise + artificial_noise)));
+  if( artificial_noise.get_row_count() == measurement_noise.get_row_count() )
+    return output_belief_type(output_type(z), 
+                              covar_type(covar_type::matrix_type(measurement_noise + artificial_noise)));
+  else
+    return output_belief_type(output_type(z), 
+                              covar_type(covar_type::matrix_type(measurement_noise)));
 };
 
 void satellite_model_options::imbue_names_for_generated_meas(recorder::data_stream_options& data_opt) const {
