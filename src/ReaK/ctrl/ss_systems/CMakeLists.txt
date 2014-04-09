@@ -4,6 +4,7 @@ set(SSSYSTEMS_SOURCES
   "${SRCROOT}${RKSSSYSTEMSDIR}/satellite_basic_models.cpp"
   "${SRCROOT}${RKSSSYSTEMSDIR}/satellite_invar_models.cpp"
   "${SRCROOT}${RKSSSYSTEMSDIR}/satellite_modeling_options.cpp"
+  "${SRCROOT}${RKSSSYSTEMSDIR}/near_buoyant_airship_models.cpp"
 )
 
 
@@ -13,6 +14,7 @@ set(SSSYSTEMS_HEADERS
   "${RKSSSYSTEMSDIR}/satellite_invar_models.hpp"
   "${RKSSSYSTEMSDIR}/satellite_modeling_options.hpp"
   "${RKSSSYSTEMSDIR}/satellite_modeling_po.hpp"
+  "${RKSSSYSTEMSDIR}/near_buoyant_airship_models.hpp"
 )
 
 add_library(reak_ss_systems STATIC ${SSSYSTEMS_SOURCES})
