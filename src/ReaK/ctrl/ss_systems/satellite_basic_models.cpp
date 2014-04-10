@@ -33,6 +33,47 @@ namespace ctrl {
 
 
 
+#define RK_D_INF std::numeric_limits<double>::infinity()
+
+shared_ptr< satellite3D_lin_dt_system::temporal_state_space_type > satellite3D_lin_dt_system::get_temporal_state_space(double aStartTime, double aEndTime) const {
+  return shared_ptr< temporal_state_space_type >(new temporal_state_space_type(
+    "satellite3D_temporal_space", 
+    pp::make_se3_space(
+      "satellite3D_state_space",
+      vect<double,3>(-RK_D_INF, -RK_D_INF, -RK_D_INF),
+      vect<double,3>( RK_D_INF,  RK_D_INF,  RK_D_INF),
+      RK_D_INF, RK_D_INF),
+    pp::time_poisson_topology("satellite3D_time_space", mDt, (aEndTime - aStartTime) * 0.5)));
+};
+
+shared_ptr< satellite3D_lin_dt_system::state_space_type > satellite3D_lin_dt_system::get_state_space() const {
+  return shared_ptr< state_space_type >(new state_space_type(pp::make_se3_space(
+    "satellite3D_state_space",
+    vect<double,3>(-RK_D_INF, -RK_D_INF, -RK_D_INF),
+    vect<double,3>( RK_D_INF,  RK_D_INF,  RK_D_INF),
+    RK_D_INF, RK_D_INF)));
+};
+
+#undef RK_D_INF
+
+satellite3D_lin_dt_system::state_belief_type satellite3D_lin_dt_system::get_zero_state_belief(double aCovValue) const {
+  point_type x_init;
+  set_frame_3D(x_init, frame_3D<double>());
+  return state_belief_type(x_init, covar_type(covar_type::matrix_type(mat<double,mat_structure::diagonal>(13, aCovValue))));
+};
+
+satellite3D_lin_dt_system::input_belief_type satellite3D_lin_dt_system::get_zero_input_belief(double aCovValue) const {
+  return input_belief_type(input_type(vect_n<double>(6, 0.0)), 
+                           covar_type(covar_type::matrix_type(mat<double,mat_structure::diagonal>(6,aCovValue))));
+};
+
+satellite3D_lin_dt_system::output_belief_type satellite3D_lin_dt_system::get_zero_output_belief(double aCovValue) const {
+  return output_belief_type(output_type(vect_n<double>(0.0,0.0,0.0,1.0,0.0,0.0,0.0)), 
+                            covar_type(covar_type::matrix_type(mat<double,mat_structure::diagonal>(7,aCovValue))));
+};
+
+
+
 satellite3D_lin_dt_system::satellite3D_lin_dt_system(
   const std::string& aName, double aMass, const mat<double,mat_structure::symmetric>& aInertiaMoment, double aDt) :
   named_object(), mMass(aMass), mInertiaMoment(aInertiaMoment), mDt(aDt) {
@@ -214,6 +255,11 @@ void RK_CALL satellite3D_lin_dt_system::load(ReaK::serialization::iarchive& A, u
 
 
 
+satellite3D_gyro_lin_dt_system::output_belief_type satellite3D_gyro_lin_dt_system::get_zero_output_belief(double aCovValue) const {
+  return output_belief_type(output_type(vect_n<double>(0.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0,0.0,0.0)), 
+                            covar_type(covar_type::matrix_type(mat<double,mat_structure::diagonal>(10,aCovValue))));
+};
+
 
 satellite3D_gyro_lin_dt_system::satellite3D_gyro_lin_dt_system(
   const std::string& aName, double aMass, const mat<double,mat_structure::symmetric>& aInertiaMoment, double aDt) :
@@ -256,6 +302,17 @@ void satellite3D_gyro_lin_dt_system::get_output_function_blocks(
 
 
 
+
+satellite3D_inv_dt_system::state_belief_type satellite3D_inv_dt_system::get_zero_state_belief(double aCovValue) const {
+  point_type x_init;
+  set_frame_3D(x_init, frame_3D<double>());
+  return state_belief_type(x_init, covar_type(covar_type::matrix_type(mat<double,mat_structure::diagonal>(12, aCovValue))));
+};
+
+satellite3D_inv_dt_system::output_belief_type satellite3D_inv_dt_system::get_zero_output_belief(double aCovValue) const {
+  return output_belief_type(output_type(vect_n<double>(0.0,0.0,0.0,1.0,0.0,0.0,0.0)), 
+                            covar_type(covar_type::matrix_type(mat<double,mat_structure::diagonal>(6,aCovValue))));
+};
 
 
 satellite3D_inv_dt_system::satellite3D_inv_dt_system(
@@ -373,6 +430,11 @@ satellite3D_inv_dt_system::point_type satellite3D_inv_dt_system::apply_correctio
 
 
 
+
+satellite3D_gyro_inv_dt_system::output_belief_type satellite3D_gyro_inv_dt_system::get_zero_output_belief(double aCovValue) const {
+  return output_belief_type(output_type(vect_n<double>(0.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0,0.0,0.0)), 
+                            covar_type(covar_type::matrix_type(mat<double,mat_structure::diagonal>(9,aCovValue))));
+};
 
 
 satellite3D_gyro_inv_dt_system::satellite3D_gyro_inv_dt_system(

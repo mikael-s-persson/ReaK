@@ -33,30 +33,8 @@ namespace ctrl {
 
 
 
-shared_ptr< satellite_model_options::temp_state_space_type > satellite_model_options::get_temporal_state_space(double aStartTime, double aEndTime) const {
-#define RK_D_INF std::numeric_limits<double>::infinity()
-  return shared_ptr< temp_state_space_type >(new temp_state_space_type(
-    "satellite3D_temporal_space", 
-    pp::make_se3_space(
-      "satellite3D_state_space",
-      vect<double,3>(-RK_D_INF, -RK_D_INF, -RK_D_INF),
-      vect<double,3>( RK_D_INF,  RK_D_INF,  RK_D_INF),
-      RK_D_INF, RK_D_INF),
-    pp::time_poisson_topology("satellite3D_time_space", time_step, (aEndTime - aStartTime) * 0.5)));
-};
-
-shared_ptr< satellite_model_options::state_space_type > satellite_model_options::get_state_space() const {
-  return shared_ptr< state_space_type >(new state_space_type(pp::make_se3_space(
-    "satellite3D_state_space",
-    vect<double,3>(-RK_D_INF, -RK_D_INF, -RK_D_INF),
-    vect<double,3>( RK_D_INF,  RK_D_INF,  RK_D_INF),
-    RK_D_INF, RK_D_INF)));
-#undef RK_D_INF
-};
-
-
 shared_ptr< satellite_model_options::system_base_type > satellite_model_options::get_base_sat_system() const {
-  switch(system_kind & 7) {
+  switch(system_kind & 15) {
     case satellite_model_options::invariant:
       return shared_ptr< system_base_type >(new satellite3D_inv_dt_system(
         "satellite3D_inv", mass, inertia_tensor, time_step));
@@ -71,7 +49,7 @@ shared_ptr< satellite_model_options::system_base_type > satellite_model_options:
 };
 
 shared_ptr< satellite_model_options::system_gyro_type > satellite_model_options::get_gyro_sat_system() const {
-  switch(system_kind & 7) {
+  switch(system_kind & 15) {
     case satellite_model_options::invariant:
       return shared_ptr< system_gyro_type >(new satellite3D_gyro_inv_dt_system(
         "satellite3D_inv_with_gyros", mass, inertia_tensor, time_step));
@@ -86,7 +64,7 @@ shared_ptr< satellite_model_options::system_gyro_type > satellite_model_options:
 };
 
 shared_ptr< satellite_model_options::system_IMU_type > satellite_model_options::get_IMU_sat_system() const {
-  switch(system_kind & 7) {
+  switch(system_kind & 15) {
     case satellite_model_options::invar_mom2:
       return shared_ptr< system_IMU_type >(new satellite3D_IMU_imdt_sys(
         "satellite3D_invmid_with_IMU", mass, inertia_tensor, time_step,
@@ -99,12 +77,44 @@ shared_ptr< satellite_model_options::system_IMU_type > satellite_model_options::
   };
 };
 
+shared_ptr< satellite_model_options::system_em_type > satellite_model_options::get_em_airship_system() const {
+  return shared_ptr< system_em_type >(new system_em_type(
+    "airship3D_em_system", mass, inertia_tensor, time_step, vect<double,3>(0.0,0.0,-9.81)));
+};
+
+shared_ptr< satellite_model_options::system_emd_type > satellite_model_options::get_emd_airship_system() const {
+  return shared_ptr< system_emd_type >(new system_emd_type(
+    "airship3D_emd_system", mass, inertia_tensor, time_step, vect<double,3>(0.0,0.0,-9.81)));
+};
+
+
 
 satellite_model_options::state_belief_type satellite_model_options::get_init_state_belief(double aCovDiag) const {
   state_type x_init;
   set_frame_3D(x_init, initial_motion);
   return state_belief_type(x_init, covar_type(covar_type::matrix_type(mat<double,mat_structure::diagonal>(12, aCovDiag))));
 };
+
+
+satellite_model_options::state_em_belief_type satellite_model_options::get_init_state_em_belief(double aCovDiag) const {
+  state_em_type x_init;
+  set_frame_3D(get<0>(x_init), initial_motion);
+  get<1>(x_init) = 0.0;
+  get<2>(x_init) = vect<double,3>(0.0, 0.0, 0.0);
+  return state_em_belief_type(x_init, covar_type(covar_type::matrix_type(mat<double,mat_structure::diagonal>(16, aCovDiag))));
+};
+
+satellite_model_options::state_emd_belief_type satellite_model_options::get_init_state_emd_belief(double aCovDiag) const {
+  state_emd_type x_init;
+  set_frame_3D(get<0>(x_init), initial_motion);
+  get<1>(x_init) = 0.0;
+  get<2>(x_init) = vect<double,3>(0.0, 0.0, 0.0);
+  get<3>(x_init) = 0.0;
+  get<4>(x_init) = 0.0;
+  return state_emd_belief_type(x_init, covar_type(covar_type::matrix_type(mat<double,mat_structure::diagonal>(18, aCovDiag))));
+};
+  
+
 
 satellite_model_options::input_belief_type satellite_model_options::get_zero_input_belief() const {
   return input_belief_type(input_type(vect_n<double>(6, 0.0)), covar_type(covar_type::matrix_type(input_disturbance)));
@@ -128,12 +138,12 @@ void satellite_model_options::imbue_names_for_generated_meas(recorder::data_stre
     .add_name("time").add_name("p_x").add_name("p_y").add_name("p_z")
     .add_name("q_0").add_name("q_1").add_name("q_2").add_name("q_3");
   
-  switch(system_kind & 24) {
-    case 8:
+  switch(system_kind & 48) {
+    case 16:
       data_opt
         .add_name("w_x").add_name("w_y").add_name("w_z");
       break;
-    case 24:
+    case 48:
       data_opt
         .add_name("w_x").add_name("w_y").add_name("w_z")
         .add_name("acc_x").add_name("acc_y").add_name("acc_z")
@@ -159,12 +169,12 @@ void satellite_model_options::imbue_names_for_meas_stddevs(recorder::data_stream
     .add_name("ep_x").add_name("ep_y").add_name("ep_z")
     .add_name("ea_x").add_name("ea_y").add_name("ea_z").add_name("ep_m").add_name("ea_m");
   
-  switch(system_kind & 24) {
-    case 8:
+  switch(system_kind & 48) {
+    case 16:
       data_opt
         .add_name("ew_x").add_name("ew_y").add_name("ew_z").add_name("ew_m");
       break;
-    case 24:
+    case 48:
       data_opt
         .add_name("ew_x").add_name("ew_y").add_name("ew_z").add_name("ew_m")
         .add_name("eacc_x").add_name("eacc_y").add_name("eacc_z").add_name("eacc_m")
@@ -181,15 +191,43 @@ void satellite_model_options::imbue_names_for_state_estimates(recorder::data_str
     .add_name("time").add_name("pos_x").add_name("pos_y").add_name("pos_z")
     .add_name("q0").add_name("q1").add_name("q2").add_name("q3")
     .add_name("vel_x").add_name("vel_y").add_name("vel_z")
-    .add_name("avel_x").add_name("avel_y").add_name("avel_z")
+    .add_name("avel_x").add_name("avel_y").add_name("avel_z");
+  switch(system_kind & 15) {
+    case invar_mom_em:
+      data_opt
+        .add_name("mass").add_name("ecc_x").add_name("ecc_y").add_name("ecc_z");
+      break;
+    case invar_mom_emd:
+      data_opt
+        .add_name("mass").add_name("ecc_x").add_name("ecc_y").add_name("ecc_z")
+        .add_name("tdrag").add_name("rdrag");
+      break;
+    default:
+      break;
+  };
+  data_opt
     .add_name("ep_x").add_name("ep_y").add_name("ep_z")
     .add_name("ea_x").add_name("ea_y").add_name("ea_z")
     .add_name("ev_x").add_name("ev_y").add_name("ev_z")
-    .add_name("ew_x").add_name("ew_y").add_name("ew_z")
+    .add_name("ew_x").add_name("ew_y").add_name("ew_z");
+  data_opt
     .add_name("P_xx").add_name("P_yy").add_name("P_zz")
     .add_name("P_aax").add_name("P_aay").add_name("P_aaz")
     .add_name("P_vvx").add_name("P_vvy").add_name("P_vvz")
     .add_name("P_wwx").add_name("P_wwy").add_name("P_wwz");
+  switch(system_kind & 15) {
+    case invar_mom_em:
+      data_opt
+        .add_name("P_mm").add_name("P_eex").add_name("P_eey").add_name("P_eez");
+      break;
+    case invar_mom_emd:
+      data_opt
+        .add_name("P_mm").add_name("P_eex").add_name("P_eey").add_name("P_eez")
+        .add_name("P_tdtd").add_name("P_rdrd");
+      break;
+    default:
+      break;
+  };
 };
 
 void satellite_model_options::imbue_names_for_state_estimates_stddevs(recorder::data_stream_options& data_opt) const {
@@ -205,6 +243,8 @@ void satellite_model_options::imbue_names_for_state_estimates_stddevs(recorder::
     .add_name("P_vvx").add_name("P_vvy").add_name("P_vvz")
     .add_name("P_wwx").add_name("P_wwy").add_name("P_wwz");
 };
+
+
 
 
 

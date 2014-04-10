@@ -34,6 +34,57 @@ namespace ReaK {
 namespace ctrl {
 
 
+#define RK_D_INF std::numeric_limits<double>::infinity()
+
+shared_ptr< airship3D_imdt_em_sys::temporal_state_space_type > airship3D_imdt_em_sys::get_temporal_state_space(double aStartTime, double aEndTime) const {
+  return shared_ptr< temporal_state_space_type >(new temporal_state_space_type(
+    "airship3D_em_temporal_space", 
+    state_space_type(make_arithmetic_tuple(
+      pp::make_se3_space(
+        "satellite3D_state_space",
+        vect<double,3>(-RK_D_INF, -RK_D_INF, -RK_D_INF),
+        vect<double,3>( RK_D_INF,  RK_D_INF,  RK_D_INF),
+        RK_D_INF, RK_D_INF),
+      pp::line_segment_topology<double>("mass_imbal_param_space", 0.0, RK_D_INF),
+      pp::hyperball_topology< vect<double,3> >("eccentricity_param_space", vect<double,3>(0.0,0.0,0.0), RK_D_INF)
+    )),
+    pp::time_poisson_topology("airship3D_em_time_space", mDt, (aEndTime - aStartTime) * 0.5)));
+};
+
+shared_ptr< airship3D_imdt_em_sys::state_space_type > airship3D_imdt_em_sys::get_state_space() const {
+  return shared_ptr< state_space_type >(new state_space_type(make_arithmetic_tuple(
+    pp::make_se3_space(
+      "satellite3D_state_space",
+      vect<double,3>(-RK_D_INF, -RK_D_INF, -RK_D_INF),
+      vect<double,3>( RK_D_INF,  RK_D_INF,  RK_D_INF),
+      RK_D_INF, RK_D_INF),
+    pp::line_segment_topology<double>("mass_imbal_param_space", 0.0, RK_D_INF),
+    pp::hyperball_topology< vect<double,3> >("eccentricity_param_space", vect<double,3>(0.0,0.0,0.0), RK_D_INF)
+  )));
+};
+
+#undef RK_D_INF
+
+
+airship3D_imdt_em_sys::state_belief_type airship3D_imdt_em_sys::get_zero_state_belief(double aCovValue) const {
+  point_type x_init;
+  set_frame_3D(get<0>(x_init), frame_3D<double>());
+  get<1>(x_init) = 0.0;
+  get<2>(x_init) = vect<double,3>(0.0, 0.0, 0.0);
+  return state_belief_type(x_init, covar_type(covar_type::matrix_type(mat<double,mat_structure::diagonal>(16, aCovValue))));
+};
+
+airship3D_imdt_em_sys::input_belief_type airship3D_imdt_em_sys::get_zero_input_belief(double aCovValue) const {
+  return input_belief_type(input_type(vect_n<double>(6, 0.0)), 
+                           covar_type(covar_type::matrix_type(mat<double,mat_structure::diagonal>(6,aCovValue))));
+};
+
+airship3D_imdt_em_sys::output_belief_type airship3D_imdt_em_sys::get_zero_output_belief(double aCovValue) const {
+  return output_belief_type(output_type(vect_n<double>(0.0,0.0,0.0,1.0,0.0,0.0,0.0)), 
+                            covar_type(covar_type::matrix_type(mat<double,mat_structure::diagonal>(6,aCovValue))));
+};
+
+
 
 airship3D_imdt_em_sys::airship3D_imdt_em_sys(
   const std::string& aName, double aMass, 
@@ -284,6 +335,65 @@ void RK_CALL airship3D_imdt_em_sys::load(ReaK::serialization::iarchive& A, unsig
 };
 
 
+
+
+
+
+#define RK_D_INF std::numeric_limits<double>::infinity()
+
+shared_ptr< airship3D_imdt_emd_sys::temporal_state_space_type > airship3D_imdt_emd_sys::get_temporal_state_space(double aStartTime, double aEndTime) const {
+  return shared_ptr< temporal_state_space_type >(new temporal_state_space_type(
+    "airship3D_emd_temporal_space", 
+    state_space_type(make_arithmetic_tuple(
+      pp::make_se3_space(
+        "satellite3D_state_space",
+        vect<double,3>(-RK_D_INF, -RK_D_INF, -RK_D_INF),
+        vect<double,3>( RK_D_INF,  RK_D_INF,  RK_D_INF),
+        RK_D_INF, RK_D_INF),
+      pp::line_segment_topology<double>("mass_imbal_param_space", 0.0, RK_D_INF),
+      pp::hyperball_topology< vect<double,3> >("eccentricity_param_space", vect<double,3>(0.0,0.0,0.0), RK_D_INF),
+      pp::line_segment_topology<double>("tr_drag_param_space", 0.0, RK_D_INF),
+      pp::line_segment_topology<double>("rot_drag_param_space", 0.0, RK_D_INF)
+    )),
+    pp::time_poisson_topology("airship3D_emd_time_space", mDt, (aEndTime - aStartTime) * 0.5)));
+};
+
+shared_ptr< airship3D_imdt_emd_sys::state_space_type > airship3D_imdt_emd_sys::get_state_space() const {
+  return shared_ptr< state_space_type >(new state_space_type(make_arithmetic_tuple(
+    pp::make_se3_space(
+      "satellite3D_state_space",
+      vect<double,3>(-RK_D_INF, -RK_D_INF, -RK_D_INF),
+      vect<double,3>( RK_D_INF,  RK_D_INF,  RK_D_INF),
+      RK_D_INF, RK_D_INF),
+    pp::line_segment_topology<double>("mass_imbal_param_space", 0.0, RK_D_INF),
+    pp::hyperball_topology< vect<double,3> >("eccentricity_param_space", vect<double,3>(0.0,0.0,0.0), RK_D_INF),
+    pp::line_segment_topology<double>("tr_drag_param_space", 0.0, RK_D_INF),
+    pp::line_segment_topology<double>("rot_drag_param_space", 0.0, RK_D_INF)
+  )));
+};
+
+#undef RK_D_INF
+
+
+airship3D_imdt_emd_sys::state_belief_type airship3D_imdt_emd_sys::get_zero_state_belief(double aCovValue) const {
+  point_type x_init;
+  set_frame_3D(get<0>(x_init), frame_3D<double>());
+  get<1>(x_init) = 0.0;
+  get<2>(x_init) = vect<double,3>(0.0, 0.0, 0.0);
+  get<3>(x_init) = 0.0;
+  get<4>(x_init) = 0.0;
+  return state_belief_type(x_init, covar_type(covar_type::matrix_type(mat<double,mat_structure::diagonal>(18, aCovValue))));
+};
+
+airship3D_imdt_emd_sys::input_belief_type airship3D_imdt_emd_sys::get_zero_input_belief(double aCovValue) const {
+  return input_belief_type(input_type(vect_n<double>(6, 0.0)), 
+                           covar_type(covar_type::matrix_type(mat<double,mat_structure::diagonal>(6,aCovValue))));
+};
+
+airship3D_imdt_emd_sys::output_belief_type airship3D_imdt_emd_sys::get_zero_output_belief(double aCovValue) const {
+  return output_belief_type(output_type(vect_n<double>(0.0,0.0,0.0,1.0,0.0,0.0,0.0)), 
+                            covar_type(covar_type::matrix_type(mat<double,mat_structure::diagonal>(6,aCovValue))));
+};
 
 
 

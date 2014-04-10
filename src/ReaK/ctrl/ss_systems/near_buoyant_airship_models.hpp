@@ -45,6 +45,12 @@
 #include "lin_alg/mat_alg.hpp"
 #include "topologies/se3_topologies.hpp"
 #include "topologies/line_topology.hpp"
+#include "topologies/temporal_space.hpp"
+#include "topologies/time_poisson_topology.hpp"
+#include "ctrl_sys/gaussian_belief_space.hpp"
+#include "ctrl_sys/covariance_matrix.hpp"
+#include "ctrl_sys/covar_topology.hpp"
+
 
 namespace ReaK {
 
@@ -103,6 +109,20 @@ class airship3D_imdt_em_sys : public named_object {
       };
     };
     
+    typedef covariance_matrix< vect_n<double> > covar_type;
+    typedef covar_topology< covar_type > covar_space_type;
+    typedef pp::temporal_space<state_space_type, pp::time_poisson_topology, pp::time_distance_only> temporal_state_space_type;
+    typedef gaussian_belief_space<state_space_type, covar_space_type> belief_space_type;
+    typedef gaussian_belief_state< point_type,  covar_type > state_belief_type;
+    typedef gaussian_belief_state< input_type,  covar_type > input_belief_type;
+    typedef gaussian_belief_state< output_type, covar_type > output_belief_type;
+    
+    virtual shared_ptr< temporal_state_space_type > get_temporal_state_space(double aStartTime = 0.0, double aEndTime = 1.0) const;
+    virtual shared_ptr< state_space_type > get_state_space() const;
+    
+    virtual state_belief_type get_zero_state_belief(double aCovValue = 10.0) const;
+    virtual input_belief_type get_zero_input_belief(double aCovValue = 1.0) const;
+    virtual output_belief_type get_zero_output_belief(double aCovValue = 1.0) const;
     
   protected:
     double mMass;
@@ -317,6 +337,21 @@ class airship3D_imdt_emd_sys : public named_object {
         return input_type(0.0,0.0,0.0,0.0,0.0,0.0);
       };
     };
+    
+    typedef covariance_matrix< vect_n<double> > covar_type;
+    typedef covar_topology< covar_type > covar_space_type;
+    typedef pp::temporal_space<state_space_type, pp::time_poisson_topology, pp::time_distance_only> temporal_state_space_type;
+    typedef gaussian_belief_space<state_space_type, covar_space_type> belief_space_type;
+    typedef gaussian_belief_state< point_type,  covar_type > state_belief_type;
+    typedef gaussian_belief_state< input_type,  covar_type > input_belief_type;
+    typedef gaussian_belief_state< output_type, covar_type > output_belief_type;
+    
+    virtual shared_ptr< temporal_state_space_type > get_temporal_state_space(double aStartTime = 0.0, double aEndTime = 1.0) const;
+    virtual shared_ptr< state_space_type > get_state_space() const;
+    
+    virtual state_belief_type get_zero_state_belief(double aCovValue = 10.0) const;
+    virtual input_belief_type get_zero_input_belief(double aCovValue = 1.0) const;
+    virtual output_belief_type get_zero_output_belief(double aCovValue = 1.0) const;
     
     
   protected:

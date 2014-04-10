@@ -75,6 +75,8 @@ boost::program_options::options_description get_satellite_model_options_po_desc(
     ("iekf",      "if set, results for the invariant extended Kalman filter (IEKF) will be generated.")
     ("imkf",      "if set, results for the invariant momentum-tracking Kalman filter (IMKF) will be generated.")
     ("imkfv2",    "if set, results for the invariant midpoint Kalman filter (IMKFv2) will be generated.")
+    ("imkf-em",   "if set, results for the invariant momentum-tracking Kalman filter (IMKF) with adaptive mass-eccentricity parameters will be generated.")
+    ("imkf-emd",  "if set, results for the invariant momentum-tracking Kalman filter (IMKF) with adaptive mass-eccentricity-drag parameters will be generated.")
   ;
   result.add(model_options);
   
@@ -122,6 +124,10 @@ void fill_satellite_model_options_from_po(satellite_model_options& result, boost
     result.system_kind |= satellite_model_options::invariant;
   else if(vm.count("imkfv2"))
     result.system_kind |= satellite_model_options::invar_mom2;
+  else if(vm.count("imkf-em"))
+    result.system_kind |= satellite_model_options::invar_mom_em;
+  else if(vm.count("imkf-emd"))
+    result.system_kind |= satellite_model_options::invar_mom_emd;
   else 
     result.system_kind |= satellite_model_options::invar_mom;
   
@@ -130,8 +136,8 @@ void fill_satellite_model_options_from_po(satellite_model_options& result, boost
 
 void save_satellite_model_options_to_files(satellite_model_options& result, boost::program_options::variables_map& vm) {
   
-  if(result.input_disturbance.get_row_count() != 12)
-    result.input_disturbance = mat<double,mat_structure::diagonal>(12, true);
+  if(result.input_disturbance.get_row_count() != 6)
+    result.input_disturbance = mat<double,mat_structure::diagonal>(6, true);
   if(result.measurement_noise.get_row_count() != result.get_meas_error_count())
     result.measurement_noise = mat<double,mat_structure::diagonal>(result.get_meas_error_count(), true);
   if(result.artificial_noise.get_row_count() != result.get_meas_error_count())

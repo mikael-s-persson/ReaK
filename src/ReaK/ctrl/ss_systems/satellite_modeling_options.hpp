@@ -35,6 +35,7 @@
 #define REAK_SATELLITE_MODELING_OPTIONS_HPP
 
 #include "satellite_invar_models.hpp"
+#include "near_buoyant_airship_models.hpp"
 
 #include "ctrl_sys/discrete_sss_concept.hpp"
 #include "ctrl_sys/covar_topology.hpp"
@@ -76,20 +77,38 @@ struct satellite_model_options {
   typedef satellite3D_gyro_inv_dt_system system_gyro_type;
   typedef satellite3D_IMU_imdt_sys system_IMU_type;
   
+  typedef airship3D_imdt_em_sys system_em_type;
+  typedef airship3D_imdt_emd_sys system_emd_type;
+  
   typedef discrete_sss_traits< system_base_type >::point_type state_type;
   typedef discrete_sss_traits< system_base_type >::input_type input_type;
   typedef discrete_sss_traits< system_base_type >::output_type output_type;
   
+  typedef discrete_sss_traits< system_em_type >::point_type state_em_type;
+  typedef discrete_sss_traits< system_emd_type >::point_type state_emd_type;
+  
   typedef covariance_matrix< vect_n<double> > covar_type;
+  typedef covar_topology< covar_type > covar_space_type;
+  
   typedef gaussian_belief_state< state_type,  covar_type > state_belief_type;
   typedef gaussian_belief_state< input_type,  covar_type > input_belief_type;
   typedef gaussian_belief_state< output_type, covar_type > output_belief_type;
   
+  typedef gaussian_belief_state< state_em_type, covar_type > state_em_belief_type;
+  typedef gaussian_belief_state< state_emd_type, covar_type > state_emd_belief_type;
+  
+  
   typedef system_base_type::state_space_type state_space_type;
   typedef pp::temporal_space<state_space_type, pp::time_poisson_topology, pp::time_distance_only> temp_state_space_type;
-  
-  typedef covar_topology< covar_type > covar_space_type;
   typedef gaussian_belief_space<state_space_type, covar_space_type> belief_space_type;
+  
+  typedef system_em_type::state_space_type state_space_em_type;
+  typedef pp::temporal_space<state_space_em_type, pp::time_poisson_topology, pp::time_distance_only> temp_state_space_em_type;
+  typedef gaussian_belief_space<state_space_em_type, covar_space_type> belief_space_em_type;
+  
+  typedef system_emd_type::state_space_type state_space_emd_type;
+  typedef pp::temporal_space<state_space_emd_type, pp::time_poisson_topology, pp::time_distance_only> temp_state_space_emd_type;
+  typedef gaussian_belief_space<state_space_emd_type, covar_space_type> belief_space_emd_type;
   
   
   /// Stores the time-step of the system (if discrete-time).
@@ -124,24 +143,26 @@ struct satellite_model_options {
   
   enum available_measurements {
     pose_measures = 0,
-    gyro_measures = 8,
-    IMU_measures = 24
+    gyro_measures = 16,
+    IMU_measures = 48
   };
   
   enum model_kind {
     invariant = 0,
     invar_mom,
-    invar_mom2
+    invar_mom2,
+    invar_mom_em,
+    invar_mom_emd
   };
   
   /// Stores the kind of system used to model the satellite (OR-combination of 'available_measurements' 'model_kind').
   int system_kind;
   
   std::size_t get_measurement_count() const {
-    switch(system_kind & 24) {
-      case 8:
+    switch(system_kind & 48) {
+      case 16:
         return 10;
-      case 24:
+      case 48:
         return 16;
       default:
         return 7;
@@ -149,10 +170,10 @@ struct satellite_model_options {
   };
   
   std::size_t get_meas_error_count() const {
-    switch(system_kind & 24) {
-      case 8:
+    switch(system_kind & 48) {
+      case 16:
         return 9;
-      case 24:
+      case 48:
         return 15;
       default:
         return 6;
@@ -161,23 +182,29 @@ struct satellite_model_options {
   
   std::string get_kf_accronym() const {
     std::string result;
-    switch(system_kind & 7) {
+    switch(system_kind & 15) {
       case invariant:
         result = "iekf";
         break;
       case invar_mom2:
         result = "imkfv2";
         break;
+      case invar_mom_em:
+        result = "imkf_em";
+        break;
+      case invar_mom_emd:
+        result = "imkf_emd";
+        break;
       case invar_mom:
       default:
         result = "imkf";
         break;
     };
-    switch(system_kind & 24) {
-      case 8:
+    switch(system_kind & 48) {
+      case 16:
         result += "_gyro";
         break;
-      case 24:
+      case 48:
         result += "_IMU";
         break;
       default:
@@ -188,23 +215,29 @@ struct satellite_model_options {
   
   std::string get_sys_abbreviation() const {
     std::string result;
-    switch(system_kind & 7) {
+    switch(system_kind & 15) {
       case invariant:
         result = "inv";
         break;
       case invar_mom2:
         result = "invmid";
         break;
+      case invar_mom_em:
+        result = "invmid_em";
+        break;
+      case invar_mom_emd:
+        result = "invmid_emd";
+        break;
       case invar_mom:
       default:
         result = "invmom";
         break;
     };
-    switch(system_kind & 24) {
-      case 8:
+    switch(system_kind & 48) {
+      case 16:
         result += "_gyro";
         break;
-      case 24:
+      case 48:
         result += "_IMU";
         break;
       default:
@@ -220,10 +253,6 @@ protected:
   virtual void save_all_configs_impl(serialization::oarchive& out) const;
   
 public:
-  
-  shared_ptr< temp_state_space_type > get_temporal_state_space(double aStartTime = 0.0, double aEndTime = 1.0) const;
-  
-  shared_ptr< state_space_type > get_state_space() const;
   
   /**
    * Constructs a base satellite system.
@@ -244,11 +273,39 @@ public:
   shared_ptr< system_IMU_type > get_IMU_sat_system() const;
   
   /**
+   * Constructs a eccentricity-imbalance airship system.
+   * \return A newly created eccentricity-imbalance airship system (as shared-pointer).
+   */
+  shared_ptr< system_em_type > get_em_airship_system() const;
+  
+  /**
+   * Constructs a eccentricity-imbalance-drag airship system.
+   * \return A newly created eccentricity-imbalance-drag airship system (as shared-pointer).
+   */
+  shared_ptr< system_emd_type > get_emd_airship_system() const;
+  
+  /**
    * Create a belief point for the state, with mean set to initial-motion.
    * \param aCovDiag The initial diagonal values for the covariant matrix (should be high).
    * \return A belief point for the state, with mean set to initial-motion and high covariance.
    */
   state_belief_type get_init_state_belief(double aCovDiag = 10.0) const;
+  
+  /**
+   * Create a belief point for the state (augmented with imbalance and eccentricity parameters), 
+   * with mean set to initial-motion.
+   * \param aCovDiag The initial diagonal values for the covariant matrix (should be high).
+   * \return A belief point for the state, with mean set to initial-motion and high covariance.
+   */
+  state_em_belief_type get_init_state_em_belief(double aCovDiag = 10.0) const;
+  
+  /**
+   * Create a belief point for the state (augmented with imbalance, eccentricity and drag parameters), 
+   * with mean set to initial-motion.
+   * \param aCovDiag The initial diagonal values for the covariant matrix (should be high).
+   * \return A belief point for the state, with mean set to initial-motion and high covariance.
+   */
+  state_emd_belief_type get_init_state_emd_belief(double aCovDiag = 10.0) const;
   
   /**
    * Create a belief point for the input, assuming zero-mean.
@@ -263,11 +320,9 @@ public:
   output_belief_type get_zero_output_belief() const;
   
   void imbue_names_for_generated_meas(recorder::data_stream_options& data_opt) const;
-  
   void imbue_names_for_meas_stddevs(recorder::data_stream_options& data_opt) const;
   
   void imbue_names_for_state_estimates(recorder::data_stream_options& data_opt) const;
-  
   void imbue_names_for_state_estimates_stddevs(recorder::data_stream_options& data_opt) const;
   
   /**

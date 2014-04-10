@@ -377,6 +377,12 @@ satellite3D_gyro_imdt_sys::invariant_error_type satellite3D_gyro_imdt_sys::get_i
 
 
 
+satellite3D_IMU_imdt_sys::output_belief_type satellite3D_IMU_imdt_sys::get_zero_output_belief(double aCovValue) const {
+  return output_belief_type(output_type(vect_n<double>(0.0,0.0,0.0,1.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0)), 
+                            covar_type(covar_type::matrix_type(mat<double,mat_structure::diagonal>(15,aCovValue))));
+};
+
+
 satellite3D_IMU_imdt_sys::satellite3D_IMU_imdt_sys(
   const std::string& aName, 
   double aMass,

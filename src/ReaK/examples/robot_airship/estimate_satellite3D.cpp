@@ -230,6 +230,20 @@ struct sat3D_meas_true_from_extractor {
 };
 
 
+namespace {
+  
+  static const sat3D_state_type& get_sat3D_state(const sat3D_state_type& x) { return x; };
+  
+  template <typename StateTuple>
+  static const sat3D_state_type& get_sat3D_state(const StateTuple& x) { using ReaK::get; return get<0>(x); };
+  
+  
+  static void set_sat3D_state(sat3D_state_type& x, const sat3D_state_type& val) { x = val; };
+  
+  template <typename StateTuple>
+  static void set_sat3D_state(StateTuple& x, const sat3D_state_type& val) { using ReaK::get; get<0>(x) = val; };
+  
+};
 
 
 struct sat3D_estimate_result_to_recorder {
@@ -242,17 +256,23 @@ struct sat3D_estimate_result_to_recorder {
     (*rec) << ReaK::recorder::data_recorder::flush;
   };
   
-  void add_record(const sat3D_state_belief_type& b,
-                  const sat3D_input_belief_type& b_u, 
-                  const sat3D_output_belief_type& b_z,
+  template <typename BeliefStateType, typename InputBeliefType, typename OutputBeliefType>
+  void add_record(const BeliefStateType& b,
+                  const InputBeliefType& b_u, 
+                  const OutputBeliefType& b_z,
                   double time,
                   const sat3D_state_type* true_state = NULL) {
     using namespace ReaK;
+    using ReaK::to_vect;
     
-    const sat3D_state_type& x_mean = b.get_mean_state();
+    const sat3D_state_type& x_mean = get_sat3D_state(b.get_mean_state());
     (*rec) << time 
            << get_position(x_mean) << get_quaternion(x_mean)
            << get_velocity(x_mean) << get_ang_velocity(x_mean);
+    
+    vect_n<double> all_x = to_vect<double>(b.get_mean_state());
+    for(std::size_t l = 13; l < all_x.size(); ++l)
+      (*rec) << all_x[l];
     
     if( true_state ) {
       axis_angle<double> aa_diff(invert(get_quaternion(x_mean).as_rotation()) * get_quaternion(*true_state).as_rotation());
@@ -273,7 +293,7 @@ struct sat3D_estimate_result_to_recorder {
     };
     
     const cov_matrix_type& P_xx = b.get_covariance().get_matrix();
-    for(std::size_t l = 0; l < 12; ++l)
+    for(std::size_t l = 0; l < P_xx.get_row_count(); ++l)
       (*rec) << P_xx(l,l);
     
     (*rec) << recorder::data_recorder::end_value_row;
@@ -288,27 +308,28 @@ struct sat3D_collect_stddevs {
   std::size_t counter;
   ReaK::shared_ptr< ReaK::recorder::data_recorder > rec;
   
-  sat3D_collect_stddevs(const ReaK::shared_ptr< ReaK::recorder::data_recorder >& aRec) : stddevs(28, 0.0), counter(0), rec(aRec) { };
+  sat3D_collect_stddevs(const ReaK::shared_ptr< ReaK::recorder::data_recorder >& aRec) : stddevs(aRec->getColCount(), 0.0), counter(0), rec(aRec) { };
   
   void initialize() { 
-    stddevs = ReaK::vect_n< double >(28, 0.0);
+    stddevs = ReaK::vect_n< double >(rec->getColCount(), 0.0);
     counter = 0;
   };
   
   void finalize() {
-    for(std::size_t j = 0; j < 28; ++j)
+    for(std::size_t j = 0; j < stddevs.size(); ++j)
       (*rec) << std::sqrt(stddevs[j]); // turn variances into std-devs.
     (*rec) << ReaK::recorder::data_recorder::end_value_row << ReaK::recorder::data_recorder::flush;
   };
   
-  void add_record(const sat3D_state_belief_type& b,
-                  const sat3D_input_belief_type& b_u, 
-                  const sat3D_output_belief_type& b_z,
+  template <typename BeliefStateType, typename InputBeliefType, typename OutputBeliefType>
+  void add_record(const BeliefStateType& b,
+                  const InputBeliefType& b_u, 
+                  const OutputBeliefType& b_z,
                   double time,
                   const sat3D_state_type* true_state = NULL) {
     using namespace ReaK;
     
-    const sat3D_state_type& x_mean = b.get_mean_state();
+    const sat3D_state_type& x_mean = get_sat3D_state(b.get_mean_state());
     vect<double,3> pos_err, aa_err, vel_err, ang_vel_err;
     if( true_state ) {
       axis_angle<double> aa_diff(invert(get_quaternion(x_mean).as_rotation()) * get_quaternion(*true_state).as_rotation());
@@ -353,10 +374,10 @@ void batch_KF_on_timeseries(
     MeasureProvider meas_provider, 
     ResultLogger result_logger,
     const Sat3DSystemType& sat_sys,
-    const sat3D_state_space_type& state_space,
-    sat3D_state_belief_type b,
-    sat3D_input_belief_type b_u,
-    sat3D_output_belief_type b_z) {
+    const typename Sat3DSystemType::state_space_type& state_space,
+    typename Sat3DSystemType::state_belief_type b,
+    typename Sat3DSystemType::input_belief_type b_u,
+    typename Sat3DSystemType::output_belief_type b_z) {
   using namespace ReaK;
   
   result_logger.initialize();
@@ -391,11 +412,11 @@ void batch_KF_no_meas_predict(
     MeasureProvider meas_provider, 
     ResultLogger result_logger,
     const Sat3DSystemType& sat_sys,
-    const sat3D_state_space_type& state_space,
+    const typename Sat3DSystemType::state_space_type& state_space,
     double start_time,
-    sat3D_state_belief_type b,
-    sat3D_input_belief_type b_u,
-    sat3D_output_belief_type b_z) {
+    typename Sat3DSystemType::state_belief_type b,
+    typename Sat3DSystemType::input_belief_type b_u,
+    typename Sat3DSystemType::output_belief_type b_z) {
   using namespace ReaK;
   
   result_logger.initialize();
@@ -442,11 +463,11 @@ void batch_KF_ML_meas_predict(
     MeasureProvider meas_provider, 
     ResultLogger result_logger,
     const Sat3DSystemType& sat_sys,
-    const sat3D_state_space_type& state_space,
+    const typename Sat3DSystemType::state_space_type& state_space,
     double start_time,
-    sat3D_state_belief_type b,
-    sat3D_input_belief_type b_u,
-    sat3D_output_belief_type b_z) {
+    typename Sat3DSystemType::state_belief_type b,
+    typename Sat3DSystemType::input_belief_type b_u,
+    typename Sat3DSystemType::output_belief_type b_z) {
   using namespace ReaK;
   
   result_logger.initialize();
@@ -499,8 +520,8 @@ void generate_timeseries(
     std::vector< std::pair< double, sat3D_measurement_point > >& measurements,
     std::vector< std::pair< double, sat3D_state_type > >& ground_truth,
     const Sat3DSystemType& sat_sys,
-    const sat3D_state_space_type& state_space,
-    sat3D_state_type x,
+    const typename Sat3DSystemType::state_space_type& state_space,
+    typename Sat3DSystemType::point_type x,
     double start_time, double end_time,
     const cov_matrix_type& Qu,
     const cov_matrix_type& R,
@@ -516,7 +537,7 @@ void generate_timeseries(
     vect_n<double> u = ctrl::sample_gaussian_point(vect_n<double>(6, 0.0), Qu);
     
     x = sat_sys.get_next_state(state_space, x, u, t);
-    ground_truth.push_back(std::make_pair(t, x));
+    ground_truth.push_back(std::make_pair(t, get_sat3D_state(x)));
     
     vect_n<double> y       = sat_sys.get_output(state_space, x, u, t);
     vect_n<double> y_noise = ctrl::sample_gaussian_point(sat_sys.get_invariant_error(state_space, x, u, y, t), R);
@@ -575,10 +596,10 @@ void do_online_run(
     const ReaK::ctrl::satellite_model_options& sat_options,
     const ReaK::shared_ptr< ReaK::recorder::data_extractor >& data_in,
     Sat3DSystemType& sat_sys,
-    const sat3D_state_space_type& state_space,
-    const sat3D_state_belief_type& b,
-    sat3D_input_belief_type b_u,
-    const sat3D_output_belief_type& b_z) {
+    const typename Sat3DSystemType::state_space_type& state_space,
+    const typename Sat3DSystemType::state_belief_type& b,
+    typename Sat3DSystemType::input_belief_type b_u,
+    const typename Sat3DSystemType::output_belief_type& b_z) {
   
   std::stringstream ss;
   ss << "_" << std::setfill('0') << std::setw(4) << int(1000 * sat_options.time_step) << "_" << sat_options.get_kf_accronym() << ".";
@@ -600,10 +621,10 @@ void do_all_single_runs(
     const std::vector< std::pair< double, sat3D_measurement_point > >& measurements,
     const std::vector< std::pair< double, sat3D_state_type > >& ground_truth,
     Sat3DSystemType& sat_sys,
-    const sat3D_state_space_type& state_space,
-    const sat3D_state_belief_type& b,
-    sat3D_input_belief_type b_u,
-    const sat3D_output_belief_type& b_z,
+    const typename Sat3DSystemType::state_space_type& state_space,
+    const typename Sat3DSystemType::state_belief_type& b,
+    typename Sat3DSystemType::input_belief_type b_u,
+    const typename Sat3DSystemType::output_belief_type& b_z,
     unsigned int min_skips, unsigned int max_skips) {
   using namespace ReaK;
   
@@ -640,10 +661,10 @@ void do_online_prediction(
     const ReaK::ctrl::satellite_predictor_options& sat_options,
     const ReaK::shared_ptr< ReaK::recorder::data_extractor >& data_in,
     Sat3DSystemType& sat_sys,
-    const sat3D_state_space_type& state_space,
-    const sat3D_state_belief_type& b,
-    sat3D_input_belief_type b_u,
-    const sat3D_output_belief_type& b_z,
+    const typename Sat3DSystemType::state_space_type& state_space,
+    const typename Sat3DSystemType::state_belief_type& b,
+    typename Sat3DSystemType::input_belief_type b_u,
+    const typename Sat3DSystemType::output_belief_type& b_z,
     double start_time) {
   using namespace ReaK;
   
@@ -675,10 +696,10 @@ void do_all_prediction_runs(
     const std::vector< std::pair< double, sat3D_measurement_point > >& measurements,
     const std::vector< std::pair< double, sat3D_state_type > >& ground_truth,
     Sat3DSystemType& sat_sys,
-    const sat3D_state_space_type& state_space,
-    const sat3D_state_belief_type& b,
-    sat3D_input_belief_type b_u,
-    const sat3D_output_belief_type& b_z,
+    const typename Sat3DSystemType::state_space_type& state_space,
+    const typename Sat3DSystemType::state_belief_type& b,
+    typename Sat3DSystemType::input_belief_type b_u,
+    const typename Sat3DSystemType::output_belief_type& b_z,
     double start_intervals) {
   using namespace ReaK;
   
@@ -722,10 +743,10 @@ void do_single_monte_carlo_run(
     const std::vector< std::pair< double, sat3D_measurement_point > >& measurements,
     const std::vector< std::pair< double, sat3D_state_type > >& ground_truth,
     Sat3DSystemType& sat_sys,
-    const sat3D_state_space_type& state_space,
-    const sat3D_state_belief_type& b,
-    sat3D_input_belief_type b_u,
-    const sat3D_output_belief_type& b_z,
+    const typename Sat3DSystemType::state_space_type& state_space,
+    const typename Sat3DSystemType::state_belief_type& b,
+    typename Sat3DSystemType::input_belief_type b_u,
+    const typename Sat3DSystemType::output_belief_type& b_z,
     unsigned int min_skips, unsigned int max_skips) {
   using namespace ReaK;
   
@@ -869,6 +890,201 @@ void get_timeseries_from_rec(
 
 
 
+template <typename Sat3DSystemType>
+int do_required_tasks(ReaK::shared_ptr< Sat3DSystemType > satellite3D_system, 
+                      const ReaK::ctrl::satellite_predictor_options& sat_options, 
+                      boost::program_options::variables_map& vm,
+                      ReaK::shared_ptr< ReaK::recorder::data_extractor > data_in,
+                      const std::vector<std::string>& names_in,
+                      const std::string& sys_output_stem_name,
+                      const ReaK::recorder::data_stream_options& data_out_stem_opt) {
+  using namespace ReaK;
+  
+  
+  double start_time = vm["start-time"].as<double>();
+  double end_time   = vm["end-time"].as<double>();
+  
+  unsigned int mc_runs    = vm["mc-runs"].as<unsigned int>();
+  unsigned int min_skips  = vm["min-skips"].as<unsigned int>();
+  unsigned int max_skips  = vm["max-skips"].as<unsigned int>();
+  
+  typedef typename Sat3DSystemType::temporal_state_space_type TempSpaceType;
+  typedef typename Sat3DSystemType::covar_type CovarType;
+  typedef typename CovarType::matrix_type CovarMatType;
+  typedef typename Sat3DSystemType::point_type StateType;
+  typedef typename Sat3DSystemType::state_belief_type StateBeliefType;
+  typedef typename Sat3DSystemType::input_belief_type InputBeliefType;
+  typedef typename Sat3DSystemType::output_belief_type OutputBeliefType;
+  
+  shared_ptr< TempSpaceType > sat_space = satellite3D_system->get_temporal_state_space(start_time, end_time);
+  
+  StateBeliefType b_init = satellite3D_system->get_zero_state_belief(10.0);
+  
+  InputBeliefType b_u = satellite3D_system->get_zero_input_belief();
+  b_u.set_covariance(CovarType(CovarMatType(sat_options.input_disturbance)));
+  
+  OutputBeliefType b_z = satellite3D_system->get_zero_output_belief();
+  b_z.set_covariance(CovarType(CovarMatType(sat_options.measurement_noise)));
+  
+  std::vector< std::pair< double, sat3D_measurement_point > > measurements;
+  std::vector< std::pair< double, sat3D_state_type > > ground_truth;
+  
+  if( vm.count("generate-mdl-files") ) {
+    try {
+      *(serialization::open_oarchive(sys_output_stem_name + sat_options.get_sys_abbreviation() + "_mdl.rkx"))
+        & RK_SERIAL_SAVE_WITH_NAME(satellite3D_system);
+    } catch(...) {
+      RK_ERROR("An exception occurred during the saving the satellite system file!");
+      return 14;
+    };
+  } else if( vm.count("online-run") ) {
+    
+    if( !data_in ) {
+      RK_ERROR("Must have a defined input data-stream in order to run the estimator online!");
+      return 15;
+    };
+    
+    if(!vm.count("prediction-runs")) {
+      
+      do_online_run(data_out_stem_opt, sat_options, data_in, *satellite3D_system, 
+                    sat_space->get_space_topology(), b_init, b_u, b_z);
+      
+    } else if( !vm.count("monte-carlo") ) {
+      
+      do_online_prediction(data_out_stem_opt, sat_options, data_in, *satellite3D_system, 
+                            sat_space->get_space_topology(), b_init, b_u, b_z, vm["prediction-interval"].as<double>());
+      
+    };
+    
+  } else if( ! vm.count("monte-carlo") ) {
+    
+    if( data_in ) {
+      get_timeseries_from_rec(data_in, names_in, sat_options, measurements, ground_truth);
+    } else {
+      // must generate the measurements and ground_truth vectors:
+      StateType x_init;
+      sat3D_state_type x_st;
+      set_frame_3D(x_st, sat_options.initial_motion);
+      set_sat3D_state(x_init, x_st);
+      generate_timeseries(measurements, ground_truth, *satellite3D_system, sat_space->get_space_topology(),
+                          x_init, start_time, end_time, CovarMatType(sat_options.input_disturbance), 
+                          CovarMatType(sat_options.measurement_noise + sat_options.artificial_noise));
+    };
+    
+    // do a single run for each skips:
+    
+    if(!vm.count("prediction-runs")) {
+      std::cout << "Running estimator on data series.." << std::flush;
+      
+      do_all_single_runs(data_out_stem_opt, sat_options, measurements, ground_truth, *satellite3D_system, 
+                        sat_space->get_space_topology(), b_init, b_u, b_z, min_skips, max_skips);
+      
+      std::cout << "." << std::flush;
+    } else {
+      std::cout << "Running predictor on data series.." << std::flush;
+      
+      do_all_prediction_runs(data_out_stem_opt, sat_options, measurements, ground_truth, *satellite3D_system, 
+                              sat_space->get_space_topology(), b_init, b_u, b_z, vm["prediction-interval"].as<double>());
+      
+      std::cout << "." << std::flush;
+    };
+    
+    std::cout << "Finished!" << std::endl;
+    
+  } else {
+    // do monte-carlo runs:
+    StateType x_init;
+    sat3D_state_type x_st;
+    set_frame_3D(x_st, sat_options.initial_motion);
+    set_sat3D_state(x_init, x_st);
+    
+    recorder::data_stream_options data_stddev_opt = data_out_stem_opt;
+    data_stddev_opt.file_name += "_meas_stddevs." + data_stddev_opt.get_extension();
+    sat_options.imbue_names_for_meas_stddevs(data_stddev_opt);
+    shared_ptr< recorder::data_recorder > data_stddev = data_stddev_opt.create_recorder();
+    
+    std::map< std::string, shared_ptr< recorder::data_recorder > > results_map;
+    
+    std::cout << "Running Monte-Carlo Simulations..." << std::endl;
+    
+    for(unsigned int mc_i = 0; mc_i < mc_runs; ++mc_i) {
+      
+      std::cout << "\r" << std::setw(10) << mc_i << std::flush;
+      
+      generate_timeseries(measurements, ground_truth, *satellite3D_system, sat_space->get_space_topology(),
+                          x_init, start_time, end_time, CovarMatType(sat_options.input_disturbance), 
+                          CovarMatType(sat_options.measurement_noise + sat_options.artificial_noise), data_stddev);
+      
+      std::cout << "." << std::flush;
+      
+      do_single_monte_carlo_run(
+        results_map, data_out_stem_opt, sat_options, measurements, ground_truth, *satellite3D_system, 
+        sat_space->get_space_topology(), b_init, b_u, b_z, min_skips, max_skips);
+      
+      std::cout << "." << std::flush;
+      
+    };
+    
+    std::cout << "Finished!" << std::endl;
+    
+  };
+  
+  
+#if 0
+  typedef pp::discrete_point_trajectory< TempSpaceType > TrajType;
+  shared_ptr< TrajType > traj_ptr;
+  if( vm.count("generate-meas-file") && vm.count("output-traj-file") )
+    traj_ptr = shared_ptr< TrajType >(new TrajType( sat_space ));
+  
+  // and output those if asked for it:
+  if( (!vm.count("monte-carlo")) && vm.count("generate-meas-file") ) {
+    recorder::data_stream_options data_meas_opt = data_out_stem_opt;
+    data_meas_opt.file_name = output_stem_name + "_meas." + data_meas_opt.get_extension();
+    sat_options.imbue_names_for_generated_meas(data_meas_opt);
+    shared_ptr< recorder::data_recorder > data_meas = data_meas_opt.create_recorder();
+    for(std::size_t i = 0; i < measurements.size(); ++i) {
+      (*data_meas) << measurements[i].first;
+      const sat3D_measurement_point& m = measurements[i].second;
+      (*data_meas) << m.pose << m.gyro << m.IMU_a_m << m.u;  // if gyro-IMU not present, vectors will be zero-sized, not written to stream.
+      if(ground_truth.size() == measurements.size()) {
+        const sat3D_state_type& g = ground_truth[i].second;
+        (*data_meas) << get_position(g) << get_quaternion(g) << get_velocity(g) << get_ang_velocity(g);
+        (*data_meas) << recorder::data_recorder::end_value_row;
+        if( traj_ptr )
+          traj_ptr->push_back(sat3D_temp_point_type(ground_truth[i].first, g));
+      };
+    };
+    (*data_meas) << recorder::data_recorder::flush;
+  };
+  
+  if( vm.count("generate-meas-file") && (traj_ptr) && ( vm.count("xml") + vm.count("protobuf") + vm.count("binary") > 0 ) ) {
+    std::cout << "Saving the generated trajectory.." << std::flush;
+    std::cout << "." << std::flush;
+    
+    if( vm.count("xml") )
+      *(serialization::open_oarchive(output_stem_name + "_traj.rkx"))
+        & RK_SERIAL_SAVE_WITH_ALIAS("se3_trajectory", traj_ptr);
+    
+    std::cout << "." << std::flush;
+    
+    if( vm.count("protobuf") )
+      *(serialization::open_oarchive(output_stem_name + "_traj.pbuf"))
+        & RK_SERIAL_SAVE_WITH_ALIAS("se3_trajectory", traj_ptr);
+    
+    std::cout << "." << std::flush;
+    
+    if( vm.count("binary") )
+      *(serialization::open_oarchive(output_stem_name + "_traj.rkb"))
+        & RK_SERIAL_SAVE_WITH_ALIAS("se3_trajectory", traj_ptr);
+    
+    std::cout << "Finished!" << std::endl;
+  };
+#endif
+  
+  
+  
+  return 0;
+};
 
 
 
@@ -994,384 +1210,36 @@ int main(int argc, char** argv) {
     };
   };
   
-  double start_time = vm["start-time"].as<double>();
-  double end_time   = vm["end-time"].as<double>();
-  
-  unsigned int mc_runs    = vm["mc-runs"].as<unsigned int>();
-  unsigned int min_skips  = vm["min-skips"].as<unsigned int>();
-  unsigned int max_skips  = vm["max-skips"].as<unsigned int>();
-  
-  
-  shared_ptr< sat3D_temp_space_type > sat_space = sat_options.get_temporal_state_space(start_time, end_time);
-  
-  sat3D_state_belief_type b_init = sat_options.get_init_state_belief(100.0);
-  sat3D_state_type x_init = b_init.get_mean_state();
-  set_position(x_init, vect<double,3>(0.0, 0.0, 0.0));
-  set_velocity(x_init, vect<double,3>(0.0, 0.0, 0.0));
-  set_quaternion(x_init, unit_quat<double>());
-  set_ang_velocity(x_init, vect<double,3>(0.0, 0.0, 0.0));
-  b_init.set_mean_state(x_init);
-  
-  sat3D_input_belief_type b_u = sat_options.get_zero_input_belief();
-  sat3D_output_belief_type b_z = sat_options.get_zero_output_belief();
-  
-  std::vector< std::pair< double, sat3D_measurement_point > > measurements;
-  std::vector< std::pair< double, sat3D_state_type > > ground_truth;
-  
   if( !vm.count("gyro") && !vm.count("IMU") ) {
     
-    // Create the set of satellite3D systems for when there is only pose measurements:
-    shared_ptr< ctrl::satellite_model_options::system_base_type > satellite3D_system = sat_options.get_base_sat_system();
-    
-    if( vm.count("generate-mdl-files") ) {
-      try {
-        *(serialization::open_oarchive(sys_output_stem_name + sat_options.get_sys_abbreviation() + "_mdl.rkx"))
-          & RK_SERIAL_SAVE_WITH_NAME(satellite3D_system);
-      } catch(...) {
-        RK_ERROR("An exception occurred during the saving the satellite system file!");
-        return 14;
-      };
-    } else if( vm.count("online-run") ) {
-      
-      if( !data_in ) {
-        RK_ERROR("Must have a defined input data-stream in order to run the estimator online!");
-        return 15;
-      };
-      
-      if(!vm.count("prediction-runs")) {
-        
-        do_online_run(data_out_stem_opt, sat_options, data_in, *satellite3D_system, 
-                      sat_space->get_space_topology(), b_init, b_u, b_z);
-        
-      } else if( !vm.count("monte-carlo") ) {
-        
-        do_online_prediction(data_out_stem_opt, sat_options, data_in, *satellite3D_system, 
-                             sat_space->get_space_topology(), b_init, b_u, b_z, vm["prediction-interval"].as<double>());
-        
-      };
-      
-    } else if( ! vm.count("monte-carlo") ) {
-      
-      if( data_in ) {
-        get_timeseries_from_rec(data_in, names_in, sat_options, measurements, ground_truth);
-      } else {
-        // must generate the measurements and ground_truth vectors:
-        set_frame_3D(x_init, sat_options.initial_motion);
-        generate_timeseries(measurements, ground_truth, *satellite3D_system, sat_space->get_space_topology(),
-                            x_init, start_time, end_time, cov_matrix_type(sat_options.input_disturbance), 
-                            cov_matrix_type(sat_options.measurement_noise + sat_options.artificial_noise));
-      };
-      
-      // do a single run for each skips:
-      
-      if(!vm.count("prediction-runs")) {
-        std::cout << "Running estimator on data series.." << std::flush;
-        
-        do_all_single_runs(data_out_stem_opt, sat_options, measurements, ground_truth, *satellite3D_system, 
-                          sat_space->get_space_topology(), b_init, b_u, b_z, min_skips, max_skips);
-        
-        std::cout << "." << std::flush;
-      } else {
-        std::cout << "Running predictor on data series.." << std::flush;
-        
-        do_all_prediction_runs(data_out_stem_opt, sat_options, measurements, ground_truth, *satellite3D_system, 
-                               sat_space->get_space_topology(), b_init, b_u, b_z, vm["prediction-interval"].as<double>());
-        
-        std::cout << "." << std::flush;
-      };
-      
-      std::cout << "Finished!" << std::endl;
-      
+    if( vm.count("imkf-em") ) {
+      int errcode = do_required_tasks(sat_options.get_em_airship_system(), sat_options, vm, data_in, names_in, sys_output_stem_name, data_out_stem_opt);
+      if(errcode)
+        return errcode;
+    } else if( vm.count("imkf-em") ) {
+      int errcode = do_required_tasks(sat_options.get_emd_airship_system(), sat_options, vm, data_in, names_in, sys_output_stem_name, data_out_stem_opt);
+      if(errcode)
+        return errcode;
     } else {
-      // do monte-carlo runs:
-      set_frame_3D(x_init, sat_options.initial_motion);
-      
-      recorder::data_stream_options data_stddev_opt = data_out_stem_opt;
-      data_stddev_opt.file_name = output_stem_name + "_meas_stddevs." + data_stddev_opt.get_extension();
-      sat_options.imbue_names_for_meas_stddevs(data_stddev_opt);
-      shared_ptr< recorder::data_recorder > data_stddev = data_stddev_opt.create_recorder();
-      
-      std::map< std::string, shared_ptr< recorder::data_recorder > > results_map;
-      
-      std::cout << "Running Monte-Carlo Simulations..." << std::endl;
-      
-      for(unsigned int mc_i = 0; mc_i < mc_runs; ++mc_i) {
-        
-        std::cout << "\r" << std::setw(10) << mc_i << std::flush;
-        
-        generate_timeseries(measurements, ground_truth, *satellite3D_system, sat_space->get_space_topology(),
-                            x_init, start_time, end_time, cov_matrix_type(sat_options.input_disturbance), 
-                            cov_matrix_type(sat_options.measurement_noise + sat_options.artificial_noise), data_stddev);
-        
-        std::cout << "." << std::flush;
-        
-        do_single_monte_carlo_run(
-          results_map, data_out_stem_opt, sat_options, measurements, ground_truth, *satellite3D_system, 
-          sat_space->get_space_topology(), b_init, b_u, b_z, min_skips, max_skips);
-        
-        std::cout << "." << std::flush;
-        
-      };
-      
-      std::cout << "Finished!" << std::endl;
-      
+      int errcode = do_required_tasks(sat_options.get_base_sat_system(), sat_options, vm, data_in, names_in, sys_output_stem_name, data_out_stem_opt);
+      if(errcode)
+        return errcode;
     };
-    
     
   } else if( vm.count("gyro") && !vm.count("IMU") ) {
     
-    // Create the set of satellite3D systems for when there is gyro measurements:
-    shared_ptr< ctrl::satellite_model_options::system_gyro_type > satellite3D_system = sat_options.get_gyro_sat_system();
-    
-    if( vm.count("generate-mdl-files") ) {
-      try {
-        *(serialization::open_oarchive(sys_output_stem_name + sat_options.get_sys_abbreviation() + "_mdl.rkx"))
-          & RK_SERIAL_SAVE_WITH_NAME(satellite3D_system);
-      } catch(...) {
-        RK_ERROR("An exception occurred during the saving the satellite system file!");
-        return 14;
-      };
-    } else if( vm.count("online-run") ) {
-      
-      if( !data_in ) {
-        RK_ERROR("Must have a defined input data-stream in order to run the estimator online!");
-        return 15;
-      };
-      
-      if(!vm.count("prediction-runs")) {
-        
-        do_online_run(data_out_stem_opt, sat_options, data_in, *satellite3D_system, 
-                      sat_space->get_space_topology(), b_init, b_u, b_z);
-        
-      } else if( !vm.count("monte-carlo") ) {
-        
-        do_online_prediction(data_out_stem_opt, sat_options, data_in, *satellite3D_system, 
-                             sat_space->get_space_topology(), b_init, b_u, b_z, vm["prediction-interval"].as<double>());
-        
-      };
-      
-    } else if( ! vm.count("monte-carlo") ) {
-      
-      if( data_in ) {
-        get_timeseries_from_rec(data_in, names_in, sat_options, measurements, ground_truth);
-      } else {
-        // must generate the measurements and ground_truth vectors:
-        set_frame_3D(x_init, sat_options.initial_motion);
-        generate_timeseries(measurements, ground_truth, *satellite3D_system, sat_space->get_space_topology(),
-                            x_init, start_time, end_time, cov_matrix_type(sat_options.input_disturbance), 
-                            cov_matrix_type(sat_options.measurement_noise + sat_options.artificial_noise));
-      };
-      
-      // do a single run for each skips:
-      
-      if(!vm.count("prediction-runs")) {
-        std::cout << "Running estimator on data series.." << std::flush;
-        
-        do_all_single_runs(data_out_stem_opt, sat_options, measurements, ground_truth, *satellite3D_system, 
-                          sat_space->get_space_topology(), b_init, b_u, b_z, min_skips, max_skips);
-        
-        std::cout << "." << std::flush;
-      } else {
-        std::cout << "Running predictor on data series.." << std::flush;
-        
-        do_all_prediction_runs(data_out_stem_opt, sat_options, measurements, ground_truth, *satellite3D_system, 
-                               sat_space->get_space_topology(), b_init, b_u, b_z, vm["prediction-interval"].as<double>());
-        
-        std::cout << "." << std::flush;
-      };
-      
-      std::cout << "Finished!" << std::endl;
-      
-    } else {
-      // do monte-carlo runs:
-      set_frame_3D(x_init, sat_options.initial_motion);
-      
-      recorder::data_stream_options data_stddev_opt = data_out_stem_opt;
-      data_stddev_opt.file_name = output_stem_name + "_meas_gyro_stddevs." + data_stddev_opt.get_extension();
-      sat_options.imbue_names_for_meas_stddevs(data_stddev_opt);
-      shared_ptr< recorder::data_recorder > data_stddev = data_stddev_opt.create_recorder();
-      
-      std::map< std::string, shared_ptr< recorder::data_recorder > > results_map;
-      
-      std::cout << "Running Monte-Carlo Simulations..." << std::endl;
-      
-      for(unsigned int mc_i = 0; mc_i < mc_runs; ++mc_i) {
-        
-        std::cout << "\r" << std::setw(10) << mc_i << std::flush;
-        
-        generate_timeseries(measurements, ground_truth, *satellite3D_system, sat_space->get_space_topology(),
-                            x_init, start_time, end_time, cov_matrix_type(sat_options.input_disturbance), 
-                            cov_matrix_type(sat_options.measurement_noise + sat_options.artificial_noise), data_stddev);
-        
-        std::cout << "." << std::flush;
-        
-        do_single_monte_carlo_run(
-          results_map, data_out_stem_opt, sat_options, measurements, ground_truth, *satellite3D_system, 
-          sat_space->get_space_topology(), b_init, b_u, b_z, min_skips, max_skips);
-        
-        std::cout << "." << std::flush;
-        
-      };
-      
-      std::cout << "Finished!" << std::endl;
-      
-    };
+    int errcode = do_required_tasks(sat_options.get_gyro_sat_system(), sat_options, vm, data_in, names_in, sys_output_stem_name, data_out_stem_opt);
+    if(errcode)
+      return errcode;
     
   } else {
     
-    // Create the set of satellite3D systems for when there is IMU measurements:
-    shared_ptr< ctrl::satellite_model_options::system_IMU_type > satellite3D_system = sat_options.get_IMU_sat_system();
-    
-    if( vm.count("generate-mdl-files") ) {
-      try {
-        *(serialization::open_oarchive(sys_output_stem_name + sat_options.get_sys_abbreviation() + "_mdl.rkx"))
-          & RK_SERIAL_SAVE_WITH_NAME(satellite3D_system);
-      } catch(...) {
-        RK_ERROR("An exception occurred during the saving the satellite system file!");
-        return 14;
-      };
-    } else if( vm.count("online-run") ) {
-      
-      if( !data_in ) {
-        RK_ERROR("Must have a defined input data-stream in order to run the estimator online!");
-        return 15;
-      };
-      
-      if(!vm.count("prediction-runs")) {
-        
-        do_online_run(data_out_stem_opt, sat_options, data_in, *satellite3D_system, 
-                      sat_space->get_space_topology(), b_init, b_u, b_z);
-        
-      } else if( !vm.count("monte-carlo") ) {
-        
-        do_online_prediction(data_out_stem_opt, sat_options, data_in, *satellite3D_system, 
-                             sat_space->get_space_topology(), b_init, b_u, b_z, vm["prediction-interval"].as<double>());
-        
-      };
-      
-    } else if( ! vm.count("monte-carlo") ) {
-      
-      if( data_in ) {
-        get_timeseries_from_rec(data_in, names_in, sat_options, measurements, ground_truth);
-      } else {
-        // must generate the measurements and ground_truth vectors:
-        set_frame_3D(x_init, sat_options.initial_motion);
-        generate_timeseries(measurements, ground_truth, *satellite3D_system, sat_space->get_space_topology(),
-                            x_init, start_time, end_time, cov_matrix_type(sat_options.input_disturbance), 
-                            cov_matrix_type(sat_options.measurement_noise + sat_options.artificial_noise));
-      };
-      
-      // do a single run for each skips:
-      
-      if(!vm.count("prediction-runs")) {
-        std::cout << "Running estimator on data series.." << std::flush;
-        
-        do_all_single_runs(data_out_stem_opt, sat_options, measurements, ground_truth, *satellite3D_system, 
-                          sat_space->get_space_topology(), b_init, b_u, b_z, min_skips, max_skips);
-        
-        std::cout << "." << std::flush;
-      } else {
-        std::cout << "Running predictor on data series.." << std::flush;
-        
-        do_all_prediction_runs(data_out_stem_opt, sat_options, measurements, ground_truth, *satellite3D_system, 
-                               sat_space->get_space_topology(), b_init, b_u, b_z, vm["prediction-interval"].as<double>());
-        
-        std::cout << "." << std::flush;
-      };
-      
-      std::cout << "Finished!" << std::endl;
-      
-    } else {
-      // do monte-carlo runs:
-      set_frame_3D(x_init, sat_options.initial_motion);
-      
-      recorder::data_stream_options data_stddev_opt = data_out_stem_opt;
-      data_stddev_opt.file_name = output_stem_name + "_meas_gyro_stddevs." + data_stddev_opt.get_extension();
-      sat_options.imbue_names_for_meas_stddevs(data_stddev_opt);
-      shared_ptr< recorder::data_recorder > data_stddev = data_stddev_opt.create_recorder();
-      
-      std::map< std::string, shared_ptr< recorder::data_recorder > > results_map;
-      
-      if( vm.count("iekf") ) {
-        std::cerr << "Warning: The invariant extended Kalman filter (IEKF) is not available for full IMU measurements!" << std::endl;
-      };
-      
-      std::cout << "Running Monte-Carlo Simulations..." << std::endl;
-      
-      for(unsigned int mc_i = 0; mc_i < mc_runs; ++mc_i) {
-        
-        std::cout << "\r" << std::setw(10) << mc_i << std::flush;
-        
-        generate_timeseries(measurements, ground_truth, *satellite3D_system, sat_space->get_space_topology(),
-                            x_init, start_time, end_time, cov_matrix_type(sat_options.input_disturbance), 
-                            cov_matrix_type(sat_options.measurement_noise + sat_options.artificial_noise), data_stddev);
-        
-        std::cout << "." << std::flush;
-        
-        do_single_monte_carlo_run(
-          results_map, data_out_stem_opt, sat_options, measurements, ground_truth, *satellite3D_system, 
-          sat_space->get_space_topology(), b_init, b_u, b_z, min_skips, max_skips);
-        
-        std::cout << "." << std::flush;
-        
-      };
-      
-      std::cout << "Finished!" << std::endl;
-      
-    };
+    int errcode = do_required_tasks(sat_options.get_IMU_sat_system(), sat_options, vm, data_in, names_in, sys_output_stem_name, data_out_stem_opt);
+    if(errcode)
+      return errcode;
     
   };
   
-  
-  typedef pp::discrete_point_trajectory< sat3D_temp_space_type > sat3D_traj_type;
-  shared_ptr< sat3D_traj_type > traj_ptr;
-  if( vm.count("generate-meas-file") && vm.count("output-traj-file") )
-    traj_ptr = shared_ptr< sat3D_traj_type >(new sat3D_traj_type( sat_space ));
-  
-  // and output those if asked for it:
-  if( (!vm.count("monte-carlo")) && vm.count("generate-meas-file") ) {
-    recorder::data_stream_options data_meas_opt = data_out_stem_opt;
-    data_meas_opt.file_name = output_stem_name + "_meas." + data_meas_opt.get_extension();
-    sat_options.imbue_names_for_generated_meas(data_meas_opt);
-    shared_ptr< recorder::data_recorder > data_meas = data_meas_opt.create_recorder();
-    for(std::size_t i = 0; i < measurements.size(); ++i) {
-      (*data_meas) << measurements[i].first;
-      const sat3D_measurement_point& m = measurements[i].second;
-      (*data_meas) << m.pose << m.gyro << m.IMU_a_m << m.u;  // if gyro-IMU not present, vectors will be zero-sized, not written to stream.
-      if(ground_truth.size() == measurements.size()) {
-        const sat3D_state_type& g = ground_truth[i].second;
-        (*data_meas) << get_position(g) << get_quaternion(g) << get_velocity(g) << get_ang_velocity(g);
-        (*data_meas) << recorder::data_recorder::end_value_row;
-        if( traj_ptr )
-          traj_ptr->push_back(sat3D_temp_point_type(ground_truth[i].first, g));
-      };
-    };
-    (*data_meas) << recorder::data_recorder::flush;
-  };
-  
-  
-  if( vm.count("generate-meas-file") && (traj_ptr) && ( vm.count("xml") + vm.count("protobuf") + vm.count("binary") > 0 ) ) {
-    std::cout << "Saving the generated trajectory.." << std::flush;
-    std::cout << "." << std::flush;
-    
-    if( vm.count("xml") )
-      *(serialization::open_oarchive(output_stem_name + "_traj.rkx"))
-        & RK_SERIAL_SAVE_WITH_ALIAS("se3_trajectory", traj_ptr);
-    
-    std::cout << "." << std::flush;
-    
-    if( vm.count("protobuf") )
-      *(serialization::open_oarchive(output_stem_name + "_traj.pbuf"))
-        & RK_SERIAL_SAVE_WITH_ALIAS("se3_trajectory", traj_ptr);
-    
-    std::cout << "." << std::flush;
-    
-    if( vm.count("binary") )
-      *(serialization::open_oarchive(output_stem_name + "_traj.rkb"))
-        & RK_SERIAL_SAVE_WITH_ALIAS("se3_trajectory", traj_ptr);
-    
-    std::cout << "Finished!" << std::endl;
-  };
   
   
 };
