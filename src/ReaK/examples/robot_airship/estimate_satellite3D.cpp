@@ -1216,7 +1216,7 @@ int main(int argc, char** argv) {
       int errcode = do_required_tasks(sat_options.get_em_airship_system(), sat_options, vm, data_in, names_in, sys_output_stem_name, data_out_stem_opt);
       if(errcode)
         return errcode;
-    } else if( vm.count("imkf-em") ) {
+    } else if( vm.count("imkf-emd") ) {
       int errcode = do_required_tasks(sat_options.get_emd_airship_system(), sat_options, vm, data_in, names_in, sys_output_stem_name, data_out_stem_opt);
       if(errcode)
         return errcode;
