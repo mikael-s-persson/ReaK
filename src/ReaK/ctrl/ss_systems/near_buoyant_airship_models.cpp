@@ -489,6 +489,16 @@ airship3D_imdt_emd_sys::output_type airship3D_imdt_emd_sys::get_output(
 };
 
 
+// TODO: This should be integrated into lin_alg somehow.
+static mat<double,mat_structure::square> outer_product(const vect<double,3>& u, const vect<double,3>& v) {
+  mat<double,mat_structure::square> result(3,0.0);
+  result(0,0) = u[0] * v[0]; result(0,1) = u[0] * v[1]; result(0,2) = u[0] * v[2]; 
+  result(1,0) = u[1] * v[0]; result(1,1) = u[1] * v[1]; result(1,2) = u[1] * v[2]; 
+  result(2,0) = u[2] * v[0]; result(2,1) = u[2] * v[1]; result(2,2) = u[2] * v[2]; 
+  return result;
+};
+
+
 void airship3D_imdt_emd_sys::get_state_transition_blocks(
   airship3D_imdt_emd_sys::matrixA_type& A, 
   airship3D_imdt_emd_sys::matrixB_type& B, 
@@ -507,11 +517,6 @@ void airship3D_imdt_emd_sys::get_state_transition_blocks(
   A(0,3) = mDt;
   A(1,4) = mDt;
   A(2,5) = mDt;
-  
-  // q-w block:
-  A(6, 9) = mDt; 
-  A(7,10) = mDt; 
-  A(8,11) = mDt; 
   
   // p-m block:
   A(0,12) = 0.5 * mDt * mDt / mMass * mGravityAcc[0];
@@ -532,6 +537,19 @@ void airship3D_imdt_emd_sys::get_state_transition_blocks(
   A(4,16) = -mDt / mMass * v_mag * v[1];
   A(5,16) = -mDt / mMass * v_mag * v[2];
   
+  if(v_mag > 1e-4) {
+    mat<double,mat_structure::square> delv((get<3>(p_0) * mDt / mMass) * ((1.0 / v_mag) * outer_product(v, v) + v_mag * mat_ident<double>(3)));
+    // p-v block:
+    set_block(A, mDt * mat_ident<double>(3) - (0.5 * mDt) * delv, 0, 3);
+    // v-v block:
+    set_block(A, mat_ident<double>(3) - delv, 3, 3);
+  };
+  
+  
+  // q-w block:
+  A(6, 9) = mDt; 
+  A(7,10) = mDt; 
+  A(8,11) = mDt; 
   
   // q-r and w-r blocks:
   mat<double, mat_structure::square> R = get_quaternion(get<0>(p_0)).as_rotation().getMat();
@@ -550,6 +568,12 @@ void airship3D_imdt_emd_sys::get_state_transition_blocks(
   A(9, 17) = -mDt * w_mag * Jw[0];
   A(10,17) = -mDt * w_mag * Jw[1];
   A(11,17) = -mDt * w_mag * Jw[2];
+  
+  if(w_mag > 1e-4) {
+    mat<double,mat_structure::square> delw((get<4>(p_0) * mDt) * mInertiaMomentInv * ((1.0 / w_mag) * outer_product(w, w) + w_mag * mat_ident<double>(3)));
+    set_block(A, mDt * mat_ident<double>(3) - (0.5 * mDt) * delw, 6, 9);
+    set_block(A, mat_ident<double>(3) - delw, 9, 9);
+  };
   
   
   B = mat<double,mat_structure::nil>(18,6);
@@ -614,6 +638,36 @@ airship3D_imdt_emd_sys::point_type airship3D_imdt_emd_sys::apply_correction(
   unit_quat<double> q_diff = exp( 0.5 * vect<double,3>(c[6],c[7],c[8]) );
   unit_quat<double> q_new = get_quaternion(x_se3) * q_diff;
   
+  // TODO: turn those hard-coded values into data members:
+  const double max_tr_drag  = 2.0;
+  const double max_rot_drag = 2.0;
+  const double max_ecc_rad  = 0.2;
+  const double max_dm = 0.2;
+  
+  double new_dm = get<1>(x) + c[12];
+  if(new_dm > max_dm)
+    new_dm = max_dm;
+  else if(new_dm < -max_dm)
+    new_dm = -max_dm;
+  
+  vect<double,3> new_recc = get<2>(x) + vect<double,3>(c[13],c[14],c[15]);
+  double new_recc_mag = norm_2(new_recc);
+  if(new_recc_mag > max_ecc_rad)
+    new_recc *= (max_ecc_rad / new_recc_mag);
+  
+  double new_td = get<3>(x) + c[16];
+  if(new_td > max_tr_drag)
+    new_td = max_tr_drag;
+  else if(new_td < 0.0)
+    new_td = 0.0;
+  
+  double new_rd = get<4>(x) + c[17];
+  if(new_rd > max_rot_drag)
+    new_rd = max_rot_drag;
+  else if(new_rd < 0.0)
+    new_rd = 0.0;
+  
+  
   vect<double,3> w_new = mInertiaMomentInv * (invert(q_diff).as_rotation() * (mInertiaMoment * get_ang_velocity(x_se3) + vect<double,3>(c[9],c[10],c[11])));
   return airship3D_imdt_emd_sys::point_type(
     SE3StateType(
@@ -626,9 +680,7 @@ airship3D_imdt_emd_sys::point_type airship3D_imdt_emd_sys::apply_correction(
         w_new
       )
     ),
-    get<1>(x) + c[12],
-    get<2>(x) + vect<double,3>(c[13],c[14],c[15]),
-    get<3>(x) + c[16], get<4>(x) + c[17]
+    new_dm, new_recc, new_td, new_rd
   );
 };
 
