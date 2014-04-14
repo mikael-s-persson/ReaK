@@ -427,6 +427,93 @@ airship3D_imdt_emd_sys::point_type airship3D_imdt_emd_sys::get_next_state(
   
   const SE3StateType& x_se3 = get<0>(x);
   
+  
+#if 0
+  mat<double,mat_structure::skew_symmetric> r_cross(get<2>(x));
+  mat<double,mat_structure::symmetric> J_bar(mInertiaMoment - mMass * r_cross * r_cross);
+  mat<double,mat_structure::symmetric> J_bar_inv;
+  try {
+    invert_Cholesky(J_bar, J_bar_inv);
+  } catch(singularity_error&) {
+    throw system_incoherency("Inertial tensor is singular in airship3D_imdt_emd_sys's definition");
+  };
+  
+  const int divisions = 10;
+  const double div_factor = 0.1;
+  const double sub_dt = div_factor * mDt;
+  const double mass_all = 1.5 * mMass;
+  const vect<double,3>& r = get<2>(x);
+  vect<double,3> tau(u[3], u[4], u[5]);
+  vect<double,3> f(u[0], u[1], u[2]);
+  
+  vect<double,3> p_0 = get_position(x_se3);
+  vect<double,3> v_0 = get_velocity(x_se3);
+  unit_quat<double> q_0 = get_quaternion(x_se3);
+  vect<double,3> w_0 = get_ang_velocity(x_se3);
+  unit_quat<double> dq_0 = exp( (0.25 * sub_dt) * w_0 );
+  
+  vect<double,3> fd_0 = (-get<3>(x) * norm_2(v_0)) * v_0;
+  vect<double,3> td_0 = (-get<4>(x) * norm_2(w_0)) * w_0;
+  vect<double,3> gt_0 = mMass * (r % (invert(q_0).as_rotation() * mGravityAcc));
+  vect<double,3> gf_0 = get<1>(x) * mGravityAcc;
+  
+  for(int i = 0; i < divisions; ++i) {
+    
+    // compute first approximation:
+    vect<double,3> v_1 = v_0 + (sub_dt / mass_all) * (f + fd_0 + gf_0);
+    vect<double,3> w_1 = w_0 + J_bar_inv * ( sub_dt * (tau + td_0 + gt_0) - mMass * (r % (invert(q_0).as_rotation() * (v_1 - v_0))));
+    
+    unit_quat<double> dq_1 = exp( (0.25 * sub_dt) * w_1 );
+    unit_quat<double> q_1 = q_0 * dq_0 * dq_1;
+    vect<double,3> fd_1 = (-get<3>(x) * norm_2(v_1)) * v_1;
+    vect<double,3> td_1 = (-get<4>(x) * norm_2(w_1)) * w_1;
+    
+    // fixed-point iteration for the solution:
+    for(int j = 0; j < 20; ++j) {
+      vect<double,3> v_1_new = v_0 + (sub_dt / mass_all) * (f + 0.5 * (fd_0 + fd_1) + gf_0) 
+                             + q_0.as_rotation() * (w_0 % r) 
+                             - q_1.as_rotation() * (w_1 % r);
+      vect<double,3> w_1_new = J_bar_inv * (
+        invert(dq_0 * dq_1).as_rotation() * ( J_bar * w_0 + (0.5 * sub_dt) * (tau + td_0 + gt_0) - (0.5 * mMass) * (r % (invert(q_0).as_rotation() * (v_1 - v_0))) )
+        + (0.5 * sub_dt) * (tau + td_1) + (0.5 * mMass) * (r % (invert(q_1).as_rotation() * (sub_dt * mGravityAcc - (v_1 - v_0)))) );
+      
+      dq_1 = exp( (0.25 * sub_dt) * w_1_new );
+      q_1 = q_0 * dq_0 * dq_1;
+      fd_1 = (-get<3>(x) * norm_2(v_1_new)) * v_1_new;
+      td_1 = (-get<4>(x) * norm_2(w_1_new)) * w_1_new;
+      
+      if(norm_2(w_1_new - w_1) < 1E-6 * norm_2(w_1_new + w_1)) {
+        w_1 = w_1_new;
+        v_1 = v_1_new;
+        break;
+      } else {
+        w_1 = w_1_new;
+        v_1 = v_1_new;
+      };
+    };
+    
+    // update the relevant '0' values:
+    q_0 = q_1;
+    dq_0 = dq_1;
+    w_0 = w_1; 
+    p_0 += (sub_dt * 0.5) * (v_0 + v_1);
+    v_0 = v_1;
+    
+    fd_0 = fd_1;
+    td_0 = td_1;
+    gt_0 = mMass * (r % (invert(q_0).as_rotation() * mGravityAcc));
+    
+  };
+  
+  return airship3D_imdt_emd_sys::point_type(
+    SE3StateType(
+      make_arithmetic_tuple(p_0, v_0),
+      make_arithmetic_tuple(q_0, w_0)
+    ),
+    get<1>(x), get<2>(x), get<3>(x), get<4>(x)
+  );
+#endif
+  
   vect<double,3> half_dp(0.05 * mDt * u[3], 0.05 * mDt * u[4], 0.05 * mDt * u[5]);
   vect<double,3> w0 = get_ang_velocity(x_se3);
   unit_quat<double> half_w0_rot = exp( (0.025 * mDt) * w0 );
