@@ -585,6 +585,12 @@ static mat<double,mat_structure::square> outer_product(const vect<double,3>& u, 
   return result;
 };
 
+static mat<double,mat_structure::square> del_rotated_vector_del_q(const quaternion<double>& q, const vect<double,3>& v) {
+  mat<double,mat_structure::square> result(3,0.0);
+  result = q.getMat() * mat<double,mat_structure::skew_symmetric>( -v );
+  return result;
+};
+
 
 void airship3D_imdt_emd_sys::get_state_transition_blocks(
   airship3D_imdt_emd_sys::matrixA_type& A, 
