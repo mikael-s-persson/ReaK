@@ -427,8 +427,8 @@ airship3D_imdt_emd_sys::point_type airship3D_imdt_emd_sys::get_next_state(
   
   const SE3StateType& x_se3 = get<0>(x);
   
+  // NEW version:
   
-#if 0
   mat<double,mat_structure::skew_symmetric> r_cross(get<2>(x));
   mat<double,mat_structure::symmetric> J_bar(mInertiaMoment - mMass * r_cross * r_cross);
   mat<double,mat_structure::symmetric> J_bar_inv;
@@ -512,7 +512,10 @@ airship3D_imdt_emd_sys::point_type airship3D_imdt_emd_sys::get_next_state(
     ),
     get<1>(x), get<2>(x), get<3>(x), get<4>(x)
   );
-#endif
+  
+  
+  // OLD version of it (first order, neglected HOTs):
+#if 0
   
   vect<double,3> half_dp(0.05 * mDt * u[3], 0.05 * mDt * u[4], 0.05 * mDt * u[5]);
   vect<double,3> w0 = get_ang_velocity(x_se3);
@@ -562,6 +565,8 @@ airship3D_imdt_emd_sys::point_type airship3D_imdt_emd_sys::get_next_state(
     ),
     get<1>(x), get<2>(x), get<3>(x), get<4>(x)
   );
+#endif
+  
 };
 
 
@@ -585,12 +590,6 @@ static mat<double,mat_structure::square> outer_product(const vect<double,3>& u, 
   return result;
 };
 
-static mat<double,mat_structure::square> del_rotated_vector_del_q(const quaternion<double>& q, const vect<double,3>& v) {
-  mat<double,mat_structure::square> result(3,0.0);
-  result = q.getMat() * mat<double,mat_structure::skew_symmetric>( -v );
-  return result;
-};
-
 
 void airship3D_imdt_emd_sys::get_state_transition_blocks(
   airship3D_imdt_emd_sys::matrixA_type& A, 
@@ -600,8 +599,212 @@ void airship3D_imdt_emd_sys::get_state_transition_blocks(
   const airship3D_imdt_emd_sys::time_type&,
   const airship3D_imdt_emd_sys::point_type& p_0, 
   const airship3D_imdt_emd_sys::point_type& p_1,
-  const airship3D_imdt_emd_sys::input_type&, 
-  const airship3D_imdt_emd_sys::input_type&) const {
+  const airship3D_imdt_emd_sys::input_type& u_0, 
+  const airship3D_imdt_emd_sys::input_type& u_1) const {
+  
+  
+  
+  // NEW version:
+  
+  const vect<double,3>& r = get<2>(p_0);
+  mat<double,mat_structure::skew_symmetric> r_cross(r);
+  mat<double,mat_structure::symmetric> J_bar(mInertiaMoment - mMass * r_cross * r_cross);
+  
+  const double mass_all = 1.5 * mMass;
+  vect<double,3> tau(u_0[3], u_0[4], u_0[5]);
+  
+  mat<double,mat_structure::square> A_1_ss(mat_ident<double>(12));
+  mat<double,mat_structure::rectangular> A_1_sa(12, 6, 0.0);
+  
+  // Position row:
+  // p-v block:
+  A_1_ss(0,3) = -0.5 * mDt;
+  A_1_ss(1,4) = -0.5 * mDt;
+  A_1_ss(2,5) = -0.5 * mDt;
+  
+  
+  // Velocity row:
+  const vect<double,3>& v_1 = get_velocity(get<0>(p_1));
+  double v_1_mag = norm_2(v_1);
+  
+  mat<double,mat_structure::square> delv_1(mass_all * mat_ident<double>(3));
+  if(v_1_mag > 1e-4)
+    delv_1 += (get<3>(p_1) * mDt * 0.5) * ((1.0 / v_1_mag) * outer_product(v_1, v_1) + v_1_mag * mat_ident<double>(3));
+  // v-v block:
+  set_block(A_1_ss, delv_1, 3, 3);
+  
+  // (q,w) blocks:
+  mat<double,mat_structure::square> R_1 = get_quaternion(get<0>(p_1)).as_rotation().getMat();
+  const vect<double,3>& w_1 = get_ang_velocity(get<0>(p_1));
+  vect<double,3> r_x_w_1 = r % w_1;
+  double w_1_mag = norm_2(w_1);
+  
+  // v-q block:
+  set_block(A_1_ss, mass_all * R_1 * mat<double,mat_structure::skew_symmetric>(r_x_w_1), 3, 6);
+  
+  // v-w block:
+  set_block(A_1_ss, -mass_all * R_1 * r_cross, 3, 9);
+  
+  // v-m block:
+  vect<double,3> R_r_x_w_1 = R_1 * r_x_w_1;
+  A_1_sa(3,0) = v_1[0] - R_r_x_w_1[0];
+  A_1_sa(4,0) = v_1[1] - R_r_x_w_1[1];
+  A_1_sa(5,0) = v_1[2] - R_r_x_w_1[2];
+  
+  // v-r block:
+  set_block(A_1_sa, mass_all * R_1 * mat<double,mat_structure::skew_symmetric>(w_1), 3, 1);
+  
+  // v-d block:
+  A_1_sa(3,4) = 0.5 * mDt * v_1_mag * v_1[0];
+  A_1_sa(4,4) = 0.5 * mDt * v_1_mag * v_1[1];
+  A_1_sa(5,4) = 0.5 * mDt * v_1_mag * v_1[2];
+  
+  
+  // Quaternion row:
+  // q-q block:
+  set_block(A_1_ss, R_1, 6, 6);
+  
+  // q-w block:
+  set_block(A_1_ss, ( -0.5 * mDt ) * R_1, 6, 9);
+  
+  
+  // Ang-Velocity row:
+  // w-v block:
+  set_block(A_1_ss, mMass * R_1 * r_cross * transpose_view(R_1), 9, 3);
+  
+  // w-q block:
+  vect<double,3> off_force_1 = transpose_view(R_1) * ((0.5 * mDt) * mGravityAcc - v_1);
+  vect<double,3> l_net_1 = J_bar * w_1 - (0.5 * mDt) * tau + (0.5 * mDt * get<4>(p_1) * w_1_mag) * w_1 - mMass * (r % off_force_1);
+  set_block(A_1_ss, R_1 * (mat<double,mat_structure::skew_symmetric>(-l_net_1) 
+                           - mMass * r_cross * mat<double,mat_structure::skew_symmetric>(off_force_1)), 9, 6);
+  
+  mat<double,mat_structure::square> delw_1(J_bar);
+  if(w_1_mag > 1e-4)
+    delw_1 += (get<4>(p_1) * mDt * 0.5) * ((1.0 / w_1_mag) * outer_product(w_1, w_1) + w_1_mag * mat_ident<double>(3));
+  // w-w block:
+  set_block(A_1_ss, R_1 * delw_1, 9, 9);
+  
+  // w-m block:
+  vect<double,3> R_r_x_of_1 = R_1 * (r % off_force_1);
+  A_1_sa(9,  0) = -R_r_x_of_1[0];
+  A_1_sa(10, 0) = -R_r_x_of_1[1];
+  A_1_sa(11, 0) = -R_r_x_of_1[2];
+  
+  // w-r block:
+  set_block(A_1_sa, mMass * R_1 * mat<double,mat_structure::skew_symmetric>(-off_force_1), 9, 1);
+  
+  // w-d block:
+  vect<double,3> R_w_1 = R_1 * w_1;
+  A_1_sa(9, 5) = 0.5 * mDt * w_1_mag * R_w_1[0];
+  A_1_sa(10,5) = 0.5 * mDt * w_1_mag * R_w_1[1];
+  A_1_sa(11,5) = 0.5 * mDt * w_1_mag * R_w_1[2];
+  
+  
+  
+  
+  
+  mat<double,mat_structure::square> A_0_ss(mat_ident<double>(12));
+  mat<double,mat_structure::rectangular> A_0_sa(12, 6, 0.0);
+  
+  // Position row:
+  // p-v block:
+  A_0_ss(0,3) = 0.5 * mDt;
+  A_0_ss(1,4) = 0.5 * mDt;
+  A_0_ss(2,5) = 0.5 * mDt;
+  
+  
+  // Velocity row:
+  const vect<double,3>& v_0 = get_velocity(get<0>(p_0));
+  double v_0_mag = norm_2(v_0);
+  
+  mat<double,mat_structure::square> delv_0(mass_all * mat_ident<double>(3));
+  if(v_0_mag > 1e-4)
+    delv_0 -= (get<3>(p_0) * mDt * 0.5) * ((1.0 / v_0_mag) * outer_product(v_0, v_0) + v_0_mag * mat_ident<double>(3));
+  // v-v block:
+  set_block(A_0_ss, delv_0, 3, 3);
+  
+  // (q,w) blocks:
+  mat<double,mat_structure::square> R_0 = get_quaternion(get<0>(p_0)).as_rotation().getMat();
+  const vect<double,3>& w_0 = get_ang_velocity(get<0>(p_0));
+  vect<double,3> r_x_w_0 = r % w_0;
+  double w_0_mag = norm_2(w_0);
+  
+  // v-q block:
+  set_block(A_0_ss, mass_all * R_0 * mat<double,mat_structure::skew_symmetric>(r_x_w_0), 3, 6);
+  
+  // v-w block:
+  set_block(A_0_ss, -mass_all * R_0 * r_cross, 3, 9);
+  
+  // v-m block:
+  vect<double,3> R_r_x_w_0 = R_0 * r_x_w_0;
+  A_0_sa(3,0) = v_0[0] - R_r_x_w_0[0];
+  A_0_sa(4,0) = v_0[1] - R_r_x_w_0[1];
+  A_0_sa(5,0) = v_0[2] - R_r_x_w_0[2];
+  
+  // v-r block:
+  set_block(A_0_sa, mass_all * R_0 * mat<double,mat_structure::skew_symmetric>(w_0), 3, 1);
+  
+  // v-d block:
+  A_0_sa(3,4) = -0.5 * mDt * v_0_mag * v_0[0];
+  A_0_sa(4,4) = -0.5 * mDt * v_0_mag * v_0[1];
+  A_0_sa(5,4) = -0.5 * mDt * v_0_mag * v_0[2];
+  
+  
+  // Quaternion row:
+  // q-q block:
+  set_block(A_0_ss, R_0, 6, 6);
+  
+  // q-w block:
+  set_block(A_0_ss, ( 0.5 * mDt ) * R_0, 6, 9);
+  
+  
+  // Ang-Velocity row:
+  // w-v block:
+  set_block(A_0_ss, mMass * R_0 * r_cross * transpose_view(R_0), 9, 3);
+  
+  // w-q block:
+  vect<double,3> off_force_0 = transpose_view(R_0) * ((0.5 * mDt) * mGravityAcc + v_0);
+  vect<double,3> l_net_0 = J_bar * w_0 + (0.5 * mDt) * tau - (0.5 * mDt * get<4>(p_0) * w_0_mag) * w_0 + mMass * (r % off_force_0);
+  set_block(A_0_ss, R_0 * (mat<double,mat_structure::skew_symmetric>(-l_net_0) 
+                           + mMass * r_cross * mat<double,mat_structure::skew_symmetric>(off_force_0)), 9, 6);
+  
+  mat<double,mat_structure::square> delw_0(J_bar);
+  if(w_0_mag > 1e-4)
+    delw_0 -= (get<4>(p_0) * mDt * 0.5) * ((1.0 / w_0_mag) * outer_product(w_0, w_0) + w_0_mag * mat_ident<double>(3));
+  // w-w block:
+  set_block(A_0_ss, R_0 * delw_0, 9, 9);
+  
+  // w-m block:
+  vect<double,3> R_r_x_of_0 = R_0 * (r % off_force_0);
+  A_0_sa(9,  0) = R_r_x_of_0[0];
+  A_0_sa(10, 0) = R_r_x_of_0[1];
+  A_0_sa(11, 0) = R_r_x_of_0[2];
+  
+  // w-r block:
+  set_block(A_0_sa, mMass * R_0 * mat<double,mat_structure::skew_symmetric>(off_force_0), 9, 1);
+  
+  // w-d block:
+  vect<double,3> R_w_0 = R_0 * w_0;
+  A_0_sa(9, 5) = -0.5 * mDt * w_0_mag * R_w_0[0];
+  A_0_sa(10,5) = -0.5 * mDt * w_0_mag * R_w_0[1];
+  A_0_sa(11,5) = -0.5 * mDt * w_0_mag * R_w_0[2];
+  
+  
+  mat<double,mat_structure::square> A_1_ss_inv(mat_ident<double>(12));
+  try {
+    pseudoinvert_QR(A_1_ss, A_1_ss_inv, 1E-6);
+  } catch(singularity_error&) {
+    throw system_incoherency("Inertial tensor is singular in airship3D_imdt_em_sys's definition");
+  };
+  
+  A = mat_ident<double>(18);
+  set_block(A, A_1_ss_inv * A_0_ss, 0, 0);
+  set_block(A, A_1_ss_inv * (A_0_sa - A_1_sa), 0, 12);
+  
+  
+  
+  // OLD version of it (first order, neglected HOTs):
+#if 0
   
   // all states conserved:
   A = mat_ident<double>(18);
@@ -667,6 +870,7 @@ void airship3D_imdt_emd_sys::get_state_transition_blocks(
     set_block(A, mDt * mat_ident<double>(3) - (0.5 * mDt) * delw, 6, 9);
     set_block(A, mat_ident<double>(3) - delw, 9, 9);
   };
+#endif
   
   
   B = mat<double,mat_structure::nil>(18,6);
@@ -786,11 +990,18 @@ airship3D_imdt_emd_sys::invariant_frame_type airship3D_imdt_emd_sys::get_invaria
   const airship3D_imdt_emd_sys::input_type&, 
   const airship3D_imdt_emd_sys::time_type&) const {
   
+  // NEW version:
+  airship3D_imdt_emd_sys::invariant_frame_type result(mat<double,mat_structure::identity>(18));
+  return result;
+  
+  // OLD version:
+#if 0
   airship3D_imdt_emd_sys::invariant_frame_type result(mat<double,mat_structure::identity>(18));
   mat<double,mat_structure::square> R_diff((invert(get_quaternion(get<0>(x_prior))) * get_quaternion(get<0>(x_prev))).as_rotation().getMat());
   set_block(result, R_diff, 6, 6);
   set_block(result, R_diff, 9, 9);
   return result;
+#endif
 };
 
 
