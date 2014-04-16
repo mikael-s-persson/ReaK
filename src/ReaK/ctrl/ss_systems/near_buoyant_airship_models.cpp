@@ -415,6 +415,16 @@ airship3D_imdt_emd_sys::airship3D_imdt_emd_sys(
 
 
 
+// #define USE_HOT_DEL_Q_TERMS
+// #define USE_HOT_DEL_M_TERMS
+// #define USE_TRAPEZOIDAL_DRAG_TERM
+// #define USE_TRAPEZOIDAL_GRAVITY_TORQUE_TERM
+
+// #define USE_P_TRANSFER_TERM
+// #define USE_L_TRANSFER_TERM
+
+// #define USE_HOT_INERTIA_TERM
+
 airship3D_imdt_emd_sys::point_type airship3D_imdt_emd_sys::get_next_state(
   const airship3D_imdt_emd_sys::state_space_type&, 
   const airship3D_imdt_emd_sys::point_type& x, 
@@ -430,7 +440,11 @@ airship3D_imdt_emd_sys::point_type airship3D_imdt_emd_sys::get_next_state(
   // NEW version:
   
   mat<double,mat_structure::skew_symmetric> r_cross(get<2>(x));
+#ifdef USE_HOT_INERTIA_TERM
   mat<double,mat_structure::symmetric> J_bar(mInertiaMoment - mMass * r_cross * r_cross);
+#else
+  mat<double,mat_structure::symmetric> J_bar(mInertiaMoment);
+#endif
   mat<double,mat_structure::symmetric> J_bar_inv;
   try {
     invert_Cholesky(J_bar, J_bar_inv);
@@ -438,8 +452,10 @@ airship3D_imdt_emd_sys::point_type airship3D_imdt_emd_sys::get_next_state(
     throw system_incoherency("Inertial tensor is singular in airship3D_imdt_emd_sys's definition");
   };
   
-  const int divisions = 10;
-  const double div_factor = 0.1;
+//   const int divisions = 10;
+//   const double div_factor = 0.1;
+  const int divisions = 1;
+  const double div_factor = 1.0;
   const double sub_dt = div_factor * mDt;
   const double mass_all = 1.5 * mMass;
   const vect<double,3>& r = get<2>(x);
@@ -465,22 +481,58 @@ airship3D_imdt_emd_sys::point_type airship3D_imdt_emd_sys::get_next_state(
     
     unit_quat<double> dq_1 = exp( (0.25 * sub_dt) * w_1 );
     unit_quat<double> q_1 = q_0 * dq_0 * dq_1;
+#ifdef USE_TRAPEZOIDAL_DRAG_TERM
     vect<double,3> fd_1 = (-get<3>(x) * norm_2(v_1)) * v_1;
     vect<double,3> td_1 = (-get<4>(x) * norm_2(w_1)) * w_1;
+#endif
+#ifdef USE_TRAPEZOIDAL_GRAVITY_TORQUE_TERM
+    vect<double,3> gt_1 = mMass * (r % (invert(q_1).as_rotation() * mGravityAcc));
+#endif
     
     // fixed-point iteration for the solution:
     for(int j = 0; j < 20; ++j) {
-      vect<double,3> v_1_new = v_0 + (sub_dt / mass_all) * (f + 0.5 * (fd_0 + fd_1) + gf_0) 
+#ifdef USE_TRAPEZOIDAL_DRAG_TERM
+      vect<double,3> fd_impulse = (0.5 * sub_dt) * (fd_0 + fd_1);
+#else
+      vect<double,3> fd_impulse = sub_dt * fd_0;
+#endif
+      vect<double,3> v_1_new = v_0 + (sub_dt / mass_all) * (f + gf_0) 
+#ifdef USE_L_TRANSFER_TERM
                              + q_0.as_rotation() * (w_0 % r) 
-                             - q_1.as_rotation() * (w_1 % r);
+                             - q_1.as_rotation() * (w_1 % r)
+#endif
+                             + (1.0 / mass_all) * fd_impulse;
+#ifdef USE_TRAPEZOIDAL_DRAG_TERM
+      vect<double,3> td_impulse = (0.5 * sub_dt) * (invert(dq_0 * dq_1).as_rotation() * td_0 + td_1);
+#else
+      vect<double,3> td_impulse = (0.5 * sub_dt) * (invert(dq_0 * dq_1).as_rotation() * td_0 + td_0);
+#endif
+#ifdef USE_TRAPEZOIDAL_GRAVITY_TORQUE_TERM
+      vect<double,3> gt_impulse = (0.5 * sub_dt) * (invert(dq_0 * dq_1).as_rotation() * gt_0 + gt_1);
+#else
+      vect<double,3> gt_impulse = (0.5 * sub_dt) * (invert(dq_0 * dq_1).as_rotation() * gt_0 + gt_0);
+#endif
+#ifdef USE_P_TRANSFER_TERM
+      vect<double,3> p_transfer = (-0.5 * mMass) * (invert(dq_0 * dq_1).as_rotation() * (r % (invert(q_0).as_rotation() * (v_1 - v_0))) 
+                                                    + (r % (invert(q_1).as_rotation() * (v_1 - v_0))));
+#endif
       vect<double,3> w_1_new = J_bar_inv * (
-        invert(dq_0 * dq_1).as_rotation() * ( J_bar * w_0 + (0.5 * sub_dt) * (tau + td_0 + gt_0) - (0.5 * mMass) * (r % (invert(q_0).as_rotation() * (v_1 - v_0))) )
-        + (0.5 * sub_dt) * (tau + td_1) + (0.5 * mMass) * (r % (invert(q_1).as_rotation() * (sub_dt * mGravityAcc - (v_1 - v_0)))) );
+        invert(dq_0 * dq_1).as_rotation() * ( J_bar * w_0 + (0.5 * sub_dt) * tau )
+        + td_impulse + gt_impulse 
+#ifdef USE_P_TRANSFER_TERM
+        + p_transfer 
+#endif
+        + (0.5 * sub_dt) * tau );
       
       dq_1 = exp( (0.25 * sub_dt) * w_1_new );
       q_1 = q_0 * dq_0 * dq_1;
+#ifdef USE_TRAPEZOIDAL_DRAG_TERM
       fd_1 = (-get<3>(x) * norm_2(v_1_new)) * v_1_new;
       td_1 = (-get<4>(x) * norm_2(w_1_new)) * w_1_new;
+#endif
+#ifdef USE_TRAPEZOIDAL_GRAVITY_TORQUE_TERM
+      gt_1 = mMass * (r % (invert(q_1).as_rotation() * mGravityAcc));
+#endif
       
       if(norm_2(w_1_new - w_1) < 1E-6 * norm_2(w_1_new + w_1)) {
         w_1 = w_1_new;
@@ -499,9 +551,18 @@ airship3D_imdt_emd_sys::point_type airship3D_imdt_emd_sys::get_next_state(
     p_0 += (sub_dt * 0.5) * (v_0 + v_1);
     v_0 = v_1;
     
+#ifdef USE_TRAPEZOIDAL_DRAG_TERM
     fd_0 = fd_1;
     td_0 = td_1;
+#else
+    fd_0 = (-get<3>(x) * norm_2(v_0)) * v_0;
+    td_0 = (-get<4>(x) * norm_2(w_0)) * w_0;
+#endif
+#ifdef USE_TRAPEZOIDAL_GRAVITY_TORQUE_TERM
+    gt_0 = gt_1;
+#else
     gt_0 = mMass * (r % (invert(q_0).as_rotation() * mGravityAcc));
+#endif
     
   };
   
@@ -608,7 +669,12 @@ void airship3D_imdt_emd_sys::get_state_transition_blocks(
   
   const vect<double,3>& r = get<2>(p_0);
   mat<double,mat_structure::skew_symmetric> r_cross(r);
+  
+#ifdef USE_HOT_INERTIA_TERM
   mat<double,mat_structure::symmetric> J_bar(mInertiaMoment - mMass * r_cross * r_cross);
+#else
+  mat<double,mat_structure::symmetric> J_bar(mInertiaMoment);
+#endif
   
   const double mass_all = 1.5 * mMass;
   vect<double,3> tau(u_0[3], u_0[4], u_0[5]);
@@ -626,38 +692,50 @@ void airship3D_imdt_emd_sys::get_state_transition_blocks(
   // Velocity row:
   const vect<double,3>& v_1 = get_velocity(get<0>(p_1));
   double v_1_mag = norm_2(v_1);
+  const vect<double,3>& v_0 = get_velocity(get<0>(p_0));
+  double v_0_mag = norm_2(v_0);
   
   mat<double,mat_structure::square> delv_1(mass_all * mat_ident<double>(3));
+#ifdef USE_TRAPEZOIDAL_DRAG_TERM
   if(v_1_mag > 1e-4)
     delv_1 += (get<3>(p_1) * mDt * 0.5) * ((1.0 / v_1_mag) * outer_product(v_1, v_1) + v_1_mag * mat_ident<double>(3));
+#endif
   // v-v block:
   set_block(A_1_ss, delv_1, 3, 3);
   
-  // (q,w) blocks:
+  
   mat<double,mat_structure::square> R_1 = get_quaternion(get<0>(p_1)).as_rotation().getMat();
   const vect<double,3>& w_1 = get_ang_velocity(get<0>(p_1));
   vect<double,3> r_x_w_1 = r % w_1;
   double w_1_mag = norm_2(w_1);
   
   // v-q block:
+#ifdef USE_HOT_DEL_Q_TERMS
   set_block(A_1_ss, mass_all * R_1 * mat<double,mat_structure::skew_symmetric>(r_x_w_1), 3, 6);
+#endif
   
   // v-w block:
+#ifdef USE_L_TRANSFER_TERM
   set_block(A_1_ss, -mass_all * R_1 * r_cross, 3, 9);
+#endif
   
   // v-m block:
+#ifdef USE_HOT_DEL_M_TERMS
   vect<double,3> R_r_x_w_1 = R_1 * r_x_w_1;
   A_1_sa(3,0) = v_1[0] - R_r_x_w_1[0];
   A_1_sa(4,0) = v_1[1] - R_r_x_w_1[1];
   A_1_sa(5,0) = v_1[2] - R_r_x_w_1[2];
+#endif
   
   // v-r block:
   set_block(A_1_sa, mass_all * R_1 * mat<double,mat_structure::skew_symmetric>(w_1), 3, 1);
   
   // v-d block:
+#ifdef USE_TRAPEZOIDAL_DRAG_TERM
   A_1_sa(3,4) = 0.5 * mDt * v_1_mag * v_1[0];
   A_1_sa(4,4) = 0.5 * mDt * v_1_mag * v_1[1];
   A_1_sa(5,4) = 0.5 * mDt * v_1_mag * v_1[2];
+#endif
   
   
   // Quaternion row:
@@ -670,58 +748,86 @@ void airship3D_imdt_emd_sys::get_state_transition_blocks(
   
   // Ang-Velocity row:
   // w-v block:
+#ifdef USE_P_TRANSFER_TERM
   set_block(A_1_ss, mMass * R_1 * r_cross * transpose_view(R_1), 9, 3);
+#endif
   
   // w-q block:
-  vect<double,3> off_force_1 = transpose_view(R_1) * ((0.5 * mDt) * mGravityAcc - v_1);
-  vect<double,3> l_net_1 = J_bar * w_1 - (0.5 * mDt) * tau + (0.5 * mDt * get<4>(p_1) * w_1_mag) * w_1 - mMass * (r % off_force_1);
+#ifdef USE_TRAPEZOIDAL_GRAVITY_TORQUE_TERM
+#ifdef USE_P_TRANSFER_TERM
+  vect<double,3> off_force_1 = transpose_view(R_1) * ((0.5 * mDt) * mGravityAcc - 0.5 * (v_1 - v_0));
+#else
+  vect<double,3> off_force_1 = transpose_view(R_1) * ((0.5 * mDt) * mGravityAcc);
+#endif
+#else
+#ifdef USE_P_TRANSFER_TERM
+  vect<double,3> off_force_1 = transpose_view(R_1) * (-0.5 * (v_1 - v_0));
+#else
+  vect<double,3> off_force_1(0.0,0.0,0.0);
+#endif
+#endif
+  
+  vect<double,3> l_net_1 = J_bar * w_1 - (0.5 * mDt) * tau 
+#ifdef USE_TRAPEZOIDAL_DRAG_TERM
+                           + (0.5 * mDt * get<4>(p_1) * w_1_mag) * w_1
+#endif
+                           - mMass * (r % off_force_1);
+#ifdef USE_HOT_DEL_Q_TERMS
   set_block(A_1_ss, R_1 * (mat<double,mat_structure::skew_symmetric>(-l_net_1) 
                            - mMass * r_cross * mat<double,mat_structure::skew_symmetric>(off_force_1)), 9, 6);
+#endif
   
   mat<double,mat_structure::square> delw_1(J_bar);
+#ifdef USE_TRAPEZOIDAL_DRAG_TERM
   if(w_1_mag > 1e-4)
     delw_1 += (get<4>(p_1) * mDt * 0.5) * ((1.0 / w_1_mag) * outer_product(w_1, w_1) + w_1_mag * mat_ident<double>(3));
+#endif
   // w-w block:
   set_block(A_1_ss, R_1 * delw_1, 9, 9);
   
   // w-m block:
+#ifdef USE_HOT_DEL_M_TERMS
   vect<double,3> R_r_x_of_1 = R_1 * (r % off_force_1);
   A_1_sa(9,  0) = -R_r_x_of_1[0];
   A_1_sa(10, 0) = -R_r_x_of_1[1];
   A_1_sa(11, 0) = -R_r_x_of_1[2];
+#endif
   
   // w-r block:
   set_block(A_1_sa, mMass * R_1 * mat<double,mat_structure::skew_symmetric>(-off_force_1), 9, 1);
   
   // w-d block:
+#ifdef USE_TRAPEZOIDAL_DRAG_TERM
   vect<double,3> R_w_1 = R_1 * w_1;
   A_1_sa(9, 5) = 0.5 * mDt * w_1_mag * R_w_1[0];
   A_1_sa(10,5) = 0.5 * mDt * w_1_mag * R_w_1[1];
   A_1_sa(11,5) = 0.5 * mDt * w_1_mag * R_w_1[2];
+#endif
   
   
   
   
-  
-  mat<double,mat_structure::square> A_0_ss(mat_ident<double>(12));
-  mat<double,mat_structure::rectangular> A_0_sa(12, 6, 0.0);
+  mat<double,mat_structure::rectangular> A_0_s(12, 18, 0.0);
+  set_block(A_0_s, mat_ident<double>(12), 0, 0);
   
   // Position row:
   // p-v block:
-  A_0_ss(0,3) = 0.5 * mDt;
-  A_0_ss(1,4) = 0.5 * mDt;
-  A_0_ss(2,5) = 0.5 * mDt;
+  A_0_s(0,3) = 0.5 * mDt;
+  A_0_s(1,4) = 0.5 * mDt;
+  A_0_s(2,5) = 0.5 * mDt;
   
   
   // Velocity row:
-  const vect<double,3>& v_0 = get_velocity(get<0>(p_0));
-  double v_0_mag = norm_2(v_0);
-  
   mat<double,mat_structure::square> delv_0(mass_all * mat_ident<double>(3));
-  if(v_0_mag > 1e-4)
+  if(v_0_mag > 1e-4) {
+#ifdef USE_TRAPEZOIDAL_DRAG_TERM
     delv_0 -= (get<3>(p_0) * mDt * 0.5) * ((1.0 / v_0_mag) * outer_product(v_0, v_0) + v_0_mag * mat_ident<double>(3));
+#else
+    delv_0 -= (get<3>(p_0) * mDt) * ((1.0 / v_0_mag) * outer_product(v_0, v_0) + v_0_mag * mat_ident<double>(3));
+#endif
+  };
   // v-v block:
-  set_block(A_0_ss, delv_0, 3, 3);
+  set_block(A_0_s, delv_0, 3, 3);
   
   // (q,w) blocks:
   mat<double,mat_structure::square> R_0 = get_quaternion(get<0>(p_0)).as_rotation().getMat();
@@ -730,76 +836,124 @@ void airship3D_imdt_emd_sys::get_state_transition_blocks(
   double w_0_mag = norm_2(w_0);
   
   // v-q block:
-  set_block(A_0_ss, mass_all * R_0 * mat<double,mat_structure::skew_symmetric>(r_x_w_0), 3, 6);
+#ifdef USE_HOT_DEL_Q_TERMS
+  set_block(A_0_s, mass_all * R_0 * mat<double,mat_structure::skew_symmetric>(r_x_w_0), 3, 6);
+#endif
   
   // v-w block:
-  set_block(A_0_ss, -mass_all * R_0 * r_cross, 3, 9);
+#ifdef USE_L_TRANSFER_TERM
+  set_block(A_0_s, -mass_all * R_0 * r_cross, 3, 9);
+#endif
   
   // v-m block:
+#ifdef USE_HOT_DEL_M_TERMS
   vect<double,3> R_r_x_w_0 = R_0 * r_x_w_0;
-  A_0_sa(3,0) = v_0[0] - R_r_x_w_0[0];
-  A_0_sa(4,0) = v_0[1] - R_r_x_w_0[1];
-  A_0_sa(5,0) = v_0[2] - R_r_x_w_0[2];
+  A_0_s(3,12) = v_0[0] - R_r_x_w_0[0];
+  A_0_s(4,12) = v_0[1] - R_r_x_w_0[1];
+  A_0_s(5,12) = v_0[2] - R_r_x_w_0[2];
+#endif
+  A_0_s(3,12) += mDt * mGravityAcc[0];
+  A_0_s(4,12) += mDt * mGravityAcc[1];
+  A_0_s(5,12) += mDt * mGravityAcc[2];
   
   // v-r block:
-  set_block(A_0_sa, mass_all * R_0 * mat<double,mat_structure::skew_symmetric>(w_0), 3, 1);
+  set_block(A_0_s, mass_all * R_0 * mat<double,mat_structure::skew_symmetric>(w_0), 3, 13);
   
   // v-d block:
-  A_0_sa(3,4) = -0.5 * mDt * v_0_mag * v_0[0];
-  A_0_sa(4,4) = -0.5 * mDt * v_0_mag * v_0[1];
-  A_0_sa(5,4) = -0.5 * mDt * v_0_mag * v_0[2];
+#ifdef USE_TRAPEZOIDAL_DRAG_TERM
+  A_0_s(3,16) = -0.5 * mDt * v_0_mag * v_0[0];
+  A_0_s(4,16) = -0.5 * mDt * v_0_mag * v_0[1];
+  A_0_s(5,16) = -0.5 * mDt * v_0_mag * v_0[2];
+#else
+  A_0_s(3,16) = -mDt * v_0_mag * v_0[0];
+  A_0_s(4,16) = -mDt * v_0_mag * v_0[1];
+  A_0_s(5,16) = -mDt * v_0_mag * v_0[2];
+#endif  
   
   
   // Quaternion row:
   // q-q block:
-  set_block(A_0_ss, R_0, 6, 6);
+  set_block(A_0_s, R_0, 6, 6);
   
   // q-w block:
-  set_block(A_0_ss, ( 0.5 * mDt ) * R_0, 6, 9);
+  set_block(A_0_s, ( 0.5 * mDt ) * R_0, 6, 9);
   
   
   // Ang-Velocity row:
   // w-v block:
-  set_block(A_0_ss, mMass * R_0 * r_cross * transpose_view(R_0), 9, 3);
+#ifdef USE_P_TRANSFER_TERM
+  set_block(A_0_s, mMass * R_0 * r_cross * transpose_view(R_0), 9, 3);
+#endif
   
   // w-q block:
-  vect<double,3> off_force_0 = transpose_view(R_0) * ((0.5 * mDt) * mGravityAcc + v_0);
-  vect<double,3> l_net_0 = J_bar * w_0 + (0.5 * mDt) * tau - (0.5 * mDt * get<4>(p_0) * w_0_mag) * w_0 + mMass * (r % off_force_0);
-  set_block(A_0_ss, R_0 * (mat<double,mat_structure::skew_symmetric>(-l_net_0) 
+#ifdef USE_TRAPEZOIDAL_GRAVITY_TORQUE_TERM
+#ifdef USE_P_TRANSFER_TERM
+  vect<double,3> off_force_0 = transpose_view(R_0) * ((0.5 * mDt) * mGravityAcc - 0.5 * (v_1 - v_0));
+#else
+  vect<double,3> off_force_0 = transpose_view(R_0) * ((0.5 * mDt) * mGravityAcc);
+#endif
+#else
+#ifdef USE_P_TRANSFER_TERM
+  vect<double,3> off_force_0 = transpose_view(R_0) * (-0.5 * (v_1 - v_0));
+#else
+  vect<double,3> off_force_0(0.0,0.0,0.0);
+#endif
+#endif
+  vect<double,3> l_net_0 = J_bar * w_0 + (0.5 * mDt) * tau 
+#ifdef USE_TRAPEZOIDAL_DRAG_TERM
+                           - (0.5 * mDt * get<4>(p_0) * w_0_mag) * w_0 
+#else
+                           - (mDt * get<4>(p_0) * w_0_mag) * w_0 
+#endif
+                           + mMass * (r % off_force_0);
+#ifdef USE_HOT_DEL_Q_TERMS
+  set_block(A_0_s, R_0 * (mat<double,mat_structure::skew_symmetric>(-l_net_0) 
                            + mMass * r_cross * mat<double,mat_structure::skew_symmetric>(off_force_0)), 9, 6);
+#endif
   
   mat<double,mat_structure::square> delw_0(J_bar);
-  if(w_0_mag > 1e-4)
+  if(w_0_mag > 1e-4) {
+#ifdef USE_TRAPEZOIDAL_DRAG_TERM
     delw_0 -= (get<4>(p_0) * mDt * 0.5) * ((1.0 / w_0_mag) * outer_product(w_0, w_0) + w_0_mag * mat_ident<double>(3));
+#else
+    delw_0 -= (get<4>(p_0) * mDt) * ((1.0 / w_0_mag) * outer_product(w_0, w_0) + w_0_mag * mat_ident<double>(3));
+#endif
+  };
   // w-w block:
-  set_block(A_0_ss, R_0 * delw_0, 9, 9);
+  set_block(A_0_s, R_0 * delw_0, 9, 9);
   
   // w-m block:
+#ifdef USE_HOT_DEL_M_TERMS
   vect<double,3> R_r_x_of_0 = R_0 * (r % off_force_0);
-  A_0_sa(9,  0) = R_r_x_of_0[0];
-  A_0_sa(10, 0) = R_r_x_of_0[1];
-  A_0_sa(11, 0) = R_r_x_of_0[2];
+  A_0_s(9,  12) = R_r_x_of_0[0];
+  A_0_s(10, 12) = R_r_x_of_0[1];
+  A_0_s(11, 12) = R_r_x_of_0[2];
+#endif
   
   // w-r block:
-  set_block(A_0_sa, mMass * R_0 * mat<double,mat_structure::skew_symmetric>(off_force_0), 9, 1);
+  set_block(A_0_s, mMass * R_0 * mat<double,mat_structure::skew_symmetric>(off_force_0), 9, 13);
   
   // w-d block:
   vect<double,3> R_w_0 = R_0 * w_0;
-  A_0_sa(9, 5) = -0.5 * mDt * w_0_mag * R_w_0[0];
-  A_0_sa(10,5) = -0.5 * mDt * w_0_mag * R_w_0[1];
-  A_0_sa(11,5) = -0.5 * mDt * w_0_mag * R_w_0[2];
+#ifdef USE_TRAPEZOIDAL_DRAG_TERM
+  A_0_s(9, 17) = -0.5 * mDt * w_0_mag * R_w_0[0];
+  A_0_s(10,17) = -0.5 * mDt * w_0_mag * R_w_0[1];
+  A_0_s(11,17) = -0.5 * mDt * w_0_mag * R_w_0[2];
+#else
+  A_0_s(9, 17) = -mDt * w_0_mag * R_w_0[0];
+  A_0_s(10,17) = -mDt * w_0_mag * R_w_0[1];
+  A_0_s(11,17) = -mDt * w_0_mag * R_w_0[2];
+#endif
   
   
-  mat<double,mat_structure::square> A_1_ss_inv(mat_ident<double>(12));
   try {
-    pseudoinvert_QR(A_1_ss, A_1_ss_inv, 1E-6);
+    linlsq_QR(A_1_ss, A_0_s, A_0_s, 1E-6);
   } catch(singularity_error&) {
-    throw system_incoherency("Inertial tensor is singular in airship3D_imdt_em_sys's definition");
+    throw system_incoherency("System matrix is singular in airship3D_imdt_em_sys's definition");
   };
   
   A = mat_ident<double>(18);
-  set_block(A, A_1_ss_inv * A_0_ss, 0, 0);
-  set_block(A, A_1_ss_inv * (A_0_sa - A_1_sa), 0, 12);
+  set_block(A, A_0_s, 0, 0);
   
   
   
