@@ -414,14 +414,15 @@ airship3D_imdt_emd_sys::airship3D_imdt_emd_sys(
 }; 
 
 
-
+// The del-q terms are clearly not good (or desirable, for better results):
 // #define USE_HOT_DEL_Q_TERMS
-// #define USE_HOT_DEL_M_TERMS
+
+#define USE_HOT_DEL_M_TERMS
 // #define USE_TRAPEZOIDAL_DRAG_TERM
 // #define USE_TRAPEZOIDAL_GRAVITY_TORQUE_TERM
 
-// #define USE_P_TRANSFER_TERM
-// #define USE_L_TRANSFER_TERM
+#define USE_P_TRANSFER_TERM
+#define USE_L_TRANSFER_TERM
 
 // #define USE_HOT_INERTIA_TERM
 
@@ -439,9 +440,18 @@ airship3D_imdt_emd_sys::point_type airship3D_imdt_emd_sys::get_next_state(
   
   // NEW version:
   
-  mat<double,mat_structure::skew_symmetric> r_cross(get<2>(x));
+  const int divisions = 10;
+  const double div_factor = 0.1;
+//   const int divisions = 1;
+//   const double div_factor = 1.0;
+  const double sub_dt = div_factor * mDt;
+  const double mass_all  = 1.5 * mMass + get<1>(x);
+  const double mass_real = mMass + get<1>(x);
+  const vect<double,3>& r = get<2>(x);
+  
+  mat<double,mat_structure::skew_symmetric> r_cross(r);
 #ifdef USE_HOT_INERTIA_TERM
-  mat<double,mat_structure::symmetric> J_bar(mInertiaMoment - mMass * r_cross * r_cross);
+  mat<double,mat_structure::symmetric> J_bar(mInertiaMoment - mass_real * r_cross * r_cross);
 #else
   mat<double,mat_structure::symmetric> J_bar(mInertiaMoment);
 #endif
@@ -452,13 +462,6 @@ airship3D_imdt_emd_sys::point_type airship3D_imdt_emd_sys::get_next_state(
     throw system_incoherency("Inertial tensor is singular in airship3D_imdt_emd_sys's definition");
   };
   
-//   const int divisions = 10;
-//   const double div_factor = 0.1;
-  const int divisions = 1;
-  const double div_factor = 1.0;
-  const double sub_dt = div_factor * mDt;
-  const double mass_all = 1.5 * mMass;
-  const vect<double,3>& r = get<2>(x);
   vect<double,3> tau(u[3], u[4], u[5]);
   vect<double,3> f(u[0], u[1], u[2]);
   
@@ -470,23 +473,24 @@ airship3D_imdt_emd_sys::point_type airship3D_imdt_emd_sys::get_next_state(
   
   vect<double,3> fd_0 = (-get<3>(x) * norm_2(v_0)) * v_0;
   vect<double,3> td_0 = (-get<4>(x) * norm_2(w_0)) * w_0;
-  vect<double,3> gt_0 = mMass * (r % (invert(q_0).as_rotation() * mGravityAcc));
+  vect<double,3> gt_0 = mass_real * (r % (invert(q_0).as_rotation() * mGravityAcc));
   vect<double,3> gf_0 = get<1>(x) * mGravityAcc;
   
   for(int i = 0; i < divisions; ++i) {
     
     // compute first approximation:
     vect<double,3> v_1 = v_0 + (sub_dt / mass_all) * (f + fd_0 + gf_0);
-    vect<double,3> w_1 = w_0 + J_bar_inv * ( sub_dt * (tau + td_0 + gt_0) - mMass * (r % (invert(q_0).as_rotation() * (v_1 - v_0))));
+    vect<double,3> w_1 = w_0 + J_bar_inv * ( sub_dt * (tau + td_0 + gt_0) - mass_real * (r % (invert(q_0).as_rotation() * (v_1 - v_0))));
     
     unit_quat<double> dq_1 = exp( (0.25 * sub_dt) * w_1 );
+    quaternion<double> q_0_to_1 = invert(dq_0 * dq_1).as_rotation();
     unit_quat<double> q_1 = q_0 * dq_0 * dq_1;
 #ifdef USE_TRAPEZOIDAL_DRAG_TERM
     vect<double,3> fd_1 = (-get<3>(x) * norm_2(v_1)) * v_1;
     vect<double,3> td_1 = (-get<4>(x) * norm_2(w_1)) * w_1;
 #endif
 #ifdef USE_TRAPEZOIDAL_GRAVITY_TORQUE_TERM
-    vect<double,3> gt_1 = mMass * (r % (invert(q_1).as_rotation() * mGravityAcc));
+    vect<double,3> gt_1 = mass_real * (r % (invert(q_1).as_rotation() * mGravityAcc));
 #endif
     
     // fixed-point iteration for the solution:
@@ -503,35 +507,35 @@ airship3D_imdt_emd_sys::point_type airship3D_imdt_emd_sys::get_next_state(
 #endif
                              + (1.0 / mass_all) * fd_impulse;
 #ifdef USE_TRAPEZOIDAL_DRAG_TERM
-      vect<double,3> td_impulse = (0.5 * sub_dt) * (invert(dq_0 * dq_1).as_rotation() * td_0 + td_1);
+      vect<double,3> td_impulse = (0.5 * sub_dt) * (q_0_to_1 * td_0 + td_1);
 #else
-      vect<double,3> td_impulse = (0.5 * sub_dt) * (invert(dq_0 * dq_1).as_rotation() * td_0 + td_0);
+      vect<double,3> td_impulse = (0.5 * sub_dt) * (q_0_to_1 * td_0 + td_0);
 #endif
 #ifdef USE_TRAPEZOIDAL_GRAVITY_TORQUE_TERM
-      vect<double,3> gt_impulse = (0.5 * sub_dt) * (invert(dq_0 * dq_1).as_rotation() * gt_0 + gt_1);
+      vect<double,3> gt_impulse = (0.5 * sub_dt) * (q_0_to_1 * gt_0 + gt_1);
 #else
-      vect<double,3> gt_impulse = (0.5 * sub_dt) * (invert(dq_0 * dq_1).as_rotation() * gt_0 + gt_0);
+      vect<double,3> gt_impulse = (0.5 * sub_dt) * (q_0_to_1 * gt_0 + gt_0);
 #endif
 #ifdef USE_P_TRANSFER_TERM
-      vect<double,3> p_transfer = (-0.5 * mMass) * (invert(dq_0 * dq_1).as_rotation() * (r % (invert(q_0).as_rotation() * (v_1 - v_0))) 
+      vect<double,3> p_transfer = (-0.5 * mass_real) * (q_0_to_1 * (r % (invert(q_0).as_rotation() * (v_1 - v_0))) 
                                                     + (r % (invert(q_1).as_rotation() * (v_1 - v_0))));
 #endif
-      vect<double,3> w_1_new = J_bar_inv * (
-        invert(dq_0 * dq_1).as_rotation() * ( J_bar * w_0 + (0.5 * sub_dt) * tau )
-        + td_impulse + gt_impulse 
+      vect<double,3> tau_impulse = (0.5 * sub_dt) * (q_0_to_1 * tau + tau);
+      vect<double,3> w_1_new = J_bar_inv * ( q_0_to_1 * ( J_bar * w_0 )
 #ifdef USE_P_TRANSFER_TERM
         + p_transfer 
 #endif
-        + (0.5 * sub_dt) * tau );
+        + td_impulse + gt_impulse + tau_impulse );
       
       dq_1 = exp( (0.25 * sub_dt) * w_1_new );
+      q_0_to_1 = invert(dq_0 * dq_1).as_rotation();
       q_1 = q_0 * dq_0 * dq_1;
 #ifdef USE_TRAPEZOIDAL_DRAG_TERM
       fd_1 = (-get<3>(x) * norm_2(v_1_new)) * v_1_new;
       td_1 = (-get<4>(x) * norm_2(w_1_new)) * w_1_new;
 #endif
 #ifdef USE_TRAPEZOIDAL_GRAVITY_TORQUE_TERM
-      gt_1 = mMass * (r % (invert(q_1).as_rotation() * mGravityAcc));
+      gt_1 = mass_real * (r % (invert(q_1).as_rotation() * mGravityAcc));
 #endif
       
       if(norm_2(w_1_new - w_1) < 1E-6 * norm_2(w_1_new + w_1)) {
@@ -561,7 +565,7 @@ airship3D_imdt_emd_sys::point_type airship3D_imdt_emd_sys::get_next_state(
 #ifdef USE_TRAPEZOIDAL_GRAVITY_TORQUE_TERM
     gt_0 = gt_1;
 #else
-    gt_0 = mMass * (r % (invert(q_0).as_rotation() * mGravityAcc));
+    gt_0 = mass_real * (r % (invert(q_0).as_rotation() * mGravityAcc));
 #endif
     
   };
