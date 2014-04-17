@@ -815,9 +815,10 @@ void get_timeseries_from_rec(
       meas_actual.pose[5] = nvr_in["q_2"];
       meas_actual.pose[6] = nvr_in["q_3"];
       
+      std::size_t merr_count = sat_options.get_meas_error_count();
       vect_n<double> added_noise = ctrl::sample_gaussian_point(vect_n<double>(sat_options.artificial_noise.get_row_count(), 0.0), sat_options.artificial_noise);
-      if(sat_options.artificial_noise.get_row_count() < 6) 
-        added_noise.resize(6, 0.0);
+      if(sat_options.artificial_noise.get_row_count() < merr_count) 
+        added_noise.resize(merr_count, 0.0);
       
       meas_noisy.pose.resize(7);
       meas_noisy.pose[range(0,2)] = meas_actual.pose[range(0,2)] + added_noise[range(0,2)];
@@ -827,14 +828,14 @@ void get_timeseries_from_rec(
       y_quat *= axis_angle<double>(norm_2(aa_noise), aa_noise).getQuaternion();
       meas_noisy.pose[range(3,6)] = vect<double,4>(y_quat[0], y_quat[1], y_quat[2], y_quat[3]);
       
-      if( added_noise.size() >= 9 ) {
+      if( merr_count >= 9 ) {
         /* read off the IMU/gyro angular velocity measurements. */
         meas_actual.gyro.resize(3);
         meas_actual.gyro[0] = nvr_in["w_x"];
         meas_actual.gyro[1] = nvr_in["w_y"];
         meas_actual.gyro[2] = nvr_in["w_z"];
         meas_noisy.gyro = meas_actual.gyro + added_noise[range(6,8)];
-        if( added_noise.size() >= 15 ) {
+        if( merr_count >= 15 ) {
           /* read off the IMU accel-mag measurements. */
           meas_actual.IMU_a_m.resize(6);
           meas_actual.IMU_a_m[0] = nvr_in["acc_x"];
@@ -1228,9 +1229,15 @@ int main(int argc, char** argv) {
     
   } else if( vm.count("gyro") && !vm.count("IMU") ) {
     
-    int errcode = do_required_tasks(sat_options.get_gyro_sat_system(), sat_options, vm, data_in, names_in, sys_output_stem_name, data_out_stem_opt);
-    if(errcode)
-      return errcode;
+    if( vm.count("imkf-emd") ) {
+      int errcode = do_required_tasks(sat_options.get_gyro_emd_airship_system(), sat_options, vm, data_in, names_in, sys_output_stem_name, data_out_stem_opt);
+      if(errcode)
+        return errcode;
+    } else {
+      int errcode = do_required_tasks(sat_options.get_gyro_sat_system(), sat_options, vm, data_in, names_in, sys_output_stem_name, data_out_stem_opt);
+      if(errcode)
+        return errcode;
+    };
     
   } else {
     

@@ -79,6 +79,7 @@ struct satellite_model_options {
   
   typedef airship3D_imdt_em_sys system_em_type;
   typedef airship3D_imdt_emd_sys system_emd_type;
+  typedef airship3D_gyro_imdt_emd_sys system_gyro_emd_type;
   
   typedef discrete_sss_traits< system_base_type >::point_type state_type;
   typedef discrete_sss_traits< system_base_type >::input_type input_type;
@@ -283,6 +284,12 @@ public:
    * \return A newly created eccentricity-imbalance-drag airship system (as shared-pointer).
    */
   shared_ptr< system_emd_type > get_emd_airship_system() const;
+  
+  /**
+   * Constructs a eccentricity-imbalance-drag airship system with gyro measurements.
+   * \return A newly created eccentricity-imbalance-drag airship system with gyro measurements (as shared-pointer).
+   */
+  shared_ptr< system_gyro_emd_type > get_gyro_emd_airship_system() const;
   
   /**
    * Create a belief point for the state, with mean set to initial-motion.

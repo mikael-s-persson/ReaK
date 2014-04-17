@@ -3,14 +3,20 @@
 OPTIONS="--init-motion models/satellite3D_init.rkx"
 OPTIONS="${OPTIONS} --inertia models/sat3D_airship_inertia.rkx"
 OPTIONS="${OPTIONS} --Q-matrix models/sat3D_airship_Q.rkx"
-OPTIONS="${OPTIONS} --R-matrix models/sat3D_airship_R.rkx"
 OPTIONS="${OPTIONS} --IMU-config models/sat3D_airship_IMU_config.rkx"
 OPTIONS="${OPTIONS} --time-step 0.01"
-OPTIONS="${OPTIONS} --imkf"
+# OPTIONS="${OPTIONS} --imkf"
+# OPTIONS="${OPTIONS} --imkf-em"
+OPTIONS="${OPTIONS} --imkf-emd"
 
-# OPTIONS="${OPTIONS} --prediction-runs --prediction-interval 1.0"
-# 
-# OPTIONS="${OPTIONS} --pred-assumption 0"
+# OPTIONS="${OPTIONS} --R-matrix models/sat3D_airship_R.rkx"
+
+OPTIONS="${OPTIONS} --R-matrix models/sat3D_airship_R_gyro.rkx"
+OPTIONS="${OPTIONS} --gyro"
+
+OPTIONS="${OPTIONS} --prediction-runs --prediction-interval 5.0"
+
+OPTIONS="${OPTIONS} --pred-assumption 0"
 # OPTIONS="${OPTIONS} --pred-assumption 1"
 
 

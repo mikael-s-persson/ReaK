@@ -304,25 +304,25 @@ void >::type invariant_kalman_filter_step(const InvariantSystem& sys,
   typename discrete_linear_sss_traits<InvariantSystem>::matrixC_type C;
   typename discrete_linear_sss_traits<InvariantSystem>::matrixD_type D;
   
-  StateType x = b_x.get_mean_state();
-  MatType P = b_x.get_covariance().get_matrix();
+  StateType x = b_x.get_mean_state(); 
+  MatType P = b_x.get_covariance().get_matrix(); 
   
-  StateType x_prior = sys.get_next_state(state_space, x, b_u.get_mean_state(), t);
-  sys.get_state_transition_blocks(A, B, state_space, t, t + sys.get_time_step(), x, x_prior, b_u.get_mean_state(), b_u.get_mean_state());
-  InvarFrame W = sys.get_invariant_prior_frame(state_space, x, x_prior, b_u.get_mean_state(), t + sys.get_time_step());
-  P = W * (( A * P * transpose_view(A)) + B * b_u.get_covariance().get_matrix() * transpose_view(B)) * transpose_view(W);
+  StateType x_prior = sys.get_next_state(state_space, x, b_u.get_mean_state(), t); 
+  sys.get_state_transition_blocks(A, B, state_space, t, t + sys.get_time_step(), x, x_prior, b_u.get_mean_state(), b_u.get_mean_state()); 
+  InvarFrame W = sys.get_invariant_prior_frame(state_space, x, x_prior, b_u.get_mean_state(), t + sys.get_time_step()); 
+  P = W * (( A * P * transpose_view(A)) + B * b_u.get_covariance().get_matrix() * transpose_view(B)) * transpose_view(W); 
   
-  sys.get_output_function_blocks(C, D, state_space, t + sys.get_time_step(), x_prior, b_u.get_mean_state());
-  vect_n<ValueType> e = to_vect<ValueType>(sys.get_invariant_error(state_space, x_prior, b_u.get_mean_state(), b_z.get_mean_state(), t + sys.get_time_step()));
+  sys.get_output_function_blocks(C, D, state_space, t + sys.get_time_step(), x_prior, b_u.get_mean_state()); 
+  vect_n<ValueType> e = to_vect<ValueType>(sys.get_invariant_error(state_space, x_prior, b_u.get_mean_state(), b_z.get_mean_state(), t + sys.get_time_step())); 
   
-  mat< ValueType, mat_structure::rectangular, mat_alignment::column_major > CP = C * P;
-  mat< ValueType, mat_structure::symmetric > S(CP * transpose_view(C) + b_z.get_covariance().get_matrix());
-  linsolve_Cholesky(S,CP);
-  mat< ValueType, mat_structure::rectangular, mat_alignment::row_major > K(transpose_view(CP));
-   
-  b_x.set_mean_state( sys.apply_correction(state_space, x_prior, from_vect<InvarCorr>(K * e), b_u.get_mean_state(), t + sys.get_time_step()) );
-  W = sys.get_invariant_posterior_frame(state_space, x_prior, b_x.get_mean_state(), b_u.get_mean_state(), t + sys.get_time_step());
-  b_x.set_covariance( CovType( MatType( W * ((mat< ValueType, mat_structure::identity>(K.get_row_count()) - K * C) * P) * transpose_view(W) ) ) );
+  mat< ValueType, mat_structure::rectangular, mat_alignment::column_major > CP = C * P; 
+  mat< ValueType, mat_structure::symmetric > S(CP * transpose_view(C) + b_z.get_covariance().get_matrix()); 
+  linsolve_Cholesky(S,CP); 
+  mat< ValueType, mat_structure::rectangular, mat_alignment::row_major > K(transpose_view(CP)); 
+  
+  b_x.set_mean_state( sys.apply_correction(state_space, x_prior, from_vect<InvarCorr>(K * e), b_u.get_mean_state(), t + sys.get_time_step()) ); 
+  W = sys.get_invariant_posterior_frame(state_space, x_prior, b_x.get_mean_state(), b_u.get_mean_state(), t + sys.get_time_step()); 
+  b_x.set_covariance( CovType( MatType( W * ((mat< ValueType, mat_structure::identity>(K.get_row_count()) - K * C) * P) * transpose_view(W) ) ) ); 
 };
 
 template <typename InvariantSystem, 

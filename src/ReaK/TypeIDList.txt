@@ -290,6 +290,7 @@ satellite3D_gyro_lin_dt_system 0xC2310018 bin:1100 0010 0011 0001 0000 0000 0001
 satellite3D_gyro_inv_dt_system 0xC2310019 bin:1100 0010 0011 0001 0000 0000 0001 1001  D-R
 airship3D_imdt_em_sys       0xC231001A   bin: 1100 0010 0011 0001 0000 0000 0001 1010  D-R
 airship3D_imdt_emd_sys      0xC231001B   bin: 1100 0010 0011 0001 0000 0000 0001 1011  D-R
+airship3D_gyro_imdt_emd_sys 0xC231001C   bin: 1100 0010 0011 0001 0000 0000 0001 1100  D-R
 
 //Kalman filtering classes  0xC232****
 belief_predicted_trajectory 0xC2320000   bin: 1100 0010 0011 0010 0000 0000 0000 0000  D-R

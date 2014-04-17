@@ -514,6 +514,108 @@ struct is_invariant_system< airship3D_imdt_emd_sys > : boost::mpl::true_ { };
 
 
 
+/**
+ * This class implements an invariantized momentum-tracking discrete-time state-space system describe the 
+ * dynamics of a free-floating, near-buoyant, near-balanced 6-dof airship with drag. This is a simplified model, 
+ * with just free-floating dynamics with 6 dof actuation forces and some simple augmented states for drag and 
+ * imbalances. This system
+ * benefits from a special integration method called the "momentum-conserving trapezoidal method" (TRAPM),
+ * which is an invariant variational method that guarantees conservation of angular momentum 
+ * when no actuation is applied, i.e., it is an efficient and highly stable method.
+ * This system incorporates augmented states for the mass-imbalance and the eccentricity vector.
+ * Also, this system operates within a first-order (once-differentiable) SE(3) topology, augmented by 
+ * the parameters.
+ */
+class airship3D_gyro_imdt_emd_sys : public airship3D_imdt_emd_sys {
+  public:
+    
+    typedef airship3D_imdt_emd_sys::state_space_type state_space_type;
+    
+    typedef airship3D_imdt_emd_sys::point_type point_type;
+    typedef airship3D_imdt_emd_sys::point_difference_type point_difference_type;
+    typedef airship3D_imdt_emd_sys::point_derivative_type point_derivative_type;
+    
+    typedef double time_type;
+    typedef double time_difference_type;
+    
+    typedef vect_n<double> input_type;
+    typedef vect_n<double> output_type;
+    
+    typedef vect_n<double> invariant_error_type;
+    typedef vect_n<double> invariant_correction_type;
+    typedef mat<double,mat_structure::square> invariant_frame_type;
+    
+    BOOST_STATIC_CONSTANT(std::size_t, dimensions = 19);
+    BOOST_STATIC_CONSTANT(std::size_t, input_dimensions = 6);
+    BOOST_STATIC_CONSTANT(std::size_t, output_dimensions = 10);
+    BOOST_STATIC_CONSTANT(std::size_t, invariant_error_dimensions = 9);
+    BOOST_STATIC_CONSTANT(std::size_t, invariant_correction_dimensions = 18);
+    
+    typedef mat<double,mat_structure::square> matrixA_type;
+    typedef mat<double,mat_structure::rectangular> matrixB_type;
+    typedef mat<double,mat_structure::rectangular> matrixC_type;
+    typedef mat<double,mat_structure::rectangular> matrixD_type;
+    
+    struct zero_input_trajectory {
+      input_type get_point(time_type) const {
+        return input_type(0.0,0.0,0.0,0.0,0.0,0.0);
+      };
+    };
+    
+    typedef covariance_matrix< vect_n<double> > covar_type;
+    typedef covar_topology< covar_type > covar_space_type;
+    typedef pp::temporal_space<state_space_type, pp::time_poisson_topology, pp::time_distance_only> temporal_state_space_type;
+    typedef gaussian_belief_space<state_space_type, covar_space_type> belief_space_type;
+    typedef gaussian_belief_state< point_type,  covar_type > state_belief_type;
+    typedef gaussian_belief_state< input_type,  covar_type > input_belief_type;
+    typedef gaussian_belief_state< output_type, covar_type > output_belief_type;
+    
+    virtual output_belief_type get_zero_output_belief(double aCovValue = 1.0) const;
+    
+    
+  protected:
+    
+  public:  
+    
+    /**
+     * Constructor.
+     * \param aName The name for this object.
+     * \param aMass The mass of the airship.
+     * \param aInertiaMoment The inertia tensor of the airship.
+     * \param aDt The time-step for this discrete-time system.
+     * \param aGravityAcc The gravitational acceleration vector (usually (0,0,-9.8) for a z-up world).
+     */
+    airship3D_gyro_imdt_emd_sys(const std::string& aName = "", 
+                                double aMass = 1.0, 
+                                const mat<double,mat_structure::symmetric>& aInertiaMoment = (mat<double,mat_structure::symmetric>(mat<double,mat_structure::identity>(3))),
+                                double aDt = 0.01,
+                                const vect<double,3>& aGravityAcc = (vect<double,3>(0.0,0.0,-9.81))) : 
+                                airship3D_imdt_emd_sys(aName, aMass, aInertiaMoment, aDt, aGravityAcc) { }; 
+    
+    virtual output_type get_output(const state_space_type& space, const point_type& x, const input_type& u, const time_type& t = 0.0) const;
+    
+    virtual void get_output_function_blocks(matrixC_type& C, matrixD_type& D, const state_space_type& space, 
+                                            const time_type& t, const point_type& p, const input_type& u) const;
+    
+/*******************************************************************************
+                   ReaK's RTTI and Serialization interfaces
+*******************************************************************************/
+    
+    virtual void RK_CALL save(ReaK::serialization::oarchive& A, unsigned int) const;
+    virtual void RK_CALL load(ReaK::serialization::iarchive& A, unsigned int);
+    
+    RK_RTTI_MAKE_CONCRETE_1BASE(airship3D_gyro_imdt_emd_sys,0xC231001C,1,"airship3D_gyro_imdt_emd_sys",airship3D_imdt_emd_sys)
+    
+};
+
+template <>
+struct is_invariant_system< airship3D_gyro_imdt_emd_sys > : boost::mpl::true_ { };
+
+
+
+
+
+
 };
 
 };

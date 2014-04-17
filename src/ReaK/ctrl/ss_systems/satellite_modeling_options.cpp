@@ -87,6 +87,11 @@ shared_ptr< satellite_model_options::system_emd_type > satellite_model_options::
     "airship3D_emd_system", mass, inertia_tensor, time_step, vect<double,3>(0.0,0.0,-9.81)));
 };
 
+shared_ptr< satellite_model_options::system_gyro_emd_type > satellite_model_options::get_gyro_emd_airship_system() const {
+  return shared_ptr< system_gyro_emd_type >(new system_gyro_emd_type(
+    "airship3D_gyro_emd_system", mass, inertia_tensor, time_step, vect<double,3>(0.0,0.0,-9.81)));
+};
+
 
 
 satellite_model_options::state_belief_type satellite_model_options::get_init_state_belief(double aCovDiag) const {
