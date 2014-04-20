@@ -194,7 +194,7 @@ void >::type invariant_kalman_update(const InvariantSystem& sys,
   BOOST_CONCEPT_ASSERT((ContinuousBeliefStateConcept<BeliefState>));
   BOOST_CONCEPT_ASSERT((ContinuousBeliefStateConcept<InputBelief>));
   BOOST_CONCEPT_ASSERT((ContinuousBeliefStateConcept<MeasurementBelief>));
-
+  
   typedef typename discrete_sss_traits<InvariantSystem>::point_type StateType;
   typedef typename continuous_belief_state_traits<BeliefState>::covariance_type CovType;
   typedef typename covariance_mat_traits< CovType >::matrix_type MatType;

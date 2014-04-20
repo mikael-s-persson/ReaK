@@ -27,6 +27,7 @@
 
 #include "ctrl_sys/kalman_filter.hpp"
 #include "ctrl_sys/invariant_kalman_filter.hpp"
+#include "ctrl_sys/tsos_aug_kalman_filter.hpp"
 
 #include "ctrl_sys/gaussian_belief_state.hpp"
 #include "ctrl_sys/covariance_matrix.hpp"
@@ -446,6 +447,10 @@ void batch_KF_no_meas_predict(
     b_u.set_mean_state(meas_provider.get_current_measurement().u);
     
     ctrl::invariant_kalman_predict(sat_sys, state_space, b, b_u, meas_provider.get_current_time());
+    
+//     ctrl::tsos_aug_kalman_predict(sat_sys, state_space, b, b_u, meas_provider.get_current_time());
+//     ctrl::tsos_aug_kalman_update(sat_sys, state_space, b, b_u, b_z, meas_provider.get_current_time());
+//     ctrl::tsos_aug_kalman_filter_step(sat_sys, state_space, b, b_u, b_z, meas_provider.get_current_time());
     
     result_logger.add_record(b, b_u, b_z, meas_provider.get_current_time(), 
                              meas_provider.get_current_gnd_truth_ptr());
