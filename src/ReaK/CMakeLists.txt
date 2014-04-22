@@ -45,7 +45,7 @@ else()
 endif()
 
 
-set(Boost_ADDITIONAL_VERSIONS "1.45" "1.45.0" "1.46" "1.46.0" "1.46.1" "1.47" "1.47.0" "1.48" "1.48.0" "1.49" "1.49.0" "1.50" "1.50.0" "1.51" "1.51.0" "1.52" "1.52.0" "1.53" "1.53.0" "1.54" "1.54.0")
+set(Boost_ADDITIONAL_VERSIONS "1.45" "1.45.0" "1.46" "1.46.0" "1.46.1" "1.47" "1.47.0" "1.48" "1.48.0" "1.49" "1.49.0" "1.50" "1.50.0" "1.51" "1.51.0" "1.52" "1.52.0" "1.53" "1.53.0" "1.54" "1.54.0" "1.55" "1.55.0")
 set(Boost_USE_STATIC_LIBS OFF)
 set(Boost_USE_MULTITHREADED ON)
 
@@ -71,8 +71,10 @@ if (NOT WIN32)
 endif()
 
 find_package(Boost 1.48 COMPONENTS chrono)
+set(Boost_OPTIONAL_LIBRARIES ${Boost_LIBRARIES})
 find_package(Boost 1.46 COMPONENTS thread date_time system program_options unit_test_framework filesystem random REQUIRED)
 if(Boost_FOUND)
+  set(Boost_LIBRARIES ${Boost_LIBRARIES} ${Boost_OPTIONAL_LIBRARIES})
   include_directories(SYSTEM ${Boost_INCLUDE_DIR})
   link_directories(${Boost_LIBRARY_DIRS})
   add_definitions( "-DREAK_HAS_BOOST" )

@@ -182,10 +182,10 @@ BOOST_AUTO_TEST_CASE_TEMPLATE( intint_multimap_test, Map, intint_multimaptest_ty
 #ifndef BOOST_NO_CXX11_HDR_INITIALIZER_LIST
   Map m3{ValueType(KeyType(8), MappedType(16)), ValueType(KeyType(13), MappedType(26)), ValueType(KeyType(16), MappedType(32))};
   BOOST_CHECK_MESSAGE( ((m3.count(8) == 1) && (m3.count(13) == 1) && (m3.count(16) == 1)), "constructor std::initializer_list" ); 
-#endif
   
   swap(m2, m3); 
   BOOST_CHECK_MESSAGE( ((m3.count(7) == 1) && (m3.count(12) == 1) && (m3.count(15) == 1) && (m3.count(17) == 1) && (m3.count(22) == 1) && (m2.count(8) == 1) && (m2.count(13) == 1) && (m2.count(16) == 1)), "swap free function" );
+#endif
   
   m.swap(m2); 
   BOOST_CHECK_MESSAGE( ((m.count(8) == 1) && (m.count(13) == 1) && (m.count(16) == 1)), "swap member function" );
@@ -300,10 +300,10 @@ BOOST_AUTO_TEST_CASE_TEMPLATE( int_multiset_test, Set, int_multisettest_types )
 #ifndef BOOST_NO_CXX11_HDR_INITIALIZER_LIST
   Set s3{ValueType(8), ValueType(13), ValueType(16)};
   BOOST_CHECK_MESSAGE( ((s3.count(8) == 1) && (s3.count(13) == 1) && (s3.count(16) == 1)), "constructor std::initializer_list" ); 
-#endif
   
   swap(s2, s3); 
   BOOST_CHECK_MESSAGE( ((s3.count(7) == 1) && (s3.count(12) == 1) && (s3.count(15) == 1) && (s3.count(17) == 1) && (s3.count(22) == 1) && (s2.count(8) == 1) && (s2.count(13) == 1) && (s2.count(16) == 1)), "swap free function" );
+#endif
   
   s.swap(s2); 
   BOOST_CHECK_MESSAGE( ((s.count(8) == 1) && (s.count(13) == 1) && (s.count(16) == 1)), "swap member function" );

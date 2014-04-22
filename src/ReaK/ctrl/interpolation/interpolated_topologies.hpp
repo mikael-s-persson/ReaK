@@ -157,7 +157,7 @@ class interpolated_topology_base : public BaseTopology {
         dist_cur += min_dist_interval;
         last_result = result;
       };
-      if((fraction == 1.0)) //these equal comparison are used for when exact end fractions are used.
+      if(fraction == 1.0) //these equal comparison are used for when exact end fractions are used.
         return b;
       else if(fraction == 0.0)
         return a;
@@ -185,7 +185,7 @@ class interpolated_topology_base : public BaseTopology {
         dist_cur += min_dist_interval;
         last_result = result;
       };
-      if((fraction == 1.0)) //these equal comparison are used for when exact end fractions are used.
+      if(fraction == 1.0) //these equal comparison are used for when exact end fractions are used.
         return b;
       else if(fraction == 0.0)
         return a;

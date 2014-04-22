@@ -149,6 +149,70 @@ arithmetic_tuple< typename std::remove_reference<T>::type... > make_arithmetic_t
 
 #else
 
+#ifndef BOOST_NO_CXX11_VARIADIC_TEMPLATES
+
+
+/**
+ * This class template is a simple wrapper of a tuple with the addition of arithmetic operators. 
+ * This class is basically just a wrapper of the boost::tuples::tuple class, and it provides 
+ * a meta-programming interface that is equivalent to boost::tuples::tuple and with the addition 
+ * of the support for all the basic arithmetic operators, requiring, of course, that these 
+ * arithmetic operators are also available on all the types contained in the tuple.
+ * \tparam T The types contained in the arithmetic-tuple.
+ */
+template <typename... T>
+class arithmetic_tuple : public boost::tuples::tuple< T... > {
+  public:
+    typedef boost::tuples::tuple< T... > arithmetic_tuple_base_class;
+  public:
+    
+    constexpr arithmetic_tuple() : arithmetic_tuple_base_class() { };
+    
+    explicit arithmetic_tuple(const T&... t) : arithmetic_tuple_base_class(t...) { };
+    
+    template <typename... U>
+    explicit arithmetic_tuple(U&&... u) : arithmetic_tuple_base_class(std::forward<U>(u)...) { };
+    
+#ifndef BOOST_NO_CXX11_DEFAULTED_FUNCTIONS
+    
+    arithmetic_tuple(const arithmetic_tuple< T... >&) = default;
+    arithmetic_tuple(arithmetic_tuple< T... >&&) = default;
+    
+    arithmetic_tuple< T... >& operator=(const arithmetic_tuple< T... >&) = default;
+    arithmetic_tuple< T... >& operator=(arithmetic_tuple< T... >&&) = default;
+    
+#endif
+    
+    //TODO: missing other standard-specified constructors (with other tuple types, and std::pair).
+    
+};
+
+/* Specialization, see general template docs. */
+template <typename... T>
+struct is_arithmetic_tuple< arithmetic_tuple< T... > > : 
+  boost::mpl::true_ { };
+
+/* Specialization, see general template docs. */
+template <typename... T>
+struct arithmetic_tuple_size< arithmetic_tuple< T... > > : 
+  boost::mpl::size_t< boost::tuples::length<typename arithmetic_tuple< T... >::arithmetic_tuple_base_class>::value > { };
+  
+  
+/**
+ * This function template can be used to create an arithmetic-tuple.
+ * \tparam T The types contained in the arithmetic-tuple.
+ * \param t The values that make up the arithmetic-tuple.
+ * \return An arithmetic-tuple.
+ */
+template <typename... T>
+inline 
+arithmetic_tuple< typename std::remove_reference<T>::type... > make_arithmetic_tuple(T&&... t) {
+  return arithmetic_tuple< typename std::remove_reference<T>::type... >(std::forward<T>(t)...);
+};
+
+
+#else
+
 /**
  * This class template is a simple wrapper of a tuple with the addition of arithmetic operators.
  * This class is basically just a wrapper of the boost::tuples::tuple class, and it provides 
@@ -430,7 +494,7 @@ arithmetic_tuple< T1, T2, T3, T4, T5, T6, T7, T8, T9, T10 > make_arithmetic_tupl
 };
 
 
-
+#endif
 
 #endif
 

@@ -137,10 +137,10 @@ class transformed_trajectory : public shared_object {
       typename sequential_trajectory_traits<InputTrajectory>::point_fraction_iterator
     > point_fraction_iterator;
     
-    friend class detail::transformed_point_iterator< self, 
+    friend struct detail::transformed_point_iterator< self, 
       typename sequential_trajectory_traits<InputTrajectory>::point_time_iterator >;
       
-    friend class detail::transformed_point_iterator< self, 
+    friend struct detail::transformed_point_iterator< self, 
       typename sequential_trajectory_traits<InputTrajectory>::point_fraction_iterator >;
     
   private:

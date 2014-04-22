@@ -78,7 +78,7 @@ class xml_field_editor {
     std::string::iterator mark_field(std::string::iterator it_prev, 
                                      std::string::iterator it_end, 
                                      const std::string& fld_name, 
-                                     const std::shared_ptr< ReaK::serialization::type_scheme >& scheme);
+                                     const shared_ptr< ReaK::serialization::type_scheme >& scheme);
     std::size_t get_field_index(const std::string& aName) const;
     std::string get_object_name(object_node_desc aNode) const;
     

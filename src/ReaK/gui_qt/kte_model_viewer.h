@@ -53,7 +53,7 @@ namespace ReaK {
   
   namespace pp {
     template <typename T>
-    class joint_limits_collection;
+    struct joint_limits_collection;
   };
   
   namespace kte {
