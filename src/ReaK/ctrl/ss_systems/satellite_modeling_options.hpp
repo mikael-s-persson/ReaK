@@ -80,6 +80,8 @@ struct satellite_model_options {
   typedef airship3D_imdt_em_sys system_em_type;
   typedef airship3D_imdt_emd_sys system_emd_type;
   typedef airship3D_gyro_imdt_emd_sys system_gyro_emd_type;
+  typedef airship3D_imdt_emdJ_sys system_emdJ_type;
+  typedef airship3D_gyro_imdt_emdJ_sys system_gyro_emdJ_type;
   
   typedef discrete_sss_traits< system_base_type >::point_type state_type;
   typedef discrete_sss_traits< system_base_type >::input_type input_type;
@@ -87,6 +89,7 @@ struct satellite_model_options {
   
   typedef discrete_sss_traits< system_em_type >::point_type state_em_type;
   typedef discrete_sss_traits< system_emd_type >::point_type state_emd_type;
+  typedef discrete_sss_traits< system_emdJ_type >::point_type state_emdJ_type;
   
   typedef covariance_matrix< vect_n<double> > covar_type;
   typedef covar_topology< covar_type > covar_space_type;
@@ -97,6 +100,7 @@ struct satellite_model_options {
   
   typedef gaussian_belief_state< state_em_type, covar_type > state_em_belief_type;
   typedef gaussian_belief_state< state_emd_type, covar_type > state_emd_belief_type;
+  typedef gaussian_belief_state< state_emdJ_type, covar_type > state_emdJ_belief_type;
   
   
   typedef system_base_type::state_space_type state_space_type;
@@ -110,6 +114,10 @@ struct satellite_model_options {
   typedef system_emd_type::state_space_type state_space_emd_type;
   typedef pp::temporal_space<state_space_emd_type, pp::time_poisson_topology, pp::time_distance_only> temp_state_space_emd_type;
   typedef gaussian_belief_space<state_space_emd_type, covar_space_type> belief_space_emd_type;
+  
+  typedef system_emdJ_type::state_space_type state_space_emdJ_type;
+  typedef pp::temporal_space<state_space_emdJ_type, pp::time_poisson_topology, pp::time_distance_only> temp_state_space_emdJ_type;
+  typedef gaussian_belief_space<state_space_emdJ_type, covar_space_type> belief_space_emdJ_type;
   
   
   /// Stores the time-step of the system (if discrete-time).
@@ -129,6 +137,9 @@ struct satellite_model_options {
   
   /// Stores the artificial measurement-noise covariance matrix (R). This is sometimes used to add noise to measurements (for testing the filtering methods).
   mat<double,mat_structure::diagonal> artificial_noise;
+  
+  /// Stores the steady-state parameter identification covariance matrix (Pa). This is to be used in combination with the TSOSAKF methods.
+  mat<double,mat_structure::diagonal> steady_param_covariance;
   
   /// Stores the orientation of the IMU with respect to the body-fixed frame of the satellite.
   unit_quat<double> IMU_orientation;
@@ -153,7 +164,13 @@ struct satellite_model_options {
     invar_mom,
     invar_mom2,
     invar_mom_em,
-    invar_mom_emd
+    invar_mom_emd,
+    invar_mom_emdJ
+  };
+  
+  enum filtering_options {
+    plain_KF = 0,
+    TSOSAKF = 1024
   };
   
   /// Stores the kind of system used to model the satellite (OR-combination of 'available_measurements' 'model_kind').
@@ -181,8 +198,39 @@ struct satellite_model_options {
     };
   };
   
+  std::size_t get_total_inv_state_count() const {
+    std::size_t result = 0;
+    switch(system_kind & 15) {
+      case invar_mom_em:
+        result = 16;
+        break;
+      case invar_mom_emd:
+        result = 18;
+        break;
+      case invar_mom_emdJ:
+        result = 24;
+        break;
+      case invariant:
+      case invar_mom2:
+      case invar_mom:
+      default:
+        result = 12;
+        break;
+    };
+    return result;
+  };
+  
+  std::size_t get_actual_inv_state_count() const {
+    return 12;
+  };
+  
   std::string get_kf_accronym() const {
     std::string result;
+    
+    std::string kf_method = "imkf";
+    if(system_kind & TSOSAKF)
+      kf_method = "tsosakf";
+    
     switch(system_kind & 15) {
       case invariant:
         result = "iekf";
@@ -191,10 +239,13 @@ struct satellite_model_options {
         result = "imkfv2";
         break;
       case invar_mom_em:
-        result = "imkf_em";
+        result = kf_method + "_em";
         break;
       case invar_mom_emd:
-        result = "imkf_emd";
+        result = kf_method + "_emd";
+        break;
+      case invar_mom_emdJ:
+        result = kf_method + "_emdJ";
         break;
       case invar_mom:
       default:
@@ -228,6 +279,9 @@ struct satellite_model_options {
         break;
       case invar_mom_emd:
         result = "invmid_emd";
+        break;
+      case invar_mom_emdJ:
+        result = "invmid_emdJ";
         break;
       case invar_mom:
       default:
@@ -292,6 +346,18 @@ public:
   shared_ptr< system_gyro_emd_type > get_gyro_emd_airship_system() const;
   
   /**
+   * Constructs a eccentricity-imbalance-drag-inertia airship system.
+   * \return A newly created eccentricity-imbalance-drag-inertia airship system (as shared-pointer).
+   */
+  shared_ptr< system_emdJ_type > get_emdJ_airship_system() const;
+  
+  /**
+   * Constructs a eccentricity-imbalance-drag-inertia airship system with gyro measurements.
+   * \return A newly created eccentricity-imbalance-drag-inertia airship system with gyro measurements (as shared-pointer).
+   */
+  shared_ptr< system_gyro_emdJ_type > get_gyro_emdJ_airship_system() const;
+  
+  /**
    * Create a belief point for the state, with mean set to initial-motion.
    * \param aCovDiag The initial diagonal values for the covariant matrix (should be high).
    * \return A belief point for the state, with mean set to initial-motion and high covariance.
@@ -313,6 +379,14 @@ public:
    * \return A belief point for the state, with mean set to initial-motion and high covariance.
    */
   state_emd_belief_type get_init_state_emd_belief(double aCovDiag = 10.0) const;
+  
+  /**
+   * Create a belief point for the state (augmented with imbalance, eccentricity, drag and inertia parameters), 
+   * with mean set to initial-motion.
+   * \param aCovDiag The initial diagonal values for the covariant matrix (should be high).
+   * \return A belief point for the state, with mean set to initial-motion and high covariance.
+   */
+  state_emdJ_belief_type get_init_state_emdJ_belief(double aCovDiag = 10.0) const;
   
   /**
    * Create a belief point for the input, assuming zero-mean.
@@ -422,6 +496,18 @@ public:
    * \param aFileName The file-name of the ReaK archive to which to save the matrix.
    */
   void save_artificial_noise(const std::string& aFileName) const;
+  
+  /**
+   * Loads the steady-state parameter covariance matrix from the given file-name (ReaK archive).
+   * \param aFileName The file-name of the ReaK archive from which to load the matrix.
+   */
+  void load_steady_param_covariance(const std::string& aFileName);
+  
+  /**
+   * Saves the steady-state parameter covariance matrix to the given file-name (ReaK archive).
+   * \param aFileName The file-name of the ReaK archive to which to save the matrix.
+   */
+  void save_steady_param_covariance(const std::string& aFileName) const;
   
   /**
    * Loads the initial motion of the satellite from the given file-name (ReaK archive).

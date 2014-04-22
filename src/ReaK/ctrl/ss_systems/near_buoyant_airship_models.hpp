@@ -41,6 +41,7 @@
 #include "base/named_object.hpp"
 
 #include "ctrl_sys/invariant_system_concept.hpp"
+#include "ctrl_sys/augmented_sss_concept.hpp"
 
 #include "lin_alg/mat_alg.hpp"
 #include "topologies/se3_topologies.hpp"
@@ -281,6 +282,8 @@ class airship3D_imdt_em_sys : public named_object {
 template <>
 struct is_invariant_system< airship3D_imdt_em_sys > : boost::mpl::true_ { };
 
+template <>
+struct is_augmented_ss_system< airship3D_imdt_em_sys > : boost::mpl::true_ { };
 
 
 
@@ -512,6 +515,9 @@ class airship3D_imdt_emd_sys : public named_object {
 template <>
 struct is_invariant_system< airship3D_imdt_emd_sys > : boost::mpl::true_ { };
 
+template <>
+struct is_augmented_ss_system< airship3D_imdt_emd_sys > : boost::mpl::true_ { };
+
 
 
 
@@ -613,6 +619,9 @@ class airship3D_gyro_imdt_emd_sys : public airship3D_imdt_emd_sys {
 
 template <>
 struct is_invariant_system< airship3D_gyro_imdt_emd_sys > : boost::mpl::true_ { };
+
+template <>
+struct is_augmented_ss_system< airship3D_gyro_imdt_emd_sys > : boost::mpl::true_ { };
 
 
 
@@ -846,6 +855,9 @@ class airship3D_imdt_emdJ_sys : public named_object {
 template <>
 struct is_invariant_system< airship3D_imdt_emdJ_sys > : boost::mpl::true_ { };
 
+template <>
+struct is_augmented_ss_system< airship3D_imdt_emdJ_sys > : boost::mpl::true_ { };
+
 
 
 
@@ -947,6 +959,9 @@ class airship3D_gyro_imdt_emdJ_sys : public airship3D_imdt_emdJ_sys {
 
 template <>
 struct is_invariant_system< airship3D_gyro_imdt_emdJ_sys > : boost::mpl::true_ { };
+
+template <>
+struct is_augmented_ss_system< airship3D_gyro_imdt_emdJ_sys > : boost::mpl::true_ { };
 
 
 

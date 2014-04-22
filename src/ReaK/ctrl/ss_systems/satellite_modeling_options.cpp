@@ -92,6 +92,16 @@ shared_ptr< satellite_model_options::system_gyro_emd_type > satellite_model_opti
     "airship3D_gyro_emd_system", mass, inertia_tensor, time_step, vect<double,3>(0.0,0.0,-9.81)));
 };
 
+shared_ptr< satellite_model_options::system_emdJ_type > satellite_model_options::get_emdJ_airship_system() const {
+  return shared_ptr< system_emdJ_type >(new system_emdJ_type(
+    "airship3D_emdJ_system", mass, inertia_tensor, time_step, vect<double,3>(0.0,0.0,-9.81)));
+};
+
+shared_ptr< satellite_model_options::system_gyro_emdJ_type > satellite_model_options::get_gyro_emdJ_airship_system() const {
+  return shared_ptr< system_gyro_emdJ_type >(new system_gyro_emdJ_type(
+    "airship3D_gyro_emdJ_system", mass, inertia_tensor, time_step, vect<double,3>(0.0,0.0,-9.81)));
+};
+
 
 
 satellite_model_options::state_belief_type satellite_model_options::get_init_state_belief(double aCovDiag) const {
@@ -106,7 +116,17 @@ satellite_model_options::state_em_belief_type satellite_model_options::get_init_
   set_frame_3D(get<0>(x_init), initial_motion);
   get<1>(x_init) = 0.0;
   get<2>(x_init) = vect<double,3>(0.0, 0.0, 0.0);
-  return state_em_belief_type(x_init, covar_type(covar_type::matrix_type(mat<double,mat_structure::diagonal>(16, aCovDiag))));
+  mat<double,mat_structure::diagonal> P_x(16);
+  for(std::size_t i = 0; i < 12; ++i)
+    P_x(i,i) = aCovDiag;
+  if(system_kind & TSOSAKF) {
+    for(std::size_t i = 12; i < P_x.get_row_count(); ++i)
+      P_x(i,i) = steady_param_covariance(i-12,i-12);
+  } else {
+    for(std::size_t i = 12; i < P_x.get_row_count(); ++i)
+      P_x(i,i) = aCovDiag;
+  };
+  return state_em_belief_type(x_init, covar_type(covar_type::matrix_type(P_x)));
 };
 
 satellite_model_options::state_emd_belief_type satellite_model_options::get_init_state_emd_belief(double aCovDiag) const {
@@ -116,8 +136,41 @@ satellite_model_options::state_emd_belief_type satellite_model_options::get_init
   get<2>(x_init) = vect<double,3>(0.0, 0.0, 0.0);
   get<3>(x_init) = 0.0;
   get<4>(x_init) = 0.0;
-  return state_emd_belief_type(x_init, covar_type(covar_type::matrix_type(mat<double,mat_structure::diagonal>(18, aCovDiag))));
+  mat<double,mat_structure::diagonal> P_x(18);
+  for(std::size_t i = 0; i < 12; ++i)
+    P_x(i,i) = aCovDiag;
+  if(system_kind & TSOSAKF) {
+    for(std::size_t i = 12; i < P_x.get_row_count(); ++i)
+      P_x(i,i) = steady_param_covariance(i-12,i-12);
+  } else {
+    for(std::size_t i = 12; i < P_x.get_row_count(); ++i)
+      P_x(i,i) = aCovDiag;
+  };
+  return state_emd_belief_type(x_init, covar_type(covar_type::matrix_type(P_x)));
 };
+
+satellite_model_options::state_emdJ_belief_type satellite_model_options::get_init_state_emdJ_belief(double aCovDiag) const {
+  state_emdJ_type x_init;
+  set_frame_3D(get<0>(x_init), initial_motion);
+  get<1>(x_init) = 0.0;
+  get<2>(x_init) = vect<double,3>(0.0, 0.0, 0.0);
+  get<3>(x_init) = 0.0;
+  get<4>(x_init) = 0.0;
+  get<5>(x_init) = vect<double,3>(0.0, 0.0, 0.0);
+  get<6>(x_init) = vect<double,3>(0.0, 0.0, 0.0);
+  mat<double,mat_structure::diagonal> P_x(24);
+  for(std::size_t i = 0; i < 12; ++i)
+    P_x(i,i) = aCovDiag;
+  if(system_kind & TSOSAKF) {
+    for(std::size_t i = 12; i < P_x.get_row_count(); ++i)
+      P_x(i,i) = steady_param_covariance(i-12,i-12);
+  } else {
+    for(std::size_t i = 12; i < P_x.get_row_count(); ++i)
+      P_x(i,i) = aCovDiag;
+  };
+  return state_emdJ_belief_type(x_init, covar_type(covar_type::matrix_type(P_x)));
+};
+
   
 
 
@@ -207,6 +260,13 @@ void satellite_model_options::imbue_names_for_state_estimates(recorder::data_str
         .add_name("mass").add_name("ecc_x").add_name("ecc_y").add_name("ecc_z")
         .add_name("tdrag").add_name("rdrag");
       break;
+    case invar_mom_emdJ:
+      data_opt
+        .add_name("mass").add_name("ecc_x").add_name("ecc_y").add_name("ecc_z")
+        .add_name("tdrag").add_name("rdrag")
+        .add_name("eta_x").add_name("eta_y").add_name("eta_z")
+        .add_name("sig_x").add_name("sig_y").add_name("sig_z");
+      break;
     default:
       break;
   };
@@ -229,6 +289,13 @@ void satellite_model_options::imbue_names_for_state_estimates(recorder::data_str
       data_opt
         .add_name("P_mm").add_name("P_eex").add_name("P_eey").add_name("P_eez")
         .add_name("P_tdtd").add_name("P_rdrd");
+      break;
+    case invar_mom_emdJ:
+      data_opt
+        .add_name("P_mm").add_name("P_eex").add_name("P_eey").add_name("P_eez")
+        .add_name("P_tdtd").add_name("P_rdrd")
+        .add_name("P_etax").add_name("P_etay").add_name("P_etaz")
+        .add_name("P_sigx").add_name("P_sigy").add_name("P_sigz");
       break;
     default:
       break;
@@ -264,6 +331,7 @@ void satellite_model_options::load_all_configs_impl(serialization::iarchive& in)
     & RK_SERIAL_LOAD_WITH_NAME(input_disturbance)
     & RK_SERIAL_LOAD_WITH_NAME(measurement_noise)
     & RK_SERIAL_LOAD_WITH_NAME(artificial_noise)
+    & RK_SERIAL_LOAD_WITH_NAME(steady_param_covariance)
     & RK_SERIAL_LOAD_WITH_NAME(initial_motion)
     & RK_SERIAL_LOAD_WITH_NAME(system_kind);
 };
@@ -279,6 +347,7 @@ void satellite_model_options::save_all_configs_impl(serialization::oarchive& out
     & RK_SERIAL_SAVE_WITH_NAME(input_disturbance)
     & RK_SERIAL_SAVE_WITH_NAME(measurement_noise)
     & RK_SERIAL_SAVE_WITH_NAME(artificial_noise)
+    & RK_SERIAL_SAVE_WITH_NAME(steady_param_covariance)
     & RK_SERIAL_SAVE_WITH_NAME(initial_motion)
     & RK_SERIAL_SAVE_WITH_NAME(system_kind);
 };
@@ -352,6 +421,16 @@ void satellite_model_options::load_artificial_noise(const std::string& aFileName
 void satellite_model_options::save_artificial_noise(const std::string& aFileName) const {
   *(serialization::open_oarchive(aFileName))
     & RK_SERIAL_SAVE_WITH_NAME(artificial_noise);
+};
+
+void satellite_model_options::load_steady_param_covariance(const std::string& aFileName) {
+  *(serialization::open_iarchive(aFileName))
+    & RK_SERIAL_LOAD_WITH_NAME(steady_param_covariance);
+};
+
+void satellite_model_options::save_steady_param_covariance(const std::string& aFileName) const {
+  *(serialization::open_oarchive(aFileName))
+    & RK_SERIAL_SAVE_WITH_NAME(steady_param_covariance);
 };
 
 void satellite_model_options::load_initial_motion(const std::string& aFileName) {

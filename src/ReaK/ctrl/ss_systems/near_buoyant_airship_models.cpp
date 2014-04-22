@@ -575,6 +575,11 @@ void airship3D_imdt_em_sys::get_state_transition_blocks(
   ), 9, 13);
   
   
+  std::cout << " ------------------- System Matrices -------------------- " << std::endl;
+  std::cout << " A_1_ss = " << std::endl << A_1_ss << std::endl;
+  std::cout << " A_1_sa = " << std::endl << A_1_sa << std::endl;
+  std::cout << " A_0_s  = " << std::endl << A_0_s  << std::endl;
+  
   sub(A_0_s)(range(0,11), range(12,15)) -= A_1_sa;
   try {
     linlsq_QR(A_1_ss, A_0_s, A_0_s, 1E-6);
@@ -585,6 +590,7 @@ void airship3D_imdt_em_sys::get_state_transition_blocks(
   A = mat_ident<double>(16);
   set_block(A, A_0_s, 0, 0);
   
+  std::cout << " A     = " << std::endl << A  << std::endl;
   
   
   B = mat<double,mat_structure::nil>(16,6);
@@ -1252,6 +1258,11 @@ void airship3D_imdt_emd_sys::get_state_transition_blocks(
   A_0_s(11,17) = -mDt * w_0_mag * R_w_0[2];
 #endif
   
+  std::cout << " ------------------- System Matrices -------------------- " << std::endl;
+  std::cout << " A_1_ss = " << std::endl << A_1_ss << std::endl;
+  std::cout << " A_1_sa = " << std::endl << A_1_sa << std::endl;
+  std::cout << " A_0_s  = " << std::endl << A_0_s  << std::endl;
+  
   sub(A_0_s)(range(0,11), range(12,17)) -= A_1_sa;
   try {
     linlsq_QR(A_1_ss, A_0_s, A_0_s, 1E-6);
@@ -1262,6 +1273,7 @@ void airship3D_imdt_emd_sys::get_state_transition_blocks(
   A = mat_ident<double>(18);
   set_block(A, A_0_s, 0, 0);
   
+  std::cout << " A      = " << std::endl << A  << std::endl;
   
   
   B = mat<double,mat_structure::nil>(18,6);
@@ -1543,11 +1555,12 @@ airship3D_imdt_emdJ_sys::point_type airship3D_imdt_emdJ_sys::get_next_state(
   const vect<double,3>& sigma = get<6>(x);
   
   mat<double,mat_structure::skew_symmetric> r_cross(r);
-  mat<double,mat_structure::skew_symmetric> sigma_cross(sigma);
+  
 #ifdef USE_HOT_INERTIA_TERM
-  mat<double,mat_structure::symmetric> J_bar(mInertiaMoment + mat<double,mat_structure::diagonal>(eta) - sigma_cross * sigma_cross - mass_real * r_cross * r_cross);
+  mat<double,mat_structure::symmetric> J_bar(mInertiaMoment + mat<double,mat_structure::symmetric>(eta[0], sigma[0], sigma[1], eta[1], sigma[2], eta[2])
+                                             - mass_real * r_cross * r_cross);
 #else
-  mat<double,mat_structure::symmetric> J_bar(mInertiaMoment + mat<double,mat_structure::diagonal>(eta) - sigma_cross * sigma_cross);
+  mat<double,mat_structure::symmetric> J_bar(mInertiaMoment + mat<double,mat_structure::symmetric>(eta[0], sigma[0], sigma[1], eta[1], sigma[2], eta[2]));
 #endif
   mat<double,mat_structure::symmetric> J_bar_inv;
   try {
@@ -1707,12 +1720,12 @@ void airship3D_imdt_emdJ_sys::get_state_transition_blocks(
   const vect<double,3>& sigma = get<6>(p_0);
   
   mat<double,mat_structure::skew_symmetric> r_cross(r);
-  mat<double,mat_structure::skew_symmetric> sigma_cross(sigma);
   
 #ifdef USE_HOT_INERTIA_TERM
-  mat<double,mat_structure::symmetric> J_bar(mInertiaMoment + mat<double,mat_structure::diagonal>(eta) - sigma_cross * sigma_cross - mass_real * r_cross * r_cross);
+  mat<double,mat_structure::symmetric> J_bar(mInertiaMoment + mat<double,mat_structure::symmetric>(eta[0], sigma[0], sigma[1], eta[1], sigma[2], eta[2])
+                                             - mass_real * r_cross * r_cross);
 #else
-  mat<double,mat_structure::symmetric> J_bar(mInertiaMoment + mat<double,mat_structure::diagonal>(eta) - sigma_cross * sigma_cross);
+  mat<double,mat_structure::symmetric> J_bar(mInertiaMoment + mat<double,mat_structure::symmetric>(eta[0], sigma[0], sigma[1], eta[1], sigma[2], eta[2]));
 #endif
   
   vect<double,3> tau(u_0[3], u_0[4], u_0[5]);
@@ -1858,10 +1871,13 @@ void airship3D_imdt_emdJ_sys::get_state_transition_blocks(
 #endif
   
   // w-eta block:
-  set_block(A_1_sa, mass_real * R_1 * (mat<double,mat_structure::diagonal>(w_1)), 9, 6);
+//   set_block(A_1_sa, mass_real * R_1 * (mat<double,mat_structure::diagonal>(w_1)), 9, 6);
   
   // w-sigma block:
-  set_block(A_1_sa, -mass_real * R_1 * (sigma_cross * w_cross_1 + mat<double,mat_structure::skew_symmetric>(sigma % w_1)), 9, 9);
+  mat<double,mat_structure::square> del_sig_1(w_1[1], w_1[2], 0.0, 
+                                              w_1[0], 0.0, w_1[2], 
+                                              0.0, w_1[0], w_1[1]);
+  set_block(A_1_sa, mass_real * R_1 * del_sig_1, 9, 9);
   
   
   
@@ -2017,10 +2033,13 @@ void airship3D_imdt_emdJ_sys::get_state_transition_blocks(
 #endif
   
   // w-eta block:
-  set_block(A_0_s, mass_real * R_0 * (mat<double,mat_structure::diagonal>(w_0)), 9, 18);
+//   set_block(A_0_s, mass_real * R_0 * (mat<double,mat_structure::diagonal>(w_0)), 9, 18);
   
   // w-sigma block:
-  set_block(A_0_s, -mass_real * R_0 * (sigma_cross * w_cross_0 + mat<double,mat_structure::skew_symmetric>(sigma % w_0)), 9, 21);
+  mat<double,mat_structure::square> del_sig_0(w_0[1], w_0[2], 0.0, 
+                                              w_0[0], 0.0, w_0[2], 
+                                              0.0, w_0[0], w_0[1]);
+  set_block(A_0_s, mass_real * R_0 * del_sig_0, 9, 21);
   
   
   
@@ -2086,8 +2105,8 @@ airship3D_imdt_emdJ_sys::point_type airship3D_imdt_emdJ_sys::apply_correction(
   const double max_rot_drag = 2.0;
   const double max_ecc_rad  = 0.2;
   const double max_dm = 0.2;
-  const double max_eta_rad  = 5.0;
-  const double max_sigma_rad  = 5.0;
+  const double max_eta_rad  = 0.25 * mMass;
+  const double max_sigma_rad  = 0.25 * mMass;
   
   double new_dm = get<1>(x) + c[12];
   if(new_dm > max_dm)

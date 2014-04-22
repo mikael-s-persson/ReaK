@@ -77,6 +77,9 @@ boost::program_options::options_description get_satellite_model_options_po_desc(
     ("imkfv2",    "if set, results for the invariant midpoint Kalman filter (IMKFv2) will be generated.")
     ("imkf-em",   "if set, results for the invariant momentum-tracking Kalman filter (IMKF) with adaptive mass-eccentricity parameters will be generated.")
     ("imkf-emd",  "if set, results for the invariant momentum-tracking Kalman filter (IMKF) with adaptive mass-eccentricity-drag parameters will be generated.")
+    ("imkf-emdJ", "if set, results for the invariant momentum-tracking Kalman filter (IMKF) with adaptive mass-eccentricity-drag-inertia parameters will be generated.")
+    ("tsosakf",   "if set, the two-stage online-steady augmented Kalman filter (TSOSAKF) will be used for the augmented systems (parameter identification).")
+    ("Pa-matrix", value< std::string >()->default_value("models/satellite3D_Pa.rkx"), "specify the filename for the satellite's steady augmented parameter covariance matrix (default is 'models/satellite3D_Pa.rkx')")
   ;
   result.add(model_options);
   
@@ -128,13 +131,44 @@ void fill_satellite_model_options_from_po(satellite_model_options& result, boost
     result.system_kind |= satellite_model_options::invar_mom_em;
   else if(vm.count("imkf-emd"))
     result.system_kind |= satellite_model_options::invar_mom_emd;
+  else if(vm.count("imkf-emdJ"))
+    result.system_kind |= satellite_model_options::invar_mom_emdJ;
   else 
     result.system_kind |= satellite_model_options::invar_mom;
   
+  if(vm.count("tsosakf")) {
+    result.load_steady_param_covariance(vm["Pa-matrix"].as<std::string>());
+    result.system_kind |= satellite_model_options::TSOSAKF;
+  };
 };
 
 
 void save_satellite_model_options_to_files(satellite_model_options& result, boost::program_options::variables_map& vm) {
+  
+  result.time_step = vm["time-step"].as<double>();
+  
+  result.system_kind = 0;
+  if(vm.count("gyro"))
+    result.system_kind |= satellite_model_options::gyro_measures;
+  if(vm.count("IMU"))
+    result.system_kind |= satellite_model_options::IMU_measures;
+  
+  if(vm.count("iekf"))
+    result.system_kind |= satellite_model_options::invariant;
+  else if(vm.count("imkfv2"))
+    result.system_kind |= satellite_model_options::invar_mom2;
+  else if(vm.count("imkf-em"))
+    result.system_kind |= satellite_model_options::invar_mom_em;
+  else if(vm.count("imkf-emd"))
+    result.system_kind |= satellite_model_options::invar_mom_emd;
+  else if(vm.count("imkf-emdJ"))
+    result.system_kind |= satellite_model_options::invar_mom_emdJ;
+  else 
+    result.system_kind |= satellite_model_options::invar_mom;
+  
+  if(vm.count("tsosakf")) {
+    result.system_kind |= satellite_model_options::TSOSAKF;
+  };
   
   if(result.input_disturbance.get_row_count() != 6)
     result.input_disturbance = mat<double,mat_structure::diagonal>(6, true);
@@ -142,6 +176,8 @@ void save_satellite_model_options_to_files(satellite_model_options& result, boos
     result.measurement_noise = mat<double,mat_structure::diagonal>(result.get_meas_error_count(), true);
   if(result.artificial_noise.get_row_count() != result.get_meas_error_count())
     result.artificial_noise = mat<double,mat_structure::diagonal>(result.get_meas_error_count(), true);
+  if(result.steady_param_covariance.get_row_count() != result.get_total_inv_state_count() - result.get_actual_inv_state_count())
+    result.steady_param_covariance = mat<double,mat_structure::diagonal>(result.get_total_inv_state_count() - result.get_actual_inv_state_count(), true);
   
   if(vm.count("sat-config-file")) {
     boost::filesystem::create_directories(boost::filesystem::path(vm["sat-config-file"].as<std::string>()).parent_path());
@@ -162,6 +198,11 @@ void save_satellite_model_options_to_files(satellite_model_options& result, boos
     if(vm.count("R-added")) {
       boost::filesystem::create_directories(boost::filesystem::path(vm["R-added"].as<std::string>()).parent_path());
       result.save_artificial_noise(vm["R-added"].as<std::string>());
+    };
+    
+    if(vm.count("tsosakf")) {
+      boost::filesystem::create_directories(boost::filesystem::path(vm["Pa-matrix"].as<std::string>()).parent_path());
+      result.save_steady_param_covariance(vm["Pa-matrix"].as<std::string>());
     };
     
     boost::filesystem::create_directories(boost::filesystem::path(vm["init-motion"].as<std::string>()).parent_path());

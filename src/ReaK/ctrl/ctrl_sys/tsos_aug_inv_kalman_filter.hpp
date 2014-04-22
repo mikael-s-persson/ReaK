@@ -95,6 +95,7 @@ template <typename InvariantSystem,
 typename boost::enable_if< 
   boost::mpl::and_< 
     is_invariant_system<InvariantSystem>,
+    is_augmented_ss_system<InvariantSystem>,
     is_continuous_belief_state<BeliefState>,
     boost::mpl::bool_< (belief_state_traits<BeliefState>::representation == belief_representation::gaussian) >,
     boost::mpl::bool_< (belief_state_traits<BeliefState>::distribution == belief_distribution::unimodal) >
@@ -118,6 +119,8 @@ void >::type tsos_aug_inv_kalman_predict(const InvariantSystem& sys,
   typedef typename mat_traits<MatType>::value_type ValueType;
   typedef typename invariant_system_traits<InvariantSystem>::invariant_frame_type InvarFrame;
   
+  typedef mat<ValueType,mat_structure::square> MatPType;
+  
   typedef typename discrete_linear_sss_traits<InvariantSystem>::matrixA_type MatAType;
   typedef typename discrete_linear_sss_traits<InvariantSystem>::matrixB_type MatBType;
   MatAType A;
@@ -129,7 +132,7 @@ void >::type tsos_aug_inv_kalman_predict(const InvariantSystem& sys,
   sys.get_state_transition_blocks(A, B, state_space, t, t + sys.get_time_step(), x, x_prior, b_u.get_mean_state(), b_u.get_mean_state());
   InvarFrame W = sys.get_invariant_prior_frame(state_space, x, x_prior, b_u.get_mean_state(), t + sys.get_time_step());
   
-  MatType P_last = b_x.get_covariance().get_matrix();
+  MatPType P_last(b_x.get_covariance().get_matrix());
   const std::size_t n = augmented_sss_traits<InvariantSystem>::actual_state_dimensions;
   const std::size_t n_u = b_u.get_covariance().get_matrix().get_col_count();
   const std::size_t m = P_last.get_col_count() - n;
@@ -137,9 +140,9 @@ void >::type tsos_aug_inv_kalman_predict(const InvariantSystem& sys,
   mat_sub_block<InvarFrame> W_x  = sub(W)(range(0, n-1), range(0, n-1));
   mat_sub_block<MatAType>   A_x  = sub(A)(range(0, n-1), range(0, n-1));
   mat_sub_block<MatAType>   A_xa = sub(A)(range(0, n-1), range(n, n+m-1));
-  mat_sub_block<MatType>    P_x  = sub(P_last)(range(0, n-1), range(0, n-1));
-  mat_sub_block<MatType>    P_a  = sub(P_last)(range(n, n+m-1), range(n, n+m-1));
-  mat_sub_block<MatType>    P_ax = sub(P_last)(range(n, n+m-1), range(0, n-1));
+  mat_sub_block<MatPType>   P_x  = sub(P_last)(range(0, n-1), range(0, n-1));
+  mat_sub_block<MatPType>   P_a  = sub(P_last)(range(n, n+m-1), range(n, n+m-1));
+  mat_sub_block<MatPType>   P_ax = sub(P_last)(range(n, n+m-1), range(0, n-1));
   mat_sub_block<MatBType>   B_x  = sub(B)(range(0, n-1), range(0, n_u-1));
   
   mat<ValueType, mat_structure::rectangular> P_xa_p( 
@@ -154,7 +157,7 @@ void >::type tsos_aug_inv_kalman_predict(const InvariantSystem& sys,
   set_block(P_last, transpose_view(P_xa_p), n, 0);
   
   b_x.set_mean_state( x_prior );
-  b_x.set_covariance( CovType( P_last );
+  b_x.set_covariance( CovType( MatType( P_last ) ) );
 };
 
 
@@ -162,7 +165,8 @@ template <typename InvariantSystem,
           typename StateSpaceType,
           typename BeliefState, 
           typename InputBelief>
-typename boost::disable_if< is_invariant_system<InvariantSystem>,
+typename boost::enable_if< 
+  boost::mpl::not_< is_invariant_system<InvariantSystem> >,
 void >::type tsos_aug_inv_kalman_predict(const InvariantSystem& sys, 
                                          const StateSpaceType& state_space,
                                          BeliefState& b_x,
@@ -170,6 +174,24 @@ void >::type tsos_aug_inv_kalman_predict(const InvariantSystem& sys,
                                          typename discrete_sss_traits<InvariantSystem>::time_type t = 0) { 
   tsos_aug_kalman_predict(sys, state_space, b_x, b_u, t);
 };
+
+template <typename InvariantSystem, 
+          typename StateSpaceType,
+          typename BeliefState, 
+          typename InputBelief>
+typename boost::enable_if< 
+  boost::mpl::and_< 
+    is_invariant_system<InvariantSystem>,
+    boost::mpl::not_< is_augmented_ss_system<InvariantSystem> >
+  >,
+void >::type tsos_aug_inv_kalman_predict(const InvariantSystem& sys, 
+                                         const StateSpaceType& state_space,
+                                         BeliefState& b_x,
+                                         const InputBelief& b_u,
+                                         typename discrete_sss_traits<InvariantSystem>::time_type t = 0) { 
+  invariant_kalman_predict(sys, state_space, b_x, b_u, t);
+};
+
 
 
 /**
@@ -202,6 +224,7 @@ template <typename InvariantSystem,
 typename boost::enable_if< 
   boost::mpl::and_< 
     is_invariant_system<InvariantSystem>,
+    is_augmented_ss_system<InvariantSystem>,
     is_continuous_belief_state<BeliefState>,
     boost::mpl::bool_< (belief_state_traits<BeliefState>::representation == belief_representation::gaussian) >,
     boost::mpl::bool_< (belief_state_traits<BeliefState>::distribution == belief_distribution::unimodal) >
@@ -230,20 +253,22 @@ void >::type tsos_aug_inv_kalman_update(const InvariantSystem& sys,
   typedef typename discrete_linear_sss_traits<InvariantSystem>::matrixC_type MatCType;
   typedef typename discrete_linear_sss_traits<InvariantSystem>::matrixD_type MatDType;
   
+  typedef mat<ValueType,mat_structure::square> MatPType;
+  
   
   StateType x = b_x.get_mean_state();
   MatCType C;
   MatDType D;
   sys.get_output_function_blocks(C, D, state_space, t, x, b_u.get_mean_state());
   
-  MatType P = b_x.get_covariance().get_matrix();
+  MatPType P(b_x.get_covariance().get_matrix());
   const std::size_t n   = augmented_sss_traits<InvariantSystem>::actual_state_dimensions;
   const std::size_t n_z = b_z.get_covariance().get_matrix().get_col_count();
   const std::size_t m   = P.get_col_count() - n;
   
   mat_sub_block<MatCType> C_x  = sub(C)(range(0,n_z-1),range(0,n-1));
-  mat_sub_block<MatType>  P_x  = sub(P)(range(0, n-1), range(0, n-1));
-  mat_sub_block<MatType>  P_xa = sub(P)(range(0, n-1), range(n, n+m-1));
+  mat_sub_block<MatPType> P_x  = sub(P)(range(0, n-1), range(0, n-1));
+  mat_sub_block<MatPType> P_xa = sub(P)(range(0, n-1), range(n, n+m-1));
   
   mat< ValueType, mat_structure::rectangular > CP_xa = C_x * P_xa;
   mat< ValueType, mat_structure::rectangular > CP_x  = C_x * P_x;
@@ -259,12 +284,11 @@ void >::type tsos_aug_inv_kalman_update(const InvariantSystem& sys,
   
   InvarFrame W = sys.get_invariant_posterior_frame(state_space, x, b_x.get_mean_state(), b_u.get_mean_state(), t + sys.get_time_step());
   mat_sub_block<InvarFrame> W_x  = sub(W)(range(0, n-1), range(0, n-1));
-  
-  set_block(P, W_x * (mat_ident<ValueType>(n) - K_x * C_x) * P_x * transpose_view(W_x), 0, 0);
-  // NOTE: TODO Verify this line:
-  set_block(P, W_x * (mat_ident<ValueType>(n) - K_ax * C_x) * P_xa, 0, n);
+  mat<ValueType, mat_structure::square> W_I_KC(W_x * (mat_ident<ValueType>(n) - K_x * C_x));
+  set_block(P, W_I_KC * P_x * transpose_view(W_x), 0, 0);
+  set_block(P, W_I_KC * P_xa, 0, n);
   set_block(P, transpose_view(P_xa), n, 0);
-  b_x.set_covariance( CovType( P ) );
+  b_x.set_covariance( CovType( MatType( P ) ) );
 };
 
 
@@ -273,7 +297,8 @@ template <typename InvariantSystem,
           typename BeliefState, 
           typename InputBelief, 
           typename MeasurementBelief>
-typename boost::disable_if< is_invariant_system<InvariantSystem>,
+typename boost::enable_if< 
+  boost::mpl::not_< is_invariant_system<InvariantSystem> >,
 void >::type tsos_aug_inv_kalman_update(const InvariantSystem& sys, 
                                         const StateSpaceType& state_space,
                                         BeliefState& b_x,
@@ -281,6 +306,25 @@ void >::type tsos_aug_inv_kalman_update(const InvariantSystem& sys,
                                         const MeasurementBelief& b_z,
                                         typename discrete_sss_traits<InvariantSystem>::time_type t = 0) { 
   tsos_aug_kalman_update(sys, state_space, b_x, b_u, b_z, t);
+};
+
+template <typename InvariantSystem, 
+          typename StateSpaceType,
+          typename BeliefState, 
+          typename InputBelief, 
+          typename MeasurementBelief>
+typename boost::enable_if< 
+  boost::mpl::and_< 
+    is_invariant_system<InvariantSystem>,
+    boost::mpl::not_< is_augmented_ss_system<InvariantSystem> >
+  >,
+void >::type tsos_aug_inv_kalman_update(const InvariantSystem& sys, 
+                                        const StateSpaceType& state_space,
+                                        BeliefState& b_x,
+                                        const InputBelief& b_u,
+                                        const MeasurementBelief& b_z,
+                                        typename discrete_sss_traits<InvariantSystem>::time_type t = 0) { 
+  invariant_kalman_update(sys, state_space, b_x, b_u, b_z, t);
 };
 
 
@@ -317,6 +361,7 @@ template <typename InvariantSystem,
 typename boost::enable_if< 
   boost::mpl::and_< 
     is_invariant_system<InvariantSystem>,
+    is_augmented_ss_system<InvariantSystem>,
     is_continuous_belief_state<BeliefState>,
     boost::mpl::bool_< (belief_state_traits<BeliefState>::representation == belief_representation::gaussian) >,
     boost::mpl::bool_< (belief_state_traits<BeliefState>::distribution == belief_distribution::unimodal) >
@@ -337,21 +382,24 @@ void >::type tsos_aug_inv_kalman_filter_step(const InvariantSystem& sys,
   BOOST_CONCEPT_ASSERT((ContinuousBeliefStateConcept<MeasurementBelief>));
   
   typedef typename pp::topology_traits<StateSpaceType>::point_type StateType;
-  typedef typename pp::topology_traits<StateSpaceType>::point_difference_type StateDiffType;
   typedef typename continuous_belief_state_traits<BeliefState>::covariance_type CovType;
   typedef typename covariance_mat_traits< CovType >::matrix_type MatType;
   typedef typename mat_traits<MatType>::value_type ValueType;
+  typedef typename invariant_system_traits<InvariantSystem>::invariant_frame_type InvarFrame;
+  typedef typename invariant_system_traits<InvariantSystem>::invariant_correction_type InvarCorr;
   typedef typename discrete_linear_sss_traits<InvariantSystem>::matrixA_type MatAType;
   typedef typename discrete_linear_sss_traits<InvariantSystem>::matrixB_type MatBType;
   typedef typename discrete_linear_sss_traits<InvariantSystem>::matrixC_type MatCType;
   typedef typename discrete_linear_sss_traits<InvariantSystem>::matrixD_type MatDType;
+  
+  typedef mat<ValueType,mat_structure::square> MatPType;
   
   MatAType A;
   MatBType B;
   MatCType C;
   MatDType D;
   StateType x = b_x.get_mean_state();
-  MatType P = b_x.get_covariance().get_matrix();
+  MatPType P(b_x.get_covariance().get_matrix());
   
   const std::size_t n = augmented_sss_traits<InvariantSystem>::actual_state_dimensions;
   const std::size_t n_u = b_u.get_covariance().get_matrix().get_col_count();
@@ -365,9 +413,9 @@ void >::type tsos_aug_inv_kalman_filter_step(const InvariantSystem& sys,
   mat_sub_block<InvarFrame> W_x  = sub(W)(range(0, n-1), range(0, n-1));
   mat_sub_block<MatAType> A_x  = sub(A)(range(0, n-1), range(0, n-1));
   mat_sub_block<MatAType> A_xa = sub(A)(range(0, n-1), range(n, n+m-1));
-  mat_sub_block<MatType>  P_x  = sub(P)(range(0, n-1), range(0, n-1));
-  mat_sub_block<MatType>  P_a  = sub(P)(range(n, n+m-1), range(n, n+m-1));
-  mat_sub_block<MatType>  P_ax = sub(P)(range(n, n+m-1), range(0, n-1));
+  mat_sub_block<MatPType> P_x  = sub(P)(range(0, n-1), range(0, n-1));
+  mat_sub_block<MatPType> P_a  = sub(P)(range(n, n+m-1), range(n, n+m-1));
+  mat_sub_block<MatPType> P_ax = sub(P)(range(n, n+m-1), range(0, n-1));
   mat_sub_block<MatBType> B_x  = sub(B)(range(0, n-1), range(0, n_u-1));
   
   mat<ValueType, mat_structure::rectangular> P_xa_p( 
@@ -375,7 +423,7 @@ void >::type tsos_aug_inv_kalman_filter_step(const InvariantSystem& sys,
   );
   mat<ValueType, mat_structure::square> P_x_p(
     W_x * ( ( A_x * P_x + A_xa * P_ax ) * transpose_view(A_x) + P_xa_p * transpose_view(A_xa)
-      + B_x * b_u.get_covariance().get_matrix() * transpose_view(B_x) ) * transpose_view(W_x),
+      + B_x * b_u.get_covariance().get_matrix() * transpose_view(B_x) ) * transpose_view(W_x)
   );
   P_xa_p = W_x * P_xa_p;
   
@@ -396,21 +444,23 @@ void >::type tsos_aug_inv_kalman_filter_step(const InvariantSystem& sys,
   b_x.set_mean_state( sys.apply_correction(state_space, x, from_vect<InvarCorr>((K_x | K_ax) * e), b_u.get_mean_state(), t + sys.get_time_step()) );
   
   W = sys.get_invariant_posterior_frame(state_space, x, b_x.get_mean_state(), b_u.get_mean_state(), t + sys.get_time_step());
-  
-  set_block(P, W_x * (mat_ident<ValueType>(n) - K_x * C_x) * P_x_p * transpose_view(W_x), 0, 0);
-  // NOTE: TODO Verify this line:
-  P_xa_p = W_x * (mat_ident<ValueType>(n) - K_ax * C_x) * P_xa_p;
+  mat<ValueType, mat_structure::square> W_I_KC(W_x * (mat_ident<ValueType>(n) - K_x * C_x));
+  set_block(P, W_I_KC * P_x_p * transpose_view(W_x), 0, 0);
+  P_xa_p = W_I_KC * P_xa_p;
   set_block(P, P_xa_p, 0, n);
   set_block(P, transpose_view(P_xa_p), n, 0);
-  b_x.set_covariance( CovType( P ) );
+  b_x.set_covariance( CovType( MatType(P) ) );
+  
 };
+
 
 template <typename InvariantSystem, 
           typename StateSpaceType,
           typename BeliefState, 
           typename InputBelief, 
           typename MeasurementBelief>
-typename boost::disable_if< is_invariant_system<InvariantSystem>,
+typename boost::enable_if< 
+  boost::mpl::not_< is_invariant_system<InvariantSystem> >,
 void >::type tsos_aug_inv_kalman_filter_step(const InvariantSystem& sys, 
                                              const StateSpaceType& state_space,
                                              BeliefState& b_x,
@@ -418,6 +468,25 @@ void >::type tsos_aug_inv_kalman_filter_step(const InvariantSystem& sys,
                                              const MeasurementBelief& b_z,
                                              typename discrete_sss_traits<InvariantSystem>::time_type t = 0) { 
   tsos_aug_kalman_filter_step(sys, state_space, b_x, b_u, b_z, t);
+};
+
+template <typename InvariantSystem, 
+          typename StateSpaceType,
+          typename BeliefState, 
+          typename InputBelief, 
+          typename MeasurementBelief>
+typename boost::enable_if< 
+  boost::mpl::and_< 
+    is_invariant_system<InvariantSystem>,
+    boost::mpl::not_< is_augmented_ss_system<InvariantSystem> >
+  >,
+void >::type tsos_aug_inv_kalman_filter_step(const InvariantSystem& sys, 
+                                             const StateSpaceType& state_space,
+                                             BeliefState& b_x,
+                                             const InputBelief& b_u,
+                                             const MeasurementBelief& b_z,
+                                             typename discrete_sss_traits<InvariantSystem>::time_type t = 0) { 
+  invariant_kalman_filter_step(sys, state_space, b_x, b_u, b_z, t);
 };
 
 

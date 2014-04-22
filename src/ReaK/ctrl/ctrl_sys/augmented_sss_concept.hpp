@@ -37,6 +37,7 @@
 
 #include <boost/config.hpp>
 #include <boost/concept_check.hpp>
+#include <boost/mpl/bool.hpp>
 
 namespace ReaK {
 
@@ -55,6 +56,9 @@ struct augmented_sss_traits {
   
 };
 
+
+template <typename AugmentedSystem>
+struct is_augmented_ss_system : boost::mpl::false_ { };
 
 
 };

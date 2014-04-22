@@ -385,19 +385,9 @@ satellite3D_inv_dt_system::invariant_error_type satellite3D_inv_dt_system::get_i
   const satellite3D_inv_dt_system::output_type& y, 
   const satellite3D_inv_dt_system::time_type&) const {
   
-//   std::cout << " (Computer Error) Got quaternion: " << get_quaternion(x) << std::endl;
-//   std::cout << " (Computer Error) Got position: " << get_position(x) << std::endl;
-//   std::cout << " (Computer Error) Got output: " << y << std::endl;
-  
   unit_quat<double> q_diff = invert(get_quaternion(x)) * unit_quat<double>(y[3],y[4],y[5],y[6]);
-//   std::cout << " (Computer Error) Got quat-diff: " << q_diff << std::endl;
   vect<double,3> a = log(q_diff);
-//   std::cout << " (Computer Error) Got aa-diff: " << (2.0 * a) << std::endl;
   const vect<double,3>& pos = get_position(x);
-  
-//   std::cout << " (Computer Error) Got inv-error: " << vect_n<double>(
-//     y[0] - pos[0], y[1] - pos[1], y[2] - pos[2],
-//     2.0 * a[0], 2.0 * a[1], 2.0 * a[2]) << std::endl;
   
   return satellite3D_inv_dt_system::invariant_error_type(
     y[0] - pos[0], y[1] - pos[1], y[2] - pos[2],

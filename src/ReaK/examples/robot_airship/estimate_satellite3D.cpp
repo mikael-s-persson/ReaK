@@ -28,6 +28,7 @@
 #include "ctrl_sys/kalman_filter.hpp"
 #include "ctrl_sys/invariant_kalman_filter.hpp"
 #include "ctrl_sys/tsos_aug_kalman_filter.hpp"
+#include "ctrl_sys/tsos_aug_inv_kalman_filter.hpp"
 
 #include "ctrl_sys/gaussian_belief_state.hpp"
 #include "ctrl_sys/covariance_matrix.hpp"
@@ -374,6 +375,7 @@ template <typename MeasureProvider, typename ResultLogger, typename Sat3DSystemT
 void batch_KF_on_timeseries(
     MeasureProvider meas_provider, 
     ResultLogger result_logger,
+    const ReaK::ctrl::satellite_model_options& sat_options,
     const Sat3DSystemType& sat_sys,
     const typename Sat3DSystemType::state_space_type& state_space,
     typename Sat3DSystemType::state_belief_type b,
@@ -395,7 +397,11 @@ void batch_KF_on_timeseries(
     b_z.set_mean_state(z_vect);
     b_u.set_mean_state(cur_meas.u);
     
-    ctrl::invariant_kalman_filter_step(sat_sys, state_space, b, b_u, b_z, meas_provider.get_current_time());
+    if(sat_options.system_kind & ctrl::satellite_model_options::TSOSAKF) {
+      ctrl::tsos_aug_inv_kalman_filter_step(sat_sys, state_space, b, b_u, b_z, meas_provider.get_current_time());
+    } else {
+      ctrl::invariant_kalman_filter_step(sat_sys, state_space, b, b_u, b_z, meas_provider.get_current_time());
+    };
     
     result_logger.add_record(b, b_u, b_z, meas_provider.get_current_time(), 
                              meas_provider.get_current_gnd_truth_ptr());
@@ -412,6 +418,7 @@ template <typename MeasureProvider, typename ResultLogger, typename Sat3DSystemT
 void batch_KF_no_meas_predict(
     MeasureProvider meas_provider, 
     ResultLogger result_logger,
+    const ReaK::ctrl::satellite_model_options& sat_options,
     const Sat3DSystemType& sat_sys,
     const typename Sat3DSystemType::state_space_type& state_space,
     double start_time,
@@ -435,7 +442,11 @@ void batch_KF_no_meas_predict(
     b_z.set_mean_state(z_vect);
     b_u.set_mean_state(cur_meas.u);
     
-    ctrl::invariant_kalman_filter_step(sat_sys, state_space, b, b_u, b_z, meas_provider.get_current_time());
+    if(sat_options.system_kind & ctrl::satellite_model_options::TSOSAKF) {
+      ctrl::tsos_aug_inv_kalman_filter_step(sat_sys, state_space, b, b_u, b_z, meas_provider.get_current_time());
+    } else {
+      ctrl::invariant_kalman_filter_step(sat_sys, state_space, b, b_u, b_z, meas_provider.get_current_time());
+    };
     
     result_logger.add_record(b, b_u, b_z, meas_provider.get_current_time(), 
                              meas_provider.get_current_gnd_truth_ptr());
@@ -446,11 +457,11 @@ void batch_KF_no_meas_predict(
   do {
     b_u.set_mean_state(meas_provider.get_current_measurement().u);
     
-    ctrl::invariant_kalman_predict(sat_sys, state_space, b, b_u, meas_provider.get_current_time());
-    
-//     ctrl::tsos_aug_kalman_predict(sat_sys, state_space, b, b_u, meas_provider.get_current_time());
-//     ctrl::tsos_aug_kalman_update(sat_sys, state_space, b, b_u, b_z, meas_provider.get_current_time());
-//     ctrl::tsos_aug_kalman_filter_step(sat_sys, state_space, b, b_u, b_z, meas_provider.get_current_time());
+    if(sat_options.system_kind & ctrl::satellite_model_options::TSOSAKF) {
+      ctrl::tsos_aug_inv_kalman_predict(sat_sys, state_space, b, b_u, meas_provider.get_current_time());
+    } else {
+      ctrl::invariant_kalman_predict(sat_sys, state_space, b, b_u, meas_provider.get_current_time());
+    };
     
     result_logger.add_record(b, b_u, b_z, meas_provider.get_current_time(), 
                              meas_provider.get_current_gnd_truth_ptr());
@@ -467,6 +478,7 @@ template <typename MeasureProvider, typename ResultLogger, typename Sat3DSystemT
 void batch_KF_ML_meas_predict(
     MeasureProvider meas_provider, 
     ResultLogger result_logger,
+    const ReaK::ctrl::satellite_model_options& sat_options,
     const Sat3DSystemType& sat_sys,
     const typename Sat3DSystemType::state_space_type& state_space,
     double start_time,
@@ -501,11 +513,20 @@ void batch_KF_ML_meas_predict(
   do {
     b_u.set_mean_state(meas_provider.get_current_measurement().u);
     
-    ctrl::invariant_kalman_predict(sat_sys, state_space, b, b_u, meas_provider.get_current_time());
+    if(sat_options.system_kind & ctrl::satellite_model_options::TSOSAKF) {
+      ctrl::tsos_aug_inv_kalman_predict(sat_sys, state_space, b, b_u, meas_provider.get_current_time());
+    } else {
+      ctrl::invariant_kalman_predict(sat_sys, state_space, b, b_u, meas_provider.get_current_time());
+    };
     
     // apply ML assumption:
     b_z.set_mean_state(sat_sys.get_output(state_space, b.get_mean_state(), b_u.get_mean_state(), meas_provider.get_current_time()));
-    ctrl::invariant_kalman_update(sat_sys, state_space, b, b_u, b_z, meas_provider.get_current_time());
+    
+    if(sat_options.system_kind & ctrl::satellite_model_options::TSOSAKF) {
+      ctrl::tsos_aug_inv_kalman_update(sat_sys, state_space, b, b_u, b_z, meas_provider.get_current_time());
+    } else {
+      ctrl::invariant_kalman_update(sat_sys, state_space, b, b_u, b_z, meas_provider.get_current_time());
+    };
     
     result_logger.add_record(b, b_u, b_z, meas_provider.get_current_time(), 
                              meas_provider.get_current_gnd_truth_ptr());
@@ -615,7 +636,7 @@ void do_online_run(
   batch_KF_on_timeseries(
     sat3D_meas_true_from_extractor(data_in, sat_options),
     sat3D_estimate_result_to_recorder(cur_out_opt.create_recorder()), 
-    sat_sys, state_space, b, b_u, b_z);
+    sat_options, sat_sys, state_space, b, b_u, b_z);
   
 };
 
@@ -650,7 +671,7 @@ void do_all_single_runs(
     batch_KF_on_timeseries(
       sat3D_meas_true_from_vectors(&measurements, &ground_truth, skips),
       sat3D_estimate_result_to_recorder(cur_out_opt.create_recorder()), 
-      sat_sys, state_space, b, b_u, b_z);
+      sat_options, sat_sys, state_space, b, b_u, b_z);
     
   };
   
@@ -683,12 +704,12 @@ void do_online_prediction(
     batch_KF_no_meas_predict(
       sat3D_meas_true_from_extractor(data_in, sat_options),
       sat3D_estimate_result_to_recorder(cur_out_opt.create_recorder()), 
-      sat_sys, state_space, start_time, b, b_u, b_z);
+      sat_options, sat_sys, state_space, start_time, b, b_u, b_z);
   } else {
     batch_KF_ML_meas_predict(
       sat3D_meas_true_from_extractor(data_in, sat_options),
       sat3D_estimate_result_to_recorder(cur_out_opt.create_recorder()), 
-      sat_sys, state_space, start_time, b, b_u, b_z);
+      sat_options, sat_sys, state_space, start_time, b, b_u, b_z);
   };
   
 };
@@ -725,12 +746,12 @@ void do_all_prediction_runs(
       batch_KF_no_meas_predict(
         sat3D_meas_true_from_vectors(&measurements, &ground_truth),
         sat3D_estimate_result_to_recorder(cur_out_opt.create_recorder()), 
-        sat_sys, state_space, start_time, b, b_u, b_z);
+        sat_options, sat_sys, state_space, start_time, b, b_u, b_z);
     } else {
       batch_KF_ML_meas_predict(
         sat3D_meas_true_from_vectors(&measurements, &ground_truth),
         sat3D_estimate_result_to_recorder(cur_out_opt.create_recorder()), 
-        sat_sys, state_space, start_time, b, b_u, b_z);
+        sat_options, sat_sys, state_space, start_time, b, b_u, b_z);
     };
     
   };
@@ -777,7 +798,7 @@ void do_single_monte_carlo_run(
     batch_KF_on_timeseries(
       sat3D_meas_true_from_vectors(&measurements, &ground_truth, skips),
       sat3D_collect_stddevs(results), 
-      sat_sys, state_space, b, b_u, b_z);
+      sat_options, sat_sys, state_space, b, b_u, b_z);
     
   };
   
@@ -925,6 +946,13 @@ int do_required_tasks(ReaK::shared_ptr< Sat3DSystemType > satellite3D_system,
   shared_ptr< TempSpaceType > sat_space = satellite3D_system->get_temporal_state_space(start_time, end_time);
   
   StateBeliefType b_init = satellite3D_system->get_zero_state_belief(10.0);
+  if( ( b_init.get_covariance().get_matrix().get_row_count() > 12 ) &&
+      ( sat_options.system_kind & ctrl::satellite_predictor_options::TSOSAKF ) &&
+      ( sat_options.steady_param_covariance.get_row_count() + 12 == b_init.get_covariance().get_matrix().get_row_count() ) ) {
+    mat<double,mat_structure::square> P(b_init.get_covariance().get_matrix());
+    set_block(P, sat_options.steady_param_covariance, 12, 12);
+    b_init.set_covariance(CovarType(CovarMatType(P)));
+  };
   
   InputBeliefType b_u = satellite3D_system->get_zero_input_belief();
   b_u.set_covariance(CovarType(CovarMatType(sat_options.input_disturbance)));
@@ -1150,7 +1178,7 @@ int main(int argc, char** argv) {
   recorder::data_stream_options data_in_opt;
   shared_ptr< recorder::data_extractor > data_in;
   std::vector<std::string> names_in;
-  if(!vm.count("generate-meas")) {
+  if(!vm.count("generate-meas") && !vm.count("generate-mdl-files")) {
     try {
       data_in_opt  = recorder::get_data_stream_options_from_po(vm, false);
       boost::tie(data_in, names_in) = data_in_opt.create_extractor();
@@ -1226,6 +1254,10 @@ int main(int argc, char** argv) {
       int errcode = do_required_tasks(sat_options.get_emd_airship_system(), sat_options, vm, data_in, names_in, sys_output_stem_name, data_out_stem_opt);
       if(errcode)
         return errcode;
+    } else if( vm.count("imkf-emdJ") ) {
+      int errcode = do_required_tasks(sat_options.get_emdJ_airship_system(), sat_options, vm, data_in, names_in, sys_output_stem_name, data_out_stem_opt);
+      if(errcode)
+        return errcode;
     } else {
       int errcode = do_required_tasks(sat_options.get_base_sat_system(), sat_options, vm, data_in, names_in, sys_output_stem_name, data_out_stem_opt);
       if(errcode)
@@ -1236,6 +1268,10 @@ int main(int argc, char** argv) {
     
     if( vm.count("imkf-emd") ) {
       int errcode = do_required_tasks(sat_options.get_gyro_emd_airship_system(), sat_options, vm, data_in, names_in, sys_output_stem_name, data_out_stem_opt);
+      if(errcode)
+        return errcode;
+    } else if( vm.count("imkf-emdJ") ) {
+      int errcode = do_required_tasks(sat_options.get_gyro_emdJ_airship_system(), sat_options, vm, data_in, names_in, sys_output_stem_name, data_out_stem_opt);
       if(errcode)
         return errcode;
     } else {
