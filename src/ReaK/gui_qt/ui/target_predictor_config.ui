@@ -61,6 +61,36 @@
           <string>IMKFv2</string>
          </property>
         </item>
+        <item>
+         <property name="text">
+          <string>IMKF_em</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>IMKF_emd</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>IMKF_emdJ</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>TSOSAIKF_em</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>TSOSAIKF_emd</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>TSOSAIKF_emdJ</string>
+         </property>
+        </item>
        </widget>
       </item>
       <item row="1" column="0">
