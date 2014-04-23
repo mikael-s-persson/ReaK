@@ -61,7 +61,7 @@ if(QT_FOUND)
   add_library(reak_gui_qt STATIC ${RKGUIQT_SOURCES} ${RKGUIQT_MOC_SRCS} ${RKGUIQT_UI_HDRS})
   setup_custom_target(reak_gui_qt "${SRCROOT}${RKGUIQTDIR}")
   setup_headers("${RKGUIQT_HEADERS}" "${RKGUIQTDIR}")
-  target_link_libraries(reak_gui_qt reak_mbd_coin reak_topologies reak_core)
+  target_link_libraries(reak_gui_qt reak_mbd_coin reak_ss_systems reak_topologies reak_core)
   target_link_libraries(reak_gui_qt ${QT_LIBRARIES})
   
   add_executable(test_objtreewidget "${SRCROOT}${RKGUIQTDIR}/test_objtreewidget.cpp")

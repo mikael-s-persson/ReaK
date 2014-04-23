@@ -1000,27 +1000,56 @@ int do_required_tasks(ReaK::shared_ptr< Sat3DSystemType > satellite3D_system,
       sat3D_state_type x_st;
       set_frame_3D(x_st, sat_options.initial_motion);
       set_sat3D_state(x_init, x_st);
+      mat<double,mat_structure::diagonal> R_tot = sat_options.measurement_noise;
+      if(sat_options.artificial_noise.get_row_count() == R_tot.get_row_count())
+        R_tot += sat_options.artificial_noise;
       generate_timeseries(measurements, ground_truth, *satellite3D_system, sat_space->get_space_topology(),
                           x_init, start_time, end_time, CovarMatType(sat_options.input_disturbance), 
-                          CovarMatType(sat_options.measurement_noise + sat_options.artificial_noise));
+                          CovarMatType(R_tot));
     };
     
     // do a single run for each skips:
     
-    if(!vm.count("prediction-runs")) {
-      std::cout << "Running estimator on data series.." << std::flush;
+    if(!vm.count("generate-meas-file")) {
       
-      do_all_single_runs(data_out_stem_opt, sat_options, measurements, ground_truth, *satellite3D_system, 
-                        sat_space->get_space_topology(), b_init, b_u, b_z, min_skips, max_skips);
+      if(!vm.count("prediction-runs")) {
+        std::cout << "Running estimator on data series.." << std::flush;
+        
+        do_all_single_runs(data_out_stem_opt, sat_options, measurements, ground_truth, *satellite3D_system, 
+                          sat_space->get_space_topology(), b_init, b_u, b_z, min_skips, max_skips);
+        
+        std::cout << "." << std::flush;
+      } else {
+        std::cout << "Running predictor on data series.." << std::flush;
+        
+        do_all_prediction_runs(data_out_stem_opt, sat_options, measurements, ground_truth, *satellite3D_system, 
+                                sat_space->get_space_topology(), b_init, b_u, b_z, vm["prediction-interval"].as<double>());
+        
+        std::cout << "." << std::flush;
+      };
       
-      std::cout << "." << std::flush;
     } else {
-      std::cout << "Running predictor on data series.." << std::flush;
       
-      do_all_prediction_runs(data_out_stem_opt, sat_options, measurements, ground_truth, *satellite3D_system, 
-                              sat_space->get_space_topology(), b_init, b_u, b_z, vm["prediction-interval"].as<double>());
+      std::cout << "Recording generated data series.." << std::flush;
       
-      std::cout << "." << std::flush;
+      recorder::data_stream_options data_meas_opt = data_out_stem_opt;
+      data_meas_opt.file_name += "_meas." + data_meas_opt.get_extension();
+      sat_options.imbue_names_for_generated_meas(data_meas_opt);
+      shared_ptr< recorder::data_recorder > data_meas = data_meas_opt.create_recorder();
+      for(std::size_t i = 0; i < measurements.size(); ++i) {
+        (*data_meas) << measurements[i].first;
+        const sat3D_measurement_point& m = measurements[i].second;
+        (*data_meas) << m.pose << m.gyro << m.IMU_a_m << m.u;  // if gyro-IMU not present, vectors will be zero-sized, not written to stream.
+        if(ground_truth.size() == measurements.size()) {
+          const sat3D_state_type& g = ground_truth[i].second;
+          (*data_meas) << get_position(g) << get_quaternion(g) << get_velocity(g) << get_ang_velocity(g);
+          (*data_meas) << recorder::data_recorder::end_value_row;
+//           if( traj_ptr )
+//             traj_ptr->push_back(sat3D_temp_point_type(ground_truth[i].first, g));
+        };
+      };
+      (*data_meas) << recorder::data_recorder::flush;
+      
     };
     
     std::cout << "Finished!" << std::endl;
@@ -1031,6 +1060,9 @@ int do_required_tasks(ReaK::shared_ptr< Sat3DSystemType > satellite3D_system,
     sat3D_state_type x_st;
     set_frame_3D(x_st, sat_options.initial_motion);
     set_sat3D_state(x_init, x_st);
+    mat<double,mat_structure::diagonal> R_tot = sat_options.measurement_noise;
+    if(sat_options.artificial_noise.get_row_count() == R_tot.get_row_count())
+      R_tot += sat_options.artificial_noise;
     
     recorder::data_stream_options data_stddev_opt = data_out_stem_opt;
     data_stddev_opt.file_name += "_meas_stddevs." + data_stddev_opt.get_extension();
@@ -1047,7 +1079,7 @@ int do_required_tasks(ReaK::shared_ptr< Sat3DSystemType > satellite3D_system,
       
       generate_timeseries(measurements, ground_truth, *satellite3D_system, sat_space->get_space_topology(),
                           x_init, start_time, end_time, CovarMatType(sat_options.input_disturbance), 
-                          CovarMatType(sat_options.measurement_noise + sat_options.artificial_noise), data_stddev);
+                          CovarMatType(R_tot), data_stddev);
       
       std::cout << "." << std::flush;
       

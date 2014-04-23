@@ -43,6 +43,7 @@
 #include "rk_prop_editor_widget.hpp"
 #include "serialization/scheme_builder.hpp"
 
+#include "ss_systems/satellite_modeling_options.hpp"
 #include "../examples/robot_airship/target_predict_data.hpp"
 
 #include <QDockWidget>
@@ -107,6 +108,8 @@ class TargetPredConfigWidget : public QDockWidget, private Ui::TargetPredConfig 
     
     shared_ptr< ctrl::satellite3D_inv_dt_system > satellite3D_system;
     
+    ctrl::satellite_predictor_options sat_options;
+    
   public:
     
     double getTimeStep() const;
@@ -123,6 +126,8 @@ class TargetPredConfigWidget : public QDockWidget, private Ui::TargetPredConfig 
     
     double getTimeHorizon() const;
     double getPThreshold() const;
+    
+    ctrl::satellite_predictor_options getSatPredictorOptions() const;
     
     std::string getServerAddress() const;
     int getPortNumber() const;
