@@ -1258,10 +1258,10 @@ void airship3D_imdt_emd_sys::get_state_transition_blocks(
   A_0_s(11,17) = -mDt * w_0_mag * R_w_0[2];
 #endif
   
-  std::cout << " ------------------- System Matrices -------------------- " << std::endl;
-  std::cout << " A_1_ss = " << std::endl << A_1_ss << std::endl;
-  std::cout << " A_1_sa = " << std::endl << A_1_sa << std::endl;
-  std::cout << " A_0_s  = " << std::endl << A_0_s  << std::endl;
+//   std::cout << " ------------------- System Matrices -------------------- " << std::endl;
+//   std::cout << " A_1_ss = " << std::endl << A_1_ss << std::endl;
+//   std::cout << " A_1_sa = " << std::endl << A_1_sa << std::endl;
+//   std::cout << " A_0_s  = " << std::endl << A_0_s  << std::endl;
   
   sub(A_0_s)(range(0,11), range(12,17)) -= A_1_sa;
   try {
@@ -1273,7 +1273,7 @@ void airship3D_imdt_emd_sys::get_state_transition_blocks(
   A = mat_ident<double>(18);
   set_block(A, A_0_s, 0, 0);
   
-  std::cout << " A      = " << std::endl << A  << std::endl;
+//   std::cout << " A      = " << std::endl << A  << std::endl;
   
   
   B = mat<double,mat_structure::nil>(18,6);

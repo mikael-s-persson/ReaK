@@ -410,6 +410,60 @@ void >::type tsos_aug_inv_kalman_filter_step(const InvariantSystem& sys,
   sys.get_state_transition_blocks(A, B, state_space, t, t + sys.get_time_step(), x, x_prior, b_u.get_mean_state(), b_u.get_mean_state());
   InvarFrame W = sys.get_invariant_prior_frame(state_space, x, x_prior, b_u.get_mean_state(), t + sys.get_time_step());
   
+  
+#if 0
+  mat<ValueType, mat_structure::square> W_x(sub(W)(range(0, n-1), range(0, n-1)));
+  
+  mat<ValueType, mat_structure::square> A_x(sub(A)(range(0, n-1), range(0, n-1)));
+  mat<ValueType, mat_structure::rectangular> A_xa(sub(A)(range(0, n-1), range(n, n+m-1)));
+  
+  mat<ValueType, mat_structure::square> P_x(sub(P)(range(0, n-1), range(0, n-1)));
+  mat<ValueType, mat_structure::rectangular> P_ax(sub(P)(range(n, n+m-1), range(0, n-1)));
+  mat<ValueType, mat_structure::square> P_a(sub(P)(range(n, n+m-1), range(n, n+m-1)));
+  
+  mat<ValueType, mat_structure::rectangular> B_x(sub(B)(range(0, n-1), range(0, n_u-1)));
+  
+  mat<ValueType, mat_structure::rectangular> P_xa_p( 
+    W_x * A_x * transpose_view(P_ax) + A_xa * P_a
+  );
+  
+  mat<ValueType, mat_structure::square> P_x_p(
+    W_x * ( 
+      A_x * P_x * transpose_view(A_x) 
+      + A_xa * P_ax * transpose_view(A_x) 
+      + A_x * transpose_view(P_ax) * transpose_view(A_xa)
+      + A_xa * P_a * transpose_view(A_xa)
+      + B_x * b_u.get_covariance().get_matrix() * transpose_view(B_x) 
+    ) * transpose_view(W_x)
+  );
+  
+  sys.get_output_function_blocks(C, D, state_space, t + sys.get_time_step(), x, b_u.get_mean_state());
+  
+  mat<ValueType, mat_structure::rectangular> C_x(sub(C)(range(0,n_z-1),range(0,n-1)));
+  
+  mat< ValueType, mat_structure::rectangular > CP_xa = C_x * P_xa_p;
+  mat< ValueType, mat_structure::rectangular > CP_x  = C_x * P_x_p;
+  mat< ValueType, mat_structure::symmetric > S( CP_x * transpose_view(C_x) + b_z.get_covariance().get_matrix() );
+  linsolve_Cholesky(S, CP_x);
+  linsolve_Cholesky(S, CP_xa);
+  mat< ValueType, mat_structure::rectangular > K_x( transpose_view(CP_x) );
+  mat< ValueType, mat_structure::rectangular > K_ax( transpose_view(CP_xa) );
+  
+  vect_n<ValueType> e = 
+    to_vect<ValueType>(sys.get_invariant_error(state_space, x_prior, b_u.get_mean_state(), b_z.get_mean_state(), t + sys.get_time_step()));
+  b_x.set_mean_state( sys.apply_correction(state_space, x_prior, from_vect<InvarCorr>((K_x | K_ax) * e), b_u.get_mean_state(), t + sys.get_time_step()) );
+  
+  W = sys.get_invariant_posterior_frame(state_space, x_prior, b_x.get_mean_state(), b_u.get_mean_state(), t + sys.get_time_step());
+  mat<ValueType, mat_structure::square> W_x(sub(W)(range(0, n-1), range(0, n-1)));
+  mat<ValueType, mat_structure::square> W_I_KC(W_x * (mat_ident<ValueType>(n) - K_x * C_x));
+  set_block(P, W_I_KC * P_x_p * transpose_view(W_x), 0, 0);
+  P_xa_p = W_I_KC * P_xa_p;
+  set_block(P, P_xa_p, 0, n);
+  set_block(P, transpose_view(P_xa_p), n, 0);
+  b_x.set_covariance( CovType( MatType(P) ) );
+#endif
+  
+  
   mat_sub_block<InvarFrame> W_x  = sub(W)(range(0, n-1), range(0, n-1));
   mat_sub_block<MatAType> A_x  = sub(A)(range(0, n-1), range(0, n-1));
   mat_sub_block<MatAType> A_xa = sub(A)(range(0, n-1), range(n, n+m-1));
@@ -440,10 +494,10 @@ void >::type tsos_aug_inv_kalman_filter_step(const InvariantSystem& sys,
   mat< ValueType, mat_structure::rectangular > K_ax( transpose_view(CP_xa) );
   
   vect_n<ValueType> e = 
-    to_vect<ValueType>(sys.get_invariant_error(state_space, x, b_u.get_mean_state(), b_z.get_mean_state(), t + sys.get_time_step()));
-  b_x.set_mean_state( sys.apply_correction(state_space, x, from_vect<InvarCorr>((K_x | K_ax) * e), b_u.get_mean_state(), t + sys.get_time_step()) );
+    to_vect<ValueType>(sys.get_invariant_error(state_space, x_prior, b_u.get_mean_state(), b_z.get_mean_state(), t + sys.get_time_step()));
+  b_x.set_mean_state( sys.apply_correction(state_space, x_prior, from_vect<InvarCorr>((K_x | K_ax) * e), b_u.get_mean_state(), t + sys.get_time_step()) );
   
-  W = sys.get_invariant_posterior_frame(state_space, x, b_x.get_mean_state(), b_u.get_mean_state(), t + sys.get_time_step());
+  W = sys.get_invariant_posterior_frame(state_space, x_prior, b_x.get_mean_state(), b_u.get_mean_state(), t + sys.get_time_step());
   mat<ValueType, mat_structure::square> W_I_KC(W_x * (mat_ident<ValueType>(n) - K_x * C_x));
   set_block(P, W_I_KC * P_x_p * transpose_view(W_x), 0, 0);
   P_xa_p = W_I_KC * P_xa_p;
