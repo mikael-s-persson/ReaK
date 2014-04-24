@@ -39,7 +39,9 @@
 
 #include "base/named_object.hpp"
 
-#include "spatial_trajectory_concept.hpp"
+#include "sequential_trajectory_concept.hpp"
+
+#include "seq_trajectory_base.hpp"
 
 #include <boost/config.hpp>
 #include <boost/concept_check.hpp>
@@ -56,7 +58,7 @@ namespace pp {
  * \tparam Topology The topology type on which the points and the path can reside, should model the TemporalSpaceConcept.
  */
 template <typename Topology>
-class trajectory_base : public named_object {
+class trajectory_base : public seq_trajectory_base<Topology> {
   public:
     
     BOOST_CONCEPT_ASSERT((TemporalSpaceConcept<Topology>));
@@ -65,6 +67,7 @@ class trajectory_base : public named_object {
     typedef typename topology_traits<topology>::point_type point_type;
     typedef typename topology_traits<topology>::point_difference_type point_difference_type;
     typedef trajectory_base<Topology> self;
+    typedef seq_trajectory_base<Topology> base_type;
     
     
   public:
@@ -74,9 +77,7 @@ class trajectory_base : public named_object {
      * \param aName The name for this object.
      */
     explicit trajectory_base(const std::string& aName) : 
-                             named_object() { 
-      setName(aName);
-    };
+                             base_type(aName) {};
     
     /**
      * Computes the travel distance between two points, if traveling along the path.
@@ -116,36 +117,37 @@ class trajectory_base : public named_object {
 /*******************************************************************************
                    ReaK's RTTI and Serialization interfaces
 *******************************************************************************/
-
+    
     virtual void RK_CALL save(serialization::oarchive& A, unsigned int) const {
-      named_object::save(A,named_object::getStaticObjectType()->TypeVersion());
+      base_type::save(A,base_type::getStaticObjectType()->TypeVersion());
     };
-
+    
     virtual void RK_CALL load(serialization::iarchive& A, unsigned int) {
-      named_object::load(A,named_object::getStaticObjectType()->TypeVersion());
+      base_type::load(A,base_type::getStaticObjectType()->TypeVersion());
     };
-
-    RK_RTTI_MAKE_CONCRETE_1BASE(self,0xC2440009,1,"trajectory_base",named_object)
+    
+    RK_RTTI_MAKE_CONCRETE_1BASE(self,0xC2440009,1,"trajectory_base",base_type)
 };
 
 
 /**
  * This class wraps a generic spatial trajectory class into an OOP interface.
- * It, itself, also models the generic SpatialTrajectoryConcept, so this wrapper can 
- * be used for both purposes.
+ * It, itself, also models the generic SpatialTrajectoryConcept and SequentialTrajectoryConcept, 
+ * so this wrapper can be used for both purposes (i.e. this is a type-erasure class).
  * \tparam SpatialTrajectory The trajectory type to be wrapped.
  */
 template <typename SpatialTrajectory>
 class trajectory_wrapper : public trajectory_base< typename spatial_trajectory_traits<SpatialTrajectory>::topology > {
   public:
     typedef trajectory_base< typename spatial_trajectory_traits<SpatialTrajectory>::topology > base_type;
+    typedef typename base_type::base_type seq_base_type;
     typedef trajectory_wrapper<SpatialTrajectory> self;
     
     typedef typename base_type::topology topology;
     typedef typename base_type::point_type point_type;
     typedef typename base_type::point_difference_type point_difference_type;
     
-    BOOST_CONCEPT_ASSERT((SpatialTrajectoryConcept<SpatialTrajectory,topology>));
+    BOOST_CONCEPT_ASSERT((SequentialTrajectoryConcept<SpatialTrajectory,topology>));
     
     typedef typename spatial_trajectory_traits<SpatialTrajectory>::waypoint_descriptor waypoint_descriptor;
     typedef typename spatial_trajectory_traits<SpatialTrajectory>::const_waypoint_descriptor const_waypoint_descriptor;
@@ -156,11 +158,81 @@ class trajectory_wrapper : public trajectory_base< typename spatial_trajectory_t
     
     typedef std::pair< const_waypoint_descriptor, point_type> waypoint_pair;
     
+    typedef SpatialTrajectory wrapped_type;
+    
   protected:
     SpatialTrajectory m_traj;
     mutable waypoint_pair m_last_waypoint;
     
+    typedef typename seq_base_type::point_time_iterator_impl base_pt_time_iterator_impl;
+    typedef typename sequential_trajectory_traits<SpatialTrajectory>::point_time_iterator gen_pt_time_iterator;
+    
+    struct point_time_iterator_impl : public base_pt_time_iterator_impl {
+      
+      gen_pt_time_iterator base_it;
+      
+      point_time_iterator_impl(gen_pt_time_iterator aBaseIt) : base_it(aBaseIt) { };
+      
+      virtual ~point_time_iterator_impl() { };
+      
+      virtual void move_by_time(double d) {
+        base_it += d;
+      };
+      
+      virtual bool is_equal_to(const base_pt_time_iterator_impl* rhs) const {
+        return (base_it == static_cast<const point_time_iterator_impl*>(rhs)->base_it);
+      };
+      
+      virtual const point_type& get_point() const {
+        return *base_it;
+      };
+      
+      virtual base_pt_time_iterator_impl* clone() const {
+        return new point_time_iterator_impl(base_it);
+      };
+      
+    };
+    
+    typedef typename seq_base_type::point_fraction_iterator_impl base_pt_frac_iterator_impl;
+    typedef typename sequential_trajectory_traits<SpatialTrajectory>::point_fraction_iterator gen_pt_frac_iterator;
+    
+    struct point_fraction_iterator_impl : public base_pt_frac_iterator_impl {
+      
+      gen_pt_frac_iterator base_it;
+      
+      point_fraction_iterator_impl(gen_pt_frac_iterator aBaseIt) : base_it(aBaseIt) { };
+      
+      virtual ~point_fraction_iterator_impl() { };
+      
+      virtual void move_by_fraction(double f) {
+        base_it += f;
+      };
+      
+      virtual bool is_equal_to(const base_pt_frac_iterator_impl* rhs) const {
+        return (base_it == static_cast<const point_fraction_iterator_impl*>(rhs)->base_it);
+      };
+      
+      virtual const point_type& get_point() const {
+        return *base_it;
+      };
+      
+      virtual base_pt_frac_iterator_impl* clone() const {
+        return new point_fraction_iterator_impl(base_it);
+      };
+      
+    };
+    
   public:
+    
+    typedef typename base_type::point_time_iterator point_time_iterator;
+    typedef typename base_type::point_fraction_iterator point_fraction_iterator;
+    
+    wrapped_type& get_underlying_trajectory() { return m_traj; };
+    const wrapped_type& get_underlying_trajectory() const { return m_traj; };
+    
+    wrapped_type& get_wrapped_object() { return m_traj; };
+    const wrapped_type& get_wrapped_object() const { return m_traj; };
+    
     /**
      * Constructs the trajectory from a space, assumes the start and end are at the origin 
      * of the space.
@@ -252,6 +324,38 @@ class trajectory_wrapper : public trajectory_base< typename spatial_trajectory_t
      */
     virtual double get_end_time() const {
       return m_traj.get_end_time();
+    };
+    
+    /**
+     * Returns the starting time-iterator along the trajectory.
+     * \return The starting time-iterator along the trajectory.
+     */
+    virtual point_time_iterator begin_time_travel() const {
+      return point_time_iterator(new point_time_iterator_impl(m_traj.begin_time_travel()));
+    };
+    
+    /**
+     * Returns the end time-iterator along the trajectory.
+     * \return The end time-iterator along the trajectory.
+     */
+    virtual point_time_iterator end_time_travel() const {
+      return point_time_iterator(new point_time_iterator_impl(m_traj.end_time_travel()));
+    };
+    
+    /**
+     * Returns the starting fraction-iterator along the trajectory.
+     * \return The starting fraction-iterator along the trajectory.
+     */
+    virtual point_fraction_iterator begin_fraction_travel() const {
+      return point_fraction_iterator(new point_fraction_iterator_impl(m_traj.begin_fraction_travel()));
+    };
+    
+    /**
+     * Returns the end fraction-iterator along the trajectory.
+     * \return The end fraction-iterator along the trajectory.
+     */
+    virtual point_fraction_iterator end_fraction_travel() const {
+      return point_fraction_iterator(new point_fraction_iterator_impl(m_traj.end_fraction_travel()));
     };
     
 /*******************************************************************************

@@ -189,6 +189,33 @@ satellite_model_options::output_belief_type satellite_model_options::get_zero_ou
                               covar_type(covar_type::matrix_type(measurement_noise)));
 };
 
+void satellite_model_options::imbue_names_for_received_meas(recorder::data_stream_options& data_opt) const {
+  data_opt.names.clear();
+  
+  data_opt
+    .add_name("time").add_name("p_x").add_name("p_y").add_name("p_z")
+    .add_name("q_0").add_name("q_1").add_name("q_2").add_name("q_3");
+  
+  switch(system_kind & 48) {
+    case 16:
+      data_opt
+        .add_name("w_x").add_name("w_y").add_name("w_z");
+      break;
+    case 48:
+      data_opt
+        .add_name("w_x").add_name("w_y").add_name("w_z")
+        .add_name("acc_x").add_name("acc_y").add_name("acc_z")
+        .add_name("mag_x").add_name("mag_y").add_name("mag_z");
+      break;
+    default:
+      break;
+  };
+  
+  data_opt
+    .add_name("f_x").add_name("f_y").add_name("f_z")
+    .add_name("t_x").add_name("t_y").add_name("t_z");
+};
+
 void satellite_model_options::imbue_names_for_generated_meas(recorder::data_stream_options& data_opt) const {
   data_opt.names.clear();
   

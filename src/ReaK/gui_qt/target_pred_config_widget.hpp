@@ -131,6 +131,7 @@ class TargetPredConfigWidget : public QDockWidget, private Ui::TargetPredConfig 
     
     std::string getServerAddress() const;
     int getPortNumber() const;
+    bool useRawUDP() const;
     bool useUDP() const;
     bool useTCP() const;
     std::string getStartScript() const;

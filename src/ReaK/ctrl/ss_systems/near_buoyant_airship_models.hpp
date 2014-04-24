@@ -115,12 +115,16 @@ class airship3D_imdt_em_sys : public named_object {
     typedef covar_topology< covar_type > covar_space_type;
     typedef pp::temporal_space<state_space_type, pp::time_poisson_topology, pp::time_distance_only> temporal_state_space_type;
     typedef gaussian_belief_space<state_space_type, covar_space_type> belief_space_type;
+    typedef pp::temporal_space<belief_space_type, pp::time_poisson_topology, pp::time_distance_only> temporal_belief_space_type;
     typedef gaussian_belief_state< point_type,  covar_type > state_belief_type;
     typedef gaussian_belief_state< input_type,  covar_type > input_belief_type;
     typedef gaussian_belief_state< output_type, covar_type > output_belief_type;
     
     virtual shared_ptr< temporal_state_space_type > get_temporal_state_space(double aStartTime = 0.0, double aEndTime = 1.0) const;
     virtual shared_ptr< state_space_type > get_state_space() const;
+    
+    virtual shared_ptr< temporal_belief_space_type > get_temporal_belief_space(double aStartTime = 0.0, double aEndTime = 1.0) const;
+    virtual shared_ptr< belief_space_type > get_belief_space() const;
     
     virtual state_belief_type get_zero_state_belief(double aCovValue = 10.0) const;
     virtual input_belief_type get_zero_input_belief(double aCovValue = 1.0) const;
@@ -347,12 +351,16 @@ class airship3D_imdt_emd_sys : public named_object {
     typedef covar_topology< covar_type > covar_space_type;
     typedef pp::temporal_space<state_space_type, pp::time_poisson_topology, pp::time_distance_only> temporal_state_space_type;
     typedef gaussian_belief_space<state_space_type, covar_space_type> belief_space_type;
+    typedef pp::temporal_space<belief_space_type, pp::time_poisson_topology, pp::time_distance_only> temporal_belief_space_type;
     typedef gaussian_belief_state< point_type,  covar_type > state_belief_type;
     typedef gaussian_belief_state< input_type,  covar_type > input_belief_type;
     typedef gaussian_belief_state< output_type, covar_type > output_belief_type;
     
     virtual shared_ptr< temporal_state_space_type > get_temporal_state_space(double aStartTime = 0.0, double aEndTime = 1.0) const;
     virtual shared_ptr< state_space_type > get_state_space() const;
+    
+    virtual shared_ptr< temporal_belief_space_type > get_temporal_belief_space(double aStartTime = 0.0, double aEndTime = 1.0) const;
+    virtual shared_ptr< belief_space_type > get_belief_space() const;
     
     virtual state_belief_type get_zero_state_belief(double aCovValue = 10.0) const;
     virtual input_belief_type get_zero_input_belief(double aCovValue = 1.0) const;
@@ -575,6 +583,7 @@ class airship3D_gyro_imdt_emd_sys : public airship3D_imdt_emd_sys {
     typedef covar_topology< covar_type > covar_space_type;
     typedef pp::temporal_space<state_space_type, pp::time_poisson_topology, pp::time_distance_only> temporal_state_space_type;
     typedef gaussian_belief_space<state_space_type, covar_space_type> belief_space_type;
+    typedef pp::temporal_space<belief_space_type, pp::time_poisson_topology, pp::time_distance_only> temporal_belief_space_type;
     typedef gaussian_belief_state< point_type,  covar_type > state_belief_type;
     typedef gaussian_belief_state< input_type,  covar_type > input_belief_type;
     typedef gaussian_belief_state< output_type, covar_type > output_belief_type;
@@ -687,12 +696,16 @@ class airship3D_imdt_emdJ_sys : public named_object {
     typedef covar_topology< covar_type > covar_space_type;
     typedef pp::temporal_space<state_space_type, pp::time_poisson_topology, pp::time_distance_only> temporal_state_space_type;
     typedef gaussian_belief_space<state_space_type, covar_space_type> belief_space_type;
+    typedef pp::temporal_space<belief_space_type, pp::time_poisson_topology, pp::time_distance_only> temporal_belief_space_type;
     typedef gaussian_belief_state< point_type,  covar_type > state_belief_type;
     typedef gaussian_belief_state< input_type,  covar_type > input_belief_type;
     typedef gaussian_belief_state< output_type, covar_type > output_belief_type;
     
     virtual shared_ptr< temporal_state_space_type > get_temporal_state_space(double aStartTime = 0.0, double aEndTime = 1.0) const;
     virtual shared_ptr< state_space_type > get_state_space() const;
+    
+    virtual shared_ptr< temporal_belief_space_type > get_temporal_belief_space(double aStartTime = 0.0, double aEndTime = 1.0) const;
+    virtual shared_ptr< belief_space_type > get_belief_space() const;
     
     virtual state_belief_type get_zero_state_belief(double aCovValue = 10.0) const;
     virtual input_belief_type get_zero_input_belief(double aCovValue = 1.0) const;
@@ -915,6 +928,7 @@ class airship3D_gyro_imdt_emdJ_sys : public airship3D_imdt_emdJ_sys {
     typedef covar_topology< covar_type > covar_space_type;
     typedef pp::temporal_space<state_space_type, pp::time_poisson_topology, pp::time_distance_only> temporal_state_space_type;
     typedef gaussian_belief_space<state_space_type, covar_space_type> belief_space_type;
+    typedef pp::temporal_space<belief_space_type, pp::time_poisson_topology, pp::time_distance_only> temporal_belief_space_type;
     typedef gaussian_belief_state< point_type,  covar_type > state_belief_type;
     typedef gaussian_belief_state< input_type,  covar_type > input_belief_type;
     typedef gaussian_belief_state< output_type, covar_type > output_belief_type;

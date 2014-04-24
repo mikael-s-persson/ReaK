@@ -32,8 +32,10 @@
 
 #include "serialization/archiver_factory.hpp"
 
-#include "recorders/tcp_recorder.hpp"
-#include "recorders/udp_recorder.hpp"
+#include "ctrl_sys/tsos_aug_inv_kalman_filter.hpp"
+#include "ctrl_sys/augmented_to_state_mapping.hpp"
+
+#include "recorders/data_record_options.hpp"
 
 namespace ReaK {
   
@@ -171,8 +173,10 @@ double TargetPredConfigWidget::getMass() const {
 };
 
 
-const mat<double,mat_structure::symmetric>& TargetPredConfigWidget::getInertiaTensor() const { return inertia_storage->inertia_tensor; };
-    
+const mat<double,mat_structure::symmetric>& TargetPredConfigWidget::getInertiaTensor() const { 
+  return inertia_storage->inertia_tensor;
+};
+
 
 mat<double,mat_structure::diagonal> TargetPredConfigWidget::getInputDisturbance() const {
   mat<double,mat_structure::diagonal> result(6,true);
@@ -236,6 +240,10 @@ std::string TargetPredConfigWidget::getServerAddress() const {
 
 int TargetPredConfigWidget::getPortNumber() const {
   return this->port_spin->value();
+};
+
+bool TargetPredConfigWidget::useRawUDP() const {
+  return this->raw_udp_radio->isChecked();
 };
 
 bool TargetPredConfigWidget::useUDP() const {
@@ -677,6 +685,155 @@ QProcess prediction_updater::side_script;
 };
 
 
+template <typename Sat3DSystemType>
+void start_state_predictions(shared_ptr< Sat3DSystemType > satellite3D_system, 
+                             const ctrl::satellite_predictor_options& sat_options,
+                             shared_ptr< recorder::data_extractor > data_in
+     ) {
+  using namespace ctrl;
+  using namespace pp;
+  
+  typedef typename Sat3DSystemType::state_space_type StateSpaceType;
+  typedef typename Sat3DSystemType::temporal_state_space_type TempSpaceType;
+  typedef typename Sat3DSystemType::belief_space_type BeliefSpaceType;
+  typedef typename Sat3DSystemType::temporal_belief_space_type TempBeliefSpaceType;
+  typedef typename Sat3DSystemType::covar_type CovarType;
+  typedef typename CovarType::matrix_type CovarMatType;
+  
+  typedef typename Sat3DSystemType::point_type StateType;
+  typedef typename Sat3DSystemType::state_belief_type StateBeliefType;
+  typedef typename Sat3DSystemType::input_belief_type InputBeliefType;
+  typedef typename Sat3DSystemType::output_belief_type OutputBeliefType;
+  
+  typedef typename topology_traits< TempBeliefSpaceType >::point_type TempBeliefPointType;
+  
+  
+  shared_ptr< TempSpaceType > sat_temp_space = satellite3D_system->get_temporal_state_space(0.0, sat_options.predict_time_horizon);
+  
+  shared_ptr< TempBeliefSpaceType > sat_temp_belief_space = satellite3D_system->get_temporal_belief_space(0.0, sat_options.predict_time_horizon);
+  
+  InputBeliefType b_u;
+  b_u.set_mean_state(vect_n<double>(0.0,0.0,0.0,0.0,0.0,0.0));
+  b_u.set_covariance(CovarType(CovarMatType(sat_options.input_disturbance)));
+  
+  OutputBeliefType b_z;
+  b_z.set_mean_state(vect_n<double>(0.0,0.0,0.0,1.0,0.0,0.0,0.0));
+  b_z.set_covariance(CovarType(CovarMatType(sat_options.measurement_noise)));
+  
+  StateBeliefType b = satellite3D_system->get_zero_state_belief(10.0);
+  
+  double last_time = 0.0;
+  double current_Pnorm = norm_2(b.get_covariance().get_matrix());
+  recorder::named_value_row nvr_in = data_in->getFreshNamedValueRow();
+  
+  try {
+    while ( current_Pnorm > sat_options.predict_time_horizon ) {
+      
+      (*data_in) >> nvr_in;
+      
+      vect_n<double> z(nvr_in["p_x"], nvr_in["p_y"], nvr_in["p_z"], 
+                       nvr_in["q_0"], nvr_in["q_1"], nvr_in["q_2"], nvr_in["q_3"]);
+      
+      try {
+        
+        vect<double,3> w(nvr_in["w_x"], nvr_in["w_y"], nvr_in["w_z"]);
+        z.resize(10);
+        z[7] = w[0]; z[8] = w[1]; z[9] = w[2];
+        
+        vect<double,3> a(nvr_in["acc_x"], nvr_in["acc_y"], nvr_in["acc_z"]);
+        vect<double,3> m(nvr_in["mag_x"], nvr_in["mag_y"], nvr_in["mag_z"]);
+        z.resize(16);
+        z[10] = a[0]; a[11] = a[1]; z[12] = a[2];
+        z[13] = m[0]; a[14] = m[1]; z[15] = m[2];
+        
+      } catch(ReaK::recorder::out_of_bounds& e) { RK_UNUSED(e); };
+      
+      b_z.set_mean_state(z);
+      b_u.set_mean_state(vect_n<double>(
+        nvr_in["f_x"], nvr_in["f_y"], nvr_in["f_z"], 
+        nvr_in["t_x"], nvr_in["t_y"], nvr_in["t_z"]));
+      
+      tsos_aug_inv_kalman_filter_step(*satellite3D_system, 
+                                      sat_temp_space->get_space_topology(), 
+                                      b, b_u, b_z, last_time);
+      
+      current_Pnorm = norm_2(b.get_covariance().get_matrix());
+      
+      last_time = nvr_in["time"];
+      
+    };
+  } catch (std::exception& e) {
+    std::cerr << "An error occurred during the initial phase of measurement streaming! Exception: " << e.what() << std::endl;
+    return;
+  };
+  
+  
+  
+  typedef constant_trajectory< vector_topology< vect_n<double> > > InputTrajType;
+  
+  typedef typename try_TSOSAIKF_belief_transfer_factory<Sat3DSystemType>::type PredFactoryType;
+  typedef belief_predicted_trajectory<BeliefSpaceType, PredFactoryType, InputTrajType> BeliefPredTrajType;
+  
+  typename BeliefPredTrajType::assumption pred_assumpt = BeliefPredTrajType::no_measurements;
+  switch(sat_options.predict_assumption) {
+    case satellite_predictor_options::no_measurements:  // No future measurements
+      pred_assumpt = BeliefPredTrajType::no_measurements;
+      break;
+    case satellite_predictor_options::most_likely_measurements:  // Maximum-likelihood Measurements
+      pred_assumpt = BeliefPredTrajType::most_likely_measurements;
+      break;
+    case satellite_predictor_options::full_certainty:  // Full certainty
+      // FIXME: make this into what it really should be (what is that? ... no sure)
+      pred_assumpt = BeliefPredTrajType::most_likely_measurements;
+      break;
+  };
+  
+  shared_ptr< BeliefPredTrajType > predictor(new BeliefPredTrajType(
+    sat_temp_belief_space, 
+    TempBeliefPointType(last_time, b), 
+    InputTrajType( vect_n<double>(0.0,0.0,0.0,0.0,0.0,0.0) ),
+    PredFactoryType(satellite3D_system, 
+                    CovarMatType(sat_options.input_disturbance), 
+                    CovarMatType(sat_options.measurement_noise)),
+    pred_assumpt
+  ));
+  
+  typedef transformed_trajectory<TempSpaceType, BeliefPredTrajType, maximum_likelihood_map> MLTrajType;
+  
+  shared_ptr< MLTrajType > ML_traj(new MLTrajType(sat_temp_space, predictor));
+  
+  
+  typedef se3_1st_order_topology<double>::type BaseSpaceType;
+  typedef temporal_space<BaseSpaceType, time_poisson_topology, time_distance_only> TemporalBaseSpaceType;
+  
+  typedef trajectory_base<TemporalBaseSpaceType> StateTrajType;
+  
+//   augmented_to_state_map
+  
+  
+  // Start a thread that will update the predictor as new data comes in.
+  
+  if( prediction_updater::executer ) {
+    prediction_updater::should_stop = true;
+    prediction_updater::executer->join();
+    prediction_updater::executer.reset();
+  };
+  
+//   prediction_updater::should_stop = false;
+//   prediction_updater::executer = shared_ptr< ReaKaux::thread >(new ReaKaux::thread(
+//     prediction_updater(
+//       predictor,
+//       satellite3D_system,
+//       sat_temp_space, nvr_in, data_in,
+//       b, b_u, b_z, last_time, sat_options.predict_Pnorm_threshold)));
+//   
+  
+  
+  
+};
+
+
+
 void TargetPredConfigWidget::startStatePrediction() {
   
   std::string start_script = getStartScript();
@@ -687,206 +844,73 @@ void TargetPredConfigWidget::startStatePrediction() {
   
   using namespace ctrl;
   
-  typedef satellite_predict_data::system_type SysType;
   
-  switch(this->kf_model_selection->currentIndex()) {
-    case 0:  // IEKF
-      satellite3D_system = shared_ptr< SysType >(
-        new satellite3D_inv_dt_system("satellite3D_inv", getMass(), getInertiaTensor(), getTimeStep())
-      );
-      break;
-    case 1:  // IMKF
-      satellite3D_system = shared_ptr< SysType >(
-        new satellite3D_imdt_sys("satellite3D_invmom", getMass(), getInertiaTensor(), getTimeStep())
-      );
-      break;
-    case 2:  // IMKFv2
-      satellite3D_system = shared_ptr< SysType >(
-        new satellite3D_imdt_sys("satellite3D_invmom", getMass(), getInertiaTensor(), getTimeStep(), 2)
-      );
-      break;
-  };
+  // ---------- Create input data stream ----------
   
+  recorder::data_stream_options data_in_opt;
   
-  typedef satellite_predict_data::state_space_type StateSpaceType;
-  typedef pp::topology_traits< StateSpaceType >::point_type StatePointType;
+  if( useTCP() )
+    data_in_opt.kind = recorder::data_stream_options::tcp_stream;
+  else if( useUDP() )
+    data_in_opt.kind = recorder::data_stream_options::udp_stream;
+  else 
+    data_in_opt.kind = recorder::data_stream_options::raw_udp_stream;
   
-  typedef satellite_predict_data::temp_state_space_type TempStateSpaceType;
-  
-  shared_ptr< TempStateSpaceType > sat_temp_space(new TempStateSpaceType(
-    "satellite3D_temporal_space",
-    StateSpaceType(),
-    pp::time_poisson_topology("satellite3D_time_space", getTimeStep(), getTimeHorizon())));
-  
-  
-  typedef satellite_predict_data::input_type InputType;
-  typedef satellite_predict_data::input_traj_type InputTrajType;
-  
-  InputTrajType in_cst_traj( InputType(0.0,0.0,0.0,0.0,0.0,0.0) );
-  
-  
-  typedef satellite_predict_data::pred_factory_type PredFactoryType;
-  typedef PredFactoryType::matrix_type NoiseMatType;
-  
-  
-  typedef satellite_predict_data::covar_type StateCovarType;
-  typedef satellite_predict_data::covar_space_type CovarSpaceType;
-  typedef satellite_predict_data::belief_space_type BeliefSpaceType;
-  typedef pp::topology_traits< BeliefSpaceType >::point_type BeliefPointType;
-  
-  
-  StatePointType x_init;
-  set_position(x_init, vect<double,3>(0.0, 0.0, 0.0));
-  set_velocity(x_init, vect<double,3>(0.0, 0.0, 0.0));
-  set_quaternion(x_init, unit_quat<double>());
-  set_ang_velocity(x_init, vect<double,3>(0.0, 0.0, 0.0));
-  
-  BeliefPointType b_init(x_init, StateCovarType(StateCovarType::matrix_type(mat<double,mat_structure::diagonal>(12,100.0))));
-  
-  
-  typedef satellite_predict_data::belief_pred_traj_type BeliefPredTrajType;
-  
-  BeliefPredTrajType::assumption pred_assumpt = BeliefPredTrajType::no_measurements;
-  switch(this->predict_assumption_selection->currentIndex()) {
-    case 0:  // No future measurements
-      pred_assumpt = BeliefPredTrajType::no_measurements;
-      break;
-    case 1:  // Maximum-likelihood Measurements
-      pred_assumpt = BeliefPredTrajType::most_likely_measurements;
-      break;
-    case 2:  // Full certainty
-      // FIXME: make this into what it really should be (what is that? ... no sure)
-      pred_assumpt = BeliefPredTrajType::most_likely_measurements;
-      break;
-  };
-  
-//   typedef pp::temporal_space<BeliefTopology, pp::time_poisson_topology, pp::time_distance_only> topology;
-  typedef BeliefPredTrajType::topology TempBeliefSpaceType;
-  typedef pp::topology_traits< TempBeliefSpaceType >::point_type TempBeliefPointType;
-  
-  shared_ptr< TempBeliefSpaceType > sat_temp_belief_space(new TempBeliefSpaceType(
-    "satellite3D_temporal_belief_space",
-    BeliefSpaceType(shared_ptr< StateSpaceType > (new StateSpaceType()), 
-                    shared_ptr< CovarSpaceType >(new CovarSpaceType(12)), "satellite3D_belief_space"),
-    pp::time_poisson_topology("satellite3D_time_space", getTimeStep(), getTimeHorizon())));
-  
-  
-  pred_anim_data.predictor = shared_ptr< BeliefPredTrajType >(new BeliefPredTrajType(
-    sat_temp_belief_space, 
-    TempBeliefPointType(0.0, b_init), 
-    in_cst_traj,
-    PredFactoryType(satellite3D_system, NoiseMatType(getInputDisturbance()), NoiseMatType(getMeasurementNoise())),
-    pred_assumpt
-  ));
-  
-  
-  typedef satellite_predict_data::ML_traj_type MLTrajType;
-  
-  pred_anim_data.trajectory = shared_ptr< MLTrajType >(new MLTrajType(sat_temp_space, pred_anim_data.predictor));
-  
-  typedef discrete_sss_traits< SysType >::output_type OutputType;
-  typedef covariance_matrix< vect_n<double> > IOCovType;
-  typedef IOCovType::matrix_type IOCovMatrixType;
-  typedef gaussian_belief_state< InputType,  IOCovType > InputBeliefType;
-  typedef gaussian_belief_state< OutputType, IOCovType > OutputBeliefType;
-  
-  // NOTE: at this point, I have constructed the trajectories needed for planning.
-  //  Now, I need to start streaming measurements into it, and do so until I have good enough
-  //  estimates to be able to construct a real predicted trajectory.
-  
-  
-  shared_ptr< recorder::data_extractor > data_in;
   {
     std::stringstream ss;
     ss << getServerAddress() << ":" << getPortNumber();
-    if( useTCP() )
-      data_in = shared_ptr< recorder::data_extractor >(new recorder::tcp_extractor(ss.str()));
-    else 
-      data_in = shared_ptr< recorder::data_extractor >(new recorder::udp_extractor(ss.str()));
+    data_in_opt.file_name = ss.str();
   };
   
-  std::vector<std::string> names_in(data_in->getColCount(), "");
-  for(std::size_t i = 0; i < names_in.size(); ++i)
-    (*data_in) >> names_in[i];
+  data_in_opt.time_sync_name = "time";
   
-  if( ( names_in.size() < 8 ) ||
-      ( names_in[0] != "time" ) ||
-      ( names_in[1] != "p_x" ) ||
-      ( names_in[2] != "p_y" ) ||
-      ( names_in[3] != "p_z" ) ||
-      ( names_in[4] != "q_0" ) ||
-      ( names_in[5] != "q_1" ) ||
-      ( names_in[6] != "q_2" ) ||
-      ( names_in[7] != "q_3" ) ) {
-    QMessageBox::information(this,
-                "Data stream seems to be corrupt!",
-                "The meta-data obtained from the data-stream is corrupt or of the wrong format!",
-                QMessageBox::Ok);
-    return;
-  };
+  sat_options.imbue_names_for_received_meas(data_in_opt);
   
-  recorder::named_value_row nvr_in  = data_in->getFreshNamedValueRow();
+  std::vector<std::string> names_in;
+  shared_ptr< recorder::data_extractor > data_in;
+  boost::tie(data_in, names_in) = data_in_opt.create_extractor();
   
-  InputBeliefType b_u;
-  OutputBeliefType b_z;
-  BeliefPointType b = b_init;
   
-  b_u.set_mean_state(vect_n<double>(0.0,0.0,0.0,0.0,0.0,0.0));
-  b_u.set_covariance(IOCovType(IOCovMatrixType(getInputDisturbance())));
-  b_z.set_mean_state(vect_n<double>(0.0,0.0,0.0,1.0,0.0,0.0,0.0));
-  b_z.set_covariance(IOCovType(IOCovMatrixType(getMeasurementNoise())));
+  // ---------- Call impl function with the appropriate system ----------
   
-  double last_time = 0.0;
-  double current_Pnorm = norm_2(b.get_covariance().get_matrix());
+  typedef satellite_predictor_options sat_opt;
   
-  try {
-    while ( current_Pnorm > getPThreshold() ) {
-      
-      (*data_in) >> nvr_in;
-      
-      b_z.set_mean_state(vect_n<double>(
-        nvr_in["p_x"], nvr_in["p_y"], nvr_in["p_z"],
-        nvr_in["q_0"], nvr_in["q_1"], nvr_in["q_2"], nvr_in["q_3"]));
-      
-      invariant_kalman_filter_step(*satellite3D_system, 
-                                  sat_temp_space->get_space_topology(), 
-                                  b, b_u, b_z, last_time);
-      
-//       const StatePointType& x_mean = b.get_mean_state();
-//       result_vect[range(0,2)]   = get_position(x_mean);
-//       result_vect[range(3,6)]   = get_quaternion(x_mean);
-//       result_vect[range(7,9)]   = get_velocity(x_mean);
-//       result_vect[range(10,12)] = get_ang_velocity(x_mean);
-      
-      current_Pnorm = norm_2(b.get_covariance().get_matrix());
-      last_time = nvr_in["time"];
-      
+  if(sat_options.system_kind & sat_opt::gyro_measures) {
+    switch(sat_options.system_kind & 15) {
+      case sat_opt::invariant:  // IEKF
+      case sat_opt::invar_mom:  // IMKF
+      case sat_opt::invar_mom2:  // IMKFv2
+        start_state_predictions(sat_options.get_gyro_sat_system(), sat_options, data_in);
+        break;
+      case sat_opt::invar_mom_em:  // IMKF_em
+//         start_state_predictions(sat_options.get_gyro_em_airship_system(), sat_options, data_in);
+//         break;
+      case sat_opt::invar_mom_emd:  // IMKF_emd
+        start_state_predictions(sat_options.get_gyro_emd_airship_system(), sat_options, data_in);
+        break;
+      case sat_opt::invar_mom_emdJ:  // IMKF_emdJ
+        start_state_predictions(sat_options.get_gyro_emdJ_airship_system(), sat_options, data_in);
+        break;
     };
-  } catch (std::exception& e) {
-    QMessageBox::information(this,
-                "Error!",
-                "An error occurred during the initial phase of measurement streaming!",
-                QMessageBox::Ok);
-    return;
+  } else {
+    switch(sat_options.system_kind & 15) {
+      case sat_opt::invariant:  // IEKF
+      case sat_opt::invar_mom:  // IMKF
+      case sat_opt::invar_mom2:  // IMKFv2
+        start_state_predictions(sat_options.get_base_sat_system(), sat_options, data_in);
+        break;
+      case sat_opt::invar_mom_em:  // IMKF_em
+        start_state_predictions(sat_options.get_em_airship_system(), sat_options, data_in);
+        break;
+      case sat_opt::invar_mom_emd:  // IMKF_emd
+        start_state_predictions(sat_options.get_emd_airship_system(), sat_options, data_in);
+        break;
+      case sat_opt::invar_mom_emdJ:  // IMKF_emdJ
+        start_state_predictions(sat_options.get_emdJ_airship_system(), sat_options, data_in);
+        break;
+    };
   };
   
-  pred_anim_data.predictor->set_initial_point(TempBeliefPointType(last_time, b));
-  
-  // Start a thread that will update the predictor as new data comes in.
-  
-  if( prediction_updater::executer ) {
-    prediction_updater::should_stop = true;
-    prediction_updater::executer->join();
-    prediction_updater::executer.reset();
-  };
-  
-  prediction_updater::should_stop = false;
-  prediction_updater::executer = shared_ptr< ReaKaux::thread >(new ReaKaux::thread(
-    prediction_updater(
-    pred_anim_data.predictor,
-    satellite3D_system,
-    sat_temp_space, nvr_in, data_in,
-    b, b_u, b_z, last_time,  getPThreshold())));
   
 };
 

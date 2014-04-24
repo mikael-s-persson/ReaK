@@ -162,6 +162,24 @@ shared_ptr< airship3D_imdt_em_sys::state_space_type > airship3D_imdt_em_sys::get
   )));
 };
 
+
+shared_ptr< airship3D_imdt_em_sys::temporal_belief_space_type > airship3D_imdt_em_sys::get_temporal_belief_space(double aStartTime, double aEndTime) const {
+  return shared_ptr< temporal_belief_space_type >(new temporal_belief_space_type(
+    "airship3D_em_temporal_belief_space",
+    belief_space_type(get_state_space(), 
+                      shared_ptr< covar_space_type >(new covar_space_type(16)), 
+                      "airship3D_em_belief_space"),
+    pp::time_poisson_topology("airship3D_em_time_space", mDt, (aEndTime - aStartTime) * 0.5)));
+};
+
+shared_ptr< airship3D_imdt_em_sys::belief_space_type > airship3D_imdt_em_sys::get_belief_space() const {
+  return shared_ptr< belief_space_type >(new belief_space_type(
+    get_state_space(), 
+    shared_ptr< covar_space_type >(new covar_space_type(16)), 
+    "airship3D_em_belief_space"));
+};
+
+
 #undef RK_D_INF
 
 
@@ -727,6 +745,23 @@ shared_ptr< airship3D_imdt_emd_sys::state_space_type > airship3D_imdt_emd_sys::g
     pp::line_segment_topology<double>("rot_drag_param_space", 0.0, RK_D_INF)
   )));
 };
+
+shared_ptr< airship3D_imdt_emd_sys::temporal_belief_space_type > airship3D_imdt_emd_sys::get_temporal_belief_space(double aStartTime, double aEndTime) const {
+  return shared_ptr< temporal_belief_space_type >(new temporal_belief_space_type(
+    "airship3D_emd_temporal_belief_space",
+    belief_space_type(get_state_space(), 
+                      shared_ptr< covar_space_type >(new covar_space_type(18)), 
+                      "airship3D_emd_belief_space"),
+    pp::time_poisson_topology("airship3D_emd_time_space", mDt, (aEndTime - aStartTime) * 0.5)));
+};
+
+shared_ptr< airship3D_imdt_emd_sys::belief_space_type > airship3D_imdt_emd_sys::get_belief_space() const {
+  return shared_ptr< belief_space_type >(new belief_space_type(
+    get_state_space(), 
+    shared_ptr< covar_space_type >(new covar_space_type(18)), 
+    "airship3D_emd_belief_space"));
+};
+
 
 #undef RK_D_INF
 
@@ -1489,6 +1524,22 @@ shared_ptr< airship3D_imdt_emdJ_sys::state_space_type > airship3D_imdt_emdJ_sys:
     pp::hyperball_topology< vect<double,3> >("principal_inertia_param_space", vect<double,3>(0.0,0.0,0.0), RK_D_INF),
     pp::hyperball_topology< vect<double,3> >("cross_inertia_param_space", vect<double,3>(0.0,0.0,0.0), RK_D_INF)
   )));
+};
+
+shared_ptr< airship3D_imdt_emdJ_sys::temporal_belief_space_type > airship3D_imdt_emdJ_sys::get_temporal_belief_space(double aStartTime, double aEndTime) const {
+  return shared_ptr< temporal_belief_space_type >(new temporal_belief_space_type(
+    "airship3D_emdJ_temporal_belief_space",
+    belief_space_type(get_state_space(), 
+                      shared_ptr< covar_space_type >(new covar_space_type(24)), 
+                      "airship3D_emdJ_belief_space"),
+    pp::time_poisson_topology("airship3D_emdJ_time_space", mDt, (aEndTime - aStartTime) * 0.5)));
+};
+
+shared_ptr< airship3D_imdt_emdJ_sys::belief_space_type > airship3D_imdt_emdJ_sys::get_belief_space() const {
+  return shared_ptr< belief_space_type >(new belief_space_type(
+    get_state_space(), 
+    shared_ptr< covar_space_type >(new covar_space_type(24)), 
+    "airship3D_emdJ_belief_space"));
 };
 
 #undef RK_D_INF

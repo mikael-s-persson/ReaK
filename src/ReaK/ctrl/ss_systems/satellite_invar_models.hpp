@@ -269,6 +269,7 @@ class satellite3D_imdt_sys : public satellite3D_inv_dt_system {
     typedef satellite3D_inv_dt_system::covar_space_type covar_space_type;
     typedef satellite3D_inv_dt_system::temporal_state_space_type temporal_state_space_type;
     typedef satellite3D_inv_dt_system::belief_space_type belief_space_type;
+    typedef satellite3D_inv_dt_system::temporal_belief_space_type temporal_belief_space_type;
     typedef satellite3D_inv_dt_system::state_belief_type state_belief_type;
     typedef satellite3D_inv_dt_system::input_belief_type input_belief_type;
     typedef satellite3D_inv_dt_system::output_belief_type output_belief_type;
@@ -378,6 +379,7 @@ class satellite3D_gyro_imdt_sys : public satellite3D_gyro_inv_dt_system {
     typedef satellite3D_gyro_inv_dt_system::covar_space_type covar_space_type;
     typedef satellite3D_gyro_inv_dt_system::temporal_state_space_type temporal_state_space_type;
     typedef satellite3D_gyro_inv_dt_system::belief_space_type belief_space_type;
+    typedef satellite3D_gyro_inv_dt_system::temporal_belief_space_type temporal_belief_space_type;
     typedef satellite3D_gyro_inv_dt_system::state_belief_type state_belief_type;
     typedef satellite3D_gyro_inv_dt_system::input_belief_type input_belief_type;
     typedef satellite3D_gyro_inv_dt_system::output_belief_type output_belief_type;
@@ -485,6 +487,7 @@ class satellite3D_IMU_imdt_sys : public satellite3D_imdt_sys {
     typedef satellite3D_imdt_sys::covar_space_type covar_space_type;
     typedef satellite3D_imdt_sys::temporal_state_space_type temporal_state_space_type;
     typedef satellite3D_imdt_sys::belief_space_type belief_space_type;
+    typedef satellite3D_imdt_sys::temporal_belief_space_type temporal_belief_space_type;
     typedef satellite3D_imdt_sys::state_belief_type state_belief_type;
     typedef satellite3D_imdt_sys::input_belief_type input_belief_type;
     typedef satellite3D_imdt_sys::output_belief_type output_belief_type;

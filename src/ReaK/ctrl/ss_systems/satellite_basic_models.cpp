@@ -54,6 +54,24 @@ shared_ptr< satellite3D_lin_dt_system::state_space_type > satellite3D_lin_dt_sys
     RK_D_INF, RK_D_INF)));
 };
 
+
+shared_ptr< satellite3D_lin_dt_system::temporal_belief_space_type > satellite3D_lin_dt_system::get_temporal_belief_space(double aStartTime, double aEndTime) const {
+  return shared_ptr< temporal_belief_space_type >(new temporal_belief_space_type(
+    "satellite3D_temporal_belief_space",
+    belief_space_type(get_state_space(), 
+                      shared_ptr< covar_space_type >(new covar_space_type(13)), 
+                      "satellite3D_belief_space"),
+    pp::time_poisson_topology("satellite3D_time_space", mDt, (aEndTime - aStartTime) * 0.5)));
+};
+
+shared_ptr< satellite3D_lin_dt_system::belief_space_type > satellite3D_lin_dt_system::get_belief_space() const {
+  return shared_ptr< belief_space_type >(new belief_space_type(
+    get_state_space(), 
+    shared_ptr< covar_space_type >(new covar_space_type(13)), 
+    "satellite3D_belief_space"));
+};
+
+
 #undef RK_D_INF
 
 satellite3D_lin_dt_system::state_belief_type satellite3D_lin_dt_system::get_zero_state_belief(double aCovValue) const {
@@ -301,6 +319,26 @@ void satellite3D_gyro_lin_dt_system::get_output_function_blocks(
 
 
 
+
+#define RK_D_INF std::numeric_limits<double>::infinity()
+
+shared_ptr< satellite3D_inv_dt_system::temporal_belief_space_type > satellite3D_inv_dt_system::get_temporal_belief_space(double aStartTime, double aEndTime) const {
+  return shared_ptr< temporal_belief_space_type >(new temporal_belief_space_type(
+    "satellite3D_temporal_belief_space",
+    belief_space_type(get_state_space(), 
+                      shared_ptr< covar_space_type >(new covar_space_type(12)), 
+                      "satellite3D_belief_space"),
+    pp::time_poisson_topology("satellite3D_time_space", mDt, (aEndTime - aStartTime) * 0.5)));
+};
+
+shared_ptr< satellite3D_inv_dt_system::belief_space_type > satellite3D_inv_dt_system::get_belief_space() const {
+  return shared_ptr< belief_space_type >(new belief_space_type(
+    get_state_space(), 
+    shared_ptr< covar_space_type >(new covar_space_type(12)), 
+    "satellite3D_belief_space"));
+};
+
+#undef RK_D_INF
 
 
 satellite3D_inv_dt_system::state_belief_type satellite3D_inv_dt_system::get_zero_state_belief(double aCovValue) const {

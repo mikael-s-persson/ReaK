@@ -260,6 +260,7 @@ ct_ih_lqr_controller        0xC2300013   bin: 1100 0010 0011 0000 0000 0000 0001
 maximum_likelihood_map      0xC2300014   bin: 1100 0010 0011 0000 0000 0000 0001 0100  D-R
 discrete_ss_predicted_traj  0xC2300015   bin: 1100 0010 0011 0000 0000 0000 0001 0101  D-R
 state_to_output_map         0xC2300016   bin: 1100 0010 0011 0000 0000 0000 0001 0110  D-R
+augmented_to_state_map      0xC2300017   bin: 1100 0010 0011 0000 0000 0000 0001 0111  D-R
 
 
 

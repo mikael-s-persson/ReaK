@@ -792,6 +792,24 @@ class TSOSAIKF_belief_transfer_factory : public serialization::serializable {
 
 
 
+template <typename InvariantSystem>
+struct try_TSOSAIKF_belief_transfer_factory {
+  typedef typename boost::mpl::if_<
+    is_invariant_system<InvariantSystem>,
+    boost::mpl::if_<
+      is_augmented_ss_system<InvariantSystem>,
+      TSOSAIKF_belief_transfer_factory<InvariantSystem>,
+      IKF_belief_transfer_factory<InvariantSystem> >,
+    boost::mpl::if_<
+      is_augmented_ss_system<InvariantSystem>,
+      TSOSAKF_belief_transfer_factory<InvariantSystem>,
+      KF_belief_transfer_factory<InvariantSystem> >
+    >::type::type type;
+};
+
+
+
+
 };
 
 };

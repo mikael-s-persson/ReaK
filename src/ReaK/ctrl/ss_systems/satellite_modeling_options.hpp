@@ -400,6 +400,8 @@ public:
    */
   output_belief_type get_zero_output_belief() const;
   
+  void imbue_names_for_received_meas(recorder::data_stream_options& data_opt) const;
+  
   void imbue_names_for_generated_meas(recorder::data_stream_options& data_opt) const;
   void imbue_names_for_meas_stddevs(recorder::data_stream_options& data_opt) const;
   

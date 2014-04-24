@@ -607,7 +607,7 @@
             <string>UDP/IP</string>
            </property>
            <property name="checked">
-            <bool>true</bool>
+            <bool>false</bool>
            </property>
           </widget>
          </item>
@@ -615,6 +615,16 @@
           <widget class="QRadioButton" name="tcp_radio">
            <property name="text">
             <string>TCP/IP</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QRadioButton" name="raw_udp_radio">
+           <property name="text">
+            <string>Raw UDP/IP</string>
+           </property>
+           <property name="checked">
+            <bool>true</bool>
            </property>
           </widget>
          </item>

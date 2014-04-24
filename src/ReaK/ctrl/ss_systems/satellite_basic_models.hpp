@@ -102,12 +102,16 @@ class satellite3D_lin_dt_system : public named_object {
     typedef covar_topology< covar_type > covar_space_type;
     typedef pp::temporal_space<state_space_type, pp::time_poisson_topology, pp::time_distance_only> temporal_state_space_type;
     typedef gaussian_belief_space<state_space_type, covar_space_type> belief_space_type;
+    typedef pp::temporal_space<belief_space_type, pp::time_poisson_topology, pp::time_distance_only> temporal_belief_space_type;
     typedef gaussian_belief_state< point_type,  covar_type > state_belief_type;
     typedef gaussian_belief_state< input_type,  covar_type > input_belief_type;
     typedef gaussian_belief_state< output_type, covar_type > output_belief_type;
     
     virtual shared_ptr< temporal_state_space_type > get_temporal_state_space(double aStartTime = 0.0, double aEndTime = 1.0) const;
     virtual shared_ptr< state_space_type > get_state_space() const;
+    
+    virtual shared_ptr< temporal_belief_space_type > get_temporal_belief_space(double aStartTime = 0.0, double aEndTime = 1.0) const;
+    virtual shared_ptr< belief_space_type > get_belief_space() const;
     
     virtual state_belief_type get_zero_state_belief(double aCovValue = 10.0) const;
     virtual input_belief_type get_zero_input_belief(double aCovValue = 1.0) const;
@@ -235,6 +239,7 @@ class satellite3D_gyro_lin_dt_system : public satellite3D_lin_dt_system {
     typedef satellite3D_lin_dt_system::covar_space_type covar_space_type;
     typedef satellite3D_lin_dt_system::temporal_state_space_type temporal_state_space_type;
     typedef satellite3D_lin_dt_system::belief_space_type belief_space_type;
+    typedef satellite3D_lin_dt_system::temporal_belief_space_type temporal_belief_space_type;
     typedef satellite3D_lin_dt_system::state_belief_type state_belief_type;
     typedef satellite3D_lin_dt_system::input_belief_type input_belief_type;
     typedef satellite3D_lin_dt_system::output_belief_type output_belief_type;
@@ -323,6 +328,7 @@ class satellite3D_inv_dt_system : public satellite3D_lin_dt_system {
     typedef satellite3D_lin_dt_system::covar_space_type covar_space_type;
     typedef satellite3D_lin_dt_system::temporal_state_space_type temporal_state_space_type;
     typedef satellite3D_lin_dt_system::belief_space_type belief_space_type;
+    typedef satellite3D_lin_dt_system::temporal_belief_space_type temporal_belief_space_type;
     typedef satellite3D_lin_dt_system::state_belief_type state_belief_type;
     typedef satellite3D_lin_dt_system::input_belief_type input_belief_type;
     typedef satellite3D_lin_dt_system::output_belief_type output_belief_type;
@@ -353,6 +359,9 @@ class satellite3D_inv_dt_system : public satellite3D_lin_dt_system {
     typedef satellite3D_lin_dt_system::matrixD_type matrixD_type;
     
     typedef satellite3D_lin_dt_system::zero_input_trajectory zero_input_trajectory;
+    
+    virtual shared_ptr< temporal_belief_space_type > get_temporal_belief_space(double aStartTime = 0.0, double aEndTime = 1.0) const;
+    virtual shared_ptr< belief_space_type > get_belief_space() const;
     
     virtual state_belief_type get_zero_state_belief(double aCovValue = 10.0) const;
     virtual output_belief_type get_zero_output_belief(double aCovValue = 1.0) const;
@@ -472,6 +481,7 @@ class satellite3D_gyro_inv_dt_system : public satellite3D_inv_dt_system {
     typedef satellite3D_inv_dt_system::covar_space_type covar_space_type;
     typedef satellite3D_inv_dt_system::temporal_state_space_type temporal_state_space_type;
     typedef satellite3D_inv_dt_system::belief_space_type belief_space_type;
+    typedef satellite3D_inv_dt_system::temporal_belief_space_type temporal_belief_space_type;
     typedef satellite3D_inv_dt_system::state_belief_type state_belief_type;
     typedef satellite3D_inv_dt_system::input_belief_type input_belief_type;
     typedef satellite3D_inv_dt_system::output_belief_type output_belief_type;

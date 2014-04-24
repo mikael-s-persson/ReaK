@@ -36,6 +36,7 @@
 #include "topologies/temporal_space.hpp"
 #include "interpolation/constant_trajectory.hpp"
 #include "path_planning/transformed_trajectory.hpp"
+#include "path_planning/trajectory_base.hpp"
 
 class SoTimerSensor;
 
@@ -59,8 +60,10 @@ struct satellite_predict_data {
   typedef ReaK::pp::temporal_space<state_space_type, ReaK::pp::time_poisson_topology, ReaK::pp::time_distance_only> temp_state_space_type;
   typedef ReaK::pp::transformed_trajectory<temp_state_space_type, belief_pred_traj_type, ReaK::ctrl::maximum_likelihood_map> ML_traj_type;
   
+  typedef ReaK::pp::trajectory_base<temp_state_space_type> state_traj_type;
+  
   ReaK::shared_ptr< belief_pred_traj_type > predictor;
-  ReaK::shared_ptr< ML_traj_type > trajectory;
+  ReaK::shared_ptr< state_traj_type > trajectory;
   SoTimerSensor* animation_timer;
   volatile bool enabled;
   
