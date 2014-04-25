@@ -118,7 +118,7 @@ struct SpatialTrajectoryConcept {
   BOOST_CONCEPT_ASSERT((TemporalSpaceConcept<Topology>));
   BOOST_CONCEPT_ASSERT((DistanceMetricConcept< typename spatial_trajectory_traits<SpatialTrajectory>::distance_metric, Topology >));
   
-  SpatialTrajectory p;
+  SpatialTrajectory* p;
   typename temporal_space_traits<Topology>::point_type pt;
   std::pair< typename spatial_trajectory_traits<SpatialTrajectory>::const_waypoint_descriptor, 
              typename temporal_space_traits<Topology>::point_type> w_p;
@@ -129,17 +129,17 @@ struct SpatialTrajectoryConcept {
   
   BOOST_CONCEPT_USAGE(SpatialTrajectoryConcept)
   {
-    pt = p.move_time_diff_from(pt, dt);
-    d = p.travel_distance(pt, pt);
-    pt = p.get_point_at_time(t);
-    w_p = p.move_time_diff_from(w_p, dt);
-    d = p.travel_distance(w_p, w_p);
-    w_p = p.get_waypoint_at_time(t);
+    pt = p->move_time_diff_from(pt, dt);
+    d = p->travel_distance(pt, pt);
+    pt = p->get_point_at_time(t);
+    w_p = p->move_time_diff_from(w_p, dt);
+    d = p->travel_distance(w_p, w_p);
+    w_p = p->get_waypoint_at_time(t);
     
-    t = p.get_start_time();
-    t = p.get_end_time();
+    t = p->get_start_time();
+    t = p->get_end_time();
     
-    const typename spatial_trajectory_traits<SpatialTrajectory>::topology& space = p.get_temporal_space(); RK_UNUSED(space);
+    const typename spatial_trajectory_traits<SpatialTrajectory>::topology& space = p->get_temporal_space(); RK_UNUSED(space);
   };
   
 };

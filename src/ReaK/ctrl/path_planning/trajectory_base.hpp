@@ -49,6 +49,8 @@
 
 #include <lin_alg/mat_num_exceptions.hpp>
 
+#include <boost/any.hpp>
+
 namespace ReaK {
 
 namespace pp {
@@ -65,10 +67,15 @@ class trajectory_base : public seq_trajectory_base<Topology> {
     BOOST_CONCEPT_ASSERT((TemporalSpaceConcept<Topology>));
     
     typedef Topology topology;
+    typedef typename metric_space_traits<topology>::distance_metric_type distance_metric;
     typedef typename topology_traits<topology>::point_type point_type;
     typedef typename topology_traits<topology>::point_difference_type point_difference_type;
     typedef trajectory_base<Topology> self;
     typedef seq_trajectory_base<Topology> base_type;
+    
+    typedef boost::any waypoint_descriptor;
+    typedef boost::any const_waypoint_descriptor;
+    typedef std::pair< const_waypoint_descriptor, point_type> waypoint_pair;
     
     
   public:
@@ -80,6 +87,9 @@ class trajectory_base : public seq_trajectory_base<Topology> {
     explicit trajectory_base(const std::string& aName) : 
                              base_type(aName) {};
     
+    
+    virtual const topology& get_temporal_space() const = 0;
+    
     /**
      * Computes the travel distance between two points, if traveling along the path.
      * \param a The first point.
@@ -87,6 +97,14 @@ class trajectory_base : public seq_trajectory_base<Topology> {
      * \return The travel distance between two points if traveling along the path.
      */
     virtual double travel_distance(const point_type& a, const point_type& b) const = 0;
+    
+    /**
+     * Computes the travel distance between two waypoint-point-pairs, if traveling along the path.
+     * \param a The first waypoint-point-pair.
+     * \param b The second waypoint-point-pair.
+     * \return The travel distance between two points if traveling along the path.
+     */
+    virtual double travel_distance(waypoint_pair& a, waypoint_pair& b) const = 0;
     
     /**
      * Computes the point that is a time-difference away from a point on the trajectory.
@@ -97,11 +115,27 @@ class trajectory_base : public seq_trajectory_base<Topology> {
     virtual point_type move_time_diff_from(const point_type& a, double dt) const = 0;
     
     /**
+     * Computes the waypoint-point-pair that is a time-difference away from a waypoint-point-pair on the trajectory.
+     * \param a The waypoint-point-pair on the trajectory.
+     * \param dt The time to move away from the waypoint-point-pair.
+     * \return The waypoint-point-pair that is a time away from the given waypoint-point-pair.
+     */
+    virtual waypoint_pair move_time_diff_from(const waypoint_pair& a, double dt) const = 0;
+    
+    /**
      * Computes the point that is on the trajectory at the given time.
      * \param t The time at which the point is sought.
      * \return The point that is on the trajectory at the given time.
      */
     virtual point_type get_point_at_time(double t) const = 0;
+    
+    /**
+     * Computes the waypoint-point pair that is on the trajectory at the given time.
+     * \param t The time at which the waypoint-point pair is sought.
+     * \return The waypoint-point pair that is on the trajectory at the given time.
+     */
+    virtual waypoint_pair get_waypoint_at_time(double t) const = 0;
+    
     
     /**
      * Returns the starting time of the trajectory.
@@ -150,19 +184,24 @@ class trajectory_wrapper : public trajectory_base< typename spatial_trajectory_t
     
     BOOST_CONCEPT_ASSERT((SequentialTrajectoryConcept<SpatialTrajectory,topology>));
     
-    typedef typename spatial_trajectory_traits<SpatialTrajectory>::waypoint_descriptor waypoint_descriptor;
-    typedef typename spatial_trajectory_traits<SpatialTrajectory>::const_waypoint_descriptor const_waypoint_descriptor;
     typedef typename temporal_space_traits<topology>::time_topology time_topology;
     typedef typename temporal_space_traits<topology>::space_topology space_topology;
     typedef typename spatial_trajectory_traits<SpatialTrajectory>::distance_metric distance_metric;
     
-    typedef std::pair< const_waypoint_descriptor, point_type> waypoint_pair;
+    typedef typename spatial_trajectory_traits<SpatialTrajectory>::waypoint_descriptor wrapped_waypoint_descriptor;
+    typedef typename spatial_trajectory_traits<SpatialTrajectory>::const_waypoint_descriptor wrapped_const_waypoint_descriptor;
+    typedef std::pair< wrapped_const_waypoint_descriptor, point_type> wrapped_waypoint_pair;
+    
+    typedef typename base_type::waypoint_descriptor waypoint_descriptor;
+    typedef typename base_type::const_waypoint_descriptor const_waypoint_descriptor;
+    typedef typename base_type::waypoint_pair waypoint_pair;
+    
     
     typedef SpatialTrajectory wrapped_type;
     
   protected:
     SpatialTrajectory m_traj;
-    mutable waypoint_pair m_last_waypoint;
+    mutable wrapped_waypoint_pair m_last_waypoint;
     
     typedef typename seq_base_type::point_time_iterator_impl base_pt_time_iterator_impl;
     typedef typename sequential_trajectory_traits<SpatialTrajectory>::point_time_iterator gen_pt_time_iterator;
@@ -244,116 +283,67 @@ class trajectory_wrapper : public trajectory_base< typename spatial_trajectory_t
                                 base_type(aName),
                                 m_traj(aTraj), m_last_waypoint() { };
     
-    /**
-     * Computes the travel distance between two points, if traveling along the path.
-     * \param a The first point.
-     * \param b The second point.
-     * \return The travel distance between two points if traveling along the path.
-     */
+    virtual const topology& get_temporal_space() const {
+      return m_traj.get_temporal_space();
+    };
+    
     virtual double travel_distance(const point_type& a, const point_type& b) const {
-      waypoint_pair next_waypoint = m_last_waypoint;
+      wrapped_waypoint_pair next_waypoint = m_last_waypoint;
       m_last_waypoint.second = a;
       next_waypoint.second = b;
       return m_traj.travel_distance(m_last_waypoint, next_waypoint);
     };
     
-    /**
-     * Computes the travel distance between two waypoint-point-pairs, if traveling along the path.
-     * \param a The first waypoint-point-pair.
-     * \param b The second waypoint-point-pair.
-     * \return The travel distance between two points if traveling along the path.
-     */
-    double travel_distance(waypoint_pair& a, waypoint_pair& b) const {
-      m_last_waypoint = a;
-      return m_traj.travel_distance(m_last_waypoint, b);
+    virtual double travel_distance(waypoint_pair& a, waypoint_pair& b) const {
+      m_last_waypoint = wrapped_waypoint_pair(boost::any_cast<wrapped_const_waypoint_descriptor>(a.first), a.second);
+      wrapped_waypoint_pair b_real(boost::any_cast<wrapped_const_waypoint_descriptor>(b.first), b.second);
+      double result = m_traj.travel_distance(m_last_waypoint, b_real);
+      a.first = m_last_waypoint.first;
+      b.first = b_real.first;
+      return result;
     };
     
-    /**
-     * Computes the point that is a time-difference away from a point on the trajectory.
-     * \param a The point on the trajectory.
-     * \param dt The time to move away from the point.
-     * \return The point that is a time away from the given point.
-     */
     virtual point_type move_time_diff_from(const point_type& a, double dt) const {
       m_last_waypoint.second = a;
       m_last_waypoint = m_traj.move_time_diff_from(m_last_waypoint, dt);
       return m_last_waypoint.second;
     };
     
-    /**
-     * Computes the waypoint-point-pair that is a time-difference away from a waypoint-point-pair on the trajectory.
-     * \param a The waypoint-point-pair on the trajectory.
-     * \param dt The time to move away from the waypoint-point-pair.
-     * \return The waypoint-point-pair that is a time away from the given waypoint-point-pair.
-     */
-    waypoint_pair move_time_diff_from(const waypoint_pair& a, double dt) const {
-      m_last_waypoint = m_traj.move_time_diff_from(a, dt);
-      return m_last_waypoint;
+    virtual waypoint_pair move_time_diff_from(const waypoint_pair& a, double dt) const {
+      m_last_waypoint = m_traj.move_time_diff_from(wrapped_waypoint_pair(boost::any_cast<wrapped_const_waypoint_descriptor>(a.first), a.second), dt);
+      return waypoint_pair(m_last_waypoint.first, m_last_waypoint.second);
     };
     
-    /**
-     * Computes the point that is on the trajectory at the given time.
-     * \param t The time at which the point is sought.
-     * \return The point that is on the trajectory at the given time.
-     */
     virtual point_type get_point_at_time(double t) const {
       m_last_waypoint = m_traj.get_waypoint_at_time(t);
       return m_last_waypoint.second;
     };
     
-    /**
-     * Computes the waypoint-point pair that is on the trajectory at the given time.
-     * \param t The time at which the waypoint-point pair is sought.
-     * \return The waypoint-point pair that is on the trajectory at the given time.
-     */
-    waypoint_pair get_waypoint_at_time(double t) const {
-      return (m_last_waypoint = m_traj.get_waypoint_at_time(t));
+    virtual waypoint_pair get_waypoint_at_time(double t) const {
+      m_last_waypoint = m_traj.get_waypoint_at_time(t);
+      return waypoint_pair(m_last_waypoint.first, m_last_waypoint.second);
     };
     
-    /**
-     * Returns the starting time of the trajectory.
-     * \return The starting time of the trajectory.
-     */
     virtual double get_start_time() const {
       return m_traj.get_start_time();
     };
     
-    /**
-     * Returns the end time of the trajectory.
-     * \return The end time of the trajectory.
-     */
     virtual double get_end_time() const {
       return m_traj.get_end_time();
     };
     
-    /**
-     * Returns the starting time-iterator along the trajectory.
-     * \return The starting time-iterator along the trajectory.
-     */
     virtual point_time_iterator begin_time_travel() const {
       return point_time_iterator(new point_time_iterator_impl(m_traj.begin_time_travel()));
     };
     
-    /**
-     * Returns the end time-iterator along the trajectory.
-     * \return The end time-iterator along the trajectory.
-     */
     virtual point_time_iterator end_time_travel() const {
       return point_time_iterator(new point_time_iterator_impl(m_traj.end_time_travel()));
     };
     
-    /**
-     * Returns the starting fraction-iterator along the trajectory.
-     * \return The starting fraction-iterator along the trajectory.
-     */
     virtual point_fraction_iterator begin_fraction_travel() const {
       return point_fraction_iterator(new point_fraction_iterator_impl(m_traj.begin_fraction_travel()));
     };
     
-    /**
-     * Returns the end fraction-iterator along the trajectory.
-     * \return The end fraction-iterator along the trajectory.
-     */
     virtual point_fraction_iterator end_fraction_travel() const {
       return point_fraction_iterator(new point_fraction_iterator_impl(m_traj.end_fraction_travel()));
     };
@@ -370,7 +360,7 @@ class trajectory_wrapper : public trajectory_base< typename spatial_trajectory_t
     virtual void RK_CALL load(serialization::iarchive& A, unsigned int) {
       base_type::load(A,base_type::getStaticObjectType()->TypeVersion());
       A & RK_SERIAL_LOAD_WITH_NAME(m_traj);
-      m_last_waypoint = waypoint_pair();
+      m_last_waypoint = wrapped_waypoint_pair();
     };
 
     RK_RTTI_MAKE_CONCRETE_1BASE(self,0xC244000A,1,"trajectory_wrapper",base_type)

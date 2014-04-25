@@ -178,8 +178,8 @@ class transformed_trajectory : public shared_object {
      * \param aTrajectory The underlying trajectory to use.
      * \param aMap The homeomorphic mapping object to use.
      */
-    explicit transformed_trajectory(const shared_ptr<Topology>& aSpace = shared_ptr<Topology>(new Topology()), 
-                                    const shared_ptr<InputTrajectory>& aTrajectory = shared_ptr<InputTrajectory>(new InputTrajectory()), 
+    explicit transformed_trajectory(const shared_ptr<Topology>& aSpace = shared_ptr<Topology>(), 
+                                    const shared_ptr<InputTrajectory>& aTrajectory = shared_ptr<InputTrajectory>(), 
                                     const Mapping& aMap = Mapping()) : 
                                     space(aSpace), traject(aTrajectory), map(aMap) { };
     

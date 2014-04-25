@@ -116,7 +116,7 @@ struct SequentialTrajectoryConcept {
   
   BOOST_CONCEPT_ASSERT((TemporalSpaceConcept<Topology>));
   
-  SequentialTraj traj;
+  SequentialTraj* traj;
   typename topology_traits<Topology>::point_type pt;
   double d;
   bool b;
@@ -125,8 +125,8 @@ struct SequentialTrajectoryConcept {
   
   BOOST_CONCEPT_USAGE(SequentialTrajectoryConcept)
   {
-    tit = traj.begin_time_travel();
-    tit = traj.end_time_travel();
+    tit = traj->begin_time_travel();
+    tit = traj->end_time_travel();
     
     pt = *tit;
     
@@ -139,8 +139,8 @@ struct SequentialTrajectoryConcept {
     b = (tit != tit);
     b = (tit == tit);
     
-    fit = traj.begin_fraction_travel();
-    fit = traj.end_fraction_travel();
+    fit = traj->begin_fraction_travel();
+    fit = traj->end_fraction_travel();
     
     pt = *fit;
     
