@@ -25,7 +25,7 @@
 #define REAK_CRS_PLANNER_DATA_HPP
 
 #include "ss_systems/satellite_invar_models.hpp"
-#include "interpolation/discrete_point_trajectory.hpp"
+#include "path_planning/trajectory_base.hpp"
 
 class SoTimerSensor;
 
@@ -33,7 +33,7 @@ class SoTimerSensor;
 template <typename Topology>
 struct coin_animation_data {
   typedef ReaK::pp::temporal_space<Topology, ReaK::pp::time_poisson_topology, ReaK::pp::time_distance_only> temporal_space_type;
-  typedef ReaK::pp::discrete_point_trajectory< temporal_space_type > trajectory_type;
+  typedef ReaK::pp::trajectory_base< temporal_space_type > trajectory_type;
   
   ReaK::shared_ptr< trajectory_type > trajectory;
   SoTimerSensor* animation_timer;
@@ -45,8 +45,7 @@ typedef ReaK::pp::hyperbox_topology< ReaK::vect<double,7> > manip_cspace_type;
 typedef coin_animation_data<manip_cspace_type> CRS_sol_anim_data;
 
 
-typedef ReaK::ctrl::satellite3D_inv_dt_system sat_sys_type;
-typedef sat_sys_type::state_space_type sat_state_space_type;
+typedef ReaK::pp::se3_1st_order_topology<double>::type sat_state_space_type;
 typedef coin_animation_data<sat_state_space_type> CRS_target_anim_data;
 
 

@@ -69,9 +69,7 @@ namespace pp {
  * \tparam OutSpace The output space type of the mapping.
  */
 template <typename Mapping, typename InSpace, typename OutSpace>
-struct BijectionConcept :
-  public MetricSpaceConcept< InSpace >,
-  public MetricSpaceConcept< OutSpace > {
+struct BijectionConcept {
   
   InSpace space_in;
   OutSpace space_out;

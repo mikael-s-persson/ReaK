@@ -53,6 +53,8 @@
 
 #include "path_planning/frame_tracer_coin3d.hpp"
 
+#include "interpolation/discrete_point_trajectory.hpp"
+#include "path_planning/trajectory_base.hpp"
 #include "topologies/manip_planning_traits.hpp"
 
 #include "topologies/proxy_traj_applicator.hpp"
@@ -302,13 +304,21 @@ void CRS_execute_dynamic_planner_impl(const ReaK::kte::chaser_target_data& scene
   
   sol_trace.reset();
   if(bestsol_rltraj) {
-    sol_trace = shared_ptr<ManipCSpaceTrajectory>(new ManipCSpaceTrajectory());
+    typedef hyperbox_topology< vect<double,7> > manip_cspace_type;
+    typedef temporal_space<manip_cspace_type, time_poisson_topology, time_distance_only> temporal_space_type;
+    typedef discrete_point_trajectory< temporal_space_type > trajectory_type;
+    typedef trajectory_wrapper<trajectory_type> wrapped_traj_type;
+    
+    shared_ptr< wrapped_traj_type > tmp_sol_traj(new wrapped_traj_type("chaser_sol_trajectory", trajectory_type()));
+    trajectory_type& sol_traj = tmp_sol_traj->get_underlying_trajectory();
+    
     typedef typename seq_trajectory_base< dynamic_super_space_type >::point_time_iterator PtIter;
-    typedef typename spatial_trajectory_traits<ManipCSpaceTrajectory>::point_type TCSpacePointType;
+    typedef typename spatial_trajectory_traits<trajectory_type>::point_type TCSpacePointType;
     for(PtIter it = bestsol_rltraj->begin_time_travel(); it != bestsol_rltraj->end_time_travel(); it += 0.1) {
       rl_temporal_point_type cur_pt = *it;
-      sol_trace->push_back( TCSpacePointType(cur_pt.time, get<0>(scene_data.chaser_jt_limits->map_to_space(cur_pt.pt, *jt_space, *normal_jt_space))) );
+      sol_traj.push_back( TCSpacePointType(cur_pt.time, get<0>(scene_data.chaser_jt_limits->map_to_space(cur_pt.pt, *jt_space, *normal_jt_space))) );
     };
+    sol_trace = tmp_sol_traj;
   };
   
   

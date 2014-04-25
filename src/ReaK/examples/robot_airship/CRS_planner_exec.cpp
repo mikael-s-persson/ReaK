@@ -54,6 +54,8 @@
 
 #include "optimization/optim_exceptions.hpp"
 
+#include "interpolation/discrete_point_trajectory.hpp"
+#include "path_planning/trajectory_base.hpp"
 #include "topologies/manip_planning_traits.hpp"
 
 #include "topologies/Ndof_linear_spaces.hpp"
@@ -232,13 +234,21 @@ void CRS_execute_static_planner_impl(const ReaK::kte::chaser_target_data& scene_
   
   sol_trace.reset();
   if(bestsol_rlpath) {
-    sol_trace = shared_ptr<ManipCSpaceTrajectory>(new ManipCSpaceTrajectory());
+    typedef hyperbox_topology< vect<double,7> > manip_cspace_type;
+    typedef temporal_space<manip_cspace_type, time_poisson_topology, time_distance_only> temporal_space_type;
+    typedef discrete_point_trajectory< temporal_space_type > trajectory_type;
+    typedef trajectory_wrapper<trajectory_type> wrapped_traj_type;
+    
+    shared_ptr< wrapped_traj_type > tmp_sol_traj(new wrapped_traj_type("chaser_sol_trajectory", trajectory_type()));
+    trajectory_type& sol_traj = tmp_sol_traj->get_underlying_trajectory();
+    
     typedef typename seq_path_base< static_super_space_type >::point_fraction_iterator PtIter;
-    typedef typename spatial_trajectory_traits<ManipCSpaceTrajectory>::point_type TCSpacePointType;
+    typedef typename spatial_trajectory_traits<trajectory_type>::point_type TCSpacePointType;
     double t = 0.0;
     for(PtIter it = bestsol_rlpath->begin_fraction_travel(); it != bestsol_rlpath->end_fraction_travel(); it += 0.1, t += 0.1) {
-      sol_trace->push_back( TCSpacePointType(t, get<0>(scene_data.chaser_jt_limits->map_to_space(*it, *jt_space, *normal_jt_space))) );
+      sol_traj.push_back( TCSpacePointType(t, get<0>(scene_data.chaser_jt_limits->map_to_space(*it, *jt_space, *normal_jt_space))) );
     };
+    sol_trace = tmp_sol_traj;
   };
   
   

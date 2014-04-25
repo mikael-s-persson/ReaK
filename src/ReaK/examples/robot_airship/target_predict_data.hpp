@@ -26,16 +26,7 @@
 
 #include "CRS_planner_data.hpp"
 
-#include "ss_systems/satellite_invar_models.hpp"
-#include "ctrl_sys/invariant_kalman_filter.hpp"
-#include "ctrl_sys/gaussian_belief_space.hpp"
-#include "ctrl_sys/covar_topology.hpp"
-#include "ctrl_sys/belief_state_predictor.hpp"
-#include "ctrl_sys/maximum_likelihood_mapping.hpp"
-#include "topologies/vector_topology.hpp"
 #include "topologies/temporal_space.hpp"
-#include "interpolation/constant_trajectory.hpp"
-#include "path_planning/transformed_trajectory.hpp"
 #include "path_planning/trajectory_base.hpp"
 
 class SoTimerSensor;
@@ -43,26 +34,11 @@ class SoTimerSensor;
 
 struct satellite_predict_data {
   
-  typedef ReaK::ctrl::satellite3D_inv_dt_system system_type;
-  typedef system_type::state_space_type state_space_type;
-  
-  typedef typename ReaK::ctrl::discrete_sss_traits< system_type >::input_type input_type;
-  typedef ReaK::pp::constant_trajectory< ReaK::pp::vector_topology< input_type > > input_traj_type;
-  
-  typedef ReaK::ctrl::IKF_belief_transfer_factory< system_type > pred_factory_type;
-  
-  typedef ReaK::ctrl::covariance_matrix< ReaK::vect_n<double> > covar_type;
-  typedef ReaK::ctrl::covar_topology< covar_type > covar_space_type;
-  typedef ReaK::ctrl::gaussian_belief_space<state_space_type, covar_space_type> belief_space_type;
-  
-  typedef ReaK::ctrl::belief_predicted_trajectory<belief_space_type, pred_factory_type, input_traj_type> belief_pred_traj_type;
-  
+  typedef ReaK::pp::se3_1st_order_topology<double>::type state_space_type;
   typedef ReaK::pp::temporal_space<state_space_type, ReaK::pp::time_poisson_topology, ReaK::pp::time_distance_only> temp_state_space_type;
-  typedef ReaK::pp::transformed_trajectory<temp_state_space_type, belief_pred_traj_type, ReaK::ctrl::maximum_likelihood_map> ML_traj_type;
   
   typedef ReaK::pp::trajectory_base<temp_state_space_type> state_traj_type;
   
-  ReaK::shared_ptr< belief_pred_traj_type > predictor;
   ReaK::shared_ptr< state_traj_type > trajectory;
   SoTimerSensor* animation_timer;
   volatile bool enabled;

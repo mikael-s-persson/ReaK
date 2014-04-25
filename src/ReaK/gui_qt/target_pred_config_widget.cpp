@@ -34,6 +34,13 @@
 
 #include "ctrl_sys/tsos_aug_inv_kalman_filter.hpp"
 #include "ctrl_sys/augmented_to_state_mapping.hpp"
+#include "ctrl_sys/gaussian_belief_space.hpp"
+#include "ctrl_sys/covar_topology.hpp"
+#include "ctrl_sys/belief_state_predictor.hpp"
+#include "ctrl_sys/maximum_likelihood_mapping.hpp"
+#include "interpolation/constant_trajectory.hpp"
+#include "path_planning/transformed_trajectory.hpp"
+
 
 #include "recorders/data_record_options.hpp"
 
@@ -589,31 +596,39 @@ void TargetPredConfigWidget::loadIMUConfig() {
 
 namespace {
 
+template <typename Sat3DSystemType>
 struct prediction_updater {
   
-  typedef satellite_predict_data::system_type SysType;
-  typedef satellite_predict_data::temp_state_space_type TempStateSpaceType;
-  typedef satellite_predict_data::belief_space_type BeliefSpaceType;
-  typedef pp::topology_traits< BeliefSpaceType >::point_type BeliefPointType;
-  typedef satellite_predict_data::belief_pred_traj_type BeliefPredTrajType;
-  typedef BeliefPredTrajType::topology TempBeliefSpaceType;
-  typedef pp::topology_traits< TempBeliefSpaceType >::point_type TempBeliefPointType;
   
-  typedef satellite_predict_data::input_type InputType;
-  typedef ctrl::discrete_sss_traits< SysType >::output_type OutputType;
-  typedef ctrl::covariance_matrix< vect_n<double> > IOCovType;
-  typedef ctrl::gaussian_belief_state< InputType,  IOCovType > InputBeliefType;
-  typedef ctrl::gaussian_belief_state< OutputType, IOCovType > OutputBeliefType;
+  typedef typename Sat3DSystemType::state_space_type StateSpaceType;
+  typedef typename Sat3DSystemType::temporal_state_space_type TempSpaceType;
+  typedef typename Sat3DSystemType::belief_space_type BeliefSpaceType;
+  typedef typename Sat3DSystemType::temporal_belief_space_type TempBeliefSpaceType;
+  typedef typename Sat3DSystemType::covar_type CovarType;
+  typedef typename CovarType::matrix_type CovarMatType;
+  
+  typedef typename Sat3DSystemType::point_type StateType;
+  typedef typename Sat3DSystemType::state_belief_type StateBeliefType;
+  typedef typename Sat3DSystemType::input_belief_type InputBeliefType;
+  typedef typename Sat3DSystemType::output_belief_type OutputBeliefType;
+  
+  typedef typename pp::topology_traits< TempBeliefSpaceType >::point_type TempBeliefPointType;
+  
+  typedef pp::constant_trajectory< pp::vector_topology< vect_n<double> > > InputTrajType;
+  
+  typedef typename ctrl::try_TSOSAIKF_belief_transfer_factory<Sat3DSystemType>::type PredFactoryType;
+  typedef ctrl::belief_predicted_trajectory<BeliefSpaceType, PredFactoryType, InputTrajType> BeliefPredTrajType;
+  
   
   shared_ptr< BeliefPredTrajType > predictor;
   
-  shared_ptr< SysType > satellite3D_system;
-  shared_ptr< TempStateSpaceType > sat_temp_space;
+  shared_ptr< Sat3DSystemType > satellite3D_system;
+  shared_ptr< TempSpaceType > sat_temp_space;
   
   recorder::named_value_row nvr_in;
   shared_ptr< recorder::data_extractor > data_in;
   
-  BeliefPointType b;
+  StateBeliefType b;
   InputBeliefType b_u;
   OutputBeliefType b_z;
   
@@ -624,11 +639,11 @@ struct prediction_updater {
   
   prediction_updater(
     shared_ptr< BeliefPredTrajType > aPredictor,
-    shared_ptr< SysType > aSatSys,
-    shared_ptr< TempStateSpaceType > aSatTempSpace,
+    shared_ptr< Sat3DSystemType > aSatSys,
+    shared_ptr< TempSpaceType > aSatTempSpace,
     recorder::named_value_row aNVRIn,
     shared_ptr< recorder::data_extractor > aDataIn,
-    BeliefPointType aB,
+    StateBeliefType aB,
     InputBeliefType aBU,
     OutputBeliefType aBZ,
     double aLastTime, 
@@ -650,13 +665,31 @@ struct prediction_updater {
         
         (*data_in) >> nvr_in;
         
-        b_z.set_mean_state(vect_n<double>(
-          nvr_in["p_x"], nvr_in["p_y"], nvr_in["p_z"],
-          nvr_in["q_0"], nvr_in["q_1"], nvr_in["q_2"], nvr_in["q_3"]));
+        vect_n<double> z(nvr_in["p_x"], nvr_in["p_y"], nvr_in["p_z"], 
+                        nvr_in["q_0"], nvr_in["q_1"], nvr_in["q_2"], nvr_in["q_3"]);
         
-        invariant_kalman_filter_step(*satellite3D_system, 
-                                     sat_temp_space->get_space_topology(), 
-                                     b, b_u, b_z, last_time);
+        try {
+          
+          vect<double,3> w(nvr_in["w_x"], nvr_in["w_y"], nvr_in["w_z"]);
+          z.resize(10);
+          z[7] = w[0]; z[8] = w[1]; z[9] = w[2];
+          
+          vect<double,3> a(nvr_in["acc_x"], nvr_in["acc_y"], nvr_in["acc_z"]);
+          vect<double,3> m(nvr_in["mag_x"], nvr_in["mag_y"], nvr_in["mag_z"]);
+          z.resize(16);
+          z[10] = a[0]; a[11] = a[1]; z[12] = a[2];
+          z[13] = m[0]; a[14] = m[1]; z[15] = m[2];
+          
+        } catch(ReaK::recorder::out_of_bounds& e) { RK_UNUSED(e); };
+        
+        b_z.set_mean_state(z);
+        b_u.set_mean_state(vect_n<double>(
+          nvr_in["f_x"], nvr_in["f_y"], nvr_in["f_z"], 
+          nvr_in["t_x"], nvr_in["t_y"], nvr_in["t_z"]));
+        
+        tsos_aug_inv_kalman_filter_step(*satellite3D_system, 
+                                        sat_temp_space->get_space_topology(), 
+                                        b, b_u, b_z, last_time);
         
         last_time = nvr_in["time"];
         
@@ -674,33 +707,88 @@ struct prediction_updater {
   
   static shared_ptr< ReaKaux::thread > executer;
   
-  static QProcess side_script;
+  static void stop_function() {
+    should_stop = true;
+    executer->join();
+    executer.reset();
+  };
   
-};
-
-volatile bool prediction_updater::should_stop = false;
-shared_ptr< ReaKaux::thread > prediction_updater::executer = shared_ptr< ReaKaux::thread >();
-QProcess prediction_updater::side_script;
-
 };
 
 
 template <typename Sat3DSystemType>
-void start_state_predictions(shared_ptr< Sat3DSystemType > satellite3D_system, 
-                             const ctrl::satellite_predictor_options& sat_options,
-                             shared_ptr< recorder::data_extractor > data_in
-     ) {
+volatile bool prediction_updater<Sat3DSystemType>::should_stop = false;
+
+template <typename Sat3DSystemType>
+shared_ptr< ReaKaux::thread > prediction_updater<Sat3DSystemType>::executer = shared_ptr< ReaKaux::thread >();
+
+boost::function<void()> pred_stop_function;
+
+QProcess pred_side_script;
+
+};
+
+
+template <typename Sat3DSystemType, typename MLTrajType>
+typename boost::enable_if<
+  ctrl::is_augmented_ss_system<Sat3DSystemType>,
+shared_ptr< satellite_predict_data::state_traj_type > >::type
+  construct_wrapped_trajectory(const shared_ptr< MLTrajType >& ML_traj, 
+                               const ctrl::satellite_predictor_options& sat_options) {
   using namespace ctrl;
   using namespace pp;
   
-  typedef typename Sat3DSystemType::state_space_type StateSpaceType;
+  typedef se3_1st_order_topology<double>::type BaseSpaceType;
+  typedef temporal_space<BaseSpaceType, time_poisson_topology, time_distance_only> TemporalBaseSpaceType;
+  
+#define RK_D_INF std::numeric_limits<double>::infinity()
+  shared_ptr< TemporalBaseSpaceType > sat_base_temp_space(new TemporalBaseSpaceType(
+    "satellite3D_temporal_space", 
+    make_se3_space(
+      "satellite3D_state_space",
+      vect<double,3>(-RK_D_INF, -RK_D_INF, -RK_D_INF),
+      vect<double,3>( RK_D_INF,  RK_D_INF,  RK_D_INF),
+      RK_D_INF, RK_D_INF),
+    time_poisson_topology("satellite3D_time_space", sat_options.time_step, sat_options.predict_time_horizon * 0.5)));
+#undef RK_D_INF
+  
+  typedef transformed_trajectory<TemporalBaseSpaceType, MLTrajType, augmented_to_state_map> BaseTrajType;
+  typedef trajectory_base<TemporalBaseSpaceType> StateTrajType;
+  typedef trajectory_wrapper<BaseTrajType> WrappedStateTrajType;
+  
+  return shared_ptr< StateTrajType >(new WrappedStateTrajType("sat3D_predicted_traj", BaseTrajType(sat_base_temp_space, ML_traj)));
+};
+
+template <typename Sat3DSystemType, typename MLTrajType>
+typename boost::enable_if<
+  boost::mpl::not_< ctrl::is_augmented_ss_system<Sat3DSystemType> >,
+shared_ptr< satellite_predict_data::state_traj_type > >::type
+  construct_wrapped_trajectory(const shared_ptr< MLTrajType >& ML_traj, 
+                               const ctrl::satellite_predictor_options& sat_options) {
+  using namespace pp;
+  
+  typedef satellite_predict_data::state_traj_type StateTrajType;
+  typedef trajectory_wrapper<MLTrajType> WrappedStateTrajType;
+  
+  return shared_ptr< StateTrajType >(new WrappedStateTrajType("sat3D_predicted_traj", *ML_traj));
+};
+
+
+
+template <typename Sat3DSystemType>
+shared_ptr< satellite_predict_data::state_traj_type > 
+  start_state_predictions(shared_ptr< Sat3DSystemType > satellite3D_system, 
+                          const ctrl::satellite_predictor_options& sat_options,
+                          shared_ptr< recorder::data_extractor > data_in) {
+  using namespace ctrl;
+  using namespace pp;
+  
   typedef typename Sat3DSystemType::temporal_state_space_type TempSpaceType;
   typedef typename Sat3DSystemType::belief_space_type BeliefSpaceType;
   typedef typename Sat3DSystemType::temporal_belief_space_type TempBeliefSpaceType;
   typedef typename Sat3DSystemType::covar_type CovarType;
   typedef typename CovarType::matrix_type CovarMatType;
   
-  typedef typename Sat3DSystemType::point_type StateType;
   typedef typename Sat3DSystemType::state_belief_type StateBeliefType;
   typedef typename Sat3DSystemType::input_belief_type InputBeliefType;
   typedef typename Sat3DSystemType::output_belief_type OutputBeliefType;
@@ -727,7 +815,7 @@ void start_state_predictions(shared_ptr< Sat3DSystemType > satellite3D_system,
   recorder::named_value_row nvr_in = data_in->getFreshNamedValueRow();
   
   try {
-    while ( current_Pnorm > sat_options.predict_time_horizon ) {
+    while ( current_Pnorm > sat_options.predict_Pnorm_threshold ) {
       
       (*data_in) >> nvr_in;
       
@@ -764,10 +852,17 @@ void start_state_predictions(shared_ptr< Sat3DSystemType > satellite3D_system,
     };
   } catch (std::exception& e) {
     std::cerr << "An error occurred during the initial phase of measurement streaming! Exception: " << e.what() << std::endl;
-    return;
+    return shared_ptr< satellite_predict_data::state_traj_type >();
   };
   
   
+  
+  // Start a thread that will update the predictor as new data comes in.
+  
+  if( !pred_stop_function.empty() ) {
+    pred_stop_function();
+    pred_stop_function.clear();
+  };
   
   typedef constant_trajectory< vector_topology< vect_n<double> > > InputTrajType;
   
@@ -798,38 +893,22 @@ void start_state_predictions(shared_ptr< Sat3DSystemType > satellite3D_system,
     pred_assumpt
   ));
   
+  prediction_updater<Sat3DSystemType>::should_stop = false;
+  prediction_updater<Sat3DSystemType>::executer = shared_ptr< ReaKaux::thread >(new ReaKaux::thread(
+    prediction_updater<Sat3DSystemType>(
+      predictor,
+      satellite3D_system,
+      sat_temp_space, nvr_in, data_in,
+      b, b_u, b_z, last_time, 0.5)));
+  
+  pred_stop_function = prediction_updater<Sat3DSystemType>::stop_function;
+  
+  
   typedef transformed_trajectory<TempSpaceType, BeliefPredTrajType, maximum_likelihood_map> MLTrajType;
   
   shared_ptr< MLTrajType > ML_traj(new MLTrajType(sat_temp_space, predictor));
   
-  
-  typedef se3_1st_order_topology<double>::type BaseSpaceType;
-  typedef temporal_space<BaseSpaceType, time_poisson_topology, time_distance_only> TemporalBaseSpaceType;
-  
-  typedef trajectory_base<TemporalBaseSpaceType> StateTrajType;
-  
-//   augmented_to_state_map
-  
-  
-  // Start a thread that will update the predictor as new data comes in.
-  
-  if( prediction_updater::executer ) {
-    prediction_updater::should_stop = true;
-    prediction_updater::executer->join();
-    prediction_updater::executer.reset();
-  };
-  
-//   prediction_updater::should_stop = false;
-//   prediction_updater::executer = shared_ptr< ReaKaux::thread >(new ReaKaux::thread(
-//     prediction_updater(
-//       predictor,
-//       satellite3D_system,
-//       sat_temp_space, nvr_in, data_in,
-//       b, b_u, b_z, last_time, sat_options.predict_Pnorm_threshold)));
-//   
-  
-  
-  
+  return construct_wrapped_trajectory<Sat3DSystemType>(ML_traj, sat_options);
 };
 
 
@@ -838,8 +917,8 @@ void TargetPredConfigWidget::startStatePrediction() {
   
   std::string start_script = getStartScript();
   if( start_script != "" ) {
-    prediction_updater::side_script.kill();
-    prediction_updater::side_script.start(QString::fromStdString(start_script));
+    pred_side_script.kill();
+    pred_side_script.start(QString::fromStdString(start_script));
   };
   
   using namespace ctrl;
@@ -880,16 +959,16 @@ void TargetPredConfigWidget::startStatePrediction() {
       case sat_opt::invariant:  // IEKF
       case sat_opt::invar_mom:  // IMKF
       case sat_opt::invar_mom2:  // IMKFv2
-        start_state_predictions(sat_options.get_gyro_sat_system(), sat_options, data_in);
+        pred_anim_data.trajectory = start_state_predictions(sat_options.get_gyro_sat_system(), sat_options, data_in);
         break;
       case sat_opt::invar_mom_em:  // IMKF_em
-//         start_state_predictions(sat_options.get_gyro_em_airship_system(), sat_options, data_in);
+//         pred_anim_data.trajectory = start_state_predictions(sat_options.get_gyro_em_airship_system(), sat_options, data_in);
 //         break;
       case sat_opt::invar_mom_emd:  // IMKF_emd
-        start_state_predictions(sat_options.get_gyro_emd_airship_system(), sat_options, data_in);
+        pred_anim_data.trajectory = start_state_predictions(sat_options.get_gyro_emd_airship_system(), sat_options, data_in);
         break;
       case sat_opt::invar_mom_emdJ:  // IMKF_emdJ
-        start_state_predictions(sat_options.get_gyro_emdJ_airship_system(), sat_options, data_in);
+        pred_anim_data.trajectory = start_state_predictions(sat_options.get_gyro_emdJ_airship_system(), sat_options, data_in);
         break;
     };
   } else {
@@ -897,16 +976,16 @@ void TargetPredConfigWidget::startStatePrediction() {
       case sat_opt::invariant:  // IEKF
       case sat_opt::invar_mom:  // IMKF
       case sat_opt::invar_mom2:  // IMKFv2
-        start_state_predictions(sat_options.get_base_sat_system(), sat_options, data_in);
+        pred_anim_data.trajectory = start_state_predictions(sat_options.get_base_sat_system(), sat_options, data_in);
         break;
       case sat_opt::invar_mom_em:  // IMKF_em
-        start_state_predictions(sat_options.get_em_airship_system(), sat_options, data_in);
+        pred_anim_data.trajectory = start_state_predictions(sat_options.get_em_airship_system(), sat_options, data_in);
         break;
       case sat_opt::invar_mom_emd:  // IMKF_emd
-        start_state_predictions(sat_options.get_emd_airship_system(), sat_options, data_in);
+        pred_anim_data.trajectory = start_state_predictions(sat_options.get_emd_airship_system(), sat_options, data_in);
         break;
       case sat_opt::invar_mom_emdJ:  // IMKF_emdJ
-        start_state_predictions(sat_options.get_emdJ_airship_system(), sat_options, data_in);
+        pred_anim_data.trajectory = start_state_predictions(sat_options.get_emdJ_airship_system(), sat_options, data_in);
         break;
     };
   };
@@ -917,13 +996,12 @@ void TargetPredConfigWidget::startStatePrediction() {
 
 void TargetPredConfigWidget::stopStatePrediction() {
   
-  if( prediction_updater::executer ) {
-    prediction_updater::should_stop = true;
-    prediction_updater::executer->join();
-    prediction_updater::executer.reset();
+  if( !pred_stop_function.empty() ) {
+    pred_stop_function();
+    pred_stop_function.clear();
   };
   
-  prediction_updater::side_script.kill();
+  pred_side_script.kill();
   
 };
 

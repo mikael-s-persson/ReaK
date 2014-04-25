@@ -72,7 +72,7 @@ class seq_trajectory_base : public named_object {
       
       virtual bool is_equal_to(const point_time_iterator_impl* rhs) const = 0;
       
-      virtual const point_type& get_point() const = 0;
+      virtual point_type get_point() const = 0;
       
       virtual point_time_iterator_impl* clone() const = 0;
       
@@ -87,7 +87,7 @@ class seq_trajectory_base : public named_object {
       
       virtual bool is_equal_to(const point_fraction_iterator_impl* rhs) const = 0;
       
-      virtual const point_type& get_point() const = 0;
+      virtual point_type get_point() const = 0;
       
       virtual point_fraction_iterator_impl* clone() const = 0;
       
@@ -160,7 +160,7 @@ class seq_trajectory_base : public named_object {
           return !(lhs.p_impl->is_equal_to(rhs.p_impl));
         };
         
-        const point_type& operator*() const {
+        point_type operator*() const {
           return p_impl->get_point();
         };
         
@@ -231,7 +231,7 @@ class seq_trajectory_base : public named_object {
           return !(lhs.p_impl->is_equal_to(rhs.p_impl));
         };
         
-        const point_type& operator*() const {
+        point_type operator*() const {
           return p_impl->get_point();
         };
       

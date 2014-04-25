@@ -39,6 +39,7 @@
 
 #include "base/named_object.hpp"
 
+#include "spatial_trajectory_concept.hpp"
 #include "sequential_trajectory_concept.hpp"
 
 #include "seq_trajectory_base.hpp"
@@ -126,7 +127,7 @@ class trajectory_base : public seq_trajectory_base<Topology> {
       base_type::load(A,base_type::getStaticObjectType()->TypeVersion());
     };
     
-    RK_RTTI_MAKE_CONCRETE_1BASE(self,0xC2440009,1,"trajectory_base",base_type)
+    RK_RTTI_MAKE_ABSTRACT_1BASE(self,0xC2440009,1,"trajectory_base",base_type)
 };
 
 
@@ -151,7 +152,6 @@ class trajectory_wrapper : public trajectory_base< typename spatial_trajectory_t
     
     typedef typename spatial_trajectory_traits<SpatialTrajectory>::waypoint_descriptor waypoint_descriptor;
     typedef typename spatial_trajectory_traits<SpatialTrajectory>::const_waypoint_descriptor const_waypoint_descriptor;
-    typedef typename spatial_trajectory_traits<SpatialTrajectory>::const_waypoint_bounds const_waypoint_bounds;
     typedef typename temporal_space_traits<topology>::time_topology time_topology;
     typedef typename temporal_space_traits<topology>::space_topology space_topology;
     typedef typename spatial_trajectory_traits<SpatialTrajectory>::distance_metric distance_metric;
@@ -183,7 +183,7 @@ class trajectory_wrapper : public trajectory_base< typename spatial_trajectory_t
         return (base_it == static_cast<const point_time_iterator_impl*>(rhs)->base_it);
       };
       
-      virtual const point_type& get_point() const {
+      virtual point_type get_point() const {
         return *base_it;
       };
       
@@ -212,7 +212,7 @@ class trajectory_wrapper : public trajectory_base< typename spatial_trajectory_t
         return (base_it == static_cast<const point_fraction_iterator_impl*>(rhs)->base_it);
       };
       
-      virtual const point_type& get_point() const {
+      virtual point_type get_point() const {
         return *base_it;
       };
       
@@ -239,7 +239,7 @@ class trajectory_wrapper : public trajectory_base< typename spatial_trajectory_t
      * \param aName The name for this object.
      * \param aTraj The wrapped trajectory object to use.
      */
-    explicit trajectory_wrapper(const std::string& aName,
+    explicit trajectory_wrapper(const std::string& aName = "",
                                 const SpatialTrajectory& aTraj = SpatialTrajectory()) : 
                                 base_type(aName),
                                 m_traj(aTraj), m_last_waypoint() { };

@@ -36,6 +36,7 @@
 #include "base/defs.hpp"
 #include "base/shared_object.hpp"
 
+#include "metric_space_concept.hpp"
 #include "spatial_trajectory_concept.hpp"
 #include "topological_map_concepts.hpp"
 #include "sequential_trajectory_concept.hpp"
@@ -122,8 +123,10 @@ class transformed_trajectory : public shared_object {
     
     typedef transformed_trajectory<Topology,InputTrajectory,Mapping> self;
     
+    typedef typename spatial_trajectory_traits<InputTrajectory>::waypoint_descriptor waypoint_descriptor;
     typedef typename spatial_trajectory_traits<InputTrajectory>::const_waypoint_descriptor const_waypoint_descriptor;
     typedef typename topology_traits<Topology>::point_type point_type;
+    typedef typename topology_traits<Topology>::point_difference_type point_difference_type;
     typedef Topology topology;
     typedef typename spatial_trajectory_traits<InputTrajectory>::distance_metric distance_metric;
     
@@ -187,7 +190,9 @@ class transformed_trajectory : public shared_object {
      * \return The travel distance between two points if traveling along the path.
      */
     double travel_distance(const point_type& a, const point_type& b) const {
-      return traject->travel_distance(map_point_backward(a), map_point_backward(b));
+      return get(ReaK::pp::distance_metric, *space)(a, b, *space);
+      // NOTE: requiring a bijection is too much:
+//       return traject->travel_distance(map_point_backward(a), map_point_backward(b));
     };
     
     /**
@@ -197,8 +202,10 @@ class transformed_trajectory : public shared_object {
      * \return The travel distance between two points if traveling along the path.
      */
     double travel_distance(waypoint_pair& a, waypoint_pair& b) const {
-      return traject->travel_distance(std::make_pair(a.first, map_point_backward(a.second)),
-                                      std::make_pair(b.first, map_point_backward(b.second)));
+      return get(ReaK::pp::distance_metric, *space)(a.second, b.second, *space);
+      // NOTE: requiring a bijection is too much:
+//       return traject->travel_distance(std::make_pair(a.first, map_point_backward(a.second)),
+//                                       std::make_pair(b.first, map_point_backward(b.second)));
     };
     
     /**
@@ -217,7 +224,9 @@ class transformed_trajectory : public shared_object {
      * \return The point that is a time away from the given point.
      */
     point_type move_time_diff_from(const point_type& a, double dt) const {
-      return map_point_forward(traject->move_time_diff_from(map_point_backward(a),dt));
+      return get_point_at_time(a.time + dt);
+      // NOTE: requiring a bijection is too much!
+//       return map_point_forward(traject->move_time_diff_from(map_point_backward(a),dt));
     };
     
     /**
@@ -227,9 +236,11 @@ class transformed_trajectory : public shared_object {
      * \return The waypoint-point-pair that is a time away from the given waypoint-point-pair.
      */
     waypoint_pair move_time_diff_from(const waypoint_pair& a, double dt) const {
-      std::pair< const_waypoint_descriptor, typename spatial_trajectory_traits<InputTrajectory>::point_type> result = 
-        traject->move_time_diff_from( std::make_pair(a.second,map_point_backward(a.second)), dt);
-      return std::make_pair( result.first, map_point_forward(result.second));
+      return get_waypoint_at_time(a.second.time + dt);
+      // NOTE: requiring a bijection is too much!
+//       std::pair< const_waypoint_descriptor, typename spatial_trajectory_traits<InputTrajectory>::point_type> result = 
+//         traject->move_time_diff_from( std::make_pair(a.first,map_point_backward(a.second)), dt);
+//       return std::make_pair( result.first, map_point_forward(result.second));
     };
        
     /**

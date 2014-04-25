@@ -89,7 +89,7 @@ class seq_trajectory_wrapper : public seq_trajectory_base< typename sequential_t
         return (base_it == static_cast<const point_time_iterator_impl*>(rhs)->base_it);
       };
       
-      virtual const point_type& get_point() const {
+      virtual point_type get_point() const {
         return *base_it;
       };
       
@@ -118,7 +118,7 @@ class seq_trajectory_wrapper : public seq_trajectory_base< typename sequential_t
         return (base_it == static_cast<const point_fraction_iterator_impl*>(rhs)->base_it);
       };
       
-      virtual const point_type& get_point() const {
+      virtual point_type get_point() const {
         return *base_it;
       };
       
