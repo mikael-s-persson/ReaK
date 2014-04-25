@@ -40,6 +40,8 @@
 #include "manip_space_config_widget.hpp"
 #include "target_pred_config_widget.hpp"
 
+#include "CRS_run_dialog.hpp"
+
 
 class SoSensor;
 
@@ -67,8 +69,20 @@ class CRSPlannerGUI : public QMainWindow, private Ui::CRSPlannerWindow {
     
     void loadTargetTrajectory(QString);
     
+    
+    void onShowRunDialog();
+    
+    void onStartPlanning(int mode);
+    void onStopPlanning();
+    
+    void onLaunch(int mode);
+    
+    void onAbort();
+    
+    
     friend void CRSPlannerGUI_animate_bestsol_trajectory(void*, SoSensor*);
     friend void CRSPlannerGUI_animate_target_trajectory(void*, SoSensor*);
+    
     
   private:
     
@@ -79,6 +93,10 @@ class CRSPlannerGUI : public QMainWindow, private Ui::CRSPlannerWindow {
     CRSPlannerGUI( const CRSPlannerGUI& );
     CRSPlannerGUI& operator=( const CRSPlannerGUI& );
     
+    CRS_sol_anim_data    sol_anim;
+    CRS_target_anim_data target_anim;
+    double current_target_anim_time;
+    
     ReaK::rkqt::View3DMenu view3d_menu;
     
     ReaK::rkqt::ChaserTargetConfigWidget   ct_config;
@@ -87,8 +105,17 @@ class CRSPlannerGUI : public QMainWindow, private Ui::CRSPlannerWindow {
     ReaK::rkqt::PlannerAlgConfigWidget     plan_alg_config;
     ReaK::rkqt::TargetPredConfigWidget     target_pred_config;
     
-    CRS_sol_anim_data    sol_anim;
-    CRS_target_anim_data target_anim;
+    ReaK::rkqt::CRSRunDialogWidget run_dialog;
+    
+    void threadedPlanningFunction(int mode);
+    
+    ReaKaux::thread* planning_thr;
+    
+    void executeSolutionTrajectory();
+    
+    volatile bool exec_robot_enabled;
+    ReaKaux::thread* exec_robot_thr;
+    
     
 };
 

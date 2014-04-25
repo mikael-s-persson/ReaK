@@ -37,6 +37,7 @@
     <property name="title">
      <string>Run</string>
     </property>
+    <addaction name="actionRun_Dialog"/>
     <addaction name="actionRun_Planner"/>
     <addaction name="actionStart_Sol_Anim"/>
     <addaction name="actionStop_Sol_Anim"/>
@@ -101,6 +102,11 @@
    </property>
    <property name="text">
     <string>Stop Target Anim.</string>
+   </property>
+  </action>
+  <action name="actionRun_Dialog">
+   <property name="text">
+    <string>Run Dialog...</string>
    </property>
   </action>
  </widget>

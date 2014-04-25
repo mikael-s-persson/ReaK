@@ -82,6 +82,7 @@ class CRSRunDialogWidget : public QDialog, private Ui::CRSRunDialog {
     
   public:
     
+    void publishConsoleMessage(const std::string& aMessage);
     
 };
 

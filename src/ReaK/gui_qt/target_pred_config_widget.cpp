@@ -101,7 +101,9 @@ static QString last_used_path;
 
 
 
-TargetPredConfigWidget::TargetPredConfigWidget(QWidget * parent, Qt::WindowFlags flags) :
+TargetPredConfigWidget::TargetPredConfigWidget(CRS_target_anim_data* aTargetAnimData, 
+                                               double* aCurrentTargetAnimTime, 
+                                               QWidget * parent, Qt::WindowFlags flags) :
   QDockWidget(tr("Predictor"), parent, flags),
   Ui::TargetPredConfig(),
   inertia_storage(new detail::inertia_tensor_storage_impl()),
@@ -112,7 +114,9 @@ TargetPredConfigWidget::TargetPredConfigWidget(QWidget * parent, Qt::WindowFlags
   ot_inertia_win(this, Qt::WindowFlags(Qt::Popup | Qt::Dialog)),
   ot_IMU_graph(shared_ptr< serialization::object_graph >(new serialization::object_graph())),
   ot_IMU_root(add_vertex(*ot_IMU_graph)),
-  ot_IMU_win(this, Qt::WindowFlags(Qt::Popup | Qt::Dialog))
+  ot_IMU_win(this, Qt::WindowFlags(Qt::Popup | Qt::Dialog)),
+  target_anim_data(aTargetAnimData), 
+  current_target_anim_time(aCurrentTargetAnimTime)
 {
   this->QDockWidget::setWidget(new QWidget(this));
   setupUi(this->QDockWidget::widget());
@@ -635,6 +639,8 @@ struct prediction_updater {
   double last_time;
   double diff_tolerance;
   
+  double* current_target_anim_time;
+  
   static volatile bool should_stop;
   
   prediction_updater(
@@ -647,14 +653,17 @@ struct prediction_updater {
     InputBeliefType aBU,
     OutputBeliefType aBZ,
     double aLastTime, 
-    double aDiffTolerance
+    double aDiffTolerance,
+    double* aCurrentTargetAnimTime
   ) : 
     predictor(aPredictor),
     satellite3D_system(aSatSys),
     sat_temp_space(aSatTempSpace), 
     nvr_in(aNVRIn), data_in(aDataIn),
     b(aB), b_u(aBU), b_z(aBZ),
-    last_time(aLastTime), diff_tolerance(aDiffTolerance) { };
+    last_time(aLastTime), 
+    diff_tolerance(aDiffTolerance),
+    current_target_anim_time(aCurrentTargetAnimTime) { };
   
   int operator()() {
     
@@ -692,6 +701,7 @@ struct prediction_updater {
                                         b, b_u, b_z, last_time);
         
         last_time = nvr_in["time"];
+        (*current_target_anim_time) = last_time;
         
         b_pred = predictor->get_point_at_time(last_time);
         
@@ -732,7 +742,7 @@ QProcess pred_side_script;
 template <typename Sat3DSystemType, typename MLTrajType>
 typename boost::enable_if<
   ctrl::is_augmented_ss_system<Sat3DSystemType>,
-shared_ptr< satellite_predict_data::state_traj_type > >::type
+shared_ptr< CRS_target_anim_data::trajectory_type > >::type
   construct_wrapped_trajectory(const shared_ptr< MLTrajType >& ML_traj, 
                                const ctrl::satellite_predictor_options& sat_options) {
   using namespace ctrl;
@@ -762,12 +772,12 @@ shared_ptr< satellite_predict_data::state_traj_type > >::type
 template <typename Sat3DSystemType, typename MLTrajType>
 typename boost::enable_if<
   boost::mpl::not_< ctrl::is_augmented_ss_system<Sat3DSystemType> >,
-shared_ptr< satellite_predict_data::state_traj_type > >::type
+shared_ptr< CRS_target_anim_data::trajectory_type > >::type
   construct_wrapped_trajectory(const shared_ptr< MLTrajType >& ML_traj, 
                                const ctrl::satellite_predictor_options& sat_options) {
   using namespace pp;
   
-  typedef satellite_predict_data::state_traj_type StateTrajType;
+  typedef CRS_target_anim_data::trajectory_type StateTrajType;
   typedef trajectory_wrapper<MLTrajType> WrappedStateTrajType;
   
   return shared_ptr< StateTrajType >(new WrappedStateTrajType("sat3D_predicted_traj", *ML_traj));
@@ -776,10 +786,11 @@ shared_ptr< satellite_predict_data::state_traj_type > >::type
 
 
 template <typename Sat3DSystemType>
-shared_ptr< satellite_predict_data::state_traj_type > 
+shared_ptr< CRS_target_anim_data::trajectory_type > 
   start_state_predictions(shared_ptr< Sat3DSystemType > satellite3D_system, 
                           const ctrl::satellite_predictor_options& sat_options,
-                          shared_ptr< recorder::data_extractor > data_in) {
+                          shared_ptr< recorder::data_extractor > data_in,
+                          double* current_target_anim_time) {
   using namespace ctrl;
   using namespace pp;
   
@@ -811,6 +822,7 @@ shared_ptr< satellite_predict_data::state_traj_type >
   StateBeliefType b = satellite3D_system->get_zero_state_belief(10.0);
   
   double last_time = 0.0;
+  (*current_target_anim_time) = last_time;
   double current_Pnorm = norm_2(b.get_covariance().get_matrix());
   recorder::named_value_row nvr_in = data_in->getFreshNamedValueRow();
   
@@ -848,11 +860,12 @@ shared_ptr< satellite_predict_data::state_traj_type >
       current_Pnorm = norm_2(b.get_covariance().get_matrix());
       
       last_time = nvr_in["time"];
+      (*current_target_anim_time) = last_time;
       
     };
   } catch (std::exception& e) {
     std::cerr << "An error occurred during the initial phase of measurement streaming! Exception: " << e.what() << std::endl;
-    return shared_ptr< satellite_predict_data::state_traj_type >();
+    return shared_ptr< CRS_target_anim_data::trajectory_type >();
   };
   
   
@@ -899,7 +912,7 @@ shared_ptr< satellite_predict_data::state_traj_type >
       predictor,
       satellite3D_system,
       sat_temp_space, nvr_in, data_in,
-      b, b_u, b_z, last_time, 0.5)));
+      b, b_u, b_z, last_time, 0.5, current_target_anim_time)));
   
   pred_stop_function = prediction_updater<Sat3DSystemType>::stop_function;
   
@@ -959,16 +972,16 @@ void TargetPredConfigWidget::startStatePrediction() {
       case sat_opt::invariant:  // IEKF
       case sat_opt::invar_mom:  // IMKF
       case sat_opt::invar_mom2:  // IMKFv2
-        pred_anim_data.trajectory = start_state_predictions(sat_options.get_gyro_sat_system(), sat_options, data_in);
+        target_anim_data->trajectory = start_state_predictions(sat_options.get_gyro_sat_system(), sat_options, data_in, current_target_anim_time);
         break;
       case sat_opt::invar_mom_em:  // IMKF_em
-//         pred_anim_data.trajectory = start_state_predictions(sat_options.get_gyro_em_airship_system(), sat_options, data_in);
+//         target_anim_data->trajectory = start_state_predictions(sat_options.get_gyro_em_airship_system(), sat_options, data_in, current_target_anim_time);
 //         break;
       case sat_opt::invar_mom_emd:  // IMKF_emd
-        pred_anim_data.trajectory = start_state_predictions(sat_options.get_gyro_emd_airship_system(), sat_options, data_in);
+        target_anim_data->trajectory = start_state_predictions(sat_options.get_gyro_emd_airship_system(), sat_options, data_in, current_target_anim_time);
         break;
       case sat_opt::invar_mom_emdJ:  // IMKF_emdJ
-        pred_anim_data.trajectory = start_state_predictions(sat_options.get_gyro_emdJ_airship_system(), sat_options, data_in);
+        target_anim_data->trajectory = start_state_predictions(sat_options.get_gyro_emdJ_airship_system(), sat_options, data_in, current_target_anim_time);
         break;
     };
   } else {
@@ -976,16 +989,16 @@ void TargetPredConfigWidget::startStatePrediction() {
       case sat_opt::invariant:  // IEKF
       case sat_opt::invar_mom:  // IMKF
       case sat_opt::invar_mom2:  // IMKFv2
-        pred_anim_data.trajectory = start_state_predictions(sat_options.get_base_sat_system(), sat_options, data_in);
+        target_anim_data->trajectory = start_state_predictions(sat_options.get_base_sat_system(), sat_options, data_in, current_target_anim_time);
         break;
       case sat_opt::invar_mom_em:  // IMKF_em
-        pred_anim_data.trajectory = start_state_predictions(sat_options.get_em_airship_system(), sat_options, data_in);
+        target_anim_data->trajectory = start_state_predictions(sat_options.get_em_airship_system(), sat_options, data_in, current_target_anim_time);
         break;
       case sat_opt::invar_mom_emd:  // IMKF_emd
-        pred_anim_data.trajectory = start_state_predictions(sat_options.get_emd_airship_system(), sat_options, data_in);
+        target_anim_data->trajectory = start_state_predictions(sat_options.get_emd_airship_system(), sat_options, data_in, current_target_anim_time);
         break;
       case sat_opt::invar_mom_emdJ:  // IMKF_emdJ
-        pred_anim_data.trajectory = start_state_predictions(sat_options.get_emdJ_airship_system(), sat_options, data_in);
+        target_anim_data->trajectory = start_state_predictions(sat_options.get_emdJ_airship_system(), sat_options, data_in, current_target_anim_time);
         break;
     };
   };

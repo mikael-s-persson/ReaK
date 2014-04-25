@@ -50,6 +50,8 @@
 #include "base/chrono_incl.hpp"
 
 
+#include <boost/asio.hpp>
+#include <boost/bind.hpp>
 
 using namespace ReaK;
 
@@ -220,12 +222,202 @@ void CRSPlannerGUI::stopCompleteAnimation() {
 
 
 void CRSPlannerGUI::runPlanner() {
-  if( space_config.is_temporal ) {
-    executeDynamicPlanner();
-  } else {
-    executePlanner();
+  try {
+    if( space_config.is_temporal ) {
+      executeDynamicPlanner();
+    } else {
+      executePlanner();
+    };
+  } catch(std::exception& e) {
+    std::stringstream ss;
+    ss << "An exception was raised during the planning:\nwhat(): " << e.what();
+    QMessageBox::critical(this,
+                  "Motion-Planning Error!",
+                  QString::fromStdString(ss.str()),
+                  QMessageBox::Ok);
   };
 };
+
+
+void CRSPlannerGUI::onShowRunDialog() {
+  run_dialog.setModal(false);
+  run_dialog.show();
+};
+
+void CRSPlannerGUI::threadedPlanningFunction(int mode) {
+  
+  if((mode == 2) || (mode == 3)) {
+    run_dialog.publishConsoleMessage("Starting state estimation...\n");
+    target_anim.trajectory.reset();
+    target_pred_config.startStatePrediction();
+    if(!target_anim.trajectory) {
+      QMessageBox::critical(this,
+                            "State-Prediction Error!",
+                            "The live state-estimation of the target failed to produce a viable predicted trajectory!",
+                            QMessageBox::Ok);
+      run_dialog.onReset();
+      return;
+    };
+    run_dialog.publishConsoleMessage("State estimation done!\nSwitched to predicted target trajectory!\n");
+  };
+  
+  run_dialog.onInitializationDone();
+  
+  try {
+    if( mode > 0 ) {
+      executeDynamicPlanner();
+    } else {
+      executePlanner();
+    };
+  } catch(std::exception& e) {
+    std::stringstream ss;
+    ss << "An exception was raised during the planning:\nwhat(): " << e.what();
+    QMessageBox::critical(this,
+                  "Motion-Planning Error!",
+                  QString::fromStdString(ss.str()),
+                  QMessageBox::Ok);
+    run_dialog.onReset();
+  };
+  
+  run_dialog.onPlanningDone();
+  
+  if(sol_anim.trajectory)
+    run_dialog.onLaunchOpportunity();
+  
+//   onInitializationDone();
+//   onPlanningDone();
+//   onLaunchOpportunity();
+//   onLaunchStarted();
+//   onCaptureReached();
+//   onReset();
+  
+};
+
+void CRSPlannerGUI::onStartPlanning(int mode) {
+  if( (mode > 0) && !space_config.is_temporal ) {
+    QMessageBox::critical(this,
+                          "Motion-Planning Error!",
+                          "Trying to run a dynamic planner with a non-temporal planning space! Please configure a temporal planning space!",
+                          QMessageBox::Ok);
+    run_dialog.onReset();
+    return;
+  };
+  
+//   mode == 0;  // static-sim (executePlanner)
+//   mode == 1;  // dynamic-sim (loaded target-trajectory + executeDynamicPlanner + startCompleteAnimation)
+//   mode == 2;  // live-sim (predicted target-trajectory + executeDynamicPlanner + startCompleteAnimation)
+//   mode == 3;  // live-run (predicted target-trajectory + executeDynamicPlanner + startCompleteAnimation + executeSolTrajectory)
+  
+  if(planning_thr) {
+    // TODO Signal the stop.
+    planning_thr->join();
+    delete planning_thr;
+    planning_thr = NULL;
+  };
+  
+  planning_thr = new ReaKaux::thread(boost::bind(&CRSPlannerGUI::threadedPlanningFunction, this, mode));
+  
+};
+
+void CRSPlannerGUI::onStopPlanning() {
+  
+  target_pred_config.stopStatePrediction();
+  
+  if(planning_thr) {
+    // TODO Signal the stop.
+    planning_thr->join();
+    delete planning_thr;
+    planning_thr = NULL;
+  };
+  
+};
+
+void CRSPlannerGUI::executeSolutionTrajectory() {
+  
+  // Setup the UDP streaming to the robot (FIXME remove the hard-coded address / port)
+  boost::asio::io_service io_service;
+  boost::asio::ip::udp::endpoint endpoint(boost::asio::ip::address_v4::from_string("192.168.0.3"), 17050);
+  boost::asio::ip::udp::socket socket((io_service));
+  boost::asio::basic_streambuf<> udp_buf;
+  socket.open(boost::asio::ip::udp::v4());
+  socket.set_option(boost::asio::ip::udp::socket::reuse_address(true));
+  std::ostream udp_buf_stream(&(udp_buf));
+  
+  shared_ptr< CRS_sol_anim_data::trajectory_type > manip_traj = sol_anim.trajectory;
+  CRS_sol_anim_data::trajectory_type::point_time_iterator cur_pit = manip_traj->begin_time_travel();
+  
+  // Synchronize the trajectory to the current time (from target trajectory).
+  cur_pit += current_target_anim_time - (*cur_pit).time;
+  
+  ReaKaux::chrono::high_resolution_clock::time_point exec_start = ReaKaux::chrono::high_resolution_clock::now();
+  
+  // UDP output for the robot:
+  vect<double,7> cur_pt = (*cur_pit).pt;
+  for(std::size_t i = 1; i < 7; ++i)
+    udp_buf_stream.write(reinterpret_cast<char*>(&cur_pt[i]),sizeof(double));
+  udp_buf_stream.write(reinterpret_cast<char*>(&cur_pt[0]),sizeof(double)); // track position last
+  std::size_t len = socket.send_to(udp_buf.data(), endpoint);
+  udp_buf.consume(len);
+  
+  
+  while( exec_robot_thr && ( cur_pit != manip_traj->end_time_travel() ) ) {
+    cur_pit += 0.0005;
+    ReaKaux::this_thread::sleep_until(exec_start + ReaKaux::chrono::microseconds(500));
+    
+    //UDP output for the robot:
+    cur_pt = (*cur_pit).pt;
+    for(std::size_t i = 1; i < 7; ++i)
+      udp_buf_stream.write(reinterpret_cast<char*>(&cur_pt[i]),sizeof(double));
+    udp_buf_stream.write(reinterpret_cast<char*>(&cur_pt[0]),sizeof(double)); // track position last
+    std::size_t len = socket.send_to(udp_buf.data(), endpoint);
+    udp_buf.consume(len);
+  };
+  
+  if( cur_pit == manip_traj->end_time_travel() )
+    run_dialog.onCaptureReached();
+  
+  exec_robot_enabled = false;
+  
+};
+
+
+
+void CRSPlannerGUI::onLaunch(int mode) {
+  
+  if(this->exec_robot_thr) {
+    this->exec_robot_enabled = false;
+    this->exec_robot_thr->join();
+    delete this->exec_robot_thr;
+    this->exec_robot_thr = NULL;
+  };
+  
+  if( mode == 3 ) {
+    this->exec_robot_enabled = true;
+    this->exec_robot_thr = new ReaKaux::thread(boost::bind(&CRSPlannerGUI::executeSolutionTrajectory, this));
+  };
+  
+  if(mode == 0)
+    startSolutionAnimation();
+  else
+    startCompleteAnimation();
+  
+};
+
+void CRSPlannerGUI::onAbort() {
+  
+  // first, stop the robot
+  if(this->exec_robot_thr) {
+    this->exec_robot_enabled = false;
+    this->exec_robot_thr->join();
+    delete this->exec_robot_thr;
+    this->exec_robot_thr = NULL;
+  };
+  
+  // then, stop the state prediction and/or planning
+  this->onStopPlanning();
+  
+};
+
 
 
 
@@ -236,7 +428,10 @@ CRSPlannerGUI::CRSPlannerGUI( QWidget * parent, Qt::WindowFlags flags ) :
     ct_interact(&ct_config.sceneData, this),
     space_config(this), 
     plan_alg_config(this),
-    target_pred_config(this) {
+    target_pred_config(&target_anim, &current_target_anim_time, this),
+    run_dialog(this),
+    planning_thr(NULL),
+    exec_robot_thr(NULL) {
   setupUi(this);
   
   
@@ -263,8 +458,11 @@ CRSPlannerGUI::CRSPlannerGUI( QWidget * parent, Qt::WindowFlags flags ) :
   connect(&ct_config, SIGNAL(onTargetLoaded()), &ct_interact, SLOT(loadTargetPosFromModel()));
   
   connect(actionRun_Planner, SIGNAL(triggered()), this, SLOT(runPlanner()));
-//   connect(configs.actionExecutePlanner, SIGNAL(triggered()), this, SLOT(executePlanner()));
-//   connect(configs.actionExecuteDynamicPlanner, SIGNAL(triggered()), this, SLOT(executeDynamicPlanner()));
+  
+  connect(&run_dialog, SIGNAL(triggeredStartPlanning(int)), this, SLOT(onStartPlanning(int)));
+  connect(&run_dialog, SIGNAL(triggeredStopPlanning()), this, SLOT(onStopPlanning()));
+  connect(&run_dialog, SIGNAL(triggeredLaunch(int)), this, SLOT(onLaunch(int)));
+  connect(&run_dialog, SIGNAL(triggeredAbort()), this, SLOT(onAbort()));
   
   SoQt::init(this->centralwidget);
   

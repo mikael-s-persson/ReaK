@@ -44,7 +44,7 @@
 #include "serialization/scheme_builder.hpp"
 
 #include "ss_systems/satellite_modeling_options.hpp"
-#include "../examples/robot_airship/target_predict_data.hpp"
+#include "../examples/robot_airship/CRS_planner_data.hpp"
 
 #include <QDockWidget>
 
@@ -64,7 +64,7 @@ class TargetPredConfigWidget : public QDockWidget, private Ui::TargetPredConfig 
     Q_OBJECT
   
   public:
-    TargetPredConfigWidget(QWidget * parent = NULL, Qt::WindowFlags flags = 0);
+    TargetPredConfigWidget(CRS_target_anim_data* aTargetAnimData, double* aCurrentTargetAnimTime, QWidget * parent = NULL, Qt::WindowFlags flags = 0);
     virtual ~TargetPredConfigWidget();
     
   private slots:
@@ -110,6 +110,9 @@ class TargetPredConfigWidget : public QDockWidget, private Ui::TargetPredConfig 
     
     ctrl::satellite_predictor_options sat_options;
     
+    CRS_target_anim_data* target_anim_data;
+    double* current_target_anim_time;
+    
   public:
     
     double getTimeStep() const;
@@ -135,8 +138,6 @@ class TargetPredConfigWidget : public QDockWidget, private Ui::TargetPredConfig 
     bool useUDP() const;
     bool useTCP() const;
     std::string getStartScript() const;
-    
-    satellite_predict_data pred_anim_data;
     
     void startStatePrediction();
     void stopStatePrediction();

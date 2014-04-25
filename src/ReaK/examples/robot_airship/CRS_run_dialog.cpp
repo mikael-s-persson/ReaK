@@ -65,24 +65,38 @@ void CRSRunDialogWidget::onStartPressed() {
   this->live_sim_check->setEnabled(false);
   this->live_run_check->setEnabled(false);
   
+  std::string mes = "Starting ";
+  
   int mode = 0;
-  if ( this->static_sim_check->isChecked() )
+  if ( this->static_sim_check->isChecked() ) {
     mode = 0;
-  if ( this->dynamic_sim_check->isChecked() )
+    mes += "static simulation...\n";
+  };
+  if ( this->dynamic_sim_check->isChecked() ) {
     mode = 1;
-  if ( this->live_sim_check->isChecked() )
+    mes += "dynamic simulation...\n";
+  };
+  if ( this->live_sim_check->isChecked() ) {
     mode = 2;
-  if ( this->live_run_check->isChecked() )
+    mes += "live simulation...\n";
+  };
+  if ( this->live_run_check->isChecked() ) {
     mode = 3;
+    mes += "live run...\n";
+  };
   
   this->stop_button->setEnabled(true);
   this->start_button->setEnabled(false);
+  
+  this->publishConsoleMessage(mes);
   
   emit triggeredStartPlanning(mode);
   
 };
 
 void CRSRunDialogWidget::onStopPressed() {
+  
+  this->publishConsoleMessage("Stopping planner...\n");
   
   emit triggeredStopPlanning();
   
@@ -99,21 +113,35 @@ void CRSRunDialogWidget::onStopPressed() {
 
 void CRSRunDialogWidget::onLaunchPressed() {
   
+  std::string mes = "Starting ";
+  
   int mode = 0;
-  if ( this->static_sim_check->isChecked() )
+  if ( this->static_sim_check->isChecked() ) {
     mode = 0;
-  if ( this->dynamic_sim_check->isChecked() )
+    mes += "solution animation...\n";
+  };
+  if ( this->dynamic_sim_check->isChecked() ) {
     mode = 1;
-  if ( this->live_sim_check->isChecked() )
+    mes += "solution animation...\n";
+  };
+  if ( this->live_sim_check->isChecked() ) {
     mode = 2;
-  if ( this->live_run_check->isChecked() )
+    mes += "solution animation...\n";
+  };
+  if ( this->live_run_check->isChecked() ) {
     mode = 3;
+    mes += "solution live execution...\nKEEP HAND ON EMERGENCY STOP BUTTON!!!\n";
+  };
+  
+  this->publishConsoleMessage(mes);
   
   emit triggeredLaunch(mode);
   
 };
 
 void CRSRunDialogWidget::onAbortPressed() {
+  
+  this->publishConsoleMessage("ABORT! ABORT! ABORT!\n");
   
   emit triggeredAbort();
   
@@ -136,6 +164,8 @@ void CRSRunDialogWidget::flipLaunchButtonColor() {
 
 void CRSRunDialogWidget::onInitializationDone() {
   
+  this->publishConsoleMessage("Initializing Done!\n");
+  
   this->init_label->setText("Initializing... Done!");
   this->init_label->setStyleSheet("color: green;");
   this->planning_label->setText("Planning...");
@@ -147,6 +177,8 @@ void CRSRunDialogWidget::onInitializationDone() {
 
 void CRSRunDialogWidget::onPlanningDone() {
   
+  this->publishConsoleMessage("Planning Done!\n");
+  
   this->planning_label->setText("Planning... Done!");
   this->planning_label->setStyleSheet("color: green;");
   
@@ -156,6 +188,8 @@ void CRSRunDialogWidget::onPlanningDone() {
 };
 
 void CRSRunDialogWidget::onLaunchOpportunity() {
+  
+  this->publishConsoleMessage("Launch opportunity found!\n");
   
   this->launch_label->setStyleSheet("color: green;");
   
@@ -167,6 +201,8 @@ void CRSRunDialogWidget::onLaunchOpportunity() {
 
 void CRSRunDialogWidget::onLaunchStarted() {
   
+  this->publishConsoleMessage("Executing solution...\n");
+  
   this->launch_label->setText("Launching... Done");
   this->launch_label->setStyleSheet("color: green;");
   
@@ -177,6 +213,8 @@ void CRSRunDialogWidget::onLaunchStarted() {
 };
 
 void CRSRunDialogWidget::onCaptureReached() {
+  
+  this->publishConsoleMessage("Capture solution reached!\n");
   
   this->launch_label->setText("Captured!");
   this->launch_label->setStyleSheet("color: green;");
@@ -206,9 +244,13 @@ void CRSRunDialogWidget::onReset() {
   this->capture_label->setText("");
   this->capture_label->setStyleSheet("color: red;");
   
+  this->status_text->clear();
   
 };
 
+void CRSRunDialogWidget::publishConsoleMessage(const std::string& aMessage) {
+  this->status_text->appendPlainText(QString::fromStdString(aMessage));
+};
 
 
 };
