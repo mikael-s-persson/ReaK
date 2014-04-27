@@ -76,7 +76,7 @@ void CRSPlannerGUI_animate_bestsol_trajectory(void* pv, SoSensor*) {
     cur_pit = manip_traj->begin_time_travel();
     animation_start = ReaKaux::chrono::high_resolution_clock::now();
   };
-  if( (p->sol_anim.enabled) && ( cur_pit != manip_traj->end_time_travel() ) ) {
+  if( (p->sol_anim.enabled) && ( (*cur_pit).time < manip_traj->get_end_time() ) ) {
     if( (*cur_pit).time <= 0.001 * (ReaKaux::chrono::duration_cast<ReaKaux::chrono::milliseconds>(ReaKaux::chrono::high_resolution_clock::now() - animation_start)).count() ) {
       cur_pit += 0.1;
       p->ct_config.sceneData.chaser_kin_model->setJointPositions(vect_n<double>((*cur_pit).pt));
@@ -140,7 +140,7 @@ void CRSPlannerGUI_animate_target_trajectory(void* pv, SoSensor*) {
       return;
   };
   
-  if( target_traj && p->target_anim.enabled && ( (*cur_pit_ptr) != target_traj->end_time_travel() ) ) {
+  if( target_traj && p->target_anim.enabled && ( (*(*cur_pit_ptr)).time < target_traj->get_end_time() ) ) {
     CRS_target_anim_data::trajectory_type::point_time_iterator& cur_pit = *cur_pit_ptr;
     if( (*cur_pit).time <= 0.001 * (ReaKaux::chrono::duration_cast<ReaKaux::chrono::milliseconds>(ReaKaux::chrono::high_resolution_clock::now() - animation_start)).count() ) {
       cur_pit += 0.1;
@@ -353,28 +353,33 @@ void CRSPlannerGUI::executeSolutionTrajectory() {
   
   // UDP output for the robot:
   vect<double,7> cur_pt = (*cur_pit).pt;
-  for(std::size_t i = 1; i < 7; ++i)
+  for(std::size_t i = 0; i < 7; ++i)
     udp_buf_stream.write(reinterpret_cast<char*>(&cur_pt[i]),sizeof(double));
-  udp_buf_stream.write(reinterpret_cast<char*>(&cur_pt[0]),sizeof(double)); // track position last
   std::size_t len = socket.send_to(udp_buf.data(), endpoint);
   udp_buf.consume(len);
   
   
-  while( exec_robot_thr && ( cur_pit != manip_traj->end_time_travel() ) ) {
-    cur_pit += 0.0005;
-    ReaKaux::this_thread::sleep_until(exec_start + ReaKaux::chrono::microseconds(500));
+  while( exec_robot_thr && ( (*cur_pit).time < manip_traj->get_end_time() ) ) {
+    cur_pit += 0.001;
+    ReaKaux::this_thread::sleep_until(exec_start + ReaKaux::chrono::microseconds(1000));
     
     //UDP output for the robot:
     cur_pt = (*cur_pit).pt;
-    for(std::size_t i = 1; i < 7; ++i)
+    for(std::size_t i = 0; i < 7; ++i)
       udp_buf_stream.write(reinterpret_cast<char*>(&cur_pt[i]),sizeof(double));
-    udp_buf_stream.write(reinterpret_cast<char*>(&cur_pt[0]),sizeof(double)); // track position last
-    std::size_t len = socket.send_to(udp_buf.data(), endpoint);
+    len = socket.send_to(udp_buf.data(), endpoint);
     udp_buf.consume(len);
   };
+  //UDP output for the robot:
+  double terminating_value = -100.0;
+  for(std::size_t i = 0; i < 7; ++i)
+    udp_buf_stream.write(reinterpret_cast<char*>(&terminating_value),sizeof(double));
+  len = socket.send_to(udp_buf.data(), endpoint);
+  udp_buf.consume(len);
   
-  if( cur_pit == manip_traj->end_time_travel() )
+  if( (*cur_pit).time >= manip_traj->get_end_time() ) {
     run_dialog.onCaptureReached();
+  };
   
   exec_robot_enabled = false;
   
@@ -458,6 +463,7 @@ CRSPlannerGUI::CRSPlannerGUI( QWidget * parent, Qt::WindowFlags flags ) :
   connect(&ct_config, SIGNAL(onTargetLoaded()), &ct_interact, SLOT(loadTargetPosFromModel()));
   
   connect(actionRun_Planner, SIGNAL(triggered()), this, SLOT(runPlanner()));
+  connect(actionRun_Dialog, SIGNAL(triggered()), this, SLOT(onShowRunDialog()));
   
   connect(&run_dialog, SIGNAL(triggeredStartPlanning(int)), this, SLOT(onStartPlanning(int)));
   connect(&run_dialog, SIGNAL(triggeredStopPlanning()), this, SLOT(onStopPlanning()));

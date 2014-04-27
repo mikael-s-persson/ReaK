@@ -27,6 +27,7 @@
 #include <QFileDialog>
 #include <QFileInfo>
 #include <QMessageBox>
+#include <QScrollArea>
 
 #include "serialization/archiver_factory.hpp"
 
@@ -48,8 +49,12 @@ PlannerAlgConfigWidget::PlannerAlgConfigWidget(QWidget * parent, Qt::WindowFlags
                                                Ui::PlannerAlgConfig(),
                                                planOptions()
 {
-  this->QDockWidget::setWidget(new QWidget(this));
-  setupUi(this->QDockWidget::widget());
+  QScrollArea* dock_scroll = new QScrollArea(this);
+  dock_scroll->setWidgetResizable(true);
+  QWidget* dock_wid = new QWidget(this);
+  dock_scroll->setWidget(dock_wid);
+  this->QDockWidget::setWidget(dock_scroll);
+  setupUi(dock_wid);
   
   connect(this->planning_algo_selection, SIGNAL(currentIndexChanged(int)), this, SLOT(onUpdateAvailableOptions(int)));
   connect(this->actionValuesChanged, SIGNAL(triggered()), this, SLOT(onConfigsChanged()));
@@ -73,6 +78,7 @@ PlannerAlgConfigWidget::PlannerAlgConfigWidget(QWidget * parent, Qt::WindowFlags
 };
 
 PlannerAlgConfigWidget::~PlannerAlgConfigWidget() {
+  delete static_cast<QScrollArea*>(this->QDockWidget::widget())->widget();
   delete this->QDockWidget::widget();
 };
 

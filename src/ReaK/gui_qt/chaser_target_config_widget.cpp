@@ -28,6 +28,7 @@
 #include <QFileDialog>
 #include <QFileInfo>
 #include <QMessageBox>
+#include <QScrollArea>
 
 #include "serialization/archiver_factory.hpp"
 
@@ -50,8 +51,12 @@ ChaserTargetConfigWidget::ChaserTargetConfigWidget(View3DMenu* aView3dMenu, QWid
                                                    view3d_menu(aView3dMenu),
                                                    sceneData()
 {
-  this->QDockWidget::setWidget(new QWidget(this));
-  setupUi(this->QDockWidget::widget());
+  QScrollArea* dock_scroll = new QScrollArea(this);
+  dock_scroll->setWidgetResizable(true);
+  QWidget* dock_wid = new QWidget(this);
+  dock_scroll->setWidget(dock_wid);
+  this->QDockWidget::setWidget(dock_scroll);
+  setupUi(dock_wid);
   
   connect(this->actionLoadChaserMdl, SIGNAL(triggered()), this, SLOT(loadChaserMdl()));
   connect(this->actionEditChaserMdl, SIGNAL(triggered()), this, SLOT(editChaserMdl()));
@@ -73,6 +78,7 @@ ChaserTargetConfigWidget::ChaserTargetConfigWidget(View3DMenu* aView3dMenu, QWid
 };
 
 ChaserTargetConfigWidget::~ChaserTargetConfigWidget() {
+  delete static_cast<QScrollArea*>(this->QDockWidget::widget())->widget();
   delete this->QDockWidget::widget();
 };
 

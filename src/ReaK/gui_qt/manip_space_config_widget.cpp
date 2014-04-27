@@ -24,7 +24,7 @@
 #include "manip_space_config_widget.hpp"
 
 #include <QDockWidget>
-
+#include <QScrollArea>
 
 namespace ReaK {
   
@@ -35,8 +35,12 @@ ManipSpaceConfigWidget::ManipSpaceConfigWidget(QWidget * parent, Qt::WindowFlags
                                                QDockWidget(tr("Space"), parent, flags),
                                                Ui::ManipSpaceConfig()
 {
-  this->QDockWidget::setWidget(new QWidget(this));
-  setupUi(this->QDockWidget::widget());
+  QScrollArea* dock_scroll = new QScrollArea(this);
+  dock_scroll->setWidgetResizable(true);
+  QWidget* dock_wid = new QWidget(this);
+  dock_scroll->setWidget(dock_wid);
+  this->QDockWidget::setWidget(dock_scroll);
+  setupUi(dock_wid);
   
   connect(this->actionValuesChanged, SIGNAL(triggered()), this, SLOT(onUpdateAvailableOptions()));
   
@@ -45,6 +49,7 @@ ManipSpaceConfigWidget::ManipSpaceConfigWidget(QWidget * parent, Qt::WindowFlags
 };
 
 ManipSpaceConfigWidget::~ManipSpaceConfigWidget() { 
+  delete static_cast<QScrollArea*>(this->QDockWidget::widget())->widget();
   delete this->QDockWidget::widget();
 };
 

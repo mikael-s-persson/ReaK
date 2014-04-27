@@ -28,6 +28,7 @@
 #include <QFileInfo>
 #include <QFileDialog>
 #include <QString>
+#include <QScrollArea>
 
 #include "serialization/archiver_factory.hpp"
 
@@ -49,8 +50,12 @@ ChaserTargetInteractWidget::ChaserTargetInteractWidget(
   Ui::ChaserTargetInteract(),
   pSceneData(aPSceneData)
 {
-  this->QDockWidget::setWidget(new QWidget(this));
-  setupUi(this->QDockWidget::widget());
+  QScrollArea* dock_scroll = new QScrollArea(this);
+  dock_scroll->setWidgetResizable(true);
+  QWidget* dock_wid = new QWidget(this);
+  dock_scroll->setWidget(dock_wid);
+  this->QDockWidget::setWidget(dock_scroll);
+  setupUi(dock_wid);
   
   connect(actionJointChange, SIGNAL(triggered()), this, SLOT(onJointChange()));
   connect(actionTargetChange, SIGNAL(triggered()), this, SLOT(onTargetChange()));
@@ -63,6 +68,7 @@ ChaserTargetInteractWidget::ChaserTargetInteractWidget(
 };
 
 ChaserTargetInteractWidget::~ChaserTargetInteractWidget() { 
+  delete static_cast<QScrollArea*>(this->QDockWidget::widget())->widget();
   delete this->QDockWidget::widget();
 };
 

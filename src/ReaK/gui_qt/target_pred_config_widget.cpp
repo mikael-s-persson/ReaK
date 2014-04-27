@@ -29,6 +29,7 @@
 #include <QMessageBox>
 #include <QMainWindow>
 #include <QProcess>
+#include <QScrollArea>
 
 #include "serialization/archiver_factory.hpp"
 
@@ -118,8 +119,12 @@ TargetPredConfigWidget::TargetPredConfigWidget(CRS_target_anim_data* aTargetAnim
   target_anim_data(aTargetAnimData), 
   current_target_anim_time(aCurrentTargetAnimTime)
 {
-  this->QDockWidget::setWidget(new QWidget(this));
-  setupUi(this->QDockWidget::widget());
+  QScrollArea* dock_scroll = new QScrollArea(this);
+  dock_scroll->setWidgetResizable(true);
+  QWidget* dock_wid = new QWidget(this);
+  dock_scroll->setWidget(dock_wid);
+  this->QDockWidget::setWidget(dock_scroll);
+  setupUi(dock_wid);
   
   connect(this->kf_model_selection, SIGNAL(currentIndexChanged(int)), this, SLOT(onUpdateAvailableOptions(int)));
   connect(this->actionValuesChanged, SIGNAL(triggered()), this, SLOT(onConfigsChanged()));
@@ -170,6 +175,7 @@ TargetPredConfigWidget::TargetPredConfigWidget(CRS_target_anim_data* aTargetAnim
 };
 
 TargetPredConfigWidget::~TargetPredConfigWidget() {
+  delete static_cast<QScrollArea*>(this->QDockWidget::widget())->widget();
   delete this->QDockWidget::widget();
 };
 
@@ -930,7 +936,8 @@ void TargetPredConfigWidget::startStatePrediction() {
   
   std::string start_script = getStartScript();
   if( start_script != "" ) {
-    pred_side_script.kill();
+    if(pred_side_script.state() != QProcess::NotRunning)
+      pred_side_script.kill();
     pred_side_script.start(QString::fromStdString(start_script));
   };
   
@@ -1014,7 +1021,8 @@ void TargetPredConfigWidget::stopStatePrediction() {
     pred_stop_function.clear();
   };
   
-  pred_side_script.kill();
+  if(pred_side_script.state() != QProcess::NotRunning)
+    pred_side_script.kill();
   
 };
 
