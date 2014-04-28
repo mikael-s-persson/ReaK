@@ -85,7 +85,9 @@ struct data_stream_options {
   std::string file_name;
   
   /// Stores the names to put on a recorder or to keep from an extractor, will be ignored if empty.
-  std::vector< std::string > names;
+  mutable std::vector< std::string > names;
+  
+  bool apply_network_order;
   
   /**
    * This function adds a name to the 'names' vector.
@@ -103,7 +105,7 @@ struct data_stream_options {
   /**
    * Default constructor.
    */
-  data_stream_options() : kind(space_separated) { };
+  data_stream_options() : kind(space_separated), apply_network_order(false) { };
   
   /**
    * This function creates a data-recorder from the options that were set in

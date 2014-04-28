@@ -57,6 +57,8 @@ class tcp_recorder : public data_recorder {
     shared_ptr<tcp_server_impl> pimpl;
   public:
     
+    bool apply_network_order;
+    
     /**
      * Default constructor.
      */
@@ -97,7 +99,9 @@ class tcp_extractor : public data_extractor {
     
     shared_ptr<tcp_client_impl> pimpl;
   public:
-
+    
+    bool apply_network_order;
+    
     /**
      * Default constructor.
      */

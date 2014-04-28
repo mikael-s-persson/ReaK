@@ -64,6 +64,8 @@ class raw_udp_recorder : public data_recorder {
     shared_ptr<raw_udp_server_impl> pimpl;
   public:
     
+    bool apply_network_order;
+    
     /**
      * Default constructor.
      */
@@ -108,6 +110,8 @@ class raw_udp_extractor : public data_extractor {
     
     shared_ptr<raw_udp_client_impl> pimpl;
   public:
+    
+    bool apply_network_order;
     
     void addName(const std::string& s);
     

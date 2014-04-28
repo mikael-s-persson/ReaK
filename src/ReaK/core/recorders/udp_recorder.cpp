@@ -27,9 +27,55 @@
 
 #include <iostream>
 
+
+#include <stdint.h>
+
+#ifdef WIN32
+
+#include <winsock2.h>
+
+#else
+
+#include <netinet/in.h>
+//#include <arpa/inet.h>
+
+#endif
+
 namespace ReaK {
 
 namespace recorder {
+
+namespace {
+
+union double_to_ulong {
+  double   d;
+  uint64_t ui64;
+  uint32_t ui32[2];
+};
+
+
+template <typename UnionT>
+void ntoh_2ui32(UnionT& value) {
+#if RK_BYTE_ORDER == RK_ORDER_LITTLE_ENDIAN
+  uint32_t tmp = ntohl(value.ui32[0]);
+  value.ui32[0] = ntohl(value.ui32[1]);
+  value.ui32[1] = tmp;
+#endif
+  // NOTE: for 64-bit values, there is no point in supporting PDP-endianness, as 64-bit values are not supported by PDP platforms.
+};
+
+template <typename UnionT>
+void hton_2ui32(UnionT& value) {
+#if RK_BYTE_ORDER == RK_ORDER_LITTLE_ENDIAN
+  uint32_t tmp = htonl(value.ui32[0]);
+  value.ui32[0] = htonl(value.ui32[1]);
+  value.ui32[1] = tmp;
+#endif
+  // NOTE: for 64-bit values, there is no point in supporting PDP-endianness, as 64-bit values are not supported by PDP platforms.
+};
+
+
+};
 
 
 class udp_server_impl {
@@ -87,7 +133,7 @@ class udp_client_impl {
 
 
 
-udp_recorder::udp_recorder() : data_recorder(), pimpl() { };
+udp_recorder::udp_recorder() : data_recorder(), pimpl(), apply_network_order(false) { };
 
 udp_recorder::udp_recorder(const std::string& aFileName) {
   setFileName(aFileName);
@@ -101,8 +147,14 @@ void udp_recorder::writeRow() {
     std::ostream s_tmp(&(pimpl->row_buf));
     {
       for(std::size_t i = 0; i < colCount; ++i) {
-        double tmp(values_rm.front());
-        s_tmp.write(reinterpret_cast<char*>(&tmp),sizeof(double));
+        if(apply_network_order) {
+          double_to_ulong tmp; tmp.d = values_rm.front();
+          hton_2ui32(tmp);
+          s_tmp.write(reinterpret_cast<char*>(&tmp),sizeof(double));
+        } else {
+          double tmp(values_rm.front());
+          s_tmp.write(reinterpret_cast<char*>(&tmp),sizeof(double));
+        };
         values_rm.pop();
       };
       --rowCount;
@@ -157,7 +209,7 @@ void udp_recorder::setFileName(const std::string& aFileName) {
 
 
 
-udp_extractor::udp_extractor() : data_extractor(), pimpl() { };
+udp_extractor::udp_extractor() : data_extractor(), pimpl(), apply_network_order(false) { };
 
 udp_extractor::udp_extractor(const std::string& aFileName) : data_extractor(), pimpl() {
   setFileName(aFileName);
@@ -181,9 +233,16 @@ bool udp_extractor::readRow() {
     };
     std::istream s_tmp(&(pimpl_tmp->row_buf));
     for(std::size_t i = 0; (i < colCount) && (s_tmp); ++i) {
-      double tmp = 0;
-      s_tmp.read(reinterpret_cast<char*>(&tmp),sizeof(double));
-      values_rm.push(tmp);
+      if(apply_network_order) {
+        double_to_ulong tmp;
+        s_tmp.read(reinterpret_cast<char*>(&tmp),sizeof(double));
+        ntoh_2ui32(tmp);
+        values_rm.push(tmp.d);
+      } else {
+        double tmp = 0;
+        s_tmp.read(reinterpret_cast<char*>(&tmp),sizeof(double));
+        values_rm.push(tmp);
+      };
     };
   };
   return true;

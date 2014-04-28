@@ -50,15 +50,24 @@ shared_ptr< data_recorder > data_stream_options::create_recorder() const {
     case tab_separated:
       result = shared_ptr< data_recorder >(new tsv_recorder());
       break;
-    case tcp_stream:
-      result = shared_ptr< data_recorder >(new tcp_recorder());
+    case tcp_stream: {
+      shared_ptr< tcp_recorder > tmp(new tcp_recorder());
+      tmp->apply_network_order = this->apply_network_order;
+      result = tmp;
       break;
-    case udp_stream:
-      result = shared_ptr< data_recorder >(new udp_recorder());
+    };
+    case udp_stream: {
+      shared_ptr< udp_recorder > tmp(new udp_recorder());
+      tmp->apply_network_order = this->apply_network_order;
+      result = tmp;
       break;
-    case raw_udp_stream:
-      result = shared_ptr< data_recorder >(new raw_udp_recorder());
+    };
+    case raw_udp_stream: {
+      shared_ptr< raw_udp_recorder > tmp(new raw_udp_recorder());
+      tmp->apply_network_order = this->apply_network_order;
+      result = tmp;
       break;
+    };
     case vector_stream:
       result = shared_ptr< data_recorder >(new vector_recorder());
       break;
@@ -71,8 +80,9 @@ shared_ptr< data_recorder > data_stream_options::create_recorder() const {
   };
   
   if( names.size() ) {
-    for(std::vector< std::string >::const_iterator it = names.begin(), it_end = names.end(); it != it_end; ++it)
+    for(std::vector< std::string >::const_iterator it = names.begin(), it_end = names.end(); it != it_end; ++it) {
       (*result) << *it;
+    };
     (*result) << data_recorder::end_name_row;
   };
   
@@ -93,15 +103,24 @@ std::pair< shared_ptr< data_extractor >, std::vector< std::string > > data_strea
     case tab_separated:
       result.first = shared_ptr< data_extractor >(new tsv_extractor());
       break;
-    case tcp_stream:
-      result.first = shared_ptr< data_extractor >(new tcp_extractor());
+    case tcp_stream: {
+      shared_ptr< tcp_extractor > tmp(new tcp_extractor());
+      tmp->apply_network_order = this->apply_network_order;
+      result.first = tmp;
       break;
-    case udp_stream:
-      result.first = shared_ptr< data_extractor >(new udp_extractor());
+    };
+    case udp_stream: {
+      shared_ptr< udp_extractor > tmp(new udp_extractor());
+      tmp->apply_network_order = this->apply_network_order;
+      result.first = tmp;
       break;
-    case raw_udp_stream:
-      result.first = shared_ptr< data_extractor >(new raw_udp_extractor());
+    };
+    case raw_udp_stream: {
+      shared_ptr< raw_udp_extractor > tmp(new raw_udp_extractor());
+      tmp->apply_network_order = this->apply_network_order;
+      result.first = tmp;
       break;
+    };
     case vector_stream:
       result.first = shared_ptr< data_extractor >(new vector_extractor());
       break;
@@ -118,15 +137,19 @@ std::pair< shared_ptr< data_extractor >, std::vector< std::string > > data_strea
     for(std::size_t i = 0; i < result.second.size(); ++i)
       (*result.first) >> result.second[i];
     
-    for(std::vector< std::string >::const_iterator it = names.begin(), it_end = names.end(); it != it_end; ++it) {
-      if( std::find(result.second.begin(), result.second.end(), *it) == result.second.end() )
-        throw std::invalid_argument(*it);
+    if( names.empty() ) {
+      names = result.second;
+    } else {
+      for(std::vector< std::string >::const_iterator it = names.begin(), it_end = names.end(); it != it_end; ++it) {
+        if( std::find(result.second.begin(), result.second.end(), *it) == result.second.end() )
+          throw std::invalid_argument(*it);
+      };
     };
     if( !time_sync_name.empty() &&
         ( std::find(result.second.begin(), result.second.end(), time_sync_name) == result.second.end() ) )
       throw std::invalid_argument(time_sync_name + " as time-sync column-name");
   } else if( kind == raw_udp_stream ) {
-    if( names.size() == 0 )
+    if( names.empty() )
       throw std::invalid_argument("empty names for a raw-udp-extractor");
     result.second = names;
     
@@ -134,7 +157,7 @@ std::pair< shared_ptr< data_extractor >, std::vector< std::string > > data_strea
     for(std::vector< std::string >::const_iterator it = names.begin(), it_end = names.end(); it != it_end; ++it)
       data_in_tmp->addName(*it);
   } else {
-    if( names.size() == 0 )
+    if( names.empty() )
       throw std::invalid_argument("empty names for a vector-extractor");
     result.second = names;
     

@@ -219,6 +219,8 @@ void CRSRunDialogWidget::onCaptureReached() {
   this->launch_label->setText("Captured!");
   this->launch_label->setStyleSheet("color: green;");
   
+  this->flashing_button_timer.stop();
+  
 };
 
 void CRSRunDialogWidget::onReset() {
@@ -245,6 +247,8 @@ void CRSRunDialogWidget::onReset() {
   this->capture_label->setStyleSheet("color: red;");
   
   this->status_text->clear();
+  
+  this->flashing_button_timer.stop();
   
 };
 

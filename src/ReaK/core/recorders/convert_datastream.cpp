@@ -67,11 +67,15 @@ int main(int argc, char** argv) {
     data_stream_options data_in_opt  = get_data_stream_options_from_po(vm, false);
     data_stream_options data_out_opt = get_data_stream_options_from_po(vm, true);
     
-    shared_ptr< data_recorder > data_out = data_out_opt.create_recorder();
-    
     shared_ptr< data_extractor > data_in;
     std::vector<std::string> names_in;
     boost::tie(data_in, names_in) = data_in_opt.create_extractor();
+    
+    if(data_out_opt.names.size() == 0)
+      data_out_opt.names = names_in;
+    else
+      names_in = data_out_opt.names;
+    shared_ptr< data_recorder > data_out = data_out_opt.create_recorder();
     
     named_value_row nvr_in  = data_in->getFreshNamedValueRow();
     named_value_row nvr_out = data_out->getFreshNamedValueRow();
@@ -79,11 +83,12 @@ int main(int argc, char** argv) {
     stc::time_point t_0 = stc::now();
     while(true) {
       (*data_in) >> nvr_in;
-      for(std::size_t i = 0; i < names_in.size(); ++i)
+      for(std::size_t i = 0; i < names_in.size(); ++i) {
         nvr_out[ names_in[i] ] = nvr_in[ names_in[i] ];
+      };
       if( !data_out_opt.time_sync_name.empty() ) {
         // wait until the proper time to output the value.
-        stc::time_point t_to_reach = t_0 + ch::duration_cast<stc::duration>(ch::duration<double, ReaKaux::ratio<1,1000> >(nvr_in[data_out_opt.time_sync_name]));
+        stc::time_point t_to_reach = t_0 + ch::duration_cast<stc::duration>(ch::duration<double, ReaKaux::ratio<1,1> >(nvr_in[data_out_opt.time_sync_name]));
         ReaKaux::this_thread::sleep_until( t_to_reach );
       };
       (*data_out) << nvr_out;

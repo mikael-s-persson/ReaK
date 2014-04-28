@@ -831,9 +831,11 @@ shared_ptr< CRS_target_anim_data::trajectory_type >
   (*current_target_anim_time) = last_time;
   double current_Pnorm = norm_2(b.get_covariance().get_matrix());
   recorder::named_value_row nvr_in = data_in->getFreshNamedValueRow();
+  double init_time = -1000.0;
   
   try {
-    while ( current_Pnorm > sat_options.predict_Pnorm_threshold ) {
+//     while ( current_Pnorm > sat_options.predict_Pnorm_threshold ) {
+    do {
       
       (*data_in) >> nvr_in;
       
@@ -867,8 +869,11 @@ shared_ptr< CRS_target_anim_data::trajectory_type >
       
       last_time = nvr_in["time"];
       (*current_target_anim_time) = last_time;
+      if(init_time < -900.0)
+        init_time = last_time;
       
-    };
+//     };
+    } while(last_time - init_time < sat_options.predict_Pnorm_threshold);
   } catch (std::exception& e) {
     std::cerr << "An error occurred during the initial phase of measurement streaming! Exception: " << e.what() << std::endl;
     return shared_ptr< CRS_target_anim_data::trajectory_type >();
@@ -934,12 +939,14 @@ shared_ptr< CRS_target_anim_data::trajectory_type >
 
 void TargetPredConfigWidget::startStatePrediction() {
   
+#if 0
   std::string start_script = getStartScript();
   if( start_script != "" ) {
     if(pred_side_script.state() != QProcess::NotRunning)
       pred_side_script.kill();
     pred_side_script.start(QString::fromStdString(start_script));
   };
+#endif
   
   using namespace ctrl;
   
@@ -1021,9 +1028,10 @@ void TargetPredConfigWidget::stopStatePrediction() {
     pred_stop_function.clear();
   };
   
+#if 0
   if(pred_side_script.state() != QProcess::NotRunning)
     pred_side_script.kill();
-  
+#endif
 };
 
 
