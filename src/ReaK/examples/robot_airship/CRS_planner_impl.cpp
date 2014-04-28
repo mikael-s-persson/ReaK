@@ -86,6 +86,7 @@ void CRSPlannerGUI_animate_bestsol_trajectory(void* pv, SoSensor*) {
     p->sol_anim.animation_timer->unschedule();
     animation_start = ReaKaux::chrono::high_resolution_clock::now();
     manip_traj.reset();
+    p->run_dialog.onCaptureReached();
   };
 };
 

@@ -87,7 +87,10 @@ class proxy_traj_applicator : public proxy_model_updater {
      */
     proxy_traj_applicator(const shared_ptr< proxy_model_applicator<joint_space_type> >& aStaticApplicator = shared_ptr< proxy_model_applicator<joint_space_type> >(),
                           const shared_ptr< JointTrajectory >& aTraj = shared_ptr< JointTrajectory >()) :
-                          static_applicator(aStaticApplicator), traj(aTraj) { };
+                          static_applicator(aStaticApplicator), traj(aTraj) {
+      if(traj)
+        last_wp = traj->get_waypoint_at_time(traj->get_start_time());
+    };
     
     
     virtual void synchronize_proxy_model(double t) const {
