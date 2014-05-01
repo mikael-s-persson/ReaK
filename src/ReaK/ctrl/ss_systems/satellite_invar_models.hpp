@@ -481,36 +481,33 @@ struct is_invariant_system< satellite3D_gyro_imdt_sys > : boost::mpl::true_ { };
 class satellite3D_IMU_imdt_sys : public satellite3D_imdt_sys {
   public:
     
-    typedef satellite3D_imdt_sys::state_space_type state_space_type;
+    typedef pp::metric_space_tuple< 
+      arithmetic_tuple< 
+        pp::se3_1st_order_topology<double>::type,
+        pp::hyperball_topology< vect<double,3> >,
+        pp::hyperball_topology< vect<double,3> > >,
+      pp::manhattan_tuple_distance > state_space_type;
     
-    typedef satellite3D_imdt_sys::covar_type covar_type;
-    typedef satellite3D_imdt_sys::covar_space_type covar_space_type;
-    typedef satellite3D_imdt_sys::temporal_state_space_type temporal_state_space_type;
-    typedef satellite3D_imdt_sys::belief_space_type belief_space_type;
-    typedef satellite3D_imdt_sys::temporal_belief_space_type temporal_belief_space_type;
-    typedef satellite3D_imdt_sys::state_belief_type state_belief_type;
-    typedef satellite3D_imdt_sys::input_belief_type input_belief_type;
-    typedef satellite3D_imdt_sys::output_belief_type output_belief_type;
+    typedef pp::topology_traits< state_space_type >::point_type point_type;
+    typedef pp::topology_traits< state_space_type >::point_difference_type point_difference_type;
+    typedef pp::topology_traits< state_space_type >::point_difference_type point_derivative_type;
     
-    typedef satellite3D_imdt_sys::point_type point_type;
-    typedef satellite3D_imdt_sys::point_difference_type point_difference_type;
-  
-    typedef satellite3D_imdt_sys::time_type time_type;
-    typedef satellite3D_imdt_sys::time_difference_type time_difference_type;
-    typedef satellite3D_imdt_sys::point_derivative_type point_derivative_type;
-  
-    typedef satellite3D_imdt_sys::input_type input_type;
-    typedef satellite3D_imdt_sys::output_type output_type;
-  
-    typedef satellite3D_imdt_sys::invariant_error_type invariant_error_type;
-    typedef satellite3D_imdt_sys::invariant_correction_type invariant_correction_type;
-    typedef satellite3D_imdt_sys::invariant_frame_type invariant_frame_type;
-  
-    BOOST_STATIC_CONSTANT(std::size_t, dimensions = 13);
+    typedef double time_type;
+    typedef double time_difference_type;
+    
+    typedef vect_n<double> input_type;
+    typedef vect_n<double> output_type;
+    
+    typedef vect_n<double> invariant_error_type;
+    typedef vect_n<double> invariant_correction_type;
+    typedef mat<double,mat_structure::square> invariant_frame_type;
+    
+    BOOST_STATIC_CONSTANT(std::size_t, dimensions = 19);
     BOOST_STATIC_CONSTANT(std::size_t, input_dimensions = 6);
     BOOST_STATIC_CONSTANT(std::size_t, output_dimensions = 16);
     BOOST_STATIC_CONSTANT(std::size_t, invariant_error_dimensions = 15);
-    BOOST_STATIC_CONSTANT(std::size_t, invariant_correction_dimensions = 12);
+    BOOST_STATIC_CONSTANT(std::size_t, invariant_correction_dimensions = 18);
+    BOOST_STATIC_CONSTANT(std::size_t, actual_state_dimensions = 12);
     
     typedef satellite3D_imdt_sys::matrixA_type matrixA_type;
     typedef satellite3D_imdt_sys::matrixB_type matrixB_type;
@@ -519,6 +516,25 @@ class satellite3D_IMU_imdt_sys : public satellite3D_imdt_sys {
     
     typedef satellite3D_imdt_sys::zero_input_trajectory zero_input_trajectory;
     
+    
+    typedef covariance_matrix< vect_n<double> > covar_type;
+    typedef covar_topology< covar_type > covar_space_type;
+    typedef pp::temporal_space<state_space_type, pp::time_poisson_topology, pp::time_distance_only> temporal_state_space_type;
+    typedef gaussian_belief_space<state_space_type, covar_space_type> belief_space_type;
+    typedef pp::temporal_space<belief_space_type, pp::time_poisson_topology, pp::time_distance_only> temporal_belief_space_type;
+    typedef gaussian_belief_state< point_type,  covar_type > state_belief_type;
+    typedef gaussian_belief_state< input_type,  covar_type > input_belief_type;
+    typedef gaussian_belief_state< output_type, covar_type > output_belief_type;
+    
+    
+    virtual shared_ptr< temporal_state_space_type > get_temporal_state_space(double aStartTime = 0.0, double aEndTime = 1.0) const;
+    virtual shared_ptr< state_space_type > get_state_space() const;
+    
+    virtual shared_ptr< temporal_belief_space_type > get_temporal_belief_space(double aStartTime = 0.0, double aEndTime = 1.0) const;
+    virtual shared_ptr< belief_space_type > get_belief_space() const;
+    
+    
+    virtual state_belief_type get_zero_state_belief(double aCovValue = 10.0) const;
     virtual output_belief_type get_zero_output_belief(double aCovValue = 1.0) const;
     
   protected:
