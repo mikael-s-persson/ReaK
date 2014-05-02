@@ -124,9 +124,9 @@ void >::type tsos_aug_kalman_predict(const LinearSystem& sys,
   sys.get_state_transition_blocks(A, B, state_space, t, t + sys.get_time_step(), x, b_x.get_mean_state(), b_u.get_mean_state(), b_u.get_mean_state());
   
   const MatType& P_last = b_x.get_covariance().get_matrix();
-  const std::size_t n = augmented_sss_traits<LinearSystem>::actual_state_dimensions;
-  const std::size_t n_u = b_u.get_covariance().get_matrix().get_col_count();
-  const std::size_t m = P_last.get_col_count() - n;
+  const std::size_t n   = sys.get_actual_state_dimensions();
+  const std::size_t n_u = sys.get_input_dimensions();
+  const std::size_t m   = sys.get_state_dimensions() - n;
   
   mat_sub_block<MatAType>      A_x  = sub(A)(range(0, n-1), range(0, n-1));
   mat_sub_block<MatAType>      A_xa = sub(A)(range(0, n-1), range(n, n+m-1));
@@ -225,9 +225,9 @@ void >::type tsos_aug_kalman_update(const LinearSystem& sys,
   sys.get_output_function_blocks(C, D, state_space, t, x, b_u.get_mean_state());
   
   const MatType& P = b_x.get_covariance().get_matrix();
-  const std::size_t n = augmented_sss_traits<LinearSystem>::actual_state_dimensions;
-  const std::size_t n_z = b_z.get_covariance().get_matrix().get_col_count();
-  const std::size_t m = P.get_col_count() - n;
+  const std::size_t n   = sys.get_actual_state_dimensions();
+  const std::size_t n_z = sys.get_output_dimensions();
+  const std::size_t m   = sys.get_state_dimensions() - n;
   
   mat_sub_block<MatCType>      C_x  = sub(C)(range(0,n_z-1),range(0,n-1));
   mat_const_sub_block<MatType> P_x  = sub(P)(range(0, n-1), range(0, n-1));
@@ -341,10 +341,10 @@ void >::type tsos_aug_kalman_filter_step(const LinearSystem& sys,
   StateType x = b_x.get_mean_state();
   MatPType P(b_x.get_covariance().get_matrix());
   
-  const std::size_t n = augmented_sss_traits<LinearSystem>::actual_state_dimensions;
-  const std::size_t n_u = b_u.get_covariance().get_matrix().get_col_count();
-  const std::size_t n_z = b_z.get_covariance().get_matrix().get_col_count();
-  const std::size_t m = P.get_col_count() - n;
+  const std::size_t n   = sys.get_actual_state_dimensions();
+  const std::size_t n_u = sys.get_input_dimensions();
+  const std::size_t n_z = sys.get_output_dimensions();
+  const std::size_t m   = sys.get_state_dimensions() - n;
   
   x = sys.get_next_state(state_space, x, b_u.get_mean_state(), t);
   sys.get_state_transition_blocks(A, B, state_space, t, t + sys.get_time_step(), b_x.get_mean_state(), x, b_u.get_mean_state(), b_u.get_mean_state());

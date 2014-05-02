@@ -127,6 +127,24 @@ class satellite3D_lin_dt_system : public named_object {
   public:
     
     /**
+     * Returns the dimensions of the states of the system.
+     * \return The dimensions of the states of the system.
+     */
+    virtual std::size_t get_state_dimensions() const { return 13; };
+    
+    /**
+     * Returns the dimensions of the input of the system.
+     * \return The dimensions of the input of the system.
+     */
+    virtual std::size_t get_input_dimensions() const { return 6; };
+    
+    /**
+     * Returns the dimensions of the output of the system.
+     * \return The dimensions of the output of the system.
+     */
+    virtual std::size_t get_output_dimensions() const { return 7; };
+    
+    /**
      * Constructor.
      * \param aName The name for this object.
      * \param aMass The mass of the satellite.
@@ -270,6 +288,12 @@ class satellite3D_gyro_lin_dt_system : public satellite3D_lin_dt_system {
   public:
     
     /**
+     * Returns the dimensions of the output of the system.
+     * \return The dimensions of the output of the system.
+     */
+    virtual std::size_t get_output_dimensions() const { return 10; };
+    
+    /**
      * Constructor.
      * \param aName The name for this object.
      * \param aMass The mass of the satellite.
@@ -365,6 +389,36 @@ class satellite3D_inv_dt_system : public satellite3D_lin_dt_system {
     
     virtual state_belief_type get_zero_state_belief(double aCovValue = 10.0) const;
     virtual output_belief_type get_zero_output_belief(double aCovValue = 1.0) const;
+    
+    /**
+     * Returns the dimensions of the states of the system.
+     * \return The dimensions of the states of the system.
+     */
+    virtual std::size_t get_state_dimensions() const { return 13; };
+    
+    /**
+     * Returns the dimensions of the input of the system.
+     * \return The dimensions of the input of the system.
+     */
+    virtual std::size_t get_input_dimensions() const { return 6; };
+    
+    /**
+     * Returns the dimensions of the output of the system.
+     * \return The dimensions of the output of the system.
+     */
+    virtual std::size_t get_output_dimensions() const { return 7; };
+    
+    /**
+     * Returns the dimensions of the invariant errors of the system.
+     * \return The dimensions of the invariant errors of the system.
+     */
+    virtual std::size_t get_invariant_error_dimensions() const { return 6; };
+    
+    /**
+     * Returns the dimensions of the corrections to the states of the system.
+     * \return The dimensions of the corrections to the states of the system.
+     */
+    virtual std::size_t get_correction_dimensions() const { return 12; };
     
     /**
      * Constructor.
@@ -516,6 +570,18 @@ class satellite3D_gyro_inv_dt_system : public satellite3D_inv_dt_system {
     virtual output_belief_type get_zero_output_belief(double aCovValue = 1.0) const;
     
   public:
+    
+    /**
+     * Returns the dimensions of the output of the system.
+     * \return The dimensions of the output of the system.
+     */
+    virtual std::size_t get_output_dimensions() const { return 10; };
+    
+    /**
+     * Returns the dimensions of the invariant errors of the system.
+     * \return The dimensions of the invariant errors of the system.
+     */
+    virtual std::size_t get_invariant_error_dimensions() const { return 9; };
     
     /**
      * Constructor.

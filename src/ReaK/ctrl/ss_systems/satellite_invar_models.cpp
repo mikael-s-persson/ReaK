@@ -376,9 +376,25 @@ satellite3D_gyro_imdt_sys::invariant_error_type satellite3D_gyro_imdt_sys::get_i
 
 
 
+shared_ptr< satellite3D_IMU_imdt_sys::temporal_state_space_type > satellite3D_IMU_imdt_sys::get_temporal_state_space(double aStartTime, double aEndTime) const {
+  return shared_ptr< temporal_state_space_type >(); // TODO
+};
 
-satellite3D_IMU_imdt_sys::state_belief_type satellite3D_IMU_imdt_sys::get_zero_state_belief(double aCovValue = 10.0) const {
-  
+shared_ptr< satellite3D_IMU_imdt_sys::state_space_type > satellite3D_IMU_imdt_sys::get_state_space() const {
+  return shared_ptr< state_space_type >(); // TODO
+};
+
+shared_ptr< satellite3D_IMU_imdt_sys::temporal_belief_space_type > satellite3D_IMU_imdt_sys::get_temporal_belief_space(double aStartTime, double aEndTime) const {
+  return shared_ptr< temporal_belief_space_type >(); // TODO
+};
+
+shared_ptr< satellite3D_IMU_imdt_sys::belief_space_type > satellite3D_IMU_imdt_sys::get_belief_space() const {
+  return shared_ptr< belief_space_type >(); // TODO
+};
+
+
+satellite3D_IMU_imdt_sys::state_belief_type satellite3D_IMU_imdt_sys::get_zero_state_belief(double aCovValue) const {
+  return state_belief_type(); // TODO
 };
 
 satellite3D_IMU_imdt_sys::output_belief_type satellite3D_IMU_imdt_sys::get_zero_output_belief(double aCovValue) const {

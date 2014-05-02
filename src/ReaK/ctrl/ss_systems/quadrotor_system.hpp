@@ -89,6 +89,36 @@ class quadrotor_system : public named_object {
   public:
     
     /**
+     * Returns the dimensions of the states of the system.
+     * \return The dimensions of the states of the system.
+     */
+    std::size_t get_state_dimensions() const { return 13; };
+    
+    /**
+     * Returns the dimensions of the input of the system.
+     * \return The dimensions of the input of the system.
+     */
+    std::size_t get_input_dimensions() const { return 4; };
+    
+    /**
+     * Returns the dimensions of the output of the system.
+     * \return The dimensions of the output of the system.
+     */
+    std::size_t get_output_dimensions() const { return 13; };
+    
+    /**
+     * Returns the dimensions of the invariant errors of the system.
+     * \return The dimensions of the invariant errors of the system.
+     */
+    std::size_t get_invariant_error_dimensions() const { return 12; };
+    
+    /**
+     * Returns the dimensions of the corrections to the states of the system.
+     * \return The dimensions of the corrections to the states of the system.
+     */
+    std::size_t get_correction_dimensions() const { return 12; };
+    
+    /**
      * Default and parametrized constructor.
      * \param aName The name of this object.
      * \param aMass The mass of the quad-rotor.

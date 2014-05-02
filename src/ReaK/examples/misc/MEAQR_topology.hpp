@@ -112,6 +112,14 @@ namespace detail {
       
     public:
       
+      std::size_t get_state_dimensions() const { 
+        return BRBmatrix.get_row_count() * (2 * BRBmatrix.get_row_count() + 2);
+      };
+      
+      std::size_t get_input_dimensions() const { return 0; };
+      
+      std::size_t get_output_dimensions() const { return 0; };
+      
       MEAQR_ZIR_system(lin_payload* aLinData = NULL, 
                        const mat<double,mat_structure::diagonal>& aR = (mat<double,mat_structure::diagonal>())) : 
                        lin_data(aLinData) {

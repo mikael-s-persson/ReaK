@@ -87,6 +87,12 @@ struct discrete_sss_traits {
  * 
  * y = sys.get_output(state_space,p,u,t);  The system's output (y) can be obtained from the state (p), input (u) and time (t).
  * 
+ * s = sys.get_state_dimensions();  The state-space system (sys) can deliver the dimensions count (s) for the states of the system.
+ * 
+ * i = sys.get_input_dimensions();  The state-space system (sys) can deliver the dimensions count (i) for the inputs of the system.
+ * 
+ * o = sys.get_output_dimensions();  The state-space system (sys) can deliver the dimensions count (o) for the outputs of the system.
+ * 
  * \tparam DiscreteSystem The type to be tested for being a discrete-time state-space system.
  * \tparam StateSpaceType The type of the state-space topology on which the state-space system should be able to act.
  */
@@ -107,6 +113,9 @@ struct DiscreteSSSConcept {
     dt = sys.get_time_step();
     p = sys.get_next_state(state_space,p,u,t);
     y = sys.get_output(state_space,p,u,t);
+    std::size_t s = sys.get_state_dimensions(); RK_UNUSED(s);
+    std::size_t i = sys.get_input_dimensions(); RK_UNUSED(i);
+    std::size_t o = sys.get_output_dimensions(); RK_UNUSED(o);
   };
   
 };

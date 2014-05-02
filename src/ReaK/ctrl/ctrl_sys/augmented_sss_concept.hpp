@@ -56,6 +56,28 @@ struct augmented_sss_traits {
   
 };
 
+/**
+ * This class template defines the concept for an augmented state-space system as used in the ReaK::ctrl
+ * library. In addition to providing the traits defined in augmented_sss_traits, an augmented state-space 
+ * system should provide a number of valid expressions.
+ * 
+ * Valid expressions:
+ * 
+ * x = sys.get_actual_state_dimensions();  The state-space system (sys) can deliver the dimensions count (x) for the actual (dynamic) states of the system.
+ * 
+ * \tparam AugmentedSystem The state-space system type which is tested for modeling the augmented state-space system concept.
+ */
+template <typename AugmentedSystem>
+struct AugmentedSystemConcept {
+  AugmentedSystem sys;
+  
+  BOOST_CONCEPT_USAGE(AugmentedSystemConcept)
+  {
+    std::size_t x = sys.get_actual_state_dimensions(); RK_UNUSED(x);
+  };
+  
+};
+
 
 template <typename AugmentedSystem>
 struct is_augmented_ss_system : boost::mpl::false_ { };

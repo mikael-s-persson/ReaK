@@ -111,6 +111,10 @@ struct invariant_system_traits {
  *
  * W = sys.get_invariant_posterior_frame(prev_p,p,u,t);  The invariant frame between a state (prev_p) and its posterior corrected value (p) can be obtained, given the input (u) and time (t).
  * 
+ * ie = sys.get_invariant_error_dimensions();  The state-space system (sys) can deliver the dimensions count (ie) for the invariant errors of the system.
+ * 
+ * ic = sys.get_correction_dimensions();  The state-space system (sys) can deliver the dimensions count (i) for the corrections to the states of the system.
+ * 
  * \tparam InvariantDiscreteSystem The state-space system to be checked for compliance to this concept.
  * \tparam StateSpaceType The state-space topology type with which the invariant system must be compatible.
  */
@@ -131,6 +135,9 @@ struct InvariantDiscreteSystemConcept : DiscreteLinearSSSConcept<InvariantDiscre
     this->p = this->sys.apply_correction(this->state_space,this->p,this->c,this->u,this->t);
     this->W = this->sys.get_invariant_prior_frame(this->state_space,this->p,this->p,this->u,this->t);
     this->W = this->sys.get_invariant_posterior_frame(this->state_space,this->p,this->p,this->u,this->t);
+    
+    std::size_t ie = this->sys.get_invariant_error_dimensions(); RK_UNUSED(ie);
+    std::size_t ic = this->sys.get_correction_dimensions(); RK_UNUSED(ic);
   };
   
 };
@@ -154,6 +161,10 @@ struct InvariantDiscreteSystemConcept : DiscreteLinearSSSConcept<InvariantDiscre
  * 
  * p = sys.apply_correction(p,c,u,t);  The state-vector (p) can be corrected by a state-correction vector (c), given the input (u) and time (t).
  * 
+ * ie = sys.get_invariant_error_dimensions();  The state-space system (sys) can deliver the dimensions count (ie) for the invariant errors of the system.
+ * 
+ * ic = sys.get_correction_dimensions();  The state-space system (sys) can deliver the dimensions count (i) for the corrections to the states of the system.
+ * 
  * \tparam InvariantContinuousSystem The state-space system to be checked for compliance to this concept.
  * \tparam StateSpaceType The state-space topology type with which the invariant system must be compatible.
  */
@@ -171,6 +182,9 @@ struct InvariantContinuousSystemConcept : LinearSSSystemConcept<InvariantContinu
     this->e     = this->sys.get_invariant_error(this->state_space,this->p,this->u,this->y,this->t);
     this->c     = from_vect<InvCorr>(transpose_view(this->C) * to_vect<ValueType>(this->e));
     this->dp_dt = this->sys.apply_correction(this->state_space,this->p,this->dp_dt,this->c,this->u,this->t);
+    
+    std::size_t ie = this->sys.get_invariant_error_dimensions(); RK_UNUSED(ie);
+    std::size_t ic = this->sys.get_correction_dimensions(); RK_UNUSED(ic);
   };
   
 };

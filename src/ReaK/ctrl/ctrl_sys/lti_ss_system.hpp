@@ -204,17 +204,17 @@ class lti_system_ss : public named_object {
      * Returns the state-vector's dimension.
      * \return The state-vector's dimension.
      */
-    size_type get_state_count() const { return A.get_col_count(); };
+    size_type get_state_dimensions() const { return A.get_col_count(); };
     /**
      * Returns the input-vector's dimension.
      * \return The input-vector's dimension.
      */
-    size_type get_input_count() const { return B.get_col_count(); };
+    size_type get_input_dimensions() const { return B.get_col_count(); };
     /**
      * Returns the output-vector's dimension.
      * \return The output-vector's dimension.
      */
-    size_type get_output_count() const { return C.get_row_count(); };
+    size_type get_output_dimensions() const { return C.get_row_count(); };
 
     /**
      * Fills the given matrices with the continuous-time system matrices.

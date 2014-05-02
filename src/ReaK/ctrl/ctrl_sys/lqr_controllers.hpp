@@ -141,6 +141,24 @@ class dt_ih_lqr_controller : public named_object {
     };
     
     /**
+     * Sets the cost matrix of state errors (Q).
+     * \param m The new cost matrix of state errors (Q).
+     */
+    template <typename Matrix>
+    void set_state_cost_matrix(const Matrix& m) {
+      Q = m;
+    };
+    
+    /**
+     * Sets the cost matrix of inputs (actuation) (R).
+     * \param m The new cost matrix of inputs (actuation) (R).
+     */
+    template <typename Matrix>
+    void set_input_cost_matrix(const Matrix& m) {
+      R = m;
+    };
+    
+    /**
      * Returns the state-space system under control.
      * \return The state-space system under control.
      */
@@ -157,20 +175,32 @@ class dt_ih_lqr_controller : public named_object {
     const shared_ptr< TrajectoryType >& get_trajectory() const { return m_traj; };
     
     /**
+     * Returns the cost matrix of state errors (Q).
+     * \return The cost matrix of state errors (Q).
+     */
+    const mat<value_type,mat_structure::square>& get_state_cost_matrix() const { return Q; };
+    
+    /**
+     * Returns the cost matrix of inputs (actuation) (R).
+     * \return The cost matrix of inputs (actuation) (R).
+     */
+    const mat<value_type,mat_structure::square>& get_input_cost_matrix() const { return R; };
+    
+    /**
      * Returns the state-vector's dimension.
      * \return The state-vector's dimension.
      */
-    size_type get_state_count() const { return 0; };
+    size_type get_state_dimensions() const { return 0; };
     /**
      * Returns the input-vector's dimension.
      * \return The input-vector's dimension.
      */
-    size_type get_input_count() const { return Q.get_row_count(); };
+    size_type get_input_dimensions() const { return m_sys->get_state_dimensions(); };
     /**
      * Returns the output-vector's dimension.
      * \return The output-vector's dimension.
      */
-    size_type get_output_count() const { return R.get_row_count(); };
+    size_type get_output_dimensions() const { return m_sys->get_input_dimensions(); };
     
     /**
      * Returns output of the system given the current state, input and time.
@@ -184,9 +214,9 @@ class dt_ih_lqr_controller : public named_object {
       
       Atype A;
       Btype B;
-      m_sys->get_state_transition_blocks(A, B, *m_state_space, t, t, u, u, from_vect<output_type>(vect_n<value_type>(get_output_count(),value_type(0.0))), from_vect<output_type>(vect_n<value_type>(get_output_count(),value_type(0.0))));
+      m_sys->get_state_transition_blocks(A, B, *m_state_space, t, t, u, u, from_vect<output_type>(vect_n<value_type>(get_output_dimensions(),value_type(0.0))), from_vect<output_type>(vect_n<value_type>(get_output_dimensions(),value_type(0.0))));
       
-      mat< value_type, mat_structure::rectangular > K(get_output_count(), get_input_count());
+      mat< value_type, mat_structure::rectangular > K(get_output_dimensions(), get_input_dimensions());
       solve_IHDT_LQR(A, B, Q, R, K, value_type(1e-4));
       
       return from_vect<output_type>( K * to_vect<value_type>( m_state_space->difference(m_traj->get_point_at_time(t).pt, u) ) );
@@ -312,6 +342,24 @@ class ct_ih_lqr_controller : public named_object {
     };
     
     /**
+     * Sets the cost matrix of state errors (Q).
+     * \param m The new cost matrix of state errors (Q).
+     */
+    template <typename Matrix>
+    void set_state_cost_matrix(const Matrix& m) {
+      Q = m;
+    };
+    
+    /**
+     * Sets the cost matrix of inputs (actuation) (R).
+     * \param m The new cost matrix of inputs (actuation) (R).
+     */
+    template <typename Matrix>
+    void set_input_cost_matrix(const Matrix& m) {
+      R = m;
+    };
+    
+    /**
      * Returns the state-space system under control.
      * \return The state-space system under control.
      */
@@ -328,20 +376,32 @@ class ct_ih_lqr_controller : public named_object {
     const shared_ptr< TrajectoryType >& get_trajectory() const { return m_traj; };
     
     /**
+     * Returns the cost matrix of state errors (Q).
+     * \return The cost matrix of state errors (Q).
+     */
+    const mat<value_type,mat_structure::square>& get_state_cost_matrix() const { return Q; };
+    
+    /**
+     * Returns the cost matrix of inputs (actuation) (R).
+     * \return The cost matrix of inputs (actuation) (R).
+     */
+    const mat<value_type,mat_structure::square>& get_input_cost_matrix() const { return R; };
+    
+    /**
      * Returns the state-vector's dimension.
      * \return The state-vector's dimension.
      */
-    size_type get_state_count() const { return 0; };
+    size_type get_state_dimensions() const { return 0; };
     /**
      * Returns the input-vector's dimension.
      * \return The input-vector's dimension.
      */
-    size_type get_input_count() const { return Q.get_row_count(); };
+    size_type get_input_dimensions() const { return m_sys->get_state_dimensions(); };
     /**
      * Returns the output-vector's dimension.
      * \return The output-vector's dimension.
      */
-    size_type get_output_count() const { return R.get_row_count(); };
+    size_type get_output_dimensions() const { return m_sys->get_input_dimensions(); };
     
     /**
      * Returns output of the system given the current state, input and time.
@@ -359,9 +419,9 @@ class ct_ih_lqr_controller : public named_object {
       Btype B;
       Ctype C;
       Dtype D;
-      m_sys->get_linear_blocks(A, B, C, D, *m_state_space, t, u, from_vect<output_type>(vect_n<value_type>(get_output_count(),value_type(0.0))));
+      m_sys->get_linear_blocks(A, B, C, D, *m_state_space, t, u, from_vect<output_type>(vect_n<value_type>(get_output_dimensions(),value_type(0.0))));
       
-      mat< value_type, mat_structure::rectangular > K(get_output_count(), get_input_count());
+      mat< value_type, mat_structure::rectangular > K(get_output_dimensions(), get_input_dimensions());
       solve_IHCT_LQR(A, B, Q, R, K, value_type(1e-4));
       
       return from_vect<output_type>( K * to_vect<value_type>( m_state_space->difference(m_traj->get_point_at_time(t).pt, u) ) );

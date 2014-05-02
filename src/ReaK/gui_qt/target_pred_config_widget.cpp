@@ -829,7 +829,7 @@ shared_ptr< CRS_target_anim_data::trajectory_type >
   
   double last_time = 0.0;
   (*current_target_anim_time) = last_time;
-  double current_Pnorm = norm_2(b.get_covariance().get_matrix());
+//   double current_Pnorm = norm_2(b.get_covariance().get_matrix());
   recorder::named_value_row nvr_in = data_in->getFreshNamedValueRow();
   double init_time = -1000.0;
   
@@ -865,7 +865,7 @@ shared_ptr< CRS_target_anim_data::trajectory_type >
                                       sat_temp_space->get_space_topology(), 
                                       b, b_u, b_z, last_time);
       
-      current_Pnorm = norm_2(b.get_covariance().get_matrix());
+//       current_Pnorm = norm_2(b.get_covariance().get_matrix());
       
       last_time = nvr_in["time"];
       (*current_target_anim_time) = last_time;

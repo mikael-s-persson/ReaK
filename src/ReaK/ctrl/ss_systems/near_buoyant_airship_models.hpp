@@ -140,6 +140,42 @@ class airship3D_imdt_em_sys : public named_object {
   public:  
     
     /**
+     * Returns the dimensions of the states of the system.
+     * \return The dimensions of the states of the system.
+     */
+    virtual std::size_t get_state_dimensions() const { return 17; };
+    
+    /**
+     * Returns the dimensions of the input of the system.
+     * \return The dimensions of the input of the system.
+     */
+    virtual std::size_t get_input_dimensions() const { return 6; };
+    
+    /**
+     * Returns the dimensions of the output of the system.
+     * \return The dimensions of the output of the system.
+     */
+    virtual std::size_t get_output_dimensions() const { return 7; };
+    
+    /**
+     * Returns the dimensions of the invariant errors of the system.
+     * \return The dimensions of the invariant errors of the system.
+     */
+    virtual std::size_t get_invariant_error_dimensions() const { return 6; };
+    
+    /**
+     * Returns the dimensions of the corrections to the states of the system.
+     * \return The dimensions of the corrections to the states of the system.
+     */
+    virtual std::size_t get_correction_dimensions() const { return 16; };
+    
+    /**
+     * Returns the dimensions of the actual states of the system.
+     * \return The dimensions of the actual states of the system.
+     */
+    virtual std::size_t get_actual_state_dimensions() const { return 12; };
+    
+    /**
      * Constructor.
      * \param aName The name for this object.
      * \param aMass The mass of the airship.
@@ -377,6 +413,42 @@ class airship3D_imdt_emd_sys : public named_object {
   public:  
     
     /**
+     * Returns the dimensions of the states of the system.
+     * \return The dimensions of the states of the system.
+     */
+    virtual std::size_t get_state_dimensions() const { return 19; };
+    
+    /**
+     * Returns the dimensions of the input of the system.
+     * \return The dimensions of the input of the system.
+     */
+    virtual std::size_t get_input_dimensions() const { return 6; };
+    
+    /**
+     * Returns the dimensions of the output of the system.
+     * \return The dimensions of the output of the system.
+     */
+    virtual std::size_t get_output_dimensions() const { return 7; };
+    
+    /**
+     * Returns the dimensions of the invariant errors of the system.
+     * \return The dimensions of the invariant errors of the system.
+     */
+    virtual std::size_t get_invariant_error_dimensions() const { return 6; };
+    
+    /**
+     * Returns the dimensions of the corrections to the states of the system.
+     * \return The dimensions of the corrections to the states of the system.
+     */
+    virtual std::size_t get_correction_dimensions() const { return 18; };
+    
+    /**
+     * Returns the dimensions of the actual states of the system.
+     * \return The dimensions of the actual states of the system.
+     */
+    virtual std::size_t get_actual_state_dimensions() const { return 12; };
+    
+    /**
      * Constructor.
      * \param aName The name for this object.
      * \param aMass The mass of the airship.
@@ -596,6 +668,24 @@ class airship3D_gyro_imdt_emd_sys : public airship3D_imdt_emd_sys {
   public:  
     
     /**
+     * Returns the dimensions of the states of the system.
+     * \return The dimensions of the states of the system.
+     */
+    virtual std::size_t get_state_dimensions() const { return 17; };
+    
+    /**
+     * Returns the dimensions of the output of the system.
+     * \return The dimensions of the output of the system.
+     */
+    virtual std::size_t get_output_dimensions() const { return 10; };
+    
+    /**
+     * Returns the dimensions of the invariant errors of the system.
+     * \return The dimensions of the invariant errors of the system.
+     */
+    virtual std::size_t get_invariant_error_dimensions() const { return 9; };
+    
+    /**
      * Constructor.
      * \param aName The name for this object.
      * \param aMass The mass of the airship.
@@ -720,6 +810,42 @@ class airship3D_imdt_emdJ_sys : public named_object {
     vect<double,3> mGravityAcc;
     
   public:  
+    
+    /**
+     * Returns the dimensions of the states of the system.
+     * \return The dimensions of the states of the system.
+     */
+    virtual std::size_t get_state_dimensions() const { return 25; };
+    
+    /**
+     * Returns the dimensions of the input of the system.
+     * \return The dimensions of the input of the system.
+     */
+    virtual std::size_t get_input_dimensions() const { return 6; };
+    
+    /**
+     * Returns the dimensions of the output of the system.
+     * \return The dimensions of the output of the system.
+     */
+    virtual std::size_t get_output_dimensions() const { return 7; };
+    
+    /**
+     * Returns the dimensions of the invariant errors of the system.
+     * \return The dimensions of the invariant errors of the system.
+     */
+    virtual std::size_t get_invariant_error_dimensions() const { return 6; };
+    
+    /**
+     * Returns the dimensions of the corrections to the states of the system.
+     * \return The dimensions of the corrections to the states of the system.
+     */
+    virtual std::size_t get_correction_dimensions() const { return 24; };
+    
+    /**
+     * Returns the dimensions of the actual states of the system.
+     * \return The dimensions of the actual states of the system.
+     */
+    virtual std::size_t get_actual_state_dimensions() const { return 12; };
     
     /**
      * Constructor.
@@ -939,6 +1065,18 @@ class airship3D_gyro_imdt_emdJ_sys : public airship3D_imdt_emdJ_sys {
   protected:
     
   public:  
+    
+    /**
+     * Returns the dimensions of the output of the system.
+     * \return The dimensions of the output of the system.
+     */
+    virtual std::size_t get_output_dimensions() const { return 10; };
+    
+    /**
+     * Returns the dimensions of the invariant errors of the system.
+     * \return The dimensions of the invariant errors of the system.
+     */
+    virtual std::size_t get_invariant_error_dimensions() const { return 9; };
     
     /**
      * Constructor.

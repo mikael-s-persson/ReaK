@@ -143,33 +143,35 @@ class kte_nl_system : public named_object {
     };
     
     /**
-     * Returns the number of states in the state-vector.
-     * \return The number of states in the state-vector.
+     * Returns the dimensions of the state vectors.
+     * \return The dimensions of the state vectors.
      */
-    size_type get_state_count() const { 
+    size_type get_state_dimensions() const { 
       return 2 * dofs_gen.size() + 7 * dofs_2D.size() + 13 * dofs_3D.size(); 
     };
+    
     /**
-     * Returns the number of inputs to the KTE model.
-     * \return The number of inputs to the KTE model.
+     * Returns the dimensions of the input vectors.
+     * \return The dimensions of the input vectors.
      */
-    size_type get_input_count() const { 
+    size_type get_input_dimensions() const { 
       size_type sum = 0;
       for(unsigned int i = 0; i < inputs.size(); ++i)
         sum += inputs[i]->getInputCount();
       return sum; 
     };
+    
     /**
-     * Returns the number of outputs from the KTE model.
-     * \return The number of outputs from the KTE model.
+     * Returns the dimensions of the output vectors.
+     * \return The dimensions of the output vectors.
      */
-    size_type get_output_count() const {
+    size_type get_output_dimensions() const { 
       size_type sum = 0;
       for(unsigned int i = 0; i < outputs.size(); ++i)
         sum += outputs[i]->getOutputCount();
       return sum;
     };
-
+    
     /**
      * This function is a helper function which applies a given state-vector and 
      * input-vector to the KTE model, i.e., sets all the KTE frames and inputs to 
@@ -180,12 +182,12 @@ class kte_nl_system : public named_object {
      * \throw std::range_error If the state-vector or input-vector does not have the required dimension.
      */
     void apply_states_and_inputs(const point_type& p, const input_type& u) const {
-      if(p.size() != get_state_count()) {
+      if(p.size() != get_state_dimensions()) {
         std::cout << "Size of obtained state vector is: " << p.size() << std::endl;
-        std::cout << "But expected the size of the state vector to be: " << get_state_count() << std::endl;
+        std::cout << "But expected the size of the state vector to be: " << get_state_dimensions() << std::endl;
         throw std::range_error("State vector dimension mismatch!");
       };
-      if(u.size() != get_input_count())
+      if(u.size() != get_input_dimensions())
         throw std::range_error("Input vector dimension mismatch!");
       size_type i = 0;
       for(size_type j = 0; j < dofs_gen.size(); ++j) {
@@ -241,7 +243,7 @@ class kte_nl_system : public named_object {
     point_derivative_type get_state_derivative(const StateSpaceType&, const point_type& p, const input_type& u, const time_type& t = 0) const {
       apply_states_and_inputs(p,u);
       
-      point_derivative_type pd(get_state_count());
+      point_derivative_type pd(get_state_dimensions());
       
       if(chain && mass_calc) {
         chain->doMotion();
@@ -363,7 +365,7 @@ class kte_nl_system : public named_object {
       chain->clearForce();
       chain->doForce();
       
-      output_type y(get_output_count());
+      output_type y(get_output_dimensions());
       
       size_type i = 0;
       for(size_type j = 0; j < outputs.size(); ++j)

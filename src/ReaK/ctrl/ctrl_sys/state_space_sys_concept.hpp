@@ -99,6 +99,12 @@ struct ss_system_traits {
  * 
  * y = sys.get_output(state_space,p,u,t);  The state-space system (sys) can compute the output (y) given the current state (p), the current input (u) and the current time (t).
  * 
+ * s = sys.get_state_dimensions();  The state-space system (sys) can deliver the dimensions count (s) for the states of the system.
+ * 
+ * i = sys.get_input_dimensions();  The state-space system (sys) can deliver the dimensions count (i) for the inputs of the system.
+ * 
+ * o = sys.get_output_dimensions();  The state-space system (sys) can deliver the dimensions count (o) for the outputs of the system.
+ * 
  * \tparam SSSystem The state-space system type which is tested for modeling the state-space system concept.
  * \tparam StateSpaceType The state-space topology on which this state-space system should operate.
  */
@@ -123,6 +129,9 @@ struct SSSystemConcept {
     dp = dp_dt * dt;  //state-space system requirements
     dp_dt = sys.get_state_derivative(state_space,p,u,t);
     y = sys.get_output(state_space,p,u,t);
+    std::size_t s = sys.get_state_dimensions(); RK_UNUSED(s);
+    std::size_t i = sys.get_input_dimensions(); RK_UNUSED(i);
+    std::size_t o = sys.get_output_dimensions(); RK_UNUSED(o);
   };
   
 };

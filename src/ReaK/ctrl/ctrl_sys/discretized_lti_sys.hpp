@@ -98,6 +98,24 @@ class discretized_lti_sys : public named_object {
   public:
     
     /**
+     * Returns the dimensions of the state vectors.
+     * \return The dimensions of the state vectors.
+     */
+    size_type get_state_dimensions() const { return Ad.get_row_count(); };
+    
+    /**
+     * Returns the dimensions of the input vectors.
+     * \return The dimensions of the input vectors.
+     */
+    size_type get_input_dimensions() const { return Bd.get_col_count(); };
+    
+    /**
+     * Returns the dimensions of the output vectors.
+     * \return The dimensions of the output vectors.
+     */
+    size_type get_output_dimensions() const { return Cd.get_row_count(); };
+    
+    /**
      * Parametrized and default constructor.
      * \param aSys The continuous-time system.
      * \param aDt The time-step of the discrete-time system.

@@ -216,20 +216,22 @@ class lti_discrete_sys : public named_object {
     const time_difference_type& getDt() const { return dt; };
     
     /**
-     * Returns the state-vector's dimension.
-     * \return The state-vector's dimension.
+     * Returns the dimensions of the state vectors.
+     * \return The dimensions of the state vectors.
      */
-    size_type get_state_count() const { return A.get_col_count(); };
+    size_type get_state_dimensions() const { return A.get_row_count(); };
+    
     /**
-     * Returns the input-vector's dimension.
-     * \return The input-vector's dimension.
+     * Returns the dimensions of the input vectors.
+     * \return The dimensions of the input vectors.
      */
-    size_type get_input_count() const { return B.get_col_count(); };
+    size_type get_input_dimensions() const { return B.get_col_count(); };
+    
     /**
-     * Returns the output-vector's dimension.
-     * \return The output-vector's dimension.
+     * Returns the dimensions of the output vectors.
+     * \return The dimensions of the output vectors.
      */
-    size_type get_output_count() const { return C.get_row_count(); };
+    size_type get_output_dimensions() const { return C.get_row_count(); };
     
     /**
      * Fills the given matrices with the discrete-time system's state transition matrices.

@@ -103,6 +103,24 @@ class num_int_dtnl_sys : public named_object {
   public:
     
     /**
+     * Returns the dimensions of the state vectors.
+     * \return The dimensions of the state vectors.
+     */
+    size_type get_state_dimensions() const { return sys->get_state_dimensions(); };
+    
+    /**
+     * Returns the dimensions of the input vectors.
+     * \return The dimensions of the input vectors.
+     */
+    size_type get_input_dimensions() const { return sys->get_input_dimensions(); };
+    
+    /**
+     * Returns the dimensions of the output vectors.
+     * \return The dimensions of the output vectors.
+     */
+    size_type get_output_dimensions() const { return sys->get_output_dimensions(); };
+    
+    /**
      * Default constructor.
      */
     num_int_dtnl_sys(const std::string& aName = "") : sys(new CTSystem()), integ(), dt() { 
@@ -234,6 +252,24 @@ class num_int_dtnl_sys< state_rate_function_with_io<T>, NumIntegrator<T> > : pub
     time_difference_type dt;
     
   public:
+    
+    /**
+     * Returns the dimensions of the state vectors.
+     * \return The dimensions of the state vectors.
+     */
+    size_type get_state_dimensions() const { return sys->get_state_dimensions(); };
+    
+    /**
+     * Returns the dimensions of the input vectors.
+     * \return The dimensions of the input vectors.
+     */
+    size_type get_input_dimensions() const { return sys->get_input_dimensions(); };
+    
+    /**
+     * Returns the dimensions of the output vectors.
+     * \return The dimensions of the output vectors.
+     */
+    size_type get_output_dimensions() const { return sys->get_output_dimensions(); };
     
     /**
      * Default constructor.

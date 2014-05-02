@@ -41,6 +41,8 @@
 
 #include "satellite_basic_models.hpp"
 
+#include "ctrl_sys/augmented_sss_concept.hpp"
+
 #include "lin_alg/mat_alg.hpp"
 #include "topologies/se3_topologies.hpp"
 #include "topologies/se2_topologies.hpp"
@@ -97,6 +99,37 @@ class satellite2D_imdt_sys : public named_object {
     double mDt;
   
   public:
+    
+    /**
+     * Returns the dimensions of the states of the system.
+     * \return The dimensions of the states of the system.
+     */
+    virtual std::size_t get_state_dimensions() const { return 6; };
+    
+    /**
+     * Returns the dimensions of the input of the system.
+     * \return The dimensions of the input of the system.
+     */
+    virtual std::size_t get_input_dimensions() const { return 3; };
+    
+    /**
+     * Returns the dimensions of the output of the system.
+     * \return The dimensions of the output of the system.
+     */
+    virtual std::size_t get_output_dimensions() const { return 3; };
+    
+    /**
+     * Returns the dimensions of the invariant errors of the system.
+     * \return The dimensions of the invariant errors of the system.
+     */
+    virtual std::size_t get_invariant_error_dimensions() const { return 3; };
+    
+    /**
+     * Returns the dimensions of the corrections to the states of the system.
+     * \return The dimensions of the corrections to the states of the system.
+     */
+    virtual std::size_t get_correction_dimensions() const { return 6; };
+    
     
     /**
      * Constructor.
@@ -481,12 +514,15 @@ struct is_invariant_system< satellite3D_gyro_imdt_sys > : boost::mpl::true_ { };
 class satellite3D_IMU_imdt_sys : public satellite3D_imdt_sys {
   public:
     
+#if 0
     typedef pp::metric_space_tuple< 
       arithmetic_tuple< 
         pp::se3_1st_order_topology<double>::type,
         pp::hyperball_topology< vect<double,3> >,
         pp::hyperball_topology< vect<double,3> > >,
       pp::manhattan_tuple_distance > state_space_type;
+#endif
+    typedef pp::se3_1st_order_topology<double>::type state_space_type;
     
     typedef pp::topology_traits< state_space_type >::point_type point_type;
     typedef pp::topology_traits< state_space_type >::point_difference_type point_difference_type;
@@ -547,6 +583,36 @@ class satellite3D_IMU_imdt_sys : public satellite3D_imdt_sys {
   public:
     
     /**
+     * Returns the dimensions of the states of the system.
+     * \return The dimensions of the states of the system.
+     */
+    virtual std::size_t get_state_dimensions() const { return 19; };
+    
+    /**
+     * Returns the dimensions of the output of the system.
+     * \return The dimensions of the output of the system.
+     */
+    virtual std::size_t get_output_dimensions() const { return 16; };
+    
+    /**
+     * Returns the dimensions of the invariant errors of the system.
+     * \return The dimensions of the invariant errors of the system.
+     */
+    virtual std::size_t get_invariant_error_dimensions() const { return 15; };
+    
+    /**
+     * Returns the dimensions of the corrections to the states of the system.
+     * \return The dimensions of the corrections to the states of the system.
+     */
+    virtual std::size_t get_correction_dimensions() const { return 18; };
+    
+    /**
+     * Returns the dimensions of the actual states of the system.
+     * \return The dimensions of the actual states of the system.
+     */
+    virtual std::size_t get_actual_state_dimensions() const { return 12; };
+    
+    /**
      * Constructor.
      * \param aName The name for this object.
      * \param aMass The mass of the satellite.
@@ -601,6 +667,9 @@ class satellite3D_IMU_imdt_sys : public satellite3D_imdt_sys {
 
 template <>
 struct is_invariant_system< satellite3D_IMU_imdt_sys > : boost::mpl::true_ { };
+
+template <>
+struct is_augmented_ss_system< satellite3D_IMU_imdt_sys > : boost::mpl::true_ { };
 
 
 
