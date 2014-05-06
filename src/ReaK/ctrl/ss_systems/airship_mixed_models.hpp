@@ -54,6 +54,11 @@
 #include "ctrl_sys/covariance_matrix.hpp"
 #include "ctrl_sys/covar_topology.hpp"
 
+#include <boost/utility/enable_if.hpp>
+#include <boost/mpl/and.hpp>
+#include <boost/mpl/not.hpp>
+#include <boost/static_assert.hpp>
+
 
 namespace ReaK {
 
@@ -86,12 +91,14 @@ class ss_system_input_tuple : public named_object {
     template <unsigned int I>
     typename boost::enable_if_c< (I == 0),
     void >::type construct_input_dimensions_impl(std::size_t& dim) {
+      using ReaK::get;
       get<0>(data).construct_input_dimensions(dim);
     };
     
     template <unsigned int I>
     typename boost::enable_if_c< (I != 0),
     void >::type construct_input_dimensions_impl(std::size_t& dim) const {
+      using ReaK::get;
       construct_input_dimensions_impl<I-1>(dim);
       get<I>(data).construct_input_dimensions(dim);
     };
@@ -109,6 +116,7 @@ class ss_system_input_tuple : public named_object {
                                            const typename pp::topology_traits<StateSpaceType>::point_type& x, 
                                            typename pp::topology_traits<StateSpaceType>::point_difference_type& dx,
                                            const input_type& u, time_difference_type dt, time_type t) const {
+      using ReaK::get;
       get<0>(data).add_state_difference(params, space, x, dx, u, dt, t);
     };
     
@@ -119,6 +127,7 @@ class ss_system_input_tuple : public named_object {
                                            const typename pp::topology_traits<StateSpaceType>::point_type& x, 
                                            typename pp::topology_traits<StateSpaceType>::point_difference_type& dx,
                                            const input_type& u, time_difference_type dt, time_type t) const {
+      using ReaK::get;
       add_state_difference_impl<I-1>(params, space, x, dx, u, dt, t);
       get<I>(data).add_state_difference(params, space, x, dx, u, dt, t);
     };
@@ -132,6 +141,7 @@ class ss_system_input_tuple : public named_object {
                                                   const typename pp::topology_traits<StateSpaceType>::point_type& p_0,
                                                   const typename pp::topology_traits<StateSpaceType>::point_type& p_1, 
                                                   const input_type& u_0, const input_type& u_1) const {
+      using ReaK::get;
       get<0>(data).add_state_transition_blocks(A, B, params, space, t_0, t_1, p_0, p_1, u_0, u_1);
     };
     
@@ -143,6 +153,7 @@ class ss_system_input_tuple : public named_object {
                                                   const typename pp::topology_traits<StateSpaceType>::point_type& p_0,
                                                   const typename pp::topology_traits<StateSpaceType>::point_type& p_1, 
                                                   const input_type& u_0, const input_type& u_1) const {
+      using ReaK::get;
       add_state_transition_blocks_impl<I-1>(A, B, params, space, t_0, t_1, p_0, p_1, u_0, u_1);
       get<I>(data).add_state_transition_blocks(A, B, params, space, t_0, t_1, p_0, p_1, u_0, u_1);
     };
@@ -251,6 +262,7 @@ class ss_system_output_tuple : public named_object {
     
     
     BOOST_STATIC_CONSTANT(std::size_t, output_dimensions = 0);
+    BOOST_STATIC_CONSTANT(std::size_t, invariant_error_dimensions = 0);
     
   private:
     OutputTuple data;
@@ -262,12 +274,14 @@ class ss_system_output_tuple : public named_object {
     template <unsigned int I>
     typename boost::enable_if_c< (I == 0),
     void >::type construct_output_dimensions_impl(std::size_t& dim) {
+      using ReaK::get;
       get<0>(data).construct_output_dimensions(dim);
     };
     
     template <unsigned int I>
     typename boost::enable_if_c< (I != 0),
     void >::type construct_output_dimensions_impl(std::size_t& dim) const {
+      using ReaK::get;
       construct_output_dimensions_impl<I-1>(dim);
       get<I>(data).construct_output_dimensions(dim);
     };
@@ -284,6 +298,7 @@ class ss_system_output_tuple : public named_object {
                                             const StateSpaceType& space, 
                                             const typename pp::topology_traits<StateSpaceType>::point_type& x, 
                                             output_type& y, time_type t) const {
+      using ReaK::get;
       get<0>(data).set_output_from_state(params, space, x, y, t);
     };
     
@@ -294,6 +309,7 @@ class ss_system_output_tuple : public named_object {
                                            const typename pp::topology_traits<StateSpaceType>::point_type& x, 
                                            typename pp::topology_traits<StateSpaceType>::point_difference_type& dx,
                                            const input_type& u, time_difference_type dt, time_type t) const {
+      using ReaK::get;
       set_output_from_state_impl<I-1>(params, space, x, y, t);
       get<I>(data).set_output_from_state(params, space, x, y, t);
     };
@@ -306,6 +322,7 @@ class ss_system_output_tuple : public named_object {
                                                  time_type t,
                                                  const typename pp::topology_traits<StateSpaceType>::point_type& p, 
                                                  const input_type& u) const {
+      using ReaK::get;
       get<0>(data).add_output_function_blocks(A, B, params, space, t, p, u);
     };
     
@@ -316,6 +333,7 @@ class ss_system_output_tuple : public named_object {
                                                  time_type t,
                                                  const typename pp::topology_traits<StateSpaceType>::point_type& p, 
                                                  const input_type& u) const {
+      using ReaK::get;
       add_output_function_blocks_impl<I-1>(C, D, params, space, t, p, u);
       get<I>(data).add_output_function_blocks(C, D, params, space, t, p, u);
     };
@@ -400,6 +418,432 @@ class ss_system_output_tuple : public named_object {
 
 
 
+
+template <typename StateSysTuple, typename StateSpaceTuple>
+class ss_system_state_tuple : public named_object {
+  public:
+    typedef ss_system_state_tuple<StateSysTuple, StateSpaceTuple> self;
+    
+    typedef pp::metric_space_tuple< 
+      StateSpaceTuple,
+      pp::manhattan_tuple_distance > state_space_type;
+    
+    typedef double time_type;
+    typedef double time_difference_type;
+    
+    typedef pp::topology_traits< state_space_type >::point_type point_type;
+    typedef pp::topology_traits< state_space_type >::point_difference_type point_difference_type;
+    typedef pp::topology_traits< state_space_type >::point_difference_type point_derivative_type;
+    
+    typedef covariance_matrix< vect_n<double> > covar_type;
+    typedef covar_topology< covar_type > covar_space_type;
+    typedef pp::temporal_space<state_space_type, pp::time_poisson_topology, pp::time_distance_only> temporal_state_space_type;
+    typedef gaussian_belief_space<state_space_type, covar_space_type> belief_space_type;
+    typedef pp::temporal_space<belief_space_type, pp::time_poisson_topology, pp::time_distance_only> temporal_belief_space_type;
+    typedef gaussian_belief_state< point_type,  covar_type > state_belief_type;
+    
+    BOOST_STATIC_CONSTANT(std::size_t, dimensions = 0);
+    BOOST_STATIC_CONSTANT(std::size_t, invariant_correction_dimensions = 0);
+    BOOST_STATIC_CONSTANT(std::size_t, actual_state_dimensions = 0);
+    
+  private:
+    StateSysTuple systems;
+    std::size_t total_state_dim;
+    std::size_t total_inv_corr_dim;
+    std::size_t total_actual_state_dim;
+    
+    BOOST_STATIC_CONSTANT(unsigned int, system_tuple_size = arithmetic_tuple_size<StateSysTuple>::value);
+    
+    template <unsigned int I>
+    typename boost::enable_if_c< (I == 0),
+    void >::type construct_all_dimensions_impl(std::size_t& state_dim, std::size_t& inv_corr_dim, std::size_t& actual_dim) {
+      using ReaK::get;
+      get<0>(systems).construct_all_dimensions(state_dim, inv_corr_dim, actual_dim);
+    };
+    
+    template <unsigned int I>
+    typename boost::enable_if_c< (I != 0),
+    void >::type construct_all_dimensions_impl(std::size_t& state_dim, std::size_t& inv_corr_dim, std::size_t& actual_dim) const {
+      using ReaK::get;
+      construct_all_dimensions_impl<I-1>(state_dim, inv_corr_dim, actual_dim);
+      get<I>(systems).construct_all_dimensions(state_dim, inv_corr_dim, actual_dim);
+    };
+    
+    void construct_all_dimensions() {
+      total_state_dim = 0;
+      total_inv_corr_dim = 0;
+      total_actual_state_dim = 0;
+      construct_all_dimensions_impl< system_tuple_size - 1 >(total_state_dim, total_inv_corr_dim, total_actual_state_dim);
+    };
+    
+    
+    template <unsigned int I>
+    typename boost::enable_if_c< (I == 0),
+    void >::type get_zero_state_impl(point_type& x) {
+      using ReaK::get;
+      get<0>(systems).get_zero_state(get<0>(x));
+    };
+    
+    template <unsigned int I>
+    typename boost::enable_if_c< (I != 0),
+    void >::type get_zero_state_impl(point_type& x) const {
+      using ReaK::get;
+      get_zero_state_impl<I-1>(x);
+      get<I>(systems).get_zero_state(get<I>(x));
+    };
+    
+    
+    template <unsigned int I, typename System>
+    static typename boost::enable_if<
+      boost::is_same< System, typename arithmetic_tuple_element<I, StateSysTuple>::type >,
+    const typename System::point_type& >::type get_state_for_system_impl(const point_type& x) {
+      using ReaK::get;
+      return get<I>(x);
+    };
+    
+    template <unsigned int I, typename System>
+    static typename boost::enable_if<
+      boost::mpl::and_< 
+        boost::mpl::bool_< I != 0 >, 
+        boost::mpl::not_< boost::is_same< System, typename arithmetic_tuple_element<I, StateSysTuple>::type > > >,
+    const typename System::point_type& >::type get_state_for_system_impl(const point_type& x) {
+      return get_state_for_system_impl<I-1, System>(x);
+    };
+    
+    template <unsigned int I, typename System>
+    static typename boost::enable_if<
+      boost::mpl::and_< 
+        boost::mpl::bool_< I == 0 >, 
+        boost::mpl::not_< boost::is_same< System, typename arithmetic_tuple_element<I, StateSysTuple>::type > > >,
+    const typename System::point_type& >::type get_state_for_system_impl(const point_type&) {
+      BOOST_STATIC_ASSERT_MSG(false, "The given system type was not found!");
+    };
+    
+    
+    template <unsigned int I, typename System>
+    static typename boost::enable_if<
+      boost::is_same< System, typename arithmetic_tuple_element<I, StateSysTuple>::type >,
+    typename System::point_type& >::type get_state_for_system_impl(point_type& x) {
+      using ReaK::get;
+      return get<I>(x);
+    };
+    
+    template <unsigned int I, typename System>
+    static typename boost::enable_if<
+      boost::mpl::and_< 
+        boost::mpl::bool_< I != 0 >, 
+        boost::mpl::not_< boost::is_same< System, typename arithmetic_tuple_element<I, StateSysTuple>::type > > >,
+    typename System::point_type& >::type get_state_for_system_impl(point_type& x) {
+      return get_state_for_system_impl<I-1, System>(x);
+    };
+    
+    template <unsigned int I, typename System>
+    static typename boost::enable_if<
+      boost::mpl::and_< 
+        boost::mpl::bool_< I == 0 >, 
+        boost::mpl::not_< boost::is_same< System, typename arithmetic_tuple_element<I, StateSysTuple>::type > > >,
+    typename System::point_type& >::type get_state_for_system_impl(point_type&) {
+      BOOST_STATIC_ASSERT_MSG(false, "The given system type was not found!");
+    };
+    
+    
+    
+    template <unsigned int I, typename System>
+    static typename boost::enable_if<
+      boost::is_same< System, typename arithmetic_tuple_element<I, StateSysTuple>::type >,
+    const typename System::point_difference_type& >::type get_state_diff_for_system_impl(const point_difference_type& x) {
+      using ReaK::get;
+      return get<I>(x);
+    };
+    
+    template <unsigned int I, typename System>
+    static typename boost::enable_if<
+      boost::mpl::and_< 
+        boost::mpl::bool_< I != 0 >, 
+        boost::mpl::not_< boost::is_same< System, typename arithmetic_tuple_element<I, StateSysTuple>::type > > >,
+    const typename System::point_difference_type& >::type get_state_diff_for_system_impl(const point_difference_type& x) {
+      return get_state_diff_for_system_impl<I-1, System>(x);
+    };
+    
+    template <unsigned int I, typename System>
+    static typename boost::enable_if<
+      boost::mpl::and_< 
+        boost::mpl::bool_< I == 0 >, 
+        boost::mpl::not_< boost::is_same< System, typename arithmetic_tuple_element<I, StateSysTuple>::type > > >,
+    const typename System::point_difference_type& >::type get_state_diff_for_system_impl(const point_difference_type&) {
+      BOOST_STATIC_ASSERT_MSG(false, "The given system type was not found!");
+    };
+    
+    
+    template <unsigned int I, typename System>
+    static typename boost::enable_if<
+      boost::is_same< System, typename arithmetic_tuple_element<I, StateSysTuple>::type >,
+    typename System::point_difference_type& >::type get_state_diff_for_system_impl(point_difference_type& x) {
+      using ReaK::get;
+      return get<I>(x);
+    };
+    
+    template <unsigned int I, typename System>
+    static typename boost::enable_if<
+      boost::mpl::and_< 
+        boost::mpl::bool_< I != 0 >, 
+        boost::mpl::not_< boost::is_same< System, typename arithmetic_tuple_element<I, StateSysTuple>::type > > >,
+    typename System::point_difference_type& >::type get_state_diff_for_system_impl(point_difference_type& x) {
+      return get_state_diff_for_system_impl<I-1, System>(x);
+    };
+    
+    template <unsigned int I, typename System>
+    static typename boost::enable_if<
+      boost::mpl::and_< 
+        boost::mpl::bool_< I == 0 >, 
+        boost::mpl::not_< boost::is_same< System, typename arithmetic_tuple_element<I, StateSysTuple>::type > > >,
+    typename System::point_difference_type& >::type get_state_diff_for_system_impl(point_difference_type&) {
+      BOOST_STATIC_ASSERT_MSG(false, "The given system type was not found!");
+    };
+    
+    
+    
+    template <unsigned int I, typename System>
+    typename boost::enable_if<
+      boost::is_same< System, typename arithmetic_tuple_element<I, StateSysTuple>::type >,
+    const System& >::type get_system_impl() const {
+      using ReaK::get;
+      return get<I>(systems);
+    };
+    
+    template <unsigned int I, typename System>
+    typename boost::enable_if<
+      boost::mpl::and_< 
+        boost::mpl::bool_< I != 0 >, 
+        boost::mpl::not_< boost::is_same< System, typename arithmetic_tuple_element<I, StateSysTuple>::type > > >,
+    const System& >::type get_system_impl() const {
+      return get_system_impl<I-1, System>();
+    };
+    
+    template <unsigned int I, typename System>
+    typename boost::enable_if<
+      boost::mpl::and_< 
+        boost::mpl::bool_< I == 0 >, 
+        boost::mpl::not_< boost::is_same< System, typename arithmetic_tuple_element<I, StateSysTuple>::type > > >,
+    const System& >::type get_system_impl() const {
+      BOOST_STATIC_ASSERT_MSG(false, "The given system type was not found!");
+    };
+    
+    
+    template <unsigned int I, typename System>
+    typename boost::enable_if<
+      boost::is_same< System, typename arithmetic_tuple_element<I, StateSysTuple>::type >,
+    System& >::type get_system_impl() {
+      using ReaK::get;
+      return get<I>(systems);
+    };
+    
+    template <unsigned int I, typename System>
+    typename boost::enable_if<
+      boost::mpl::and_< 
+        boost::mpl::bool_< I != 0 >, 
+        boost::mpl::not_< boost::is_same< System, typename arithmetic_tuple_element<I, StateSysTuple>::type > > >,
+    System& >::type get_system_impl() {
+      return get_system_impl<I-1, System>(x);
+    };
+    
+    template <unsigned int I, typename System>
+    typename boost::enable_if<
+      boost::mpl::and_< 
+        boost::mpl::bool_< I == 0 >, 
+        boost::mpl::not_< boost::is_same< System, typename arithmetic_tuple_element<I, StateSysTuple>::type > > >,
+    System& >::type get_system_impl() {
+      BOOST_STATIC_ASSERT_MSG(false, "The given system type was not found!");
+    };
+    
+    
+    
+    template <unsigned int I, typename FlyWeight, typename InputType>
+    typename boost::enable_if_c< (I == 0),
+    void >::type add_state_difference_impl(const FlyWeight& params,
+                                           const state_space_type& space, 
+                                           const point_type& x, 
+                                           point_difference_type& dx,
+                                           const InputType& u, time_difference_type dt, time_type t) const {
+      using ReaK::get;
+      get<0>(systems).add_state_difference(params, space, x, dx, u, dt, t);
+    };
+    
+    template <unsigned int I, typename FlyWeight, typename InputType>
+    typename boost::enable_if_c< (I != 0),
+    void >::type add_state_difference_impl(const FlyWeight& params,
+                                           const state_space_type& space, 
+                                           const point_type& x, 
+                                           point_difference_type& dx,
+                                           const InputType& u, time_difference_type dt, time_type t) const {
+      using ReaK::get;
+      add_state_difference_impl<I-1>(params, space, x, dx, u, dt, t);
+      get<I>(systems).add_state_difference(params, space, x, dx, u, dt, t);
+    };
+    
+    
+    template <unsigned int I, typename MatrixA, typename MatrixB, typename FlyWeight, typename InputType>
+    typename boost::enable_if_c< (I == 0),
+    void >::type add_state_transition_blocks_impl(MatrixA& A, MatrixB& B, 
+                                                  const FlyWeight& params, 
+                                                  const state_space_type& space, 
+                                                  time_type t_0, time_type t_1,
+                                                  const point_type& p_0,
+                                                  const point_type& p_1, 
+                                                  const InputType& u_0, const InputType& u_1) const {
+      using ReaK::get;
+      get<0>(systems).add_state_transition_blocks(A, B, params, space, t_0, t_1, p_0, p_1, u_0, u_1);
+    };
+    
+    template <unsigned int I, typename MatrixA, typename MatrixB, typename FlyWeight, typename InputType>
+    typename boost::enable_if_c< (I != 0),
+    void >::type add_state_transition_blocks_impl(MatrixA& A, MatrixB& B, 
+                                                  const FlyWeight& params, 
+                                                  const state_space_type& space, 
+                                                  time_type t_0, time_type t_1,
+                                                  const point_type& p_0,
+                                                  const point_type& p_1, 
+                                                  const InputType& u_0, const InputType& u_1) const {
+      using ReaK::get;
+      add_state_transition_blocks_impl<I-1>(A, B, params, space, t_0, t_1, p_0, p_1, u_0, u_1);
+      get<I>(systems).add_state_transition_blocks(A, B, params, space, t_0, t_1, p_0, p_1, u_0, u_1);
+    };
+    
+    
+  public:
+    
+    template <typename System>
+    static const typename System::point_type& get_state_for_system(const point_type& x) const {
+      return get_state_for_system_impl< system_tuple_size - 1, System >(x);
+    };
+    
+    template <typename System>
+    static typename System::point_type& get_state_for_system(point_type& x) const {
+      return get_state_for_system_impl< system_tuple_size - 1, System >(x);
+    };
+    
+    
+    template <typename System>
+    static const typename System::point_difference_type& get_state_diff_for_system(const point_difference_type& x) const {
+      return get_state_diff_for_system_impl< system_tuple_size - 1, System >(x);
+    };
+    
+    template <typename System>
+    static typename System::point_difference_type& get_state_diff_for_system(point_difference_type& x) const {
+      return get_state_diff_for_system_impl< system_tuple_size - 1, System >(x);
+    };
+    
+    
+    template <typename System>
+    const System& get_system() const {
+      return get_system_impl< system_tuple_size - 1, System >(x);
+    };
+    
+    template <typename System>
+    System& get_system() {
+      return get_system_impl< system_tuple_size - 1, System >(x);
+    };
+    
+    
+    /**
+     * Returns a belief point for zero input values and a given uniform covariance value.
+     * \param aCovValue A uniform covariance value to give to all the input component beliefs.
+     * \return A belief point for zero input values and a given uniform covariance value.
+     */
+    state_belief_type get_zero_state_belief(double aCovValue = 1.0) const {
+      point_type x_init;
+      get_zero_state_impl< system_tuple_size - 1 >(x_init);
+      return state_belief_type(x_init, 
+                               covar_type(covar_type::matrix_type(mat<double,mat_structure::diagonal>(total_inv_corr_dim, aCovValue))));
+    };
+    
+    /**
+     * Returns the dimensions of the state of the system.
+     * \return The dimensions of the state of the system.
+     */
+    std::size_t get_state_dimensions() const { return total_state_dim; };
+    
+    /**
+     * Returns the dimensions of the invariant correction of the system.
+     * \return The dimensions of the invariant correction of the system.
+     */
+    std::size_t get_correction_dimensions() const { return total_inv_corr_dim; };
+    
+    /**
+     * Returns the dimensions of the actual state of the system.
+     * \return The dimensions of the actual state of the system.
+     */
+    std::size_t get_actual_state_dimensions() const { return total_actual_state_dim; };
+    
+    
+    ss_system_state_tuple(const StateSysTuple& aSystems = StateSysTuple()) : systems(aSystems) {
+      construct_all_dimensions();
+    };
+    
+#if (!defined(BOOST_NO_RVALUE_REFERENCES) && !defined(BOOST_NO_VARIADIC_TEMPLATES))
+    
+    template <typename... Args>
+    ss_system_state_tuple(Args&&... args) : systems(std::forward<Args>(args)...) {
+      construct_all_dimensions();
+    };
+    
+#endif
+    
+    
+    
+    /**
+     * Fills in the state-difference object with the effects of the given input on the state 
+     * over the given time difference.
+     * \tparam FlyWeight The type of a set of records of dynamic parameters for the system.
+     * \tparam StateSpaceType The type of the state-space (topology) used by the parent ss-system.
+     * \param params The fly-weight parameters that describe the dynamics of the system.
+     * \param space The space object in which to operate.
+     * \param x The current state object for the system.
+     * \param dx The state-difference accumulated (as output) for the different effects.
+     * \param u The current input vector for the system.
+     * \param dt The time period over which to compute the effect of the input vector.
+     * \param t The current time corresponding to the current state of the system.
+     */
+    template <typename FlyWeight, typename StateSpaceType>
+    void add_state_difference(const FlyWeight& params,
+                              const state_space_type& space, 
+                              const point_type& x, 
+                              point_difference_type& dx,
+                              const input_type& u, time_difference_type dt, 
+                              time_type t = 0.0) const {
+      add_state_difference_impl< system_tuple_size - 1 >(params, space, x, dx, u, dt, t);
+    };
+    
+    /**
+     * Fills in the state-difference object with the effects of the given input on the state 
+     * over the given time difference.
+     * \tparam FlyWeight The type of a set of records of dynamic parameters for the system.
+     * \tparam StateSpaceType The type of the state-space (topology) used by the parent ss-system.
+     * \param A Holds, as output, the state-to-state jacobian matrix of the state-transition of the system.
+     * \param B Holds, as output, the input-to-state jacobian matrix of the state-transition of the system.
+     * \param params The fly-weight parameters that describe the dynamics of the system.
+     * \param space The space object in which to operate.
+     * \param t_0 The previous time corresponding to the previous state of the system.
+     * \param t_1 The next time corresponding to the next state of the system.
+     * \param p_0 The previous state object for the system.
+     * \param p_1 The next state object for the system.
+     * \param u_0 The previous input vector for the system.
+     * \param u_1 The next input vector for the system.
+     */
+    template <typename MatrixA, typename MatrixB, typename FlyWeight, typename StateSpaceType>
+    void add_state_transition_blocks(MatrixA& A, MatrixB& B,
+                                     const FlyWeight& params,
+                                     const state_space_type& space, 
+                                     time_type t_0, time_type t_1,
+                                     const point_type& p_0,
+                                     const point_type& p_1, 
+                                     const input_type& u_0, const input_type& u_1) const {
+      add_state_transition_blocks_impl< system_tuple_size - 1 >(A, B, params, space, t_0, t_1, p_0, p_1, u_0, u_1);
+    };
+    
+    
+    
+};
 
 
 
