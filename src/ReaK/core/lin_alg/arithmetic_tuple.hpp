@@ -499,6 +499,7 @@ arithmetic_tuple< T1, T2, T3, T4, T5, T6, T7, T8, T9, T10 > make_arithmetic_tupl
 #endif
 
 
+
 namespace detail {
   
 /*****************************************************************************************
@@ -1585,6 +1586,96 @@ namespace ReaK {
   
   
 #endif
+
+
+namespace ReaK {
+
+namespace detail {
+  
+  
+  template <typename Idx, typename T, typename Tuple>
+  typename boost::enable_if<
+    boost::mpl::equal_to< Idx, boost::mpl::size_t<0> >,
+  T& >::type get_by_type_impl(Tuple&) {
+    BOOST_STATIC_ASSERT_MSG(false, "The given type was not found in the tuple!");
+  };
+  
+  template <typename Idx, typename T, typename Tuple>
+  typename boost::enable_if<
+    boost::mpl::greater< Idx, boost::mpl::size_t<0> >,
+  T& >::type get_by_type_impl(Tuple& value); // forward-decl.
+  
+  template <typename Idx, typename T, typename Tuple>
+  typename boost::enable_if<
+    boost::is_same< T, typename arithmetic_tuple_element<boost::mpl::prior<Idx>::type::value, Tuple>::type >,
+  T& >::type get_by_type_dispatch(Tuple& value) {
+    using ReaK::get;
+    return get<boost::mpl::prior<Idx>::type::value>(value);
+  };
+  
+  template <typename Idx, typename T, typename Tuple>
+  typename boost::enable_if<
+    boost::mpl::not_< boost::is_same< T, typename arithmetic_tuple_element<boost::mpl::prior<Idx>::type::value, Tuple>::type > >,
+  T& >::type get_by_type_dispatch(Tuple& value) {
+    return get_by_type_impl<typename boost::mpl::prior<Idx>::type, T, Tuple>(value);
+  };
+  
+  template <typename Idx, typename T, typename Tuple>
+  typename boost::enable_if<
+    boost::mpl::greater< Idx, boost::mpl::size_t<0> >,
+  T& >::type get_by_type_impl(Tuple& value) {
+    return get_by_type_dispatch<Idx, T, Tuple>(value);
+  };
+  
+  
+  template <typename Idx, typename T, typename Tuple>
+  struct arithmetic_tuple_index_of_impl; // forward-decl
+  
+  template <typename Idx, typename T, typename Tuple>
+  struct arithmetic_tuple_index_of_dispatch {
+    typedef boost::mpl::prior<Idx> prior_Idx;
+    typedef typename boost::mpl::if_<
+      boost::is_same< T, typename arithmetic_tuple_element<prior_Idx::type::value, Tuple>::type >,
+      prior_Idx,
+      arithmetic_tuple_index_of_impl< typename prior_Idx::type, T, Tuple > >::type::type type;
+  };
+  
+  template <typename T, typename Tuple>
+  struct arithmetic_tuple_index_of_failure { };
+  
+  template <typename Idx, typename T, typename Tuple>
+  struct arithmetic_tuple_index_of_impl {
+    typedef typename boost::mpl::if_<
+      boost::mpl::greater< Idx, boost::mpl::size_t<0> >,
+      arithmetic_tuple_index_of_dispatch< Idx, T, Tuple >,
+      arithmetic_tuple_index_of_failure< T, Tuple > >::type::type type;
+  };
+  
+  
+};
+
+
+template <typename T, typename Tuple>
+typename boost::enable_if< is_arithmetic_tuple<Tuple>,
+T& >::type get_by_type(Tuple& value) {
+  detail::get_by_type_impl< arithmetic_tuple_size<Tuple>, T, Tuple >(value);
+};
+
+template <typename T, typename Tuple>
+typename boost::enable_if< is_arithmetic_tuple<Tuple>,
+const T& >::type get_by_type(const Tuple& value) {
+  detail::get_by_type_impl< arithmetic_tuple_size<Tuple>, const T, const Tuple >(value);
+};
+
+
+template <typename T, typename Tuple>
+struct arithmetic_tuple_index_of {
+  typedef typename detail::arithmetic_tuple_index_of_impl< arithmetic_tuple_size<Tuple>, T, Tuple >::type type;
+};
+
+
+
+};
 
 
 

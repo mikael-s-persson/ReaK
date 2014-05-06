@@ -53,6 +53,7 @@
 #include "ctrl_sys/gaussian_belief_space.hpp"
 #include "ctrl_sys/covariance_matrix.hpp"
 #include "ctrl_sys/covar_topology.hpp"
+#include "ctrl_sys/sss_exceptions.hpp"
 
 #include <boost/utility/enable_if.hpp>
 #include <boost/mpl/and.hpp>
@@ -292,6 +293,7 @@ class ss_system_output_tuple : public named_object {
     };
     
     
+    
     template <unsigned int I, typename FlyWeight, typename StateSpaceType>
     typename boost::enable_if_c< (I == 0),
     void >::type set_output_from_state_impl(const FlyWeight& params,
@@ -339,6 +341,20 @@ class ss_system_output_tuple : public named_object {
     };
     
   public:
+    
+    
+    template <typename OutSystem>
+    const OutSystem& get_output_system() const {
+      using ReaK::get_by_type;
+      return get_by_type< OutSystem >(data);
+    };
+    
+    template <typename OutSystem>
+    OutSystem& get_output_system() {
+      using ReaK::get_by_type;
+      return get_by_type< OutSystem >(data);
+    };
+    
     
     /**
      * Returns a belief point for zero input values and a given uniform covariance value.
@@ -493,171 +509,6 @@ class ss_system_state_tuple : public named_object {
     };
     
     
-    template <unsigned int I, typename System>
-    static typename boost::enable_if<
-      boost::is_same< System, typename arithmetic_tuple_element<I, StateSysTuple>::type >,
-    const typename System::point_type& >::type get_state_for_system_impl(const point_type& x) {
-      using ReaK::get;
-      return get<I>(x);
-    };
-    
-    template <unsigned int I, typename System>
-    static typename boost::enable_if<
-      boost::mpl::and_< 
-        boost::mpl::bool_< I != 0 >, 
-        boost::mpl::not_< boost::is_same< System, typename arithmetic_tuple_element<I, StateSysTuple>::type > > >,
-    const typename System::point_type& >::type get_state_for_system_impl(const point_type& x) {
-      return get_state_for_system_impl<I-1, System>(x);
-    };
-    
-    template <unsigned int I, typename System>
-    static typename boost::enable_if<
-      boost::mpl::and_< 
-        boost::mpl::bool_< I == 0 >, 
-        boost::mpl::not_< boost::is_same< System, typename arithmetic_tuple_element<I, StateSysTuple>::type > > >,
-    const typename System::point_type& >::type get_state_for_system_impl(const point_type&) {
-      BOOST_STATIC_ASSERT_MSG(false, "The given system type was not found!");
-    };
-    
-    
-    template <unsigned int I, typename System>
-    static typename boost::enable_if<
-      boost::is_same< System, typename arithmetic_tuple_element<I, StateSysTuple>::type >,
-    typename System::point_type& >::type get_state_for_system_impl(point_type& x) {
-      using ReaK::get;
-      return get<I>(x);
-    };
-    
-    template <unsigned int I, typename System>
-    static typename boost::enable_if<
-      boost::mpl::and_< 
-        boost::mpl::bool_< I != 0 >, 
-        boost::mpl::not_< boost::is_same< System, typename arithmetic_tuple_element<I, StateSysTuple>::type > > >,
-    typename System::point_type& >::type get_state_for_system_impl(point_type& x) {
-      return get_state_for_system_impl<I-1, System>(x);
-    };
-    
-    template <unsigned int I, typename System>
-    static typename boost::enable_if<
-      boost::mpl::and_< 
-        boost::mpl::bool_< I == 0 >, 
-        boost::mpl::not_< boost::is_same< System, typename arithmetic_tuple_element<I, StateSysTuple>::type > > >,
-    typename System::point_type& >::type get_state_for_system_impl(point_type&) {
-      BOOST_STATIC_ASSERT_MSG(false, "The given system type was not found!");
-    };
-    
-    
-    
-    template <unsigned int I, typename System>
-    static typename boost::enable_if<
-      boost::is_same< System, typename arithmetic_tuple_element<I, StateSysTuple>::type >,
-    const typename System::point_difference_type& >::type get_state_diff_for_system_impl(const point_difference_type& x) {
-      using ReaK::get;
-      return get<I>(x);
-    };
-    
-    template <unsigned int I, typename System>
-    static typename boost::enable_if<
-      boost::mpl::and_< 
-        boost::mpl::bool_< I != 0 >, 
-        boost::mpl::not_< boost::is_same< System, typename arithmetic_tuple_element<I, StateSysTuple>::type > > >,
-    const typename System::point_difference_type& >::type get_state_diff_for_system_impl(const point_difference_type& x) {
-      return get_state_diff_for_system_impl<I-1, System>(x);
-    };
-    
-    template <unsigned int I, typename System>
-    static typename boost::enable_if<
-      boost::mpl::and_< 
-        boost::mpl::bool_< I == 0 >, 
-        boost::mpl::not_< boost::is_same< System, typename arithmetic_tuple_element<I, StateSysTuple>::type > > >,
-    const typename System::point_difference_type& >::type get_state_diff_for_system_impl(const point_difference_type&) {
-      BOOST_STATIC_ASSERT_MSG(false, "The given system type was not found!");
-    };
-    
-    
-    template <unsigned int I, typename System>
-    static typename boost::enable_if<
-      boost::is_same< System, typename arithmetic_tuple_element<I, StateSysTuple>::type >,
-    typename System::point_difference_type& >::type get_state_diff_for_system_impl(point_difference_type& x) {
-      using ReaK::get;
-      return get<I>(x);
-    };
-    
-    template <unsigned int I, typename System>
-    static typename boost::enable_if<
-      boost::mpl::and_< 
-        boost::mpl::bool_< I != 0 >, 
-        boost::mpl::not_< boost::is_same< System, typename arithmetic_tuple_element<I, StateSysTuple>::type > > >,
-    typename System::point_difference_type& >::type get_state_diff_for_system_impl(point_difference_type& x) {
-      return get_state_diff_for_system_impl<I-1, System>(x);
-    };
-    
-    template <unsigned int I, typename System>
-    static typename boost::enable_if<
-      boost::mpl::and_< 
-        boost::mpl::bool_< I == 0 >, 
-        boost::mpl::not_< boost::is_same< System, typename arithmetic_tuple_element<I, StateSysTuple>::type > > >,
-    typename System::point_difference_type& >::type get_state_diff_for_system_impl(point_difference_type&) {
-      BOOST_STATIC_ASSERT_MSG(false, "The given system type was not found!");
-    };
-    
-    
-    
-    template <unsigned int I, typename System>
-    typename boost::enable_if<
-      boost::is_same< System, typename arithmetic_tuple_element<I, StateSysTuple>::type >,
-    const System& >::type get_system_impl() const {
-      using ReaK::get;
-      return get<I>(systems);
-    };
-    
-    template <unsigned int I, typename System>
-    typename boost::enable_if<
-      boost::mpl::and_< 
-        boost::mpl::bool_< I != 0 >, 
-        boost::mpl::not_< boost::is_same< System, typename arithmetic_tuple_element<I, StateSysTuple>::type > > >,
-    const System& >::type get_system_impl() const {
-      return get_system_impl<I-1, System>();
-    };
-    
-    template <unsigned int I, typename System>
-    typename boost::enable_if<
-      boost::mpl::and_< 
-        boost::mpl::bool_< I == 0 >, 
-        boost::mpl::not_< boost::is_same< System, typename arithmetic_tuple_element<I, StateSysTuple>::type > > >,
-    const System& >::type get_system_impl() const {
-      BOOST_STATIC_ASSERT_MSG(false, "The given system type was not found!");
-    };
-    
-    
-    template <unsigned int I, typename System>
-    typename boost::enable_if<
-      boost::is_same< System, typename arithmetic_tuple_element<I, StateSysTuple>::type >,
-    System& >::type get_system_impl() {
-      using ReaK::get;
-      return get<I>(systems);
-    };
-    
-    template <unsigned int I, typename System>
-    typename boost::enable_if<
-      boost::mpl::and_< 
-        boost::mpl::bool_< I != 0 >, 
-        boost::mpl::not_< boost::is_same< System, typename arithmetic_tuple_element<I, StateSysTuple>::type > > >,
-    System& >::type get_system_impl() {
-      return get_system_impl<I-1, System>(x);
-    };
-    
-    template <unsigned int I, typename System>
-    typename boost::enable_if<
-      boost::mpl::and_< 
-        boost::mpl::bool_< I == 0 >, 
-        boost::mpl::not_< boost::is_same< System, typename arithmetic_tuple_element<I, StateSysTuple>::type > > >,
-    System& >::type get_system_impl() {
-      BOOST_STATIC_ASSERT_MSG(false, "The given system type was not found!");
-    };
-    
-    
-    
     template <unsigned int I, typename FlyWeight, typename InputType>
     typename boost::enable_if_c< (I == 0),
     void >::type add_state_difference_impl(const FlyWeight& params,
@@ -714,34 +565,40 @@ class ss_system_state_tuple : public named_object {
     
     template <typename System>
     static const typename System::point_type& get_state_for_system(const point_type& x) const {
-      return get_state_for_system_impl< system_tuple_size - 1, System >(x);
+      using ReaK::get;
+      return get< arithmetic_tuple_index_of<System, StateSysTuple>::type::value >(x);
     };
     
     template <typename System>
     static typename System::point_type& get_state_for_system(point_type& x) const {
-      return get_state_for_system_impl< system_tuple_size - 1, System >(x);
+      using ReaK::get;
+      return get< arithmetic_tuple_index_of<System, StateSysTuple>::type::value >(x);
     };
     
     
     template <typename System>
     static const typename System::point_difference_type& get_state_diff_for_system(const point_difference_type& x) const {
-      return get_state_diff_for_system_impl< system_tuple_size - 1, System >(x);
+      using ReaK::get;
+      return get< arithmetic_tuple_index_of<System, StateSysTuple>::type::value >(x);
     };
     
     template <typename System>
     static typename System::point_difference_type& get_state_diff_for_system(point_difference_type& x) const {
-      return get_state_diff_for_system_impl< system_tuple_size - 1, System >(x);
+      using ReaK::get;
+      return get< arithmetic_tuple_index_of<System, StateSysTuple>::type::value >(x);
     };
     
     
     template <typename System>
     const System& get_system() const {
-      return get_system_impl< system_tuple_size - 1, System >(x);
+      using ReaK::get_by_type;
+      return get_by_type< System >(systems);
     };
     
     template <typename System>
     System& get_system() {
-      return get_system_impl< system_tuple_size - 1, System >(x);
+      using ReaK::get_by_type;
+      return get_by_type< System >(systems);
     };
     
     
@@ -882,6 +739,256 @@ namespace detail {
   sat3D_state_diff_type& get_sat3D_state_diff(StateTuple& x) { using ReaK::get; return get<0>(x); };
   
 };
+
+
+
+
+
+class satellite_state_model : public named_object {
+  public:
+    typedef pp::se3_1st_order_topology<double>::type state_space_type;
+    
+    typedef pp::topology_traits< state_space_type >::point_type point_type;
+    typedef pp::topology_traits< state_space_type >::point_difference_type point_difference_type;
+    typedef pp::topology_traits< state_space_type >::point_difference_type point_derivative_type;
+    
+    typedef double time_type;
+    typedef double time_difference_type;
+    
+  private:
+    double mass;
+    mat<double, mat_structure::symmetric> inertia_tensor;
+    mat<double, mat_structure::symmetric> inertia_tensor_inv;
+    
+    std::size_t state_start_index;
+    std::size_t inv_corr_start_index;
+    std::size_t actual_state_start_index;
+    
+  public:
+    
+    std::size_t get_state_start_index() const { return state_start_index; };
+    std::size_t get_inv_corr_start_index() const { return inv_corr_start_index; };
+    std::size_t get_actual_state_start_index() const { return actual_state_start_index; };
+    
+    satellite_state_model(double aMass = 1.0, 
+                          mat<double, mat_structure::symmetric> aInertiaTensor = (mat<double, mat_structure::symmetric>(1.0, 0.0, 0.0, 1.0, 0.0, 1.0))) : 
+                          mass(aMass), inertia_tensor(aInertiaTensor) {
+      if((inertia_tensor.get_row_count() != 3) || (mass < std::numeric_limits< double >::epsilon()))
+        throw system_incoherency("Inertial information is improper in satellite_state_model's definition");
+      try {
+        invert_Cholesky(inertia_tensor, inertia_tensor_inv);
+      } catch(singularity_error&) {
+        throw system_incoherency("Inertial tensor is singular in satellite_state_model's definition");
+      };
+    };
+    
+    void construct_all_dimensions(std::size_t& state_dim, std::size_t& inv_corr_dim, std::size_t& actual_dim) {
+      state_start_index = state_dim;
+      state_dim += 13;
+      inv_corr_start_index = inv_corr_dim;
+      inv_corr_dim += 12;
+      actual_state_start_index = actual_dim;
+      actual_dim += 12;
+    };
+    
+    template <typename FlyWeight, typename StateSpaceType, typename InputType>
+    void add_state_difference(const FlyWeight& params, 
+                              const StateSpaceType& space, 
+                              const typename pp::topology_traits<StateSpaceType>::point_type& x, 
+                              typename pp::topology_traits<StateSpaceType>::point_difference_type& dx,
+                              const InputType&, time_difference_type dt, time_type t) const {
+      
+      const point_type& x_se3 = params.get_state_models().template get_state_for_system<satellite_state_model>(x);
+      point_difference_type& dx_se3 = params.get_state_models().template get_state_diff_for_system<satellite_state_model>(dx);
+      
+      // position:
+      get<0>(get<0>(dx_se3)) += dt * get_velocity(x_se3);
+      
+      // quaternion-diff (Lie alg.):
+      get<0>(get<1>(dx_se3)) += dt * get_ang_velocity(x_se3);
+      
+    };
+    
+    template <typename MatrixA, typename MatrixB, typename FlyWeight, typename StateSpaceType>
+    void add_state_transition_blocks(MatrixA& A, MatrixB& B,
+                                     const FlyWeight& params, 
+                                     const StateSpaceType& space, 
+                                     time_type t_0, time_type t_1,
+                                     const typename pp::topology_traits<StateSpaceType>::point_type& p_0,
+                                     const typename pp::topology_traits<StateSpaceType>::point_type& p_1, 
+                                     const input_type& u_0, const input_type& u_1) const {
+      const point_type& x0_se3 = params.get_state_models().template get_state_for_system<satellite_state_model>(p_0);
+      const point_type& x1_se3 = params.get_state_models().template get_state_for_system<satellite_state_model>(p_1);
+      double dt = t_1 - t_0;
+      
+      const std::pair<std::size_t, std::size_t> p_r(inv_corr_start_index, inv_corr_start_index+2);
+      const std::pair<std::size_t, std::size_t> v_r(inv_corr_start_index+3, inv_corr_start_index+5);
+      const std::pair<std::size_t, std::size_t> q_r(inv_corr_start_index+6, inv_corr_start_index+8);
+      const std::pair<std::size_t, std::size_t> w_r(inv_corr_start_index+9, inv_corr_start_index+11);
+      
+      // Position row:
+      // p-p block:
+      sub(A)(p_r, p_r) += mat_ident<double>(3);
+      // p-v block:
+      sub(A)(p_r, v_r) += dt * mat_ident<double>(3);
+      // v-v block:
+      sub(A)(v_r, v_r) += mat_ident<double>(3);
+      
+      
+      mat<double,mat_structure::square> R_0_1 = (invert(get_quaternion(x1_se3).as_rotation()) * get_quaternion(x0_se3).as_rotation()).getMat();
+      mat<double,mat_structure::square> JRJ = params.effective_J_inv * R_0_1 * params.effective_J;
+      
+      sub(A)(q_r, q_r) += R_0_1;
+      sub(A)(q_r, w_r) += dt * R_0_1;
+      sub(A)(w_r, w_r) += JRJ;
+      
+      if( params.use_hot_del_q_terms ) {
+        vect<double,3> l_net_0 = params.effective_J * get_ang_velocity(x0_se3);
+        vect<double,3> l_net_1 = params.effective_J * get_ang_velocity(x1_se3);
+        
+        sub(A)(q_r, q_r) -= (0.5 * dt) * params.effective_J_inv * R_0_1 * mat<double,mat_structure::skew_symmetric>(l_net_0);
+        
+        sub(A)(q_r, w_r) += (0.5 * dt) * (JRJ - R_0_1);
+        
+        sub(A)(w_r, q_r) += params.effective_J_inv * (mat<double,mat_structure::skew_symmetric>(l_net_1) * R_0_1 
+                                                      - R_0_1 * mat<double,mat_structure::skew_symmetric>(l_net_0));
+        
+        sub(A)(w_r, w_r) += (0.5 * dt) * params.effective_J_inv * mat<double,mat_structure::skew_symmetric>(l_net_1) * R_0_1;
+      };
+      
+    };
+    
+};
+
+
+
+
+
+class near_buoyancy_state_model : public named_object {
+  public:
+    typedef pp::line_segment_topology<double> state_space_type;
+    
+    typedef pp::topology_traits< state_space_type >::point_type point_type;
+    typedef pp::topology_traits< state_space_type >::point_difference_type point_difference_type;
+    typedef pp::topology_traits< state_space_type >::point_difference_type point_derivative_type;
+    
+    typedef double time_type;
+    typedef double time_difference_type;
+    
+  private:
+    
+    std::size_t state_start_index;
+    std::size_t inv_corr_start_index;
+    
+  public:
+    
+    std::size_t get_state_start_index() const { return state_start_index; };
+    std::size_t get_inv_corr_start_index() const { return inv_corr_start_index; };
+    
+    near_buoyancy_state_model() { };
+    
+    void construct_all_dimensions(std::size_t& state_dim, std::size_t& inv_corr_dim, std::size_t& actual_dim) {
+      state_start_index = state_dim;
+      state_dim += 1;
+      inv_corr_start_index = inv_corr_dim;
+      inv_corr_dim += 1;
+      RK_UNUSED(actual_dim);
+    };
+    
+    template <typename FlyWeight, typename StateSpaceType, typename InputType>
+    void add_state_difference(const FlyWeight& params, 
+                              const StateSpaceType& space, 
+                              const typename pp::topology_traits<StateSpaceType>::point_type& x, 
+                              typename pp::topology_traits<StateSpaceType>::point_difference_type& dx,
+                              const InputType&, time_difference_type dt, time_type t) const {
+      
+      typedef satellite_state_model::point_type SE3State;
+      typedef satellite_state_model::point_difference_type SE3StateDiff;
+      
+      const SE3State& x_se3 = params.get_state_models().template get_state_for_system<satellite_state_model>(x);
+      SE3StateDiff& dx_se3 = params.get_state_models().template get_state_diff_for_system<satellite_state_model>(dx);
+      
+      point_type dm = params.get_state_models().template get_state_for_system<near_buoyancy_state_model>(x);
+      
+      vect<double,3> gf = dm * params.gravity_acc_vect;
+      
+      // velocity:
+      gf *= (dt / params.effective_mass);
+      get<1>(get<0>(dx_se3)) += gf;
+      // position:
+      get<0>(get<0>(dx_se3)) += (0.5 * dt) * gf;
+      
+    };
+    
+    template <typename MatrixA, typename MatrixB, typename FlyWeight, typename StateSpaceType>
+    void add_state_transition_blocks(MatrixA& A, MatrixB& B,
+                                     const FlyWeight& params, 
+                                     const StateSpaceType& space, 
+                                     time_type t_0, time_type t_1,
+                                     const typename pp::topology_traits<StateSpaceType>::point_type& p_0,
+                                     const typename pp::topology_traits<StateSpaceType>::point_type& p_1, 
+                                     const input_type& u_0, const input_type& u_1) const {
+      typedef satellite_state_model::point_type SE3State;
+      
+      const SE3State& x0_se3 = params.get_state_models().template get_state_for_system<satellite_state_model>(p_0);
+      const SE3State& x1_se3 = params.get_state_models().template get_state_for_system<satellite_state_model>(p_1);
+      
+      const point_type dm = params.get_state_models().template get_state_for_system<near_buoyancy_state_model>(x);
+      const std::size_t sat3d_state_index = params.get_state_models().template get_system<satellite_state_model>().get_inv_corr_start_index();
+      
+      const double dt = t_1 - t_0;
+      
+      const std::pair<std::size_t, std::size_t> p_r(sat3d_state_index, sat3d_state_index+2);
+      const std::pair<std::size_t, std::size_t> v_r(sat3d_state_index+3, sat3d_state_index+5);
+      const std::pair<std::size_t, std::size_t> q_r(sat3d_state_index+6, sat3d_state_index+8);
+      const std::pair<std::size_t, std::size_t> w_r(sat3d_state_index+9, sat3d_state_index+11);
+      
+      const std::size_t m_r = inv_corr_start_index;
+      
+      mat<double,mat_structure::square> R_0_1 = (invert(get_quaternion(x1_se3).as_rotation()) * get_quaternion(x0_se3).as_rotation()).getMat();
+      
+      // v-m block:
+#ifdef USE_HOT_DEL_M_TERMS
+      vect<double,3> R_r_x_w_1 = R_1 * r_x_w_1;
+      slice(A_1)(v_r, m_r) = v_1 - R_r_x_w_1;
+#endif
+      // v-m block:
+#ifdef USE_HOT_DEL_M_TERMS
+      vect<double,3> R_r_x_w_0 = R_0 * r_x_w_0;
+      slice(A_0)(v_r, m_r) = v_0 - R_r_x_w_0;
+#endif
+      // TODO
+      slice(A)(v_r, m_r) += dt * params.gravity_acc_vect;
+      
+      
+      // w-m block:
+#ifdef USE_HOT_DEL_M_TERMS
+      vect<double,3> R_r_x_of_1 = R_1 * (r % off_force_1);
+      slice(A_1)(w_r, m_r) -= R_r_x_of_1;
+#ifdef USE_HOT_INERTIA_TERM
+      vect<double,3> R_r2_x_w_1 = R_1 * (r % r_x_w_1);
+      slice(A_1)(w_r, m_r) -= R_r2_x_w_1;
+#endif
+#endif
+      // w-m block:
+#ifdef USE_HOT_DEL_M_TERMS
+      vect<double,3> R_r_x_of_0 = R_0 * (r % off_force_0);
+      slice(A_0)(w_r, m_r) += R_r_x_of_0;
+#ifdef USE_HOT_INERTIA_TERM
+      vect<double,3> R_r2_x_w_0 = R_0 * (r % r_x_w_0);
+      slice(A_0)(w_r, m_r) -= R_r2_x_w_0;
+#endif
+#endif
+      
+      
+    };
+    
+};
+
+
+
+
+
 
 
 
@@ -1119,6 +1226,10 @@ class tryphon_12_thrusters : public named_object {
     };
     
 };
+
+
+
+
 
 
 
