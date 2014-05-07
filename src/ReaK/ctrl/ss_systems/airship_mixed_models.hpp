@@ -896,6 +896,15 @@ class near_buoyancy_state_model : public named_object {
     };
     
     template <typename FlyWeight, typename StateSpaceType, typename InputType>
+    void add_to_effective_inertia(FlyWeight& params, 
+                                  const StateSpaceType& space, const typename pp::topology_traits<StateSpaceType>::point_type& x, 
+                                  typename pp::topology_traits<StateSpaceType>::point_difference_type& dx,
+                                  const InputType&, time_difference_type dt, time_type t) const {
+      const point_type dm = params.get_state_models().template get_state_for_system<near_buoyancy_state_model>(x);
+      params.effective_mass += dm;
+    };
+    
+    template <typename FlyWeight, typename StateSpaceType, typename InputType>
     void add_state_difference(const FlyWeight& params, 
                               const StateSpaceType& space, 
                               const typename pp::topology_traits<StateSpaceType>::point_type& x, 
@@ -908,7 +917,7 @@ class near_buoyancy_state_model : public named_object {
       const SE3State& x_se3 = params.get_state_models().template get_state_for_system<satellite_state_model>(x);
       SE3StateDiff& dx_se3 = params.get_state_models().template get_state_diff_for_system<satellite_state_model>(dx);
       
-      point_type dm = params.get_state_models().template get_state_for_system<near_buoyancy_state_model>(x);
+      const point_type dm = params.get_state_models().template get_state_for_system<near_buoyancy_state_model>(x);
       
       vect<double,3> gf = dm * params.gravity_acc_vect;
       
@@ -940,13 +949,14 @@ class near_buoyancy_state_model : public named_object {
       
       const std::pair<std::size_t, std::size_t> p_r(sat3d_state_index, sat3d_state_index+2);
       const std::pair<std::size_t, std::size_t> v_r(sat3d_state_index+3, sat3d_state_index+5);
-      const std::pair<std::size_t, std::size_t> q_r(sat3d_state_index+6, sat3d_state_index+8);
+//       const std::pair<std::size_t, std::size_t> q_r(sat3d_state_index+6, sat3d_state_index+8);
       const std::pair<std::size_t, std::size_t> w_r(sat3d_state_index+9, sat3d_state_index+11);
       
       const std::size_t m_r = inv_corr_start_index;
       
-      mat<double,mat_structure::square> R_0_1 = (invert(get_quaternion(x1_se3).as_rotation()) * get_quaternion(x0_se3).as_rotation()).getMat();
+//       mat<double,mat_structure::square> R_0_1 = (invert(get_quaternion(x1_se3).as_rotation()) * get_quaternion(x0_se3).as_rotation()).getMat();
       
+#if 0
       // v-m block:
 #ifdef USE_HOT_DEL_M_TERMS
       vect<double,3> R_r_x_w_1 = R_1 * r_x_w_1;
@@ -957,10 +967,14 @@ class near_buoyancy_state_model : public named_object {
       vect<double,3> R_r_x_w_0 = R_0 * r_x_w_0;
       slice(A_0)(v_r, m_r) = v_0 - R_r_x_w_0;
 #endif
-      // TODO
+#endif
+      // p-m block:
+      slice(A)(p_r, m_r) += (0.5 * dt * dt) * params.gravity_acc_vect;
+      // v-m block:
       slice(A)(v_r, m_r) += dt * params.gravity_acc_vect;
       
       
+#if 0
       // w-m block:
 #ifdef USE_HOT_DEL_M_TERMS
       vect<double,3> R_r_x_of_1 = R_1 * (r % off_force_1);
@@ -979,6 +993,240 @@ class near_buoyancy_state_model : public named_object {
       slice(A_0)(w_r, m_r) -= R_r2_x_w_0;
 #endif
 #endif
+#endif
+      
+    };
+    
+};
+
+
+
+
+
+class eccentricity_state_model : public named_object {
+  public:
+    typedef pp::hyperball_topology< vect<double,3> > state_space_type;
+    
+    typedef pp::topology_traits< state_space_type >::point_type point_type;
+    typedef pp::topology_traits< state_space_type >::point_difference_type point_difference_type;
+    typedef pp::topology_traits< state_space_type >::point_difference_type point_derivative_type;
+    
+    typedef double time_type;
+    typedef double time_difference_type;
+    
+  private:
+    
+    std::size_t state_start_index;
+    std::size_t inv_corr_start_index;
+    
+  public:
+    
+    std::size_t get_state_start_index() const { return state_start_index; };
+    std::size_t get_inv_corr_start_index() const { return inv_corr_start_index; };
+    
+    eccentricity_state_model() { };
+    
+    void construct_all_dimensions(std::size_t& state_dim, std::size_t& inv_corr_dim, std::size_t& actual_dim) {
+      state_start_index = state_dim;
+      state_dim += 3;
+      inv_corr_start_index = inv_corr_dim;
+      inv_corr_dim += 3;
+      RK_UNUSED(actual_dim);
+    };
+    
+    template <typename FlyWeight, typename StateSpaceType, typename InputType>
+    void add_to_effective_inertia(FlyWeight& params, 
+                                  const StateSpaceType& space, const typename pp::topology_traits<StateSpaceType>::point_type& x, 
+                                  typename pp::topology_traits<StateSpaceType>::point_difference_type& dx,
+                                  const InputType&, time_difference_type dt, time_type t) const {
+      const point_type& r = params.get_state_models().template get_state_for_system<eccentricity_state_model>(x);
+      mat<double, mat_structure::skew_symmetric> r_cross(r);
+      params.effective_J -= params.effective_mass * r_cross * r_cross;
+    };
+    
+    template <typename FlyWeight, typename StateSpaceType, typename InputType>
+    void add_state_difference(const FlyWeight& params, 
+                              const StateSpaceType& space, 
+                              const typename pp::topology_traits<StateSpaceType>::point_type& x, 
+                              typename pp::topology_traits<StateSpaceType>::point_difference_type& dx,
+                              const InputType&, time_difference_type dt, time_type t) const {
+      
+      typedef satellite_state_model::point_type SE3State;
+      typedef satellite_state_model::point_difference_type SE3StateDiff;
+      
+      const SE3State& x_se3 = params.get_state_models().template get_state_for_system<satellite_state_model>(x);
+      SE3StateDiff& dx_se3 = params.get_state_models().template get_state_diff_for_system<satellite_state_model>(dx);
+      
+      const vect<double,3>& r = params.get_state_models().template get_state_for_system<eccentricity_state_model>(x);
+      
+      quaternion<double> q = get_quaternion(x_se3).as_rotation();
+      vect<double,3> gt_impulse = (dt * params.effective_mass) * (params.effective_J_inv * (r % (invert(q) * params.gravity_acc_vect)));
+      
+      // ang-velocity
+      get<1>(get<1>(dx_se3)) += gt_impulse;
+      // quat-diff:
+      get<0>(get<1>(dx_se3)) += (0.5 * dt) * gt_impulse;
+      
+      if( params.use_momentum_transfer_terms ) {
+        // TODO This needs an implicit version of this accum function.
+        vect<double,3> l_transfer = q * (r % get<1>(get<1>(dx_se3)));
+//         + q_0.as_rotation() * (w_0 % r) - q_1.as_rotation() * (w_1 % r)
+        
+        vect<double,3> p_transfer = params.effective_mass * (params.effective_J_inv * (invert(q) * get<1>(get<0>(dx_se3))) % r);
+//         vect<double,3> p_transfer = params.effective_mass * (r % (invert(q) * (v_0 - v_1)));
+//         vect<double,3> p_transfer = (-0.5 * params.effective_mass) * (q_0_to_1 * (r % (invert(q) * (v_1 - v_0))) 
+//                                                     + (r % (invert(q_1).as_rotation() * (v_1 - v_0))));
+        
+        get<1>(get<0>(dx_se3)) += l_transfer;
+        get<1>(get<1>(dx_se3)) += p_transfer;
+      };
+      
+    };
+    
+    template <typename MatrixA, typename MatrixB, typename FlyWeight, typename StateSpaceType>
+    void add_state_transition_blocks(MatrixA& A, MatrixB& B,
+                                     const FlyWeight& params, 
+                                     const StateSpaceType& space, 
+                                     time_type t_0, time_type t_1,
+                                     const typename pp::topology_traits<StateSpaceType>::point_type& p_0,
+                                     const typename pp::topology_traits<StateSpaceType>::point_type& p_1, 
+                                     const input_type& u_0, const input_type& u_1) const {
+      typedef satellite_state_model::point_type SE3State;
+      
+      const SE3State& x0_se3 = params.get_state_models().template get_state_for_system<satellite_state_model>(p_0);
+      const SE3State& x1_se3 = params.get_state_models().template get_state_for_system<satellite_state_model>(p_1);
+      
+      const vect<double,3>& r = params.get_state_models().template get_state_for_system<eccentricity_state_model>(x);
+      mat<double,mat_structure::skew_symmetric> r_cross(r);
+      
+      const std::size_t sat3d_state_index = params.get_state_models().template get_system<satellite_state_model>().get_inv_corr_start_index();
+      
+      const double dt = t_1 - t_0;
+      
+      const std::pair<std::size_t, std::size_t> p_r(sat3d_state_index, sat3d_state_index+2);
+      const std::pair<std::size_t, std::size_t> v_r(sat3d_state_index+3, sat3d_state_index+5);
+      const std::pair<std::size_t, std::size_t> q_r(sat3d_state_index+6, sat3d_state_index+8);
+      const std::pair<std::size_t, std::size_t> w_r(sat3d_state_index+9, sat3d_state_index+11);
+      
+      const std::size_t r_r = inv_corr_start_index;
+      
+      mat<double,mat_structure::square> R_0_1 = (invert(get_quaternion(x1_se3).as_rotation()) * get_quaternion(x0_se3).as_rotation()).getMat();
+      
+      
+      
+      // TODO This isn't anywhere near this simple: (might be better to neglect p-l transfers:
+      
+      mat<double,mat_structure::square> R_1 = get_quaternion(get<0>(p_1)).as_rotation().getMat();
+      const vect<double,3>& w_1 = get_ang_velocity(get<0>(p_1));
+      vect<double,3> r_x_w_1 = r % w_1;
+      mat<double,mat_structure::skew_symmetric> w_cross_1(w_1);
+      mat<double,mat_structure::skew_symmetric> r_x_w_cross_1(r_x_w_1);
+      
+      // v-q block:
+#ifdef USE_HOT_DEL_Q_TERMS
+      set_block(A_1_s, mass_all * R_1 * r_x_w_cross_1, 3, 6);
+      set_block(A_0_s, mass_all * R_0 * r_x_w_cross_0, 3, 6);
+#endif
+      
+      // v-w block:
+#ifdef USE_L_TRANSFER_TERM
+      set_block(A_1_s, -mass_all * R_1 * r_cross, 3, 9);
+      set_block(A_0_s, -mass_all * R_0 * r_cross, 3, 9);
+#endif
+      
+      // v-m block:
+#ifdef USE_HOT_DEL_M_TERMS
+      vect<double,3> R_r_x_w_1 = R_1 * r_x_w_1;
+      A_1_sa(3,0) = v_1[0] - R_r_x_w_1[0];
+      A_1_sa(4,0) = v_1[1] - R_r_x_w_1[1];
+      A_1_sa(5,0) = v_1[2] - R_r_x_w_1[2];
+      vect<double,3> R_r_x_w_0 = R_0 * r_x_w_0;
+      A_0_s(3,12) = v_0[0] - R_r_x_w_0[0];
+      A_0_s(4,12) = v_0[1] - R_r_x_w_0[1];
+      A_0_s(5,12) = v_0[2] - R_r_x_w_0[2];
+#endif
+      
+      // v-r block:
+      set_block(A_1_s, mass_all * R_1 * w_cross_1, 3, 13);
+      set_block(A_0_s, mass_all * R_0 * w_cross_0, 3, 13);
+      
+      
+      // Ang-Velocity row:
+      // w-v block:
+#ifdef USE_P_TRANSFER_TERM
+      set_block(A_1_s, mass_real * R_1 * r_cross * transpose_view(R_1), 9, 3);
+      set_block(A_0_s, mass_real * R_0 * r_cross * transpose_view(R_0), 9, 3);
+#endif
+      
+      // w-q block:
+      
+      quaternion<double> q0 = get_quaternion(x0_se3).as_rotation();
+      vect<double,3> gt_impulse = dt * params.gravity_acc_vect;
+      vect<double,3> l_transfer(0.0,0.0,0.0);
+      if( params.use_momentum_transfer_terms ) {
+        gt_impulse -= (get_velocity(x1_se3) - get_velocity(x0_se3));
+        l_transfer += q * (r % (get_ang_velocity(x1_se3) - get_ang_velocity(x0_se3)));
+      };
+      vect<double,3> off_force = invert(q0) * gt_impulse;  // <-- in q_0 frame.
+      gt_impulse = params.effective_mass * (params.effective_J_inv * (r % (invert(q0) * gt_impulse)));
+      
+      vect<double,3> l_net_1 = J_bar * w_1 - (0.5 * mDt) * tau - mass_real * (r % off_force_1);
+#ifdef USE_HOT_DEL_Q_TERMS
+      set_block(A_1_ss, R_1 * (mat<double,mat_structure::skew_symmetric>(-l_net_1) 
+                              - mass_real * r_cross * mat<double,mat_structure::skew_symmetric>(off_force_1)), 9, 6);
+#endif
+      
+      vect<double,3> l_net_0 = J_bar * w_0 + (0.5 * mDt) * tau + mass_real * (r % off_force_0);
+#ifdef USE_HOT_DEL_Q_TERMS
+      set_block(A_0_s, R_0 * (mat<double,mat_structure::skew_symmetric>(-l_net_0) 
+                              + mass_real * r_cross * mat<double,mat_structure::skew_symmetric>(off_force_0)), 9, 6);
+#endif
+      
+      
+      
+      // w-w block:
+      set_block(A_1_ss, R_1 * J_bar, 9, 9);
+      
+      // w-m block:
+#ifdef USE_HOT_DEL_M_TERMS
+      vect<double,3> R_r_x_of_1 = R_1 * (r % off_force_1);
+      A_1_sa(9,  12) -= R_r_x_of_1[0];
+      A_1_sa(10, 12) -= R_r_x_of_1[1];
+      A_1_sa(11, 12) -= R_r_x_of_1[2];
+#ifdef USE_HOT_INERTIA_TERM
+      vect<double,3> R_r2_x_w_1 = R_1 * (r % r_x_w_1);
+      A_1_sa(9,  12) -= R_r2_x_w_1[0];
+      A_1_sa(10, 12) -= R_r2_x_w_1[1];
+      A_1_sa(11, 12) -= R_r2_x_w_1[2];
+#endif
+#endif
+#ifdef USE_HOT_DEL_M_TERMS
+      vect<double,3> R_r_x_of_0 = R_0 * (r % off_force_0);
+      A_0_s(9,  12) += R_r_x_of_0[0];
+      A_0_s(10, 12) += R_r_x_of_0[1];
+      A_0_s(11, 12) += R_r_x_of_0[2];
+#ifdef USE_HOT_INERTIA_TERM
+      vect<double,3> R_r2_x_w_0 = R_0 * (r % r_x_w_0);
+      A_0_s(9,  12) -= R_r2_x_w_0[0];
+      A_0_s(10, 12) -= R_r2_x_w_0[1];
+      A_0_s(11, 12) -= R_r2_x_w_0[2];
+#endif
+#endif
+      
+      // w-r block:
+      set_block(A_1_s, mass_real * R_1 * (mat<double,mat_structure::skew_symmetric>(-off_force_1)
+#ifdef USE_HOT_INERTIA_TERM
+        - r_cross * w_cross_1 - r_x_w_cross_1
+#endif
+      ), 9, 13);
+      set_block(A_0_s, mass_real * R_0 * (mat<double,mat_structure::skew_symmetric>(off_force_0)
+#ifdef USE_HOT_INERTIA_TERM
+        - r_cross * w_cross_0 - r_x_w_cross_0
+#endif
+      ), 9, 13);
+      
+      
+      
       
       
     };
@@ -986,6 +1234,222 @@ class near_buoyancy_state_model : public named_object {
 };
 
 
+
+
+
+
+class linear_drag_state_model : public named_object {
+  public:
+    typedef pp::line_segment_topology<double> state_space_type;
+    
+    typedef pp::topology_traits< state_space_type >::point_type point_type;
+    typedef pp::topology_traits< state_space_type >::point_difference_type point_difference_type;
+    typedef pp::topology_traits< state_space_type >::point_difference_type point_derivative_type;
+    
+    typedef double time_type;
+    typedef double time_difference_type;
+    
+  private:
+    
+    std::size_t state_start_index;
+    std::size_t inv_corr_start_index;
+    
+  public:
+    
+    std::size_t get_state_start_index() const { return state_start_index; };
+    std::size_t get_inv_corr_start_index() const { return inv_corr_start_index; };
+    
+    linear_drag_state_model() { };
+    
+    void construct_all_dimensions(std::size_t& state_dim, std::size_t& inv_corr_dim, std::size_t& actual_dim) {
+      state_start_index = state_dim;
+      state_dim += 1;
+      inv_corr_start_index = inv_corr_dim;
+      inv_corr_dim += 1;
+      RK_UNUSED(actual_dim);
+    };
+    
+    template <typename FlyWeight, typename StateSpaceType, typename InputType>
+    void add_to_effective_inertia(FlyWeight& params, 
+                                  const StateSpaceType& space, const typename pp::topology_traits<StateSpaceType>::point_type& x, 
+                                  typename pp::topology_traits<StateSpaceType>::point_difference_type& dx,
+                                  const InputType&, time_difference_type dt, time_type t) const { };
+    
+    template <typename FlyWeight, typename StateSpaceType, typename InputType>
+    void add_state_difference(const FlyWeight& params, 
+                              const StateSpaceType& space, 
+                              const typename pp::topology_traits<StateSpaceType>::point_type& x, 
+                              typename pp::topology_traits<StateSpaceType>::point_difference_type& dx,
+                              const InputType&, time_difference_type dt, time_type t) const {
+      
+      typedef satellite_state_model::point_type SE3State;
+      typedef satellite_state_model::point_difference_type SE3StateDiff;
+      
+      const SE3State& x_se3 = params.get_state_models().template get_state_for_system<satellite_state_model>(x);
+      SE3StateDiff& dx_se3 = params.get_state_models().template get_state_diff_for_system<satellite_state_model>(dx);
+      
+      const point_type d_f = params.get_state_models().template get_state_for_system<linear_drag_state_model>(x);
+      
+      vect<double,3> fd = (-d_f * norm_2(get_velocity(x_se3))) * get_velocity(x_se3);
+      
+      // velocity:
+      fd *= (dt / params.effective_mass);
+      get<1>(get<0>(dx_se3)) += fd;
+      // position:
+      get<0>(get<0>(dx_se3)) += (0.5 * dt) * fd;
+      
+    };
+    
+    template <typename MatrixA, typename MatrixB, typename FlyWeight, typename StateSpaceType>
+    void add_state_transition_blocks(MatrixA& A, MatrixB& B,
+                                     const FlyWeight& params, 
+                                     const StateSpaceType& space, 
+                                     time_type t_0, time_type t_1,
+                                     const typename pp::topology_traits<StateSpaceType>::point_type& p_0,
+                                     const typename pp::topology_traits<StateSpaceType>::point_type& p_1, 
+                                     const input_type& u_0, const input_type& u_1) const {
+      typedef satellite_state_model::point_type SE3State;
+      
+      const SE3State& x0_se3 = params.get_state_models().template get_state_for_system<satellite_state_model>(p_0);
+      const SE3State& x1_se3 = params.get_state_models().template get_state_for_system<satellite_state_model>(p_1);
+      
+      const point_type d_f = params.get_state_models().template get_state_for_system<linear_drag_state_model>(x);
+      const std::size_t sat3d_state_index = params.get_state_models().template get_system<satellite_state_model>().get_inv_corr_start_index();
+      
+      const double dt = t_1 - t_0;
+      
+      const std::pair<std::size_t, std::size_t> p_r(sat3d_state_index, sat3d_state_index+2);
+      const std::pair<std::size_t, std::size_t> v_r(sat3d_state_index+3, sat3d_state_index+5);
+      
+      const std::size_t fd_r = inv_corr_start_index;
+      
+      vect<double,3> v_avg = 0.5 * (get_velocity(x0_se3) + get_velocity(x1_se3));
+      
+      mat<double,mat_structure::symmetric> v_avg_outer(v_avg[0] * v_avg[0], v_avg[0] * v_avg[1], v_avg[0] * v_avg[2], 
+                                                                      v_avg[1] * v_avg[1], v_avg[1] * v_avg[2], 
+                                                                                       v_avg[2] * v_avg[2]);
+      double v_avg_mag = norm_2(v_avg);
+      // v-v block:
+      if(v_avg_mag > 1e-4) {
+        mat<double,mat_structure::square> delv((d_f * dt) * ((1.0 / v_avg_mag) * v_avg_outer + v_avg_mag * mat_ident<double>(3)));
+        sub(A)(v_r, v_r) -= delv;
+        sub(A)(p_r, v_r) -= (0.5 * dt) * delv;
+      };
+      
+      slice(A)(v_r, fd_r) -= (dt * v_avg_mag) * v_avg;
+      slice(A)(p_r, fd_r) -= (0.5 * dt * dt * v_avg_mag) * v_avg;
+      
+    };
+    
+};
+
+
+
+
+class torsional_drag_state_model : public named_object {
+  public:
+    typedef pp::line_segment_topology<double> state_space_type;
+    
+    typedef pp::topology_traits< state_space_type >::point_type point_type;
+    typedef pp::topology_traits< state_space_type >::point_difference_type point_difference_type;
+    typedef pp::topology_traits< state_space_type >::point_difference_type point_derivative_type;
+    
+    typedef double time_type;
+    typedef double time_difference_type;
+    
+  private:
+    
+    std::size_t state_start_index;
+    std::size_t inv_corr_start_index;
+    
+  public:
+    
+    std::size_t get_state_start_index() const { return state_start_index; };
+    std::size_t get_inv_corr_start_index() const { return inv_corr_start_index; };
+    
+    torsional_drag_state_model() { };
+    
+    void construct_all_dimensions(std::size_t& state_dim, std::size_t& inv_corr_dim, std::size_t& actual_dim) {
+      state_start_index = state_dim;
+      state_dim += 1;
+      inv_corr_start_index = inv_corr_dim;
+      inv_corr_dim += 1;
+      RK_UNUSED(actual_dim);
+    };
+    
+    template <typename FlyWeight, typename StateSpaceType, typename InputType>
+    void add_to_effective_inertia(FlyWeight& params, 
+                                  const StateSpaceType& space, const typename pp::topology_traits<StateSpaceType>::point_type& x, 
+                                  typename pp::topology_traits<StateSpaceType>::point_difference_type& dx,
+                                  const InputType&, time_difference_type dt, time_type t) const { };
+    
+    template <typename FlyWeight, typename StateSpaceType, typename InputType>
+    void add_state_difference(const FlyWeight& params, 
+                              const StateSpaceType& space, 
+                              const typename pp::topology_traits<StateSpaceType>::point_type& x, 
+                              typename pp::topology_traits<StateSpaceType>::point_difference_type& dx,
+                              const InputType&, time_difference_type dt, time_type t) const {
+      
+      typedef satellite_state_model::point_type SE3State;
+      typedef satellite_state_model::point_difference_type SE3StateDiff;
+      
+      const SE3State& x_se3 = params.get_state_models().template get_state_for_system<satellite_state_model>(x);
+      SE3StateDiff& dx_se3 = params.get_state_models().template get_state_diff_for_system<satellite_state_model>(dx);
+      
+      const point_type d_t = params.get_state_models().template get_state_for_system<torsional_drag_state_model>(x);
+      
+      vect<double,3> td = (-d_t * norm_2(get_ang_velocity(x_se3))) * get_ang_velocity(x_se3);
+      
+      // ang-velocity:
+      td = dt * params.effective_J_inv * td;
+      get<1>(get<1>(dx_se3)) += td;
+      // quat-diff:
+      get<0>(get<1>(dx_se3)) += (0.5 * dt) * td;
+      
+    };
+    
+    template <typename MatrixA, typename MatrixB, typename FlyWeight, typename StateSpaceType>
+    void add_state_transition_blocks(MatrixA& A, MatrixB& B,
+                                     const FlyWeight& params, 
+                                     const StateSpaceType& space, 
+                                     time_type t_0, time_type t_1,
+                                     const typename pp::topology_traits<StateSpaceType>::point_type& p_0,
+                                     const typename pp::topology_traits<StateSpaceType>::point_type& p_1, 
+                                     const input_type& u_0, const input_type& u_1) const {
+      typedef satellite_state_model::point_type SE3State;
+      
+      const SE3State& x0_se3 = params.get_state_models().template get_state_for_system<satellite_state_model>(p_0);
+      const SE3State& x1_se3 = params.get_state_models().template get_state_for_system<satellite_state_model>(p_1);
+      
+      const point_type d_t = params.get_state_models().template get_state_for_system<torsional_drag_state_model>(x);
+      const std::size_t sat3d_state_index = params.get_state_models().template get_system<satellite_state_model>().get_inv_corr_start_index();
+      
+      const double dt = t_1 - t_0;
+      
+      const std::pair<std::size_t, std::size_t> q_r(sat3d_state_index+6, sat3d_state_index+8);
+      const std::pair<std::size_t, std::size_t> w_r(sat3d_state_index+9, sat3d_state_index+11);
+      
+      const std::size_t td_r = inv_corr_start_index;
+      
+      vect<double,3> w_avg = 0.5 * (get_ang_velocity(x0_se3) + get_ang_velocity(x1_se3));
+      
+      mat<double,mat_structure::symmetric> w_avg_outer(w_avg[0] * w_avg[0], w_avg[0] * w_avg[1], w_avg[0] * w_avg[2], 
+                                                                      w_avg[1] * w_avg[1], w_avg[1] * w_avg[2], 
+                                                                                       w_avg[2] * w_avg[2]);
+      double w_avg_mag = norm_2(w_avg);
+      // v-v block:
+      if(w_avg_mag > 1e-4) {
+        mat<double,mat_structure::square> delw((d_t * dt) * ((1.0 / w_avg_mag) * w_avg_outer + w_avg_mag * mat_ident<double>(3)));
+        sub(A)(w_r, w_r) -= delw;
+        sub(A)(q_r, w_r) -= (0.5 * dt) * delw;
+      };
+      // TODO Add frame transitions
+      slice(A)(w_r, td_r) -= (dt * w_avg_mag) * w_avg;
+      slice(A)(q_r, td_r) -= (0.5 * dt * dt * w_avg_mag) * w_avg;
+      
+    };
+    
+};
 
 
 
