@@ -258,6 +258,7 @@ class ss_system_output_tuple : public named_object {
     typedef double time_difference_type;
     
     typedef vect_n<double> output_type;
+    typedef vect_n<double> invariant_error_type;
     typedef covariance_matrix< vect_n<double> > covar_type;
     typedef gaussian_belief_state< output_type,  covar_type > output_belief_type;
     
@@ -268,30 +269,31 @@ class ss_system_output_tuple : public named_object {
   private:
     OutputTuple data;
     std::size_t total_output_dim;
+    std::size_t total_inv_err_dim;
     
     BOOST_STATIC_CONSTANT(unsigned int, output_tuple_size = arithmetic_tuple_size<OutputTuple>::value);
     
     
     template <unsigned int I>
     typename boost::enable_if_c< (I == 0),
-    void >::type construct_output_dimensions_impl(std::size_t& dim) {
+    void >::type construct_output_dimensions_impl(std::size_t& dim, std::size_t& inv_dim) {
       using ReaK::get;
-      get<0>(data).construct_output_dimensions(dim);
+      get<0>(data).construct_output_dimensions(dim, inv_dim);
     };
     
     template <unsigned int I>
     typename boost::enable_if_c< (I != 0),
-    void >::type construct_output_dimensions_impl(std::size_t& dim) const {
+    void >::type construct_output_dimensions_impl(std::size_t& dim, std::size_t& inv_dim) const {
       using ReaK::get;
-      construct_output_dimensions_impl<I-1>(dim);
-      get<I>(data).construct_output_dimensions(dim);
+      construct_output_dimensions_impl<I-1>(dim, inv_dim);
+      get<I>(data).construct_output_dimensions(dim, inv_dim);
     };
     
     void construct_output_dimensions() {
       total_output_dim = 0;
-      construct_output_dimensions_impl< output_tuple_size - 1 >(total_output_dim);
+      total_inv_err_dim = 0;
+      construct_output_dimensions_impl< output_tuple_size - 1 >(total_output_dim, total_inv_err_dim);
     };
-    
     
     
     template <unsigned int I, typename FlyWeight, typename StateSpaceType>
@@ -307,34 +309,55 @@ class ss_system_output_tuple : public named_object {
     template <unsigned int I, typename FlyWeight, typename StateSpaceType>
     typename boost::enable_if_c< (I != 0),
     void >::type set_output_from_state_impl(const FlyWeight& params,
-                                           const StateSpaceType& space, 
-                                           const typename pp::topology_traits<StateSpaceType>::point_type& x, 
-                                           typename pp::topology_traits<StateSpaceType>::point_difference_type& dx,
-                                           const input_type& u, time_difference_type dt, time_type t) const {
+                                            const StateSpaceType& space, 
+                                            const typename pp::topology_traits<StateSpaceType>::point_type& x, 
+                                            output_type& y, time_type t) const {
       using ReaK::get;
       set_output_from_state_impl<I-1>(params, space, x, y, t);
       get<I>(data).set_output_from_state(params, space, x, y, t);
     };
     
     
-    template <unsigned int I, typename MatrixC, typename MatrixD, typename FlyWeight, typename StateSpaceType>
+    template <unsigned int I, typename FlyWeight, typename StateSpaceType>
+    typename boost::enable_if_c< (I == 0),
+    void >::type set_inv_err_from_output_impl(const FlyWeight& params,
+                                              const StateSpaceType& space, 
+                                              const typename pp::topology_traits<StateSpaceType>::point_type& x, 
+                                              const output_type& y, invariant_error_type& e, time_type t) const {
+      using ReaK::get;
+      get<0>(data).set_inv_err_from_output(params, space, x, y, e, t);
+    };
+    
+    template <unsigned int I, typename FlyWeight, typename StateSpaceType>
+    typename boost::enable_if_c< (I != 0),
+    void >::type set_inv_err_from_output_impl(const FlyWeight& params,
+                                              const StateSpaceType& space, 
+                                              const typename pp::topology_traits<StateSpaceType>::point_type& x, 
+                                              const output_type& y, invariant_error_type& e, time_type t) const {
+      using ReaK::get;
+      set_inv_err_from_output_impl<I-1>(params, space, x, y, e, t);
+      get<I>(data).set_inv_err_from_output(params, space, x, y, e, t);
+    };
+    
+    
+    template <unsigned int I, typename MatrixC, typename MatrixD, typename FlyWeight, typename StateSpaceType, typename InputType>
     typename boost::enable_if_c< (I == 0),
     void >::type add_output_function_blocks_impl(MatrixC& C, MatrixD& D, 
                                                  const FlyWeight& params, const StateSpaceType& space,
                                                  time_type t,
                                                  const typename pp::topology_traits<StateSpaceType>::point_type& p, 
-                                                 const input_type& u) const {
+                                                 const InputType& u) const {
       using ReaK::get;
       get<0>(data).add_output_function_blocks(A, B, params, space, t, p, u);
     };
     
-    template <unsigned int I, typename MatrixC, typename MatrixD, typename FlyWeight, typename StateSpaceType>
+    template <unsigned int I, typename MatrixC, typename MatrixD, typename FlyWeight, typename StateSpaceType, typename InputType>
     typename boost::enable_if_c< (I != 0),
     void >::type add_output_function_blocks_impl(MatrixC& C, MatrixD& D, 
                                                  const FlyWeight& params, const StateSpaceType& space, 
                                                  time_type t,
                                                  const typename pp::topology_traits<StateSpaceType>::point_type& p, 
-                                                 const input_type& u) const {
+                                                 const InputType& u) const {
       using ReaK::get;
       add_output_function_blocks_impl<I-1>(C, D, params, space, t, p, u);
       get<I>(data).add_output_function_blocks(C, D, params, space, t, p, u);
@@ -407,6 +430,27 @@ class ss_system_output_tuple : public named_object {
     };
     
     /**
+     * Fills in the invariant-output-error object with the error between the given output and 
+     * the current state.
+     * \tparam FlyWeight The type of a set of records of dynamic parameters for the system.
+     * \tparam StateSpaceType The type of the state-space (topology) used by the parent ss-system.
+     * \param params The fly-weight parameters that describe the dynamics of the system.
+     * \param space The space object in which to operate.
+     * \param x The current state object for the system.
+     * \param y The current output vector obtained from a measurement on the real system.
+     * \param e The current invariant-output-error vector for the system (accumulated as output).
+     * \param t The current time corresponding to the current state of the system.
+     */
+    template <typename FlyWeight, typename StateSpaceType>
+    void set_inv_err_from_output(const FlyWeight& params,
+                                 const StateSpaceType& space, 
+                                 const typename pp::topology_traits<StateSpaceType>::point_type& x, 
+                                 const output_type& y, invariant_error_type& e, time_type t) const {
+      set_inv_err_from_output_impl< output_tuple_size - 1 >(params, space, x, y, e, t);
+    };
+    
+    
+    /**
      * Fills in the state-difference object with the effects of the given input on the state 
      * over the given time difference.
      * \tparam FlyWeight The type of a set of records of dynamic parameters for the system.
@@ -419,12 +463,12 @@ class ss_system_output_tuple : public named_object {
      * \param p The current state object for the system.
      * \param u The current input vector for the system.
      */
-    template <typename MatrixC, typename MatrixD, typename FlyWeight, typename StateSpaceType>
+    template <typename MatrixC, typename MatrixD, typename FlyWeight, typename StateSpaceType, typename InputType>
     void add_output_function_blocks(MatrixC& C, MatrixD& D, 
                                     const FlyWeight& params, const StateSpaceType& space, 
                                     time_type t,
                                     const typename pp::topology_traits<StateSpaceType>::point_type& p, 
-                                    const input_type& u) const {
+                                    const InputType& u) const {
       add_output_function_blocks_impl< output_tuple_size - 1 >(C, D, params, space, t, p, u);
     };
     
@@ -704,46 +748,6 @@ class ss_system_state_tuple : public named_object {
 
 
 
-
-namespace detail {
-  
-  typedef arithmetic_tuple< 
-            arithmetic_tuple< vect<double,3>, vect<double,3> >, 
-            arithmetic_tuple< unit_quat<double>, vect<double,3> > > sat3D_state_type;
-  
-  inline const sat3D_state_type& get_sat3D_state(const sat3D_state_type& x) { return x; };
-  
-  template <typename StateTuple>
-  const sat3D_state_type& get_sat3D_state(const StateTuple& x) { using ReaK::get; return get<0>(x); };
-  
-  
-  inline sat3D_state_type& get_sat3D_state(sat3D_state_type& x) { return x; };
-  
-  template <typename StateTuple>
-  sat3D_state_type& get_sat3D_state(StateTuple& x) { using ReaK::get; return get<0>(x); };
-  
-  
-  typedef arithmetic_tuple< 
-            arithmetic_tuple< vect<double,3>, vect<double,3> >, 
-            arithmetic_tuple< vect<double,3>, vect<double,3> > > sat3D_state_diff_type;
-  
-  inline const sat3D_state_diff_type& get_sat3D_state_diff(const sat3D_state_diff_type& x) { return x; };
-  
-  template <typename StateTuple>
-  const sat3D_state_diff_type& get_sat3D_state_diff(const StateTuple& x) { using ReaK::get; return get<0>(x); };
-  
-  
-  inline sat3D_state_diff_type& get_sat3D_state_diff(sat3D_state_diff_type& x) { return x; };
-  
-  template <typename StateTuple>
-  sat3D_state_diff_type& get_sat3D_state_diff(StateTuple& x) { using ReaK::get; return get<0>(x); };
-  
-};
-
-
-
-
-
 class satellite_state_model : public named_object {
   public:
     typedef pp::se3_1st_order_topology<double>::type state_space_type;
@@ -949,52 +953,15 @@ class near_buoyancy_state_model : public named_object {
       
       const std::pair<std::size_t, std::size_t> p_r(sat3d_state_index, sat3d_state_index+2);
       const std::pair<std::size_t, std::size_t> v_r(sat3d_state_index+3, sat3d_state_index+5);
-//       const std::pair<std::size_t, std::size_t> q_r(sat3d_state_index+6, sat3d_state_index+8);
-      const std::pair<std::size_t, std::size_t> w_r(sat3d_state_index+9, sat3d_state_index+11);
       
       const std::size_t m_r = inv_corr_start_index;
       
-//       mat<double,mat_structure::square> R_0_1 = (invert(get_quaternion(x1_se3).as_rotation()) * get_quaternion(x0_se3).as_rotation()).getMat();
-      
-#if 0
-      // v-m block:
-#ifdef USE_HOT_DEL_M_TERMS
-      vect<double,3> R_r_x_w_1 = R_1 * r_x_w_1;
-      slice(A_1)(v_r, m_r) = v_1 - R_r_x_w_1;
-#endif
-      // v-m block:
-#ifdef USE_HOT_DEL_M_TERMS
-      vect<double,3> R_r_x_w_0 = R_0 * r_x_w_0;
-      slice(A_0)(v_r, m_r) = v_0 - R_r_x_w_0;
-#endif
-#endif
       // p-m block:
       slice(A)(p_r, m_r) += (0.5 * dt * dt) * params.gravity_acc_vect;
       // v-m block:
       slice(A)(v_r, m_r) += dt * params.gravity_acc_vect;
       
-      
-#if 0
-      // w-m block:
-#ifdef USE_HOT_DEL_M_TERMS
-      vect<double,3> R_r_x_of_1 = R_1 * (r % off_force_1);
-      slice(A_1)(w_r, m_r) -= R_r_x_of_1;
-#ifdef USE_HOT_INERTIA_TERM
-      vect<double,3> R_r2_x_w_1 = R_1 * (r % r_x_w_1);
-      slice(A_1)(w_r, m_r) -= R_r2_x_w_1;
-#endif
-#endif
-      // w-m block:
-#ifdef USE_HOT_DEL_M_TERMS
-      vect<double,3> R_r_x_of_0 = R_0 * (r % off_force_0);
-      slice(A_0)(w_r, m_r) += R_r_x_of_0;
-#ifdef USE_HOT_INERTIA_TERM
-      vect<double,3> R_r2_x_w_0 = R_0 * (r % r_x_w_0);
-      slice(A_0)(w_r, m_r) -= R_r2_x_w_0;
-#endif
-#endif
-#endif
-      
+      A(m_r, m_r) += mat_ident<double>(3);
     };
     
 };
@@ -1081,10 +1048,6 @@ class eccentricity_state_model : public named_object {
         } catch(...) { /* if cholesky failed, no HOT adjustment is applied to l_transfer */ };
         
         vect<double,3> p_transfer = (-params.effective_mass) * (params.effective_J_inv * (r % l_transfer));
-//         vect<double,3> p_transfer = params.effective_mass * (params.effective_J_inv * (invert(q) * get<1>(get<0>(dx_se3))) % r);
-//         vect<double,3> p_transfer = params.effective_mass * (r % (invert(q) * (v_0 - v_1)));
-//         vect<double,3> p_transfer = (-0.5 * params.effective_mass) * (q_0_to_1 * (r % (invert(q) * (v_1 - v_0))) 
-//                                                     + (r % (invert(q_1).as_rotation() * (v_1 - v_0))));
         
         l_transfer = q * l_transfer;
         
@@ -1199,6 +1162,7 @@ class eccentricity_state_model : public named_object {
       slice(A)(w_r, m_r) += (0.5 * dt) * Jrg;
 #endif
       
+      sub(A)(r_r, r_r) += mat_ident<double>(3);
     };
     
 };
@@ -1309,6 +1273,7 @@ class linear_drag_state_model : public named_object {
       slice(A)(v_r, fd_r) -= (dt * v_avg_mag) * v_avg;
       slice(A)(p_r, fd_r) -= (0.5 * dt * dt * v_avg_mag) * v_avg;
       
+      A(fd_r, fd_r) += 1.0;
     };
     
 };
@@ -1419,6 +1384,7 @@ class torsional_drag_state_model : public named_object {
       slice(A)(w_r, td_r) -= (dt * w_avg_mag) * w_avg;
       slice(A)(q_r, td_r) -= (0.5 * dt * dt * w_avg_mag) * w_avg;
       
+      A(td_r, td_r) += 1.0;
     };
     
 };
@@ -1513,6 +1479,7 @@ class cross_inertia_state_model : public named_object {
       sub(A)(q_r, s_r) += (0.5 * dt) * delw;
       // neglects the cross terms and any other non-trivial place where J appears.
       
+      sub(A)(s_r, s_r) += mat_ident<double>(3);
     };
     
 };
@@ -1525,6 +1492,11 @@ class cross_inertia_state_model : public named_object {
 
 class airship3D_6dof_thrusters : public named_object {
   public:
+    
+    typedef vect_n<double> input_type;
+    
+    typedef double time_type;
+    typedef double time_difference_type;
     
     
   private:
@@ -1547,24 +1519,28 @@ class airship3D_6dof_thrusters : public named_object {
                               const input_type& u, time_difference_type dt, time_type t) const {
       using ReaK::get; // for ADL
       
+      typedef satellite_state_model::point_type SE3State;
+      typedef satellite_state_model::point_difference_type SE3StateDiff;
+      
+      const SE3State& x_se3 = params.get_state_models().template get_state_for_system<satellite_state_model>(x);
+      SE3StateDiff& dx_se3 = params.get_state_models().template get_state_diff_for_system<satellite_state_model>(dx);
+      
       vect<double,3> f(u[start_index], u[start_index+1], u[start_index+2]);
       vect<double,3> tau(u[start_index+3], u[start_index+4], u[start_index+5]);
       
-      detail::sat3D_state_diff_type& ds = detail::get_sat3D_state_diff(dx);
-      
       // velocity:
-      f = get_quaternion(detail::get_sat3D_state(x)).as_rotation() * f;
+      f = get_quaternion(x_se3).as_rotation() * f;
       f *= (dt / params.effective_mass);
-      get<1>(get<0>(ds)) += f;
+      get<1>(get<0>(dx_se3)) += f;
       // position:
-      get<0>(get<0>(ds)) += (0.5 * dt) * f;
+      get<0>(get<0>(dx_se3)) += (0.5 * dt) * f;
       
       // ang-velocity
       tau = params.effective_J_inv * tau;
       tau *= dt;
-      get<1>(get<1>(ds)) += tau;
+      get<1>(get<1>(dx_se3)) += tau;
       // quaternion-diff (Lie alg.):
-      get<0>(get<1>(ds)) += (0.5 * dt) * tau;
+      get<0>(get<1>(dx_se3)) += (0.5 * dt) * tau;
       
     };
     
@@ -1576,21 +1552,36 @@ class airship3D_6dof_thrusters : public named_object {
                                      const typename pp::topology_traits<StateSpaceType>::point_type& p_0,
                                      const typename pp::topology_traits<StateSpaceType>::point_type& p_1, 
                                      const input_type& u_0, const input_type& u_1) const {
-      double dt = t_1 - t_0;
+      typedef satellite_state_model::point_type SE3State;
       
-      mat<double,mat_structure::square> R_0 = get_quaternion(detail::get_sat3D_state(p_0)).as_rotation().getMat();
+      const SE3State& x0_se3 = params.get_state_models().template get_state_for_system<satellite_state_model>(p_0);
+      const SE3State& x1_se3 = params.get_state_models().template get_state_for_system<satellite_state_model>(p_1);
       
-#ifdef USE_HOT_DEL_Q_TERMS
-      // TODO Add the d(p + f)/dq and d(v + f)/dq
-#endif
+      const std::size_t sat3d_state_index = params.get_state_models().template get_system<satellite_state_model>().get_inv_corr_start_index();
+      
+      const double dt = t_1 - t_0;
+      
+      const std::pair<std::size_t, std::size_t> p_r(sat3d_state_index, sat3d_state_index+2);
+      const std::pair<std::size_t, std::size_t> v_r(sat3d_state_index+3, sat3d_state_index+5);
+      const std::pair<std::size_t, std::size_t> q_r(sat3d_state_index+6, sat3d_state_index+8);
+      const std::pair<std::size_t, std::size_t> w_r(sat3d_state_index+9, sat3d_state_index+11);
+      
+      const std::pair<std::size_t, std::size_t> f_r(start_index, start_index+2);
+      const std::pair<std::size_t, std::size_t> t_r(start_index+3, start_index+5);
       
       // (p,v)-f block:
-      sub(B)(range(0,2), range(start_index, start_index+2)) += (0.5 * dt * dt / params.effective_mass) * R_0;
-      sub(B)(range(3,5), range(start_index, start_index+2)) += (dt / params.effective_mass) * R_0;
+      mat<double,mat_structure::square> R_0 = get_quaternion(x0_se3).as_rotation().getMat();
+      mat<double,mat_structure::square> delv((dt / params.effective_mass) * R_0);
+      sub(B)(v_r, f_r) += delv;
+      delv *= 0.5 * dt;
+      sub(B)(p_r, f_r) += delv;
       
       // (q,w)-t block:
-      sub(B)(range(6,8), range(start_index+3, start_index+5))  += (0.5 * dt * dt) * params.effective_J_inv;
-      sub(B)(range(9,11), range(start_index+3, start_index+5)) += dt * params.effective_J_inv;
+      mat<double,mat_structure::square> R_0_1 = (invert(get_quaternion(x1_se3).as_rotation()) * get_quaternion(x0_se3).as_rotation()).getMat();
+      mat<double,mat_structure::square> delw(dt * (R_0_1 * params.effective_J_inv));
+      sub(B)(w_r, t_r) += delw;
+      delw *= 0.5 * dt;
+      sub(B)(q_r, t_r)  += delw;
     };
     
     
@@ -1599,8 +1590,13 @@ class airship3D_6dof_thrusters : public named_object {
 
 
 
-class tryphon_8_thrusters : public named_object {
+class tryphon_n_thrusters : public named_object {
   public:
+    
+    typedef vect_n<double> input_type;
+    
+    typedef double time_type;
+    typedef double time_difference_type;
     
     
   private:
@@ -1608,13 +1604,14 @@ class tryphon_8_thrusters : public named_object {
     
   public:
     
-    double side_length;
+    std::vector< vect<double,3> > thruster_pos;
+    std::vector< vect<double,3> > thruster_dir;
     
-    tryphon_8_thrusters(double aSideLength = 2.0) : start_index(0), side_length(aSideLength) { };
+    tryphon_n_thrusters(std::size_t N = 8) : start_index(0), thruster_pos(N), thruster_dir(N) { };
     
     void construct_input_dimensions(std::size_t& cur_dim) {
       start_index = cur_dim;
-      cur_dim += 8;
+      cur_dim += thruster_pos.size();
     };
     
     template <typename FlyWeight, typename StateSpaceType>
@@ -1623,30 +1620,34 @@ class tryphon_8_thrusters : public named_object {
                               const typename pp::topology_traits<StateSpaceType>::point_type& x, 
                               typename pp::topology_traits<StateSpaceType>::point_difference_type& dx,
                               const input_type& u, time_difference_type dt, time_type t) const {
-      vect<double,3> f(
-        u[start_index], 
-        u[start_index+1], 
-        u[start_index+2]);
-      vect<double,3> tau(
-        u[start_index+3], 
-        u[start_index+4], 
-        u[start_index+5]);
+      using ReaK::get; // for ADL
       
-      detail::sat3D_state_diff_type& ds = detail::get_sat3D_state_diff(dx);
+      typedef satellite_state_model::point_type SE3State;
+      typedef satellite_state_model::point_difference_type SE3StateDiff;
+      
+      const SE3State& x_se3 = params.get_state_models().template get_state_for_system<satellite_state_model>(x);
+      SE3StateDiff& dx_se3 = params.get_state_models().template get_state_diff_for_system<satellite_state_model>(dx);
+      
+      vect<double,3> f;
+      vect<double,3> tau;
+      for(std::size_t i = 0; i < 8; ++i) {
+        f += u[start_index+i] * thruster_dir[i];
+        tau += u[start_index+i] * (thruster_pos[i] % thruster_dir[i]);
+      };
       
       // velocity:
-      f = get_quaternion(detail::get_sat3D_state(x)).as_rotation() * f;
+      f = get_quaternion(x_se3).as_rotation() * f;
       f *= (dt / params.effective_mass);
-      get<1>(get<0>(ds)) += f;
+      get<1>(get<0>(dx_se3)) += f;
       // position:
-      get<0>(get<0>(ds)) += (0.5 * dt) * f;
+      get<0>(get<0>(dx_se3)) += (0.5 * dt) * f;
       
       // ang-velocity
       tau = params.effective_J_inv * tau;
       tau *= dt;
-      get<1>(get<1>(ds)) += tau;
+      get<1>(get<1>(dx_se3)) += tau;
       // quaternion-diff (Lie alg.):
-      get<0>(get<1>(ds)) += (0.5 * dt) * tau;
+      get<0>(get<1>(dx_se3)) += (0.5 * dt) * tau;
       
     };
     
@@ -1658,76 +1659,226 @@ class tryphon_8_thrusters : public named_object {
                                      const typename pp::topology_traits<StateSpaceType>::point_type& p_0,
                                      const typename pp::topology_traits<StateSpaceType>::point_type& p_1, 
                                      const input_type& u_0, const input_type& u_1) const {
-      double dt = t_1 - t_0;
+      typedef satellite_state_model::point_type SE3State;
       
-      mat<double,mat_structure::square> R_0 = get_quaternion(detail::get_sat3D_state(p_0)).as_rotation().getMat();
+      const SE3State& x0_se3 = params.get_state_models().template get_state_for_system<satellite_state_model>(p_0);
+      const SE3State& x1_se3 = params.get_state_models().template get_state_for_system<satellite_state_model>(p_1);
       
-#ifdef USE_HOT_DEL_Q_TERMS
-      // TODO Add the d(p + f)/dq and d(v + f)/dq
-#endif
+      const std::size_t sat3d_state_index = params.get_state_models().template get_system<satellite_state_model>().get_inv_corr_start_index();
       
-      // (p,v)-f block:
-      sub(B)(range(0,2), range(start_index, start_index+2)) += (0.5 * dt * dt / params.effective_mass) * R_0;
-      sub(B)(range(3,5), range(start_index, start_index+2)) += (dt / params.effective_mass) * R_0;
+      const double dt = t_1 - t_0;
       
-      // (q,w)-t block:
-      sub(B)(range(6,8), range(start_index+3, start_index+5))  += (0.5 * dt * dt) * params.effective_J_inv;
-      sub(B)(range(9,11), range(start_index+3, start_index+5)) += dt * params.effective_J_inv;
+      const std::pair<std::size_t, std::size_t> p_r(sat3d_state_index, sat3d_state_index+2);
+      const std::pair<std::size_t, std::size_t> v_r(sat3d_state_index+3, sat3d_state_index+5);
+      const std::pair<std::size_t, std::size_t> q_r(sat3d_state_index+6, sat3d_state_index+8);
+      const std::pair<std::size_t, std::size_t> w_r(sat3d_state_index+9, sat3d_state_index+11);
+      
+      mat<double,mat_structure::square> R_0 = get_quaternion(x0_se3).as_rotation().getMat();
+      mat<double,mat_structure::square> R_0_1 = (invert(get_quaternion(x1_se3).as_rotation()) * get_quaternion(x0_se3).as_rotation()).getMat();
+      
+      for(std::size_t i = 0; i < 8; ++i) {
+        // (p,v)-f block:
+        vect<double,3> f_jac = (dt / params.effective_mass) * (R_0 * thruster_dir[i]);
+        slice(B)(v_r, start_index+i) += f_jac;
+        f_jac *= 0.5 * dt;
+        slice(B)(p_r, start_index+i) += f_jac;
+        
+        // (q,w)-t block:
+        vect<double,3> tau_jac = dt * (R_0_1 * (params.effective_J_inv * (thruster_pos[i] % thruster_dir[i])));
+        slice(B)(w_r, start_index+i) += tau_jac;
+        tau_jac *= 0.5 * dt;
+        slice(B)(q_r, start_index+i) += tau_jac;
+      };
+      
     };
-    
-    
     
 };
 
 
-class tryphon_12_thrusters : public named_object {
+
+
+
+class sat_position_output_model : public named_object {
   public:
+    
+    typedef vect_n<double> output_type;
+    typedef vect_n<double> invariant_error_type;
+    
+    typedef double time_type;
+    typedef double time_difference_type;
     
     
   private:
     std::size_t start_index;
+    std::size_t inv_start_index;
     
   public:
     
-    double side_length;
+    sat_position_output_model() : start_index(0), inv_start_index(0) { };
     
-    tryphon_12_thrusters(double aSideLength = 2.0) : start_index(0), side_length(aSideLength) { };
-    
-    void construct_input_dimensions(std::size_t& cur_dim) {
+    void construct_output_dimensions(std::size_t& cur_dim, std::size_t& cur_inv_dim) {
       start_index = cur_dim;
-      cur_dim += 8;
+      cur_dim += 3;
+      inv_start_index = cur_inv_dim;
+      cur_inv_dim += 3;
     };
     
     template <typename FlyWeight, typename StateSpaceType>
+    void set_output_from_state(const FlyWeight& params,
+                               const StateSpaceType& space, 
+                               const typename pp::topology_traits<StateSpaceType>::point_type& x, 
+                               output_type& y, time_type t) const {
+      typedef satellite_state_model::point_type SE3State;
+      const SE3State& x_se3 = params.get_state_models().template get_state_for_system<satellite_state_model>(x);
+      
+      y[range(start_index, start_index+2)] = get_position(x_se3);
+    };
+    
+    template <typename FlyWeight, typename StateSpaceType>
+    void set_inv_err_from_output(const FlyWeight& params,
+                                 const StateSpaceType& space, 
+                                 const typename pp::topology_traits<StateSpaceType>::point_type& x, 
+                                 const output_type& y, invariant_error_type& e, time_type t) const {
+      typedef satellite_state_model::point_type SE3State;
+      const SE3State& x_se3 = params.get_state_models().template get_state_for_system<satellite_state_model>(x);
+      
+      e[range(inv_start_index, inv_start_index+2)] = y[range(start_index, start_index+2)] - get_position(x_se3);
+    };
+    
+    template <typename MatrixC, typename MatrixD, typename FlyWeight, typename StateSpaceType, typename InputType>
+    void add_output_function_blocks(MatrixC& C, MatrixD& D, 
+                                    const FlyWeight& params, const StateSpaceType& space, 
+                                    time_type t,
+                                    const typename pp::topology_traits<StateSpaceType>::point_type& p, 
+                                    const InputType& u) const {
+      typedef satellite_state_model::point_type SE3State;
+      
+      const SE3State& x_se3 = params.get_state_models().template get_state_for_system<satellite_state_model>(p);
+      
+      const std::size_t sat3d_state_index = params.get_state_models().template get_system<satellite_state_model>().get_inv_corr_start_index();
+      const std::pair<std::size_t, std::size_t> p_r(sat3d_state_index, sat3d_state_index+2);
+      const std::pair<std::size_t, std::size_t> pm_r(inv_start_index, inv_start_index+2);
+      
+      sub(C)(pm_r, p_r) += mat_ident<double>(3);
+    };
+    
+};
+
+
+class sat_quaternion_output_model : public named_object {
+  public:
+    
+    typedef vect_n<double> output_type;
+    typedef vect_n<double> invariant_error_type;
+    
+    typedef double time_type;
+    typedef double time_difference_type;
+    
+    
+  private:
+    std::size_t start_index;
+    std::size_t inv_start_index;
+    
+  public:
+    
+    sat_quaternion_output_model() : start_index(0), inv_start_index(0) { };
+    
+    void construct_output_dimensions(std::size_t& cur_dim, std::size_t& cur_inv_dim) {
+      start_index = cur_dim;
+      cur_dim += 4;
+      inv_start_index = cur_inv_dim;
+      cur_inv_dim += 3;
+    };
+    
+    template <typename FlyWeight, typename StateSpaceType>
+    void set_output_from_state(const FlyWeight& params,
+                               const StateSpaceType& space, 
+                               const typename pp::topology_traits<StateSpaceType>::point_type& x, 
+                               output_type& y, time_type t) const {
+      typedef satellite_state_model::point_type SE3State;
+      const SE3State& x_se3 = params.get_state_models().template get_state_for_system<satellite_state_model>(x);
+      
+      y[range(start_index, start_index+3)] = get_quaternion(x_se3);
+    };
+    
+    template <typename FlyWeight, typename StateSpaceType>
+    void set_inv_err_from_output(const FlyWeight& params,
+                                 const StateSpaceType& space, 
+                                 const typename pp::topology_traits<StateSpaceType>::point_type& x, 
+                                 const output_type& y, invariant_error_type& e, time_type t) const {
+      typedef satellite_state_model::point_type SE3State;
+      const SE3State& x_se3 = params.get_state_models().template get_state_for_system<satellite_state_model>(x);
+      
+      unit_quat<double> q_diff = invert(get_quaternion(x_se3))
+                               * unit_quat<double>(y[start_index],y[start_index+1],y[start_index+2],y[start_index+3]);
+      vect<double,3> a = 2.0 * log(q_diff);
+      
+      e[range(inv_start_index, inv_start_index+2)] = a;
+    };
+    
+    template <typename MatrixC, typename MatrixD, typename FlyWeight, typename StateSpaceType, typename InputType>
+    void add_output_function_blocks(MatrixC& C, MatrixD& D, 
+                                    const FlyWeight& params, const StateSpaceType& space, 
+                                    time_type t,
+                                    const typename pp::topology_traits<StateSpaceType>::point_type& p, 
+                                    const InputType& u) const {
+      typedef satellite_state_model::point_type SE3State;
+      
+      const std::size_t sat3d_state_index = params.get_state_models().template get_system<satellite_state_model>().get_inv_corr_start_index();
+      const std::pair<std::size_t, std::size_t> q_r(sat3d_state_index+6, sat3d_state_index+8);
+      const std::pair<std::size_t, std::size_t> qm_r(inv_start_index, inv_start_index+2);
+      
+      sub(C)(qm_r, q_r) += mat_ident<double>(3);  // TODO Add a frame transition ? (in invariant posterior frame)
+    };
+    
+};
+
+
+
+class gyros_bias_state_model : public named_object {
+  public:
+    typedef pp::hyperball_topology< vect<double,3> > state_space_type;
+    
+    typedef pp::topology_traits< state_space_type >::point_type point_type;
+    typedef pp::topology_traits< state_space_type >::point_difference_type point_difference_type;
+    typedef pp::topology_traits< state_space_type >::point_difference_type point_derivative_type;
+    
+    typedef double time_type;
+    typedef double time_difference_type;
+    
+  private:
+    
+    std::size_t state_start_index;
+    std::size_t inv_corr_start_index;
+    
+  public:
+    
+    std::size_t get_state_start_index() const { return state_start_index; };
+    std::size_t get_inv_corr_start_index() const { return inv_corr_start_index; };
+    
+    gyros_bias_state_model() { };
+    
+    void construct_all_dimensions(std::size_t& state_dim, std::size_t& inv_corr_dim, std::size_t& actual_dim) {
+      state_start_index = state_dim;
+      state_dim += 3;
+      inv_corr_start_index = inv_corr_dim;
+      inv_corr_dim += 3;
+      RK_UNUSED(actual_dim);
+    };
+    
+    template <typename FlyWeight, typename StateSpaceType, typename InputType>
+    void add_to_effective_inertia(FlyWeight& params, 
+                                  const StateSpaceType& space, const typename pp::topology_traits<StateSpaceType>::point_type& x, 
+                                  typename pp::topology_traits<StateSpaceType>::point_difference_type& dx,
+                                  const InputType&, time_difference_type dt, time_type t) const {
+    };
+    
+    template <typename FlyWeight, typename StateSpaceType, typename InputType>
     void add_state_difference(const FlyWeight& params, 
                               const StateSpaceType& space, 
                               const typename pp::topology_traits<StateSpaceType>::point_type& x, 
                               typename pp::topology_traits<StateSpaceType>::point_difference_type& dx,
-                              const input_type& u, time_difference_type dt, time_type t) const {
-      vect<double,3> f(
-        u[start_index], 
-        u[start_index+1], 
-        u[start_index+2]);
-      vect<double,3> tau(
-        u[start_index+3], 
-        u[start_index+4], 
-        u[start_index+5]);
-      
-      detail::sat3D_state_diff_type& ds = detail::get_sat3D_state_diff(dx);
-      
-      // velocity:
-      f = get_quaternion(detail::get_sat3D_state(x)).as_rotation() * f;
-      f *= (dt / params.effective_mass);
-      get<1>(get<0>(ds)) += f;
-      // position:
-      get<0>(get<0>(ds)) += (0.5 * dt) * f;
-      
-      // ang-velocity
-      tau = params.effective_J_inv * tau;
-      tau *= dt;
-      get<1>(get<1>(ds)) += tau;
-      // quaternion-diff (Lie alg.):
-      get<0>(get<1>(ds)) += (0.5 * dt) * tau;
+                              const InputType&, time_difference_type dt, time_type t) const {
       
     };
     
@@ -1739,26 +1890,419 @@ class tryphon_12_thrusters : public named_object {
                                      const typename pp::topology_traits<StateSpaceType>::point_type& p_0,
                                      const typename pp::topology_traits<StateSpaceType>::point_type& p_1, 
                                      const input_type& u_0, const input_type& u_1) const {
-      double dt = t_1 - t_0;
-      
-      mat<double,mat_structure::square> R_0 = get_quaternion(detail::get_sat3D_state(p_0)).as_rotation().getMat();
-      
-#ifdef USE_HOT_DEL_Q_TERMS
-      // TODO Add the d(p + f)/dq and d(v + f)/dq
-#endif
-      
-      // (p,v)-f block:
-      sub(B)(range(0,2), range(start_index, start_index+2)) += (0.5 * dt * dt / params.effective_mass) * R_0;
-      sub(B)(range(3,5), range(start_index, start_index+2)) += (dt / params.effective_mass) * R_0;
-      
-      // (q,w)-t block:
-      sub(B)(range(6,8), range(start_index+3, start_index+5))  += (0.5 * dt * dt) * params.effective_J_inv;
-      sub(B)(range(9,11), range(start_index+3, start_index+5)) += dt * params.effective_J_inv;
+      const std::pair<std::size_t, std::size_t> gb_r(inv_corr_start_index, inv_corr_start_index+2);
+      sub(A)(gb_r, gb_r) += mat_ident<double>(3);
     };
     
 };
 
 
+
+
+class sat_gyros_output_model : public named_object {
+  public:
+    
+    typedef vect_n<double> output_type;
+    typedef vect_n<double> invariant_error_type;
+    
+    typedef double time_type;
+    typedef double time_difference_type;
+    
+    
+  private:
+    std::size_t start_index;
+    std::size_t inv_start_index;
+    
+  public:
+    
+    sat_gyros_output_model() : start_index(0), inv_start_index(0) { };
+    
+    void construct_output_dimensions(std::size_t& cur_dim, std::size_t& cur_inv_dim) {
+      start_index = cur_dim;
+      cur_dim += 3;
+      inv_start_index = cur_inv_dim;
+      cur_inv_dim += 3;
+    };
+    
+    template <typename FlyWeight, typename StateSpaceType>
+    void set_output_from_state(const FlyWeight& params,
+                               const StateSpaceType& space, 
+                               const typename pp::topology_traits<StateSpaceType>::point_type& x, 
+                               output_type& y, time_type t) const {
+      typedef satellite_state_model::point_type SE3State;
+      const SE3State& x_se3 = params.get_state_models().template get_state_for_system<satellite_state_model>(x);
+      
+      y[range(start_index, start_index+2)] = get_ang_velocity(x_se3);
+      
+#if 0
+      //if there is an estimate of the gyro-bias, use it:
+      y[range(start_index, start_index+2)] += params.get_state_models().template get_state_for_system<gyros_bias_state_model>(x);
+#endif
+    };
+    
+    template <typename FlyWeight, typename StateSpaceType>
+    void set_inv_err_from_output(const FlyWeight& params,
+                                 const StateSpaceType& space, 
+                                 const typename pp::topology_traits<StateSpaceType>::point_type& x, 
+                                 const output_type& y, invariant_error_type& e, time_type t) const {
+      typedef satellite_state_model::point_type SE3State;
+      const SE3State& x_se3 = params.get_state_models().template get_state_for_system<satellite_state_model>(x);
+      
+#if 0
+      // if we had the quaternion measurements:
+      unit_quat<double> q_diff = invert(get_quaternion(x_se3))
+                               * unit_quat<double>(y[start_index],y[start_index+1],y[start_index+2],y[start_index+3]);
+      
+      e[range(inv_start_index, inv_start_index+2)] = 
+        q_diff.as_rotation() * vect<double,3>(y[start_index],y[start_index+1],y[start_index+2]) 
+        - get_ang_velocity(x_se3);
+#endif
+      
+      e[range(inv_start_index, inv_start_index+2)] = 
+        vect<double,3>(y[start_index],y[start_index+1],y[start_index+2]) - get_ang_velocity(x_se3);
+      
+#if 0
+      //if there is an estimate of the gyro-bias, use it:
+      e[range(inv_start_index, inv_start_index+2)] -= params.get_state_models().template get_state_for_system<gyros_bias_state_model>(x);
+#endif
+    };
+    
+    template <typename MatrixC, typename MatrixD, typename FlyWeight, typename StateSpaceType, typename InputType>
+    void add_output_function_blocks(MatrixC& C, MatrixD& D, 
+                                    const FlyWeight& params, const StateSpaceType& space, 
+                                    time_type t,
+                                    const typename pp::topology_traits<StateSpaceType>::point_type& p, 
+                                    const InputType& u) const {
+      typedef satellite_state_model::point_type SE3State;
+      
+      const std::size_t sat3d_state_index = params.get_state_models().template get_system<satellite_state_model>().get_inv_corr_start_index();
+      const std::pair<std::size_t, std::size_t> w_r(sat3d_state_index+9, sat3d_state_index+11);
+      const std::pair<std::size_t, std::size_t> wm_r(inv_start_index, inv_start_index+2);
+      
+      sub(C)(wm_r, w_r) += mat_ident<double>(3);  // TODO Add a frame transition ? (in invariant posterior frame)
+      
+#if 0
+      //if there is an estimate of the gyro-bias, use it:
+      const std::size_t gb_index = params.get_state_models().template get_system<gyros_bias_state_model>().get_inv_corr_start_index();
+      const std::pair<std::size_t, std::size_t> gb_r(gb_index, gb_index+2);
+      sub(C)(wm_r, gb_r) += mat_ident<double>(3);
+#endif
+    };
+    
+};
+
+
+
+
+
+class accelerometer_bias_state_model : public named_object {
+  public:
+    typedef pp::hyperball_topology< vect<double,3> > state_space_type;
+    
+    typedef pp::topology_traits< state_space_type >::point_type point_type;
+    typedef pp::topology_traits< state_space_type >::point_difference_type point_difference_type;
+    typedef pp::topology_traits< state_space_type >::point_difference_type point_derivative_type;
+    
+    typedef double time_type;
+    typedef double time_difference_type;
+    
+  private:
+    
+    std::size_t state_start_index;
+    std::size_t inv_corr_start_index;
+    
+  public:
+    
+    std::size_t get_state_start_index() const { return state_start_index; };
+    std::size_t get_inv_corr_start_index() const { return inv_corr_start_index; };
+    
+    accelerometer_bias_state_model() { };
+    
+    void construct_all_dimensions(std::size_t& state_dim, std::size_t& inv_corr_dim, std::size_t& actual_dim) {
+      state_start_index = state_dim;
+      state_dim += 3;
+      inv_corr_start_index = inv_corr_dim;
+      inv_corr_dim += 3;
+      RK_UNUSED(actual_dim);
+    };
+    
+    template <typename FlyWeight, typename StateSpaceType, typename InputType>
+    void add_to_effective_inertia(FlyWeight& params, 
+                                  const StateSpaceType& space, const typename pp::topology_traits<StateSpaceType>::point_type& x, 
+                                  typename pp::topology_traits<StateSpaceType>::point_difference_type& dx,
+                                  const InputType&, time_difference_type dt, time_type t) const {
+    };
+    
+    template <typename FlyWeight, typename StateSpaceType, typename InputType>
+    void add_state_difference(const FlyWeight& params, 
+                              const StateSpaceType& space, 
+                              const typename pp::topology_traits<StateSpaceType>::point_type& x, 
+                              typename pp::topology_traits<StateSpaceType>::point_difference_type& dx,
+                              const InputType&, time_difference_type dt, time_type t) const {
+      
+    };
+    
+    template <typename MatrixA, typename MatrixB, typename FlyWeight, typename StateSpaceType>
+    void add_state_transition_blocks(MatrixA& A, MatrixB& B,
+                                     const FlyWeight& params, 
+                                     const StateSpaceType& space, 
+                                     time_type t_0, time_type t_1,
+                                     const typename pp::topology_traits<StateSpaceType>::point_type& p_0,
+                                     const typename pp::topology_traits<StateSpaceType>::point_type& p_1, 
+                                     const input_type& u_0, const input_type& u_1) const {
+      const std::pair<std::size_t, std::size_t> ab_r(inv_corr_start_index, inv_corr_start_index+2);
+      sub(A)(ab_r, ab_r) += mat_ident<double>(3);
+    };
+    
+};
+
+
+
+class sat_accelerometer_output_model : public named_object {
+  public:
+    
+    typedef vect_n<double> output_type;
+    typedef vect_n<double> invariant_error_type;
+    
+    typedef double time_type;
+    typedef double time_difference_type;
+    
+    
+  private:
+    std::size_t start_index;
+    std::size_t inv_start_index;
+    
+  public:
+    
+    sat_accelerometer_output_model() : start_index(0), inv_start_index(0) { };
+    
+    void construct_output_dimensions(std::size_t& cur_dim, std::size_t& cur_inv_dim) {
+      start_index = cur_dim;
+      cur_dim += 3;
+      inv_start_index = cur_inv_dim;
+      cur_inv_dim += 3;
+    };
+    
+    template <typename FlyWeight, typename StateSpaceType>
+    void set_output_from_state(const FlyWeight& params,
+                               const StateSpaceType& space, 
+                               const typename pp::topology_traits<StateSpaceType>::point_type& x, 
+                               output_type& y, time_type t) const {
+      typedef satellite_state_model::point_type SE3State;
+      const SE3State& x_se3 = params.get_state_models().template get_state_for_system<satellite_state_model>(x);
+      
+      y[range(start_index, start_index+2)] = invert(get_quaternion(x_se3).as_rotation()) * params.gravity_acc_vect;
+      
+      // TODO maybe add the acceleration (change of velocity), but how?
+      
+#if 0
+      // if there is a accel-bias estimate, use it:
+      y[range(start_index, start_index+2)] += params.get_state_models().template get_state_for_system<accelerometer_bias_state_model>(x)
+#endif
+    };
+    
+    template <typename FlyWeight, typename StateSpaceType>
+    void set_inv_err_from_output(const FlyWeight& params,
+                                 const StateSpaceType& space, 
+                                 const typename pp::topology_traits<StateSpaceType>::point_type& x, 
+                                 const output_type& y, invariant_error_type& e, time_type t) const {
+      typedef satellite_state_model::point_type SE3State;
+      const SE3State& x_se3 = params.get_state_models().template get_state_for_system<satellite_state_model>(x);
+      
+      e[range(inv_start_index, inv_start_index+2)] = 
+        vect<double,3>(y[start_index],y[start_index+1],y[start_index+2])
+         - invert(get_quaternion(x_se3).as_rotation()) * params.gravity_acc_vect;
+      
+      // TODO maybe add the acceleration (change of velocity), but how?
+      
+#if 0
+      // if there is a accel-bias estimate, use it:
+      e[range(inv_start_index, inv_start_index+2)] -= params.get_state_models().template get_state_for_system<accelerometer_bias_state_model>(x)
+#endif
+    };
+    
+    template <typename MatrixC, typename MatrixD, typename FlyWeight, typename StateSpaceType, typename InputType>
+    void add_output_function_blocks(MatrixC& C, MatrixD& D, 
+                                    const FlyWeight& params, const StateSpaceType& space, 
+                                    time_type t,
+                                    const typename pp::topology_traits<StateSpaceType>::point_type& p, 
+                                    const InputType& u) const {
+      typedef satellite_state_model::point_type SE3State;
+      
+      const SE3State& x_se3 = params.get_state_models().template get_state_for_system<satellite_state_model>(p);
+      
+      const std::size_t sat3d_state_index = params.get_state_models().template get_system<satellite_state_model>().get_inv_corr_start_index();
+      const std::pair<std::size_t, std::size_t> q_r(sat3d_state_index+6, sat3d_state_index+8);
+      const std::pair<std::size_t, std::size_t> am_r(inv_start_index, inv_start_index+2);
+      
+      vect<double,3> local_g = invert(get_quaternion(x_se3).as_rotation()) * params.gravity_acc_vect;
+      
+      sub(C)(am_r, q_r) += mat<double,mat_structure::skew_symmetric>(-local_g);
+      
+#if 0
+      // if there is a accel-bias estimate, use it:
+      const std::size_t accel_bias_index = params.get_state_models().template get_system<accelerometer_bias_state_model>().get_inv_corr_start_index();
+      const std::pair<std::size_t, std::size_t> ab_r(accel_bias_index, accel_bias_index+2);
+      sub(C)(am_r, ab_r) += mat_ident<double>(3);
+#endif
+    };
+    
+};
+
+
+
+
+
+
+class magnetometer_bias_state_model : public named_object {
+  public:
+    typedef pp::hyperball_topology< vect<double,3> > state_space_type;
+    
+    typedef pp::topology_traits< state_space_type >::point_type point_type;
+    typedef pp::topology_traits< state_space_type >::point_difference_type point_difference_type;
+    typedef pp::topology_traits< state_space_type >::point_difference_type point_derivative_type;
+    
+    typedef double time_type;
+    typedef double time_difference_type;
+    
+  private:
+    
+    std::size_t state_start_index;
+    std::size_t inv_corr_start_index;
+    
+  public:
+    
+    std::size_t get_state_start_index() const { return state_start_index; };
+    std::size_t get_inv_corr_start_index() const { return inv_corr_start_index; };
+    
+    magnetometer_bias_state_model() { };
+    
+    void construct_all_dimensions(std::size_t& state_dim, std::size_t& inv_corr_dim, std::size_t& actual_dim) {
+      state_start_index = state_dim;
+      state_dim += 3;
+      inv_corr_start_index = inv_corr_dim;
+      inv_corr_dim += 3;
+      RK_UNUSED(actual_dim);
+    };
+    
+    template <typename FlyWeight, typename StateSpaceType, typename InputType>
+    void add_to_effective_inertia(FlyWeight& params, 
+                                  const StateSpaceType& space, const typename pp::topology_traits<StateSpaceType>::point_type& x, 
+                                  typename pp::topology_traits<StateSpaceType>::point_difference_type& dx,
+                                  const InputType&, time_difference_type dt, time_type t) const {
+    };
+    
+    template <typename FlyWeight, typename StateSpaceType, typename InputType>
+    void add_state_difference(const FlyWeight& params, 
+                              const StateSpaceType& space, 
+                              const typename pp::topology_traits<StateSpaceType>::point_type& x, 
+                              typename pp::topology_traits<StateSpaceType>::point_difference_type& dx,
+                              const InputType&, time_difference_type dt, time_type t) const {
+      
+    };
+    
+    template <typename MatrixA, typename MatrixB, typename FlyWeight, typename StateSpaceType>
+    void add_state_transition_blocks(MatrixA& A, MatrixB& B,
+                                     const FlyWeight& params, 
+                                     const StateSpaceType& space, 
+                                     time_type t_0, time_type t_1,
+                                     const typename pp::topology_traits<StateSpaceType>::point_type& p_0,
+                                     const typename pp::topology_traits<StateSpaceType>::point_type& p_1, 
+                                     const input_type& u_0, const input_type& u_1) const {
+      const std::pair<std::size_t, std::size_t> mb_r(inv_corr_start_index, inv_corr_start_index+2);
+      sub(A)(mb_r, mb_r) += mat_ident<double>(3);
+    };
+    
+};
+
+
+
+class sat_magnetometer_output_model : public named_object {
+  public:
+    
+    typedef vect_n<double> output_type;
+    typedef vect_n<double> invariant_error_type;
+    
+    typedef double time_type;
+    typedef double time_difference_type;
+    
+    
+  private:
+    std::size_t start_index;
+    std::size_t inv_start_index;
+    
+  public:
+    
+    sat_magnetometer_output_model() : start_index(0), inv_start_index(0) { };
+    
+    void construct_output_dimensions(std::size_t& cur_dim, std::size_t& cur_inv_dim) {
+      start_index = cur_dim;
+      cur_dim += 3;
+      inv_start_index = cur_inv_dim;
+      cur_inv_dim += 3;
+    };
+    
+    template <typename FlyWeight, typename StateSpaceType>
+    void set_output_from_state(const FlyWeight& params,
+                               const StateSpaceType& space, 
+                               const typename pp::topology_traits<StateSpaceType>::point_type& x, 
+                               output_type& y, time_type t) const {
+      typedef satellite_state_model::point_type SE3State;
+      const SE3State& x_se3 = params.get_state_models().template get_state_for_system<satellite_state_model>(x);
+      
+      y[range(start_index, start_index+2)] = invert(get_quaternion(x_se3).as_rotation()) * params.magnetic_field_vect;
+      
+#if 0
+      // if there is a accel-bias estimate, use it:
+      y[range(start_index, start_index+2)] += params.get_state_models().template get_state_for_system<magnetometer_bias_state_model>(x)
+#endif
+    };
+    
+    template <typename FlyWeight, typename StateSpaceType>
+    void set_inv_err_from_output(const FlyWeight& params,
+                                 const StateSpaceType& space, 
+                                 const typename pp::topology_traits<StateSpaceType>::point_type& x, 
+                                 const output_type& y, invariant_error_type& e, time_type t) const {
+      typedef satellite_state_model::point_type SE3State;
+      const SE3State& x_se3 = params.get_state_models().template get_state_for_system<satellite_state_model>(x);
+      
+      e[range(inv_start_index, inv_start_index+2)] = 
+        vect<double,3>(y[start_index],y[start_index+1],y[start_index+2])
+         - invert(get_quaternion(x_se3).as_rotation()) * params.magnetic_field_vect;
+      
+#if 0
+      // if there is a accel-bias estimate, use it:
+      e[range(inv_start_index, inv_start_index+2)] -= params.get_state_models().template get_state_for_system<magnetometer_bias_state_model>(x)
+#endif
+    };
+    
+    template <typename MatrixC, typename MatrixD, typename FlyWeight, typename StateSpaceType, typename InputType>
+    void add_output_function_blocks(MatrixC& C, MatrixD& D, 
+                                    const FlyWeight& params, const StateSpaceType& space, 
+                                    time_type t,
+                                    const typename pp::topology_traits<StateSpaceType>::point_type& p, 
+                                    const InputType& u) const {
+      typedef satellite_state_model::point_type SE3State;
+      
+      const SE3State& x_se3 = params.get_state_models().template get_state_for_system<satellite_state_model>(p);
+      
+      const std::size_t sat3d_state_index = params.get_state_models().template get_system<satellite_state_model>().get_inv_corr_start_index();
+      const std::pair<std::size_t, std::size_t> q_r(sat3d_state_index+6, sat3d_state_index+8);
+      const std::pair<std::size_t, std::size_t> mm_r(inv_start_index, inv_start_index+2);
+      
+      vect<double,3> local_m = invert(get_quaternion(x_se3).as_rotation()) * params.magnetic_field_vect;
+      
+      sub(C)(mm_r, q_r) += mat<double,mat_structure::skew_symmetric>(-local_m);
+      
+#if 0
+      // if there is a mag-bias estimate, use it:
+      const std::size_t mag_bias_index = params.get_state_models().template get_system<magnetometer_bias_state_model>().get_inv_corr_start_index();
+      const std::pair<std::size_t, std::size_t> mb_r(mag_bias_index, mag_bias_index+2);
+      sub(C)(mm_r, mb_r) += mat_ident<double>(3);
+#endif
+    };
+    
+};
 
 
 
