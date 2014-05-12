@@ -1057,6 +1057,73 @@ class eccentricity_state_model : public named_object {
       
     };
     
+    
+    template <typename MatrixA, typename MatrixB, typename FlyWeight, typename StateSpaceType>
+    typename boost::enable_if< 
+      arithmetic_tuple_has_type< near_buoyancy_state_model, typename FlyWeight::state_models_tuple_type>,
+    void >::type add_state_transition_blocks_for_dm(
+        MatrixA& A, MatrixB& B,
+        const FlyWeight& params, 
+        const StateSpaceType& space, 
+        double dt,
+        const mat<double,mat_structure::square>& R_0,
+        const mat<double,mat_structure::square>& R_0_1,
+        const vect<double,3>& r,
+        const mat<double,mat_structure::skew_symmetric>& r_cross,
+        const vect<double,3>& local_g) const {
+      
+      const std::size_t sat3d_state_index = params.get_state_models().template get_system<satellite_state_model>().get_inv_corr_start_index();
+      
+      const std::pair<std::size_t, std::size_t> p_r(sat3d_state_index, sat3d_state_index+2);
+      const std::pair<std::size_t, std::size_t> v_r(sat3d_state_index+3, sat3d_state_index+5);
+      const std::pair<std::size_t, std::size_t> q_r(sat3d_state_index+6, sat3d_state_index+8);
+      const std::pair<std::size_t, std::size_t> w_r(sat3d_state_index+9, sat3d_state_index+11);
+      
+      const std::size_t m_r = params.get_state_models().template get_system<near_buoyancy_state_model>().get_inv_corr_start_index();
+      
+      if( params.use_momentum_transfer_terms ) {
+        // v-m :
+        vect<double,3> rJrg = r % (params.effective_J_inv * (r % local_g));
+        try {
+          mat<double, mat_structure::symmetric> X(mat_ident<double>(3) + params.effective_mass * (r_cross * params.effective_J_inv * r_cross));
+          mat<double, mat_structure::rectangular> b(3,1);
+          slice(b)(range(0,2),0) = rJrg;
+          linsolve_Cholesky(X, b, 1e-6);
+          rJrg = slice(b)(range(0,2),0); // <-- commit change if cholesky succeeded.
+        } catch(...) { /* if cholesky failed, no HOT adjustment is applied to rJrg */ };
+        rJrg = R_0 * rJrg;
+        slice(A)(v_r, m_r) += rJrg;
+        slice(A)(p_r, m_r) += (0.5 * dt) * rJrg;
+      };
+      
+      // w-m :
+      vect<double,3> Jrg = params.effective_J_inv * (r % local_g);
+      if( params.use_momentum_transfer_terms ) {
+        //  here is the adjustment for the HOTs:
+        try {
+          mat<double, mat_structure::symmetric> Y(mat_ident<double>(3) + params.effective_mass * (params.effective_J_inv * r_cross * r_cross));
+          mat<double, mat_structure::rectangular> b(3,1);
+          slice(b)(range(0,2),0) = Jrg;
+          linsolve_Cholesky(Y, b, 1e-6);
+          Jrg = slice(b)(range(0,2),0); // <-- commit change if cholesky succeeded.
+        } catch(...) { /* if cholesky failed, no HOT adjustment is applied to delw */ };
+      };
+      Jrg = R_0_1 * Jrg;
+      slice(A)(w_r, m_r) += Jrg;
+      slice(A)(q_r, m_r) += (0.5 * dt) * Jrg;
+      
+    };
+    
+    
+    template <typename MatrixA, typename MatrixB, typename FlyWeight, typename StateSpaceType>
+    typename boost::disable_if< 
+      arithmetic_tuple_has_type< near_buoyancy_state_model, typename FlyWeight::state_models_tuple_type>,
+    void >::type add_state_transition_blocks_for_dm(
+        MatrixA&, MatrixB&, const FlyWeight&, const StateSpaceType&, 
+        double, const mat<double,mat_structure::square>&, const mat<double,mat_structure::square>&,
+        const vect<double,3>&, const mat<double,mat_structure::skew_symmetric>&, const vect<double,3>&) const { };
+    
+    
     template <typename MatrixA, typename MatrixB, typename FlyWeight, typename StateSpaceType>
     void add_state_transition_blocks(MatrixA& A, MatrixB& B,
                                      const FlyWeight& params, 
@@ -1107,22 +1174,7 @@ class eccentricity_state_model : public named_object {
         
         sub(A)(v_r, r_r) -= delv;
         sub(A)(p_r, r_r) -= (0.5 * dt) * delv;
-        
-#if 0
-        // v-m :  (ready, but needs some sort of Sfinae switch)
-        vect<double,3> rJrg = r % (params.effective_J_inv * (r % local_g));
-        try {
-          mat<double, mat_structure::symmetric> X(mat_ident<double>(3) + params.effective_mass * (r_cross * params.effective_J_inv * r_cross));
-          mat<double, mat_structure::rectangular> b(3,1);
-          slice(b)(range(0,2),0) = rJrg;
-          linsolve_Cholesky(X, b, 1e-6);
-          rJrg = slice(b)(range(0,2),0); // <-- commit change if cholesky succeeded.
-        } catch(...) { /* if cholesky failed, no HOT adjustment is applied to rJrg */ };
-        rJrg = R_0 * rJrg;
-        slice(A)(v_r, m_r) += rJrg;
-        slice(A)(v_r, m_r) += (0.5 * dt) * rJrg;
-#endif
-        
+          
       };
       
       // q/w-r
@@ -1143,24 +1195,7 @@ class eccentricity_state_model : public named_object {
       sub(A)(w_r, r_r) -= delw;
       sub(A)(q_r, r_r) -= (0.5 * dt) * delw;
       
-      
-#if 0
-      // w-m : (ready but requires some sort of Sfinae switch)
-      vect<double,3> Jrg = params.effective_J_inv * (r % local_g);
-      if( params.use_momentum_transfer_terms ) {
-        //  here is the adjustment for the HOTs:
-        try {
-          mat<double, mat_structure::symmetric> Y(mat_ident<double>(3) + params.effective_mass * (params.effective_J_inv * r_cross * r_cross));
-          mat<double, mat_structure::rectangular> b(3,1);
-          slice(b)(range(0,2),0) = Jrg;
-          linsolve_Cholesky(Y, b, 1e-6);
-          Jrg = slice(b)(range(0,2),0); // <-- commit change if cholesky succeeded.
-        } catch(...) { /* if cholesky failed, no HOT adjustment is applied to delw */ };
-      };
-      Jrg = R_0_1 * Jrg;
-      slice(A)(w_r, m_r) += Jrg;
-      slice(A)(w_r, m_r) += (0.5 * dt) * Jrg;
-#endif
+      add_state_transition_blocks_for_dm(A, B, params, space, dt, R_0, R_0_1, r, r_cross, local_g);
       
       sub(A)(r_r, r_r) += mat_ident<double>(3);
     };
@@ -1925,6 +1960,28 @@ class sat_gyros_output_model : public named_object {
     };
     
     template <typename FlyWeight, typename StateSpaceType>
+    typename boost::enable_if<
+      arithmetic_tuple_has_type< gyros_bias_state_model, typename FlyWeight::state_models_tuple_type>,
+    void >::type add_output_from_state_for_gb(
+        const FlyWeight& params,
+        const StateSpaceType& space, 
+        const typename pp::topology_traits<StateSpaceType>::point_type& x, 
+        output_type& y, bool is_inv_err) const {
+      //if there is an estimate of the gyro-bias, use it:
+      if(!is_inv_err)
+        y[range(start_index, start_index+2)] += params.get_state_models().template get_state_for_system<gyros_bias_state_model>(x);
+      else
+        y[range(inv_start_index, inv_start_index+2)] -= params.get_state_models().template get_state_for_system<gyros_bias_state_model>(x);
+    };
+    
+    template <typename FlyWeight, typename StateSpaceType>
+    typename boost::disable_if<
+      arithmetic_tuple_has_type< gyros_bias_state_model, typename FlyWeight::state_models_tuple_type>,
+    void >::type add_output_from_state_for_gb(
+        const FlyWeight&, const StateSpaceType&, 
+        const typename pp::topology_traits<StateSpaceType>::point_type&, output_type&, bool) const { };
+    
+    template <typename FlyWeight, typename StateSpaceType>
     void set_output_from_state(const FlyWeight& params,
                                const StateSpaceType& space, 
                                const typename pp::topology_traits<StateSpaceType>::point_type& x, 
@@ -1934,10 +1991,7 @@ class sat_gyros_output_model : public named_object {
       
       y[range(start_index, start_index+2)] = get_ang_velocity(x_se3);
       
-#if 0
-      //if there is an estimate of the gyro-bias, use it:
-      y[range(start_index, start_index+2)] += params.get_state_models().template get_state_for_system<gyros_bias_state_model>(x);
-#endif
+      add_output_from_state_for_gb(params, space, x, y, false);
     };
     
     template <typename FlyWeight, typename StateSpaceType>
@@ -1948,24 +2002,29 @@ class sat_gyros_output_model : public named_object {
       typedef satellite_state_model::point_type SE3State;
       const SE3State& x_se3 = params.get_state_models().template get_state_for_system<satellite_state_model>(x);
       
-#if 0
-      // if we had the quaternion measurements:
-      unit_quat<double> q_diff = invert(get_quaternion(x_se3))
-                               * unit_quat<double>(y[start_index],y[start_index+1],y[start_index+2],y[start_index+3]);
-      
-      e[range(inv_start_index, inv_start_index+2)] = 
-        q_diff.as_rotation() * vect<double,3>(y[start_index],y[start_index+1],y[start_index+2]) 
-        - get_ang_velocity(x_se3);
-#endif
-      
       e[range(inv_start_index, inv_start_index+2)] = 
         vect<double,3>(y[start_index],y[start_index+1],y[start_index+2]) - get_ang_velocity(x_se3);
       
-#if 0
-      //if there is an estimate of the gyro-bias, use it:
-      e[range(inv_start_index, inv_start_index+2)] -= params.get_state_models().template get_state_for_system<gyros_bias_state_model>(x);
-#endif
+      add_output_from_state_for_gb(params, space, x, e, true);
     };
+    
+    
+    
+    template <typename MatrixC, typename FlyWeight>
+    typename boost::enable_if<
+      arithmetic_tuple_has_type< gyros_bias_state_model, typename FlyWeight::state_models_tuple_type>,
+    void >::type add_output_block_for_gb(MatrixC& C, const FlyWeight& params) const {
+      //if there is an estimate of the gyro-bias, use it:
+      const std::size_t gb_index = params.get_state_models().template get_system<gyros_bias_state_model>().get_inv_corr_start_index();
+      const std::pair<std::size_t, std::size_t> gb_r(gb_index, gb_index+2);
+      const std::pair<std::size_t, std::size_t> wm_r(inv_start_index, inv_start_index+2);
+      sub(C)(wm_r, gb_r) += mat_ident<double>(3);
+    };
+    
+    template <typename MatrixC, typename FlyWeight>
+    typename boost::disable_if<
+      arithmetic_tuple_has_type< gyros_bias_state_model, typename FlyWeight::state_models_tuple_type>,
+    void >::type add_output_block_for_gb(MatrixC&, const FlyWeight&) const { };
     
     template <typename MatrixC, typename MatrixD, typename FlyWeight, typename StateSpaceType, typename InputType>
     void add_output_function_blocks(MatrixC& C, MatrixD& D, 
@@ -1981,12 +2040,7 @@ class sat_gyros_output_model : public named_object {
       
       sub(C)(wm_r, w_r) += mat_ident<double>(3);  // TODO Add a frame transition ? (in invariant posterior frame)
       
-#if 0
-      //if there is an estimate of the gyro-bias, use it:
-      const std::size_t gb_index = params.get_state_models().template get_system<gyros_bias_state_model>().get_inv_corr_start_index();
-      const std::pair<std::size_t, std::size_t> gb_r(gb_index, gb_index+2);
-      sub(C)(wm_r, gb_r) += mat_ident<double>(3);
-#endif
+      add_output_block_for_gb(C, params);
     };
     
 };
@@ -2083,6 +2137,30 @@ class sat_accelerometer_output_model : public named_object {
       cur_inv_dim += 3;
     };
     
+    
+    template <typename FlyWeight, typename StateSpaceType>
+    typename boost::enable_if<
+      arithmetic_tuple_has_type< accelerometer_bias_state_model, typename FlyWeight::state_models_tuple_type>,
+    void >::type add_output_from_state_for_ab(
+        const FlyWeight& params,
+        const StateSpaceType& space, 
+        const typename pp::topology_traits<StateSpaceType>::point_type& x, 
+        output_type& y, bool is_inv_err) const {
+      //if there is an estimate of the gyro-bias, use it:
+      if(!is_inv_err)
+        y[range(start_index, start_index+2)] += params.get_state_models().template get_state_for_system<accelerometer_bias_state_model>(x);
+      else
+        y[range(inv_start_index, inv_start_index+2)] -= params.get_state_models().template get_state_for_system<accelerometer_bias_state_model>(x);
+    };
+    
+    template <typename FlyWeight, typename StateSpaceType>
+    typename boost::disable_if<
+      arithmetic_tuple_has_type< accelerometer_bias_state_model, typename FlyWeight::state_models_tuple_type>,
+    void >::type add_output_from_state_for_ab(
+        const FlyWeight&, const StateSpaceType&, 
+        const typename pp::topology_traits<StateSpaceType>::point_type&, output_type&, bool) const { };
+    
+    
     template <typename FlyWeight, typename StateSpaceType>
     void set_output_from_state(const FlyWeight& params,
                                const StateSpaceType& space, 
@@ -2095,10 +2173,7 @@ class sat_accelerometer_output_model : public named_object {
       
       // TODO maybe add the acceleration (change of velocity), but how?
       
-#if 0
-      // if there is a accel-bias estimate, use it:
-      y[range(start_index, start_index+2)] += params.get_state_models().template get_state_for_system<accelerometer_bias_state_model>(x)
-#endif
+      add_output_from_state_for_ab(params, space, x, y, false);
     };
     
     template <typename FlyWeight, typename StateSpaceType>
@@ -2115,11 +2190,25 @@ class sat_accelerometer_output_model : public named_object {
       
       // TODO maybe add the acceleration (change of velocity), but how?
       
-#if 0
-      // if there is a accel-bias estimate, use it:
-      e[range(inv_start_index, inv_start_index+2)] -= params.get_state_models().template get_state_for_system<accelerometer_bias_state_model>(x)
-#endif
+      add_output_from_state_for_ab(params, space, x, e, true);
     };
+    
+    
+    template <typename MatrixC, typename FlyWeight>
+    typename boost::enable_if<
+      arithmetic_tuple_has_type< accelerometer_bias_state_model, typename FlyWeight::state_models_tuple_type>,
+    void >::type add_output_block_for_ab(MatrixC& C, const FlyWeight& params) const {
+      //if there is an estimate of the accel-bias, use it:
+      const std::size_t accel_bias_index = params.get_state_models().template get_system<accelerometer_bias_state_model>().get_inv_corr_start_index();
+      const std::pair<std::size_t, std::size_t> ab_r(accel_bias_index, accel_bias_index+2);
+      const std::pair<std::size_t, std::size_t> am_r(inv_start_index, inv_start_index+2);
+      sub(C)(am_r, ab_r) += mat_ident<double>(3);
+    };
+    
+    template <typename MatrixC, typename FlyWeight>
+    typename boost::disable_if<
+      arithmetic_tuple_has_type< accelerometer_bias_state_model, typename FlyWeight::state_models_tuple_type>,
+    void >::type add_output_block_for_ab(MatrixC&, const FlyWeight&) const { };
     
     template <typename MatrixC, typename MatrixD, typename FlyWeight, typename StateSpaceType, typename InputType>
     void add_output_function_blocks(MatrixC& C, MatrixD& D, 
@@ -2139,12 +2228,8 @@ class sat_accelerometer_output_model : public named_object {
       
       sub(C)(am_r, q_r) += mat<double,mat_structure::skew_symmetric>(-local_g);
       
-#if 0
-      // if there is a accel-bias estimate, use it:
-      const std::size_t accel_bias_index = params.get_state_models().template get_system<accelerometer_bias_state_model>().get_inv_corr_start_index();
-      const std::pair<std::size_t, std::size_t> ab_r(accel_bias_index, accel_bias_index+2);
-      sub(C)(am_r, ab_r) += mat_ident<double>(3);
-#endif
+      add_output_block_for_ab(C, params);
+      
     };
     
 };
@@ -2242,6 +2327,30 @@ class sat_magnetometer_output_model : public named_object {
       cur_inv_dim += 3;
     };
     
+    
+    template <typename FlyWeight, typename StateSpaceType>
+    typename boost::enable_if<
+      arithmetic_tuple_has_type< magnetometer_bias_state_model, typename FlyWeight::state_models_tuple_type>,
+    void >::type add_output_from_state_for_mb(
+        const FlyWeight& params,
+        const StateSpaceType& space, 
+        const typename pp::topology_traits<StateSpaceType>::point_type& x, 
+        output_type& y, bool is_inv_err) const {
+      //if there is an estimate of the gyro-bias, use it:
+      if(!is_inv_err)
+        y[range(start_index, start_index+2)] += params.get_state_models().template get_state_for_system<magnetometer_bias_state_model>(x);
+      else
+        y[range(inv_start_index, inv_start_index+2)] -= params.get_state_models().template get_state_for_system<magnetometer_bias_state_model>(x);
+    };
+    
+    template <typename FlyWeight, typename StateSpaceType>
+    typename boost::disable_if<
+      arithmetic_tuple_has_type< magnetometer_bias_state_model, typename FlyWeight::state_models_tuple_type>,
+    void >::type add_output_from_state_for_mb(
+        const FlyWeight&, const StateSpaceType&, 
+        const typename pp::topology_traits<StateSpaceType>::point_type&, output_type&, bool) const { };
+    
+    
     template <typename FlyWeight, typename StateSpaceType>
     void set_output_from_state(const FlyWeight& params,
                                const StateSpaceType& space, 
@@ -2252,10 +2361,7 @@ class sat_magnetometer_output_model : public named_object {
       
       y[range(start_index, start_index+2)] = invert(get_quaternion(x_se3).as_rotation()) * params.magnetic_field_vect;
       
-#if 0
-      // if there is a accel-bias estimate, use it:
-      y[range(start_index, start_index+2)] += params.get_state_models().template get_state_for_system<magnetometer_bias_state_model>(x)
-#endif
+      add_output_from_state_for_mb(params, space, x, y, false);
     };
     
     template <typename FlyWeight, typename StateSpaceType>
@@ -2270,11 +2376,25 @@ class sat_magnetometer_output_model : public named_object {
         vect<double,3>(y[start_index],y[start_index+1],y[start_index+2])
          - invert(get_quaternion(x_se3).as_rotation()) * params.magnetic_field_vect;
       
-#if 0
-      // if there is a accel-bias estimate, use it:
-      e[range(inv_start_index, inv_start_index+2)] -= params.get_state_models().template get_state_for_system<magnetometer_bias_state_model>(x)
-#endif
+      add_output_from_state_for_mb(params, space, x, e, true);
     };
+    
+    
+    template <typename MatrixC, typename FlyWeight>
+    typename boost::enable_if<
+      arithmetic_tuple_has_type< magnetometer_bias_state_model, typename FlyWeight::state_models_tuple_type>,
+    void >::type add_output_block_for_mb(MatrixC& C, const FlyWeight& params) const {
+      // if there is a mag-bias estimate, use it:
+      const std::size_t mag_bias_index = params.get_state_models().template get_system<magnetometer_bias_state_model>().get_inv_corr_start_index();
+      const std::pair<std::size_t, std::size_t> mb_r(mag_bias_index, mag_bias_index+2);
+      const std::pair<std::size_t, std::size_t> mm_r(inv_start_index, inv_start_index+2);
+      sub(C)(mm_r, mb_r) += mat_ident<double>(3);
+    };
+    
+    template <typename MatrixC, typename FlyWeight>
+    typename boost::disable_if<
+      arithmetic_tuple_has_type< magnetometer_bias_state_model, typename FlyWeight::state_models_tuple_type>,
+    void >::type add_output_block_for_mb(MatrixC&, const FlyWeight&) const { };
     
     template <typename MatrixC, typename MatrixD, typename FlyWeight, typename StateSpaceType, typename InputType>
     void add_output_function_blocks(MatrixC& C, MatrixD& D, 
@@ -2294,12 +2414,7 @@ class sat_magnetometer_output_model : public named_object {
       
       sub(C)(mm_r, q_r) += mat<double,mat_structure::skew_symmetric>(-local_m);
       
-#if 0
-      // if there is a mag-bias estimate, use it:
-      const std::size_t mag_bias_index = params.get_state_models().template get_system<magnetometer_bias_state_model>().get_inv_corr_start_index();
-      const std::pair<std::size_t, std::size_t> mb_r(mag_bias_index, mag_bias_index+2);
-      sub(C)(mm_r, mb_r) += mat_ident<double>(3);
-#endif
+      add_output_block_for_mb(C, params);
     };
     
 };
@@ -2307,6 +2422,311 @@ class sat_magnetometer_output_model : public named_object {
 
 
 
+
+class room_orientation_state_model : public named_object {
+  public:
+    typedef pp::line_segment_topology<double> state_space_type;
+    
+    typedef pp::topology_traits< state_space_type >::point_type point_type;
+    typedef pp::topology_traits< state_space_type >::point_difference_type point_difference_type;
+    typedef pp::topology_traits< state_space_type >::point_difference_type point_derivative_type;
+    
+    typedef double time_type;
+    typedef double time_difference_type;
+    
+  private:
+    
+    std::size_t state_start_index;
+    std::size_t inv_corr_start_index;
+    
+  public:
+    
+    std::size_t get_state_start_index() const { return state_start_index; };
+    std::size_t get_inv_corr_start_index() const { return inv_corr_start_index; };
+    
+    room_orientation_state_model() { };
+    
+    void construct_all_dimensions(std::size_t& state_dim, std::size_t& inv_corr_dim, std::size_t& actual_dim) {
+      state_start_index = state_dim;
+      state_dim += 1;
+      inv_corr_start_index = inv_corr_dim;
+      inv_corr_dim += 1;
+      RK_UNUSED(actual_dim);
+    };
+    
+    template <typename FlyWeight, typename StateSpaceType, typename InputType>
+    void add_to_effective_inertia(FlyWeight& params, 
+                                  const StateSpaceType& space, const typename pp::topology_traits<StateSpaceType>::point_type& x, 
+                                  typename pp::topology_traits<StateSpaceType>::point_difference_type& dx,
+                                  const InputType&, time_difference_type dt, time_type t) const {
+    };
+    
+    template <typename FlyWeight, typename StateSpaceType, typename InputType>
+    void add_state_difference(const FlyWeight& params, 
+                              const StateSpaceType& space, 
+                              const typename pp::topology_traits<StateSpaceType>::point_type& x, 
+                              typename pp::topology_traits<StateSpaceType>::point_difference_type& dx,
+                              const InputType&, time_difference_type dt, time_type t) const {
+      
+    };
+    
+    template <typename MatrixA, typename MatrixB, typename FlyWeight, typename StateSpaceType>
+    void add_state_transition_blocks(MatrixA& A, MatrixB& B,
+                                     const FlyWeight& params, 
+                                     const StateSpaceType& space, 
+                                     time_type t_0, time_type t_1,
+                                     const typename pp::topology_traits<StateSpaceType>::point_type& p_0,
+                                     const typename pp::topology_traits<StateSpaceType>::point_type& p_1, 
+                                     const input_type& u_0, const input_type& u_1) const {
+      const std::size_t ro_r = inv_corr_start_index;
+      sub(A)(ro_r, ro_r) += 1.0;
+    };
+    
+};
+
+
+
+class sonars_in_room_output_model : public named_object {
+  public:
+    
+    typedef vect_n<double> output_type;
+    typedef vect_n<double> invariant_error_type;
+    
+    typedef double time_type;
+    typedef double time_difference_type;
+    
+    
+  private:
+    std::size_t start_index;
+    std::size_t inv_start_index;
+    
+    void get_sonar_distance_to_room(const vect<double,3>& spos_gbl, 
+                                    const vect<double,3>& sdir_gbl, 
+                                    double& y, int& surface_id) const {
+      
+      y = std::numeric_limits<double>::infinity();
+      surface_id = -1;
+      
+      // NOTE: the negative sign in the expressions below is correct.
+      
+      if( std::fabs(sdir_gbl[0]) > 1e-4 ) {
+        double tmp = -(spos_gbl[0] - lower_corner[0]) / sdir_gbl[0];
+        if((tmp > 0.0) && (tmp < y)) {
+          y = tmp;
+          surface_id = 0;
+        };
+        tmp = -(upper_corner[0] - spos_gbl[0]) / sdir_gbl[0];
+        if((tmp > 0.0) && (tmp < y)) {
+          y = tmp;
+          surface_id = 1;
+        };
+      };
+      
+      if( std::fabs(sdir_gbl[1]) > 1e-4 ) {
+        double tmp = -(spos_gbl[1] - lower_corner[1]) / sdir_gbl[1];
+        if((tmp > 0.0) && (tmp < y)) {
+          y = tmp;
+          surface_id = 2;
+        };
+        tmp = -(upper_corner[1] - spos_gbl[1]) / sdir_gbl[1];
+        if((tmp > 0.0) && (tmp < y)) {
+          y = tmp;
+          surface_id = 3;
+        };
+      };
+      
+      if( std::fabs(sdir_gbl[2]) > 1e-4 ) {
+        double tmp = -(spos_gbl[2] - lower_corner[2]) / sdir_gbl[2];
+        if((tmp > 0.0) && (tmp < y)) {
+          y = tmp;
+          surface_id = 4;
+        };
+        tmp = -(upper_corner[2] - spos_gbl[2]) / sdir_gbl[2];
+        if((tmp > 0.0) && (tmp < y)) {
+          y = tmp;
+          surface_id = 5;
+        };
+      };
+    };
+    
+    
+  public:
+    
+    std::vector< vect<double,3> > sonar_pos;
+    std::vector< vect<double,3> > sonar_dir;
+    
+    vect<double,3> lower_corner;
+    vect<double,3> upper_corner;
+    
+    sonars_in_room_output_model(std::size_t N = 6) : start_index(0), inv_start_index(0), 
+                                                     sonar_pos(N), sonar_dir(N),
+                                                     lower_corner(0.0,0.0,0.0), 
+                                                     upper_corner(1.0,1.0,1.0) { };
+    
+    void construct_output_dimensions(std::size_t& cur_dim, std::size_t& cur_inv_dim) {
+      start_index = cur_dim;
+      cur_dim += sonar_pos.size();
+      inv_start_index = cur_inv_dim;
+      cur_inv_dim += sonar_pos.size();
+    };
+    
+    template <typename FlyWeight, typename StateSpaceType>
+    typename boost::enable_if< 
+      arithmetic_tuple_has_type< room_orientation_state_model, typename FlyWeight::state_models_tuple_type>,
+    void >::type accum_rotation_from_ro(const FlyWeight& params,
+                                        const StateSpaceType& space, 
+                                        const typename pp::topology_traits<StateSpaceType>::point_type& x, 
+                                        mat<double,mat_structure::square>& R) const {
+      double ro_angle = params.get_state_models().template get_state_for_system<room_orientation_state_model>(x);
+      R = quaternion<double>::zrot(ro_angle).getQuaternion().getMat() * R;
+    };
+    
+    template <typename FlyWeight, typename StateSpaceType>
+    typename boost::disable_if< 
+      arithmetic_tuple_has_type< room_orientation_state_model, typename FlyWeight::state_models_tuple_type>,
+    void >::type accum_rotation_from_ro(const FlyWeight&, const StateSpaceType&, 
+                                        const typename pp::topology_traits<StateSpaceType>::point_type&, 
+                                        mat<double,mat_structure::square>&) const { };
+    
+    template <typename FlyWeight, typename StateSpaceType>
+    void set_output_from_state(const FlyWeight& params,
+                               const StateSpaceType& space, 
+                               const typename pp::topology_traits<StateSpaceType>::point_type& x, 
+                               output_type& y, time_type t) const {
+      typedef satellite_state_model::point_type SE3State;
+      const SE3State& x_se3 = params.get_state_models().template get_state_for_system<satellite_state_model>(x);
+      
+      mat<double,mat_structure::square> R = get_quaternion(x_se3).as_rotation().getMat();
+      
+      accum_rotation_from_ro(params, space, x, R);
+      
+      int id = 0;
+      for(std::size_t i = 0; i < sonar_pos.size(); ++i) {
+        vect<double,3> spos_gbl = R * sonar_pos[i] + get_position(x_se3);
+        vect<double,3> sdir_gbl = R * sonar_dir[i];
+        get_sonar_distance_to_room(spos_gbl, sdir_gbl, y[start_index+i], id);
+      };
+    };
+    
+    template <typename FlyWeight, typename StateSpaceType>
+    void set_inv_err_from_output(const FlyWeight& params,
+                                 const StateSpaceType& space, 
+                                 const typename pp::topology_traits<StateSpaceType>::point_type& x, 
+                                 const output_type& y, invariant_error_type& e, time_type t) const {
+      typedef satellite_state_model::point_type SE3State;
+      const SE3State& x_se3 = params.get_state_models().template get_state_for_system<satellite_state_model>(x);
+      
+      mat<double,mat_structure::square> R = get_quaternion(x_se3).as_rotation().getMat();
+      
+      accum_rotation_from_ro(params, space, x, R);
+      
+      int id = 0;
+      for(std::size_t i = 0; i < sonar_pos.size(); ++i) {
+        vect<double,3> spos_gbl = R * sonar_pos[i] + get_position(x_se3);
+        vect<double,3> sdir_gbl = R * sonar_dir[i];
+        get_sonar_distance_to_room(spos_gbl, sdir_gbl, e[inv_start_index+i], id);
+        e[inv_start_index+i] = y[start_index+i] - e[inv_start_index+i];
+      };
+    };
+    
+    
+    template <typename MatrixC, typename FlyWeight>
+    typename boost::enable_if< 
+      arithmetic_tuple_has_type< room_orientation_state_model, typename FlyWeight::state_models_tuple_type>,
+    void >::type accum_output_del_from_ro(MatrixC& C, 
+                                          const FlyWeight& params,
+                                          const vect<double,3>& x_pos,
+                                          const mat<double,mat_structure::square>& R,
+                                          const vect<double,3>& spos_gbl, 
+                                          const vect<double,3>& sdir_gbl, 
+                                          std::size_t i, std::size_t coord) const {
+      const std::size_t ro_r = params.get_state_models().template get_system<room_orientation_state_model>().get_inv_corr_start_index();
+      
+      vect<double,3> spos_ro_arm = vect_k % (spos_gbl - x_pos);
+      C(inv_start_index+i, ro_r) -= (1.0 / sdir_gbl[coord]) * spos_ro_arm[coord];
+    };
+    
+    template <typename MatrixC, typename FlyWeight>
+    typename boost::disable_if< 
+      arithmetic_tuple_has_type< room_orientation_state_model, typename FlyWeight::state_models_tuple_type>,
+    void >::type accum_output_del_from_ro(MatrixC&, const FlyWeight&, const vect<double,3>&,
+                                          const mat<double,mat_structure::square>&, const vect<double,3>&, 
+                                          const vect<double,3>&, std::size_t, std::size_t) const { };
+    
+    template <typename MatrixC, typename MatrixD, typename FlyWeight, typename StateSpaceType, typename InputType>
+    void add_output_function_blocks(MatrixC& C, MatrixD& D, 
+                                    const FlyWeight& params, const StateSpaceType& space, 
+                                    time_type t,
+                                    const typename pp::topology_traits<StateSpaceType>::point_type& p, 
+                                    const InputType& u) const {
+      typedef satellite_state_model::point_type SE3State;
+      
+      const SE3State& x_se3 = params.get_state_models().template get_state_for_system<satellite_state_model>(p);
+      
+      const std::size_t sat3d_state_index = params.get_state_models().template get_system<satellite_state_model>().get_inv_corr_start_index();
+      const std::pair<std::size_t, std::size_t> q_r(sat3d_state_index+6, sat3d_state_index+8);
+      const std::pair<std::size_t, std::size_t> mm_r(inv_start_index, inv_start_index+2);
+      
+      mat<double,mat_structure::square> R = get_quaternion(x_se3).as_rotation().getMat();
+      
+      accum_rotation_from_ro(params, space, x, R);
+      
+      for(std::size_t i = 0; i < sonar_pos.size(); ++i) {
+        double dist; int id;
+        vect<double,3> spos_gbl = R * sonar_pos[i] + get_position(x_se3);
+        vect<double,3> sdir_gbl = R * sonar_dir[i];
+        get_sonar_distance_to_room(spos_gbl, sdir_gbl, dist, id);
+        
+        mat<double,mat_structure::square> Rp( R * mat<double,mat_structure::skew_symmetric>(sonar_pos[i]) );
+        
+        switch(id) {
+          case 0: { // lower-bound on x
+            C(inv_start_index+i, sat3d_state_index) -= 1.0 / sdir_gbl[0];
+            slice(C)(inv_start_index+i, q_r) += (1.0 / sdir_gbl[0]) * slice(Rp)(0, range(0,2));
+            accum_output_del_from_ro(C, params, get_position(x_se3), R, spos_gbl, sdir_gbl, i, 0);
+            break;
+          };
+          case 1: { // upper-bound on x
+            C(inv_start_index+i, sat3d_state_index) -= 1.0 / sdir_gbl[0];
+            slice(C)(inv_start_index+i, q_r) += (1.0 / sdir_gbl[0]) * slice(Rp)(0, range(0,2));
+            accum_output_del_from_ro(C, params, get_position(x_se3), R, spos_gbl, sdir_gbl, i, 0);
+            break;
+          };
+          case 2: { // lower-bound on y
+            C(inv_start_index+i, sat3d_state_index+1) -= 1.0 / sdir_gbl[1];
+            slice(C)(inv_start_index+i, q_r) += (1.0 / sdir_gbl[1]) * slice(Rp)(1, range(0,2));
+            accum_output_del_from_ro(C, params, get_position(x_se3), R, spos_gbl, sdir_gbl, i, 1);
+            break;
+          };
+          case 3: { // upper-bound on y
+            C(inv_start_index+i, sat3d_state_index+1) -= 1.0 / sdir_gbl[1];
+            slice(C)(inv_start_index+i, q_r) += (1.0 / sdir_gbl[1]) * slice(Rp)(1, range(0,2));
+            accum_output_del_from_ro(C, params, get_position(x_se3), R, spos_gbl, sdir_gbl, i, 1);
+            break;
+          };
+          case 4: { // lower-bound on z
+            C(inv_start_index+i, sat3d_state_index+2) -= 1.0 / sdir_gbl[2];
+            slice(C)(inv_start_index+i, q_r) += (1.0 / sdir_gbl[2]) * slice(Rp)(2, range(0,2));
+            // NOTE: no point in doing it for a z-component because it's a planar rotation.
+            // accum_output_del_from_ro(C, params, get_position(x_se3), R, spos_gbl, sdir_gbl, i, 1);
+            break;
+          };
+          case 5: { // upper-bound on z
+            C(inv_start_index+i, sat3d_state_index+2) -= 1.0 / sdir_gbl[2];
+            slice(C)(inv_start_index+i, q_r) += (1.0 / sdir_gbl[2]) * slice(Rp)(2, range(0,2));
+            // NOTE: no point in doing it for a z-component because it's a planar rotation.
+            // accum_output_del_from_ro(C, params, get_position(x_se3), R, spos_gbl, sdir_gbl, i, 2);
+            break;
+          };
+          default:
+            break;
+        };
+        
+      };
+      
+    };
+    
+};
 
 
 

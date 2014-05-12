@@ -1652,6 +1652,29 @@ namespace detail {
   };
   
   
+  
+  template <typename Idx, typename T, typename Tuple>
+  struct arithmetic_tuple_has_type_impl; // forward-decl
+  
+  template <typename Idx, typename T, typename Tuple>
+  struct arithmetic_tuple_has_type_dispatch {
+    typedef boost::mpl::prior<Idx> prior_Idx;
+    typedef typename boost::mpl::if_<
+      boost::is_same< T, typename arithmetic_tuple_element<prior_Idx::type::value, Tuple>::type >,
+      boost::mpl::true_,
+      arithmetic_tuple_has_type_impl< typename prior_Idx::type, T, Tuple > >::type::type type;
+  };
+  
+  template <typename Idx, typename T, typename Tuple>
+  struct arithmetic_tuple_has_type_impl {
+    typedef typename boost::mpl::if_<
+      boost::mpl::greater< Idx, boost::mpl::size_t<0> >,
+      arithmetic_tuple_has_type_dispatch< Idx, T, Tuple >,
+      boost::mpl::false_ >::type::type type;
+  };
+  
+  
+  
 };
 
 
@@ -1671,6 +1694,12 @@ const T& >::type get_by_type(const Tuple& value) {
 template <typename T, typename Tuple>
 struct arithmetic_tuple_index_of {
   typedef typename detail::arithmetic_tuple_index_of_impl< arithmetic_tuple_size<Tuple>, T, Tuple >::type type;
+};
+
+
+template <typename T, typename Tuple>
+struct arithmetic_tuple_has_type {
+  typedef typename detail::arithmetic_tuple_has_type_impl< arithmetic_tuple_size<Tuple>, T, Tuple >::type type;
 };
 
 
