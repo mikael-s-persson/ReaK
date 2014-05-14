@@ -1597,7 +1597,7 @@ namespace detail {
   typename boost::enable_if<
     boost::mpl::equal_to< Idx, boost::mpl::size_t<0> >,
   T& >::type get_by_type_impl(Tuple&) {
-    BOOST_STATIC_ASSERT_MSG(false, "The given type was not found in the tuple!");
+    char The_given_type_was_not_found_in_the_tuple[0];
   };
   
   template <typename Idx, typename T, typename Tuple>

@@ -244,6 +244,23 @@ class ss_system_input_tuple : public named_object {
     
     
     
+/*******************************************************************************
+                   ReaK's RTTI and Serialization interfaces
+*******************************************************************************/
+
+    virtual void RK_CALL save(ReaK::serialization::oarchive& A, unsigned int) const {
+      named_object::save(A,named_object::getStaticObjectType()->TypeVersion());
+      A & RK_SERIAL_SAVE_WITH_NAME(data);
+    };
+    
+    virtual void RK_CALL load(ReaK::serialization::iarchive& A, unsigned int) {
+      named_object::load(A,named_object::getStaticObjectType()->TypeVersion());
+      A & RK_SERIAL_LOAD_WITH_NAME(data);
+      construct_input_dimensions();
+    };
+    
+    RK_RTTI_MAKE_CONCRETE_1BASE(self,0xC2300018,1,"ss_system_input_tuple",named_object)
+    
 };
 
 
@@ -474,6 +491,23 @@ class ss_system_output_tuple : public named_object {
     
     
     
+/*******************************************************************************
+                   ReaK's RTTI and Serialization interfaces
+*******************************************************************************/
+
+    virtual void RK_CALL save(ReaK::serialization::oarchive& A, unsigned int) const {
+      named_object::save(A,named_object::getStaticObjectType()->TypeVersion());
+      A & RK_SERIAL_SAVE_WITH_NAME(data);
+    };
+    
+    virtual void RK_CALL load(ReaK::serialization::iarchive& A, unsigned int) {
+      named_object::load(A,named_object::getStaticObjectType()->TypeVersion());
+      A & RK_SERIAL_LOAD_WITH_NAME(data);
+      construct_output_dimensions();
+    };
+    
+    RK_RTTI_MAKE_CONCRETE_1BASE(self,0xC2300019,1,"ss_system_output_tuple",named_object)
+    
 };
 
 
@@ -618,6 +652,8 @@ class ss_system_state_tuple : public named_object {
     typedef pp::topology_traits< state_space_type >::point_type point_type;
     typedef pp::topology_traits< state_space_type >::point_difference_type point_difference_type;
     typedef pp::topology_traits< state_space_type >::point_difference_type point_derivative_type;
+    
+    typedef vect_n<double> invariant_correction_type;
     
     typedef covariance_matrix< vect_n<double> > covar_type;
     typedef covar_topology< covar_type > covar_space_type;
@@ -764,6 +800,50 @@ class ss_system_state_tuple : public named_object {
       get<I>(systems).add_state_transition_blocks(A, B, params, space, t_0, t_1, p_0, p_1, u_0, u_1);
     };
     
+    
+    
+    template <unsigned int I, typename FlyWeight, typename InputType>
+    typename boost::enable_if_c< (I == 0),
+    void >::type apply_correction_to_state_impl(const FlyWeight& params, const state_space_type& space, 
+                                                const point_type& x, point_type& x_c, 
+                                                const invariant_correction_type& c, 
+                                                const InputType& u, const time_type& t) const {
+      using ReaK::get;
+      get<0>(systems).apply_correction_to_state(params, space, x, x_c, c, u, t);
+    };
+    
+    template <unsigned int I, typename FlyWeight, typename InputType>
+    typename boost::enable_if_c< (I != 0),
+    void >::type apply_correction_to_state_impl(const FlyWeight& params, const state_space_type& space, 
+                                                const point_type& x, point_type& x_c, 
+                                                const invariant_correction_type& c, 
+                                                const InputType& u, const time_type& t) const {
+      using ReaK::get;
+      apply_correction_to_state_impl<I-1>(params, space, x, x_c, c, u, t);
+      get<I>(systems).apply_correction_to_state(params, space, x, x_c, c, u, t);
+    };
+    
+    
+    template <unsigned int I, typename FlyWeight, typename InputType, typename InvarFrameType>
+    typename boost::enable_if_c< (I == 0),
+    void >::type set_invariant_frame_blocks_impl(const FlyWeight& params, const state_space_type& space, 
+                                                 InvarFrameType& invar_frame, 
+                                                 const point_type& x_0, const point_type& x_1, 
+                                                 const InputType& u, const time_type& t) const {
+      using ReaK::get;
+      get<0>(systems).set_invariant_frame_blocks(params, space, invar_frame, x_0, x_1, u, t);
+    };
+    
+    template <unsigned int I, typename FlyWeight, typename InputType, typename InvarFrameType>
+    typename boost::enable_if_c< (I != 0),
+    void >::type set_invariant_frame_blocks_impl(const FlyWeight& params, const state_space_type& space, 
+                                                 InvarFrameType& invar_frame, 
+                                                 const point_type& x_0, const point_type& x_1, 
+                                                 const InputType& u, const time_type& t) const {
+      using ReaK::get;
+      set_invariant_frame_blocks_impl<I-1>(params, space, invar_frame, x_0, x_1, u, t);
+      get<I>(systems).set_invariant_frame_blocks(params, space, invar_frame, x_0, x_1, u, t);
+    };
     
   public:
     
@@ -913,6 +993,67 @@ class ss_system_state_tuple : public named_object {
       add_state_transition_blocks_impl< system_tuple_size - 1 >(A, B, params, space, t_0, t_1, p_0, p_1, u_0, u_1);
     };
     
+    /**
+     * This function computes a state corresponding to the given state corrected by a given invariant term.
+     * \tparam FlyWeight The type of a set of records of dynamic parameters for the system.
+     * \param params The fly-weight parameters that describe the dynamics of the system.
+     * \param space The state-space within which the states reside.
+     * \param x The current state of the system.
+     * \param x_c The corrected state of the system, as output.
+     * \param c The invariant correction term to apply to the state.
+     * \param u The current input being applied to the system.
+     * \param t The current time.
+     * \return The corrected state of the system.
+     */
+    template <typename FlyWeight, typename InputType>
+    void apply_correction_to_state(const FlyWeight& params, const state_space_type& space, 
+                                   const point_type& x, point_type& x_c, 
+                                   const invariant_correction_type& c, 
+                                   const InputType& u, const time_type& t) const {
+      apply_correction_to_state_impl< system_tuple_size - 1 >(params, space, x, x_c, c, u, t);
+    };
+    
+    
+    /**
+     * This function computes the invariant frame transition matrix for a 
+     * state transition from x_0 to x_1, i.e., what invariant frame transition matrix
+     * describes the shift from one frame to the other.
+     * \tparam FlyWeight The type of a set of records of dynamic parameters for the system.
+     * \param params The fly-weight parameters that describe the dynamics of the system.
+     * \param space The state-space within which the states reside.
+     * \param invar_frame The matrix into which the frame transition is accumulated (it is initialized to identity).
+     * \param x_0 The state of the system before the state-transition.
+     * \param x_1 The state of the system after the state-transition.
+     * \param u The input being applied to the system before the state-transition.
+     * \param t The time before the state-transition.
+     * \return The invariant frame transition matrix for the prior stage.
+     */
+    template <typename FlyWeight, typename InputType, typename InvarFrameType>
+    void set_invariant_frame_blocks(const FlyWeight& params, const state_space_type& space, 
+                                    InvarFrameType& invar_frame, 
+                                    const point_type& x_0, const point_type& x_1, 
+                                    const InputType& u, const time_type& t) const {
+      set_invariant_frame_blocks_impl< system_tuple_size - 1 >(params, space, invar_frame, x_0, x_1, u, t);
+    };
+    
+    
+/*******************************************************************************
+                   ReaK's RTTI and Serialization interfaces
+*******************************************************************************/
+
+    virtual void RK_CALL save(ReaK::serialization::oarchive& A, unsigned int) const {
+      named_object::save(A,named_object::getStaticObjectType()->TypeVersion());
+      A & RK_SERIAL_SAVE_WITH_NAME(systems);
+    };
+    
+    virtual void RK_CALL load(ReaK::serialization::iarchive& A, unsigned int) {
+      named_object::load(A,named_object::getStaticObjectType()->TypeVersion());
+      A & RK_SERIAL_LOAD_WITH_NAME(systems);
+      construct_all_dimensions();
+    };
+    
+    RK_RTTI_MAKE_CONCRETE_1BASE(self,0xC230001A,1,"ss_system_state_tuple",named_object)
+    
 };
 
 
@@ -922,6 +1063,8 @@ class state_space_system_tuple : public named_object {
   public:
     
     typedef state_space_system_tuple<SystemParamPack, StateModelsTuple, InputModelsTuple, OutputModelsTuple> self;
+    
+    typedef SystemParamPack system_param_type;
     
     typedef ss_system_state_tuple<StateModelsTuple> state_models_type;
     typedef ss_system_input_tuple<InputModelsTuple> input_models_type;
@@ -975,7 +1118,7 @@ class state_space_system_tuple : public named_object {
   protected:
     double dt;
     
-    mutable SystemParamPack sys_params;
+    mutable system_param_type sys_params;
     state_models_type state_models;
     input_models_type input_models;
     output_models_type output_models;
@@ -1086,7 +1229,7 @@ class state_space_system_tuple : public named_object {
      * \param aDt The time-step for this discrete-time system.
      */
     state_space_system_tuple(const std::string& aName, 
-                             const SystemParamPack& aSysParams,
+                             const system_param_type& aSysParams,
                              const state_models_type& aStateModels = state_models_type(),
                              const input_models_type& aInputModels = input_models_type(),
                              const output_models_type& aOutputModels = output_models_type(),
@@ -1098,13 +1241,7 @@ class state_space_system_tuple : public named_object {
      * This function returns a reference to the system parameter-pack used by this system.
      * \return A reference to the system parameter-pack used by this system.
      */
-    SystemParamPack& get_system_parameters() { return sys_params; };
-    
-    /**
-     * This function returns a reference to the system parameter-pack used by this system.
-     * \return A reference to the system parameter-pack used by this system.
-     */
-    const SystemParamPack& get_system_parameters() const { return sys_params; };
+    system_param_type& get_system_parameters() const { return sys_params; };
     
     /**
      * This function returns the time-step for this discrete-time system.
@@ -1129,6 +1266,7 @@ class state_space_system_tuple : public named_object {
     point_type get_next_state(const state_space_type& space, const point_type& x, const input_type& u, const time_type& t = 0.0) const {
       sys_params.reset_parameters();
       state_models.add_to_fly_weight_params(sys_params, space, x, u, dt, t);
+      sys_params.finalize_parameters();
       point_difference_type dx = space.difference(x, x);
       input_models.add_state_difference(sys_params, space, x, dx, u, dt, t);
       state_models.add_state_difference(sys_params, space, x, dx, u, dt, t);
@@ -1156,6 +1294,7 @@ class state_space_system_tuple : public named_object {
                                              const input_type& u_0, const input_type& u_1) const {
       sys_params.reset_parameters();
       state_models.add_to_fly_weight_params(sys_params, space, x, u, dt, t);
+      sys_params.finalize_parameters();
       A = mat_null<double>(get_correction_dimensions(), get_correction_dimensions());
       B = mat_null<double>(get_correction_dimensions(), get_input_dimensions());
       input_models.add_state_transition_blocks(A, B, sys_params, space, 
@@ -1175,6 +1314,7 @@ class state_space_system_tuple : public named_object {
     output_type get_output(const state_space_type& space, const point_type& x, const input_type& u, const time_type& t = 0.0) const {
       sys_params.reset_parameters();
       state_models.add_to_fly_weight_params(sys_params, space, x, u, dt, t);
+      sys_params.finalize_parameters();
       output_type y(get_output_dimensions(),0.0);
       output_models.set_output_from_state(sys_params, space, x, y, t); // TODO should have u.
       return y;
@@ -1195,6 +1335,7 @@ class state_space_system_tuple : public named_object {
                                             const time_type& t, const point_type& x, const input_type& u) const {
       sys_params.reset_parameters();
       state_models.add_to_fly_weight_params(sys_params, space, x, u, dt, t);
+      sys_params.finalize_parameters();
       C = mat_null<double>(get_invariant_error_dimensions(), get_correction_dimensions());
       D = mat_null<double>(get_invariant_error_dimensions(), get_input_dimensions());
       output_models.add_output_function_blocks(C, D, sys_params, space, t, x, u);
@@ -1214,6 +1355,7 @@ class state_space_system_tuple : public named_object {
                                                      const output_type& y, const time_type& t) const {
       sys_params.reset_parameters();
       state_models.add_to_fly_weight_params(sys_params, space, x, u, dt, t);
+      sys_params.finalize_parameters();
       invariant_error_type e(get_invariant_error_dimensions(), 0.0);
       output_models.set_inv_err_from_output(sys_params, space, x, y, e, t); // TODO should have u.
       return e;
@@ -1230,9 +1372,9 @@ class state_space_system_tuple : public named_object {
      */
     point_type apply_correction(const state_space_type& space, const point_type& x, const invariant_correction_type& c, 
                                 const input_type& u, const time_type& t) const {
-      // TODO Should this be more handled by state-models instead?
-      using ReaK::from_vect;
-      return space.adjust(x, from_vect<point_difference_type>(c));
+      point_type result;
+      state_models.apply_correction_to_state(sys_params, space, x, result, c, u, t);
+      return result;
     };
     
     /**
@@ -1247,8 +1389,9 @@ class state_space_system_tuple : public named_object {
      * \return The invariant frame transition matrix for the prior stage.
      */
     invariant_frame_type get_invariant_prior_frame(const state_space_type& space, const point_type& x_0, const point_type& x_1, const input_type& u, const time_type& t) const {
-      // TODO this is temporary.
-      return invariant_frame_type(mat_ident<double>(get_correction_dimensions()));
+      invariant_frame_type result(mat_ident<double>(get_correction_dimensions()));
+      state_models.set_invariant_frame_blocks(sys_params, space, result, x_0, x_1, u, t);
+      return result;
     };
     
     /**
@@ -1270,10 +1413,25 @@ class state_space_system_tuple : public named_object {
                    ReaK's RTTI and Serialization interfaces
 *******************************************************************************/
 
-    virtual void RK_CALL save(ReaK::serialization::oarchive& A, unsigned int) const;
-    virtual void RK_CALL load(ReaK::serialization::iarchive& A, unsigned int);
+    virtual void RK_CALL save(ReaK::serialization::oarchive& A, unsigned int) const {
+      named_object::save(A,named_object::getStaticObjectType()->TypeVersion());
+      A & RK_SERIAL_SAVE_WITH_NAME(dt)
+        & RK_SERIAL_SAVE_WITH_NAME(sys_params)
+        & RK_SERIAL_SAVE_WITH_NAME(state_models)
+        & RK_SERIAL_SAVE_WITH_NAME(input_models)
+        & RK_SERIAL_SAVE_WITH_NAME(output_models);
+    };
     
-    RK_RTTI_MAKE_CONCRETE_1BASE(self,0xC231001A???,1,"state_space_system_tuple",named_object)
+    virtual void RK_CALL load(ReaK::serialization::iarchive& A, unsigned int) {
+      named_object::load(A,named_object::getStaticObjectType()->TypeVersion());
+      A & RK_SERIAL_LOAD_WITH_NAME(dt)
+        & RK_SERIAL_LOAD_WITH_NAME(sys_params)
+        & RK_SERIAL_LOAD_WITH_NAME(state_models)
+        & RK_SERIAL_LOAD_WITH_NAME(input_models)
+        & RK_SERIAL_LOAD_WITH_NAME(output_models);
+    };
+    
+    RK_RTTI_MAKE_CONCRETE_1BASE(self,0xC230001B,1,"state_space_system_tuple",named_object)
     
 };
 
@@ -1304,30 +1462,26 @@ class satellite_state_model : public named_object {
     typedef double time_difference_type;
     
   private:
-    double mass;
-    mat<double, mat_structure::symmetric> inertia_tensor;
-    mat<double, mat_structure::symmetric> inertia_tensor_inv;
-    
     std::size_t state_start_index;
     std::size_t inv_corr_start_index;
     std::size_t actual_state_start_index;
     
   public:
     
+    state_space_type create_state_space() const {
+      return pp::make_se3_space(
+        "satellite_state_space",
+        vect<double,3>(-std::numeric_limits<double>::infinity(), -std::numeric_limits<double>::infinity(), -std::numeric_limits<double>::infinity()),
+        vect<double,3>( std::numeric_limits<double>::infinity(),  std::numeric_limits<double>::infinity(),  std::numeric_limits<double>::infinity()),
+        std::numeric_limits<double>::infinity(), std::numeric_limits<double>::infinity());
+    };
+    
     std::size_t get_state_start_index() const { return state_start_index; };
     std::size_t get_inv_corr_start_index() const { return inv_corr_start_index; };
     std::size_t get_actual_state_start_index() const { return actual_state_start_index; };
     
-    satellite_state_model(double aMass = 1.0, 
-                          mat<double, mat_structure::symmetric> aInertiaTensor = (mat<double, mat_structure::symmetric>(1.0, 0.0, 0.0, 1.0, 0.0, 1.0))) : 
-                          mass(aMass), inertia_tensor(aInertiaTensor) {
-      if((inertia_tensor.get_row_count() != 3) || (mass < std::numeric_limits< double >::epsilon()))
-        throw system_incoherency("Inertial information is improper in satellite_state_model's definition");
-      try {
-        invert_Cholesky(inertia_tensor, inertia_tensor_inv);
-      } catch(singularity_error&) {
-        throw system_incoherency("Inertial tensor is singular in satellite_state_model's definition");
-      };
+    satellite_state_model() : named_object() {
+      setName("satellite_state_model");
     };
     
     void construct_all_dimensions(std::size_t& state_dim, std::size_t& inv_corr_dim, std::size_t& actual_dim) {
@@ -1372,6 +1526,7 @@ class satellite_state_model : public named_object {
                                      const input_type& u_0, const input_type& u_1) const {
       const point_type& x0_se3 = params.get_state_models().template get_state_for_system<satellite_state_model>(p_0);
       const point_type& x1_se3 = params.get_state_models().template get_state_for_system<satellite_state_model>(p_1);
+      typename FlyWeight::system_param_type& sys_params = params.get_system_parameters();
       double dt = t_1 - t_0;
       
       const std::pair<std::size_t, std::size_t> p_r(inv_corr_start_index, inv_corr_start_index+2);
@@ -1389,27 +1544,76 @@ class satellite_state_model : public named_object {
       
       
       mat<double,mat_structure::square> R_0_1 = (invert(get_quaternion(x1_se3).as_rotation()) * get_quaternion(x0_se3).as_rotation()).getMat();
-      mat<double,mat_structure::square> JRJ = params.effective_J_inv * R_0_1 * params.effective_J;
+      mat<double,mat_structure::square> JRJ = sys_params.effective_J_inv * R_0_1 * sys_params.effective_J;
       
       sub(A)(q_r, q_r) += R_0_1;
       sub(A)(q_r, w_r) += dt * R_0_1;
       sub(A)(w_r, w_r) += JRJ;
       
-      if( params.use_hot_del_q_terms ) {
-        vect<double,3> l_net_0 = params.effective_J * get_ang_velocity(x0_se3);
-        vect<double,3> l_net_1 = params.effective_J * get_ang_velocity(x1_se3);
+      if( sys_params.use_hot_del_q_terms ) {
+        vect<double,3> l_net_0 = sys_params.effective_J * get_ang_velocity(x0_se3);
+        vect<double,3> l_net_1 = sys_params.effective_J * get_ang_velocity(x1_se3);
         
-        sub(A)(q_r, q_r) -= (0.5 * dt) * params.effective_J_inv * R_0_1 * mat<double,mat_structure::skew_symmetric>(l_net_0);
+        sub(A)(q_r, q_r) -= (0.5 * dt) * sys_params.effective_J_inv * R_0_1 * mat<double,mat_structure::skew_symmetric>(l_net_0);
         
         sub(A)(q_r, w_r) += (0.5 * dt) * (JRJ - R_0_1);
         
-        sub(A)(w_r, q_r) += params.effective_J_inv * (mat<double,mat_structure::skew_symmetric>(l_net_1) * R_0_1 
+        sub(A)(w_r, q_r) += sys_params.effective_J_inv * (mat<double,mat_structure::skew_symmetric>(l_net_1) * R_0_1 
                                                       - R_0_1 * mat<double,mat_structure::skew_symmetric>(l_net_0));
         
-        sub(A)(w_r, w_r) += (0.5 * dt) * params.effective_J_inv * mat<double,mat_structure::skew_symmetric>(l_net_1) * R_0_1;
+        sub(A)(w_r, w_r) += (0.5 * dt) * sys_params.effective_J_inv * mat<double,mat_structure::skew_symmetric>(l_net_1) * R_0_1;
       };
       
     };
+    
+    template <typename FlyWeight, typename StateSpaceType, typename InvCorrType, typename InputType>
+    void apply_correction_to_state(const FlyWeight& params, const StateSpaceType& space, 
+                                   const typename pp::topology_traits<StateSpaceType>::point_type& x, 
+                                   typename pp::topology_traits<StateSpaceType>::point_type& x_c, 
+                                   const InvCorrType& c, const InputType& u, const time_type& t) const {
+      const point_type& x_se3 = params.get_state_models().template get_state_for_system<satellite_state_model>(x);
+      point_type& x_c_se3 = params.get_state_models().template get_state_for_system<satellite_state_model>(x_c);
+      typename FlyWeight::system_param_type& sys_params = params.get_system_parameters();
+      
+      unit_quat<double> q_diff = exp( 0.5 * vect<double,3>(c[inv_corr_start_index+6], c[inv_corr_start_index+7], c[inv_corr_start_index+8]) );
+      unit_quat<double> q_new = get_quaternion(x_se3) * q_diff;
+      
+      vect<double,3> w_new = sys_params.effective_J_inv * (invert(q_diff).as_rotation() * (sys_params.effective_J * get_ang_velocity(x_se3) + vect<double,3>(c[inv_corr_start_index+9],c[inv_corr_start_index+10],c[inv_corr_start_index+11])));
+      
+      x_c_se3 = point_type(
+        make_arithmetic_tuple(
+          get_position(x_se3) + vect<double,3>(c[inv_corr_start_index],c[inv_corr_start_index+1],c[inv_corr_start_index+2]),
+          get_velocity(x_se3) + vect<double,3>(c[inv_corr_start_index+3],c[inv_corr_start_index+4],c[inv_corr_start_index+5])
+        ),
+        make_arithmetic_tuple(
+          q_new, 
+          w_new
+        )
+      );
+    };
+    
+    template <typename FlyWeight, typename InputType, typename InvarFrameType>
+    void set_invariant_frame_blocks(const FlyWeight& params, const state_space_type& space, 
+                                    InvarFrameType& invar_frame, 
+                                    const point_type& x_0, const point_type& x_1, 
+                                    const InputType& u, const time_type& t) const {
+      /* identity is OK */
+    };
+    
+    
+/*******************************************************************************
+                   ReaK's RTTI and Serialization interfaces
+*******************************************************************************/
+
+    virtual void RK_CALL save(ReaK::serialization::oarchive& A, unsigned int) const {
+      named_object::save(A,named_object::getStaticObjectType()->TypeVersion());
+    };
+    
+    virtual void RK_CALL load(ReaK::serialization::iarchive& A, unsigned int) {
+      named_object::load(A,named_object::getStaticObjectType()->TypeVersion());
+    };
+    
+    RK_RTTI_MAKE_CONCRETE_1BASE(satellite_state_model,0xC2310021,1,"satellite_state_model",named_object)
     
 };
 
@@ -1435,6 +1639,10 @@ class near_buoyancy_state_model : public named_object {
     
   public:
     
+    state_space_type create_state_space() const {
+      return pp::line_segment_topology<double>("mass_imbalance_param_space", 0.0, std::numeric_limits<double>::infinity());
+    };
+    
     std::size_t get_state_start_index() const { return state_start_index; };
     std::size_t get_inv_corr_start_index() const { return inv_corr_start_index; };
     
@@ -1449,11 +1657,12 @@ class near_buoyancy_state_model : public named_object {
     };
     
     template <typename FlyWeight, typename StateSpaceType, typename InputType>
-    void add_to_fly_weight_params(FlyWeight& params, 
+    void add_to_fly_weight_params(const FlyWeight& params, 
                                   const StateSpaceType& space, const typename pp::topology_traits<StateSpaceType>::point_type& x, 
                                   const InputType&, time_difference_type dt, time_type t) const {
       const point_type dm = params.get_state_models().template get_state_for_system<near_buoyancy_state_model>(x);
-      params.effective_mass += dm;
+      typename FlyWeight::system_param_type& sys_params = params.get_system_parameters();
+      sys_params.effective_mass += dm;
     };
     
     template <typename FlyWeight, typename StateSpaceType, typename InputType>
@@ -1468,13 +1677,14 @@ class near_buoyancy_state_model : public named_object {
       
       const SE3State& x_se3 = params.get_state_models().template get_state_for_system<satellite_state_model>(x);
       SE3StateDiff& dx_se3 = params.get_state_models().template get_state_diff_for_system<satellite_state_model>(dx);
+      typename FlyWeight::system_param_type& sys_params = params.get_system_parameters();
       
       const point_type dm = params.get_state_models().template get_state_for_system<near_buoyancy_state_model>(x);
       
-      vect<double,3> gf = dm * params.gravity_acc_vect;
+      vect<double,3> gf = dm * sys_params.gravity_acc_vect;
       
       // velocity:
-      gf *= (dt / params.effective_mass);
+      gf *= (dt / (sys_params.effective_mass + sys_params.added_mass));
       get<1>(get<0>(dx_se3)) += gf;
       // position:
       get<0>(get<0>(dx_se3)) += (0.5 * dt) * gf;
@@ -1493,6 +1703,7 @@ class near_buoyancy_state_model : public named_object {
       
       const SE3State& x0_se3 = params.get_state_models().template get_state_for_system<satellite_state_model>(p_0);
       const SE3State& x1_se3 = params.get_state_models().template get_state_for_system<satellite_state_model>(p_1);
+      typename FlyWeight::system_param_type& sys_params = params.get_system_parameters();
       
       const point_type dm = params.get_state_models().template get_state_for_system<near_buoyancy_state_model>(x);
       const std::size_t sat3d_state_index = params.get_state_models().template get_system<satellite_state_model>().get_inv_corr_start_index();
@@ -1505,12 +1716,45 @@ class near_buoyancy_state_model : public named_object {
       const std::size_t m_r = inv_corr_start_index;
       
       // p-m block:
-      slice(A)(p_r, m_r) += (0.5 * dt * dt) * params.gravity_acc_vect;
+      slice(A)(p_r, m_r) += (0.5 * dt * dt) * sys_params.gravity_acc_vect;
       // v-m block:
-      slice(A)(v_r, m_r) += dt * params.gravity_acc_vect;
+      slice(A)(v_r, m_r) += dt * sys_params.gravity_acc_vect;
       
       A(m_r, m_r) += mat_ident<double>(3);
     };
+    
+    template <typename FlyWeight, typename StateSpaceType, typename InvCorrType, typename InputType>
+    void apply_correction_to_state(const FlyWeight& params, const StateSpaceType& space, 
+                                   const typename pp::topology_traits<StateSpaceType>::point_type& x, 
+                                   typename pp::topology_traits<StateSpaceType>::point_type& x_c, 
+                                   const InvCorrType& c, const InputType& u, const time_type& t) const {
+      const point_type& dm = params.get_state_models().template get_state_for_system<near_buoyancy_state_model>(x);
+      point_type& dm_c = params.get_state_models().template get_state_for_system<near_buoyancy_state_model>(x_c);
+      
+      dm_c = dm + c[inv_corr_start_index];
+    };
+    
+    template <typename FlyWeight, typename InputType, typename InvarFrameType>
+    void set_invariant_frame_blocks(const FlyWeight& params, const state_space_type& space, 
+                                    InvarFrameType& invar_frame, 
+                                    const point_type& x_0, const point_type& x_1, 
+                                    const InputType& u, const time_type& t) const {
+      /* identity is OK */
+    };
+    
+/*******************************************************************************
+                   ReaK's RTTI and Serialization interfaces
+*******************************************************************************/
+
+    virtual void RK_CALL save(ReaK::serialization::oarchive& A, unsigned int) const {
+      named_object::save(A,named_object::getStaticObjectType()->TypeVersion());
+    };
+    
+    virtual void RK_CALL load(ReaK::serialization::iarchive& A, unsigned int) {
+      named_object::load(A,named_object::getStaticObjectType()->TypeVersion());
+    };
+    
+    RK_RTTI_MAKE_CONCRETE_1BASE(near_buoyancy_state_model,0xC2310022,1,"near_buoyancy_state_model",named_object)
     
 };
 
@@ -1536,6 +1780,10 @@ class eccentricity_state_model : public named_object {
     
   public:
     
+    state_space_type create_state_space() const {
+      return pp::hyperball_topology< vect<double,3> >("eccentricity_param_space", vect<double,3>(0.0,0.0,0.0), std::numeric_limits<double>::infinity());
+    };
+    
     std::size_t get_state_start_index() const { return state_start_index; };
     std::size_t get_inv_corr_start_index() const { return inv_corr_start_index; };
     
@@ -1554,8 +1802,9 @@ class eccentricity_state_model : public named_object {
                                   const StateSpaceType& space, const typename pp::topology_traits<StateSpaceType>::point_type& x, 
                                   const InputType&, time_difference_type dt, time_type t) const {
       const point_type& r = params.get_state_models().template get_state_for_system<eccentricity_state_model>(x);
+      typename FlyWeight::system_param_type& sys_params = params.get_system_parameters();
       mat<double, mat_structure::skew_symmetric> r_cross(r);
-      params.effective_J -= params.effective_mass * r_cross * r_cross;
+      sys_params.effective_J -= sys_params.effective_mass * r_cross * r_cross;
     };
     
     template <typename FlyWeight, typename StateSpaceType, typename InputType>
@@ -1570,36 +1819,43 @@ class eccentricity_state_model : public named_object {
       
       const SE3State& x_se3 = params.get_state_models().template get_state_for_system<satellite_state_model>(x);
       SE3StateDiff& dx_se3 = params.get_state_models().template get_state_diff_for_system<satellite_state_model>(dx);
+      typename FlyWeight::system_param_type& sys_params = params.get_system_parameters();
       
       const vect<double,3>& r = params.get_state_models().template get_state_for_system<eccentricity_state_model>(x);
       mat<double,mat_structure::skew_symmetric> r_cross(r);
       
       quaternion<double> q = get_quaternion(x_se3).as_rotation();
-      vect<double,3> gt_impulse = (dt * params.effective_mass) * (params.effective_J_inv * (r % (invert(q) * params.gravity_acc_vect)));
+      vect<double,3> gt_impulse = (dt * sys_params.effective_mass) * (sys_params.effective_J_inv * (r % (invert(q) * sys_params.gravity_acc_vect)));
       
       // ang-velocity
       get<1>(get<1>(dx_se3)) += gt_impulse;
       // quat-diff:
       get<0>(get<1>(dx_se3)) += (0.5 * dt) * gt_impulse;
       
-      if( params.use_momentum_transfer_terms ) {
+      if( sys_params.use_momentum_transfer_terms ) {
         vect<double,3> l_transfer = r % gt_impulse;
         // neglects HOT in (I + m [rx] J^-1 [rx])^-1 (r % gt_impulse) ... by approx I + mrJr ~= I
         //  here is the adjustment for the HOTs:
         try {
-          mat<double, mat_structure::symmetric> X(mat_ident<double>(3) + params.effective_mass * (r_cross * params.effective_J_inv * r_cross));
+          mat<double, mat_structure::symmetric> X(mat_ident<double>(3) + sys_params.effective_mass * (r_cross * sys_params.effective_J_inv * r_cross));
           mat<double, mat_structure::rectangular> b(3,1);
           slice(b)(range(0,2),0) = l_transfer;
           linsolve_Cholesky(X, b, 1e-6);
           l_transfer = slice(b)(range(0,2),0); // <-- commit change if cholesky succeeded.
         } catch(...) { /* if cholesky failed, no HOT adjustment is applied to l_transfer */ };
         
-        vect<double,3> p_transfer = (-params.effective_mass) * (params.effective_J_inv * (r % l_transfer));
+        // The transfer fraction reflects the fact that you can't have the linear momentum of the airflow to transfer as angular momentum of the airship. Or can you???
+        double transfer_frac = sys_params.effective_mass / (sys_params.effective_mass + sys_params.added_mass);
         
-        l_transfer = q * l_transfer;
+        vect<double,3> p_transfer = (-sys_params.effective_mass * transfer_frac) * (sys_params.effective_J_inv * (r % l_transfer));
+        
+        l_transfer = transfer_frac * (q * l_transfer);
         
         get<1>(get<0>(dx_se3)) += l_transfer;
+        get<0>(get<0>(dx_se3)) += (0.5 * dt) * l_transfer;
+        
         get<1>(get<1>(dx_se3)) += p_transfer;
+        get<0>(get<1>(dx_se3)) += (0.5 * dt) * p_transfer;
       };
       
     };
@@ -1620,6 +1876,7 @@ class eccentricity_state_model : public named_object {
         const vect<double,3>& local_g) const {
       
       const std::size_t sat3d_state_index = params.get_state_models().template get_system<satellite_state_model>().get_inv_corr_start_index();
+      typename FlyWeight::system_param_type& sys_params = params.get_system_parameters();
       
       const std::pair<std::size_t, std::size_t> p_r(sat3d_state_index, sat3d_state_index+2);
       const std::pair<std::size_t, std::size_t> v_r(sat3d_state_index+3, sat3d_state_index+5);
@@ -1628,27 +1885,31 @@ class eccentricity_state_model : public named_object {
       
       const std::size_t m_r = params.get_state_models().template get_system<near_buoyancy_state_model>().get_inv_corr_start_index();
       
-      if( params.use_momentum_transfer_terms ) {
+      // The transfer fraction reflects the fact that you can't have the linear momentum of the airflow to transfer as angular momentum of the airship. Or can you???
+      double transfer_frac = sys_params.effective_mass / (sys_params.effective_mass + sys_params.added_mass);
+      
+      if( sys_params.use_momentum_transfer_terms ) {
         // v-m :
-        vect<double,3> rJrg = r % (params.effective_J_inv * (r % local_g));
+        vect<double,3> rJrg = r % (sys_params.effective_J_inv * (r % local_g));
         try {
-          mat<double, mat_structure::symmetric> X(mat_ident<double>(3) + params.effective_mass * (r_cross * params.effective_J_inv * r_cross));
+          mat<double, mat_structure::symmetric> X(mat_ident<double>(3) + sys_params.effective_mass * (r_cross * sys_params.effective_J_inv * r_cross));
           mat<double, mat_structure::rectangular> b(3,1);
           slice(b)(range(0,2),0) = rJrg;
           linsolve_Cholesky(X, b, 1e-6);
           rJrg = slice(b)(range(0,2),0); // <-- commit change if cholesky succeeded.
         } catch(...) { /* if cholesky failed, no HOT adjustment is applied to rJrg */ };
         rJrg = R_0 * rJrg;
+        rJrg *= transfer_frac;
         slice(A)(v_r, m_r) += rJrg;
         slice(A)(p_r, m_r) += (0.5 * dt) * rJrg;
       };
       
       // w-m :
-      vect<double,3> Jrg = params.effective_J_inv * (r % local_g);
-      if( params.use_momentum_transfer_terms ) {
+      vect<double,3> Jrg = sys_params.effective_J_inv * (r % local_g);
+      if( sys_params.use_momentum_transfer_terms ) {
         //  here is the adjustment for the HOTs:
         try {
-          mat<double, mat_structure::symmetric> Y(mat_ident<double>(3) + params.effective_mass * (params.effective_J_inv * r_cross * r_cross));
+          mat<double, mat_structure::symmetric> Y(mat_ident<double>(3) + (sys_params.effective_mass * transfer_frac) * (sys_params.effective_J_inv * r_cross * r_cross));
           mat<double, mat_structure::rectangular> b(3,1);
           slice(b)(range(0,2),0) = Jrg;
           linsolve_Cholesky(Y, b, 1e-6);
@@ -1683,6 +1944,7 @@ class eccentricity_state_model : public named_object {
       
       const SE3State& x0_se3 = params.get_state_models().template get_state_for_system<satellite_state_model>(p_0);
       const SE3State& x1_se3 = params.get_state_models().template get_state_for_system<satellite_state_model>(p_1);
+      typename FlyWeight::system_param_type& sys_params = params.get_system_parameters();
       
       const vect<double,3>& r = params.get_state_models().template get_state_for_system<eccentricity_state_model>(x);
       mat<double,mat_structure::skew_symmetric> r_cross(r);
@@ -1701,37 +1963,40 @@ class eccentricity_state_model : public named_object {
       mat<double,mat_structure::square> R_0_1 = (invert(get_quaternion(x1_se3).as_rotation()) * get_quaternion(x0_se3).as_rotation()).getMat();
       
       mat<double,mat_structure::square> R_0 = get_quaternion(x0_se3).as_rotation().getMat();
-      vect<double,3> local_g = dt * (transpose_view(R_0) * params.gravity_acc_vect);
+      vect<double,3> local_g = dt * (transpose_view(R_0) * sys_params.gravity_acc_vect);
       mat<double,mat_structure::skew_symmetric> local_g_cross(local_g);
       
-      if( params.use_momentum_transfer_terms ) {
+      // The transfer fraction reflects the fact that you can't have the linear momentum of the airflow to transfer as angular momentum of the airship. Or can you???
+      double transfer_frac = sys_params.effective_mass / (sys_params.effective_mass + sys_params.added_mass);
+      
+      if( sys_params.use_momentum_transfer_terms ) {
         // p/v-r
-        mat<double,mat_structure::skew_symmetric> local_Jrg_cross(params.effective_J_inv * (r % local_g));
-        mat<double,mat_structure::square> delv(params.effective_mass * (local_Jrg_cross + r_cross * params.effective_J_inv * local_g_cross));
+        mat<double,mat_structure::skew_symmetric> local_Jrg_cross(sys_params.effective_J_inv * (r % local_g));
+        mat<double,mat_structure::square> delv(sys_params.effective_mass * (local_Jrg_cross + r_cross * sys_params.effective_J_inv * local_g_cross));
         // neglects the HOT in : ... + dt m R_0 d/dr((I + m [rx] J^-1 [rx])^-1) [rx] J^-1 [rx] R_0^T g
         //   by assuming that (I + m [rx] J^-1 [rx]) ~= I
         //  here is the adjustment for the HOTs:
         try {
-          mat<double, mat_structure::symmetric> X(mat_ident<double>(3) + params.effective_mass * (r_cross * params.effective_J_inv * r_cross));
+          mat<double, mat_structure::symmetric> X(mat_ident<double>(3) + sys_params.effective_mass * (r_cross * sys_params.effective_J_inv * r_cross));
           mat<double, mat_structure::square> b(delv);
           linsolve_Cholesky(X, b, 1e-6);
           delv = b; // <-- commit change if cholesky succeeded.
         } catch(...) { /* if cholesky failed, no HOT adjustment is applied to delv */ };
         delv = R_0 * delv;
-        
+        delv *= transfer_frac;
         sub(A)(v_r, r_r) -= delv;
         sub(A)(p_r, r_r) -= (0.5 * dt) * delv;
           
       };
       
       // q/w-r
-      mat<double,mat_structure::square> delw(params.effective_mass * (params.effective_J_inv * local_g_cross));
+      mat<double,mat_structure::square> delw(sys_params.effective_mass * (sys_params.effective_J_inv * local_g_cross));
       // neglects the HOT in : ... + dt m d/dr((I + m J^-1 [rx] [rx])^-1) J^-1 [rx] R_0^T g
       //   by assuming that (I + m J^-1 [rx] [rx]) ~= I
-      if( params.use_momentum_transfer_terms ) {
+      if( sys_params.use_momentum_transfer_terms ) {
         //  here is the adjustment for the HOTs:
         try {
-          mat<double, mat_structure::symmetric> Y(mat_ident<double>(3) + params.effective_mass * (params.effective_J_inv * r_cross * r_cross));
+          mat<double, mat_structure::symmetric> Y(mat_ident<double>(3) + (sys_params.effective_mass * transfer_frac) * (sys_params.effective_J_inv * r_cross * r_cross));
           mat<double, mat_structure::square> b(delw);
           linsolve_Cholesky(Y, b, 1e-6);
           delw = b; // <-- commit change if cholesky succeeded.
@@ -1746,6 +2011,39 @@ class eccentricity_state_model : public named_object {
       
       sub(A)(r_r, r_r) += mat_ident<double>(3);
     };
+    
+    template <typename FlyWeight, typename StateSpaceType, typename InvCorrType, typename InputType>
+    void apply_correction_to_state(const FlyWeight& params, const StateSpaceType& space, 
+                                   const typename pp::topology_traits<StateSpaceType>::point_type& x, 
+                                   typename pp::topology_traits<StateSpaceType>::point_type& x_c, 
+                                   const InvCorrType& c, const InputType& u, const time_type& t) const {
+      const point_type& r = params.get_state_models().template get_state_for_system<eccentricity_state_model>(x);
+      point_type& r_c = params.get_state_models().template get_state_for_system<eccentricity_state_model>(x_c);
+      
+      r_c = r + vect<double,3>(c[inv_corr_start_index], c[inv_corr_start_index+1], c[inv_corr_start_index+2]);
+    };
+    
+    template <typename FlyWeight, typename InputType, typename InvarFrameType>
+    void set_invariant_frame_blocks(const FlyWeight& params, const state_space_type& space, 
+                                    InvarFrameType& invar_frame, 
+                                    const point_type& x_0, const point_type& x_1, 
+                                    const InputType& u, const time_type& t) const {
+      /* identity is OK */
+    };
+    
+/*******************************************************************************
+                   ReaK's RTTI and Serialization interfaces
+*******************************************************************************/
+
+    virtual void RK_CALL save(ReaK::serialization::oarchive& A, unsigned int) const {
+      named_object::save(A,named_object::getStaticObjectType()->TypeVersion());
+    };
+    
+    virtual void RK_CALL load(ReaK::serialization::iarchive& A, unsigned int) {
+      named_object::load(A,named_object::getStaticObjectType()->TypeVersion());
+    };
+    
+    RK_RTTI_MAKE_CONCRETE_1BASE(eccentricity_state_model,0xC2310023,1,"eccentricity_state_model",named_object)
     
 };
 
@@ -1771,6 +2069,10 @@ class linear_drag_state_model : public named_object {
     std::size_t inv_corr_start_index;
     
   public:
+    
+    state_space_type create_state_space() const {
+      return pp::line_segment_topology<double>("linear_drag_param_space", 0.0, std::numeric_limits<double>::infinity());
+    };
     
     std::size_t get_state_start_index() const { return state_start_index; };
     std::size_t get_inv_corr_start_index() const { return inv_corr_start_index; };
@@ -1802,13 +2104,14 @@ class linear_drag_state_model : public named_object {
       
       const SE3State& x_se3 = params.get_state_models().template get_state_for_system<satellite_state_model>(x);
       SE3StateDiff& dx_se3 = params.get_state_models().template get_state_diff_for_system<satellite_state_model>(dx);
+      typename FlyWeight::system_param_type& sys_params = params.get_system_parameters();
       
       const point_type d_f = params.get_state_models().template get_state_for_system<linear_drag_state_model>(x);
       
       vect<double,3> fd = (-d_f * norm_2(get_velocity(x_se3))) * get_velocity(x_se3);
       
       // velocity:
-      fd *= (dt / params.effective_mass);
+      fd *= (dt / (sys_params.effective_mass + sys_params.added_mass));
       get<1>(get<0>(dx_se3)) += fd;
       // position:
       get<0>(get<0>(dx_se3)) += (0.5 * dt) * fd;
@@ -1827,6 +2130,7 @@ class linear_drag_state_model : public named_object {
       
       const SE3State& x0_se3 = params.get_state_models().template get_state_for_system<satellite_state_model>(p_0);
       const SE3State& x1_se3 = params.get_state_models().template get_state_for_system<satellite_state_model>(p_1);
+      typename FlyWeight::system_param_type& sys_params = params.get_system_parameters();
       
       const point_type d_f = params.get_state_models().template get_state_for_system<linear_drag_state_model>(x);
       const std::size_t sat3d_state_index = params.get_state_models().template get_system<satellite_state_model>().get_inv_corr_start_index();
@@ -1846,16 +2150,49 @@ class linear_drag_state_model : public named_object {
       double v_avg_mag = norm_2(v_avg);
       // v-v block:
       if(v_avg_mag > 1e-4) {
-        mat<double,mat_structure::square> delv((d_f * dt) * ((1.0 / v_avg_mag) * v_avg_outer + v_avg_mag * mat_ident<double>(3)));
+        mat<double,mat_structure::square> delv((d_f * dt / (sys_params.effective_mass + sys_params.added_mass)) * ((1.0 / v_avg_mag) * v_avg_outer + v_avg_mag * mat_ident<double>(3)));
         sub(A)(v_r, v_r) -= delv;
         sub(A)(p_r, v_r) -= (0.5 * dt) * delv;
       };
       
-      slice(A)(v_r, fd_r) -= (dt * v_avg_mag) * v_avg;
-      slice(A)(p_r, fd_r) -= (0.5 * dt * dt * v_avg_mag) * v_avg;
+      slice(A)(v_r, fd_r) -= (dt * v_avg_mag / (sys_params.effective_mass + sys_params.added_mass)) * v_avg;
+      slice(A)(p_r, fd_r) -= (0.5 * dt * dt * v_avg_mag / (sys_params.effective_mass + sys_params.added_mass)) * v_avg;
       
       A(fd_r, fd_r) += 1.0;
     };
+    
+    template <typename FlyWeight, typename StateSpaceType, typename InvCorrType, typename InputType>
+    void apply_correction_to_state(const FlyWeight& params, const StateSpaceType& space, 
+                                   const typename pp::topology_traits<StateSpaceType>::point_type& x, 
+                                   typename pp::topology_traits<StateSpaceType>::point_type& x_c, 
+                                   const InvCorrType& c, const InputType& u, const time_type& t) const {
+      const point_type& d_f = params.get_state_models().template get_state_for_system<linear_drag_state_model>(x);
+      point_type& d_f_c = params.get_state_models().template get_state_for_system<linear_drag_state_model>(x_c);
+      
+      d_f_c = d_f + c[inv_corr_start_index];
+    };
+    
+    template <typename FlyWeight, typename InputType, typename InvarFrameType>
+    void set_invariant_frame_blocks(const FlyWeight& params, const state_space_type& space, 
+                                    InvarFrameType& invar_frame, 
+                                    const point_type& x_0, const point_type& x_1, 
+                                    const InputType& u, const time_type& t) const {
+      /* identity is OK */
+    };
+    
+/*******************************************************************************
+                   ReaK's RTTI and Serialization interfaces
+*******************************************************************************/
+
+    virtual void RK_CALL save(ReaK::serialization::oarchive& A, unsigned int) const {
+      named_object::save(A,named_object::getStaticObjectType()->TypeVersion());
+    };
+    
+    virtual void RK_CALL load(ReaK::serialization::iarchive& A, unsigned int) {
+      named_object::load(A,named_object::getStaticObjectType()->TypeVersion());
+    };
+    
+    RK_RTTI_MAKE_CONCRETE_1BASE(linear_drag_state_model,0xC2310024,1,"linear_drag_state_model",named_object)
     
 };
 
@@ -1879,6 +2216,10 @@ class torsional_drag_state_model : public named_object {
     std::size_t inv_corr_start_index;
     
   public:
+    
+    state_space_type create_state_space() const {
+      return pp::line_segment_topology<double>("torsional_drag_param_space", 0.0, std::numeric_limits<double>::infinity());
+    };
     
     std::size_t get_state_start_index() const { return state_start_index; };
     std::size_t get_inv_corr_start_index() const { return inv_corr_start_index; };
@@ -1910,13 +2251,14 @@ class torsional_drag_state_model : public named_object {
       
       const SE3State& x_se3 = params.get_state_models().template get_state_for_system<satellite_state_model>(x);
       SE3StateDiff& dx_se3 = params.get_state_models().template get_state_diff_for_system<satellite_state_model>(dx);
+      typename FlyWeight::system_param_type& sys_params = params.get_system_parameters();
       
       const point_type d_t = params.get_state_models().template get_state_for_system<torsional_drag_state_model>(x);
       
       vect<double,3> td = (-d_t * norm_2(get_ang_velocity(x_se3))) * get_ang_velocity(x_se3);
       
       // ang-velocity:
-      td = dt * params.effective_J_inv * td;
+      td = dt * sys_params.effective_J_inv * td;
       get<1>(get<1>(dx_se3)) += td;
       // quat-diff:
       get<0>(get<1>(dx_se3)) += (0.5 * dt) * td;
@@ -1935,6 +2277,7 @@ class torsional_drag_state_model : public named_object {
       
       const SE3State& x0_se3 = params.get_state_models().template get_state_for_system<satellite_state_model>(p_0);
       const SE3State& x1_se3 = params.get_state_models().template get_state_for_system<satellite_state_model>(p_1);
+      typename FlyWeight::system_param_type& sys_params = params.get_system_parameters();
       
       const point_type d_t = params.get_state_models().template get_state_for_system<torsional_drag_state_model>(x);
       const std::size_t sat3d_state_index = params.get_state_models().template get_system<satellite_state_model>().get_inv_corr_start_index();
@@ -1957,15 +2300,49 @@ class torsional_drag_state_model : public named_object {
       double w_avg_mag = norm_2(w_avg);
       // v-v block:
       if(w_avg_mag > 1e-4) {
-        mat<double,mat_structure::square> delw((d_t * dt) * ((1.0 / w_avg_mag) * w_avg_outer + w_avg_mag * mat_ident<double>(3)));
+        mat<double,mat_structure::square> delw((d_t * dt) * sys_params.effective_J_inv * ((1.0 / w_avg_mag) * w_avg_outer + w_avg_mag * mat_ident<double>(3)));
         sub(A)(w_r, w_r) -= delw;
         sub(A)(q_r, w_r) -= (0.5 * dt) * delw;
       };
+      w_avg = sys_params.effective_J_inv * w_avg;
       slice(A)(w_r, td_r) -= (dt * w_avg_mag) * w_avg;
       slice(A)(q_r, td_r) -= (0.5 * dt * dt * w_avg_mag) * w_avg;
       
       A(td_r, td_r) += 1.0;
     };
+    
+    template <typename FlyWeight, typename StateSpaceType, typename InvCorrType, typename InputType>
+    void apply_correction_to_state(const FlyWeight& params, const StateSpaceType& space, 
+                                   const typename pp::topology_traits<StateSpaceType>::point_type& x, 
+                                   typename pp::topology_traits<StateSpaceType>::point_type& x_c, 
+                                   const InvCorrType& c, const InputType& u, const time_type& t) const {
+      const point_type& d_t = params.get_state_models().template get_state_for_system<torsional_drag_state_model>(x);
+      point_type& d_t_c = params.get_state_models().template get_state_for_system<torsional_drag_state_model>(x_c);
+      
+      d_t_c = d_t + c[inv_corr_start_index];
+    };
+    
+    template <typename FlyWeight, typename InputType, typename InvarFrameType>
+    void set_invariant_frame_blocks(const FlyWeight& params, const state_space_type& space, 
+                                    InvarFrameType& invar_frame, 
+                                    const point_type& x_0, const point_type& x_1, 
+                                    const InputType& u, const time_type& t) const {
+      /* identity is OK */
+    };
+    
+/*******************************************************************************
+                   ReaK's RTTI and Serialization interfaces
+*******************************************************************************/
+
+    virtual void RK_CALL save(ReaK::serialization::oarchive& A, unsigned int) const {
+      named_object::save(A,named_object::getStaticObjectType()->TypeVersion());
+    };
+    
+    virtual void RK_CALL load(ReaK::serialization::iarchive& A, unsigned int) {
+      named_object::load(A,named_object::getStaticObjectType()->TypeVersion());
+    };
+    
+    RK_RTTI_MAKE_CONCRETE_1BASE(torsional_drag_state_model,0xC2310025,1,"torsional_drag_state_model",named_object)
     
 };
 
@@ -1990,6 +2367,10 @@ class cross_inertia_state_model : public named_object {
     
   public:
     
+    state_space_type create_state_space() const {
+      return pp::hyperball_topology< vect<double,3> >("cross_inertia_param_space", vect<double,3>(0.0,0.0,0.0), std::numeric_limits<double>::infinity());
+    };
+    
     std::size_t get_state_start_index() const { return state_start_index; };
     std::size_t get_inv_corr_start_index() const { return inv_corr_start_index; };
     
@@ -2008,7 +2389,8 @@ class cross_inertia_state_model : public named_object {
                                   const StateSpaceType& space, const typename pp::topology_traits<StateSpaceType>::point_type& x, 
                                   const InputType&, time_difference_type dt, time_type t) const {
       const point_type& s = params.get_state_models().template get_state_for_system<cross_inertia_state_model>(x);
-      params.effective_J += mat<double, mat_structure::symmetric>(0.0, s[0], s[1], 0.0, s[2], 0.0);
+      typename FlyWeight::system_param_type& sys_params = params.get_system_parameters();
+      sys_params.effective_J += mat<double, mat_structure::symmetric>(0.0, s[0], s[1], 0.0, s[2], 0.0);
     };
     
     template <typename FlyWeight, typename StateSpaceType, typename InputType>
@@ -2032,6 +2414,7 @@ class cross_inertia_state_model : public named_object {
       
       const SE3State& x0_se3 = params.get_state_models().template get_state_for_system<satellite_state_model>(p_0);
       const SE3State& x1_se3 = params.get_state_models().template get_state_for_system<satellite_state_model>(p_1);
+      typename FlyWeight::system_param_type& sys_params = params.get_system_parameters();
       
       const std::size_t sat3d_state_index = params.get_state_models().template get_system<satellite_state_model>().get_inv_corr_start_index();
       
@@ -2053,13 +2436,46 @@ class cross_inertia_state_model : public named_object {
       mat<double,mat_structure::square> del_sig_1(w_1[1], w_1[2], 0.0, 
                                                   w_1[0], 0.0, w_1[2], 
                                                   0.0, w_1[0], w_1[1]);
-      mat<double,mat_structure::square> delw(params.effective_J_inv * (R_0_1 * del_sig_0 - del_sig_1));
+      mat<double,mat_structure::square> delw(sys_params.effective_J_inv * (R_0_1 * del_sig_0 - del_sig_1));
       sub(A)(w_r, s_r) += delw;
       sub(A)(q_r, s_r) += (0.5 * dt) * delw;
       // neglects the cross terms and any other non-trivial place where J appears.
       
       sub(A)(s_r, s_r) += mat_ident<double>(3);
     };
+    
+    template <typename FlyWeight, typename StateSpaceType, typename InvCorrType, typename InputType>
+    void apply_correction_to_state(const FlyWeight& params, const StateSpaceType& space, 
+                                   const typename pp::topology_traits<StateSpaceType>::point_type& x, 
+                                   typename pp::topology_traits<StateSpaceType>::point_type& x_c, 
+                                   const InvCorrType& c, const InputType& u, const time_type& t) const {
+      const point_type& s = params.get_state_models().template get_state_for_system<cross_inertia_state_model>(x);
+      point_type& s_c = params.get_state_models().template get_state_for_system<cross_inertia_state_model>(x_c);
+      
+      s_c = s + vect<double,3>(c[inv_corr_start_index], c[inv_corr_start_index+1], c[inv_corr_start_index+2]);
+    };
+    
+    template <typename FlyWeight, typename InputType, typename InvarFrameType>
+    void set_invariant_frame_blocks(const FlyWeight& params, const state_space_type& space, 
+                                    InvarFrameType& invar_frame, 
+                                    const point_type& x_0, const point_type& x_1, 
+                                    const InputType& u, const time_type& t) const {
+      /* identity is OK */
+    };
+    
+/*******************************************************************************
+                   ReaK's RTTI and Serialization interfaces
+*******************************************************************************/
+
+    virtual void RK_CALL save(ReaK::serialization::oarchive& A, unsigned int) const {
+      named_object::save(A,named_object::getStaticObjectType()->TypeVersion());
+    };
+    
+    virtual void RK_CALL load(ReaK::serialization::iarchive& A, unsigned int) {
+      named_object::load(A,named_object::getStaticObjectType()->TypeVersion());
+    };
+    
+    RK_RTTI_MAKE_CONCRETE_1BASE(cross_inertia_state_model,0xC2310026,1,"cross_inertia_state_model",named_object)
     
 };
 
@@ -2103,19 +2519,20 @@ class airship3D_6dof_thrusters : public named_object {
       
       const SE3State& x_se3 = params.get_state_models().template get_state_for_system<satellite_state_model>(x);
       SE3StateDiff& dx_se3 = params.get_state_models().template get_state_diff_for_system<satellite_state_model>(dx);
+      typename FlyWeight::system_param_type& sys_params = params.get_system_parameters();
       
       vect<double,3> f(u[start_index], u[start_index+1], u[start_index+2]);
       vect<double,3> tau(u[start_index+3], u[start_index+4], u[start_index+5]);
       
       // velocity:
       f = get_quaternion(x_se3).as_rotation() * f;
-      f *= (dt / params.effective_mass);
+      f *= (dt / (sys_params.effective_mass + sys_params.added_mass));
       get<1>(get<0>(dx_se3)) += f;
       // position:
       get<0>(get<0>(dx_se3)) += (0.5 * dt) * f;
       
       // ang-velocity
-      tau = params.effective_J_inv * tau;
+      tau = sys_params.effective_J_inv * tau;
       tau *= dt;
       get<1>(get<1>(dx_se3)) += tau;
       // quaternion-diff (Lie alg.):
@@ -2135,6 +2552,7 @@ class airship3D_6dof_thrusters : public named_object {
       
       const SE3State& x0_se3 = params.get_state_models().template get_state_for_system<satellite_state_model>(p_0);
       const SE3State& x1_se3 = params.get_state_models().template get_state_for_system<satellite_state_model>(p_1);
+      typename FlyWeight::system_param_type& sys_params = params.get_system_parameters();
       
       const std::size_t sat3d_state_index = params.get_state_models().template get_system<satellite_state_model>().get_inv_corr_start_index();
       
@@ -2150,20 +2568,34 @@ class airship3D_6dof_thrusters : public named_object {
       
       // (p,v)-f block:
       mat<double,mat_structure::square> R_0 = get_quaternion(x0_se3).as_rotation().getMat();
-      mat<double,mat_structure::square> delv((dt / params.effective_mass) * R_0);
+      mat<double,mat_structure::square> delv((dt / (sys_params.effective_mass + sys_params.added_mass)) * R_0);
       sub(B)(v_r, f_r) += delv;
       delv *= 0.5 * dt;
       sub(B)(p_r, f_r) += delv;
       
       // (q,w)-t block:
       mat<double,mat_structure::square> R_0_1 = (invert(get_quaternion(x1_se3).as_rotation()) * get_quaternion(x0_se3).as_rotation()).getMat();
-      mat<double,mat_structure::square> delw(dt * (R_0_1 * params.effective_J_inv));
+      mat<double,mat_structure::square> delw(dt * (R_0_1 * sys_params.effective_J_inv));
       sub(B)(w_r, t_r) += delw;
       delw *= 0.5 * dt;
       sub(B)(q_r, t_r)  += delw;
     };
     
     
+    
+/*******************************************************************************
+                   ReaK's RTTI and Serialization interfaces
+*******************************************************************************/
+
+    virtual void RK_CALL save(ReaK::serialization::oarchive& A, unsigned int) const {
+      named_object::save(A,named_object::getStaticObjectType()->TypeVersion());
+    };
+    
+    virtual void RK_CALL load(ReaK::serialization::iarchive& A, unsigned int) {
+      named_object::load(A,named_object::getStaticObjectType()->TypeVersion());
+    };
+    
+    RK_RTTI_MAKE_CONCRETE_1BASE(airship3D_6dof_thrusters,0xC2310027,1,"airship3D_6dof_thrusters",named_object)
     
 };
 
@@ -2206,6 +2638,7 @@ class tryphon_n_thrusters : public named_object {
       
       const SE3State& x_se3 = params.get_state_models().template get_state_for_system<satellite_state_model>(x);
       SE3StateDiff& dx_se3 = params.get_state_models().template get_state_diff_for_system<satellite_state_model>(dx);
+      typename FlyWeight::system_param_type& sys_params = params.get_system_parameters();
       
       vect<double,3> f;
       vect<double,3> tau;
@@ -2216,13 +2649,13 @@ class tryphon_n_thrusters : public named_object {
       
       // velocity:
       f = get_quaternion(x_se3).as_rotation() * f;
-      f *= (dt / params.effective_mass);
+      f *= (dt / (sys_params.effective_mass + sys_params.added_mass));
       get<1>(get<0>(dx_se3)) += f;
       // position:
       get<0>(get<0>(dx_se3)) += (0.5 * dt) * f;
       
       // ang-velocity
-      tau = params.effective_J_inv * tau;
+      tau = sys_params.effective_J_inv * tau;
       tau *= dt;
       get<1>(get<1>(dx_se3)) += tau;
       // quaternion-diff (Lie alg.):
@@ -2242,6 +2675,7 @@ class tryphon_n_thrusters : public named_object {
       
       const SE3State& x0_se3 = params.get_state_models().template get_state_for_system<satellite_state_model>(p_0);
       const SE3State& x1_se3 = params.get_state_models().template get_state_for_system<satellite_state_model>(p_1);
+      typename FlyWeight::system_param_type& sys_params = params.get_system_parameters();
       
       const std::size_t sat3d_state_index = params.get_state_models().template get_system<satellite_state_model>().get_inv_corr_start_index();
       
@@ -2257,19 +2691,37 @@ class tryphon_n_thrusters : public named_object {
       
       for(std::size_t i = 0; i < 8; ++i) {
         // (p,v)-f block:
-        vect<double,3> f_jac = (dt / params.effective_mass) * (R_0 * thruster_dir[i]);
+        vect<double,3> f_jac = (dt / (sys_params.effective_mass + sys_params.added_mass)) * (R_0 * thruster_dir[i]);
         slice(B)(v_r, start_index+i) += f_jac;
         f_jac *= 0.5 * dt;
         slice(B)(p_r, start_index+i) += f_jac;
         
         // (q,w)-t block:
-        vect<double,3> tau_jac = dt * (R_0_1 * (params.effective_J_inv * (thruster_pos[i] % thruster_dir[i])));
+        vect<double,3> tau_jac = dt * (R_0_1 * (sys_params.effective_J_inv * (thruster_pos[i] % thruster_dir[i])));
         slice(B)(w_r, start_index+i) += tau_jac;
         tau_jac *= 0.5 * dt;
         slice(B)(q_r, start_index+i) += tau_jac;
       };
       
     };
+    
+/*******************************************************************************
+                   ReaK's RTTI and Serialization interfaces
+*******************************************************************************/
+
+    virtual void RK_CALL save(ReaK::serialization::oarchive& A, unsigned int) const {
+      named_object::save(A,named_object::getStaticObjectType()->TypeVersion());
+      A & RK_SERIAL_SAVE_WITH_NAME(thruster_pos)
+        & RK_SERIAL_SAVE_WITH_NAME(thruster_dir);
+    };
+    
+    virtual void RK_CALL load(ReaK::serialization::iarchive& A, unsigned int) {
+      named_object::load(A,named_object::getStaticObjectType()->TypeVersion());
+      A & RK_SERIAL_LOAD_WITH_NAME(thruster_pos)
+        & RK_SERIAL_LOAD_WITH_NAME(thruster_dir);
+    };
+    
+    RK_RTTI_MAKE_CONCRETE_1BASE(tryphon_n_thrusters,0xC2310028,1,"tryphon_n_thrusters",named_object)
     
 };
 
@@ -2341,6 +2793,20 @@ class sat_position_output_model : public named_object {
       sub(C)(pm_r, p_r) += mat_ident<double>(3);
     };
     
+/*******************************************************************************
+                   ReaK's RTTI and Serialization interfaces
+*******************************************************************************/
+
+    virtual void RK_CALL save(ReaK::serialization::oarchive& A, unsigned int) const {
+      named_object::save(A,named_object::getStaticObjectType()->TypeVersion());
+    };
+    
+    virtual void RK_CALL load(ReaK::serialization::iarchive& A, unsigned int) {
+      named_object::load(A,named_object::getStaticObjectType()->TypeVersion());
+    };
+    
+    RK_RTTI_MAKE_CONCRETE_1BASE(sat_position_output_model,0xC2310029,1,"sat_position_output_model",named_object)
+    
 };
 
 
@@ -2409,7 +2875,21 @@ class sat_quaternion_output_model : public named_object {
       
       sub(C)(qm_r, q_r) += mat_ident<double>(3);  // TODO Add a frame transition ? (in invariant posterior frame)
     };
+
+/*******************************************************************************
+                   ReaK's RTTI and Serialization interfaces
+*******************************************************************************/
+
+    virtual void RK_CALL save(ReaK::serialization::oarchive& A, unsigned int) const {
+      named_object::save(A,named_object::getStaticObjectType()->TypeVersion());
+    };
     
+    virtual void RK_CALL load(ReaK::serialization::iarchive& A, unsigned int) {
+      named_object::load(A,named_object::getStaticObjectType()->TypeVersion());
+    };
+    
+    RK_RTTI_MAKE_CONCRETE_1BASE(sat_quaternion_output_model,0xC231002A,1,"sat_quaternion_output_model",named_object)
+        
 };
 
 
@@ -2431,6 +2911,10 @@ class gyros_bias_state_model : public named_object {
     std::size_t inv_corr_start_index;
     
   public:
+    
+    state_space_type create_state_space() const {
+      return pp::hyperball_topology< vect<double,3> >("gyros_bias_param_space", vect<double,3>(0.0,0.0,0.0), std::numeric_limits<double>::infinity());
+    };
     
     std::size_t get_state_start_index() const { return state_start_index; };
     std::size_t get_inv_corr_start_index() const { return inv_corr_start_index; };
@@ -2471,6 +2955,39 @@ class gyros_bias_state_model : public named_object {
       const std::pair<std::size_t, std::size_t> gb_r(inv_corr_start_index, inv_corr_start_index+2);
       sub(A)(gb_r, gb_r) += mat_ident<double>(3);
     };
+    
+    template <typename FlyWeight, typename StateSpaceType, typename InvCorrType, typename InputType>
+    void apply_correction_to_state(const FlyWeight& params, const StateSpaceType& space, 
+                                   const typename pp::topology_traits<StateSpaceType>::point_type& x, 
+                                   typename pp::topology_traits<StateSpaceType>::point_type& x_c, 
+                                   const InvCorrType& c, const InputType& u, const time_type& t) const {
+      const point_type& gb = params.get_state_models().template get_state_for_system<gyros_bias_state_model>(x);
+      point_type& gb_c = params.get_state_models().template get_state_for_system<gyros_bias_state_model>(x_c);
+      
+      gb_c = gb + vect<double,3>(c[inv_corr_start_index], c[inv_corr_start_index+1], c[inv_corr_start_index+2]);
+    };
+    
+    template <typename FlyWeight, typename InputType, typename InvarFrameType>
+    void set_invariant_frame_blocks(const FlyWeight& params, const state_space_type& space, 
+                                    InvarFrameType& invar_frame, 
+                                    const point_type& x_0, const point_type& x_1, 
+                                    const InputType& u, const time_type& t) const {
+      /* identity is OK */
+    };
+    
+/*******************************************************************************
+                   ReaK's RTTI and Serialization interfaces
+*******************************************************************************/
+
+    virtual void RK_CALL save(ReaK::serialization::oarchive& A, unsigned int) const {
+      named_object::save(A,named_object::getStaticObjectType()->TypeVersion());
+    };
+    
+    virtual void RK_CALL load(ReaK::serialization::iarchive& A, unsigned int) {
+      named_object::load(A,named_object::getStaticObjectType()->TypeVersion());
+    };
+    
+    RK_RTTI_MAKE_CONCRETE_1BASE(gyros_bias_state_model,0xC231002B,1,"gyros_bias_state_model",named_object)
     
 };
 
@@ -2586,6 +3103,20 @@ class sat_gyros_output_model : public named_object {
       add_output_block_for_gb(C, params);
     };
     
+/*******************************************************************************
+                   ReaK's RTTI and Serialization interfaces
+*******************************************************************************/
+
+    virtual void RK_CALL save(ReaK::serialization::oarchive& A, unsigned int) const {
+      named_object::save(A,named_object::getStaticObjectType()->TypeVersion());
+    };
+    
+    virtual void RK_CALL load(ReaK::serialization::iarchive& A, unsigned int) {
+      named_object::load(A,named_object::getStaticObjectType()->TypeVersion());
+    };
+    
+    RK_RTTI_MAKE_CONCRETE_1BASE(sat_gyros_output_model,0xC231002C,1,"sat_gyros_output_model",named_object)
+    
 };
 
 
@@ -2609,6 +3140,10 @@ class accelerometer_bias_state_model : public named_object {
     std::size_t inv_corr_start_index;
     
   public:
+    
+    state_space_type create_state_space() const {
+      return pp::hyperball_topology< vect<double,3> >("accel_bias_param_space", vect<double,3>(0.0,0.0,0.0), std::numeric_limits<double>::infinity());
+    };
     
     std::size_t get_state_start_index() const { return state_start_index; };
     std::size_t get_inv_corr_start_index() const { return inv_corr_start_index; };
@@ -2649,6 +3184,39 @@ class accelerometer_bias_state_model : public named_object {
       const std::pair<std::size_t, std::size_t> ab_r(inv_corr_start_index, inv_corr_start_index+2);
       sub(A)(ab_r, ab_r) += mat_ident<double>(3);
     };
+    
+    template <typename FlyWeight, typename StateSpaceType, typename InvCorrType, typename InputType>
+    void apply_correction_to_state(const FlyWeight& params, const StateSpaceType& space, 
+                                   const typename pp::topology_traits<StateSpaceType>::point_type& x, 
+                                   typename pp::topology_traits<StateSpaceType>::point_type& x_c, 
+                                   const InvCorrType& c, const InputType& u, const time_type& t) const {
+      const point_type& ab = params.get_state_models().template get_state_for_system<accelerometer_bias_state_model>(x);
+      point_type& ab_c = params.get_state_models().template get_state_for_system<accelerometer_bias_state_model>(x_c);
+      
+      ab_c = ab + vect<double,3>(c[inv_corr_start_index], c[inv_corr_start_index+1], c[inv_corr_start_index+2]);
+    };
+    
+    template <typename FlyWeight, typename InputType, typename InvarFrameType>
+    void set_invariant_frame_blocks(const FlyWeight& params, const state_space_type& space, 
+                                    InvarFrameType& invar_frame, 
+                                    const point_type& x_0, const point_type& x_1, 
+                                    const InputType& u, const time_type& t) const {
+      /* identity is OK */
+    };
+    
+/*******************************************************************************
+                   ReaK's RTTI and Serialization interfaces
+*******************************************************************************/
+
+    virtual void RK_CALL save(ReaK::serialization::oarchive& A, unsigned int) const {
+      named_object::save(A,named_object::getStaticObjectType()->TypeVersion());
+    };
+    
+    virtual void RK_CALL load(ReaK::serialization::iarchive& A, unsigned int) {
+      named_object::load(A,named_object::getStaticObjectType()->TypeVersion());
+    };
+    
+    RK_RTTI_MAKE_CONCRETE_1BASE(accelerometer_bias_state_model,0xC231002D,1,"accelerometer_bias_state_model",named_object)
     
 };
 
@@ -2710,8 +3278,9 @@ class sat_accelerometer_output_model : public named_object {
                                output_type& y, time_type t) const {
       typedef satellite_state_model::point_type SE3State;
       const SE3State& x_se3 = params.get_state_models().template get_state_for_system<satellite_state_model>(x);
+      typename FlyWeight::system_param_type& sys_params = params.get_system_parameters();
       
-      y[range(start_index, start_index+2)] = invert(get_quaternion(x_se3).as_rotation()) * params.gravity_acc_vect;
+      y[range(start_index, start_index+2)] = invert(get_quaternion(x_se3).as_rotation()) * sys_params.gravity_acc_vect;
       
       // TODO maybe add the acceleration (change of velocity), but how?
       
@@ -2725,10 +3294,11 @@ class sat_accelerometer_output_model : public named_object {
                                  const output_type& y, invariant_error_type& e, time_type t) const {
       typedef satellite_state_model::point_type SE3State;
       const SE3State& x_se3 = params.get_state_models().template get_state_for_system<satellite_state_model>(x);
+      typename FlyWeight::system_param_type& sys_params = params.get_system_parameters();
       
       e[range(inv_start_index, inv_start_index+2)] = 
         vect<double,3>(y[start_index],y[start_index+1],y[start_index+2])
-         - invert(get_quaternion(x_se3).as_rotation()) * params.gravity_acc_vect;
+         - invert(get_quaternion(x_se3).as_rotation()) * sys_params.gravity_acc_vect;
       
       // TODO maybe add the acceleration (change of velocity), but how?
       
@@ -2761,18 +3331,33 @@ class sat_accelerometer_output_model : public named_object {
       typedef satellite_state_model::point_type SE3State;
       
       const SE3State& x_se3 = params.get_state_models().template get_state_for_system<satellite_state_model>(p);
+      typename FlyWeight::system_param_type& sys_params = params.get_system_parameters();
       
       const std::size_t sat3d_state_index = params.get_state_models().template get_system<satellite_state_model>().get_inv_corr_start_index();
       const std::pair<std::size_t, std::size_t> q_r(sat3d_state_index+6, sat3d_state_index+8);
       const std::pair<std::size_t, std::size_t> am_r(inv_start_index, inv_start_index+2);
       
-      vect<double,3> local_g = invert(get_quaternion(x_se3).as_rotation()) * params.gravity_acc_vect;
+      vect<double,3> local_g = invert(get_quaternion(x_se3).as_rotation()) * sys_params.gravity_acc_vect;
       
       sub(C)(am_r, q_r) += mat<double,mat_structure::skew_symmetric>(-local_g);
       
       add_output_block_for_ab(C, params);
       
     };
+    
+/*******************************************************************************
+                   ReaK's RTTI and Serialization interfaces
+*******************************************************************************/
+
+    virtual void RK_CALL save(ReaK::serialization::oarchive& A, unsigned int) const {
+      named_object::save(A,named_object::getStaticObjectType()->TypeVersion());
+    };
+    
+    virtual void RK_CALL load(ReaK::serialization::iarchive& A, unsigned int) {
+      named_object::load(A,named_object::getStaticObjectType()->TypeVersion());
+    };
+    
+    RK_RTTI_MAKE_CONCRETE_1BASE(sat_accelerometer_output_model,0xC231002E,1,"sat_accelerometer_output_model",named_object)
     
 };
 
@@ -2798,6 +3383,10 @@ class magnetometer_bias_state_model : public named_object {
     std::size_t inv_corr_start_index;
     
   public:
+    
+    state_space_type create_state_space() const {
+      return pp::hyperball_topology< vect<double,3> >("magnetometer_bias_param_space", vect<double,3>(0.0,0.0,0.0), std::numeric_limits<double>::infinity());
+    };
     
     std::size_t get_state_start_index() const { return state_start_index; };
     std::size_t get_inv_corr_start_index() const { return inv_corr_start_index; };
@@ -2838,6 +3427,39 @@ class magnetometer_bias_state_model : public named_object {
       const std::pair<std::size_t, std::size_t> mb_r(inv_corr_start_index, inv_corr_start_index+2);
       sub(A)(mb_r, mb_r) += mat_ident<double>(3);
     };
+    
+    template <typename FlyWeight, typename StateSpaceType, typename InvCorrType, typename InputType>
+    void apply_correction_to_state(const FlyWeight& params, const StateSpaceType& space, 
+                                   const typename pp::topology_traits<StateSpaceType>::point_type& x, 
+                                   typename pp::topology_traits<StateSpaceType>::point_type& x_c, 
+                                   const InvCorrType& c, const InputType& u, const time_type& t) const {
+      const point_type& mb = params.get_state_models().template get_state_for_system<magnetometer_bias_state_model>(x);
+      point_type& mb_c = params.get_state_models().template get_state_for_system<magnetometer_bias_state_model>(x_c);
+      
+      mb_c = mb + vect<double,3>(c[inv_corr_start_index], c[inv_corr_start_index+1], c[inv_corr_start_index+2]);
+    };
+    
+    template <typename FlyWeight, typename InputType, typename InvarFrameType>
+    void set_invariant_frame_blocks(const FlyWeight& params, const state_space_type& space, 
+                                    InvarFrameType& invar_frame, 
+                                    const point_type& x_0, const point_type& x_1, 
+                                    const InputType& u, const time_type& t) const {
+      /* identity is OK */
+    };
+    
+/*******************************************************************************
+                   ReaK's RTTI and Serialization interfaces
+*******************************************************************************/
+
+    virtual void RK_CALL save(ReaK::serialization::oarchive& A, unsigned int) const {
+      named_object::save(A,named_object::getStaticObjectType()->TypeVersion());
+    };
+    
+    virtual void RK_CALL load(ReaK::serialization::iarchive& A, unsigned int) {
+      named_object::load(A,named_object::getStaticObjectType()->TypeVersion());
+    };
+    
+    RK_RTTI_MAKE_CONCRETE_1BASE(magnetometer_bias_state_model,0xC231002F,1,"magnetometer_bias_state_model",named_object)
     
 };
 
@@ -2899,8 +3521,9 @@ class sat_magnetometer_output_model : public named_object {
                                output_type& y, time_type t) const {
       typedef satellite_state_model::point_type SE3State;
       const SE3State& x_se3 = params.get_state_models().template get_state_for_system<satellite_state_model>(x);
+      typename FlyWeight::system_param_type& sys_params = params.get_system_parameters();
       
-      y[range(start_index, start_index+2)] = invert(get_quaternion(x_se3).as_rotation()) * params.magnetic_field_vect;
+      y[range(start_index, start_index+2)] = invert(get_quaternion(x_se3).as_rotation()) * sys_params.magnetic_field_vect;
       
       add_output_from_state_for_mb(params, space, x, y, false);
     };
@@ -2912,10 +3535,11 @@ class sat_magnetometer_output_model : public named_object {
                                  const output_type& y, invariant_error_type& e, time_type t) const {
       typedef satellite_state_model::point_type SE3State;
       const SE3State& x_se3 = params.get_state_models().template get_state_for_system<satellite_state_model>(x);
+      typename FlyWeight::system_param_type& sys_params = params.get_system_parameters();
       
       e[range(inv_start_index, inv_start_index+2)] = 
         vect<double,3>(y[start_index],y[start_index+1],y[start_index+2])
-         - invert(get_quaternion(x_se3).as_rotation()) * params.magnetic_field_vect;
+         - invert(get_quaternion(x_se3).as_rotation()) * sys_params.magnetic_field_vect;
       
       add_output_from_state_for_mb(params, space, x, e, true);
     };
@@ -2946,17 +3570,32 @@ class sat_magnetometer_output_model : public named_object {
       typedef satellite_state_model::point_type SE3State;
       
       const SE3State& x_se3 = params.get_state_models().template get_state_for_system<satellite_state_model>(p);
+      typename FlyWeight::system_param_type& sys_params = params.get_system_parameters();
       
       const std::size_t sat3d_state_index = params.get_state_models().template get_system<satellite_state_model>().get_inv_corr_start_index();
       const std::pair<std::size_t, std::size_t> q_r(sat3d_state_index+6, sat3d_state_index+8);
       const std::pair<std::size_t, std::size_t> mm_r(inv_start_index, inv_start_index+2);
       
-      vect<double,3> local_m = invert(get_quaternion(x_se3).as_rotation()) * params.magnetic_field_vect;
+      vect<double,3> local_m = invert(get_quaternion(x_se3).as_rotation()) * sys_params.magnetic_field_vect;
       
       sub(C)(mm_r, q_r) += mat<double,mat_structure::skew_symmetric>(-local_m);
       
       add_output_block_for_mb(C, params);
     };
+    
+/*******************************************************************************
+                   ReaK's RTTI and Serialization interfaces
+*******************************************************************************/
+
+    virtual void RK_CALL save(ReaK::serialization::oarchive& A, unsigned int) const {
+      named_object::save(A,named_object::getStaticObjectType()->TypeVersion());
+    };
+    
+    virtual void RK_CALL load(ReaK::serialization::iarchive& A, unsigned int) {
+      named_object::load(A,named_object::getStaticObjectType()->TypeVersion());
+    };
+    
+    RK_RTTI_MAKE_CONCRETE_1BASE(sat_magnetometer_output_model,0xC2310030,1,"sat_magnetometer_output_model",named_object)
     
 };
 
@@ -2981,6 +3620,10 @@ class room_orientation_state_model : public named_object {
     std::size_t inv_corr_start_index;
     
   public:
+    
+    state_space_type create_state_space() const {
+      return pp::line_segment_topology<double>("room_angle_param_space", -std::numeric_limits<double>::infinity(), std::numeric_limits<double>::infinity());
+    };
     
     std::size_t get_state_start_index() const { return state_start_index; };
     std::size_t get_inv_corr_start_index() const { return inv_corr_start_index; };
@@ -3021,6 +3664,39 @@ class room_orientation_state_model : public named_object {
       const std::size_t ro_r = inv_corr_start_index;
       sub(A)(ro_r, ro_r) += 1.0;
     };
+    
+    template <typename FlyWeight, typename StateSpaceType, typename InvCorrType, typename InputType>
+    void apply_correction_to_state(const FlyWeight& params, const StateSpaceType& space, 
+                                   const typename pp::topology_traits<StateSpaceType>::point_type& x, 
+                                   typename pp::topology_traits<StateSpaceType>::point_type& x_c, 
+                                   const InvCorrType& c, const InputType& u, const time_type& t) const {
+      const point_type& ro = params.get_state_models().template get_state_for_system<room_orientation_state_model>(x);
+      point_type& ro_c = params.get_state_models().template get_state_for_system<room_orientation_state_model>(x_c);
+      
+      ro_c = ro + c[inv_corr_start_index];
+    };
+    
+    template <typename FlyWeight, typename InputType, typename InvarFrameType>
+    void set_invariant_frame_blocks(const FlyWeight& params, const state_space_type& space, 
+                                    InvarFrameType& invar_frame, 
+                                    const point_type& x_0, const point_type& x_1, 
+                                    const InputType& u, const time_type& t) const {
+      /* identity is OK */
+    };
+    
+/*******************************************************************************
+                   ReaK's RTTI and Serialization interfaces
+*******************************************************************************/
+
+    virtual void RK_CALL save(ReaK::serialization::oarchive& A, unsigned int) const {
+      named_object::save(A,named_object::getStaticObjectType()->TypeVersion());
+    };
+    
+    virtual void RK_CALL load(ReaK::serialization::iarchive& A, unsigned int) {
+      named_object::load(A,named_object::getStaticObjectType()->TypeVersion());
+    };
+    
+    RK_RTTI_MAKE_CONCRETE_1BASE(room_orientation_state_model,0xC2310031,1,"room_orientation_state_model",named_object)
     
 };
 
@@ -3266,278 +3942,100 @@ class sonars_in_room_output_model : public named_object {
       
     };
     
+/*******************************************************************************
+                   ReaK's RTTI and Serialization interfaces
+*******************************************************************************/
+
+    virtual void RK_CALL save(ReaK::serialization::oarchive& A, unsigned int) const {
+      named_object::save(A,named_object::getStaticObjectType()->TypeVersion());
+      A & RK_SERIAL_SAVE_WITH_NAME(sonar_pos)
+        & RK_SERIAL_SAVE_WITH_NAME(sonar_dir)
+        & RK_SERIAL_SAVE_WITH_NAME(lower_corner)
+        & RK_SERIAL_SAVE_WITH_NAME(upper_corner);
+    };
+    
+    virtual void RK_CALL load(ReaK::serialization::iarchive& A, unsigned int) {
+      named_object::load(A,named_object::getStaticObjectType()->TypeVersion());
+      A & RK_SERIAL_LOAD_WITH_NAME(sonar_pos)
+        & RK_SERIAL_LOAD_WITH_NAME(sonar_dir)
+        & RK_SERIAL_LOAD_WITH_NAME(lower_corner)
+        & RK_SERIAL_LOAD_WITH_NAME(upper_corner);
+    };
+    
+    RK_RTTI_MAKE_CONCRETE_1BASE(sonars_in_room_output_model,0xC2310032,1,"sonars_in_room_output_model",named_object)
+    
 };
 
 
-
-
-
-/**
- * This class implements an invariantized momentum-tracking discrete-time state-space system describe the 
- * dynamics of a free-floating, near-buoyant, near-balanced 6-dof airship. This is a simplified model, 
- * with just free-floating dynamics with 6 dof actuation forces and some simple augmented states for imbalances. 
- * This system benefits from a special integration method called the "momentum-conserving trapezoidal method" (TRAPM),
- * which is an invariant variational method that guarantees conservation of angular momentum 
- * when no actuation is applied, i.e., it is an efficient and highly stable method.
- * This system incorporates augmented states for the mass-imbalance and the eccentricity vector.
- * Also, this system operates within a first-order (once-differentiable) SE(3) topology, augmented by 
- * the parameters.
- */
-class airship3D_imdt_em_sys : public named_object {
+class airship_parameter_pack : public named_object {
   public:
     
-    typedef pp::metric_space_tuple< 
-      arithmetic_tuple< 
-        pp::se3_1st_order_topology<double>::type,
-        pp::line_segment_topology<double>,
-        pp::hyperball_topology< vect<double,3> > >,
-      pp::manhattan_tuple_distance > state_space_type;
+    double mass;
+    double added_mass_factor;
+    mat<double, mat_structure::symmetric> J;
     
-    typedef pp::topology_traits< state_space_type >::point_type point_type;
-    typedef pp::topology_traits< state_space_type >::point_difference_type point_difference_type;
-    typedef pp::topology_traits< state_space_type >::point_difference_type point_derivative_type;
+    double effective_mass;
+    double added_mass;
+    mat<double, mat_structure::symmetric> effective_J;
+    mat<double, mat_structure::symmetric> effective_J_inv;
     
-    typedef double time_type;
-    typedef double time_difference_type;
+    bool use_hot_del_q_terms;
+    bool use_momentum_transfer_terms;
     
-    typedef vect_n<double> input_type;
-    typedef vect_n<double> output_type;
+    vect<double,3> gravity_acc_vect;
+    vect<double,3> magnetic_field_vect;
     
-    typedef vect_n<double> invariant_error_type;
-    typedef vect_n<double> invariant_correction_type;
-    typedef mat<double,mat_structure::square> invariant_frame_type;
+    airship_parameter_pack() : named_object(), mass(1.0), added_mass_factor(0.5), J(1.0, 0.0, 0.0, 1.0, 0.0, 1.0), 
+                               effective_mass(mass), effective_J(J), effective_J_inv(J),
+                               use_hot_del_q_terms(false), use_momentum_transfer_terms(true),
+                               gravity_acc_vect(0.0, 0.0, -9.81), magnetic_field_vect(0.0, 0.0, 0.0) { setName("airship_parameter_pack"); };
     
-    BOOST_STATIC_CONSTANT(std::size_t, dimensions = 17);
-    BOOST_STATIC_CONSTANT(std::size_t, input_dimensions = 6);
-    BOOST_STATIC_CONSTANT(std::size_t, output_dimensions = 7);
-    BOOST_STATIC_CONSTANT(std::size_t, invariant_error_dimensions = 6);
-    BOOST_STATIC_CONSTANT(std::size_t, invariant_correction_dimensions = 16);
-    BOOST_STATIC_CONSTANT(std::size_t, actual_state_dimensions = 12);
-    
-    typedef mat<double,mat_structure::square> matrixA_type;
-    typedef mat<double,mat_structure::rectangular> matrixB_type;
-    typedef mat<double,mat_structure::rectangular> matrixC_type;
-    typedef mat<double,mat_structure::rectangular> matrixD_type;
-    
-    struct zero_input_trajectory {
-      input_type get_point(time_type) const {
-        return input_type(0.0,0.0,0.0,0.0,0.0,0.0);
-      };
+    void reset_parameters() {
+      effective_mass = mass;
+      effective_J = J;
+      added_mass = added_mass_factor * mass;
     };
     
-    typedef covariance_matrix< vect_n<double> > covar_type;
-    typedef covar_topology< covar_type > covar_space_type;
-    typedef pp::temporal_space<state_space_type, pp::time_poisson_topology, pp::time_distance_only> temporal_state_space_type;
-    typedef gaussian_belief_space<state_space_type, covar_space_type> belief_space_type;
-    typedef pp::temporal_space<belief_space_type, pp::time_poisson_topology, pp::time_distance_only> temporal_belief_space_type;
-    typedef gaussian_belief_state< point_type,  covar_type > state_belief_type;
-    typedef gaussian_belief_state< input_type,  covar_type > input_belief_type;
-    typedef gaussian_belief_state< output_type, covar_type > output_belief_type;
-    
-    virtual shared_ptr< temporal_state_space_type > get_temporal_state_space(double aStartTime = 0.0, double aEndTime = 1.0) const;
-    virtual shared_ptr< state_space_type > get_state_space() const;
-    
-    virtual shared_ptr< temporal_belief_space_type > get_temporal_belief_space(double aStartTime = 0.0, double aEndTime = 1.0) const;
-    virtual shared_ptr< belief_space_type > get_belief_space() const;
-    
-    virtual state_belief_type get_zero_state_belief(double aCovValue = 10.0) const;
-    virtual input_belief_type get_zero_input_belief(double aCovValue = 1.0) const;
-    virtual output_belief_type get_zero_output_belief(double aCovValue = 1.0) const;
-    
-  protected:
-    double mMass;
-    mat<double,mat_structure::symmetric> mInertiaMoment;
-    mat<double,mat_structure::symmetric> mInertiaMomentInv;
-    time_difference_type mDt;
-    vect<double,3> mGravityAcc;
-    
-  public:  
-    
-    /**
-     * Returns the dimensions of the states of the system.
-     * \return The dimensions of the states of the system.
-     */
-    virtual std::size_t get_state_dimensions() const { return 17; };
-    
-    /**
-     * Returns the dimensions of the input of the system.
-     * \return The dimensions of the input of the system.
-     */
-    virtual std::size_t get_input_dimensions() const { return 6; };
-    
-    /**
-     * Returns the dimensions of the output of the system.
-     * \return The dimensions of the output of the system.
-     */
-    virtual std::size_t get_output_dimensions() const { return 7; };
-    
-    /**
-     * Returns the dimensions of the invariant errors of the system.
-     * \return The dimensions of the invariant errors of the system.
-     */
-    virtual std::size_t get_invariant_error_dimensions() const { return 6; };
-    
-    /**
-     * Returns the dimensions of the corrections to the states of the system.
-     * \return The dimensions of the corrections to the states of the system.
-     */
-    virtual std::size_t get_correction_dimensions() const { return 16; };
-    
-    /**
-     * Returns the dimensions of the actual states of the system.
-     * \return The dimensions of the actual states of the system.
-     */
-    virtual std::size_t get_actual_state_dimensions() const { return 12; };
-    
-    /**
-     * Constructor.
-     * \param aName The name for this object.
-     * \param aMass The mass of the airship.
-     * \param aInertiaMoment The inertia tensor of the airship.
-     * \param aDt The time-step for this discrete-time system.
-     * \param aGravityAcc The gravitational acceleration vector (usually (0,0,-9.8) for a z-up world).
-     */
-    airship3D_imdt_em_sys(const std::string& aName = "", 
-                          double aMass = 1.0, 
-                          const mat<double,mat_structure::symmetric>& aInertiaMoment = (mat<double,mat_structure::symmetric>(mat<double,mat_structure::identity>(3))),
-                          double aDt = 0.01,
-                          const vect<double,3>& aGravityAcc = (vect<double,3>(0.0,0.0,-9.81))); 
-    
-    /**
-     * This function returns the time-step for this discrete-time system.
-     * \return The time-step for this discrete-time system.
-     */
-    time_difference_type get_time_step() const { return mDt; };
-    
-    /**
-     * This function sets the time-step for this discrete-time system.
-     * \param aDt The new time-step for this discrete-time system.
-     */
-    virtual void set_time_step(time_difference_type aDt) { mDt = aDt; };
-    
-    /**
-     * This function computes the next state of the system, i.e., the state at one time-step after the current time.
-     * \param space The state-space within which the states reside.
-     * \param x The current state of the system.
-     * \param u The current input being applied to the system.
-     * \param t The current time.
-     * \return The state after one time-step beyond the given current state of the system.
-     */
-    virtual point_type get_next_state(const state_space_type& space, const point_type& x, const input_type& u, const time_type& t = 0.0) const;
-    
-    /**
-     * This function computes the linearization of the state-transitions of the system.
-     * In other words, it populates the system matrices with the values appropriate for 
-     * the given state-transition.
-     * \param A Holds, as output, the state-to-state jacobian matrix of the state-transition of the system.
-     * \param B Holds, as output, the input-to-state jacobian matrix of the state-transition of the system.
-     * \param space The state-space within which the states reside.
-     * \param t_0 The time before the state-transition occurred.
-     * \param t_1 The time after the state-transition occurred.
-     * \param p_0 The state before the state-transition occurred.
-     * \param p_1 The state after the state-transition occurred.
-     * \param u_0 The input before the state-transition occurred.
-     * \param u_1 The input after the state-transition occurred.
-     */
-    virtual void get_state_transition_blocks(matrixA_type& A, matrixB_type& B, 
-                                             const state_space_type& space, 
-                                             const time_type& t_0, const time_type& t_1,
-                                             const point_type& p_0, const point_type& p_1,
-                                             const input_type& u_0, const input_type& u_1) const;
-    
-    /**
-     * This function computes the output of the system corresponding to the current state.
-     * \param space The state-space within which the states reside.
-     * \param x The current state of the system.
-     * \param u The current input being applied to the system.
-     * \param t The current time.
-     * \return The output for the given current state of the system.
-     */
-    virtual output_type get_output(const state_space_type& space, const point_type& x, const input_type& u, const time_type& t = 0.0) const;
-    
-    /**
-     * This function computes the linearization of the output-function of the system.
-     * In other words, it populates the system matrices with the values appropriate at 
-     * the given state.
-     * \param C Holds, as output, the state-to-output jacobian matrix of the output-function of the system.
-     * \param D Holds, as output, the input-to-output jacobian matrix of the output-function of the system.
-     * \param space The state-space within which the states reside.
-     * \param t The current time.
-     * \param p The current state of the system.
-     * \param u The input at the current time.
-     */
-    virtual void get_output_function_blocks(matrixC_type& C, matrixD_type& D, const state_space_type& space, 
-                                            const time_type& t, const point_type& p, const input_type& u) const;
-    
-    /**
-     * This function computes the invariant output-error of the system corresponding to the current state and the given output.
-     * \param space The state-space within which the states reside.
-     * \param x The current state of the system.
-     * \param u The current input being applied to the system.
-     * \param y The output against which to compute the invariant error.
-     * \param t The current time.
-     * \return The invariant output-error for the given state and output.
-     */
-    virtual invariant_error_type get_invariant_error(const state_space_type& space, 
-                                                     const point_type& x, const input_type& u, 
-                                                     const output_type& y, const time_type& t) const;
-    
-    /**
-     * This function computes a state corresponding to the given state corrected by a given invariant term.
-     * \param space The state-space within which the states reside.
-     * \param x The current state of the system.
-     * \param c The invariant correction term to apply to the state.
-     * \param u The current input being applied to the system.
-     * \param t The current time.
-     * \return The corrected state of the system.
-     */
-    virtual point_type apply_correction(const state_space_type& space, const point_type& x, const invariant_correction_type& c, 
-                                        const input_type& u, const time_type& t) const;
-    
-    /**
-     * This function computes the invariant frame transition matrix for the prior stage, 
-     * i.e., during a state transition from x_0 to x_1, what invariant frame transition matrix
-     * describes the shift from one frame to the other.
-     * \param space The state-space within which the states reside.
-     * \param x_0 The state of the system before the state-transition.
-     * \param x_1 The state of the system after the state-transition.
-     * \param u The input being applied to the system before the state-transition.
-     * \param t The time before the state-transition.
-     * \return The invariant frame transition matrix for the prior stage.
-     */
-    virtual invariant_frame_type get_invariant_prior_frame(const state_space_type& space, const point_type& x_0, const point_type& x_1, const input_type& u, const time_type& t) const;
-    
-    /**
-     * This function computes the invariant frame transition matrix for the posterior stage, 
-     * i.e., during a state correction from x_0 to x_1, what invariant frame transition matrix
-     * describes the shift from one frame to the other.
-     * \param space The state-space within which the states reside.
-     * \param x_0 The state of the system before the correction.
-     * \param x_1 The state of the system after the correction.
-     * \param u The current input being applied to the system.
-     * \param t The current time.
-     * \return The invariant frame transition matrix for the posterior stage.
-     */
-    virtual invariant_frame_type get_invariant_posterior_frame(const state_space_type& space, const point_type& x_0, const point_type& x_1, const input_type& u, const time_type& t) const {
-      return get_invariant_prior_frame(space,x_0,x_1,u,t);
+    void finalize_parameters() {
+      if((effective_J.get_row_count() != 3) || (effective_mass < std::numeric_limits< double >::epsilon()))
+        throw system_incoherency("Inertial information is improper in the airship_parameter_pack!");
+      
+      try {
+        invert_Cholesky(effective_J, effective_J_inv);
+      } catch(singularity_error&) {
+        throw system_incoherency("Inertial tensor is singular in the airship_parameter_pack!");
+      };
     };
     
 /*******************************************************************************
                    ReaK's RTTI and Serialization interfaces
 *******************************************************************************/
 
-    virtual void RK_CALL save(ReaK::serialization::oarchive& A, unsigned int) const;
-    virtual void RK_CALL load(ReaK::serialization::iarchive& A, unsigned int);
+    virtual void RK_CALL save(ReaK::serialization::oarchive& A, unsigned int) const {
+      named_object::save(A,named_object::getStaticObjectType()->TypeVersion());
+      A & RK_SERIAL_SAVE_WITH_NAME(mass)
+        & RK_SERIAL_SAVE_WITH_NAME(added_mass_factor)
+        & RK_SERIAL_SAVE_WITH_NAME(J)
+        & RK_SERIAL_SAVE_WITH_NAME(use_hot_del_q_terms)
+        & RK_SERIAL_SAVE_WITH_NAME(use_momentum_transfer_terms)
+        & RK_SERIAL_SAVE_WITH_NAME(gravity_acc_vect)
+        & RK_SERIAL_SAVE_WITH_NAME(magnetic_field_vect);
+    };
     
-    RK_RTTI_MAKE_CONCRETE_1BASE(airship3D_imdt_em_sys,0xC231001A,1,"airship3D_imdt_em_sys",named_object)
+    virtual void RK_CALL load(ReaK::serialization::iarchive& A, unsigned int) {
+      named_object::load(A,named_object::getStaticObjectType()->TypeVersion());
+      A & RK_SERIAL_LOAD_WITH_NAME(mass)
+        & RK_SERIAL_LOAD_WITH_NAME(added_mass_factor)
+        & RK_SERIAL_LOAD_WITH_NAME(J)
+        & RK_SERIAL_LOAD_WITH_NAME(use_hot_del_q_terms)
+        & RK_SERIAL_LOAD_WITH_NAME(use_momentum_transfer_terms)
+        & RK_SERIAL_LOAD_WITH_NAME(gravity_acc_vect)
+        & RK_SERIAL_LOAD_WITH_NAME(magnetic_field_vect);
+    };
+    
+    RK_RTTI_MAKE_CONCRETE_1BASE(airship_parameter_pack,0xC2310020,1,"airship_parameter_pack",named_object)
     
 };
-
-template <>
-struct is_invariant_system< airship3D_imdt_em_sys > : boost::mpl::true_ { };
-
-template <>
-struct is_augmented_ss_system< airship3D_imdt_em_sys > : boost::mpl::true_ { };
 
 
 

@@ -262,6 +262,13 @@ discrete_ss_predicted_traj  0xC2300015   bin: 1100 0010 0011 0000 0000 0000 0001
 state_to_output_map         0xC2300016   bin: 1100 0010 0011 0000 0000 0000 0001 0110  D-R
 augmented_to_state_map      0xC2300017   bin: 1100 0010 0011 0000 0000 0000 0001 0111  D-R
 
+ss_system_input_tuple       0xC2300018   bin: 1100 0010 0011 0000 0000 0000 0001 1000  D-R
+ss_system_output_tuple      0xC2300019   bin: 1100 0010 0011 0000 0000 0000 0001 1001  D-R
+ss_system_state_tuple       0xC230001A   bin: 1100 0010 0011 0000 0000 0000 0001 1010  D-R
+state_space_system_tuple    0xC230001B   bin: 1100 0010 0011 0000 0000 0000 0001 1011  D-R
+
+    
+
 
 
 
@@ -292,6 +299,27 @@ satellite3D_gyro_inv_dt_system 0xC2310019 bin:1100 0010 0011 0001 0000 0000 0001
 airship3D_imdt_em_sys       0xC231001A   bin: 1100 0010 0011 0001 0000 0000 0001 1010  D-R
 airship3D_imdt_emd_sys      0xC231001B   bin: 1100 0010 0011 0001 0000 0000 0001 1011  D-R
 airship3D_gyro_imdt_emd_sys 0xC231001C   bin: 1100 0010 0011 0001 0000 0000 0001 1100  D-R
+
+airship_parameter_pack      0xC2310020   bin: 1100 0010 0011 0001 0000 0000 0010 0000  D-R
+satellite_state_model       0xC2310021   bin: 1100 0010 0011 0001 0000 0000 0010 0001  D-R
+near_buoyancy_state_model   0xC2310022   bin: 1100 0010 0011 0001 0000 0000 0010 0010  D-R
+eccentricity_state_model    0xC2310023   bin: 1100 0010 0011 0001 0000 0000 0010 0011  D-R
+linear_drag_state_model     0xC2310024   bin: 1100 0010 0011 0001 0000 0000 0010 0100  D-R
+torsional_drag_state_model  0xC2310025   bin: 1100 0010 0011 0001 0000 0000 0010 0101  D-R
+cross_inertia_state_model   0xC2310026   bin: 1100 0010 0011 0001 0000 0000 0010 0110  D-R
+airship3D_6dof_thrusters    0xC2310027   bin: 1100 0010 0011 0001 0000 0000 0010 0111  D-R
+tryphon_n_thrusters         0xC2310028   bin: 1100 0010 0011 0001 0000 0000 0010 1000  D-R
+sat_position_output_model   0xC2310029   bin: 1100 0010 0011 0001 0000 0000 0010 1001  D-R
+sat_quaternion_output_model 0xC231002A   bin: 1100 0010 0011 0001 0000 0000 0010 1010  D-R
+gyros_bias_state_model      0xC231002B   bin: 1100 0010 0011 0001 0000 0000 0010 1011  D-R
+sat_gyros_output_model      0xC231002C   bin: 1100 0010 0011 0001 0000 0000 0010 1100  D-R
+accelerometer_bias_state_model 0xC231002Dbin: 1100 0010 0011 0001 0000 0000 0010 1101  D-R
+sat_accelerometer_output_model 0xC231002Ebin: 1100 0010 0011 0001 0000 0000 0010 1110  D-R
+magnetometer_bias_state_model 0xC231002F bin: 1100 0010 0011 0001 0000 0000 0010 1111  D-R
+sat_magnetometer_output_model 0xC2310030 bin: 1100 0010 0011 0001 0000 0000 0011 0000  D-R
+room_orientation_state_model 0xC2310031  bin: 1100 0010 0011 0001 0000 0000 0011 0001  D-R
+sonars_in_room_output_model 0xC2310032   bin: 1100 0010 0011 0001 0000 0000 0011 0010  D-R
+
 
 //Kalman filtering classes  0xC232****
 belief_predicted_trajectory 0xC2320000   bin: 1100 0010 0011 0010 0000 0000 0000 0000  D-R
