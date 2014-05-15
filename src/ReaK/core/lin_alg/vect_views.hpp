@@ -274,6 +274,42 @@ class vect_ref_view {
       return *this;
     };
     
+    /**
+     * Standard assignment operator.
+     */
+    template <typename Vector2>
+    typename boost::enable_if< is_readable_vector<Vector2>,
+    self& >::type operator+=(const Vector2& rhs) {
+      if(rhs.size() != count)
+        throw std::range_error("Vector dimensions mismatch.");
+      for(size_type i = 0; i < count; ++i)
+        (*v)[offset + i] += rhs[i];
+      return *this;
+    };
+    
+    /**
+     * Standard assignment operator.
+     */
+    template <typename Vector2>
+    typename boost::enable_if< is_readable_vector<Vector2>,
+    self& >::type operator-=(const Vector2& rhs) {
+      if(rhs.size() != count)
+        throw std::range_error("Vector dimensions mismatch.");
+      for(size_type i = 0; i < count; ++i)
+        (*v)[offset + i] -= rhs[i];
+      return *this;
+    };
+    
+    /**
+     * Standard assignment operator.
+     */
+    template <typename Scalar>
+    self& operator*=(const Scalar& rhs) {
+      for(size_type i = 0; i < count; ++i)
+        (*v)[offset + i] *= rhs;
+      return *this;
+    };
+    
 /*******************************************************************************
                          Accessors and Methods
 *******************************************************************************/
@@ -512,6 +548,42 @@ class vect_copy_view {
         throw std::range_error("Vector dimensions mismatch.");
       for(size_type i=0; i < count; ++i)
         v[offset + i] = rhs[i];
+      return *this;
+    };
+    
+    /**
+     * Standard assignment operator.
+     */
+    template <typename Vector2>
+    typename boost::enable_if_c< is_readable_vector<Vector2>::value,
+    self& >::type operator+=(const Vector2& rhs) {
+      if(rhs.size() != count)
+        throw std::range_error("Vector dimensions mismatch.");
+      for(size_type i=0; i < count; ++i)
+        v[offset + i] += rhs[i];
+      return *this;
+    };
+    
+    /**
+     * Standard assignment operator.
+     */
+    template <typename Vector2>
+    typename boost::enable_if_c< is_readable_vector<Vector2>::value,
+    self& >::type operator-=(const Vector2& rhs) {
+      if(rhs.size() != count)
+        throw std::range_error("Vector dimensions mismatch.");
+      for(size_type i=0; i < count; ++i)
+        v[offset + i] -= rhs[i];
+      return *this;
+    };
+    
+    /**
+     * Standard assignment operator.
+     */
+    template <typename Scalar>
+    self& operator*=(const Scalar& rhs) {
+      for(size_type i=0; i < count; ++i)
+        v[offset + i] *= rhs;
       return *this;
     };
     

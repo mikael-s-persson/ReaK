@@ -1681,13 +1681,13 @@ namespace detail {
 template <typename T, typename Tuple>
 typename boost::enable_if< is_arithmetic_tuple<Tuple>,
 T& >::type get_by_type(Tuple& value) {
-  detail::get_by_type_impl< arithmetic_tuple_size<Tuple>, T, Tuple >(value);
+  return detail::get_by_type_impl< arithmetic_tuple_size<Tuple>, T, Tuple >(value);
 };
 
 template <typename T, typename Tuple>
 typename boost::enable_if< is_arithmetic_tuple<Tuple>,
 const T& >::type get_by_type(const Tuple& value) {
-  detail::get_by_type_impl< arithmetic_tuple_size<Tuple>, const T, const Tuple >(value);
+  return detail::get_by_type_impl< arithmetic_tuple_size<Tuple>, const T, const Tuple >(value);
 };
 
 
@@ -1700,6 +1700,7 @@ struct arithmetic_tuple_index_of {
 template <typename T, typename Tuple>
 struct arithmetic_tuple_has_type {
   typedef typename detail::arithmetic_tuple_has_type_impl< arithmetic_tuple_size<Tuple>, T, Tuple >::type type;
+  BOOST_STATIC_CONSTANT(bool, value = type::value);
 };
 
 

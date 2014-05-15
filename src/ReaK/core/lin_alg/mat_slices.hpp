@@ -129,6 +129,34 @@ class mat_row_slice {
     };
     
     /**
+     * Standard assignment operator for any readable vector type.
+     * \tparam Vector A readable vector type.
+     */
+    template <typename Vector>
+    typename boost::enable_if_c< is_readable_vector<Vector>::value,
+    self& >::type operator+=(const Vector& v) {
+      if(v.size() != count) 
+        throw std::range_error("Vector dimensions mismatch.");
+      for(size_type i = 0; i < count; ++i)
+        (*m)(offset + i,colIndex) += v[i];
+      return *this;
+    };
+    
+    /**
+     * Standard assignment operator for any readable vector type.
+     * \tparam Vector A readable vector type.
+     */
+    template <typename Vector>
+    typename boost::enable_if_c< is_readable_vector<Vector>::value,
+    self& >::type operator-=(const Vector& v) {
+      if(v.size() != count) 
+        throw std::range_error("Vector dimensions mismatch.");
+      for(size_type i = 0; i < count; ++i)
+        (*m)(offset + i,colIndex) -= v[i];
+      return *this;
+    };
+    
+    /**
      * Returns the size of the vector.
      */
     size_type size() const { return count; };
@@ -559,6 +587,34 @@ class mat_col_slice {
         throw std::range_error("Vector dimensions mismatch.");
       for(size_type i = 0; i < count; ++i)
         (*m)(rowIndex,offset + i) = v[i];
+      return *this;
+    };
+    
+    /**
+     * Standard assignment operator for any readable vector type.
+     * \tparam Vector A readable vector type.
+     */
+    template <typename Vector>
+    typename boost::enable_if_c< is_readable_vector<Vector>::value,
+    self& >::type operator+=(const Vector& v) {
+      if(v.size() != count) 
+        throw std::range_error("Vector dimensions mismatch.");
+      for(size_type i = 0; i < count; ++i)
+        (*m)(rowIndex,offset + i) += v[i];
+      return *this;
+    };
+    
+    /**
+     * Standard assignment operator for any readable vector type.
+     * \tparam Vector A readable vector type.
+     */
+    template <typename Vector>
+    typename boost::enable_if_c< is_readable_vector<Vector>::value,
+    self& >::type operator-=(const Vector& v) {
+      if(v.size() != count) 
+        throw std::range_error("Vector dimensions mismatch.");
+      for(size_type i = 0; i < count; ++i)
+        (*m)(rowIndex,offset + i) -= v[i];
       return *this;
     };
     

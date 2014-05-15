@@ -5,10 +5,17 @@ set(SSSYSTEMS_SOURCES
   "${SRCROOT}${RKSSSYSTEMSDIR}/satellite_invar_models.cpp"
   "${SRCROOT}${RKSSSYSTEMSDIR}/satellite_modeling_options.cpp"
   "${SRCROOT}${RKSSSYSTEMSDIR}/near_buoyant_airship_models.cpp"
+  "${SRCROOT}${RKSSSYSTEMSDIR}/airship_assembled_models.cpp"
 )
 
 
 set(SSSYSTEMS_HEADERS 
+  "${RKSSSYSTEMSDIR}/airship_assembled_models.hpp"
+  "${RKSSSYSTEMSDIR}/airship_basic_mixins.hpp"
+  "${RKSSSYSTEMSDIR}/airship_drag_mixins.hpp"
+  "${RKSSSYSTEMSDIR}/airship_IMU_mixins.hpp"
+  "${RKSSSYSTEMSDIR}/airship_sonar_mixins.hpp"
+  "${RKSSSYSTEMSDIR}/airship_thruster_mixins.hpp"
   "${RKSSSYSTEMSDIR}/quadrotor_system.hpp"
   "${RKSSSYSTEMSDIR}/satellite_basic_models.hpp"
   "${RKSSSYSTEMSDIR}/satellite_invar_models.hpp"

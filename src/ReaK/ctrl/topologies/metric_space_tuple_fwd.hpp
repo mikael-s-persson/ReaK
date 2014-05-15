@@ -40,6 +40,7 @@
 #include "tuple_distance_metrics.hpp"
 #include "default_random_sampler.hpp"
 #include "path_planning/metric_space_concept.hpp"
+#include "path_planning/reversible_space_concept.hpp"
 
 #include <boost/mpl/bool_fwd.hpp>
 #include <boost/mpl/and.hpp>
