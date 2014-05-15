@@ -176,7 +176,7 @@ typedef state_space_system_tuple<
     satellite_state_model, 
     near_buoyancy_state_model, 
     eccentricity_state_model>, 
-  arithmetic_tuple<tryphon_n_thrusters>, 
+  arithmetic_tuple<airship3D_6dof_thrusters>, 
   arithmetic_tuple< 
     sonars_in_room_output_model,
     sat_gyros_output_model,
@@ -192,7 +192,7 @@ typedef state_space_system_tuple<
     eccentricity_state_model,
     linear_drag_state_model,
     torsional_drag_state_model>, 
-  arithmetic_tuple<tryphon_n_thrusters>, 
+  arithmetic_tuple<airship3D_6dof_thrusters>, 
   arithmetic_tuple< 
     sonars_in_room_output_model,
     sat_gyros_output_model,
@@ -209,7 +209,7 @@ typedef state_space_system_tuple<
     gyros_bias_state_model,
     accelerometer_bias_state_model,
     magnetometer_bias_state_model>, 
-  arithmetic_tuple<tryphon_n_thrusters>, 
+  arithmetic_tuple<airship3D_6dof_thrusters>, 
   arithmetic_tuple< 
     sonars_in_room_output_model,
     sat_gyros_output_model,
@@ -228,7 +228,7 @@ typedef state_space_system_tuple<
     gyros_bias_state_model,
     accelerometer_bias_state_model,
     magnetometer_bias_state_model>, 
-  arithmetic_tuple<tryphon_n_thrusters>, 
+  arithmetic_tuple<airship3D_6dof_thrusters>, 
   arithmetic_tuple< 
     sonars_in_room_output_model,
     sat_gyros_output_model,
@@ -246,7 +246,7 @@ typedef state_space_system_tuple<
     accelerometer_bias_state_model,
     magnetometer_bias_state_model,
     room_orientation_state_model>, 
-  arithmetic_tuple<tryphon_n_thrusters>, 
+  arithmetic_tuple<airship3D_6dof_thrusters>, 
   arithmetic_tuple< 
     sonars_in_room_output_model,
     sat_gyros_output_model,
@@ -266,7 +266,7 @@ typedef state_space_system_tuple<
     accelerometer_bias_state_model,
     magnetometer_bias_state_model,
     room_orientation_state_model>, 
-  arithmetic_tuple<tryphon_n_thrusters>, 
+  arithmetic_tuple<airship3D_6dof_thrusters>, 
   arithmetic_tuple< 
     sonars_in_room_output_model,
     sat_gyros_output_model,

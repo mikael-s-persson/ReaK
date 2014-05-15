@@ -1255,9 +1255,9 @@ class state_space_system_tuple : public named_object {
      */
     state_space_system_tuple(const std::string& aName, 
                              const system_param_type& aSysParams,
-                             const state_models_type& aStateModels = state_models_type(),
-                             const input_models_type& aInputModels = input_models_type(),
-                             const output_models_type& aOutputModels = output_models_type(),
+                             const StateModelsTuple& aStateModels = StateModelsTuple(),
+                             const InputModelsTuple& aInputModels = InputModelsTuple(),
+                             const OutputModelsTuple& aOutputModels = OutputModelsTuple(),
                              double aDt = 0.01) : 
                              dt(aDt), sys_params(aSysParams), state_models(aStateModels), 
                              input_models(aInputModels), output_models(aOutputModels) { setName(aName); }; 

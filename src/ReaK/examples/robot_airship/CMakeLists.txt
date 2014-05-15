@@ -83,4 +83,8 @@ add_executable(estimate_satellite3D "${SRCROOT}${RKROBOTAIRSHIPDIR}/estimate_sat
 setup_custom_target(estimate_satellite3D "${SRCROOT}${RKROBOTAIRSHIPDIR}")
 target_link_libraries(estimate_satellite3D reak_ss_systems reak_topologies reak_interp reak_robot_airship reak_core)
 
+add_executable(estimate_airship "${SRCROOT}${RKROBOTAIRSHIPDIR}/estimate_airship.cpp")
+setup_custom_target(estimate_airship "${SRCROOT}${RKROBOTAIRSHIPDIR}")
+target_link_libraries(estimate_airship reak_ss_systems reak_core)
+
 

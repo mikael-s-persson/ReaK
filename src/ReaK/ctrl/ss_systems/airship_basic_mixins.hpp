@@ -69,10 +69,14 @@ class airship_parameter_pack : public named_object {
     vect<double,3> gravity_acc_vect;
     vect<double,3> magnetic_field_vect;
     
+    vect<double,3> IMU_position;
+    quaternion<double> IMU_orientation;
+    
     airship_parameter_pack() : named_object(), mass(1.0), added_mass_factor(0.5), J(1.0, 0.0, 0.0, 1.0, 0.0, 1.0), 
                                effective_mass(mass), effective_J(J), effective_J_inv(J),
                                use_hot_del_q_terms(false), use_momentum_transfer_terms(true),
-                               gravity_acc_vect(0.0, 0.0, -9.81), magnetic_field_vect(0.0, 0.0, 0.0) { setName("airship_parameter_pack"); };
+                               gravity_acc_vect(0.0, 0.0, -9.81), magnetic_field_vect(0.0, 0.0, 0.0),
+                               IMU_position(0.0,0.0,0.0), IMU_orientation() { setName("airship_parameter_pack"); };
     
     void reset_parameters() {
       effective_mass = mass;
