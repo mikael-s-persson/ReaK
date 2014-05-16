@@ -2422,7 +2422,7 @@ void >::type solve_IHDT_LQR(const Matrix1& F, const Matrix2& G,
                             bool UseBalancing = false) {
   solve_dare_problem(F,G,Q,R,P,NumTol,UseBalancing);
   
-  mat<double,mat_structure::rectangular> M_tmp = R;
+  mat<double,mat_structure::rectangular> M_tmp(R);
   M_tmp += transpose_view(G) * P * G;
   mat<double,mat_structure::rectangular> M2_tmp(G.get_col_count(),F.get_col_count());
   M2_tmp = transpose_view(G) * P * F;
@@ -2472,7 +2472,7 @@ void >::type solve_IHDT_LQR(const Matrix1& F, const Matrix2& G,
                             bool UseBalancing = false) {
   typedef typename mat_traits<Matrix1>::value_type ValueType;
   mat<ValueType, mat_structure::square> P = mat<ValueType, mat_structure::square>(F.get_row_count());
-  solve_ihdt_lqr(F,G,Q,R,K,P,NumTol,UseBalancing);
+  solve_IHDT_LQR(F,G,Q,R,K,P,NumTol,UseBalancing);
 };
 
 

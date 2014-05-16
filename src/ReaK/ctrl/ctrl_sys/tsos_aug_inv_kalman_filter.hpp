@@ -60,6 +60,7 @@
 #include "covariance_matrix.hpp"
 
 #include "tsos_aug_kalman_filter.hpp"
+#include "invariant_kalman_filter.hpp"
 
 #include "path_planning/metric_space_concept.hpp"
 
@@ -263,12 +264,32 @@ void >::type tsos_aug_inv_kalman_update(const InvariantSystem& sys,
   
   MatPType P(b_x.get_covariance().get_matrix());
   const std::size_t n   = sys.get_actual_state_dimensions();
-  const std::size_t n_z = sys.get_invariant_error_dimensions();
   const std::size_t m   = sys.get_correction_dimensions() - n;
   
+  mat_sub_block<MatPType> P_xa = sub(P)(range(0, n-1), range(n, n+m-1));
+  
+  
+  mat< ValueType, mat_structure::rectangular > CP = C * P;
+  mat< ValueType, mat_structure::symmetric > S( CP * transpose_view(C) + b_z.get_covariance().get_matrix() );
+  linsolve_Cholesky(S, CP);
+  mat< ValueType, mat_structure::rectangular > K( transpose_view(CP) );
+  
+  vect_n<ValueType> e = 
+    to_vect<ValueType>(sys.get_invariant_error(state_space, x, b_u.get_mean_state(), b_z.get_mean_state(), t + sys.get_time_step()));
+  b_x.set_mean_state( sys.apply_correction(state_space, x, from_vect<InvarCorr>(K * e), b_u.get_mean_state(), t + sys.get_time_step()) );
+  
+  InvarFrame W = sys.get_invariant_posterior_frame(state_space, x, b_x.get_mean_state(), b_u.get_mean_state(), t + sys.get_time_step());
+  mat<ValueType, mat_structure::square> W_I_KC(W * (mat_ident<ValueType>(n+m) - K * C));
+  mat< ValueType, mat_structure::rectangular > P_post(W_I_KC * P * transpose_view(W));
+  set_block(P, sub(P_post)(range(0, n-1), range(0, n-1)), 0, 0);
+  set_block(P, sub(P_post)(range(0, n-1), range(n, n+m-1)), 0, n);
+  set_block(P, transpose_view(P_xa), n, 0);
+  b_x.set_covariance( CovType( MatType( P ) ) );
+  
+#if 0
+  const std::size_t n_z = sys.get_invariant_error_dimensions();
   mat_sub_block<MatCType> C_x  = sub(C)(range(0,n_z-1),range(0,n-1));
   mat_sub_block<MatPType> P_x  = sub(P)(range(0, n-1), range(0, n-1));
-  mat_sub_block<MatPType> P_xa = sub(P)(range(0, n-1), range(n, n+m-1));
   
   mat< ValueType, mat_structure::rectangular > CP_xa = C_x * P_xa;
   mat< ValueType, mat_structure::rectangular > CP_x  = C_x * P_x;
@@ -289,6 +310,7 @@ void >::type tsos_aug_inv_kalman_update(const InvariantSystem& sys,
   set_block(P, W_I_KC * P_xa, 0, n);
   set_block(P, transpose_view(P_xa), n, 0);
   b_x.set_covariance( CovType( MatType( P ) ) );
+#endif
 };
 
 
@@ -403,7 +425,6 @@ void >::type tsos_aug_inv_kalman_filter_step(const InvariantSystem& sys,
   
   const std::size_t n   = sys.get_actual_state_dimensions();
   const std::size_t n_u = sys.get_input_dimensions();
-  const std::size_t n_z = sys.get_invariant_error_dimensions();
   const std::size_t m   = sys.get_correction_dimensions() - n;
   
   StateType x_prior = sys.get_next_state(state_space, x, b_u.get_mean_state(), t);
@@ -418,6 +439,37 @@ void >::type tsos_aug_inv_kalman_filter_step(const InvariantSystem& sys,
   mat_sub_block<MatPType> P_ax = sub(P)(range(n, n+m-1), range(0, n-1));
   mat_sub_block<MatBType> B_x  = sub(B)(range(0, n-1), range(0, n_u-1));
   
+  sys.get_output_function_blocks(C, D, state_space, t + sys.get_time_step(), x, b_u.get_mean_state());
+  
+  
+  mat<ValueType, mat_structure::rectangular> P_xa_p( 
+    A_x * transpose_view(P_ax) + A_xa * P_a
+  );
+  set_block(P,
+    W_x * ( ( A_x * P_x + A_xa * P_ax ) * transpose_view(A_x) + P_xa_p * transpose_view(A_xa)
+      + B_x * b_u.get_covariance().get_matrix() * transpose_view(B_x) ) * transpose_view(W_x),
+    0, 0);
+  P_xa_p = W_x * P_xa_p;
+  set_block(P, P_xa_p, 0, n);
+  set_block(P, transpose_view(P_xa_p), n, 0);
+  
+  mat< ValueType, mat_structure::rectangular > CP = C * P;
+  mat< ValueType, mat_structure::symmetric > S( CP * transpose_view(C) + b_z.get_covariance().get_matrix() );
+  linsolve_Cholesky(S, CP);
+  mat< ValueType, mat_structure::rectangular > K( transpose_view(CP) );
+  
+  vect_n<ValueType> e = 
+    to_vect<ValueType>(sys.get_invariant_error(state_space, x_prior, b_u.get_mean_state(), b_z.get_mean_state(), t + sys.get_time_step()));
+  b_x.set_mean_state( sys.apply_correction(state_space, x_prior, from_vect<InvarCorr>(K * e), b_u.get_mean_state(), t + sys.get_time_step()) );
+  
+  W = sys.get_invariant_posterior_frame(state_space, x_prior, b_x.get_mean_state(), b_u.get_mean_state(), t + sys.get_time_step());
+  mat<ValueType, mat_structure::square> W_I_KC(W * (mat_ident<ValueType>(n+m) - K * C));
+  mat< ValueType, mat_structure::rectangular > P_post(W_I_KC * P * transpose_view(W));
+  set_block(P_post, P_a, n, n);
+  b_x.set_covariance( CovType( MatType( P_post ) ) );
+  
+  
+#if 0
   mat<ValueType, mat_structure::rectangular> P_xa_p( 
     A_x * transpose_view(P_ax) + A_xa * P_a
   );
@@ -427,8 +479,7 @@ void >::type tsos_aug_inv_kalman_filter_step(const InvariantSystem& sys,
   );
   P_xa_p = W_x * P_xa_p;
   
-  sys.get_output_function_blocks(C, D, state_space, t + sys.get_time_step(), x, b_u.get_mean_state());
-  
+  const std::size_t n_z = sys.get_invariant_error_dimensions();
   mat_sub_block<MatCType>      C_x  = sub(C)(range(0,n_z-1),range(0,n-1));
   
   mat< ValueType, mat_structure::rectangular > CP_xa = C_x * P_xa_p;
@@ -450,7 +501,7 @@ void >::type tsos_aug_inv_kalman_filter_step(const InvariantSystem& sys,
   set_block(P, P_xa_p, 0, n);
   set_block(P, transpose_view(P_xa_p), n, 0);
   b_x.set_covariance( CovType( MatType(P) ) );
-  
+#endif
 };
 
 

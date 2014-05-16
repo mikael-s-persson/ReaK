@@ -54,6 +54,7 @@
 #include <boost/static_assert.hpp>
 #include "covariance_concept.hpp"
 
+#include "kalman_filter.hpp"
 #include "gaussian_belief_state.hpp"
 #include "covariance_matrix.hpp"
 
@@ -226,8 +227,24 @@ void >::type tsos_aug_kalman_update(const LinearSystem& sys,
   
   const MatType& P = b_x.get_covariance().get_matrix();
   const std::size_t n   = sys.get_actual_state_dimensions();
-  const std::size_t n_z = sys.get_output_dimensions();
   const std::size_t m   = sys.get_state_dimensions() - n;
+  
+  
+  mat< ValueType, mat_structure::rectangular > CP = C * P;
+  mat< ValueType, mat_structure::symmetric > S( CP * transpose_view(C) + b_z.get_covariance().get_matrix() );
+  linsolve_Cholesky(S, CP);
+  mat< ValueType, mat_structure::rectangular > K( transpose_view(CP) );
+  
+  vect_n<ValueType> y = to_vect<ValueType>(b_z.get_mean_state() - sys.get_output(state_space, x, b_u.get_mean_state(), t));
+  b_x.set_mean_state( state_space.adjust(x, from_vect<StateDiffType>(K * y) ) );
+  
+  mat<ValueType, mat_structure::square> I_KC(mat_ident<ValueType>(n+m) - K * C);
+  mat< ValueType, mat_structure::rectangular > P_post(I_KC * P);
+  set_block(P_post, sub(P)(range(n, n+m-1), range(n, n+m-1)), n, n);
+  b_x.set_covariance( CovType( MatType(P_post) ) );
+  
+#if 0
+  const std::size_t n_z = sys.get_output_dimensions();
   
   mat_sub_block<MatCType>      C_x  = sub(C)(range(0,n_z-1),range(0,n-1));
   mat_const_sub_block<MatType> P_x  = sub(P)(range(0, n-1), range(0, n-1));
@@ -251,6 +268,7 @@ void >::type tsos_aug_kalman_update(const LinearSystem& sys,
     ( P_x_post                  & P_xa_post ) |
     ( transpose_view(P_xa_post) & sub(P)(range(n, n+m-1), range(n, n+m-1)) )
   ) ) );
+#endif
 };
 
 
@@ -349,6 +367,9 @@ void >::type tsos_aug_kalman_filter_step(const LinearSystem& sys,
   x = sys.get_next_state(state_space, x, b_u.get_mean_state(), t);
   sys.get_state_transition_blocks(A, B, state_space, t, t + sys.get_time_step(), b_x.get_mean_state(), x, b_u.get_mean_state(), b_u.get_mean_state());
   
+  sys.get_output_function_blocks(C, D, state_space, t + sys.get_time_step(), x, b_u.get_mean_state());
+  
+  
   mat_sub_block<MatAType> A_x  = sub(A)(range(0, n-1), range(0, n-1));
   mat_sub_block<MatAType> A_xa = sub(A)(range(0, n-1), range(n, n+m-1));
   mat_sub_block<MatPType> P_x  = sub(P)(range(0, n-1), range(0, n-1));
@@ -364,8 +385,25 @@ void >::type tsos_aug_kalman_filter_step(const LinearSystem& sys,
     + B_x * b_u.get_covariance().get_matrix() * transpose_view(B_x)
   );
   
-  sys.get_output_function_blocks(C, D, state_space, t + sys.get_time_step(), x, b_u.get_mean_state());
+  set_block(P, P_x_p, 0, 0);
+  set_block(P, P_xa_p, 0, n);
+  set_block(P, transpose_view(P_xa_p), n, 0);
   
+  mat< ValueType, mat_structure::rectangular > CP = C * P;
+  mat< ValueType, mat_structure::symmetric > S( CP * transpose_view(C) + b_z.get_covariance().get_matrix() );
+  linsolve_Cholesky(S, CP);
+  mat< ValueType, mat_structure::rectangular > K( transpose_view(CP) );
+  
+  vect_n<ValueType> y = to_vect<ValueType>(b_z.get_mean_state() - sys.get_output(state_space, x, b_u.get_mean_state(), t + sys.get_time_step()));
+  b_x.set_mean_state( state_space.adjust(x, from_vect<StateDiffType>(K * y) ) );
+  
+  mat<ValueType, mat_structure::square> I_KC(mat_ident<ValueType>(n+m) - K * C);
+  mat< ValueType, mat_structure::rectangular > P_post(I_KC * P);
+  set_block(P_post, sub(P)(range(n, n+m-1),range(n, n+m-1)), n, n);
+  b_x.set_covariance( CovType( MatType( P_post ) ) );
+  
+  
+#if 0
   mat_sub_block<MatCType>      C_x  = sub(C)(range(0,n_z-1),range(0,n-1));
   
   mat< ValueType, mat_structure::rectangular > CP_xa = C_x * P_xa_p;
@@ -386,6 +424,7 @@ void >::type tsos_aug_kalman_filter_step(const LinearSystem& sys,
     ( P_x_post                  & P_xa_post ) |
     ( transpose_view(P_xa_post) & sub(P)(range(n, n+m-1), range(n, n+m-1)) )
   ) ) );
+#endif
 };
 
 
