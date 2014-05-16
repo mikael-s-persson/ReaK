@@ -259,6 +259,8 @@ int main(int argc, char **argv)
     dummy = 0.0;
     dummy = 0.0;
     
+    RK_UNUSED(dummy);
+    
   }
   return 0;
 }

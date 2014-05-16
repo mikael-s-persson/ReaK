@@ -181,6 +181,8 @@ int main(int argc, char **argv)
     dummy = ft[4];
     dummy = ft[5];
     
+    RK_UNUSED(dummy);
+    
   }
   return 0;
 }

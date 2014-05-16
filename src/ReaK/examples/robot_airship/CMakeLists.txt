@@ -95,5 +95,9 @@ add_executable(tryphon_ilqr_controller_stub "${SRCROOT}${RKROBOTAIRSHIPDIR}/tryp
 setup_custom_target(tryphon_ilqr_controller_stub "${SRCROOT}${RKROBOTAIRSHIPDIR}")
 target_link_libraries(tryphon_ilqr_controller_stub reak_ss_systems reak_core)
 
+add_executable(tryphon_dyn_comp_controller_stub "${SRCROOT}${RKROBOTAIRSHIPDIR}/tryphon_dyn_comp_controller_stub.cpp")
+setup_custom_target(tryphon_dyn_comp_controller_stub "${SRCROOT}${RKROBOTAIRSHIPDIR}")
+target_link_libraries(tryphon_dyn_comp_controller_stub reak_ss_systems reak_core)
+
 
 
