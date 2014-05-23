@@ -72,11 +72,13 @@ class airship_parameter_pack : public named_object {
     vect<double,3> IMU_position;
     quaternion<double> IMU_orientation;
     
+    double compass_offset;
+    
     airship_parameter_pack() : named_object(), mass(1.0), added_mass_factor(0.5), J(1.0, 0.0, 0.0, 1.0, 0.0, 1.0), 
                                effective_mass(mass), effective_J(J), effective_J_inv(J),
                                use_hot_del_q_terms(false), use_momentum_transfer_terms(true),
                                gravity_acc_vect(0.0, 0.0, -9.81), magnetic_field_vect(0.0, 0.0, 0.0),
-                               IMU_position(0.0,0.0,0.0), IMU_orientation() { setName("airship_parameter_pack"); };
+                               IMU_position(0.0,0.0,0.0), IMU_orientation(), compass_offset(0.0) { setName("airship_parameter_pack"); };
     
     void reset_parameters() {
       effective_mass = mass;
@@ -107,7 +109,10 @@ class airship_parameter_pack : public named_object {
         & RK_SERIAL_SAVE_WITH_NAME(use_hot_del_q_terms)
         & RK_SERIAL_SAVE_WITH_NAME(use_momentum_transfer_terms)
         & RK_SERIAL_SAVE_WITH_NAME(gravity_acc_vect)
-        & RK_SERIAL_SAVE_WITH_NAME(magnetic_field_vect);
+        & RK_SERIAL_SAVE_WITH_NAME(magnetic_field_vect)
+        & RK_SERIAL_SAVE_WITH_NAME(IMU_position)
+        & RK_SERIAL_SAVE_WITH_NAME(IMU_orientation)
+        & RK_SERIAL_SAVE_WITH_NAME(compass_offset);
     };
     
     virtual void RK_CALL load(ReaK::serialization::iarchive& A, unsigned int) {
@@ -118,7 +123,10 @@ class airship_parameter_pack : public named_object {
         & RK_SERIAL_LOAD_WITH_NAME(use_hot_del_q_terms)
         & RK_SERIAL_LOAD_WITH_NAME(use_momentum_transfer_terms)
         & RK_SERIAL_LOAD_WITH_NAME(gravity_acc_vect)
-        & RK_SERIAL_LOAD_WITH_NAME(magnetic_field_vect);
+        & RK_SERIAL_LOAD_WITH_NAME(magnetic_field_vect)
+        & RK_SERIAL_LOAD_WITH_NAME(IMU_position)
+        & RK_SERIAL_LOAD_WITH_NAME(IMU_orientation)
+        & RK_SERIAL_LOAD_WITH_NAME(compass_offset);
     };
     
     RK_RTTI_MAKE_CONCRETE_1BASE(airship_parameter_pack,0xC2310020,1,"airship_parameter_pack",named_object)

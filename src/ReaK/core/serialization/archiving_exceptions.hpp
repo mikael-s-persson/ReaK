@@ -84,6 +84,8 @@ class unsupported_type : public std::exception {
       mMessage = ss.str();
     };
     
+    virtual ~unsupported_type() BOOST_NOEXCEPT_OR_NOTHROW { };
+    
     virtual const char* what() const BOOST_NOEXCEPT_OR_NOTHROW {
       return mMessage.c_str();
     };

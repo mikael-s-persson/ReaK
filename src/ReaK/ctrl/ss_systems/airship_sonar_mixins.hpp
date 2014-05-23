@@ -183,7 +183,7 @@ class sonars_in_room_output_model : public named_object {
           y = tmp;
           surface_id = 0;
         };
-        tmp = -(upper_corner[0] - spos_gbl[0]) / sdir_gbl[0];
+        tmp = (upper_corner[0] - spos_gbl[0]) / sdir_gbl[0];
         if((tmp > 0.0) && (tmp < y)) {
           y = tmp;
           surface_id = 1;
@@ -196,7 +196,7 @@ class sonars_in_room_output_model : public named_object {
           y = tmp;
           surface_id = 2;
         };
-        tmp = -(upper_corner[1] - spos_gbl[1]) / sdir_gbl[1];
+        tmp = (upper_corner[1] - spos_gbl[1]) / sdir_gbl[1];
         if((tmp > 0.0) && (tmp < y)) {
           y = tmp;
           surface_id = 3;
@@ -209,12 +209,14 @@ class sonars_in_room_output_model : public named_object {
           y = tmp;
           surface_id = 4;
         };
-        tmp = -(upper_corner[2] - spos_gbl[2]) / sdir_gbl[2];
+        tmp = (upper_corner[2] - spos_gbl[2]) / sdir_gbl[2];
         if((tmp > 0.0) && (tmp < y)) {
           y = tmp;
           surface_id = 5;
         };
       };
+      if(y == std::numeric_limits<double>::infinity())
+        y = 0.0; // prevent impossible distances (outside the box) from wreaking havoc in the system.
     };
     
     
