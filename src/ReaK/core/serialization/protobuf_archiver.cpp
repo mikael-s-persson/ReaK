@@ -29,6 +29,8 @@
 #include "rtti/so_type_repo.hpp"
 #include "rtti/typed_primitives.hpp"
 
+#include "archiving_exceptions.hpp"
+
 #include <string>
 #include <fstream>
 #include <sstream>
@@ -140,6 +142,7 @@ protobuf_iarchive::~protobuf_iarchive() { };
 
 iarchive& RK_CALL protobuf_iarchive::load_serializable_ptr(serializable_shared_pointer& Item) {
   archive_object_header hdr;
+  Item = serializable_shared_pointer();
   
   unsigned int chunk_hdr;
   protobuf_iarchive::load_varint(chunk_hdr);
@@ -164,8 +167,8 @@ iarchive& RK_CALL protobuf_iarchive::load_serializable_ptr(serializable_shared_p
   
   *this >> hdr.type_version >> hdr.object_ID >> hdr.is_external;
   
-  if(hdr.object_ID == 0) {
-    Item = serializable_shared_pointer();
+  if(hdr.object_ID == 0) { 
+    // Item already null.
     std::streampos end_pos = file_stream->tellg();
     if (hdr.size + start_pos != end_pos)
       file_stream->seekg(start_pos + std::streampos(hdr.size));
@@ -186,7 +189,7 @@ iarchive& RK_CALL protobuf_iarchive::load_serializable_ptr(serializable_shared_p
     if (hdr.size + start_pos != end_pos)
       file_stream->seekg(start_pos + std::streampos(hdr.size));
     
-    protobuf_iarchive a(ext_filename);
+    protobuf_iarchive a(ext_filename);  // if this throws, let it propagate up (no point catching and throwing).
     a >> Item;
     
     return *this;
@@ -198,16 +201,14 @@ iarchive& RK_CALL protobuf_iarchive::load_serializable_ptr(serializable_shared_p
     std::streampos end_pos = file_stream->tellg();
     if (hdr.size + start_pos != end_pos)
       file_stream->seekg(start_pos + std::streampos(hdr.size));
-    Item = serializable_shared_pointer();
-    return *this;
+    throw unsupported_type(unsupported_type::not_found_in_repo, &(typeIDvect[0]));
   };
   ReaK::shared_ptr<shared_object> po(p.lock()->CreateObject());
   if(!po) {
     std::streampos end_pos = file_stream->tellg();
     if (hdr.size + start_pos != end_pos)
       file_stream->seekg(start_pos + std::streampos(hdr.size));
-    Item = serializable_shared_pointer();
-    return *this;
+    throw unsupported_type(unsupported_type::could_not_create, &(typeIDvect[0]));
   };
   
   Item = po;
