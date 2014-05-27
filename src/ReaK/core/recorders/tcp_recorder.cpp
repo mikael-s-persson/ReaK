@@ -103,8 +103,17 @@ class tcp_client_impl {
     
     tcp_client_impl(const std::string& ip4_address, std::size_t port_num) : 
       io_service(), 
-      endpoint(boost::asio::ip::address_v4::from_string(ip4_address), port_num),
-      socket(io_service) { 
+      endpoint(),
+      socket(io_service) {
+      
+      boost::asio::ip::tcp::resolver addr_resolver(io_service);
+      boost::asio::ip::tcp::resolver::query addr_query(boost::asio::ip::tcp::v4(), ip4_address, "");
+      boost::asio::ip::tcp::resolver::iterator it = addr_resolver.resolve(addr_query);
+      if(it != boost::asio::ip::tcp::resolver::iterator())
+        endpoint = boost::asio::ip::tcp::endpoint(it->endpoint().address(), port_num);
+      else
+        throw std::invalid_argument("Could not resolve the host-name specified to a valid IPv4 address!");
+      
       socket.connect(endpoint);
     };
     

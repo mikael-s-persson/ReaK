@@ -675,6 +675,8 @@ struct prediction_updater {
     
     TempBeliefPointType b_pred;
     
+    RK_NOTICE(1," entered the prediction updater loop!");
+    
     try {
       while ( !should_stop ) {
         
@@ -716,8 +718,10 @@ struct prediction_updater {
         
       };
     } catch (std::exception& e) {
+      RK_NOTICE(1," leaving the prediction updater loop with an error!");
       return 0;
     };
+    RK_NOTICE(1," leaving the prediction updater loop without error!");
     return 0;
   };
   
@@ -725,8 +729,11 @@ struct prediction_updater {
   
   static void stop_function() {
     should_stop = true;
-    executer->join();
-    executer.reset();
+    if(executer) {
+      if(executer->joinable())
+        executer->join();
+      executer.reset();
+    };
   };
   
 };
@@ -811,7 +818,6 @@ shared_ptr< CRS_target_anim_data::trajectory_type >
   typedef typename Sat3DSystemType::output_belief_type OutputBeliefType;
   
   typedef typename topology_traits< TempBeliefSpaceType >::point_type TempBeliefPointType;
-  
   
   shared_ptr< TempSpaceType > sat_temp_space = satellite3D_system->get_temporal_state_space(0.0, sat_options.predict_time_horizon);
   
@@ -950,7 +956,6 @@ void TargetPredConfigWidget::startStatePrediction() {
   
   using namespace ctrl;
   
-  
   // ---------- Create input data stream ----------
   
   recorder::data_stream_options data_in_opt;
@@ -1016,7 +1021,7 @@ void TargetPredConfigWidget::startStatePrediction() {
         break;
     };
   };
-  
+  RK_NOTICE(1," reached the end of startStatePrediction() function!");
   
 };
 

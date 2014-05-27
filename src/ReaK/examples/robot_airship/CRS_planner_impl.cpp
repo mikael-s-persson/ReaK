@@ -251,39 +251,59 @@ void CRSPlannerGUI::threadedPlanningFunction(int mode) {
     run_dialog.publishConsoleMessage("Starting state estimation...\n");
     target_anim.trajectory.reset();
     target_pred_config.startStatePrediction();
+    RK_NOTICE(1," reached!");
     if(!target_anim.trajectory) {
+    RK_NOTICE(1," reached!");
       QMessageBox::critical(this,
                             "State-Prediction Error!",
                             "The live state-estimation of the target failed to produce a viable predicted trajectory!",
                             QMessageBox::Ok);
+    RK_NOTICE(1," reached!");
       run_dialog.onReset();
+    RK_NOTICE(1," reached!");
       return;
     };
+    RK_NOTICE(1," reached!");
     run_dialog.publishConsoleMessage("State estimation done!\nSwitched to predicted target trajectory!\n");
+    RK_NOTICE(1," reached!");
   };
   
+    RK_NOTICE(1," reached!");
   run_dialog.onInitializationDone();
+    RK_NOTICE(1," reached!");
   
   try {
     if( mode > 0 ) {
+    RK_NOTICE(1," reached!");
       executeDynamicPlanner();
+    RK_NOTICE(1," reached!");
     } else {
+    RK_NOTICE(1," reached!");
       executePlanner();
+    RK_NOTICE(1," reached!");
     };
   } catch(std::exception& e) {
+    RK_NOTICE(1," reached!");
     std::stringstream ss;
     ss << "An exception was raised during the planning:\nwhat(): " << e.what();
-    QMessageBox::critical(this,
-                  "Motion-Planning Error!",
-                  QString::fromStdString(ss.str()),
-                  QMessageBox::Ok);
+    RK_NOTICE(1," reached! " << ss.str());
+    run_dialog.publishConsoleMessage("Motion-Planning Error!\nwhat(): " + std::string(e.what()));
+//     QMessageBox::critical(this,
+//                   "Motion-Planning Error!",
+//                   QString::fromStdString(ss.str()),
+//                   QMessageBox::Ok);
+    RK_NOTICE(1," reached!");
     run_dialog.onReset();
+    RK_NOTICE(1," reached!");
   };
   
+    RK_NOTICE(1," reached!");
   run_dialog.onPlanningDone();
+    RK_NOTICE(1," reached!");
   
   if(sol_anim.trajectory)
     run_dialog.onLaunchOpportunity();
+    RK_NOTICE(1," reached!");
   
 //   onInitializationDone();
 //   onPlanningDone();
@@ -311,7 +331,8 @@ void CRSPlannerGUI::onStartPlanning(int mode) {
   
   if(planning_thr) {
     // TODO Signal the stop.
-    planning_thr->join();
+    if(planning_thr->joinable())
+      planning_thr->join();
     delete planning_thr;
     planning_thr = NULL;
   };
@@ -326,7 +347,8 @@ void CRSPlannerGUI::onStopPlanning() {
   
   if(planning_thr) {
     // TODO Signal the stop.
-    planning_thr->join();
+    if(planning_thr->joinable())
+      planning_thr->join();
     delete planning_thr;
     planning_thr = NULL;
   };

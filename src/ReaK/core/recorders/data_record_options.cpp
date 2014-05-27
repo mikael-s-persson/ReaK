@@ -154,8 +154,9 @@ std::pair< shared_ptr< data_extractor >, std::vector< std::string > > data_strea
     result.second = names;
     
     raw_udp_extractor* data_in_tmp = static_cast< raw_udp_extractor* >(result.first.get());
-    for(std::vector< std::string >::const_iterator it = names.begin(), it_end = names.end(); it != it_end; ++it)
+    for(std::vector< std::string >::const_iterator it = names.begin(), it_end = names.end(); it != it_end; ++it) {
       data_in_tmp->addName(*it);
+    };
   } else {
     if( names.empty() )
       throw std::invalid_argument("empty names for a vector-extractor");

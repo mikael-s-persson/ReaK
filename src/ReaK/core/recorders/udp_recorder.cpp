@@ -116,13 +116,21 @@ class udp_client_impl {
       endpoint(boost::asio::ip::address_v4::from_string(ip4_address), port_num), 
       socket(io_service) { 
       
+      boost::asio::ip::udp::resolver addr_resolver(io_service);
+      boost::asio::ip::udp::resolver::query addr_query(boost::asio::ip::udp::v4(), ip4_address, "");
+      boost::asio::ip::udp::resolver::iterator it = addr_resolver.resolve(addr_query);
+      if(it != boost::asio::ip::udp::resolver::iterator())
+        endpoint = boost::asio::ip::udp::endpoint(it->endpoint().address(), port_num);
+      else
+        throw std::invalid_argument("Could not resolve the host-name specified to a valid IPv4 address!");
+      
       socket.open(boost::asio::ip::udp::v4());
       socket.set_option(boost::asio::ip::udp::socket::reuse_address(true));
       socket.bind(endpoint);
       
       {
         boost::asio::io_service tcp_io_service;
-        boost::asio::ip::tcp::endpoint tcp_endpoint(boost::asio::ip::address_v4::from_string(ip4_address), port_num);
+        boost::asio::ip::tcp::endpoint tcp_endpoint(endpoint.address(), endpoint.port());
         boost::asio::ip::tcp::socket tcp_socket(tcp_io_service);
         tcp_socket.connect(tcp_endpoint);
       };
