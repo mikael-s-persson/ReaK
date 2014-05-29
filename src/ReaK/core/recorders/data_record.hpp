@@ -305,7 +305,7 @@ class data_recorder : public shared_object {
     virtual void RK_CALL load(serialization::iarchive& A, unsigned int) { 
       ReaKaux::unique_lock< ReaKaux::mutex > lock_here(access_mutex);
       colCount = 0;
-      if(writing_thread) {
+      if(writing_thread && writing_thread->joinable()) {
         lock_here.unlock();
         writing_thread->join();
         lock_here.lock();
@@ -480,7 +480,7 @@ class data_extractor : public shared_object {
     virtual void RK_CALL load(serialization::iarchive& A, unsigned int) {
       ReaKaux::unique_lock< ReaKaux::mutex > lock_here(access_mutex);
       colCount = 0;
-      if(reading_thread) {
+      if(reading_thread && reading_thread->joinable()) {
         lock_here.unlock();
         reading_thread->join();
         lock_here.lock();

@@ -252,7 +252,8 @@ BOOST_AUTO_TEST_CASE( tcp_record_extract_test )
     BOOST_CHECK_NO_THROW( input_rec >> data_extractor::end_value_row );
   };
   
-  BOOST_CHECK_NO_THROW( server_thd.join() );
+  if( server_thd.joinable() )
+    BOOST_CHECK_NO_THROW( server_thd.join() );
   BOOST_CHECK_EQUAL( server_sent, 21 );
   BOOST_CHECK( server_worked );
   
@@ -325,7 +326,8 @@ BOOST_AUTO_TEST_CASE( udp_record_extract_test )
     BOOST_CHECK_NO_THROW( input_rec >> data_extractor::end_value_row );
   };
   
-  BOOST_CHECK_NO_THROW( server_thd.join() );
+  if( server_thd.joinable() )
+    BOOST_CHECK_NO_THROW( server_thd.join() );
   BOOST_CHECK_EQUAL( server_sent, 21 );
   BOOST_CHECK( server_worked );
   
@@ -399,7 +401,8 @@ BOOST_AUTO_TEST_CASE( raw_udp_record_extract_test )
     BOOST_CHECK_NO_THROW( input_rec >> data_extractor::end_value_row );
   };
   
-  BOOST_CHECK_NO_THROW( server_thd.join() );
+  if( server_thd.joinable() )
+    BOOST_CHECK_NO_THROW( server_thd.join() );
   BOOST_CHECK_EQUAL( server_sent, 21 );
   BOOST_CHECK( server_worked );
   

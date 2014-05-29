@@ -246,7 +246,7 @@ void CRSRunDialogWidget::onReset() {
   this->capture_label->setText("");
   this->capture_label->setStyleSheet("color: red;");
   
-  this->status_text->clear();
+//   this->status_text->clear();
   
   this->flashing_button_timer.stop();
   

@@ -652,7 +652,8 @@ struct prediction_updater {
   static void stop_function() {
     should_stop = true;
     if(executer) {
-      executer->join();
+      if(executer->joinable())
+        executer->join();
       executer.reset();
     };
   };
@@ -767,7 +768,8 @@ void batch_KF_meas_predict_with_predictor(
   
   pred_stop_function = prediction_updater<Sat3DSystemType,MeasureProvider,ResultLogger>::stop_function;
   
-  prediction_updater<Sat3DSystemType,MeasureProvider,ResultLogger>::executer->join();
+  if(prediction_updater<Sat3DSystemType,MeasureProvider,ResultLogger>::executer->joinable())
+    prediction_updater<Sat3DSystemType,MeasureProvider,ResultLogger>::executer->join();
   prediction_updater<Sat3DSystemType,MeasureProvider,ResultLogger>::executer.reset();
   pred_stop_function.clear();
   

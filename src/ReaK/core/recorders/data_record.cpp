@@ -61,7 +61,8 @@ data_recorder::~data_recorder() {
   colCount = 0;
   if(writing_thread) {
     lock_here.unlock();
-    writing_thread->join();
+    if(writing_thread->joinable())
+      writing_thread->join();
     lock_here.lock();
     writing_thread = ReaK::shared_ptr<ReaKaux::thread>();
   };
@@ -129,7 +130,8 @@ data_recorder& data_recorder::operator <<(flag some_flag) {
       writeRow();
     colCount = 0;
     if(writing_thread) {
-      writing_thread->join();
+      if(writing_thread->joinable())
+        writing_thread->join();
       writing_thread = ReaK::shared_ptr<ReaKaux::thread>();
     };
   };

@@ -173,7 +173,8 @@ void PPTestWindow::startRobot() {
   actionStart_Robot->setEnabled(false);
   robot_running = true;
   if(robot_exec_thread) {
-    robot_exec_thread->join();
+    if(robot_exec_thread->joinable())
+      robot_exec_thread->join();
     delete robot_exec_thread;
     robot_exec_thread = NULL;
   };
@@ -183,7 +184,8 @@ void PPTestWindow::startRobot() {
 void PPTestWindow::stopRobot() {
   robot_running = false;
   if(robot_exec_thread) {
-    robot_exec_thread->join();
+    if(robot_exec_thread->joinable())
+      robot_exec_thread->join();
     delete robot_exec_thread;
     robot_exec_thread = NULL;
   };

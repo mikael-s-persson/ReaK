@@ -414,7 +414,8 @@ void CRSPlannerGUI::onLaunch(int mode) {
   
   if(this->exec_robot_thr) {
     this->exec_robot_enabled = false;
-    this->exec_robot_thr->join();
+    if(this->exec_robot_thr->joinable())
+      this->exec_robot_thr->join();
     delete this->exec_robot_thr;
     this->exec_robot_thr = NULL;
   };
@@ -436,7 +437,8 @@ void CRSPlannerGUI::onAbort() {
   // first, stop the robot
   if(this->exec_robot_thr) {
     this->exec_robot_enabled = false;
-    this->exec_robot_thr->join();
+    if(this->exec_robot_thr->joinable())
+      this->exec_robot_thr->join();
     delete this->exec_robot_thr;
     this->exec_robot_thr = NULL;
   };
