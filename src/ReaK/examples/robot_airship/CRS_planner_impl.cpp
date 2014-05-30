@@ -146,6 +146,8 @@ void CRSPlannerGUI_animate_target_trajectory(void* pv, SoSensor*) {
     if( (*cur_pit).time <= 0.001 * (ReaKaux::chrono::duration_cast<ReaKaux::chrono::milliseconds>(ReaKaux::chrono::high_resolution_clock::now() - animation_start)).count() ) {
       cur_pit += 0.1;
       *(p->ct_config.sceneData.target_kin_model->getFrame3D(0)) = get_frame_3D((*cur_pit).pt); 
+      std::cout << "Position = " << p->ct_config.sceneData.target_kin_model->getFrame3D(0)->Position 
+                << "Rotation = " << p->ct_config.sceneData.target_kin_model->getFrame3D(0)->Quat << std::endl;
       p->ct_config.sceneData.target_kin_model->doDirectMotion();
       
       if( p->ct_config.sceneData.chaser_kin_model && p->ct_interact.isIKEnabled() && !(p->sol_anim.enabled)) {

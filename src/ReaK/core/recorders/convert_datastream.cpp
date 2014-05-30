@@ -24,6 +24,7 @@
 #include "data_record_po.hpp"
 
 #include <sstream>
+#include <iomanip>
 
 #include "base/chrono_incl.hpp"
 #include "base/thread_incl.hpp"
@@ -47,6 +48,7 @@ int main(int argc, char** argv) {
   po::options_description generic_options("Generic options");
   generic_options.add_options()
     ("help,h", "produce this help message.")
+    ("echo", "echo all the output to the terminal (do not use with std-out streaming).")
   ;
   
   po::options_description io_options = get_data_stream_options_po_desc(true, true);
@@ -83,9 +85,15 @@ int main(int argc, char** argv) {
     stc::time_point t_0 = stc::now();
     while(true) {
       (*data_in) >> nvr_in;
+      if(vm.count("echo"))
+        std::cout << "\n\n\n\n";
       for(std::size_t i = 0; i < names_in.size(); ++i) {
         nvr_out[ names_in[i] ] = nvr_in[ names_in[i] ];
+        if(vm.count("echo"))
+          std::cout << names_in[i] << '\t' << std::setw(16) << nvr_out[ names_in[i] ] << '\n';
       };
+      if(vm.count("echo"))
+        std::cout << std::flush;
       if( !data_out_opt.time_sync_name.empty() ) {
         // wait until the proper time to output the value.
         stc::time_point t_to_reach = t_0 + ch::duration_cast<stc::duration>(ch::duration<double, ReaKaux::ratio<1,1> >(nvr_in[data_out_opt.time_sync_name]));

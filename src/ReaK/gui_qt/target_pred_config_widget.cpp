@@ -747,7 +747,7 @@ shared_ptr< ReaKaux::thread > prediction_updater<Sat3DSystemType>::executer = sh
 
 boost::function<void()> pred_stop_function;
 
-QProcess pred_side_script;
+// QProcess pred_side_script;
 
 };
 
@@ -835,13 +835,13 @@ shared_ptr< CRS_target_anim_data::trajectory_type >
   
   double last_time = 0.0;
   (*current_target_anim_time) = last_time;
-//   double current_Pnorm = norm_2(b.get_covariance().get_matrix());
+  double current_Pnorm = norm_2(b.get_covariance().get_matrix());
   recorder::named_value_row nvr_in = data_in->getFreshNamedValueRow();
   double init_time = -1000.0;
   
   try {
-//     while ( current_Pnorm > sat_options.predict_Pnorm_threshold ) {
-    do {
+    while ( current_Pnorm > sat_options.predict_Pnorm_threshold ) {
+//     do {
       
       (*data_in) >> nvr_in;
       
@@ -871,15 +871,17 @@ shared_ptr< CRS_target_anim_data::trajectory_type >
                                       sat_temp_space->get_space_topology(), 
                                       b, b_u, b_z, last_time);
       
-//       current_Pnorm = norm_2(b.get_covariance().get_matrix());
+      current_Pnorm = norm_2(b.get_covariance().get_matrix());
+//       std::cout << "Current P-norm = " << current_Pnorm << std::endl;
       
       last_time = nvr_in["time"];
       (*current_target_anim_time) = last_time;
       if(init_time < -900.0)
         init_time = last_time;
       
-//     };
-    } while(last_time - init_time < sat_options.predict_Pnorm_threshold);
+    };
+//     } while(last_time - init_time < sat_options.predict_Pnorm_threshold);
+//     } while(last_time - init_time < 10.0);
   } catch (std::exception& e) {
     std::cerr << "An error occurred during the initial phase of measurement streaming! Exception: " << e.what() << std::endl;
     return shared_ptr< CRS_target_anim_data::trajectory_type >();
@@ -923,15 +925,15 @@ shared_ptr< CRS_target_anim_data::trajectory_type >
     pred_assumpt
   ));
   
-  prediction_updater<Sat3DSystemType>::should_stop = false;
-  prediction_updater<Sat3DSystemType>::executer = shared_ptr< ReaKaux::thread >(new ReaKaux::thread(
-    prediction_updater<Sat3DSystemType>(
-      predictor,
-      satellite3D_system,
-      sat_temp_space, nvr_in, data_in,
-      b, b_u, b_z, last_time, 0.5, current_target_anim_time)));
-  
-  pred_stop_function = prediction_updater<Sat3DSystemType>::stop_function;
+//   prediction_updater<Sat3DSystemType>::should_stop = false;
+//   prediction_updater<Sat3DSystemType>::executer = shared_ptr< ReaKaux::thread >(new ReaKaux::thread(
+//     prediction_updater<Sat3DSystemType>(
+//       predictor,
+//       satellite3D_system,
+//       sat_temp_space, nvr_in, data_in,
+//       b, b_u, b_z, last_time, 0.5, current_target_anim_time)));
+//   
+//   pred_stop_function = prediction_updater<Sat3DSystemType>::stop_function;
   
   
   typedef transformed_trajectory<TempSpaceType, BeliefPredTrajType, maximum_likelihood_map> MLTrajType;
