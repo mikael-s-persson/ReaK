@@ -21,7 +21,7 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "prismatic_joint.hpp"
+#include <ReaK/ctrl/mbd_kte/prismatic_joint.hpp>
 
 namespace ReaK {
 

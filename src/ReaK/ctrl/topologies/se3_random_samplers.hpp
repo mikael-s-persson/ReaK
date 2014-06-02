@@ -33,9 +33,9 @@
 #ifndef REAK_SE3_RANDOM_SAMPLERS_HPP
 #define REAK_SE3_RANDOM_SAMPLERS_HPP
 
-#include "base/serializable.hpp"
+#include <ReaK/core/base/serializable.hpp>
 
-#include "path_planning/random_sampler_concept.hpp"
+#include <ReaK/ctrl/path_planning/random_sampler_concept.hpp>
 
 #include "se3_topologies.hpp"
 

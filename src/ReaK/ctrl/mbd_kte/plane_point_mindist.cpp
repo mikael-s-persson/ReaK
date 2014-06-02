@@ -22,7 +22,7 @@
  */
 
 
-#include "plane_point_mindist.hpp"
+#include <ReaK/ctrl/mbd_kte/plane_point_mindist.hpp>
 
 namespace ReaK {
 

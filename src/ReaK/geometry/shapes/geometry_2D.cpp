@@ -21,7 +21,7 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "geometry_2D.hpp"
+#include <ReaK/geometry/shapes/geometry_2D.hpp>
 
 namespace ReaK {
 

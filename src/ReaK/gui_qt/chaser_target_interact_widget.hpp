@@ -29,7 +29,7 @@
 #ifndef REAK_CHASER_TARGET_INTERACT_WIDGET_HPP
 #define REAK_CHASER_TARGET_INTERACT_WIDGET_HPP
 
-#include "kte_models/chaser_target_model_data.hpp"
+#include <ReaK/ctrl/kte_models/chaser_target_model_data.hpp>
 
 #include "ui_chaser_target_interact.h"
 #include <QDockWidget>

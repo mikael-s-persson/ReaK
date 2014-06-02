@@ -34,12 +34,12 @@
 #define REAK_JOINT_SPACE_LIMITS_HPP
 
 
-#include "base/defs.hpp"
-#include "base/named_object.hpp"
+#include <ReaK/core/base/defs.hpp>
+#include <ReaK/core/base/named_object.hpp>
 
-#include "lin_alg/vect_alg.hpp"
+#include <ReaK/core/lin_alg/vect_alg.hpp>
 
-#include "path_planning/metric_space_concept.hpp"
+#include <ReaK/ctrl/path_planning/metric_space_concept.hpp>
 #include "rate_limited_space_metamaps.hpp"
 
 

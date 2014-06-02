@@ -37,17 +37,17 @@
 #ifndef REAK_SATELLITE_BASIC_MODELS_HPP
 #define REAK_SATELLITE_BASIC_MODELS_HPP
 
-#include "base/named_object.hpp"
+#include <ReaK/core/base/named_object.hpp>
 
-#include "ctrl_sys/invariant_system_concept.hpp"
-#include "topologies/se3_topologies.hpp"
-#include "topologies/temporal_space.hpp"
-#include "topologies/time_poisson_topology.hpp"
-#include "ctrl_sys/gaussian_belief_space.hpp"
-#include "ctrl_sys/covariance_matrix.hpp"
-#include "ctrl_sys/covar_topology.hpp"
+#include <ReaK/ctrl/ctrl_sys/invariant_system_concept.hpp>
+#include <ReaK/ctrl/topologies/se3_topologies.hpp>
+#include <ReaK/ctrl/topologies/temporal_space.hpp>
+#include <ReaK/ctrl/topologies/time_poisson_topology.hpp>
+#include <ReaK/ctrl/ctrl_sys/gaussian_belief_space.hpp>
+#include <ReaK/ctrl/ctrl_sys/covariance_matrix.hpp>
+#include <ReaK/ctrl/ctrl_sys/covar_topology.hpp>
 
-#include "lin_alg/mat_alg.hpp"
+#include <ReaK/core/lin_alg/mat_alg.hpp>
 
 namespace ReaK {
 

@@ -36,7 +36,6 @@
 #include "kte_map_chain.hpp"
 
 #include <boost/tuple/tuple.hpp>
-
 #include <boost/mpl/prior.hpp>
 
 namespace ReaK {

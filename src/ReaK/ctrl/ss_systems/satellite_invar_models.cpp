@@ -21,14 +21,14 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "satellite_invar_models.hpp"
+#include <ReaK/ctrl/ss_systems/satellite_invar_models.hpp>
 
-#include "ctrl_sys/sss_exceptions.hpp"
-#include "topologies/se3_topologies.hpp"
-#include "topologies/se2_topologies.hpp"
+#include <ReaK/ctrl/ctrl_sys/sss_exceptions.hpp>
+#include <ReaK/ctrl/topologies/se3_topologies.hpp>
+#include <ReaK/ctrl/topologies/se2_topologies.hpp>
 
-#include "lin_alg/mat_alg.hpp"
-#include "lin_alg/mat_cholesky.hpp"
+#include <ReaK/core/lin_alg/mat_alg.hpp>
+#include <ReaK/core/lin_alg/mat_cholesky.hpp>
 
 namespace ReaK {
 

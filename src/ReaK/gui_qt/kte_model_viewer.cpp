@@ -21,7 +21,7 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "kte_model_viewer.h"
+#include <ReaK/gui_qt/kte_model_viewer.h>
 
 #include <QApplication>
 #include <QMessageBox>
@@ -40,23 +40,23 @@
 #include <Inventor/nodes/SoLineSet.h>
 #include <Inventor/sensors/SoTimerSensor.h>  // for SoTimerSensor
 
-#include "shapes/oi_scene_graph.hpp"
-#include "shapes/kte_chain_geometry.hpp"
-#include "proximity/proxy_query_model.hpp"
+#include <ReaK/geometry/shapes/oi_scene_graph.hpp>
+#include <ReaK/geometry/shapes/kte_chain_geometry.hpp>
+#include <ReaK/geometry/proximity/proxy_query_model.hpp>
 
-#include "mbd_kte/kte_map_chain.hpp"
-#include "kte_models/direct_kinematics_model.hpp"
-#include "kte_models/inverse_kinematics_model.hpp"
-#include "kte_models/inverse_dynamics_model.hpp"
-#include "kte_models/manip_P3R3R_arm.hpp"
+#include <ReaK/ctrl/mbd_kte/kte_map_chain.hpp>
+#include <ReaK/ctrl/kte_models/direct_kinematics_model.hpp>
+#include <ReaK/ctrl/kte_models/inverse_kinematics_model.hpp>
+#include <ReaK/ctrl/kte_models/inverse_dynamics_model.hpp>
+#include <ReaK/ctrl/kte_models/manip_P3R3R_arm.hpp>
 
-#include "topologies/joint_space_limits.hpp"
+#include <ReaK/ctrl/topologies/joint_space_limits.hpp>
 
-#include "serialization/xml_archiver.hpp"
-#include "serialization/bin_archiver.hpp"
-#include "serialization/protobuf_archiver.hpp"
+#include <ReaK/core/serialization/xml_archiver.hpp>
+#include <ReaK/core/serialization/bin_archiver.hpp>
+#include <ReaK/core/serialization/protobuf_archiver.hpp>
 
-#include "optimization/optim_exceptions.hpp"
+#include <ReaK/core/optimization/optim_exceptions.hpp>
 
 
 

@@ -32,8 +32,8 @@
 #ifndef REAK_DENSITY_CALCULATORS_HPP
 #define REAK_DENSITY_CALCULATORS_HPP
 
-#include "base/defs.hpp"
-#include "base/shared_object.hpp"
+#include <ReaK/core/base/defs.hpp>
+#include <ReaK/core/base/shared_object.hpp>
 
 #include "planning_visitors.hpp"
 

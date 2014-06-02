@@ -21,7 +21,7 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "circle.hpp"
+#include <ReaK/geometry/shapes/circle.hpp>
 
 namespace ReaK {
 

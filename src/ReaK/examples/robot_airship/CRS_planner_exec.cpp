@@ -28,41 +28,41 @@
 #include <Inventor/nodes/SoSwitch.h>
 #include <Inventor/nodes/SoSeparator.h>
 
-#include "shapes/oi_scene_graph.hpp"
-#include "proximity/proxy_query_model.hpp"
+#include <ReaK/geometry/shapes/oi_scene_graph.hpp>
+#include <ReaK/geometry/proximity/proxy_query_model.hpp>
 
-#include "mbd_kte/kte_map_chain.hpp"
-#include "kte_models/manip_dynamics_model.hpp"
+#include <ReaK/ctrl/mbd_kte/kte_map_chain.hpp>
+#include <ReaK/ctrl/kte_models/manip_dynamics_model.hpp>
 
-#include "topologies/manip_P3R3R_workspaces.hpp"
+#include <ReaK/ctrl/topologies/manip_P3R3R_workspaces.hpp>
 
 
-#include "path_planning/p2p_planning_query.hpp"
+#include <ReaK/ctrl/path_planning/p2p_planning_query.hpp>
 
-#include "path_planning/rrtstar_manip_planners.hpp"
-#include "path_planning/sbastar_manip_planners.hpp"
+#include <ReaK/ctrl/path_planning/rrtstar_manip_planners.hpp>
+#include <ReaK/ctrl/path_planning/sbastar_manip_planners.hpp>
 
 #if 0
-#include "path_planning/rrt_path_planner.hpp"
-#include "path_planning/prm_path_planner.hpp"
-#include "path_planning/fadprm_path_planner.hpp"
+#include <ReaK/ctrl/path_planning/rrt_path_planner.hpp>
+#include <ReaK/ctrl/path_planning/prm_path_planner.hpp>
+#include <ReaK/ctrl/path_planning/fadprm_path_planner.hpp>
 #endif
 
 #include "CRS_planner_data.hpp"
 
-#include "path_planning/frame_tracer_coin3d.hpp"
+#include <ReaK/ctrl/path_planning/frame_tracer_coin3d.hpp>
 
-#include "optimization/optim_exceptions.hpp"
+#include <ReaK/core/optimization/optim_exceptions.hpp>
 
-#include "interpolation/discrete_point_trajectory.hpp"
-#include "path_planning/trajectory_base.hpp"
-#include "topologies/manip_planning_traits.hpp"
+#include <ReaK/ctrl/interpolation/discrete_point_trajectory.hpp>
+#include <ReaK/ctrl/path_planning/trajectory_base.hpp>
+#include <ReaK/ctrl/topologies/manip_planning_traits.hpp>
 
-#include "topologies/Ndof_linear_spaces.hpp"
-#include "topologies/Ndof_cubic_spaces.hpp"
-#include "topologies/Ndof_quintic_spaces.hpp"
-#include "topologies/Ndof_svp_spaces.hpp"
-#include "topologies/Ndof_sap_spaces.hpp"
+#include <ReaK/ctrl/topologies/Ndof_linear_spaces.hpp>
+#include <ReaK/ctrl/topologies/Ndof_cubic_spaces.hpp>
+#include <ReaK/ctrl/topologies/Ndof_quintic_spaces.hpp>
+#include <ReaK/ctrl/topologies/Ndof_svp_spaces.hpp>
+#include <ReaK/ctrl/topologies/Ndof_sap_spaces.hpp>
 
 
 

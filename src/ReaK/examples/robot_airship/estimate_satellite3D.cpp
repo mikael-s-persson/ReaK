@@ -22,25 +22,25 @@
  */
 
 
-#include "ss_systems/satellite_invar_models.hpp"
-#include "ss_systems/satellite_modeling_po.hpp"
+#include <ReaK/ctrl/ss_systems/satellite_invar_models.hpp>
+#include <ReaK/ctrl/ss_systems/satellite_modeling_po.hpp>
 
-#include "ctrl_sys/kalman_filter.hpp"
-#include "ctrl_sys/invariant_kalman_filter.hpp"
-#include "ctrl_sys/tsos_aug_kalman_filter.hpp"
-#include "ctrl_sys/tsos_aug_inv_kalman_filter.hpp"
+#include <ReaK/ctrl/ctrl_sys/kalman_filter.hpp>
+#include <ReaK/ctrl/ctrl_sys/invariant_kalman_filter.hpp>
+#include <ReaK/ctrl/ctrl_sys/tsos_aug_kalman_filter.hpp>
+#include <ReaK/ctrl/ctrl_sys/tsos_aug_inv_kalman_filter.hpp>
 
-#include "ctrl_sys/gaussian_belief_state.hpp"
-#include "ctrl_sys/covariance_matrix.hpp"
+#include <ReaK/ctrl/ctrl_sys/gaussian_belief_state.hpp>
+#include <ReaK/ctrl/ctrl_sys/covariance_matrix.hpp>
 
-#include "serialization/archiver_factory.hpp"
-#include "recorders/data_record_po.hpp"
+#include <ReaK/core/serialization/archiver_factory.hpp>
+#include <ReaK/core/recorders/data_record_po.hpp>
 
-#include "topologies/temporal_space.hpp"
-#include "interpolation/discrete_point_trajectory.hpp"
+#include <ReaK/ctrl/topologies/temporal_space.hpp>
+#include <ReaK/ctrl/interpolation/discrete_point_trajectory.hpp>
 
 #include <boost/random/normal_distribution.hpp>
-#include "base/global_rng.hpp"
+#include <ReaK/core/base/global_rng.hpp>
 
 #include <boost/program_options.hpp>
 #include <boost/filesystem.hpp>

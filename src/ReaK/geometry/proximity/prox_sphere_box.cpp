@@ -21,9 +21,9 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "prox_sphere_box.hpp"
+#include <ReaK/geometry/proximity/prox_sphere_box.hpp>
 
-#include "prox_fundamentals_3D.hpp"
+#include <ReaK/geometry/proximity/prox_fundamentals_3D.hpp>
 
 #include <cmath>
 

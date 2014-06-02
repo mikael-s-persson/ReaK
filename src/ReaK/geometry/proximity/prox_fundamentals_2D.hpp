@@ -34,7 +34,7 @@
 
 #include "proximity_finder_2D.hpp"
 
-#include "shapes/rectangle.hpp"
+#include <ReaK/geometry/shapes/rectangle.hpp>
 
 /** Main namespace for ReaK */
 namespace ReaK {

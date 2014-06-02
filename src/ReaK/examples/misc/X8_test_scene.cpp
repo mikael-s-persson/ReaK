@@ -7,12 +7,12 @@
  */
 
 
-#include "kte_models/uav_kinematics.hpp"
+#include <ReaK/ctrl/kte_models/uav_kinematics.hpp>
 #include "X8_quadrotor_geom.hpp"
 #include "IHAQR_topology.hpp"
 #include "MEAQR_topology.hpp"
-#include "ss_systems/quadrotor_system.hpp"
-#include "topologies/se3_random_samplers.hpp"
+#include <ReaK/ctrl/ss_systems/quadrotor_system.hpp>
+#include <ReaK/ctrl/topologies/se3_random_samplers.hpp>
 
 #include "MEAQR_rrtstar_planner.hpp"
 #include "MEAQR_sbastar_planner.hpp"
@@ -28,18 +28,18 @@
 #include <Inventor/nodes/SoSwitch.h>
 #include <Inventor/events/SoKeyboardEvent.h>
 
-#include "shapes/oi_scene_graph.hpp"
-#include "proximity/proxy_query_model.hpp"
+#include <ReaK/geometry/shapes/oi_scene_graph.hpp>
+#include <ReaK/geometry/proximity/proxy_query_model.hpp>
 
-#include "path_planning/frame_tracer_coin3d.hpp"
-#include "path_planning/basic_sbmp_reporters.hpp"
+#include <ReaK/ctrl/path_planning/frame_tracer_coin3d.hpp>
+#include <ReaK/ctrl/path_planning/basic_sbmp_reporters.hpp>
 
-#include "shapes/coord_arrows_3D.hpp"
+#include <ReaK/geometry/shapes/coord_arrows_3D.hpp>
 
-#include "mbd_kte/kte_map_chain.hpp"
+#include <ReaK/ctrl/mbd_kte/kte_map_chain.hpp>
 
-#include "serialization/xml_archiver.hpp"
-#include "optimization/optim_exceptions.hpp"
+#include <ReaK/core/serialization/xml_archiver.hpp>
+#include <ReaK/core/optimization/optim_exceptions.hpp>
 
 using namespace ReaK;
 using namespace pp;

@@ -22,7 +22,7 @@
  */
 
 
-#include "rigid_link.hpp"
+#include <ReaK/ctrl/mbd_kte/rigid_link.hpp>
 
 namespace ReaK {
 

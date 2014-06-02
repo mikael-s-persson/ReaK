@@ -22,17 +22,17 @@
  */
 
 
-#include "lin_alg/vect_alg.hpp"
-#include "ss_systems/airship_assembled_models.hpp"
+#include <ReaK/core/lin_alg/vect_alg.hpp>
+#include <ReaK/ctrl/ss_systems/airship_assembled_models.hpp>
 
-#include "ctrl_sys/invariant_kalman_filter.hpp"
-#include "ctrl_sys/tsos_aug_inv_kalman_filter.hpp"
+#include <ReaK/ctrl/ctrl_sys/invariant_kalman_filter.hpp>
+#include <ReaK/ctrl/ctrl_sys/tsos_aug_inv_kalman_filter.hpp>
 
-#include "ctrl_sys/gaussian_belief_state.hpp"
-#include "ctrl_sys/covariance_matrix.hpp"
+#include <ReaK/ctrl/ctrl_sys/gaussian_belief_state.hpp>
+#include <ReaK/ctrl/ctrl_sys/covariance_matrix.hpp>
 
-#include "serialization/archiver_factory.hpp"
-#include "recorders/data_record_po.hpp"
+#include <ReaK/core/serialization/archiver_factory.hpp>
+#include <ReaK/core/recorders/data_record_po.hpp>
 
 #include <boost/program_options.hpp>
 #include <boost/filesystem.hpp>

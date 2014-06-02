@@ -42,8 +42,8 @@
 #ifndef REAK_SBASTAR_PATH_PLANNER_HPP
 #define REAK_SBASTAR_PATH_PLANNER_HPP
 
-#include "base/defs.hpp"
-#include "base/named_object.hpp"
+#include <ReaK/core/base/defs.hpp>
+#include <ReaK/core/base/named_object.hpp>
 
 #include "motion_planner_base.hpp"
 

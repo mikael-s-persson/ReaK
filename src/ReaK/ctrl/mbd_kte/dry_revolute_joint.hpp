@@ -43,7 +43,7 @@
 #ifndef REAK_DRY_REVOLUTE_JOINT_HPP
 #define REAK_DRY_REVOLUTE_JOINT_HPP
 
-#include "base/defs.hpp"
+#include <ReaK/core/base/defs.hpp>
 
 #include "revolute_joint.hpp"
 

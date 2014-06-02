@@ -22,13 +22,11 @@
  */
 
 
-
-
-#include "base/defs.hpp"
+#include <ReaK/core/base/defs.hpp>
 
 #ifndef BOOST_NO_CXX11_EXTERN_TEMPLATE
 
-#include "topologies/manip_free_dynamic_workspace.hpp"
+#include <ReaK/ctrl/topologies/manip_free_dynamic_workspace.hpp>
 
 namespace ReaK {
 

@@ -38,21 +38,21 @@
 #ifndef REAK_STATE_SPACE_SYSTEM_TUPLE_HPP
 #define REAK_STATE_SPACE_SYSTEM_TUPLE_HPP
 
-#include "base/named_object.hpp"
+#include <ReaK/core/base/named_object.hpp>
 
-#include "ctrl_sys/invariant_system_concept.hpp"
-#include "ctrl_sys/augmented_sss_concept.hpp"
+#include <ReaK/ctrl/ctrl_sys/invariant_system_concept.hpp>
+#include <ReaK/ctrl/ctrl_sys/augmented_sss_concept.hpp>
 
-#include "topologies/metric_space_tuple.hpp"
-#include "topologies/tuple_distance_metrics.hpp"
-#include "topologies/temporal_space.hpp"
-#include "topologies/time_poisson_topology.hpp"
+#include <ReaK/ctrl/topologies/metric_space_tuple.hpp>
+#include <ReaK/ctrl/topologies/tuple_distance_metrics.hpp>
+#include <ReaK/ctrl/topologies/temporal_space.hpp>
+#include <ReaK/ctrl/topologies/time_poisson_topology.hpp>
 
-#include "lin_alg/mat_alg.hpp"
-#include "ctrl_sys/gaussian_belief_space.hpp"
-#include "ctrl_sys/covariance_matrix.hpp"
-#include "ctrl_sys/covar_topology.hpp"
-#include "ctrl_sys/sss_exceptions.hpp"
+#include <ReaK/core/lin_alg/mat_alg.hpp>
+#include <ReaK/ctrl/ctrl_sys/gaussian_belief_space.hpp>
+#include <ReaK/ctrl/ctrl_sys/covariance_matrix.hpp>
+#include <ReaK/ctrl/ctrl_sys/covar_topology.hpp>
+#include <ReaK/ctrl/ctrl_sys/sss_exceptions.hpp>
 
 #include <boost/utility/enable_if.hpp>
 #include <boost/mpl/and.hpp>

@@ -21,7 +21,7 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "mass_matrix_calculator.hpp"
+#include <ReaK/ctrl/mbd_kte/mass_matrix_calculator.hpp>
 
 namespace ReaK {
 

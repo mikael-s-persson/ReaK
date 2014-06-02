@@ -34,7 +34,7 @@
 #ifndef REAK_KTE_SYSTEM_INPUT_HPP
 #define REAK_KTE_SYSTEM_INPUT_HPP
 
-#include "base/named_object.hpp"
+#include <ReaK/core/base/named_object.hpp>
 
 #include <vector>
 

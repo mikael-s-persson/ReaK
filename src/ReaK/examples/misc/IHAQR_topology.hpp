@@ -34,35 +34,32 @@
 #define REAK_IHAQR_TOPOLOGY_HPP
 
 
-#include "base/defs.hpp"
-#include <boost/config.hpp> // For BOOST_STATIC_CONSTANT
+#include <ReaK/core/base/defs.hpp>
+#include <ReaK/core/base/named_object.hpp>
 
+#include <ReaK/ctrl/topologies/tuple_distance_metrics.hpp>
+#include <ReaK/ctrl/topologies/hyperbox_topology.hpp>
 
-#include "base/named_object.hpp"
+#include <ReaK/ctrl/path_planning/proper_metric_concept.hpp>
 
-#include "topologies/tuple_distance_metrics.hpp"
-#include "topologies/hyperbox_topology.hpp"
+#include <ReaK/ctrl/interpolation/constant_trajectory.hpp>
 
-#include "path_planning/proper_metric_concept.hpp"
+#include <ReaK/ctrl/path_planning/metric_space_concept.hpp>
+#include <ReaK/ctrl/ctrl_sys/linear_ss_system_concept.hpp>
 
-#include "interpolation/constant_trajectory.hpp"
+#include <ReaK/ctrl/sys_integrators/dormand_prince45_integrator_sys.hpp>
+#include <ReaK/ctrl/sys_integrators/runge_kutta4_integrator_sys.hpp>
 
-#include "path_planning/metric_space_concept.hpp"
-#include "ctrl_sys/linear_ss_system_concept.hpp"
+#include <ReaK/ctrl/topologies/direct_kinematics_topomap.hpp>       // for write_joint_coordinates_impl
+#include <ReaK/ctrl/kte_models/direct_kinematics_model.hpp>
+#include <ReaK/geometry/proximity/proxy_query_model.hpp>  // for proxy-query class
 
-#include "sys_integrators/dormand_prince45_integrator_sys.hpp"
-#include "sys_integrators/runge_kutta4_integrator_sys.hpp"
+#include <ReaK/core/lin_alg/arithmetic_tuple.hpp>
+#include <ReaK/core/lin_alg/vect_alg.hpp>
+#include <ReaK/core/lin_alg/mat_num_exceptions.hpp>
 
-#include "topologies/direct_kinematics_topomap.hpp"       // for write_joint_coordinates_impl
-#include "kte_models/direct_kinematics_model.hpp"
-#include "proximity/proxy_query_model.hpp"  // for proxy-query class
-
-#include "lin_alg/arithmetic_tuple.hpp"
-#include "lin_alg/vect_alg.hpp"
-#include "lin_alg/mat_num_exceptions.hpp"
-
-#include "lin_alg/mat_qr_decomp.hpp"
-#include "lin_alg/mat_are_solver.hpp"
+#include <ReaK/core/lin_alg/mat_qr_decomp.hpp>
+#include <ReaK/core/lin_alg/mat_are_solver.hpp>
 
 namespace ReaK {
 

@@ -34,11 +34,11 @@
 
 #include "proximity_finder_3D.hpp"
 
-#include "shapes/box.hpp"
-#include "shapes/cylinder.hpp"
-#include "shapes/capped_cylinder.hpp"
+#include <ReaK/geometry/shapes/box.hpp>
+#include <ReaK/geometry/shapes/cylinder.hpp>
+#include <ReaK/geometry/shapes/capped_cylinder.hpp>
 
-#include "lin_alg/mat_alg.hpp"
+#include <ReaK/core/lin_alg/mat_alg.hpp>
 
 /** Main namespace for ReaK */
 namespace ReaK {

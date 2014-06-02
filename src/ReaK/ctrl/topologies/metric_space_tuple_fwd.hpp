@@ -34,13 +34,13 @@
 #ifndef REAK_METRIC_SPACE_TUPLE_FWD_HPP
 #define REAK_METRIC_SPACE_TUPLE_FWD_HPP
 
-#include "base/defs.hpp"
+#include <ReaK/core/base/defs.hpp>
+#include <ReaK/core/lin_alg/arithmetic_tuple.hpp>
+#include <ReaK/ctrl/path_planning/metric_space_concept.hpp>
+#include <ReaK/ctrl/path_planning/reversible_space_concept.hpp>
 
-#include "lin_alg/arithmetic_tuple.hpp"
 #include "tuple_distance_metrics.hpp"
 #include "default_random_sampler.hpp"
-#include "path_planning/metric_space_concept.hpp"
-#include "path_planning/reversible_space_concept.hpp"
 
 #include <boost/mpl/bool_fwd.hpp>
 #include <boost/mpl/and.hpp>

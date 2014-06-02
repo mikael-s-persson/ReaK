@@ -35,9 +35,9 @@
 #define REAK_NO_OBSTACLE_SPACE_HPP
 
 
-#include "path_planning/random_sampler_concept.hpp"
-#include "path_planning/metric_space_concept.hpp"
-#include "path_planning/reversible_space_concept.hpp"
+#include <ReaK/ctrl/path_planning/random_sampler_concept.hpp>
+#include <ReaK/ctrl/path_planning/metric_space_concept.hpp>
+#include <ReaK/ctrl/path_planning/reversible_space_concept.hpp>
 
 #include "default_random_sampler.hpp"
 

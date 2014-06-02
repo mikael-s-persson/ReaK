@@ -23,7 +23,7 @@
 
 
 
-#include "inertia.hpp"
+#include <ReaK/ctrl/mbd_kte/inertia.hpp>
 
 namespace ReaK {
 

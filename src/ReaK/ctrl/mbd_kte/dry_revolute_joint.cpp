@@ -21,7 +21,7 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "dry_revolute_joint.hpp"
+#include <ReaK/ctrl/mbd_kte/dry_revolute_joint.hpp>
 
 namespace ReaK {
 

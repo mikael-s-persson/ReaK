@@ -34,15 +34,13 @@
 #ifndef REAK_METRIC_SPACE_TUPLE_HPP
 #define REAK_METRIC_SPACE_TUPLE_HPP
 
-#include "base/defs.hpp"
-#include <boost/config.hpp> // For BOOST_STATIC_CONSTANT
+#include <ReaK/core/base/defs.hpp>
+#include <ReaK/core/base/serializable.hpp>
+#include <ReaK/core/lin_alg/arithmetic_tuple.hpp>
 
-#include "path_planning/metric_space_concept.hpp"
+#include <ReaK/ctrl/path_planning/metric_space_concept.hpp>
 
 #include "metric_space_tuple_fwd.hpp"
-
-#include "lin_alg/arithmetic_tuple.hpp"
-#include "base/serializable.hpp"
 #include "tuple_distance_metrics.hpp"
 #include "default_random_sampler.hpp"
 

@@ -21,9 +21,9 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "satellite_modeling_options.hpp"
+#include <ReaK/ctrl/ss_systems/satellite_modeling_options.hpp>
 
-#include "serialization/archiver_factory.hpp"
+#include <ReaK/core/serialization/archiver_factory.hpp>
 
 #include <limits>
 

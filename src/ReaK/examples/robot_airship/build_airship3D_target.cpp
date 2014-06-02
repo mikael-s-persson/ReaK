@@ -22,21 +22,21 @@
  */
 
 
-#include "mbd_kte/inertia.hpp"
-#include "mbd_kte/driving_actuator.hpp"
-#include "mbd_kte/state_measures.hpp"
-#include "mbd_kte/free_joints.hpp"
-#include "mbd_kte/kte_map_chain.hpp"
+#include <ReaK/ctrl/mbd_kte/inertia.hpp>
+#include <ReaK/ctrl/mbd_kte/driving_actuator.hpp>
+#include <ReaK/ctrl/mbd_kte/state_measures.hpp>
+#include <ReaK/ctrl/mbd_kte/free_joints.hpp>
+#include <ReaK/ctrl/mbd_kte/kte_map_chain.hpp>
 
-#include "kte_models/manip_dynamics_model.hpp"
+#include <ReaK/ctrl/kte_models/manip_dynamics_model.hpp>
 
-#include "shapes/colored_model.hpp"
-#include "shapes/sphere.hpp"
-#include "shapes/box.hpp"
-#include "shapes/coord_arrows_3D.hpp"
-#include "proximity/proxy_query_model.hpp"
+#include <ReaK/geometry/shapes/colored_model.hpp>
+#include <ReaK/geometry/shapes/sphere.hpp>
+#include <ReaK/geometry/shapes/box.hpp>
+#include <ReaK/geometry/shapes/coord_arrows_3D.hpp>
+#include <ReaK/geometry/proximity/proxy_query_model.hpp>
 
-#include "serialization/archiver_factory.hpp"
+#include <ReaK/core/serialization/archiver_factory.hpp>
 
 
 #include <boost/program_options.hpp>

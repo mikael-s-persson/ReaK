@@ -28,10 +28,10 @@
 #include <boost/graph/topology.hpp>
 #include <boost/graph/properties.hpp>
 
-#include "topological_search.hpp"
-#include "dvp_layout_adjacency_list.hpp"
-#include "topologies/hyperbox_topology.hpp"
-#include "lin_alg/vect_alg.hpp"
+#include <ReaK/ctrl/path_planning/topological_search.hpp>
+#include <ReaK/ctrl/path_planning/dvp_layout_adjacency_list.hpp>
+#include <ReaK/ctrl/topologies/hyperbox_topology.hpp>
+#include <ReaK/core/lin_alg/vect_alg.hpp>
 
 #include <boost/date_time/posix_time/posix_time.hpp>
 

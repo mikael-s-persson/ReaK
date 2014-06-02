@@ -22,7 +22,7 @@
  */
 
 
-#include "flexible_beam.hpp"
+#include <ReaK/ctrl/mbd_kte/flexible_beam.hpp>
 
 namespace ReaK {
 

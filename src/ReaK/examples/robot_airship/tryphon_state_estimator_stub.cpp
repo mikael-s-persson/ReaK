@@ -4,10 +4,10 @@
 #include <cmath>
 #include <ctime>
 
-#include <lin_alg/vect_alg.hpp>
-#include <ss_systems/airship_assembled_models.hpp>
-#include <ctrl_sys/tsos_aug_inv_kalman_filter.hpp>
-#include <serialization/archiver_factory.hpp>
+#include <ReaK/core/lin_alg/vect_alg.hpp>
+#include <ReaK/ctrl/ss_systems/airship_assembled_models.hpp>
+#include <ReaK/ctrl/ctrl_sys/tsos_aug_inv_kalman_filter.hpp>
+#include <ReaK/core/serialization/archiver_factory.hpp>
 
 ReaK::vect_n<double> sonar_meas = ReaK::vect_n<double>(4, 0.0);
 

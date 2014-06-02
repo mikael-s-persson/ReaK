@@ -21,12 +21,12 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "obj_properties_qtmodel.hpp"
+#include <ReaK/gui_qt/obj_properties_qtmodel.hpp>
 
-#include "base/named_object.hpp"
+#include <ReaK/core/base/named_object.hpp>
 
-#include "serialization/scheme_builder.hpp"
-#include "serialization/type_schemes.hpp"
+#include <ReaK/core/serialization/scheme_builder.hpp>
+#include <ReaK/core/serialization/type_schemes.hpp>
 #include <QMessageBox>
 
 #include <QComboBox>

@@ -22,15 +22,15 @@
  */
 
 
-#include "kte_chain_geometry.hpp"
+#include <ReaK/geometry/shapes/kte_chain_geometry.hpp>
 
 
-#include "mbd_kte/kte_chain_visitation.hpp"
+#include <ReaK/ctrl/mbd_kte/kte_chain_visitation.hpp>
 
-#include "mbd_kte/rigid_link.hpp"
-#include "mbd_kte/inertia.hpp"
-#include "mbd_kte/revolute_joint.hpp"
-#include "mbd_kte/prismatic_joint.hpp"
+#include <ReaK/ctrl/mbd_kte/rigid_link.hpp>
+#include <ReaK/ctrl/mbd_kte/inertia.hpp>
+#include <ReaK/ctrl/mbd_kte/revolute_joint.hpp>
+#include <ReaK/ctrl/mbd_kte/prismatic_joint.hpp>
 
 #include <string>
 #include <map>

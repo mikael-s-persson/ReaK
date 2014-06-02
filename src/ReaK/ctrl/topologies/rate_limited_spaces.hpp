@@ -34,14 +34,13 @@
 #ifndef REAK_RATE_LIMITED_SPACES_HPP
 #define REAK_RATE_LIMITED_SPACES_HPP
 
-#include "base/defs.hpp"
-#include <boost/config.hpp> // For BOOST_STATIC_CONSTANT
-#include "base/serializable.hpp"
+#include <ReaK/core/base/defs.hpp>
+#include <ReaK/core/base/serializable.hpp>
 
-#include "path_planning/metric_space_concept.hpp"
-#include "path_planning/prob_distribution_concept.hpp"
+#include <ReaK/ctrl/path_planning/metric_space_concept.hpp>
+#include <ReaK/ctrl/path_planning/prob_distribution_concept.hpp>
+#include <ReaK/core/lin_alg/arithmetic_tuple.hpp>
 
-#include "lin_alg/arithmetic_tuple.hpp"
 #include "tuple_distance_metrics.hpp"
 #include "default_random_sampler.hpp"
 #include "differentiable_space.hpp"

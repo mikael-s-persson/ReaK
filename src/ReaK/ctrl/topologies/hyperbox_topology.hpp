@@ -34,17 +34,14 @@
 #define REAK_HYPERBOX_TOPOLOGY_HPP
 
 
-#include "base/defs.hpp"
+#include <ReaK/core/base/defs.hpp>
+#include <ReaK/core/base/named_object.hpp>
+#include <ReaK/core/base/global_rng.hpp>
+#include <ReaK/core/lin_alg/vect_concepts.hpp>
 
-#include <boost/config.hpp> // For BOOST_STATIC_CONSTANT
-
-#include "base/named_object.hpp"
-
-#include "lin_alg/vect_concepts.hpp"
 #include "vector_topology.hpp"
 #include "vect_distance_metrics.hpp"
 #include "default_random_sampler.hpp"
-#include "base/global_rng.hpp"
 
 #include <cmath>
 

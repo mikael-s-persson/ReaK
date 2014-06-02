@@ -33,13 +33,14 @@
 #ifndef REAK_INVERSE_KINEMATICS_TOPOMAP_HPP
 #define REAK_INVERSE_KINEMATICS_TOPOMAP_HPP
 
+#include <ReaK/core/base/defs.hpp>
+#include <ReaK/core/lin_alg/arithmetic_tuple.hpp>
+#include <ReaK/core/lin_alg/vect_alg.hpp>
+#include <ReaK/core/kinetostatics/gen_coord.hpp>
 
-#include "base/defs.hpp"
-
-#include <boost/config.hpp> // For BOOST_STATIC_CONSTANT
-
-#include "kte_models/inverse_kinematics_model.hpp"
-#include "kte_models/manip_clik_calculator.hpp"
+#include <ReaK/ctrl/kte_models/inverse_kinematics_model.hpp>
+#include <ReaK/ctrl/kte_models/manip_clik_calculator.hpp>
+#include <ReaK/ctrl/path_planning/metric_space_search.hpp>
 
 #include "joint_space_topologies.hpp"
 #include "joint_space_limits.hpp"
@@ -47,13 +48,8 @@
 #include "se2_topologies.hpp"
 #include "Ndof_spaces.hpp"
 
-#include "lin_alg/arithmetic_tuple.hpp"
-#include "lin_alg/vect_alg.hpp"
-#include "kinetostatics/gen_coord.hpp"
-
 // needed for the KNN IK mapping. NOTE: the KNN-IK should be detached from this header file.
 #include <boost/property_map/vector_property_map.hpp>
-#include "path_planning/metric_space_search.hpp"
 
 #include "direct_kinematics_topomap.hpp"
 #include "inverse_kinematics_topomap_detail.hpp"

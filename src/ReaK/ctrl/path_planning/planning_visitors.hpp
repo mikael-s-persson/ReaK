@@ -32,10 +32,9 @@
 #ifndef REAK_PLANNING_VISITORS_HPP
 #define REAK_PLANNING_VISITORS_HPP
 
-#include "base/defs.hpp"
-#include "base/named_object.hpp"
-
-#include "base/global_rng.hpp"
+#include <ReaK/core/base/defs.hpp>
+#include <ReaK/core/base/named_object.hpp>
+#include <ReaK/core/base/global_rng.hpp>
 
 #include "motion_planner_base.hpp"
 #include "planning_queries.hpp"

@@ -32,7 +32,7 @@
 #ifndef REAK_PROXIMITY_FINDER_2D_HPP
 #define REAK_PROXIMITY_FINDER_2D_HPP
 
-#include "shapes/shape_2D.hpp"
+#include <ReaK/geometry/shapes/shape_2D.hpp>
 
 #include "proximity_record_2D.hpp"
 

@@ -21,20 +21,20 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "oi_scene_graph.hpp"
+#include <ReaK/geometry/shapes/oi_scene_graph.hpp>
 
 
-#include "mbd_kte/inertia.hpp"                  // done.
-#include "mbd_kte/free_joints.hpp"              // done.
-#include "mbd_kte/revolute_joint.hpp"           // done.
-#include "mbd_kte/prismatic_joint.hpp"          // done.
-#include "mbd_kte/rigid_link.hpp"               // done.
-#include "mbd_kte/damper.hpp"                   // done.
-#include "mbd_kte/spring.hpp"                   // done.
-#include "mbd_kte/torsion_damper.hpp"           // done.
-#include "mbd_kte/torsion_spring.hpp"           // done.
-//#include "mbd_kte/line_point_mindist.hpp"       
-//#include "mbd_kte/plane_point_mindist.hpp"      
+#include <ReaK/ctrl/mbd_kte/inertia.hpp>                  // done.
+#include <ReaK/ctrl/mbd_kte/free_joints.hpp>              // done.
+#include <ReaK/ctrl/mbd_kte/revolute_joint.hpp>           // done.
+#include <ReaK/ctrl/mbd_kte/prismatic_joint.hpp>          // done.
+#include <ReaK/ctrl/mbd_kte/rigid_link.hpp>               // done.
+#include <ReaK/ctrl/mbd_kte/damper.hpp>                   // done.
+#include <ReaK/ctrl/mbd_kte/spring.hpp>                   // done.
+#include <ReaK/ctrl/mbd_kte/torsion_damper.hpp>           // done.
+#include <ReaK/ctrl/mbd_kte/torsion_spring.hpp>           // done.
+//#include <ReaK/ctrl/mbd_kte/line_point_mindist.hpp>       
+//#include <ReaK/ctrl/mbd_kte/plane_point_mindist.hpp>      
 
 
 #include <Inventor/SbColor.h>           // for SbColor

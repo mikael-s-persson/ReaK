@@ -21,14 +21,14 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "free_floating_platform.hpp"
+#include <ReaK/ctrl/kte_models/free_floating_platform.hpp>
 
-#include "mbd_kte/free_joints.hpp"
-#include "mbd_kte/rigid_link.hpp"
+#include <ReaK/ctrl/mbd_kte/free_joints.hpp>
+#include <ReaK/ctrl/mbd_kte/rigid_link.hpp>
 
-#include "lin_alg/mat_alg.hpp"
-#include "lin_alg/mat_qr_decomp.hpp"
-#include "optimization/optim_exceptions.hpp"
+#include <ReaK/core/lin_alg/mat_alg.hpp>
+#include <ReaK/core/lin_alg/mat_qr_decomp.hpp>
+#include <ReaK/core/optimization/optim_exceptions.hpp>
 #include <cmath>
 
 namespace ReaK {

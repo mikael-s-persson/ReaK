@@ -32,9 +32,8 @@
 #ifndef REAK_PATH_PLANNER_OPTIONS_HPP
 #define REAK_PATH_PLANNER_OPTIONS_HPP
 
-#include "base/defs.hpp"
-#include "base/shared_object.hpp"
-
+#include <ReaK/core/base/defs.hpp>
+#include <ReaK/core/base/shared_object.hpp>
 
 namespace ReaK {
   

@@ -32,7 +32,7 @@
 #ifndef REAK_MANIP_PLANNING_TRAITS_HPP
 #define REAK_MANIP_PLANNING_TRAITS_HPP
 
-#include "base/defs.hpp"
+#include <ReaK/core/base/defs.hpp>
 
 #include "manip_free_workspace.hpp"
 #include "manip_free_dynamic_workspace.hpp"

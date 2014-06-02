@@ -34,11 +34,11 @@
 #ifndef REAK_PROXY_MODEL_UPDATER_HPP
 #define REAK_PROXY_MODEL_UPDATER_HPP
 
-#include "base/defs.hpp"
-#include "base/shared_object.hpp"
+#include <ReaK/core/base/defs.hpp>
+#include <ReaK/core/base/shared_object.hpp>
 
-#include "path_planning/metric_space_concept.hpp"
-#include "path_planning/topological_map_concepts.hpp"
+#include <ReaK/ctrl/path_planning/metric_space_concept.hpp>
+#include <ReaK/ctrl/path_planning/topological_map_concepts.hpp>
 
 
 namespace ReaK {

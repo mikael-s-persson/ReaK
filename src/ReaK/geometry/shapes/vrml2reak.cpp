@@ -10,14 +10,14 @@
 
 
 
-#include "shapes/colored_model.hpp"
-#include "proximity/proxy_query_model.hpp"
+#include <ReaK/geometry/shapes/colored_model.hpp>
+#include <ReaK/geometry/proximity/proxy_query_model.hpp>
 
-#include "shapes/oi_reader.hpp"
+#include <ReaK/geometry/shapes/oi_reader.hpp>
 
-#include "serialization/xml_archiver.hpp"
-#include "serialization/bin_archiver.hpp"
-#include "serialization/protobuf_archiver.hpp"
+#include <ReaK/core/serialization/xml_archiver.hpp>
+#include <ReaK/core/serialization/bin_archiver.hpp>
+#include <ReaK/core/serialization/protobuf_archiver.hpp>
 
 #include <boost/program_options.hpp>
 

@@ -32,17 +32,17 @@
 #ifndef REAK_MEAQR_RRTSTAR_PLANNER_HPP
 #define REAK_MEAQR_RRTSTAR_PLANNER_HPP
 
-#include "base/defs.hpp"
-#include "base/named_object.hpp"
+#include <ReaK/core/base/defs.hpp>
+#include <ReaK/core/base/named_object.hpp>
 
-#include "path_planning/motion_planner_base.hpp"
+#include <ReaK/ctrl/path_planning/motion_planner_base.hpp>
 
-#include "path_planning/metric_space_concept.hpp"
-#include "path_planning/any_sbmp_reporter.hpp"
+#include <ReaK/ctrl/path_planning/metric_space_concept.hpp>
+#include <ReaK/ctrl/path_planning/any_sbmp_reporter.hpp>
 
-#include "graph_alg/rrt_star.hpp"
+#include <ReaK/ctrl/graph_alg/rrt_star.hpp>
 
-#include "path_planning/motion_graph_structures.hpp"
+#include <ReaK/ctrl/path_planning/motion_graph_structures.hpp>
 
 
 // BGL-Extra includes:
@@ -51,17 +51,17 @@
 #include <boost/graph/more_property_maps.hpp>
 
 
-#include "path_planning/metric_space_search.hpp"
-#include "path_planning/topological_search.hpp"
+#include <ReaK/ctrl/path_planning/metric_space_search.hpp>
+#include <ReaK/ctrl/path_planning/topological_search.hpp>
 
-#include "path_planning/p2p_planning_query.hpp"
-#include "path_planning/path_planner_options.hpp"
-#include "graph_alg/neighborhood_functors.hpp"
-#include "path_planning/any_motion_graphs.hpp"
-#include "path_planning/planning_visitors.hpp"
+#include <ReaK/ctrl/path_planning/p2p_planning_query.hpp>
+#include <ReaK/ctrl/path_planning/path_planner_options.hpp>
+#include <ReaK/ctrl/graph_alg/neighborhood_functors.hpp>
+#include <ReaK/ctrl/path_planning/any_motion_graphs.hpp>
+#include <ReaK/ctrl/path_planning/planning_visitors.hpp>
 
 #include "MEAQR_topology.hpp"
-#include "topologies/fixed_topology_random_sampler.hpp"
+#include <ReaK/ctrl/topologies/fixed_topology_random_sampler.hpp>
 
 namespace ReaK {
   

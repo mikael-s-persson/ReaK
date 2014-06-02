@@ -37,14 +37,14 @@
 #ifndef REAK_MANIPULATOR_MODEL_HPP
 #define REAK_MANIPULATOR_MODEL_HPP
 
-#include "base/defs.hpp"
-#include "kinetostatics/kinetostatics.hpp"
+#include <ReaK/core/base/defs.hpp>
+#include <ReaK/core/kinetostatics/kinetostatics.hpp>
 #include "kte_map_chain.hpp"
 #include "mass_matrix_calculator.hpp"
 #include "kte_system_input.hpp"
 #include "kte_system_output.hpp"
 
-#include "integrators/integrator.hpp"
+#include <ReaK/core/integrators/integrator.hpp>
 
 #include <vector>
 

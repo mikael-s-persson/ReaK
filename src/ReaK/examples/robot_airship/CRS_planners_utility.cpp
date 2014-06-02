@@ -23,15 +23,15 @@
 
 #include "CRS_planners_utility.hpp"
 
-#include "proximity/proxy_query_model.hpp"
+#include <ReaK/geometry/proximity/proxy_query_model.hpp>
 
-#include "mbd_kte/mass_matrix_calculator.hpp"
-#include "mbd_kte/kte_map_chain.hpp"
-#include "kte_models/manip_kinematics_model.hpp"
+#include <ReaK/ctrl/mbd_kte/mass_matrix_calculator.hpp>
+#include <ReaK/ctrl/mbd_kte/kte_map_chain.hpp>
+#include <ReaK/ctrl/kte_models/manip_kinematics_model.hpp>
 
-#include "serialization/archiver_factory.hpp"
+#include <ReaK/core/serialization/archiver_factory.hpp>
 
-#include "optimization/optim_exceptions.hpp"
+#include <ReaK/core/optimization/optim_exceptions.hpp>
 
 namespace ReaK {
   

@@ -35,13 +35,9 @@
 #define REAK_SO3_TOPOLOGIES_HPP
 
 
-#include "base/defs.hpp"
-#include <boost/config.hpp> // For BOOST_STATIC_CONSTANT
-
-
-#include "base/named_object.hpp"
-
-#include "base/global_rng.hpp"
+#include <ReaK/core/base/defs.hpp>
+#include <ReaK/core/base/named_object.hpp>
+#include <ReaK/core/base/global_rng.hpp>
 
 #include "tuple_distance_metrics.hpp"
 
@@ -49,9 +45,9 @@
 #include "differentiable_space.hpp"
 #include "rate_limited_spaces.hpp"
 
-#include "lin_alg/vect_alg.hpp"
-#include "lin_alg/mat_num_exceptions.hpp"
-#include "kinetostatics/quat_alg.hpp"
+#include <ReaK/core/lin_alg/vect_alg.hpp>
+#include <ReaK/core/lin_alg/mat_num_exceptions.hpp>
+#include <ReaK/core/kinetostatics/quat_alg.hpp>
 
 namespace ReaK {
 

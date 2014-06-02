@@ -34,7 +34,7 @@
 #define REAK_JOINT_BACKLASH_HPP
 
 #include "kte_map.hpp"
-#include "kinetostatics/kinetostatics.hpp"
+#include <ReaK/core/kinetostatics/kinetostatics.hpp>
 
 namespace ReaK {
 

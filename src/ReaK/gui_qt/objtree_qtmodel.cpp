@@ -29,9 +29,9 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "objtree_qtmodel.hpp"
+#include <ReaK/gui_qt/objtree_qtmodel.hpp>
 
-#include <base/named_object.hpp>
+#include <ReaK/core/base/named_object.hpp>
 
 // BGL-Extra includes:
 #include <boost/graph/tree_adaptor.hpp>

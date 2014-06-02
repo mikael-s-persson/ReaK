@@ -37,7 +37,7 @@
 #include "temporal_space.hpp"
 #include "time_poisson_topology.hpp"
 #include "reachability_space.hpp"
-#include "interpolation/sap_Ndof_reach_topologies.hpp"
+#include <ReaK/ctrl/interpolation/sap_Ndof_reach_topologies.hpp>
 
 
 #ifndef BOOST_NO_CXX11_EXTERN_TEMPLATE

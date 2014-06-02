@@ -34,11 +34,11 @@
 #ifndef REAK_MANIP_P3R3R_ARM_HPP
 #define REAK_MANIP_P3R3R_ARM_HPP
 
-#include "base/defs.hpp"
-#include "inverse_kinematics_model.hpp"
-#include "mbd_kte/kte_map_chain.hpp"
-#include "mbd_kte/prismatic_joint.hpp"
+#include <ReaK/core/base/defs.hpp>
+#include <ReaK/ctrl/mbd_kte/kte_map_chain.hpp>
+#include <ReaK/ctrl/mbd_kte/prismatic_joint.hpp>
 
+#include "inverse_kinematics_model.hpp"
 #include "manip_3R3R_arm.hpp"
 
 namespace ReaK {

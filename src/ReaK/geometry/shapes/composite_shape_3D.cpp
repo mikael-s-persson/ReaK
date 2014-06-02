@@ -21,7 +21,7 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "composite_shape_3D.hpp"
+#include <ReaK/geometry/shapes/composite_shape_3D.hpp>
 
 namespace ReaK {
 

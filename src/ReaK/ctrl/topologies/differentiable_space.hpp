@@ -37,13 +37,13 @@
 #ifndef REAK_DIFFERENTIABLE_SPACE_HPP
 #define REAK_DIFFERENTIABLE_SPACE_HPP
 
-#include "base/defs.hpp"
-#include <boost/config.hpp> // For BOOST_STATIC_CONSTANT
+#include <ReaK/core/base/defs.hpp>
+
 #include <boost/static_assert.hpp>
 
 #include "time_topology.hpp"
-#include "path_planning/metric_space_concept.hpp"
-#include "path_planning/tangent_bundle_concept.hpp"
+#include <ReaK/ctrl/path_planning/metric_space_concept.hpp>
+#include <ReaK/ctrl/path_planning/tangent_bundle_concept.hpp>
 #include "metric_space_tuple.hpp"
 
 #include <cmath>

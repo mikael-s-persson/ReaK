@@ -33,10 +33,10 @@
 #ifndef REAK_CHASER_TARGET_MODEL_DATA_HPP
 #define REAK_CHASER_TARGET_MODEL_DATA_HPP
 
-#include "base/defs.hpp"
-#include "base/named_object.hpp"
+#include <ReaK/core/base/defs.hpp>
+#include <ReaK/core/base/named_object.hpp>
 
-#include "topologies/joint_space_limits.hpp"
+#include <ReaK/ctrl/topologies/joint_space_limits.hpp>
 #include "inverse_kinematics_model.hpp"
 
 namespace ReaK {

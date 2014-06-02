@@ -21,22 +21,22 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "kte_map_chain.hpp"
+#include <ReaK/ctrl/mbd_kte/kte_map_chain.hpp>
 
-#include "inertia.hpp"
-#include "revolute_joint.hpp"
-#include "rigid_link.hpp"
+#include <ReaK/ctrl/mbd_kte/inertia.hpp>
+#include <ReaK/ctrl/mbd_kte/revolute_joint.hpp>
+#include <ReaK/ctrl/mbd_kte/rigid_link.hpp>
 
-#include "recorders/ssv_recorder.hpp"
+#include <ReaK/core/recorders/ssv_recorder.hpp>
 
-#include "serialization/xml_archiver.hpp"
+#include <ReaK/core/serialization/xml_archiver.hpp>
 
 #include "subarc/sa_root_node.hpp"
 #include "subarc/sa_signal.hpp"
 
-#include "base/rk_typed_primitives.hpp"
-#include "spring.hpp"
-#include "damper.hpp"
+#include <ReaK/core/base/rk_typed_primitives.hpp>
+#include <ReaK/ctrl/mbd_kte/spring.hpp>
+#include <ReaK/ctrl/mbd_kte/damper.hpp>
 
 #include <boost/thread/thread.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>

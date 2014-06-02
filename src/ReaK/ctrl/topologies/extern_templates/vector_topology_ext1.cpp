@@ -21,11 +21,11 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "base/defs.hpp"
+#include <ReaK/core/base/defs.hpp>
 
 #ifndef BOOST_NO_CXX11_EXTERN_TEMPLATE
 
-#include "topologies/vector_topology.hpp"
+#include <ReaK/ctrl/topologies/vector_topology.hpp>
 
 namespace ReaK {
 

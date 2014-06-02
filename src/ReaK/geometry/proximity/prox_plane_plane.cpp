@@ -21,7 +21,7 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "prox_plane_plane.hpp"
+#include <ReaK/geometry/proximity/prox_plane_plane.hpp>
 
 #include <cmath>
 

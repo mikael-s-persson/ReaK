@@ -33,18 +33,16 @@
 #ifndef REAK_TEMPORAL_SPACE_HPP
 #define REAK_TEMPORAL_SPACE_HPP
 
-#include "base/defs.hpp"
-#include <boost/config.hpp>
+#include <ReaK/core/base/defs.hpp>
+#include <ReaK/core/base/named_object.hpp>
 
-#include "path_planning/metric_space_concept.hpp"
-#include "path_planning/reversible_space_concept.hpp"
-#include "path_planning/temporal_space_concept.hpp"
+#include <ReaK/ctrl/path_planning/metric_space_concept.hpp>
+#include <ReaK/ctrl/path_planning/reversible_space_concept.hpp>
+#include <ReaK/ctrl/path_planning/temporal_space_concept.hpp>
+#include <ReaK/ctrl/path_planning/proper_metric_concept.hpp>
+
 #include "temporal_distance_metrics.hpp"
 #include "default_random_sampler.hpp"
-
-#include "path_planning/proper_metric_concept.hpp"
-
-#include "base/named_object.hpp"
 
 namespace ReaK {
 

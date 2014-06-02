@@ -35,13 +35,11 @@
 #ifndef REAK_PATH_BASE_HPP
 #define REAK_PATH_BASE_HPP
 
-#include "base/defs.hpp"
-
-#include "base/named_object.hpp"
+#include <ReaK/core/base/defs.hpp>
+#include <ReaK/core/base/named_object.hpp>
 
 #include "metric_space_concept.hpp"
 
-#include <boost/config.hpp>
 #include <boost/concept_check.hpp>
 
 namespace ReaK {

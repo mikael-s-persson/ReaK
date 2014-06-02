@@ -21,7 +21,7 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "prox_crect_crect.hpp"
+#include <ReaK/geometry/proximity/prox_crect_crect.hpp>
 
 /** Main namespace for ReaK */
 namespace ReaK {

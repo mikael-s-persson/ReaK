@@ -21,7 +21,7 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "box.hpp"
+#include <ReaK/geometry/shapes/box.hpp>
 
 namespace ReaK {
 

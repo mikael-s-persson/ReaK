@@ -10,13 +10,13 @@
 
 #include "IHAQR_topology.hpp"
 #include "MEAQR_topology.hpp"
-#include "ss_systems/quadrotor_system.hpp"
+#include <ReaK/ctrl/ss_systems/quadrotor_system.hpp>
 
-#include "topologies/se3_random_samplers.hpp"
+#include <ReaK/ctrl/topologies/se3_random_samplers.hpp>
 
-#include "path_planning/path_planner_options.hpp"
+#include <ReaK/ctrl/path_planning/path_planner_options.hpp>
 
-#include "serialization/xml_archiver.hpp"
+#include <ReaK/core/serialization/xml_archiver.hpp>
 
 int main(int argc, char ** argv) {
   using namespace ReaK;

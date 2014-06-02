@@ -32,15 +32,15 @@
 #ifndef REAK_FADPRM_MANIP_PLANNERS_HPP
 #define REAK_FADPRM_MANIP_PLANNERS_HPP
 
-#include "base/defs.hpp"
-#include "base/named_object.hpp"
+#include <ReaK/core/base/defs.hpp>
+#include <ReaK/core/base/named_object.hpp>
 
-#include "topologies/Ndof_spaces.hpp"
+#include <ReaK/ctrl/topologies/Ndof_spaces.hpp>
 
-#include "topologies/manip_free_workspace.hpp"
-#include "topologies/manip_free_dynamic_workspace.hpp"
+#include <ReaK/ctrl/topologies/manip_free_workspace.hpp>
+#include <ReaK/ctrl/topologies/manip_free_dynamic_workspace.hpp>
 
-#include "path_planning/fadprm_path_planner.hpp"
+#include <ReaK/ctrl/path_planning/fadprm_path_planner.hpp>
 
 
 
@@ -105,7 +105,7 @@ RK_FADPRM_MANIP_PLANNERS_MAKE_DYNAMIC_MANIP_EXTERN_DECL(10)
 
 #else
 
-#include "path_planning/fadprm_path_planner.tpp"
+#include <ReaK/ctrl/path_planning/fadprm_path_planner.tpp>
 
 #endif
 

@@ -21,7 +21,7 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "force_actuator.hpp"
+#include <ReaK/ctrl/mbd_kte/force_actuator.hpp>
 
 namespace ReaK {
 

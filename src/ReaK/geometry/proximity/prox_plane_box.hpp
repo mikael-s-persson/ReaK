@@ -34,8 +34,8 @@
 
 #include "proximity_finder_3D.hpp"
 
-#include "shapes/box.hpp"
-#include "shapes/plane.hpp"
+#include <ReaK/geometry/shapes/box.hpp>
+#include <ReaK/geometry/shapes/plane.hpp>
 
 /** Main namespace for ReaK */
 namespace ReaK {

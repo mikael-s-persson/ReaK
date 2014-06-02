@@ -21,7 +21,7 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "plane.hpp"
+#include <ReaK/geometry/shapes/plane.hpp>
 
 namespace ReaK {
 

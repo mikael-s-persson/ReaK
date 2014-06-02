@@ -52,11 +52,10 @@
 #include <boost/graph/bfl_d_ary_tree.hpp>  // for default tree storage.
 
 // Pending inclusion in BGL-Extra:
-#include "graph_alg/bgl_raw_property_graph.hpp"
+#include <ReaK/ctrl/graph_alg/bgl_raw_property_graph.hpp>
 
 
 #include "dvp_tree_detail.hpp"
-
 #include "multi_dvp_tree_search.hpp"
 
 

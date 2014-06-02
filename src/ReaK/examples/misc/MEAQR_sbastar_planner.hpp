@@ -32,24 +32,24 @@
 #ifndef REAK_MEAQR_SBASTAR_PLANNER_HPP
 #define REAK_MEAQR_SBASTAR_PLANNER_HPP
 
-#include "base/defs.hpp"
-#include "base/named_object.hpp"
+#include <ReaK/core/base/defs.hpp>
+#include <ReaK/core/base/named_object.hpp>
 
-#include "base/global_rng.hpp"
+#include <ReaK/core/base/global_rng.hpp>
 
-#include "path_planning/motion_planner_base.hpp"
-#include "path_planning/sbmp_reporter_concept.hpp"
+#include <ReaK/ctrl/path_planning/motion_planner_base.hpp>
+#include <ReaK/ctrl/path_planning/sbmp_reporter_concept.hpp>
 
-#include "path_planning/metric_space_concept.hpp"
-#include "path_planning/seq_path_wrapper.hpp"
-#include "interpolation/point_to_point_path.hpp"
-#include "path_planning/basic_sbmp_reporters.hpp"
+#include <ReaK/ctrl/path_planning/metric_space_concept.hpp>
+#include <ReaK/ctrl/path_planning/seq_path_wrapper.hpp>
+#include <ReaK/ctrl/interpolation/point_to_point_path.hpp>
+#include <ReaK/ctrl/path_planning/basic_sbmp_reporters.hpp>
 
-#include "graph_alg/lazy_sbastar.hpp"
-#include "graph_alg/sbastar_rrtstar.hpp"
-#include "graph_alg/anytime_sbastar.hpp"
+#include <ReaK/ctrl/graph_alg/lazy_sbastar.hpp>
+#include <ReaK/ctrl/graph_alg/sbastar_rrtstar.hpp>
+#include <ReaK/ctrl/graph_alg/anytime_sbastar.hpp>
 
-#include "path_planning/motion_graph_structures.hpp"
+#include <ReaK/ctrl/path_planning/motion_graph_structures.hpp>
 
 
 // BGL-Extra includes:
@@ -57,18 +57,18 @@
 #include <boost/graph/more_property_maps.hpp>
 
 
-#include "path_planning/metric_space_search.hpp"
-#include "path_planning/topological_search.hpp"
+#include <ReaK/ctrl/path_planning/metric_space_search.hpp>
+#include <ReaK/ctrl/path_planning/topological_search.hpp>
 
-#include "path_planning/p2p_planning_query.hpp"
-#include "path_planning/path_planner_options.hpp"
-#include "graph_alg/neighborhood_functors.hpp"
-#include "path_planning/any_motion_graphs.hpp"
-#include "path_planning/planning_visitors.hpp"
-#include "path_planning/density_plan_visitors.hpp"
+#include <ReaK/ctrl/path_planning/p2p_planning_query.hpp>
+#include <ReaK/ctrl/path_planning/path_planner_options.hpp>
+#include <ReaK/ctrl/graph_alg/neighborhood_functors.hpp>
+#include <ReaK/ctrl/path_planning/any_motion_graphs.hpp>
+#include <ReaK/ctrl/path_planning/planning_visitors.hpp>
+#include <ReaK/ctrl/path_planning/density_plan_visitors.hpp>
 
 #include "MEAQR_topology.hpp"
-#include "topologies/fixed_topology_random_sampler.hpp"
+#include <ReaK/ctrl/topologies/fixed_topology_random_sampler.hpp>
 
 namespace ReaK {
   

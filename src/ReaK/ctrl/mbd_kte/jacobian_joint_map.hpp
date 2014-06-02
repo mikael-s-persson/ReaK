@@ -34,9 +34,9 @@
 #ifndef REAK_JACOBIAN_JOINT_MAP_HPP
 #define REAK_JACOBIAN_JOINT_MAP_HPP
 
-#include "base/defs.hpp"
-#include "kinetostatics/kinetostatics.hpp"
-#include "kinetostatics/motion_jacobians.hpp"
+#include <ReaK/core/base/defs.hpp>
+#include <ReaK/core/kinetostatics/kinetostatics.hpp>
+#include <ReaK/core/kinetostatics/motion_jacobians.hpp>
 #include <map>
 
 namespace ReaK {

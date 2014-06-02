@@ -33,10 +33,10 @@
 #ifndef REAK_INVERSE_KINEMATICS_MODEL_HPP
 #define REAK_INVERSE_KINEMATICS_MODEL_HPP
 
-#include "base/defs.hpp"
-#include "kinetostatics/kinetostatics.hpp"
+#include <ReaK/core/base/defs.hpp>
+#include <ReaK/core/kinetostatics/kinetostatics.hpp>
+#include <ReaK/ctrl/mbd_kte/jacobian_joint_map.hpp>
 #include "direct_kinematics_model.hpp"
-#include "mbd_kte/jacobian_joint_map.hpp"
 
 namespace ReaK {
 

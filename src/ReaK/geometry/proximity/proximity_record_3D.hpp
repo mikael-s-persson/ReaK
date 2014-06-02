@@ -32,9 +32,8 @@
 #ifndef REAK_PROXIMITY_RECORD_3D_HPP
 #define REAK_PROXIMITY_RECORD_3D_HPP
 
-#include "base/shared_object.hpp"
-
-#include "lin_alg/vect_alg.hpp"
+#include <ReaK/core/base/shared_object.hpp>
+#include <ReaK/core/lin_alg/vect_alg.hpp>
 
 /** Main namespace for ReaK */
 namespace ReaK {

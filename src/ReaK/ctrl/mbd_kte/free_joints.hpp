@@ -36,9 +36,7 @@
 
 
 #include "reacting_kte.hpp"
-#include "kinetostatics/motion_jacobians.hpp"
-
-#include <boost/shared_ptr.hpp>
+#include <ReaK/core/kinetostatics/motion_jacobians.hpp>
 
 namespace ReaK {
 

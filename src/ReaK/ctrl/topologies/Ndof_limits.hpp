@@ -34,10 +34,10 @@
 #define REAK_NDOF_LIMITS_HPP
 
 
-#include "base/defs.hpp"
-#include "base/named_object.hpp"
+#include <ReaK/core/base/defs.hpp>
+#include <ReaK/core/base/named_object.hpp>
+#include <ReaK/core/lin_alg/vect_alg.hpp>
 
-#include "lin_alg/vect_alg.hpp"
 #include "Ndof_spaces.hpp"
 
 namespace ReaK {

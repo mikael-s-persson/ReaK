@@ -33,17 +33,13 @@
 #ifndef REAK_VECTOR_TOPOLOGY_HPP
 #define REAK_VECTOR_TOPOLOGY_HPP
 
+#include <ReaK/core/base/defs.hpp>
+#include <ReaK/core/base/named_object.hpp>
 
-#include "base/defs.hpp"
+#include <ReaK/core/lin_alg/vect_concepts.hpp>
 
-#include <boost/config.hpp> // For BOOST_STATIC_CONSTANT
-
-#include "lin_alg/vect_concepts.hpp"
-
-#include "base/named_object.hpp"
-
-#include "path_planning/metric_space_concept.hpp"
-#include "path_planning/reversible_space_concept.hpp"
+#include <ReaK/ctrl/path_planning/metric_space_concept.hpp>
+#include <ReaK/ctrl/path_planning/reversible_space_concept.hpp>
 
 namespace ReaK {
 
@@ -153,7 +149,7 @@ struct is_reversible_space< vector_topology<Vector> > : boost::mpl::true_ { };
 
 #ifndef BOOST_NO_CXX11_EXTERN_TEMPLATE
 
-#include "lin_alg/vect_alg.hpp"
+#include <ReaK/core/lin_alg/vect_alg.hpp>
 
 namespace ReaK {
 

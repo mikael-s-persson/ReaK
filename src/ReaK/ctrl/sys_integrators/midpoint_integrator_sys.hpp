@@ -34,11 +34,11 @@
 #ifndef REAK_MIDPOINT_INTEGRATOR_SYS_HPP
 #define REAK_MIDPOINT_INTEGRATOR_SYS_HPP
 
-#include "ctrl_sys/state_space_sys_concept.hpp"
-#include "path_planning/metric_space_concept.hpp"
-#include "path_planning/temporal_space_concept.hpp"
-#include "path_planning/spatial_trajectory_concept.hpp"
-#include "base/named_object.hpp"
+#include <ReaK/core/base/named_object.hpp>
+#include <ReaK/ctrl/ctrl_sys/state_space_sys_concept.hpp>
+#include <ReaK/ctrl/path_planning/metric_space_concept.hpp>
+#include <ReaK/ctrl/path_planning/temporal_space_concept.hpp>
+#include <ReaK/ctrl/path_planning/spatial_trajectory_concept.hpp>
 
 namespace ReaK {
 

@@ -33,9 +33,9 @@
 #ifndef REAK_FRAME_TRACER_COIN3D_IMPL_HPP
 #define REAK_FRAME_TRACER_COIN3D_IMPL_HPP
 
-#include "base/defs.hpp"
+#include <ReaK/core/base/defs.hpp>
 
-#include "lin_alg/vect_alg.hpp"
+#include <ReaK/core/lin_alg/vect_alg.hpp>
 
 
 class SoSeparator;   // forward-declare

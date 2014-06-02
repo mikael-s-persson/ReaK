@@ -32,11 +32,11 @@
 #ifndef REAK_MANIP_ERA_WORKSPACES_HPP
 #define REAK_MANIP_ERA_WORKSPACES_HPP
 
-#include "base/defs.hpp"
+#include <ReaK/core/base/defs.hpp>
 
-#include "kte_models/manip_ERA_arm.hpp"
-#include "topologies/manip_planning_traits.hpp"
-#include "topologies/se3_topologies.hpp"
+#include <ReaK/ctrl/kte_models/manip_ERA_arm.hpp>
+#include <ReaK/ctrl/topologies/manip_planning_traits.hpp>
+#include <ReaK/ctrl/topologies/se3_topologies.hpp>
 
 namespace ReaK {
 

@@ -32,16 +32,15 @@
 #ifndef REAK_SIMPLE_SBMP_REPORTERS_HPP
 #define REAK_SIMPLE_SBMP_REPORTERS_HPP
 
-#include "base/defs.hpp"
-#include "base/shared_object.hpp"
-
-#include <boost/config.hpp>
-#include <boost/concept_check.hpp>
+#include <ReaK/core/base/defs.hpp>
+#include <ReaK/core/base/shared_object.hpp>
 
 #include "subspace_concept.hpp"
 #include "steerable_space_concept.hpp"
 #include "seq_trajectory_base.hpp"
 #include "seq_path_base.hpp"
+
+#include <boost/concept_check.hpp>
 #include <boost/graph/graph_concepts.hpp>
 
 #include <boost/date_time/posix_time/posix_time.hpp>

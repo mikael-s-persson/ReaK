@@ -4,10 +4,10 @@
 #include <cmath>
 #include <ctime>
 
-#include <lin_alg/vect_alg.hpp>
-#include <lin_alg/mat_alg.hpp>
-#include <ss_systems/airship_assembled_models.hpp>
-#include <serialization/archiver_factory.hpp>
+#include <ReaK/core/lin_alg/vect_alg.hpp>
+#include <ReaK/core/lin_alg/mat_alg.hpp>
+#include <ReaK/ctrl/ss_systems/airship_assembled_models.hpp>
+#include <ReaK/core/serialization/archiver_factory.hpp>
 
 #include <lin_alg/mat_are_solver.hpp>
 

@@ -34,7 +34,7 @@
 
 #include "path_planner_options.hpp"
 
-#include "serialization/archiver_factory.hpp"
+#include <ReaK/core/serialization/archiver_factory.hpp>
 
 #include <boost/program_options.hpp>
 

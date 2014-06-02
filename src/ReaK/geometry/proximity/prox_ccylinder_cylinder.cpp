@@ -21,7 +21,7 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "prox_ccylinder_cylinder.hpp"
+#include <ReaK/geometry/proximity/prox_ccylinder_cylinder.hpp>
 
 #include <cmath>
 

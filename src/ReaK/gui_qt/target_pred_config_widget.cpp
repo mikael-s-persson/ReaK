@@ -21,7 +21,7 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "target_pred_config_widget.hpp"
+#include <ReaK/gui_qt/target_pred_config_widget.hpp>
 
 #include <QDockWidget>
 #include <QFileDialog>
@@ -31,19 +31,19 @@
 #include <QProcess>
 #include <QScrollArea>
 
-#include "serialization/archiver_factory.hpp"
+#include <ReaK/core/serialization/archiver_factory.hpp>
 
-#include "ctrl_sys/tsos_aug_inv_kalman_filter.hpp"
-#include "ctrl_sys/augmented_to_state_mapping.hpp"
-#include "ctrl_sys/gaussian_belief_space.hpp"
-#include "ctrl_sys/covar_topology.hpp"
-#include "ctrl_sys/belief_state_predictor.hpp"
-#include "ctrl_sys/maximum_likelihood_mapping.hpp"
-#include "interpolation/constant_trajectory.hpp"
-#include "path_planning/transformed_trajectory.hpp"
+#include <ReaK/ctrl/ctrl_sys/tsos_aug_inv_kalman_filter.hpp>
+#include <ReaK/ctrl/ctrl_sys/augmented_to_state_mapping.hpp>
+#include <ReaK/ctrl/ctrl_sys/gaussian_belief_space.hpp>
+#include <ReaK/ctrl/ctrl_sys/covar_topology.hpp>
+#include <ReaK/ctrl/ctrl_sys/belief_state_predictor.hpp>
+#include <ReaK/ctrl/ctrl_sys/maximum_likelihood_mapping.hpp>
+#include <ReaK/ctrl/interpolation/constant_trajectory.hpp>
+#include <ReaK/ctrl/path_planning/transformed_trajectory.hpp>
 
 
-#include "recorders/data_record_options.hpp"
+#include <ReaK/core/recorders/data_record_options.hpp>
 
 namespace ReaK {
   

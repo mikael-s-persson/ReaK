@@ -44,9 +44,9 @@
 
 #include "sbastar_path_planner.hpp"
 
-#include "graph_alg/lazy_sbastar.hpp"
-#include "graph_alg/sbastar_rrtstar.hpp"
-#include "graph_alg/anytime_sbastar.hpp"
+#include <ReaK/ctrl/graph_alg/lazy_sbastar.hpp>
+#include <ReaK/ctrl/graph_alg/sbastar_rrtstar.hpp>
+#include <ReaK/ctrl/graph_alg/anytime_sbastar.hpp>
 
 #include "motion_graph_structures.hpp"
 
@@ -61,7 +61,7 @@
 
 #include "p2p_planning_query.hpp"
 #include "path_planner_options.hpp"
-#include "graph_alg/neighborhood_functors.hpp"
+#include <ReaK/ctrl/graph_alg/neighborhood_functors.hpp>
 #include "any_motion_graphs.hpp"
 #include "density_plan_visitors.hpp"
 

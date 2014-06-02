@@ -35,8 +35,8 @@
 #include "colored_model.hpp"
 #include "shape_2D.hpp"
 #include "shape_3D.hpp"
-#include "proximity/proxy_query_model.hpp"
-#include "mbd_kte/kte_map_chain.hpp"
+#include <ReaK/geometry/proximity/proxy_query_model.hpp>
+#include <ReaK/ctrl/mbd_kte/kte_map_chain.hpp>
 
 #include <string>
 #include <map>

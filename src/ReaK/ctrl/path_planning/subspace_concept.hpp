@@ -39,10 +39,9 @@
 #define REAK_SUBSPACE_CONCEPT_HPP
 
 
-#include "base/defs.hpp"
-#include "base/shared_object.hpp"
+#include <ReaK/core/base/defs.hpp>
+#include <ReaK/core/base/shared_object.hpp>
 
-#include <boost/config.hpp>
 #include <boost/concept_check.hpp>
 
 /** Main namespace for ReaK */

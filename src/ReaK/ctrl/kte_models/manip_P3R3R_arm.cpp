@@ -21,13 +21,13 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "manip_P3R3R_arm.hpp"
+#include <ReaK/core/lin_alg/mat_alg.hpp>
+#include <ReaK/core/lin_alg/vect_alg.hpp>
+#include <ReaK/core/optimization/optim_exceptions.hpp>
 
-#include "mbd_kte/prismatic_joint.hpp"
+#include <ReaK/ctrl/kte_models/manip_P3R3R_arm.hpp>
+#include <ReaK/ctrl/mbd_kte/prismatic_joint.hpp>
 
-#include "lin_alg/mat_alg.hpp"
-#include "lin_alg/vect_alg.hpp"
-#include "optimization/optim_exceptions.hpp"
 #include <cmath>
 #include <algorithm>
 

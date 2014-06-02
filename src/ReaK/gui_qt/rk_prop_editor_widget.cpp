@@ -21,7 +21,7 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "rk_prop_editor_widget.hpp"
+#include <ReaK/gui_qt/rk_prop_editor_widget.hpp>
 
 #include <QDockWidget>
 #include <QTreeView>

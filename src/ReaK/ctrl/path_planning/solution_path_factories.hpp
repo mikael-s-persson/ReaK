@@ -33,12 +33,11 @@
 #ifndef REAK_SOLUTION_PATH_FACTORIES_HPP
 #define REAK_SOLUTION_PATH_FACTORIES_HPP
 
-#include "base/defs.hpp"
+#include <ReaK/core/base/defs.hpp>
 
 #include "metric_space_concept.hpp"
 #include "subspace_concept.hpp"
 #include "steerable_space_concept.hpp"
-
 #include "any_motion_graphs.hpp"
 
 #include <boost/utility/enable_if.hpp>

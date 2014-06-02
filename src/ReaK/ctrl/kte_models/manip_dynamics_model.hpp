@@ -32,15 +32,15 @@
 #ifndef REAK_MANIP_DYNAMICS_MODEL_HPP
 #define REAK_MANIP_DYNAMICS_MODEL_HPP
 
-#include "base/defs.hpp"
-#include "kinetostatics/kinetostatics.hpp"
+#include <ReaK/core/base/defs.hpp>
+#include <ReaK/core/kinetostatics/kinetostatics.hpp>
+#include <ReaK/core/integrators/integrator.hpp>
+#include <ReaK/ctrl/mbd_kte/mass_matrix_calculator.hpp>
+#include <ReaK/ctrl/mbd_kte/kte_system_input.hpp>
+#include <ReaK/ctrl/mbd_kte/kte_system_output.hpp>
+
 #include "manip_kinematics_model.hpp"
 #include "inverse_dynamics_model.hpp"
-#include "mbd_kte/mass_matrix_calculator.hpp"
-#include "mbd_kte/kte_system_input.hpp"
-#include "mbd_kte/kte_system_output.hpp"
-
-#include "integrators/integrator.hpp"
 
 #include <vector>
 

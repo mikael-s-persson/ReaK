@@ -35,7 +35,7 @@
 #define REAK_REACTING_KTE_HPP
 
 #include "kte_map.hpp"
-#include "kinetostatics/kinetostatics.hpp"
+#include <ReaK/core/kinetostatics/kinetostatics.hpp>
 
 namespace ReaK {
 

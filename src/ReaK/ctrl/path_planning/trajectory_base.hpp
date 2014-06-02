@@ -35,19 +35,17 @@
 #ifndef REAK_TRAJECTORY_BASE_HPP
 #define REAK_TRAJECTORY_BASE_HPP
 
-#include "base/defs.hpp"
-
-#include "base/named_object.hpp"
+#include <ReaK/core/base/defs.hpp>
+#include <ReaK/core/base/named_object.hpp>
 
 #include "spatial_trajectory_concept.hpp"
 #include "sequential_trajectory_concept.hpp"
-
 #include "seq_trajectory_base.hpp"
 
 #include <boost/config.hpp>
 #include <boost/concept_check.hpp>
 
-#include <lin_alg/mat_num_exceptions.hpp>
+#include <ReaK/core/lin_alg/mat_num_exceptions.hpp>
 
 #include <boost/any.hpp>
 

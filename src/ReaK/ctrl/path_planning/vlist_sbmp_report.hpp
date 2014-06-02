@@ -33,10 +33,9 @@
 #ifndef REAK_VLIST_SBMP_REPORT_HPP
 #define REAK_VLIST_SBMP_REPORT_HPP
 
-#include "base/defs.hpp"
-#include "base/shared_object.hpp"
+#include <ReaK/core/base/defs.hpp>
+#include <ReaK/core/base/shared_object.hpp>
 
-#include <boost/config.hpp>
 #include <boost/concept_check.hpp>
 
 #include "subspace_concept.hpp"

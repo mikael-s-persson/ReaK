@@ -21,7 +21,7 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "prox_rectangle_rectangle.hpp"
+#include <ReaK/geometry/proximity/prox_rectangle_rectangle.hpp>
 
 /** Main namespace for ReaK */
 namespace ReaK {

@@ -29,7 +29,7 @@
 #ifndef REAK_CHASER_TARGET_CONFIG_WIDGET_HPP
 #define REAK_CHASER_TARGET_CONFIG_WIDGET_HPP
 
-#include "kte_models/chaser_target_model_data.hpp"
+#include <ReaK/ctrl/kte_models/chaser_target_model_data.hpp>
 
 #include "rk_view3d_menu.hpp"
 

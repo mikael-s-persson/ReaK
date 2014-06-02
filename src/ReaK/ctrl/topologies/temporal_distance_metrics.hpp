@@ -33,9 +33,9 @@
 #ifndef REAK_TEMPORAL_DISTANCE_METRICS_HPP
 #define REAK_TEMPORAL_DISTANCE_METRICS_HPP
 
-#include "base/serializable.hpp"
+#include <ReaK/core/base/serializable.hpp>
 
-#include "path_planning/temporal_space_concept.hpp"
+#include <ReaK/ctrl/path_planning/temporal_space_concept.hpp>
 
 namespace ReaK {
 

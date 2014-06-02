@@ -21,7 +21,7 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "prox_fundamentals_2D.hpp"
+#include <ReaK/geometry/proximity/prox_fundamentals_2D.hpp>
 
 
 /** Main namespace for ReaK */

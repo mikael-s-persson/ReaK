@@ -35,10 +35,10 @@
 #define REAK_DIRECT_KINEMATICS_TOPOMAP_HPP
 
 
-#include "base/defs.hpp"
-#include "base/shared_object.hpp"
+#include <ReaK/core/base/defs.hpp>
+#include <ReaK/core/base/shared_object.hpp>
 
-#include "kte_models/direct_kinematics_model.hpp"
+#include <ReaK/ctrl/kte_models/direct_kinematics_model.hpp>
 
 #include "direct_kinematics_topomap_detail.hpp"
 

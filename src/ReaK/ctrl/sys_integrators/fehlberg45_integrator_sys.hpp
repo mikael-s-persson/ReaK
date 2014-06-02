@@ -38,15 +38,15 @@
 #ifndef REAK_FEHLBERG45_INTEGRATOR_SYS_HPP
 #define REAK_FEHLBERG45_INTEGRATOR_SYS_HPP
 
-#include "ctrl_sys/state_space_sys_concept.hpp"
-#include "path_planning/metric_space_concept.hpp"
-#include "path_planning/temporal_space_concept.hpp"
-#include "path_planning/spatial_trajectory_concept.hpp"
-#include "base/named_object.hpp"
+#include <ReaK/core/base/named_object.hpp>
+#include <ReaK/ctrl/ctrl_sys/state_space_sys_concept.hpp>
+#include <ReaK/ctrl/path_planning/metric_space_concept.hpp>
+#include <ReaK/ctrl/path_planning/temporal_space_concept.hpp>
+#include <ReaK/ctrl/path_planning/spatial_trajectory_concept.hpp>
 
-#include "integrators/integration_exceptions.hpp"
-#include <lin_alg/vect_alg.hpp>
-#include <lin_alg/arithmetic_tuple.hpp>
+#include <ReaK/core/integrators/integration_exceptions.hpp>
+#include <ReaK/core/lin_alg/vect_alg.hpp>
+#include <ReaK/core/lin_alg/arithmetic_tuple.hpp>
 
 namespace ReaK {
 

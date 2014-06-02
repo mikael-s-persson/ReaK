@@ -35,7 +35,7 @@
 #ifndef REAK_SBMP_REPORTER_CONCEPT_HPP
 #define REAK_SBMP_REPORTER_CONCEPT_HPP
 
-#include "base/defs.hpp"
+#include <ReaK/core/base/defs.hpp>
 
 #include <boost/config.hpp>
 #include <boost/concept_check.hpp>

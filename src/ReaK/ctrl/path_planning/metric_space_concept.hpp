@@ -37,9 +37,8 @@
 #ifndef REAK_METRIC_SPACE_CONCEPT_HPP
 #define REAK_METRIC_SPACE_CONCEPT_HPP
 
-#include "base/serializable.hpp"
+#include <ReaK/core/base/serializable.hpp>
 
-#include <boost/config.hpp>
 #include <cmath>
 #include <boost/concept_check.hpp>
 #include <boost/utility/enable_if.hpp>

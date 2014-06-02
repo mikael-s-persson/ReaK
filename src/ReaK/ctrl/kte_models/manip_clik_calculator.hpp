@@ -39,11 +39,11 @@
 #ifndef REAK_MANIP_CLIK_CALCULATOR_HPP
 #define REAK_MANIP_CLIK_CALCULATOR_HPP
 
+#include <ReaK/core/optimization/optim_exceptions.hpp>
+#include <ReaK/core/optimization/function_types.hpp>
+
 #include "direct_kinematics_model.hpp"
 #include "manip_kinematics_helper.hpp"
-
-#include "optimization/optim_exceptions.hpp"
-#include "optimization/function_types.hpp"
 
 #include <cmath>
 

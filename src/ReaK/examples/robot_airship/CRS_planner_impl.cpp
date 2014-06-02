@@ -35,19 +35,19 @@
 #include <Inventor/nodes/SoSwitch.h>
 #include <Inventor/sensors/SoTimerSensor.h>  // for SoTimerSensor
 
-#include "shapes/oi_scene_graph.hpp"
-#include "proximity/proxy_query_model.hpp"
+#include <ReaK/geometry/shapes/oi_scene_graph.hpp>
+#include <ReaK/geometry/proximity/proxy_query_model.hpp>
 
-#include "serialization/archiver_factory.hpp"
+#include <ReaK/core/serialization/archiver_factory.hpp>
 
-#include "interpolation/discrete_point_trajectory.hpp"
-#include "path_planning/trajectory_base.hpp"
+#include <ReaK/ctrl/interpolation/discrete_point_trajectory.hpp>
+#include <ReaK/ctrl/path_planning/trajectory_base.hpp>
 
 #include "CRS_planner_data.hpp"
 
-#include "optimization/optim_exceptions.hpp"
+#include <ReaK/core/optimization/optim_exceptions.hpp>
 
-#include "base/chrono_incl.hpp"
+#include <ReaK/core/base/chrono_incl.hpp>
 
 
 #include <boost/asio.hpp>

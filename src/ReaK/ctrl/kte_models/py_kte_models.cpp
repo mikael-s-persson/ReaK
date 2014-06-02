@@ -32,23 +32,19 @@
 
 
 
-#include "base/defs.hpp"
+#include <ReaK/core/base/defs.hpp>
+#include <ReaK/core/base/py_fixes.hpp>
 
-#include "direct_kinematics_model.hpp"   // DONE.
-#include "inverse_kinematics_model.hpp"  // DONE.
-#include "inverse_dynamics_model.hpp"    // DONE.
-#include "manip_kinematics_model.hpp"    // DONE.
-#include "manip_dynamics_model.hpp"      // DONE.
+#include <ReaK/ctrl/kte_models/direct_kinematics_model.hpp>
+#include <ReaK/ctrl/kte_models/inverse_kinematics_model.hpp>
+#include <ReaK/ctrl/kte_models/inverse_dynamics_model.hpp>
+#include <ReaK/ctrl/kte_models/manip_kinematics_model.hpp>
+#include <ReaK/ctrl/kte_models/manip_dynamics_model.hpp>
 
 #include <boost/python.hpp>
 #include <boost/python/suite/indexing/vector_indexing_suite.hpp>
 
-#include "base/py_fixes.hpp"
-
 #include <sstream>
-
-
-
 
 namespace PyReaK {
   

@@ -21,7 +21,7 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "torsion_damper.hpp"
+#include <ReaK/ctrl/mbd_kte/torsion_damper.hpp>
 
 namespace ReaK {
 

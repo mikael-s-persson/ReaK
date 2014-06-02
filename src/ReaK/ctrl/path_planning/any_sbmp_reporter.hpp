@@ -32,16 +32,15 @@
 #ifndef REAK_ANY_SBMP_REPORTER_HPP
 #define REAK_ANY_SBMP_REPORTER_HPP
 
-#include "base/defs.hpp"
-#include "base/shared_object.hpp"
+#include <ReaK/core/base/defs.hpp>
+#include <ReaK/core/base/shared_object.hpp>
 
-#include <boost/config.hpp>
-#include <boost/concept_check.hpp>
-
+#include <ReaK/ctrl/graph_alg/any_graph.hpp>
 #include "seq_trajectory_base.hpp"
 #include "seq_path_base.hpp"
-#include "graph_alg/any_graph.hpp"
 #include "any_motion_graphs.hpp"
+
+#include <boost/concept_check.hpp>
 
 #ifdef BOOST_NO_CXX11_HDR_FUNCTIONAL
 #include <boost/ref.hpp>

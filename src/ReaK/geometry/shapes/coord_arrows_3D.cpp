@@ -21,7 +21,7 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "coord_arrows_3D.hpp"
+#include <ReaK/geometry/shapes/coord_arrows_3D.hpp>
 
 namespace ReaK {
 

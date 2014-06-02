@@ -33,9 +33,9 @@
 #ifndef REAK_MANIP_ERA_ARM_HPP
 #define REAK_MANIP_ERA_ARM_HPP
 
-#include "base/defs.hpp"
+#include <ReaK/core/base/defs.hpp>
 #include "inverse_kinematics_model.hpp"
-#include "mbd_kte/kte_map_chain.hpp"
+#include <ReaK/ctrl/mbd_kte/kte_map_chain.hpp>
 
 namespace ReaK {
 

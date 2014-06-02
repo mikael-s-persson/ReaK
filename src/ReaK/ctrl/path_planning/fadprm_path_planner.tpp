@@ -39,7 +39,8 @@
 
 #include "fadprm_path_planner.hpp"
 
-#include "graph_alg/fadprm.hpp"
+#include <ReaK/ctrl/graph_alg/fadprm.hpp>
+#include <ReaK/ctrl/graph_alg/neighborhood_functors.hpp>
 
 #include "motion_graph_structures.hpp"
 
@@ -51,13 +52,12 @@
 
 #include "p2p_planning_query.hpp"
 #include "path_planner_options.hpp"
-#include "graph_alg/neighborhood_functors.hpp"
 #include "any_motion_graphs.hpp"
 #include "planning_visitors.hpp"
 #include "any_knn_synchro.hpp"
 #include "density_plan_visitors.hpp"
 
-#include "base/misc_math.hpp"
+#include <ReaK/core/base/misc_math.hpp>
 
 #include <stack>
 

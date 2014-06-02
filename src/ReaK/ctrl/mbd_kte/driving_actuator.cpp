@@ -21,7 +21,7 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "driving_actuator.hpp"
+#include <ReaK/ctrl/mbd_kte/driving_actuator.hpp>
 
 namespace ReaK {
 

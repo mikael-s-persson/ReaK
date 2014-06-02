@@ -33,9 +33,9 @@
 #ifndef REAK_DEFAULT_RANDOM_SAMPLER_HPP
 #define REAK_DEFAULT_RANDOM_SAMPLER_HPP
 
-#include "base/serializable.hpp"
+#include <ReaK/core/base/serializable.hpp>
 
-#include "path_planning/random_sampler_concept.hpp"
+#include <ReaK/ctrl/path_planning/random_sampler_concept.hpp>
 
 namespace ReaK {
 

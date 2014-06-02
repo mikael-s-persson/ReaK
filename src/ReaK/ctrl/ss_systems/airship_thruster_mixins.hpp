@@ -38,10 +38,10 @@
 #ifndef REAK_AIRSHIP_THRUSTER_MIXINS_HPP
 #define REAK_AIRSHIP_THRUSTER_MIXINS_HPP
 
-#include "base/named_object.hpp"
+#include <ReaK/core/base/named_object.hpp>
 
-#include "ss_systems/state_space_system_tuple.hpp"
-#include "ss_systems/airship_basic_mixins.hpp"
+#include "state_space_system_tuple.hpp"
+#include "airship_basic_mixins.hpp"
 
 
 namespace ReaK {

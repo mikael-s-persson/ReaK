@@ -41,14 +41,14 @@
 #include "metric_space_concept.hpp"
 #include "proper_metric_concept.hpp"
 
-#include "base/global_rng.hpp"
+#include <ReaK/core/base/global_rng.hpp>
 
 // BGL-Extra includes:
 #include <boost/graph/tree_traits.hpp>
 #include <boost/graph/tree_adaptor.hpp>
 
 // Pending inclusion in BGL-Extra:
-#include "graph_alg/bgl_raw_property_graph.hpp"
+#include <ReaK/ctrl/graph_alg/bgl_raw_property_graph.hpp>
 
 
 #include <boost/mpl/if.hpp>

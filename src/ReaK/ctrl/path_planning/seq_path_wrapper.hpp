@@ -33,13 +33,11 @@
 #ifndef REAK_SEQ_PATH_WRAPPER_HPP
 #define REAK_SEQ_PATH_WRAPPER_HPP
 
-#include "base/defs.hpp"
+#include <ReaK/core/base/defs.hpp>
 
 #include "seq_path_base.hpp"
-
 #include "sequential_path_concept.hpp"
 
-#include <boost/config.hpp>
 #include <boost/concept_check.hpp>
 
 namespace ReaK {

@@ -22,10 +22,10 @@
  */
 
 
-#include "serialization/xml_archiver.hpp"
+#include <ReaK/core/serialization/xml_archiver.hpp>
 
-#include "kinetostatics/rotations_3D.hpp"
-#include "kinetostatics/quat_alg.hpp"
+#include <ReaK/core/kinetostatics/rotations_3D.hpp>
+#include <ReaK/core/kinetostatics/quat_alg.hpp>
 
 int main() {
   

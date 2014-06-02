@@ -34,7 +34,7 @@
 
 #include "proximity_finder_3D.hpp"
 
-#include "shapes/sphere.hpp"
+#include <ReaK/geometry/shapes/sphere.hpp>
 
 /** Main namespace for ReaK */
 namespace ReaK {

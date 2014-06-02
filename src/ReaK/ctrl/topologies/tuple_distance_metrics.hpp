@@ -33,12 +33,12 @@
 #ifndef REAK_TUPLE_DISTANCE_METRICS_HPP
 #define REAK_TUPLE_DISTANCE_METRICS_HPP
 
-#include "base/serializable.hpp"
+#include <ReaK/core/base/serializable.hpp>
 
 #include <cmath>
-#include "lin_alg/arithmetic_tuple.hpp"
+#include <ReaK/core/lin_alg/arithmetic_tuple.hpp>
 
-#include "path_planning/metric_space_concept.hpp"
+#include <ReaK/ctrl/path_planning/metric_space_concept.hpp>
 
 namespace ReaK {
 

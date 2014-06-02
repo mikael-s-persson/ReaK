@@ -38,12 +38,12 @@
 #ifndef REAK_AIRSHIP_SONAR_MIXINS_HPP
 #define REAK_AIRSHIP_SONAR_MIXINS_HPP
 
-#include "base/named_object.hpp"
+#include <ReaK/core/base/named_object.hpp>
 
-#include "ss_systems/state_space_system_tuple.hpp"
-#include "ss_systems/airship_basic_mixins.hpp"
+#include "state_space_system_tuple.hpp"
+#include "airship_basic_mixins.hpp"
 
-#include "topologies/line_topology.hpp"
+#include <ReaK/ctrl/topologies/line_topology.hpp>
 
 namespace ReaK {
 

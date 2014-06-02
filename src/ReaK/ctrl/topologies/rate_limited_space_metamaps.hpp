@@ -32,7 +32,7 @@
 #ifndef REAK_RATE_LIMITED_SPACE_METAMAPS_HPP
 #define REAK_RATE_LIMITED_SPACE_METAMAPS_HPP
 
-#include "base/defs.hpp"
+#include <ReaK/core/base/defs.hpp>
 
 namespace ReaK {
 

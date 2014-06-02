@@ -21,49 +21,49 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "proxy_query_model.hpp"
+#include <ReaK/geometry/proximity/proxy_query_model.hpp>
 
-#include "shapes/line_seg_2D.hpp"
-#include "shapes/grid_2D.hpp"
-#include "shapes/coord_arrows_2D.hpp"
-#include "shapes/circle.hpp"
-#include "shapes/rectangle.hpp"
-#include "shapes/capped_rectangle.hpp"
-#include "shapes/composite_shape_2D.hpp"
+#include <ReaK/geometry/shapes/line_seg_2D.hpp>
+#include <ReaK/geometry/shapes/grid_2D.hpp>
+#include <ReaK/geometry/shapes/coord_arrows_2D.hpp>
+#include <ReaK/geometry/shapes/circle.hpp>
+#include <ReaK/geometry/shapes/rectangle.hpp>
+#include <ReaK/geometry/shapes/capped_rectangle.hpp>
+#include <ReaK/geometry/shapes/composite_shape_2D.hpp>
 
-#include "shapes/line_seg_3D.hpp"
-#include "shapes/grid_3D.hpp"
-#include "shapes/coord_arrows_3D.hpp"
-#include "shapes/plane.hpp"
-#include "shapes/sphere.hpp"
-#include "shapes/box.hpp"
-#include "shapes/cylinder.hpp"
-#include "shapes/capped_cylinder.hpp"
-#include "shapes/composite_shape_3D.hpp"
+#include <ReaK/geometry/shapes/line_seg_3D.hpp>
+#include <ReaK/geometry/shapes/grid_3D.hpp>
+#include <ReaK/geometry/shapes/coord_arrows_3D.hpp>
+#include <ReaK/geometry/shapes/plane.hpp>
+#include <ReaK/geometry/shapes/sphere.hpp>
+#include <ReaK/geometry/shapes/box.hpp>
+#include <ReaK/geometry/shapes/cylinder.hpp>
+#include <ReaK/geometry/shapes/capped_cylinder.hpp>
+#include <ReaK/geometry/shapes/composite_shape_3D.hpp>
 
 
-#include "prox_circle_circle.hpp"
-#include "prox_circle_crect.hpp"
-#include "prox_circle_rectangle.hpp"
-#include "prox_crect_crect.hpp"
-#include "prox_crect_rectangle.hpp"
-#include "prox_rectangle_rectangle.hpp"
+#include <ReaK/geometry/proximity/prox_circle_circle.hpp>
+#include <ReaK/geometry/proximity/prox_circle_crect.hpp>
+#include <ReaK/geometry/proximity/prox_circle_rectangle.hpp>
+#include <ReaK/geometry/proximity/prox_crect_crect.hpp>
+#include <ReaK/geometry/proximity/prox_crect_rectangle.hpp>
+#include <ReaK/geometry/proximity/prox_rectangle_rectangle.hpp>
 
-#include "prox_plane_plane.hpp"
-#include "prox_plane_sphere.hpp"
-#include "prox_plane_ccylinder.hpp"
-#include "prox_plane_cylinder.hpp"
-#include "prox_plane_box.hpp"
-#include "prox_sphere_sphere.hpp"
-#include "prox_sphere_ccylinder.hpp"
-#include "prox_sphere_cylinder.hpp"
-#include "prox_sphere_box.hpp"
-#include "prox_ccylinder_ccylinder.hpp"
-#include "prox_ccylinder_cylinder.hpp"     // NOTE: not working.
-#include "prox_ccylinder_box.hpp"
-#include "prox_cylinder_cylinder.hpp"      // NOTE: not working.
-#include "prox_cylinder_box.hpp"           // NOTE: not working.
-#include "prox_box_box.hpp"                // NOTE: not working.
+#include <ReaK/geometry/proximity/prox_plane_plane.hpp>
+#include <ReaK/geometry/proximity/prox_plane_sphere.hpp>
+#include <ReaK/geometry/proximity/prox_plane_ccylinder.hpp>
+#include <ReaK/geometry/proximity/prox_plane_cylinder.hpp>
+#include <ReaK/geometry/proximity/prox_plane_box.hpp>
+#include <ReaK/geometry/proximity/prox_sphere_sphere.hpp>
+#include <ReaK/geometry/proximity/prox_sphere_ccylinder.hpp>
+#include <ReaK/geometry/proximity/prox_sphere_cylinder.hpp>
+#include <ReaK/geometry/proximity/prox_sphere_box.hpp>
+#include <ReaK/geometry/proximity/prox_ccylinder_ccylinder.hpp>
+#include <ReaK/geometry/proximity/prox_ccylinder_cylinder.hpp>     // NOTE: not working.
+#include <ReaK/geometry/proximity/prox_ccylinder_box.hpp>
+#include <ReaK/geometry/proximity/prox_cylinder_cylinder.hpp>      // NOTE: not working.
+#include <ReaK/geometry/proximity/prox_cylinder_box.hpp>           // NOTE: not working.
+#include <ReaK/geometry/proximity/prox_box_box.hpp>                // NOTE: not working.
 
 
 namespace ReaK {

@@ -22,7 +22,7 @@
  */
 
 
-#include "line_point_mindist.hpp"
+#include <ReaK/ctrl/mbd_kte/line_point_mindist.hpp>
 
 namespace ReaK { 
 

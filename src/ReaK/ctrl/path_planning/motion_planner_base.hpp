@@ -37,8 +37,8 @@
 #ifndef REAK_MOTION_PLANNER_BASE_HPP
 #define REAK_MOTION_PLANNER_BASE_HPP
 
-#include "base/defs.hpp"
-#include "base/named_object.hpp"
+#include <ReaK/core/base/defs.hpp>
+#include <ReaK/core/base/named_object.hpp>
 
 #include "metric_space_concept.hpp"
 #include "steerable_space_concept.hpp"

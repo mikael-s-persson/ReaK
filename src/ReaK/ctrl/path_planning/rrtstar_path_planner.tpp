@@ -39,7 +39,7 @@
 
 #include "rrtstar_path_planner.hpp"
 
-#include "graph_alg/rrt_star.hpp"
+#include <ReaK/ctrl/graph_alg/rrt_star.hpp>
 
 #include "motion_graph_structures.hpp"
 
@@ -55,7 +55,7 @@
 
 #include "p2p_planning_query.hpp"
 #include "path_planner_options.hpp"
-#include "graph_alg/neighborhood_functors.hpp"
+#include <ReaK/ctrl/graph_alg/neighborhood_functors.hpp>
 #include "any_motion_graphs.hpp"
 #include "planning_visitors.hpp"
 

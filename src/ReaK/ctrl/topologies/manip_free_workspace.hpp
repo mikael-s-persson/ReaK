@@ -35,19 +35,17 @@
 #ifndef REAK_MANIP_FREE_WORKSPACE_HPP
 #define REAK_MANIP_FREE_WORKSPACE_HPP
 
-#include "base/defs.hpp"
-#include <boost/config.hpp>
+#include <ReaK/core/base/defs.hpp>
+#include <ReaK/core/base/named_object.hpp>
 
-#include "base/named_object.hpp"
+#include <ReaK/ctrl/path_planning/random_sampler_concept.hpp>
+#include <ReaK/ctrl/path_planning/metric_space_concept.hpp>
+#include <ReaK/ctrl/path_planning/reversible_space_concept.hpp>
 
-#include "path_planning/random_sampler_concept.hpp"
-#include "path_planning/metric_space_concept.hpp"
-#include "path_planning/reversible_space_concept.hpp"
-
-#include "interpolation/interpolated_topologies.hpp"
+#include <ReaK/ctrl/interpolation/interpolated_topologies.hpp>
 #include "proxy_model_updater.hpp"
 
-#include "proximity/proxy_query_model.hpp"  // for proxy-query class
+#include <ReaK/geometry/proximity/proxy_query_model.hpp>  // for proxy-query class
 
 #include "default_random_sampler.hpp"
 

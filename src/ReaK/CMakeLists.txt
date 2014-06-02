@@ -122,10 +122,6 @@ endif()
 
 include_directories(BEFORE SYSTEM ${BOOST_INCLUDE_DIRS})
 include_directories(AFTER "${SRCINCLUDEROOT}")
-include_directories(AFTER "${SRCROOT}${RKCOREDIR}")
-include_directories(AFTER "${SRCROOT}${RKCTRLDIR}")
-include_directories(AFTER "${SRCROOT}${RKGEOMETRYDIR}")
-include_directories(AFTER "${SRCROOT}${RKGUIQTDIR}")
 
 
 # Add the sub-directories to cmake process.

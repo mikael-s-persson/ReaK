@@ -33,7 +33,7 @@
 #define REAK_SHAPE_3D_HPP
 
 #include "geometry_3D.hpp"
-#include "kinetostatics/pose_3D.hpp"
+#include <ReaK/core/kinetostatics/pose_3D.hpp>
 
 /** Main namespace for ReaK */
 namespace ReaK {

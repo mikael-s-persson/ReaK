@@ -32,13 +32,13 @@
 #ifndef REAK_CRS_PLANNERS_UTILITY_HPP
 #define REAK_CRS_PLANNERS_UTILITY_HPP
 
-#include "base/defs.hpp"
-#include "base/named_object.hpp"
+#include <ReaK/core/base/defs.hpp>
+#include <ReaK/core/base/named_object.hpp>
 
-#include "shapes/colored_model.hpp"
-#include "proximity/proxy_query_model.hpp"
-#include "kte_models/manip_P3R3R_arm.hpp"
-#include "topologies/joint_space_limits.hpp"
+#include <ReaK/geometry/shapes/colored_model.hpp>
+#include <ReaK/geometry/proximity/proxy_query_model.hpp>
+#include <ReaK/ctrl/kte_models/manip_P3R3R_arm.hpp>
+#include <ReaK/ctrl/topologies/joint_space_limits.hpp>
 
 namespace ReaK {
   

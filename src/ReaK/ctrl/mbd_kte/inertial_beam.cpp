@@ -21,7 +21,7 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "inertial_beam.hpp"
+#include <ReaK/ctrl/mbd_kte/inertial_beam.hpp>
 
 namespace ReaK {
 

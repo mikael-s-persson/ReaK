@@ -35,6 +35,8 @@
 
 #include <ReaK/core/base/defs.hpp>
 #include <ReaK/core/base/shared_object.hpp>
+#include <ReaK/core/lin_alg/vect_alg.hpp>
+#include <ReaK/core/lin_alg/mat_alg.hpp>
 
 namespace ReaK {
 

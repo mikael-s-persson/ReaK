@@ -48,7 +48,7 @@
 #ifndef REAK_PROPER_METRIC_CONCEPT_HPP
 #define REAK_PROPER_METRIC_CONCEPT_HPP
 
-#include "base/serializable.hpp"
+#include <ReaK/core/base/serializable.hpp>
 
 #include "metric_space_concept.hpp"
 

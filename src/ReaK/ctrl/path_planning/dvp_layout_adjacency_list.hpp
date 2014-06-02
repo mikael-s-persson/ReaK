@@ -37,6 +37,10 @@
 #ifndef REAK_DVP_LAYOUT_ADJACENCY_LIST_HPP
 #define REAK_DVP_LAYOUT_ADJACENCY_LIST_HPP
 
+#include "metric_space_concept.hpp"
+
+#include <ReaK/ctrl/graph_alg/adj_list_tree_overlay.hpp>
+
 #include <boost/graph/graph_concepts.hpp>
 #include <boost/property_map/property_map.hpp>
 #include <boost/graph/properties.hpp>
@@ -45,22 +49,14 @@
 #include <vector>   // for vector
 #include <limits>   // for numeric_limits
 
-#include "metric_space_concept.hpp"
-
-
-#include "graph_alg/adj_list_tree_overlay.hpp"
-
 // BGL-Extra includes:
 #include <boost/graph/more_property_maps.hpp>
 #include <boost/graph/bfl_d_ary_tree.hpp>  // for default tree storage.
 
-
 // Pending inclusion in BGL-Extra:
-#include "graph_alg/bgl_raw_property_graph.hpp"
-
+#include <ReaK/ctrl/graph_alg/bgl_raw_property_graph.hpp>
 
 #include "dvp_tree_detail.hpp"
-
 #include "multi_dvp_tree_search.hpp"
 
 

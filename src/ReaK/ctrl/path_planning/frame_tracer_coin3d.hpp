@@ -33,22 +33,21 @@
 #ifndef REAK_FRAME_TRACER_COIN3D_HPP
 #define REAK_FRAME_TRACER_COIN3D_HPP
 
-#include "base/defs.hpp"
-#include "base/shared_object.hpp"
+#include <ReaK/core/base/defs.hpp>
+#include <ReaK/core/base/shared_object.hpp>
 
-#include <boost/config.hpp>
 #include <boost/concept_check.hpp>
 
 #include "trajectory_base.hpp"
 #include "basic_sbmp_reporters.hpp"
 #include <boost/graph/graph_concepts.hpp>
 
-#include "topologies/direct_kinematics_topomap.hpp"
+#include <ReaK/ctrl/topologies/direct_kinematics_topomap.hpp>
 #include "topological_map_concepts.hpp"
 
-#include "topologies/proxy_model_updater.hpp"
+#include <ReaK/ctrl/topologies/proxy_model_updater.hpp>
 
-#include "shapes/frame_tracer_coin3d_impl.hpp"
+#include <ReaK/geometry/shapes/frame_tracer_coin3d_impl.hpp>
 
 class SoSeparator;   // forward-declare
 

@@ -42,7 +42,7 @@
 // #define RK_PLANNERS_ENABLE_DVP_ADJ_LIST_LAYOUT
 
 
-#include "base/defs.hpp"
+#include <ReaK/core/base/defs.hpp>
 
 // BGL-Extra includes:
 #include <boost/graph/bfl_d_ary_tree.hpp>

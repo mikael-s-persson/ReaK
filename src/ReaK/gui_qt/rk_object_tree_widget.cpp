@@ -21,7 +21,7 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "rk_object_tree_widget.hpp"
+#include <ReaK/gui_qt/rk_object_tree_widget.hpp>
 
 #include <QDockWidget>
 #include <QTreeView>

@@ -36,8 +36,7 @@
 
 #ifndef BOOST_NO_CXX11_EXTERN_TEMPLATE
 
-#include "base/defs.hpp"
-#include <boost/config.hpp> // For BOOST_STATIC_CONSTANT
+#include <ReaK/core/base/defs.hpp>
 
 #include "differentiable_space.hpp"
 #include "metric_space_tuple.hpp"

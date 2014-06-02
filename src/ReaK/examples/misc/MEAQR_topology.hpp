@@ -33,38 +33,35 @@
 #define REAK_MEAQR_TOPOLOGY_HPP
 
 
-#include "base/defs.hpp"
-#include <boost/config.hpp> // For BOOST_STATIC_CONSTANT
+#include <ReaK/core/base/defs.hpp>
+#include <ReaK/core/base/named_object.hpp>
 
+#include <ReaK/ctrl/topologies/tuple_distance_metrics.hpp>
+#include <ReaK/ctrl/topologies/hyperbox_topology.hpp>
 
-#include "base/named_object.hpp"
+#include <ReaK/ctrl/path_planning/proper_metric_concept.hpp>
 
-#include "topologies/tuple_distance_metrics.hpp"
-#include "topologies/hyperbox_topology.hpp"
+#include <ReaK/ctrl/path_planning/metric_space_concept.hpp>
+#include <ReaK/ctrl/path_planning/steerable_space_concept.hpp>
 
-#include "path_planning/proper_metric_concept.hpp"
+#include <ReaK/ctrl/interpolation/discrete_point_path.hpp>
 
-#include "path_planning/metric_space_concept.hpp"
-#include "path_planning/steerable_space_concept.hpp"
-
-#include "interpolation/discrete_point_path.hpp"
-
-#include "ctrl_sys/linear_ss_system_concept.hpp"
+#include <ReaK/ctrl/ctrl_sys/linear_ss_system_concept.hpp>
 
 #include "IHAQR_topology.hpp"
 
-#include "sys_integrators/runge_kutta4_integrator_sys.hpp"
+#include <ReaK/ctrl/sys_integrators/runge_kutta4_integrator_sys.hpp>
 
-#include "lin_alg/arithmetic_tuple.hpp"
-#include "lin_alg/vect_alg.hpp"
-#include "lin_alg/mat_num_exceptions.hpp"
+#include <ReaK/core/lin_alg/arithmetic_tuple.hpp>
+#include <ReaK/core/lin_alg/vect_alg.hpp>
+#include <ReaK/core/lin_alg/mat_num_exceptions.hpp>
 
-#include "lin_alg/mat_alg.hpp"
-#include "lin_alg/mat_qr_decomp.hpp"
-#include "lin_alg/mat_cholesky.hpp"
-#include "lin_alg/mat_operators.hpp"
-#include "lin_alg/mat_are_solver.hpp"
-#include "lin_alg/mat_exp_methods.hpp"
+#include <ReaK/core/lin_alg/mat_alg.hpp>
+#include <ReaK/core/lin_alg/mat_qr_decomp.hpp>
+#include <ReaK/core/lin_alg/mat_cholesky.hpp>
+#include <ReaK/core/lin_alg/mat_operators.hpp>
+#include <ReaK/core/lin_alg/mat_are_solver.hpp>
+#include <ReaK/core/lin_alg/mat_exp_methods.hpp>
 
 namespace ReaK {
 

@@ -22,13 +22,13 @@
  */
 
 
-#include "base/defs.hpp"
+#include <ReaK/core/base/defs.hpp>
 
 #ifndef BOOST_NO_CXX11_EXTERN_TEMPLATE
 
-#include "path_planning/rrt_manip_planners.hpp"
+#include <ReaK/ctrl/path_planning/rrt_manip_planners.hpp>
 
-#include "path_planning/rrt_path_planner.tpp"
+#include <ReaK/ctrl/path_planning/rrt_path_planner.tpp>
 
 namespace ReaK {
 

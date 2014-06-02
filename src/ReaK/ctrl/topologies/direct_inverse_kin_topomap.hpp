@@ -36,11 +36,9 @@
 #define REAK_DIRECT_INVERSE_KIN_TOPOMAP_HPP
 
 
-#include "base/defs.hpp"
+#include <ReaK/core/base/defs.hpp>
 
-#include <boost/config.hpp> // For BOOST_STATIC_CONSTANT
-
-#include "kte_models/inverse_kinematics_model.hpp"
+#include <ReaK/ctrl/kte_models/inverse_kinematics_model.hpp>
 
 namespace ReaK {
 

@@ -24,7 +24,7 @@
 #include <iostream>
 #include <fstream>
 
-#include "topologies/ptrobot2D_test_world.hpp"
+#include <ReaK/ctrl/topologies/ptrobot2D_test_world.hpp>
 
 
 // #define RK_DISABLE_RRT_PLANNER
@@ -33,12 +33,12 @@
 // #define RK_DISABLE_FADPRM_PLANNER
 // #define RK_DISABLE_SBASTAR_PLANNER
 
-#include "planner_exec_engines.hpp"
+#include <ReaK/ctrl/path_planning/planner_exec_engines.hpp>
 
 
-#include "path_planning/path_planner_options_po.hpp"
+#include <ReaK/ctrl/path_planning/path_planner_options_po.hpp>
 
-#include "optimization/optim_exceptions.hpp"
+#include <ReaK/core/optimization/optim_exceptions.hpp>
 
 #include <boost/program_options.hpp>
 #include <boost/filesystem.hpp>

@@ -36,7 +36,7 @@
 #define REAK_JOINT_SPACE_TOPOLOGIES_HPP
 
 
-#include "base/defs.hpp"
+#include <ReaK/core/base/defs.hpp>
 
 #include "differentiable_space.hpp"
 #include "metric_space_tuple.hpp"
@@ -44,8 +44,8 @@
 
 #include "line_topology.hpp"
 
-#include "lin_alg/arithmetic_tuple.hpp"
-#include "kinetostatics/gen_coord.hpp"
+#include <ReaK/core/lin_alg/arithmetic_tuple.hpp>
+#include <ReaK/core/kinetostatics/gen_coord.hpp>
 
 namespace ReaK {
 

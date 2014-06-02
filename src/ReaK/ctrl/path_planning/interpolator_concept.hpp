@@ -39,11 +39,10 @@
 #ifndef REAK_INTERPOLATOR_CONCEPT_HPP
 #define REAK_INTERPOLATOR_CONCEPT_HPP
 
-#include "base/defs.hpp"
+#include <ReaK/core/base/defs.hpp>
 
 #include "temporal_space_concept.hpp"
 
-#include <boost/config.hpp>
 #include <boost/concept_check.hpp>
 
 namespace ReaK {

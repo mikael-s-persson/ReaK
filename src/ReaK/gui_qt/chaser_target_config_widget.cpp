@@ -21,7 +21,7 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "chaser_target_config_widget.hpp"
+#include <ReaK/gui_qt/chaser_target_config_widget.hpp>
 
 #include <QDockWidget>
 #include <QListView>
@@ -30,10 +30,10 @@
 #include <QMessageBox>
 #include <QScrollArea>
 
-#include "serialization/archiver_factory.hpp"
+#include <ReaK/core/serialization/archiver_factory.hpp>
 
-#include "shapes/oi_scene_graph.hpp"
-#include "proximity/proxy_query_model.hpp"
+#include <ReaK/geometry/shapes/oi_scene_graph.hpp>
+#include <ReaK/geometry/proximity/proxy_query_model.hpp>
 
 
 namespace ReaK {

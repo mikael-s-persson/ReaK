@@ -33,8 +33,8 @@
 #ifndef REAK_SBMP_POINT_RECORDER_HPP
 #define REAK_SBMP_POINT_RECORDER_HPP
 
-#include "base/defs.hpp"
-#include "base/shared_object.hpp"
+#include <ReaK/core/base/defs.hpp>
+#include <ReaK/core/base/shared_object.hpp>
 
 #include <boost/config.hpp>
 #include <boost/concept_check.hpp>
@@ -43,11 +43,11 @@
 #include "basic_sbmp_reporters.hpp"
 #include <boost/graph/graph_concepts.hpp>
 
-#include "topologies/direct_kinematics_topomap.hpp"
+#include <ReaK/ctrl/topologies/direct_kinematics_topomap.hpp>
 #include "topological_map_concepts.hpp"
 
-#include "recorders/data_record.hpp"
-#include "recorders/ssv_recorder.hpp"
+#include <ReaK/core/recorders/data_record.hpp>
+#include <ReaK/core/recorders/ssv_recorder.hpp>
 
 /** Main namespace for ReaK */
 namespace ReaK {

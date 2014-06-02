@@ -32,11 +32,9 @@
 #ifndef REAK_ANY_KNN_SYNCHRO_HPP
 #define REAK_ANY_KNN_SYNCHRO_HPP
 
-#include "base/defs.hpp"
-#include "base/shared_object.hpp"
-
-#include <boost/config.hpp>
-#include "graph_alg/any_graph.hpp"
+#include <ReaK/core/base/defs.hpp>
+#include <ReaK/core/base/shared_object.hpp>
+#include <ReaK/ctrl/graph_alg/any_graph.hpp>
 
 /** Main namespace for ReaK */
 namespace ReaK {

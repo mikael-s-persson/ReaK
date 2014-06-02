@@ -37,8 +37,8 @@
 #include "temporal_space.hpp"
 #include "time_poisson_topology.hpp"
 #include "reachability_space.hpp"
-#include "interpolation/interpolated_topologies.hpp"
-#include "interpolation/linear_interp.hpp"
+#include <ReaK/ctrl/interpolation/interpolated_topologies.hpp>
+#include <ReaK/ctrl/interpolation/linear_interp.hpp>
 
 
 #ifndef BOOST_NO_CXX11_EXTERN_TEMPLATE

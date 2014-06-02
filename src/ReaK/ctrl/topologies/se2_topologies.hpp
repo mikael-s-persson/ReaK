@@ -33,8 +33,7 @@
 #define REAK_SE2_TOPOLOGIES_HPP
 
 
-#include "base/defs.hpp"
-#include <boost/config.hpp> // For BOOST_STATIC_CONSTANT
+#include <ReaK/core/base/defs.hpp>
 
 #include "differentiable_space.hpp"
 #include "rate_limited_spaces.hpp"
@@ -43,9 +42,9 @@
 #include "hyperball_topology.hpp"
 #include "line_topology.hpp"
 
-#include "lin_alg/arithmetic_tuple.hpp"
-#include "lin_alg/vect_alg.hpp"
-#include "kinetostatics/frame_2D.hpp"
+#include <ReaK/core/lin_alg/arithmetic_tuple.hpp>
+#include <ReaK/core/lin_alg/vect_alg.hpp>
+#include <ReaK/core/kinetostatics/frame_2D.hpp>
 
 namespace ReaK {
 

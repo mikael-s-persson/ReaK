@@ -35,15 +35,14 @@
 #ifndef REAK_TIME_POISSON_TOPOLOGY_HPP
 #define REAK_TIME_POISSON_TOPOLOGY_HPP
 
-
-#include <boost/config.hpp> // For BOOST_STATIC_CONSTANT
+#include <ReaK/core/base/defs.hpp>
+#include <ReaK/core/base/global_rng.hpp>
 
 #include <cmath>
 
 #include "time_topology.hpp"
 #include <boost/random/variate_generator.hpp>
 #include <boost/random/lognormal_distribution.hpp>
-#include "base/global_rng.hpp"
 
 #include "default_random_sampler.hpp"
 

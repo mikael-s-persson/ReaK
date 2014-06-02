@@ -21,7 +21,7 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "proximity_record_2D.hpp"
+#include <ReaK/geometry/proximity/proximity_record_2D.hpp>
 
 /** Main namespace for ReaK */
 namespace ReaK {

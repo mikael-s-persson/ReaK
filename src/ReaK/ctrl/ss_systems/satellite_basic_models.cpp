@@ -21,11 +21,11 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "satellite_basic_models.hpp"
+#include <ReaK/ctrl/ss_systems/satellite_basic_models.hpp>
 
-#include "ctrl_sys/sss_exceptions.hpp"
+#include <ReaK/ctrl/ctrl_sys/sss_exceptions.hpp>
 
-#include "lin_alg/mat_cholesky.hpp"
+#include <ReaK/core/lin_alg/mat_cholesky.hpp>
 
 namespace ReaK {
 

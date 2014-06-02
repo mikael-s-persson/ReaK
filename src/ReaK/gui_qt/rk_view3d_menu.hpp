@@ -24,7 +24,7 @@
 #ifndef REAK_VIEW3D_MENU_HPP
 #define REAK_VIEW3D_MENU_HPP
 
-#include "base/defs.hpp"
+#include <ReaK/core/base/defs.hpp>
 
 #include <QMenu>
 

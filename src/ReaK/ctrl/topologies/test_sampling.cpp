@@ -30,11 +30,11 @@ using std::ptrdiff_t;
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
 
-#include "hyperball_topology.hpp"
-#include "hyperbox_topology.hpp"
-#include "time_poisson_topology.hpp"
-#include "line_topology.hpp"
-#include "lin_alg/vect_alg.hpp"
+#include <ReaK/ctrl/topologies/hyperball_topology.hpp>
+#include <ReaK/ctrl/topologies/hyperbox_topology.hpp>
+#include <ReaK/ctrl/topologies/time_poisson_topology.hpp>
+#include <ReaK/ctrl/topologies/line_topology.hpp>
+#include <ReaK/core/lin_alg/vect_alg.hpp>
 
 
 void printResult(const cv::Mat& image, unsigned int vertex_num, const std::string& dist) {

@@ -34,20 +34,17 @@
 #define REAK_HYPERBALL_TOPOLOGY_HPP
 
 
-#include "base/defs.hpp"
-
-#include <boost/config.hpp> // For BOOST_STATIC_CONSTANT
-
-#include "lin_alg/vect_concepts.hpp"
+#include <ReaK/core/base/defs.hpp>
+#include <ReaK/core/base/named_object.hpp>
+#include <ReaK/core/base/global_rng.hpp>
+#include <ReaK/core/lin_alg/vect_concepts.hpp>
+#include <ReaK/ctrl/path_planning/metric_space_concept.hpp>
 
 #include "vector_topology.hpp"
-#include "path_planning/metric_space_concept.hpp"
 #include "default_random_sampler.hpp"
 
 #include <cmath>
-#include "base/named_object.hpp"
 
-#include "base/global_rng.hpp"
 
 namespace ReaK {
 

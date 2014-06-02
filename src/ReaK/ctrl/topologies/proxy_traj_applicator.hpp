@@ -34,13 +34,12 @@
 #ifndef REAK_PROXY_TRAJ_APPLICATOR_HPP
 #define REAK_PROXY_TRAJ_APPLICATOR_HPP
 
-#include "base/defs.hpp"
-#include <boost/config.hpp>
+#include <ReaK/core/base/defs.hpp>
 
 #include "proxy_model_updater.hpp"
 
-#include "path_planning/metric_space_concept.hpp"
-#include "path_planning/spatial_trajectory_concept.hpp"  // for SpatialTrajectoryConcept
+#include <ReaK/ctrl/path_planning/metric_space_concept.hpp>
+#include <ReaK/ctrl/path_planning/spatial_trajectory_concept.hpp>  // for SpatialTrajectoryConcept
 
 
 namespace ReaK {

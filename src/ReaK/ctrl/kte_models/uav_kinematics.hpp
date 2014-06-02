@@ -32,9 +32,9 @@
 #ifndef REAK_UAV_KINEMATICS_HPP
 #define REAK_UAV_KINEMATICS_HPP
 
-#include "base/defs.hpp"
-#include "kte_models/inverse_kinematics_model.hpp"
-#include "mbd_kte/kte_map_chain.hpp"
+#include <ReaK/core/base/defs.hpp>
+#include <ReaK/ctrl/kte_models/inverse_kinematics_model.hpp>
+#include <ReaK/ctrl/mbd_kte/kte_map_chain.hpp>
 
 namespace ReaK {
 

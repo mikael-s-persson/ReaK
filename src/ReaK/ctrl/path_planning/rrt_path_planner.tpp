@@ -40,7 +40,7 @@
 
 #include "rrt_path_planner.hpp"
 
-#include "graph_alg/rr_tree.hpp"
+#include <ReaK/ctrl/graph_alg/rr_tree.hpp>
 #include "motion_graph_structures.hpp"
 
 #include "metric_space_search.hpp"

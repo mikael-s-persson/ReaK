@@ -27,8 +27,8 @@
 #include "rk_object_tree_widget.hpp"
 #include "rk_prop_editor_widget.hpp"
 
-#include "kte_models/manip_3R_arm.hpp"
-#include "serialization/scheme_builder.hpp"
+#include <ReaK/ctrl/kte_models/manip_3R_arm.hpp>
+#include <ReaK/core/serialization/scheme_builder.hpp>
 
 
 int main(int argc, char *argv[]) {

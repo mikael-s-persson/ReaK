@@ -21,12 +21,12 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "manip_dynamics_model.hpp"
 
-#include "lin_alg/mat_num_exceptions.hpp"
-#include "lin_alg/mat_cholesky.hpp"
+#include <ReaK/core/lin_alg/mat_num_exceptions.hpp>
+#include <ReaK/core/lin_alg/mat_cholesky.hpp>
 
-#include "manip_kinematics_helper.hpp"
+#include <ReaK/ctrl/kte_models/manip_dynamics_model.hpp>
+#include <ReaK/ctrl/kte_models/manip_kinematics_helper.hpp>
 
 namespace ReaK {
 

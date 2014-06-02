@@ -32,18 +32,18 @@
 #ifndef REAK_MANIP_WORKSPACES_HPP
 #define REAK_MANIP_WORKSPACES_HPP
 
-#include "base/defs.hpp"
-#include "base/named_object.hpp"
+#include <ReaK/core/base/defs.hpp>
+#include <ReaK/core/base/named_object.hpp>
 
 #include "joint_space_topologies.hpp"
 #include "se3_topologies.hpp"
 #include "joint_space_limits.hpp"
 
-#include "interpolation/linear_interp.hpp"
-#include "interpolation/cubic_hermite_interp.hpp"
-#include "interpolation/quintic_hermite_interp.hpp"
-#include "interpolation/sustained_velocity_pulse.hpp"
-#include "interpolation/sustained_acceleration_pulse.hpp"
+#include <ReaK/ctrl/interpolation/linear_interp.hpp>
+#include <ReaK/ctrl/interpolation/cubic_hermite_interp.hpp>
+#include <ReaK/ctrl/interpolation/quintic_hermite_interp.hpp>
+#include <ReaK/ctrl/interpolation/sustained_velocity_pulse.hpp>
+#include <ReaK/ctrl/interpolation/sustained_acceleration_pulse.hpp>
 
 #include "manip_free_workspace.hpp"
 #include "manip_free_dynamic_workspace.hpp"

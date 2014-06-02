@@ -21,10 +21,10 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "manip_clik_calculator.hpp"
+#include <ReaK/ctrl/kte_models/manip_clik_calculator.hpp>
 
-#include "optimization/nl_interior_points_methods.hpp"
-#include "optimization/function_types.hpp"
+#include <ReaK/core/optimization/nl_interior_points_methods.hpp>
+#include <ReaK/core/optimization/function_types.hpp>
 
 namespace ReaK {
 

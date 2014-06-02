@@ -29,7 +29,7 @@
 #include "rk_object_tree_widget.hpp"
 #include "rk_prop_editor_widget.hpp"
 #include "rk_view3d_menu.hpp"
-#include "serialization/scheme_builder.hpp"
+#include <ReaK/core/serialization/scheme_builder.hpp>
 
 #include <map>
 #include <string>

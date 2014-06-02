@@ -32,15 +32,15 @@
 
 
 
-#include "shapes/plane.hpp"
-#include "shapes/box.hpp"
-#include "shapes/coord_arrows_3D.hpp"
-#include "shapes/capped_cylinder.hpp"
-#include "shapes/colored_model.hpp"
+#include <ReaK/geometry/shapes/plane.hpp>
+#include <ReaK/geometry/shapes/box.hpp>
+#include <ReaK/geometry/shapes/coord_arrows_3D.hpp>
+#include <ReaK/geometry/shapes/capped_cylinder.hpp>
+#include <ReaK/geometry/shapes/colored_model.hpp>
 
-#include "proximity/proxy_query_model.hpp"
+#include <ReaK/geometry/proximity/proxy_query_model.hpp>
 
-#include "serialization/archiver_factory.hpp"
+#include <ReaK/core/serialization/archiver_factory.hpp>
 
 
 #include <boost/program_options.hpp>

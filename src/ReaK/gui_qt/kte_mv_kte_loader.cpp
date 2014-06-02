@@ -21,7 +21,7 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "kte_model_viewer.h"
+#include <ReaK/gui_qt/kte_model_viewer.h>
 
 #include <QMessageBox>
 
@@ -30,24 +30,24 @@
 #include <Inventor/nodes/SoSwitch.h>
 #include <Inventor/nodes/SoCube.h>
 
-#include "shapes/oi_scene_graph.hpp"
-#include "shapes/kte_chain_geometry.hpp"
-#include "proximity/proxy_query_model.hpp"
+#include <ReaK/geometry/shapes/oi_scene_graph.hpp>
+#include <ReaK/geometry/shapes/kte_chain_geometry.hpp>
+#include <ReaK/geometry/proximity/proxy_query_model.hpp>
 
-#include "mbd_kte/kte_map_chain.hpp"
-#include "kte_models/direct_kinematics_model.hpp"
-#include "kte_models/inverse_kinematics_model.hpp"
-#include "kte_models/inverse_dynamics_model.hpp"
-#include "kte_models/manip_3R3R_arm.hpp"
-#include "kte_models/manip_3R_arm.hpp"
-#include "kte_models/manip_ERA_arm.hpp"
-#include "kte_models/manip_P3R3R_arm.hpp"
-#include "kte_models/manip_SCARA_arm.hpp"
-#include "kte_models/manip_SSRMS_arm.hpp"
+#include <ReaK/ctrl/mbd_kte/kte_map_chain.hpp>
+#include <ReaK/ctrl/kte_models/direct_kinematics_model.hpp>
+#include <ReaK/ctrl/kte_models/inverse_kinematics_model.hpp>
+#include <ReaK/ctrl/kte_models/inverse_dynamics_model.hpp>
+#include <ReaK/ctrl/kte_models/manip_3R3R_arm.hpp>
+#include <ReaK/ctrl/kte_models/manip_3R_arm.hpp>
+#include <ReaK/ctrl/kte_models/manip_ERA_arm.hpp>
+#include <ReaK/ctrl/kte_models/manip_P3R3R_arm.hpp>
+#include <ReaK/ctrl/kte_models/manip_SCARA_arm.hpp>
+#include <ReaK/ctrl/kte_models/manip_SSRMS_arm.hpp>
 
-#include "topologies/joint_space_limits.hpp"
+#include <ReaK/ctrl/topologies/joint_space_limits.hpp>
 
-#include "serialization/archiver.hpp"
+#include <ReaK/core/serialization/archiver.hpp>
 
 
 std::string KTEModelViewerEditor::loadKinModelFromArchive(ReaK::serialization::iarchive& in) {

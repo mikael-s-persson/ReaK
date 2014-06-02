@@ -34,7 +34,7 @@
 #ifndef RK_X8_QUADROTOR_GEOM_HPP
 #define RK_X8_QUADROTOR_GEOM_HPP
 
-#include "kte_models/uav_kinematics.hpp"
+#include <ReaK/ctrl/kte_models/uav_kinematics.hpp>
 
 #include <string>
 

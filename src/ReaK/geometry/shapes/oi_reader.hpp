@@ -33,14 +33,14 @@
 #ifndef REAK_OI_READER_HPP
 #define REAK_OI_READER_HPP
 
-#include "base/defs.hpp"
+#include <ReaK/core/base/defs.hpp>
 
 #include "color.hpp"
 #include "colored_model.hpp"
-#include "proximity/proxy_query_model.hpp"
+#include <ReaK/geometry/proximity/proxy_query_model.hpp>
 
-#include "mbd_kte/kte_map.hpp"          // for kte_map
-#include "mbd_kte/kte_map_chain.hpp"
+#include <ReaK/ctrl/mbd_kte/kte_map.hpp>          // for kte_map
+#include <ReaK/ctrl/mbd_kte/kte_map_chain.hpp>
 
 #include <map>
 #include <vector>

@@ -47,20 +47,20 @@
 #ifndef REAK_OI_SCENE_GRAPH_HPP
 #define REAK_OI_SCENE_GRAPH_HPP
 
-#include "base/defs.hpp"
+#include <ReaK/core/base/defs.hpp>
 
 #include "color.hpp"
 #include "colored_model.hpp"
 
-#include "mbd_kte/kte_map.hpp"          // for kte_map
-#include "mbd_kte/kte_map_chain.hpp"
+#include <ReaK/ctrl/mbd_kte/kte_map.hpp>          // for kte_map
+#include <ReaK/ctrl/mbd_kte/kte_map_chain.hpp>
 
-#include "proximity/proxy_query_model.hpp"
+#include <ReaK/geometry/proximity/proxy_query_model.hpp>
 
 #include <map>
 #include <vector>
 
-#include "base/thread_incl.hpp"
+#include <ReaK/core/base/thread_incl.hpp>
 
 #ifndef BOOST_NO_CXX11_HDR_FUNCTIONAL
 #include <functional>

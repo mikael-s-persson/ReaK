@@ -34,10 +34,10 @@
 #ifndef REAK_REVOLUTE_JOINT_HPP
 #define REAK_REVOLUTE_JOINT_HPP
 
-#include "base/defs.hpp"
+#include <ReaK/core/base/defs.hpp>
 
 #include "reacting_kte.hpp"
-#include "kinetostatics/motion_jacobians.hpp"
+#include <ReaK/core/kinetostatics/motion_jacobians.hpp>
 
 namespace ReaK {
 

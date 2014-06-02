@@ -21,7 +21,7 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "ptrobot2D_test_world.hpp"
+#include <ReaK/ctrl/topologies/ptrobot2D_test_world.hpp>
 
 #ifdef REAK_HAS_OPENCV
 
@@ -34,7 +34,7 @@
 
 #include <string>
 
-#include "base/global_rng.hpp"
+#include <ReaK/core/base/global_rng.hpp>
 
 namespace ReaK {
 

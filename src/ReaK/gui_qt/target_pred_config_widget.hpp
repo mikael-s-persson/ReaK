@@ -29,22 +29,23 @@
 #ifndef REAK_TARGET_PRED_CONFIG_WIDGET_HPP
 #define REAK_TARGET_PRED_CONFIG_WIDGET_HPP
 
-#include "path_planning/path_planner_options.hpp"
+#include <ReaK/ctrl/path_planning/path_planner_options.hpp>
 
-#include "lin_alg/mat_alg_symmetric.hpp"
-#include "lin_alg/mat_alg_diagonal.hpp"
+#include <ReaK/core/lin_alg/mat_alg_symmetric.hpp>
+#include <ReaK/core/lin_alg/mat_alg_diagonal.hpp>
 
-#include "lin_alg/vect_alg.hpp"
-#include "kinetostatics/quat_alg.hpp"
+#include <ReaK/core/lin_alg/vect_alg.hpp>
+#include <ReaK/core/kinetostatics/quat_alg.hpp>
 
 #include "ui_target_predictor_config.h"
 
 #include "rk_object_tree_widget.hpp"
 #include "rk_prop_editor_widget.hpp"
-#include "serialization/scheme_builder.hpp"
+#include <ReaK/core/serialization/scheme_builder.hpp>
 
-#include "ss_systems/satellite_modeling_options.hpp"
-#include "../examples/robot_airship/CRS_planner_data.hpp"
+#include <ReaK/ctrl/ss_systems/satellite_modeling_options.hpp>
+
+#include <ReaK/examples/robot_airship/CRS_planner_data.hpp>
 
 #include <QDockWidget>
 

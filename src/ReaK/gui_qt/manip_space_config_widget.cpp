@@ -21,7 +21,7 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "manip_space_config_widget.hpp"
+#include <ReaK/gui_qt/manip_space_config_widget.hpp>
 
 #include <QDockWidget>
 #include <QScrollArea>

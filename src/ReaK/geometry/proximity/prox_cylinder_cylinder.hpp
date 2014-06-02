@@ -34,7 +34,7 @@
 
 #include "proximity_finder_3D.hpp"
 
-#include "shapes/cylinder.hpp"
+#include <ReaK/geometry/shapes/cylinder.hpp>
 
 /** Main namespace for ReaK */
 namespace ReaK {

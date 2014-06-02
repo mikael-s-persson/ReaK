@@ -36,8 +36,6 @@
 
 #include "metric_space_concept.hpp"
 
-#include <boost/config.hpp>
-#include <cmath>
 #include <boost/concept_check.hpp>
 
 namespace ReaK {

@@ -21,13 +21,13 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "base/defs.hpp"
+#include <ReaK/core/base/defs.hpp>
 
 #ifndef BOOST_NO_CXX11_EXTERN_TEMPLATE
 
-#include "topologies/se3_topologies.hpp"
+#include <ReaK/ctrl/topologies/se3_topologies.hpp>
 
-#include "topologies/joint_space_limits.tpp"
+#include <ReaK/ctrl/topologies/joint_space_limits.tpp>
 
 namespace ReaK {
 

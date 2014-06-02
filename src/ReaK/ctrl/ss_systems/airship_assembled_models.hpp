@@ -38,14 +38,14 @@
 #ifndef REAK_AIRSHIP_ASSEMBLED_MODELS_HPP
 #define REAK_AIRSHIP_ASSEMBLED_MODELS_HPP
 
-#include "base/named_object.hpp"
+#include <ReaK/core/base/named_object.hpp>
 
-#include "ss_systems/state_space_system_tuple.hpp"
-#include "ss_systems/airship_basic_mixins.hpp"
-#include "ss_systems/airship_drag_mixins.hpp"
-#include "ss_systems/airship_thruster_mixins.hpp"
-#include "ss_systems/airship_IMU_mixins.hpp"
-#include "ss_systems/airship_sonar_mixins.hpp"
+#include "state_space_system_tuple.hpp"
+#include "airship_basic_mixins.hpp"
+#include "airship_drag_mixins.hpp"
+#include "airship_thruster_mixins.hpp"
+#include "airship_IMU_mixins.hpp"
+#include "airship_sonar_mixins.hpp"
 
 
 namespace ReaK {

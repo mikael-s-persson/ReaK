@@ -22,17 +22,17 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "quadrotor_system.hpp"
+#include <ReaK/ctrl/ss_systems/quadrotor_system.hpp>
 
 
-#include "ctrl_sys/sss_exceptions.hpp"
+#include <ReaK/ctrl/ctrl_sys/sss_exceptions.hpp>
 
-#include "lin_alg/mat_cholesky.hpp"
+#include <ReaK/core/lin_alg/mat_cholesky.hpp>
 
-#include "kinetostatics/quat_alg.hpp"
-#include "kinetostatics/rotations_3D.hpp"
+#include <ReaK/core/kinetostatics/quat_alg.hpp>
+#include <ReaK/core/kinetostatics/rotations_3D.hpp>
 
-#include "topologies/vector_topology.hpp"
+#include <ReaK/ctrl/topologies/vector_topology.hpp>
 
 namespace ReaK {
 

@@ -33,8 +33,8 @@
 #ifndef REAK_INTERCEPT_QUERY_HPP
 #define REAK_INTERCEPT_QUERY_HPP
 
-#include "base/defs.hpp"
-#include "base/named_object.hpp"
+#include <ReaK/core/base/defs.hpp>
+#include <ReaK/core/base/named_object.hpp>
 
 #include "metric_space_concept.hpp"
 #include "steerable_space_concept.hpp"
@@ -44,14 +44,14 @@
 #include "planning_queries.hpp"
 
 #include "seq_trajectory_wrapper.hpp"
-#include "interpolation/point_to_point_trajectory.hpp"
-#include "interpolation/discrete_point_trajectory.hpp"
+#include <ReaK/ctrl/interpolation/point_to_point_trajectory.hpp>
+#include <ReaK/ctrl/interpolation/discrete_point_trajectory.hpp>
 
 #include "any_motion_graphs.hpp"
 
 #include "solution_path_factories.hpp"
 
-#include "optimization/optim_exceptions.hpp"
+#include <ReaK/core/optimization/optim_exceptions.hpp>
 
 #include <boost/mpl/if.hpp>
 

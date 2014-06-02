@@ -32,7 +32,7 @@
 #ifndef REAK_OBJTREE_QTMODEL_HPP
 #define REAK_OBJTREE_QTMODEL_HPP
 
-#include "serialization/objtree_archiver.hpp"
+#include <ReaK/core/serialization/objtree_archiver.hpp>
 
 #include <QAbstractItemModel>
 #include <QVariant>

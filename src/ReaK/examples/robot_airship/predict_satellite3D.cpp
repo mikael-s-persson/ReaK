@@ -22,20 +22,20 @@
  */
 
 
-#include "ss_systems/satellite_invar_models.hpp"
+#include <ReaK/ctrl/ss_systems/satellite_invar_models.hpp>
 
 
-#include "ctrl_sys/kalman_filter.hpp"
-#include "ctrl_sys/invariant_kalman_filter.hpp"
+#include <ReaK/ctrl/ctrl_sys/kalman_filter.hpp>
+#include <ReaK/ctrl/ctrl_sys/invariant_kalman_filter.hpp>
 
-#include "ctrl_sys/gaussian_belief_state.hpp"
-#include "ctrl_sys/covariance_matrix.hpp"
+#include <ReaK/ctrl/ctrl_sys/gaussian_belief_state.hpp>
+#include <ReaK/ctrl/ctrl_sys/covariance_matrix.hpp>
 
-#include "serialization/archiver_factory.hpp"
-#include "recorders/ssv_recorder.hpp"
+#include <ReaK/core/serialization/archiver_factory.hpp>
+#include <ReaK/core/recorders/ssv_recorder.hpp>
 
-#include "topologies/temporal_space.hpp"
-#include "interpolation/discrete_point_trajectory.hpp"
+#include <ReaK/ctrl/topologies/temporal_space.hpp>
+#include <ReaK/ctrl/interpolation/discrete_point_trajectory.hpp>
 
 #include <boost/random/linear_congruential.hpp>
 #include <boost/random.hpp>

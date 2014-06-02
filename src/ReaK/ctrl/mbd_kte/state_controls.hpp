@@ -37,7 +37,7 @@
 #ifndef REAK_STATE_CONTROLS_HPP
 #define REAK_STATE_CONTROLS_HPP
 
-#include "kinetostatics/kinetostatics.hpp"
+#include <ReaK/core/kinetostatics/kinetostatics.hpp>
 #include "kte_system_input.hpp"
 #include "kte_map.hpp"
 

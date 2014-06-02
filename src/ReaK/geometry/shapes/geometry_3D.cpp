@@ -21,7 +21,7 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "geometry_3D.hpp"
+#include <ReaK/geometry/shapes/geometry_3D.hpp>
 
 namespace ReaK {
 

@@ -36,7 +36,7 @@
 #ifndef REAK_STATE_MEASURES_HPP
 #define REAK_STATE_MEASURES_HPP
 
-#include "kinetostatics/kinetostatics.hpp"
+#include <ReaK/core/kinetostatics/kinetostatics.hpp>
 #include "kte_system_output.hpp"
 #include "kte_map.hpp"
 

@@ -29,16 +29,16 @@
 #include "ui_CRS_planner_config.h"
 
 #include "CRS_planner_data.hpp"
-#include "path_planning/path_planner_options.hpp"
-#include "kte_models/chaser_target_model_data.hpp"
+#include <ReaK/ctrl/path_planning/path_planner_options.hpp>
+#include <ReaK/ctrl/kte_models/chaser_target_model_data.hpp>
 
 #include "rk_view3d_menu.hpp"
 
-#include "chaser_target_config_widget.hpp"
-#include "chaser_target_interact_widget.hpp"
-#include "planner_alg_config_widget.hpp"
-#include "manip_space_config_widget.hpp"
-#include "target_pred_config_widget.hpp"
+#include <ReaK/gui_qt/chaser_target_config_widget.hpp>
+#include <ReaK/gui_qt/chaser_target_interact_widget.hpp>
+#include <ReaK/gui_qt/planner_alg_config_widget.hpp>
+#include <ReaK/gui_qt/manip_space_config_widget.hpp>
+#include <ReaK/gui_qt/target_pred_config_widget.hpp>
 
 #include "CRS_run_dialog.hpp"
 

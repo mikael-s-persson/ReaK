@@ -37,24 +37,24 @@
 #include "satellite_invar_models.hpp"
 #include "near_buoyant_airship_models.hpp"
 
-#include "ctrl_sys/discrete_sss_concept.hpp"
-#include "ctrl_sys/covar_topology.hpp"
-#include "ctrl_sys/covariance_matrix.hpp"
-#include "ctrl_sys/gaussian_belief_space.hpp"
-#include "topologies/temporal_space.hpp"
-#include "topologies/vector_topology.hpp"
-#include "topologies/time_poisson_topology.hpp"
-#include "ctrl_sys/invariant_kalman_filter.hpp"
-#include "ctrl_sys/belief_state_predictor.hpp"
-#include "ctrl_sys/maximum_likelihood_mapping.hpp"
-#include "interpolation/constant_trajectory.hpp"
-#include "path_planning/transformed_trajectory.hpp"
+#include <ReaK/ctrl/ctrl_sys/discrete_sss_concept.hpp>
+#include <ReaK/ctrl/ctrl_sys/covar_topology.hpp>
+#include <ReaK/ctrl/ctrl_sys/covariance_matrix.hpp>
+#include <ReaK/ctrl/ctrl_sys/gaussian_belief_space.hpp>
+#include <ReaK/ctrl/topologies/temporal_space.hpp>
+#include <ReaK/ctrl/topologies/vector_topology.hpp>
+#include <ReaK/ctrl/topologies/time_poisson_topology.hpp>
+#include <ReaK/ctrl/ctrl_sys/invariant_kalman_filter.hpp>
+#include <ReaK/ctrl/ctrl_sys/belief_state_predictor.hpp>
+#include <ReaK/ctrl/ctrl_sys/maximum_likelihood_mapping.hpp>
+#include <ReaK/ctrl/interpolation/constant_trajectory.hpp>
+#include <ReaK/ctrl/path_planning/transformed_trajectory.hpp>
 
-#include "lin_alg/mat_alg_symmetric.hpp"
-#include "lin_alg/mat_alg_diagonal.hpp"
+#include <ReaK/core/lin_alg/mat_alg_symmetric.hpp>
+#include <ReaK/core/lin_alg/mat_alg_diagonal.hpp>
 
-#include "serialization/archiver.hpp"
-#include "recorders/data_record_options.hpp"
+#include <ReaK/core/serialization/archiver.hpp>
+#include <ReaK/core/recorders/data_record_options.hpp>
 
 #include <string>
 

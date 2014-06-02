@@ -36,13 +36,11 @@
 #ifndef REAK_TIME_TOPOLOGY_HPP
 #define REAK_TIME_TOPOLOGY_HPP
 
+#include <ReaK/core/base/defs.hpp>
+#include <ReaK/core/base/named_object.hpp>
 
-#include <boost/config.hpp> // For BOOST_STATIC_CONSTANT
-
-#include "base/named_object.hpp"
-
-#include "path_planning/metric_space_concept.hpp"
-#include "path_planning/reversible_space_concept.hpp"
+#include <ReaK/ctrl/path_planning/metric_space_concept.hpp>
+#include <ReaK/ctrl/path_planning/reversible_space_concept.hpp>
 
 #include <cmath>
 

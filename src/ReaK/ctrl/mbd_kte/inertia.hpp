@@ -33,12 +33,12 @@
 #ifndef REAK_INERTIA_HPP
 #define REAK_INERTIA_HPP
 
-#include "base/defs.hpp"
+#include <ReaK/core/base/defs.hpp>
 
 #include "kte_map.hpp"
 
-#include "kinetostatics/kinetostatics.hpp"
-#include "lin_alg/mat_alg.hpp"
+#include <ReaK/core/kinetostatics/kinetostatics.hpp>
+#include <ReaK/core/lin_alg/mat_alg.hpp>
 
 #include "jacobian_joint_map.hpp"
 

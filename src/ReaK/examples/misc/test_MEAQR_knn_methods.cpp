@@ -28,19 +28,19 @@
 #include <boost/graph/topology.hpp>
 #include <boost/graph/properties.hpp>
 
-#include "path_planning/topological_search.hpp"
-#include "path_planning/metric_space_search.hpp"
-#include "lin_alg/vect_alg.hpp"
+#include <ReaK/ctrl/path_planning/topological_search.hpp>
+#include <ReaK/ctrl/path_planning/metric_space_search.hpp>
+#include <ReaK/core/lin_alg/vect_alg.hpp>
 
 #include "IHAQR_topology.hpp"
 #include "MEAQR_topology.hpp"
-#include "ss_systems/quadrotor_system.hpp"
-#include "topologies/se3_random_samplers.hpp"
+#include <ReaK/ctrl/ss_systems/quadrotor_system.hpp>
+#include <ReaK/ctrl/topologies/se3_random_samplers.hpp>
 
-#include "mbd_kte/kte_map_chain.hpp"
+#include <ReaK/ctrl/mbd_kte/kte_map_chain.hpp>
 
-#include "serialization/xml_archiver.hpp"
-#include "optimization/optim_exceptions.hpp"
+#include <ReaK/core/serialization/xml_archiver.hpp>
+#include <ReaK/core/optimization/optim_exceptions.hpp>
 
 #include <boost/date_time/posix_time/posix_time.hpp>
 

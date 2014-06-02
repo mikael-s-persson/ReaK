@@ -37,15 +37,15 @@
 #ifndef REAK_SATELLITE_INVAR_MODELS_HPP
 #define REAK_SATELLITE_INVAR_MODELS_HPP
 
-#include "base/named_object.hpp"
+#include <ReaK/core/base/named_object.hpp>
 
 #include "satellite_basic_models.hpp"
 
-#include "ctrl_sys/augmented_sss_concept.hpp"
+#include <ReaK/ctrl/ctrl_sys/augmented_sss_concept.hpp>
 
-#include "lin_alg/mat_alg.hpp"
-#include "topologies/se3_topologies.hpp"
-#include "topologies/se2_topologies.hpp"
+#include <ReaK/core/lin_alg/mat_alg.hpp>
+#include <ReaK/ctrl/topologies/se3_topologies.hpp>
+#include <ReaK/ctrl/topologies/se2_topologies.hpp>
 
 namespace ReaK {
 

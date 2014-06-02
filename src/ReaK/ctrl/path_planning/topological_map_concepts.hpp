@@ -34,11 +34,10 @@
 #ifndef REAK_TOPOLOGICAL_MAP_CONCEPTS_HPP
 #define REAK_TOPOLOGICAL_MAP_CONCEPTS_HPP
 
-#include "base/defs.hpp"
-#include "base/shared_object.hpp"
+#include <ReaK/core/base/defs.hpp>
+#include <ReaK/core/base/shared_object.hpp>
 
 
-#include <boost/config.hpp>
 #include <cmath>
 #include <boost/concept_check.hpp>
 

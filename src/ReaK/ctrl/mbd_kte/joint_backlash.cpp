@@ -21,7 +21,7 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "joint_backlash.hpp"
+#include <ReaK/ctrl/mbd_kte/joint_backlash.hpp>
 
 namespace ReaK {
 

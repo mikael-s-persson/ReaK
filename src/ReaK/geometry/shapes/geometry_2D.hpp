@@ -32,9 +32,9 @@
 #ifndef REAK_GEOMETRY_2D_HPP
 #define REAK_GEOMETRY_2D_HPP
 
-#include "base/named_object.hpp"
+#include <ReaK/core/base/named_object.hpp>
 
-#include "kinetostatics/pose_2D.hpp"
+#include <ReaK/core/kinetostatics/pose_2D.hpp>
 
 
 /** Main namespace for ReaK */

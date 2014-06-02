@@ -21,19 +21,18 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "chaser_target_model_data.hpp"
+#include <ReaK/ctrl/kte_models/chaser_target_model_data.hpp>
 
-#include "shapes/colored_model.hpp"
-#include "proximity/proxy_query_model.hpp"
+#include <ReaK/geometry/shapes/colored_model.hpp>
+#include <ReaK/geometry/proximity/proxy_query_model.hpp>
 
-#include "manip_dynamics_model.hpp"
-#include "mbd_kte/state_measures.hpp"
-#include "mbd_kte/inertia.hpp"
-#include "mbd_kte/driving_actuator.hpp"
+#include <ReaK/ctrl/kte_models/manip_dynamics_model.hpp>
+#include <ReaK/ctrl/mbd_kte/state_measures.hpp>
+#include <ReaK/ctrl/mbd_kte/inertia.hpp>
+#include <ReaK/ctrl/mbd_kte/driving_actuator.hpp>
 
-#include "serialization/archiver_factory.hpp"
-
-#include "optimization/optim_exceptions.hpp"
+#include <ReaK/core/serialization/archiver_factory.hpp>
+#include <ReaK/core/optimization/optim_exceptions.hpp>
 
 namespace ReaK {
   

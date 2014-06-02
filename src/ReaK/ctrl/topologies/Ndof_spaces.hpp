@@ -33,11 +33,11 @@
 #ifndef REAK_NDOF_SPACES_HPP
 #define REAK_NDOF_SPACES_HPP
 
-#include "base/defs.hpp"
-#include <boost/config.hpp> // For BOOST_STATIC_CONSTANT
-#include "base/serializable.hpp"
+#include <ReaK/core/base/defs.hpp>
+#include <ReaK/core/base/serializable.hpp>
+#include <ReaK/core/lin_alg/arithmetic_tuple.hpp>
+#include <ReaK/core/kinetostatics/gen_coord.hpp>
 
-#include "lin_alg/arithmetic_tuple.hpp"
 #include "tuple_distance_metrics.hpp"
 #include "default_random_sampler.hpp"
 #include "rate_limited_spaces.hpp"
@@ -45,7 +45,6 @@
 
 #include "joint_space_limits.hpp"
 
-#include "kinetostatics/gen_coord.hpp"
 
 namespace ReaK {
 

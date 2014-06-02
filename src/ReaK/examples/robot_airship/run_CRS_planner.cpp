@@ -34,36 +34,36 @@
 // disable template definitions for the planners, because this program uses extern templates for the planners:
 #define RK_DISABLE_PLANNER_DEFINITIONS
 
-#include "path_planning/planner_exec_engines.hpp"
+#include <ReaK/ctrl/path_planning/planner_exec_engines.hpp>
 
 
-#include "path_planning/path_planner_options_po.hpp"
-#include "path_planning/planning_space_options_po.hpp"
-#include "kte_models/chaser_target_model_data_po.hpp"
+#include <ReaK/ctrl/path_planning/path_planner_options_po.hpp>
+#include <ReaK/ctrl/path_planning/planning_space_options_po.hpp>
+#include <ReaK/ctrl/kte_models/chaser_target_model_data_po.hpp>
 
-#include "optimization/optim_exceptions.hpp"
+#include <ReaK/core/optimization/optim_exceptions.hpp>
 
-#include "mbd_kte/inertia.hpp"
-#include "mbd_kte/driving_actuator.hpp"
-#include "mbd_kte/state_measures.hpp"
-#include "mbd_kte/free_joints.hpp"
-#include "mbd_kte/kte_map_chain.hpp"
+#include <ReaK/ctrl/mbd_kte/inertia.hpp>
+#include <ReaK/ctrl/mbd_kte/driving_actuator.hpp>
+#include <ReaK/ctrl/mbd_kte/state_measures.hpp>
+#include <ReaK/ctrl/mbd_kte/free_joints.hpp>
+#include <ReaK/ctrl/mbd_kte/kte_map_chain.hpp>
 
-#include "kte_models/manip_dynamics_model.hpp"
+#include <ReaK/ctrl/kte_models/manip_dynamics_model.hpp>
 
-#include "shapes/colored_model.hpp"
-#include "shapes/sphere.hpp"
-#include "shapes/box.hpp"
-#include "shapes/coord_arrows_3D.hpp"
-#include "proximity/proxy_query_model.hpp"
+#include <ReaK/geometry/shapes/colored_model.hpp>
+#include <ReaK/geometry/shapes/sphere.hpp>
+#include <ReaK/geometry/shapes/box.hpp>
+#include <ReaK/geometry/shapes/coord_arrows_3D.hpp>
+#include <ReaK/geometry/proximity/proxy_query_model.hpp>
 
-#include "topologies/manip_planning_traits.hpp"
-#include "topologies/manip_P3R3R_workspaces.hpp"
-#include "topologies/Ndof_linear_spaces.hpp"
-#include "topologies/Ndof_cubic_spaces.hpp"
-#include "topologies/Ndof_quintic_spaces.hpp"
-#include "topologies/Ndof_svp_spaces.hpp"
-#include "topologies/Ndof_sap_spaces.hpp"
+#include <ReaK/ctrl/topologies/manip_planning_traits.hpp>
+#include <ReaK/ctrl/topologies/manip_P3R3R_workspaces.hpp>
+#include <ReaK/ctrl/topologies/Ndof_linear_spaces.hpp>
+#include <ReaK/ctrl/topologies/Ndof_cubic_spaces.hpp>
+#include <ReaK/ctrl/topologies/Ndof_quintic_spaces.hpp>
+#include <ReaK/ctrl/topologies/Ndof_svp_spaces.hpp>
+#include <ReaK/ctrl/topologies/Ndof_sap_spaces.hpp>
 
 
 #include <boost/program_options.hpp>

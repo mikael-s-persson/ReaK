@@ -32,12 +32,11 @@
 #ifndef RK_ANY_MOTION_GRAPHS_HPP
 #define RK_ANY_MOTION_GRAPHS_HPP
 
-#include "graph_alg/any_graph.hpp"
+#include <ReaK/core/lin_alg/arithmetic_tuple.hpp>
+#include <ReaK/ctrl/graph_alg/any_graph.hpp>
 
 #include "metric_space_concept.hpp"
 #include "steerable_space_concept.hpp"
-
-#include "lin_alg/arithmetic_tuple.hpp"
 
 #include <iostream>
 #include <iomanip>

@@ -21,7 +21,7 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "torsion_spring.hpp"
+#include <ReaK/ctrl/mbd_kte/torsion_spring.hpp>
 
 namespace ReaK {
 

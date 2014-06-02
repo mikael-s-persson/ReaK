@@ -36,7 +36,7 @@
 #ifndef REAK_FORCE_ACTUATOR_HPP
 #define REAK_FORCE_ACTUATOR_HPP
 
-#include "base/defs.hpp"
+#include <ReaK/core/base/defs.hpp>
 
 #include "kte_map.hpp"
 
