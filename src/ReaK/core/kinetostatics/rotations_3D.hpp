@@ -36,11 +36,11 @@
 #ifndef REAK_ROTATIONS_3D_HPP
 #define REAK_ROTATIONS_3D_HPP
 
-#include "lin_alg/mat_concepts.hpp"
-#include "lin_alg/mat_alg_square.hpp"
-#include "lin_alg/mat_alg_symmetric.hpp"
-#include "lin_alg/mat_alg_skew_symmetric.hpp"
-#include "lin_alg/vect_alg.hpp"
+#include <ReaK/core/lin_alg/mat_concepts.hpp>
+#include <ReaK/core/lin_alg/mat_alg_square.hpp>
+#include <ReaK/core/lin_alg/mat_alg_symmetric.hpp>
+#include <ReaK/core/lin_alg/mat_alg_skew_symmetric.hpp>
+#include <ReaK/core/lin_alg/vect_alg.hpp>
 
 
 namespace ReaK {

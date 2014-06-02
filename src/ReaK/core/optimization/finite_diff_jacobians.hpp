@@ -33,11 +33,10 @@
 #ifndef REAK_FINITE_DIFF_JACOBIANS_HPP
 #define REAK_FINITE_DIFF_JACOBIANS_HPP
 
-#include "base/defs.hpp"
+#include <ReaK/core/base/defs.hpp>
+#include <ReaK/core/lin_alg/mat_alg.hpp>
 
 #include "optim_exceptions.hpp"
-
-#include "lin_alg/mat_alg.hpp"
 
 #include <boost/mpl/and.hpp>
 #include <boost/mpl/or.hpp>
@@ -83,7 +82,7 @@ void compute_jacobian_2pts_forward_impl(Function f, Vector1& x, const Vector2& y
 
     x[j] = tmp; /* restore */
 
-    slice(jac)(range(SizeType(0),M-1),j) = (y1 - y) * (1.0 / d);
+    slice(jac)(range(SizeType(0),M),j) = (y1 - y) * (1.0 / d);
     
   };
 };
@@ -118,7 +117,7 @@ void compute_jacobian_2pts_central_impl(Function f, Vector1& x, const Vector2& y
     y_next = f(x);
     x[j]=tmp; /* restore */
     
-    slice(jac)(range(SizeType(0),M-1),j) = (y_next - y_prev) * (0.5 / d);
+    slice(jac)(range(SizeType(0),M),j) = (y_next - y_prev) * (0.5 / d);
   };
 };
 
@@ -158,7 +157,7 @@ void compute_jacobian_5pts_central_impl(Function f, Vector1& x, const Vector2& y
     
     x[i] = tmp; // restore
     
-    slice(jac)(range(SizeType(0),M-1),i) = (y0 - 8.0 * (y1 - y2) - y3) * (1.0 / (12.0 * d));
+    slice(jac)(range(SizeType(0),M),i) = (y0 - 8.0 * (y1 - y2) - y3) * (1.0 / (12.0 * d));
   };
 };
 

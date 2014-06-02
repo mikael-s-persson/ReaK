@@ -38,11 +38,11 @@
 #ifndef REAK_MAT_TRAITS_HPP
 #define REAK_MAT_TRAITS_HPP
 
+#include <ReaK/core/rtti/so_type.hpp>
+
 #include <boost/config.hpp>
 #include <boost/concept_check.hpp>
 #include <boost/type_traits.hpp>
-
-#include "rtti/so_type.hpp"
 
 namespace ReaK {
   

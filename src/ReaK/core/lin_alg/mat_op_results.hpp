@@ -34,7 +34,8 @@
 #ifndef REAK_MAT_OP_RESULTS_HPP
 #define REAK_MAT_OP_RESULTS_HPP
 
-#include "base/defs.hpp"
+#include <ReaK/core/base/defs.hpp>
+
 #include "mat_concepts.hpp"
 #include "mat_traits.hpp"
 #include "mat_alg_general.hpp"

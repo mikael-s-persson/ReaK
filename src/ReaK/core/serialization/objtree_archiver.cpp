@@ -21,16 +21,16 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "objtree_archiver.hpp"
+#include <ReaK/core/serialization/objtree_archiver.hpp>
 
-#include "base/named_object.hpp"
-#include "rtti/so_type.hpp"
-#include "rtti/so_type_repo.hpp"
+#include <ReaK/core/base/named_object.hpp>
+#include <ReaK/core/rtti/so_type.hpp>
+#include <ReaK/core/rtti/so_type_repo.hpp>
 
-#include "scheme_builder.hpp"
-#include "type_schemes.hpp"
+#include <ReaK/core/serialization/scheme_builder.hpp>
+#include <ReaK/core/serialization/type_schemes.hpp>
 
-#include "archiving_exceptions.hpp"
+#include <ReaK/core/serialization/archiving_exceptions.hpp>
 
 #include <string>
 #include <fstream>

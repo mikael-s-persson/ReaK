@@ -76,7 +76,7 @@ void prox_plane_sphere::computeProximity() {
       // The sphere is on the above or below the plane (y-axis).
       double fact = 1.0;
       if(sp_c_rel[1] < 0.0)
-	fact = -1.0;
+        fact = -1.0;
       vect<double,3> rim_pt = vect<double,3>(sp_c_rel[0],fact * 0.5 * mPlane->getDimensions()[1],0.0);
       mLastResult.mPoint1 = mPlane->getPose().transformToGlobal(rim_pt);
     } else if((sp_c_rel[1] > -0.5 * mPlane->getDimensions()[1]) &&
@@ -84,16 +84,16 @@ void prox_plane_sphere::computeProximity() {
       // The sphere is on the right or left of the plane (x-axis).
       double fact = 1.0;
       if(sp_c_rel[0] < 0.0)
-	fact = -1.0;
+        fact = -1.0;
       vect<double,3> rim_pt = vect<double,3>(fact * 0.5 * mPlane->getDimensions()[0],sp_c_rel[1],0.0);
       mLastResult.mPoint1 = mPlane->getPose().transformToGlobal(rim_pt);
     } else {
       // The sphere is outside one of the corners of the plane.
       vect<double,3> rim_pt = vect<double,3>(0.5 * mPlane->getDimensions()[0],0.5 * mPlane->getDimensions()[1],0.0);
       if(sp_c_rel[0] < 0.0)
-	rim_pt[0] = -rim_pt[0];
+        rim_pt[0] = -rim_pt[0];
       if(sp_c_rel[1] < 0.0)
-	rim_pt[1] = -rim_pt[1];
+        rim_pt[1] = -rim_pt[1];
       mLastResult.mPoint1 = mPlane->getPose().transformToGlobal(rim_pt);
     };
     vect<double,3> diff = mLastResult.mPoint1 - sp_c;
@@ -123,10 +123,10 @@ void prox_plane_sphere::computeProximity() {
 
 
 prox_plane_sphere::prox_plane_sphere(const shared_ptr< plane >& aPlane,
-				     const shared_ptr< sphere >& aSphere) :
-				     proximity_finder_3D(),
-				     mPlane(aPlane),
-				     mSphere(aSphere) { };
+                                     const shared_ptr< sphere >& aSphere) :
+                                     proximity_finder_3D(),
+                                     mPlane(aPlane),
+                                     mSphere(aSphere) { };
     
     
 void RK_CALL prox_plane_sphere::save(ReaK::serialization::oarchive& A, unsigned int) const {

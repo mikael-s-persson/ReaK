@@ -1,7 +1,7 @@
 
 #include <iostream>
 
-#include "mat_alg.hpp"
+#include <ReaK/core/lin_alg/mat_alg.hpp>
 
 
 
@@ -19,8 +19,8 @@ int main() {
   
   std::cout << "M1 = " << M1 << std::endl << std::endl;
   
-  auto M2 = ( ( sub(M1)(range(0,2),range(0,1)) & sub(M1)(range(0,2),range(2,3)) ) |
-              ( sub(M1)(range(3,3),range(0,1)) & sub(M1)(range(3,3),range(2,3)) ) );
+  auto M2 = ( ( sub(M1)(range(0,3),range(0,2)) & sub(M1)(range(0,3),range(2,4)) ) |
+              ( sub(M1)(range(3,4),range(0,2)) & sub(M1)(range(3,4),range(2,4)) ) );
   
   std::cout << "M2 = " << M2 << std::endl << std::endl;
   
@@ -31,8 +31,8 @@ int main() {
   
   std::cout << "V1 = " << V1 << std::endl;
   
-  std::cout << "V1 as 4x3 col-major = " << make_mat(V1)(range(0,3),3) << std::endl;
-  std::cout << "V1 as 4x3 row-major = " << make_mat(V1)(4,range(0,2)) << std::endl;
+  std::cout << "V1 as 4x3 col-major = " << make_mat(V1)(range(0,4),3) << std::endl;
+  std::cout << "V1 as 4x3 row-major = " << make_mat(V1)(4,range(0,3)) << std::endl;
   
   
 #endif

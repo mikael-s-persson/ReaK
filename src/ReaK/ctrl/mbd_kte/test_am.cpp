@@ -107,7 +107,7 @@ int main() {
 
   //create motor inertia
   shared_ptr<inertia_gen> motor_inertia(new inertia_gen("motor_inertia",
-							shared_ptr< joint_dependent_gen_coord >(new joint_dependent_gen_coord(joint_coord)),5),scoped_deleter());
+                                                        shared_ptr< joint_dependent_gen_coord >(new joint_dependent_gen_coord(joint_coord)),5),scoped_deleter());
   //create friction
   shared_ptr<joint_dry_microslip_gen> friction(new joint_dry_microslip_gen("friction",joint_coord,1E-6,2E-6,1,0.9),scoped_deleter());
   //create revolute joint
@@ -118,8 +118,8 @@ int main() {
   shared_ptr<rigid_link_2D> link1(new rigid_link_2D("link1",joint_frame,end_frame,pose_2D<double>(weak_ptr<pose_2D<double> >(),vect<double,2>(0.5,0.0),rot_mat_2D<double>(0.0))),scoped_deleter());
   //create end mass of 1.0 kg (point mass only)
   shared_ptr<inertia_2D> mass1(new inertia_2D("mass1",
-				              shared_ptr< joint_dependent_frame_2D >(new joint_dependent_frame_2D(end_frame)),
-				              1.0,0.0),scoped_deleter());
+                                              shared_ptr< joint_dependent_frame_2D >(new joint_dependent_frame_2D(end_frame)),
+                                              1.0,0.0),scoped_deleter());
 
   kte_map_chain adv_pendulum("adv_pendulum");
 

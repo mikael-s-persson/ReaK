@@ -115,14 +115,14 @@ void mass_matrix_calc::get_TMT_TdMT(mat<double,mat_structure::rectangular>& Tcm,
     
     for(unsigned int j=0; j<mGenInertias.size(); ++j) {
       if(mGenInertias[j]->CenterOfMass()->mUpStreamJoints.find(mCoords[i]) != mGenInertias[j]->CenterOfMass()->mUpStreamJoints.end()) {
-	
-	mat_sub_block< mat<double,mat_structure::rectangular> > subTcm(Tcm,1,1,RowInd,i);
-	mat_sub_block< mat<double,mat_structure::rectangular> > subTcm_dot(Tcm_dot,1,1,RowInd,i);
-	mGenInertias[j]
-	  ->CenterOfMass()
-	    ->mUpStreamJoints[mCoords[i]]
-	      ->write_to_matrices(subTcm,subTcm_dot);
-	
+        
+        mat_sub_block< mat<double,mat_structure::rectangular> > subTcm(Tcm,1,1,RowInd,i);
+        mat_sub_block< mat<double,mat_structure::rectangular> > subTcm_dot(Tcm_dot,1,1,RowInd,i);
+        mGenInertias[j]
+          ->CenterOfMass()
+            ->mUpStreamJoints[mCoords[i]]
+              ->write_to_matrices(subTcm,subTcm_dot);
+        
       };
       RowInd++;
     };
@@ -130,28 +130,28 @@ void mass_matrix_calc::get_TMT_TdMT(mat<double,mat_structure::rectangular>& Tcm,
     for(unsigned int j=0; j<m2DInertias.size(); ++j) {
       if(m2DInertias[j]->CenterOfMass()->mUpStreamJoints.find(mCoords[i]) != m2DInertias[j]->CenterOfMass()->mUpStreamJoints.end()) {
 
-	mat_sub_block< mat<double,mat_structure::rectangular> > subTcm(Tcm,3,1,RowInd,i);
-	mat_sub_block< mat<double,mat_structure::rectangular> > subTcm_dot(Tcm_dot,3,1,RowInd,i);
-	m2DInertias[j]
-	  ->CenterOfMass()
-	    ->mUpStreamJoints[mCoords[i]]
-	      ->get_jac_relative_to(m2DInertias[j]->CenterOfMass()->mFrame)
-	        .write_to_matrices(subTcm,subTcm_dot);
-	
+        mat_sub_block< mat<double,mat_structure::rectangular> > subTcm(Tcm,3,1,RowInd,i);
+        mat_sub_block< mat<double,mat_structure::rectangular> > subTcm_dot(Tcm_dot,3,1,RowInd,i);
+        m2DInertias[j]
+          ->CenterOfMass()
+            ->mUpStreamJoints[mCoords[i]]
+              ->get_jac_relative_to(m2DInertias[j]->CenterOfMass()->mFrame)
+                .write_to_matrices(subTcm,subTcm_dot);
+        
       };
       RowInd += 3;
     };
     
     for(unsigned int j=0; j<m3DInertias.size(); ++j) {
       if(m3DInertias[j]->CenterOfMass()->mUpStreamJoints.find(mCoords[i]) != m3DInertias[j]->CenterOfMass()->mUpStreamJoints.end()) {
-	
-	mat_sub_block< mat<double,mat_structure::rectangular> > subTcm(Tcm,6,1,RowInd,i);
-	mat_sub_block< mat<double,mat_structure::rectangular> > subTcm_dot(Tcm_dot,6,1,RowInd,i);
-	m3DInertias[j]
-	  ->CenterOfMass()
-	    ->mUpStreamJoints[mCoords[i]]
-	      ->get_jac_relative_to(m3DInertias[j]->CenterOfMass()->mFrame)
-	        .write_to_matrices(subTcm,subTcm_dot);
+        
+        mat_sub_block< mat<double,mat_structure::rectangular> > subTcm(Tcm,6,1,RowInd,i);
+        mat_sub_block< mat<double,mat_structure::rectangular> > subTcm_dot(Tcm_dot,6,1,RowInd,i);
+        m3DInertias[j]
+          ->CenterOfMass()
+            ->mUpStreamJoints[mCoords[i]]
+              ->get_jac_relative_to(m3DInertias[j]->CenterOfMass()->mFrame)
+                .write_to_matrices(subTcm,subTcm_dot);
 
       };
       RowInd += 6;
@@ -169,43 +169,43 @@ void mass_matrix_calc::get_TMT_TdMT(mat<double,mat_structure::rectangular>& Tcm,
 
     for(unsigned int j=0; j<mGenInertias.size(); ++j) {
       if(mGenInertias[j]->CenterOfMass()->mUpStream2DJoints.find(mFrames2D[i]) != mGenInertias[j]->CenterOfMass()->mUpStream2DJoints.end()) {
-		
-	mat_sub_block< mat<double,mat_structure::rectangular> > subTcm(Tcm,1,3,RowInd,3*i+base_i);
-	mat_sub_block< mat<double,mat_structure::rectangular> > subTcm_dot(Tcm_dot,1,3,RowInd,3*i+base_i);
-	mGenInertias[j]
-	  ->CenterOfMass()
-	    ->mUpStream2DJoints[mFrames2D[i]]
-	      ->write_to_matrices(subTcm,subTcm_dot);
-	
+                
+        mat_sub_block< mat<double,mat_structure::rectangular> > subTcm(Tcm,1,3,RowInd,3*i+base_i);
+        mat_sub_block< mat<double,mat_structure::rectangular> > subTcm_dot(Tcm_dot,1,3,RowInd,3*i+base_i);
+        mGenInertias[j]
+          ->CenterOfMass()
+            ->mUpStream2DJoints[mFrames2D[i]]
+              ->write_to_matrices(subTcm,subTcm_dot);
+        
       };
       RowInd++;
     };
 
     for(unsigned int j=0; j<m2DInertias.size(); ++j) {
       if(m2DInertias[j]->CenterOfMass()->mUpStream2DJoints.find(mFrames2D[i]) != m2DInertias[j]->CenterOfMass()->mUpStream2DJoints.end()) {
-	
-	mat_sub_block< mat<double,mat_structure::rectangular> > subTcm(Tcm,3,3,RowInd,3*i+base_i);
-	mat_sub_block< mat<double,mat_structure::rectangular> > subTcm_dot(Tcm_dot,3,3,RowInd,3*i+base_i);
-	m2DInertias[j]
-	  ->CenterOfMass()
-	    ->mUpStream2DJoints[mFrames2D[i]]
-	      ->get_jac_relative_to(m2DInertias[j]->CenterOfMass()->mFrame)
-	        .write_to_matrices(subTcm,subTcm_dot);
-	      
+        
+        mat_sub_block< mat<double,mat_structure::rectangular> > subTcm(Tcm,3,3,RowInd,3*i+base_i);
+        mat_sub_block< mat<double,mat_structure::rectangular> > subTcm_dot(Tcm_dot,3,3,RowInd,3*i+base_i);
+        m2DInertias[j]
+          ->CenterOfMass()
+            ->mUpStream2DJoints[mFrames2D[i]]
+              ->get_jac_relative_to(m2DInertias[j]->CenterOfMass()->mFrame)
+                .write_to_matrices(subTcm,subTcm_dot);
+              
       };
       RowInd += 3;
     };
 
     for(unsigned int j=0; j<m3DInertias.size(); ++j) {
       if(m3DInertias[j]->CenterOfMass()->mUpStream2DJoints.find(mFrames2D[i]) != m3DInertias[j]->CenterOfMass()->mUpStream2DJoints.end()) {
-	
-	mat_sub_block< mat<double,mat_structure::rectangular> > subTcm(Tcm,6,3,RowInd,3*i+base_i);
-	mat_sub_block< mat<double,mat_structure::rectangular> > subTcm_dot(Tcm_dot,6,3,RowInd,3*i+base_i);
-	m3DInertias[j]
-	  ->CenterOfMass()
-	    ->mUpStream2DJoints[mFrames2D[i]]
-	      ->get_jac_relative_to(m3DInertias[j]->CenterOfMass()->mFrame)
-	        .write_to_matrices(subTcm,subTcm_dot);
+        
+        mat_sub_block< mat<double,mat_structure::rectangular> > subTcm(Tcm,6,3,RowInd,3*i+base_i);
+        mat_sub_block< mat<double,mat_structure::rectangular> > subTcm_dot(Tcm_dot,6,3,RowInd,3*i+base_i);
+        m3DInertias[j]
+          ->CenterOfMass()
+            ->mUpStream2DJoints[mFrames2D[i]]
+              ->get_jac_relative_to(m3DInertias[j]->CenterOfMass()->mFrame)
+                .write_to_matrices(subTcm,subTcm_dot);
 
       };
       RowInd += 6;
@@ -224,28 +224,28 @@ void mass_matrix_calc::get_TMT_TdMT(mat<double,mat_structure::rectangular>& Tcm,
 
     for(unsigned int j=0; j<mGenInertias.size(); ++j) {
       if(mGenInertias[j]->CenterOfMass()->mUpStreamJoints.find(mCoords[i]) != mGenInertias[j]->CenterOfMass()->mUpStreamJoints.end()) {
-	
-	mat_sub_block< mat<double,mat_structure::rectangular> > subTcm(Tcm,1,6,RowInd,6*i+base_i);
-	mat_sub_block< mat<double,mat_structure::rectangular> > subTcm_dot(Tcm_dot,1,6,RowInd,6*i+base_i);
-	mGenInertias[j]
-	  ->CenterOfMass()
-	    ->mUpStream3DJoints[mFrames3D[i]]
-	      ->write_to_matrices(subTcm,subTcm_dot);
-	
+        
+        mat_sub_block< mat<double,mat_structure::rectangular> > subTcm(Tcm,1,6,RowInd,6*i+base_i);
+        mat_sub_block< mat<double,mat_structure::rectangular> > subTcm_dot(Tcm_dot,1,6,RowInd,6*i+base_i);
+        mGenInertias[j]
+          ->CenterOfMass()
+            ->mUpStream3DJoints[mFrames3D[i]]
+              ->write_to_matrices(subTcm,subTcm_dot);
+        
       };
       RowInd++;
     };
 
     for(unsigned int j=0; j<m2DInertias.size(); ++j) {
       if(m2DInertias[j]->CenterOfMass()->mUpStream3DJoints.find(mFrames3D[i]) != m2DInertias[j]->CenterOfMass()->mUpStream3DJoints.end()) {
-	
-	mat_sub_block< mat<double,mat_structure::rectangular> > subTcm(Tcm,3,6,RowInd,6*i+base_i);
-	mat_sub_block< mat<double,mat_structure::rectangular> > subTcm_dot(Tcm_dot,3,6,RowInd,6*i+base_i);
-	m2DInertias[j]
-	  ->CenterOfMass()
-	    ->mUpStream3DJoints[mFrames3D[i]]
-	      ->get_jac_relative_to(m2DInertias[j]->CenterOfMass()->mFrame)
-	        .write_to_matrices(subTcm,subTcm_dot);
+        
+        mat_sub_block< mat<double,mat_structure::rectangular> > subTcm(Tcm,3,6,RowInd,6*i+base_i);
+        mat_sub_block< mat<double,mat_structure::rectangular> > subTcm_dot(Tcm_dot,3,6,RowInd,6*i+base_i);
+        m2DInertias[j]
+          ->CenterOfMass()
+            ->mUpStream3DJoints[mFrames3D[i]]
+              ->get_jac_relative_to(m2DInertias[j]->CenterOfMass()->mFrame)
+                .write_to_matrices(subTcm,subTcm_dot);
 
       };
       RowInd += 3;
@@ -253,15 +253,15 @@ void mass_matrix_calc::get_TMT_TdMT(mat<double,mat_structure::rectangular>& Tcm,
 
     for(unsigned int j=0; j<m3DInertias.size(); ++j) {
       if(m3DInertias[j]->CenterOfMass()->mUpStream3DJoints.find(mFrames3D[i]) != m3DInertias[j]->CenterOfMass()->mUpStream3DJoints.end()) {
-		
-	mat_sub_block< mat<double,mat_structure::rectangular> > subTcm(Tcm,6,6,RowInd,6*i+base_i);
-	mat_sub_block< mat<double,mat_structure::rectangular> > subTcm_dot(Tcm_dot,6,6,RowInd,6*i+base_i);
-	m3DInertias[j]
-	  ->CenterOfMass()
-	    ->mUpStream3DJoints[mFrames3D[i]]
-	      ->get_jac_relative_to(m3DInertias[j]->CenterOfMass()->mFrame)
-	        .write_to_matrices(subTcm,subTcm_dot);
-	
+                
+        mat_sub_block< mat<double,mat_structure::rectangular> > subTcm(Tcm,6,6,RowInd,6*i+base_i);
+        mat_sub_block< mat<double,mat_structure::rectangular> > subTcm_dot(Tcm_dot,6,6,RowInd,6*i+base_i);
+        m3DInertias[j]
+          ->CenterOfMass()
+            ->mUpStream3DJoints[mFrames3D[i]]
+              ->get_jac_relative_to(m3DInertias[j]->CenterOfMass()->mFrame)
+                .write_to_matrices(subTcm,subTcm_dot);
+        
       };
       RowInd += 6;
     };

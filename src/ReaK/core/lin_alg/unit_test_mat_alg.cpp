@@ -21,13 +21,12 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "base/defs.hpp"
+#include <ReaK/core/base/defs.hpp>
+#include <ReaK/core/lin_alg/mat_alg.hpp>
+
 #include <iostream>
 #include <fstream>
 #include <cstdio>
-
-#include "mat_alg.hpp"
-
 
 #define BOOST_TEST_DYN_LINK
 

@@ -114,17 +114,17 @@ class dry_revolute_joint_2D : public revolute_joint_2D {
      * \param aSlipVelocity the micro-slip tolerance in joint speed.
      */
     dry_revolute_joint_2D(const std::string& aName,
-			  const shared_ptr< gen_coord<double> >& aAngle,
-			  const shared_ptr< frame_2D<double> >& aBase,
-			  const shared_ptr< frame_2D<double> >& aEnd,
-			  const shared_ptr< jacobian_gen_2D<double> >& aJacobian = shared_ptr< jacobian_gen_2D<double> >(),
-			  double aStictionCoef = 0.5,
-			  double aSlipCoef = 0.3,
-			  double aSlipVelocity = 1E-5) :
-			  revolute_joint_2D(aName,aAngle,aBase,aEnd,aJacobian),
-			  mStictionCoef(aStictionCoef),
-			  mSlipCoef(aSlipCoef),
-			  mSlipVelocity(aSlipVelocity) { };
+                          const shared_ptr< gen_coord<double> >& aAngle,
+                          const shared_ptr< frame_2D<double> >& aBase,
+                          const shared_ptr< frame_2D<double> >& aEnd,
+                          const shared_ptr< jacobian_gen_2D<double> >& aJacobian = shared_ptr< jacobian_gen_2D<double> >(),
+                          double aStictionCoef = 0.5,
+                          double aSlipCoef = 0.3,
+                          double aSlipVelocity = 1E-5) :
+                          revolute_joint_2D(aName,aAngle,aBase,aEnd,aJacobian),
+                          mStictionCoef(aStictionCoef),
+                          mSlipCoef(aSlipCoef),
+                          mSlipVelocity(aSlipVelocity) { };
 
     /**
      * Default destructor.
@@ -213,18 +213,18 @@ class dry_revolute_joint_3D : public revolute_joint_3D {
      * \param aSlipVelocity the micro-slip tolerance in joint speed.
      */
     dry_revolute_joint_3D(const std::string& aName,
-			  const shared_ptr< gen_coord<double> >& aAngle,
-			  const vect<double,3>& aAxis,
-			  const shared_ptr< frame_3D<double> >& aBase,
-			  const shared_ptr< frame_3D<double> >& aEnd,
-			  const shared_ptr< jacobian_gen_3D<double> >& aJacobian = shared_ptr< jacobian_gen_3D<double> >(),
-			  double aStictionCoef = 0.5,
-			  double aSlipCoef = 0.3,
-			  double aSlipVelocity = 1E-5) :
-			  revolute_joint_3D(aName,aAngle,aAxis,aBase,aEnd,aJacobian),
-			  mStictionCoef(aStictionCoef),
-			  mSlipCoef(aSlipCoef),
-			  mSlipVelocity(aSlipVelocity) { };
+                          const shared_ptr< gen_coord<double> >& aAngle,
+                          const vect<double,3>& aAxis,
+                          const shared_ptr< frame_3D<double> >& aBase,
+                          const shared_ptr< frame_3D<double> >& aEnd,
+                          const shared_ptr< jacobian_gen_3D<double> >& aJacobian = shared_ptr< jacobian_gen_3D<double> >(),
+                          double aStictionCoef = 0.5,
+                          double aSlipCoef = 0.3,
+                          double aSlipVelocity = 1E-5) :
+                          revolute_joint_3D(aName,aAngle,aAxis,aBase,aEnd,aJacobian),
+                          mStictionCoef(aStictionCoef),
+                          mSlipCoef(aSlipCoef),
+                          mSlipVelocity(aSlipVelocity) { };
 
     /**
      * Default destructor.

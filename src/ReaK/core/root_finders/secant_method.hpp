@@ -54,8 +54,7 @@ namespace ReaK {
  * \param tol The tolerance on the absolute value of the root.
  * \return The independent variable value at which the root was found, or the bound value that was reached while seeking the root (and diverging).
  */
-template <typename T,
-	  typename RootedFunction>
+template <typename T, typename RootedFunction>
 T secant_method(const T& low_bound, const T& hi_bound, RootedFunction f, const T& tol = std::numeric_limits<T>::epsilon()) 
 {
   using std::fabs;
@@ -115,8 +114,7 @@ T secant_method(const T& low_bound, const T& hi_bound, RootedFunction f, const T
  * \param f The functor of which the root is sought.
  * \param tol The tolerance on the size of the narrowed-down intervale in which the root exists.
  */
-template <typename T,
-	  typename RootedFunction>
+template <typename T, typename RootedFunction>
 void illinois_method(T& low_bound, T& hi_bound, RootedFunction f, const T& tol = std::numeric_limits<T>::epsilon()) 
 {
   using std::fabs;
@@ -182,8 +180,7 @@ void illinois_method(T& low_bound, T& hi_bound, RootedFunction f, const T& tol =
  * \param f The functor of which the root is sought.
  * \param tol The tolerance on the size of the narrowed-down intervale in which the root exists.
  */
-template <typename T,
-	  typename RootedFunction>
+template <typename T, typename RootedFunction>
 void ford3_method(T& low_bound, T& hi_bound, RootedFunction f, const T& tol = std::numeric_limits<T>::epsilon()) 
 {
   using std::fabs;

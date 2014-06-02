@@ -116,7 +116,7 @@ class mat<T,mat_structure::scalar,Alignment,Allocator> : public serialization::s
      */
     mat(self&& M) : q(std::move(M.q)), rowCount(std::move(M.rowCount)) { };
 #endif
-	     
+     
     /**
      * Constructor from a general matrix, conserving only the trace value.
      */
@@ -176,7 +176,31 @@ class mat<T,mat_structure::scalar,Alignment,Allocator> : public serialization::s
       else
         return value_type(0.0);
     };
-
+    
+    /**
+     * Sub-matrix operator, accessor for read only.
+     * \test PASSED
+     */
+    mat_const_sub_block<self> operator()(const std::pair<size_type,size_type>& r, const std::pair<size_type,size_type>& c) const {
+      return sub(*this)(r,c);
+    };
+    
+    /**
+     * Sub-matrix operator, accessor for read only.
+     * \test PASSED
+     */
+    mat_const_col_slice<self> operator()(size_type r, const std::pair<size_type,size_type>& c) const {
+      return slice(*this)(r,c);
+    };
+    
+    /**
+     * Sub-matrix operator, accessor for read only.
+     * \test PASSED
+     */
+    mat_const_row_slice<self> operator()(const std::pair<size_type,size_type>& r, size_type c) const {
+      return slice(*this)(r,c);
+    };
+    
     /**
      * Gets the row-count (number of rows) of the matrix.
      * \return number of rows of the matrix.

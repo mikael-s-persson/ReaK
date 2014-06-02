@@ -31,26 +31,22 @@
 #ifndef REAK_SVP_NDOF_REACH_TOPOLOGIES_HPP
 #define REAK_SVP_NDOF_REACH_TOPOLOGIES_HPP
 
-#include "base/defs.hpp"
+#include <ReaK/core/base/defs.hpp>
 
-#include "path_planning/spatial_trajectory_concept.hpp"
-#include "path_planning/tangent_bundle_concept.hpp"
+#include <ReaK/ctrl/path_planning/spatial_trajectory_concept.hpp>
+#include <ReaK/ctrl/path_planning/tangent_bundle_concept.hpp>
+#include <ReaK/ctrl/path_planning/bounded_space_concept.hpp>
+#include <ReaK/ctrl/path_planning/reversible_space_concept.hpp>
+#include <ReaK/ctrl/topologies/generic_sampler_factory.hpp>
+#include <ReaK/ctrl/topologies/rate_limited_spaces.hpp>
 
 #include "interpolated_topologies.hpp"
 #include "generic_interpolator_factory.hpp"
-
-#include <boost/config.hpp>
-#include <boost/concept_check.hpp>
-
-#include "path_planning/bounded_space_concept.hpp"
-#include "path_planning/reversible_space_concept.hpp"
-#include "topologies/generic_sampler_factory.hpp"
-#include "topologies/rate_limited_spaces.hpp"
-
 #include "sustained_velocity_pulse_Ndof.hpp"
 #include "svp_Ndof_metrics.hpp"
 #include "svp_Ndof_samplers.hpp"
 
+#include <boost/concept_check.hpp>
 
 namespace ReaK {
 

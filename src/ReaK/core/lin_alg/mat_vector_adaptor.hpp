@@ -34,7 +34,12 @@
 #ifndef REAK_MAT_VECTOR_ADAPTOR_HPP
 #define REAK_MAT_VECTOR_ADAPTOR_HPP
 
-#include "mat_alg_general.hpp"
+#include "mat_concepts.hpp"
+#include "mat_traits.hpp"
+#include "mat_views.hpp"
+#include "mat_slices.hpp"
+#include "vect_concepts.hpp"
+#include "vect_views.hpp"
 
 namespace ReaK {
 
@@ -169,7 +174,55 @@ class mat_vect_adaptor<Vector,mat_alignment::column_major> {
     const_reference operator()(size_type i,size_type j) const { 
       return (*v)[offset + j*rowCount + i]; 
     };
-
+    
+    /**
+     * Sub-matrix operator, accessor for read/write.
+     * \test PASSED
+     */
+    mat_sub_block<self> operator()(const std::pair<size_type,size_type>& r, const std::pair<size_type,size_type>& c) {
+      return sub(*this)(r,c);
+    };
+    
+    /**
+     * Sub-matrix operator, accessor for read only.
+     * \test PASSED
+     */
+    mat_const_sub_block<self> operator()(const std::pair<size_type,size_type>& r, const std::pair<size_type,size_type>& c) const {
+      return sub(*this)(r,c);
+    };
+    
+    /**
+     * Sub-matrix operator, accessor for read/write.
+     * \test PASSED
+     */
+    mat_col_slice<self> operator()(size_type r, const std::pair<size_type,size_type>& c) {
+      return slice(*this)(r,c);
+    };
+    
+    /**
+     * Sub-matrix operator, accessor for read only.
+     * \test PASSED
+     */
+    mat_const_col_slice<self> operator()(size_type r, const std::pair<size_type,size_type>& c) const {
+      return slice(*this)(r,c);
+    };
+    
+    /**
+     * Sub-matrix operator, accessor for read/write.
+     * \test PASSED
+     */
+    mat_row_slice<self> operator()(const std::pair<size_type,size_type>& r, size_type c) {
+      return slice(*this)(r,c);
+    };
+    
+    /**
+     * Sub-matrix operator, accessor for read only.
+     * \test PASSED
+     */
+    mat_const_row_slice<self> operator()(const std::pair<size_type,size_type>& r, size_type c) const {
+      return slice(*this)(r,c);
+    };
+    
     /**
      * Gets the row-count (number of rows) of the matrix.
      * \return number of rows of the matrix.
@@ -212,7 +265,7 @@ class mat_vect_adaptor<Vector,mat_alignment::column_major> {
      */
     template <typename Matrix>
     self& operator +=(const Matrix& M) {
-      boost::function_requires< ReadableMatrixConcept<Matrix> >();
+      BOOST_CONCEPT_ASSERT((ReadableMatrixConcept<Matrix>));
       if((M.get_col_count() != colCount) || (M.get_row_count() != rowCount))
         throw std::range_error("Matrix dimension mismatch.");
       size_type it = offset;
@@ -228,7 +281,7 @@ class mat_vect_adaptor<Vector,mat_alignment::column_major> {
      */
     template <typename Matrix>
     self& operator -=(const Matrix& M) {
-      boost::function_requires< ReadableMatrixConcept<Matrix> >();
+      BOOST_CONCEPT_ASSERT((ReadableMatrixConcept<Matrix>));
       if((M.get_col_count() != colCount) || (M.get_row_count() != rowCount))
         throw std::range_error("Matrix dimension mismatch.");
       size_type it = offset;
@@ -259,20 +312,6 @@ class mat_vect_adaptor<Vector,mat_alignment::column_major> {
         throw std::range_error("Matrix Dimension Mismatch.");
       *this = *this * M;
       return *this;
-    };
-    
-    /** WORKS FOR ALL
-     * General negation operator for any type of matrices. This is a default operator
-     * that will be called if no better special-purpose overload exists.
-     * \return General column-major matrix.
-     * \test PASSED
-     */
-    mat<value_type,mat_structure::rectangular> operator -() const {
-      mat<value_type,mat_structure::rectangular> result(*this);
-      for(size_type j = 0; j < result.get_col_count(); ++j)
-        for(size_type i = 0; i < result.get_row_count(); ++i)
-          result(i,j) = -result(i,j);
-      return result;
     };
     
     /**
@@ -460,7 +499,7 @@ class mat_vect_adaptor<Vector,mat_alignment::row_major> {
      */
     template <typename Matrix>
     self& operator +=(const Matrix& M) {
-      boost::function_requires< ReadableMatrixConcept<Matrix> >();
+      BOOST_CONCEPT_ASSERT((ReadableMatrixConcept<Matrix>));
       if((M.get_col_count() != colCount) || (M.get_row_count() != rowCount))
         throw std::range_error("Matrix dimension mismatch.");
       size_type it = offset;
@@ -476,7 +515,7 @@ class mat_vect_adaptor<Vector,mat_alignment::row_major> {
      */
     template <typename Matrix>
     self& operator -=(const Matrix& M) {
-      boost::function_requires< ReadableMatrixConcept<Matrix> >();
+      BOOST_CONCEPT_ASSERT((ReadableMatrixConcept<Matrix>));
       if((M.get_col_count() != colCount) || (M.get_row_count() != rowCount))
         throw std::range_error("Matrix dimension mismatch.");
       size_type it = offset;
@@ -507,20 +546,6 @@ class mat_vect_adaptor<Vector,mat_alignment::row_major> {
         throw std::range_error("Matrix Dimension Mismatch.");
       *this = *this * M;
       return *this;
-    };
-    
-    /** WORKS FOR ALL
-     * General negation operator for any type of matrices. This is a default operator
-     * that will be called if no better special-purpose overload exists.
-     * \return General column-major matrix.
-     * \test PASSED
-     */
-    mat<value_type,mat_structure::rectangular> operator -() const {
-      mat<value_type,mat_structure::rectangular> result(*this);
-      for(size_type j = 0; j < result.get_col_count(); ++j)
-        for(size_type i = 0; i < result.get_row_count(); ++i)
-          result(i,j) = -result(i,j);
-      return result;
     };
     
     /**
@@ -702,20 +727,6 @@ class mat_const_vect_adaptor<Vector,mat_alignment::column_major> {
      */
     allocator_type get_allocator() const { return v->get_allocator(); };
     
-    /** WORKS FOR ALL
-     * General negation operator for any type of matrices. This is a default operator
-     * that will be called if no better special-purpose overload exists.
-     * \return General column-major matrix.
-     * \test PASSED
-     */
-    mat<value_type,mat_structure::rectangular> operator -() const {
-      mat<value_type,mat_structure::rectangular> result(*this);
-      for(size_type j = 0; j < result.get_col_count(); ++j)
-        for(size_type i = 0; i < result.get_row_count(); ++i)
-          result(i,j) = -result(i,j);
-      return result;
-    };
-    
     /**
      * Transposes the matrix M.
      * \param M The matrix to be transposed.
@@ -855,20 +866,6 @@ class mat_const_vect_adaptor<Vector,mat_alignment::row_major> {
      */
     allocator_type get_allocator() const { return v->get_allocator(); };
     
-    /** WORKS FOR ALL
-     * General negation operator for any type of matrices. This is a default operator
-     * that will be called if no better special-purpose overload exists.
-     * \return General column-major matrix.
-     * \test PASSED
-     */
-    mat<value_type,mat_structure::rectangular> operator -() const {
-      mat<value_type,mat_structure::rectangular> result(*this);
-      for(size_type j = 0; j < result.get_col_count(); ++j)
-        for(size_type i = 0; i < result.get_row_count(); ++i)
-          result(i,j) = -result(i,j);
-      return result;
-    };
-    
     /**
      * Transposes the matrix M.
      * \param M The matrix to be transposed.
@@ -923,7 +920,7 @@ struct has_allocator_matrix< mat_const_vect_adaptor<Vector,Alignment> > {
   typedef has_allocator_vector<Vector> type;
 };
 
-
+#if 0
 template <typename Vector, mat_alignment::tag Alignment, typename Matrix2>
 struct mat_product_result<mat_const_vect_adaptor<Vector,Alignment>,Matrix2> {
   typedef typename vect_traits<Vector>::value_type value_type;
@@ -947,7 +944,7 @@ struct mat_addition_result< Matrix1,mat_const_vect_adaptor<Vector,Alignment> > {
   typedef typename vect_traits<Vector>::value_type value_type;
   typedef typename mat_addition_result<Matrix1,mat<value_type,mat_structure::rectangular> >::type type;
 };
-
+#endif
 
 
 
@@ -959,11 +956,11 @@ struct mat_vect_adaptor_factory {
   mat_vect_adaptor_factory(Vector& aV) : v(aV) { };
   mat_vect_adaptor<Vector,mat_alignment::row_major> operator()(size_type rowCount,
                                       const std::pair<size_type,size_type>& cols) {
-    return mat_vect_adaptor<Vector,mat_alignment::row_major>(v,rowCount,cols.second - cols.first + 1,cols.first);
+    return mat_vect_adaptor<Vector,mat_alignment::row_major>(v,rowCount,cols.second - cols.first,cols.first);
   };
   mat_vect_adaptor<Vector,mat_alignment::column_major> operator()(const std::pair<size_type,size_type>& rows,
                                    size_type colCount) {
-    return mat_vect_adaptor<Vector,mat_alignment::column_major>(v,rows.second - rows.first + 1,colCount,rows.first);
+    return mat_vect_adaptor<Vector,mat_alignment::column_major>(v,rows.second - rows.first,colCount,rows.first);
   };
 };
 
@@ -975,11 +972,11 @@ struct mat_const_vect_adaptor_factory {
   mat_const_vect_adaptor_factory(const Vector& aV) : v(aV) { };
   mat_const_vect_adaptor<Vector,mat_alignment::row_major> operator()(size_type rowCount,
                                    const std::pair<size_type,size_type>& cols) {
-    return mat_const_vect_adaptor<Vector,mat_alignment::row_major>(v,rowCount,cols.second - cols.first + 1,cols.first);
+    return mat_const_vect_adaptor<Vector,mat_alignment::row_major>(v,rowCount,cols.second - cols.first,cols.first);
   };
   mat_const_vect_adaptor<Vector,mat_alignment::column_major> operator()(const std::pair<size_type,size_type>& rows,
                                    size_type colCount) {
-    return mat_const_vect_adaptor<Vector,mat_alignment::column_major>(v,rows.second - rows.first + 1,colCount,rows.first);
+    return mat_const_vect_adaptor<Vector,mat_alignment::column_major>(v,rows.second - rows.first,colCount,rows.first);
   };
 };
 
@@ -988,9 +985,9 @@ struct mat_const_vect_adaptor_factory {
  * an object of a factory functor which can generate either a column-major or row-major matrix
  * depending on the call syntax. The matrix is constructed via a range function as so:
  * 
- *  make_mat(V)(range(3,6),2)  generates a column-major matrix starting from index 3, with 4 rows (index 3 to 6) and 2 columns.
+ *  make_mat(V)(range(3,7),2)  generates a column-major matrix starting from index 3, with 4 rows (index 3 to 6) and 2 columns.
  * 
- *  make_mat(V)(2,range(3,6))  generates a row-major matrix starting from index 3, with 4 columns (index 3 to 6) and 2 rows.
+ *  make_mat(V)(2,range(3,7))  generates a row-major matrix starting from index 3, with 4 columns (index 3 to 6) and 2 rows.
  * 
  * \tparam Vector A readable vector type.
  */

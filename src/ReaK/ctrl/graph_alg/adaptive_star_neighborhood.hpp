@@ -36,7 +36,7 @@
 #define REAK_ADAPTIVE_STAR_NEIGHBORHOOD_HPP
 
 
-#include "base/misc_math.hpp"
+#include <ReaK/core/base/misc_math.hpp>
 
 #include <limits>
 #include <boost/property_map/property_map.hpp>

@@ -62,7 +62,7 @@ struct is_fully_writable_matrix< mat_fixed<T,mat_structure::rectangular,RowCount
  */
 template <typename T,
           unsigned int rowCount,
-	  unsigned int colCount>
+          unsigned int colCount>
 class mat_fixed<T,mat_structure::rectangular,rowCount,colCount,mat_alignment::column_major> : public serialization::serializable {
   public:    
     
@@ -105,7 +105,7 @@ class mat_fixed<T,mat_structure::rectangular,rowCount,colCount,mat_alignment::co
      */
     explicit mat_fixed(const value_type& aFill = value_type()) {  
       for(pointer it = q; it != q + rowCount * colCount; ++it)
-	*it = aFill;
+        *it = aFill;
     };
 
     /**
@@ -114,7 +114,7 @@ class mat_fixed<T,mat_structure::rectangular,rowCount,colCount,mat_alignment::co
      */
     mat_fixed(const self& M) { 
       for(size_type i = 0; i < rowCount * colCount; ++i)
-	q[i] = M.q[i];
+        q[i] = M.q[i];
     };
 
     /**
@@ -125,11 +125,11 @@ class mat_fixed<T,mat_structure::rectangular,rowCount,colCount,mat_alignment::co
     explicit mat_fixed(const Matrix&  M, typename boost::enable_if_c< is_readable_matrix<Matrix>::value && 
                                                                       !(boost::is_same<Matrix,self>::value) , void* >::type dummy = NULL) {
       if((M.get_row_count() != rowCount) || (M.get_col_count() != colCount))
-	throw std::range_error("Matrix dimensions mismatch.");
+        throw std::range_error("Matrix dimensions mismatch.");
       pointer it = q;
       for(size_type j=0;j<colCount;++j)
         for(size_type i=0;i<rowCount;++i,++it)
-	  *it = M(i,j);
+          *it = M(i,j);
     };
 
     /**
@@ -137,7 +137,7 @@ class mat_fixed<T,mat_structure::rectangular,rowCount,colCount,mat_alignment::co
      */
     explicit mat_fixed(const_pointer Q) {
       for(size_type i = 0; i < rowCount * colCount; ++i)
-	q[i] = Q[i];
+        q[i] = Q[i];
     };
 
     /**
@@ -149,13 +149,13 @@ class mat_fixed<T,mat_structure::rectangular,rowCount,colCount,mat_alignment::co
     friend void swap(self& m1, self& m2) throw() {
       using std::swap;
       for(size_type i = 0; i < rowCount * colCount; ++i)
-	swap(m1.q[i],m2.q[i]);
+        swap(m1.q[i],m2.q[i]);
     };
     
     friend void swap(self& m1, pointer q2) throw() {
       using std::swap;
       for(size_type i = 0; i < rowCount * colCount; ++i)
-	swap(m1.q[i],q2[i]);
+        swap(m1.q[i],q2[i]);
     };
     
     
@@ -276,11 +276,11 @@ class mat_fixed<T,mat_structure::rectangular,rowCount,colCount,mat_alignment::co
     template <typename Matrix>
     self& operator =(const Matrix& M) {
       if((M.get_row_count() != rowCount) || (M.get_col_count() != colCount))
-	throw std::range_error("Matrix dimensions mismatch.");
+        throw std::range_error("Matrix dimensions mismatch.");
       pointer it = q;
       for(size_type j=0;j<colCount;++j)
         for(size_type i=0;i<rowCount;++i,++it)
-	  *it = M(i,j);
+          *it = M(i,j);
       return *this;
     };
 
@@ -290,13 +290,13 @@ class mat_fixed<T,mat_structure::rectangular,rowCount,colCount,mat_alignment::co
      */
     template <typename Matrix>
     self& operator +=(const Matrix& M) {
-      boost::function_requires< ReadableMatrixConcept<Matrix> >();
+      BOOST_CONCEPT_ASSERT((ReadableMatrixConcept<Matrix>));
       if((M.get_col_count() != colCount) || (M.get_row_count() != rowCount))
-	throw std::range_error("Matrix dimension mismatch.");
+        throw std::range_error("Matrix dimension mismatch.");
       pointer it = q;
       for(size_type j=0;j<colCount;++j)
         for(size_type i=0;i<rowCount;++i,++it)
-	  *it += M(i,j);
+          *it += M(i,j);
       return *this;
     };
 
@@ -306,13 +306,13 @@ class mat_fixed<T,mat_structure::rectangular,rowCount,colCount,mat_alignment::co
      */
     template <typename Matrix>
     self& operator -=(const Matrix& M) {
-      boost::function_requires< ReadableMatrixConcept<Matrix> >();
+      BOOST_CONCEPT_ASSERT((ReadableMatrixConcept<Matrix>));
       if((M.get_col_count() != colCount) || (M.get_row_count() != rowCount))
-	throw std::range_error("Matrix dimension mismatch.");
+        throw std::range_error("Matrix dimension mismatch.");
       pointer it = q;
       for(size_type j=0;j<colCount;++j)
         for(size_type i=0;i<rowCount;++i,++it)
-	  *it -= M(i,j);
+          *it -= M(i,j);
       return *this;
     };
 
@@ -391,7 +391,7 @@ class mat_fixed<T,mat_structure::rectangular,rowCount,colCount,mat_alignment::co
  * system. This matrix type is dynamically resizable.
  */
 template <typename T,
-	  typename Allocator>
+          typename Allocator>
 class mat<T,mat_structure::rectangular,mat_alignment::row_major,Allocator> : public serialization::serializable {
   public:    
     
@@ -436,8 +436,8 @@ class mat<T,mat_structure::rectangular,mat_alignment::row_major,Allocator> : pub
      */
     mat(const allocator_type& aAlloc = allocator_type()) :
              q(0,value_type(0),aAlloc),
-	     rowCount(0),
-	     colCount(0) { };
+             rowCount(0),
+             colCount(0) { };
 
     /**
      * Constructor for a sized matrix.
@@ -446,8 +446,8 @@ class mat<T,mat_structure::rectangular,mat_alignment::row_major,Allocator> : pub
     mat(size_type aRowCount,
         size_type aColCount, const value_type& aFill = value_type(),const allocator_type& aAlloc = allocator_type()) :
         q(aRowCount * aColCount,aFill,aAlloc),
-	rowCount(aRowCount),
-	colCount(aColCount) { };
+        rowCount(aRowCount),
+        colCount(aColCount) { };
 
     /**
      * Constructor for an identity matrix.
@@ -455,12 +455,12 @@ class mat<T,mat_structure::rectangular,mat_alignment::row_major,Allocator> : pub
      */
     mat(size_type aRowCount,size_type aColCount, bool aIdentity,const allocator_type& aAlloc = allocator_type()) :
              q(aRowCount * aColCount,0,aAlloc),
-	     rowCount(aRowCount),
-	     colCount(aColCount) {
+             rowCount(aRowCount),
+             colCount(aColCount) {
       if(aIdentity) {
-	size_type minN = (colCount < rowCount ? colCount : rowCount) * (colCount + 1);
-	for(size_type i=0;i < minN;i += colCount + 1)
-	  q[i] = 1;
+        size_type minN = (colCount < rowCount ? colCount : rowCount) * (colCount + 1);
+        for(size_type i=0;i < minN;i += colCount + 1)
+          q[i] = 1;
       };
     };
 
@@ -470,10 +470,10 @@ class mat<T,mat_structure::rectangular,mat_alignment::row_major,Allocator> : pub
      */
     mat(const self& M) :
              q(M.q),
-	     rowCount(M.rowCount),
-	     colCount(M.colCount) { };
+             rowCount(M.rowCount),
+             colCount(M.colCount) { };
 
-	     
+             
     /**
      * Explicit constructor from a any type of matrix.
      * \test PASSED
@@ -482,12 +482,12 @@ class mat<T,mat_structure::rectangular,mat_alignment::row_major,Allocator> : pub
     explicit mat(const Matrix&  M, typename boost::enable_if_c< is_readable_matrix<Matrix>::value && 
                                                                !(boost::is_same<Matrix,self>::value) , void* >::type dummy = NULL) :
              q(M.get_row_count()*M.get_col_count(),T(0.0)),
-	     rowCount(M.get_row_count()),
-	     colCount(M.get_col_count()) {
+             rowCount(M.get_row_count()),
+             colCount(M.get_col_count()) {
       typename container_type::iterator it = q.begin();
       for(size_type i=0;i<rowCount;++i)
         for(size_type j=0;j<colCount;++j,++it)
-	  *it = M(i,j);
+          *it = M(i,j);
     };
 
     /**
@@ -507,7 +507,7 @@ class mat<T,mat_structure::rectangular,mat_alignment::row_major,Allocator> : pub
      * \test PASSED
      */
     mat(const value_type& a11,const value_type& a12,
-	const value_type& a21,const value_type& a22) : q(4), rowCount(2), colCount(2) {
+        const value_type& a21,const value_type& a22) : q(4), rowCount(2), colCount(2) {
       q[0] = a11;
       q[1] = a12;
       q[2] = a21;
@@ -519,9 +519,9 @@ class mat<T,mat_structure::rectangular,mat_alignment::row_major,Allocator> : pub
      * \test PASSED
      */
     mat(const value_type& a11,const value_type& a12,const value_type& a13,
-	const value_type& a21,const value_type& a22,const value_type& a23,
-	const value_type& a31,const value_type& a32,const value_type& a33) : 
-	q(9), rowCount(3), colCount(3) {
+        const value_type& a21,const value_type& a22,const value_type& a23,
+        const value_type& a31,const value_type& a32,const value_type& a33) : 
+        q(9), rowCount(3), colCount(3) {
       q[0] = a11;
       q[1] = a12;
       q[2] = a13;
@@ -538,10 +538,10 @@ class mat<T,mat_structure::rectangular,mat_alignment::row_major,Allocator> : pub
      * \test PASSED
      */
     mat(const value_type& a11,const value_type& a12,const value_type& a13,const value_type& a14,
-	const value_type& a21,const value_type& a22,const value_type& a23,const value_type& a24,
-	const value_type& a31,const value_type& a32,const value_type& a33,const value_type& a34,
-	const value_type& a41,const value_type& a42,const value_type& a43,const value_type& a44) : 
-	q(16), rowCount(4), colCount(4) {
+        const value_type& a21,const value_type& a22,const value_type& a23,const value_type& a24,
+        const value_type& a31,const value_type& a32,const value_type& a33,const value_type& a34,
+        const value_type& a41,const value_type& a42,const value_type& a43,const value_type& a44) : 
+        q(16), rowCount(4), colCount(4) {
       q[0] = a11;
       q[1] = a12;
       q[2] = a13;
@@ -597,14 +597,14 @@ class mat<T,mat_structure::rectangular,mat_alignment::row_major,Allocator> : pub
 
     void set_col_count(size_type aColCount,bool aPreserveData = false) {
       if(aPreserveData) {
-	if(aColCount > colCount)
-	  for(size_type i=rowCount;i!=0;--i)
-	    q.insert(q.begin() + i*colCount,aColCount - colCount,value_type(0.0));
-	else if(aColCount < colCount)
-	  for(size_type i=rowCount;i!=0;--i)
-	    q.erase(q.begin() + (i-1)*colCount + aColCount, q.begin() + i*colCount);
+        if(aColCount > colCount)
+          for(size_type i=rowCount;i!=0;--i)
+            q.insert(q.begin() + i*colCount,aColCount - colCount,value_type(0.0));
+        else if(aColCount < colCount)
+          for(size_type i=rowCount;i!=0;--i)
+            q.erase(q.begin() + (i-1)*colCount + aColCount, q.begin() + i*colCount);
       } else
-	q.resize(rowCount * aColCount,value_type(0.0));
+        q.resize(rowCount * aColCount,value_type(0.0));
       colCount = aColCount;
     };
 
@@ -717,13 +717,13 @@ class mat<T,mat_structure::rectangular,mat_alignment::row_major,Allocator> : pub
      */
     template <typename Matrix>
     self& operator +=(const Matrix& M) {
-      boost::function_requires< ReadableMatrixConcept<Matrix> >();
+      BOOST_CONCEPT_ASSERT((ReadableMatrixConcept<Matrix>));
       if((M.get_col_count() != colCount) || (M.get_row_count() != rowCount))
-	throw std::range_error("Matrix dimension mismatch.");
+        throw std::range_error("Matrix dimension mismatch.");
       typename container_type::iterator it = q.begin();
       for(size_type i=0;i<rowCount;++i)
         for(size_type j=0;j<colCount;++j,++it)
-	  *it += M(i,j);
+          *it += M(i,j);
       return *this;
     };
 
@@ -733,13 +733,13 @@ class mat<T,mat_structure::rectangular,mat_alignment::row_major,Allocator> : pub
      */
     template <typename Matrix>
     self& operator -=(const Matrix& M) {
-      boost::function_requires< ReadableMatrixConcept<Matrix> >();
+      BOOST_CONCEPT_ASSERT((ReadableMatrixConcept<Matrix>));
       if((M.get_col_count() != colCount) || (M.get_row_count() != rowCount))
-	throw std::range_error("Matrix dimension mismatch.");
+        throw std::range_error("Matrix dimension mismatch.");
       typename container_type::iterator it = q.begin();
       for(size_type i=0;i<rowCount;++i)
         for(size_type j=0;j<colCount;++j,++it)
-	  *it -= M(i,j);
+          *it -= M(i,j);
       return *this;
     };
 
@@ -799,12 +799,12 @@ class mat<T,mat_structure::rectangular,mat_alignment::row_major,Allocator> : pub
     virtual void RK_CALL save(serialization::oarchive& A, unsigned int) const {
       A & std::pair<std::string, const std::vector<T>&>("q",q)
         & std::pair<std::string, unsigned int>("rowCount",rowCount)
-	& std::pair<std::string, unsigned int>("colCount",colCount);
+        & std::pair<std::string, unsigned int>("colCount",colCount);
     };
     virtual void RK_CALL load(serialization::iarchive& A, unsigned int) {
       A & std::pair<std::string, std::vector<T>&>("q",q)
         & std::pair<std::string, unsigned int&>("rowCount",rowCount)
-	& std::pair<std::string, unsigned int&>("colCount",colCount);
+        & std::pair<std::string, unsigned int&>("colCount",colCount);
     };
     
     RK_RTTI_REGISTER_CLASS_1BASE(self,1,serialization::serializable)
@@ -830,8 +830,8 @@ class mat<T,mat_structure::rectangular,mat_alignment::row_major,Allocator> : pub
 template <typename T, mat_structure::tag Structure, mat_alignment::tag Alignment, typename Allocator>
 mat<T,mat_structure::rectangular,Alignment,Allocator> 
   get_block(const mat<T,Structure,Alignment,Allocator>& M, 
-	    std::size_t aRowOffset,std::size_t aColOffset,
-	    std::size_t aRowCountOut,std::size_t aColCountOut) {
+            std::size_t aRowOffset,std::size_t aColOffset,
+            std::size_t aRowCountOut,std::size_t aColCountOut) {
   if((aRowOffset + aRowCountOut > M.get_row_count()) || (aColOffset + aColCountOut > M.get_col_count()))
     throw std::range_error("Matrix dimension mismatch.");
   mat<T,mat_structure::rectangular,Alignment,Allocator> result(aRowCountOut,aColCountOut);

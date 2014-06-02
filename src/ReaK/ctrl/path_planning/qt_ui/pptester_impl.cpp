@@ -99,9 +99,9 @@ void PPTestWindow::loadWorldMap() {
   
   QString filename = QFileDialog::getOpenFileName(this,
                                                   tr("Open a World Map Image..."),
-						  QString(),
-						  tr("Image (*.bmp *.png *.jpg *.jpeg)")
-						 );
+                                                  QString(),
+                                                  tr("Image (*.bmp *.png *.jpg *.jpeg)")
+                                                 );
   if(!filename.isNull()) {
     
     world_map_cvimage = cv::imread(filename.toStdString());
@@ -113,19 +113,19 @@ void PPTestWindow::loadWorldMap() {
     
     if(!world_map_pixmap) {
       world_map_pixmap = world_map_scene->addPixmap(QPixmap::fromImage(QImage(world_map_cvimage.ptr(),
-	 			                                              world_map_cvimage.size().width,
-				                                              world_map_cvimage.size().height,
-				                                              QImage::Format_RGB888
- 				                                             ).rgbSwapped()
-						                      )
-			                           );
+                                                                              world_map_cvimage.size().width,
+                                                                              world_map_cvimage.size().height,
+                                                                              QImage::Format_RGB888
+                                                                             ).rgbSwapped()
+                                                                      )
+                                                   );
     } else {
       world_map_pixmap->pixmap() = QPixmap::fromImage(QImage(world_map_cvimage.ptr(),
-	                                                     world_map_cvimage.size().width,
-							     world_map_cvimage.size().height,
-							     QImage::Format_RGB888
+                                                             world_map_cvimage.size().width,
+                                                             world_map_cvimage.size().height,
+                                                             QImage::Format_RGB888
                                                             ).rgbSwapped()
-						     );
+                                                     );
     };
     
     
@@ -147,10 +147,10 @@ void PPTestWindow::launchPlayerStage() {
   };
   
   QString filename = QFileDialog::getOpenFileName(this, 
-						  tr("Open Player/Stage Configuration file..."),
+                                                  tr("Open Player/Stage Configuration file..."),
                                                   QString(),
-						  tr("Player/Stage Configuration File (*.cfg)")
-						 );
+                                                  tr("Player/Stage Configuration File (*.cfg)")
+                                                 );
   if(!filename.isNull()) {
     std::string s = std::string("robot-player \"") + filename.toStdString() + std::string("\" &");
     system(s.c_str());
@@ -159,9 +159,9 @@ void PPTestWindow::launchPlayerStage() {
   actionStart_Robot->setEnabled(true);
     
   QMessageBox mb(QMessageBox::Information,
-		 tr("About to Start the Robot!"),
-		 tr("The robot will start when you press OK."),
-		 QMessageBox::Ok | QMessageBox::Cancel,this);
+                 tr("About to Start the Robot!"),
+                 tr("The robot will start when you press OK."),
+                 QMessageBox::Ok | QMessageBox::Cancel,this);
   int res = mb.exec();
   if(res & QMessageBox::Cancel)
     return;
@@ -204,15 +204,15 @@ void PPTestWindow::startPlanner() {
   double pix_to_m = rrt_prop.GridWidth->value() / world_map_cvimage.size().width;
   
   rrt_test_world planner(world_map_cvimage,
-			 rrt_prop.MaxEdgeLength->value() / pix_to_m,
-			 rrt_prop.RobotRadius->value() / pix_to_m,
-			 rrt_prop.MaxNumVert->value(), 
-			 rrt_prop.MaxNumSol->value(),
-			 boost::bind(&PPTestWindow::updateWorldMap,this,_1,_2),
-			 boost::bind(&PPTestWindow::showResultMap,this,_1,_2,_3,_4),
-			 rrt_prop.unidirCheck->isChecked(),
-			 rrt_prop.NNSearchDiv->value()
-			);
+                         rrt_prop.MaxEdgeLength->value() / pix_to_m,
+                         rrt_prop.RobotRadius->value() / pix_to_m,
+                         rrt_prop.MaxNumVert->value(), 
+                         rrt_prop.MaxNumSol->value(),
+                         boost::bind(&PPTestWindow::updateWorldMap,this,_1,_2),
+                         boost::bind(&PPTestWindow::showResultMap,this,_1,_2,_3,_4),
+                         rrt_prop.unidirCheck->isChecked(),
+                         rrt_prop.NNSearchDiv->value()
+                        );
   
   rrt_test_world::pixel_coord p_start;
   p_start[0] = (rrt_prop.RobotStart_X->value() + rrt_prop.GridCenterX->value()) / pix_to_m;
@@ -290,19 +290,19 @@ void PPTestWindow::acceptRRTProperties() {
 void PPTestWindow::updateWorldMap(const cv::Mat& aImage, unsigned int aProgress) {
   if(!world_map_pixmap) {
     world_map_pixmap = world_map_scene->addPixmap(QPixmap::fromImage(QImage(aImage.ptr(),
-	 			                                            aImage.size().width,
-				                                            aImage.size().height,
-				                                            QImage::Format_RGB888
- 				                                           ).rgbSwapped()
-						                    )
-			                         );
+                                                                            aImage.size().width,
+                                                                            aImage.size().height,
+                                                                            QImage::Format_RGB888
+                                                                           ).rgbSwapped()
+                                                                    )
+                                                 );
   } else {
     world_map_pixmap->pixmap() = QPixmap::fromImage(QImage(aImage.ptr(),
-	                                                   aImage.size().width,
-							   aImage.size().height,
-							   QImage::Format_RGB888
+                                                           aImage.size().width,
+                                                           aImage.size().height,
+                                                           QImage::Format_RGB888
                                                           ).rgbSwapped()
-						   );
+                                                   );
   };
   map_view->repaint();
 };
@@ -318,13 +318,13 @@ void PPTestWindow::showResultMap(const cv::Mat& aImage, unsigned int aProgress, 
   result_tabs_views.back()->label->setText(QString::fromStdString(ss.str())); };
   result_tabs_views.back()->canvas->setScene(new QGraphicsScene(result_tabs_views.back()->canvas));
   result_tabs_pixmaps.push_back(result_tabs_views.back()->canvas->scene()->addPixmap(QPixmap::fromImage(QImage(aImage.ptr(),
-				                                                                               aImage.size().width,
-				                                                                               aImage.size().height,
-				                                                                               QImage::Format_RGB888
-										                              ).rgbSwapped()
-									                               )
-						                                    )
-			       );
+                                                                                                               aImage.size().width,
+                                                                                                               aImage.size().height,
+                                                                                                               QImage::Format_RGB888
+                                                                                                              ).rgbSwapped()
+                                                                                                       )
+                                                                                    )
+                               );
   { std::stringstream ss;
   ss << "rrt_result_v" << aProgress << "_s" << aSolutionID << "_d" << aTotalDist << ".png";
   result_names.push_back(ss.str()); };

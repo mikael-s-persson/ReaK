@@ -34,9 +34,9 @@
 
 #include "defs.hpp"
 
-#include "rtti/typed_object.hpp"
+#include <ReaK/core/rtti/typed_object.hpp>
 
-#include "serialization/archiver.hpp"
+#include <ReaK/core/serialization/archiver.hpp>
 
 namespace ReaK {
 

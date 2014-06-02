@@ -31,8 +31,8 @@ namespace geom {
 
 shape_2D::shape_2D(const std::string& aName,
                    const shared_ptr< pose_2D<double> >& aAnchor,
-		   const pose_2D<double>& aPose) : 
-		   geometry_2D(aName,aAnchor,aPose) { };
+                   const pose_2D<double>& aPose) : 
+                   geometry_2D(aName,aAnchor,aPose) { };
     
     
 void RK_CALL shape_2D::save(ReaK::serialization::oarchive& A, unsigned int) const {

@@ -378,8 +378,8 @@ typename boost::enable_if_c< is_readable_matrix<Matrix1>::value &&
                              is_fully_writable_matrix<Matrix5>::value &&
                              is_fully_writable_matrix<Matrix6>::value, 
 void >::type reduce_HessTri(const Matrix1& A, const Matrix2& B, 
-			    Matrix3& H, Matrix4& R, Matrix5& Q, Matrix6& Z,
-			    typename mat_traits<Matrix1>::value_type NumTol = 1E-8) {
+                            Matrix3& H, Matrix4& R, Matrix5& Q, Matrix6& Z,
+                            typename mat_traits<Matrix1>::value_type NumTol = 1E-8) {
   if((A.get_row_count() != A.get_col_count()) || (B.get_row_count() != B.get_col_count()))
     throw std::range_error("Hessenberg-Triangular reduction is only possible on square matrices!");
 
@@ -429,8 +429,8 @@ typename boost::enable_if_c< is_readable_matrix<Matrix1>::value &&
                              !is_fully_writable_matrix<Matrix5>::value &&
                              !is_fully_writable_matrix<Matrix6>::value, 
 void >::type reduce_HessTri(const Matrix1& A, const Matrix2& B, 
-			    Matrix3& H, Matrix4& R, Matrix5& Q, Matrix6& Z,
-			    typename mat_traits<Matrix1>::value_type NumTol = 1E-8) {
+                            Matrix3& H, Matrix4& R, Matrix5& Q, Matrix6& Z,
+                            typename mat_traits<Matrix1>::value_type NumTol = 1E-8) {
   if((A.get_row_count() != A.get_col_count()) || (B.get_row_count() != B.get_col_count()))
     throw std::range_error("Hessenberg-Triangular reduction is only possible on square matrices!");
 
@@ -474,7 +474,7 @@ typename boost::enable_if_c< is_readable_matrix<Matrix1>::value &&
                              is_fully_writable_matrix<Matrix3>::value && 
                              is_fully_writable_matrix<Matrix4>::value, 
 void >::type reduce_HessTri(const Matrix1& A, const Matrix2& B, 
-			    Matrix3& H, Matrix4& R, typename mat_traits<Matrix1>::value_type NumTol = 1E-8) {
+                            Matrix3& H, Matrix4& R, typename mat_traits<Matrix1>::value_type NumTol = 1E-8) {
   if((A.get_row_count() != A.get_col_count()) || (B.get_row_count() != B.get_col_count()))
     throw std::range_error("Hessenberg-Triangular reduction is only possible on square matrices!");
 
@@ -513,7 +513,7 @@ typename boost::enable_if_c< is_readable_matrix<Matrix1>::value &&
                              !is_fully_writable_matrix<Matrix3>::value && 
                              !is_fully_writable_matrix<Matrix4>::value, 
 void >::type reduce_HessTri(const Matrix1& A, const Matrix2& B, 
-			    Matrix3& H, Matrix4& R, typename mat_traits<Matrix1>::value_type NumTol = 1E-8) {
+                            Matrix3& H, Matrix4& R, typename mat_traits<Matrix1>::value_type NumTol = 1E-8) {
   if((A.get_row_count() != A.get_col_count()) || (B.get_row_count() != B.get_col_count()))
     throw std::range_error("Hessenberg-Triangular reduction is only possible on square matrices!");
 

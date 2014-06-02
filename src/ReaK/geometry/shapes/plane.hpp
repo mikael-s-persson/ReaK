@@ -74,9 +74,9 @@ class plane : public shape_3D {
      * \param aDimensions The dimensions.
      */
     plane(const std::string& aName = "",
-	  const shared_ptr< pose_3D<double> >& aAnchor = shared_ptr< pose_3D<double> >(),
-	  const pose_3D<double>& aPose = pose_3D<double>(),
-	  const vect<double,2>& aDimensions = (vect<double,2>()));
+          const shared_ptr< pose_3D<double> >& aAnchor = shared_ptr< pose_3D<double> >(),
+          const pose_3D<double>& aPose = pose_3D<double>(),
+          const vect<double,2>& aDimensions = (vect<double,2>()));
     
     /**
      * Default destructor.

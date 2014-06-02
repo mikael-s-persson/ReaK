@@ -21,15 +21,15 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "data_record_options.hpp"
+#include <ReaK/core/recorders/data_record_options.hpp>
 
-#include "bin_recorder.hpp"
-#include "ssv_recorder.hpp"
-#include "tsv_recorder.hpp"
-#include "tcp_recorder.hpp"
-#include "udp_recorder.hpp"
-#include "raw_udp_recorder.hpp"
-#include "vector_recorder.hpp"
+#include <ReaK/core/recorders/bin_recorder.hpp>
+#include <ReaK/core/recorders/ssv_recorder.hpp>
+#include <ReaK/core/recorders/tsv_recorder.hpp>
+#include <ReaK/core/recorders/tcp_recorder.hpp>
+#include <ReaK/core/recorders/udp_recorder.hpp>
+#include <ReaK/core/recorders/raw_udp_recorder.hpp>
+#include <ReaK/core/recorders/vector_recorder.hpp>
 
 
 namespace ReaK {

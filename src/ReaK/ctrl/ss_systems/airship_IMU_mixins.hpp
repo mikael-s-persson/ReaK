@@ -113,7 +113,7 @@ class gyros_bias_state_model : public named_object {
                                      const typename pp::topology_traits<StateSpaceType>::point_type& p_0,
                                      const typename pp::topology_traits<StateSpaceType>::point_type& p_1, 
                                      const InputType& u_0, const InputType& u_1) const {
-      const std::pair<std::size_t, std::size_t> gb_r(inv_corr_start_index, inv_corr_start_index+2);
+      const std::pair<std::size_t, std::size_t> gb_r(inv_corr_start_index, inv_corr_start_index+3);
       sub(A)(gb_r, gb_r) += mat_ident<double>(3);
     };
     
@@ -189,9 +189,9 @@ class sat_gyros_output_model : public named_object {
         output_type& y, bool is_inv_err) const {
       //if there is an estimate of the gyro-bias, use it:
       if(!is_inv_err)
-        y[range(start_index, start_index+2)] += params.get_state_models().template get_state_for_system<gyros_bias_state_model>(x);
+        y[range(start_index, start_index+3)] += params.get_state_models().template get_state_for_system<gyros_bias_state_model>(x);
       else
-        y[range(inv_start_index, inv_start_index+2)] -= params.get_state_models().template get_state_for_system<gyros_bias_state_model>(x);
+        y[range(inv_start_index, inv_start_index+3)] -= params.get_state_models().template get_state_for_system<gyros_bias_state_model>(x);
     };
     
     template <typename FlyWeight, typename StateSpaceType>
@@ -209,7 +209,7 @@ class sat_gyros_output_model : public named_object {
       typedef satellite_state_model::point_type SE3State;
       const SE3State& x_se3 = params.get_state_models().template get_state_for_system<satellite_state_model>(x);
       
-      y[range(start_index, start_index+2)] = get_ang_velocity(x_se3);
+      y[range(start_index, start_index+3)] = get_ang_velocity(x_se3);
       
       add_output_from_state_for_gb(params, space, x, y, false);
     };
@@ -222,7 +222,7 @@ class sat_gyros_output_model : public named_object {
       typedef satellite_state_model::point_type SE3State;
       const SE3State& x_se3 = params.get_state_models().template get_state_for_system<satellite_state_model>(x);
       
-      e[range(inv_start_index, inv_start_index+2)] = 
+      e[range(inv_start_index, inv_start_index+3)] = 
         vect<double,3>(y[start_index],y[start_index+1],y[start_index+2]) - get_ang_velocity(x_se3);
       
       add_output_from_state_for_gb(params, space, x, e, true);
@@ -236,8 +236,8 @@ class sat_gyros_output_model : public named_object {
     void >::type add_output_block_for_gb(MatrixC& C, const FlyWeight& params) const {
       //if there is an estimate of the gyro-bias, use it:
       const std::size_t gb_index = params.get_state_models().template get_system<gyros_bias_state_model>().get_inv_corr_start_index();
-      const std::pair<std::size_t, std::size_t> gb_r(gb_index, gb_index+2);
-      const std::pair<std::size_t, std::size_t> wm_r(inv_start_index, inv_start_index+2);
+      const std::pair<std::size_t, std::size_t> gb_r(gb_index, gb_index+3);
+      const std::pair<std::size_t, std::size_t> wm_r(inv_start_index, inv_start_index+3);
       sub(C)(wm_r, gb_r) += mat_ident<double>(3);
     };
     
@@ -253,8 +253,8 @@ class sat_gyros_output_model : public named_object {
                                     const typename pp::topology_traits<StateSpaceType>::point_type& p, 
                                     const InputType& u) const {
       const std::size_t sat3d_state_index = params.get_state_models().template get_system<satellite_state_model>().get_inv_corr_start_index();
-      const std::pair<std::size_t, std::size_t> w_r(sat3d_state_index+9, sat3d_state_index+11);
-      const std::pair<std::size_t, std::size_t> wm_r(inv_start_index, inv_start_index+2);
+      const std::pair<std::size_t, std::size_t> w_r(sat3d_state_index+9, sat3d_state_index+12);
+      const std::pair<std::size_t, std::size_t> wm_r(inv_start_index, inv_start_index+3);
       
       sub(C)(wm_r, w_r) += mat_ident<double>(3);  // TODO Add a frame transition ? (in invariant posterior frame)
       
@@ -340,7 +340,7 @@ class accelerometer_bias_state_model : public named_object {
                                      const typename pp::topology_traits<StateSpaceType>::point_type& p_0,
                                      const typename pp::topology_traits<StateSpaceType>::point_type& p_1, 
                                      const InputType& u_0, const InputType& u_1) const {
-      const std::pair<std::size_t, std::size_t> ab_r(inv_corr_start_index, inv_corr_start_index+2);
+      const std::pair<std::size_t, std::size_t> ab_r(inv_corr_start_index, inv_corr_start_index+3);
       sub(A)(ab_r, ab_r) += mat_ident<double>(3);
     };
     
@@ -417,9 +417,9 @@ class sat_accelerometer_output_model : public named_object {
         output_type& y, bool is_inv_err) const {
       //if there is an estimate of the gyro-bias, use it:
       if(!is_inv_err)
-        y[range(start_index, start_index+2)] += params.get_state_models().template get_state_for_system<accelerometer_bias_state_model>(x);
+        y[range(start_index, start_index+3)] += params.get_state_models().template get_state_for_system<accelerometer_bias_state_model>(x);
       else
-        y[range(inv_start_index, inv_start_index+2)] -= params.get_state_models().template get_state_for_system<accelerometer_bias_state_model>(x);
+        y[range(inv_start_index, inv_start_index+3)] -= params.get_state_models().template get_state_for_system<accelerometer_bias_state_model>(x);
     };
     
     template <typename FlyWeight, typename StateSpaceType>
@@ -439,7 +439,7 @@ class sat_accelerometer_output_model : public named_object {
       const SE3State& x_se3 = params.get_state_models().template get_state_for_system<satellite_state_model>(x);
       typename FlyWeight::system_param_type& sys_params = params.get_system_parameters();
       
-      y[range(start_index, start_index+2)] = invert(get_quaternion(x_se3).as_rotation()) * sys_params.gravity_acc_vect;
+      y[range(start_index, start_index+3)] = invert(get_quaternion(x_se3).as_rotation()) * sys_params.gravity_acc_vect;
       
       // TODO maybe add the acceleration (change of velocity), but how?
       
@@ -455,7 +455,7 @@ class sat_accelerometer_output_model : public named_object {
       const SE3State& x_se3 = params.get_state_models().template get_state_for_system<satellite_state_model>(x);
       typename FlyWeight::system_param_type& sys_params = params.get_system_parameters();
       
-      e[range(inv_start_index, inv_start_index+2)] = 
+      e[range(inv_start_index, inv_start_index+3)] = 
         vect<double,3>(y[start_index],y[start_index+1],y[start_index+2])
          - invert(get_quaternion(x_se3).as_rotation()) * sys_params.gravity_acc_vect;
       
@@ -471,8 +471,8 @@ class sat_accelerometer_output_model : public named_object {
     void >::type add_output_block_for_ab(MatrixC& C, const FlyWeight& params) const {
       //if there is an estimate of the accel-bias, use it:
       const std::size_t accel_bias_index = params.get_state_models().template get_system<accelerometer_bias_state_model>().get_inv_corr_start_index();
-      const std::pair<std::size_t, std::size_t> ab_r(accel_bias_index, accel_bias_index+2);
-      const std::pair<std::size_t, std::size_t> am_r(inv_start_index, inv_start_index+2);
+      const std::pair<std::size_t, std::size_t> ab_r(accel_bias_index, accel_bias_index+3);
+      const std::pair<std::size_t, std::size_t> am_r(inv_start_index, inv_start_index+3);
       sub(C)(am_r, ab_r) += mat_ident<double>(3);
     };
     
@@ -493,8 +493,8 @@ class sat_accelerometer_output_model : public named_object {
       typename FlyWeight::system_param_type& sys_params = params.get_system_parameters();
       
       const std::size_t sat3d_state_index = params.get_state_models().template get_system<satellite_state_model>().get_inv_corr_start_index();
-      const std::pair<std::size_t, std::size_t> q_r(sat3d_state_index+6, sat3d_state_index+8);
-      const std::pair<std::size_t, std::size_t> am_r(inv_start_index, inv_start_index+2);
+      const std::pair<std::size_t, std::size_t> q_r(sat3d_state_index+6, sat3d_state_index+9);
+      const std::pair<std::size_t, std::size_t> am_r(inv_start_index, inv_start_index+3);
       
       vect<double,3> local_g = invert(get_quaternion(x_se3).as_rotation()) * sys_params.gravity_acc_vect;
       
@@ -583,7 +583,7 @@ class magnetometer_bias_state_model : public named_object {
                                      const typename pp::topology_traits<StateSpaceType>::point_type& p_0,
                                      const typename pp::topology_traits<StateSpaceType>::point_type& p_1, 
                                      const InputType& u_0, const InputType& u_1) const {
-      const std::pair<std::size_t, std::size_t> mb_r(inv_corr_start_index, inv_corr_start_index+2);
+      const std::pair<std::size_t, std::size_t> mb_r(inv_corr_start_index, inv_corr_start_index+3);
       sub(A)(mb_r, mb_r) += mat_ident<double>(3);
     };
     
@@ -661,9 +661,9 @@ class sat_magnetometer_output_model : public named_object {
         output_type& y, bool is_inv_err) const {
       //if there is an estimate of the gyro-bias, use it:
       if(!is_inv_err)
-        y[range(start_index, start_index+2)] += params.get_state_models().template get_state_for_system<magnetometer_bias_state_model>(x);
+        y[range(start_index, start_index+3)] += params.get_state_models().template get_state_for_system<magnetometer_bias_state_model>(x);
       else
-        y[range(inv_start_index, inv_start_index+2)] -= params.get_state_models().template get_state_for_system<magnetometer_bias_state_model>(x);
+        y[range(inv_start_index, inv_start_index+3)] -= params.get_state_models().template get_state_for_system<magnetometer_bias_state_model>(x);
     };
     
     template <typename FlyWeight, typename StateSpaceType>
@@ -683,7 +683,7 @@ class sat_magnetometer_output_model : public named_object {
       const SE3State& x_se3 = params.get_state_models().template get_state_for_system<satellite_state_model>(x);
       typename FlyWeight::system_param_type& sys_params = params.get_system_parameters();
       
-      y[range(start_index, start_index+2)] = invert(get_quaternion(x_se3).as_rotation()) * sys_params.magnetic_field_vect;
+      y[range(start_index, start_index+3)] = invert(get_quaternion(x_se3).as_rotation()) * sys_params.magnetic_field_vect;
       
       add_output_from_state_for_mb(params, space, x, y, false);
     };
@@ -697,7 +697,7 @@ class sat_magnetometer_output_model : public named_object {
       const SE3State& x_se3 = params.get_state_models().template get_state_for_system<satellite_state_model>(x);
       typename FlyWeight::system_param_type& sys_params = params.get_system_parameters();
       
-      e[range(inv_start_index, inv_start_index+2)] = 
+      e[range(inv_start_index, inv_start_index+3)] = 
         vect<double,3>(y[start_index],y[start_index+1],y[start_index+2])
          - invert(get_quaternion(x_se3).as_rotation()) * sys_params.magnetic_field_vect;
       
@@ -711,8 +711,8 @@ class sat_magnetometer_output_model : public named_object {
     void >::type add_output_block_for_mb(MatrixC& C, const FlyWeight& params) const {
       // if there is a mag-bias estimate, use it:
       const std::size_t mag_bias_index = params.get_state_models().template get_system<magnetometer_bias_state_model>().get_inv_corr_start_index();
-      const std::pair<std::size_t, std::size_t> mb_r(mag_bias_index, mag_bias_index+2);
-      const std::pair<std::size_t, std::size_t> mm_r(inv_start_index, inv_start_index+2);
+      const std::pair<std::size_t, std::size_t> mb_r(mag_bias_index, mag_bias_index+3);
+      const std::pair<std::size_t, std::size_t> mm_r(inv_start_index, inv_start_index+3);
       sub(C)(mm_r, mb_r) += mat_ident<double>(3);
     };
     
@@ -733,8 +733,8 @@ class sat_magnetometer_output_model : public named_object {
       typename FlyWeight::system_param_type& sys_params = params.get_system_parameters();
       
       const std::size_t sat3d_state_index = params.get_state_models().template get_system<satellite_state_model>().get_inv_corr_start_index();
-      const std::pair<std::size_t, std::size_t> q_r(sat3d_state_index+6, sat3d_state_index+8);
-      const std::pair<std::size_t, std::size_t> mm_r(inv_start_index, inv_start_index+2);
+      const std::pair<std::size_t, std::size_t> q_r(sat3d_state_index+6, sat3d_state_index+9);
+      const std::pair<std::size_t, std::size_t> mm_r(inv_start_index, inv_start_index+3);
       
       vect<double,3> local_m = invert(get_quaternion(x_se3).as_rotation()) * sys_params.magnetic_field_vect;
       

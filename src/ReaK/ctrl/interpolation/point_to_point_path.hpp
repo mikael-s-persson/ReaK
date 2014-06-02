@@ -34,9 +34,10 @@
 #ifndef REAK_POINT_TO_POINT_PATH_HPP
 #define REAK_POINT_TO_POINT_PATH_HPP
 
-#include "base/defs.hpp"
+#include <ReaK/core/base/defs.hpp>
+#include <ReaK/core/lin_alg/mat_num_exceptions.hpp>
 
-#include "path_planning/spatial_path_concept.hpp"
+#include <ReaK/ctrl/path_planning/spatial_path_concept.hpp>
 
 #include "waypoint_container.hpp"
 
@@ -47,7 +48,6 @@
 #include <list>
 #include <map>
 #include <limits>
-#include <lin_alg/mat_num_exceptions.hpp>
 
 namespace ReaK {
 

@@ -93,11 +93,11 @@ class position_control_gen : public kte_map, public system_input {
      * \param aAnchor the coordinate from which position is measured.
      */
     position_control_gen(const std::string& aName,
-			 const shared_ptr< ReaK::gen_coord<double> >& aAnchor) :
-			 kte_map(aName),
-			 system_input(aName),
-			 mAnchor(aAnchor),
-			 mPosDesired(0.0) { };
+                         const shared_ptr< ReaK::gen_coord<double> >& aAnchor) :
+                         kte_map(aName),
+                         system_input(aName),
+                         mAnchor(aAnchor),
+                         mPosDesired(0.0) { };
 
     /**
      * Default destructor.
@@ -106,7 +106,7 @@ class position_control_gen : public kte_map, public system_input {
     
     virtual void doMotion(kte_pass_flag aFlag = nothing, const shared_ptr<frame_storage>& aStorage = shared_ptr<frame_storage>()) {
       if(mAnchor)
-	mAnchor->q = mPosDesired;
+        mAnchor->q = mPosDesired;
     };
 
     virtual void doForce(kte_pass_flag aFlag = nothing, const shared_ptr<frame_storage>& aStorage = shared_ptr<frame_storage>()) { };
@@ -170,13 +170,13 @@ class position_control_2D : public kte_map, public system_input {
       if(i < 2)
         mPosDesired[i] = aValue; 
       else
-	mPosDesired[0] = aValue;
+        mPosDesired[0] = aValue;
     };
     virtual double getInput(unsigned int i) const { 
       if(i < 2)
         return mPosDesired[i]; 
       else
-	return mPosDesired[0];
+        return mPosDesired[0];
     };
     
     /**
@@ -190,11 +190,11 @@ class position_control_2D : public kte_map, public system_input {
      * \param aAnchor the coordinate from which position is measured.
      */
     position_control_2D(const std::string& aName,
-			const shared_ptr< ReaK::frame_2D<double> >& aAnchor) :
-			kte_map(aName),
-			system_input(aName),
-			mAnchor(aAnchor),
-			mPosDesired() { };
+                        const shared_ptr< ReaK::frame_2D<double> >& aAnchor) :
+                        kte_map(aName),
+                        system_input(aName),
+                        mAnchor(aAnchor),
+                        mPosDesired() { };
 
     /**
      * Default destructor.
@@ -203,7 +203,7 @@ class position_control_2D : public kte_map, public system_input {
     
     virtual void doMotion(kte_pass_flag aFlag = nothing, const shared_ptr<frame_storage>& aStorage = shared_ptr<frame_storage>()) {
       if(mAnchor)
-	mAnchor->Position = mPosDesired;
+        mAnchor->Position = mPosDesired;
     };
 
     virtual void doForce(kte_pass_flag aFlag = nothing, const shared_ptr<frame_storage>& aStorage = shared_ptr<frame_storage>()) { };
@@ -267,13 +267,13 @@ class position_control_3D : public kte_map, public system_input {
       if(i < 3)
         mPosDesired[i] = aValue; 
       else
-	mPosDesired[0] = aValue;
+        mPosDesired[0] = aValue;
     };
     virtual double getInput(unsigned int i) const { 
       if(i < 3)
         return mPosDesired[i]; 
       else
-	return mPosDesired[0];
+        return mPosDesired[0];
     };
     
     /**
@@ -287,11 +287,11 @@ class position_control_3D : public kte_map, public system_input {
      * \param aAnchor the coordinate from which position is measured.
      */
     position_control_3D(const std::string& aName,
-			const shared_ptr< ReaK::frame_3D<double> >& aAnchor) :
-			kte_map(aName),
-			system_input(aName),
-			mAnchor(aAnchor),
-			mPosDesired() { };
+                        const shared_ptr< ReaK::frame_3D<double> >& aAnchor) :
+                        kte_map(aName),
+                        system_input(aName),
+                        mAnchor(aAnchor),
+                        mPosDesired() { };
 
     /**
      * Default destructor.
@@ -300,7 +300,7 @@ class position_control_3D : public kte_map, public system_input {
     
     virtual void doMotion(kte_pass_flag aFlag = nothing, const shared_ptr<frame_storage>& aStorage = shared_ptr<frame_storage>()) {
       if(mAnchor)
-	mAnchor->Position = mPosDesired;
+        mAnchor->Position = mPosDesired;
     };
 
     virtual void doForce(kte_pass_flag aFlag = nothing, const shared_ptr<frame_storage>& aStorage = shared_ptr<frame_storage>()) { };
@@ -374,11 +374,11 @@ class rotation_control_2D : public kte_map, public system_input {
      * \param aAnchor the coordinate from which position is measured.
      */
     rotation_control_2D(const std::string& aName,
-			const shared_ptr< ReaK::frame_2D<double> >& aAnchor) :
-			kte_map(aName),
-			system_input(aName),
-			mAnchor(aAnchor),
-			mAngleDesired() { };
+                        const shared_ptr< ReaK::frame_2D<double> >& aAnchor) :
+                        kte_map(aName),
+                        system_input(aName),
+                        mAnchor(aAnchor),
+                        mAngleDesired() { };
 
     /**
      * Default destructor.
@@ -387,7 +387,7 @@ class rotation_control_2D : public kte_map, public system_input {
     
     virtual void doMotion(kte_pass_flag aFlag = nothing, const shared_ptr<frame_storage>& aStorage = shared_ptr<frame_storage>()) {
       if(mAnchor)
-	mAnchor->Rotation.setAngle(mAngleDesired);
+        mAnchor->Rotation.setAngle(mAngleDesired);
     };
 
     virtual void doForce(kte_pass_flag aFlag = nothing, const shared_ptr<frame_storage>& aStorage = shared_ptr<frame_storage>()) { };
@@ -452,13 +452,13 @@ class rotation_control_3D : public kte_map, public system_input {
       if(i < 4)
         mQuatDesired[i] = aValue; 
       else
-	mQuatDesired[0] = aValue;
+        mQuatDesired[0] = aValue;
     };
     virtual double getInput(unsigned int i) const { 
       if(i < 4)
         return mQuatDesired[i]; 
       else
-	return mQuatDesired[0];
+        return mQuatDesired[0];
     };
     
     /**
@@ -472,11 +472,11 @@ class rotation_control_3D : public kte_map, public system_input {
      * \param aAnchor the coordinate from which position is measured.
      */
     rotation_control_3D(const std::string& aName,
-			const shared_ptr< ReaK::frame_3D<double> >& aAnchor) :
-			kte_map(aName),
-			system_input(aName),
-			mAnchor(aAnchor),
-			mQuatDesired() { };
+                        const shared_ptr< ReaK::frame_3D<double> >& aAnchor) :
+                        kte_map(aName),
+                        system_input(aName),
+                        mAnchor(aAnchor),
+                        mQuatDesired() { };
 
     /**
      * Default destructor.
@@ -485,7 +485,7 @@ class rotation_control_3D : public kte_map, public system_input {
     
     virtual void doMotion(kte_pass_flag aFlag = nothing, const shared_ptr<frame_storage>& aStorage = shared_ptr<frame_storage>()) {
       if(mAnchor)
-	mAnchor->Quat = quaternion<double>(mQuatDesired);
+        mAnchor->Quat = quaternion<double>(mQuatDesired);
     };
 
     virtual void doForce(kte_pass_flag aFlag = nothing, const shared_ptr<frame_storage>& aStorage = shared_ptr<frame_storage>()) { };
@@ -559,11 +559,11 @@ class velocity_control_gen : public kte_map, public system_input {
      * \param aAnchor the coordinate from which position is measured.
      */
     velocity_control_gen(const std::string& aName,
-			 const shared_ptr< ReaK::gen_coord<double> >& aAnchor) :
-			 kte_map(aName),
-			 system_input(aName),
-			 mAnchor(aAnchor),
-			 mVelDesired(0.0) { };
+                         const shared_ptr< ReaK::gen_coord<double> >& aAnchor) :
+                         kte_map(aName),
+                         system_input(aName),
+                         mAnchor(aAnchor),
+                         mVelDesired(0.0) { };
 
     /**
      * Default destructor.
@@ -572,7 +572,7 @@ class velocity_control_gen : public kte_map, public system_input {
     
     virtual void doMotion(kte_pass_flag aFlag = nothing, const shared_ptr<frame_storage>& aStorage = shared_ptr<frame_storage>()) {
       if(mAnchor)
-	mAnchor->q_dot = mVelDesired;
+        mAnchor->q_dot = mVelDesired;
     };
 
     virtual void doForce(kte_pass_flag aFlag = nothing, const shared_ptr<frame_storage>& aStorage = shared_ptr<frame_storage>()) { };
@@ -636,13 +636,13 @@ class velocity_control_2D : public kte_map, public system_input {
       if(i < 2)
         mVelDesired[i] = aValue; 
       else
-	mVelDesired[0] = aValue;
+        mVelDesired[0] = aValue;
     };
     virtual double getInput(unsigned int i) const { 
       if(i < 2)
         return mVelDesired[i]; 
       else
-	return mVelDesired[0];
+        return mVelDesired[0];
     };
     
     /**
@@ -656,11 +656,11 @@ class velocity_control_2D : public kte_map, public system_input {
      * \param aAnchor the coordinate from which position is measured.
      */
     velocity_control_2D(const std::string& aName,
-			const shared_ptr< ReaK::frame_2D<double> >& aAnchor) :
-			kte_map(aName),
-			system_input(aName),
-			mAnchor(aAnchor),
-			mVelDesired() { };
+                        const shared_ptr< ReaK::frame_2D<double> >& aAnchor) :
+                        kte_map(aName),
+                        system_input(aName),
+                        mAnchor(aAnchor),
+                        mVelDesired() { };
 
     /**
      * Default destructor.
@@ -669,7 +669,7 @@ class velocity_control_2D : public kte_map, public system_input {
     
     virtual void doMotion(kte_pass_flag aFlag = nothing, const shared_ptr<frame_storage>& aStorage = shared_ptr<frame_storage>()) {
       if(mAnchor)
-	mAnchor->Velocity = mVelDesired;
+        mAnchor->Velocity = mVelDesired;
     };
 
     virtual void doForce(kte_pass_flag aFlag = nothing, const shared_ptr<frame_storage>& aStorage = shared_ptr<frame_storage>()) { };
@@ -733,13 +733,13 @@ class velocity_control_3D : public kte_map, public system_input {
       if(i < 3)
         mVelDesired[i] = aValue; 
       else
-	mVelDesired[0] = aValue;
+        mVelDesired[0] = aValue;
     };
     virtual double getInput(unsigned int i) const { 
       if(i < 3)
         return mVelDesired[i]; 
       else
-	return mVelDesired[0];
+        return mVelDesired[0];
     };
     
     /**
@@ -753,11 +753,11 @@ class velocity_control_3D : public kte_map, public system_input {
      * \param aAnchor the coordinate from which position is measured.
      */
     velocity_control_3D(const std::string& aName,
-			const shared_ptr< ReaK::frame_3D<double> >& aAnchor) :
-			kte_map(aName),
-			system_input(aName),
-			mAnchor(aAnchor),
-			mVelDesired() { };
+                        const shared_ptr< ReaK::frame_3D<double> >& aAnchor) :
+                        kte_map(aName),
+                        system_input(aName),
+                        mAnchor(aAnchor),
+                        mVelDesired() { };
 
     /**
      * Default destructor.
@@ -766,7 +766,7 @@ class velocity_control_3D : public kte_map, public system_input {
     
     virtual void doMotion(kte_pass_flag aFlag = nothing, const shared_ptr<frame_storage>& aStorage = shared_ptr<frame_storage>()) {
       if(mAnchor)
-	mAnchor->Velocity = mVelDesired;
+        mAnchor->Velocity = mVelDesired;
     };
 
     virtual void doForce(kte_pass_flag aFlag = nothing, const shared_ptr<frame_storage>& aStorage = shared_ptr<frame_storage>()) { };
@@ -844,11 +844,11 @@ class ang_velocity_control_2D : public kte_map, public system_input {
      * \param aAnchor the coordinate from which position is measured.
      */
     ang_velocity_control_2D(const std::string& aName,
-			    const shared_ptr< ReaK::frame_2D<double> >& aAnchor) :
-			    kte_map(aName),
-			    system_input(aName),
-			    mAnchor(aAnchor),
-			    mAngVelDesired() { };
+                            const shared_ptr< ReaK::frame_2D<double> >& aAnchor) :
+                            kte_map(aName),
+                            system_input(aName),
+                            mAnchor(aAnchor),
+                            mAngVelDesired() { };
 
     /**
      * Default destructor.
@@ -857,7 +857,7 @@ class ang_velocity_control_2D : public kte_map, public system_input {
     
     virtual void doMotion(kte_pass_flag aFlag = nothing, const shared_ptr<frame_storage>& aStorage = shared_ptr<frame_storage>()) {
       if(mAnchor)
-	mAnchor->AngVelocity = mAngVelDesired;
+        mAnchor->AngVelocity = mAngVelDesired;
     };
 
     virtual void doForce(kte_pass_flag aFlag = nothing, const shared_ptr<frame_storage>& aStorage = shared_ptr<frame_storage>()) { };
@@ -921,13 +921,13 @@ class ang_velocity_control_3D : public kte_map, public system_input {
       if(i < 3)
         mAngVelDesired[i] = aValue; 
       else
-	mAngVelDesired[0] = aValue;
+        mAngVelDesired[0] = aValue;
     };
     virtual double getInput(unsigned int i) const { 
       if(i < 3)
         return mAngVelDesired[i]; 
       else
-	return mAngVelDesired[0];
+        return mAngVelDesired[0];
     };
     
     /**
@@ -941,11 +941,11 @@ class ang_velocity_control_3D : public kte_map, public system_input {
      * \param aAnchor the coordinate from which position is measured.
      */
     ang_velocity_control_3D(const std::string& aName,
-			    const shared_ptr< ReaK::frame_3D<double> >& aAnchor) :
-			    kte_map(aName),
-			    system_input(aName),
-			    mAnchor(aAnchor),
-			    mAngVelDesired() { };
+                            const shared_ptr< ReaK::frame_3D<double> >& aAnchor) :
+                            kte_map(aName),
+                            system_input(aName),
+                            mAnchor(aAnchor),
+                            mAngVelDesired() { };
 
     /**
      * Default destructor.
@@ -954,7 +954,7 @@ class ang_velocity_control_3D : public kte_map, public system_input {
     
     virtual void doMotion(kte_pass_flag aFlag = nothing, const shared_ptr<frame_storage>& aStorage = shared_ptr<frame_storage>()) {
       if(mAnchor)
-	mAnchor->AngVelocity = mAngVelDesired;
+        mAnchor->AngVelocity = mAngVelDesired;
     };
 
     virtual void doForce(kte_pass_flag aFlag = nothing, const shared_ptr<frame_storage>& aStorage = shared_ptr<frame_storage>()) { };

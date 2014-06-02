@@ -32,20 +32,17 @@
 #ifndef REAK_INTERPOLATED_TOPOLOGIES_HPP
 #define REAK_INTERPOLATED_TOPOLOGIES_HPP
 
-#include "base/defs.hpp"
-#include <boost/config.hpp>
+#include <ReaK/core/base/defs.hpp>
 
-#include "path_planning/metric_space_concept.hpp"
-#include "path_planning/proper_metric_concept.hpp"
-#include "path_planning/temporal_space_concept.hpp"
-#include "path_planning/reversible_space_concept.hpp"
+#include <ReaK/ctrl/path_planning/metric_space_concept.hpp>
+#include <ReaK/ctrl/path_planning/proper_metric_concept.hpp>
+#include <ReaK/ctrl/path_planning/temporal_space_concept.hpp>
+#include <ReaK/ctrl/path_planning/reversible_space_concept.hpp>
+#include <ReaK/ctrl/topologies/default_random_sampler.hpp>
+#include <ReaK/ctrl/topologies/rate_limited_space_metamaps.hpp>
+#include <ReaK/ctrl/interpolation/generic_interpolator_factory.hpp>
 
 #include <boost/concept_check.hpp>
-
-#include "topologies/default_random_sampler.hpp"
-#include "topologies/rate_limited_space_metamaps.hpp"
-
-#include "interpolation/generic_interpolator_factory.hpp"
 
 #ifdef BOOST_NO_CXX11_HDR_FUNCTIONAL
 #include <boost/function.hpp>

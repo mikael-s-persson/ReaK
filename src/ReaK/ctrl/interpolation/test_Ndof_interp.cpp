@@ -27,21 +27,21 @@ using std::size_t;
 using std::ptrdiff_t;
 
 
-#include "topologies/time_topology.hpp"
-#include "topologies/time_poisson_topology.hpp"
-#include "topologies/line_topology.hpp"
-#include "topologies/differentiable_space.hpp"
-#include "topologies/temporal_space.hpp"
+#include <ReaK/ctrl/topologies/time_topology.hpp>
+#include <ReaK/ctrl/topologies/time_poisson_topology.hpp>
+#include <ReaK/ctrl/topologies/line_topology.hpp>
+#include <ReaK/ctrl/topologies/differentiable_space.hpp>
+#include <ReaK/ctrl/topologies/temporal_space.hpp>
 
-#include "topologies/Ndof_limits.hpp"
-#include "topologies/Ndof_spaces.hpp"
+#include <ReaK/ctrl/topologies/Ndof_limits.hpp>
+#include <ReaK/ctrl/topologies/Ndof_spaces.hpp>
 
-#include "recorders/ssv_recorder.hpp"
-#include "sustained_velocity_pulse.hpp"
-#include "sustained_acceleration_pulse.hpp"
+#include <ReaK/core/recorders/ssv_recorder.hpp>
+#include <ReaK/ctrl/interpolation/sustained_velocity_pulse.hpp>
+#include <ReaK/ctrl/interpolation/sustained_acceleration_pulse.hpp>
 
-#include "sustained_velocity_pulse_Ndof_detail.hpp"
-#include "sustained_acceleration_pulse_Ndof_detail.hpp"
+#include <ReaK/ctrl/interpolation/sustained_velocity_pulse_Ndof_detail.hpp>
+#include <ReaK/ctrl/interpolation/sustained_acceleration_pulse_Ndof_detail.hpp>
 
 
 #define TEST_SIZE 2

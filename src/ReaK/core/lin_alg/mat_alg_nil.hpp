@@ -122,7 +122,31 @@ class mat<T,mat_structure::nil,Alignment,Allocator> : public serialization::seri
      * \test PASSED
      */
     const_reference operator()(size_type i,size_type j) const { return T(0.0); };
-
+    
+    /**
+     * Sub-matrix operator, accessor for read only.
+     * \test PASSED
+     */
+    mat_const_sub_block<self> operator()(const std::pair<size_type,size_type>& r, const std::pair<size_type,size_type>& c) const {
+      return sub(*this)(r,c);
+    };
+    
+    /**
+     * Sub-matrix operator, accessor for read only.
+     * \test PASSED
+     */
+    mat_const_col_slice<self> operator()(size_type r, const std::pair<size_type,size_type>& c) const {
+      return slice(*this)(r,c);
+    };
+    
+    /**
+     * Sub-matrix operator, accessor for read only.
+     * \test PASSED
+     */
+    mat_const_row_slice<self> operator()(const std::pair<size_type,size_type>& r, size_type c) const {
+      return slice(*this)(r,c);
+    };
+    
     /**
      * Gets the row-count (number of rows) of the matrix.
      * \return number of rows of the matrix.
@@ -213,11 +237,11 @@ class mat<T,mat_structure::nil,Alignment,Allocator> : public serialization::seri
 
     virtual void RK_CALL save(serialization::oarchive& A, unsigned int) const {
       A & RK_SERIAL_SAVE_WITH_NAME(rowCount)
-	& RK_SERIAL_SAVE_WITH_NAME(colCount);
+        & RK_SERIAL_SAVE_WITH_NAME(colCount);
     };
     virtual void RK_CALL load(serialization::iarchive& A, unsigned int) {
       A & RK_SERIAL_LOAD_WITH_NAME(rowCount)
-	& RK_SERIAL_LOAD_WITH_NAME(colCount);
+        & RK_SERIAL_LOAD_WITH_NAME(colCount);
     };
     
     RK_RTTI_REGISTER_CLASS_1BASE(self,1,serialization::serializable)
@@ -232,7 +256,7 @@ struct mat_null {
 
 template <typename T>
 mat<T,mat_structure::nil> mat_nil(typename mat<T,mat_structure::nil>::size_type aRowCount,
-				  typename mat<T,mat_structure::nil>::size_type aColCount) {
+                                  typename mat<T,mat_structure::nil>::size_type aColCount) {
   return mat<T,mat_structure::nil>(aRowCount,aColCount);
 };
 

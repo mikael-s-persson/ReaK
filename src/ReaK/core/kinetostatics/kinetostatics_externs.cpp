@@ -21,14 +21,14 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "base/defs.hpp"
+#include <ReaK/core/base/defs.hpp>
 
 #ifndef BOOST_NO_CXX11_EXTERN_TEMPLATE
 
-#include "rotations.hpp"
-#include "quat_alg.hpp"
-#include "kinetostatics.hpp"
-#include "motion_jacobians.hpp"
+#include <ReaK/core/kinetostatics/rotations.hpp>
+#include <ReaK/core/kinetostatics/quat_alg.hpp>
+#include <ReaK/core/kinetostatics/kinetostatics.hpp>
+#include <ReaK/core/kinetostatics/motion_jacobians.hpp>
 
 namespace ReaK {
 

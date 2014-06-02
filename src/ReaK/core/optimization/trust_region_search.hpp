@@ -35,10 +35,10 @@
 #ifndef REAK_TRUST_REGION_SEARCH_HPP
 #define REAK_TRUST_REGION_SEARCH_HPP
 
-#include "base/defs.hpp"
+#include <ReaK/core/base/defs.hpp>
 
-#include "lin_alg/mat_alg.hpp"
-#include "lin_alg/mat_cholesky.hpp"
+#include <ReaK/core/lin_alg/mat_alg.hpp>
+#include <ReaK/core/lin_alg/mat_cholesky.hpp>
 
 #include "newton_search_directions.hpp"
 
@@ -63,7 +63,7 @@ namespace detail {
       T tau = norm_g * norm_g * norm_g / (radius * gBg);
       if(tau < T(1.0)) {
         p *= tau;
-	norm_p *= tau;
+        norm_p *= tau;
       };
     };
   };
@@ -315,9 +315,9 @@ struct trust_region_solver_dogleg_reg {
 #ifdef _MSC_VER
       &(regularized_newton_directioner<T>::operator()<Matrix,Vector>),
 #else
-	  &regularized_newton_directioner<T>::template operator()<Matrix,Vector>,
+          &regularized_newton_directioner<T>::template operator()<Matrix,Vector>,
 #endif
-	  &get_reg_direction,_1,_2,_3,_4),abs_tol);
+          &get_reg_direction,_1,_2,_3,_4),abs_tol);
   };
 };
 

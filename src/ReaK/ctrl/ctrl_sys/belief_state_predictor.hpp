@@ -37,16 +37,16 @@
 #include "state_vector_concept.hpp"
 #include "discrete_sss_concept.hpp"
 
-#include "path_planning/predicted_trajectory_concept.hpp"
-#include "path_planning/temporal_space_concept.hpp"
+#include <ReaK/ctrl/path_planning/predicted_trajectory_concept.hpp>
+#include <ReaK/ctrl/path_planning/temporal_space_concept.hpp>
 
-#include "topologies/temporal_space.hpp"
-#include "topologies/time_poisson_topology.hpp"
+#include <ReaK/ctrl/topologies/temporal_space.hpp>
+#include <ReaK/ctrl/topologies/time_poisson_topology.hpp>
 
-#include "interpolation/waypoint_container.hpp"
+#include <ReaK/ctrl/interpolation/waypoint_container.hpp>
 
 
-#include "base/thread_incl.hpp"
+#include <ReaK/core/base/thread_incl.hpp>
 
 #include <map>
 #include <iterator>

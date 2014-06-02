@@ -5,6 +5,8 @@ set(CODEROOT "${CMAKE_CURRENT_SOURCE_DIR}/..")
 
 # This defines the basic input (src) and output (lib & include) directories.
 set(SRCROOT "${CODEROOT}/src")
+set(SRCINCLUDEROOT "${CODEROOT}/src")
+# set(SRCINCLUDEROOT "${CODEROOT}/include")
 set(DOXROOT "${CODEROOT}/dox")
 set(DOXTOSRCDIR "../src")
 

@@ -51,9 +51,9 @@ int main() {
   shared_ptr< kte::free_joint_2D > 
     airship2D_joint( new kte::free_joint_2D("airship2D_joint",
                                           airship2D_frame,
-					  global_base,
-					  airship2D_output_frame,
-					  airship2D_joint_jac), scoped_deleter());
+                                          global_base,
+                                          airship2D_output_frame,
+                                          airship2D_joint_jac), scoped_deleter());
     
   shared_ptr< kte::joint_dependent_frame_2D > 
     airship2D_dep_frame( new kte::joint_dependent_frame_2D(airship2D_output_frame),
@@ -63,8 +63,8 @@ int main() {
   shared_ptr< kte::inertia_2D > 
     airship2D_inertia( new kte::inertia_2D("airship2D_inertia",
                                            airship2D_dep_frame,
-					   1.0,
-					   1.0), scoped_deleter());
+                                           1.0,
+                                           1.0), scoped_deleter());
   
   shared_ptr< kte::mass_matrix_calc > 
     airship2D_mass_calc( new kte::mass_matrix_calc("airship2D_mass_calc"), scoped_deleter());
@@ -75,7 +75,7 @@ int main() {
   shared_ptr< kte::driving_actuator_2D > 
     airship2D_actuator( new kte::driving_actuator_2D("airship2D_actuator",
                                                    airship2D_frame,
-						   airship2D_joint), scoped_deleter());
+                                                   airship2D_joint), scoped_deleter());
   
   shared_ptr< kte::position_measure_2D > 
     airship2D_position( new kte::position_measure_2D("airship2D_position",

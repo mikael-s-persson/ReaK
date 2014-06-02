@@ -34,23 +34,22 @@
 #ifndef REAK_SUSTAINED_ACCELERATION_PULSE_NDOF_HPP
 #define REAK_SUSTAINED_ACCELERATION_PULSE_NDOF_HPP
 
-#include "base/defs.hpp"
+#include <ReaK/core/base/defs.hpp>
 
-#include "path_planning/temporal_space_concept.hpp"
-#include "path_planning/tangent_bundle_concept.hpp"
-#include "path_planning/bounded_space_concept.hpp"
-
-#include "topologies/rate_limited_spaces.hpp"
+#include <ReaK/ctrl/path_planning/temporal_space_concept.hpp>
+#include <ReaK/ctrl/path_planning/tangent_bundle_concept.hpp>
+#include <ReaK/ctrl/path_planning/bounded_space_concept.hpp>
+#include <ReaK/ctrl/topologies/rate_limited_spaces.hpp>
 
 #include "interpolated_trajectory.hpp"
 #include "generic_interpolator_factory.hpp"
 
-#include <boost/config.hpp>
+#include "sustained_acceleration_pulse_Ndof_detail.hpp"
+
 #include <boost/concept_check.hpp>
 
 #include <limits>
 
-#include "sustained_acceleration_pulse_Ndof_detail.hpp"
 
 
 namespace ReaK {

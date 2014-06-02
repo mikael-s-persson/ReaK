@@ -49,7 +49,7 @@
 #include <utility>
 #include <boost/tuple/tuple.hpp>
 
-#include "path_planning/metric_space_concept.hpp"
+#include <ReaK/ctrl/path_planning/metric_space_concept.hpp>
 
 #include <boost/graph/graph_concepts.hpp>
 #include <boost/graph/properties.hpp>

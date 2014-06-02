@@ -116,14 +116,14 @@ class revolute_joint_2D : public reacting_kte_gen {
      * \param aJacobian a pointer to contain the Jacobian frame produced by this joint, default value will disable the Jacobian frame's calculation.
      */
     revolute_joint_2D(const std::string& aName,
-		      const shared_ptr< gen_coord<double> >& aAngle,
-		      const shared_ptr< frame_2D<double> >& aBase,
-		      const shared_ptr< frame_2D<double> >& aEnd,
+                      const shared_ptr< gen_coord<double> >& aAngle,
+                      const shared_ptr< frame_2D<double> >& aBase,
+                      const shared_ptr< frame_2D<double> >& aEnd,
                       const shared_ptr< jacobian_gen_2D<double> >& aJacobian = shared_ptr< jacobian_gen_2D<double> >()) :
-		      reacting_kte_gen(aName),
-		      mAngle(aAngle),
-		      mBase(aBase),
-		      mEnd(aEnd),
+                      reacting_kte_gen(aName),
+                      mAngle(aAngle),
+                      mBase(aBase),
+                      mEnd(aEnd),
                       mJacobian(aJacobian){ };
 
     /**
@@ -144,7 +144,7 @@ class revolute_joint_2D : public reacting_kte_gen {
       A & RK_SERIAL_SAVE_WITH_NAME(mAngle)
         & RK_SERIAL_SAVE_WITH_NAME(mBase)
         & RK_SERIAL_SAVE_WITH_NAME(mEnd)
-	& RK_SERIAL_SAVE_WITH_NAME(mJacobian);
+        & RK_SERIAL_SAVE_WITH_NAME(mJacobian);
     };
 
     virtual void RK_CALL load(serialization::iarchive& A, unsigned int) {
@@ -152,7 +152,7 @@ class revolute_joint_2D : public reacting_kte_gen {
       A & RK_SERIAL_LOAD_WITH_NAME(mAngle)
         & RK_SERIAL_LOAD_WITH_NAME(mBase)
         & RK_SERIAL_LOAD_WITH_NAME(mEnd)
-	& RK_SERIAL_LOAD_WITH_NAME(mJacobian);
+        & RK_SERIAL_LOAD_WITH_NAME(mJacobian);
     };
 
     RK_RTTI_MAKE_CONCRETE_1BASE(revolute_joint_2D,0xC2100003,1,"revolute_joint_2D",reacting_kte_gen)
@@ -245,16 +245,16 @@ class revolute_joint_3D : public reacting_kte_gen {
      * \param aJacobian a pointer to contain the Jacobian frame produced by this joint, default value will disable the Jacobian frame's calculation.
      */
     revolute_joint_3D(const std::string& aName,
-		      const shared_ptr< gen_coord<double> >& aAngle,
-		      const vect<double,3>& aAxis,
-		      const shared_ptr< frame_3D<double> >& aBase,
-		      const shared_ptr< frame_3D<double> >& aEnd,
+                      const shared_ptr< gen_coord<double> >& aAngle,
+                      const vect<double,3>& aAxis,
+                      const shared_ptr< frame_3D<double> >& aBase,
+                      const shared_ptr< frame_3D<double> >& aEnd,
                       const shared_ptr< jacobian_gen_3D<double> >& aJacobian = shared_ptr< jacobian_gen_3D<double> >()) :
-		      reacting_kte_gen(aName),
-		      mAngle(aAngle),
-		      mAxis(aAxis),
-		      mBase(aBase),
-		      mEnd(aEnd),
+                      reacting_kte_gen(aName),
+                      mAngle(aAngle),
+                      mAxis(aAxis),
+                      mBase(aBase),
+                      mEnd(aEnd),
                       mJacobian(aJacobian) { };
 
     /**
@@ -276,7 +276,7 @@ class revolute_joint_3D : public reacting_kte_gen {
         & RK_SERIAL_SAVE_WITH_NAME(mAxis)
         & RK_SERIAL_SAVE_WITH_NAME(mBase)
         & RK_SERIAL_SAVE_WITH_NAME(mEnd)
-	& RK_SERIAL_SAVE_WITH_NAME(mJacobian);
+        & RK_SERIAL_SAVE_WITH_NAME(mJacobian);
     };
 
     virtual void RK_CALL load(serialization::iarchive& A, unsigned int) {
@@ -285,7 +285,7 @@ class revolute_joint_3D : public reacting_kte_gen {
         & RK_SERIAL_LOAD_WITH_NAME(mAxis)
         & RK_SERIAL_LOAD_WITH_NAME(mBase)
         & RK_SERIAL_LOAD_WITH_NAME(mEnd)
-	& RK_SERIAL_LOAD_WITH_NAME(mJacobian);
+        & RK_SERIAL_LOAD_WITH_NAME(mJacobian);
     };
 
     RK_RTTI_MAKE_CONCRETE_1BASE(revolute_joint_3D,0xC2100004,1,"revolute_joint_3D",reacting_kte_gen)

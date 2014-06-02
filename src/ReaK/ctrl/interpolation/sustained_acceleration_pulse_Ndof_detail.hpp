@@ -33,10 +33,10 @@
 #ifndef REAK_SUSTAINED_ACCELERATION_PULSE_NDOF_DETAIL_HPP
 #define REAK_SUSTAINED_ACCELERATION_PULSE_NDOF_DETAIL_HPP
 
-#include "lin_alg/arithmetic_tuple.hpp"
+#include <ReaK/core/lin_alg/arithmetic_tuple.hpp>
+#include <ReaK/core/optimization/optim_exceptions.hpp>
 
-#include "path_planning/tangent_bundle_concept.hpp"
-#include "optimization/optim_exceptions.hpp"
+#include <ReaK/ctrl/path_planning/tangent_bundle_concept.hpp>
 
 #include "sustained_velocity_pulse_Ndof_detail.hpp"
 

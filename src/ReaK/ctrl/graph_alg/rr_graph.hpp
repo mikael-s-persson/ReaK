@@ -49,8 +49,8 @@
 #include <boost/graph/graph_concepts.hpp>
 #include <boost/property_map/property_map.hpp>
 
-#include "path_planning/metric_space_concept.hpp"
-#include "path_planning/random_sampler_concept.hpp"
+#include <ReaK/ctrl/path_planning/metric_space_concept.hpp>
+#include <ReaK/ctrl/path_planning/random_sampler_concept.hpp>
 
 #include "sbmp_visitor_concepts.hpp"
 #include "node_generators.hpp"

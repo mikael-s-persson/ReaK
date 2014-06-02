@@ -31,15 +31,15 @@
 #ifndef REAK_CONSTANT_TRAJECTORY_HPP
 #define REAK_CONSTANT_TRAJECTORY_HPP
 
-#include "path_planning/spatial_path_concept.hpp"
-#include "path_planning/temporal_space_concept.hpp"
+#include <ReaK/ctrl/path_planning/spatial_path_concept.hpp>
+#include <ReaK/ctrl/path_planning/temporal_space_concept.hpp>
 
 #include <boost/config.hpp>
 #include <cmath>
 #include <boost/concept_check.hpp>
 
-#include "topologies/time_topology.hpp"
-#include "topologies/temporal_space.hpp"
+#include <ReaK/ctrl/topologies/time_topology.hpp>
+#include <ReaK/ctrl/topologies/temporal_space.hpp>
 
 namespace ReaK {
 

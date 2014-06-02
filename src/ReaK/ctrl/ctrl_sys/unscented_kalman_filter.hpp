@@ -36,16 +36,17 @@
 #ifndef REAK_UNSCENTED_KALMAN_FILTER_HPP
 #define REAK_UNSCENTED_KALMAN_FILTER_HPP
 
+#include <ReaK/core/lin_alg/vect_concepts.hpp>
+#include <ReaK/core/lin_alg/mat_alg.hpp>
+#include <ReaK/core/lin_alg/mat_cholesky.hpp>
+#include <ReaK/core/lin_alg/mat_svd_method.hpp>
+
 #include "belief_state_concept.hpp"
 #include "discrete_sss_concept.hpp"
-#include <boost/utility/enable_if.hpp>
-#include <lin_alg/vect_concepts.hpp>
-#include <lin_alg/mat_alg.hpp>
-#include <lin_alg/mat_cholesky.hpp>
-#include "lin_alg/mat_svd_method.hpp"
-
-#include <boost/static_assert.hpp>
 #include "covariance_concept.hpp"
+
+#include <boost/utility/enable_if.hpp>
+#include <boost/static_assert.hpp>
 
 
 namespace ReaK {
@@ -98,8 +99,8 @@ void >::type unscented_kalman_predict(const System& sys,
   
   mat<ValueType, mat_structure::square> L_p(N + M);
   mat<ValueType, mat_structure::square> P_aug(N + M);
-  sub(P_aug)(range(0,N-1),range(0,N-1)) = P;
-  sub(P_aug)(range(N,N+M-1),range(N,N+M-1)) = Q;
+  sub(P_aug)(range(0,N),range(0,N)) = P;
+  sub(P_aug)(range(N,N+M),range(N,N+M)) = Q;
     
   try {
     decompose_Cholesky(P_aug,L_p);
@@ -215,8 +216,8 @@ void >::type unscented_kalman_update(const System& sys,
   
   mat<ValueType, mat_structure::square> L_p(N + M);
   mat<ValueType, mat_structure::square> P_aug(N + M);
-  sub(P_aug)(range(0,N-1),range(0,N-1)) = P;
-  sub(P_aug)(range(N,N+M-1),range(N,N+M-1)) = R;
+  sub(P_aug)(range(0,N),range(0,N)) = P;
+  sub(P_aug)(range(N,N+M),range(N,N+M)) = R;
   
   try {
     decompose_Cholesky(P_aug,L_p);

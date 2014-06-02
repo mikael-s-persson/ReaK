@@ -166,13 +166,13 @@ void backsub_Cholesky_impl(const Matrix1& L, Matrix2& B) {
     //Start solving L * Y = B
     for(SizeType i=0;i<N;++i) { //for every row of L
       for(SizeType k=0;k<i;++k) //for every element of row i in L before the diagonal.
-	B(i,j) -= L(i,k) * B(k,j); // subtract to B(i,j) the product of L(i,k) * Y(k,j)
+        B(i,j) -= L(i,k) * B(k,j); // subtract to B(i,j) the product of L(i,k) * Y(k,j)
       B(i,j) /= L(i,i); // do Y(i,j) = (B(i,j) - sum_k(L(i,k) * Y(k,j))) / L(i,i)
     };
     // Then solve L.transpose() * X = Y
     for(int i=N-1;i>=0;--i) { //for every row of L.transpose(), starting from the last
       for(int k=N-1;k>i;--k) //for every element of row i in L.tranpose(), after the diagonal.
-	B(i,j) -= L(k,i) * B(k,j); // subtract to B(i,j) the product of L(k,i) * Y(k,j)
+        B(i,j) -= L(k,i) * B(k,j); // subtract to B(i,j) the product of L(k,i) * Y(k,j)
       B(i,j) /= L(i,i);
     };
   };
@@ -767,8 +767,8 @@ typename boost::enable_if_c< is_readable_matrix<Matrix1>::value &&
                              ((mat_traits<Matrix1>::structure == mat_structure::square) ||
                               (mat_traits<Matrix1>::structure == mat_structure::symmetric) ||
                               (mat_traits<Matrix1>::structure == mat_structure::tridiagonal) ||
-			      (mat_traits<Matrix1>::structure == mat_structure::diagonal) ||
-			      (mat_traits<Matrix1>::structure == mat_structure::identity)) &&
+                              (mat_traits<Matrix1>::structure == mat_structure::diagonal) ||
+                              (mat_traits<Matrix1>::structure == mat_structure::identity)) &&
                              is_writable_matrix<Matrix2>::value,
 void >::type invert_Cholesky(const Matrix1& A, Matrix2& A_inv, typename mat_traits<Matrix1>::value_type NumTol = 1E-8) {
   typedef typename mat_traits<Matrix1>::value_type ValueType;

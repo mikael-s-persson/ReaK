@@ -33,11 +33,11 @@ double circle::getBoundingRadius() const {
 };
 
 circle::circle(const std::string& aName,
-	       const shared_ptr< pose_2D<double> >& aAnchor,
-	       const pose_2D<double>& aPose,
-	       double aRadius) :
-	       shape_2D(aName, aAnchor, aPose),
-	       mRadius(aRadius) { };
+               const shared_ptr< pose_2D<double> >& aAnchor,
+               const pose_2D<double>& aPose,
+               double aRadius) :
+               shape_2D(aName, aAnchor, aPose),
+               mRadius(aRadius) { };
     
 void RK_CALL circle::save(ReaK::serialization::oarchive& A, unsigned int) const {
   shape_2D::save(A,shape_2D::getStaticObjectType()->TypeVersion());

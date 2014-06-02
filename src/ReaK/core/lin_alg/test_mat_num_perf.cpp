@@ -21,26 +21,27 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "base/defs.hpp"
+#include <ReaK/core/base/defs.hpp>
+#include <ReaK/core/lin_alg/mat_alg.hpp>
+#include <ReaK/core/lin_alg/mat_gaussian_elim.hpp>
+#include <ReaK/core/lin_alg/mat_cholesky.hpp>
+#include <ReaK/core/lin_alg/mat_jacobi_method.hpp>
+#include <ReaK/core/lin_alg/mat_qr_decomp.hpp>
+#include <ReaK/core/lin_alg/mat_svd_method.hpp>
+#include <ReaK/core/lin_alg/mat_schur_decomp.hpp>
+
+#include <ReaK/core/base/chrono_incl.hpp>
+
 #include <iostream>
 #include <fstream>
 #include <cstdio>
 
-#include "mat_alg.hpp"
-
-#include "mat_gaussian_elim.hpp"
-#include "mat_cholesky.hpp"
-#include "mat_jacobi_method.hpp"
-#include "mat_qr_decomp.hpp"
-#include "mat_svd_method.hpp"
-#include "mat_schur_decomp.hpp"
-
-#include "boost/date_time/posix_time/posix_time.hpp"
-
 int main() {
 
   using namespace ReaK;
-
+  
+  using namespace ReaKaux::chrono;
+  
   unsigned int passed = 0;
 
   try {
@@ -48,8 +49,8 @@ int main() {
     unsigned int inc(1);
     mat<double,mat_structure::symmetric> m_test(2.0,-1.0,0.0,2.0,-1.0,2.0);
     mat<double,mat_structure::symmetric> m_inc(2.0,-1.0,2.0);
-    boost::posix_time::ptime t1;
-    boost::posix_time::time_duration dt[11];
+    high_resolution_clock::time_point t1;
+    high_resolution_clock::duration dt[11];
 
     std::ofstream out_stream;
     out_stream.open("performance_data.dat");
@@ -57,89 +58,89 @@ int main() {
     std::cout << "Recording performance..." << std::endl;
     for(unsigned int i=3;i<=1000;i += inc) {
       if(i == 50) {
-	inc = 10; 
-	m_inc = get_block(m_test,0,inc+1); 
+        inc = 10; 
+        m_inc = get_block(m_test,0,inc+1); 
       } else if(i == 100) {
-	inc = 20; 
-	m_inc = get_block(m_test,0,inc+1); 
+        inc = 20; 
+        m_inc = get_block(m_test,0,inc+1); 
       } else if(i == 500) {
-	inc = 50; 
-	m_inc = get_block(m_test,0,inc+1); 
+        inc = 50; 
+        m_inc = get_block(m_test,0,inc+1); 
       };
 
       m_test.set_row_count(i);
       set_block(m_test,m_inc,i-inc-1);
       
       mat<double,mat_structure::square> m_gauss_inv(i);
-      t1 = boost::posix_time::microsec_clock::local_time();
+      t1 = high_resolution_clock::now();
       invert_gaussian(m_test,m_gauss_inv,double(1E-15));
-      dt[0] = boost::posix_time::microsec_clock::local_time() - t1;
+      dt[0] = high_resolution_clock::now() - t1;
       
       mat<double,mat_structure::square> m_plu_inv(i);
-      t1 = boost::posix_time::microsec_clock::local_time();
+      t1 = high_resolution_clock::now();
       invert_PLU(m_test,m_plu_inv,double(1E-15));
-      dt[1] = boost::posix_time::microsec_clock::local_time() - t1;
+      dt[1] = high_resolution_clock::now() - t1;
       
       mat<double,mat_structure::symmetric> m_cholesky_inv(i);
-      t1 = boost::posix_time::microsec_clock::local_time();
+      t1 = high_resolution_clock::now();
       invert_Cholesky(m_test,m_cholesky_inv,double(1E-15));
-      dt[2] = boost::posix_time::microsec_clock::local_time() - t1;
+      dt[2] = high_resolution_clock::now() - t1;
       
       mat<double,mat_structure::symmetric> m_jacobi_pinv(i);
-      t1 = boost::posix_time::microsec_clock::local_time();
+      t1 = high_resolution_clock::now();
       pseudoinvert_Jacobi(m_test,m_jacobi_pinv,double(1E-15));
-      dt[3] = boost::posix_time::microsec_clock::local_time() - t1;
+      dt[3] = high_resolution_clock::now() - t1;
       
       mat<double,mat_structure::square> m_qr_inv(i);
-      t1 = boost::posix_time::microsec_clock::local_time();
+      t1 = high_resolution_clock::now();
       pseudoinvert_QR(m_test,m_qr_inv,double(1E-15));
-      dt[4] = boost::posix_time::microsec_clock::local_time() - t1;
+      dt[4] = high_resolution_clock::now() - t1;
       
       mat<double,mat_structure::square> m_symqr_inv(i);
-      t1 = boost::posix_time::microsec_clock::local_time();
+      t1 = high_resolution_clock::now();
       pseudoinvert_SymQR(m_test,m_symqr_inv,double(1E-15));
-      dt[5] = boost::posix_time::microsec_clock::local_time() - t1;
+      dt[5] = high_resolution_clock::now() - t1;
       
       mat<double,mat_structure::square> m_ldl_inv(i);
-      t1 = boost::posix_time::microsec_clock::local_time();
+      t1 = high_resolution_clock::now();
       invert_LDL(m_test,m_ldl_inv,double(1E-15));
-      dt[6] = boost::posix_time::microsec_clock::local_time() - t1;
+      dt[6] = high_resolution_clock::now() - t1;
       
       mat<double,mat_structure::square> m_svd_inv(i);
-      t1 = boost::posix_time::microsec_clock::local_time();
+      t1 = high_resolution_clock::now();
       pseudoinvert_SVD(m_test,m_svd_inv,double(1E-15));
-      dt[7] = boost::posix_time::microsec_clock::local_time() - t1;;
+      dt[7] = high_resolution_clock::now() - t1;;
       
       mat<double,mat_structure::diagonal> m_jacobi_E(i);
       mat<double,mat_structure::square> m_jacobi_Q(i);
-      t1 = boost::posix_time::microsec_clock::local_time();
+      t1 = high_resolution_clock::now();
       eigensolve_Jacobi(m_test,m_jacobi_E,m_jacobi_Q,double(1E-15));
-      dt[8] = boost::posix_time::microsec_clock::local_time() - t1;
+      dt[8] = high_resolution_clock::now() - t1;
       
       mat<double,mat_structure::diagonal> m_qr_E(i);
       mat<double,mat_structure::square> m_qr_Q(i);
-      t1 = boost::posix_time::microsec_clock::local_time();
+      t1 = high_resolution_clock::now();
       eigensolve_SymQR(m_test,m_qr_Q,m_qr_E,double(1E-15)); //this iterates forever!! (well, for a long time at least)
-      dt[9] = boost::posix_time::microsec_clock::local_time() - t1;
+      dt[9] = high_resolution_clock::now() - t1;
       
       mat<double,mat_structure::diagonal> m_svd_E(i);
       mat<double,mat_structure::square> m_svd_U(i);
       mat<double,mat_structure::square> m_svd_V(i);
-      t1 = boost::posix_time::microsec_clock::local_time();
+      t1 = high_resolution_clock::now();
       decompose_SVD(m_test,m_svd_U,m_svd_E,m_svd_V,double(1E-15));
-      dt[10] = boost::posix_time::microsec_clock::local_time() - t1;
+      dt[10] = high_resolution_clock::now() - t1;
       
-      out_stream << i << "\t" << dt[0].total_microseconds()
-                      << "\t" << dt[1].total_microseconds()
-                      << "\t" << dt[2].total_microseconds()
-		      << "\t" << dt[3].total_microseconds()
-		      << "\t" << dt[4].total_microseconds()
-		      << "\t" << dt[5].total_microseconds()
-		      << "\t" << dt[6].total_microseconds()
-		      << "\t" << dt[7].total_microseconds()
-		      << "\t" << dt[8].total_microseconds()
-                      << "\t" << dt[9].total_microseconds()
-                      << "\t" << dt[10].total_microseconds() << std::endl;
+      out_stream << i << "\t" << duration_cast<microseconds>(dt[0]).count()
+                      << "\t" << duration_cast<microseconds>(dt[1]).count()
+                      << "\t" << duration_cast<microseconds>(dt[2]).count()
+                      << "\t" << duration_cast<microseconds>(dt[3]).count()
+                      << "\t" << duration_cast<microseconds>(dt[4]).count()
+                      << "\t" << duration_cast<microseconds>(dt[5]).count()
+                      << "\t" << duration_cast<microseconds>(dt[6]).count()
+                      << "\t" << duration_cast<microseconds>(dt[7]).count()
+                      << "\t" << duration_cast<microseconds>(dt[8]).count()
+                      << "\t" << duration_cast<microseconds>(dt[9]).count()
+                      << "\t" << duration_cast<microseconds>(dt[10]).count() << std::endl;
       std::cout << i << std::endl;
 
     };

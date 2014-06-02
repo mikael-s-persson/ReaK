@@ -31,8 +31,8 @@ namespace geom {
 
 shape_3D::shape_3D(const std::string& aName,
                    const shared_ptr< pose_3D<double> >& aAnchor,
-		   const pose_3D<double>& aPose) : 
-		   geometry_3D(aName,aAnchor,aPose) { };
+                   const pose_3D<double>& aPose) : 
+                   geometry_3D(aName,aAnchor,aPose) { };
     
     
 void RK_CALL shape_3D::save(ReaK::serialization::oarchive& A, unsigned int) const {

@@ -32,7 +32,7 @@
 #ifndef REAK_GLOBAL_RNG_HPP
 #define REAK_GLOBAL_RNG_HPP
 
-#include "base/defs.hpp"
+#include "defs.hpp"
 
 #include <boost/random/mersenne_twister.hpp>
 #include <boost/random/random_device.hpp>

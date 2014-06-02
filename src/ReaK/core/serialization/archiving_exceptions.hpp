@@ -33,7 +33,7 @@
 #ifndef REAK_ARCHIVING_EXCEPTIONS_HPP
 #define REAK_ARCHIVING_EXCEPTIONS_HPP
 
-#include "base/defs.hpp"
+#include <ReaK/core/base/defs.hpp>
 
 #include <exception>
 #include <string>

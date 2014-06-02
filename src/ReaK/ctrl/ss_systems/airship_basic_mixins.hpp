@@ -228,10 +228,10 @@ class satellite_state_model : public named_object {
       typename FlyWeight::system_param_type& sys_params = params.get_system_parameters();
       double dt = t_1 - t_0;
       
-      const std::pair<std::size_t, std::size_t> p_r(inv_corr_start_index, inv_corr_start_index+2);
-      const std::pair<std::size_t, std::size_t> v_r(inv_corr_start_index+3, inv_corr_start_index+5);
-      const std::pair<std::size_t, std::size_t> q_r(inv_corr_start_index+6, inv_corr_start_index+8);
-      const std::pair<std::size_t, std::size_t> w_r(inv_corr_start_index+9, inv_corr_start_index+11);
+      const std::pair<std::size_t, std::size_t> p_r(inv_corr_start_index, inv_corr_start_index+3);
+      const std::pair<std::size_t, std::size_t> v_r(inv_corr_start_index+3, inv_corr_start_index+6);
+      const std::pair<std::size_t, std::size_t> q_r(inv_corr_start_index+6, inv_corr_start_index+9);
+      const std::pair<std::size_t, std::size_t> w_r(inv_corr_start_index+9, inv_corr_start_index+12);
       
       // Position row:
       // p-p block:
@@ -405,8 +405,8 @@ class near_buoyancy_state_model : public named_object {
       
       const double dt = t_1 - t_0;
       
-      const std::pair<std::size_t, std::size_t> p_r(sat3d_state_index, sat3d_state_index+2);
-      const std::pair<std::size_t, std::size_t> v_r(sat3d_state_index+3, sat3d_state_index+5);
+      const std::pair<std::size_t, std::size_t> p_r(sat3d_state_index, sat3d_state_index+3);
+      const std::pair<std::size_t, std::size_t> v_r(sat3d_state_index+3, sat3d_state_index+6);
       
       const std::size_t m_r = inv_corr_start_index;
       
@@ -536,9 +536,9 @@ class eccentricity_state_model : public named_object {
         try {
           mat<double, mat_structure::symmetric> X(mat_ident<double>(3) + sys_params.effective_mass * (r_cross * sys_params.effective_J_inv * r_cross));
           mat<double, mat_structure::rectangular> b(3,1);
-          slice(b)(range(0,2),0) = l_transfer;
+          slice(b)(range(0,3),0) = l_transfer;
           linsolve_Cholesky(X, b, 1e-6);
-          l_transfer = slice(b)(range(0,2),0); // <-- commit change if cholesky succeeded.
+          l_transfer = slice(b)(range(0,3),0); // <-- commit change if cholesky succeeded.
         } catch(...) { /* if cholesky failed, no HOT adjustment is applied to l_transfer */ };
         
         // The transfer fraction reflects the fact that you can't have the linear momentum of the airflow to transfer as angular momentum of the airship. Or can you???
@@ -575,10 +575,10 @@ class eccentricity_state_model : public named_object {
       const std::size_t sat3d_state_index = params.get_state_models().template get_system<satellite_state_model>().get_inv_corr_start_index();
       typename FlyWeight::system_param_type& sys_params = params.get_system_parameters();
       
-      const std::pair<std::size_t, std::size_t> p_r(sat3d_state_index, sat3d_state_index+2);
-      const std::pair<std::size_t, std::size_t> v_r(sat3d_state_index+3, sat3d_state_index+5);
-      const std::pair<std::size_t, std::size_t> q_r(sat3d_state_index+6, sat3d_state_index+8);
-      const std::pair<std::size_t, std::size_t> w_r(sat3d_state_index+9, sat3d_state_index+11);
+      const std::pair<std::size_t, std::size_t> p_r(sat3d_state_index, sat3d_state_index+3);
+      const std::pair<std::size_t, std::size_t> v_r(sat3d_state_index+3, sat3d_state_index+6);
+      const std::pair<std::size_t, std::size_t> q_r(sat3d_state_index+6, sat3d_state_index+9);
+      const std::pair<std::size_t, std::size_t> w_r(sat3d_state_index+9, sat3d_state_index+12);
       
       const std::size_t m_r = params.get_state_models().template get_system<near_buoyancy_state_model>().get_inv_corr_start_index();
       
@@ -591,9 +591,9 @@ class eccentricity_state_model : public named_object {
         try {
           mat<double, mat_structure::symmetric> X(mat_ident<double>(3) + sys_params.effective_mass * (r_cross * sys_params.effective_J_inv * r_cross));
           mat<double, mat_structure::rectangular> b(3,1);
-          slice(b)(range(0,2),0) = rJrg;
+          slice(b)(range(0,3),0) = rJrg;
           linsolve_Cholesky(X, b, 1e-6);
-          rJrg = slice(b)(range(0,2),0); // <-- commit change if cholesky succeeded.
+          rJrg = slice(b)(range(0,3),0); // <-- commit change if cholesky succeeded.
         } catch(...) { /* if cholesky failed, no HOT adjustment is applied to rJrg */ };
         rJrg = R_0 * rJrg;
         rJrg *= transfer_frac;
@@ -608,9 +608,9 @@ class eccentricity_state_model : public named_object {
         try {
           mat<double, mat_structure::symmetric> Y(mat_ident<double>(3) + (sys_params.effective_mass * transfer_frac) * (sys_params.effective_J_inv * r_cross * r_cross));
           mat<double, mat_structure::rectangular> b(3,1);
-          slice(b)(range(0,2),0) = Jrg;
+          slice(b)(range(0,3),0) = Jrg;
           linsolve_Cholesky(Y, b, 1e-6);
-          Jrg = slice(b)(range(0,2),0); // <-- commit change if cholesky succeeded.
+          Jrg = slice(b)(range(0,3),0); // <-- commit change if cholesky succeeded.
         } catch(...) { /* if cholesky failed, no HOT adjustment is applied to delw */ };
       };
       Jrg = R_0_1 * Jrg;
@@ -650,12 +650,12 @@ class eccentricity_state_model : public named_object {
       
       const double dt = t_1 - t_0;
       
-      const std::pair<std::size_t, std::size_t> p_r(sat3d_state_index, sat3d_state_index+2);
-      const std::pair<std::size_t, std::size_t> v_r(sat3d_state_index+3, sat3d_state_index+5);
-      const std::pair<std::size_t, std::size_t> q_r(sat3d_state_index+6, sat3d_state_index+8);
-      const std::pair<std::size_t, std::size_t> w_r(sat3d_state_index+9, sat3d_state_index+11);
+      const std::pair<std::size_t, std::size_t> p_r(sat3d_state_index, sat3d_state_index+3);
+      const std::pair<std::size_t, std::size_t> v_r(sat3d_state_index+3, sat3d_state_index+6);
+      const std::pair<std::size_t, std::size_t> q_r(sat3d_state_index+6, sat3d_state_index+9);
+      const std::pair<std::size_t, std::size_t> w_r(sat3d_state_index+9, sat3d_state_index+12);
       
-      const std::pair<std::size_t, std::size_t> r_r(inv_corr_start_index, inv_corr_start_index+2);
+      const std::pair<std::size_t, std::size_t> r_r(inv_corr_start_index, inv_corr_start_index+3);
       
       mat<double,mat_structure::square> R_0_1((invert(get_quaternion(x1_se3).as_rotation()) * get_quaternion(x0_se3).as_rotation()).getMat());
       
@@ -821,10 +821,10 @@ class cross_inertia_state_model : public named_object {
       
       const double dt = t_1 - t_0;
       
-      const std::pair<std::size_t, std::size_t> q_r(sat3d_state_index+6, sat3d_state_index+8);
-      const std::pair<std::size_t, std::size_t> w_r(sat3d_state_index+9, sat3d_state_index+11);
+      const std::pair<std::size_t, std::size_t> q_r(sat3d_state_index+6, sat3d_state_index+9);
+      const std::pair<std::size_t, std::size_t> w_r(sat3d_state_index+9, sat3d_state_index+12);
       
-      const std::pair<std::size_t, std::size_t> s_r(inv_corr_start_index, inv_corr_start_index+2);
+      const std::pair<std::size_t, std::size_t> s_r(inv_corr_start_index, inv_corr_start_index+3);
       
       mat<double,mat_structure::square> R_0_1((invert(get_quaternion(x1_se3).as_rotation()) * get_quaternion(x0_se3).as_rotation()).getMat());
       
@@ -915,7 +915,7 @@ class sat_position_output_model : public named_object {
       typedef satellite_state_model::point_type SE3State;
       const SE3State& x_se3 = params.get_state_models().template get_state_for_system<satellite_state_model>(x);
       
-      y[range(start_index, start_index+2)] = get_position(x_se3);
+      y[range(start_index, start_index+3)] = get_position(x_se3);
     };
     
     template <typename FlyWeight, typename StateSpaceType>
@@ -926,7 +926,7 @@ class sat_position_output_model : public named_object {
       typedef satellite_state_model::point_type SE3State;
       const SE3State& x_se3 = params.get_state_models().template get_state_for_system<satellite_state_model>(x);
       
-      e[range(inv_start_index, inv_start_index+2)] = y[range(start_index, start_index+2)] - get_position(x_se3);
+      e[range(inv_start_index, inv_start_index+3)] = y[range(start_index, start_index+3)] - get_position(x_se3);
     };
     
     template <typename MatrixC, typename MatrixD, typename FlyWeight, typename StateSpaceType, typename InputType>
@@ -937,8 +937,8 @@ class sat_position_output_model : public named_object {
                                     const InputType& u) const {
       
       const std::size_t sat3d_state_index = params.get_state_models().template get_system<satellite_state_model>().get_inv_corr_start_index();
-      const std::pair<std::size_t, std::size_t> p_r(sat3d_state_index, sat3d_state_index+2);
-      const std::pair<std::size_t, std::size_t> pm_r(inv_start_index, inv_start_index+2);
+      const std::pair<std::size_t, std::size_t> p_r(sat3d_state_index, sat3d_state_index+3);
+      const std::pair<std::size_t, std::size_t> pm_r(inv_start_index, inv_start_index+3);
       
       sub(C)(pm_r, p_r) += mat_ident<double>(3);
     };
@@ -993,7 +993,7 @@ class sat_quaternion_output_model : public named_object {
       typedef satellite_state_model::point_type SE3State;
       const SE3State& x_se3 = params.get_state_models().template get_state_for_system<satellite_state_model>(x);
       
-      y[range(start_index, start_index+3)] = get_quaternion(x_se3);
+      y[range(start_index, start_index+4)] = get_quaternion(x_se3);
     };
     
     template <typename FlyWeight, typename StateSpaceType>
@@ -1008,7 +1008,7 @@ class sat_quaternion_output_model : public named_object {
                                * unit_quat<double>(y[start_index],y[start_index+1],y[start_index+2],y[start_index+3]);
       vect<double,3> a = 2.0 * log(q_diff);
       
-      e[range(inv_start_index, inv_start_index+2)] = a;
+      e[range(inv_start_index, inv_start_index+3)] = a;
     };
     
     template <typename MatrixC, typename MatrixD, typename FlyWeight, typename StateSpaceType, typename InputType>
@@ -1018,8 +1018,8 @@ class sat_quaternion_output_model : public named_object {
                                     const typename pp::topology_traits<StateSpaceType>::point_type& p, 
                                     const InputType& u) const {
       const std::size_t sat3d_state_index = params.get_state_models().template get_system<satellite_state_model>().get_inv_corr_start_index();
-      const std::pair<std::size_t, std::size_t> q_r(sat3d_state_index+6, sat3d_state_index+8);
-      const std::pair<std::size_t, std::size_t> qm_r(inv_start_index, inv_start_index+2);
+      const std::pair<std::size_t, std::size_t> q_r(sat3d_state_index+6, sat3d_state_index+9);
+      const std::pair<std::size_t, std::size_t> qm_r(inv_start_index, inv_start_index+3);
       
       sub(C)(qm_r, q_r) += mat_ident<double>(3);  // TODO Add a frame transition ? (in invariant posterior frame)
     };

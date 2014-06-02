@@ -34,7 +34,7 @@
 
 #include "rotations_3D.hpp"
 
-#include "base/shared_object.hpp"
+#include <ReaK/core/base/shared_object.hpp>
 
 
 namespace ReaK {
@@ -70,25 +70,25 @@ class pose_3D : public shared_object {
      */
     pose_3D() : shared_object(),
                 Parent(),
-	        Position(),
-		Quat() { };
+                Position(),
+                Quat() { };
 
     /**
      * Parametrized constructor, all is set to corresponding parameters.
      */
     pose_3D(const weak_ptr< self >& aParent, const position_type& aPosition, const rotation_type& aQuat) :
                shared_object(),
-	       Parent(aParent),
-	       Position(aPosition),
-	       Quat(aQuat) { };
+               Parent(aParent),
+               Position(aPosition),
+               Quat(aQuat) { };
 
     /**
      * Copy-constructor.
      */
     pose_3D(const self& aPose) : shared_object(),
                                        Parent(aPose.Parent),
-				       Position(aPose.Position),
-				       Quat(aPose.Quat) { };
+                                       Position(aPose.Position),
+                                       Quat(aPose.Quat) { };
 
     /**
      * Default virtual destructor.
@@ -114,10 +114,10 @@ class pose_3D : public shared_object {
      */
     bool isParentPose(const shared_ptr< const self >& P) const {
       if(Parent.expired()) {
-	if(P)
-	  return false;
-	else
-	  return true;
+        if(P)
+          return false;
+        else
+          return true;
       };
       if(P == Parent.lock())
         return true;
@@ -129,9 +129,9 @@ class pose_3D : public shared_object {
      */
     self getPoseRelativeTo(const shared_ptr< const self >& P) const {
       if(isParentPose(P)) {
-	if((Parent.expired()) || (Parent.lock() == P))
-	  return *this;
-	else
+        if((Parent.expired()) || (Parent.lock() == P))
+          return *this;
+        else
           return Parent.lock()->getPoseRelativeTo(P) * (*this);
       } else if(P->isParentPose(rtti::rk_static_ptr_cast< const self >(mThis)))
         return ~(P->getPoseRelativeTo(rtti::rk_static_ptr_cast< const self >(mThis)));
@@ -296,7 +296,7 @@ class pose_3D : public shared_object {
       if(Parent.expired())
         A & RK_SERIAL_SAVE_WITH_ALIAS("Parent",shared_ptr<serialization::serializable>());
       else
-	A & RK_SERIAL_SAVE_WITH_ALIAS("Parent",Parent.lock());
+        A & RK_SERIAL_SAVE_WITH_ALIAS("Parent",Parent.lock());
       A & RK_SERIAL_SAVE_WITH_NAME(Position)
         & RK_SERIAL_SAVE_WITH_NAME(Quat);
     };

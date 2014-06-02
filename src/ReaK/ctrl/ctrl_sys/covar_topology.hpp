@@ -36,22 +36,23 @@
 #ifndef REAK_COVAR_TOPOLOGY_HPP
 #define REAK_COVAR_TOPOLOGY_HPP
 
-#include "base/defs.hpp"
-#include "base/named_object.hpp"
+#include <ReaK/core/base/defs.hpp>
+#include <ReaK/core/base/named_object.hpp>
+#include <ReaK/core/base/global_rng.hpp>
+#include <ReaK/core/lin_alg/mat_norms.hpp>
+#include <ReaK/core/lin_alg/mat_qr_decomp.hpp>
+#include <ReaK/core/lin_alg/mat_exp_methods.hpp>
+
+#include <ReaK/ctrl/path_planning/metric_space_concept.hpp>
+#include <ReaK/ctrl/path_planning/reversible_space_concept.hpp>
+#include <ReaK/ctrl/topologies/default_random_sampler.hpp>
 
 #include "covariance_concept.hpp"
-#include "lin_alg/mat_norms.hpp"
 
 #include <boost/random/uniform_01.hpp>
 #include <boost/random/linear_congruential.hpp>
 #include <boost/config.hpp> // For BOOST_STATIC_CONSTANT
 
-#include "lin_alg/mat_qr_decomp.hpp"
-#include "lin_alg/mat_exp_methods.hpp"
-#include "base/global_rng.hpp"
-#include "path_planning/metric_space_concept.hpp"
-#include "path_planning/reversible_space_concept.hpp"
-#include "topologies/default_random_sampler.hpp"
 
 namespace ReaK {
 

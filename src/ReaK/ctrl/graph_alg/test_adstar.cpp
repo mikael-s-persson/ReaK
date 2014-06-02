@@ -29,8 +29,8 @@
 
 #include <boost/bind.hpp>
 
-#include "adstar_search.hpp"
-#include "lin_alg/vect_alg.hpp"
+#include <ReaK/ctrl/graph_alg/adstar_search.hpp>
+#include <ReaK/core/lin_alg/vect_alg.hpp>
 
 #include <boost/graph/astar_search.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>

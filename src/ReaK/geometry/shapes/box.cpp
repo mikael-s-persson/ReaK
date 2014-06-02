@@ -35,10 +35,10 @@ double box::getBoundingRadius() const {
 
 box::box(const std::string& aName,
          const shared_ptr< pose_3D<double> >& aAnchor,
-	 const pose_3D<double>& aPose,
-	 const vect<double,3>& aDimensions) :
-	 shape_3D(aName,aAnchor,aPose),
-	 mDimensions(aDimensions) { };
+         const pose_3D<double>& aPose,
+         const vect<double,3>& aDimensions) :
+         shape_3D(aName,aAnchor,aPose),
+         mDimensions(aDimensions) { };
     
 void RK_CALL box::save(ReaK::serialization::oarchive& A, unsigned int) const {
   shape_3D::save(A,shape_3D::getStaticObjectType()->TypeVersion());

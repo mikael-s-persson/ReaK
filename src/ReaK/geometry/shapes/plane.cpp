@@ -35,11 +35,11 @@ double plane::getBoundingRadius() const {
 
 
 plane::plane(const std::string& aName,
-	     const shared_ptr< pose_3D<double> >& aAnchor,
-	     const pose_3D<double>& aPose,
-	     const vect<double,2>& aDimensions) :
-	     shape_3D(aName,aAnchor,aPose),
-	     mDimensions(aDimensions) { };
+             const shared_ptr< pose_3D<double> >& aAnchor,
+             const pose_3D<double>& aPose,
+             const vect<double,2>& aDimensions) :
+             shape_3D(aName,aAnchor,aPose),
+             mDimensions(aDimensions) { };
     
     
 void RK_CALL plane::save(ReaK::serialization::oarchive& A, unsigned int) const {

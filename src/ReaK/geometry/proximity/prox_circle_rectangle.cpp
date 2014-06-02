@@ -61,7 +61,7 @@ void prox_circle_rectangle::computeProximity() {
   if(in_x_range && in_y_range) {
     // The circle is inside the rectangle.
     vect<double,2> bound_dists = vect<double,2>(0.5 * mRectangle->getDimensions()[0] - fabs(ci_c_rel[0]),
-						0.5 * mRectangle->getDimensions()[1] - fabs(ci_c_rel[1]));
+                                                0.5 * mRectangle->getDimensions()[1] - fabs(ci_c_rel[1]));
     if(bound_dists[0] <= bound_dists[1]) {
       in_x_range = false;
     } else {
@@ -87,10 +87,10 @@ void prox_circle_rectangle::computeProximity() {
 
 
 prox_circle_rectangle::prox_circle_rectangle(const shared_ptr< circle >& aCircle,
-					     const shared_ptr< rectangle >& aRectangle) :
-					     proximity_finder_2D(),
-					     mCircle(aCircle),
-					     mRectangle(aRectangle) { };
+                                             const shared_ptr< rectangle >& aRectangle) :
+                                             proximity_finder_2D(),
+                                             mCircle(aCircle),
+                                             mRectangle(aRectangle) { };
     
     
 void RK_CALL prox_circle_rectangle::save(ReaK::serialization::oarchive& A, unsigned int) const {

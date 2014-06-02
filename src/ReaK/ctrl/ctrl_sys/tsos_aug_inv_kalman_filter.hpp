@@ -43,27 +43,25 @@
 #ifndef REAK_TSOS_AUG_INV_KALMAN_FILTER_HPP
 #define REAK_TSOS_AUG_INV_KALMAN_FILTER_HPP
 
+#include <ReaK/core/lin_alg/vect_concepts.hpp>
+#include <ReaK/core/lin_alg/mat_alg.hpp>
+#include <ReaK/core/lin_alg/mat_cholesky.hpp>
+
+#include <ReaK/ctrl/path_planning/metric_space_concept.hpp>
+
 #include "belief_state_concept.hpp"
 #include "discrete_linear_sss_concept.hpp"
 #include "invariant_system_concept.hpp"
 #include "augmented_sss_concept.hpp"
 
-#include <boost/utility/enable_if.hpp>
-#include <lin_alg/vect_concepts.hpp>
-#include <lin_alg/mat_alg.hpp>
-#include <lin_alg/mat_cholesky.hpp>
-
-#include <boost/static_assert.hpp>
 #include "covariance_concept.hpp"
-
 #include "gaussian_belief_state.hpp"
 #include "covariance_matrix.hpp"
-
 #include "tsos_aug_kalman_filter.hpp"
 #include "invariant_kalman_filter.hpp"
 
-#include "path_planning/metric_space_concept.hpp"
-
+#include <boost/utility/enable_if.hpp>
+#include <boost/static_assert.hpp>
 #include <boost/mpl/and.hpp>
 
 namespace ReaK {
@@ -138,13 +136,13 @@ void >::type tsos_aug_inv_kalman_predict(const InvariantSystem& sys,
   const std::size_t n_u = sys.get_input_dimensions();
   const std::size_t m   = sys.get_correction_dimensions() - n;
   
-  mat_sub_block<InvarFrame> W_x  = sub(W)(range(0, n-1), range(0, n-1));
-  mat_sub_block<MatAType>   A_x  = sub(A)(range(0, n-1), range(0, n-1));
-  mat_sub_block<MatAType>   A_xa = sub(A)(range(0, n-1), range(n, n+m-1));
-  mat_sub_block<MatPType>   P_x  = sub(P_last)(range(0, n-1), range(0, n-1));
-  mat_sub_block<MatPType>   P_a  = sub(P_last)(range(n, n+m-1), range(n, n+m-1));
-  mat_sub_block<MatPType>   P_ax = sub(P_last)(range(n, n+m-1), range(0, n-1));
-  mat_sub_block<MatBType>   B_x  = sub(B)(range(0, n-1), range(0, n_u-1));
+  mat_sub_block<InvarFrame> W_x  = sub(W)(range(0, n), range(0, n));
+  mat_sub_block<MatAType>   A_x  = sub(A)(range(0, n), range(0, n));
+  mat_sub_block<MatAType>   A_xa = sub(A)(range(0, n), range(n, n+m));
+  mat_sub_block<MatPType>   P_x  = sub(P_last)(range(0, n), range(0, n));
+  mat_sub_block<MatPType>   P_a  = sub(P_last)(range(n, n+m), range(n, n+m));
+  mat_sub_block<MatPType>   P_ax = sub(P_last)(range(n, n+m), range(0, n));
+  mat_sub_block<MatBType>   B_x  = sub(B)(range(0, n), range(0, n_u));
   
   mat<ValueType, mat_structure::rectangular> P_xa_p( 
     A_x * transpose_view(P_ax) + A_xa * P_a
@@ -266,7 +264,7 @@ void >::type tsos_aug_inv_kalman_update(const InvariantSystem& sys,
   const std::size_t n   = sys.get_actual_state_dimensions();
   const std::size_t m   = sys.get_correction_dimensions() - n;
   
-  mat_sub_block<MatPType> P_xa = sub(P)(range(0, n-1), range(n, n+m-1));
+  mat_sub_block<MatPType> P_xa = sub(P)(range(0, n), range(n, n+m));
   
   
   mat< ValueType, mat_structure::rectangular > CP = C * P;
@@ -281,15 +279,15 @@ void >::type tsos_aug_inv_kalman_update(const InvariantSystem& sys,
   InvarFrame W = sys.get_invariant_posterior_frame(state_space, x, b_x.get_mean_state(), b_u.get_mean_state(), t + sys.get_time_step());
   mat<ValueType, mat_structure::square> W_I_KC(W * (mat_ident<ValueType>(n+m) - K * C));
   mat< ValueType, mat_structure::rectangular > P_post(W_I_KC * P * transpose_view(W));
-  set_block(P, sub(P_post)(range(0, n-1), range(0, n-1)), 0, 0);
-  set_block(P, sub(P_post)(range(0, n-1), range(n, n+m-1)), 0, n);
+  set_block(P, sub(P_post)(range(0, n), range(0, n)), 0, 0);
+  set_block(P, sub(P_post)(range(0, n), range(n, n+m)), 0, n);
   set_block(P, transpose_view(P_xa), n, 0);
   b_x.set_covariance( CovType( MatType( P ) ) );
   
 #if 0
   const std::size_t n_z = sys.get_invariant_error_dimensions();
-  mat_sub_block<MatCType> C_x  = sub(C)(range(0,n_z-1),range(0,n-1));
-  mat_sub_block<MatPType> P_x  = sub(P)(range(0, n-1), range(0, n-1));
+  mat_sub_block<MatCType> C_x  = sub(C)(range(0,n_z),range(0,n));
+  mat_sub_block<MatPType> P_x  = sub(P)(range(0, n), range(0, n));
   
   mat< ValueType, mat_structure::rectangular > CP_xa = C_x * P_xa;
   mat< ValueType, mat_structure::rectangular > CP_x  = C_x * P_x;
@@ -304,7 +302,7 @@ void >::type tsos_aug_inv_kalman_update(const InvariantSystem& sys,
   b_x.set_mean_state( sys.apply_correction(state_space, x, from_vect<InvarCorr>((K_x | K_ax) * e), b_u.get_mean_state(), t + sys.get_time_step()) );
   
   InvarFrame W = sys.get_invariant_posterior_frame(state_space, x, b_x.get_mean_state(), b_u.get_mean_state(), t + sys.get_time_step());
-  mat_sub_block<InvarFrame> W_x  = sub(W)(range(0, n-1), range(0, n-1));
+  mat_sub_block<InvarFrame> W_x  = sub(W)(range(0, n), range(0, n));
   mat<ValueType, mat_structure::square> W_I_KC(W_x * (mat_ident<ValueType>(n) - K_x * C_x));
   set_block(P, W_I_KC * P_x * transpose_view(W_x), 0, 0);
   set_block(P, W_I_KC * P_xa, 0, n);
@@ -431,13 +429,13 @@ void >::type tsos_aug_inv_kalman_filter_step(const InvariantSystem& sys,
   sys.get_state_transition_blocks(A, B, state_space, t, t + sys.get_time_step(), x, x_prior, b_u.get_mean_state(), b_u.get_mean_state());
   InvarFrame W = sys.get_invariant_prior_frame(state_space, x, x_prior, b_u.get_mean_state(), t + sys.get_time_step());
   
-  mat_sub_block<InvarFrame> W_x  = sub(W)(range(0, n-1), range(0, n-1));
-  mat_sub_block<MatAType> A_x  = sub(A)(range(0, n-1), range(0, n-1));
-  mat_sub_block<MatAType> A_xa = sub(A)(range(0, n-1), range(n, n+m-1));
-  mat_sub_block<MatPType> P_x  = sub(P)(range(0, n-1), range(0, n-1));
-  mat_sub_block<MatPType> P_a  = sub(P)(range(n, n+m-1), range(n, n+m-1));
-  mat_sub_block<MatPType> P_ax = sub(P)(range(n, n+m-1), range(0, n-1));
-  mat_sub_block<MatBType> B_x  = sub(B)(range(0, n-1), range(0, n_u-1));
+  mat_sub_block<InvarFrame> W_x  = sub(W)(range(0, n), range(0, n));
+  mat_sub_block<MatAType> A_x  = sub(A)(range(0, n), range(0, n));
+  mat_sub_block<MatAType> A_xa = sub(A)(range(0, n), range(n, n+m));
+  mat_sub_block<MatPType> P_x  = sub(P)(range(0, n), range(0, n));
+  mat_sub_block<MatPType> P_a  = sub(P)(range(n, n+m), range(n, n+m));
+  mat_sub_block<MatPType> P_ax = sub(P)(range(n, n+m), range(0, n));
+  mat_sub_block<MatBType> B_x  = sub(B)(range(0, n), range(0, n_u));
   
   sys.get_output_function_blocks(C, D, state_space, t + sys.get_time_step(), x, b_u.get_mean_state());
   
@@ -480,7 +478,7 @@ void >::type tsos_aug_inv_kalman_filter_step(const InvariantSystem& sys,
   P_xa_p = W_x * P_xa_p;
   
   const std::size_t n_z = sys.get_invariant_error_dimensions();
-  mat_sub_block<MatCType>      C_x  = sub(C)(range(0,n_z-1),range(0,n-1));
+  mat_sub_block<MatCType>      C_x  = sub(C)(range(0,n_z),range(0,n));
   
   mat< ValueType, mat_structure::rectangular > CP_xa = C_x * P_xa_p;
   mat< ValueType, mat_structure::rectangular > CP_x  = C_x * P_x_p;

@@ -50,16 +50,16 @@ int main(int argc, char** argv) {
   
   if(argc < 10) {
     std::cout << "Usage:\n"
-	      << "\t./estimate_airship3D [inertial_data.xml] [meas_filename.ssv] [result_filename] [time_step] [Qu.xml] [R.xml] [skips_min] [skips_max] [added_R.xml]\n"
-	      << "\t\t inertial_data.xml:\t The filename of the inertial data of the airship3D.\n"
-	      << "\t\t meas_filename.ssv:\t The filename of a space-sep. values file with the recorded states and measurements.\n"
-	      << "\t\t result_filename:\t The filename prefix where to record the results as a space-separated values file.\n"
-	      << "\t\t time_step:\t\t The time-step of the data points in the measurement file.\n"
-	      << "\t\t Qu.xml:\t\t The filename for the airship's input disturbance covariance matrix.\n"
-	      << "\t\t R.xml:\t\t The filename for the airship's measurement noise covariance matrix."
-	      << "\t\t skips_min:\t\t Minimum number of data rows to skip from meas_filename.ssv."
-	      << "\t\t skips_max:\t\t Maximum number of data rows to skip from meas_filename.ssv."
-	      << "\t\t added_R.xml:\t\t Measurement noise covariance matrix to be artificially added to the data points." << std::endl;
+              << "\t./estimate_airship3D [inertial_data.xml] [meas_filename.ssv] [result_filename] [time_step] [Qu.xml] [R.xml] [skips_min] [skips_max] [added_R.xml]\n"
+              << "\t\t inertial_data.xml:\t The filename of the inertial data of the airship3D.\n"
+              << "\t\t meas_filename.ssv:\t The filename of a space-sep. values file with the recorded states and measurements.\n"
+              << "\t\t result_filename:\t The filename prefix where to record the results as a space-separated values file.\n"
+              << "\t\t time_step:\t\t The time-step of the data points in the measurement file.\n"
+              << "\t\t Qu.xml:\t\t The filename for the airship's input disturbance covariance matrix.\n"
+              << "\t\t R.xml:\t\t The filename for the airship's measurement noise covariance matrix."
+              << "\t\t skips_min:\t\t Minimum number of data rows to skip from meas_filename.ssv."
+              << "\t\t skips_max:\t\t Maximum number of data rows to skip from meas_filename.ssv."
+              << "\t\t added_R.xml:\t\t Measurement noise covariance matrix to be artificially added to the data points." << std::endl;
     return 0;
   };
   
@@ -131,31 +131,31 @@ int main(int argc, char** argv) {
     recorder::ssv_extractor meas_file(meas_filename);
     try {
       while(true) {
-	double t;
-	meas_file >> t;
-	std::vector<double> meas;
-	try {
-	  while(true) {
-	    double dummy;
-	    meas_file >> dummy;
-	    meas.push_back(dummy);
-	  };
-	} catch(recorder::out_of_bounds&) { };
-	if(meas.size() < 7) {
-	  RK_ERROR("The measurement file does not appear to have the required number of columns!");
+        double t;
+        meas_file >> t;
+        std::vector<double> meas;
+        try {
+          while(true) {
+            double dummy;
+            meas_file >> dummy;
+            meas.push_back(dummy);
+          };
+        } catch(recorder::out_of_bounds&) { };
+        if(meas.size() < 7) {
+          RK_ERROR("The measurement file does not appear to have the required number of columns!");
           return 4;
         };
-	meas_file >> recorder::data_extractor::end_value_row;
-	vect_n<double> meas_v(meas.end() - 7,meas.end());
-	measurements.push_back(std::make_pair(t,meas_v));
-	meas_v[0] += var_rnd() * sqrt(R_added(0,0));
-	meas_v[1] += var_rnd() * sqrt(R_added(1,1));
-	meas_v[2] += var_rnd() * sqrt(R_added(2,2));
-	meas_v[3] += var_rnd() * sqrt(R_added(3,3));
-	meas_v[4] += var_rnd() * sqrt(R_added(4,4));
-	meas_v[5] += var_rnd() * sqrt(R_added(5,5));
-	meas_v[6] += var_rnd() * sqrt(R_added(6,6));
-	measurements_noisy.push_back(std::make_pair(t,meas_v));
+        meas_file >> recorder::data_extractor::end_value_row;
+        vect_n<double> meas_v(meas.end() - 7,meas.end());
+        measurements.push_back(std::make_pair(t,meas_v));
+        meas_v[0] += var_rnd() * sqrt(R_added(0,0));
+        meas_v[1] += var_rnd() * sqrt(R_added(1,1));
+        meas_v[2] += var_rnd() * sqrt(R_added(2,2));
+        meas_v[3] += var_rnd() * sqrt(R_added(3,3));
+        meas_v[4] += var_rnd() * sqrt(R_added(4,4));
+        meas_v[5] += var_rnd() * sqrt(R_added(5,5));
+        meas_v[6] += var_rnd() * sqrt(R_added(6,6));
+        measurements_noisy.push_back(std::make_pair(t,meas_v));
       };
     } catch(recorder::out_of_bounds&) {
       RK_ERROR("The measurement file does not appear to have the required number of columns!");
@@ -192,9 +192,9 @@ int main(int argc, char** argv) {
     {
       ctrl::gaussian_belief_state< vect_n<double>, ctrl::covariance_matrix< vect_n<double> > > b = b_init;
       ctrl::gaussian_belief_state< vect_n<double>, ctrl::covariance_matrix< vect_n<double> > > b_u(vect_n<double>(0.0,0.0,0.0,0.0,0.0,0.0), 
-											           ctrl::covariance_matrix< vect_n<double> >(Qu));
+                                                                                                   ctrl::covariance_matrix< vect_n<double> >(Qu));
       ctrl::gaussian_belief_state< vect_n<double>, ctrl::covariance_matrix< vect_n<double> > > b_z(vect_n<double>(0.0,0.0,0.0,0.0,0.0,0.0,0.0), 
-											           Rcov);
+                                                                                                   Rcov);
       double std_dev = 0.0; int k = 0;
       std::list< std::pair< double, vect_n<double> > >::iterator it_orig = measurements.begin();
       for(std::list< std::pair< double, vect_n<double> > >::iterator it = measurements_noisy.begin(); it != measurements_noisy.end();) {
@@ -235,9 +235,9 @@ int main(int argc, char** argv) {
       ctrl::covariance_matrix< vect_n<double> > Rcovinv = ctrl::covariance_matrix< vect_n<double> >(ctrl::covariance_matrix< vect_n<double> >::matrix_type(R_inv));
       
       ctrl::gaussian_belief_state< vect_n<double>, ctrl::covariance_matrix< vect_n<double> > > b_u(vect_n<double>(0.0,0.0,0.0,0.0,0.0,0.0), 
-											           ctrl::covariance_matrix< vect_n<double> >(Qu));
+                                                                                                   ctrl::covariance_matrix< vect_n<double> >(Qu));
       ctrl::gaussian_belief_state< vect_n<double>, ctrl::covariance_matrix< vect_n<double> > > b_z(vect_n<double>(0.0,0.0,0.0,0.0,0.0,0.0,0.0), 
-											           Rcovinv);
+                                                                                                   Rcovinv);
       
       double std_dev = 0.0; int k = 0;
       std::list< std::pair< double, vect_n<double> > >::iterator it_orig = measurements.begin();
@@ -279,9 +279,9 @@ int main(int argc, char** argv) {
       ctrl::covariance_matrix< vect_n<double> > Rcovinv = ctrl::covariance_matrix< vect_n<double> >(ctrl::covariance_matrix< vect_n<double> >::matrix_type(R_inv));
       
       ctrl::gaussian_belief_state< vect_n<double>, ctrl::covariance_matrix< vect_n<double> > > b_u(vect_n<double>(0.0,0.0,0.0,0.0,0.0,0.0), 
-											           ctrl::covariance_matrix< vect_n<double> >(Qu));
+                                                                                                   ctrl::covariance_matrix< vect_n<double> >(Qu));
       ctrl::gaussian_belief_state< vect_n<double>, ctrl::covariance_matrix< vect_n<double> > > b_z(vect_n<double>(0.0,0.0,0.0,0.0,0.0,0.0,0.0), 
-											           Rcovinv);
+                                                                                                   Rcovinv);
       
       double std_dev = 0.0; int k = 0;
       std::list< std::pair< double, vect_n<double> > >::iterator it_orig = measurements.begin();

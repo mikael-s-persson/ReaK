@@ -33,8 +33,8 @@
 #ifndef REAK_SO_TYPE_HPP
 #define REAK_SO_TYPE_HPP
 
-#include "base/defs.hpp"
-#include "base/shared_object_base.hpp"
+#include <ReaK/core/base/defs.hpp>
+#include <ReaK/core/base/shared_object_base.hpp>
 
 #include <boost/config.hpp>
 #include <boost/cstdint.hpp>

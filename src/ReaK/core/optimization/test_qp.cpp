@@ -22,14 +22,15 @@
  */
 
 #include <cmath>
-#include "line_search.hpp"
 
-#include "finite_diff_jacobians.hpp"
+#include <ReaK/core/optimization/line_search.hpp>
 
-#include "mehrotra_method.hpp"
-#include "quadratic_programs.hpp"
+#include <ReaK/core/optimization/finite_diff_jacobians.hpp>
 
-#include "lin_alg/mat_svd_method.hpp"
+#include <ReaK/core/optimization/mehrotra_method.hpp>
+#include <ReaK/core/optimization/quadratic_programs.hpp>
+
+#include <ReaK/core/lin_alg/mat_svd_method.hpp>
 
 #include <iostream>
 #include <cmath>
@@ -80,11 +81,11 @@ int main() {
       optim::null_space_QP_method(As[i],bs[i],Gs[i],cs[i],x,1e-8);
       std::cout << "  Null-Space QP method gives:\n"
                 << "    x = " << x << " with |Ax - b| = " << norm_2(As[i] * x - bs[i]) << "\n"
-	        << "    and with xGx + cx = " << (0.5 * (x * Gs[i]) * x + cs[i] * x) << " so A(Gx + c) = " << (As[i] * (Gs[i] * x + cs[i])) << std::endl;
+                << "    and with xGx + cx = " << (0.5 * (x * Gs[i]) * x + cs[i] * x) << " so A(Gx + c) = " << (As[i] * (Gs[i] * x + cs[i])) << std::endl;
     } catch(std::exception& e) {
       std::cout << "  Null-Space QP method failed with error: " << e.what() << std::endl
                 << "    x = " << x << " with |Ax - b| = " << norm_2(As[i] * x - bs[i]) << "\n"
-	        << "    and with xGx + cx = " << (0.5 * (x * Gs[i]) * x + cs[i] * x) << " so A(Gx + c) = " << (As[i] * (Gs[i] * x + cs[i])) << std::endl;
+                << "    and with xGx + cx = " << (0.5 * (x * Gs[i]) * x + cs[i] * x) << " so A(Gx + c) = " << (As[i] * (Gs[i] * x + cs[i])) << std::endl;
     };
     
     x = xs[i];
@@ -92,11 +93,11 @@ int main() {
       optim::projected_CG_method(As[i],bs[i],Gs[i],cs[i],x,100,1e-8);
       std::cout << "  Projected CG method gives:\n"
                 << "    x = " << x << " with |Ax - b| = " << norm_2(As[i] * x - bs[i]) << "\n"
-	        << "    and with xGx + cx = " << (0.5 * (x * Gs[i]) * x + cs[i] * x) << " so A(Gx + c) = " << (As[i] * (Gs[i] * x + cs[i])) << std::endl;
+                << "    and with xGx + cx = " << (0.5 * (x * Gs[i]) * x + cs[i] * x) << " so A(Gx + c) = " << (As[i] * (Gs[i] * x + cs[i])) << std::endl;
     } catch(std::exception& e) {
       std::cout << "  Projected CG method failed with error: " << e.what() << std::endl
                 << "    x = " << x << " with |Ax - b| = " << norm_2(As[i] * x - bs[i]) << "\n"
-	        << "    and with xGx + cx = " << (0.5 * (x * Gs[i]) * x + cs[i] * x) << " so A(Gx + c) = " << (As[i] * (Gs[i] * x + cs[i])) << std::endl;
+                << "    and with xGx + cx = " << (0.5 * (x * Gs[i]) * x + cs[i] * x) << " so A(Gx + c) = " << (As[i] * (Gs[i] * x + cs[i])) << std::endl;
     };
     
     x = xs[i];
@@ -104,11 +105,11 @@ int main() {
       optim::mehrotra_QP_method(mat<double,mat_structure::rectangular>(0,3),vect_n<double>(0),Gs[i],cs[i],As[i],bs[i],x,100,1e-8);
       std::cout << "  Mehrotra QP method gives:\n"
                 << "    x = " << x << " with |Ax - b| = " << norm_2(As[i] * x - bs[i]) << "\n"
-	        << "    and with xGx + cx = " << (0.5 * (x * Gs[i]) * x + cs[i] * x) << " so A(Gx + c) = " << (As[i] * (Gs[i] * x + cs[i])) << std::endl;
+                << "    and with xGx + cx = " << (0.5 * (x * Gs[i]) * x + cs[i] * x) << " so A(Gx + c) = " << (As[i] * (Gs[i] * x + cs[i])) << std::endl;
     } catch(std::exception& e) {
       std::cout << "  Mehrotra QP method failed with error: " << e.what() << std::endl
                 << "    x = " << x << " with |Ax - b| = " << norm_2(As[i] * x - bs[i]) << "\n"
-	        << "    and with xGx + cx = " << (0.5 * (x * Gs[i]) * x + cs[i] * x) << " so A(Gx + c) = " << (As[i] * (Gs[i] * x + cs[i])) << std::endl;
+                << "    and with xGx + cx = " << (0.5 * (x * Gs[i]) * x + cs[i] * x) << " so A(Gx + c) = " << (As[i] * (Gs[i] * x + cs[i])) << std::endl;
     };
     
     

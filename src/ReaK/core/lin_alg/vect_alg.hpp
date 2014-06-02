@@ -37,17 +37,16 @@
 #ifndef REAK_VECT_ALG_HPP
 #define REAK_VECT_ALG_HPP
 
-
 #include <cmath>
 #include <stdexcept>
 #include <string>
 #include <vector>
 #include <limits>
 
-#include "base/defs.hpp"
-#include "base/serializable.hpp"
-#include "rtti/so_register_type.hpp"
-#include "rtti/typed_primitives.hpp"
+#include <ReaK/core/base/defs.hpp>
+#include <ReaK/core/base/serializable.hpp>
+#include <ReaK/core/rtti/so_register_type.hpp>
+#include <ReaK/core/rtti/typed_primitives.hpp>
 
 #include "vect_concepts.hpp"
 #include "vect_views.hpp"
@@ -57,8 +56,6 @@
 #include <boost/config.hpp>
 #include <boost/static_assert.hpp>
 #include <boost/mpl/and.hpp>
-
-//#include "rk_math_traits.hpp"
 
 namespace ReaK {
   

@@ -33,10 +33,11 @@
 #ifndef REAK_STATE_TO_OUTPUT_MAPPING_HPP
 #define REAK_STATE_TO_OUTPUT_MAPPING_HPP
 
-#include "base/named_object.hpp"
+#include <ReaK/core/base/named_object.hpp>
 
-#include "path_planning/metric_space_concept.hpp"
-#include "path_planning/temporal_space_concept.hpp"
+#include <ReaK/ctrl/path_planning/metric_space_concept.hpp>
+#include <ReaK/ctrl/path_planning/temporal_space_concept.hpp>
+
 #include "state_space_sys_concept.hpp"
 
 #include <boost/utility.hpp>

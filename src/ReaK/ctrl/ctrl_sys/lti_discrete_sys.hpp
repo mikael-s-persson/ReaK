@@ -33,12 +33,11 @@
 #ifndef REAK_LTI_DISCRETE_SYS_HPP
 #define REAK_LTI_DISCRETE_SYS_HPP
 
+#include <ReaK/core/base/named_object.hpp>
+#include <ReaK/core/lin_alg/mat_alg.hpp>
+#include <ReaK/core/lin_alg/vect_alg.hpp>
+
 #include "discrete_linear_sss_concept.hpp"
-
-#include "base/named_object.hpp"
-
-#include "lin_alg/mat_alg.hpp"
-#include "lin_alg/vect_alg.hpp"
 
 namespace ReaK {
 

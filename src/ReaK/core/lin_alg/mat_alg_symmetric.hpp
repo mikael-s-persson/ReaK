@@ -306,7 +306,31 @@ class mat<T,mat_structure::symmetric,Alignment,Allocator> : public serialization
       else
         return q[mat_triangular_size(j) + i];
     };
-
+    
+    /**
+     * Sub-matrix operator, accessor for read only.
+     * \test PASSED
+     */
+    mat_const_sub_block<self> operator()(const std::pair<size_type,size_type>& r, const std::pair<size_type,size_type>& c) const {
+      return sub(*this)(r,c);
+    };
+    
+    /**
+     * Sub-matrix operator, accessor for read only.
+     * \test PASSED
+     */
+    mat_const_col_slice<self> operator()(size_type r, const std::pair<size_type,size_type>& c) const {
+      return slice(*this)(r,c);
+    };
+    
+    /**
+     * Sub-matrix operator, accessor for read only.
+     * \test PASSED
+     */
+    mat_const_row_slice<self> operator()(const std::pair<size_type,size_type>& r, size_type c) const {
+      return slice(*this)(r,c);
+    };
+    
     /**
      * Gets the row-count (number of rows) of the matrix.
      * \return number of rows of the matrix.

@@ -605,10 +605,10 @@ void swap_schur_blocks22_impl(Matrix1& A, Matrix2& B, Matrix3* Q, Matrix4* Z,
   mat<ValueType, mat_structure::rectangular> X(8,1);
   {
   mat<ValueType, mat_structure::square> E(8, ValueType(0.0));
-  sub(E)(range(0,1),range(0,1)) = sub(A)(range(q,q+1),range(p,p+1));
-  sub(E)(range(2,3),range(2,3)) = sub(A)(range(q,q+1),range(p,p+1));
-  sub(E)(range(4,5),range(0,1)) = sub(B)(range(q,q+1),range(p,p+1));
-  sub(E)(range(6,7),range(2,3)) = sub(B)(range(q,q+1),range(p,p+1));
+  sub(E)(range(0,2),range(0,2)) = sub(A)(range(q,q+2),range(p,p+2));
+  sub(E)(range(2,4),range(2,4)) = sub(A)(range(q,q+2),range(p,p+2));
+  sub(E)(range(4,6),range(0,2)) = sub(B)(range(q,q+2),range(p,p+2));
+  sub(E)(range(6,8),range(2,4)) = sub(B)(range(q,q+2),range(p,p+2));
   E(0,4) = -A(q+2,p+2); E(0,6) = -A(q+3,p+2); 
   E(1,5) = -A(q+2,p+2); E(1,7) = -A(q+3,p+2); 
   E(2,4) = -A(q+2,p+3); E(2,6) = -A(q+3,p+3); 
@@ -641,8 +641,8 @@ void swap_schur_blocks22_impl(Matrix1& A, Matrix2& B, Matrix3* Q, Matrix4* Z,
   Y_lhs(1,0) = -X(5,0);
   Y_lhs(0,1) = -X(6,0);
   Y_lhs(1,1) = -X(7,0);
-  sub(Y_lhs)(range(2,3),range(0,1)) = mat<ValueType, mat_structure::identity>(2);
-  //sub(Y_lhs)(range(2,3),range(0,1)) *= ValueType(0.1);
+  sub(Y_lhs)(range(2,4),range(0,2)) = mat<ValueType, mat_structure::identity>(2);
+  //sub(Y_lhs)(range(2,4),range(0,2)) *= ValueType(0.1);
   
 //   std::cout << " 2x2 Swap: Y_lhs = " << Y_lhs << std::endl;
   
@@ -658,8 +658,8 @@ void swap_schur_blocks22_impl(Matrix1& A, Matrix2& B, Matrix3* Q, Matrix4* Z,
   X_lhs(1,2) = X(1,0);
   X_lhs(0,3) = X(2,0);
   X_lhs(1,3) = X(3,0);
-  sub(X_lhs)(range(0,1),range(0,1)) = mat<ValueType, mat_structure::identity>(2);
-  //sub(X_lhs)(range(0,1),range(0,1)) *= ValueType(0.1);
+  sub(X_lhs)(range(0,2),range(0,2)) = mat<ValueType, mat_structure::identity>(2);
+  //sub(X_lhs)(range(0,2),range(0,2)) *= ValueType(0.1);
   
 //   std::cout << " 2x2 Swap: X_lhs = " << X_lhs << std::endl;
   
@@ -675,22 +675,22 @@ void swap_schur_blocks22_impl(Matrix1& A, Matrix2& B, Matrix3* Q, Matrix4* Z,
 //   std::cout << " 2x2 Swap: 1: B = " << B << std::endl;
   
   // Now, multiply V^T on (A,B,[Q])
-  sub(A)(range(q,q+3),range(p,A.get_col_count()-1)) = transpose_view(V) * sub(A)(range(q,q+3),range(p,A.get_col_count()-1));
-  sub(B)(range(q,q+3),range(p,B.get_col_count()-1)) = transpose_view(V) * sub(B)(range(q,q+3),range(p,B.get_col_count()-1));
+  sub(A)(range(q,q+4),range(p,A.get_col_count())) = transpose_view(V) * sub(A)(range(q,q+4),range(p,A.get_col_count()));
+  sub(B)(range(q,q+4),range(p,B.get_col_count())) = transpose_view(V) * sub(B)(range(q,q+4),range(p,B.get_col_count()));
   
   if(Q) {
-    sub(*Q)(range(0,Q->get_row_count()-1), range(q - row_offset, q - row_offset + 3)) *= V;
+    sub(*Q)(range(0,Q->get_row_count()), range(q - row_offset, q - row_offset + 4)) *= V;
   };
   
 //   std::cout << " 2x2 Swap: 2: A = " << A << std::endl;
 //   std::cout << " 2x2 Swap: 2: B = " << B << std::endl;
   
   // Now, multiply W on (A,B,[Z])
-  sub(A)(range(0,q+3), range(p,p+3)) *= W;
-  sub(B)(range(0,q+3), range(p,p+3)) *= W;
+  sub(A)(range(0,q+4), range(p,p+4)) *= W;
+  sub(B)(range(0,q+4), range(p,p+4)) *= W;
   
   if(Z) {
-    sub(*Z)(range(0,Z->get_row_count()-1), range(p, p+3)) *= W;
+    sub(*Z)(range(0,Z->get_row_count()), range(p, p+4)) *= W;
   };
   
 //   std::cout << " 2x2 Swap: 3: A = " << A << std::endl;
@@ -1290,8 +1290,8 @@ void partition_schur_pencil_impl(Matrix1& A, Matrix2& B, Matrix3* Q, Matrix4* Z,
         is_prev_block_by2 = true;
       bool swap_needed = false;
       if(is_next_block_by2 && is_prev_block_by2) {
-        swap_needed = (-1 == compare(sub(A)(range(p-2,p-1),range(p-2,p-1)), sub(B)(range(p-2,p-1),range(p-2,p-1)),
-                                     sub(A)(range(p,p+1),range(p,p+1)), sub(B)(range(p,p+1),range(p,p+1))));
+        swap_needed = (-1 == compare(sub(A)(range(p-2,p),range(p-2,p)), sub(B)(range(p-2,p),range(p-2,p)),
+                                     sub(A)(range(p,p+2),range(p,p+2)), sub(B)(range(p,p+2),range(p,p+2))));
         if(swap_needed) {
           mat_sub_block<Matrix1> subA(A, p+2, N-p+2, 0, p-2);
           mat_sub_block<Matrix2> subB(B, p+2, N-p+2, 0, p-2);
@@ -1314,8 +1314,8 @@ void partition_schur_pencil_impl(Matrix1& A, Matrix2& B, Matrix3* Q, Matrix4* Z,
           p -= 2;
         };
       } else if(is_next_block_by2 && !is_prev_block_by2) {
-        swap_needed = (-1 == compare(sub(A)(range(p-1,p-1),range(p-1,p-1)), sub(B)(range(p-1,p-1),range(p-1,p-1)),
-                                     sub(A)(range(p,p+1),range(p,p+1)), sub(B)(range(p,p+1),range(p,p+1))));
+        swap_needed = (-1 == compare(sub(A)(range(p-1,p),range(p-1,p)), sub(B)(range(p-1,p),range(p-1,p)),
+                                     sub(A)(range(p,p+2),range(p,p+2)), sub(B)(range(p,p+2),range(p,p+2))));
         if(swap_needed) {
           mat_sub_block<Matrix1> subA(A, p+2, N-p+1, 0, p-1);
           mat_sub_block<Matrix2> subB(B, p+2, N-p+1, 0, p-1);
@@ -1338,8 +1338,8 @@ void partition_schur_pencil_impl(Matrix1& A, Matrix2& B, Matrix3* Q, Matrix4* Z,
           --p;
         };
       } else if(!is_next_block_by2 && is_prev_block_by2) {
-        swap_needed = (-1 == compare(sub(A)(range(p-2,p-1),range(p-2,p-1)), sub(B)(range(p-2,p-1),range(p-2,p-1)),
-                                     sub(A)(range(p,p),range(p,p)), sub(B)(range(p,p),range(p,p))));
+        swap_needed = (-1 == compare(sub(A)(range(p-2,p),range(p-2,p)), sub(B)(range(p-2,p),range(p-2,p)),
+                                     sub(A)(range(p,p+1),range(p,p+1)), sub(B)(range(p,p+1),range(p,p+1))));
         if(swap_needed) {
           mat_sub_block<Matrix1> subA(A, p+1, N-p+2, 0, p-2);
           mat_sub_block<Matrix2> subB(B, p+1, N-p+2, 0, p-2);
@@ -1362,8 +1362,8 @@ void partition_schur_pencil_impl(Matrix1& A, Matrix2& B, Matrix3* Q, Matrix4* Z,
           p -= 2;
         };
       } else if(!is_next_block_by2 && !is_prev_block_by2) {
-        swap_needed = (-1 == compare(sub(A)(range(p-1,p-1),range(p-1,p-1)), sub(B)(range(p-1,p-1),range(p-1,p-1)),
-                                     sub(A)(range(p,p),range(p,p)), sub(B)(range(p,p),range(p,p))));
+        swap_needed = (-1 == compare(sub(A)(range(p-1,p),range(p-1,p)), sub(B)(range(p-1,p),range(p-1,p)),
+                                     sub(A)(range(p,p+1),range(p,p+1)), sub(B)(range(p,p+1),range(p,p+1))));
         if(swap_needed) {
           mat_sub_block<Matrix1> subA(A, p+1, N-p+1, 0, p-1);
           mat_sub_block<Matrix2> subB(B, p+1, N-p+1, 0, p-1);
@@ -1465,11 +1465,11 @@ void >::type solve_care_problem(const Matrix1& A, const Matrix2& B,
     return;
   
   mat<ValueType, mat_structure::rectangular> R_tmp(N * 2 + M, M);
-  sub(R_tmp)(range(0,M-1), range(0,M-1)) = R;
-  sub(R_tmp)(range(M,M + N - 1), range(0,M-1)) = B;
+  sub(R_tmp)(range(0,M), range(0,M)) = R;
+  sub(R_tmp)(range(M,M + N), range(0,M)) = B;
   mat<ValueType, mat_structure::square> Q_tmp = mat<ValueType, mat_structure::square>(N * 2 + M);
-  sub(Q_tmp)(range(0, 2 * N - 1), range(M, M + 2 * N - 1)) = mat<ValueType, mat_structure::identity>(2 * N);
-  sub(Q_tmp)(range(2 * N, 2 * N + M - 1), range(0, M - 1)) = mat<ValueType, mat_structure::identity>(M);
+  sub(Q_tmp)(range(0, 2 * N), range(M, M + 2 * N)) = mat<ValueType, mat_structure::identity>(2 * N);
+  sub(Q_tmp)(range(2 * N, 2 * N + M), range(0, M)) = mat<ValueType, mat_structure::identity>(M);
   
 //   std::cout << "CARE: (R; B; 0) = " << R_tmp << std::endl;
 //   std::cout << "CARE: Q = " << Q_tmp << std::endl;
@@ -1481,15 +1481,15 @@ void >::type solve_care_problem(const Matrix1& A, const Matrix2& B,
 //   std::cout << "CARE: Q' = " << Q_tmp << std::endl;
   
   mat<ValueType, mat_structure::rectangular> B_aug(2 * N, 2 * N);
-  B_aug = sub(Q_tmp)(range(M,M + 2*N - 1), range(0,2*N - 1));
+  B_aug = sub(Q_tmp)(range(M,M + 2*N), range(0,2*N));
   
   mat<ValueType, mat_structure::rectangular> A_aug(2 * N, 2 * N);
-  sub(A_aug)(range(0,2 * N - 1),range(0, N - 1)) = 
-      sub(Q_tmp)(range(M,M + 2*N-1),range(0,N-1)) * A
-    - sub(Q_tmp)(range(M,M + 2*N-1),range(N,2*N-1)) * Q;
-  sub(A_aug)(range(0,2 * N - 1),range(N, 2*N - 1)) = 
-      sub(Q_tmp)(range(M,M + 2*N-1),range(2*N,2*N+M-1)) * transpose_view(B)
-    - sub(Q_tmp)(range(M,M + 2*N-1),range(N,2*N-1)) * transpose_view(A);
+  sub(A_aug)(range(0,2 * N),range(0, N)) = 
+      sub(Q_tmp)(range(M,M + 2*N),range(0,N)) * A
+    - sub(Q_tmp)(range(M,M + 2*N),range(N,2*N)) * Q;
+  sub(A_aug)(range(0,2 * N),range(N, 2*N)) = 
+      sub(Q_tmp)(range(M,M + 2*N),range(2*N,2*N+M)) * transpose_view(B)
+    - sub(Q_tmp)(range(M,M + 2*N),range(N,2*N)) * transpose_view(A);
   
   mat<ValueType, mat_structure::square> Q_aug = mat<ValueType, mat_structure::square>(mat<ValueType, mat_structure::identity>(2*N));
   mat<ValueType, mat_structure::square> Z_aug = mat<ValueType, mat_structure::square>(mat<ValueType, mat_structure::identity>(2*N));
@@ -1547,8 +1547,8 @@ void >::type solve_care_problem(const Matrix1& A, const Matrix2& B,
   };
   
   if(UseBalancing) {
-    apply_left_bal_inv_exp(sub(Dr_aug)[range(0,N-1)], P);
-    apply_right_bal_exp(P, sub(Dr_aug)[range(N,2*N-1)]);
+    apply_left_bal_inv_exp(sub(Dr_aug)[range(0,N)], P);
+    apply_right_bal_exp(P, sub(Dr_aug)[range(N,2*N)]);
   };
   
   P += transpose(P);
@@ -1744,15 +1744,15 @@ mat_traits<Matrix1> >::type::size_type
   };
   
   // create the transformed quadratic penalty matrices:
-  mat<ValueType,mat_structure::rectangular> Qrr(sub(Qr)(range(0,N-1), range(0,r-1)));
+  mat<ValueType,mat_structure::rectangular> Qrr(sub(Qr)(range(0,N), range(0,r)));
   mat<ValueType,mat_structure::square> R_reduced( transpose_view(Zr) * R * Zr );
   mat<ValueType,mat_structure::square> Q_reduced( transpose_view(Qrr) * Q * Qrr);
   
   // solve the IHCT LQR problem over the controllable states:
   mat<ValueType,mat_structure::rectangular> P_reduced(r,r);
   mat<ValueType,mat_structure::rectangular> K_reduced(M,r);
-  solve_IHCT_LQR(sub(Ar)(range(0,r-1),range(0,r-1)), 
-                 sub(Br)(range(0,r-1),range(0,M-1)), 
+  solve_IHCT_LQR(sub(Ar)(range(0,r),range(0,r)), 
+                 sub(Br)(range(0,r),range(0,M)), 
                  Q_reduced, R_reduced, K_reduced, P_reduced, NumTol, UseBalancing);
   
   // compute the resulting cost-matrix and gain-matrix (note: they are positive-semi-definite and rank deficient, respectively).
@@ -2046,20 +2046,20 @@ mat_traits<Matrix1> >::type::size_type
   };
   
   // create the transformed quadratic penalty matrices:
-  mat<ValueType,mat_structure::rectangular> Qrr(sub(Qr)(range(0,N-1), range(0,r-1)));
+  mat<ValueType,mat_structure::rectangular> Qrr(sub(Qr)(range(0,N), range(0,r)));
   mat<ValueType,mat_structure::square> R_reduced( transpose_view(Zr) * R * Zr );
   mat<ValueType,mat_structure::square> Q_reduced( transpose_view(Qrr) * Q * Qrr);
   std::cout << "  r = " << r << std::endl;
-  std::cout << " A_red = " << sub(Ar)(range(0,r-1),range(0,r-1)) << std::endl;
-  std::cout << " B_red = " << sub(Br)(range(0,r-1),range(0,M-1)) << std::endl;
+  std::cout << " A_red = " << sub(Ar)(range(0,r),range(0,r)) << std::endl;
+  std::cout << " B_red = " << sub(Br)(range(0,r),range(0,M)) << std::endl;
   std::cout << " Q_red = " << Q_reduced << std::endl;
   std::cout << " R_red = " << R_reduced << std::endl;
   
   // solve the IHCT AQR problem over the controllable states:
   mat<ValueType,mat_structure::rectangular> P_reduced(r,r);
   mat<ValueType,mat_structure::rectangular> K_reduced(M,r);
-  solve_IHCT_AQR(sub(Ar)(range(0,r-1),range(0,r-1)), 
-                 sub(Br)(range(0,r-1),range(0,M-1)), 
+  solve_IHCT_AQR(sub(Ar)(range(0,r),range(0,r)), 
+                 sub(Br)(range(0,r),range(0,M)), 
                  transpose_view(Qrr) * c,
                  Q_reduced, R_reduced, 
                  K_reduced, P_reduced, u_bias, NumTol, UseBalancing);
@@ -2282,11 +2282,11 @@ void >::type solve_dare_problem(const Matrix1& F, const Matrix2& G,
   SizeType M = R.get_row_count();
   
   mat<ValueType, mat_structure::rectangular> R_tmp(N * 2 + M, M);
-  sub(R_tmp)(range(0,M-1), range(0,M-1)) = R;
-  sub(R_tmp)(range(M,M + N - 1), range(0,M-1)) = -G;
+  sub(R_tmp)(range(0,M), range(0,M)) = R;
+  sub(R_tmp)(range(M,M + N), range(0,M)) = -G;
   mat<ValueType, mat_structure::square> Q_tmp = mat<ValueType, mat_structure::square>(N * 2 + M);
-  sub(Q_tmp)(range(0, 2 * N - 1), range(M, M + 2 * N - 1)) = mat<ValueType, mat_structure::identity>(2 * N);
-  sub(Q_tmp)(range(2 * N, 2 * N + M - 1), range(0, M - 1)) = mat<ValueType, mat_structure::identity>(M);
+  sub(Q_tmp)(range(0, 2 * N), range(M, M + 2 * N)) = mat<ValueType, mat_structure::identity>(2 * N);
+  sub(Q_tmp)(range(2 * N, 2 * N + M), range(0, M)) = mat<ValueType, mat_structure::identity>(M);
   
 //   std::cout << "DARE: (R; -G; 0) = " << R_tmp << std::endl;
 //   std::cout << "DARE: Q = " << Q_tmp << std::endl;
@@ -2298,16 +2298,16 @@ void >::type solve_dare_problem(const Matrix1& F, const Matrix2& G,
 //   std::cout << "DARE: Q' = " << Q_tmp << std::endl;
   
   mat<ValueType, mat_structure::rectangular> B_aug(2 * N, 2 * N);
-  sub(B_aug)(range(0,2 * N - 1),range(0, N - 1)) = sub(Q_tmp)(range(M,M + 2*N-1),range(0,N-1));
-  sub(B_aug)(range(0,2 * N - 1),range(N, 2*N - 1)) = 
-      sub(Q_tmp)(range(M,M + 2*N-1),range(N,2*N-1)) * transpose_view(F)
-    + sub(Q_tmp)(range(M,M + 2*N-1),range(2*N,2*N+M-1)) * transpose_view(G);
+  sub(B_aug)(range(0,2 * N),range(0, N)) = sub(Q_tmp)(range(M,M + 2*N),range(0,N));
+  sub(B_aug)(range(0,2 * N),range(N, 2*N)) = 
+      sub(Q_tmp)(range(M,M + 2*N),range(N,2*N)) * transpose_view(F)
+    + sub(Q_tmp)(range(M,M + 2*N),range(2*N,2*N+M)) * transpose_view(G);
   
   mat<ValueType, mat_structure::rectangular> A_aug(2 * N, 2 * N);
-  sub(A_aug)(range(0,2 * N - 1),range(0, N - 1)) = 
-      sub(Q_tmp)(range(M,M + 2*N-1),range(0,N-1)) * F
-    - sub(Q_tmp)(range(M,M + 2*N-1),range(N,2*N-1)) * Q;
-  sub(A_aug)(range(0,2 * N - 1),range(N, 2*N - 1)) = sub(Q_tmp)(range(M,M + 2*N-1),range(N,2*N-1));
+  sub(A_aug)(range(0,2 * N),range(0, N)) = 
+      sub(Q_tmp)(range(M,M + 2*N),range(0,N)) * F
+    - sub(Q_tmp)(range(M,M + 2*N),range(N,2*N)) * Q;
+  sub(A_aug)(range(0,2 * N),range(N, 2*N)) = sub(Q_tmp)(range(M,M + 2*N),range(N,2*N));
   
   mat<ValueType, mat_structure::square> Q_aug = mat<ValueType, mat_structure::square>(mat<ValueType, mat_structure::identity>(2*N));
   mat<ValueType, mat_structure::square> Z_aug = mat<ValueType, mat_structure::square>(mat<ValueType, mat_structure::identity>(2*N));
@@ -2369,8 +2369,8 @@ void >::type solve_dare_problem(const Matrix1& F, const Matrix2& G,
   };
   
   if(UseBalancing) {
-    apply_left_bal_inv_exp(sub(Dr_aug)[range(0,N-1)], P);
-    apply_right_bal_exp(P, sub(Dr_aug)[range(N,2*N-1)]);
+    apply_left_bal_inv_exp(sub(Dr_aug)[range(0,N)], P);
+    apply_right_bal_exp(P, sub(Dr_aug)[range(N,2*N)]);
   };
   
   P += transpose(P);
@@ -2683,26 +2683,26 @@ void >::type solve_ctsf_problem(const Matrix1& A, const Matrix2& B,
   SizeType M = D.get_row_count();
   
   mat<ValueType, mat_structure::rectangular> R_tmp(N * 2 + M, M);
-  sub(R_tmp)(range(0, M-1), range(0,M-1)) = D + transpose_view(D);
-  sub(R_tmp)(range(M, M + N - 1), range(0,M-1)) = B;
-  sub(R_tmp)(range(M + N, M + 2*N - 1), range(0,M-1)) = transpose_view(C);
+  sub(R_tmp)(range(0, M), range(0,M)) = D + transpose_view(D);
+  sub(R_tmp)(range(M, M + N), range(0,M)) = B;
+  sub(R_tmp)(range(M + N, M + 2*N), range(0,M)) = transpose_view(C);
   mat<ValueType, mat_structure::square> Q_tmp = mat<ValueType, mat_structure::square>(N * 2 + M);
-  sub(Q_tmp)(range(0, 2 * N - 1), range(M, M + 2 * N - 1)) = mat<ValueType, mat_structure::identity>(2 * N);
-  sub(Q_tmp)(range(2 * N, 2 * N + M - 1), range(0, M - 1)) = mat<ValueType, mat_structure::identity>(M);
+  sub(Q_tmp)(range(0, 2 * N), range(M, M + 2 * N)) = mat<ValueType, mat_structure::identity>(2 * N);
+  sub(Q_tmp)(range(2 * N, 2 * N + M), range(0, M)) = mat<ValueType, mat_structure::identity>(M);
   
   detail::decompose_QR_impl(R_tmp, &Q_tmp, NumTol);
   Q_tmp = transpose(Q_tmp);
   
   mat<ValueType, mat_structure::rectangular> B_aug(2 * N, 2 * N);
-  B_aug = sub(Q_tmp)(range(M,M + 2*N - 1), range(0,2*N - 1));
+  B_aug = sub(Q_tmp)(range(M,M + 2*N), range(0,2*N));
   
   mat<ValueType, mat_structure::rectangular> A_aug(2 * N, 2 * N);
-  sub(A_aug)(range(0,2 * N - 1),range(0, N - 1)) = 
-      sub(Q_tmp)(range(M,M + 2*N-1),range(0,N-1)) * A
-    + sub(Q_tmp)(range(M,M + 2*N-1),range(2*N,2*N+M-1)) * C;
-  sub(A_aug)(range(0,2 * N - 1),range(N, 2*N - 1)) = 
-    - sub(Q_tmp)(range(M,M + 2*N-1),range(2*N,2*N+M-1)) * transpose_view(B)
-    - sub(Q_tmp)(range(M,M + 2*N-1),range(N,2*N-1)) * transpose_view(A);
+  sub(A_aug)(range(0,2 * N),range(0, N)) = 
+      sub(Q_tmp)(range(M,M + 2*N),range(0,N)) * A
+    + sub(Q_tmp)(range(M,M + 2*N),range(2*N,2*N+M)) * C;
+  sub(A_aug)(range(0,2 * N),range(N, 2*N)) = 
+    - sub(Q_tmp)(range(M,M + 2*N),range(2*N,2*N+M)) * transpose_view(B)
+    - sub(Q_tmp)(range(M,M + 2*N),range(N,2*N)) * transpose_view(A);
   
   mat<ValueType, mat_structure::square> Q_aug = mat<ValueType, mat_structure::square>(mat<ValueType, mat_structure::identity>(2*N));
   mat<ValueType, mat_structure::square> Z_aug = mat<ValueType, mat_structure::square>(mat<ValueType, mat_structure::identity>(2*N));
@@ -2738,8 +2738,8 @@ void >::type solve_ctsf_problem(const Matrix1& A, const Matrix2& B,
   };
   
   if(UseBalancing) {
-    apply_left_bal_inv_exp(sub(Dr_aug)[range(0,N-1)], P);
-    apply_right_bal_exp(P, sub(Dr_aug)[range(N,2*N-1)]);
+    apply_left_bal_inv_exp(sub(Dr_aug)[range(0,N)], P);
+    apply_right_bal_exp(P, sub(Dr_aug)[range(N,2*N)]);
   };
   
   P += transpose(P);
@@ -2812,27 +2812,27 @@ void >::type solve_dtsf_problem(const Matrix1& F, const Matrix2& G,
   SizeType M = J.get_row_count();
   
   mat<ValueType, mat_structure::rectangular> R_tmp(N * 2 + M, M);
-  sub(R_tmp)(range(0,M-1), range(0,M-1)) = -(J + transpose_view(J));
-  sub(R_tmp)(range(M,M + N - 1), range(0,M-1)) = -G;
-  sub(R_tmp)(range(M+N,M + 2*N - 1), range(0,M-1)) = -transpose_view(H);
+  sub(R_tmp)(range(0,M), range(0,M)) = -(J + transpose_view(J));
+  sub(R_tmp)(range(M,M + N), range(0,M)) = -G;
+  sub(R_tmp)(range(M+N,M + 2*N), range(0,M)) = -transpose_view(H);
   mat<ValueType, mat_structure::square> Q_tmp = mat<ValueType, mat_structure::square>(N * 2 + M);
-  sub(Q_tmp)(range(0, 2 * N - 1), range(M, M + 2 * N - 1)) = mat<ValueType, mat_structure::identity>(2 * N);
-  sub(Q_tmp)(range(2 * N, 2 * N + M - 1), range(0, M - 1)) = mat<ValueType, mat_structure::identity>(M);
+  sub(Q_tmp)(range(0, 2 * N), range(M, M + 2 * N)) = mat<ValueType, mat_structure::identity>(2 * N);
+  sub(Q_tmp)(range(2 * N, 2 * N + M), range(0, M)) = mat<ValueType, mat_structure::identity>(M);
   
   detail::decompose_QR_impl(R_tmp, &Q_tmp, NumTol);
   Q_tmp = transpose(Q_tmp);
   
   mat<ValueType, mat_structure::rectangular> B_aug(2 * N, 2 * N);
-  sub(B_aug)(range(0,2 * N - 1),range(0, N - 1)) = sub(Q_tmp)(range(M,M + 2*N-1),range(0,N-1));
-  sub(B_aug)(range(0,2 * N - 1),range(N, 2*N - 1)) = 
-      sub(Q_tmp)(range(M,M + 2*N-1),range(N,2*N-1)) * transpose_view(F)
-    + sub(Q_tmp)(range(M,M + 2*N-1),range(2*N,2*N+M-1)) * transpose_view(G);
+  sub(B_aug)(range(0,2 * N),range(0, N)) = sub(Q_tmp)(range(M,M + 2*N),range(0,N));
+  sub(B_aug)(range(0,2 * N),range(N, 2*N)) = 
+      sub(Q_tmp)(range(M,M + 2*N),range(N,2*N)) * transpose_view(F)
+    + sub(Q_tmp)(range(M,M + 2*N),range(2*N,2*N+M)) * transpose_view(G);
   
   mat<ValueType, mat_structure::rectangular> A_aug(2 * N, 2 * N);
-  sub(A_aug)(range(0,2 * N - 1),range(0, N - 1)) = 
-      sub(Q_tmp)(range(M,M + 2*N-1),range(0,N-1)) * F
-    + sub(Q_tmp)(range(M,M + 2*N-1),range(2*N,2*N+M-1)) * H;
-  sub(A_aug)(range(0,2 * N - 1),range(N, 2*N - 1)) = sub(Q_tmp)(range(M,M + 2*N-1),range(N,2*N-1));
+  sub(A_aug)(range(0,2 * N),range(0, N)) = 
+      sub(Q_tmp)(range(M,M + 2*N),range(0,N)) * F
+    + sub(Q_tmp)(range(M,M + 2*N),range(2*N,2*N+M)) * H;
+  sub(A_aug)(range(0,2 * N),range(N, 2*N)) = sub(Q_tmp)(range(M,M + 2*N),range(N,2*N));
   
   mat<ValueType, mat_structure::square> Q_aug = mat<ValueType, mat_structure::square>(mat<ValueType, mat_structure::identity>(2*N));
   mat<ValueType, mat_structure::square> Z_aug = mat<ValueType, mat_structure::square>(mat<ValueType, mat_structure::identity>(2*N));
@@ -2868,8 +2868,8 @@ void >::type solve_dtsf_problem(const Matrix1& F, const Matrix2& G,
   };
   
   if(UseBalancing) {
-    apply_left_bal_inv_exp(sub(Dr_aug)[range(0,N-1)], P);
-    apply_right_bal_exp(P, sub(Dr_aug)[range(N,2*N-1)]);
+    apply_left_bal_inv_exp(sub(Dr_aug)[range(0,N)], P);
+    apply_right_bal_exp(P, sub(Dr_aug)[range(N,2*N)]);
   };
   
   P += transpose(P);

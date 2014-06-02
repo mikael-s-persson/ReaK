@@ -102,13 +102,13 @@ class damper_gen : public kte_map {
      * \param aDamping damping coefficient (in Ns/m for a linear generalized coord. or Nms/rad for an angular generalized coord.).
      */
     damper_gen(const std::string& aName,
-	       const shared_ptr< gen_coord<double> >& aAnchor1,
-	       const shared_ptr< gen_coord<double> >& aAnchor2,
-	       double aDamping) :
-	       kte_map(aName),
-	       mAnchor1(aAnchor1),
-	       mAnchor2(aAnchor2),
-	       mDamping(aDamping) { };
+               const shared_ptr< gen_coord<double> >& aAnchor1,
+               const shared_ptr< gen_coord<double> >& aAnchor2,
+               double aDamping) :
+               kte_map(aName),
+               mAnchor1(aAnchor1),
+               mAnchor2(aAnchor2),
+               mDamping(aDamping) { };
 
     /**
      * Default destructor.
@@ -125,14 +125,14 @@ class damper_gen : public kte_map {
       kte_map::save(A,kte_map::getStaticObjectType()->TypeVersion());
       A & RK_SERIAL_SAVE_WITH_NAME(mAnchor1)
         & RK_SERIAL_SAVE_WITH_NAME(mAnchor2)
-	& RK_SERIAL_SAVE_WITH_NAME(mDamping);
+        & RK_SERIAL_SAVE_WITH_NAME(mDamping);
     };
 
     virtual void RK_CALL load(ReaK::serialization::iarchive& A, unsigned int) {
       kte_map::load(A,kte_map::getStaticObjectType()->TypeVersion());
       A & RK_SERIAL_LOAD_WITH_NAME(mAnchor1)
         & RK_SERIAL_LOAD_WITH_NAME(mAnchor2)
-	& RK_SERIAL_LOAD_WITH_NAME(mDamping);
+        & RK_SERIAL_LOAD_WITH_NAME(mDamping);
 
     };
 
@@ -195,13 +195,13 @@ class damper_2D : public kte_map {
      * \param aDamping damping coefficient (in Ns/m).
      */
     damper_2D(const std::string& aName,
-	      const shared_ptr< frame_2D<double> >& aAnchor1,
-	      const shared_ptr< frame_2D<double> >& aAnchor2,
-	      double aDamping) :
-	      kte_map(aName),
-	      mAnchor1(aAnchor1),
-	      mAnchor2(aAnchor2),
-	      mDamping(aDamping) { };
+              const shared_ptr< frame_2D<double> >& aAnchor1,
+              const shared_ptr< frame_2D<double> >& aAnchor2,
+              double aDamping) :
+              kte_map(aName),
+              mAnchor1(aAnchor1),
+              mAnchor2(aAnchor2),
+              mDamping(aDamping) { };
 
     /**
      * Default destructor.
@@ -218,14 +218,14 @@ class damper_2D : public kte_map {
       kte_map::save(A,kte_map::getStaticObjectType()->TypeVersion());
       A & RK_SERIAL_SAVE_WITH_NAME(mAnchor1)
         & RK_SERIAL_SAVE_WITH_NAME(mAnchor2)
-	& RK_SERIAL_SAVE_WITH_NAME(mDamping);
+        & RK_SERIAL_SAVE_WITH_NAME(mDamping);
     };
 
     virtual void RK_CALL load(ReaK::serialization::iarchive& A, unsigned int) {
       kte_map::load(A,kte_map::getStaticObjectType()->TypeVersion());
       A & RK_SERIAL_LOAD_WITH_NAME(mAnchor1)
         & RK_SERIAL_LOAD_WITH_NAME(mAnchor2)
-	& RK_SERIAL_LOAD_WITH_NAME(mDamping);
+        & RK_SERIAL_LOAD_WITH_NAME(mDamping);
 
     };
 
@@ -288,13 +288,13 @@ class damper_3D : public kte_map {
      * \param aDamping damping coefficient (in Ns/m).
      */
     damper_3D(const std::string& aName,
-	      const shared_ptr< frame_3D<double> >& aAnchor1,
-	      const shared_ptr< frame_3D<double> >& aAnchor2,
-	      double aDamping) :
-	      kte_map(aName),
-	      mAnchor1(aAnchor1),
-	      mAnchor2(aAnchor2),
-	      mDamping(aDamping) { };
+              const shared_ptr< frame_3D<double> >& aAnchor1,
+              const shared_ptr< frame_3D<double> >& aAnchor2,
+              double aDamping) :
+              kte_map(aName),
+              mAnchor1(aAnchor1),
+              mAnchor2(aAnchor2),
+              mDamping(aDamping) { };
 
     /**
      * Default destructor.
@@ -311,14 +311,14 @@ class damper_3D : public kte_map {
       kte_map::save(A,kte_map::getStaticObjectType()->TypeVersion());
       A & RK_SERIAL_SAVE_WITH_NAME(mAnchor1)
         & RK_SERIAL_SAVE_WITH_NAME(mAnchor2)
-	& RK_SERIAL_SAVE_WITH_NAME(mDamping);
+        & RK_SERIAL_SAVE_WITH_NAME(mDamping);
     };
 
     virtual void RK_CALL load(ReaK::serialization::iarchive& A, unsigned int) {
       kte_map::load(A,kte_map::getStaticObjectType()->TypeVersion());
       A & RK_SERIAL_LOAD_WITH_NAME(mAnchor1)
         & RK_SERIAL_LOAD_WITH_NAME(mAnchor2)
-	& RK_SERIAL_LOAD_WITH_NAME(mDamping);
+        & RK_SERIAL_LOAD_WITH_NAME(mDamping);
     };
 
     RK_RTTI_MAKE_CONCRETE_1BASE(damper_3D,0xC2100012,1,"damper_3D",kte_map)

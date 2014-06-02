@@ -21,20 +21,19 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "base/defs.hpp"
+#include <ReaK/core/base/defs.hpp>
+#include <ReaK/core/lin_alg/mat_alg.hpp>
+#include <ReaK/core/lin_alg/mat_gaussian_elim.hpp>
+#include <ReaK/core/lin_alg/mat_cholesky.hpp>
+#include <ReaK/core/lin_alg/mat_jacobi_method.hpp>
+#include <ReaK/core/lin_alg/mat_qr_decomp.hpp>
+#include <ReaK/core/lin_alg/mat_svd_method.hpp>
+#include <ReaK/core/lin_alg/mat_schur_decomp.hpp>
+
 #include <iostream>
 #include <fstream>
 #include <cstdio>
 
-#include "mat_alg.hpp"
-
-#include "mat_gaussian_elim.hpp"
-#include "mat_cholesky.hpp"
-#include "mat_jacobi_method.hpp"
-#include "mat_qr_decomp.hpp"
-#include "mat_svd_method.hpp"
-
-#include "mat_schur_decomp.hpp"
 
 /*
  * This program is just a little test program that is used temporarily to test little 

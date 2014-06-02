@@ -24,7 +24,7 @@
 #ifndef RK_UNIT_TEST_INTEGRATORS_PROBLEMS_HPP
 #define RK_UNIT_TEST_INTEGRATORS_PROBLEMS_HPP
 
-#include "base/defs.hpp"
+#include <ReaK/core/base/defs.hpp>
 
 #include "integrator.hpp"
 

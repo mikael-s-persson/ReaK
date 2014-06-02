@@ -98,7 +98,7 @@ class mat<T,mat_structure::permutation, Alignment, Allocator> : public serializa
      */
     mat(size_type aRowCount) : idx(aRowCount), rowCount(aRowCount) { 
       for(size_type i = 0; i < rowCount; ++i)
-	idx[i] = i;
+        idx[i] = i;
     };
     
     /**
@@ -123,9 +123,33 @@ class mat<T,mat_structure::permutation, Alignment, Allocator> : public serializa
      */
     const_reference operator()(size_type i,size_type j) const { 
       if(idx[i] == j) 
-	return value_type(1); 
+        return value_type(1); 
       else 
-	return value_type(0); 
+        return value_type(0); 
+    };
+    
+    /**
+     * Sub-matrix operator, accessor for read only.
+     * \test PASSED
+     */
+    mat_const_sub_block<self> operator()(const std::pair<size_type,size_type>& r, const std::pair<size_type,size_type>& c) const {
+      return sub(*this)(r,c);
+    };
+    
+    /**
+     * Sub-matrix operator, accessor for read only.
+     * \test PASSED
+     */
+    mat_const_col_slice<self> operator()(size_type r, const std::pair<size_type,size_type>& c) const {
+      return slice(*this)(r,c);
+    };
+    
+    /**
+     * Sub-matrix operator, accessor for read only.
+     * \test PASSED
+     */
+    mat_const_row_slice<self> operator()(const std::pair<size_type,size_type>& r, size_type c) const {
+      return slice(*this)(r,c);
     };
     
     /**
@@ -188,7 +212,7 @@ class mat<T,mat_structure::permutation, Alignment, Allocator> : public serializa
      */
     void add_row_swap(size_type i, size_type j) {
       if(i == j)
-	return;
+        return;
       using std::swap;
       swap(idx[i],idx[j]);
     };
@@ -204,15 +228,15 @@ class mat<T,mat_structure::permutation, Alignment, Allocator> : public serializa
      */
     void add_column_swap(size_type i, size_type j) {
       if(i == j)
-	return;
+        return;
       using std::swap;
       size_type p_i = 0;
       size_type p_j = 0;
       for(size_type k = 0; k < rowCount; ++k) {
-	if(idx[k] == i)
-	  p_i = k;
-	if(idx[k] == j)
-	  p_j = k;
+        if(idx[k] == i)
+          p_i = k;
+        if(idx[k] == j)
+          p_j = k;
       };
       swap(idx[p_i],idx[p_j]);
     };
@@ -228,10 +252,10 @@ class mat<T,mat_structure::permutation, Alignment, Allocator> : public serializa
     
     friend self operator*(const self& M1, const self& M2) {
       if( M1.get_row_count() != M2.get_row_count() )
-	throw std::range_error("Matrix dimensions mismatch!");
+        throw std::range_error("Matrix dimensions mismatch!");
       self result(M1.get_row_count());
       for(size_type i = 0; i < M1.get_row_count(); ++i)
-	result.idx[i] = M2.idx[M1.idx[i]];
+        result.idx[i] = M2.idx[M1.idx[i]];
       return result;
     };
     
@@ -244,7 +268,7 @@ class mat<T,mat_structure::permutation, Alignment, Allocator> : public serializa
     friend self transpose(const self& rhs) {
       self result(rhs.rowCount);
       for(size_type i = 0; i < rhs.rowCount; ++i)
-	result.idx[rhs.idx[i]] = i;
+        result.idx[rhs.idx[i]] = i;
       return result;
     };
     
@@ -277,8 +301,8 @@ class mat<T,mat_structure::permutation, Alignment, Allocator> : public serializa
     friend value_type trace(const self& M) {
       value_type result(0);
       for(size_type i = 0; i < M.rowCount; ++i)
-	if(M.idx[i] == i)
-	  result += value_type(1);
+        if(M.idx[i] == i)
+          result += value_type(1);
       return result;
     };
         
@@ -358,7 +382,7 @@ struct is_square_matrix< mat<T,mat_structure::permutation,Alignment,Allocator> >
 template <typename T, typename Vector, mat_alignment::tag Alignment, typename Allocator>
 typename boost::enable_if< is_readable_vector<Vector>, 
 vect_copy<Vector> >::type::type operator *(const mat<T,mat_structure::permutation,Alignment,Allocator>& M, 
-					   const Vector& V) {
+                                           const Vector& V) {
   if(V.size() != M.get_col_count())
     throw std::range_error("Matrix dimension mismatch.");
   typedef typename vect_copy<Vector>::type result_type;
@@ -380,7 +404,7 @@ vect_copy<Vector> >::type::type operator *(const mat<T,mat_structure::permutatio
 template <typename T, typename Vector, mat_alignment::tag Alignment, typename Allocator>
 typename boost::enable_if< is_readable_vector<Vector>, 
 vect_copy<Vector> >::type::type operator *(const Vector& V,
-					   const mat<T,mat_structure::permutation,Alignment,Allocator>& M) {
+                                           const mat<T,mat_structure::permutation,Alignment,Allocator>& M) {
   if(V.size() != M.get_row_count())
     throw std::range_error("Matrix dimension mismatch.");
   typedef typename vect_copy<Vector>::type result_type;

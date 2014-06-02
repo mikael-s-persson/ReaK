@@ -27,15 +27,15 @@ using std::size_t;
 using std::ptrdiff_t;
 
 
-#include "topologies/time_topology.hpp"
-#include "topologies/time_poisson_topology.hpp"
-#include "topologies/line_topology.hpp"
-#include "topologies/differentiable_space.hpp"
-#include "topologies/temporal_space.hpp"
+#include <ReaK/ctrl/topologies/time_topology.hpp>
+#include <ReaK/ctrl/topologies/time_poisson_topology.hpp>
+#include <ReaK/ctrl/topologies/line_topology.hpp>
+#include <ReaK/ctrl/topologies/differentiable_space.hpp>
+#include <ReaK/ctrl/topologies/temporal_space.hpp>
 
-#include "recorders/ssv_recorder.hpp"
-#include "sustained_velocity_pulse.hpp"
-#include "sustained_acceleration_pulse.hpp"
+#include <ReaK/core/recorders/ssv_recorder.hpp>
+#include <ReaK/ctrl/interpolation/sustained_velocity_pulse.hpp>
+#include <ReaK/ctrl/interpolation/sustained_acceleration_pulse.hpp>
 
 
 int main(int argc, char** argv) {
@@ -124,8 +124,8 @@ int main(int argc, char** argv) {
       ReaK::pp::svp_interp_traj<TempTopoType> interp(pts.begin(), pts.end(), topo);
       
       for(double t = 0.0; t <= current_end_time; t += time_step) {
-	TempPointType p = interp.get_point_at_time(t);
-	output_rec << p.time << ReaK::get<0>(p.pt) << ReaK::get<1>(p.pt) << ReaK::get<2>(p.pt) << ReaK::get<3>(p.pt) << ReaK::recorder::data_recorder::end_value_row;
+        TempPointType p = interp.get_point_at_time(t);
+        output_rec << p.time << ReaK::get<0>(p.pt) << ReaK::get<1>(p.pt) << ReaK::get<2>(p.pt) << ReaK::get<3>(p.pt) << ReaK::recorder::data_recorder::end_value_row;
       };
       output_rec << ReaK::recorder::data_recorder::flush;
     };
@@ -141,8 +141,8 @@ int main(int argc, char** argv) {
       ReaK::pp::sap_interp_traj<TempTopoType> interp(pts.begin(), pts.end(), topo);
       
       for(double t = 0.0; t <= current_end_time; t += time_step) {
-	TempPointType p = interp.get_point_at_time(t);
-	output_rec << p.time << ReaK::get<0>(p.pt) << ReaK::get<1>(p.pt) << ReaK::get<2>(p.pt) << ReaK::get<3>(p.pt) << ReaK::recorder::data_recorder::end_value_row;
+        TempPointType p = interp.get_point_at_time(t);
+        output_rec << p.time << ReaK::get<0>(p.pt) << ReaK::get<1>(p.pt) << ReaK::get<2>(p.pt) << ReaK::get<3>(p.pt) << ReaK::recorder::data_recorder::end_value_row;
       };
       output_rec << ReaK::recorder::data_recorder::flush;
     };

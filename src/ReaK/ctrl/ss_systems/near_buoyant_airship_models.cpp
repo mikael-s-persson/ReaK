@@ -598,7 +598,7 @@ void airship3D_imdt_em_sys::get_state_transition_blocks(
   std::cout << " A_1_sa = " << std::endl << A_1_sa << std::endl;
   std::cout << " A_0_s  = " << std::endl << A_0_s  << std::endl;
   
-  sub(A_0_s)(range(0,11), range(12,15)) -= A_1_sa;
+  sub(A_0_s)(range(0,12), range(12,16)) -= A_1_sa;
   try {
     linlsq_QR(A_1_ss, A_0_s, A_0_s, 1E-6);
   } catch(singularity_error&) {
@@ -1298,7 +1298,7 @@ void airship3D_imdt_emd_sys::get_state_transition_blocks(
 //   std::cout << " A_1_sa = " << std::endl << A_1_sa << std::endl;
 //   std::cout << " A_0_s  = " << std::endl << A_0_s  << std::endl;
   
-  sub(A_0_s)(range(0,11), range(12,17)) -= A_1_sa;
+  sub(A_0_s)(range(0,12), range(12,18)) -= A_1_sa;
   try {
     linlsq_QR(A_1_ss, A_0_s, A_0_s, 1E-6);
   } catch(singularity_error&) {
@@ -2094,7 +2094,7 @@ void airship3D_imdt_emdJ_sys::get_state_transition_blocks(
   
   
   
-  sub(A_0_s)(range(0,11), range(12,23)) -= A_1_sa;
+  sub(A_0_s)(range(0,12), range(12,24)) -= A_1_sa;
   try {
     linlsq_QR(A_1_ss, A_0_s, A_0_s, 1E-6);
   } catch(singularity_error&) {

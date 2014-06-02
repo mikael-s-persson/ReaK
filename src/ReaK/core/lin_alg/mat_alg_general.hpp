@@ -34,15 +34,20 @@
 #ifndef REAK_MAT_ALG_GENERAL_HPP
 #define REAK_MAT_ALG_GENERAL_HPP
 
-#include "base/defs.hpp"
+#include <ReaK/core/base/defs.hpp>
+#include <ReaK/core/base/serializable.hpp>
+#include <ReaK/core/rtti/so_register_type.hpp>
+
 #include "vect_alg.hpp"
 #include "vect_concepts.hpp"
 #include "mat_concepts.hpp"
 #include "mat_traits.hpp"
 #include "stride_iterator.hpp"
+#include "mat_views.hpp"
+#include "mat_slices.hpp"
+#include "mat_composite_adaptor.hpp"
+#include "mat_vector_adaptor.hpp"
 
-#include "base/serializable.hpp"
-#include "rtti/so_register_type.hpp"
 
 #include <boost/type_traits.hpp>
 #include <boost/utility/enable_if.hpp>
@@ -73,14 +78,14 @@ namespace ReaK {
  */  
 template <typename T, 
           mat_structure::tag Structure = mat_structure::rectangular,
-	  mat_alignment::tag Alignment = mat_alignment::column_major,
-	  typename Allocator = std::allocator<T> >
+          mat_alignment::tag Alignment = mat_alignment::column_major,
+          typename Allocator = std::allocator<T> >
 class mat { char this_specialization_is_not_available_or_possible[0]; };
 
 template <typename T, 
           mat_structure::tag Structure,
-	  mat_alignment::tag Alignment,
-	  typename Allocator>
+          mat_alignment::tag Alignment,
+          typename Allocator>
 struct is_readable_matrix< mat<T,Structure,Alignment,Allocator> > {
   typedef boost::mpl::integral_c_tag tag;
   typedef bool value_type;
@@ -90,8 +95,8 @@ struct is_readable_matrix< mat<T,Structure,Alignment,Allocator> > {
 
 template <typename T, 
           mat_structure::tag Structure,
-	  mat_alignment::tag Alignment,
-	  typename Allocator>
+          mat_alignment::tag Alignment,
+          typename Allocator>
 struct is_writable_matrix< mat<T,Structure,Alignment,Allocator> > {
   typedef boost::mpl::integral_c_tag tag;
   typedef bool value_type;
@@ -101,8 +106,8 @@ struct is_writable_matrix< mat<T,Structure,Alignment,Allocator> > {
 
 template <typename T, 
           mat_structure::tag Structure,
-	  mat_alignment::tag Alignment,
-	  typename Allocator>
+          mat_alignment::tag Alignment,
+          typename Allocator>
 struct is_resizable_matrix< mat<T,Structure,Alignment,Allocator> > {
   typedef boost::mpl::integral_c_tag tag;
   typedef bool value_type;
@@ -112,8 +117,8 @@ struct is_resizable_matrix< mat<T,Structure,Alignment,Allocator> > {
 
 template <typename T, 
           mat_structure::tag Structure,
-	  mat_alignment::tag Alignment,
-	  typename Allocator>
+          mat_alignment::tag Alignment,
+          typename Allocator>
 struct has_allocator_matrix< mat<T,Structure,Alignment,Allocator> > {
   typedef boost::mpl::integral_c_tag tag;
   typedef bool value_type;
@@ -123,8 +128,8 @@ struct has_allocator_matrix< mat<T,Structure,Alignment,Allocator> > {
 
 template <typename T, 
           mat_structure::tag Structure,
-	  mat_alignment::tag Alignment,
-	  typename Allocator>
+          mat_alignment::tag Alignment,
+          typename Allocator>
 struct mat_product_priority< mat<T,Structure,Alignment,Allocator> > {
   typedef boost::mpl::integral_c_tag tag;
   typedef std::size_t value_type;
@@ -134,8 +139,8 @@ struct mat_product_priority< mat<T,Structure,Alignment,Allocator> > {
 
 template <typename T, 
           mat_structure::tag Structure,
-	  mat_alignment::tag Alignment,
-	  typename Allocator>
+          mat_alignment::tag Alignment,
+          typename Allocator>
 struct mat_addition_priority< mat<T,Structure,Alignment,Allocator> > {
   typedef boost::mpl::integral_c_tag tag;
   typedef std::size_t value_type;
@@ -145,8 +150,8 @@ struct mat_addition_priority< mat<T,Structure,Alignment,Allocator> > {
 
 template <typename T, 
           mat_structure::tag Structure,
-	  mat_alignment::tag Alignment,
-	  typename Allocator>
+          mat_alignment::tag Alignment,
+          typename Allocator>
 struct is_square_matrix< mat<T,Structure,Alignment,Allocator> > {
   typedef boost::mpl::integral_c_tag tag;
   typedef bool value_type;
@@ -156,8 +161,8 @@ struct is_square_matrix< mat<T,Structure,Alignment,Allocator> > {
 
 template <typename T, 
           mat_structure::tag Structure,
-	  mat_alignment::tag Alignment,
-	  typename Allocator>
+          mat_alignment::tag Alignment,
+          typename Allocator>
 struct is_symmetric_matrix< mat<T,Structure,Alignment,Allocator> > {
   typedef boost::mpl::integral_c_tag tag;
   typedef bool value_type;
@@ -167,8 +172,8 @@ struct is_symmetric_matrix< mat<T,Structure,Alignment,Allocator> > {
 
 template <typename T, 
           mat_structure::tag Structure,
-	  mat_alignment::tag Alignment,
-	  typename Allocator>
+          mat_alignment::tag Alignment,
+          typename Allocator>
 struct is_diagonal_matrix< mat<T,Structure,Alignment,Allocator> > {
   typedef boost::mpl::integral_c_tag tag;
   typedef bool value_type;
@@ -182,16 +187,16 @@ struct is_diagonal_matrix< mat<T,Structure,Alignment,Allocator> > {
 
 template <typename T, 
           mat_structure::tag Structure = mat_structure::rectangular,
-	  unsigned int RowCount = 1,
-	  unsigned int ColCount = RowCount,
-	  mat_alignment::tag Alignment = mat_alignment::column_major >
+          unsigned int RowCount = 1,
+          unsigned int ColCount = RowCount,
+          mat_alignment::tag Alignment = mat_alignment::column_major >
 class mat_fix { char this_specialization_is_not_available_or_possible[0]; };
 
 
 template <typename T, 
           mat_structure::tag Structure,
-	  unsigned int RowCount, unsigned int ColCount,
-	  mat_alignment::tag Alignment>
+          unsigned int RowCount, unsigned int ColCount,
+          mat_alignment::tag Alignment>
 struct is_readable_matrix< mat_fix<T,Structure,RowCount,ColCount,Alignment> > {
   typedef boost::mpl::integral_c_tag tag;
   typedef bool value_type;
@@ -201,8 +206,8 @@ struct is_readable_matrix< mat_fix<T,Structure,RowCount,ColCount,Alignment> > {
 
 template <typename T, 
           mat_structure::tag Structure,
-	  unsigned int RowCount, unsigned int ColCount,
-	  mat_alignment::tag Alignment>
+          unsigned int RowCount, unsigned int ColCount,
+          mat_alignment::tag Alignment>
 struct is_writable_matrix< mat_fix<T,Structure,RowCount,ColCount,Alignment> > {
   typedef boost::mpl::integral_c_tag tag;
   typedef bool value_type;
@@ -212,8 +217,8 @@ struct is_writable_matrix< mat_fix<T,Structure,RowCount,ColCount,Alignment> > {
 
 template <typename T, 
           mat_structure::tag Structure,
-	  unsigned int RowCount, unsigned int ColCount,
-	  mat_alignment::tag Alignment>
+          unsigned int RowCount, unsigned int ColCount,
+          mat_alignment::tag Alignment>
 struct is_resizable_matrix< mat_fix<T,Structure,RowCount,ColCount,Alignment> > {
   typedef boost::mpl::integral_c_tag tag;
   typedef bool value_type;
@@ -223,8 +228,8 @@ struct is_resizable_matrix< mat_fix<T,Structure,RowCount,ColCount,Alignment> > {
 
 template <typename T, 
           mat_structure::tag Structure,
-	  unsigned int RowCount, unsigned int ColCount,
-	  mat_alignment::tag Alignment>
+          unsigned int RowCount, unsigned int ColCount,
+          mat_alignment::tag Alignment>
 struct has_allocator_matrix< mat_fix<T,Structure,RowCount,ColCount,Alignment> > {
   typedef boost::mpl::integral_c_tag tag;
   typedef bool value_type;
@@ -234,8 +239,8 @@ struct has_allocator_matrix< mat_fix<T,Structure,RowCount,ColCount,Alignment> > 
 
 template <typename T, 
           mat_structure::tag Structure,
-	  unsigned int RowCount, unsigned int ColCount,
-	  mat_alignment::tag Alignment>
+          unsigned int RowCount, unsigned int ColCount,
+          mat_alignment::tag Alignment>
 struct mat_product_priority< mat_fix<T,Structure,RowCount,ColCount,Alignment> > {
   typedef boost::mpl::integral_c_tag tag;
   typedef std::size_t value_type;
@@ -245,8 +250,8 @@ struct mat_product_priority< mat_fix<T,Structure,RowCount,ColCount,Alignment> > 
 
 template <typename T, 
           mat_structure::tag Structure,
-	  unsigned int RowCount, unsigned int ColCount,
-	  mat_alignment::tag Alignment>
+          unsigned int RowCount, unsigned int ColCount,
+          mat_alignment::tag Alignment>
 struct mat_addition_priority< mat_fix<T,Structure,RowCount,ColCount,Alignment> > {
   typedef boost::mpl::integral_c_tag tag;
   typedef std::size_t value_type;
@@ -256,8 +261,8 @@ struct mat_addition_priority< mat_fix<T,Structure,RowCount,ColCount,Alignment> >
 
 template <typename T, 
           mat_structure::tag Structure,
-	  unsigned int RowCount, unsigned int ColCount,
-	  mat_alignment::tag Alignment>
+          unsigned int RowCount, unsigned int ColCount,
+          mat_alignment::tag Alignment>
 struct is_square_matrix< mat_fix<T,Structure,RowCount,ColCount,Alignment> > {
   typedef boost::mpl::integral_c_tag tag;
   typedef bool value_type;
@@ -267,8 +272,8 @@ struct is_square_matrix< mat_fix<T,Structure,RowCount,ColCount,Alignment> > {
 
 template <typename T, 
           mat_structure::tag Structure,
-	  unsigned int RowCount, unsigned int ColCount,
-	  mat_alignment::tag Alignment>
+          unsigned int RowCount, unsigned int ColCount,
+          mat_alignment::tag Alignment>
 struct is_symmetric_matrix< mat_fix<T,Structure,RowCount,ColCount,Alignment> > {
   typedef boost::mpl::integral_c_tag tag;
   typedef bool value_type;
@@ -278,8 +283,8 @@ struct is_symmetric_matrix< mat_fix<T,Structure,RowCount,ColCount,Alignment> > {
 
 template <typename T, 
           mat_structure::tag Structure,
-	  unsigned int RowCount, unsigned int ColCount,
-	  mat_alignment::tag Alignment>
+          unsigned int RowCount, unsigned int ColCount,
+          mat_alignment::tag Alignment>
 struct is_diagonal_matrix< mat_fix<T,Structure,RowCount,ColCount,Alignment> > {
   typedef boost::mpl::integral_c_tag tag;
   typedef bool value_type;
@@ -311,16 +316,16 @@ template <typename T, mat_structure::tag Structure, mat_alignment::tag Alignment
 struct get_type_info< mat<T,Structure,Alignment,Allocator>, Tail > {
   typedef detail::type_id< mat<T,Structure,Alignment,Allocator> , typename get_type_info<T,
                                                                            get_type_info< boost::mpl::integral_c<mat_structure::tag,Structure>,
-									   get_type_info< boost::mpl::integral_c<mat_alignment::tag,Alignment>, Tail> > >::type > type;
+                                                                           get_type_info< boost::mpl::integral_c<mat_alignment::tag,Alignment>, Tail> > >::type > type;
   static std::string type_name() { return get_type_id< mat<T,Structure,Alignment,Allocator> >::type_name() + "<" + get_type_id<T>::type_name() + "," 
                                                                                                                  + get_type_id< boost::mpl::integral_c<mat_structure::tag,Structure> >::type_name() + "," 
-														 + get_type_id< boost::mpl::integral_c<mat_alignment::tag,Alignment> >::type_name() + ">" + (boost::is_same< Tail, null_type_info >::value ? "" : "," + Tail::type_name()); };
+                                                                                                                 + get_type_id< boost::mpl::integral_c<mat_alignment::tag,Alignment> >::type_name() + ">" + (boost::is_same< Tail, null_type_info >::value ? "" : "," + Tail::type_name()); };
 };
 
 template <typename T,
           mat_structure::tag Structure,
-	  unsigned int RowCount, unsigned int ColCount,
-	  mat_alignment::tag Alignment>
+          unsigned int RowCount, unsigned int ColCount,
+          mat_alignment::tag Alignment>
 struct get_type_id< mat_fix<T,Structure,RowCount,ColCount,Alignment> > {
   BOOST_STATIC_CONSTANT(unsigned int, ID = 0x00000013);
   static std::string type_name() { return "mat_fix"; };
@@ -331,18 +336,18 @@ struct get_type_id< mat_fix<T,Structure,RowCount,ColCount,Alignment> > {
 };
 
 template <typename T, mat_structure::tag Structure,
-	  unsigned int RowCount, unsigned int ColCount, mat_alignment::tag Alignment, typename Tail>
+          unsigned int RowCount, unsigned int ColCount, mat_alignment::tag Alignment, typename Tail>
 struct get_type_info< mat_fix<T,Structure,RowCount,ColCount,Alignment>, Tail > {
   typedef detail::type_id< mat_fix<T,Structure,RowCount,ColCount,Alignment> , typename get_type_info<T,
                                                                                        get_type_info< boost::mpl::integral_c<mat_structure::tag,Structure>,
-									               get_type_info< boost::mpl::integral_c<unsigned int,RowCount>,
-									               get_type_info< boost::mpl::integral_c<unsigned int,ColCount>,
-									               get_type_info< boost::mpl::integral_c<mat_alignment::tag,Alignment>, Tail> > > > >::type > type;
+                                                                                       get_type_info< boost::mpl::integral_c<unsigned int,RowCount>,
+                                                                                       get_type_info< boost::mpl::integral_c<unsigned int,ColCount>,
+                                                                                       get_type_info< boost::mpl::integral_c<mat_alignment::tag,Alignment>, Tail> > > > >::type > type;
   static std::string type_name() { return get_type_id< mat_fix<T,Structure,RowCount,ColCount,Alignment> >::type_name() + "<" + get_type_id<T>::type_name() + "," 
                                                                                                                              + get_type_id< boost::mpl::integral_c<mat_structure::tag,Structure> >::type_name() + "," 
                                                                                                                              + get_type_id< boost::mpl::integral_c<unsigned int,RowCount> >::type_name() + "," 
                                                                                                                              + get_type_id< boost::mpl::integral_c<unsigned int,ColCount> >::type_name() + "," 
-														             + get_type_id< boost::mpl::integral_c<mat_alignment::tag,Alignment> >::type_name() + ">" + (boost::is_same< Tail, null_type_info >::value ? "" : "," + Tail::type_name()); };
+                                                                                                                             + get_type_id< boost::mpl::integral_c<mat_alignment::tag,Alignment> >::type_name() + ">" + (boost::is_same< Tail, null_type_info >::value ? "" : "," + Tail::type_name()); };
 };
 
 };

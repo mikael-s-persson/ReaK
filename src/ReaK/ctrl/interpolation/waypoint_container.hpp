@@ -32,12 +32,12 @@
 #ifndef REAK_WAYPOINT_CONTAINER_HPP
 #define REAK_WAYPOINT_CONTAINER_HPP
 
-#include "base/defs.hpp"
-#include "base/shared_object.hpp"
+#include <ReaK/core/base/defs.hpp>
+#include <ReaK/core/base/shared_object.hpp>
 
-#include "path_planning/spatial_trajectory_concept.hpp"
+#include <ReaK/ctrl/path_planning/spatial_trajectory_concept.hpp>
 
-#include "topologies/temporal_space.hpp"
+#include <ReaK/ctrl/topologies/temporal_space.hpp>
 
 #include <boost/config.hpp>
 #include <boost/concept_check.hpp>

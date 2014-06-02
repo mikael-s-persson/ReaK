@@ -21,10 +21,10 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "serialization/xml_archiver.hpp"
+#include <ReaK/core/serialization/xml_archiver.hpp>
 
-#include "simplex_method.hpp"
-#include "mehrotra_method.hpp"
+#include <ReaK/core/optimization/simplex_method.hpp>
+#include <ReaK/core/optimization/mehrotra_method.hpp>
 
 #include <iostream>
 #include <cmath>
@@ -34,7 +34,7 @@
 using namespace ReaK;
 
 void lp01(vect_n<double>& c, mat<double,mat_structure::rectangular>& A, 
-	  vect_n<double>& b, vect_n<double>& l, vect_n<double>& u) {
+          vect_n<double>& b, vect_n<double>& l, vect_n<double>& u) {
   u = vect_n<double>(22,std::numeric_limits<double>::infinity());
   l = vect_n<double>(22,0);
   

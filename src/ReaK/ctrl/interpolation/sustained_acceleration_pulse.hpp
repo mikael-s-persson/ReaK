@@ -34,24 +34,21 @@
 #ifndef REAK_SUSTAINED_ACCELERATION_PULSE_HPP
 #define REAK_SUSTAINED_ACCELERATION_PULSE_HPP
 
-#include "base/defs.hpp"
+#include <ReaK/core/base/defs.hpp>
 
-#include "path_planning/temporal_space_concept.hpp"
-#include "path_planning/tangent_bundle_concept.hpp"
-#include "path_planning/bounded_space_concept.hpp"
-
-#include "topologies/rate_limited_spaces.hpp"
+#include <ReaK/ctrl/path_planning/temporal_space_concept.hpp>
+#include <ReaK/ctrl/path_planning/tangent_bundle_concept.hpp>
+#include <ReaK/ctrl/path_planning/bounded_space_concept.hpp>
+#include <ReaK/ctrl/topologies/rate_limited_spaces.hpp>
 
 #include "interpolated_trajectory.hpp"
 #include "generic_interpolator_factory.hpp"
 
-#include <boost/config.hpp>
+#include "sustained_acceleration_pulse_detail.hpp"
+
 #include <boost/concept_check.hpp>
 
 #include <limits>
-
-#include "sustained_acceleration_pulse_detail.hpp"
-
 
 namespace ReaK {
 
@@ -272,7 +269,7 @@ class sap_interpolator {
      */
     template <typename Factory>
     sap_interpolator(const point_type& start_point, const point_type& end_point, double dt,
-		     const SpaceType& space, const TimeSpaceType& t_space, const Factory& factory) {
+                     const SpaceType& space, const TimeSpaceType& t_space, const Factory& factory) {
       initialize(start_point,end_point,dt,space,t_space,factory);
     };
     
@@ -288,13 +285,13 @@ class sap_interpolator {
      */
     template <typename Factory>
     void initialize(const point_type& start_point, const point_type& end_point, double dt,
-		    const SpaceType& space, const TimeSpaceType& t_space, const Factory& factory) {
+                    const SpaceType& space, const TimeSpaceType& t_space, const Factory& factory) {
       
       min_delta_time = detail::sap_compute_interpolation_data_impl(start_point, end_point,
                                                                    delta_first_order, peak_velocity,
-								   space, t_space,
-								   dt, &best_peak_velocity,
-								   factory.tolerance, factory.maximum_iterations);
+                                                                   space, t_space,
+                                                                   dt, &best_peak_velocity,
+                                                                   factory.tolerance, factory.maximum_iterations);
     };
     
     /**
@@ -311,15 +308,15 @@ class sap_interpolator {
      */
     template <typename Factory>
     void compute_point(point_type& result, const point_type& start_point, const point_type& end_point,
-		       const SpaceType& space, const TimeSpaceType& t_space, 
-		       double dt, double dt_total, const Factory& factory) const {
+                       const SpaceType& space, const TimeSpaceType& t_space, 
+                       double dt, double dt_total, const Factory& factory) const {
       if(dt <= 0.0) {
-	result = start_point;
-	return;
+        result = start_point;
+        return;
       };
       if(dt >= dt_total) {
-	result = end_point;
-	return;
+        result = end_point;
+        return;
       };
       
       detail::sap_interpolate_impl< max_derivation_order< SpaceType, TimeSpaceType > >(result, start_point, end_point, delta_first_order, peak_velocity, space, t_space, dt, dt_total);
@@ -362,11 +359,11 @@ class sap_interpolator_factory : public serialization::serializable {
     unsigned int maximum_iterations;
     
     sap_interpolator_factory(const shared_ptr<topology>& aSpace = shared_ptr<topology>(), 
-			     double aTolerance = 1e-6, 
-			     unsigned int aMaxIter = 60) : 
-			     space(aSpace),
-			     tolerance(aTolerance),
-			     maximum_iterations(aMaxIter)  { };
+                             double aTolerance = 1e-6, 
+                             unsigned int aMaxIter = 60) : 
+                             space(aSpace),
+                             tolerance(aTolerance),
+                             maximum_iterations(aMaxIter)  { };
   
     void set_temporal_space(const shared_ptr<topology>& aSpace) { space = aSpace; };
     const shared_ptr<topology>& get_temporal_space() const { return space; };
@@ -439,7 +436,7 @@ class sap_interp_traj : public interpolated_trajectory<Topology,sap_interpolator
      */
     sap_interp_traj(const shared_ptr<topology>& aSpace, const point_type& aStart, const point_type& aEnd, const distance_metric& aDist = distance_metric()) :
                     base_class_type(aSpace, aStart, aEnd, aDist, sap_interpolator_factory<Topology>(aSpace)) { };
-			
+                        
     /**
      * Constructs the path from a range of points and their space.
      * \tparam ForwardIter A forward-iterator type for getting points to initialize the path with.

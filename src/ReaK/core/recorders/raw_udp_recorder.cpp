@@ -21,7 +21,7 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "raw_udp_recorder.hpp"
+#include <ReaK/core/recorders/raw_udp_recorder.hpp>
 
 #include <boost/asio.hpp>
 

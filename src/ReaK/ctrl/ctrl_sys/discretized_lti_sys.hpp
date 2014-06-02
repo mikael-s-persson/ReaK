@@ -36,15 +36,15 @@
 #ifndef REAK_DISCRETIZED_LTI_SYS_HPP
 #define REAK_DISCRETIZED_LTI_SYS_HPP
 
+#include <ReaK/core/base/named_object.hpp>
+#include <ReaK/core/lin_alg/mat_concepts.hpp>
+#include <ReaK/core/lin_alg/mat_alg.hpp>
+#include <ReaK/core/lin_alg/mat_exp_methods.hpp>
+#include <ReaK/core/lin_alg/mat_qr_decomp.hpp>
+
 #include "linear_ss_system_concept.hpp"
 #include "discrete_linear_sss_concept.hpp"
 
-#include "lin_alg/mat_concepts.hpp"
-#include "lin_alg/mat_alg.hpp"
-#include "lin_alg/mat_exp_methods.hpp"
-#include "lin_alg/mat_qr_decomp.hpp"
-
-#include "base/named_object.hpp"
 
 namespace ReaK {
 

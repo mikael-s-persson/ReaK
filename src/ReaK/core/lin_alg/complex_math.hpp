@@ -33,9 +33,9 @@
 #ifndef REAK_COMPLEX_MATH_HPP
 #define REAK_COMPLEX_MATH_HPP
 
-#include <cmath>
+#include <ReaK/core/serialization/archiver.hpp>
 
-#include "serialization/archiver.hpp"
+#include <cmath>
 
 
 namespace ReaK {

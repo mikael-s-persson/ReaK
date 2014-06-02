@@ -74,9 +74,9 @@ class capped_rectangle : public shape_2D {
      * \param aDimensions The dimensions.
      */
     capped_rectangle(const std::string& aName = "",
-	             const shared_ptr< pose_2D<double> >& aAnchor = shared_ptr< pose_2D<double> >(),
-	             const pose_2D<double>& aPose = pose_2D<double>(),
-	             const vect<double,2>& aDimensions = (vect<double,2>()));
+                     const shared_ptr< pose_2D<double> >& aAnchor = shared_ptr< pose_2D<double> >(),
+                     const pose_2D<double>& aPose = pose_2D<double>(),
+                     const vect<double,2>& aDimensions = (vect<double,2>()));
     
     /**
      * Default destructor.

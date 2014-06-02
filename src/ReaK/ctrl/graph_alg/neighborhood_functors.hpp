@@ -36,7 +36,7 @@
 #define REAK_NEIGHBORHOOD_FUNCTORS_HPP
 
 
-#include "base/misc_math.hpp"
+#include <ReaK/core/base/misc_math.hpp>
 
 namespace ReaK {
 

@@ -33,13 +33,12 @@
 #ifndef REAK_QUADRATIC_PROGRAMS_HPP
 #define REAK_QUADRATIC_PROGRAMS_HPP
 
-#include "base/defs.hpp"
+#include <ReaK/core/base/defs.hpp>
+#include <ReaK/core/lin_alg/mat_alg.hpp>
+#include <ReaK/core/lin_alg/mat_qr_decomp.hpp>
+#include <ReaK/core/lin_alg/mat_views.hpp>
 
 #include "optim_exceptions.hpp"
-
-#include "lin_alg/mat_alg.hpp"
-#include "lin_alg/mat_qr_decomp.hpp"
-#include "lin_alg/mat_views.hpp"
 
 #include <vector>
 
@@ -76,10 +75,10 @@ namespace optim {
  */
 template <typename Matrix1, typename Vector1, typename Matrix2, typename Vector2>
 void null_space_QP_method(const Matrix1& A, const Vector1& b, 
-			 const Matrix2&  G, const Vector2& c, Vector2& x,
-			 typename vect_traits<Vector1>::value_type abs_tol = std::numeric_limits<typename vect_traits<Vector1>::value_type>::epsilon(),
-			 typename vect_traits<Vector1>::value_type max_norm = std::numeric_limits<typename vect_traits<Vector1>::value_type>::infinity(),
-			 Vector1* lambda = NULL) {
+                         const Matrix2&  G, const Vector2& c, Vector2& x,
+                         typename vect_traits<Vector1>::value_type abs_tol = std::numeric_limits<typename vect_traits<Vector1>::value_type>::epsilon(),
+                         typename vect_traits<Vector1>::value_type max_norm = std::numeric_limits<typename vect_traits<Vector1>::value_type>::infinity(),
+                         Vector1* lambda = NULL) {
   typedef typename vect_traits<Vector1>::value_type ValueType;
   typedef typename vect_traits<Vector1>::size_type SizeType;
   using std::swap;
@@ -135,7 +134,7 @@ void null_space_QP_method(const Matrix1& A, const Vector1& b,
     for(SizeType i = 0; i < N-M; ++i) {
       zz += p_z(i,0) * p_z(i,0);
       for(SizeType j = 0; j < N-M; ++j)
-	zBz += p_z(i,0) * (ZGZ(i,j) * p_z(j,0));
+        zBz += p_z(i,0) * (ZGZ(i,j) * p_z(j,0));
     };
     zBz = zz / (fabs(zBz) + abs_tol);
     if(zBz < ValueType(1.0)) {
@@ -187,10 +186,10 @@ void null_space_QP_method(const Matrix1& A, const Vector1& b,
  */
 template <typename Matrix1, typename Vector1, typename Matrix2, typename Vector2>
 void null_space_RRQP_method(const Matrix1& A, const Vector1& b, 
-			    const Matrix2&  G, const Vector2& c, Vector2& x,
-			    typename vect_traits<Vector1>::value_type abs_tol = std::numeric_limits<typename vect_traits<Vector1>::value_type>::epsilon(),
-			    typename vect_traits<Vector1>::value_type max_norm = std::numeric_limits<typename vect_traits<Vector1>::value_type>::infinity(),
-			    Vector1* lambda = NULL) {
+                            const Matrix2&  G, const Vector2& c, Vector2& x,
+                            typename vect_traits<Vector1>::value_type abs_tol = std::numeric_limits<typename vect_traits<Vector1>::value_type>::epsilon(),
+                            typename vect_traits<Vector1>::value_type max_norm = std::numeric_limits<typename vect_traits<Vector1>::value_type>::infinity(),
+                            Vector1* lambda = NULL) {
   typedef typename vect_traits<Vector1>::value_type ValueType;
   typedef typename vect_traits<Vector1>::size_type SizeType;
   using std::swap;
@@ -217,7 +216,7 @@ void null_space_RRQP_method(const Matrix1& A, const Vector1& b,
   for(SizeType i = 0; i < K; ++i)
     p_y(i,0) = b[i];
   //RK_NOTICE(1," reached!");
-  ReaK::detail::forwardsub_L_impl(sub(L)(range(0,K-1),range(0,K-1)),p_y,abs_tol);
+  ReaK::detail::forwardsub_L_impl(sub(L)(range(0,K),range(0,K)),p_y,abs_tol);
   //RK_NOTICE(1," reached!");
   //RK_NOTICE(2," Found the particular solution to Ax = b as x = " << (Y * p_y) << " Ax = " << A * (Y * p_y));
   
@@ -248,7 +247,7 @@ void null_space_RRQP_method(const Matrix1& A, const Vector1& b,
     for(SizeType i = 0; i < N-K; ++i) {
       zz += p_z(i,0) * p_z(i,0);
       for(SizeType j = 0; j < N-K; ++j)
-	zBz += p_z(i,0) * (ZGZ(i,j) * p_z(j,0));
+        zBz += p_z(i,0) * (ZGZ(i,j) * p_z(j,0));
     };
     //RK_NOTICE(1," reached!");
     zBz = zz / (fabs(zBz) + abs_tol);
@@ -274,7 +273,7 @@ void null_space_RRQP_method(const Matrix1& A, const Vector1& b,
     vect_n<ValueType> lam( (c + G * x) * Y );
     mat_vect_adaptor< vect_n<ValueType> > lam_mat(lam);
     RK_NOTICE(1," reached!");
-    ReaK::detail::backsub_R_impl(sub(transpose_view(L))(range(0,K-1),range(0,K-1)),lam_mat,abs_tol);
+    ReaK::detail::backsub_R_impl(sub(transpose_view(L))(range(0,K),range(0,K)),lam_mat,abs_tol);
     RK_NOTICE(1," reached!");
     for(SizeType i = 0; i < K; ++i)
       (*lambda)[i] = lam[i];
@@ -312,9 +311,9 @@ void null_space_RRQP_method(const Matrix1& A, const Vector1& b,
  */
 template <typename Matrix1, typename Vector1, typename Matrix2, typename Vector2>
 void projected_CG_method(const Matrix1& A, const Vector1& b, 
-			const Matrix2&  G, const Vector2& c, Vector2& x, unsigned int max_iter = 20,
-			typename vect_traits<Vector1>::value_type abs_tol = std::numeric_limits<typename vect_traits<Vector1>::value_type>::epsilon(),
-			Vector1* lambda = NULL) {
+                        const Matrix2&  G, const Vector2& c, Vector2& x, unsigned int max_iter = 20,
+                        typename vect_traits<Vector1>::value_type abs_tol = std::numeric_limits<typename vect_traits<Vector1>::value_type>::epsilon(),
+                        Vector1* lambda = NULL) {
   typedef typename vect_traits<Vector1>::value_type ValueType;
   typedef typename vect_traits<Vector1>::size_type SizeType;
   using std::swap;

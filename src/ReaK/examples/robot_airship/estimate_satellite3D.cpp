@@ -201,16 +201,16 @@ struct sat3D_meas_true_from_extractor {
       if(sat_options.artificial_noise.get_row_count() < 6) 
         added_noise.resize(6, 0.0);
       
-      meas_pt.pose[range(0,2)] = meas_pt.pose[range(0,2)] + added_noise[range(0,2)];
+      meas_pt.pose[range(0,3)] = meas_pt.pose[range(0,3)] + added_noise[range(0,3)];
       vect<double,3> aa_noise(added_noise[3], added_noise[4], added_noise[5]);
       quaternion<double> y_quat(meas_pt.pose[range(3,6)]);
       y_quat *= axis_angle<double>(norm_2(aa_noise), aa_noise).getQuaternion();
-      meas_pt.pose[range(3,6)] = vect<double,4>(y_quat[0], y_quat[1], y_quat[2], y_quat[3]);
+      meas_pt.pose[range(3,7)] = vect<double,4>(y_quat[0], y_quat[1], y_quat[2], y_quat[3]);
       
       if( ( meas_pt.gyro.size() ) && ( added_noise.size() >= 9 ) )
-        meas_pt.gyro += added_noise[range(6,8)];
+        meas_pt.gyro += added_noise[range(6,9)];
       if( ( meas_pt.IMU_a_m.size() ) && ( added_noise.size() >= 15 ) )
-        meas_pt.IMU_a_m += added_noise[range(9,14)];
+        meas_pt.IMU_a_m += added_noise[range(9,15)];
       
     } catch(recorder::end_of_record&) { 
       return false;
@@ -284,12 +284,12 @@ struct sat3D_estimate_result_to_recorder {
              << (get_ang_velocity(x_mean) - get_ang_velocity(*true_state));
     } else {
       const vect_n<double>& z = b_z.get_mean_state();
-      axis_angle<double> aa_diff(invert(get_quaternion(x_mean).as_rotation()) * quaternion<double>(z[range(3,6)]));
-      (*rec) << (get_position(x_mean) - z[range(0,2)]) 
+      axis_angle<double> aa_diff(invert(get_quaternion(x_mean).as_rotation()) * quaternion<double>(z[range(3,7)]));
+      (*rec) << (get_position(x_mean) - z[range(0,3)]) 
              << (aa_diff.angle() * aa_diff.axis())
              << vect<double,3>(0.0,0.0,0.0);
       if( z.size() >= 10 )
-        (*rec) << (get_ang_velocity(x_mean) - z[range(7,9)]);
+        (*rec) << (get_ang_velocity(x_mean) - z[range(7,10)]);
       else
         (*rec) << vect<double,3>(0.0,0.0,0.0);
     };
@@ -341,19 +341,19 @@ struct sat3D_collect_stddevs {
       ang_vel_err = get_ang_velocity(x_mean) - get_ang_velocity(*true_state);
     } else {
       const vect_n<double>& z = b_z.get_mean_state();
-      axis_angle<double> aa_diff(invert(get_quaternion(x_mean).as_rotation()) * quaternion<double>(z[range(3,6)]));
-      pos_err     = get_position(x_mean) - z[range(0,2)];
+      axis_angle<double> aa_diff(invert(get_quaternion(x_mean).as_rotation()) * quaternion<double>(z[range(3,7)]));
+      pos_err     = get_position(x_mean) - z[range(0,3)];
       aa_err      = aa_diff.angle() * aa_diff.axis();
       vel_err     = vect<double,3>(0.0,0.0,0.0);
       if( z.size() >= 10 )
-        ang_vel_err = get_ang_velocity(x_mean) - z[range(7,9)];
+        ang_vel_err = get_ang_velocity(x_mean) - z[range(7,10)];
       else
         ang_vel_err = vect<double,3>(0.0,0.0,0.0);
     };
-    stddevs[range(0,2)]  = ( counter * stddevs[range(0,2)] + elem_product(pos_err, pos_err) ) / (counter + 1);
-    stddevs[range(3,5)]  = ( counter * stddevs[range(3,5)] + elem_product(aa_err, aa_err) ) / (counter + 1);
-    stddevs[range(6,8)]  = ( counter * stddevs[range(6,8)] + elem_product(vel_err, vel_err) ) / (counter + 1);
-    stddevs[range(9,11)] = ( counter * stddevs[range(9,11)] + elem_product(ang_vel_err, ang_vel_err) ) / (counter + 1);
+    stddevs[range(0,3)]  = ( counter * stddevs[range(0,3)] + elem_product(pos_err, pos_err) ) / (counter + 1);
+    stddevs[range(3,6)]  = ( counter * stddevs[range(3,6)] + elem_product(aa_err, aa_err) ) / (counter + 1);
+    stddevs[range(6,9)]  = ( counter * stddevs[range(6,9)] + elem_product(vel_err, vel_err) ) / (counter + 1);
+    stddevs[range(9,12)] = ( counter * stddevs[range(9,12)] + elem_product(ang_vel_err, ang_vel_err) ) / (counter + 1);
     
     stddevs[12] = ( counter * stddevs[12] + pos_err * pos_err ) / (counter + 1);
     stddevs[13] = ( counter * stddevs[13] + aa_err * aa_err ) / (counter + 1);
@@ -388,11 +388,11 @@ void batch_KF_on_timeseries(
   do {
     const sat3D_measurement_point& cur_meas = meas_provider.get_current_measurement();
     vect_n<double> z_vect(cur_meas.pose.size() + cur_meas.gyro.size() + cur_meas.IMU_a_m.size(), 0.0);
-    z_vect[range(0,6)] = cur_meas.pose;
+    z_vect[range(0,7)] = cur_meas.pose;
     if( cur_meas.gyro.size() ) {
-      z_vect[range(7,9)] = cur_meas.gyro;
+      z_vect[range(7,10)] = cur_meas.gyro;
       if( cur_meas.IMU_a_m.size() )
-        z_vect[range(10,15)] = cur_meas.IMU_a_m;
+        z_vect[range(10,16)] = cur_meas.IMU_a_m;
     };
     b_z.set_mean_state(z_vect);
     b_u.set_mean_state(cur_meas.u);
@@ -433,11 +433,11 @@ void batch_KF_no_meas_predict(
   do {
     const sat3D_measurement_point& cur_meas = meas_provider.get_current_measurement();
     vect_n<double> z_vect(cur_meas.pose.size() + cur_meas.gyro.size() + cur_meas.IMU_a_m.size(), 0.0);
-    z_vect[range(0,6)] = cur_meas.pose;
+    z_vect[range(0,7)] = cur_meas.pose;
     if( cur_meas.gyro.size() ) {
-      z_vect[range(7,9)] = cur_meas.gyro;
+      z_vect[range(7,10)] = cur_meas.gyro;
       if( cur_meas.IMU_a_m.size() )
-        z_vect[range(10,15)] = cur_meas.IMU_a_m;
+        z_vect[range(10,16)] = cur_meas.IMU_a_m;
     };
     b_z.set_mean_state(z_vect);
     b_u.set_mean_state(cur_meas.u);
@@ -493,11 +493,11 @@ void batch_KF_ML_meas_predict(
   do {
     const sat3D_measurement_point& cur_meas = meas_provider.get_current_measurement();
     vect_n<double> z_vect(cur_meas.pose.size() + cur_meas.gyro.size() + cur_meas.IMU_a_m.size(), 0.0);
-    z_vect[range(0,6)] = cur_meas.pose;
+    z_vect[range(0,7)] = cur_meas.pose;
     if( cur_meas.gyro.size() ) {
-      z_vect[range(7,9)] = cur_meas.gyro;
+      z_vect[range(7,10)] = cur_meas.gyro;
       if( cur_meas.IMU_a_m.size() )
-        z_vect[range(10,15)] = cur_meas.IMU_a_m;
+        z_vect[range(10,16)] = cur_meas.IMU_a_m;
     };
     b_z.set_mean_state(z_vect);
     b_u.set_mean_state(cur_meas.u);
@@ -615,11 +615,11 @@ struct prediction_updater {
         
         const sat3D_measurement_point& cur_meas = meas_provider.get_current_measurement();
         ReaK::vect_n<double> z_vect(cur_meas.pose.size() + cur_meas.gyro.size() + cur_meas.IMU_a_m.size(), 0.0);
-        z_vect[ReaK::range(0,6)] = cur_meas.pose;
+        z_vect[ReaK::range(0,7)] = cur_meas.pose;
         if( cur_meas.gyro.size() ) {
-          z_vect[ReaK::range(7,9)] = cur_meas.gyro;
+          z_vect[ReaK::range(7,10)] = cur_meas.gyro;
           if( cur_meas.IMU_a_m.size() )
-            z_vect[ReaK::range(10,15)] = cur_meas.IMU_a_m;
+            z_vect[ReaK::range(10,16)] = cur_meas.IMU_a_m;
         };
         b_z.set_mean_state(z_vect);
         b_u.set_mean_state(cur_meas.u);
@@ -695,11 +695,11 @@ void batch_KF_meas_predict_with_predictor(
   do {
     const sat3D_measurement_point& cur_meas = meas_provider.get_current_measurement();
     vect_n<double> z_vect(cur_meas.pose.size() + cur_meas.gyro.size() + cur_meas.IMU_a_m.size(), 0.0);
-    z_vect[range(0,6)] = cur_meas.pose;
+    z_vect[range(0,7)] = cur_meas.pose;
     if( cur_meas.gyro.size() ) {
-      z_vect[range(7,9)] = cur_meas.gyro;
+      z_vect[range(7,10)] = cur_meas.gyro;
       if( cur_meas.IMU_a_m.size() )
-        z_vect[range(10,15)] = cur_meas.IMU_a_m;
+        z_vect[range(10,16)] = cur_meas.IMU_a_m;
     };
     b_z.set_mean_state(z_vect);
     b_u.set_mean_state(cur_meas.u);
@@ -814,33 +814,33 @@ void generate_timeseries(
     sat3D_measurement_point meas;
     meas.u = vect_n<double>(6, 0.0);
     meas.pose = vect_n<double>(7, 0.0);
-    meas.pose[range(0,2)] = y[range(0,2)] + y_noise[range(0,2)];
+    meas.pose[range(0,3)] = y[range(0,3)] + y_noise[range(0,3)];
     
     vect<double,3> aa_noise(y_noise[3],y_noise[4],y_noise[5]);
-    quaternion<double> y_quat(y[range(3,6)]);
+    quaternion<double> y_quat(y[range(3,7)]);
     y_quat *= axis_angle<double>(norm_2(aa_noise), aa_noise).getQuaternion();
-    meas.pose[range(3,6)] = vect<double,4>(y_quat[0], y_quat[1], y_quat[2], y_quat[3]);
+    meas.pose[range(3,7)] = vect<double,4>(y_quat[0], y_quat[1], y_quat[2], y_quat[3]);
     
     std::size_t k = ground_truth.size();
     if( stat_results ) {
-      std_devs[range(0,5)] = ( ( k - 1 ) * std_devs[range(0,5)] + elem_product(y_noise[range(0,5)], y_noise[range(0,5)]) ) / k;
-      std_devs[6] = ( ( k - 1 ) * std_devs[6] + norm_2_sqr(y_noise[range(0,2)]) ) / k;
+      std_devs[range(0,6)] = ( ( k - 1 ) * std_devs[range(0,6)] + elem_product(y_noise[range(0,6)], y_noise[range(0,6)]) ) / k;
+      std_devs[6] = ( ( k - 1 ) * std_devs[6] + norm_2_sqr(y_noise[range(0,3)]) ) / k;
       std_devs[7] = ( ( k - 1 ) * std_devs[7] + norm_2_sqr(aa_noise) ) / k;
     };
     
     if( y.size() >= 10 ) {
-      meas.gyro = y[range(7,9)] + y_noise[range(6,8)];
+      meas.gyro = y[range(7,10)] + y_noise[range(6,9)];
       if( stat_results ) {
-        std_devs[range(8,10)]  = ( ( k - 1 ) * std_devs[range(8,10)] + elem_product(y_noise[range(6,8)], y_noise[range(6,8)]) ) / k;
-        std_devs[11] = ( ( k - 1 ) * std_devs[11] + norm_2_sqr(y_noise[range(6,8)]) ) / k;
+        std_devs[range(8,11)]  = ( ( k - 1 ) * std_devs[range(8,11)] + elem_product(y_noise[range(6,9)], y_noise[range(6,9)]) ) / k;
+        std_devs[11] = ( ( k - 1 ) * std_devs[11] + norm_2_sqr(y_noise[range(6,9)]) ) / k;
       };
       if( y.size() >= 16 ) {
-        meas.IMU_a_m = y[range(10,15)] + y_noise[range(9,14)];
+        meas.IMU_a_m = y[range(10,16)] + y_noise[range(9,15)];
         if( stat_results ) {
-          std_devs[range(12,14)]  = ( ( k - 1 ) * std_devs[range(12,14)] + elem_product(y_noise[range(9,11)], y_noise[range(9,11)]) ) / k;
-          std_devs[15] = ( ( k - 1 ) * std_devs[15] + norm_2_sqr(y_noise[range(9,11)]) ) / k;
-          std_devs[range(16,18)]  = ( ( k - 1 ) * std_devs[range(16,18)] + elem_product(y_noise[range(12,14)], y_noise[range(12,14)]) ) / k;
-          std_devs[19] = ( ( k - 1 ) * std_devs[19] + norm_2_sqr(y_noise[range(12,14)]) ) / k;
+          std_devs[range(12,15)]  = ( ( k - 1 ) * std_devs[range(12,15)] + elem_product(y_noise[range(9,12)], y_noise[range(9,12)]) ) / k;
+          std_devs[15] = ( ( k - 1 ) * std_devs[15] + norm_2_sqr(y_noise[range(9,12)]) ) / k;
+          std_devs[range(16,19)]  = ( ( k - 1 ) * std_devs[range(16,19)] + elem_product(y_noise[range(12,15)], y_noise[range(12,15)]) ) / k;
+          std_devs[19] = ( ( k - 1 ) * std_devs[19] + norm_2_sqr(y_noise[range(12,15)]) ) / k;
         };
       };
     };
@@ -1100,12 +1100,12 @@ void get_timeseries_from_rec(
         added_noise.resize(merr_count, 0.0);
       
       meas_noisy.pose.resize(7);
-      meas_noisy.pose[range(0,2)] = meas_actual.pose[range(0,2)] + added_noise[range(0,2)];
+      meas_noisy.pose[range(0,3)] = meas_actual.pose[range(0,3)] + added_noise[range(0,3)];
       
       vect<double,3> aa_noise(added_noise[3], added_noise[4], added_noise[5]);
-      quaternion<double> y_quat(meas_actual.pose[range(3,6)]);
+      quaternion<double> y_quat(meas_actual.pose[range(3,7)]);
       y_quat *= axis_angle<double>(norm_2(aa_noise), aa_noise).getQuaternion();
-      meas_noisy.pose[range(3,6)] = vect<double,4>(y_quat[0], y_quat[1], y_quat[2], y_quat[3]);
+      meas_noisy.pose[range(3,7)] = vect<double,4>(y_quat[0], y_quat[1], y_quat[2], y_quat[3]);
       
       if( merr_count >= 9 ) {
         /* read off the IMU/gyro angular velocity measurements. */
@@ -1113,7 +1113,7 @@ void get_timeseries_from_rec(
         meas_actual.gyro[0] = nvr_in["w_x"];
         meas_actual.gyro[1] = nvr_in["w_y"];
         meas_actual.gyro[2] = nvr_in["w_z"];
-        meas_noisy.gyro = meas_actual.gyro + added_noise[range(6,8)];
+        meas_noisy.gyro = meas_actual.gyro + added_noise[range(6,9)];
         if( merr_count >= 15 ) {
           /* read off the IMU accel-mag measurements. */
           meas_actual.IMU_a_m.resize(6);
@@ -1123,7 +1123,7 @@ void get_timeseries_from_rec(
           meas_actual.IMU_a_m[3] = nvr_in["mag_x"];
           meas_actual.IMU_a_m[4] = nvr_in["mag_y"];
           meas_actual.IMU_a_m[5] = nvr_in["mag_z"];
-          meas_noisy.IMU_a_m = meas_actual.IMU_a_m + added_noise[range(9,14)];
+          meas_noisy.IMU_a_m = meas_actual.IMU_a_m + added_noise[range(9,15)];
         };
       };
       

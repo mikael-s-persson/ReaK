@@ -34,11 +34,11 @@ double sphere::getBoundingRadius() const {
 
 
 sphere::sphere(const std::string& aName,
-	       const shared_ptr< pose_3D<double> >& aAnchor,
-	       const pose_3D<double>& aPose,
-	       double aRadius) :
-	       shape_3D(aName,aAnchor,aPose),
-	       mRadius(aRadius) { };
+               const shared_ptr< pose_3D<double> >& aAnchor,
+               const pose_3D<double>& aPose,
+               double aRadius) :
+               shape_3D(aName,aAnchor,aPose),
+               mRadius(aRadius) { };
     
 void RK_CALL sphere::save(ReaK::serialization::oarchive& A, unsigned int) const {
   shape_3D::save(A,shape_3D::getStaticObjectType()->TypeVersion());

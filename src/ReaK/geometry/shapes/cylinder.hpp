@@ -87,10 +87,10 @@ class cylinder : public shape_3D {
      * \param aRadius The radius of the cylinder.
      */
     cylinder(const std::string& aName = "",
-	     const shared_ptr< pose_3D<double> >& aAnchor = shared_ptr< pose_3D<double> >(),
-	     const pose_3D<double>& aPose = pose_3D<double>(),
-	     double aLength = 1.0,
-	     double aRadius = 1.0);
+             const shared_ptr< pose_3D<double> >& aAnchor = shared_ptr< pose_3D<double> >(),
+             const pose_3D<double>& aPose = pose_3D<double>(),
+             double aLength = 1.0,
+             double aRadius = 1.0);
     
     /**
      * Default destructor.

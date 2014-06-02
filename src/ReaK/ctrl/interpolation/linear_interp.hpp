@@ -34,14 +34,15 @@
 #ifndef REAK_LINEAR_INTERP_HPP
 #define REAK_LINEAR_INTERP_HPP
 
-#include "path_planning/spatial_trajectory_concept.hpp"
+#include <ReaK/core/base/defs.hpp>
+#include <ReaK/core/lin_alg/arithmetic_tuple.hpp>
+#include <ReaK/core/lin_alg/mat_num_exceptions.hpp>
 
-#include "path_planning/tangent_bundle_concept.hpp"
+#include <ReaK/ctrl/path_planning/spatial_trajectory_concept.hpp>
+#include <ReaK/ctrl/path_planning/tangent_bundle_concept.hpp>
 
 #include "interpolated_trajectory.hpp"
 #include "generic_interpolator_factory.hpp"
-
-#include "lin_alg/arithmetic_tuple.hpp"
 
 #include <boost/config.hpp>
 #include <boost/concept_check.hpp>
@@ -50,7 +51,6 @@
 #include <list>
 #include <map>
 #include <limits>
-#include "lin_alg/mat_num_exceptions.hpp"
 
 namespace ReaK {
 
@@ -73,7 +73,7 @@ namespace detail {
     >,
   void >::type linear_interpolate_HOT_impl(PointType& result, const PointDiff0& dp1p0,
                                            const DiffSpace& space, const TimeSpace& t_space,
-				 	   double t_factor, double t_normal) {
+                                           double t_factor, double t_normal) {
     /* nothing to do. */
   };
   
@@ -86,7 +86,7 @@ namespace detail {
     >,
   void >::type linear_interpolate_HOT_impl(PointType& result, const PointDiff0& dp1p0,
                                            const DiffSpace& space, const TimeSpace& t_space,
-				 	   double t_factor, double t_normal) {
+                                           double t_factor, double t_normal) {
     get<1>(result) = lift_to_space<1>(dp1p0, t_factor, space, t_space);
   };
   
@@ -99,7 +99,7 @@ namespace detail {
     >,
   void >::type linear_interpolate_impl(PointType& result, const PointType& a, const PointDiff0& dp1p0,
                                        const DiffSpace& space, const TimeSpace& t_space,
-				       double t_factor, double t_normal) {
+                                       double t_factor, double t_normal) {
     
     get<0>(result) = get_space<0>(space,t_space).adjust(get<0>(a), t_normal * dp1p0);
     
@@ -115,8 +115,8 @@ namespace detail {
       boost::mpl::size_t<1> 
     >,
   void >::type linear_interpolate_impl(PointType& result, const PointType& a, const PointDiff0 dp1p0, 
-				       const DiffSpace& space, const TimeSpace& t_space,
-				       double t_factor, double t_normal) {
+                                       const DiffSpace& space, const TimeSpace& t_space,
+                                       double t_factor, double t_normal) {
     linear_interpolate_impl< typename boost::mpl::prior<Idx>::type, PointType, PointDiff0, DiffSpace, TimeSpace >(result,a,dp1p0,space,t_space,t_factor,t_normal);
     
     get< Idx::type::value >(result) = get_space< Idx::type::value >(space,t_space).origin();
@@ -210,7 +210,7 @@ class linear_interpolator {
      */
     template <typename Factory>
     linear_interpolator(const point_type& start_point, const point_type& end_point, double dt,
-		        const SpaceType& space, const TimeSpaceType& t_space, const Factory& factory) {
+                        const SpaceType& space, const TimeSpaceType& t_space, const Factory& factory) {
       initialize(start_point,end_point,dt,space,t_space,factory);
     };
     
@@ -225,7 +225,7 @@ class linear_interpolator {
      */
     template <typename Factory>
     void initialize(const point_type& start_point, const point_type& end_point, double,
-		    const SpaceType& space, const TimeSpaceType& t_space, const Factory& factory) {
+                    const SpaceType& space, const TimeSpaceType& t_space, const Factory& factory) {
       delta_first_order = get_space<0>(space,t_space).difference( get<0>(end_point), get<0>(start_point) );
     };
     
@@ -243,8 +243,8 @@ class linear_interpolator {
      */
     template <typename Factory>
     void compute_point(point_type& result, const point_type& start_point, const point_type& end_point,
-		       const SpaceType& space, const TimeSpaceType& t_space, 
-		       double dt, double dt_total, const Factory& factory) const {
+                       const SpaceType& space, const TimeSpaceType& t_space, 
+                       double dt, double dt_total, const Factory& factory) const {
       if(std::fabs(dt_total) < std::numeric_limits<double>::epsilon())
         throw singularity_error("Normalizing factor in linear interpolation is zero!");
       double t_normal = dt / dt_total;
@@ -364,7 +364,7 @@ class linear_interp_traj : public interpolated_trajectory<Topology,linear_interp
      */
     linear_interp_traj(const shared_ptr<topology>& aSpace, const point_type& aStart, const point_type& aEnd, const distance_metric& aDist = distance_metric()) :
                        base_class_type(aSpace, aStart, aEnd, aDist, linear_interpolator_factory<Topology>(aSpace)) { };
-			
+                        
     /**
      * Constructs the path from a range of points and their space.
      * \tparam ForwardIter A forward-iterator type for getting points to initialize the path with.
@@ -376,9 +376,9 @@ class linear_interp_traj : public interpolated_trajectory<Topology,linear_interp
     template <typename ForwardIter>
     linear_interp_traj(ForwardIter aBegin, ForwardIter aEnd, const shared_ptr<topology>& aSpace, const distance_metric& aDist = distance_metric()) : 
                        base_class_type(aBegin, aEnd, aSpace, aDist, linear_interpolator_factory<Topology>(aSpace)) { };
-		       
-		       
-		       
+                       
+                       
+                       
     
     
 /*******************************************************************************

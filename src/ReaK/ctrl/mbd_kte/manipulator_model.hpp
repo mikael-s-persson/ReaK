@@ -242,17 +242,17 @@ class manipulator_kinematics_model : public kte_map {
     
     virtual void doMotion(kte_pass_flag aFlag = nothing, const shared_ptr<frame_storage>& aStorage = shared_ptr<frame_storage>()) {
       if(mModel)
-	mModel->doMotion(aFlag,aStorage);
+        mModel->doMotion(aFlag,aStorage);
     };
 
     virtual void doForce(kte_pass_flag aFlag = nothing, const shared_ptr<frame_storage>& aStorage = shared_ptr<frame_storage>()) {
       if(mModel)
-	mModel->doForce(aFlag,aStorage);
+        mModel->doForce(aFlag,aStorage);
     };
 
     virtual void clearForce() { 
       if(mModel)
-	mModel->clearForce();
+        mModel->clearForce();
     };
     
     /**
@@ -518,7 +518,7 @@ class manipulator_dynamics_model : public manipulator_kinematics_model, public s
     unsigned int getInputsCount() const {
       unsigned int result = 0;
       for(std::vector< shared_ptr< system_input > >::const_iterator it = mInputs.begin(); it != mInputs.end(); ++it)
-	result += (*it)->getInputCount();
+        result += (*it)->getInputCount();
       return result;
     };
     
@@ -529,7 +529,7 @@ class manipulator_dynamics_model : public manipulator_kinematics_model, public s
     unsigned int getOutputsCount() const {
       unsigned int result = 0;
       for(std::vector< shared_ptr< system_output > >::const_iterator it = mOutputs.begin(); it != mOutputs.end(); ++it)
-	result += (*it)->getOutputCount();
+        result += (*it)->getOutputCount();
       return result;
     };
     

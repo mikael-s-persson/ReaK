@@ -81,9 +81,9 @@ class line_seg_3D : public geometry_3D {
      */
     line_seg_3D(const std::string& aName = "",
                 const shared_ptr< pose_3D<double> >& aAnchor = shared_ptr< pose_3D<double> >(),
-		const pose_3D<double>& aPose = pose_3D<double>(),
-		const vect<double,3>& aStart = (vect<double,3>()),
-		const vect<double,3>& aEnd = (vect<double,3>()));
+                const pose_3D<double>& aPose = pose_3D<double>(),
+                const vect<double,3>& aStart = (vect<double,3>()),
+                const vect<double,3>& aEnd = (vect<double,3>()));
     
     /**
      * Default destructor.

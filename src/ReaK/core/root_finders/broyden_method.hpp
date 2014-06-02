@@ -37,9 +37,9 @@
 #include <limits>
 #include <cmath>
 
-#include "lin_alg/mat_num_exceptions.hpp"
-#include "lin_alg/vect_concepts.hpp"
-#include "lin_alg/mat_alg_square.hpp"
+#include <ReaK/core/lin_alg/mat_num_exceptions.hpp>
+#include <ReaK/core/lin_alg/vect_concepts.hpp>
+#include <ReaK/core/lin_alg/mat_alg_square.hpp>
 
 namespace ReaK {
 
@@ -62,8 +62,7 @@ namespace ReaK {
  * \throw maximum_iteration If the maximum number of iterations is reached before convergence.
  * \throw singularity_error If a stationary point is reached.
  */
-template <typename Vector,
-	  typename RootedFunction>
+template <typename Vector, typename RootedFunction>
 void broyden_good_method(const Vector& x_prev, Vector& x0, RootedFunction f, const T& tol = std::numeric_limits<T>::epsilon(), std::size_t max_iter = 50) 
 {
   using std::fabs;
@@ -129,8 +128,7 @@ void broyden_good_method(const Vector& x_prev, Vector& x0, RootedFunction f, con
  * \throw maximum_iteration If the maximum number of iterations is reached before convergence.
  * \throw singularity_error If a stationary point is reached.
  */
-template <typename Vector,
-	  typename RootedFunction>
+template <typename Vector, typename RootedFunction>
 void broyden_fast_method(const Vector& x_prev, Vector& x0, RootedFunction f, const T& tol = std::numeric_limits<T>::epsilon(), std::size_t max_iter = 50) 
 {
   using std::fabs;

@@ -36,21 +36,17 @@
 #ifndef REAK_KTE_NL_SYSTEM_HPP
 #define REAK_KTE_NL_SYSTEM_HPP
 
+#include <ReaK/core/base/named_object.hpp>
+#include <ReaK/core/lin_alg/mat_alg.hpp>
+#include <ReaK/core/lin_alg/vect_alg.hpp>
+#include <ReaK/core/lin_alg/mat_cholesky.hpp>
+#include <ReaK/core/kinetostatics/kinetostatics.hpp>
 
+#include <ReaK/ctrl/mbd_kte/kte_map_chain.hpp>
+#include <ReaK/ctrl/mbd_kte/kte_system_input.hpp>
+#include <ReaK/ctrl/mbd_kte/kte_system_output.hpp>
+#include <ReaK/ctrl/mbd_kte/mass_matrix_calculator.hpp>
 
-#include "base/named_object.hpp"
-
-#include "lin_alg/mat_alg.hpp"
-#include "lin_alg/vect_alg.hpp"
-
-#include "kinetostatics/kinetostatics.hpp"
-
-#include "mbd_kte/kte_map_chain.hpp"
-#include "mbd_kte/kte_system_input.hpp"
-#include "mbd_kte/kte_system_output.hpp"
-#include "mbd_kte/mass_matrix_calculator.hpp"
-
-#include "lin_alg/mat_cholesky.hpp"
 
 namespace ReaK {
 

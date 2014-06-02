@@ -59,10 +59,10 @@ void prox_circle_circle::computeProximity() {
 
 
 prox_circle_circle::prox_circle_circle(const shared_ptr< circle >& aCircle1,
-				       const shared_ptr< circle >& aCircle2) :
-				       proximity_finder_2D(),
-				       mCircle1(aCircle1),
-				       mCircle2(aCircle2) { };
+                                       const shared_ptr< circle >& aCircle2) :
+                                       proximity_finder_2D(),
+                                       mCircle1(aCircle1),
+                                       mCircle2(aCircle2) { };
     
     
 void RK_CALL prox_circle_circle::save(ReaK::serialization::oarchive& A, unsigned int) const {

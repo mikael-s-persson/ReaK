@@ -22,15 +22,15 @@
  */
 
 #include <cmath>
-#include "line_search.hpp"
+#include <ReaK/core/optimization/line_search.hpp>
 
-#include "finite_diff_jacobians.hpp"
+#include <ReaK/core/optimization/finite_diff_jacobians.hpp>
 
-#include "augmented_lagrangian_methods.hpp"
-#include "sequential_qp_methods.hpp"
-#include "nl_interior_points_methods.hpp"
+#include <ReaK/core/optimization/augmented_lagrangian_methods.hpp>
+#include <ReaK/core/optimization/sequential_qp_methods.hpp>
+#include <ReaK/core/optimization/nl_interior_points_methods.hpp>
 
-#include "lin_alg/mat_svd_method.hpp"
+#include <ReaK/core/lin_alg/mat_svd_method.hpp>
 
 #include <iostream>
 #include <cmath>
@@ -98,9 +98,9 @@ void p01_h_jac(mat<double,mat_structure::rectangular>& J, const vect_n<double>&,
 vect_n<double> p01_sol = vect_n<double>(vect<double,2>(1.0,1.0));
 vect_n<double> p01_start = vect_n<double>(vect<double,2>(-2.0,1.0));
 vect_n<double> p01_lower = vect_n<double>(vect<double,2>(-std::numeric_limits<double>::infinity(),
-							 -std::numeric_limits<double>::infinity()));
+                                                         -std::numeric_limits<double>::infinity()));
 vect_n<double> p01_upper = vect_n<double>(vect<double,2>(std::numeric_limits<double>::infinity(),
-							 std::numeric_limits<double>::infinity()));
+                                                         std::numeric_limits<double>::infinity()));
 
 
 
@@ -126,9 +126,9 @@ void p02_h_jac(mat<double,mat_structure::rectangular>& J, const vect_n<double>&,
 vect_n<double> p02_sol = vect_n<double>(vect<double,2>(-1.2210274,1.5));
 vect_n<double> p02_start = vect_n<double>(vect<double,2>(-2.0,1.0));
 vect_n<double> p02_lower = vect_n<double>(vect<double,2>(-std::numeric_limits<double>::infinity(),
-							 -std::numeric_limits<double>::infinity()));
+                                                         -std::numeric_limits<double>::infinity()));
 vect_n<double> p02_upper = vect_n<double>(vect<double,2>(std::numeric_limits<double>::infinity(),
-							 std::numeric_limits<double>::infinity()));
+                                                         std::numeric_limits<double>::infinity()));
 
 
 
@@ -176,9 +176,9 @@ void p03_h_jac(mat<double,mat_structure::rectangular>& J, const vect_n<double>&,
 vect_n<double> p03_sol = vect_n<double>(vect<double,2>(0.0,0.0));
 vect_n<double> p03_start = vect_n<double>(vect<double,2>(10.0,1.0));
 vect_n<double> p03_lower = vect_n<double>(vect<double,2>(-std::numeric_limits<double>::infinity(),
-							 -std::numeric_limits<double>::infinity()));
+                                                         -std::numeric_limits<double>::infinity()));
 vect_n<double> p03_upper = vect_n<double>(vect<double,2>(std::numeric_limits<double>::infinity(),
-							 std::numeric_limits<double>::infinity()));
+                                                         std::numeric_limits<double>::infinity()));
 
 
 
@@ -229,9 +229,9 @@ void p04_h_jac(mat<double,mat_structure::rectangular>& J, const vect_n<double>&,
 vect_n<double> p04_sol = vect_n<double>(vect<double,2>(1.0,0.0));
 vect_n<double> p04_start = vect_n<double>(vect<double,2>(1.125,0.125));
 vect_n<double> p04_lower = vect_n<double>(vect<double,2>(-std::numeric_limits<double>::infinity(),
-							 -std::numeric_limits<double>::infinity()));
+                                                         -std::numeric_limits<double>::infinity()));
 vect_n<double> p04_upper = vect_n<double>(vect<double,2>(std::numeric_limits<double>::infinity(),
-							 std::numeric_limits<double>::infinity()));
+                                                         std::numeric_limits<double>::infinity()));
 
 
 
@@ -287,12 +287,12 @@ void p05_h_jac(mat<double,mat_structure::rectangular>& J, const vect_n<double>&,
 };
 
 vect_n<double> p05_sol = vect_n<double>(vect<double,2>(0.5 - 4.0 * atan(1.0) / 3.0,
-						       0.5 - 4.0 * atan(1.0) / 3.0 - 1.0));
+                                                       0.5 - 4.0 * atan(1.0) / 3.0 - 1.0));
 vect_n<double> p05_start = vect_n<double>(vect<double,2>(0.0,0.0));
 vect_n<double> p05_lower = vect_n<double>(vect<double,2>(-std::numeric_limits<double>::infinity(),
-							 -std::numeric_limits<double>::infinity()));
+                                                         -std::numeric_limits<double>::infinity()));
 vect_n<double> p05_upper = vect_n<double>(vect<double,2>(std::numeric_limits<double>::infinity(),
-							 std::numeric_limits<double>::infinity()));
+                                                         std::numeric_limits<double>::infinity()));
 
 
 
@@ -340,12 +340,12 @@ void p06_h_jac(mat<double,mat_structure::rectangular>& J, const vect_n<double>&,
 };
 
 vect_n<double> p06_sol = vect_n<double>(vect<double,2>(1.0,
-						       1.0));
+                                                       1.0));
 vect_n<double> p06_start = vect_n<double>(vect<double,2>(-1.2,1.0));
 vect_n<double> p06_lower = vect_n<double>(vect<double,2>(-std::numeric_limits<double>::infinity(),
-							 -std::numeric_limits<double>::infinity()));
+                                                         -std::numeric_limits<double>::infinity()));
 vect_n<double> p06_upper = vect_n<double>(vect<double,2>(std::numeric_limits<double>::infinity(),
-							 std::numeric_limits<double>::infinity()));
+                                                         std::numeric_limits<double>::infinity()));
 
 
 
@@ -396,12 +396,12 @@ void p07_h_jac(mat<double,mat_structure::rectangular>& J, const vect_n<double>&,
 };
 
 vect_n<double> p07_sol = vect_n<double>(vect<double,2>(0.0,
-						       sqrt(3.0)));
+                                                       sqrt(3.0)));
 vect_n<double> p07_start = vect_n<double>(vect<double,2>(2.0,2.0));
 vect_n<double> p07_lower = vect_n<double>(vect<double,2>(-std::numeric_limits<double>::infinity(),
-							 -std::numeric_limits<double>::infinity()));
+                                                         -std::numeric_limits<double>::infinity()));
 vect_n<double> p07_upper = vect_n<double>(vect<double,2>(std::numeric_limits<double>::infinity(),
-							 std::numeric_limits<double>::infinity()));
+                                                         std::numeric_limits<double>::infinity()));
 
 
 
@@ -452,12 +452,12 @@ void p10_h_jac(mat<double,mat_structure::rectangular>& J, const vect_n<double>& 
 };
 
 vect_n<double> p10_sol = vect_n<double>(vect<double,2>(0.0,
-						       1.0));
+                                                       1.0));
 vect_n<double> p10_start = vect_n<double>(vect<double,2>(-10.0,10.0));
 vect_n<double> p10_lower = vect_n<double>(vect<double,2>(-std::numeric_limits<double>::infinity(),
-							 -std::numeric_limits<double>::infinity()));
+                                                         -std::numeric_limits<double>::infinity()));
 vect_n<double> p10_upper = vect_n<double>(vect<double,2>(std::numeric_limits<double>::infinity(),
-							 std::numeric_limits<double>::infinity()));
+                                                         std::numeric_limits<double>::infinity()));
 
 
 
@@ -519,9 +519,9 @@ vect_n<double> p11_get_sol() {
 vect_n<double> p11_sol = p11_get_sol();
 vect_n<double> p11_start = vect_n<double>(vect<double,2>(4.9,0.1));
 vect_n<double> p11_lower = vect_n<double>(vect<double,2>(-std::numeric_limits<double>::infinity(),
-							 -std::numeric_limits<double>::infinity()));
+                                                         -std::numeric_limits<double>::infinity()));
 vect_n<double> p11_upper = vect_n<double>(vect<double,2>(std::numeric_limits<double>::infinity(),
-							 std::numeric_limits<double>::infinity()));
+                                                         std::numeric_limits<double>::infinity()));
 
 
 
@@ -571,12 +571,12 @@ void p12_h_jac(mat<double,mat_structure::rectangular>& J, const vect_n<double>& 
 };
 
 vect_n<double> p12_sol = vect_n<double>(vect<double,2>(2.0,
-						       3.0));
+                                                       3.0));
 vect_n<double> p12_start = vect_n<double>(vect<double,2>(0.0,0.0));
 vect_n<double> p12_lower = vect_n<double>(vect<double,2>(-std::numeric_limits<double>::infinity(),
-							 -std::numeric_limits<double>::infinity()));
+                                                         -std::numeric_limits<double>::infinity()));
 vect_n<double> p12_upper = vect_n<double>(vect<double,2>(std::numeric_limits<double>::infinity(),
-							 std::numeric_limits<double>::infinity()));
+                                                         std::numeric_limits<double>::infinity()));
 
 
 
@@ -628,12 +628,12 @@ void p14_h_jac(mat<double,mat_structure::rectangular>& J, const vect_n<double>& 
 };
 
 vect_n<double> p14_sol = vect_n<double>(vect<double,2>((sqrt(7.0) - 1.0) * 0.5,
-						       (sqrt(7.0) + 1.0) * 0.25));
+                                                       (sqrt(7.0) + 1.0) * 0.25));
 vect_n<double> p14_start = vect_n<double>(vect<double,2>(2.0,2.0));
 vect_n<double> p14_lower = vect_n<double>(vect<double,2>(-std::numeric_limits<double>::infinity(),
-							 -std::numeric_limits<double>::infinity()));
+                                                         -std::numeric_limits<double>::infinity()));
 vect_n<double> p14_upper = vect_n<double>(vect<double,2>(std::numeric_limits<double>::infinity(),
-							 std::numeric_limits<double>::infinity()));
+                                                         std::numeric_limits<double>::infinity()));
 
 
 
@@ -682,12 +682,12 @@ void p15_h_jac(mat<double,mat_structure::rectangular>& J, const vect_n<double>& 
 };
 
 vect_n<double> p15_sol = vect_n<double>(vect<double,2>(1.66497,
-						       0.55405));
+                                                       0.55405));
 vect_n<double> p15_start = vect_n<double>(vect<double,2>(2.0,2.0));
 vect_n<double> p15_lower = vect_n<double>(vect<double,2>(-std::numeric_limits<double>::infinity(),
-							 -std::numeric_limits<double>::infinity()));
+                                                         -std::numeric_limits<double>::infinity()));
 vect_n<double> p15_upper = vect_n<double>(vect<double,2>(std::numeric_limits<double>::infinity(),
-							 std::numeric_limits<double>::infinity()));
+                                                         std::numeric_limits<double>::infinity()));
 
 
 
@@ -1142,7 +1142,7 @@ int main() {
         (x);
       std::cout << "  Newton method (unconstrained) gives:\n"
                 << "    x = " << x << " with error = " << norm_2(x - funcs_sol[i]) << "\n"
-	        << "    eval-count = " << evalCount << " and grad-eval-count = " << gradCount << "\n"
+                << "    eval-count = " << evalCount << " and grad-eval-count = " << gradCount << "\n"
                 << "    f(x) = " << funcs_f[i](x) << " with f(x_opt) = " << funcs_f[i](funcs_sol[i]) << " |f(x) - f(x_opt)| = " << fabs(funcs_f[i](x) - funcs_f[i](funcs_sol[i])) << "\n"
                 << "    g(x) = " << funcs_g[i](x) << " and h(x) = " << funcs_h[i](x) << std::endl;
     } catch(std::exception& e) {
@@ -1158,12 +1158,12 @@ int main() {
     try {
       optim::make_constraint_newton_method_tr(funcs_f[i],funcs_grad[i],funcs_hess[i],2.0,300,1e-6,1e-6,1e-3)
         .set_limiter(boost::bind(optim::box_limit_function< vect_n<double> >,_1,_2,funcs_lower[i],funcs_upper[i]))
-	.set_eq_constraints(funcs_g[i],funcs_g_jac[i])
-	.set_ineq_constraints(funcs_h[i],funcs_h_jac[i])
-	(x);
+        .set_eq_constraints(funcs_g[i],funcs_g_jac[i])
+        .set_ineq_constraints(funcs_h[i],funcs_h_jac[i])
+        (x);
       std::cout << "  Augmented Lagrangian method gives:\n"
                 << "    x = " << x << " with error = " << norm_2(x - funcs_sol[i]) << "\n"
-	        << "    eval-count = " << evalCount << " and grad-eval-count = " << gradCount << "\n"
+                << "    eval-count = " << evalCount << " and grad-eval-count = " << gradCount << "\n"
                 << "    f(x) = " << funcs_f[i](x) << " with f(x_opt) = " << funcs_f[i](funcs_sol[i]) << " |f(x) - f(x_opt)| = " << fabs(funcs_f[i](x) - funcs_f[i](funcs_sol[i])) << "\n"
                 << "    g(x) = " << funcs_g[i](x) << " and h(x) = " << funcs_h[i](x) << std::endl;
     } catch(std::exception& e) {
@@ -1179,13 +1179,13 @@ int main() {
     try {
       optim::make_constraint_newton_method_tr(funcs_f[i],funcs_grad[i],funcs_hess[i],2.0,300,1e-6,1e-6,1e-3)
         .set_limiter(boost::bind(optim::box_limit_function< vect_n<double> >,_1,_2,funcs_lower[i],funcs_upper[i]))
-	.set_eq_constraints(funcs_g[i],funcs_g_jac[i])
-	.set_ineq_constraints(funcs_h[i],funcs_h_jac[i])
-	.regularize(1e-8)
-	(x);
+        .set_eq_constraints(funcs_g[i],funcs_g_jac[i])
+        .set_ineq_constraints(funcs_h[i],funcs_h_jac[i])
+        .regularize(1e-8)
+        (x);
       std::cout << "  Regularized Augmented Lagrangian method gives:\n"
                 << "    x = " << x << " with error = " << norm_2(x - funcs_sol[i]) << "\n"
-	        << "    eval-count = " << evalCount << " and grad-eval-count = " << gradCount << "\n"
+                << "    eval-count = " << evalCount << " and grad-eval-count = " << gradCount << "\n"
                 << "    f(x) = " << funcs_f[i](x) << " with f(x_opt) = " << funcs_f[i](funcs_sol[i]) << " |f(x) - f(x_opt)| = " << fabs(funcs_f[i](x) - funcs_f[i](funcs_sol[i])) << "\n"
                 << "    g(x) = " << funcs_g[i](x) << " and h(x) = " << funcs_h[i](x) << std::endl;
     } catch(std::exception& e) {
@@ -1201,12 +1201,12 @@ int main() {
     try {
       optim::make_nlip_newton_tr(funcs_f[i],funcs_grad[i],funcs_hess[i],1.0,0.1,300,1e-6,1e-3,0.99)
         .set_limiter(boost::bind(optim::box_limit_function< vect_n<double> >,_1,_2,funcs_lower[i],funcs_upper[i]))
-	.set_eq_constraints(funcs_g[i],funcs_g_jac[i])
-	.set_ineq_constraints(funcs_h[i],funcs_h_jac[i])
-	(x);
+        .set_eq_constraints(funcs_g[i],funcs_g_jac[i])
+        .set_ineq_constraints(funcs_h[i],funcs_h_jac[i])
+        (x);
       std::cout << "  NL Interior-point method gives:\n"
                 << "    x = " << x << " with error = " << norm_2(x - funcs_sol[i]) << "\n"
-	        << "    eval-count = " << evalCount << " and grad-eval-count = " << gradCount << "\n"
+                << "    eval-count = " << evalCount << " and grad-eval-count = " << gradCount << "\n"
                 << "    f(x) = " << funcs_f[i](x) << " with f(x_opt) = " << funcs_f[i](funcs_sol[i]) << " |f(x) - f(x_opt)| = " << fabs(funcs_f[i](x) - funcs_f[i](funcs_sol[i])) << "\n"
                 << "    g(x) = " << funcs_g[i](x) << " and h(x) = " << funcs_h[i](x) << std::endl;
     } catch(std::exception& e) {
@@ -1222,12 +1222,12 @@ int main() {
     try {
       optim::make_nlip_quasi_newton_tr(funcs_f[i],funcs_grad[i],1.0,0.1,300,1e-6,1e-3,0.99)
         .set_limiter(boost::bind(optim::box_limit_function< vect_n<double> >,_1,_2,funcs_lower[i],funcs_upper[i]))
-	.set_eq_constraints(funcs_g[i],funcs_g_jac[i])
-	.set_ineq_constraints(funcs_h[i],funcs_h_jac[i])
-	(x);
+        .set_eq_constraints(funcs_g[i],funcs_g_jac[i])
+        .set_ineq_constraints(funcs_h[i],funcs_h_jac[i])
+        (x);
       std::cout << "  NL Interior-point Quasi-Newton method gives:\n"
                 << "    x = " << x << " with error = " << norm_2(x - funcs_sol[i]) << "\n"
-	        << "    eval-count = " << evalCount << " and grad-eval-count = " << gradCount << "\n"
+                << "    eval-count = " << evalCount << " and grad-eval-count = " << gradCount << "\n"
                 << "    f(x) = " << funcs_f[i](x) << " with f(x_opt) = " << funcs_f[i](funcs_sol[i]) << " |f(x) - f(x_opt)| = " << fabs(funcs_f[i](x) - funcs_f[i](funcs_sol[i])) << "\n"
                 << "    g(x) = " << funcs_g[i](x) << " and h(x) = " << funcs_h[i](x) << std::endl;
     } catch(std::exception& e) {
@@ -1243,11 +1243,11 @@ int main() {
     try {
       optim::make_nlip_newton_ls(funcs_f[i],funcs_grad[i],funcs_hess[i],10.0,30,1e-6,1e-1,0.95)
         .set_eq_constraints(funcs_g[i],funcs_g_jac[i])
-	.set_ineq_constraints(funcs_h[i],funcs_h_jac[i])
-	(x);
+        .set_ineq_constraints(funcs_h[i],funcs_h_jac[i])
+        (x);
       std::cout << "  NL Interior-point method with Line-search gives:\n"
                 << "    x = " << x << " with error = " << norm_2(x - funcs_sol[i]) << "\n"
-	        << "    eval-count = " << evalCount << " and grad-eval-count = " << gradCount << "\n"
+                << "    eval-count = " << evalCount << " and grad-eval-count = " << gradCount << "\n"
                 << "    f(x) = " << funcs_f[i](x) << " with f(x_opt) = " << funcs_f[i](funcs_sol[i]) << " |f(x) - f(x_opt)| = " << fabs(funcs_f[i](x) - funcs_f[i](funcs_sol[i])) << "\n"
                 << "    g(x) = " << funcs_g[i](x) << " and h(x) = " << funcs_h[i](x) << std::endl;
     } catch(std::exception& e) {
@@ -1263,11 +1263,11 @@ int main() {
     try {
       optim::make_nlip_quasi_newton_ls(funcs_f[i],funcs_grad[i],10.0,30,1e-6,1e-1,0.95)
         .set_eq_constraints(funcs_g[i],funcs_g_jac[i])
-	.set_ineq_constraints(funcs_h[i],funcs_h_jac[i])
-	(x);
+        .set_ineq_constraints(funcs_h[i],funcs_h_jac[i])
+        (x);
       std::cout << "  NL Interior-point Quasi-Newton method with Line-search gives:\n"
                 << "    x = " << x << " with error = " << norm_2(x - funcs_sol[i]) << "\n"
-	        << "    eval-count = " << evalCount << " and grad-eval-count = " << gradCount << "\n"
+                << "    eval-count = " << evalCount << " and grad-eval-count = " << gradCount << "\n"
                 << "    f(x) = " << funcs_f[i](x) << " with f(x_opt) = " << funcs_f[i](funcs_sol[i]) << " |f(x) - f(x_opt)| = " << fabs(funcs_f[i](x) - funcs_f[i](funcs_sol[i])) << "\n"
                 << "    g(x) = " << funcs_g[i](x) << " and h(x) = " << funcs_h[i](x) << std::endl;
     } catch(std::exception& e) {
@@ -1286,11 +1286,11 @@ int main() {
     try {
       optim::make_bosqp_newton_tr(funcs_f[i],funcs_grad[i],funcs_hess[i],2.0,300,1e-6,1e-3,0.8)
         .set_limiter(boost::bind(optim::box_limit_function< vect_n<double> >,_1,_2,funcs_lower[i],funcs_upper[i]))
-	.set_eq_constraints(funcs_g[i],funcs_g_jac[i])
-	(x);
+        .set_eq_constraints(funcs_g[i],funcs_g_jac[i])
+        (x);
       std::cout << "  Byrd-Omojokun SQP method gives:\n"
                 << "    x = " << x << " with error = " << norm_2(x - funcs_sol[i]) << "\n"
-	        << "    eval-count = " << evalCount << " and grad-eval-count = " << gradCount << "\n"
+                << "    eval-count = " << evalCount << " and grad-eval-count = " << gradCount << "\n"
                 << "    f(x) = " << funcs_f[i](x) << " with f(x_opt) = " << funcs_f[i](funcs_sol[i]) << " |f(x) - f(x_opt)| = " << fabs(funcs_f[i](x) - funcs_f[i](funcs_sol[i])) << "\n"
                 << "    g(x) = " << funcs_g[i](x) << " and h(x) = " << funcs_h[i](x) << std::endl;
     } catch(std::exception& e) {
@@ -1306,11 +1306,11 @@ int main() {
     try {
       optim::make_bosqp_quasi_newton_tr(funcs_f[i],funcs_grad[i],2.0,300,1e-6,1e-3,0.8)
         .set_limiter(boost::bind(optim::box_limit_function< vect_n<double> >,_1,_2,funcs_lower[i],funcs_upper[i]))
-	.set_eq_constraints(funcs_g[i],funcs_g_jac[i])
-	(x);
+        .set_eq_constraints(funcs_g[i],funcs_g_jac[i])
+        (x);
       std::cout << "  Byrd-Omojokun SQP Quasi-Newton method gives:\n"
                 << "    x = " << x << " with error = " << norm_2(x - funcs_sol[i]) << "\n"
-	        << "    eval-count = " << evalCount << " and grad-eval-count = " << gradCount << "\n"
+                << "    eval-count = " << evalCount << " and grad-eval-count = " << gradCount << "\n"
                 << "    f(x) = " << funcs_f[i](x) << " with f(x_opt) = " << funcs_f[i](funcs_sol[i]) << " |f(x) - f(x_opt)| = " << fabs(funcs_f[i](x) - funcs_f[i](funcs_sol[i]))<< "\n"
                 << "    g(x) = " << funcs_g[i](x) << " and h(x) = " << funcs_h[i](x) << std::endl;
     } catch(std::exception& e) {

@@ -21,11 +21,11 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "sustained_velocity_pulse_detail.hpp"
+#include <ReaK/ctrl/interpolation/sustained_velocity_pulse_detail.hpp>
 
-#include "root_finders/bisection_method.hpp"
+#include <ReaK/core/root_finders/bisection_method.hpp>
 
-#include "lin_alg/vect_alg.hpp"
+#include <ReaK/core/lin_alg/vect_alg.hpp>
 
 #include <boost/bind.hpp>
 #include <cmath>

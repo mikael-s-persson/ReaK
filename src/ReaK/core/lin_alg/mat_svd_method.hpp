@@ -142,10 +142,10 @@ void >::type decompose_SVD(const Matrix1& A, Matrix2& U, Matrix3& E, Matrix4& V,
     Ut.set_col_count(nu);
     for(SizeType i = 0; i < N; ++i) {
       for(SizeType j = 0; j < M; ++j) {
-	if(i == j)
-	  Ut(i,i) = 1;
-	else
-	  Ut(i,j) = 0;
+        if(i == j)
+          Ut(i,i) = 1;
+        else
+          Ut(i,j) = 0;
       };
     };
   };
@@ -200,7 +200,7 @@ void >::type decompose_SVD(const Matrix1& A, Matrix2& U, Matrix3& E, Matrix4& V,
         t = -t/At(k,k);
 
         for (SizeType i=k;i < N;++i)
-	  At(i,j) += t*At(i,k);
+          At(i,j) += t*At(i,k);
       };
 
       // Place the k-th row of A into e for the
@@ -500,13 +500,13 @@ void >::type decompose_SVD(const Matrix1& A, Matrix2& U, Matrix3& E, Matrix4& V,
       while (k < pp) {
         if (E(k,k) >= E(k+1,k+1))
           break;
-	swap(E(k,k),E(k+1,k+1));
+        swap(E(k,k),E(k+1,k+1));
         if (k < int(M-1))
           for (SizeType i = 0;i < M;++i)
-	    swap(Vt(i,k),Vt(i,k+1));
+            swap(Vt(i,k),Vt(i,k+1));
         if (k < int(N-1))
           for (SizeType i = 0; i < N; ++i)
-	    swap(Ut(i,k),Ut(i,k+1));
+            swap(Ut(i,k),Ut(i,k+1));
         k++;
       };
       iter = 0;

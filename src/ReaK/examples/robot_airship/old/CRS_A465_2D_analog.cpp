@@ -94,7 +94,7 @@ void CRS_A465_2D_model_builder::load_kte_from_file(const std::string& aFileName)
              & RK_SERIAL_LOAD_WITH_NAME(link_1_inertia)
              & RK_SERIAL_LOAD_WITH_NAME(link_2_inertia)
              & RK_SERIAL_LOAD_WITH_NAME(link_3_inertia);
-	     
+             
 };
 
 
@@ -150,10 +150,10 @@ void CRS_A465_2D_model_builder::create_from_preset() {
                                               
   //create motor inertia
   shared_ptr< kte::joint_dependent_gen_coord > track_joint_dep_coord(new kte::joint_dependent_gen_coord(track_joint_coord), 
-									  scoped_deleter() );
+                                                                          scoped_deleter() );
   track_joint_dep_coord->add_joint(track_joint_coord, 
-				   shared_ptr< jacobian_gen_gen<double> >(new jacobian_gen_gen<double>(1.0,0.0), 
-										    scoped_deleter()));
+                                   shared_ptr< jacobian_gen_gen<double> >(new jacobian_gen_gen<double>(1.0,0.0), 
+                                                                                    scoped_deleter()));
   track_joint_inertia = shared_ptr< kte::inertia_gen >(new kte::inertia_gen("track_joint_inertia",
                                                                         track_joint_dep_coord,
                                                                         1.0), 
@@ -176,7 +176,7 @@ void CRS_A465_2D_model_builder::create_from_preset() {
   
   //create arm-base inertia of 
   link_0_dep_frame = shared_ptr< kte::joint_dependent_frame_2D >(new kte::joint_dependent_frame_2D(arm_joint_1_base),
-								    scoped_deleter());
+                                                                    scoped_deleter());
   link_0_dep_frame->add_joint(track_joint_coord,track_joint_jacobian);
   link_0_inertia = shared_ptr< kte::inertia_2D >(new kte::inertia_2D("link_0_inertia",
                                                                  link_0_dep_frame,
@@ -194,10 +194,10 @@ void CRS_A465_2D_model_builder::create_from_preset() {
                                               
   //create motor inertia
   shared_ptr< kte::joint_dependent_gen_coord > arm_joint_1_dep_coord(new kte::joint_dependent_gen_coord(arm_joint_1_coord),
-									  scoped_deleter());
+                                                                          scoped_deleter());
   arm_joint_1_dep_coord->add_joint(arm_joint_1_coord,
                                    shared_ptr<jacobian_gen_gen<double> >(new jacobian_gen_gen<double>(1.0,0.0), 
-										   scoped_deleter()));
+                                                                                   scoped_deleter()));
   arm_joint_1_inertia = shared_ptr< kte::inertia_gen >(new kte::inertia_gen("arm_joint_1_inertia",
                                                                         arm_joint_1_dep_coord,
                                                                         1.0), //~71 kg m^2
@@ -220,7 +220,7 @@ void CRS_A465_2D_model_builder::create_from_preset() {
   
   //create link1 inertia 
   link_1_dep_frame = shared_ptr< kte::joint_dependent_frame_2D >(new kte::joint_dependent_frame_2D(arm_joint_2_base),
-								    scoped_deleter());
+                                                                    scoped_deleter());
   link_1_dep_frame->add_joint(track_joint_coord,track_joint_jacobian);
   link_1_dep_frame->add_joint(arm_joint_1_coord,arm_joint_1_jacobian);
   link_1_inertia = shared_ptr< kte::inertia_2D >(new kte::inertia_2D("link_1_inertia",
@@ -239,10 +239,10 @@ void CRS_A465_2D_model_builder::create_from_preset() {
     
   //create motor inertia
   shared_ptr< kte::joint_dependent_gen_coord > arm_joint_2_dep_coord(new kte::joint_dependent_gen_coord(arm_joint_2_coord),
-									  scoped_deleter());
+                                                                          scoped_deleter());
   arm_joint_2_dep_coord->add_joint(arm_joint_2_coord,
                                    shared_ptr<jacobian_gen_gen<double> >(new jacobian_gen_gen<double>(1.0,0.0), 
-										   scoped_deleter()));
+                                                                                   scoped_deleter()));
   arm_joint_2_inertia = shared_ptr< kte::inertia_gen >(new kte::inertia_gen("arm_joint_2_inertia",
                                                                         arm_joint_2_dep_coord,
                                                                         1.0),
@@ -265,7 +265,7 @@ void CRS_A465_2D_model_builder::create_from_preset() {
   
   //create inertia
   link_2_dep_frame = shared_ptr< kte::joint_dependent_frame_2D >(new kte::joint_dependent_frame_2D(arm_joint_3_base),
-								    scoped_deleter());
+                                                                    scoped_deleter());
   link_2_dep_frame->add_joint(track_joint_coord,track_joint_jacobian);
   link_2_dep_frame->add_joint(arm_joint_1_coord,arm_joint_1_jacobian);
   link_2_dep_frame->add_joint(arm_joint_2_coord,arm_joint_2_jacobian);
@@ -285,10 +285,10 @@ void CRS_A465_2D_model_builder::create_from_preset() {
   
   //create motor inertia
   shared_ptr< kte::joint_dependent_gen_coord > arm_joint_3_dep_coord(new kte::joint_dependent_gen_coord(arm_joint_3_coord),
-									  scoped_deleter());
+                                                                          scoped_deleter());
   arm_joint_3_dep_coord->add_joint(arm_joint_3_coord,
                                    shared_ptr<jacobian_gen_gen<double> > (new jacobian_gen_gen<double>(1.0,0.0), 
-										   scoped_deleter()));
+                                                                                   scoped_deleter()));
   arm_joint_3_inertia = shared_ptr< kte::inertia_gen >(new kte::inertia_gen("arm_joint_3_inertia",
                                                                          arm_joint_3_dep_coord,
                                                                          1.0), 
@@ -311,7 +311,7 @@ void CRS_A465_2D_model_builder::create_from_preset() {
   
   //create inertia
   link_3_dep_frame = shared_ptr< kte::joint_dependent_frame_2D >(new kte::joint_dependent_frame_2D(arm_EE),
-								    scoped_deleter());
+                                                                    scoped_deleter());
   link_3_dep_frame->add_joint(track_joint_coord,track_joint_jacobian);
   link_3_dep_frame->add_joint(arm_joint_1_coord,arm_joint_1_jacobian);
   link_3_dep_frame->add_joint(arm_joint_2_coord,arm_joint_2_jacobian);
@@ -585,55 +585,55 @@ CRS_A465_2D_model_builder::joint_space_type CRS_A465_2D_model_builder::get_joint
                              SingleJointSpace
                            >(
                              SingleJointSpace(
-	                       arithmetic_tuple<
-	                         LinSeg,LinSeg,LinSeg
-	                       >(
-				 LinSeg("track_pos_space",joint_lower_bounds[0],joint_upper_bounds[0]),
-				 LinSeg("track_vel_space",-joint_rate_limits.gen_speed_limits[0],joint_rate_limits.gen_speed_limits[0]),
-				 LinSeg("track_acc_space",-joint_rate_limits.gen_accel_limits[0],joint_rate_limits.gen_accel_limits[0])
-			       )
-	                     ),
-	                     SingleJointSpace(
-	                       arithmetic_tuple<
-	                         LinSeg,LinSeg,LinSeg
-	                       >(
-				 LinSeg("arm_joint_1_pos_space",joint_lower_bounds[1],joint_upper_bounds[1]),
-				 LinSeg("arm_joint_1_vel_space",-joint_rate_limits.gen_speed_limits[1],joint_rate_limits.gen_speed_limits[1]),
-				 LinSeg("arm_joint_1_acc_space",-joint_rate_limits.gen_accel_limits[1],joint_rate_limits.gen_accel_limits[1])
-			       )
-	                     ),
-	                     SingleJointSpace(
-	                       arithmetic_tuple<
-	                         LinSeg,LinSeg,LinSeg
-	                       >(
-				 LinSeg("arm_joint_2_pos_space",joint_lower_bounds[2],joint_upper_bounds[2]),
-				 LinSeg("arm_joint_2_vel_space",-joint_rate_limits.gen_speed_limits[2],joint_rate_limits.gen_speed_limits[2]),
-				 LinSeg("arm_joint_2_acc_space",-joint_rate_limits.gen_accel_limits[2],joint_rate_limits.gen_accel_limits[2])
-			       )
-	                     ),
-	                     SingleJointSpace(
-	                       arithmetic_tuple<
-	                         LinSeg,LinSeg,LinSeg
-	                       >(
-				 LinSeg("arm_joint_3_pos_space",joint_lower_bounds[3],joint_upper_bounds[3]),
-				 LinSeg("arm_joint_3_vel_space",-joint_rate_limits.gen_speed_limits[3],joint_rate_limits.gen_speed_limits[3]),
-				 LinSeg("arm_joint_3_acc_space",-joint_rate_limits.gen_accel_limits[3],joint_rate_limits.gen_accel_limits[3])
-			       )
-	                     )
-			   )
-	                 );
+                               arithmetic_tuple<
+                                 LinSeg,LinSeg,LinSeg
+                               >(
+                                 LinSeg("track_pos_space",joint_lower_bounds[0],joint_upper_bounds[0]),
+                                 LinSeg("track_vel_space",-joint_rate_limits.gen_speed_limits[0],joint_rate_limits.gen_speed_limits[0]),
+                                 LinSeg("track_acc_space",-joint_rate_limits.gen_accel_limits[0],joint_rate_limits.gen_accel_limits[0])
+                               )
+                             ),
+                             SingleJointSpace(
+                               arithmetic_tuple<
+                                 LinSeg,LinSeg,LinSeg
+                               >(
+                                 LinSeg("arm_joint_1_pos_space",joint_lower_bounds[1],joint_upper_bounds[1]),
+                                 LinSeg("arm_joint_1_vel_space",-joint_rate_limits.gen_speed_limits[1],joint_rate_limits.gen_speed_limits[1]),
+                                 LinSeg("arm_joint_1_acc_space",-joint_rate_limits.gen_accel_limits[1],joint_rate_limits.gen_accel_limits[1])
+                               )
+                             ),
+                             SingleJointSpace(
+                               arithmetic_tuple<
+                                 LinSeg,LinSeg,LinSeg
+                               >(
+                                 LinSeg("arm_joint_2_pos_space",joint_lower_bounds[2],joint_upper_bounds[2]),
+                                 LinSeg("arm_joint_2_vel_space",-joint_rate_limits.gen_speed_limits[2],joint_rate_limits.gen_speed_limits[2]),
+                                 LinSeg("arm_joint_2_acc_space",-joint_rate_limits.gen_accel_limits[2],joint_rate_limits.gen_accel_limits[2])
+                               )
+                             ),
+                             SingleJointSpace(
+                               arithmetic_tuple<
+                                 LinSeg,LinSeg,LinSeg
+                               >(
+                                 LinSeg("arm_joint_3_pos_space",joint_lower_bounds[3],joint_upper_bounds[3]),
+                                 LinSeg("arm_joint_3_vel_space",-joint_rate_limits.gen_speed_limits[3],joint_rate_limits.gen_speed_limits[3]),
+                                 LinSeg("arm_joint_3_acc_space",-joint_rate_limits.gen_accel_limits[3],joint_rate_limits.gen_accel_limits[3])
+                               )
+                             )
+                           )
+                         );
 };
 
 CRS_A465_2D_model_builder::end_effector_space_type CRS_A465_2D_model_builder::get_end_effector_space() const {
   
   typedef arithmetic_tuple< pp::hyperbox_topology< vect<double,2> >, 
                             pp::hyperball_topology< vect<double,2> >,
-			    pp::hyperball_topology< vect<double,2> >
-			  > TranslationTuple;
+                            pp::hyperball_topology< vect<double,2> >
+                          > TranslationTuple;
   typedef arithmetic_tuple< pp::line_segment_topology<double>, 
                             pp::line_segment_topology<double>,
-			    pp::line_segment_topology<double>
-			  > RotationTuple;
+                            pp::line_segment_topology<double>
+                          > RotationTuple;
   
   typedef arithmetic_tuple_element<0, end_effector_space_type>::type TranslationDiffSpace;
   typedef arithmetic_tuple_element<1, end_effector_space_type>::type RotationDiffSpace;
@@ -643,18 +643,18 @@ CRS_A465_2D_model_builder::end_effector_space_type CRS_A465_2D_model_builder::ge
   return end_effector_space_type(
     EESpaceTuple(
       TranslationDiffSpace(
-	TranslationTuple(
-	  pp::hyperbox_topology< vect<double,2> >("EE_pos_space",vect<double,2>(-1.1,-1.1),vect<double,2>(4.5,1.1)),
-	  pp::hyperball_topology< vect<double,2> >("EE_vel_space",vect<double,2>(0.0,0.0),5.0),
-	  pp::hyperball_topology< vect<double,2> >("EE_acc_space",vect<double,2>(0.0,0.0),25.0)
-	)
+        TranslationTuple(
+          pp::hyperbox_topology< vect<double,2> >("EE_pos_space",vect<double,2>(-1.1,-1.1),vect<double,2>(4.5,1.1)),
+          pp::hyperball_topology< vect<double,2> >("EE_vel_space",vect<double,2>(0.0,0.0),5.0),
+          pp::hyperball_topology< vect<double,2> >("EE_acc_space",vect<double,2>(0.0,0.0),25.0)
+        )
       ),
       RotationDiffSpace(
-	RotationTuple(
-	  pp::line_segment_topology<double>("EE_rotation_space",-3.14159265359,3.14159265359),
-	  pp::line_segment_topology<double>("EE_ang_vel_space",-10.0,10.0),
-	  pp::line_segment_topology<double>("EE_ang_acc_space",-100.0,100.0)
-	)
+        RotationTuple(
+          pp::line_segment_topology<double>("EE_rotation_space",-3.14159265359,3.14159265359),
+          pp::line_segment_topology<double>("EE_ang_vel_space",-10.0,10.0),
+          pp::line_segment_topology<double>("EE_ang_acc_space",-100.0,100.0)
+        )
       )
     )
   );

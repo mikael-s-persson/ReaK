@@ -334,8 +334,8 @@ class sonars_in_room_output_model : public named_object {
       const SE3State& x_se3 = params.get_state_models().template get_state_for_system<satellite_state_model>(x);
       
       const std::size_t sat3d_state_index = params.get_state_models().template get_system<satellite_state_model>().get_inv_corr_start_index();
-      const std::pair<std::size_t, std::size_t> q_r(sat3d_state_index+6, sat3d_state_index+8);
-      const std::pair<std::size_t, std::size_t> mm_r(inv_start_index, inv_start_index+2);
+      const std::pair<std::size_t, std::size_t> q_r(sat3d_state_index+6, sat3d_state_index+9);
+      const std::pair<std::size_t, std::size_t> mm_r(inv_start_index, inv_start_index+3);
       
       mat<double,mat_structure::square> R(get_quaternion(x_se3).as_rotation().getMat());
       
@@ -352,38 +352,38 @@ class sonars_in_room_output_model : public named_object {
         switch(id) {
           case 0: { // lower-bound on x
             C(inv_start_index+i, sat3d_state_index) -= 1.0 / sdir_gbl[0];
-            slice(C)(inv_start_index+i, q_r) += (1.0 / sdir_gbl[0]) * slice(Rp)(0, range(0,2));
+            slice(C)(inv_start_index+i, q_r) += (1.0 / sdir_gbl[0]) * slice(Rp)(0, range(0,3));
             accum_output_del_from_ro(C, params, get_position(x_se3), R, spos_gbl, sdir_gbl, i, 0);
             break;
           };
           case 1: { // upper-bound on x
             C(inv_start_index+i, sat3d_state_index) -= 1.0 / sdir_gbl[0];
-            slice(C)(inv_start_index+i, q_r) += (1.0 / sdir_gbl[0]) * slice(Rp)(0, range(0,2));
+            slice(C)(inv_start_index+i, q_r) += (1.0 / sdir_gbl[0]) * slice(Rp)(0, range(0,3));
             accum_output_del_from_ro(C, params, get_position(x_se3), R, spos_gbl, sdir_gbl, i, 0);
             break;
           };
           case 2: { // lower-bound on y
             C(inv_start_index+i, sat3d_state_index+1) -= 1.0 / sdir_gbl[1];
-            slice(C)(inv_start_index+i, q_r) += (1.0 / sdir_gbl[1]) * slice(Rp)(1, range(0,2));
+            slice(C)(inv_start_index+i, q_r) += (1.0 / sdir_gbl[1]) * slice(Rp)(1, range(0,3));
             accum_output_del_from_ro(C, params, get_position(x_se3), R, spos_gbl, sdir_gbl, i, 1);
             break;
           };
           case 3: { // upper-bound on y
             C(inv_start_index+i, sat3d_state_index+1) -= 1.0 / sdir_gbl[1];
-            slice(C)(inv_start_index+i, q_r) += (1.0 / sdir_gbl[1]) * slice(Rp)(1, range(0,2));
+            slice(C)(inv_start_index+i, q_r) += (1.0 / sdir_gbl[1]) * slice(Rp)(1, range(0,3));
             accum_output_del_from_ro(C, params, get_position(x_se3), R, spos_gbl, sdir_gbl, i, 1);
             break;
           };
           case 4: { // lower-bound on z
             C(inv_start_index+i, sat3d_state_index+2) -= 1.0 / sdir_gbl[2];
-            slice(C)(inv_start_index+i, q_r) += (1.0 / sdir_gbl[2]) * slice(Rp)(2, range(0,2));
+            slice(C)(inv_start_index+i, q_r) += (1.0 / sdir_gbl[2]) * slice(Rp)(2, range(0,3));
             // NOTE: no point in doing it for a z-component because it's a planar rotation.
             // accum_output_del_from_ro(C, params, get_position(x_se3), R, spos_gbl, sdir_gbl, i, 1);
             break;
           };
           case 5: { // upper-bound on z
             C(inv_start_index+i, sat3d_state_index+2) -= 1.0 / sdir_gbl[2];
-            slice(C)(inv_start_index+i, q_r) += (1.0 / sdir_gbl[2]) * slice(Rp)(2, range(0,2));
+            slice(C)(inv_start_index+i, q_r) += (1.0 / sdir_gbl[2]) * slice(Rp)(2, range(0,3));
             // NOTE: no point in doing it for a z-component because it's a planar rotation.
             // accum_output_del_from_ro(C, params, get_position(x_se3), R, spos_gbl, sdir_gbl, i, 2);
             break;

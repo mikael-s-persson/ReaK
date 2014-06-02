@@ -85,7 +85,7 @@ class mat_damped_matrix {
      */
     mat_damped_matrix(const SquareMatrix& aMSqr, const DiagMatrix& aMDiag) : m_sqr(&aMSqr), m_diag(&aMDiag) { 
       if(m_sqr->get_row_count() != m_diag->get_row_count())
-	throw std::range_error("Matrix dimensions mismatch.");
+        throw std::range_error("Matrix dimensions mismatch.");
     };
     
     
@@ -102,11 +102,35 @@ class mat_damped_matrix {
      */
     value_type operator()(size_type i,size_type j) const { 
       if( i == j )
-	return (*m_sqr)(i,i) + (*m_diag)(i,i);
+        return (*m_sqr)(i,i) + (*m_diag)(i,i);
       else
-	return (*m_sqr)(i,j);
+        return (*m_sqr)(i,j);
     };
-
+    
+    /**
+     * Sub-matrix operator, accessor for read only.
+     * \test PASSED
+     */
+    mat_const_sub_block<self> operator()(const std::pair<size_type,size_type>& r, const std::pair<size_type,size_type>& c) const {
+      return sub(*this)(r,c);
+    };
+    
+    /**
+     * Sub-matrix operator, accessor for read only.
+     * \test PASSED
+     */
+    mat_const_col_slice<self> operator()(size_type r, const std::pair<size_type,size_type>& c) const {
+      return slice(*this)(r,c);
+    };
+    
+    /**
+     * Sub-matrix operator, accessor for read only.
+     * \test PASSED
+     */
+    mat_const_row_slice<self> operator()(const std::pair<size_type,size_type>& r, size_type c) const {
+      return slice(*this)(r,c);
+    };
+    
     /**
      * Gets the row-count (number of rows) of the matrix.
      * \return number of rows of the matrix.

@@ -33,11 +33,11 @@ double capped_rectangle::getBoundingRadius() const {
 };
 
 capped_rectangle::capped_rectangle(const std::string& aName,
-		                   const shared_ptr< pose_2D<double> >& aAnchor,
-		                   const pose_2D<double>& aPose,
-		                   const vect<double,2>& aDimensions) :
-		                   shape_2D(aName,aAnchor,aPose),
-		                   mDimensions(aDimensions) { };
+                                   const shared_ptr< pose_2D<double> >& aAnchor,
+                                   const pose_2D<double>& aPose,
+                                   const vect<double,2>& aDimensions) :
+                                   shape_2D(aName,aAnchor,aPose),
+                                   mDimensions(aDimensions) { };
     
     
 void RK_CALL capped_rectangle::save(ReaK::serialization::oarchive& A, unsigned int) const {

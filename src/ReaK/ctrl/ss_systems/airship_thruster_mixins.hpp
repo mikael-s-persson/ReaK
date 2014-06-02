@@ -122,13 +122,13 @@ class airship3D_6dof_thrusters : public named_object {
       
       const double dt = t_1 - t_0;
       
-      const std::pair<std::size_t, std::size_t> p_r(sat3d_state_index, sat3d_state_index+2);
-      const std::pair<std::size_t, std::size_t> v_r(sat3d_state_index+3, sat3d_state_index+5);
-      const std::pair<std::size_t, std::size_t> q_r(sat3d_state_index+6, sat3d_state_index+8);
-      const std::pair<std::size_t, std::size_t> w_r(sat3d_state_index+9, sat3d_state_index+11);
+      const std::pair<std::size_t, std::size_t> p_r(sat3d_state_index, sat3d_state_index+3);
+      const std::pair<std::size_t, std::size_t> v_r(sat3d_state_index+3, sat3d_state_index+6);
+      const std::pair<std::size_t, std::size_t> q_r(sat3d_state_index+6, sat3d_state_index+9);
+      const std::pair<std::size_t, std::size_t> w_r(sat3d_state_index+9, sat3d_state_index+12);
       
-      const std::pair<std::size_t, std::size_t> f_r(start_index, start_index+2);
-      const std::pair<std::size_t, std::size_t> t_r(start_index+3, start_index+5);
+      const std::pair<std::size_t, std::size_t> f_r(start_index, start_index+3);
+      const std::pair<std::size_t, std::size_t> t_r(start_index+3, start_index+6);
       
       // (p,v)-f block:
       mat<double,mat_structure::square> R_0(get_quaternion(x0_se3).as_rotation().getMat());
@@ -244,10 +244,10 @@ class tryphon_n_thrusters : public named_object {
       
       const double dt = t_1 - t_0;
       
-      const std::pair<std::size_t, std::size_t> p_r(sat3d_state_index, sat3d_state_index+2);
-      const std::pair<std::size_t, std::size_t> v_r(sat3d_state_index+3, sat3d_state_index+5);
-      const std::pair<std::size_t, std::size_t> q_r(sat3d_state_index+6, sat3d_state_index+8);
-      const std::pair<std::size_t, std::size_t> w_r(sat3d_state_index+9, sat3d_state_index+11);
+      const std::pair<std::size_t, std::size_t> p_r(sat3d_state_index, sat3d_state_index+3);
+      const std::pair<std::size_t, std::size_t> v_r(sat3d_state_index+3, sat3d_state_index+6);
+      const std::pair<std::size_t, std::size_t> q_r(sat3d_state_index+6, sat3d_state_index+9);
+      const std::pair<std::size_t, std::size_t> w_r(sat3d_state_index+9, sat3d_state_index+12);
       
       mat<double,mat_structure::square> R_0(get_quaternion(x0_se3).as_rotation().getMat());
       mat<double,mat_structure::square> R_0_1((invert(get_quaternion(x1_se3).as_rotation()) * get_quaternion(x0_se3).as_rotation()).getMat());

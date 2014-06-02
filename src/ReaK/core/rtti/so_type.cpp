@@ -21,10 +21,10 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "so_type.hpp"
+#include <ReaK/core/rtti/so_type.hpp>
+#include <ReaK/core/rtti/typed_object.hpp>
 
 #include <iostream>
-#include "typed_object.hpp"
 
 
 namespace ReaK {
@@ -38,16 +38,16 @@ bool so_type_impl::compare_shared(const so_type::shared_pointer& t1, const so_ty
       const unsigned int* pid1 = t1->TypeID_begin();
       const unsigned int* pid2 = t2->TypeID_begin();
       while((*pid1) && (*pid2)) {
-	if(*pid1 < *pid2)
-	  return true;
-	else if(*pid1 > *pid2)
-	  return false;
-	++pid1; ++pid2;
+        if(*pid1 < *pid2)
+          return true;
+        else if(*pid1 > *pid2)
+          return false;
+        ++pid1; ++pid2;
       };
       if((*pid1 == 0) && (*pid2 > 0))
-	return true;
+        return true;
       else 
-	return false;
+        return false;
     } else
       return false;
   } else 
@@ -97,10 +97,10 @@ so_type::weak_pointer RK_CALL so_type_impl::addAncestor(so_type::shared_pointer&
        ((*it).lock()) &&
        (compare_equal((*it).lock()->TypeID_begin(),p->TypeID_begin()))) {
       if((*it).lock()->TypeVersion() < p->TypeVersion()) {
-	mAncestors.erase(it);
-	mAncestors.insert(aObj);
+        mAncestors.erase(it);
+        mAncestors.insert(aObj);
       } else 
-	return *it;
+        return *it;
     } else
       mAncestors.insert(aObj);
     p->addDescendant(aThis);
@@ -167,7 +167,7 @@ so_type::weak_pointer RK_CALL so_type_impl::findAncestor_impl(const unsigned int
     if(it->lock()) {
       so_type::weak_pointer p = it->lock()->findAncestor(aTypeID);
       if(p.lock())
-	return p;
+        return p;
     };
   };
   

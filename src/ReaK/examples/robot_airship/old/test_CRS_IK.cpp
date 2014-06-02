@@ -65,26 +65,26 @@ int main() {
     EESpaceType
   > ik_knn_map(
            model,
-	   ReaK::pp::manip_clik_calc_factory<
+           ReaK::pp::manip_clik_calc_factory<
              JointSpaceType,
              ReaK::pp::clik_mixed_cost_factory<
                ReaK::pp::clik_bent_joints_cost_factory
              >
            >( ReaK::shared_ptr< JointSpaceType >(&j_space, ReaK::null_deleter()),
-	      ReaK::pp::clik_mixed_cost_factory<
+              ReaK::pp::clik_mixed_cost_factory<
                 ReaK::pp::clik_bent_joints_cost_factory
               >(ReaK::pp::clik_bent_joints_cost_factory(3,5)),
-	      10.0, // aRadius
+              10.0, // aRadius
               0.1, // aMu
               200, // aMaxIter
               1e-4, // aTol
               5e-2, // aEta
               0.95  // aTau
-	    ),
-	   ReaK::shared_ptr< JointSpaceType >(&j_space, ReaK::null_deleter()),
-	   ReaK::shared_ptr< EESpaceType >(&ee_space, ReaK::null_deleter()),
-	   1000, 10
-	 );*/
+            ),
+           ReaK::shared_ptr< JointSpaceType >(&j_space, ReaK::null_deleter()),
+           ReaK::shared_ptr< EESpaceType >(&ee_space, ReaK::null_deleter()),
+           1000, 10
+         );*/
   ReaK::pp::manip_direct_kin_map dk_map(model);
   
   typedef ReaK::pp::topology_traits< EESpaceType >::point_type EEPointType;
@@ -236,12 +236,12 @@ int main() {
         ReaK::frame_3D<double> f_x = get_frame_3D(dk_map.map_to_space(j_x, j_space, ee_space));
         ReaK::frame_3D<double> ee_err = f_x.getFrameRelativeTo( ReaK::shared_ptr< const ReaK::frame_3D<double> >(&ee_fs[i], ReaK::null_deleter()));
         if( ( norm_2( ee_err.Position ) < 0.01 ) &&
-	    ( ReaK::axis_angle<double>(ee_err.Quat).angle() < 0.02 ) ) {
+            ( ReaK::axis_angle<double>(ee_err.Quat).angle() < 0.02 ) ) {
           std::cout << f_x.Position << std::endl
                     << f_x.Quat << std::endl
                     << f_x.Velocity << std::endl
                     << f_x.AngVelocity << std::endl;
-	  break;
+          break;
         };
       } catch(ReaK::singularity_error& e) {
         std::cout << "ERROR: Singularity Detected!" << std::endl;
@@ -262,51 +262,51 @@ int main() {
     for(std::size_t j = 0; j < 10; ++j) {
       ee_f.Position[2] = 0.0;
       for(std::size_t k = 0; k < 10; ++k) {
-	for(std::size_t l = 0; l < 10; ++l) {
-	  for(std::size_t m = 0; m < 10; ++m) {
-	    std::cout << "\r" << std::setw(4) << i 
-	                      << std::setw(4) << j 
-	                      << std::setw(4) << k 
-	                      << std::setw(4) << l 
-	                      << std::setw(4) << m; std::cout.flush();
-	    rec << ee_f.Position[0] << ee_f.Position[1] << ee_f.Position[2]
-	        << (l * 2.0 * M_PI / 10.0) << (m * 2.0 * M_PI / 10.0);
-	    
-	    try {
-	      set_frame_3D(ee_x, ee_f);
-	      j_x = ik_map.map_to_space(ee_x, ee_space, j_space);
-	      rec << 1.0;
-	    } catch(ReaK::optim::infeasible_problem& e) { RK_UNUSED(e);
-	      rec << 0.0;
-	    };
-	    /*
-	    bool did_succeed = false;
-	    for(std::size_t n = 0; n < 10; ++n) {
-	      try {
-	        ee_x = dk_map.map_to_space(j_space.random_point(), j_space, ee_space);
-	        set_frame_3D(ee_x, ee_f);
-	        j_x = ik_map.map_to_space(ee_x, ee_space, j_space);
-	        ee_x = dk_map.map_to_space(j_x, j_space, ee_space);
-	        ReaK::frame_3D<double> ee_fx = get_frame_3D(ee_x);
-	        ReaK::frame_3D<double> ee_err = ee_fx.getFrameRelativeTo( ReaK::shared_ptr< const ReaK::frame_3D<double> >(&ee_f, ReaK::null_deleter()));
-	        if( ( norm_2( ee_err.Position ) < 0.01 ) &&
-		    ( ReaK::axis_angle<double>(ee_err.Quat).angle() < 0.02 ) ) {
-	          did_succeed = true;
-		  break;
-		};
-	      } catch(ReaK::singularity_error& e) { };
-	    };
-	    if(did_succeed)
-	      rec << 1.0;
-	    else
-	      rec << 0.0;
-	    */
-	    rec << ReaK::recorder::data_recorder::end_value_row;
-	    ee_f.Quat *= ReaK::axis_angle<double>(2.0 * M_PI / 10.0, ReaK::vect<double,3>(0.0,1.0,0.0)).getQuaternion();
-	  };
-	  ee_f.Quat *= ReaK::axis_angle<double>(2.0 * M_PI / 10.0, ReaK::vect<double,3>(0.0,0.0,1.0)).getQuaternion();
-	};
-	ee_f.Position[2] += 1.2 / 9.0;
+        for(std::size_t l = 0; l < 10; ++l) {
+          for(std::size_t m = 0; m < 10; ++m) {
+            std::cout << "\r" << std::setw(4) << i 
+                              << std::setw(4) << j 
+                              << std::setw(4) << k 
+                              << std::setw(4) << l 
+                              << std::setw(4) << m; std::cout.flush();
+            rec << ee_f.Position[0] << ee_f.Position[1] << ee_f.Position[2]
+                << (l * 2.0 * M_PI / 10.0) << (m * 2.0 * M_PI / 10.0);
+            
+            try {
+              set_frame_3D(ee_x, ee_f);
+              j_x = ik_map.map_to_space(ee_x, ee_space, j_space);
+              rec << 1.0;
+            } catch(ReaK::optim::infeasible_problem& e) { RK_UNUSED(e);
+              rec << 0.0;
+            };
+            /*
+            bool did_succeed = false;
+            for(std::size_t n = 0; n < 10; ++n) {
+              try {
+                ee_x = dk_map.map_to_space(j_space.random_point(), j_space, ee_space);
+                set_frame_3D(ee_x, ee_f);
+                j_x = ik_map.map_to_space(ee_x, ee_space, j_space);
+                ee_x = dk_map.map_to_space(j_x, j_space, ee_space);
+                ReaK::frame_3D<double> ee_fx = get_frame_3D(ee_x);
+                ReaK::frame_3D<double> ee_err = ee_fx.getFrameRelativeTo( ReaK::shared_ptr< const ReaK::frame_3D<double> >(&ee_f, ReaK::null_deleter()));
+                if( ( norm_2( ee_err.Position ) < 0.01 ) &&
+                    ( ReaK::axis_angle<double>(ee_err.Quat).angle() < 0.02 ) ) {
+                  did_succeed = true;
+                  break;
+                };
+              } catch(ReaK::singularity_error& e) { };
+            };
+            if(did_succeed)
+              rec << 1.0;
+            else
+              rec << 0.0;
+            */
+            rec << ReaK::recorder::data_recorder::end_value_row;
+            ee_f.Quat *= ReaK::axis_angle<double>(2.0 * M_PI / 10.0, ReaK::vect<double,3>(0.0,1.0,0.0)).getQuaternion();
+          };
+          ee_f.Quat *= ReaK::axis_angle<double>(2.0 * M_PI / 10.0, ReaK::vect<double,3>(0.0,0.0,1.0)).getQuaternion();
+        };
+        ee_f.Position[2] += 1.2 / 9.0;
       };
       ee_f.Position[1] += 1.2 / 9.0;
     };
@@ -336,11 +336,11 @@ int main() {
       ReaK::pp::clik_quad_cost_factory
     >
   > ik_map_2D(model2D,
-	      ReaK::pp::manip_clik_calc_factory<
+              ReaK::pp::manip_clik_calc_factory<
                 JointSpaceType2D,
                 ReaK::pp::clik_quad_cost_factory
               >( ReaK::shared_ptr< JointSpaceType2D >(&j_space2D, ReaK::null_deleter()),
-	         ReaK::pp::clik_quad_cost_factory(builder2D.preferred_posture)));
+                 ReaK::pp::clik_quad_cost_factory(builder2D.preferred_posture)));
   ReaK::pp::manip_direct_kin_map dk_map_2D(model2D);
   
   typedef ReaK::pp::topology_traits< EESpaceType2D >::point_type EEPointType2D;
@@ -348,14 +348,14 @@ int main() {
   
   EEPointType2D ee_x_2D;
   set_frame_2D(ee_x_2D, ReaK::frame_2D<double>(ReaK::weak_ptr< ReaK::pose_2D<double> >(),
-					    ReaK::vect<double,2>(2.0, 0.5),
-					    ReaK::rot_mat_2D<double>(M_PI * 0.5),
-					    ReaK::vect<double,2>(0.1, 0.1),
-					    0.1,
-					    ReaK::vect<double,2>(0.0, 0.0),
-					    0.0,
-					    ReaK::vect<double,2>(0.0, 0.0),
-					    0.0));
+                                            ReaK::vect<double,2>(2.0, 0.5),
+                                            ReaK::rot_mat_2D<double>(M_PI * 0.5),
+                                            ReaK::vect<double,2>(0.1, 0.1),
+                                            0.1,
+                                            ReaK::vect<double,2>(0.0, 0.0),
+                                            0.0,
+                                            ReaK::vect<double,2>(0.0, 0.0),
+                                            0.0));
   
   JointPointType2D j_x_2D;
   

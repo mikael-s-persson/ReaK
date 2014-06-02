@@ -33,10 +33,10 @@
 #ifndef REAK_JACOBIAN_TRANSPOSE_METHOD_HPP
 #define REAK_JACOBIAN_TRANSPOSE_METHOD_HPP
 
-#include "base/defs.hpp"
+#include <ReaK/core/base/defs.hpp>
 
-#include "lin_alg/mat_alg.hpp"
-#include "lin_alg/mat_num_exceptions.hpp"
+#include <ReaK/core/lin_alg/mat_alg.hpp>
+#include <ReaK/core/lin_alg/mat_num_exceptions.hpp>
 
 #include "limit_functions.hpp"
 
@@ -52,11 +52,11 @@ namespace detail {
   
 template <typename Function, typename GradFunction, 
           typename InputVector, typename OutputVector, 
-	  typename LimitFunction>
+          typename LimitFunction>
 void jacobian_transpose_nllsq_impl(Function f, GradFunction fill_jac, InputVector& x, const OutputVector& y, unsigned int max_iter,
-			           LimitFunction impose_limits, 
-				   typename vect_traits<InputVector>::value_type abs_tol = typename vect_traits<InputVector>::value_type(1e-6), 
-				   typename vect_traits<InputVector>::value_type abs_grad_tol = typename vect_traits<InputVector>::value_type(1e-6)) {
+                                   LimitFunction impose_limits, 
+                                   typename vect_traits<InputVector>::value_type abs_tol = typename vect_traits<InputVector>::value_type(1e-6), 
+                                   typename vect_traits<InputVector>::value_type abs_grad_tol = typename vect_traits<InputVector>::value_type(1e-6)) {
   typedef typename vect_traits<InputVector>::value_type ValueType;
   using std::sqrt; using std::fabs;
   
@@ -107,8 +107,8 @@ void jacobian_transpose_nllsq_impl(Function f, GradFunction fill_jac, InputVecto
 template <typename Function, typename GradFunction, 
           typename InputVector, typename OutputVector>
 void jacobian_transpose_nllsq(Function f, GradFunction fill_jac, InputVector& x, const OutputVector& y, unsigned int max_iter = 100, 
-			      typename vect_traits<InputVector>::value_type abs_tol = typename vect_traits<InputVector>::value_type(1e-6), 
-			      typename vect_traits<InputVector>::value_type abs_grad_tol = typename vect_traits<InputVector>::value_type(1e-6)) {
+                              typename vect_traits<InputVector>::value_type abs_tol = typename vect_traits<InputVector>::value_type(1e-6), 
+                              typename vect_traits<InputVector>::value_type abs_grad_tol = typename vect_traits<InputVector>::value_type(1e-6)) {
   detail::jacobian_transpose_nllsq_impl(f,fill_jac,x,y,max_iter,no_limit_functor(),abs_tol,abs_grad_tol);
 };
 
@@ -134,10 +134,10 @@ void jacobian_transpose_nllsq(Function f, GradFunction fill_jac, InputVector& x,
  */
 template <typename Function, typename GradFunction, 
           typename InputVector, typename OutputVector, 
-	  typename LimitFunction>
+          typename LimitFunction>
 void limited_jacobian_transpose_nllsq(Function f, GradFunction fill_jac, InputVector& x, const OutputVector& y, unsigned int max_iter,
-				      LimitFunction impose_limits, typename vect_traits<InputVector>::value_type abs_tol = typename vect_traits<InputVector>::value_type(1e-6),
-				      typename vect_traits<InputVector>::value_type abs_grad_tol = typename vect_traits<InputVector>::value_type(1e-6)) {
+                                      LimitFunction impose_limits, typename vect_traits<InputVector>::value_type abs_tol = typename vect_traits<InputVector>::value_type(1e-6),
+                                      typename vect_traits<InputVector>::value_type abs_grad_tol = typename vect_traits<InputVector>::value_type(1e-6)) {
   detail::jacobian_transpose_nllsq_impl(f,fill_jac,x,y,max_iter,impose_limits,abs_tol,abs_grad_tol);
 };
 

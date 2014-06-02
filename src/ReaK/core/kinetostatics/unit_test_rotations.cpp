@@ -21,16 +21,16 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "base/defs.hpp"
+#include <ReaK/core/base/defs.hpp>
+#include <ReaK/core/lin_alg/mat_alg.hpp>
+#include <ReaK/core/lin_alg/mat_norms.hpp>
+#include <ReaK/core/kinetostatics/rotations.hpp>
+
 #include <iostream>
 #include <fstream>
 #include <cstdio>
 #include <sstream>
 
-#include "lin_alg/mat_alg.hpp"
-#include "lin_alg/mat_norms.hpp"
-
-#include "rotations.hpp"
 
 #ifndef M_PI
 #define M_PI 3.14159265358979324

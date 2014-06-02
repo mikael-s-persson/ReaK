@@ -40,9 +40,9 @@ shared_ptr< shape_2D > prox_rectangle_rectangle::getShape2() const {
 
 
 void prox_rectangle_rectangle::computeProximityOfPoint(const shared_ptr< rectangle >& aRectangle, 
-						       const vect<double,2>& aPoint, 
-						       vect<double,2>& aPointRec, 
-						       double& aDistance) {
+                                                       const vect<double,2>& aPoint, 
+                                                       vect<double,2>& aPointRec, 
+                                                       double& aDistance) {
   using std::fabs;
   
   vect<double,2> pt_rel = aRectangle->getPose().transformFromGlobal(aPoint);
@@ -55,7 +55,7 @@ void prox_rectangle_rectangle::computeProximityOfPoint(const shared_ptr< rectang
   if(in_x_range && in_y_range) {
     // The circle is inside the rectangle.
     vect<double,2> bound_dists = vect<double,2>(0.5 * aRectangle->getDimensions()[0] - fabs(pt_rel[0]),
-						0.5 * aRectangle->getDimensions()[1] - fabs(pt_rel[1]));
+                                                0.5 * aRectangle->getDimensions()[1] - fabs(pt_rel[1]));
     if(bound_dists[0] <= bound_dists[1]) {
       in_x_range = false;
     } else {
@@ -163,10 +163,10 @@ void prox_rectangle_rectangle::computeProximity() {
 
 
 prox_rectangle_rectangle::prox_rectangle_rectangle(const shared_ptr< rectangle >& aRectangle1,
-						   const shared_ptr< rectangle >& aRectangle2) :
-						   proximity_finder_2D(),
-						   mRectangle1(aRectangle1),
-						   mRectangle2(aRectangle2) { };
+                                                   const shared_ptr< rectangle >& aRectangle2) :
+                                                   proximity_finder_2D(),
+                                                   mRectangle1(aRectangle1),
+                                                   mRectangle2(aRectangle2) { };
     
     
 void RK_CALL prox_rectangle_rectangle::save(ReaK::serialization::oarchive& A, unsigned int) const {

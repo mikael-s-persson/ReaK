@@ -55,7 +55,7 @@ typedef std::map< shared_ptr< gen_coord<double> >,
 /** This typedef declares a mapping to associate generalized coordinates to their Jacobian 3D frame. */
 typedef std::map< shared_ptr< gen_coord<double> >, 
                   shared_ptr< jacobian_gen_3D<double> > > jacobian_joint_map_3D;
-		  
+                  
 
 /** This typedef declares a mapping to associate generalized coordinates to their Jacobian generalized coordinate. */
 typedef std::map< shared_ptr< frame_2D<double> >, 
@@ -69,7 +69,7 @@ typedef std::map< shared_ptr< frame_2D<double> >,
 typedef std::map< shared_ptr< frame_2D<double> >, 
                   shared_ptr< jacobian_2D_3D<double> > > jacobian_joint2D_map_3D;
 
-		  
+                  
 /** This typedef declares a mapping to associate generalized coordinates to their Jacobian generalized coordinate. */
 typedef std::map< shared_ptr< frame_3D<double> >, 
                   shared_ptr< jacobian_3D_gen<double> > > jacobian_joint3D_map_gen;
@@ -81,7 +81,7 @@ typedef std::map< shared_ptr< frame_3D<double> >,
 /** This typedef declares a mapping to associate generalized coordinates to their Jacobian 3D frame. */
 typedef std::map< shared_ptr< frame_3D<double> >, 
                   shared_ptr< jacobian_3D_3D<double> > > jacobian_joint3D_map_3D;
-		  
+                  
 
 class joint_dependent_gen_coord : public shared_object {
   public:
@@ -100,12 +100,12 @@ class joint_dependent_gen_coord : public shared_object {
      */
     joint_dependent_gen_coord(const shared_ptr< gen_coord<double> >& aFrame = shared_ptr< gen_coord<double> >(),
                               const jacobian_joint_map_gen& aUpStreamJoints = jacobian_joint_map_gen(),
-			      const jacobian_joint2D_map_gen& aUpStream2DJoints = jacobian_joint2D_map_gen(),
-			      const jacobian_joint3D_map_gen& aUpStream3DJoints = jacobian_joint3D_map_gen()) :
-			      mFrame(aFrame),
-			      mUpStreamJoints(aUpStreamJoints),
-			      mUpStream2DJoints(aUpStream2DJoints),
-			      mUpStream3DJoints(aUpStream3DJoints) { };
+                              const jacobian_joint2D_map_gen& aUpStream2DJoints = jacobian_joint2D_map_gen(),
+                              const jacobian_joint3D_map_gen& aUpStream3DJoints = jacobian_joint3D_map_gen()) :
+                              mFrame(aFrame),
+                              mUpStreamJoints(aUpStreamJoints),
+                              mUpStream2DJoints(aUpStream2DJoints),
+                              mUpStream3DJoints(aUpStream3DJoints) { };
     
     /**
      * Default destructor.
@@ -155,9 +155,9 @@ class joint_dependent_gen_coord : public shared_object {
 
     virtual void RK_CALL load(ReaK::serialization::iarchive& A, unsigned int) {
       A & RK_SERIAL_LOAD_WITH_NAME(mFrame)
-	& RK_SERIAL_LOAD_WITH_NAME(mUpStreamJoints)
-	& RK_SERIAL_LOAD_WITH_NAME(mUpStream2DJoints)
-	& RK_SERIAL_LOAD_WITH_NAME(mUpStream3DJoints);
+        & RK_SERIAL_LOAD_WITH_NAME(mUpStreamJoints)
+        & RK_SERIAL_LOAD_WITH_NAME(mUpStream2DJoints)
+        & RK_SERIAL_LOAD_WITH_NAME(mUpStream3DJoints);
     };
 
     RK_RTTI_MAKE_CONCRETE_1BASE(joint_dependent_gen_coord,0xC2000002,1,"joint_dependent_gen_coord",shared_object)
@@ -182,12 +182,12 @@ class joint_dependent_frame_2D : public shared_object {
      */
     joint_dependent_frame_2D(const shared_ptr< frame_2D<double> >& aFrame = shared_ptr< frame_2D<double> >(),
                               const jacobian_joint_map_2D& aUpStreamJoints = jacobian_joint_map_2D(),
-			      const jacobian_joint2D_map_2D& aUpStream2DJoints = jacobian_joint2D_map_2D(),
-			      const jacobian_joint3D_map_2D& aUpStream3DJoints = jacobian_joint3D_map_2D()) :
-			      mFrame(aFrame),
-			      mUpStreamJoints(aUpStreamJoints),
-			      mUpStream2DJoints(aUpStream2DJoints),
-			      mUpStream3DJoints(aUpStream3DJoints) { };
+                              const jacobian_joint2D_map_2D& aUpStream2DJoints = jacobian_joint2D_map_2D(),
+                              const jacobian_joint3D_map_2D& aUpStream3DJoints = jacobian_joint3D_map_2D()) :
+                              mFrame(aFrame),
+                              mUpStreamJoints(aUpStreamJoints),
+                              mUpStream2DJoints(aUpStream2DJoints),
+                              mUpStream3DJoints(aUpStream3DJoints) { };
     
     /**
      * Default destructor.
@@ -237,9 +237,9 @@ class joint_dependent_frame_2D : public shared_object {
 
     virtual void RK_CALL load(ReaK::serialization::iarchive& A, unsigned int) {
       A & RK_SERIAL_LOAD_WITH_NAME(mFrame)
-	& RK_SERIAL_LOAD_WITH_NAME(mUpStreamJoints)
-	& RK_SERIAL_LOAD_WITH_NAME(mUpStream2DJoints)
-	& RK_SERIAL_LOAD_WITH_NAME(mUpStream3DJoints);
+        & RK_SERIAL_LOAD_WITH_NAME(mUpStreamJoints)
+        & RK_SERIAL_LOAD_WITH_NAME(mUpStream2DJoints)
+        & RK_SERIAL_LOAD_WITH_NAME(mUpStream3DJoints);
     };
 
     RK_RTTI_MAKE_CONCRETE_1BASE(joint_dependent_frame_2D,0xC2000003,1,"joint_dependent_frame_2D",shared_object)
@@ -266,12 +266,12 @@ class joint_dependent_frame_3D : public shared_object {
      */
     joint_dependent_frame_3D(const shared_ptr< frame_3D<double> >& aFrame = shared_ptr< frame_3D<double> >(),
                               const jacobian_joint_map_3D& aUpStreamJoints = jacobian_joint_map_3D(),
-			      const jacobian_joint2D_map_3D& aUpStream2DJoints = jacobian_joint2D_map_3D(),
-			      const jacobian_joint3D_map_3D& aUpStream3DJoints = jacobian_joint3D_map_3D()) :
-			      mFrame(aFrame),
-			      mUpStreamJoints(aUpStreamJoints),
-			      mUpStream2DJoints(aUpStream2DJoints),
-			      mUpStream3DJoints(aUpStream3DJoints) { };
+                              const jacobian_joint2D_map_3D& aUpStream2DJoints = jacobian_joint2D_map_3D(),
+                              const jacobian_joint3D_map_3D& aUpStream3DJoints = jacobian_joint3D_map_3D()) :
+                              mFrame(aFrame),
+                              mUpStreamJoints(aUpStreamJoints),
+                              mUpStream2DJoints(aUpStream2DJoints),
+                              mUpStream3DJoints(aUpStream3DJoints) { };
     
     /**
      * Default destructor.
@@ -321,9 +321,9 @@ class joint_dependent_frame_3D : public shared_object {
 
     virtual void RK_CALL load(ReaK::serialization::iarchive& A, unsigned int) {
       A & RK_SERIAL_LOAD_WITH_NAME(mFrame)
-	& RK_SERIAL_LOAD_WITH_NAME(mUpStreamJoints)
-	& RK_SERIAL_LOAD_WITH_NAME(mUpStream2DJoints)
-	& RK_SERIAL_LOAD_WITH_NAME(mUpStream3DJoints);
+        & RK_SERIAL_LOAD_WITH_NAME(mUpStreamJoints)
+        & RK_SERIAL_LOAD_WITH_NAME(mUpStream2DJoints)
+        & RK_SERIAL_LOAD_WITH_NAME(mUpStream3DJoints);
     };
 
     RK_RTTI_MAKE_CONCRETE_1BASE(joint_dependent_frame_3D,0xC2000004,1,"joint_dependent_frame_3D",shared_object)

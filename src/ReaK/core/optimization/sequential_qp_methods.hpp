@@ -35,11 +35,11 @@
 #ifndef REAK_SEQUENTIAL_QP_METHODS_HPP
 #define REAK_SEQUENTIAL_QP_METHODS_HPP
 
-#include "base/defs.hpp"
+#include <ReaK/core/base/defs.hpp>
 
-#include "lin_alg/mat_alg.hpp"
-#include "lin_alg/mat_num_exceptions.hpp"
-#include "lin_alg/mat_qr_decomp.hpp"
+#include <ReaK/core/lin_alg/mat_alg.hpp>
+#include <ReaK/core/lin_alg/mat_num_exceptions.hpp>
+#include <ReaK/core/lin_alg/mat_qr_decomp.hpp>
 
 #include "newton_search_directions.hpp"
 #include "limit_functions.hpp"
@@ -62,15 +62,15 @@ namespace detail {
   
   template <typename Function, typename GradFunction, typename HessianFunction, 
             typename Vector, typename EqFunction, typename EqJacFunction, 
-	    typename TrustRegionSolver, typename LimitFunction>
+            typename TrustRegionSolver, typename LimitFunction>
   void byrd_omojokun_sqp_method_tr_impl(Function f, GradFunction df, HessianFunction fill_hessian,  
-				        EqFunction g, EqJacFunction fill_g_jac,
-				        Vector& x, typename vect_traits<Vector>::value_type max_radius,
-					unsigned int max_iter,
-			                TrustRegionSolver solve_step, LimitFunction impose_limits, 
-			                typename vect_traits<Vector>::value_type abs_tol = typename vect_traits<Vector>::value_type(1e-6), 
-				        typename vect_traits<Vector>::value_type kappa = typename vect_traits<Vector>::value_type(1e-4), 
-				        typename vect_traits<Vector>::value_type rho = typename vect_traits<Vector>::value_type(1e-4)) {
+                                        EqFunction g, EqJacFunction fill_g_jac,
+                                        Vector& x, typename vect_traits<Vector>::value_type max_radius,
+                                        unsigned int max_iter,
+                                        TrustRegionSolver solve_step, LimitFunction impose_limits, 
+                                        typename vect_traits<Vector>::value_type abs_tol = typename vect_traits<Vector>::value_type(1e-6), 
+                                        typename vect_traits<Vector>::value_type kappa = typename vect_traits<Vector>::value_type(1e-4), 
+                                        typename vect_traits<Vector>::value_type rho = typename vect_traits<Vector>::value_type(1e-4)) {
     typedef typename vect_traits<Vector>::value_type ValueType;
     typedef typename vect_traits<Vector>::size_type SizeType;
     using std::sqrt; using std::fabs;
@@ -123,16 +123,16 @@ namespace detail {
       r = g_value; r += Jac_g * v;
       
       try {
-	null_space_QP_method(Jac_g, r - g_value, H, x_grad, p, abs_tol, radius);
+        null_space_QP_method(Jac_g, r - g_value, H, x_grad, p, abs_tol, radius);
       } catch(singularity_error&) {
-	try {
+        try {
           projected_CG_method(Jac_g, r - g_value, H, x_grad, p, max_iter, abs_tol);
-	} catch(maximum_iteration&) { };
+        } catch(maximum_iteration&) { };
       };
       norm_p = norm_2(p);
       if(norm_p > radius) {
-	p *= radius / norm_p;
-	norm_p = radius;
+        p *= radius / norm_p;
+        norm_p = radius;
       };
       impose_limits(x,p);
       
@@ -141,9 +141,9 @@ namespace detail {
       if(pHp > ValueType(0.0))
         mu_t = fabs(x_grad * p + ValueType(0.5) * pHp) / ((ValueType(1.0) - rho) * norm_1(g_value));
       else
-	mu_t = fabs(x_grad * p) / ((ValueType(1.0) - rho) * norm_1(g_value));
+        mu_t = fabs(x_grad * p) / ((ValueType(1.0) - rho) * norm_1(g_value));
       if(mu < mu_t)
-	mu = mu_t + abs_tol;
+        mu = mu_t + abs_tol;
       
       ValueType pred = mu * (c_norm_star - norm_2(g_value + Jac_g * p))
                        - x_grad * p - pHp;
@@ -157,28 +157,28 @@ namespace detail {
       //RK_NOTICE(1,"  pred = " << pred << " ared = " << pred << " mu = " << mu << " c_norm = " << c_norm_star << " ct_norm = " << norm_2(gt_value));
       
       if(ared > kappa * pred) {
-	//step is accepted.
-	x += p;
-	x_value = xt_value;
-	x_grad = df(x);
-	g_value = gt_value;
-	c_norm_star = norm_2(g_value);
-	fill_g_jac(Jac_g,x,g_value);
+        //step is accepted.
+        x += p;
+        x_value = xt_value;
+        x_grad = df(x);
+        g_value = gt_value;
+        c_norm_star = norm_2(g_value);
+        fill_g_jac(Jac_g,x,g_value);
         if((ared > 0.8 * pred) && (norm_p > ValueType(0.8) * radius)) {
           radius *= ValueType(2.0);
           if(radius > max_radius)
             radius = max_radius;
         };
         linlsq_QR(Jac_g_t,l_mat,mat_vect_adaptor<Vector>(x_grad),abs_tol);
-	lagt = x_grad - l * Jac_g;
-	norm_star = norm_2(lagt);
+        lagt = x_grad - l * Jac_g;
+        norm_star = norm_2(lagt);
         fill_hessian(H,x,x_value,x_grad,p,lagt - lag);
-	lag = lagt;
+        lag = lagt;
       } else {
-	radius = ValueType(0.9) * norm_p;
+        radius = ValueType(0.9) * norm_p;
       };
       if(++k > max_iter)
-	throw maximum_iteration(max_iter);
+        throw maximum_iteration(max_iter);
       
     };
   };
@@ -214,8 +214,8 @@ namespace detail {
  */
 template <typename Function, typename GradFunction, typename HessianFunction, typename T,
           typename EqFunction = no_constraint_functor, typename EqJacFunction = no_constraint_jac_functor, 
-	  typename TrustRegionSolver = tr_solver_right_pinv_dogleg, 
-	  typename LimitFunction = no_limit_functor>
+          typename TrustRegionSolver = tr_solver_right_pinv_dogleg, 
+          typename LimitFunction = no_limit_functor>
 struct bosqp_newton_tr_factory {
   Function f;
   GradFunction df;
@@ -232,7 +232,7 @@ struct bosqp_newton_tr_factory {
   
   typedef bosqp_newton_tr_factory<Function,GradFunction,HessianFunction,T,
                                   EqFunction,EqJacFunction,
-				  TrustRegionSolver,LimitFunction> self;
+                                  TrustRegionSolver,LimitFunction> self;
   
   /**
    * Parametrized constructor of the factory object.
@@ -250,16 +250,16 @@ struct bosqp_newton_tr_factory {
    * \param aImposeLimits The functor that can impose simple limits on the search domain (e.g. box-constraints or non-negativity).
    */
   bosqp_newton_tr_factory(Function aF, GradFunction aDf,
-			  HessianFunction aFillHessian, T aMaxRadius, unsigned int aMaxIter,
-			  EqFunction aG = EqFunction(), EqJacFunction aFillGJac = EqJacFunction(),
-			  T aTol = T(1e-6), T aEta = T(1e-4), T aRho = T(1e-4),
-			  TrustRegionSolver aSolveStep = TrustRegionSolver(),
-			  LimitFunction aImposeLimits = LimitFunction()) :
-			  f(aF), df(aDf), fill_hessian(aFillHessian),
-			  max_radius(aMaxRadius), max_iter(aMaxIter), tol(aTol), eta(aEta), rho(aRho),
-			  g(aG), fill_g_jac(aFillGJac), 
-			  solve_step(aSolveStep),
-			  impose_limits(aImposeLimits) { };
+                          HessianFunction aFillHessian, T aMaxRadius, unsigned int aMaxIter,
+                          EqFunction aG = EqFunction(), EqJacFunction aFillGJac = EqJacFunction(),
+                          T aTol = T(1e-6), T aEta = T(1e-4), T aRho = T(1e-4),
+                          TrustRegionSolver aSolveStep = TrustRegionSolver(),
+                          LimitFunction aImposeLimits = LimitFunction()) :
+                          f(aF), df(aDf), fill_hessian(aFillHessian),
+                          max_radius(aMaxRadius), max_iter(aMaxIter), tol(aTol), eta(aEta), rho(aRho),
+                          g(aG), fill_g_jac(aFillGJac), 
+                          solve_step(aSolveStep),
+                          impose_limits(aImposeLimits) { };
   /**
    * This function finds the minimum of a function, given its derivative and Hessian, 
    * using a newton search direction and using a trust-region approach.
@@ -307,11 +307,11 @@ struct bosqp_newton_tr_factory {
     return bosqp_newton_tr_factory<Function,GradFunction,HessianFunction,T,
                                    EqFunction, EqJacFunction, 
                                    tr_solver_right_pinv_dogleg_reg<T>, LimitFunction>(f,df,fill_hessian,
-					                                              max_radius, max_iter,
-										      g, fill_g_jac, 
-										      tol, eta, rho,
-										      tr_solver_right_pinv_dogleg_reg<T>(tau),
-										      impose_limits);
+                                                                                      max_radius, max_iter,
+                                                                                      g, fill_g_jac, 
+                                                                                      tol, eta, rho,
+                                                                                      tr_solver_right_pinv_dogleg_reg<T>(tau),
+                                                                                      impose_limits);
   };
     
   /**
@@ -327,10 +327,10 @@ struct bosqp_newton_tr_factory {
     return bosqp_newton_tr_factory<Function,GradFunction,HessianFunction,T,
                                    EqFunction, EqJacFunction, 
                                    NewTrustRegionSolver, LimitFunction>(f,df,fill_hessian,
-					                                max_radius, max_iter,
-								        g, fill_g_jac, 
-								        tol, eta, rho,
-								        new_solver,impose_limits);
+                                                                        max_radius, max_iter,
+                                                                        g, fill_g_jac, 
+                                                                        tol, eta, rho,
+                                                                        new_solver,impose_limits);
   };
     
   /**
@@ -349,10 +349,10 @@ struct bosqp_newton_tr_factory {
     return bosqp_newton_tr_factory<Function,GradFunction,HessianFunction,T,
                                    EqFunction, EqJacFunction,
                                    TrustRegionSolver, NewLimitFunction>(f,df,fill_hessian,
-					                                max_radius, max_iter,
-								        g, fill_g_jac, 
-								        tol, eta, rho,
-								        solve_step,new_limits);
+                                                                        max_radius, max_iter,
+                                                                        g, fill_g_jac, 
+                                                                        tol, eta, rho,
+                                                                        solve_step,new_limits);
   };
     
   /**
@@ -371,10 +371,10 @@ struct bosqp_newton_tr_factory {
     return bosqp_newton_tr_factory<Function,GradFunction,HessianFunction,T,
                                    NewEqFunction, NewEqJacFunction,
                                    TrustRegionSolver, LimitFunction>(f,df,fill_hessian,
-					                             max_radius, max_iter,
-								     new_g, new_fill_g_jac, 
-								     tol, eta, rho,
-								     solve_step,impose_limits);
+                                                                     max_radius, max_iter,
+                                                                     new_g, new_fill_g_jac, 
+                                                                     tol, eta, rho,
+                                                                     solve_step,impose_limits);
   };
     
 };
@@ -408,8 +408,8 @@ struct bosqp_newton_tr_factory {
 template <typename Function, typename GradFunction, typename HessianFunction, typename T>
 bosqp_newton_tr_factory<Function,GradFunction,HessianFunction,T> 
   make_bosqp_newton_tr(Function f, GradFunction df, HessianFunction fill_hessian, 
-		       T max_radius, unsigned int max_iter,
-		       T tol = T(1e-6), T eta = T(1e-4), T rho = T(1e-4)) {
+                       T max_radius, unsigned int max_iter,
+                       T tol = T(1e-6), T eta = T(1e-4), T rho = T(1e-4)) {
   return bosqp_newton_tr_factory<Function,GradFunction,HessianFunction,T>(f,df,fill_hessian,max_radius,max_iter,no_constraint_functor(),no_constraint_jac_functor(),tol,eta,rho);
 };
 
@@ -443,8 +443,8 @@ bosqp_newton_tr_factory<Function,GradFunction,HessianFunction,T>
  */
 template <typename Function, typename GradFunction, typename T,
           typename EqFunction = no_constraint_functor, typename EqJacFunction = no_constraint_jac_functor, 
-	  typename HessianUpdater = hessian_update_sr1, typename TrustRegionSolver = tr_solver_right_pinv_dogleg, 
-	  typename LimitFunction = no_limit_functor>
+          typename HessianUpdater = hessian_update_sr1, typename TrustRegionSolver = tr_solver_right_pinv_dogleg, 
+          typename LimitFunction = no_limit_functor>
 struct bosqp_quasi_newton_tr_factory {
   Function f;
   GradFunction df;
@@ -461,8 +461,8 @@ struct bosqp_quasi_newton_tr_factory {
   
   typedef bosqp_quasi_newton_tr_factory<Function,GradFunction,T,
                                         EqFunction,EqJacFunction,
-				        HessianUpdater,TrustRegionSolver,
-					LimitFunction> self;
+                                        HessianUpdater,TrustRegionSolver,
+                                        LimitFunction> self;
   
   /**
    * Parametrized constructor of the factory object.
@@ -480,18 +480,18 @@ struct bosqp_quasi_newton_tr_factory {
    * \param aImposeLimits The functor that can impose simple limits on the search domain (e.g. box-constraints or non-negativity).
    */
   bosqp_quasi_newton_tr_factory(Function aF, GradFunction aDf,
-				T aMaxRadius, unsigned int aMaxIter,
-			        EqFunction aG = EqFunction(), EqJacFunction aFillGJac = EqJacFunction(),
-				T aTol = T(1e-6), T aEta = T(1e-4), T aRho = T(1e-4),
-				HessianUpdater aUpdateHessian = HessianUpdater(),
-				TrustRegionSolver aSolveStep = TrustRegionSolver(),
-				LimitFunction aImposeLimits = LimitFunction()) :
-			        f(aF), df(aDf), 
-			        max_radius(aMaxRadius), max_iter(aMaxIter), tol(aTol), eta(aEta), rho(aRho),
-			        g(aG), fill_g_jac(aFillGJac), 
-			        update_hessian(aUpdateHessian),
-			        solve_step(aSolveStep),
-			        impose_limits(aImposeLimits) { };
+                                T aMaxRadius, unsigned int aMaxIter,
+                                EqFunction aG = EqFunction(), EqJacFunction aFillGJac = EqJacFunction(),
+                                T aTol = T(1e-6), T aEta = T(1e-4), T aRho = T(1e-4),
+                                HessianUpdater aUpdateHessian = HessianUpdater(),
+                                TrustRegionSolver aSolveStep = TrustRegionSolver(),
+                                LimitFunction aImposeLimits = LimitFunction()) :
+                                f(aF), df(aDf), 
+                                max_radius(aMaxRadius), max_iter(aMaxIter), tol(aTol), eta(aEta), rho(aRho),
+                                g(aG), fill_g_jac(aFillGJac), 
+                                update_hessian(aUpdateHessian),
+                                solve_step(aSolveStep),
+                                impose_limits(aImposeLimits) { };
   /**
    * This function finds the minimum of a function, given its derivative and Hessian, 
    * using a newton search direction and using a trust-region approach.
@@ -538,11 +538,11 @@ struct bosqp_quasi_newton_tr_factory {
     return bosqp_quasi_newton_tr_factory<Function,GradFunction,T,
                                          EqFunction, EqJacFunction,HessianUpdater, 
                                          tr_solver_right_pinv_dogleg_reg<T>, LimitFunction>(f,df,
-					                                                    max_radius, max_iter,
-										            g, fill_g_jac, 
-										            tol, eta, rho, update_hessian,
-										            tr_solver_right_pinv_dogleg_reg<T>(tau),
-										            impose_limits);
+                                                                                            max_radius, max_iter,
+                                                                                            g, fill_g_jac, 
+                                                                                            tol, eta, rho, update_hessian,
+                                                                                            tr_solver_right_pinv_dogleg_reg<T>(tau),
+                                                                                            impose_limits);
   };
     
   /**
@@ -558,8 +558,8 @@ struct bosqp_quasi_newton_tr_factory {
     return bosqp_quasi_newton_tr_factory<Function,GradFunction,T,
                                          EqFunction, EqJacFunction, HessianUpdater,
                                          NewTrustRegionSolver, LimitFunction>(f, df, max_radius, max_iter,
-								              g, fill_g_jac, tol, eta, rho, 
-									      update_hessian, new_solver, impose_limits);
+                                                                              g, fill_g_jac, tol, eta, rho, 
+                                                                              update_hessian, new_solver, impose_limits);
   };
     
   /**
@@ -578,8 +578,8 @@ struct bosqp_quasi_newton_tr_factory {
     return bosqp_quasi_newton_tr_factory<Function,GradFunction,T,
                                          EqFunction, EqJacFunction, HessianUpdater,
                                          TrustRegionSolver, NewLimitFunction>(f, df, max_radius, max_iter,
-								              g, fill_g_jac, tol, eta, rho, 
-									      update_hessian, solve_step, new_limits);
+                                                                              g, fill_g_jac, tol, eta, rho, 
+                                                                              update_hessian, solve_step, new_limits);
   };
     
   /**
@@ -598,9 +598,9 @@ struct bosqp_quasi_newton_tr_factory {
     return bosqp_quasi_newton_tr_factory<Function,GradFunction,T,
                                          NewEqFunction, NewEqJacFunction,HessianUpdater,
                                          TrustRegionSolver, LimitFunction>(f, df, max_radius, max_iter,
-									   new_g, new_fill_g_jac, 
-									   tol, eta, rho, update_hessian,
-									   solve_step,impose_limits);
+                                                                           new_g, new_fill_g_jac, 
+                                                                           tol, eta, rho, update_hessian,
+                                                                           solve_step,impose_limits);
   };
     
   /**
@@ -616,9 +616,9 @@ struct bosqp_quasi_newton_tr_factory {
     return bosqp_quasi_newton_tr_factory<Function,GradFunction,T,
                                          EqFunction, EqJacFunction, NewHessianUpdater,
                                          TrustRegionSolver, LimitFunction>(f, df, max_radius, max_iter,
-								           g, fill_g_jac, tol, eta, rho, 
-									   new_update_hessian, 
-									   solve_step, impose_limits);
+                                                                           g, fill_g_jac, tol, eta, rho, 
+                                                                           new_update_hessian, 
+                                                                           solve_step, impose_limits);
   };
     
 };
@@ -650,8 +650,8 @@ struct bosqp_quasi_newton_tr_factory {
 template <typename Function, typename GradFunction, typename T>
 bosqp_quasi_newton_tr_factory<Function,GradFunction,T> 
   make_bosqp_quasi_newton_tr(Function f, GradFunction df, 
-		             T max_radius, unsigned int max_iter,
-		             T tol = T(1e-6), T eta = T(1e-4), T rho = T(1e-4)) {
+                             T max_radius, unsigned int max_iter,
+                             T tol = T(1e-6), T eta = T(1e-4), T rho = T(1e-4)) {
   return bosqp_quasi_newton_tr_factory<Function,GradFunction,T>(f,df,max_radius,max_iter,no_constraint_functor(),no_constraint_jac_functor(),tol,eta,rho);
 };
 

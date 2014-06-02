@@ -29,7 +29,7 @@
 #include <set>
 #include <map>
 
-#include "graph_alg/avl_tree.hpp"
+#include <ReaK/ctrl/graph_alg/avl_tree.hpp>
 
 #define BOOST_TEST_DYN_LINK
 

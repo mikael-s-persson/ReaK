@@ -40,7 +40,7 @@
 #include <boost/tuple/tuple.hpp>
 #include <boost/utility/enable_if.hpp>
 
-#include "path_planning/metric_space_concept.hpp"
+#include <ReaK/ctrl/path_planning/metric_space_concept.hpp>
 
 #include "sbmp_visitor_concepts.hpp"
 #include "pruned_connector.hpp"

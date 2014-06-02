@@ -269,9 +269,9 @@ void manip_kin_mdl_jac_calculator::getJacobianMatrixAndDerivativeImpl( mat<doubl
     for(std::size_t j = 0; j < model->getDependentCoordsCount(); ++j) {
       shared_ptr< joint_dependent_gen_coord > j_dep = model->getDependentCoord(j);
       if( j_dep->mUpStreamJoints.find( i_joint ) != j_dep->mUpStreamJoints.end() ) {
-        SubMat subJac = sub( Jac )( range( RowInd,RowInd ),range( i,i ) );
+        SubMat subJac = sub( Jac )( range( RowInd,RowInd+1 ),range( i,i+1 ) );
         if( JacDot ) {
-          SubMat subJacDot = sub( *JacDot )( range( RowInd,RowInd ),range( i,i ) );
+          SubMat subJacDot = sub( *JacDot )( range( RowInd,RowInd+1 ),range( i,i+1 ) );
           j_dep->mUpStreamJoints[i_joint]->write_to_matrices( subJac, subJacDot );
         } else {
           j_dep->mUpStreamJoints[i_joint]->write_to_matrices( subJac );
@@ -283,9 +283,9 @@ void manip_kin_mdl_jac_calculator::getJacobianMatrixAndDerivativeImpl( mat<doubl
     for( std::size_t j=0; j < model->getDependentFrames2DCount(); ++j ) {
       shared_ptr< joint_dependent_frame_2D > j_dep = model->getDependentFrame2D(j);
       if( j_dep->mUpStreamJoints.find( i_joint ) != j_dep->mUpStreamJoints.end() ) {
-        SubMat subJac = sub( Jac )( range( RowInd,RowInd+2 ),range( i,i ) );
+        SubMat subJac = sub( Jac )( range( RowInd,RowInd+3 ),range( i,i+1 ) );
         if( JacDot ) {
-          SubMat subJacDot = sub( *JacDot )( range( RowInd,RowInd+2 ),range( i,i ) );
+          SubMat subJacDot = sub( *JacDot )( range( RowInd,RowInd+3 ),range( i,i+1 ) );
           j_dep->mUpStreamJoints[i_joint]
           ->get_jac_relative_to( j_dep->mFrame )
           .write_to_matrices( subJac, subJacDot );
@@ -301,9 +301,9 @@ void manip_kin_mdl_jac_calculator::getJacobianMatrixAndDerivativeImpl( mat<doubl
     for( std::size_t j=0; j < model->getDependentFrames3DCount(); ++j ) {
       shared_ptr< joint_dependent_frame_3D > j_dep = model->getDependentFrame3D(j);
       if( j_dep->mUpStreamJoints.find( i_joint ) != j_dep->mUpStreamJoints.end() ) {
-        SubMat subJac = sub( Jac )( range( RowInd,RowInd+5 ),range( i,i ) );
+        SubMat subJac = sub( Jac )( range( RowInd,RowInd+6 ),range( i,i+1 ) );
         if( JacDot ) {
-          SubMat subJacDot = sub( *JacDot )( range( RowInd,RowInd+5 ),range( i,i ) );
+          SubMat subJacDot = sub( *JacDot )( range( RowInd,RowInd+6 ),range( i,i+1 ) );
           j_dep->mUpStreamJoints[i_joint]
           ->get_jac_relative_to( j_dep->mFrame )
           .write_to_matrices( subJac,subJacDot );
@@ -330,9 +330,9 @@ void manip_kin_mdl_jac_calculator::getJacobianMatrixAndDerivativeImpl( mat<doubl
     for( std::size_t j=0; j < model->getDependentCoordsCount(); ++j ) {
       shared_ptr< joint_dependent_gen_coord > j_dep = model->getDependentCoord(j);
       if( j_dep->mUpStream2DJoints.find( i_joint ) != j_dep->mUpStream2DJoints.end() ) {
-        SubMat subJac = sub( Jac )( range( RowInd,RowInd ),range( 3 * i + base_i, 3 * i + base_i + 2 ) );
+        SubMat subJac = sub( Jac )( range( RowInd,RowInd+1 ),range( 3 * i + base_i, 3 * i + base_i + 3 ) );
         if( JacDot ) {
-          SubMat subJacDot = sub( *JacDot )( range( RowInd,RowInd ),range( 3 * i + base_i, 3 * i + base_i + 2 ) );
+          SubMat subJacDot = sub( *JacDot )( range( RowInd,RowInd+1 ),range( 3 * i + base_i, 3 * i + base_i + 3 ) );
           j_dep->mUpStream2DJoints[i_joint]->write_to_matrices( subJac,subJacDot );
         } else {
           j_dep->mUpStream2DJoints[i_joint]->write_to_matrices( subJac );
@@ -344,9 +344,9 @@ void manip_kin_mdl_jac_calculator::getJacobianMatrixAndDerivativeImpl( mat<doubl
     for( std::size_t j=0; j < model->getDependentFrames2DCount(); ++j ) {
       shared_ptr< joint_dependent_frame_2D > j_dep = model->getDependentFrame2D(j);
       if( j_dep->mUpStream2DJoints.find( i_joint ) != j_dep->mUpStream2DJoints.end() ) {
-        SubMat subJac = sub( Jac )( range( RowInd,RowInd+2 ),range( 3 * i + base_i, 3 * i + base_i + 2 ) );
+        SubMat subJac = sub( Jac )( range( RowInd,RowInd+3 ),range( 3 * i + base_i, 3 * i + base_i + 3 ) );
         if( JacDot ) {
-          SubMat subJacDot = sub( *JacDot )( range( RowInd,RowInd+2 ),range( 3 * i + base_i, 3 * i + base_i + 2 ) );
+          SubMat subJacDot = sub( *JacDot )( range( RowInd,RowInd+3 ),range( 3 * i + base_i, 3 * i + base_i + 3 ) );
           j_dep->mUpStream2DJoints[i_joint]
           ->get_jac_relative_to( j_dep->mFrame )
           .write_to_matrices( subJac,subJacDot );
@@ -362,9 +362,9 @@ void manip_kin_mdl_jac_calculator::getJacobianMatrixAndDerivativeImpl( mat<doubl
     for( std::size_t j=0; j < model->getDependentFrames3DCount(); ++j ) {
       shared_ptr< joint_dependent_frame_3D > j_dep = model->getDependentFrame3D(j);
       if( j_dep->mUpStream2DJoints.find( i_joint ) != j_dep->mUpStream2DJoints.end() ) {
-        SubMat subJac = sub( Jac )( range( RowInd,RowInd+5 ),range( 3 * i + base_i, 3 * i + base_i + 2 ) );
+        SubMat subJac = sub( Jac )( range( RowInd,RowInd+6 ),range( 3 * i + base_i, 3 * i + base_i + 3 ) );
         if( JacDot ) {
-          SubMat subJacDot = sub( *JacDot )( range( RowInd,RowInd+5 ),range( 3 * i + base_i, 3 * i + base_i + 2 ) );
+          SubMat subJacDot = sub( *JacDot )( range( RowInd,RowInd+6 ),range( 3 * i + base_i, 3 * i + base_i + 3 ) );
           j_dep->mUpStream2DJoints[i_joint]
           ->get_jac_relative_to( j_dep->mFrame )
           .write_to_matrices( subJac,subJacDot );
@@ -392,9 +392,9 @@ void manip_kin_mdl_jac_calculator::getJacobianMatrixAndDerivativeImpl( mat<doubl
     for( std::size_t j=0; j < model->getDependentCoordsCount(); ++j ) {
       shared_ptr< joint_dependent_gen_coord > j_dep = model->getDependentCoord(j);
       if( j_dep->mUpStream3DJoints.find( i_joint ) != j_dep->mUpStream3DJoints.end() ) {
-        SubMat subJac = sub( Jac )( range( RowInd,RowInd ),range( 6 * i + base_i, 6 * i + base_i + 5 ) );
+        SubMat subJac = sub( Jac )( range( RowInd,RowInd+1 ),range( 6 * i + base_i, 6 * i + base_i + 6 ) );
         if( JacDot ) {
-          SubMat subJacDot = sub( *JacDot )( range( RowInd,RowInd ),range( 6 * i + base_i, 6 * i + base_i + 5 ) );
+          SubMat subJacDot = sub( *JacDot )( range( RowInd,RowInd+1 ),range( 6 * i + base_i, 6 * i + base_i + 6 ) );
           j_dep->mUpStream3DJoints[i_joint]->write_to_matrices( subJac,subJacDot );
         } else {
           j_dep->mUpStream3DJoints[i_joint]->write_to_matrices( subJac );
@@ -406,9 +406,9 @@ void manip_kin_mdl_jac_calculator::getJacobianMatrixAndDerivativeImpl( mat<doubl
     for( std::size_t j=0; j < model->getDependentFrames2DCount(); ++j ) {
       shared_ptr< joint_dependent_frame_2D > j_dep = model->getDependentFrame2D(j);
       if( j_dep->mUpStream3DJoints.find( i_joint ) != j_dep->mUpStream3DJoints.end() ) {
-        SubMat subJac = sub( Jac )( range( RowInd,RowInd+2 ),range( 6 * i + base_i, 6 * i + base_i + 5 ) );
+        SubMat subJac = sub( Jac )( range( RowInd,RowInd+3 ),range( 6 * i + base_i, 6 * i + base_i + 6 ) );
         if( JacDot ) {
-          SubMat subJacDot = sub( *JacDot )( range( RowInd,RowInd+2 ),range( 6 * i + base_i, 6 * i + base_i + 5 ) );
+          SubMat subJacDot = sub( *JacDot )( range( RowInd,RowInd+3 ),range( 6 * i + base_i, 6 * i + base_i + 6 ) );
           j_dep->mUpStream3DJoints[i_joint]
           ->get_jac_relative_to( j_dep->mFrame )
           .write_to_matrices( subJac,subJacDot );
@@ -424,9 +424,9 @@ void manip_kin_mdl_jac_calculator::getJacobianMatrixAndDerivativeImpl( mat<doubl
     for( std::size_t j=0; j < model->getDependentFrames3DCount(); ++j ) {
       shared_ptr< joint_dependent_frame_3D > j_dep = model->getDependentFrame3D(j);
       if( j_dep->mUpStream3DJoints.find( i_joint ) != j_dep->mUpStream3DJoints.end() ) {
-        SubMat subJac = sub( Jac )( range( RowInd,RowInd+5 ),range( 6 * i + base_i, 6 * i + base_i + 5 ) );
+        SubMat subJac = sub( Jac )( range( RowInd,RowInd+6 ),range( 6 * i + base_i, 6 * i + base_i + 6 ) );
         if( JacDot ) {
-          SubMat subJacDot = sub( *JacDot )( range( RowInd,RowInd+5 ),range( 6 * i + base_i, 6 * i + base_i + 5 ) );
+          SubMat subJacDot = sub( *JacDot )( range( RowInd,RowInd+6 ),range( 6 * i + base_i, 6 * i + base_i + 6 ) );
           j_dep->mUpStream3DJoints[i_joint]
           ->get_jac_relative_to( j_dep->mFrame )
           .write_to_matrices( subJac,subJacDot );

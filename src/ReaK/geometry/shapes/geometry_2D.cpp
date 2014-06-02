@@ -40,10 +40,10 @@ void geometry_2D::setPose(const pose_2D<double>& aPose) {
     
 geometry_2D::geometry_2D(const std::string& aName,
                          const shared_ptr< pose_2D<double> >& aAnchor,
-			 const pose_2D<double>& aPose) : 
-			 named_object(),
-			 mAnchor(aAnchor),
-			 mPose(aPose) {
+                         const pose_2D<double>& aPose) : 
+                         named_object(),
+                         mAnchor(aAnchor),
+                         mPose(aPose) {
   mPose.Parent = mAnchor;
   this->setName(aName);
 };

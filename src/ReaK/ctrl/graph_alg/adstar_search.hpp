@@ -112,7 +112,7 @@ namespace graph {
   struct ADStarVisitorConcept {
     BOOST_CONCEPT_USAGE(ADStarVisitorConcept)
     {
-      boost::function_requires< boost::CopyConstructibleConcept<Visitor> >();
+      BOOST_CONCEPT_ASSERT((boost::CopyConstructibleConcept<Visitor>));
       vis.initialize_vertex(u, g);   //whenever the vertex is first initialized.
       vis.finish_vertex(u, g);       //whenever a vertex is added to the CLOSED set.
       vis.recycle_vertex(u, g);      //whenever a vertex is taken out of the CLOSED set.
@@ -195,7 +195,7 @@ namespace graph {
    */
   template <typename DistanceValueType,
             typename CompareFunction = std::less<DistanceValueType>,
-	    typename EqualCompareFunction = std::equal_to<DistanceValueType> >
+            typename EqualCompareFunction = std::equal_to<DistanceValueType> >
   struct adstar_key_value {
     /**
      * Default constructor.
@@ -599,16 +599,16 @@ namespace graph {
             typename Vertex,
             typename AStarHeuristicMap,
             typename ADStarVisitor,
-	    typename PredecessorMap,
+            typename PredecessorMap,
             typename DistanceMap,
-	    typename RHSMap,
-	    typename KeyMap,
+            typename RHSMap,
+            typename KeyMap,
             typename WeightMap,
-	    typename ColorMap, 
+            typename ColorMap, 
             typename CompareFunction, 
-	    typename EqualCompareFunction,
+            typename EqualCompareFunction,
             typename CombineFunction,
-	    typename ComposeFunction>
+            typename ComposeFunction>
   inline void
   adstar_search_no_init
     (VertexListGraph& g, Vertex start_vertex,

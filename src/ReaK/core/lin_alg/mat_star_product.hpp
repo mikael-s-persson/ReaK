@@ -58,7 +58,7 @@ struct hamiltonian_mat {
   
   typedef mat_horiz_cat< upper_left, upper_right > upper;
   typedef mat_horiz_cat< lower_left, lower_right > lower;
-			 
+  
   typedef mat_vert_cat< upper, lower > type;
 };
 
@@ -87,7 +87,7 @@ typename hamiltonian_mat< typename mat_traits<Matrix1>::value_type >::type >::ty
   mat<ValueType,mat_structure::square> Inv1(N);
   pseudoinvert_SVD(mat<ValueType,mat_structure::identity>(N)
                  - mat_const_sub_block< Matrix2 >(M2,N,N,N,0)
-		 * mat_const_sub_block< Matrix1 >(M1,N,N,0,N),Inv1);
+                 * mat_const_sub_block< Matrix1 >(M1,N,N,0,N),Inv1);
   
   mat<ValueType,mat_structure::square> DInv( mat_const_sub_block< Matrix1 >(M1,N,N,N,N) * Inv1 );
   mat<ValueType,mat_structure::square> WInvt( mat_const_sub_block< Matrix2 >(M2,N,N,0,0) * transpose_move(Inv1) );
@@ -95,18 +95,18 @@ typename hamiltonian_mat< typename mat_traits<Matrix1>::value_type >::type >::ty
   return result_type( 
     mat_horiz_cat< mat<ValueType,mat_structure::square>,
                    mat<ValueType,mat_structure::symmetric> >(
-		     mat<ValueType,mat_structure::square>(WInvt * mat_const_sub_block<Matrix1>(M1,N,N,0,0)),
-		     mat<ValueType,mat_structure::symmetric>(mat_const_sub_block<Matrix2>(M2,N,N,0,N)
-		                                           + WInvt 
-		                                           * mat_const_sub_block<Matrix1>(M1,N,N,0,N)
-							   * mat_const_sub_block<Matrix2>(M2,N,N,N,N) ) ),
+                     mat<ValueType,mat_structure::square>(WInvt * mat_const_sub_block<Matrix1>(M1,N,N,0,0)),
+                     mat<ValueType,mat_structure::symmetric>(mat_const_sub_block<Matrix2>(M2,N,N,0,N)
+                                                           + WInvt 
+                                                           * mat_const_sub_block<Matrix1>(M1,N,N,0,N)
+                                                           * mat_const_sub_block<Matrix2>(M2,N,N,N,N) ) ),
     mat_horiz_cat< mat<ValueType,mat_structure::symmetric>,
                    mat<ValueType,mat_structure::square> >(
-		     mat<ValueType,mat_structure::symmetric>(mat_const_sub_block<Matrix1>(M1,N,N,N,0)
-		                                           + DInv 
-		                                           * mat_const_sub_block<Matrix2>(M2,N,N,N,0)
-							   * mat_const_sub_block<Matrix1>(M1,N,N,0,0) ),
-		     mat<ValueType,mat_structure::square>(DInv * mat_const_sub_block<Matrix2>(M2,N,N,N,N) ) ) );
+                     mat<ValueType,mat_structure::symmetric>(mat_const_sub_block<Matrix1>(M1,N,N,N,0)
+                                                           + DInv 
+                                                           * mat_const_sub_block<Matrix2>(M2,N,N,N,0)
+                                                           * mat_const_sub_block<Matrix1>(M1,N,N,0,0) ),
+                     mat<ValueType,mat_structure::square>(DInv * mat_const_sub_block<Matrix2>(M2,N,N,N,N) ) ) );
 };
 
 

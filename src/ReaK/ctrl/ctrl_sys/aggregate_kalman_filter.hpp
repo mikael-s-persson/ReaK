@@ -46,9 +46,10 @@
 #include "belief_state_concept.hpp"
 #include "discrete_linear_sss_concept.hpp"
 #include <boost/utility/enable_if.hpp>
-#include <lin_alg/vect_concepts.hpp>
-#include <lin_alg/mat_alg.hpp>
-#include <lin_alg/mat_cholesky.hpp>
+#include <ReaK/core/lin_alg/vect_concepts.hpp>
+#include <ReaK/core/lin_alg/mat_alg.hpp>
+#include <ReaK/core/lin_alg/mat_cholesky.hpp>
+#include <ReaK/core/lin_alg/mat_star_product.hpp>
 
 #include <boost/static_assert.hpp>
 #include "covariance_concept.hpp"
@@ -57,7 +58,6 @@
 #include "decomp_covariance_matrix.hpp"
 #include "gaussian_belief_state.hpp"
 
-#include "lin_alg/mat_star_product.hpp"
 
 namespace ReaK {
 
@@ -465,7 +465,7 @@ struct AKF_belief_transfer {
         star_product( ( mat<double,mat_structure::identity>(N) & b.get_covariance().get_matrix()         |
                         mat<double,mat_structure::nil>(N)      & mat<double,mat_structure::identity>(N)  ) , 
                       Sc );
-      b.set_covariance( covariance_type( matrix_type( sub(P_h)(range(0,N-1),range(N,2*N-1)) ) ) ); 
+      b.set_covariance( covariance_type( matrix_type( sub(P_h)(range(0,N),range(N,2*N)) ) ) ); 
     };
     return b;
   };
@@ -491,7 +491,7 @@ struct AKF_belief_transfer {
         star_product( ( mat<double,mat_structure::identity>(N) & b.get_covariance().get_matrix()         |
                         mat<double,mat_structure::nil>(N)      & mat<double,mat_structure::identity>(N)  ) , 
                       Sm );
-      b.set_covariance( covariance_type( matrix_type( sub(P_h)(range(0,N-1),range(N,2*N-1)) ) ) );
+      b.set_covariance( covariance_type( matrix_type( sub(P_h)(range(0,N),range(N,2*N)) ) ) );
     };
     return b;
   };

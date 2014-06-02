@@ -34,16 +34,16 @@
 #ifndef REAK_SAP_METRICS_HPP
 #define REAK_SAP_METRICS_HPP
 
-#include "base/defs.hpp"
+#include <ReaK/core/base/defs.hpp>
 
-#include "path_planning/proper_metric_concept.hpp"
-
-#include <boost/config.hpp>
-#include <boost/concept_check.hpp>
+#include <ReaK/ctrl/path_planning/proper_metric_concept.hpp>
 
 #include "generic_interpolator_factory.hpp"
 #include "sustained_acceleration_pulse.hpp"
 #include "topologies/time_topology.hpp"
+
+#include <boost/config.hpp>
+#include <boost/concept_check.hpp>
 
 namespace ReaK {
 

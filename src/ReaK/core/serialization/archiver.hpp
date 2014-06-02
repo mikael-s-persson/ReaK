@@ -35,12 +35,12 @@
 #ifndef REAK_ARCHIVER_HPP
 #define REAK_ARCHIVER_HPP
 
-#include "base/defs.hpp"
+#include <ReaK/core/base/defs.hpp>
 
-#include "base/shared_object_base.hpp"
+#include <ReaK/core/base/shared_object_base.hpp>
 
-#include "rtti/typed_object.hpp"
-#include "rtti/typed_primitives.hpp"
+#include <ReaK/core/rtti/typed_object.hpp>
+#include <ReaK/core/rtti/typed_primitives.hpp>
 
 #include <boost/preprocessor/stringize.hpp>
 

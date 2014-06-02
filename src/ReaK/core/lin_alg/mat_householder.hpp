@@ -76,6 +76,11 @@ class householder_matrix {
     typedef typename vect_traits<Vector>::iterator iterator;
     typedef typename vect_traits<Vector>::const_iterator const_iterator;
     
+    typedef void col_iterator;
+    typedef void const_col_iterator;
+    typedef void row_iterator;
+    typedef void const_row_iterator;
+    
     BOOST_STATIC_CONSTANT(std::size_t, static_row_count = 0);
     BOOST_STATIC_CONSTANT(std::size_t, static_col_count = 0);
     BOOST_STATIC_CONSTANT(mat_alignment::tag, alignment = mat_alignment::column_major);
@@ -87,23 +92,23 @@ class householder_matrix {
   private:
     void calculate_hhv(const value_type& NumTol) {      
       if(v.size() == 0)
-	return;
+        return;
       
       using std::sqrt;
       
       value_type sigma = value_type(0.0);
       for(size_type i=1;i<v.size();++i)
-	sigma += v[i] * v[i];
+        sigma += v[i] * v[i];
       if(sigma < NumTol * NumTol) {
-	v[0] = value_type(1.0);
-	beta = value_type(0.0);
-	return;
+        v[0] = value_type(1.0);
+        beta = value_type(0.0);
+        return;
       };
       value_type mu = sqrt(sigma + v[0]*v[0]);
       if(v[0] < NumTol) {
-	v[0] -= mu;
+        v[0] -= mu;
       } else {
-	v[0] = -sigma / (v[0] + mu);
+        v[0] = -sigma / (v[0] + mu);
       };
       beta = 2.0 / (sigma + v[0]*v[0]);
     };
@@ -164,9 +169,9 @@ class householder_matrix {
      * Default constructor.
      */
     explicit householder_matrix(const value_type& aBeta = 0.0, 
-				const Vector& aV = Vector()) : 
-				beta(aBeta),
-				v(aV) { };
+                                const Vector& aV = Vector()) : 
+                                beta(aBeta),
+                                v(aV) { };
 
     /**
      * Constructs the Householder reflection by providing a column-vector u such that the 

@@ -53,10 +53,10 @@
 #include <boost/graph/detail/d_ary_heap.hpp>
 #include <boost/property_map/property_map.hpp>
 
-#include "path_planning/metric_space_concept.hpp"
-#include "path_planning/random_sampler_concept.hpp"
+#include <ReaK/core/base/global_rng.hpp>
 
-#include "base/global_rng.hpp"
+#include <ReaK/ctrl/path_planning/metric_space_concept.hpp>
+#include <ReaK/ctrl/path_planning/random_sampler_concept.hpp>
 
 // BGL-Extra includes:
 #include <boost/graph/more_property_maps.hpp>

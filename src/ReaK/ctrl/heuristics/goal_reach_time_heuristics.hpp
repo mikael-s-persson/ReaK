@@ -33,10 +33,10 @@
 #ifndef REAK_GOAL_REACH_TIME_HEURISTIC_HPP
 #define REAK_GOAL_REACH_TIME_HEURISTIC_HPP
 
-#include "base/defs.hpp"
-#include "base/serializable.hpp"
+#include <ReaK/core/base/defs.hpp>
+#include <ReaK/core/base/serializable.hpp>
 
-#include "path_planning/spatial_trajectory_concept.hpp"
+#include <ReaK/ctrl/path_planning/spatial_trajectory_concept.hpp>
 
 namespace ReaK {
 
@@ -63,8 +63,8 @@ class goal_reach_time_heuristic : public serialization::serializable {
   public:
     
     goal_reach_time_heuristic(const shared_ptr<const Trajectory>& aTraject, 
-			      const ReachTimeMetric& aDist = ReachTimeMetric(),
-			      double aTolerance = 1e-6) :
+                              const ReachTimeMetric& aDist = ReachTimeMetric(),
+                              double aTolerance = 1e-6) :
                               traject(aTraject), dist(aDist), tolerance(aTolerance) { };
   
     /** 
@@ -78,8 +78,8 @@ class goal_reach_time_heuristic : public serialization::serializable {
       double current_time = a.time;
       double time_to_reach = dist(a.pt, traject->get_point_at_time(current_time).pt, s.get_space_topology());
       while( fabs( time_to_reach - current_time + a.time ) > tolerance ) {
-	current_time = time_to_reach + a.time;
-	time_to_reach = dist(a.pt, traject->get_point_at_time(current_time).pt, s.get_space_topology());
+        current_time = time_to_reach + a.time;
+        time_to_reach = dist(a.pt, traject->get_point_at_time(current_time).pt, s.get_space_topology());
       };
       return time_to_reach;
     };

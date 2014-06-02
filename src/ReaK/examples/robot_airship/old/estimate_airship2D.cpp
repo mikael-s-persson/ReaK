@@ -48,11 +48,11 @@ int main(int argc, char** argv) {
   
   if(argc < 6) {
     std::cout << "Usage:\n"
-	      << "\t./estimate_airship2D [meas_filename.ssv] [result_filename] [time_step] [Qu.xml] [R.xml]\n"
-	      << "\t\t meas_filename.ssv:\t The filename of a space-sep. values file with the recorded states and measurements.\n"
-	      << "\t\t result_filename:\t The filename prefix where to record the results as a space-separated values file.\n"
-	      << "\t\t Qu.xml:\t\t The filename for the airship's input disturbance covariance matrix.\n"
-	      << "\t\t R.xml:\t\t The filename for the airship's measurement noise covariance matrix." << std::endl;
+              << "\t./estimate_airship2D [meas_filename.ssv] [result_filename] [time_step] [Qu.xml] [R.xml]\n"
+              << "\t\t meas_filename.ssv:\t The filename of a space-sep. values file with the recorded states and measurements.\n"
+              << "\t\t result_filename:\t The filename prefix where to record the results as a space-separated values file.\n"
+              << "\t\t Qu.xml:\t\t The filename for the airship's input disturbance covariance matrix.\n"
+              << "\t\t R.xml:\t\t The filename for the airship's measurement noise covariance matrix." << std::endl;
     return 0;
   };
   
@@ -91,17 +91,17 @@ int main(int argc, char** argv) {
     recorder::ssv_extractor meas_file(meas_filename);
     try {
       while(true) {
-	double t;
-	meas_file >> t;
-	for(unsigned int i = 0; i < 3; ++i) {
-	  double dummy;
-	  meas_file >> dummy;
-	};
-	vect_n<double> meas(4);
-	for(unsigned int i = 0; i < 4; ++i)
-	  meas_file >> meas[i];
-	meas_file >> recorder::data_extractor::end_value_row;
-	measurements.push_back(std::make_pair(t,meas));
+        double t;
+        meas_file >> t;
+        for(unsigned int i = 0; i < 3; ++i) {
+          double dummy;
+          meas_file >> dummy;
+        };
+        vect_n<double> meas(4);
+        for(unsigned int i = 0; i < 4; ++i)
+          meas_file >> meas[i];
+        meas_file >> recorder::data_extractor::end_value_row;
+        measurements.push_back(std::make_pair(t,meas));
       };
     } catch(recorder::out_of_bounds& e) { RK_UNUSED(e);
       RK_ERROR("The measurement file does not appear to have the required number of columns!");
@@ -201,9 +201,9 @@ int main(int argc, char** argv) {
   {
   ctrl::gaussian_belief_state< vect_n<double>, ctrl::covariance_matrix< vect_n<double> > > b = b_init;
   ctrl::gaussian_belief_state< vect_n<double>, ctrl::covariance_matrix< vect_n<double> > > b_u(vect_n<double>(0.0,0.0,0.0), 
-											       ctrl::covariance_matrix< vect_n<double> >(Qu));
+                                                                                               ctrl::covariance_matrix< vect_n<double> >(Qu));
   ctrl::gaussian_belief_state< vect_n<double>, ctrl::covariance_matrix< vect_n<double> > > b_z(vect_n<double>(0.0,0.0,0.0), 
-											       Rcov);
+                                                                                               Rcov);
   
   recorder::ssv_recorder results(result_filename + "_ekf.ssv");
   results << "time" << "pos_x" << "pos_y" << "cos(a)" << "sin(a)" << recorder::data_recorder::end_name_row;
@@ -232,9 +232,9 @@ int main(int argc, char** argv) {
   {
   ctrl::gaussian_belief_state< vect_n<double>, ctrl::covariance_matrix< vect_n<double> > > b = b_init;
   ctrl::gaussian_belief_state< vect_n<double>, ctrl::covariance_matrix< vect_n<double> > > b_u(vect_n<double>(0.0,0.0,0.0), 
-											       ctrl::covariance_matrix< vect_n<double> >(Qu));
+                                                                                               ctrl::covariance_matrix< vect_n<double> >(Qu));
   ctrl::gaussian_belief_state< vect_n<double>, ctrl::covariance_matrix< vect_n<double> > > b_z(vect_n<double>(0.0,0.0,0.0), 
-											       Rcov);
+                                                                                               Rcov);
   recorder::ssv_recorder results(result_filename + "_ukf.ssv");
   results << "time" << "pos_x" << "pos_y" << "cos(a)" << "sin(a)" << recorder::data_recorder::end_name_row;
   t1 = boost::posix_time::microsec_clock::local_time();
@@ -274,14 +274,14 @@ int main(int argc, char** argv) {
       ctrl::covariance_matrix< vect_n<double> >(ctrl::covariance_matrix< vect_n<double> >::matrix_type(mat<double,mat_structure::diagonal>(6,10.0))));
   
   ctrl::gaussian_belief_state< vect_n<double>, ctrl::covariance_matrix< vect_n<double> > > b_u(vect_n<double>(0.0,0.0,0.0), 
-											       ctrl::covariance_matrix< vect_n<double> >(Qu));
+                                                                                               ctrl::covariance_matrix< vect_n<double> >(Qu));
   
   mat<double,mat_structure::diagonal> R_inv(3);
   R_inv(0,0) = R(0,0); R_inv(1,1) = R(1,1); R_inv(2,2) = R(3,3);
   ctrl::covariance_matrix< vect_n<double> > Rcovinv = ctrl::covariance_matrix< vect_n<double> >(ctrl::covariance_matrix< vect_n<double> >::matrix_type(R_inv));
   
   ctrl::gaussian_belief_state< vect_n<double>, ctrl::covariance_matrix< vect_n<double> > > b_z(vect_n<double>(0.0,0.0,0.0), 
-											       Rcovinv);
+                                                                                               Rcovinv);
   
   recorder::ssv_recorder results(result_filename + "_iekf.ssv");
   results << "time" << "pos_x" << "pos_y" << "cos(a)" << "sin(a)" << recorder::data_recorder::end_name_row;
@@ -309,7 +309,7 @@ int main(int argc, char** argv) {
   recorder::ssv_recorder results(result_filename + "_times.ssv");
   results << "step_count" << "kbf(ms)" << "ikbf(ms)" << "ekf(ms)" << "ukf(ms)" << "iekf(ms)" << recorder::data_recorder::end_name_row;
   results << static_cast<double>(measurements.size()) 
-	      << static_cast<double>(dt[0].total_milliseconds()) 
+              << static_cast<double>(dt[0].total_milliseconds()) 
           << static_cast<double>(dt[1].total_milliseconds()) 
           << static_cast<double>(dt[2].total_milliseconds()) 
           << static_cast<double>(dt[3].total_milliseconds()) 

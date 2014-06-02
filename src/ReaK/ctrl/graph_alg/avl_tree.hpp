@@ -34,9 +34,9 @@
 #ifndef REAK_AVL_TREE_HPP
 #define REAK_AVL_TREE_HPP
 
-#include "base/defs.hpp"
+#include <ReaK/core/base/defs.hpp>
 
-#include "graph_alg/avl_tree_detail.hpp"
+#include "avl_tree_detail.hpp"
 
 
 // BGL-Extra includes:

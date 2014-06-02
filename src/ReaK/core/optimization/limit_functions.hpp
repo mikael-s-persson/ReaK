@@ -32,9 +32,9 @@
 #ifndef REAK_LIMIT_FUNCTIONS_HPP
 #define REAK_LIMIT_FUNCTIONS_HPP
 
-#include "base/defs.hpp"
+#include <ReaK/core/base/defs.hpp>
 
-#include "lin_alg/vect_alg.hpp"
+#include <ReaK/core/lin_alg/vect_alg.hpp>
 
 
 namespace ReaK {

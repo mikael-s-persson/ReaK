@@ -36,8 +36,11 @@
 #ifndef REAK_MAT_VIEWS_HPP
 #define REAK_MAT_VIEWS_HPP
 
-#include "mat_alg_general.hpp"
+#include "mat_concepts.hpp"
+#include "mat_traits.hpp"
+#include "vect_concepts.hpp"
 #include "vect_views.hpp"
+
 #include <boost/static_assert.hpp>
 
 namespace ReaK {
@@ -235,7 +238,7 @@ class mat_copy_sub_block {
      */
     template <typename Matrix2>
     self& operator +=(const Matrix2& M) {
-      boost::function_requires< ReadableMatrixConcept<Matrix2> >();
+      BOOST_CONCEPT_ASSERT((ReadableMatrixConcept<Matrix2>));
       if((M.get_col_count() != colCount) || (M.get_row_count() != rowCount))
         throw std::range_error("Matrix dimension mismatch.");
       for(size_type j=0;j<colCount;++j)
@@ -250,7 +253,7 @@ class mat_copy_sub_block {
      */
     template <typename Matrix2>
     self& operator -=(const Matrix2& M) {
-      boost::function_requires< ReadableMatrixConcept<Matrix2> >();
+      BOOST_CONCEPT_ASSERT((ReadableMatrixConcept<Matrix2>));
       if((M.get_col_count() != colCount) || (M.get_row_count() != rowCount))
         throw std::range_error("Matrix dimension mismatch.");
       for(size_type j=0;j<colCount;++j)
@@ -281,46 +284,6 @@ class mat_copy_sub_block {
         throw std::range_error("Matrix Dimension Mismatch.");
       *this = *this * M;
       return *this;
-    };
-    
-    /** WORKS FOR ALL
-     * General negation operator for any type of matrices. This is a default operator
-     * that will be called if no better special-purpose overload exists.
-     * \return General column-major matrix.
-     * \test PASSED
-     */
-    mat<value_type,mat_structure::rectangular> operator -() const {
-      mat<value_type,mat_structure::rectangular> result(*this);
-      for(size_type j = 0; j < result.get_col_count(); ++j)
-        for(size_type i = 0; i < result.get_row_count(); ++i)
-          result(i,j) = -result(i,j);
-      return result;
-    };
-    
-    /**
-     * Transposes the matrix M.
-     * \param M The matrix to be transposed.
-     * \return The transpose of M.
-     */
-    friend mat<value_type,mat_structure::rectangular> transpose(const self& M) {
-      mat<value_type,mat_structure::rectangular> result(M.colCount, M.rowCount);
-      for(size_type j = 0; j < result.get_col_count(); ++j)
-        for(size_type i = 0; i < result.get_row_count(); ++i)
-          result(i,j) = M(j,i);
-      return result;
-    };
-    
-    /**
-     * Transposes the matrix M.
-     * \param M The matrix to be transposed.
-     * \return The transpose of M.
-     */
-    friend mat<value_type,mat_structure::rectangular> transpose_move(const self& M) {
-      mat<value_type,mat_structure::rectangular> result(M.colCount, M.rowCount);
-      for(size_type j = 0; j < result.get_col_count(); ++j)
-        for(size_type i = 0; i < result.get_row_count(); ++i)
-          result(i,j) = M(j,i);
-      return result;
     };
     
 };
@@ -525,7 +488,7 @@ class mat_sub_block {
      */
     template <typename Matrix2>
     self& operator +=(const Matrix2& M) {
-      boost::function_requires< ReadableMatrixConcept<Matrix2> >();
+      BOOST_CONCEPT_ASSERT((ReadableMatrixConcept<Matrix2>));
       if((M.get_col_count() != colCount) || (M.get_row_count() != rowCount))
         throw std::range_error("Matrix dimension mismatch.");
       for(size_type j=0;j<colCount;++j)
@@ -540,7 +503,7 @@ class mat_sub_block {
      */
     template <typename Matrix2>
     self& operator -=(const Matrix2& M) {
-      boost::function_requires< ReadableMatrixConcept<Matrix2> >();
+      BOOST_CONCEPT_ASSERT((ReadableMatrixConcept<Matrix2>));
       if((M.get_col_count() != colCount) || (M.get_row_count() != rowCount))
         throw std::range_error("Matrix dimension mismatch.");
       for(size_type j=0;j<colCount;++j)
@@ -571,46 +534,6 @@ class mat_sub_block {
         throw std::range_error("Matrix Dimension Mismatch.");
       *this = *this * M;
       return *this;
-    };
-    
-    /** WORKS FOR ALL
-     * General negation operator for any type of matrices. This is a default operator
-     * that will be called if no better special-purpose overload exists.
-     * \return General column-major matrix.
-     * \test PASSED
-     */
-    mat<value_type,mat_structure::rectangular> operator -() const {
-      mat<value_type,mat_structure::rectangular> result(*this);
-      for(size_type j = 0; j < result.get_col_count(); ++j)
-        for(size_type i = 0; i < result.get_row_count(); ++i)
-          result(i,j) = -result(i,j);
-      return result;
-    };
-    
-    /**
-     * Transposes the matrix M.
-     * \param M The matrix to be transposed.
-     * \return The transpose of M.
-     */
-    friend mat<value_type,mat_structure::rectangular> transpose(const self& M) {
-      mat<value_type,mat_structure::rectangular> result(M.colCount, M.rowCount);
-      for(size_type j = 0; j < result.get_col_count(); ++j)
-        for(size_type i = 0; i < result.get_row_count(); ++i)
-          result(i,j) = M(j,i);
-      return result;
-    };
-    
-    /**
-     * Transposes the matrix M.
-     * \param M The matrix to be transposed.
-     * \return The transpose of M.
-     */
-    friend mat<value_type,mat_structure::rectangular> transpose_move(const self& M) {
-      mat<value_type,mat_structure::rectangular> result(M.colCount, M.rowCount);
-      for(size_type j = 0; j < result.get_col_count(); ++j)
-        for(size_type i = 0; i < result.get_row_count(); ++i)
-          result(i,j) = M(j,i);
-      return result;
     };
     
 };
@@ -777,46 +700,6 @@ class mat_const_sub_block {
      */
     allocator_type get_allocator() const { return (*m).get_allocator(); };
     
-    /** WORKS FOR ALL
-     * General negation operator for any type of matrices. This is a default operator
-     * that will be called if no better special-purpose overload exists.
-     * \return General column-major matrix.
-     * \test PASSED
-     */
-    mat<value_type,mat_structure::rectangular> operator -() const {
-      mat<value_type,mat_structure::rectangular> result(*this);
-      for(size_type j = 0; j < result.get_col_count(); ++j)
-        for(size_type i = 0; i < result.get_row_count(); ++i)
-          result(i,j) = -result(i,j);
-      return result;
-    };
-    
-    /**
-     * Transposes the matrix M.
-     * \param M The matrix to be transposed.
-     * \return The transpose of M.
-     */
-    friend mat<value_type,mat_structure::rectangular> transpose(const self& M) {
-      mat<value_type,mat_structure::rectangular> result(M.colCount, M.rowCount);
-      for(size_type j = 0; j < result.get_col_count(); ++j)
-        for(size_type i = 0; i < result.get_row_count(); ++i)
-          result(i,j) = M(j,i);
-      return result;
-    };
-    
-    /**
-     * Transposes the matrix M.
-     * \param M The matrix to be transposed.
-     * \return The transpose of M.
-     */
-    friend mat<value_type,mat_structure::rectangular> transpose_move(const self& M) {
-      mat<value_type,mat_structure::rectangular> result(M.colCount, M.rowCount);
-      for(size_type j = 0; j < result.get_col_count(); ++j)
-        for(size_type i = 0; i < result.get_row_count(); ++i)
-          result(i,j) = M(j,i);
-      return result;
-    };
-    
 };
 
 
@@ -864,14 +747,14 @@ struct mat_copy_sub_block_factory {
   mat_copy_sub_block_factory(const Matrix& aM) : m(aM) { };
   mat_copy_sub_block<Matrix> operator()(const std::pair<size_type,size_type>& rows,
                                         const std::pair<size_type,size_type>& cols) {
-    return mat_copy_sub_block<Matrix>(m,rows.second - rows.first + 1,cols.second - cols.first + 1,rows.first,cols.first);
+    return mat_copy_sub_block<Matrix>(m,rows.second - rows.first,cols.second - cols.first,rows.first,cols.first);
   };
 #else
   Matrix m;
   mat_copy_sub_block_factory(Matrix&& aM) : m(std::move(aM)) { };
   mat_copy_sub_block<Matrix> operator()(const std::pair<size_type,size_type>& rows,
                                         const std::pair<size_type,size_type>& cols) {
-    return mat_copy_sub_block<Matrix>(std::move(m),rows.second - rows.first + 1,cols.second - cols.first + 1,rows.first,cols.first);
+    return mat_copy_sub_block<Matrix>(std::move(m),rows.second - rows.first,cols.second - cols.first,rows.first,cols.first);
   };
 #endif
 };
@@ -884,7 +767,7 @@ struct mat_sub_block_factory {
   mat_sub_block_factory(Matrix& aM) : m(aM) { };
   mat_sub_block<Matrix> operator()(const std::pair<size_type,size_type>& rows,
                                    const std::pair<size_type,size_type>& cols) {
-    return mat_sub_block<Matrix>(m,rows.second - rows.first + 1,cols.second - cols.first + 1,rows.first,cols.first);
+    return mat_sub_block<Matrix>(m,rows.second - rows.first,cols.second - cols.first,rows.first,cols.first);
   };
 };
 
@@ -896,7 +779,7 @@ struct mat_const_sub_block_factory {
   mat_const_sub_block_factory(const Matrix& aM) : m(aM) { };
   mat_const_sub_block<Matrix> operator()(const std::pair<size_type,size_type>& rows,
                                          const std::pair<size_type,size_type>& cols) {
-    return mat_const_sub_block<Matrix>(m,rows.second - rows.first + 1,cols.second - cols.first + 1,rows.first,cols.first);
+    return mat_const_sub_block<Matrix>(m,rows.second - rows.first,cols.second - cols.first,rows.first,cols.first);
   };
 };
 
@@ -1119,7 +1002,7 @@ class mat_copy_sub_sym_block<Matrix,mat_structure::symmetric> {
      */
     template <typename Matrix2>
     self& operator +=(const Matrix2& M) {
-      boost::function_requires< ReadableMatrixConcept<Matrix2> >();
+      BOOST_CONCEPT_ASSERT((ReadableMatrixConcept<Matrix2>));
       if((M.get_col_count() != rowCount) || (M.get_row_count() != rowCount))
         throw std::range_error("Matrix dimension mismatch.");
       for(size_type j=0;j<rowCount;++j)
@@ -1134,7 +1017,7 @@ class mat_copy_sub_sym_block<Matrix,mat_structure::symmetric> {
      */
     template <typename Matrix2>
     self& operator -=(const Matrix2& M) {
-      boost::function_requires< ReadableMatrixConcept<Matrix2> >();
+      BOOST_CONCEPT_ASSERT((ReadableMatrixConcept<Matrix2>));
       if((M.get_col_count() != rowCount) || (M.get_row_count() != rowCount))
         throw std::range_error("Matrix dimension mismatch.");
       for(size_type j=0;j<rowCount;++j)
@@ -1165,20 +1048,6 @@ class mat_copy_sub_sym_block<Matrix,mat_structure::symmetric> {
         throw std::range_error("Matrix Dimension Mismatch.");
       *this = *this * M;
       return *this;
-    };
-    
-    /** WORKS FOR ALL
-     * General negation operator for any type of matrices. This is a default operator
-     * that will be called if no better special-purpose overload exists.
-     * \return General column-major matrix.
-     * \test PASSED
-     */
-    mat<value_type,mat_structure::symmetric> operator -() const {
-      mat<value_type,mat_structure::symmetric> result(*this);
-      for(size_type j = 0; j < result.get_col_count(); ++j)
-        for(size_type i = j; i < result.get_row_count(); ++i)
-          result(i,j) = -result(i,j);
-      return result;
     };
     
     /**
@@ -1379,7 +1248,7 @@ class mat_sub_sym_block<Matrix,mat_structure::symmetric> {
      */
     template <typename Matrix2>
     self& operator +=(const Matrix2& M) {
-      boost::function_requires< ReadableMatrixConcept<Matrix2> >();
+      BOOST_CONCEPT_ASSERT((ReadableMatrixConcept<Matrix2>));
       if((M.get_col_count() != rowCount) || (M.get_row_count() != rowCount))
         throw std::range_error("Matrix dimension mismatch.");
       for(size_type j=0;j<rowCount;++j)
@@ -1394,7 +1263,7 @@ class mat_sub_sym_block<Matrix,mat_structure::symmetric> {
      */
     template <typename Matrix2>
     self& operator -=(const Matrix2& M) {
-      boost::function_requires< ReadableMatrixConcept<Matrix2> >();
+      BOOST_CONCEPT_ASSERT((ReadableMatrixConcept<Matrix2>));
       if((M.get_col_count() != rowCount) || (M.get_row_count() != rowCount))
         throw std::range_error("Matrix dimension mismatch.");
       for(size_type j=0;j<rowCount;++j)
@@ -1425,20 +1294,6 @@ class mat_sub_sym_block<Matrix,mat_structure::symmetric> {
         throw std::range_error("Matrix Dimension Mismatch.");
       *this = *this * M;
       return *this;
-    };
-    
-    /** WORKS FOR ALL
-     * General negation operator for any type of matrices. This is a default operator
-     * that will be called if no better special-purpose overload exists.
-     * \return General column-major matrix.
-     * \test PASSED
-     */
-    mat<value_type,mat_structure::symmetric> operator -() const {
-      mat<value_type,mat_structure::symmetric> result(*this);
-      for(size_type j = 0; j < result.get_col_count(); ++j)
-        for(size_type i = j; i < result.get_row_count(); ++i)
-          result(i,j) = -result(i,j);
-      return result;
     };
     
     /**
@@ -1594,20 +1449,6 @@ class mat_const_sub_sym_block<Matrix,mat_structure::symmetric> {
      * \return the allocator object of the underlying container.
      */
     allocator_type get_allocator() const { return m->get_allocator(); };
-    
-    /** WORKS FOR ALL
-     * General negation operator for any type of matrices. This is a default operator
-     * that will be called if no better special-purpose overload exists.
-     * \return General column-major matrix.
-     * \test PASSED
-     */
-    mat<value_type,mat_structure::symmetric> operator -() const {
-      mat<value_type,mat_structure::symmetric> result(*this);
-      for(size_type j = 0; j < result.get_col_count(); ++j)
-        for(size_type i = j; i < result.get_row_count(); ++i)
-          result(i,j) = -result(i,j);
-      return result;
-    };
     
     /**
      * Transposes the matrix M.
@@ -1830,7 +1671,7 @@ class mat_copy_sub_sym_block<Matrix,mat_structure::skew_symmetric> {
      */
     template <typename Matrix2>
     self& operator +=(const Matrix2& M) {
-      boost::function_requires< ReadableMatrixConcept<Matrix2> >();
+      BOOST_CONCEPT_ASSERT((ReadableMatrixConcept<Matrix2>));
       if((M.get_col_count() != rowCount) || (M.get_row_count() != rowCount))
         throw std::range_error("Matrix dimension mismatch.");
       for(size_type j=0;j<rowCount;++j)
@@ -1845,7 +1686,7 @@ class mat_copy_sub_sym_block<Matrix,mat_structure::skew_symmetric> {
      */
     template <typename Matrix2>
     self& operator -=(const Matrix2& M) {
-      boost::function_requires< ReadableMatrixConcept<Matrix2> >();
+      BOOST_CONCEPT_ASSERT((ReadableMatrixConcept<Matrix2>));
       if((M.get_col_count() != rowCount) || (M.get_row_count() != rowCount))
         throw std::range_error("Matrix dimension mismatch.");
       for(size_type j=0;j<rowCount;++j)
@@ -1876,38 +1717,6 @@ class mat_copy_sub_sym_block<Matrix,mat_structure::skew_symmetric> {
         throw std::range_error("Matrix Dimension Mismatch.");
       *this = *this * M;
       return *this;
-    };
-    
-    /** WORKS FOR ALL
-     * General negation operator for any type of matrices. This is a default operator
-     * that will be called if no better special-purpose overload exists.
-     * \return General column-major matrix.
-     * \test PASSED
-     */
-    mat<value_type,mat_structure::skew_symmetric> operator -() const {
-      mat<value_type,mat_structure::skew_symmetric> result(*this);
-      for(size_type j = 0; j < result.get_col_count(); ++j)
-        for(size_type i = j; i < result.get_row_count(); ++i)
-          result(i,j) = -result(i,j);
-      return result;
-    };
-    
-    /**
-     * Transposes the matrix M.
-     * \param M The matrix to be transposed.
-     * \return The transpose of M.
-     */
-    friend mat<value_type,mat_structure::skew_symmetric> transpose(const self& M) {
-      return -M;
-    };
-    
-    /**
-     * Transposes the matrix M.
-     * \param M The matrix to be transposed.
-     * \return The transpose of M.
-     */
-    friend mat<value_type,mat_structure::skew_symmetric> transpose_move(const self& M) {
-      return -M;
     };
     
     /**
@@ -2079,7 +1888,7 @@ class mat_sub_sym_block<Matrix,mat_structure::skew_symmetric> {
      */
     template <typename Matrix2>
     self& operator +=(const Matrix2& M) {
-      boost::function_requires< ReadableMatrixConcept<Matrix2> >();
+      BOOST_CONCEPT_ASSERT((ReadableMatrixConcept<Matrix2>));
       if((M.get_col_count() != rowCount) || (M.get_row_count() != rowCount))
         throw std::range_error("Matrix dimension mismatch.");
       for(size_type j=0;j<rowCount;++j)
@@ -2094,7 +1903,7 @@ class mat_sub_sym_block<Matrix,mat_structure::skew_symmetric> {
      */
     template <typename Matrix2>
     self& operator -=(const Matrix2& M) {
-      boost::function_requires< ReadableMatrixConcept<Matrix2> >();
+      BOOST_CONCEPT_ASSERT((ReadableMatrixConcept<Matrix2>));
       if((M.get_col_count() != rowCount) || (M.get_row_count() != rowCount))
         throw std::range_error("Matrix dimension mismatch.");
       for(size_type j=0;j<rowCount;++j)
@@ -2125,38 +1934,6 @@ class mat_sub_sym_block<Matrix,mat_structure::skew_symmetric> {
         throw std::range_error("Matrix Dimension Mismatch.");
       *this = *this * M;
       return *this;
-    };
-    
-    /** WORKS FOR ALL
-     * General negation operator for any type of matrices. This is a default operator
-     * that will be called if no better special-purpose overload exists.
-     * \return General column-major matrix.
-     * \test PASSED
-     */
-    mat<value_type,mat_structure::skew_symmetric> operator -() const {
-      mat<value_type,mat_structure::skew_symmetric> result(*this);
-      for(size_type j = 0; j < result.get_col_count(); ++j)
-        for(size_type i = 0; i < j; ++i)
-          result(i,j) = -result(i,j);
-      return result;
-    };
-    
-    /**
-     * Transposes the matrix M.
-     * \param M The matrix to be transposed.
-     * \return The transpose of M.
-     */
-    friend mat<value_type,mat_structure::skew_symmetric> transpose(const self& M) {
-      return -M;
-    };
-    
-    /**
-     * Transposes the matrix M.
-     * \param M The matrix to be transposed.
-     * \return The transpose of M.
-     */
-    friend mat<value_type,mat_structure::skew_symmetric> transpose_move(const self& M) {
-      return -M;
     };
     
     /**
@@ -2291,38 +2068,6 @@ class mat_const_sub_sym_block<Matrix,mat_structure::skew_symmetric> {
      * \return the allocator object of the underlying container.
      */
     allocator_type get_allocator() const { return m->get_allocator(); };
-    
-    /** WORKS FOR ALL
-     * General negation operator for any type of matrices. This is a default operator
-     * that will be called if no better special-purpose overload exists.
-     * \return General column-major matrix.
-     * \test PASSED
-     */
-    mat<value_type,mat_structure::skew_symmetric> operator -() const {
-      mat<value_type,mat_structure::skew_symmetric> result(*this);
-      for(size_type j = 0; j < result.get_col_count(); ++j)
-        for(size_type i = 0; i < j; ++i)
-          result(i,j) = -result(i,j);
-      return result;
-    };
-    
-    /**
-     * Transposes the matrix M.
-     * \param M The matrix to be transposed.
-     * \return The transpose of M.
-     */
-    friend mat<value_type,mat_structure::skew_symmetric> transpose(const self& M) {
-      return -M;
-    };
-    
-    /**
-     * Transposes the matrix M.
-     * \param M The matrix to be transposed.
-     * \return The transpose of M.
-     */
-    friend mat<value_type,mat_structure::skew_symmetric> transpose_move(const self& M) {
-      return -M;
-    };
     
     /**
      * Returns the trace of matrix M.
@@ -2510,7 +2255,7 @@ class mat_copy_sub_sym_block<Matrix,mat_structure::diagonal> {
      */
     template <typename Matrix2>
     self& operator +=(const Matrix2& M) {
-      boost::function_requires< ReadableMatrixConcept<Matrix2> >();
+      BOOST_CONCEPT_ASSERT((ReadableMatrixConcept<Matrix2>));
       if((M.get_col_count() != rowCount) || (M.get_row_count() != rowCount))
         throw std::range_error("Matrix dimension mismatch.");
       for(size_type i=0;i<rowCount;++i)
@@ -2524,7 +2269,7 @@ class mat_copy_sub_sym_block<Matrix,mat_structure::diagonal> {
      */
     template <typename Matrix2>
     self& operator -=(const Matrix2& M) {
-      boost::function_requires< ReadableMatrixConcept<Matrix2> >();
+      BOOST_CONCEPT_ASSERT((ReadableMatrixConcept<Matrix2>));
       if((M.get_col_count() != rowCount) || (M.get_row_count() != rowCount))
         throw std::range_error("Matrix dimension mismatch.");
       for(size_type i=0;i<rowCount;++i)
@@ -2553,19 +2298,6 @@ class mat_copy_sub_sym_block<Matrix,mat_structure::diagonal> {
         throw std::range_error("Matrix Dimension Mismatch.");
       *this = *this * M;
       return *this;
-    };
-    
-    /** WORKS FOR ALL
-     * General negation operator for any type of matrices. This is a default operator
-     * that will be called if no better special-purpose overload exists.
-     * \return General column-major matrix.
-     * \test PASSED
-     */
-    mat<value_type,mat_structure::diagonal> operator -() const {
-      mat<value_type,mat_structure::diagonal> result(*this);
-      for(size_type i = 0; i < result.get_col_count(); ++i)
-        result(i,i) = -result(i,i);
-      return result;
     };
     
     /**
@@ -2759,7 +2491,7 @@ class mat_sub_sym_block<Matrix,mat_structure::diagonal> {
      */
     template <typename Matrix2>
     self& operator +=(const Matrix2& M) {
-      boost::function_requires< ReadableMatrixConcept<Matrix2> >();
+      BOOST_CONCEPT_ASSERT((ReadableMatrixConcept<Matrix2>));
       if((M.get_col_count() != rowCount) || (M.get_row_count() != rowCount))
         throw std::range_error("Matrix dimension mismatch.");
       for(size_type i=0;i<rowCount;++i)
@@ -2773,7 +2505,7 @@ class mat_sub_sym_block<Matrix,mat_structure::diagonal> {
      */
     template <typename Matrix2>
     self& operator -=(const Matrix2& M) {
-      boost::function_requires< ReadableMatrixConcept<Matrix2> >();
+      BOOST_CONCEPT_ASSERT((ReadableMatrixConcept<Matrix2>));
       if((M.get_col_count() != rowCount) || (M.get_row_count() != rowCount))
         throw std::range_error("Matrix dimension mismatch.");
       for(size_type i=0;i<rowCount;++i)
@@ -2802,19 +2534,6 @@ class mat_sub_sym_block<Matrix,mat_structure::diagonal> {
         throw std::range_error("Matrix Dimension Mismatch.");
       *this = *this * M;
       return *this;
-    };
-    
-    /** WORKS FOR ALL
-     * General negation operator for any type of matrices. This is a default operator
-     * that will be called if no better special-purpose overload exists.
-     * \return General column-major matrix.
-     * \test PASSED
-     */
-    mat<value_type,mat_structure::diagonal> operator -() const {
-      mat<value_type,mat_structure::diagonal> result(*this);
-      for(size_type i = 0; i < result.get_col_count(); ++i)
-        result(i,i) = -result(i,i);
-      return result;
     };
     
     /**
@@ -2981,20 +2700,6 @@ class mat_const_sub_sym_block<Matrix,mat_structure::diagonal> {
      */
     allocator_type get_allocator() const { return m->get_allocator(); };
     
-    
-    /** WORKS FOR ALL
-     * General negation operator for any type of matrices. This is a default operator
-     * that will be called if no better special-purpose overload exists.
-     * \return General column-major matrix.
-     * \test PASSED
-     */
-    mat<value_type,mat_structure::diagonal> operator -() const {
-      mat<value_type,mat_structure::diagonal> result(*this);
-      for(size_type i = 0; i < result.get_col_count(); ++i)
-        result(i,i) = -result(i,i);
-      return result;
-    };
-    
     /**
      * Transposes the matrix M.
      * \param M The matrix to be transposed.
@@ -3151,13 +2856,13 @@ struct mat_copy_sub_sym_block_factory {
   Matrix m;
   mat_copy_sub_sym_block_factory(const Matrix& aM) : m(aM) { };
   mat_copy_sub_sym_block<Matrix> operator()(const std::pair<size_type,size_type>& rows) {
-    return mat_copy_sub_sym_block<Matrix>(m,rows.second - rows.first + 1,rows.first);
+    return mat_copy_sub_sym_block<Matrix>(m,rows.second - rows.first,rows.first);
   };
 #else
   Matrix m;
   mat_copy_sub_sym_block_factory(Matrix&& aM) : m(std::move(aM)) { };
   mat_copy_sub_sym_block<Matrix> operator()(const std::pair<size_type,size_type>& rows) {
-    return mat_copy_sub_sym_block<Matrix>(std::move(m),rows.second - rows.first + 1,rows.first);
+    return mat_copy_sub_sym_block<Matrix>(std::move(m),rows.second - rows.first,rows.first);
   };
 #endif
 };
@@ -3169,7 +2874,7 @@ struct mat_sub_sym_block_factory {
   Matrix& m;
   mat_sub_sym_block_factory(Matrix& aM) : m(aM) { };
   mat_sub_sym_block<Matrix> operator()(const std::pair<size_type,size_type>& rows) {
-    return mat_sub_sym_block<Matrix>(m,rows.second - rows.first + 1,rows.first);
+    return mat_sub_sym_block<Matrix>(m,rows.second - rows.first,rows.first);
   };
 };
 
@@ -3180,7 +2885,7 @@ struct mat_const_sub_sym_block_factory {
   const Matrix& m;
   mat_const_sub_sym_block_factory(const Matrix& aM) : m(aM) { };
   mat_const_sub_sym_block<Matrix> operator()(const std::pair<size_type,size_type>& rows) {
-    return mat_const_sub_sym_block<Matrix>(m,rows.second - rows.first + 1,rows.first);
+    return mat_const_sub_sym_block<Matrix>(m,rows.second - rows.first,rows.first);
   };
 };
 

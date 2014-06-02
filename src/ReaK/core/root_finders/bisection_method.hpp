@@ -54,8 +54,7 @@ namespace ReaK {
  * \param f The functor of which the root is sought.
  * \param tol The tolerance, i.e., the size of the resulting interval containing the root.
  */
-template <typename T,
-	  typename RootedFunction>
+template <typename T, typename RootedFunction>
 void bisection_method(T& low, T& hi, RootedFunction f, const T& tol = std::numeric_limits<T>::epsilon()) 
 {
   using std::fabs;

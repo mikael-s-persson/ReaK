@@ -34,13 +34,13 @@
 #ifndef REAK_INTERPOLATED_TRAJECTORY_HPP
 #define REAK_INTERPOLATED_TRAJECTORY_HPP
 
-#include "base/defs.hpp"
+#include <ReaK/core/base/defs.hpp>
+#include <ReaK/core/lin_alg/mat_num_exceptions.hpp>
 
-#include "path_planning/spatial_trajectory_concept.hpp"
-#include "path_planning/interpolator_concept.hpp"
+#include <ReaK/ctrl/path_planning/spatial_trajectory_concept.hpp>
+#include <ReaK/ctrl/path_planning/interpolator_concept.hpp>
 
 #include "waypoint_container.hpp"
-
 
 #include <boost/config.hpp>
 #include <boost/concept_check.hpp>
@@ -49,7 +49,6 @@
 #include <list>
 #include <map>
 #include <limits>
-#include <lin_alg/mat_num_exceptions.hpp>
 
 namespace ReaK {
 

@@ -32,19 +32,19 @@
 
 
 
-#include "base/defs.hpp"
+#include <ReaK/core/base/defs.hpp>
+#include <ReaK/core/base/py_fixes.hpp>
 
-#include "gen_coord.hpp"
-#include "frame_2D.hpp"
-#include "frame_3D.hpp"
-#include "rotations.hpp"
-#include "quat_alg.hpp"
-#include "motion_jacobians.hpp"
+#include <ReaK/core/kinetostatics/gen_coord.hpp>
+#include <ReaK/core/kinetostatics/frame_2D.hpp>
+#include <ReaK/core/kinetostatics/frame_3D.hpp>
+#include <ReaK/core/kinetostatics/rotations.hpp>
+#include <ReaK/core/kinetostatics/quat_alg.hpp>
+#include <ReaK/core/kinetostatics/motion_jacobians.hpp>
 
 #include <boost/python.hpp>
 #include <boost/python/suite/indexing/vector_indexing_suite.hpp>
 
-#include "base/py_fixes.hpp"
 
 #include <sstream>
 
@@ -170,7 +170,7 @@ void export_kinetostatics() {
   
   class_< ReaK::gen_coord<double>,
           bases< ReaK::shared_object >,
-	  ReaK::shared_ptr< ReaK::gen_coord<double> >
+          ReaK::shared_ptr< ReaK::gen_coord<double> >
         >("GenCoord")
     .def(init<double,double,double,double>())
     .def_readwrite("q",&ReaK::gen_coord<double>::q)
@@ -246,7 +246,7 @@ void export_kinetostatics() {
   
   class_< ReaK::pose_2D<double>,
           bases< ReaK::shared_object >,
-	  ReaK::shared_ptr< ReaK::pose_2D<double> >
+          ReaK::shared_ptr< ReaK::pose_2D<double> >
         >("Pose2D")
     .def(init< ReaK::shared_ptr< ReaK::pose_2D<double> >, ReaK::vect<double,2>, ReaK::rot_mat_2D<double> >())
     .def_readwrite("parent",&ReaK::pose_2D<double>::Parent)
@@ -283,13 +283,13 @@ void export_kinetostatics() {
   
   class_< ReaK::frame_2D<double>,
           bases< ReaK::pose_2D<double> >,
-	  ReaK::shared_ptr< ReaK::frame_2D<double> >
+          ReaK::shared_ptr< ReaK::frame_2D<double> >
         >("Frame2D")
     .def(init< ReaK::shared_ptr< ReaK::pose_2D<double> >, 
-	       ReaK::vect<double,2>, ReaK::rot_mat_2D<double>,
-	       ReaK::vect<double,2>, double,
-	       ReaK::vect<double,2>, double,
-	       ReaK::vect<double,2>, double >())
+               ReaK::vect<double,2>, ReaK::rot_mat_2D<double>,
+               ReaK::vect<double,2>, double,
+               ReaK::vect<double,2>, double,
+               ReaK::vect<double,2>, double >())
     .def_readwrite("velocity",&ReaK::frame_2D<double>::Velocity)
     .def_readwrite("ang_velocity",&ReaK::frame_2D<double>::AngVelocity)
     .def_readwrite("acceleration",&ReaK::frame_2D<double>::Acceleration)
@@ -466,7 +466,7 @@ void export_kinetostatics() {
   
   class_< ReaK::pose_3D<double>,
           bases< ReaK::shared_object >,
-	  ReaK::shared_ptr< ReaK::pose_3D<double> >
+          ReaK::shared_ptr< ReaK::pose_3D<double> >
         >("Pose3D")
     .def(init< ReaK::shared_ptr< ReaK::pose_3D<double> >, ReaK::vect<double,3>, ReaK::quaternion<double> >())
     .def_readwrite("parent",&ReaK::pose_3D<double>::Parent)
@@ -506,13 +506,13 @@ void export_kinetostatics() {
   
   class_< ReaK::frame_3D<double>,
           bases< ReaK::pose_3D<double> >,
-	  ReaK::shared_ptr< ReaK::frame_3D<double> >
+          ReaK::shared_ptr< ReaK::frame_3D<double> >
         >("Frame3D")
     .def(init< ReaK::shared_ptr< ReaK::pose_3D<double> >, 
-	       ReaK::vect<double,3>, ReaK::quaternion<double>,
-	       ReaK::vect<double,3>, ReaK::vect<double,3>,
-	       ReaK::vect<double,3>, ReaK::vect<double,3>,
-	       ReaK::vect<double,3>, ReaK::vect<double,3> >())
+               ReaK::vect<double,3>, ReaK::quaternion<double>,
+               ReaK::vect<double,3>, ReaK::vect<double,3>,
+               ReaK::vect<double,3>, ReaK::vect<double,3>,
+               ReaK::vect<double,3>, ReaK::vect<double,3> >())
     .def_readwrite("velocity",&ReaK::frame_3D<double>::Velocity)
     .def_readwrite("ang_velocity",&ReaK::frame_3D<double>::AngVelocity)
     .def_readwrite("acceleration",&ReaK::frame_3D<double>::Acceleration)
@@ -556,7 +556,7 @@ void export_kinetostatics() {
   
   class_< ReaK::jacobian_gen_gen<double>,
           bases< ReaK::shared_object >,
-	  ReaK::shared_ptr< ReaK::jacobian_gen_gen<double> >
+          ReaK::shared_ptr< ReaK::jacobian_gen_gen<double> >
         >("JacobianGenGen")
     .def("get_relative_to",&ReaK::jacobian_gen_gen<double>::get_jac_relative_to);
     
@@ -569,7 +569,7 @@ void export_kinetostatics() {
   
   class_< ReaK::jacobian_gen_2D<double>,
           bases< ReaK::shared_object >,
-	  ReaK::shared_ptr< ReaK::jacobian_gen_2D<double> >
+          ReaK::shared_ptr< ReaK::jacobian_gen_2D<double> >
         >("JacobianGen2D")
     .def("get_relative_to",&ReaK::jacobian_gen_2D<double>::get_jac_relative_to);
     
@@ -582,7 +582,7 @@ void export_kinetostatics() {
   
   class_< ReaK::jacobian_gen_3D<double>,
           bases< ReaK::shared_object >,
-	  ReaK::shared_ptr< ReaK::jacobian_gen_3D<double> >
+          ReaK::shared_ptr< ReaK::jacobian_gen_3D<double> >
         >("JacobianGen3D")
     .def("get_relative_to",&ReaK::jacobian_gen_3D<double>::get_jac_relative_to);
     
@@ -595,7 +595,7 @@ void export_kinetostatics() {
   
   class_< ReaK::jacobian_2D_gen<double>,
           bases< ReaK::shared_object >,
-	  ReaK::shared_ptr< ReaK::jacobian_2D_gen<double> >
+          ReaK::shared_ptr< ReaK::jacobian_2D_gen<double> >
         >("Jacobian2DGen")
     .def("get_relative_to",&ReaK::jacobian_2D_gen<double>::get_jac_relative_to);
     
@@ -608,7 +608,7 @@ void export_kinetostatics() {
   
   class_< ReaK::jacobian_2D_2D<double>,
           bases< ReaK::shared_object >,
-	  ReaK::shared_ptr< ReaK::jacobian_2D_2D<double> >
+          ReaK::shared_ptr< ReaK::jacobian_2D_2D<double> >
         >("Jacobian2D2D")
     .def("get_relative_to",&ReaK::jacobian_2D_2D<double>::get_jac_relative_to);
     
@@ -621,7 +621,7 @@ void export_kinetostatics() {
   
   class_< ReaK::jacobian_2D_3D<double>,
           bases< ReaK::shared_object >,
-	  ReaK::shared_ptr< ReaK::jacobian_2D_3D<double> >
+          ReaK::shared_ptr< ReaK::jacobian_2D_3D<double> >
         >("Jacobian2D3D")
     .def("get_relative_to",&ReaK::jacobian_2D_3D<double>::get_jac_relative_to);
     
@@ -634,7 +634,7 @@ void export_kinetostatics() {
   
   class_< ReaK::jacobian_3D_gen<double>,
           bases< ReaK::shared_object >,
-	  ReaK::shared_ptr< ReaK::jacobian_3D_gen<double> >
+          ReaK::shared_ptr< ReaK::jacobian_3D_gen<double> >
         >("Jacobian3DGen")
     .def("get_relative_to",&ReaK::jacobian_3D_gen<double>::get_jac_relative_to);
     
@@ -647,7 +647,7 @@ void export_kinetostatics() {
   
   class_< ReaK::jacobian_3D_2D<double>,
           bases< ReaK::shared_object >,
-	  ReaK::shared_ptr< ReaK::jacobian_3D_2D<double> >
+          ReaK::shared_ptr< ReaK::jacobian_3D_2D<double> >
         >("Jacobian3D2D")
     .def("get_relative_to",&ReaK::jacobian_3D_2D<double>::get_jac_relative_to);
     
@@ -660,7 +660,7 @@ void export_kinetostatics() {
   
   class_< ReaK::jacobian_3D_3D<double>,
           bases< ReaK::shared_object >,
-	  ReaK::shared_ptr< ReaK::jacobian_3D_3D<double> >
+          ReaK::shared_ptr< ReaK::jacobian_3D_3D<double> >
         >("Jacobian3D3D")
     .def("get_relative_to",&ReaK::jacobian_3D_3D<double>::get_jac_relative_to);
     

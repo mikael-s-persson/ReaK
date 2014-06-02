@@ -104,13 +104,13 @@ class inertial_beam_2D : public kte_map {
      * \param aMass the total mass of the beam, half of which is lumped at each end.
      */
     inertial_beam_2D(const std::string& aName,
-		     const shared_ptr< frame_2D<double> >& aAnchor1,
-		     const shared_ptr< frame_2D<double> >& aAnchor2,
-		     double aMass) :
-		     kte_map(aName),
-		     mAnchor1(aAnchor1),
-		     mAnchor2(aAnchor2),
-		     mMass(aMass) { };
+                     const shared_ptr< frame_2D<double> >& aAnchor1,
+                     const shared_ptr< frame_2D<double> >& aAnchor2,
+                     double aMass) :
+                     kte_map(aName),
+                     mAnchor1(aAnchor1),
+                     mAnchor2(aAnchor2),
+                     mMass(aMass) { };
 
     /**
      * Default destructor.
@@ -203,13 +203,13 @@ class inertial_beam_3D : public kte_map {
      * \param aMass the total mass of the beam, half of which is lumped at each end.
      */
     inertial_beam_3D(const std::string& aName,
-		     const shared_ptr< frame_3D<double> >& aAnchor1,
-		     const shared_ptr< frame_3D<double> >& aAnchor2,
-		     double aMass) :
-		     kte_map(aName),
-		     mAnchor1(aAnchor1),
-		     mAnchor2(aAnchor2),
-		     mMass(aMass) { };
+                     const shared_ptr< frame_3D<double> >& aAnchor1,
+                     const shared_ptr< frame_3D<double> >& aAnchor2,
+                     double aMass) :
+                     kte_map(aName),
+                     mAnchor1(aAnchor1),
+                     mAnchor2(aAnchor2),
+                     mMass(aMass) { };
 
     /**
      * Default destructor.

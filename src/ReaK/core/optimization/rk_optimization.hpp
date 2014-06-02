@@ -250,8 +250,8 @@ void CheckWeightJacobian(void* UserData, ///< The pointer that is passed uniterp
 template <class T>
 int ComputeCovariance(T* JtJ, T* C, T sumsq, unsigned int N, unsigned int M);
 
-#define LM_INIT_MU    	 1E-03
-#define LM_STOP_THRESH	 1E-17
+#define LM_INIT_MU       1E-03
+#define LM_STOP_THRESH   1E-17
 #define LM_DIFF_DELTA    1E-06
 
 #define ONE_THIRD     0.3333333334 /* 1.0/3.0 */

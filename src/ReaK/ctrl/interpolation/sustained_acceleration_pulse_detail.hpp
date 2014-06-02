@@ -33,9 +33,9 @@
 #ifndef REAK_SUSTAINED_ACCELERATION_PULSE_DETAIL_HPP
 #define REAK_SUSTAINED_ACCELERATION_PULSE_DETAIL_HPP
 
-#include "lin_alg/arithmetic_tuple.hpp"
-#include "path_planning/bounded_space_concept.hpp"
-#include "path_planning/tangent_bundle_concept.hpp"
+#include <ReaK/core/lin_alg/arithmetic_tuple.hpp>
+#include <ReaK/ctrl/path_planning/bounded_space_concept.hpp>
+#include <ReaK/ctrl/path_planning/tangent_bundle_concept.hpp>
 
 #include "sustained_velocity_pulse_detail.hpp"
 
@@ -69,7 +69,7 @@ namespace detail {
     >,
   void >::type sap_interpolate_HOT_impl(PointType& result, const PointDiff1& delta_second_order,
                                         const DiffSpace& space, const TimeSpace& t_space,
-				 	double t_factor) {
+                                        double t_factor) {
     /* nothing to do. */
   };
   
@@ -82,7 +82,7 @@ namespace detail {
     >,
   void >::type sap_interpolate_HOT_impl(PointType& result, const PointDiff1& delta_second_order,
                                         const DiffSpace& space, const TimeSpace& t_space,
-					double t_factor) {
+                                        double t_factor) {
     get<2>(result) = lift_to_space<2>(delta_second_order, t_factor, space, t_space);
   };
   
@@ -131,11 +131,11 @@ namespace detail {
   inline
   void sap_constant_jerk_motion_impl(PointType& result, const PointDiff2& descended_jerk,
                                              const DiffSpace& space, const TimeSpace& t_space,
-					     double dt) {
+                                             double dt) {
       
     get<0>(result) = 
       get_space<0>(space,t_space).adjust(
-	get<0>(result),
+        get<0>(result),
         descend_to_space<0>( get_space<1>(space,t_space).adjust( get<1>(result), 
           descend_to_space<1>( get_space<2>(space,t_space).adjust( get<2>(result), (1.0 / 6.0) * dt * descended_jerk ), dt, space, t_space) ), dt, space, t_space)
       );
@@ -163,9 +163,9 @@ namespace detail {
       boost::mpl::size_t<4> 
     >,
   void >::type sap_interpolate_impl(PointType& result, const PointType& start_point, const PointType& end_point, 
-				    const PointDiff0& delta_first_order, const PointType1& peak_velocity,
+                                    const PointDiff0& delta_first_order, const PointType1& peak_velocity,
                                     const DiffSpace& space, const TimeSpace& t_space,
-				    double dt, double dt_total) {
+                                    double dt, double dt_total) {
     using std::sqrt;
     
     result = start_point;
@@ -293,9 +293,9 @@ namespace detail {
       boost::mpl::size_t<3> 
     >,
   void >::type sap_interpolate_impl(PointType& result, const PointType& start_point, const PointType& end_point, 
-				    const PointDiff0& delta_first_order, const PointType1& peak_velocity, 
-				    const DiffSpace& space, const TimeSpace& t_space,
-				    double dt, double dt_total) {
+                                    const PointDiff0& delta_first_order, const PointType1& peak_velocity, 
+                                    const DiffSpace& space, const TimeSpace& t_space,
+                                    double dt, double dt_total) {
     sap_interpolate_impl< typename boost::mpl::prior<Idx>::type >(result,start_point,end_point,delta_first_order,peak_velocity,space,t_space,dt,dt_total);
     
     get< Idx::type::value >(result) = get_space< Idx::type::value >(space,t_space).origin();
@@ -304,10 +304,10 @@ namespace detail {
   struct sap_update_delta_first_order {
     template <typename PointType, typename PointDiff0, typename PointType1, typename DiffSpace, typename TimeSpace>
     void operator()(const PointType& start_point, const PointType& end_point,
-		    PointDiff0& delta_first_order, PointType1& peak_velocity,
-		    double& norm_delta, const double& beta,
-		    const DiffSpace& space, const TimeSpace& t_space,
-		    double num_tol = 1E-6) {
+                    PointDiff0& delta_first_order, PointType1& peak_velocity,
+                    double& norm_delta, const double& beta,
+                    const DiffSpace& space, const TimeSpace& t_space,
+                    double num_tol = 1E-6) {
       using std::fabs;
       using std::sqrt;
       
@@ -337,26 +337,26 @@ namespace detail {
       PointDiff0 start_to_peak = get_space<0>(space,t_space).difference(get<0>(start_point),get<0>(start_point));
       
       if( dt_vp1_1st > num_tol * get_space<1>(space,t_space).get_radius() ) {
-	start_to_peak = 
-	  descend_to_space<0>( get<1>(start_point), dt_vp1, space, t_space)
-	  + descend_to_space<0>( get_space<1>(space,t_space).adjust( get<1>(start_point),
-	      ((0.75 * dt_ap1 * (dt_ap1 + dt_vp1) + 0.25 * dt_vp1 * dt_vp1) / (dt_amax * dt_vp1_1st)) * 
-	      get_space<1>(space,t_space).difference(peak_velocity, get<1>(start_point))
+        start_to_peak = 
+          descend_to_space<0>( get<1>(start_point), dt_vp1, space, t_space)
+          + descend_to_space<0>( get_space<1>(space,t_space).adjust( get<1>(start_point),
+              ((0.75 * dt_ap1 * (dt_ap1 + dt_vp1) + 0.25 * dt_vp1 * dt_vp1) / (dt_amax * dt_vp1_1st)) * 
+              get_space<1>(space,t_space).difference(peak_velocity, get<1>(start_point))
             ),
-	    2.0 * dt_ap1, space, t_space);
-	
+            2.0 * dt_ap1, space, t_space);
+        
       };
       
       PointDiff0 peak_to_end = get_space<0>(space,t_space).difference(get<0>(end_point),get<0>(end_point));
       
       if( dt_vp2_1st > num_tol * get_space<1>(space,t_space).get_radius() ) {
-	peak_to_end = 
-	  descend_to_space<0>( peak_velocity, dt_vp2, space, t_space)
-	  + descend_to_space<0>( get_space<1>(space,t_space).adjust( peak_velocity,
-	      ((0.75 * dt_ap2 * (dt_ap2 + dt_vp2) + 0.25 * dt_vp2 * dt_vp2) / (dt_amax * dt_vp2_1st)) * 
-	      get_space<1>(space,t_space).difference(get<1>(end_point), peak_velocity)
+        peak_to_end = 
+          descend_to_space<0>( peak_velocity, dt_vp2, space, t_space)
+          + descend_to_space<0>( get_space<1>(space,t_space).adjust( peak_velocity,
+              ((0.75 * dt_ap2 * (dt_ap2 + dt_vp2) + 0.25 * dt_vp2 * dt_vp2) / (dt_amax * dt_vp2_1st)) * 
+              get_space<1>(space,t_space).difference(get<1>(end_point), peak_velocity)
             ),
-	    2.0 * dt_ap2, space, t_space);
+            2.0 * dt_ap2, space, t_space);
 
       };
       
@@ -383,9 +383,9 @@ namespace detail {
   template <typename PointType, typename PointDiff0, typename PointType1, typename DiffSpace, typename TimeSpace>
   double sap_compute_min_delta_time(const PointType& start_point, const PointType& end_point,
                                     PointDiff0& delta_first_order, PointType1& peak_velocity,
-				    double& norm_delta, double& beta,
-				    const DiffSpace& space, const TimeSpace& t_space,
-				    double num_tol = 1E-6, unsigned int max_iter = 20) {
+                                    double& norm_delta, double& beta,
+                                    const DiffSpace& space, const TimeSpace& t_space,
+                                    double num_tol = 1E-6, unsigned int max_iter = 20) {
     
     double result = 0.0;
     //RK_NOTICE(1,"*********  Starting Min-dt Iterations    *****************");
@@ -407,9 +407,9 @@ namespace detail {
   template <typename PointType, typename PointDiff0, typename PointType1, typename DiffSpace, typename TimeSpace>
   double sap_compute_peak_velocity(const PointType& start_point, const PointType& end_point,
                                    PointDiff0& delta_first_order, PointType1& peak_velocity,
-				   double& norm_delta, double& beta, double delta_time,
-				   const DiffSpace& space, const TimeSpace& t_space,
-				   double num_tol = 1E-6, unsigned int max_iter = 20) {
+                                   double& norm_delta, double& beta, double delta_time,
+                                   const DiffSpace& space, const TimeSpace& t_space,
+                                   double num_tol = 1E-6, unsigned int max_iter = 20) {
     
     double slack = 0.0;
     //RK_NOTICE(1,"*********  Starting No-slack Iterations  *****************");
@@ -430,12 +430,12 @@ namespace detail {
   
   template <typename PointType, typename DiffSpace, typename TimeSpace>
   double sap_compute_interpolation_data_impl(const PointType& start_point, const PointType& end_point,
-					     typename topology_traits< typename derived_N_order_space< DiffSpace, TimeSpace,0>::type >::point_difference_type& delta_first_order,
-					     typename topology_traits< typename derived_N_order_space< DiffSpace, TimeSpace,1>::type >::point_type& peak_velocity,
-					     const DiffSpace& space, const TimeSpace& t_space,
-					     double delta_time = 0.0,
-					     typename topology_traits< typename derived_N_order_space< DiffSpace, TimeSpace,1>::type >::point_type* best_peak_velocity = NULL, 
-					     double num_tol = 1e-6, unsigned int max_iter = 20) {
+                                             typename topology_traits< typename derived_N_order_space< DiffSpace, TimeSpace,0>::type >::point_difference_type& delta_first_order,
+                                             typename topology_traits< typename derived_N_order_space< DiffSpace, TimeSpace,1>::type >::point_type& peak_velocity,
+                                             const DiffSpace& space, const TimeSpace& t_space,
+                                             double delta_time = 0.0,
+                                             typename topology_traits< typename derived_N_order_space< DiffSpace, TimeSpace,1>::type >::point_type* best_peak_velocity = NULL, 
+                                             double num_tol = 1e-6, unsigned int max_iter = 20) {
     
     delta_first_order = get_space<0>(space,t_space).difference( get<0>(end_point), get<0>(start_point) );
     double norm_delta = get(distance_metric, get_space<0>(space,t_space))( delta_first_order, get_space<0>(space,t_space) );
@@ -443,30 +443,30 @@ namespace detail {
     peak_velocity = get_space<1>(space,t_space).origin();
     
     double min_delta_time = sap_compute_min_delta_time(start_point, end_point, 
-	                                               delta_first_order, peak_velocity,
-						       norm_delta, beta,
-						       space, t_space, num_tol, max_iter);
+                                                       delta_first_order, peak_velocity,
+                                                       norm_delta, beta,
+                                                       space, t_space, num_tol, max_iter);
     
     if(best_peak_velocity)
       *best_peak_velocity = peak_velocity;
-	
+        
     if(min_delta_time > delta_time)
       return min_delta_time;
     
     beta = beta * min_delta_time / delta_time;
     peak_velocity = get_space<1>(space,t_space).adjust(
       get_space<1>(space,t_space).origin(),
-	(min_delta_time / delta_time) *
-	get_space<1>(space,t_space).difference(
-	  peak_velocity,
-	  get_space<1>(space,t_space).origin()
-	)
+        (min_delta_time / delta_time) *
+        get_space<1>(space,t_space).difference(
+          peak_velocity,
+          get_space<1>(space,t_space).origin()
+        )
       );
-	
+        
     sap_compute_peak_velocity(start_point, end_point, 
-	                      delta_first_order, peak_velocity,
-			      norm_delta, beta, delta_time,
-			      space, t_space, num_tol, max_iter);
+                              delta_first_order, peak_velocity,
+                              norm_delta, beta, delta_time,
+                              space, t_space, num_tol, max_iter);
     
     return min_delta_time;
   };

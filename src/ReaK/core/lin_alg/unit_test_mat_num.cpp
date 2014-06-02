@@ -21,24 +21,21 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "base/defs.hpp"
+#include <ReaK/core/base/defs.hpp>
+#include <ReaK/core/lin_alg/mat_alg.hpp>
+#include <ReaK/core/lin_alg/mat_gaussian_elim.hpp>
+#include <ReaK/core/lin_alg/mat_cholesky.hpp>
+#include <ReaK/core/lin_alg/mat_jacobi_method.hpp>
+#include <ReaK/core/lin_alg/mat_qr_decomp.hpp>
+#include <ReaK/core/lin_alg/mat_svd_method.hpp>
+#include <ReaK/core/lin_alg/mat_schur_decomp.hpp>
+#include <ReaK/core/lin_alg/mat_ctrl_decomp.hpp>
+#include <ReaK/core/lin_alg/mat_balance.hpp>
+
 #include <iostream>
 #include <fstream>
 #include <cstdio>
 
-#include "mat_alg.hpp"
-
-#include "mat_gaussian_elim.hpp"
-#include "mat_cholesky.hpp"
-#include "mat_jacobi_method.hpp"
-#include "mat_qr_decomp.hpp"
-#include "mat_svd_method.hpp"
-
-#include "mat_schur_decomp.hpp"
-
-#include "mat_ctrl_decomp.hpp"
-
-#include "mat_balance.hpp"
 
 #define BOOST_TEST_DYN_LINK
 
@@ -469,20 +466,20 @@ BOOST_AUTO_TEST_CASE( mat_ctrl_reduction_tests )
   
   // Check the reduced controllability matrix:
   mat<double,mat_structure::rectangular> Cr(N,M*N);
-  sub(Cr)(range(0,N-1),range(0,1))   = Br;
-  sub(Cr)(range(0,N-1),range(2,3))   = Ar * Br;
-  sub(Cr)(range(0,N-1),range(4,5))   = Ar * Ar * Br;
-  sub(Cr)(range(0,N-1),range(6,7))   = Ar * Ar * Ar * Br;
-  sub(Cr)(range(0,N-1),range(8,9))   = Ar * Ar * Ar * Ar * Br;
-  sub(Cr)(range(0,N-1),range(10,11)) = Ar * Ar * Ar * Ar * Ar * Br;
+  sub(Cr)(range(0,N),range(0,2))   = Br;
+  sub(Cr)(range(0,N),range(2,4))   = Ar * Br;
+  sub(Cr)(range(0,N),range(4,6))   = Ar * Ar * Br;
+  sub(Cr)(range(0,N),range(6,8))   = Ar * Ar * Ar * Br;
+  sub(Cr)(range(0,N),range(8,10))   = Ar * Ar * Ar * Ar * Br;
+  sub(Cr)(range(0,N),range(10,12)) = Ar * Ar * Ar * Ar * Ar * Br;
   BOOST_CHECK_EQUAL( num_rank, 4 );
-  BOOST_CHECK( ( is_null_mat((sub(Cr)(range(num_rank,5),range(0,11))), 10.0 * std::numeric_limits<double>::epsilon()) ) );
+  BOOST_CHECK( ( is_null_mat((sub(Cr)(range(num_rank,6),range(0,12))), 10.0 * std::numeric_limits<double>::epsilon()) ) );
   
   /* Use row-rank SVD to check that the controllable parts are full row-rank. */
   mat<double,mat_structure::diagonal> Er(num_rank);
   mat<double,mat_structure::rectangular> Ur(num_rank, num_rank);
   mat<double,mat_structure::rectangular> Vr(M*N, num_rank);
-  BOOST_CHECK_NO_THROW( decompose_SVD(sub(Cr)(range(0,num_rank-1),range(0,11)),Ur,Er,Vr,double(1E-15)) );
+  BOOST_CHECK_NO_THROW( decompose_SVD(sub(Cr)(range(0,num_rank),range(0,12)),Ur,Er,Vr,double(1E-15)) );
   BOOST_CHECK_EQUAL( ( numrank_SVD(Er, double(1E-15)) ), num_rank );
   
 };

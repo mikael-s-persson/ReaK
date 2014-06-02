@@ -29,13 +29,13 @@ namespace geom {
 
 
 grid_2D::grid_2D(const std::string& aName,
-		 const shared_ptr< pose_2D<double> >& aAnchor,
-		 const pose_2D<double>& aPose,
-		 const vect<double,2>& aDimensions,
-		 const vect<std::size_t,2>& aSquareCounts) :
-		 geometry_2D(aName,aAnchor,aPose),
-		 mDimensions(aDimensions),
-		 mSquareCounts(aSquareCounts) { };
+                 const shared_ptr< pose_2D<double> >& aAnchor,
+                 const pose_2D<double>& aPose,
+                 const vect<double,2>& aDimensions,
+                 const vect<std::size_t,2>& aSquareCounts) :
+                 geometry_2D(aName,aAnchor,aPose),
+                 mDimensions(aDimensions),
+                 mSquareCounts(aSquareCounts) { };
     
     
 void RK_CALL grid_2D::save(ReaK::serialization::oarchive& A, unsigned int) const {

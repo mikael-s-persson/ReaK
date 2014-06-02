@@ -22,12 +22,12 @@
  */
 
 
-#include "sustained_acceleration_pulse_detail.hpp"
+#include <ReaK/ctrl/interpolation/sustained_acceleration_pulse_detail.hpp>
 
-#include "lin_alg/vect_alg.hpp"
+#include <ReaK/core/lin_alg/vect_alg.hpp>
 
-#include "root_finders/bisection_method.hpp"
-#include "root_finders/secant_method.hpp"
+#include <ReaK/core/root_finders/bisection_method.hpp>
+#include <ReaK/core/root_finders/secant_method.hpp>
 
 #include <boost/bind.hpp>
 #include <cmath>

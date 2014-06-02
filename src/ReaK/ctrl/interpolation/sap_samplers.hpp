@@ -32,19 +32,17 @@
 #ifndef REAK_SAP_SAMPLERS_HPP
 #define REAK_SAP_SAMPLERS_HPP
 
-#include "base/defs.hpp"
+#include <ReaK/core/base/defs.hpp>
 
-#include "path_planning/tangent_bundle_concept.hpp"
-#include "path_planning/bounded_space_concept.hpp"
-#include "path_planning/prob_distribution_concept.hpp"
-
-#include <boost/config.hpp>
-#include <boost/concept_check.hpp>
-
-#include "topologies/rate_limited_spaces.hpp"
+#include <ReaK/ctrl/path_planning/tangent_bundle_concept.hpp>
+#include <ReaK/ctrl/path_planning/bounded_space_concept.hpp>
+#include <ReaK/ctrl/path_planning/prob_distribution_concept.hpp>
+#include <ReaK/ctrl/topologies/rate_limited_spaces.hpp>
+#include <ReaK/ctrl/topologies/time_topology.hpp>
 
 #include "sustained_acceleration_pulse.hpp"
-#include "topologies/time_topology.hpp"
+
+#include <boost/concept_check.hpp>
 
 namespace ReaK {
 

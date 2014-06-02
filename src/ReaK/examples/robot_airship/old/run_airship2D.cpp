@@ -51,12 +51,12 @@ int main(int argc, char** argv) {
   
   if(argc < 8) {
     std::cout << "Usage:\n"
-	      << "\t./run_airship2D [model_filename.xml] [init_conditions.xml] [result_filename.ssv] [time_step] [end_time] [Qu.xml] [R.xml]\n"
-	      << "\t\t model_filename.xml:\t The filename for the airship model to use.\n"
-	      << "\t\t init_conditions.xml:\t The filename for the airship's initial conditions.\n"
-	      << "\t\t result_filename.xml:\t The filename where to record the results as a space-separated values file.\n"
-	      << "\t\t Qu.xml:\t\t The filename for the airship's input disturbance covariance matrix.\n"
-	      << "\t\t R.xml:\t\t The filename for the airship's measurement noise covariance matrix." << std::endl;
+              << "\t./run_airship2D [model_filename.xml] [init_conditions.xml] [result_filename.ssv] [time_step] [end_time] [Qu.xml] [R.xml]\n"
+              << "\t\t model_filename.xml:\t The filename for the airship model to use.\n"
+              << "\t\t init_conditions.xml:\t The filename for the airship's initial conditions.\n"
+              << "\t\t result_filename.xml:\t The filename where to record the results as a space-separated values file.\n"
+              << "\t\t Qu.xml:\t\t The filename for the airship's input disturbance covariance matrix.\n"
+              << "\t\t R.xml:\t\t The filename for the airship's measurement noise covariance matrix." << std::endl;
     return 0;
   };
   
@@ -138,15 +138,15 @@ int main(int argc, char** argv) {
   sys_type 
     airship2D_dt_sys( airship2D_system, 
                       dormand_prince45_integrator<double>("ode45_integrator",
-							  ReaK::vect_n<double>(),
-							  0.0,
-							  1e-4,
-							  weak_ptr< state_rate_function<double> >(),
-							  time_step,
-							  time_step * 0.000001,
-							  1e-3),
-		      time_step,
-		      "airship2D_dt_sys");
+                                                          ReaK::vect_n<double>(),
+                                                          0.0,
+                                                          1e-4,
+                                                          weak_ptr< state_rate_function<double> >(),
+                                                          time_step,
+                                                          time_step * 0.000001,
+                                                          1e-3),
+                      time_step,
+                      "airship2D_dt_sys");
   
   pp::vector_topology< vect_n<double> > mdl_state_space;
   
@@ -179,9 +179,9 @@ int main(int argc, char** argv) {
     
     results << t << y[0] << y[1] << y[2] 
             << (y[0] + var_rnd() * sqrt(R(0,0))) 
-	    << (y[1] + var_rnd() * sqrt(R(1,1)))
-	    << (cos(y[2]) + var_rnd() * sqrt(R(2,2)))
-	    << (sin(y[2]) + var_rnd() * sqrt(R(3,3))) << recorder::data_recorder::end_value_row;
+            << (y[1] + var_rnd() * sqrt(R(1,1)))
+            << (cos(y[2]) + var_rnd() * sqrt(R(2,2)))
+            << (sin(y[2]) + var_rnd() * sqrt(R(3,3))) << recorder::data_recorder::end_value_row;
     
   };
   

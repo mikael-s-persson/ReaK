@@ -10,9 +10,9 @@ function [A,G,Q,X,parout,B,R,C,Q0]=carex(index,parin)
 % Then  B is n-by-m, R m-by-m, C p-by-n, and Q0 is p-by-p. The
 % corresponding Hamiltonian matrix is defined as
 %
-%			  ( A  -G )   (    A    -B/R B')
-%      H := Ham(A,G,Q) := (       ) = (		       ).
-%			  (-Q  -A')   (-C' Q0 C    -A' )
+%                          ( A  -G )   (    A    -B/R B')
+%      H := Ham(A,G,Q) := (       ) = (                       ).
+%                          (-Q  -A')   (-C' Q0 C    -A' )
 %
 % Input:
 %  - index : number of example to generate, indices refer to example 
@@ -26,9 +26,9 @@ function [A,G,Q,X,parout,B,R,C,Q0]=carex(index,parin)
 %      + 17   : parin(2) = Q0 (real scalar).  
 %               parin(3) = R  (real scalar).
 %      + 18   : parin(2:8) = real-valued scalars, where
-%	        parin(2:4) = [a, b, c].
+%                parin(2:4) = [a, b, c].
 %               parin(5:6) = [beta_1,beta_2].
-%	        parin(7:8) = [gamma_1,gamma_2].
+%                parin(7:8) = [gamma_1,gamma_2].
 %      + 19   : parin(1) = l = number of springs (n = 2l).
 %               parin(2:4) = [mu, kappa, delta].
 %      + 20   : parin = name of data file containing the number of masses
@@ -37,23 +37,23 @@ function [A,G,Q,X,parout,B,R,C,Q0]=carex(index,parin)
 %                         
 % Output:
 %  - A, G, Q : system matrices from CARE.
-%  - X	     : exact stabilizing solution of CARE (if available).
+%  - X             : exact stabilizing solution of CARE (if available).
 %              If an exact (analytical) solution is not available, the
 %              empty matrix is returned.
 %              For Example 17,  X = X(1,n) = X(n,1) = sqrt(Q0*R), which
 %              is the only available information.  
 %  - parout  : vector with system properties,
 %              parout(1:3) = [n, m, p]
-%	       parout(4)   = norm(H) = 2-norm of H = Ham(A,G,Q)
-%	       parout(5)   = 2-norm condition number of H.
+%               parout(4)   = norm(H) = 2-norm of H = Ham(A,G,Q)
+%               parout(5)   = 2-norm condition number of H.
 %              The following parameters are only returned if an analytical 
 %              solution of the CARE is available:
-%	       parout(6)   = 2-norm of X
-%	       parout(7)   = 2-norm condition number of X
-%	       parout(8:9) = [KU,KL] = upper and lower bound for condition 
-%			     number of CARE (see [2]) (not available for
+%               parout(6)   = 2-norm of X
+%               parout(7)   = 2-norm condition number of X
+%               parout(8:9) = [KU,KL] = upper and lower bound for condition 
+%                             number of CARE (see [2]) (not available for
 %                            Example 11).  
-%		   
+%                   
 %  - B,R,C,Q0: optional output matrices if factored form is required.
 % 
 % References:
@@ -71,7 +71,7 @@ function [A,G,Q,X,parout,B,R,C,Q0]=carex(index,parin)
 %
 %  For questions concerning this M-file, send e-mail to
 %
-%	benner@mathematik.tu-chemnitz.de
+%        benner@mathematik.tu-chemnitz.de
 
 nex   = 20;
 nfsex = 14;
@@ -127,7 +127,7 @@ elseif index == 4,
         0       0.522  -1.118   0.596   0       0       0       0     ; ...
         0       0       0.522  -1.548   0.718   0       0       0     ; ...
         0       0       0       0.922  -1.640   0.799   0       0     ; ...
-	0       0       0       0       0.922  -1.721   0.901   0     ; ...
+        0       0       0       0       0.922  -1.721   0.901   0     ; ...
         0       0       0       0       0       0.922  -1.823   1.021 ; ...
         0       0       0       0       0       0       0.922  -1.943];
   B = 0.001*[ 3.84  4.00 37.60  3.08  2.36  2.88  3.08  3.00; ...
@@ -146,10 +146,10 @@ elseif index == 5,
        -7.909 15.407 -4.069  0    -6.45      0       0     0    2.68; ...
       -21.816 35.606 -0.339 -3.87 -17.8      0       0     0    7.39; ...
       -60.196 98.188 -7.907  0.34 -53.008    0       0     0    20.4; ...
-	0      0      0      0     94.0   -147.2     0    53.2   0; ...
+        0      0      0      0     94.0   -147.2     0    53.2   0; ...
         0      0      0      0      0       94.0  -147.2   0     0; ...
         0      0      0      0      0       12.8     0   -31.6   0; ...
-	0      0      0      0     12.8      0       0    18.8 -31.6];
+        0      0      0      0     12.8      0       0    18.8 -31.6];
   B = [ 0.010  0.003  0.009  0.024  0.068 0 0 0 0; ...
        -0.011 -0.021 -0.059 -0.162 -0.445 0 0 0 0; ...
        -0.151  0      0      0      0     0 0 0 0]';
@@ -244,7 +244,7 @@ elseif index == 12,
   C = eye(3) - (2/3)*ones(3);
   A = d*(C*diag([1:3])*C);
   G = eye(3)/d;
-  Q = C*diag([1/d 1 d])*C;	Q = (Q + Q')/2;
+  Q = C*diag([1/d 1 d])*C;        Q = (Q + Q')/2;
   dd = d^2;
   X = [dd+sqrt(1+dd^2), 2*dd+sqrt(d+4*dd^2), 3*dd+d*sqrt(1+9*dd)];   
   X = C*diag(X)*C;
@@ -339,11 +339,11 @@ elseif index == 18,
     n  = parin(1);  
     lp = length(parin);
   end
-  if lp < 8,  c_int = [0.2, 0.3];  else,  c_int = parin(7:8);	end
-  if lp < 6,  b_int = [0.2, 0.3];  else,  b_int = parin(5:6);	end
-  if lp < 4,  gamma = 1.0;	  else,  gamma = parin(4);	end
-  if lp < 3,  beta  = 1.0;	  else,  beta  = parin(3);	end
-  if lp < 2,  alpha = 0.01;  	  else,  alpha = parin(2);	end
+  if lp < 8,  c_int = [0.2, 0.3];  else,  c_int = parin(7:8);        end
+  if lp < 6,  b_int = [0.2, 0.3];  else,  b_int = parin(5:6);        end
+  if lp < 4,  gamma = 1.0;          else,  gamma = parin(4);        end
+  if lp < 3,  beta  = 1.0;          else,  beta  = parin(3);        end
+  if lp < 2,  alpha = 0.01;            else,  alpha = parin(2);        end
   evec = ones(n-1,1);
 
 % Gram matrix
@@ -356,8 +356,8 @@ elseif index == 18,
 
 % evaluate integrals
   for i = 1:n,
-    b1 = max((i-1)/(n+1),b_int(1));	b2 = min((i+1)/(n+1),b_int(2));
-    c1 = max((i-1)/(n+1),c_int(1));	c2 = min((i+1)/(n+1),c_int(2));
+    b1 = max((i-1)/(n+1),b_int(1));        b2 = min((i+1)/(n+1),b_int(2));
+    c1 = max((i-1)/(n+1),c_int(1));        c2 = min((i+1)/(n+1),c_int(2));
     if b1 >= b2,   
       b(i) = 0;
     else
@@ -403,9 +403,9 @@ elseif index == 19,
     l  = parin(1);
     lp = length(parin);
   end; 
-  if lp < 4,	delta = 4.0;	else,	delta  = parin(4);	end
-  if lp < 3,	kappa = 1.0;	else,	kappa  = parin(3);	end  
-  if lp < 2,	mu    = 4.0;	else,	mu     = parin(2);	end
+  if lp < 4,        delta = 4.0;        else,        delta  = parin(4);        end
+  if lp < 3,        kappa = 1.0;        else,        kappa  = parin(3);        end  
+  if lp < 2,        mu    = 4.0;        else,        mu     = parin(2);        end
   n = 2*l;
   m = 2;
   p = 2*l;  
@@ -459,7 +459,7 @@ elseif index == 20,
     Q0(i) = sqrt(C(i,i)*C(i,i) + C(i,l+i-1)*C(i,l+i-1));
   end
   Q0 = diag(1./Q0);
-  Q = Q0*C;  Q0 = Q0'*Q0;	  
+  Q = Q0*C;  Q0 = Q0'*Q0;          
   Q = Q'*Q;       
   parout = [n, l, l];
   if nargout > 5,

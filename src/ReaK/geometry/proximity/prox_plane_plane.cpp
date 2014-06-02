@@ -42,9 +42,9 @@ shared_ptr< shape_3D > prox_plane_plane::getShape2() const {
 
 
 void prox_plane_plane::computeProximityOfPoint(const shared_ptr< plane >& aPlane, 
-					       const vect<double,3>& aPoint, 
-					       vect<double,3>& aPointRec, 
-					       double& aDistance) {
+                                               const vect<double,3>& aPoint, 
+                                               vect<double,3>& aPointRec, 
+                                               double& aDistance) {
   using std::fabs; using std::sqrt;
   
   vect<double,3> pt_rel = aPlane->getPose().transformFromGlobal(aPoint);
@@ -68,7 +68,7 @@ void prox_plane_plane::computeProximityOfPoint(const shared_ptr< plane >& aPlane
       // The sphere is on the above or below the plane (y-axis).
       double fact = 1.0;
       if(pt_rel[1] < 0.0)
-	fact = -1.0;
+        fact = -1.0;
       vect<double,3> rim_pt = vect<double,3>(pt_rel[0],fact * 0.5 * aPlane->getDimensions()[1],0.0);
       aPointRec = aPlane->getPose().transformToGlobal(rim_pt);
     } else if((pt_rel[1] > -0.5 * aPlane->getDimensions()[1]) &&
@@ -76,17 +76,17 @@ void prox_plane_plane::computeProximityOfPoint(const shared_ptr< plane >& aPlane
       // The sphere is on the right or left of the plane (x-axis).
       double fact = 1.0;
       if(pt_rel[0] < 0.0)
-	fact = -1.0;
+        fact = -1.0;
       vect<double,3> rim_pt = vect<double,3>(fact * 0.5 * aPlane->getDimensions()[0],pt_rel[1],0.0);
       aPointRec = aPlane->getPose().transformToGlobal(rim_pt);
     } else {
       // The sphere is outside one of the corners of the plane.
       vect<double,3> rim_pt = vect<double,3>(0.5 * aPlane->getDimensions()[0],
-					     0.5 * aPlane->getDimensions()[1],0.0);
+                                             0.5 * aPlane->getDimensions()[1],0.0);
       if(pt_rel[0] < 0.0)
-	rim_pt[0] = -rim_pt[0];
+        rim_pt[0] = -rim_pt[0];
       if(pt_rel[1] < 0.0)
-	rim_pt[1] = -rim_pt[1];
+        rim_pt[1] = -rim_pt[1];
       aPointRec = aPlane->getPose().transformToGlobal(rim_pt);
     };
     aDistance = norm_2(aPointRec - aPoint);
@@ -107,7 +107,7 @@ void prox_plane_plane::computeProximity() {
   double temp_dist;
   
   vect<double,3> corner = vect<double,3>(0.5 * mPlane2->getDimensions()[0],
-					 0.5 * mPlane2->getDimensions()[1], 0.0);
+                                         0.5 * mPlane2->getDimensions()[1], 0.0);
   vect<double,3> corner_gbl = mPlane2->getPose().transformToGlobal(corner);
   computeProximityOfPoint(mPlane1, corner_gbl, temp_pt, temp_dist);
   if(temp_dist < mLastResult.mDistance) {
@@ -145,7 +145,7 @@ void prox_plane_plane::computeProximity() {
   
   
   corner = vect<double,3>(0.5 * mPlane1->getDimensions()[0],
-			  0.5 * mPlane1->getDimensions()[1], 0.0);
+                          0.5 * mPlane1->getDimensions()[1], 0.0);
   corner_gbl = mPlane1->getPose().transformToGlobal(corner);
   computeProximityOfPoint(mPlane2, corner_gbl, temp_pt, temp_dist);
   if(temp_dist < mLastResult.mDistance) {
@@ -185,10 +185,10 @@ void prox_plane_plane::computeProximity() {
 
 
 prox_plane_plane::prox_plane_plane(const shared_ptr< plane >& aPlane1,
-				   const shared_ptr< plane >& aPlane2) :
-				   proximity_finder_3D(),
-				   mPlane1(aPlane1),
-				   mPlane2(aPlane2) { };
+                                   const shared_ptr< plane >& aPlane2) :
+                                   proximity_finder_3D(),
+                                   mPlane1(aPlane1),
+                                   mPlane2(aPlane2) { };
     
     
 void RK_CALL prox_plane_plane::save(ReaK::serialization::oarchive& A, unsigned int) const {

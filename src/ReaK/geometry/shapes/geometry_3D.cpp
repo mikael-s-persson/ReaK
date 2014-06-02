@@ -41,10 +41,10 @@ void geometry_3D::setPose(const pose_3D<double>& aPose) {
     
 geometry_3D::geometry_3D(const std::string& aName,
                          const shared_ptr< pose_3D<double> >& aAnchor,
-			 const pose_3D<double>& aPose) : 
-			 named_object(),
-			 mAnchor(aAnchor),
-			 mPose(aPose) {
+                         const pose_3D<double>& aPose) : 
+                         named_object(),
+                         mAnchor(aAnchor),
+                         mPose(aPose) {
   mPose.Parent = mAnchor;
   this->setName(aName);
 };

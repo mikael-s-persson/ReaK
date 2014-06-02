@@ -33,15 +33,15 @@
 #ifndef REAK_DISCRETE_SS_PREDICTED_TRAJ_HPP
 #define REAK_DISCRETE_SS_PREDICTED_TRAJ_HPP
 
+#include <ReaK/ctrl/path_planning/predicted_trajectory_concept.hpp>
+#include <ReaK/ctrl/path_planning/temporal_space_concept.hpp>
+
+#include <ReaK/ctrl/topologies/temporal_space.hpp>
+#include <ReaK/ctrl/topologies/time_poisson_topology.hpp>
+
+#include <ReaK/ctrl/interpolation/waypoint_container.hpp>
+
 #include "discrete_sss_concept.hpp"
-
-#include "path_planning/predicted_trajectory_concept.hpp"
-#include "path_planning/temporal_space_concept.hpp"
-
-#include "topologies/temporal_space.hpp"
-#include "topologies/time_poisson_topology.hpp"
-
-#include "interpolation/waypoint_container.hpp"
 
 
 namespace ReaK {

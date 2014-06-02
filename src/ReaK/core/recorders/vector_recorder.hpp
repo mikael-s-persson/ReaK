@@ -37,7 +37,7 @@
 #include "data_record.hpp"
 
 #include <vector>
-#include "lin_alg/vect_alg.hpp"
+#include <ReaK/core/lin_alg/vect_alg.hpp>
 
 namespace ReaK {
 

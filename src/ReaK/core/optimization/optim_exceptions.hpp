@@ -32,7 +32,7 @@
 #ifndef REAK_OPTIM_EXCEPTIONS_HPP
 #define REAK_OPTIM_EXCEPTIONS_HPP
 
-#include "base/defs.hpp"
+#include <ReaK/core/base/defs.hpp>
 
 #include <exception>
 

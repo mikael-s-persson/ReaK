@@ -21,11 +21,11 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "sustained_velocity_pulse_Ndof_detail.hpp"
+#include <ReaK/ctrl/interpolation/sustained_velocity_pulse_Ndof_detail.hpp>
 
 #include <cmath>
 
-#include "optimization/optim_exceptions.hpp"
+#include <ReaK/core/optimization/optim_exceptions.hpp>
 
 
 // #define RK_SVP_NDOF_DETAIL_USE_NUMERICAL_SOLVERS
@@ -33,8 +33,8 @@
 
 #ifdef RK_SVP_NDOF_DETAIL_USE_NUMERICAL_SOLVERS
 
-#include "root_finders/bisection_method.hpp"
-#include "root_finders/secant_method.hpp"
+#include <ReaK/core/root_finders/bisection_method.hpp>
+#include <ReaK/core/root_finders/secant_method.hpp>
 
 #endif
 

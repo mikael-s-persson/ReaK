@@ -34,7 +34,8 @@
 #ifndef REAK_MAT_OPERATORS_HPP
 #define REAK_MAT_OPERATORS_HPP
 
-#include "base/defs.hpp"
+#include <ReaK/core/base/defs.hpp>
+
 //#include "vect_alg.hpp"
 #include "vect_concepts.hpp"
 #include "mat_concepts.hpp"
@@ -194,10 +195,10 @@ typename boost::enable_if<
            boost::mpl::and_<
              is_readable_matrix<Matrix1>,
              is_readable_matrix<Matrix2>,
-	     boost::mpl::and_<
-	       boost::mpl::not_< is_square_matrix<Matrix1> >,
-	       boost::mpl::not_< is_square_matrix<Matrix2> >
-	     >,
+             boost::mpl::and_<
+               boost::mpl::not_< is_square_matrix<Matrix1> >,
+               boost::mpl::not_< is_square_matrix<Matrix2> >
+             >,
              boost::mpl::less< 
                mat_product_priority< Matrix1 >,
                detail::product_priority<mat_structure::diagonal> 
@@ -207,7 +208,7 @@ typename boost::enable_if<
                detail::product_priority<mat_structure::diagonal> 
              >
            >, 
-typename mat_product_result<Matrix1,Matrix2>::type >::type
+mat_product_result<Matrix1,Matrix2> >::type::type
  operator *(const Matrix1& M1,const Matrix2& M2) {
   typedef typename mat_product_result<Matrix1,Matrix2>::type result_type;
   BOOST_STATIC_ASSERT((is_fully_writable_matrix<result_type>::value));
@@ -227,10 +228,10 @@ typename boost::enable_if<
            boost::mpl::and_<
              is_readable_matrix<Matrix1>,
              is_readable_matrix<Matrix2>,
-	     boost::mpl::and_<
-	       boost::mpl::not_< is_square_matrix<Matrix1> >,
-	       is_square_matrix<Matrix2>
-	     >,
+             boost::mpl::and_<
+               boost::mpl::not_< is_square_matrix<Matrix1> >,
+               is_square_matrix<Matrix2>
+             >,
              boost::mpl::less< 
                mat_product_priority< Matrix1 >,
                detail::product_priority<mat_structure::diagonal> 
@@ -240,7 +241,7 @@ typename boost::enable_if<
                detail::product_priority<mat_structure::diagonal> 
              >
            >, 
-typename mat_product_result<Matrix1,Matrix2>::type >::type
+mat_product_result<Matrix1,Matrix2> >::type::type
  operator *(const Matrix1& M1,const Matrix2& M2) {
   typedef typename mat_product_result<Matrix1,Matrix2>::type result_type;
   BOOST_STATIC_ASSERT((is_fully_writable_matrix<result_type>::value));
@@ -258,10 +259,10 @@ typename boost::enable_if<
            boost::mpl::and_<
              is_readable_matrix<Matrix1>,
              is_readable_matrix<Matrix2>,
-	     boost::mpl::and_<
-	       is_square_matrix<Matrix1>,
-	       boost::mpl::not_< is_square_matrix<Matrix2> >
-	     >,
+             boost::mpl::and_<
+               is_square_matrix<Matrix1>,
+               boost::mpl::not_< is_square_matrix<Matrix2> >
+             >,
              boost::mpl::less< 
                mat_product_priority< Matrix1 >,
                detail::product_priority<mat_structure::diagonal> 
@@ -271,7 +272,7 @@ typename boost::enable_if<
                detail::product_priority<mat_structure::diagonal> 
              >
            >, 
-typename mat_product_result<Matrix1,Matrix2>::type >::type
+mat_product_result<Matrix1,Matrix2> >::type::type
  operator *(const Matrix1& M1,const Matrix2& M2) {
   typedef typename mat_product_result<Matrix1,Matrix2>::type result_type;
   BOOST_STATIC_ASSERT((is_fully_writable_matrix<result_type>::value));
@@ -289,10 +290,10 @@ typename boost::enable_if<
            boost::mpl::and_<
              is_readable_matrix<Matrix1>,
              is_readable_matrix<Matrix2>,
-	     boost::mpl::and_<
-	       is_square_matrix<Matrix1>,
-	       is_square_matrix<Matrix2>
-	     >,
+             boost::mpl::and_<
+               is_square_matrix<Matrix1>,
+               is_square_matrix<Matrix2>
+             >,
              boost::mpl::less< 
                mat_product_priority< Matrix1 >,
                detail::product_priority<mat_structure::diagonal> 
@@ -302,7 +303,7 @@ typename boost::enable_if<
                detail::product_priority<mat_structure::diagonal> 
              >
            >, 
-typename mat_product_result<Matrix1,Matrix2>::type >::type
+mat_product_result<Matrix1,Matrix2> >::type::type
  operator *(const Matrix1& M1,const Matrix2& M2) {
   typedef typename mat_product_result<Matrix1,Matrix2>::type result_type;
   BOOST_STATIC_ASSERT((is_fully_writable_matrix<result_type>::value));
@@ -320,7 +321,7 @@ typename boost::enable_if<
            boost::mpl::and_<
              is_readable_matrix<Matrix1>,
              is_readable_matrix<Matrix2>,
-	     boost::mpl::less< 
+             boost::mpl::less< 
                mat_product_priority< Matrix1 >,
                detail::product_priority<mat_structure::diagonal> 
              >,
@@ -329,7 +330,7 @@ typename boost::enable_if<
                detail::product_priority<mat_structure::diagonal> 
              >
            >, 
-typename mat_product_result<Matrix1,Matrix2>::type >::type
+mat_product_result<Matrix1,Matrix2> >::type::type
  operator *(const Matrix1& M1,const Matrix2& M2) {
   typedef typename mat_product_result<Matrix1,Matrix2>::type result_type;
   BOOST_STATIC_ASSERT((is_fully_writable_matrix<result_type>::value));
@@ -347,7 +348,7 @@ typename boost::enable_if<
            boost::mpl::and_<
              is_readable_matrix<Matrix1>,
              is_readable_matrix<Matrix2>,
-	     boost::mpl::equal_to< 
+             boost::mpl::equal_to< 
                mat_product_priority< Matrix1 >,
                detail::product_priority<mat_structure::diagonal> 
              >,
@@ -356,7 +357,7 @@ typename boost::enable_if<
                detail::product_priority<mat_structure::diagonal> 
              >
            >, 
-typename mat_product_result<Matrix1,Matrix2>::type >::type
+mat_product_result<Matrix1,Matrix2> >::type::type
  operator *(const Matrix1& M1,const Matrix2& M2) {
   typedef typename mat_product_result<Matrix1,Matrix2>::type result_type;
   BOOST_STATIC_ASSERT((is_fully_writable_matrix<result_type>::value));
@@ -374,7 +375,7 @@ typename boost::enable_if<
            boost::mpl::and_<
              is_readable_matrix<Matrix1>,
              is_readable_matrix<Matrix2>,
-	     boost::mpl::equal_to< 
+             boost::mpl::equal_to< 
                mat_product_priority< Matrix1 >,
                detail::product_priority<mat_structure::diagonal> 
              >,
@@ -383,7 +384,7 @@ typename boost::enable_if<
                detail::product_priority<mat_structure::diagonal> 
              >
            >, 
-typename mat_product_result<Matrix1,Matrix2>::type >::type
+mat_product_result<Matrix1,Matrix2> >::type::type
  operator *(const Matrix1& M1,const Matrix2& M2) {
   typedef typename mat_product_result<Matrix1,Matrix2>::type result_type;
   BOOST_STATIC_ASSERT((is_fully_writable_matrix<result_type>::value));
@@ -403,8 +404,8 @@ typename boost::enable_if<
            boost::mpl::and_<
              is_readable_matrix<Matrix1>,
              is_readable_matrix<Matrix2>,
-	     boost::mpl::or_<
-	       boost::mpl::equal_to< 
+             boost::mpl::or_<
+               boost::mpl::equal_to< 
                  mat_product_priority< Matrix1 >,
                  detail::product_priority<mat_structure::nil> 
                >,
@@ -414,7 +415,7 @@ typename boost::enable_if<
                >
              >
            >, 
-typename mat_product_result<Matrix1,Matrix2>::type >::type
+mat_product_result<Matrix1,Matrix2> >::type::type
  operator *(const Matrix1& M1,const Matrix2& M2) {
   typedef typename mat_product_result<Matrix1,Matrix2>::type result_type;
   BOOST_STATIC_ASSERT((is_resizable_matrix<result_type>::value));
@@ -434,7 +435,7 @@ typename boost::enable_if<
            boost::mpl::and_<
              is_readable_matrix<Matrix1>,
              is_readable_matrix<Matrix2>,
-	     boost::mpl::equal_to< 
+             boost::mpl::equal_to< 
                mat_product_priority< Matrix1 >,
                detail::product_priority<mat_structure::scalar> 
              >,
@@ -443,7 +444,7 @@ typename boost::enable_if<
                detail::product_priority<mat_structure::scalar> 
              >
            >, 
-typename mat_product_result<Matrix1,Matrix2>::type >::type
+mat_product_result<Matrix1,Matrix2> >::type::type
  operator *(const Matrix1& M1,const Matrix2& M2) {
   typedef typename mat_product_result<Matrix1,Matrix2>::type result_type;
   if(M1.get_col_count() != M2.get_row_count())
@@ -462,7 +463,7 @@ typename boost::enable_if<
            boost::mpl::and_<
              is_readable_matrix<Matrix1>,
              is_readable_matrix<Matrix2>,
-	     boost::mpl::less_equal< 
+             boost::mpl::less_equal< 
                mat_product_priority< Matrix1 >,
                detail::product_priority<mat_structure::scalar> 
              >,
@@ -471,7 +472,7 @@ typename boost::enable_if<
                detail::product_priority<mat_structure::scalar> 
              >
            >, 
-typename mat_product_result<Matrix1,Matrix2>::type >::type
+mat_product_result<Matrix1,Matrix2> >::type::type
  operator *(const Matrix1& M1,const Matrix2& M2) {
   typedef typename mat_product_result<Matrix1,Matrix2>::type result_type;
   if(M1.get_col_count() != M2.get_row_count())
@@ -490,7 +491,7 @@ typename boost::enable_if<
            boost::mpl::and_<
              is_readable_matrix<Matrix1>,
              is_readable_matrix<Matrix2>,
-	     boost::mpl::equal_to< 
+             boost::mpl::equal_to< 
                mat_product_priority< Matrix1 >,
                detail::product_priority<mat_structure::identity> 
              >,
@@ -499,7 +500,7 @@ typename boost::enable_if<
                detail::product_priority<mat_structure::identity> 
              >
            >, 
-typename mat_product_result<Matrix1,Matrix2>::type >::type
+mat_product_result<Matrix1,Matrix2> >::type::type
  operator *(const Matrix1& M1,const Matrix2& M2) {
   typedef typename mat_product_result<Matrix1,Matrix2>::type result_type;
   if(M1.get_col_count() != M2.get_row_count())
@@ -515,7 +516,7 @@ typename boost::enable_if<
            boost::mpl::and_<
              is_readable_matrix<Matrix1>,
              is_readable_matrix<Matrix2>,
-	     boost::mpl::less_equal< 
+             boost::mpl::less_equal< 
                mat_product_priority< Matrix1 >,
                detail::product_priority<mat_structure::identity> 
              >,
@@ -524,7 +525,7 @@ typename boost::enable_if<
                detail::product_priority<mat_structure::identity> 
              >
            >, 
-typename mat_product_result<Matrix1,Matrix2>::type >::type
+mat_product_result<Matrix1,Matrix2> >::type::type
  operator *(const Matrix1& M1,const Matrix2& M2) {
   typedef typename mat_product_result<Matrix1,Matrix2>::type result_type;
   if(M1.get_col_count() != M2.get_row_count())
@@ -547,9 +548,9 @@ template <typename Matrix, typename Scalar>
 typename boost::enable_if<
            boost::mpl::and_<
              is_writable_matrix< Matrix >,
-	     boost::mpl::not_< is_readable_matrix< Scalar > >,
-	     boost::mpl::not_< is_readable_vector< Scalar > >
-	   >,
+             boost::mpl::not_< is_readable_matrix< Scalar > >,
+             boost::mpl::not_< is_readable_vector< Scalar > >
+           >,
 Matrix >::type operator *(Matrix M, const Scalar& S) {
   M *= S;
   return M;
@@ -567,9 +568,9 @@ template <typename Matrix, typename Scalar>
 typename boost::enable_if<
            boost::mpl::and_<
              is_writable_matrix< Matrix >,
-	     boost::mpl::not_< is_readable_matrix< Scalar > >,
-	     boost::mpl::not_< is_readable_vector< Scalar > >
-	   >,
+             boost::mpl::not_< is_readable_matrix< Scalar > >,
+             boost::mpl::not_< is_readable_vector< Scalar > >
+           >,
 Matrix >::type operator *(const Scalar& S,Matrix M) {
   M *= S;
   return M;
@@ -583,6 +584,64 @@ Matrix >::type operator *(const Scalar& S,Matrix M) {
 /*******************************************************************************
                          Addition / Subtraction Operators
 *******************************************************************************/
+
+
+/**
+ * General (least-specialized) unary-negation operator for any type of matrices. 
+ * This is a default operator that will be called if no better special-purpose overload exists.
+ * \param M first matrix (first operand).
+ * \return General column-major matrix.
+ * \throw std::range_error if the two matrix dimensions do not fit together.
+ * \test PASSED
+ */
+template <typename Matrix>
+typename boost::enable_if< 
+           is_readable_matrix<Matrix>,
+mat_addition_result<Matrix,Matrix> >::type::type
+ operator -(const Matrix& M) {
+  typedef typename mat_addition_result<Matrix,Matrix>::type result_type;
+  typedef typename mat_traits<result_type>::size_type SizeType;
+  result_type result(M);
+  for(SizeType j=0;j<M.get_col_count();++j)
+    for(SizeType i=0;i<M.get_row_count();++i)
+      result(i,j) = -M(i,j);  // this needs to be taking the original matrix (avoid cross-referenced elements).
+  return result;
+};
+
+
+/**
+ * General (least-specialized) transpose function for any type of matrix.
+ * \param M The matrix to be transposed.
+ * \return The transpose of M.
+ */
+template <typename Matrix>
+typename boost::enable_if< 
+           is_readable_matrix<Matrix>,
+mat_addition_result<Matrix,Matrix> >::type::type
+ transpose(const Matrix& M) {
+  typedef typename mat_addition_result<Matrix,Matrix>::type result_type;
+  typedef typename mat_traits<result_type>::size_type SizeType;
+  result_type result(M);
+  for(SizeType j = 0; j < result.get_col_count(); ++j)
+    for(SizeType i = 0; i < result.get_row_count(); ++i)
+      result(i,j) = M(j,i);
+  return result;
+};
+
+/**
+ * General (least-specialized) transpose function for any type of matrix.
+ * \param M The matrix to be transposed.
+ * \return The transpose of M.
+ */
+template <typename Matrix>
+typename boost::enable_if< 
+           is_readable_matrix<Matrix>,
+mat_addition_result<Matrix,Matrix> >::type::type
+ transpose_move(const Matrix& M) {
+  return transpose(M);
+};
+
+
 
 /**
  * General (least-specialized) addition operator for any type of matrices. This is a default operator
@@ -607,7 +666,7 @@ typename boost::enable_if<
                detail::addition_priority<mat_structure::upper_triangular> 
              > 
            >, 
-typename mat_addition_result<Matrix1,Matrix2>::type >::type
+mat_addition_result<Matrix1,Matrix2> >::type::type
  operator +(const Matrix1& M1,const Matrix2& M2) {
   typedef typename mat_addition_result<Matrix1,Matrix2>::type result_type; 
   if((M1.get_row_count() != M2.get_row_count()) || (M1.get_col_count() != M2.get_col_count()))
@@ -645,7 +704,7 @@ typename boost::enable_if<
                detail::addition_priority<mat_structure::upper_triangular> 
              > 
            >, 
-typename mat_addition_result<Matrix1,Matrix2>::type >::type
+mat_addition_result<Matrix1,Matrix2> >::type::type
   operator -(const Matrix1& M1,const Matrix2& M2) {
   typedef typename mat_addition_result<Matrix1,Matrix2>::type result_type;
   if((M1.get_row_count() != M2.get_row_count()) || (M1.get_col_count() != M2.get_col_count()))
@@ -674,7 +733,7 @@ typename boost::enable_if<
                detail::addition_priority<mat_structure::diagonal> 
              > 
            >, 
-typename mat_addition_result<Matrix1,Matrix2>::type >::type
+mat_addition_result<Matrix1,Matrix2> >::type::type
  operator +(const Matrix1& M1,const Matrix2& M2) {
   typedef typename mat_addition_result<Matrix1,Matrix2>::type result_type; 
   if(M1.get_row_count() != M2.get_row_count())
@@ -699,7 +758,7 @@ typename boost::enable_if<
                detail::addition_priority<mat_structure::diagonal> 
              > 
            >, 
-typename mat_addition_result<Matrix1,Matrix2>::type >::type
+mat_addition_result<Matrix1,Matrix2> >::type::type
  operator -(const Matrix1& M1,const Matrix2& M2) {
   typedef typename mat_addition_result<Matrix1,Matrix2>::type result_type;
   if(M1.get_row_count() != M2.get_row_count())
@@ -724,7 +783,7 @@ typename boost::enable_if<
                detail::addition_priority<mat_structure::diagonal> 
              > 
            >, 
-typename mat_addition_result<Matrix1,Matrix2>::type >::type
+mat_addition_result<Matrix1,Matrix2> >::type::type
  operator +(const Matrix1& M1,const Matrix2& M2) {
   typedef typename mat_addition_result<Matrix1,Matrix2>::type result_type; 
   if((M1.get_row_count() != M2.get_row_count()) || (M1.get_col_count() != M2.get_col_count()))
@@ -751,7 +810,7 @@ typename boost::enable_if<
                detail::addition_priority<mat_structure::diagonal> 
              > 
            >, 
-typename mat_addition_result<Matrix1,Matrix2>::type >::type
+mat_addition_result<Matrix1,Matrix2> >::type::type
  operator -(const Matrix1& M1,const Matrix2& M2) {
   typedef typename mat_addition_result<Matrix1,Matrix2>::type result_type;
   if((M1.get_row_count() != M2.get_row_count()) || (M1.get_col_count() != M2.get_col_count()))
@@ -778,7 +837,7 @@ typename boost::enable_if<
                detail::addition_priority<mat_structure::diagonal> 
              > 
            >, 
-typename mat_addition_result<Matrix1,Matrix2>::type >::type
+mat_addition_result<Matrix1,Matrix2> >::type::type
  operator +(const Matrix1& M1,const Matrix2& M2) {
   typedef typename mat_addition_result<Matrix1,Matrix2>::type result_type; 
   if((M1.get_row_count() != M2.get_row_count()) || (M1.get_col_count() != M2.get_col_count()))
@@ -805,7 +864,7 @@ typename boost::enable_if<
                detail::addition_priority<mat_structure::diagonal> 
              > 
            >, 
-typename mat_addition_result<Matrix1,Matrix2>::type >::type
+mat_addition_result<Matrix1,Matrix2> >::type::type
  operator -(const Matrix1& M1,const Matrix2& M2) {
   typedef typename mat_addition_result<Matrix1,Matrix2>::type result_type;
   if((M1.get_row_count() != M2.get_row_count()) || (M1.get_col_count() != M2.get_col_count()))
@@ -832,7 +891,7 @@ typename boost::enable_if<
                detail::addition_priority<mat_structure::nil> 
              > 
            >, 
-typename mat_addition_result<Matrix1,Matrix2>::type >::type
+mat_addition_result<Matrix1,Matrix2> >::type::type
  operator +(const Matrix1& M1,const Matrix2& M2) {
   typedef typename mat_addition_result<Matrix1,Matrix2>::type result_type; 
   if((M1.get_row_count() != M2.get_row_count()) || (M1.get_col_count() != M2.get_col_count()))
@@ -855,7 +914,7 @@ typename boost::enable_if<
                detail::addition_priority<mat_structure::nil> 
              > 
            >, 
-typename mat_addition_result<Matrix1,Matrix2>::type >::type
+mat_addition_result<Matrix1,Matrix2> >::type::type
  operator -(const Matrix1& M1,const Matrix2& M2) {
   typedef typename mat_addition_result<Matrix1,Matrix2>::type result_type;
   if((M1.get_row_count() != M2.get_row_count()) || (M1.get_col_count() != M2.get_col_count()))
@@ -874,7 +933,7 @@ typename boost::enable_if<
                detail::addition_priority<mat_structure::nil> 
              > 
            >, 
-typename mat_addition_result<Matrix1,Matrix2>::type >::type
+mat_addition_result<Matrix1,Matrix2> >::type::type
  operator +(const Matrix1& M1,const Matrix2& M2) {
   typedef typename mat_addition_result<Matrix1,Matrix2>::type result_type; 
   if((M1.get_row_count() != M2.get_row_count()) || (M1.get_col_count() != M2.get_col_count()))
@@ -893,7 +952,7 @@ typename boost::enable_if<
                detail::addition_priority<mat_structure::nil> 
              > 
            >, 
-typename mat_addition_result<Matrix1,Matrix2>::type >::type
+mat_addition_result<Matrix1,Matrix2> >::type::type
  operator -(const Matrix1& M1,const Matrix2& M2) {
   typedef typename mat_addition_result<Matrix1,Matrix2>::type result_type;
   if((M1.get_row_count() != M2.get_row_count()) || (M1.get_col_count() != M2.get_col_count()))
@@ -961,7 +1020,7 @@ typename boost::enable_if<
     is_readable_matrix<Matrix>,
     is_readable_vector<Vector>
  >,
-typename vect_copy<Vector>::type >::type operator *(const Matrix& M, const Vector& V) {
+vect_copy<Vector> >::type::type operator *(const Matrix& M, const Vector& V) {
     typedef typename vect_copy< Vector >::type result_type;
     if(V.size() != M.get_col_count())
       throw std::range_error("Matrix dimension mismatch.");
@@ -991,7 +1050,7 @@ typename boost::enable_if<
     is_readable_matrix<Matrix>,
     is_readable_vector<Vector>
  >,
-typename vect_copy< Vector >::type >::type operator *(const Vector& V,const Matrix& M) {
+vect_copy< Vector > >::type::type operator *(const Vector& V,const Matrix& M) {
     typedef typename vect_copy< Vector >::type result_type;
     if(V.size() != M.get_row_count())
       throw std::range_error("Matrix dimension mismatch.");

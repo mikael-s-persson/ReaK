@@ -33,11 +33,10 @@
 #ifndef DATA_RECORD_HPP
 #define DATA_RECORD_HPP
 
-#include "base/defs.hpp"
-
-#include "base/thread_incl.hpp"
-
-
+#include <ReaK/core/base/defs.hpp>
+#include <ReaK/core/base/thread_incl.hpp>
+#include <ReaK/core/base/shared_object.hpp>
+#include <ReaK/core/rtti/so_type.hpp>
 
 #include <string>
 #include <exception>
@@ -45,10 +44,6 @@
 #include <queue>
 #include <map>
 #include <iostream>
-
-#include "base/shared_object.hpp"
-
-#include "rtti/so_type.hpp"
 
 /** Main namespace for ReaK */
 namespace ReaK {
@@ -182,7 +177,7 @@ class data_recorder : public shared_object {
     struct record_process {
       public:
         data_recorder& parent;
-        record_process(	data_recorder& aParent ) : parent(aParent) { };
+        record_process(data_recorder& aParent ) : parent(aParent) { };
         void operator()();
     };
     

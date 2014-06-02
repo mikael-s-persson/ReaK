@@ -32,7 +32,7 @@
 #ifndef REAK_ADJ_LIST_TREE_OVERLAY_HPP
 #define REAK_ADJ_LIST_TREE_OVERLAY_HPP
 
-#include "base/defs.hpp"
+#include <ReaK/core/base/defs.hpp>
 
 #include <boost/graph/graph_concepts.hpp>
 #include <boost/property_map/property_map.hpp>

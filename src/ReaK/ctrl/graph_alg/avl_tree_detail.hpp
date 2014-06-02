@@ -37,7 +37,7 @@
 #ifndef REAK_AVL_TREE_DETAIL_HPP
 #define REAK_AVL_TREE_DETAIL_HPP
 
-#include "base/defs.hpp"
+#include <ReaK/core/base/defs.hpp>
 
 #include <boost/bind.hpp>
 #include <boost/graph/graph_concepts.hpp>

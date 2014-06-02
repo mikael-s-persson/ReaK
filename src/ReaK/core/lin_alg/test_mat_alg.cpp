@@ -21,12 +21,13 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "base/defs.hpp"
+#include <ReaK/core/base/defs.hpp>
+#include <ReaK/core/lin_alg/mat_alg.hpp>
+
 #include <iostream>
 #include <fstream>
 #include <cstdio>
 
-#include "mat_alg.hpp"
 
 /*
  * This program is just a little test program that is used temporarily to test little 

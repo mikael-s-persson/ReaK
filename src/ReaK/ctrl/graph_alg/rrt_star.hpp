@@ -67,8 +67,8 @@
 #include <boost/graph/graph_concepts.hpp>
 #include <boost/property_map/property_map.hpp>
 
-#include "path_planning/metric_space_concept.hpp"
-#include "path_planning/random_sampler_concept.hpp"
+#include <ReaK/ctrl/path_planning/metric_space_concept.hpp>
+#include <ReaK/ctrl/path_planning/random_sampler_concept.hpp>
 
 #include "sbmp_visitor_concepts.hpp"
 #include "neighborhood_functors.hpp"
@@ -78,7 +78,7 @@
 #include "lazy_connector.hpp"
 #include "branch_and_bound_connector.hpp"
 
-#include "optimization/optim_exceptions.hpp"
+#include <ReaK/core/optimization/optim_exceptions.hpp>
 
 namespace ReaK {
   

@@ -21,16 +21,16 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "base/defs.hpp"
+#include <ReaK/core/base/defs.hpp>
 
-#include "integrator.hpp"
-#include "fixed_step_integrators.hpp"
-#include "variable_step_integrators.hpp"
-#include "pred_corr_integrators.hpp"
+#include <ReaK/core/integrators/integrator.hpp>
+#include <ReaK/core/integrators/fixed_step_integrators.hpp>
+#include <ReaK/core/integrators/variable_step_integrators.hpp>
+#include <ReaK/core/integrators/pred_corr_integrators.hpp>
 
-#include "unit_test_integrators_problems.hpp"
+#include <ReaK/core/integrators/unit_test_integrators_problems.hpp>
 
-#include "serialization/protobuf_archiver.hpp"
+#include <ReaK/core/serialization/protobuf_archiver.hpp>
 
 #include <iostream>
 #include <iomanip>

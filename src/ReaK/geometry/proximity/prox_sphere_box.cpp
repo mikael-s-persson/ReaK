@@ -70,10 +70,10 @@ void prox_sphere_box::computeProximity() {
 
 
 prox_sphere_box::prox_sphere_box(const shared_ptr< sphere >& aSphere,
-				 const shared_ptr< box >& aBox) :
-				 proximity_finder_3D(),
-				 mSphere(aSphere),
-				 mBox(aBox) { };
+                                 const shared_ptr< box >& aBox) :
+                                 proximity_finder_3D(),
+                                 mSphere(aSphere),
+                                 mBox(aBox) { };
     
     
 void RK_CALL prox_sphere_box::save(ReaK::serialization::oarchive& A, unsigned int) const {

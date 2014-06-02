@@ -305,7 +305,55 @@ class mat<T,mat_structure::square,mat_alignment::column_major,Allocator> : publi
      * \test PASSED
      */
     const_reference operator()(size_type i,size_type j) const { return q[j*rowCount + i]; };
-
+    
+    /**
+     * Sub-matrix operator, accessor for read/write.
+     * \test PASSED
+     */
+    mat_sub_block<self> operator()(const std::pair<size_type,size_type>& r, const std::pair<size_type,size_type>& c) {
+      return sub(*this)(r,c);
+    };
+    
+    /**
+     * Sub-matrix operator, accessor for read only.
+     * \test PASSED
+     */
+    mat_const_sub_block<self> operator()(const std::pair<size_type,size_type>& r, const std::pair<size_type,size_type>& c) const {
+      return sub(*this)(r,c);
+    };
+    
+    /**
+     * Sub-matrix operator, accessor for read/write.
+     * \test PASSED
+     */
+    mat_col_slice<self> operator()(size_type r, const std::pair<size_type,size_type>& c) {
+      return slice(*this)(r,c);
+    };
+    
+    /**
+     * Sub-matrix operator, accessor for read only.
+     * \test PASSED
+     */
+    mat_const_col_slice<self> operator()(size_type r, const std::pair<size_type,size_type>& c) const {
+      return slice(*this)(r,c);
+    };
+    
+    /**
+     * Sub-matrix operator, accessor for read/write.
+     * \test PASSED
+     */
+    mat_row_slice<self> operator()(const std::pair<size_type,size_type>& r, size_type c) {
+      return slice(*this)(r,c);
+    };
+    
+    /**
+     * Sub-matrix operator, accessor for read only.
+     * \test PASSED
+     */
+    mat_const_row_slice<self> operator()(const std::pair<size_type,size_type>& r, size_type c) const {
+      return slice(*this)(r,c);
+    };
+    
     /**
      * Gets the row-count (number of rows) of the matrix.
      * \return number of rows of the matrix.
@@ -475,7 +523,7 @@ class mat<T,mat_structure::square,mat_alignment::column_major,Allocator> : publi
      */
     template <typename Matrix>
     self& operator +=(const Matrix& M) {
-      boost::function_requires< ReadableMatrixConcept<Matrix> >();
+      BOOST_CONCEPT_ASSERT((ReadableMatrixConcept<Matrix>));
       if((M.get_col_count() != rowCount) || (M.get_row_count() != rowCount))
         throw std::range_error("Matrix dimension mismatch.");
       typename container_type::iterator it = q.begin();
@@ -491,7 +539,7 @@ class mat<T,mat_structure::square,mat_alignment::column_major,Allocator> : publi
      */
     template <typename Matrix>
     self& operator -=(const Matrix& M) {
-      boost::function_requires< ReadableMatrixConcept<Matrix> >();
+      BOOST_CONCEPT_ASSERT((ReadableMatrixConcept<Matrix>));
       if((M.get_col_count() != rowCount) || (M.get_row_count() != rowCount))
         throw std::range_error("Matrix dimension mismatch.");
       typename container_type::iterator it = q.begin();
@@ -693,7 +741,7 @@ class mat<T,mat_structure::square,mat_alignment::row_major,Allocator> : public s
      */
     mat(self&& M) : q(std::move(M.q)), rowCount(std::move(M.rowCount)) { };
 #endif
-	     
+     
     /**
      * Explicit constructor from a any type of matrix.
      * \test PASSED
@@ -832,7 +880,55 @@ class mat<T,mat_structure::square,mat_alignment::row_major,Allocator> : public s
      * \test PASSED
      */
     const_reference operator()(size_type i,size_type j) const { return q[i*rowCount + j]; };
-
+    
+    /**
+     * Sub-matrix operator, accessor for read/write.
+     * \test PASSED
+     */
+    mat_sub_block<self> operator()(const std::pair<size_type,size_type>& r, const std::pair<size_type,size_type>& c) {
+      return sub(*this)(r,c);
+    };
+    
+    /**
+     * Sub-matrix operator, accessor for read only.
+     * \test PASSED
+     */
+    mat_const_sub_block<self> operator()(const std::pair<size_type,size_type>& r, const std::pair<size_type,size_type>& c) const {
+      return sub(*this)(r,c);
+    };
+    
+    /**
+     * Sub-matrix operator, accessor for read/write.
+     * \test PASSED
+     */
+    mat_col_slice<self> operator()(size_type r, const std::pair<size_type,size_type>& c) {
+      return slice(*this)(r,c);
+    };
+    
+    /**
+     * Sub-matrix operator, accessor for read only.
+     * \test PASSED
+     */
+    mat_const_col_slice<self> operator()(size_type r, const std::pair<size_type,size_type>& c) const {
+      return slice(*this)(r,c);
+    };
+    
+    /**
+     * Sub-matrix operator, accessor for read/write.
+     * \test PASSED
+     */
+    mat_row_slice<self> operator()(const std::pair<size_type,size_type>& r, size_type c) {
+      return slice(*this)(r,c);
+    };
+    
+    /**
+     * Sub-matrix operator, accessor for read only.
+     * \test PASSED
+     */
+    mat_const_row_slice<self> operator()(const std::pair<size_type,size_type>& r, size_type c) const {
+      return slice(*this)(r,c);
+    };
+    
     /**
      * Gets the row-count (number of rows) of the matrix.
      * \return number of rows of the matrix.
@@ -1001,7 +1097,7 @@ class mat<T,mat_structure::square,mat_alignment::row_major,Allocator> : public s
      */
     template <typename Matrix>
     self& operator +=(const Matrix& M) {
-      boost::function_requires< ReadableMatrixConcept<Matrix> >();
+      BOOST_CONCEPT_ASSERT((ReadableMatrixConcept<Matrix>));
       if((M.get_col_count() != rowCount) || (M.get_row_count() != rowCount))
         throw std::range_error("Matrix dimension mismatch.");
       typename container_type::iterator it = q.begin();
@@ -1017,7 +1113,7 @@ class mat<T,mat_structure::square,mat_alignment::row_major,Allocator> : public s
      */
     template <typename Matrix>
     self& operator -=(const Matrix& M) {
-      boost::function_requires< ReadableMatrixConcept<Matrix> >();
+      BOOST_CONCEPT_ASSERT((ReadableMatrixConcept<Matrix>));
       if((M.get_col_count() != rowCount) || (M.get_row_count() != rowCount))
         throw std::range_error("Matrix dimension mismatch.");
       typename container_type::iterator it = q.begin();

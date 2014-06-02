@@ -22,8 +22,8 @@
  */
 
 #include <cmath>
-#include "bisection_method.hpp"
-#include "secant_method.hpp"
+#include <ReaK/core/root_finders/bisection_method.hpp>
+#include <ReaK/core/root_finders/secant_method.hpp>
 
 #include <iostream>
 #include <vector>

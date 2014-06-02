@@ -22,15 +22,15 @@
  */
 
 #include <cmath>
-#include "line_search.hpp"
+#include <ReaK/core/optimization/line_search.hpp>
 
-#include "finite_diff_jacobians.hpp"
+#include <ReaK/core/optimization/finite_diff_jacobians.hpp>
 
-#include "levenberg_marquardt_method.hpp"
-#include "jacobian_transpose_method.hpp"
-#include "gauss_newton_method.hpp"
+#include <ReaK/core/optimization/levenberg_marquardt_method.hpp>
+#include <ReaK/core/optimization/jacobian_transpose_method.hpp>
+#include <ReaK/core/optimization/gauss_newton_method.hpp>
 
-#include "lin_alg/mat_svd_method.hpp"
+#include <ReaK/core/lin_alg/mat_svd_method.hpp>
 
 #include <iostream>
 #include <cmath>
@@ -307,7 +307,7 @@ int main() {
       optim::gauss_newton_nllsq(funcs[i],func_jacs[i],x,y,200,1e-8,1e-8);
       std::cout << "  Gauss-Newton method gives:\n"
                 << "    x = " << x << " with error = " << norm_2(x - func_sols[i]) << "\n"
-	        << "    eval-count = " << evalCount << " and grad-eval-count = " << gradCount << std::endl;
+                << "    eval-count = " << evalCount << " and grad-eval-count = " << gradCount << std::endl;
     } catch(std::exception& e) {
       std::cout << "  Gauss-Newton method failed with error: " << e.what() << std::endl
                 << "    x = " << x << " with error = " << norm_2(x - func_sols[i]) << "\n"
@@ -321,7 +321,7 @@ int main() {
       optim::jacobian_transpose_nllsq(funcs[i],func_jacs[i],x,y,500,1e-8,1e-8);
       std::cout << "  Jacobian-Transpose method gives:\n"
                 << "    x = " << x << " with error = " << norm_2(x - func_sols[i]) << "\n"
-	        << "    eval-count = " << evalCount << " and grad-eval-count = " << gradCount << std::endl;
+                << "    eval-count = " << evalCount << " and grad-eval-count = " << gradCount << std::endl;
     } catch(std::exception& e) {
       std::cout << "  Jacobian-Transpose method failed with error: " << e.what() << std::endl
                 << "    x = " << x << " with error = " << norm_2(x - func_sols[i]) << "\n"
@@ -354,7 +354,7 @@ int main() {
         .set_lin_solver(SVD_linlsqsolver())(x);
       std::cout << "  Gauss-Newton method with SVD solver gives:\n"
                 << "    x = " << x << " with error = " << norm_2(x - func_sols[i]) << "\n"
-	        << "    eval-count = " << evalCount << " and grad-eval-count = " << gradCount << std::endl;
+                << "    eval-count = " << evalCount << " and grad-eval-count = " << gradCount << std::endl;
     } catch(std::exception& e) {
       std::cout << "  Gauss-Newton method failed with error: " << e.what() << std::endl
                 << "    x = " << x << " with error = " << norm_2(x - func_sols[i]) << "\n"
@@ -386,7 +386,7 @@ int main() {
       optim::limited_gauss_newton_nllsq(funcs[i],func_jacs[i],x,y,200,boost::bind(optim::box_limit_function< vect_n<double> >,_1,_2,func_lowers[i],func_uppers[i]),1e-8,1e-8);
       std::cout << "  Box-limited Gauss-Newton method gives:\n"
                 << "    x = " << x << " with error = " << norm_2(x - func_sols[i]) << "\n"
-	        << "    eval-count = " << evalCount << " and grad-eval-count = " << gradCount << std::endl;
+                << "    eval-count = " << evalCount << " and grad-eval-count = " << gradCount << std::endl;
     } catch(std::exception& e) {
       std::cout << "  Box-limited Gauss-Newton method failed with error: " << e.what() << std::endl
                 << "    x = " << x << " with error = " << norm_2(x - func_sols[i]) << "\n"
@@ -400,7 +400,7 @@ int main() {
       optim::limited_jacobian_transpose_nllsq(funcs[i],func_jacs[i],x,y,500,boost::bind(optim::box_limit_function< vect_n<double> >,_1,_2,func_lowers[i],func_uppers[i]),1e-8,1e-8);
       std::cout << "  Box-limited Jacobian-Transpose method gives:\n"
                 << "    x = " << x << " with error = " << norm_2(x - func_sols[i]) << "\n"
-	        << "    eval-count = " << evalCount << " and grad-eval-count = " << gradCount << std::endl;
+                << "    eval-count = " << evalCount << " and grad-eval-count = " << gradCount << std::endl;
     } catch(std::exception& e) {
       std::cout << "  Box-limited Jacobian-Transpose method failed with error: " << e.what() << std::endl
                 << "    x = " << x << " with error = " << norm_2(x - func_sols[i]) << "\n"

@@ -107,8 +107,8 @@ class reachability_sorted_set {
       boost::multi_index::indexed_by<
         boost::multi_index::ordered_non_unique< boost::multi_index::tag<backward>,
           boost::multi_index::member<vertex_tuple,double,&vertex_tuple::backward_reach> >,
-	boost::multi_index::ordered_non_unique< boost::multi_index::tag<forward>,
-	  boost::multi_index::member<vertex_tuple,double,&vertex_tuple::forward_reach> > > > VertexMultiMap;
+        boost::multi_index::ordered_non_unique< boost::multi_index::tag<forward>,
+          boost::multi_index::member<vertex_tuple,double,&vertex_tuple::forward_reach> > > > VertexMultiMap;
    
     typedef VertexMultiMap::index<backward>::type BackwardReachIndex;
     typedef VertexMultiMap::index<forward>::type ForwardReachIndex;
@@ -150,8 +150,8 @@ class reachability_sorted_set {
                             m_g(g), m_position(position), m_space(space) { 
       VertexIter ui, ui_end;
       for(boost::tie(ui, ui_end) = boost::vertices(m_g); ui != ui_end; ++ui) {
-	Point p = boost::get(m_position,*ui);
-	m_map.insert(vertex_tuple(*ui, m_space.backward_reach(p), m_space.forward_reach(p)));
+        Point p = boost::get(m_position,*ui);
+        m_map.insert(vertex_tuple(*ui, m_space.backward_reach(p), m_space.forward_reach(p)));
       };
       
     };
@@ -188,8 +188,8 @@ class reachability_sorted_set {
      * \param max_radius The maximum reachability radius for the predecessors.
      */
     void can_reach(const Point& p, std::vector< std::pair<double,Vertex> >& pred_list, 
-		   std::size_t max_number = std::numeric_limits<std::size_t>::max(), 
-		   double max_radius = std::numeric_limits<double>::infinity()) const {
+                   std::size_t max_number = std::numeric_limits<std::size_t>::max(), 
+                   double max_radius = std::numeric_limits<double>::infinity()) const {
       double back_p = m_space.backward_reach(p);
       double forth_p = m_space.forward_reach(p);
       double t_p = back_p + forth_p;
@@ -198,21 +198,21 @@ class reachability_sorted_set {
       const_back_iterator itb_end = back_index.upper_bound(back_p); 
       
       for(;itb != itb_end; ++itb) {
-	double d_t = t_p - itb->backward_reach - itb->forward_reach;
-	if((itb->forward_reach <= forth_p) && (d_t >= 0.0) && (d_t < max_radius)) {
-	  double dist = m_space.distance(boost::get(m_position,itb->u),p);
-	  if((dist < std::numeric_limits<double>::infinity()) && (dist < max_radius)) {
-	    std::pair<double,Vertex> tmp(dist, itb->u);
-	    pred_list.insert(std::lower_bound(pred_list.begin(), pred_list.end(), tmp,
-					      boost::bind(std::less<double>(),
-							  boost::bind(&std::pair<double,Vertex>::first, _1),
-							  boost::bind(&std::pair<double,Vertex>::first, _2))), tmp);
-	    if(pred_list.size() >= max_number) {
-	      pred_list.pop_back();
-	      max_radius = pred_list.back().first;
-	    };
-	  };
-	};
+        double d_t = t_p - itb->backward_reach - itb->forward_reach;
+        if((itb->forward_reach <= forth_p) && (d_t >= 0.0) && (d_t < max_radius)) {
+          double dist = m_space.distance(boost::get(m_position,itb->u),p);
+          if((dist < std::numeric_limits<double>::infinity()) && (dist < max_radius)) {
+            std::pair<double,Vertex> tmp(dist, itb->u);
+            pred_list.insert(std::lower_bound(pred_list.begin(), pred_list.end(), tmp,
+                                              boost::bind(std::less<double>(),
+                                                          boost::bind(&std::pair<double,Vertex>::first, _1),
+                                                          boost::bind(&std::pair<double,Vertex>::first, _2))), tmp);
+            if(pred_list.size() >= max_number) {
+              pred_list.pop_back();
+              max_radius = pred_list.back().first;
+            };
+          };
+        };
       };
       
     };
@@ -227,8 +227,8 @@ class reachability_sorted_set {
      * \param max_radius The maximum reachability radius for the successors.
      */
     void reachable_from(const Point& p, std::vector< std::pair<double,Vertex> >& succ_list, 
-		        std::size_t max_number = std::numeric_limits<std::size_t>::max(), 
-		        double max_radius = std::numeric_limits<double>::infinity()) const {
+                        std::size_t max_number = std::numeric_limits<std::size_t>::max(), 
+                        double max_radius = std::numeric_limits<double>::infinity()) const {
       double back_p = m_space.backward_reach(p);
       double forth_p = m_space.forward_reach(p);
       double t_p = back_p + forth_p;
@@ -237,21 +237,21 @@ class reachability_sorted_set {
       const_back_iterator itb_end = back_index.end();
       
       for(;itb != itb_end; ++itb) {
-	double d_t = itb->backward_reach + itb->forward_reach - t_p;
-	if((itb->forward_reach >= forth_p) && (d_t >= 0.0) && (d_t < max_radius)) {
-	  double dist = m_space.distance(p,boost::get(m_position,itb->u));
-	  if((dist < std::numeric_limits<double>::infinity()) && (dist < max_radius)) {
-	    std::pair<double,Vertex> tmp(dist, itb->u);
-	    succ_list.insert(std::lower_bound(succ_list.begin(), succ_list.end(), tmp,
-					      boost::bind(std::less<double>(),
-							  boost::bind(&std::pair<double,Vertex>::first, _1),
-							  boost::bind(&std::pair<double,Vertex>::first, _2))), tmp);
-	    if(succ_list.size() >= max_number) {
-	      succ_list.pop_back();
-	      max_radius = succ_list.back().first;
-	    };
-	  };
-	};
+        double d_t = itb->backward_reach + itb->forward_reach - t_p;
+        if((itb->forward_reach >= forth_p) && (d_t >= 0.0) && (d_t < max_radius)) {
+          double dist = m_space.distance(p,boost::get(m_position,itb->u));
+          if((dist < std::numeric_limits<double>::infinity()) && (dist < max_radius)) {
+            std::pair<double,Vertex> tmp(dist, itb->u);
+            succ_list.insert(std::lower_bound(succ_list.begin(), succ_list.end(), tmp,
+                                              boost::bind(std::less<double>(),
+                                                          boost::bind(&std::pair<double,Vertex>::first, _1),
+                                                          boost::bind(&std::pair<double,Vertex>::first, _2))), tmp);
+            if(succ_list.size() >= max_number) {
+              succ_list.pop_back();
+              max_radius = succ_list.back().first;
+            };
+          };
+        };
       };
       
     };
@@ -268,9 +268,9 @@ class reachability_sorted_set {
      * \param max_radius The maximum reachability radius for the successors/predecessors.
      */
     void reachable(const Point& p, std::vector< std::pair<double,Vertex> >& pred_list, 
-		                   std::vector< std::pair<double,Vertex> >& succ_list, 
-				   std::size_t max_number = std::numeric_limits<std::size_t>::max(), 
-		                   double max_radius = std::numeric_limits<double>::infinity()) const {
+                                   std::vector< std::pair<double,Vertex> >& succ_list, 
+                                   std::size_t max_number = std::numeric_limits<std::size_t>::max(), 
+                                   double max_radius = std::numeric_limits<double>::infinity()) const {
       double back_p = m_space.backward_reach(p);
       double forth_p = m_space.forward_reach(p);
       double t_p = back_p + forth_p;
@@ -280,50 +280,50 @@ class reachability_sorted_set {
       
       double back_max_radius = max_radius;
       for(;itb != itb_end; ++itb) {
-	double d_t = t_p - itb->backward_reach - itb->forward_reach;
-	if((itb->forward_reach <= forth_p) && (d_t >= 0.0) && (d_t < back_max_radius)) {
-	  double dist = m_space.distance(boost::get(m_position,itb->u),p);
-	  if((dist < std::numeric_limits<double>::infinity()) && (dist < back_max_radius)) {
-	    std::pair<double,Vertex> tmp(dist, itb->u);
-	    pred_list.insert(std::lower_bound(pred_list.begin(), pred_list.end(), tmp,
-					      boost::bind(std::less<double>(),
-							  boost::bind(&std::pair<double,Vertex>::first, _1),
-							  boost::bind(&std::pair<double,Vertex>::first, _2))), tmp);
-	    if(pred_list.size() >= max_number) {
-	      pred_list.pop_back();
-	      back_max_radius = pred_list.back().first;
-	    };
-	  };
-	};
+        double d_t = t_p - itb->backward_reach - itb->forward_reach;
+        if((itb->forward_reach <= forth_p) && (d_t >= 0.0) && (d_t < back_max_radius)) {
+          double dist = m_space.distance(boost::get(m_position,itb->u),p);
+          if((dist < std::numeric_limits<double>::infinity()) && (dist < back_max_radius)) {
+            std::pair<double,Vertex> tmp(dist, itb->u);
+            pred_list.insert(std::lower_bound(pred_list.begin(), pred_list.end(), tmp,
+                                              boost::bind(std::less<double>(),
+                                                          boost::bind(&std::pair<double,Vertex>::first, _1),
+                                                          boost::bind(&std::pair<double,Vertex>::first, _2))), tmp);
+            if(pred_list.size() >= max_number) {
+              pred_list.pop_back();
+              back_max_radius = pred_list.back().first;
+            };
+          };
+        };
       };
       
       itb = itb_end;
       for(;itb != back_index.begin();--itb) {
-	if(itb->backward_reach < back_p) {
-	  ++itb;
-	  break;
-	};
+        if(itb->backward_reach < back_p) {
+          ++itb;
+          break;
+        };
       };
       
       itb_end = back_index.end();
       
       double forth_max_radius = max_radius;
       for(;itb != itb_end; ++itb) {
-	double d_t = itb->backward_reach + itb->forward_reach - t_p;
-	if((itb->forward_reach >= forth_p) && (d_t >= 0.0) && (d_t < forth_max_radius)) {
-	  double dist = m_space.distance(p,boost::get(m_position,itb->u));
-	  if((dist < std::numeric_limits<double>::infinity()) && (dist < forth_max_radius)) {
-	    std::pair<double,Vertex> tmp(dist, itb->u);
-	    succ_list.insert(std::lower_bound(succ_list.begin(), succ_list.end(), tmp,
-					      boost::bind(std::less<double>(),
-							  boost::bind(&std::pair<double,Vertex>::first, _1),
-							  boost::bind(&std::pair<double,Vertex>::first, _2))), tmp);
-	    if(succ_list.size() >= max_number) {
-	      succ_list.pop_back();
-	      forth_max_radius = succ_list.back().first;
-	    };
-	  };
-	};
+        double d_t = itb->backward_reach + itb->forward_reach - t_p;
+        if((itb->forward_reach >= forth_p) && (d_t >= 0.0) && (d_t < forth_max_radius)) {
+          double dist = m_space.distance(p,boost::get(m_position,itb->u));
+          if((dist < std::numeric_limits<double>::infinity()) && (dist < forth_max_radius)) {
+            std::pair<double,Vertex> tmp(dist, itb->u);
+            succ_list.insert(std::lower_bound(succ_list.begin(), succ_list.end(), tmp,
+                                              boost::bind(std::less<double>(),
+                                                          boost::bind(&std::pair<double,Vertex>::first, _1),
+                                                          boost::bind(&std::pair<double,Vertex>::first, _2))), tmp);
+            if(succ_list.size() >= max_number) {
+              succ_list.pop_back();
+              forth_max_radius = succ_list.back().first;
+            };
+          };
+        };
       };
       
     };
@@ -357,9 +357,9 @@ class reachability_sorted_set {
       const ReachabilityTopology* m_space;
       key_compare(PositionMap p, const ReachabilityTopology* s) : m_position(p), m_space(s) { };
       bool operator()(Vertex u, Vertex v) const {
-	Point p_u = boost::get(m_position,u);
-	Point p_v = boost::get(m_position,v);
-	return (m_space->backward_reach(p_u) < m_space->backward_reach(p_v));
+        Point p_u = boost::get(m_position,u);
+        Point p_v = boost::get(m_position,v);
+        return (m_space->backward_reach(p_u) < m_space->backward_reach(p_v));
       };
     };
     /** The comparison functor for the set elements. */
@@ -464,7 +464,7 @@ class reachability_sorted_set {
     template <typename ForwardIter>
     void insert(ForwardIter first, ForwardIter last) {
       for(;first != last; ++first) {
-	Point p = boost::get(m_position,*first);
+        Point p = boost::get(m_position,*first);
         m_map.insert(vertex_tuple(*first, m_space.backward_reach(p), m_space.forward_reach(p)));
       };
     };
@@ -495,8 +495,8 @@ class reachability_sorted_set {
       BackwardReachIndex::iterator it = m_map.lower_bound(m_space.backward_reach(p));
       std::size_t result = 0;
       while((it != m_map.end()) && (it->u == u)) {
-	m_map.erase(it++);
-	++result;
+        m_map.erase(it++);
+        ++result;
       };
       return result;
     };
@@ -535,7 +535,7 @@ class reachability_sorted_set {
       Point p = boost::get(m_position, u);
       BackwardReachIndex::iterator it = m_map.lower_bound(m_space.backward_reach(p));
       if((it != m_map.end()) && (it->u == u))
-	return iterator(it,vertex_access());
+        return iterator(it,vertex_access());
       return iterator(m_map.end(), vertex_access());
     };
     
@@ -548,7 +548,7 @@ class reachability_sorted_set {
       Point p = boost::get(m_position, u);
       BackwardReachIndex::const_iterator it = m_map.lower_bound(m_space.backward_reach(p));
       if((it != m_map.end()) && (it->u == u))
-	return const_iterator(it,vertex_access());
+        return const_iterator(it,vertex_access());
       return const_iterator(m_map.end(), vertex_access());
     };
     
@@ -562,7 +562,7 @@ class reachability_sorted_set {
       BackwardReachIndex::const_iterator it = m_map.lower_bound(m_space.backward_reach(p));
       std::size_t result = 0;
       while((it != m_map.end()) && (it->u == u)) {
-	++result; ++it;
+        ++result; ++it;
       };
       return result;
     };
@@ -598,7 +598,7 @@ class reachability_sorted_set {
       std::pair<const_iterator,const_iterator> result;
       result.first = const_iterator(it,vertex_access());
       while((it != m_map.end()) && (it->u == u)) {
-	++it;
+        ++it;
       };
       result.second = const_iterator(it,vertex_access());
       return result;

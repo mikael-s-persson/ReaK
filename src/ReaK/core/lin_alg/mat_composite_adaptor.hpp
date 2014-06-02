@@ -54,8 +54,11 @@
 #define REAK_MAT_COMPOSITE_ADAPTOR_HPP
 
 
-#include "mat_alg_general.hpp"
+#include "mat_concepts.hpp"
+#include "mat_traits.hpp"
 #include "mat_views.hpp"
+#include "vect_concepts.hpp"
+#include "vect_views.hpp"
 
 #include <boost/static_assert.hpp>
 
@@ -170,8 +173,8 @@ class mat_horiz_cat {
     self& >::type operator=(const Matrix& rhs) {
       if((rhs.get_row_count() != ml.get_row_count()) || (rhs.get_col_count() != ml.get_col_count() + mr.get_col_count()))
         throw std::range_error("Matrix dimensions mismatch.");
-      ml = sub(rhs)(range(0,ml.get_row_count()-1),range(0,ml.get_col_count()-1));
-      mr = sub(rhs)(range(0,mr.get_row_count()-1),range(ml.get_col_count(),ml.get_col_count() + mr.get_col_count()-1));
+      ml = sub(rhs)(range(0,ml.get_row_count()),range(0,ml.get_col_count()));
+      mr = sub(rhs)(range(0,mr.get_row_count()),range(ml.get_col_count(),ml.get_col_count() + mr.get_col_count()));
       return *this;
     };
     
@@ -239,11 +242,11 @@ class mat_horiz_cat {
      */
     template <typename Matrix>
     self& operator +=(const Matrix& M) {
-      boost::function_requires< ReadableMatrixConcept<Matrix> >();
+      BOOST_CONCEPT_ASSERT((ReadableMatrixConcept<Matrix>));
       if((M.get_row_count() != ml.get_row_count()) || (M.get_col_count() != ml.get_col_count() + mr.get_col_count()))
         throw std::range_error("Matrix dimension mismatch.");
-      ml += sub(M)(range(0,ml.get_row_count()-1),range(0,ml.get_col_count()-1));
-      mr += sub(M)(range(0,mr.get_row_count()-1),range(ml.get_col_count(),ml.get_col_count() + mr.get_col_count()-1));
+      ml += sub(M)(range(0,ml.get_row_count()),range(0,ml.get_col_count()));
+      mr += sub(M)(range(0,mr.get_row_count()),range(ml.get_col_count(),ml.get_col_count() + mr.get_col_count()));
       return *this;
     };
 
@@ -253,11 +256,11 @@ class mat_horiz_cat {
      */
     template <typename Matrix>
     self& operator -=(const Matrix& M) {
-      boost::function_requires< ReadableMatrixConcept<Matrix> >();
+      BOOST_CONCEPT_ASSERT((ReadableMatrixConcept<Matrix>));
       if((M.get_row_count() != ml.get_row_count()) || (M.get_col_count() != ml.get_col_count() + mr.get_col_count()))
         throw std::range_error("Matrix dimension mismatch.");
-      ml -= sub(M)(range(0,ml.get_row_count()-1),range(0,ml.get_col_count()-1));
-      mr -= sub(M)(range(0,mr.get_row_count()-1),range(ml.get_col_count(),ml.get_col_count() + mr.get_col_count()-1));
+      ml -= sub(M)(range(0,ml.get_row_count()),range(0,ml.get_col_count()));
+      mr -= sub(M)(range(0,mr.get_row_count()),range(ml.get_col_count(),ml.get_col_count() + mr.get_col_count()));
       return *this;
     };
 
@@ -282,46 +285,6 @@ class mat_horiz_cat {
         throw std::range_error("Matrix Dimension Mismatch.");
       *this = *this * M;
       return *this;
-    };
-    
-    /** WORKS FOR ALL
-     * General negation operator for any type of matrices. This is a default operator
-     * that will be called if no better special-purpose overload exists.
-     * \return General column-major matrix.
-     * \test PASSED
-     */
-    mat<value_type,mat_structure::rectangular> operator -() const {
-      mat<value_type,mat_structure::rectangular> result(*this);
-      for(size_type j = 0; j < result.get_col_count(); ++j)
-        for(size_type i = 0; i < result.get_row_count(); ++i)
-          result(i,j) = -result(i,j);
-      return result;
-    };
-    
-    /**
-     * Transposes the matrix M.
-     * \param M The matrix to be transposed.
-     * \return The transpose of M.
-     */
-    friend mat<value_type,mat_structure::rectangular> transpose(const self& M) {
-      mat<value_type,mat_structure::rectangular> result(M.get_col_count(), M.get_row_count());
-      for(size_type j = 0; j < result.get_col_count(); ++j)
-        for(size_type i = 0; i < result.get_row_count(); ++i)
-          result(i,j) = M(j,i);
-      return result;
-    };
-    
-    /**
-     * Transposes the matrix M.
-     * \param M The matrix to be transposed.
-     * \return The transpose of M.
-     */
-    friend mat<value_type,mat_structure::rectangular> transpose_move(const self& M) {
-      mat<value_type,mat_structure::rectangular> result(M.get_col_count(), M.get_row_count());
-      for(size_type j = 0; j < result.get_col_count(); ++j)
-        for(size_type i = 0; i < result.get_row_count(); ++i)
-          result(i,j) = M(j,i);
-      return result;
     };
     
 };
@@ -449,8 +412,8 @@ class mat_ref_horiz_cat {
     self& >::type operator=(const Matrix& rhs) {
       if((rhs.get_row_count() != ml->get_row_count()) || (rhs.get_col_count() != ml->get_col_count() + mr->get_col_count()))
         throw std::range_error("Matrix dimensions mismatch.");
-      (*ml) = sub(rhs)(range(0,ml->get_row_count()-1),range(0,ml->get_col_count()-1));
-      (*mr) = sub(rhs)(range(0,mr->get_row_count()-1),range(ml->get_col_count(),ml->get_col_count() + mr->get_col_count()-1));
+      (*ml) = sub(rhs)(range(0,ml->get_row_count()),range(0,ml->get_col_count()));
+      (*mr) = sub(rhs)(range(0,mr->get_row_count()),range(ml->get_col_count(),ml->get_col_count() + mr->get_col_count()));
       return *this;
     };
     
@@ -518,11 +481,11 @@ class mat_ref_horiz_cat {
      */
     template <typename Matrix>
     self& operator +=(const Matrix& M) {
-      boost::function_requires< ReadableMatrixConcept<Matrix> >();
+      BOOST_CONCEPT_ASSERT((ReadableMatrixConcept<Matrix>));
       if((M.get_row_count() != ml->get_row_count()) || (M.get_col_count() != ml->get_col_count() + mr->get_col_count()))
         throw std::range_error("Matrix dimension mismatch.");
-      (*ml) += sub(M)(range(0,ml->get_row_count()-1),range(0,ml->get_col_count()-1));
-      (*mr) += sub(M)(range(0,mr->get_row_count()-1),range(ml->get_col_count(),ml->get_col_count() + mr->get_col_count()-1));
+      (*ml) += sub(M)(range(0,ml->get_row_count()),range(0,ml->get_col_count()));
+      (*mr) += sub(M)(range(0,mr->get_row_count()),range(ml->get_col_count(),ml->get_col_count() + mr->get_col_count()));
       return *this;
     };
 
@@ -532,11 +495,11 @@ class mat_ref_horiz_cat {
      */
     template <typename Matrix>
     self& operator -=(const Matrix& M) {
-      boost::function_requires< ReadableMatrixConcept<Matrix> >();
+      BOOST_CONCEPT_ASSERT((ReadableMatrixConcept<Matrix>));
       if((M.get_row_count() != ml->get_row_count()) || (M.get_col_count() != ml->get_col_count() + mr->get_col_count()))
         throw std::range_error("Matrix dimension mismatch.");
-      (*ml) -= sub(M)(range(0,ml->get_row_count()-1),range(0,ml->get_col_count()-1));
-      (*mr) -= sub(M)(range(0,mr->get_row_count()-1),range(ml->get_col_count(),ml->get_col_count() + mr->get_col_count()-1));
+      (*ml) -= sub(M)(range(0,ml->get_row_count()),range(0,ml->get_col_count()));
+      (*mr) -= sub(M)(range(0,mr->get_row_count()),range(ml->get_col_count(),ml->get_col_count() + mr->get_col_count()));
       return *this;
     };
 
@@ -561,46 +524,6 @@ class mat_ref_horiz_cat {
         throw std::range_error("Matrix Dimension Mismatch.");
       *this = *this * M;
       return *this;
-    };
-    
-    /** WORKS FOR ALL
-     * General negation operator for any type of matrices. This is a default operator
-     * that will be called if no better special-purpose overload exists.
-     * \return General column-major matrix.
-     * \test PASSED
-     */
-    mat<value_type,mat_structure::rectangular> operator -() const {
-      mat<value_type,mat_structure::rectangular> result(*this);
-      for(size_type j = 0; j < result.get_col_count(); ++j)
-        for(size_type i = 0; i < result.get_row_count(); ++i)
-          result(i,j) = -result(i,j);
-      return result;
-    };
-    
-    /**
-     * Transposes the matrix M.
-     * \param M The matrix to be transposed.
-     * \return The transpose of M.
-     */
-    friend mat<value_type,mat_structure::rectangular> transpose(const self& M) {
-      mat<value_type,mat_structure::rectangular> result(M.get_col_count(), M.get_row_count());
-      for(size_type j = 0; j < result.get_col_count(); ++j)
-        for(size_type i = 0; i < result.get_row_count(); ++i)
-          result(i,j) = M(j,i);
-      return result;
-    };
-    
-    /**
-     * Transposes the matrix M.
-     * \param M The matrix to be transposed.
-     * \return The transpose of M.
-     */
-    friend mat<value_type,mat_structure::rectangular> transpose_move(const self& M) {
-      mat<value_type,mat_structure::rectangular> result(M.get_col_count(), M.get_row_count());
-      for(size_type j = 0; j < result.get_col_count(); ++j)
-        for(size_type i = 0; i < result.get_row_count(); ++i)
-          result(i,j) = M(j,i);
-      return result;
     };
     
 };
@@ -755,47 +678,6 @@ class mat_const_ref_horiz_cat {
      * \return the allocator object of the underlying container.
      */
     allocator_type get_allocator() const { return ml->get_allocator(); };
-    
-    
-    /** WORKS FOR ALL
-     * General negation operator for any type of matrices. This is a default operator
-     * that will be called if no better special-purpose overload exists.
-     * \return General column-major matrix.
-     * \test PASSED
-     */
-    mat<value_type,mat_structure::rectangular> operator -() const {
-      mat<value_type,mat_structure::rectangular> result(*this);
-      for(size_type j = 0; j < result.get_col_count(); ++j)
-        for(size_type i = 0; i < result.get_row_count(); ++i)
-          result(i,j) = -result(i,j);
-      return result;
-    };
-    
-    /**
-     * Transposes the matrix M.
-     * \param M The matrix to be transposed.
-     * \return The transpose of M.
-     */
-    friend mat<value_type,mat_structure::rectangular> transpose(const self& M) {
-      mat<value_type,mat_structure::rectangular> result(M.get_col_count(), M.get_row_count());
-      for(size_type j = 0; j < result.get_col_count(); ++j)
-        for(size_type i = 0; i < result.get_row_count(); ++i)
-          result(i,j) = M(j,i);
-      return result;
-    };
-    
-    /**
-     * Transposes the matrix M.
-     * \param M The matrix to be transposed.
-     * \return The transpose of M.
-     */
-    friend mat<value_type,mat_structure::rectangular> transpose_move(const self& M) {
-      mat<value_type,mat_structure::rectangular> result(M.get_col_count(), M.get_row_count());
-      for(size_type j = 0; j < result.get_col_count(); ++j)
-        for(size_type i = 0; i < result.get_row_count(); ++i)
-          result(i,j) = M(j,i);
-      return result;
-    };
     
 };
 
@@ -1239,8 +1121,8 @@ class mat_vert_cat {
     self& >::type operator=(const Matrix& rhs) {
       if((rhs.get_row_count() != mu.get_row_count() + ml.get_row_count()) || (rhs.get_col_count() != mu.get_col_count()))
         throw std::range_error("Matrix dimensions mismatch.");
-      mu = sub(rhs)(range(0,mu.get_row_count()-1),range(0,mu.get_col_count()-1));
-      ml = sub(rhs)(range(mu.get_row_count(),mu.get_row_count() + ml.get_row_count()-1),range(0,ml.get_col_count()-1));
+      mu = sub(rhs)(range(0,mu.get_row_count()),range(0,mu.get_col_count()));
+      ml = sub(rhs)(range(mu.get_row_count(),mu.get_row_count() + ml.get_row_count()),range(0,ml.get_col_count()));
       return *this;
     };
     
@@ -1308,11 +1190,11 @@ class mat_vert_cat {
      */
     template <typename Matrix>
     self& operator +=(const Matrix& M) {
-      boost::function_requires< ReadableMatrixConcept<Matrix> >();
+      BOOST_CONCEPT_ASSERT((ReadableMatrixConcept<Matrix>));
       if((M.get_row_count() != mu.get_row_count() + ml.get_row_count()) || (M.get_col_count() != mu.get_col_count()))
         throw std::range_error("Matrix dimensions mismatch.");
-      mu += sub(M)(range(0,mu.get_row_count()-1),range(0,mu.get_col_count()-1));
-      ml += sub(M)(range(mu.get_row_count(),mu.get_row_count() + ml.get_row_count()-1),range(0,ml.get_col_count()-1));
+      mu += sub(M)(range(0,mu.get_row_count()),range(0,mu.get_col_count()));
+      ml += sub(M)(range(mu.get_row_count(),mu.get_row_count() + ml.get_row_count()),range(0,ml.get_col_count()));
       return *this;
     };
 
@@ -1322,11 +1204,11 @@ class mat_vert_cat {
      */
     template <typename Matrix>
     self& operator -=(const Matrix& M) {
-      boost::function_requires< ReadableMatrixConcept<Matrix> >();
+      BOOST_CONCEPT_ASSERT((ReadableMatrixConcept<Matrix>));
       if((M.get_row_count() != mu.get_row_count() + ml.get_row_count()) || (M.get_col_count() != mu.get_col_count()))
         throw std::range_error("Matrix dimensions mismatch.");
-      mu -= sub(M)(range(0,mu.get_row_count()-1),range(0,mu.get_col_count()-1));
-      ml -= sub(M)(range(mu.get_row_count(),mu.get_row_count() + ml.get_row_count()-1),range(0,ml.get_col_count()-1));
+      mu -= sub(M)(range(0,mu.get_row_count()),range(0,mu.get_col_count()));
+      ml -= sub(M)(range(mu.get_row_count(),mu.get_row_count() + ml.get_row_count()),range(0,ml.get_col_count()));
       return *this;
     };
 
@@ -1351,46 +1233,6 @@ class mat_vert_cat {
         throw std::range_error("Matrix Dimension Mismatch.");
       *this = *this * M;
       return *this;
-    };
-    
-    /** WORKS FOR ALL
-     * General negation operator for any type of matrices. This is a default operator
-     * that will be called if no better special-purpose overload exists.
-     * \return General column-major matrix.
-     * \test PASSED
-     */
-    mat<value_type,mat_structure::rectangular> operator -() const {
-      mat<value_type,mat_structure::rectangular> result(*this);
-      for(size_type j = 0; j < result.get_col_count(); ++j)
-        for(size_type i = 0; i < result.get_row_count(); ++i)
-          result(i,j) = -result(i,j);
-      return result;
-    };
-    
-    /**
-     * Transposes the matrix M.
-     * \param M The matrix to be transposed.
-     * \return The transpose of M.
-     */
-    friend mat<value_type,mat_structure::rectangular> transpose(const self& M) {
-      mat<value_type,mat_structure::rectangular> result(M.get_col_count(), M.get_row_count());
-      for(size_type j = 0; j < result.get_col_count(); ++j)
-        for(size_type i = 0; i < result.get_row_count(); ++i)
-          result(i,j) = M(j,i);
-      return result;
-    };
-    
-    /**
-     * Transposes the matrix M.
-     * \param M The matrix to be transposed.
-     * \return The transpose of M.
-     */
-    friend mat<value_type,mat_structure::rectangular> transpose_move(const self& M) {
-      mat<value_type,mat_structure::rectangular> result(M.get_col_count(), M.get_row_count());
-      for(size_type j = 0; j < result.get_col_count(); ++j)
-        for(size_type i = 0; i < result.get_row_count(); ++i)
-          result(i,j) = M(j,i);
-      return result;
     };
     
 };
@@ -1503,8 +1345,8 @@ class mat_ref_vert_cat {
     self& >::type operator=(const Matrix& rhs) {
       if((rhs.get_row_count() != mu->get_row_count() + ml->get_row_count()) || (rhs.get_col_count() != mu->get_col_count()))
         throw std::range_error("Matrix dimensions mismatch.");
-      *mu = sub(rhs)(range(0,mu->get_row_count()-1),range(0,mu->get_col_count()-1));
-      *ml = sub(rhs)(range(mu->get_row_count(),mu->get_row_count() + ml->get_row_count()-1),range(0,ml->get_col_count()-1));
+      *mu = sub(rhs)(range(0,mu->get_row_count()),range(0,mu->get_col_count()));
+      *ml = sub(rhs)(range(mu->get_row_count(),mu->get_row_count() + ml->get_row_count()),range(0,ml->get_col_count()));
       return *this;
     };
     
@@ -1572,11 +1414,11 @@ class mat_ref_vert_cat {
      */
     template <typename Matrix>
     self& operator +=(const Matrix& M) {
-      boost::function_requires< ReadableMatrixConcept<Matrix> >();
+      BOOST_CONCEPT_ASSERT((ReadableMatrixConcept<Matrix>));
       if((M.get_row_count() != mu->get_row_count() + ml->get_row_count()) || (M.get_col_count() != mu->get_col_count()))
         throw std::range_error("Matrix dimensions mismatch.");
-      *mu += sub(M)(range(0,mu->get_row_count()-1),range(0,mu->get_col_count()-1));
-      *ml += sub(M)(range(mu->get_row_count(),mu->get_row_count() + ml->get_row_count()-1),range(0,ml->get_col_count()-1));
+      *mu += sub(M)(range(0,mu->get_row_count()),range(0,mu->get_col_count()));
+      *ml += sub(M)(range(mu->get_row_count(),mu->get_row_count() + ml->get_row_count()),range(0,ml->get_col_count()));
       return *this;
     };
 
@@ -1586,11 +1428,11 @@ class mat_ref_vert_cat {
      */
     template <typename Matrix>
     self& operator -=(const Matrix& M) {
-      boost::function_requires< ReadableMatrixConcept<Matrix> >();
+      BOOST_CONCEPT_ASSERT((ReadableMatrixConcept<Matrix>));
       if((M.get_row_count() != mu->get_row_count() + ml->get_row_count()) || (M.get_col_count() != mu->get_col_count()))
         throw std::range_error("Matrix dimensions mismatch.");
-      *mu -= sub(M)(range(0,mu->get_row_count()-1),range(0,mu->get_col_count()-1));
-      *ml -= sub(M)(range(mu->get_row_count(),mu->get_row_count() + ml->get_row_count()-1),range(0,ml->get_col_count()-1));
+      *mu -= sub(M)(range(0,mu->get_row_count()),range(0,mu->get_col_count()));
+      *ml -= sub(M)(range(mu->get_row_count(),mu->get_row_count() + ml->get_row_count()),range(0,ml->get_col_count()));
       return *this;
     };
 
@@ -1615,46 +1457,6 @@ class mat_ref_vert_cat {
         throw std::range_error("Matrix Dimension Mismatch.");
       *this = *this * M;
       return *this;
-    };
-    
-    /** WORKS FOR ALL
-     * General negation operator for any type of matrices. This is a default operator
-     * that will be called if no better special-purpose overload exists.
-     * \return General column-major matrix.
-     * \test PASSED
-     */
-    mat<value_type,mat_structure::rectangular> operator -() const {
-      mat<value_type,mat_structure::rectangular> result(*this);
-      for(size_type j = 0; j < result.get_col_count(); ++j)
-        for(size_type i = 0; i < result.get_row_count(); ++i)
-          result(i,j) = -result(i,j);
-      return result;
-    };
-    
-    /**
-     * Transposes the matrix M.
-     * \param M The matrix to be transposed.
-     * \return The transpose of M.
-     */
-    friend mat<value_type,mat_structure::rectangular> transpose(const self& M) {
-      mat<value_type,mat_structure::rectangular> result(M.get_col_count(), M.get_row_count());
-      for(size_type j = 0; j < result.get_col_count(); ++j)
-        for(size_type i = 0; i < result.get_row_count(); ++i)
-          result(i,j) = M(j,i);
-      return result;
-    };
-    
-    /**
-     * Transposes the matrix M.
-     * \param M The matrix to be transposed.
-     * \return The transpose of M.
-     */
-    friend mat<value_type,mat_structure::rectangular> transpose_move(const self& M) {
-      mat<value_type,mat_structure::rectangular> result(M.get_col_count(), M.get_row_count());
-      for(size_type j = 0; j < result.get_col_count(); ++j)
-        for(size_type i = 0; i < result.get_row_count(); ++i)
-          result(i,j) = M(j,i);
-      return result;
     };
     
 };
@@ -1804,46 +1606,6 @@ class mat_const_ref_vert_cat {
      * \return the allocator object of the underlying container.
      */
     allocator_type get_allocator() const { return mu->get_allocator(); };
-    
-    /** WORKS FOR ALL
-     * General negation operator for any type of matrices. This is a default operator
-     * that will be called if no better special-purpose overload exists.
-     * \return General column-major matrix.
-     * \test PASSED
-     */
-    mat<value_type,mat_structure::rectangular> operator -() const {
-      mat<value_type,mat_structure::rectangular> result(*this);
-      for(size_type j = 0; j < result.get_col_count(); ++j)
-        for(size_type i = 0; i < result.get_row_count(); ++i)
-          result(i,j) = -result(i,j);
-      return result;
-    };
-    
-    /**
-     * Transposes the matrix M.
-     * \param M The matrix to be transposed.
-     * \return The transpose of M.
-     */
-    friend mat<value_type,mat_structure::rectangular> transpose(const self& M) {
-      mat<value_type,mat_structure::rectangular> result(M.get_col_count(), M.get_row_count());
-      for(size_type j = 0; j < result.get_col_count(); ++j)
-        for(size_type i = 0; i < result.get_row_count(); ++i)
-          result(i,j) = M(j,i);
-      return result;
-    };
-    
-    /**
-     * Transposes the matrix M.
-     * \param M The matrix to be transposed.
-     * \return The transpose of M.
-     */
-    friend mat<value_type,mat_structure::rectangular> transpose_move(const self& M) {
-      mat<value_type,mat_structure::rectangular> result(M.get_col_count(), M.get_row_count());
-      for(size_type j = 0; j < result.get_col_count(); ++j)
-        for(size_type i = 0; i < result.get_row_count(); ++i)
-          result(i,j) = M(j,i);
-      return result;
-    };
     
 };
 

@@ -33,9 +33,9 @@
 #ifndef REAK_INFORMATION_MATRIX_HPP
 #define REAK_INFORMATION_MATRIX_HPP
 
-#include "lin_alg/mat_alg.hpp"
-#include "lin_alg/mat_cholesky.hpp"
-#include "base/named_object.hpp"
+#include <ReaK/core/base/named_object.hpp>
+#include <ReaK/core/lin_alg/mat_alg.hpp>
+#include <ReaK/core/lin_alg/mat_cholesky.hpp>
 
 #include "covariance_concept.hpp"
 

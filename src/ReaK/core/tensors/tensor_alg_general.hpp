@@ -34,13 +34,13 @@
 #ifndef REAK_TENSOR_ALG_GENERAL_HPP
 #define REAK_TENSOR_ALG_GENERAL_HPP
 
-#include "base/defs.hpp"
+#include <ReaK/core/base/defs.hpp>
 #include "tensor_concepts.hpp"
 #include "tensor_traits.hpp"
-#include "stride_iterator.hpp"
+#include <ReaK/core/lin_alg/stride_iterator.hpp>
 
-#include "base/serializable.hpp"
-#include "rtti/so_register_type.hpp"
+#include <ReaK/core/base/serializable.hpp>
+#include <ReaK/core/rtti/so_register_type.hpp>
 
 #include <boost/type_traits.hpp>
 #include <boost/utility/enable_if.hpp>
@@ -73,15 +73,15 @@ namespace ReaK {
 template <typename T, 
           unsigned int Order,
           tensor_structure::tag Structure = tensor_structure::rectangular,
-	  tensor_alignment::tag Alignment = tensor_alignment::hi_dim_major,
-	  typename Allocator = std::allocator<T> >
+          tensor_alignment::tag Alignment = tensor_alignment::hi_dim_major,
+          typename Allocator = std::allocator<T> >
 class tensor { char this_specialization_is_not_available_or_possible[0]; };
 
 template <typename T, 
           unsigned int Order,
           tensor_structure::tag Structure,
-	  tensor_alignment::tag Alignment,
-	  typename Allocator>
+          tensor_alignment::tag Alignment,
+          typename Allocator>
 struct is_readable_tensor< tensor<T,Order,Structure,Alignment,Allocator> > {
   typedef boost::mpl::integral_c_tag tag;
   typedef bool value_type;
@@ -92,8 +92,8 @@ struct is_readable_tensor< tensor<T,Order,Structure,Alignment,Allocator> > {
 template <typename T, 
           unsigned int Order,
           tensor_structure::tag Structure,
-	  tensor_alignment::tag Alignment,
-	  typename Allocator>
+          tensor_alignment::tag Alignment,
+          typename Allocator>
 struct is_writable_tensor< tensor<T,Order,Structure,Alignment,Allocator> > {
   typedef boost::mpl::integral_c_tag tag;
   typedef bool value_type;
@@ -104,8 +104,8 @@ struct is_writable_tensor< tensor<T,Order,Structure,Alignment,Allocator> > {
 template <typename T, 
           unsigned int Order,
           tensor_structure::tag Structure,
-	  tensor_alignment::tag Alignment,
-	  typename Allocator>
+          tensor_alignment::tag Alignment,
+          typename Allocator>
 struct is_fully_writable_tensor< tensor<T,Order,Structure,Alignment,Allocator> > {
   typedef boost::mpl::integral_c_tag tag;
   typedef bool value_type;
@@ -116,8 +116,8 @@ struct is_fully_writable_tensor< tensor<T,Order,Structure,Alignment,Allocator> >
 template <typename T, 
           unsigned int Order,
           tensor_structure::tag Structure,
-	  tensor_alignment::tag Alignment,
-	  typename Allocator>
+          tensor_alignment::tag Alignment,
+          typename Allocator>
 struct is_resizable_tensor< tensor<T,Order,Structure,Alignment,Allocator> > {
   typedef boost::mpl::integral_c_tag tag;
   typedef bool value_type;
@@ -128,8 +128,8 @@ struct is_resizable_tensor< tensor<T,Order,Structure,Alignment,Allocator> > {
 template <typename T, 
           unsigned int Order,
           tensor_structure::tag Structure,
-	  tensor_alignment::tag Alignment,
-	  typename Allocator>
+          tensor_alignment::tag Alignment,
+          typename Allocator>
 struct has_allocator_tensor< tensor<T,Order,Structure,Alignment,Allocator> > {
   typedef boost::mpl::integral_c_tag tag;
   typedef bool value_type;
@@ -140,8 +140,8 @@ struct has_allocator_tensor< tensor<T,Order,Structure,Alignment,Allocator> > {
 template <typename T, 
           unsigned int Order,
           tensor_structure::tag Structure,
-	  tensor_alignment::tag Alignment,
-	  typename Allocator>
+          tensor_alignment::tag Alignment,
+          typename Allocator>
 struct is_square_tensor< tensor<T,Order,Structure,Alignment,Allocator> > {
   typedef boost::mpl::integral_c_tag tag;
   typedef bool value_type;
@@ -152,8 +152,8 @@ struct is_square_tensor< tensor<T,Order,Structure,Alignment,Allocator> > {
 template <typename T, 
           unsigned int Order,
           tensor_structure::tag Structure,
-	  tensor_alignment::tag Alignment,
-	  typename Allocator>
+          tensor_alignment::tag Alignment,
+          typename Allocator>
 struct is_diagonal_tensor< tensor<T,Order,Structure,Alignment,Allocator> > {
   typedef boost::mpl::integral_c_tag tag;
   typedef bool value_type;
@@ -169,8 +169,8 @@ namespace rtti {
 template <typename T,
           unsigned int Order,
           tensor_structure::tag Structure, 
-	  tensor_alignment::tag Alignment,
-	  typename Allocator>
+          tensor_alignment::tag Alignment,
+          typename Allocator>
 struct get_type_id< tensor<T,Order,Structure,Alignment,Allocator> > {
   BOOST_STATIC_CONSTANT(unsigned int, ID = 0x00000030);
   static std::string type_name() { return "tensor"; };
@@ -183,18 +183,18 @@ struct get_type_id< tensor<T,Order,Structure,Alignment,Allocator> > {
 template <typename T, 
           unsigned int Order,
           tensor_structure::tag Structure, 
-	  tensor_alignment::tag Alignment, 
-	  typename Allocator, 
-	  typename Tail>
+          tensor_alignment::tag Alignment, 
+          typename Allocator, 
+          typename Tail>
 struct get_type_info< tensor<T,Order,Structure,Alignment,Allocator>, Tail > {
   typedef detail::type_id< tensor<T,Order,Structure,Alignment,Allocator> , typename get_type_info<T,
                                                                                     get_type_info< boost::mpl::integral_c<unsigned int,Order>,
                                                                                     get_type_info< boost::mpl::integral_c<tensor_structure::tag,Structure>,
-									            get_type_info< boost::mpl::integral_c<tensor_alignment::tag,Alignment>, Tail> > > >::type > type;
+                                                                                    get_type_info< boost::mpl::integral_c<tensor_alignment::tag,Alignment>, Tail> > > >::type > type;
   static std::string type_name() { return get_type_id< tensor<T,Order,Structure,Alignment,Allocator> >::type_name() + "<" + get_type_id<T>::type_name() + "," 
                                                                                                                           + get_type_id< boost::mpl::integral_c<unsigned int,Order> >::type_name() + "," 
                                                                                                                           + get_type_id< boost::mpl::integral_c<tensor_structure::tag,Structure> >::type_name() + "," 
-														          + get_type_id< boost::mpl::integral_c<tensor_alignment::tag,Alignment> >::type_name() + ">" + (boost::is_same< Tail, null_type_info >::value ? "" : "," + Tail::type_name()); };
+                                                                                                                          + get_type_id< boost::mpl::integral_c<tensor_alignment::tag,Alignment> >::type_name() + ">" + (boost::is_same< Tail, null_type_info >::value ? "" : "," + Tail::type_name()); };
 };
 
 

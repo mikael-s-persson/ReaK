@@ -21,15 +21,15 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "scheme_builder.hpp"
+#include <ReaK/core/serialization/scheme_builder.hpp>
 
 
-#include "base/shared_object.hpp"
-#include "rtti/so_type.hpp"
-#include "rtti/so_type_repo.hpp"
-#include "rtti/typed_primitives.hpp"
+#include <ReaK/core/base/shared_object.hpp>
+#include <ReaK/core/rtti/so_type.hpp>
+#include <ReaK/core/rtti/so_type_repo.hpp>
+#include <ReaK/core/rtti/typed_primitives.hpp>
 
-#include "type_schemes.hpp"
+#include <ReaK/core/serialization/type_schemes.hpp>
 
 #include <string>
 

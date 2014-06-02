@@ -67,9 +67,9 @@ class coord_arrows_3D : public geometry_3D {
      * \param aArrowLength The length of the arrows representing the coordinate axes.
      */
     coord_arrows_3D(const std::string& aName = "",
-		    const shared_ptr< pose_3D<double> >& aAnchor = shared_ptr< pose_3D<double> >(),
-		    const pose_3D<double>& aPose = pose_3D<double>(),
-		    double aArrowLength = 1.0);
+                    const shared_ptr< pose_3D<double> >& aAnchor = shared_ptr< pose_3D<double> >(),
+                    const pose_3D<double>& aPose = pose_3D<double>(),
+                    double aArrowLength = 1.0);
     
     /**
      * Default destructor.

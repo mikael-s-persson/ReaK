@@ -36,9 +36,8 @@
 #ifndef REAK_NELDER_MEAD_METHOD_HPP
 #define REAK_NELDER_MEAD_METHOD_HPP
 
-#include "base/defs.hpp"
-
-#include "lin_alg/mat_alg.hpp"
+#include <ReaK/core/base/defs.hpp>
+#include <ReaK/core/lin_alg/mat_alg.hpp>
 
 #include <map>
 #include <boost/random/normal_distribution.hpp>
@@ -76,7 +75,7 @@ T nelder_mead_compute_std_dev(const std::multimap<T, Vector>& pts, const Vector&
 
 template <typename Function, typename Vector, typename T>
 void nelder_mead_method_impl(Function f, std::multimap<T, Vector>& pts, Vector& c, T tol, 
-			     T alpha = T(1.0), T gamma = T(2.0), T rho = T(0.5), T sigma = T(0.5)) {
+                             T alpha = T(1.0), T gamma = T(2.0), T rho = T(0.5), T sigma = T(0.5)) {
   typedef typename std::multimap<T, Vector>::iterator IterType;
   
   nelder_mead_compute_center_of_gravity(pts,c);
@@ -90,26 +89,26 @@ void nelder_mead_method_impl(Function f, std::multimap<T, Vector>& pts, Vector& 
       Vector x_e = c + gamma * (pts.rbegin()->second - c);
       T x_e_value = f(x_e);
       if( x_e_value < x_r_value )
-	pts.insert(it_r, std::pair<T,Vector>(x_e_value,x_e));
+        pts.insert(it_r, std::pair<T,Vector>(x_e_value,x_e));
       else
-	pts.insert(it_r, std::pair<T,Vector>(x_r_value,x_r));
+        pts.insert(it_r, std::pair<T,Vector>(x_r_value,x_r));
     } else if((it_r == (++pts.rbegin()).base()) 
            || (it_r == pts.end())) {
       // do contraction (and possibly reduction after).
       Vector x_c = pts.rbegin()->second + rho * (c - pts.rbegin()->second);
       T x_c_value = f(x_c);
       if( x_c_value < pts.rbegin()->first )
-	pts.insert(it_r, std::pair<T,Vector>(x_c_value,x_c));
+        pts.insert(it_r, std::pair<T,Vector>(x_c_value,x_c));
       else {
-	//do reduction.
-	std::multimap<T,Vector> tmp;
-	tmp.swap(pts);
-	IterType it = tmp.begin(); ++it;
-	IterType it2 = pts.insert(*tmp.begin());
-	for(; it != pts.end(); ++it) {
-	  Vector x_t = tmp.begin()->second + sigma * (it->second - tmp.begin()->second);
-	  pts.insert(it2, std::pair<T,Vector>(f(x_t), x_t)); ++it2;
-	};
+        //do reduction.
+        std::multimap<T,Vector> tmp;
+        tmp.swap(pts);
+        IterType it = tmp.begin(); ++it;
+        IterType it2 = pts.insert(*tmp.begin());
+        for(; it != pts.end(); ++it) {
+          Vector x_t = tmp.begin()->second + sigma * (it->second - tmp.begin()->second);
+          pts.insert(it2, std::pair<T,Vector>(f(x_t), x_t)); ++it2;
+        };
       };
     } else {
       // do reflection.
@@ -154,7 +153,7 @@ template <typename Function, typename Vector, typename T, typename ForwardIter>
 typename boost::enable_if<
   is_writable_vector<Vector>,
 void >::type nelder_mead_method(ForwardIter first, ForwardIter last, Function f, Vector& c, T tol = T(1e-6), 
-				T alpha = T(1.0), T gamma = T(2.0), T rho = T(0.5), T sigma = T(0.5)) {
+                                T alpha = T(1.0), T gamma = T(2.0), T rho = T(0.5), T sigma = T(0.5)) {
   std::multimap<T, Vector> pts;
   for(; first != last; ++first) 
     pts.insert(std::pair<T,Vector>(f(*first),*first));
@@ -188,7 +187,7 @@ template <typename Function, typename Vector, typename T, typename RandomNumberG
 typename boost::enable_if<
   is_writable_vector<Vector>,
 void >::type nelder_mead_method(Function f, Vector& c, T init_spread, RandomNumberGen& rng, T tol = T(1e-6), 
-				T alpha = T(1.0), T gamma = T(2.0), T rho = T(0.5), T sigma = T(0.5)) {
+                                T alpha = T(1.0), T gamma = T(2.0), T rho = T(0.5), T sigma = T(0.5)) {
   typedef typename vect_traits<Vector>::size_type SizeType;
   typedef typename vect_traits<Vector>::value_type ValueType;
   

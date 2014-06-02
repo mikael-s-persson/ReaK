@@ -32,12 +32,11 @@
 #ifndef REAK_GAUSS_NEWTON_METHOD_HPP
 #define REAK_GAUSS_NEWTON_METHOD_HPP
 
-#include "base/defs.hpp"
+#include <ReaK/core/base/defs.hpp>
 
-#include "lin_alg/mat_alg.hpp"
-#include "lin_alg/mat_num_exceptions.hpp"
-
-#include "lin_alg/mat_qr_decomp.hpp"
+#include <ReaK/core/lin_alg/mat_alg.hpp>
+#include <ReaK/core/lin_alg/mat_num_exceptions.hpp>
+#include <ReaK/core/lin_alg/mat_qr_decomp.hpp>
 
 #include "limit_functions.hpp"
 
@@ -53,11 +52,11 @@ namespace detail {
   
 template <typename Function, typename JacobianFunction, 
           typename InputVector, typename OutputVector, 
-	  typename LinearLsqSolver, typename LimitFunction>
+          typename LinearLsqSolver, typename LimitFunction>
 void gauss_newton_nllsq_impl(Function f, JacobianFunction fill_jac, InputVector& x, const OutputVector& y, unsigned int max_iter,
-			     LinearLsqSolver lin_solve, LimitFunction impose_limits, 
-			     typename vect_traits<InputVector>::value_type abs_tol = typename vect_traits<InputVector>::value_type(1e-6), 
-			     typename vect_traits<InputVector>::value_type abs_grad_tol = typename vect_traits<InputVector>::value_type(1e-6)) {
+                             LinearLsqSolver lin_solve, LimitFunction impose_limits, 
+                             typename vect_traits<InputVector>::value_type abs_tol = typename vect_traits<InputVector>::value_type(1e-6), 
+                             typename vect_traits<InputVector>::value_type abs_grad_tol = typename vect_traits<InputVector>::value_type(1e-6)) {
   typedef typename vect_traits<InputVector>::value_type ValueType;
   using std::sqrt; using std::fabs;
   
@@ -101,8 +100,8 @@ void gauss_newton_nllsq_impl(Function f, JacobianFunction fill_jac, InputVector&
  */
 template <typename Function, typename JacobianFunction, 
           typename OutputVector, typename T = double,
-	  typename LimitFunction = no_limit_functor, 
-	  typename LinearSolver = QR_linlsqsolver>
+          typename LimitFunction = no_limit_functor, 
+          typename LinearSolver = QR_linlsqsolver>
 struct gauss_newton_nllsq_factory {
   Function f;
   JacobianFunction fill_jac;
@@ -115,7 +114,7 @@ struct gauss_newton_nllsq_factory {
   
   typedef gauss_newton_nllsq_factory<
             Function,JacobianFunction,OutputVector,T,
-	    LimitFunction,LinearSolver> self;
+            LimitFunction,LinearSolver> self;
   
   /**
    * Parametrized constructor of the factory object.
@@ -129,14 +128,14 @@ struct gauss_newton_nllsq_factory {
    * \param aLinSolver The functor that can solve a linear system.
    */
   gauss_newton_nllsq_factory(Function aF, JacobianFunction aFillJac,
-			     OutputVector aY, unsigned int aMaxIter = 100,
-			     T aTol = T(1e-6), T aGradTol = T(1e-6),
-			     LimitFunction aImposeLimits = LimitFunction(),
-			     LinearSolver aLinSolver = LinearSolver()) :
-			     f(aF), fill_jac(aFillJac), y(aY), max_iter(aMaxIter),
-			     abs_tol(aTol), abs_grad_tol(aGradTol), 
-			     impose_limits(aImposeLimits),
-			     lin_solve(aLinSolver) { };
+                             OutputVector aY, unsigned int aMaxIter = 100,
+                             T aTol = T(1e-6), T aGradTol = T(1e-6),
+                             LimitFunction aImposeLimits = LimitFunction(),
+                             LinearSolver aLinSolver = LinearSolver()) :
+                             f(aF), fill_jac(aFillJac), y(aY), max_iter(aMaxIter),
+                             abs_tol(aTol), abs_grad_tol(aGradTol), 
+                             impose_limits(aImposeLimits),
+                             lin_solve(aLinSolver) { };
   /**
    * This function finds the minimum of a function, given its derivative and Hessian, 
    * using a newton search direction and using a trust-region approach.
@@ -173,12 +172,12 @@ struct gauss_newton_nllsq_factory {
   template <typename NewLinearSolver>
   gauss_newton_nllsq_factory<
             Function,JacobianFunction,OutputVector,T, 
-	    LimitFunction,NewLinearSolver>
+            LimitFunction,NewLinearSolver>
     set_lin_solver(NewLinearSolver new_lin_solver) const {
     return gauss_newton_nllsq_factory<
              Function,JacobianFunction,OutputVector,T,
              LimitFunction,NewLinearSolver>(f,fill_jac,y,max_iter,abs_tol,abs_grad_tol,
-					    impose_limits, new_lin_solver);
+                                            impose_limits, new_lin_solver);
   };
     
   /**
@@ -192,12 +191,12 @@ struct gauss_newton_nllsq_factory {
   template <typename NewLimitFunction>
   gauss_newton_nllsq_factory<
             Function,JacobianFunction,OutputVector, 
-	    NewLimitFunction,LinearSolver,T>
+            NewLimitFunction,LinearSolver,T>
     set_limiter(NewLimitFunction new_limits) const {
     return gauss_newton_nllsq_factory<
              Function,JacobianFunction,OutputVector,T, 
-	     NewLimitFunction,LinearSolver>(f,fill_jac,y,max_iter,abs_tol,abs_grad_tol,
-					    new_limits, lin_solve);
+             NewLimitFunction,LinearSolver>(f,fill_jac,y,max_iter,abs_tol,abs_grad_tol,
+                                            new_limits, lin_solve);
   };
     
 };
@@ -220,8 +219,8 @@ struct gauss_newton_nllsq_factory {
 template <typename Function, typename JacobianFunction, typename OutputVector>
 gauss_newton_nllsq_factory<Function,JacobianFunction,OutputVector,typename vect_traits<OutputVector>::value_type> 
   make_gauss_newton_nllsq(Function f, JacobianFunction fill_jac, OutputVector y, unsigned int max_iter = 100, 
-			  typename vect_traits<OutputVector>::value_type abs_tol = typename vect_traits<OutputVector>::value_type(1E-6), 
-			  typename vect_traits<OutputVector>::value_type abs_grad_tol = typename vect_traits<OutputVector>::value_type(1E-6)) {
+                          typename vect_traits<OutputVector>::value_type abs_tol = typename vect_traits<OutputVector>::value_type(1E-6), 
+                          typename vect_traits<OutputVector>::value_type abs_grad_tol = typename vect_traits<OutputVector>::value_type(1E-6)) {
   return gauss_newton_nllsq_factory<Function,JacobianFunction,OutputVector,typename vect_traits<OutputVector>::value_type>(
            f,fill_jac,y,max_iter,abs_tol,abs_grad_tol);
 };
@@ -249,8 +248,8 @@ gauss_newton_nllsq_factory<Function,JacobianFunction,OutputVector,typename vect_
 template <typename Function, typename JacobianFunction, 
           typename InputVector, typename OutputVector>
 void gauss_newton_nllsq(Function f, JacobianFunction fill_jac, InputVector& x, const OutputVector& y, unsigned int max_iter = 100,
-			typename vect_traits<InputVector>::value_type abs_tol = typename vect_traits<InputVector>::value_type(1e-6),
-			typename vect_traits<InputVector>::value_type abs_grad_tol = typename vect_traits<InputVector>::value_type(1e-6)) {
+                        typename vect_traits<InputVector>::value_type abs_tol = typename vect_traits<InputVector>::value_type(1e-6),
+                        typename vect_traits<InputVector>::value_type abs_grad_tol = typename vect_traits<InputVector>::value_type(1e-6)) {
   detail::gauss_newton_nllsq_impl(f,fill_jac,x,y,max_iter,QR_linlsqsolver(),no_limit_functor(),abs_tol,abs_grad_tol);
 };
 
@@ -275,11 +274,11 @@ void gauss_newton_nllsq(Function f, JacobianFunction fill_jac, InputVector& x, c
  */
 template <typename Function, typename JacobianFunction, 
           typename InputVector, typename OutputVector, 
-	  typename LimitFunction>
+          typename LimitFunction>
 void limited_gauss_newton_nllsq(Function f, JacobianFunction fill_jac, InputVector& x, const OutputVector& y, unsigned int max_iter, 
-			        LimitFunction impose_limits, 
-				typename vect_traits<InputVector>::value_type abs_tol = typename vect_traits<InputVector>::value_type(1e-6), 
-				typename vect_traits<InputVector>::value_type abs_grad_tol = typename vect_traits<InputVector>::value_type(1e-6)) {
+                                LimitFunction impose_limits, 
+                                typename vect_traits<InputVector>::value_type abs_tol = typename vect_traits<InputVector>::value_type(1e-6), 
+                                typename vect_traits<InputVector>::value_type abs_grad_tol = typename vect_traits<InputVector>::value_type(1e-6)) {
   detail::gauss_newton_nllsq_impl(f,fill_jac,x,y,max_iter,QR_linlsqsolver(),impose_limits,abs_tol,abs_grad_tol);
 };
 

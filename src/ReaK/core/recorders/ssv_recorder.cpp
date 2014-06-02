@@ -21,7 +21,7 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "ssv_recorder.hpp"
+#include <ReaK/core/recorders/ssv_recorder.hpp>
 
 namespace ReaK {
 

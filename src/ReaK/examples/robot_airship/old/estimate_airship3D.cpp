@@ -50,16 +50,16 @@ int main(int argc, char** argv) {
   
   if(argc < 7) {
     std::cout << "Usage:\n"
-	      << "\t./estimate_airship3D [inertial_data.xml] [meas_filename.ssv] [result_filename] [time_step] [Qu.xml] [R.xml] [skips] [added_R.xml]\n"
-	      << "\t\t inertial_data.xml:\t The filename of the inertial data of the airship3D.\n"
-	      << "\t\t meas_filename.ssv:\t The filename of a space-sep. values file with the recorded states and measurements.\n"
-	      << "\t\t result_filename:\t The filename prefix where to record the results as a space-separated values file.\n"
-	      << "\t\t time_step:\t\t The time-step of the data points in the measurement file.\n"
-	      << "\t\t Qu.xml:\t\t The filename for the airship's input disturbance covariance matrix.\n"
-	      << "\t\t R.xml:\t\t The filename for the airship's measurement noise covariance matrix."
-	      << "\tOptional:"
-	      << "\t\t skips:\t\t Number of data rows to skip from meas_filename.ssv."
-	      << "\t\t added_R.xml:\t\t Measurement noise covariance matrix to be artificially added to the data points." << std::endl;
+              << "\t./estimate_airship3D [inertial_data.xml] [meas_filename.ssv] [result_filename] [time_step] [Qu.xml] [R.xml] [skips] [added_R.xml]\n"
+              << "\t\t inertial_data.xml:\t The filename of the inertial data of the airship3D.\n"
+              << "\t\t meas_filename.ssv:\t The filename of a space-sep. values file with the recorded states and measurements.\n"
+              << "\t\t result_filename:\t The filename prefix where to record the results as a space-separated values file.\n"
+              << "\t\t time_step:\t\t The time-step of the data points in the measurement file.\n"
+              << "\t\t Qu.xml:\t\t The filename for the airship's input disturbance covariance matrix.\n"
+              << "\t\t R.xml:\t\t The filename for the airship's measurement noise covariance matrix."
+              << "\tOptional:"
+              << "\t\t skips:\t\t Number of data rows to skip from meas_filename.ssv."
+              << "\t\t added_R.xml:\t\t Measurement noise covariance matrix to be artificially added to the data points." << std::endl;
     return 0;
   };
   
@@ -132,34 +132,34 @@ int main(int argc, char** argv) {
     try {
       unsigned int j = 0;
       while(true) {
-	double t;
-	meas_file >> t;
-	std::vector<double> meas;
-	try {
-	  while(true) {
-	    double dummy;
-	    meas_file >> dummy;
-	    meas.push_back(dummy);
-	  };
-	} catch(recorder::out_of_bounds&) { };
-	if(meas.size() < 7) {
-	  RK_ERROR("The measurement file does not appear to have the required number of columns!");
+        double t;
+        meas_file >> t;
+        std::vector<double> meas;
+        try {
+          while(true) {
+            double dummy;
+            meas_file >> dummy;
+            meas.push_back(dummy);
+          };
+        } catch(recorder::out_of_bounds&) { };
+        if(meas.size() < 7) {
+          RK_ERROR("The measurement file does not appear to have the required number of columns!");
           return 4;
         };
-	meas_file >> recorder::data_extractor::end_value_row;
-	if(j == 0) {
-	  measurements.push_back(std::make_pair(t,vect_n<double>(meas.begin(),meas.end())));
-	  vect_n<double> meas_v(7);
-	  meas_v[0] = meas[4] + var_rnd() * sqrt(R_added(0,0));
-	  meas_v[1] = meas[5] += var_rnd() * sqrt(R_added(1,1));
-	  meas_v[2] = meas[6] += var_rnd() * sqrt(R_added(2,2));
-	  meas_v[3] = meas[0] += var_rnd() * sqrt(R_added(3,3));
-	  meas_v[4] = meas[1] += var_rnd() * sqrt(R_added(4,4));
-	  meas_v[5] = meas[2] += var_rnd() * sqrt(R_added(5,5));
-	  meas_v[6] = meas[3] += var_rnd() * sqrt(R_added(6,6));
-	  measurements_noisy.push_back(std::make_pair(t,meas_v));
-	};
-	j = (j+1) % skips;
+        meas_file >> recorder::data_extractor::end_value_row;
+        if(j == 0) {
+          measurements.push_back(std::make_pair(t,vect_n<double>(meas.begin(),meas.end())));
+          vect_n<double> meas_v(7);
+          meas_v[0] = meas[4] + var_rnd() * sqrt(R_added(0,0));
+          meas_v[1] = meas[5] += var_rnd() * sqrt(R_added(1,1));
+          meas_v[2] = meas[6] += var_rnd() * sqrt(R_added(2,2));
+          meas_v[3] = meas[0] += var_rnd() * sqrt(R_added(3,3));
+          meas_v[4] = meas[1] += var_rnd() * sqrt(R_added(4,4));
+          meas_v[5] = meas[2] += var_rnd() * sqrt(R_added(5,5));
+          meas_v[6] = meas[3] += var_rnd() * sqrt(R_added(6,6));
+          measurements_noisy.push_back(std::make_pair(t,meas_v));
+        };
+        j = (j+1) % skips;
       };
     } catch(recorder::out_of_bounds&) {
       RK_ERROR("The measurement file does not appear to have the required number of columns!");
@@ -200,13 +200,13 @@ int main(int argc, char** argv) {
   {
   ctrl::gaussian_belief_state< vect_n<double>, ctrl::covariance_matrix< vect_n<double> > > b = b_init;
   ctrl::gaussian_belief_state< vect_n<double>, ctrl::covariance_matrix< vect_n<double> > > b_u(vect_n<double>(0.0,0.0,0.0,0.0,0.0,0.0), 
-											       ctrl::covariance_matrix< vect_n<double> >(Qu));
+                                                                                               ctrl::covariance_matrix< vect_n<double> >(Qu));
   ctrl::gaussian_belief_state< vect_n<double>, ctrl::covariance_matrix< vect_n<double> > > b_z(vect_n<double>(0.0,0.0,0.0,0.0,0.0,0.0,0.0), 
-											       Rcov);
+                                                                                               Rcov);
   recorder::ssv_recorder results(result_filename + "_ekf.ssv");
   results << "time" << "pos_x" << "pos_y" << "pos_z" << "q0" << "q1" << "q2" << "q3" 
                     << "ep_x"  << "ep_y"  << "ep_z"  << "ea_x" << "ea_y" << "ea_z"
-		    << "P_xx" << "P_yy" << "P_zz" << "P_aax" << "P_aay" << "P_aaz" << recorder::data_recorder::end_name_row;
+                    << "P_xx" << "P_yy" << "P_zz" << "P_aax" << "P_aay" << "P_aaz" << recorder::data_recorder::end_name_row;
   t1 = boost::posix_time::microsec_clock::local_time();
   std::list< std::pair< double, vect_n<double> > >::iterator it_orig = measurements.begin();
   for(std::list< std::pair< double, vect_n<double> > >::iterator it = measurements_noisy.begin(); it != measurements_noisy.end(); ++it, ++it_orig) {
@@ -231,13 +231,13 @@ int main(int argc, char** argv) {
                          << (aa_diff.angle() * aa_diff.axis()[0])
                          << (aa_diff.angle() * aa_diff.axis()[1])
                          << (aa_diff.angle() * aa_diff.axis()[2])
-			 << b.get_covariance().get_matrix()(0,0)
-			 << b.get_covariance().get_matrix()(1,1)
-			 << b.get_covariance().get_matrix()(2,2)
-			 << 4 * b.get_covariance().get_matrix()(4,4)
-			 << 4 * b.get_covariance().get_matrix()(5,5)
-			 << 4 * b.get_covariance().get_matrix()(6,6)
-			 << recorder::data_recorder::end_value_row;
+                         << b.get_covariance().get_matrix()(0,0)
+                         << b.get_covariance().get_matrix()(1,1)
+                         << b.get_covariance().get_matrix()(2,2)
+                         << 4 * b.get_covariance().get_matrix()(4,4)
+                         << 4 * b.get_covariance().get_matrix()(5,5)
+                         << 4 * b.get_covariance().get_matrix()(6,6)
+                         << recorder::data_recorder::end_value_row;
     
   };
   results << recorder::data_recorder::flush;
@@ -257,7 +257,7 @@ int main(int argc, char** argv) {
       ctrl::covariance_matrix< vect_n<double> >(ctrl::covariance_matrix< vect_n<double> >::matrix_type(mat<double,mat_structure::diagonal>(12,10.0))));
   
   ctrl::gaussian_belief_state< vect_n<double>, ctrl::covariance_matrix< vect_n<double> > > b_u(vect_n<double>(0.0,0.0,0.0,0.0,0.0,0.0), 
-											       ctrl::covariance_matrix< vect_n<double> >(Qu));
+                                                                                               ctrl::covariance_matrix< vect_n<double> >(Qu));
   
   mat<double,mat_structure::diagonal> R_inv(6);
   R_inv(0,0) = R(0,0); R_inv(1,1) = R(1,1); R_inv(2,2) = R(2,2);
@@ -265,12 +265,12 @@ int main(int argc, char** argv) {
   ctrl::covariance_matrix< vect_n<double> > Rcovinv = ctrl::covariance_matrix< vect_n<double> >(ctrl::covariance_matrix< vect_n<double> >::matrix_type(R_inv));
   
   ctrl::gaussian_belief_state< vect_n<double>, ctrl::covariance_matrix< vect_n<double> > > b_z(vect_n<double>(0.0,0.0,0.0,0.0,0.0,0.0,0.0), 
-											       Rcovinv);
+                                                                                               Rcovinv);
   
   recorder::ssv_recorder results(result_filename + "_iekf.ssv");
   results << "time" << "pos_x" << "pos_y" << "pos_z" << "q0" << "q1" << "q2" << "q3" 
                     << "ep_x"  << "ep_y"  << "ep_z"  << "ea_x" << "ea_y" << "ea_z"
-		    << "P_xx" << "P_yy" << "P_zz" << "P_aax" << "P_aay" << "P_aaz" << recorder::data_recorder::end_name_row;
+                    << "P_xx" << "P_yy" << "P_zz" << "P_aax" << "P_aay" << "P_aaz" << recorder::data_recorder::end_name_row;
   t1 = boost::posix_time::microsec_clock::local_time();
   std::list< std::pair< double, vect_n<double> > >::iterator it_orig = measurements.begin();
   for(std::list< std::pair< double, vect_n<double> > >::iterator it = measurements_noisy.begin(); it != measurements_noisy.end(); ++it, ++it_orig) {
@@ -295,13 +295,13 @@ int main(int argc, char** argv) {
                          << (aa_diff.angle() * aa_diff.axis()[0])
                          << (aa_diff.angle() * aa_diff.axis()[1])
                          << (aa_diff.angle() * aa_diff.axis()[2])
-			 << b.get_covariance().get_matrix()(0,0)
-			 << b.get_covariance().get_matrix()(1,1)
-			 << b.get_covariance().get_matrix()(2,2)
-			 << b.get_covariance().get_matrix()(3,3)
-			 << b.get_covariance().get_matrix()(4,4)
-			 << b.get_covariance().get_matrix()(5,5)
-			 << recorder::data_recorder::end_value_row;
+                         << b.get_covariance().get_matrix()(0,0)
+                         << b.get_covariance().get_matrix()(1,1)
+                         << b.get_covariance().get_matrix()(2,2)
+                         << b.get_covariance().get_matrix()(3,3)
+                         << b.get_covariance().get_matrix()(4,4)
+                         << b.get_covariance().get_matrix()(5,5)
+                         << recorder::data_recorder::end_value_row;
     
   };
   results << recorder::data_recorder::flush;
@@ -322,7 +322,7 @@ int main(int argc, char** argv) {
       ctrl::covariance_matrix< vect_n<double> >(ctrl::covariance_matrix< vect_n<double> >::matrix_type(mat<double,mat_structure::diagonal>(12,10.0))));
   
   ctrl::gaussian_belief_state< vect_n<double>, ctrl::covariance_matrix< vect_n<double> > > b_u(vect_n<double>(0.0,0.0,0.0,0.0,0.0,0.0), 
-											       ctrl::covariance_matrix< vect_n<double> >(Qu));
+                                                                                               ctrl::covariance_matrix< vect_n<double> >(Qu));
   
   mat<double,mat_structure::diagonal> R_inv(6);
   R_inv(0,0) = R(0,0); R_inv(1,1) = R(1,1); R_inv(2,2) = R(2,2);
@@ -330,12 +330,12 @@ int main(int argc, char** argv) {
   ctrl::covariance_matrix< vect_n<double> > Rcovinv = ctrl::covariance_matrix< vect_n<double> >(ctrl::covariance_matrix< vect_n<double> >::matrix_type(R_inv));
   
   ctrl::gaussian_belief_state< vect_n<double>, ctrl::covariance_matrix< vect_n<double> > > b_z(vect_n<double>(0.0,0.0,0.0,0.0,0.0,0.0,0.0), 
-											       Rcovinv);
+                                                                                               Rcovinv);
   
   recorder::ssv_recorder results(result_filename + "_imkf.ssv");
   results << "time" << "pos_x" << "pos_y" << "pos_z" << "q0" << "q1" << "q2" << "q3" 
                     << "ep_x"  << "ep_y"  << "ep_z"  << "ea_x" << "ea_y" << "ea_z"
-		    << "P_xx" << "P_yy" << "P_zz" << "P_aax" << "P_aay" << "P_aaz" << recorder::data_recorder::end_name_row;
+                    << "P_xx" << "P_yy" << "P_zz" << "P_aax" << "P_aay" << "P_aaz" << recorder::data_recorder::end_name_row;
   t1 = boost::posix_time::microsec_clock::local_time();
   std::list< std::pair< double, vect_n<double> > >::iterator it_orig = measurements.begin();
   for(std::list< std::pair< double, vect_n<double> > >::iterator it = measurements_noisy.begin(); it != measurements_noisy.end(); ++it, ++it_orig) {
@@ -360,13 +360,13 @@ int main(int argc, char** argv) {
                          << (aa_diff.angle() * aa_diff.axis()[0])
                          << (aa_diff.angle() * aa_diff.axis()[1])
                          << (aa_diff.angle() * aa_diff.axis()[2])
-			 << b.get_covariance().get_matrix()(0,0)
-			 << b.get_covariance().get_matrix()(1,1)
-			 << b.get_covariance().get_matrix()(2,2)
-			 << b.get_covariance().get_matrix()(3,3)
-			 << b.get_covariance().get_matrix()(4,4)
-			 << b.get_covariance().get_matrix()(5,5)
-			 << recorder::data_recorder::end_value_row;
+                         << b.get_covariance().get_matrix()(0,0)
+                         << b.get_covariance().get_matrix()(1,1)
+                         << b.get_covariance().get_matrix()(2,2)
+                         << b.get_covariance().get_matrix()(3,3)
+                         << b.get_covariance().get_matrix()(4,4)
+                         << b.get_covariance().get_matrix()(5,5)
+                         << recorder::data_recorder::end_value_row;
     
   };
   results << recorder::data_recorder::flush;
@@ -387,7 +387,7 @@ int main(int argc, char** argv) {
       ctrl::covariance_matrix< vect_n<double> >(ctrl::covariance_matrix< vect_n<double> >::matrix_type(mat<double,mat_structure::diagonal>(12,10.0))));
   
   ctrl::gaussian_belief_state< vect_n<double>, ctrl::covariance_matrix< vect_n<double> > > b_u(vect_n<double>(0.0,0.0,0.0,0.0,0.0,0.0), 
-											       ctrl::covariance_matrix< vect_n<double> >(Qu));
+                                                                                               ctrl::covariance_matrix< vect_n<double> >(Qu));
   
   mat<double,mat_structure::diagonal> R_inv(6);
   R_inv(0,0) = R(0,0); R_inv(1,1) = R(1,1); R_inv(2,2) = R(2,2);
@@ -395,12 +395,12 @@ int main(int argc, char** argv) {
   ctrl::covariance_matrix< vect_n<double> > Rcovinv = ctrl::covariance_matrix< vect_n<double> >(ctrl::covariance_matrix< vect_n<double> >::matrix_type(R_inv));
   
   ctrl::gaussian_belief_state< vect_n<double>, ctrl::covariance_matrix< vect_n<double> > > b_z(vect_n<double>(0.0,0.0,0.0,0.0,0.0,0.0,0.0), 
-											       Rcovinv);
+                                                                                               Rcovinv);
   
   recorder::ssv_recorder results(result_filename + "_imkfv2.ssv");
   results << "time" << "pos_x" << "pos_y" << "pos_z" << "q0" << "q1" << "q2" << "q3" 
                     << "ep_x"  << "ep_y"  << "ep_z"  << "ea_x" << "ea_y" << "ea_z"
-		    << "P_xx" << "P_yy" << "P_zz" << "P_aax" << "P_aay" << "P_aaz" << recorder::data_recorder::end_name_row;
+                    << "P_xx" << "P_yy" << "P_zz" << "P_aax" << "P_aay" << "P_aaz" << recorder::data_recorder::end_name_row;
   t1 = boost::posix_time::microsec_clock::local_time();
   std::list< std::pair< double, vect_n<double> > >::iterator it_orig = measurements.begin();
   for(std::list< std::pair< double, vect_n<double> > >::iterator it = measurements_noisy.begin(); it != measurements_noisy.end(); ++it, ++it_orig) {
@@ -425,13 +425,13 @@ int main(int argc, char** argv) {
                          << (aa_diff.angle() * aa_diff.axis()[0])
                          << (aa_diff.angle() * aa_diff.axis()[1])
                          << (aa_diff.angle() * aa_diff.axis()[2])
-			 << b.get_covariance().get_matrix()(0,0)
-			 << b.get_covariance().get_matrix()(1,1)
-			 << b.get_covariance().get_matrix()(2,2)
-			 << b.get_covariance().get_matrix()(3,3)
-			 << b.get_covariance().get_matrix()(4,4)
-			 << b.get_covariance().get_matrix()(5,5)
-			 << recorder::data_recorder::end_value_row;
+                         << b.get_covariance().get_matrix()(0,0)
+                         << b.get_covariance().get_matrix()(1,1)
+                         << b.get_covariance().get_matrix()(2,2)
+                         << b.get_covariance().get_matrix()(3,3)
+                         << b.get_covariance().get_matrix()(4,4)
+                         << b.get_covariance().get_matrix()(5,5)
+                         << recorder::data_recorder::end_value_row;
     
   };
   results << recorder::data_recorder::flush;
@@ -446,9 +446,9 @@ int main(int argc, char** argv) {
   results << "step_count" << "ekf(ms)" << "iekf(ms)" << "imkfv1(ms)" << "imkfv2(ms)" << recorder::data_recorder::end_name_row;
   results << double(measurements_noisy.size()) << double(dt[0].total_milliseconds())
                                                << double(dt[1].total_milliseconds())
-				               << double(dt[2].total_milliseconds())
-				               << double(dt[3].total_milliseconds())
-				               << recorder::data_recorder::end_value_row << recorder::data_recorder::flush;
+                                               << double(dt[2].total_milliseconds())
+                                               << double(dt[3].total_milliseconds())
+                                               << recorder::data_recorder::end_value_row << recorder::data_recorder::flush;
   };
   
   

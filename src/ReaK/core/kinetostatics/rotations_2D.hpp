@@ -37,11 +37,11 @@
 #ifndef REAK_ROTATIONS_2D_HPP
 #define REAK_ROTATIONS_2D_HPP
 
-#include "lin_alg/mat_concepts.hpp"
-#include "lin_alg/mat_alg_square.hpp"
-#include "lin_alg/mat_alg_symmetric.hpp"
-#include "lin_alg/mat_alg_skew_symmetric.hpp"
-#include "lin_alg/vect_alg.hpp"
+#include <ReaK/core/lin_alg/mat_concepts.hpp>
+#include <ReaK/core/lin_alg/mat_alg_square.hpp>
+#include <ReaK/core/lin_alg/mat_alg_symmetric.hpp>
+#include <ReaK/core/lin_alg/mat_alg_skew_symmetric.hpp>
+#include <ReaK/core/lin_alg/vect_alg.hpp>
 
 
 
@@ -126,7 +126,7 @@ class rot_mat_2D : public serialization::serializable {
     explicit rot_mat_2D(const Matrix& R, typename boost::enable_if_c< is_readable_matrix<Matrix>::value &&
                                                                       !boost::is_same<self, Matrix>::value, void* >::type dummy = NULL) {
       if((R.get_col_count() != 2) || (R.get_row_count() != 2))
-	throw std::range_error("Right-hand-side of 2D rotation matrix assignment is not a 2x2 matrix!");
+        throw std::range_error("Right-hand-side of 2D rotation matrix assignment is not a 2x2 matrix!");
       vect<value_type,2> v = unit(vect<value_type,2>(R(0,0),R(1,0)));
       q[0] = v[0]; q[1] = v[1];
     };
@@ -178,11 +178,11 @@ class rot_mat_2D : public serialization::serializable {
      */
     value_type operator [](size_type i) const {
       if(i >= 4)
-	throw std::range_error("Matrix index out of range.");
+        throw std::range_error("Matrix index out of range.");
       if(i == 3)
-	return q[0];
+        return q[0];
       if(i == 2)
-	return -q[1];
+        return -q[1];
       return q[i];
     };
 
@@ -192,11 +192,11 @@ class rot_mat_2D : public serialization::serializable {
      */
     value_type operator ()(size_type i,size_type j) const {
       if((i >= 2) || (j >= 2))
-	throw std::range_error("Matrix index out of range.");
+        throw std::range_error("Matrix index out of range.");
       if((j == 1) && (i == 0))
-	return -q[1];
+        return -q[1];
       if((j == 1) && (i == 1))
-	return q[0];
+        return q[0];
       return q[i];
     };
     
@@ -222,7 +222,7 @@ class rot_mat_2D : public serialization::serializable {
                                  !boost::is_same<self, Matrix>::value,
     self& >::type operator =(const Matrix& R) {
       if((R.get_col_count() != 2) || (R.get_row_count() != 2))
-	throw std::range_error("Right-hand-side of 2D rotation matrix assignment is not a 2x2 matrix!");
+        throw std::range_error("Right-hand-side of 2D rotation matrix assignment is not a 2x2 matrix!");
       vect<value_type,2> v = unit(vect<value_type,2>(R(0,0),R(1,0)));
       q[0] = v[0]; q[1] = v[1];
       return *this;
@@ -244,7 +244,7 @@ class rot_mat_2D : public serialization::serializable {
                                  !boost::is_same<self, Matrix>::value,
     self& >::type operator *=(const Matrix& R) {
       if((R.get_col_count() != 2) || (R.get_row_count() != 2))
-	throw std::range_error("Right-hand-side of 2D rotation matrix assignment is not a 2x2 matrix!");
+        throw std::range_error("Right-hand-side of 2D rotation matrix assignment is not a 2x2 matrix!");
       vect<value_type,2> v = unit(vect<value_type,2>(R(0,0),R(1,0)));
       value_type tmp = q[0] * v[0] - q[1] * v[1];
       q[1] = q[1] * v[0] + q[0] * v[1];
@@ -275,11 +275,11 @@ class rot_mat_2D : public serialization::serializable {
     typename boost::enable_if_c< is_fully_writable_matrix<Matrix>::value,
     Matrix >::type operator *(const self& R, const Matrix& M) {
       if(M.get_row_count() != 2)
-	throw std::range_error("Matrix M's row count is not 2, cannot perform 2D rotation!");
+        throw std::range_error("Matrix M's row count is not 2, cannot perform 2D rotation!");
       Matrix result(M);
       for(unsigned int jj=0;jj < result.get_col_count();++jj) {
-	result(0,jj) = R.q[0] * M(0,jj) - R.q[1] * M(1,jj);
-	result(1,jj) = R.q[1] * M(0,jj) + R.q[0] * M(1,jj);
+        result(0,jj) = R.q[0] * M(0,jj) - R.q[1] * M(1,jj);
+        result(1,jj) = R.q[1] * M(0,jj) + R.q[0] * M(1,jj);
       };
       return result;
     };
@@ -484,7 +484,7 @@ class trans_mat_2D : public serialization::serializable {
     value_type q[9];
 
     explicit trans_mat_2D(const_reference a11, const_reference a12, const_reference a13, 
-			  const_reference a21, const_reference a22, const_reference a23) {
+                          const_reference a21, const_reference a22, const_reference a23) {
       q[0] = a11; q[3] = a12; q[6] = a13;
       q[1] = a21; q[4] = a22; q[7] = a23;
       q[2] = 0.0; q[5] = 0.0; q[8] = 1.0;
@@ -533,7 +533,7 @@ class trans_mat_2D : public serialization::serializable {
     explicit trans_mat_2D(const Matrix& M, typename boost::enable_if_c< is_readable_matrix<Matrix>::value && 
                                                                         !boost::is_same<self, Matrix>::value, void* >::type dummy = NULL ) {
       if((M.get_col_count() != 3) || (M.get_row_count() != 3))
-	throw std::range_error("Right-hand-side of 2D transformation matrix assignment is not a 3x3 matrix!");
+        throw std::range_error("Right-hand-side of 2D transformation matrix assignment is not a 3x3 matrix!");
       translation_type v = unit(translation_type(M(0,0),M(1,0)));
       q[0] = v[0]; q[1] = v[1]; q[2] = 0.0;
       q[3] = -q[1]; q[4] = q[0]; q[5] = 0.0;
@@ -620,7 +620,7 @@ class trans_mat_2D : public serialization::serializable {
      */
     const_reference operator [](size_type i) const {
       if(i >= 9)
-	throw std::range_error("Matrix index out of range.");
+        throw std::range_error("Matrix index out of range.");
       return q[i];
     };
 
@@ -630,7 +630,7 @@ class trans_mat_2D : public serialization::serializable {
      */
     const_reference operator ()(size_type i,size_type j) const {
       if((i >= 3) || (j >= 3))
-	throw std::range_error("Matrix index out of range.");
+        throw std::range_error("Matrix index out of range.");
       return q[j*3+i];
     };
     
@@ -663,7 +663,7 @@ class trans_mat_2D : public serialization::serializable {
                                  !boost::is_same<Matrix,self>::value, 
     self& >::type operator =(const Matrix& M) {
       if((M.get_col_count() != 3) || (M.get_row_count() != 3))
-	throw std::range_error("Right-hand-side of 2D transformation matrix assignment is not a 3x3 matrix!");
+        throw std::range_error("Right-hand-side of 2D transformation matrix assignment is not a 3x3 matrix!");
       translation_type v = unit(translation_type(M(0,0),M(1,0)));
       q[0] = v[0]; q[1] = v[1]; q[2] = 0.0;
       q[3] = -q[1]; q[4] = q[0]; q[5] = 0.0;
@@ -731,14 +731,14 @@ class trans_mat_2D : public serialization::serializable {
     typename boost::enable_if_c< is_fully_writable_matrix<Matrix>::value,
     Matrix >::type operator *(const self& M1, const Matrix& M2) {
       if(M2.get_row_count() != 3)
-	throw std::range_error("Matrix M's row count is not 3, 2D transformation impossible!");
+        throw std::range_error("Matrix M's row count is not 3, 2D transformation impossible!");
       Matrix result(M2);
       for(size_type i=0;i<3;++i)
-	for(size_type jj=0;jj<result.get_col_count();++jj) {
-	  result(i,jj) = 0;
-	  for(size_type j=0;j<3;++j)
-	    result(i,jj) += M1.q[j*3+i] * M2(j,jj);
-	};
+        for(size_type jj=0;jj<result.get_col_count();++jj) {
+          result(i,jj) = 0;
+          for(size_type j=0;j<3;++j)
+            result(i,jj) += M1.q[j*3+i] * M2(j,jj);
+        };
       return result;
     };
     
@@ -755,10 +755,10 @@ class trans_mat_2D : public serialization::serializable {
       Matrix result(M1.get_row_count(),3);
       for(size_type i=0;i<result.get_row_count();++i)
         for(size_type jj=0;jj<3;++jj) {
-	  result(i,jj) = 0;
-	  for(size_type j=0;j<3;++j)
+          result(i,jj) = 0;
+          for(size_type j=0;j<3;++j)
             result(i,jj) += M1(i,j) * M2.q[jj*3+j];
-	};
+        };
       return result;
     };
     
@@ -881,14 +881,14 @@ class trans_mat_2D : public serialization::serializable {
     virtual void RK_CALL save(serialization::oarchive& A, unsigned int) const {
       A & RK_SERIAL_SAVE_WITH_ALIAS("cos",q[0])
         & RK_SERIAL_SAVE_WITH_ALIAS("sin",q[1])
-	& RK_SERIAL_SAVE_WITH_ALIAS("t_x",q[6])
-	& RK_SERIAL_SAVE_WITH_ALIAS("t_y",q[7]);
+        & RK_SERIAL_SAVE_WITH_ALIAS("t_x",q[6])
+        & RK_SERIAL_SAVE_WITH_ALIAS("t_y",q[7]);
     };
     virtual void RK_CALL load(serialization::iarchive& A, unsigned int) {
       A & RK_SERIAL_LOAD_WITH_ALIAS("cos",q[0])
         & RK_SERIAL_LOAD_WITH_ALIAS("sin",q[1])
-	& RK_SERIAL_LOAD_WITH_ALIAS("t_x",q[6])
-	& RK_SERIAL_LOAD_WITH_ALIAS("t_y",q[7]);
+        & RK_SERIAL_LOAD_WITH_ALIAS("t_x",q[6])
+        & RK_SERIAL_LOAD_WITH_ALIAS("t_y",q[7]);
       q[3] = -q[1];
       q[4] = q[0];
       q[2] = 0.0;

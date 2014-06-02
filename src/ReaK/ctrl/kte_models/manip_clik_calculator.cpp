@@ -225,9 +225,9 @@ struct clik_eq_jac_filler {
       H_inv(0,3) =  -x[j - 1]; H_inv(1,3) =  x[j - 2]; H_inv(2,3) = x[j - 3];
       
       // apply the transformation from quat_dot to omega:
-      sub(J)(range(0,n1 * 2 - 1),
-             range(j-3,j)) = sub(J)(range(0,n1 * 2 - 1),
-                                    range(k-2,k)) * H_inv;
+      sub(J)(range(0,n1 * 2),
+             range(j-3,j+1)) = sub(J)(range(0,n1 * 2),
+                                      range(k-2,k+1)) * H_inv;
       // fill in the normality-constraint jacobians:
       J(l,j-3) = -2.0 * x[j-3];
       J(l,j-2) = -2.0 * x[j-2];

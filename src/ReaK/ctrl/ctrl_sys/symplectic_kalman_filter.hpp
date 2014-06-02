@@ -43,23 +43,23 @@
 #ifndef REAK_SYMPLECTIC_KALMAN_FILTER_HPP
 #define REAK_SYMPLECTIC_KALMAN_FILTER_HPP
 
+#include <ReaK/core/lin_alg/vect_concepts.hpp>
+#include <ReaK/core/lin_alg/mat_alg.hpp>
+#include <ReaK/core/lin_alg/mat_cholesky.hpp>
+#include <ReaK/core/lin_alg/mat_qr_decomp.hpp>
+#include <ReaK/core/lin_alg/mat_views.hpp>
+
+#include <ReaK/ctrl/path_planning/metric_space_concept.hpp>
+
 #include "belief_state_concept.hpp"
 #include "discrete_linear_sss_concept.hpp"
-#include <boost/utility/enable_if.hpp>
-#include "lin_alg/vect_concepts.hpp"
-#include "lin_alg/mat_alg.hpp"
-
-#include <boost/static_assert.hpp>
 #include "covariance_concept.hpp"
-#include "lin_alg/mat_cholesky.hpp"
-#include "lin_alg/mat_qr_decomp.hpp"
-#include "lin_alg/mat_views.hpp"
-
 #include "gaussian_belief_state.hpp"
 #include "covariance_matrix.hpp"
 #include "decomp_covariance_matrix.hpp"
 
-#include "path_planning/metric_space_concept.hpp"
+#include <boost/utility/enable_if.hpp>
+#include <boost/static_assert.hpp>
 
 namespace ReaK {
 
@@ -487,8 +487,8 @@ struct SKF_belief_transfer {
       mat< double, mat_structure::rectangular > P_tmp = 
         Tc * ( b.get_covariance().get_covarying_block() |
                b.get_covariance().get_informing_inv_block() );
-      b.set_covariance( covariance_type( matrix_type( sub(P_tmp)(range(0,N-1),range(0,N-1)) ), 
-                                         matrix_type( sub(P_tmp)(range(N,2*N-1),range(0,N-1)) ) ) ); 
+      b.set_covariance( covariance_type( matrix_type( sub(P_tmp)(range(0,N),range(0,N)) ), 
+                                         matrix_type( sub(P_tmp)(range(N,2*N),range(0,N)) ) ) ); 
     };
     return b;
   };
@@ -513,8 +513,8 @@ struct SKF_belief_transfer {
       mat< double, mat_structure::rectangular > P_tmp = 
         Tm * ( b.get_covariance().get_covarying_block() |
                b.get_covariance().get_informing_inv_block() );
-      b.set_covariance( covariance_type( matrix_type( sub(P_tmp)(range(0,N-1),range(0,N-1)) ), 
-                                         matrix_type( sub(P_tmp)(range(N,2*N-1),range(0,N-1)) ) ) ); 
+      b.set_covariance( covariance_type( matrix_type( sub(P_tmp)(range(0,N),range(0,N)) ), 
+                                         matrix_type( sub(P_tmp)(range(N,2*N),range(0,N)) ) ) ); 
     };
     return b;
   };

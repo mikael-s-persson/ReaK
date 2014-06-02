@@ -74,9 +74,9 @@ class sphere : public shape_3D {
      * \param aRadius The radius of the sphere.
      */
     sphere(const std::string& aName = "",
-	   const shared_ptr< pose_3D<double> >& aAnchor = shared_ptr< pose_3D<double> >(),
-	   const pose_3D<double>& aPose = pose_3D<double>(),
-	   double aRadius = 1.0);
+           const shared_ptr< pose_3D<double> >& aAnchor = shared_ptr< pose_3D<double> >(),
+           const pose_3D<double>& aPose = pose_3D<double>(),
+           double aRadius = 1.0);
     
     /**
      * Default destructor.

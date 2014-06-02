@@ -62,7 +62,7 @@ class mat_up_tri : public mat<T> {
      */
     class access {
       public:
-	std::vector<T>& q; ///< Public reference to the q array.
+        std::vector<T>& q; ///< Public reference to the q array.
         unsigned int& size; ///< Public reference to the size.
 
         /**
@@ -70,7 +70,7 @@ class mat_up_tri : public mat<T> {
          */
         explicit access(mat_up_tri<T>& M) : q(M.q), size(M.size) { };
 
-	/**
+        /**
          * Direct array access with flat index.
          * \param i flat index to the array q.
          * \return reference to the entry.
@@ -90,7 +90,7 @@ class mat_up_tri : public mat<T> {
          * \return reference to the entry.
          */
         T& operator ()(unsigned int i,unsigned int j) { return q[mat_triangular_size(j) + i]; };
-	/**
+        /**
          * Direct array access with row-column indices. Read-only version.
          * \param i row index.
          * \param j column index.
@@ -104,22 +104,22 @@ class mat_up_tri : public mat<T> {
      */
     class const_access {
       public:
-	const std::vector<T>& q; ///< Public read-only reference to the q array.
-	const unsigned int& size; ///< Public read-only reference to the size.
+        const std::vector<T>& q; ///< Public read-only reference to the q array.
+        const unsigned int& size; ///< Public read-only reference to the size.
 
-	/**
+        /**
          * Explicit RAII association of this object with a mat_up_tri object.
          */
         explicit const_access(const mat_up_tri<T>& M) : q(M.q), size(M.size) { };
 
-	/**
+        /**
          * Direct array access with flat index. Read-only version.
          * \param i flat index to the array q.
          * \return read-only reference to the entry.
          */
         const T& operator [](unsigned int i) const { return q[i]; };
 
-	/**
+        /**
          * Direct array access with row-column indices. Read-only version.
          * \param i row index.
          * \param j column index.
@@ -136,25 +136,25 @@ class mat_up_tri : public mat<T> {
      */
     mat_up_tri() :
              q(0),
-	     size(0) { };
+             size(0) { };
 
     /**
      * Constructor for a sized matrix.
      */
     mat_up_tri(unsigned int Size, T aFill = 0) :
              q(mat_triangular_size(Size),aFill),
-	     size(Size) { };
+             size(Size) { };
 
     /**
      * Constructor for an identity matrix.
      */
     mat_up_tri(unsigned int Size, bool aIdentity) :
              q(mat_triangular_size(Size),T(0.0)),
-	     size(Size) {
+             size(Size) {
       if(aIdentity) {
-	unsigned int k=0;
-	for(unsigned int i=0; i < size; k += ++i)
-	  q[k+i] = 1.0;
+        unsigned int k=0;
+        for(unsigned int i=0; i < size; k += ++i)
+          q[k+i] = 1.0;
       };
     };
 
@@ -163,27 +163,27 @@ class mat_up_tri : public mat<T> {
      */
     mat_up_tri(const mat_up_tri<T>& M) :
              q(M.q.begin(),M.q.end()),
-	     size(M.size) { };
+             size(M.size) { };
 
     /**
      * Explicit constructor from a general matrix, copying only the upper triangular part.
      */
     explicit mat_up_tri(const mat<T>& M) :
              q(mat_triangular_size((M.getRowCount() > M.getColCount() ? M.getRowCount() : M.getColCount())),T(0.0)),
-	     size((M.getRowCount() > M.getColCount() ? M.getRowCount() : M.getColCount())) {
+             size((M.getRowCount() > M.getColCount() ? M.getRowCount() : M.getColCount())) {
       unsigned int k=0;
       unsigned int i=0;
       unsigned int min_size = (M.getRowCount() > M.getColCount() ? M.getColCount() : M.getRowCount());
       for(;i<min_size;k += ++i) {
-	for(unsigned int j=0;j<i;++j) {
-	  q[k+j] = M(j,i);
-	};
-	q[k+i] = M(i,i);
+        for(unsigned int j=0;j<i;++j) {
+          q[k+j] = M(j,i);
+        };
+        q[k+i] = M(i,i);
       };
       if(M.getRowCount() < M.getColCount()) {
         for(;i<size;k += ++i) {
-   	  for(unsigned int j=0;j<min_size;++j)
-	    q[k+j] = M(j,i);
+             for(unsigned int j=0;j<min_size;++j)
+            q[k+j] = M(j,i);
         };
       };
     };
@@ -241,13 +241,13 @@ class mat_up_tri : public mat<T> {
 
     const T& set(unsigned int i,unsigned int j,const T& Value) {
       if(i <= j)
-	q[mat_triangular_size(j) + i] = Value;
+        q[mat_triangular_size(j) + i] = Value;
       return Value;
     };
 
     T operator()(unsigned int i,unsigned int j) const {
       if(i <= j)
-	return q[mat_triangular_size(j) + i];
+        return q[mat_triangular_size(j) + i];
       else
         return T(0.0);
     };
@@ -293,21 +293,21 @@ class mat_up_tri : public mat<T> {
       unsigned int i=0;
       unsigned int min_size = (M.getRowCount() > M.getColCount() ? M.getColCount() : M.getRowCount());
       for(;i<min_size;k += ++i) {
-	for(unsigned int j=0;j<i;++j)
-	  q[k+j] = M(j,i);
-	q[k+i] = M(i,i);
+        for(unsigned int j=0;j<i;++j)
+          q[k+j] = M(j,i);
+        q[k+i] = M(i,i);
       };
       if(M.getRowCount() < M.getColCount()) {
         for(;i<size;k += ++i) {
-   	  for(unsigned int j=0;j<min_size;++j)
-	    q[k+j] = M(j,i);
-	  for(unsigned int j=min_size;j<=i;++j)
-	    q[k+j] = 0.0;
-	};
+             for(unsigned int j=0;j<min_size;++j)
+            q[k+j] = M(j,i);
+          for(unsigned int j=min_size;j<=i;++j)
+            q[k+j] = 0.0;
+        };
       } else
-	for(;i<size;k += ++i)
-	  for(unsigned int j=0;j<=i;++j)
-	    q[k+j] = 0.0;
+        for(;i<size;k += ++i)
+          for(unsigned int j=0;j<=i;++j)
+            q[k+j] = 0.0;
       return *this;
     };
 
@@ -319,7 +319,7 @@ class mat_up_tri : public mat<T> {
      */
     mat_up_tri<T>& operator +=(const mat_up_tri<T>& M) throw(std::range_error) {
       if(M.size != size)
-	throw std::range_error("Matrix dimension mismatch.");
+        throw std::range_error("Matrix dimension mismatch.");
       for(unsigned int i=0;i<mat_triangular_size(size);++i)
         q[i] += M.q[i];
       return *this;
@@ -333,7 +333,7 @@ class mat_up_tri : public mat<T> {
      */
     mat_up_tri<T>& operator -=(const mat_up_tri<T>& M) throw(std::range_error) {
       if(M.size != size)
-	throw std::range_error("Matrix dimension mismatch.");
+        throw std::range_error("Matrix dimension mismatch.");
       for(unsigned int i=0;i<mat_triangular_size(size);++i)
         q[i] -= M.q[i];
       return *this;
@@ -362,11 +362,11 @@ class mat_up_tri : public mat<T> {
       mat_up_tri<T> result(size);
       unsigned int k=0;unsigned int i=0;
       for(;i<size;k += ++i) {
-	unsigned int h=mat_triangular_size(i);
-	for(unsigned int l=i;l<size;h += ++l) {
-	  for(unsigned int j=0;j<=i;++j)
-	    result.q[h+j] += q[k+j] * M.q[h+i];
-	};
+        unsigned int h=mat_triangular_size(i);
+        for(unsigned int l=i;l<size;h += ++l) {
+          for(unsigned int j=0;j<=i;++j)
+            result.q[h+j] += q[k+j] * M.q[h+i];
+        };
       };
       q.swap(result.q);
       return *this;
@@ -385,7 +385,7 @@ class mat_up_tri : public mat<T> {
      */
     mat_up_tri<T> operator +(const mat_up_tri<T>& M) const throw(std::range_error) {
       if(M.size != size)
-	throw std::range_error("Matrix dimension mismatch.");
+        throw std::range_error("Matrix dimension mismatch.");
       mat_up_tri<T> result(size);
       for(unsigned int i=0;i<mat_triangular_size(size);++i)
         result.q[i] = q[i] + M.q[i];
@@ -399,7 +399,7 @@ class mat_up_tri : public mat<T> {
     mat_up_tri<T> operator -() const {
       mat_up_tri<T> result(size);
       for(unsigned int i=0;i<mat_triangular_size(size);++i)
-	result.q[i] = -q[i];
+        result.q[i] = -q[i];
       return result;
     };
 
@@ -411,7 +411,7 @@ class mat_up_tri : public mat<T> {
      */
     mat_up_tri<T> operator -(const mat_up_tri<T>& M) const throw(std::range_error) {
       if(M.size != size)
-	throw std::range_error("Matrix dimension mismatch.");
+        throw std::range_error("Matrix dimension mismatch.");
       mat_up_tri<T> result(size);
       for(unsigned int i=0;i<mat_triangular_size(size);++i)
         result.q[i] = q[i] - M.q[i];
@@ -430,9 +430,9 @@ class mat_up_tri : public mat<T> {
       mat_cm<T> result(size,M.getColCount());
       unsigned int k=0;unsigned int i=0;
       for(;i<size;k += ++i)
-	for(unsigned int l=0;l<M.getColCount();++l)
-	  for(unsigned int j=0;j<=i;++j)
-	    result.q[l*size+j] += q[k+j] * M(i,l);
+        for(unsigned int l=0;l<M.getColCount();++l)
+          for(unsigned int j=0;j<=i;++j)
+            result.q[l*size+j] += q[k+j] * M(i,l);
       return result;
     };
 
@@ -448,11 +448,11 @@ class mat_up_tri : public mat<T> {
       mat_up_tri<T> result(size);
       unsigned int k=0;unsigned int i=0;
       for(;i<size;k += ++i) {
-	unsigned int h=mat_triangular_size(i);
-	for(unsigned int l=i;l<size;h += ++l) {
-	  for(unsigned int j=0;j<=i;++j)
-	    result.q[h+j] += q[k+j] * M.q[h+i];
-	};
+        unsigned int h=mat_triangular_size(i);
+        for(unsigned int l=i;l<size;h += ++l) {
+          for(unsigned int j=0;j<=i;++j)
+            result.q[h+j] += q[k+j] * M.q[h+i];
+        };
       };
       return result;
     };
@@ -478,9 +478,9 @@ class mat_up_tri : public mat<T> {
       unsigned int k=mat_triangular_size(aColOffset);
       for(unsigned int j=0;j<aColCountOut;k += (++j + aColOffset)) {
         unsigned int h=mat_triangular_size(aRowOffset);unsigned int i=0;
-	for(;((i<aRowCountOut) && (i+aRowOffset <= j+aColOffset));h += (++i + aRowOffset))
-	  result.q[j*aRowCountOut+i] = q[k+i+aRowOffset];
-	for(;i<aRowCountOut;h += (++i + aRowOffset)) {
+        for(;((i<aRowCountOut) && (i+aRowOffset <= j+aColOffset));h += (++i + aRowOffset))
+          result.q[j*aRowCountOut+i] = q[k+i+aRowOffset];
+        for(;i<aRowCountOut;h += (++i + aRowOffset)) {
           result.q[j*aRowCountOut+i] = 0.0;
         };
       };

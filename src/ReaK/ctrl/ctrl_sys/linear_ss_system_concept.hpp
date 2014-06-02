@@ -37,12 +37,12 @@
 #ifndef REAK_LINEAR_SS_SYSTEM_CONCEPT_HPP
 #define REAK_LINEAR_SS_SYSTEM_CONCEPT_HPP
 
+#include <ReaK/core/lin_alg/arithmetic_tuple.hpp>
+
+#include "state_space_sys_concept.hpp"
 
 #include <boost/config.hpp>
 #include <boost/concept_check.hpp>
-
-#include "state_space_sys_concept.hpp"
-#include <lin_alg/arithmetic_tuple.hpp>
 
 namespace ReaK {
 

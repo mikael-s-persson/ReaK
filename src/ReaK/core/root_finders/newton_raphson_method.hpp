@@ -35,7 +35,7 @@
 #include <limits>
 #include <cmath>
 
-#include "lin_alg/mat_num_exceptions.hpp"
+#include <ReaK/core/lin_alg/mat_num_exceptions.hpp>
 
 namespace ReaK {
 
@@ -59,9 +59,7 @@ namespace ReaK {
  * \throw maximum_iteration If the maximum number of iterations is reached before convergence.
  * \throw singularity_error If a stationary point is reached.
  */
-template <typename T,
-	  typename RootedFunction,
-	  typename DerivativeFunction>
+template <typename T, typename RootedFunction, typename DerivativeFunction>
 void newton_raphson_method(T& x, RootedFunction f, DerivativeFunction df, const T& tol = std::numeric_limits<T>::epsilon(), std::size_t max_iter = 50) 
 {
   using std::fabs;

@@ -42,16 +42,16 @@
 #ifndef REAK_STATE_OBSERVER_CONCEPT_HPP
 #define REAK_STATE_OBSERVER_CONCEPT_HPP
 
+#include <ReaK/ctrl/path_planning/metric_space_concept.hpp>
 
-#include <boost/config.hpp>
-#include <boost/concept_check.hpp>
-
-#include "path_planning/metric_space_concept.hpp"
 #include "state_space_sys_concept.hpp"
 #include "linear_ss_system_concept.hpp"
 #include "discrete_sss_concept.hpp"
 #include "discrete_linear_sss_concept.hpp"
 #include "ss_controller_concept.hpp"
+
+#include <boost/config.hpp>
+#include <boost/concept_check.hpp>
 
 /** Main namespace for ReaK */
 namespace ReaK {

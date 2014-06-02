@@ -35,7 +35,7 @@
 #ifndef REAK_LINE_SEARCH_HPP
 #define REAK_LINE_SEARCH_HPP
 
-#include "base/defs.hpp"
+#include <ReaK/core/base/defs.hpp>
 
 #include <vector>
 
@@ -59,11 +59,11 @@ namespace detail {
       T f1 = f(midpoint - delta);
       T f2 = f(midpoint + delta);
       if( f1 > f2 ) {
-	low_bound = midpoint - delta;
-	delta *= T(0.5);
+        low_bound = midpoint - delta;
+        delta *= T(0.5);
       } else {
-	up_bound = midpoint + delta;
-	delta *= T(0.5);
+        up_bound = midpoint + delta;
+        delta *= T(0.5);
       };
     };
   };
@@ -85,11 +85,11 @@ namespace detail {
       T test_cost = f(test_value);
       
       if(test_cost < mid_cost) {
-	low_bound = mid_value; 
-	mid_value = test_value; mid_cost = test_cost;
+        low_bound = mid_value; 
+        mid_value = test_value; mid_cost = test_cost;
       } else {
-	up_bound = low_bound;
-	low_bound = test_value;
+        up_bound = low_bound;
+        low_bound = test_value;
       };
     };
   };
@@ -118,14 +118,14 @@ namespace detail {
         return x1_value;
       if(x1_value > x2_value) {
         low_bound = x1;
-	x1 = x2; x1_value = x2_value;
-	x2 = up_bound - T(*(fib_iter+2)) / T(*fib_iter) * (up_bound - low_bound); 
-	x2_value = f(x2);
+        x1 = x2; x1_value = x2_value;
+        x2 = up_bound - T(*(fib_iter+2)) / T(*fib_iter) * (up_bound - low_bound); 
+        x2_value = f(x2);
       } else {
         up_bound = x2;
-	x2 = x1; x2_value = x1_value;
-	x1 = low_bound + T(*(fib_iter+2)) / T(*fib_iter) * (up_bound - low_bound); 
-	x1_value = f(x1);
+        x2 = x1; x2_value = x1_value;
+        x1 = low_bound + T(*(fib_iter+2)) / T(*fib_iter) * (up_bound - low_bound); 
+        x1_value = f(x1);
       };
     };
   };
@@ -156,35 +156,35 @@ namespace detail {
   
   template <typename T, typename Function, typename GradFunction>
   void expand_and_zoom_zoom_impl(Function f, GradFunction df, 
-			         T& low_bound, T x0_value, T x0_grad, 
-			         T& x1, T& x1_value, T& x1_grad, 
-			         T& x2, T& x2_value, T& x2_grad, 
-			         T& up_bound, T tol, T c1, T c2) {
+                                 T& low_bound, T x0_value, T x0_grad, 
+                                 T& x1, T& x1_value, T& x1_grad, 
+                                 T& x2, T& x2_value, T& x2_grad, 
+                                 T& up_bound, T tol, T c1, T c2) {
     using std::sqrt; using std::fabs;
     
     while(fabs(x2 - x1) > tol * fabs(up_bound - low_bound)) {
       T d1 = x1_grad + x2_grad - T(3.0) * (x1_value - x2_value) / (x1 - x2);
       T d2 = sqrt(d1 * d1 - x1_grad * x2_grad);
       if( x2 < x1 )
-	d2 *= T(-1.0);
+        d2 *= T(-1.0);
       T tmp = x2 - (x2 - x1) * (x2_grad + d2 - d1) / (x2_grad - x1_grad + T(2.0) * d2);
       T tmp_value = f(tmp);
       T tmp_grad = df(tmp);
       if((tmp_value > x0_value + c1 * (tmp - low_bound) * x0_grad)
-	 || (tmp_value >= x1_value)) {
-	x2 = tmp;
+         || (tmp_value >= x1_value)) {
+        x2 = tmp;
         x2_value = tmp_value;
         x2_grad = tmp_grad;
       } else {
-	if( fabs(tmp_grad) <= -c2 * x0_grad ) {
-	  x1 = tmp; x1_value = tmp_value; x1_grad = tmp_grad;
-	  x2 = tmp; x2_value = tmp_value; x2_grad = tmp_grad;
-	  return;
-	};
-	if( tmp_grad * (x2 - x1) >= T(0.0) ) {
-	  x2 = x1; x2_value = x1_value; x2_grad = x1_grad;
-	};
-	x1 = tmp; x1_value = tmp_value; x1_grad = tmp_grad;
+        if( fabs(tmp_grad) <= -c2 * x0_grad ) {
+          x1 = tmp; x1_value = tmp_value; x1_grad = tmp_grad;
+          x2 = tmp; x2_value = tmp_value; x2_grad = tmp_grad;
+          return;
+        };
+        if( tmp_grad * (x2 - x1) >= T(0.0) ) {
+          x2 = x1; x2_value = x1_value; x2_grad = x1_grad;
+        };
+        x1 = tmp; x1_value = tmp_value; x1_grad = tmp_grad;
       };
     };
   };
@@ -202,19 +202,19 @@ namespace detail {
       T x2_value = f(x2);
       T x2_grad = df(x2);
       if((x2_value > x0_value + c1 * (x2 - low_bound)) ||
-	 ((x1 != low_bound) && (x2_value >= x1_value))) {
-	expand_and_zoom_zoom_impl(f,df,low_bound,x0_value,x0_grad,x1,x1_value,x1_grad,x2,x2_value,x2_grad,up_bound,tol,c1,c2);
+         ((x1 != low_bound) && (x2_value >= x1_value))) {
+        expand_and_zoom_zoom_impl(f,df,low_bound,x0_value,x0_grad,x1,x1_value,x1_grad,x2,x2_value,x2_grad,up_bound,tol,c1,c2);
         low_bound = x2;
         up_bound = x2;
         return x2_value;
       };
       if( fabs(x2_grad) <= -c2 * x0_grad ) {
-	low_bound = x2;
-	up_bound = x2;
-	return x2_value;
+        low_bound = x2;
+        up_bound = x2;
+        return x2_value;
       };
       if( x2_grad >= T(0.0) ) {
-	expand_and_zoom_zoom_impl(f,df,low_bound,x0_value,x0_grad,x2,x2_value,x2_grad,x1,x1_value,x1_grad,up_bound,tol,c1,c2);
+        expand_and_zoom_zoom_impl(f,df,low_bound,x0_value,x0_grad,x2,x2_value,x2_grad,x1,x1_value,x1_grad,up_bound,tol,c1,c2);
         low_bound = x1;
         up_bound = x1;
         return x1_value;

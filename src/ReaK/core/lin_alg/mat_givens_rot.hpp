@@ -76,6 +76,11 @@ class givens_rot_matrix {
     typedef T* iterator;
     typedef const T* const_iterator;
     
+    typedef void col_iterator;
+    typedef void const_col_iterator;
+    typedef void row_iterator;
+    typedef void const_row_iterator;
+    
     BOOST_STATIC_CONSTANT(std::size_t, static_row_count = 0);
     BOOST_STATIC_CONSTANT(std::size_t, static_col_count = 0);
     BOOST_STATIC_CONSTANT(mat_alignment::tag, alignment = mat_alignment::column_major);
@@ -89,19 +94,19 @@ class givens_rot_matrix {
       using std::fabs;
       using std::sqrt;
       if(fabs(s) < NumTol * fabs(c)) {
-	c = value_type(1.0);
-	s = value_type(0.0);
-	return;
+        c = value_type(1.0);
+        s = value_type(0.0);
+        return;
       };
       
       if(fabs(c) < fabs(s)) {
-	value_type tau = - c / s;
-	s = value_type(1.0) / sqrt(value_type(1.0) + tau * tau);
-	c = s * tau;
+        value_type tau = - c / s;
+        s = value_type(1.0) / sqrt(value_type(1.0) + tau * tau);
+        c = s * tau;
       } else {
-	value_type tau = - s / c;
-	c = value_type(1.0) / sqrt(value_type(1.0) + tau * tau);
-	s = c * tau;
+        value_type tau = - s / c;
+        c = value_type(1.0) / sqrt(value_type(1.0) + tau * tau);
+        s = c * tau;
       };
     };
   public:

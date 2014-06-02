@@ -36,11 +36,11 @@
 #include "tensor_traits.hpp"
 #include "tensor_concepts.hpp"
 
-#include "lin_alg/mat_alg.hpp"
+#include <ReaK/core/lin_alg/mat_alg.hpp>
 
 #include <boost/config.hpp>
 
-#include "rtti/so_type.hpp"
+#include <ReaK/core/rtti/so_type.hpp>
 
 namespace ReaK {
   

@@ -32,8 +32,8 @@
 #ifndef REAK_QUAT_ALG_HPP
 #define REAK_QUAT_ALG_HPP
 
-#include "lin_alg/vect_alg.hpp"
-#include "serialization/archiver.hpp"
+#include <ReaK/core/lin_alg/vect_alg.hpp>
+#include <ReaK/core/serialization/archiver.hpp>
 
 #include "rotations_3D.hpp"
 
@@ -110,7 +110,7 @@ class quat {
      */
     const_reference operator [](size_type i) const {
       if(i >= 4)
-	throw std::range_error("Quaternion index out of range.");
+        throw std::range_error("Quaternion index out of range.");
       return q[i];
     };
     
@@ -120,7 +120,7 @@ class quat {
      */
     reference operator [](size_type i) {
       if(i >= 4)
-	throw std::range_error("Quaternion index out of range.");
+        throw std::range_error("Quaternion index out of range.");
       return q[i];
     };
     
@@ -455,7 +455,7 @@ class quat {
       using std::sqrt;
       value_type theta = sqrt(x.q[1] * x.q[1] + x.q[2] * x.q[2] + x.q[3] * x.q[3]);
       if(theta < std::numeric_limits<value_type>::epsilon())
-	return self(exp(x.q[0]));
+        return self(exp(x.q[0]));
       value_type fact = sin(theta) / theta;
       return exp(x.q[0]) * self(cos(theta), fact * x.q[1], fact * x.q[2], fact * x.q[3]);
     };  
@@ -468,7 +468,7 @@ class quat {
       using std::sqrt;
       value_type st = sqrt(x.q[1] * x.q[1] + x.q[2] * x.q[2] + x.q[3] * x.q[3]);
       if(st < std::numeric_limits<value_type>::epsilon())
-	return self(log(fabs(x.q[0])));
+        return self(log(fabs(x.q[0])));
       value_type fact = atan2(st,x.q[0]) / st;
       return self(log(sqrt(x.q[0] * x.q[0] + st * st)), fact * x.q[1], fact * x.q[2], fact * x.q[3]);
     };
@@ -524,7 +524,7 @@ class quat {
       using std::sqrt;
       value_type theta = sqrt(x.q[1] * x.q[1] + x.q[2] * x.q[2] + x.q[3] * x.q[3]);
       if(theta < std::numeric_limits<value_type>::epsilon())
-	return self(cos(x.q[0]));
+        return self(cos(x.q[0]));
       value_type fact = - sin(x.q[0]) * sinh(theta) / theta;
       return self(cos(x.q[0]) * cosh(theta), fact * x.q[1], fact * x.q[2], fact * x.q[3]);
     }; 
@@ -536,7 +536,7 @@ class quat {
       using std::sqrt;
       value_type theta = sqrt(x.q[1] * x.q[1] + x.q[2] * x.q[2] + x.q[3] * x.q[3]);
       if(theta < std::numeric_limits<value_type>::epsilon())
-	return self(sin(x.q[0]));
+        return self(sin(x.q[0]));
       value_type fact = cos(x.q[0]) * sinh(theta) / theta;
       return self(sin(x.q[0]) * cosh(theta), fact * x.q[1], fact * x.q[2], fact * x.q[3]);
     };  
@@ -548,7 +548,7 @@ class quat {
       using std::sqrt; using std::tan;
       value_type theta = sqrt(x.q[1] * x.q[1] + x.q[2] * x.q[2] + x.q[3] * x.q[3]);
       if(theta < std::numeric_limits<value_type>::epsilon())
-	return self(tan(x.q[0]));
+        return self(tan(x.q[0]));
       value_type tmp = 1.0 / (cos(2.0 * x.q[0]) + cosh(2.0 * theta));
       value_type fact = sinh(2.0*theta) * tmp / theta;
       return self(sin(2.0*x.q[0]) * tmp, fact * x.q[1], fact * x.q[2], fact * x.q[3]); 
@@ -561,7 +561,7 @@ class quat {
       using std::atan2; using std::cos; using std::sin; using std::acos;
       value_type ss_sht = sqrt(x.q[1] * x.q[1] + x.q[2] * x.q[2] + x.q[3] * x.q[3]);
       if(ss_sht < std::numeric_limits<value_type>::epsilon())
-	return self(acos(x.q[0]));
+        return self(acos(x.q[0]));
       
       //complex acos...
       value_type Re1 = x.q[0] * x.q[0] - ss_sht * ss_sht - 1.0; // x * x - 1.0
@@ -587,7 +587,7 @@ class quat {
       using std::atan2; using std::cos; using std::sin; using std::asin;
       value_type cs_sht = sqrt(x.q[1] * x.q[1] + x.q[2] * x.q[2] + x.q[3] * x.q[3]);
       if(cs_sht < std::numeric_limits<value_type>::epsilon())
-	return self(asin(x.q[0]));
+        return self(asin(x.q[0]));
       
       //complex asin...
       value_type Re1 = 1.0 - x.q[0] * x.q[0] + cs_sht * cs_sht; // 1.0 - x * x
@@ -613,7 +613,7 @@ class quat {
       using std::atan2; using std::cos; using std::sin; using std::atan;
       value_type tmp = sqrt(x.q[1] * x.q[1] + x.q[2] * x.q[2] + x.q[3] * x.q[3]);
       if(tmp < std::numeric_limits<value_type>::epsilon())
-	return self(atan(x.q[0]));
+        return self(atan(x.q[0]));
             
       //complex atan...
       value_type sqr_mag_inv = 1.0 / ((1.0 - tmp) * (1.0 - tmp) + x.q[0] * x.q[0]); //complex division
@@ -642,7 +642,7 @@ class quat {
       using std::sqrt;
       value_type theta = sqrt(x.q[1] * x.q[1] + x.q[2] * x.q[2] + x.q[3] * x.q[3]);
       if(theta < std::numeric_limits<value_type>::epsilon())
-	return self(cosh(x.q[0]));
+        return self(cosh(x.q[0]));
       value_type fact = sinh(x.q[0]) * sin(theta) / theta;
       return self(cosh(x.q[0]) * cos(theta), fact * x.q[1], fact * x.q[2], fact * x.q[3]);
     };  
@@ -654,7 +654,7 @@ class quat {
       using std::sqrt;
       value_type theta = sqrt(x.q[1] * x.q[1] + x.q[2] * x.q[2] + x.q[3] * x.q[3]);
       if(theta < std::numeric_limits<value_type>::epsilon())
-	return self(sinh(x.q[0]));
+        return self(sinh(x.q[0]));
       value_type fact = cosh(x.q[0]) * sin(theta) / theta;
       return self(sinh(x.q[0]) * cos(theta), fact * x.q[1], fact * x.q[2], fact * x.q[3]);
     };  
@@ -666,7 +666,7 @@ class quat {
       using std::sqrt;
       value_type theta = sqrt(x.q[1] * x.q[1] + x.q[2] * x.q[2] + x.q[3] * x.q[3]);
       if(theta < std::numeric_limits<value_type>::epsilon())
-	return self(tanh(x.q[0]));
+        return self(tanh(x.q[0]));
       value_type tmp = 1.0 / (cosh(2.0 * x.q[0]) + cos(2.0 * theta));
       value_type fact = sin(2.0*theta) * tmp / theta;
       return self(sinh(2.0*x.q[0]) * tmp, fact * x.q[1], fact * x.q[2], fact * x.q[3]); 
@@ -726,7 +726,7 @@ class unit_quat : public quat<T> {
       using std::sqrt;
       scalar_type factor = sqrt(aQ.q[0] * aQ.q[0] + aQ.q[1] * aQ.q[1] + aQ.q[2] * aQ.q[2] + aQ.q[3] * aQ.q[3]); 
       if( factor > std::numeric_limits<scalar_type>::epsilon() ) {
-	factor = 1.0 / factor;
+        factor = 1.0 / factor;
         this->q[0] = aQ.q[0] * factor; 
         this->q[1] = aQ.q[1] * factor; 
         this->q[2] = aQ.q[2] * factor; 
@@ -741,7 +741,7 @@ class unit_quat : public quat<T> {
       using std::sqrt;
       scalar_type factor = norm_2(V); 
       if( factor > std::numeric_limits<scalar_type>::epsilon() ) {
-	factor = 1.0 / factor;
+        factor = 1.0 / factor;
         this->q[0] = V[0] * factor; 
         this->q[1] = V[1] * factor; 
         this->q[2] = V[2] * factor; 
@@ -756,7 +756,7 @@ class unit_quat : public quat<T> {
       using std::sqrt;
       scalar_type factor = sqrt(q0 * q0 + q1 * q1 + q2 * q2 + q3 * q3); 
       if( factor > std::numeric_limits<scalar_type>::epsilon() ) {
-	factor = 1.0 / factor;
+        factor = 1.0 / factor;
         this->q[0] = q0 * factor; 
         this->q[1] = q1 * factor; 
         this->q[2] = q2 * factor; 
@@ -777,7 +777,7 @@ class unit_quat : public quat<T> {
      */
     const_reference operator [](size_type i) const {
       if(i >= 4)
-	throw std::range_error("Quaternion index out of range.");
+        throw std::range_error("Quaternion index out of range.");
       return this->q[i];
     };
     
@@ -888,10 +888,10 @@ class unit_quat : public quat<T> {
       using std::sqrt;
       value_type st = sqrt(x.q[1] * x.q[1] + x.q[2] * x.q[2] + x.q[3] * x.q[3]);
       if(st < std::numeric_limits<value_type>::epsilon())
-	return vector_type(value_type(0.0),value_type(0.0),value_type(0.0));
+        return vector_type(value_type(0.0),value_type(0.0),value_type(0.0));
       value_type fact;
       if( x.q[0] < 0.0 )
-	fact = -atan2(st,-x.q[0]) / st;
+        fact = -atan2(st,-x.q[0]) / st;
       else
         fact = atan2(st,x.q[0]) / st;
       return vector_type(fact * x.q[1], fact * x.q[2], fact * x.q[3]);

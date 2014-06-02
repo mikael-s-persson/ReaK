@@ -8,7 +8,7 @@ function [KU,KL] = carecond(A,G,Q,X)
 %
 % The condition number for CARE defined in [1] is given by
 %
-%	             ||DX||    ||DA||       ||DG||       ||DQ||
+%                     ||DX||    ||DA||       ||DG||       ||DQ||
 %   K =  lim    sup{ ------- ; ------ <= d, ------ <= d, ------ <= d }
 %       d -> 0       d*||X||    ||A||        ||G||        ||Q||
 %
@@ -26,11 +26,11 @@ function [KU,KL] = carecond(A,G,Q,X)
 %   
 %          ||H_0||*||Q|| + 2*sqrt(||H_0||*||H_2||)*||A|| + ||H_2||*||G||  
 %   KU  = --------------------------------------------------------------- ,
-%	 		            ||X||
+%                                     ||X||
 %   
 %          ||H_0||*||Q|| + 2*||H_1||*||A|| + ||H_2||*||G||  
 %   KL  = ------------------------------------------------- .
-%	        	       ||X||
+%                               ||X||
 %
 % Here the H_k, k = 0,1,2, are the solutions of the Lyapunov equations
 %
@@ -50,21 +50,21 @@ function [KU,KL] = carecond(A,G,Q,X)
 %
 %  For questions concerning this M-file, send e-mail to
 %
-%	benner@mathematik.tu-chemnitz.de
+%        benner@mathematik.tu-chemnitz.de
 
 error(nargchk(1,4,nargin))
 [na,ma] = size(A);
-if na~=ma,	error('Input matrix A must be square.'),  	end
+if na~=ma,        error('Input matrix A must be square.'),          end
 n = na;
 [ng,mg] = size(G);
-if ng~=mg,	error('Input matrix G must be square.'),  	end
-if ng~=n, 	error('Incorrectly sized matrix G.'),		end
+if ng~=mg,        error('Input matrix G must be square.'),          end
+if ng~=n,         error('Incorrectly sized matrix G.'),                end
 [nq,mq] = size(Q);
-if nq~=mq,	error('Input matrix Q must be square.'),  	end
-if nq~=n, 	error('Incorrectly sized matrix Q.'),		end
+if nq~=mq,        error('Input matrix Q must be square.'),          end
+if nq~=n,         error('Incorrectly sized matrix Q.'),                end
 [nx,mx] = size(X);
-if nx~=mx,	error('Input matrix X must be square.'),  	end
-if nx~=n, 	error('Incorrectly sized matrix X.'),		end
+if nx~=mx,        error('Input matrix X must be square.'),          end
+if nx~=n,         error('Incorrectly sized matrix X.'),                end
 
 Anorm = norm(A);
 Gnorm = norm(G);

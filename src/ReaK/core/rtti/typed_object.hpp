@@ -34,7 +34,7 @@
 #ifndef REAK_TYPED_OBJECT_HPP
 #define REAK_TYPED_OBJECT_HPP
 
-#include "base/defs.hpp"
+#include <ReaK/core/base/defs.hpp>
 
 #include "so_type_repo.hpp"
 #include "so_register_type.hpp"

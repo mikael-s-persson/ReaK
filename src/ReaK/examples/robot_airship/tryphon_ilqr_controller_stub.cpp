@@ -165,11 +165,11 @@ int main(int argc, char **argv)
     
     // First, compute the invariant error vector:
     cur_inv_quat = invert(current_quat).as_rotation();
-    err[ReaK::range(0,2)]  = cur_inv_quat * (desired_pos - current_pos);
-    err[ReaK::range(3,5)]  = cur_inv_quat * (desired_vel - current_vel);
+    err[ReaK::range(0,3)]  = cur_inv_quat * (desired_pos - current_pos);
+    err[ReaK::range(3,6)]  = cur_inv_quat * (desired_vel - current_vel);
     quat_diff = invert(current_quat) * desired_quat;
-    err[ReaK::range(6,8)]  = 2.0 * log(quat_diff);
-    err[ReaK::range(9,11)] = quat_diff.as_rotation() * desired_ang_vel - current_ang_vel;
+    err[ReaK::range(6,9)]  = 2.0 * log(quat_diff);
+    err[ReaK::range(9,12)] = quat_diff.as_rotation() * desired_ang_vel - current_ang_vel;
     
     ReaK::vect_n<double> ft = LQR_K * err;
     

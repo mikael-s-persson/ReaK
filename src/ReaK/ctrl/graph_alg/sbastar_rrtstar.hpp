@@ -51,9 +51,9 @@
 #include <utility>
 #include <cmath>
 
-#include "path_planning/metric_space_concept.hpp"
-#include "path_planning/random_sampler_concept.hpp"
-#include "base/global_rng.hpp"
+#include <ReaK/ctrl/path_planning/metric_space_concept.hpp>
+#include <ReaK/ctrl/path_planning/random_sampler_concept.hpp>
+#include <ReaK/core/base/global_rng.hpp>
 
 #include <boost/tuple/tuple.hpp>
 #include <boost/graph/graph_concepts.hpp>

@@ -28,9 +28,9 @@
 #include <boost/graph/topology.hpp>
 #include <boost/graph/properties.hpp>
 
-#include "path_planning/dvp_layout_adjacency_list.hpp"
-#include "topologies/hyperbox_topology.hpp"
-#include "lin_alg/vect_alg.hpp"
+#include <ReaK/ctrl/path_planning/dvp_layout_adjacency_list.hpp>
+#include <ReaK/ctrl/topologies/hyperbox_topology.hpp>
+#include <ReaK/core/lin_alg/vect_alg.hpp>
 
 
 #include <boost/graph/adjacency_list_BC.hpp>

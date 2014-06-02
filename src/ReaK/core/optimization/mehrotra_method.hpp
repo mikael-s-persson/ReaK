@@ -35,13 +35,11 @@
 #ifndef REAK_MEHROTRA_METHOD_HPP
 #define REAK_MEHROTRA_METHOD_HPP
 
-#include "base/defs.hpp"
+#include <ReaK/core/base/defs.hpp>
+#include <ReaK/core/lin_alg/mat_alg.hpp>
+#include <ReaK/core/lin_alg/mat_qr_decomp.hpp>
 
 #include "optim_exceptions.hpp"
-
-#include "lin_alg/mat_alg.hpp"
-#include "lin_alg/mat_qr_decomp.hpp"
-
 #include "quadratic_programs.hpp"
 
 #include <vector>
@@ -79,7 +77,7 @@ namespace optim {
  */
 template <typename Matrix, typename Vector1, typename Vector2>
 void mehrotra_method(const Matrix& A, const Vector1& b, const Vector2& c, Vector2& x, unsigned int max_iter = 100,
-		     typename vect_traits<Vector1>::value_type abs_tol = std::numeric_limits<typename vect_traits<Vector1>::value_type>::epsilon()) {
+                     typename vect_traits<Vector1>::value_type abs_tol = std::numeric_limits<typename vect_traits<Vector1>::value_type>::epsilon()) {
   typedef typename vect_traits<Vector1>::value_type ValueType;
   typedef typename vect_traits<Vector1>::size_type SizeType;
   using std::swap;
@@ -176,14 +174,14 @@ void mehrotra_method(const Matrix& A, const Vector1& b, const Vector2& c, Vector
     ValueType a_d(1.0);
     for(SizeType i = 0; i < N; ++i) {
       if( dx[i] < ValueType(0.0) ) {
-	ValueType tmp = -x[i] / dx[i];
-	if(tmp < a_p)
-	  a_p = tmp;
+        ValueType tmp = -x[i] / dx[i];
+        if(tmp < a_p)
+          a_p = tmp;
       };
       if( ds[i] < ValueType(0.0) ) {
-	ValueType tmp = -s[i] / ds[i];
-	if(tmp < a_d)
-	  a_d = tmp;
+        ValueType tmp = -s[i] / ds[i];
+        if(tmp < a_d)
+          a_d = tmp;
       };
     };
     ValueType mu_aff = ((x + a_p * dx) * (s + a_d * ds)) / ValueType(N);
@@ -204,14 +202,14 @@ void mehrotra_method(const Matrix& A, const Vector1& b, const Vector2& c, Vector
     a_d = ValueType(1.0);
     for(SizeType i = 0; i < N; ++i) {
       if( dx[i] < ValueType(0.0) ) {
-	ValueType tmp = -eta * x[i] / dx[i];
-	if(tmp < a_p)
-	  a_p = tmp;
+        ValueType tmp = -eta * x[i] / dx[i];
+        if(tmp < a_p)
+          a_p = tmp;
       };
       if( ds[i] < ValueType(0.0) ) {
-	ValueType tmp = -eta * s[i] / ds[i];
-	if(tmp < a_d)
-	  a_d = tmp;
+        ValueType tmp = -eta * s[i] / ds[i];
+        if(tmp < a_d)
+          a_d = tmp;
       };
     };
     
@@ -269,9 +267,9 @@ void mehrotra_method(const Matrix& A, const Vector1& b, const Vector2& c, Vector
  */
 template <typename Matrix1, typename Vector1, typename Matrix2, typename Vector2, typename Matrix3, typename Vector3>
 void mehrotra_QP_method(const Matrix1& A, const Vector1& b, 
-		        const Matrix2& G, const Vector2& c, 
-		        const Matrix3& E, const Vector3& d, Vector2& x, unsigned int max_iter,
-		        typename vect_traits<Vector1>::value_type abs_tol = std::numeric_limits<typename vect_traits<Vector1>::value_type>::epsilon()) {
+                        const Matrix2& G, const Vector2& c, 
+                        const Matrix3& E, const Vector3& d, Vector2& x, unsigned int max_iter,
+                        typename vect_traits<Vector1>::value_type abs_tol = std::numeric_limits<typename vect_traits<Vector1>::value_type>::epsilon()) {
   typedef typename vect_traits<Vector1>::value_type ValueType;
   typedef typename vect_traits<Vector1>::size_type SizeType;
   using std::swap;
@@ -389,7 +387,7 @@ void mehrotra_QP_method(const Matrix1& A, const Vector1& b,
     mat<ValueType, mat_structure::rectangular> AZ_temp = AZ;
     for(SizeType i = 0; i < M; ++i) {
       for(SizeType j = 0; j < N-K; ++j)
-	AZ_temp(i,j) *= l[i] / y[i];
+        AZ_temp(i,j) *= l[i] / y[i];
     };
     ZG_AAZ = transpose_view(AZ) * AZ_temp + ZGZ;
     decompose_Cholesky(ZG_AAZ, LHS_L, abs_tol);
@@ -401,9 +399,9 @@ void mehrotra_QP_method(const Matrix1& A, const Vector1& b,
     ValueType alpha = ValueType(0.995);
     for(SizeType i = 0; i < M; ++i) {
       if( y[i] < -alpha * dy[i] )
-	alpha = -y[i] / dy[i];
+        alpha = -y[i] / dy[i];
       if( l[i] < -alpha * dl[i] )
-	alpha = -l[i] / dl[i];
+        alpha = -l[i] / dl[i];
     };
     ValueType mu_aff = (y + alpha * dy) * (l + alpha * dl) / ValueType(M);
     ValueType sigma = (mu_aff * mu_aff * mu_aff) / (mu * mu * mu);
@@ -421,9 +419,9 @@ void mehrotra_QP_method(const Matrix1& A, const Vector1& b,
     ValueType a_d = ValueType(0.995);
     for(SizeType i = 0; i < M; ++i) {
       if( a_p * dy[i] < -eta * y[i] )
-	a_p = -eta * y[i] / dy[i];
+        a_p = -eta * y[i] / dy[i];
       if( a_d * dl[i] < -eta * l[i] )
-	a_d = -eta * l[i] / dl[i];
+        a_d = -eta * l[i] / dl[i];
     };
     alpha = (a_p < a_d ? a_p : a_d);
     x += alpha * (E_Q * dx);

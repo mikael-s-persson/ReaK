@@ -32,14 +32,14 @@
 
 
 
-#include "base/defs.hpp"
+#include <ReaK/core/base/defs.hpp>
+#include <ReaK/core/base/py_fixes.hpp>
 
-#include "vect_alg.hpp"
+#include <ReaK/core/lin_alg/vect_alg.hpp>
 
 #include <boost/python.hpp>
 #include <boost/python/suite/indexing/vector_indexing_suite.hpp>
 
-#include "base/py_fixes.hpp"
 
 #include <sstream>
 
@@ -165,13 +165,13 @@ void export_vect_alg() {
     .def(init<double,double,double,double,double,double,double,double,double>())
     .def(init<double,double,double,double,double,double,double,double,double,double>())
     .def(init<double,double,double,double,double,double,double,double,double,double,
-	      double>())
+              double>())
     .def(init<double,double,double,double,double,double,double,double,double,double,
-	      double,double>())
+              double,double>())
     .def(init<double,double,double,double,double,double,double,double,double,double,
-	      double,double,double>())
+              double,double,double>())
     .def(init<double,double,double,double,double,double,double,double,double,double,
-	      double,double,double,double>())
+              double,double,double,double>())
     .def(self + self)
     .def(self - self)
     .def(-self)

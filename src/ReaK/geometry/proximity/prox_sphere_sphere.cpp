@@ -59,10 +59,10 @@ void prox_sphere_sphere::computeProximity() {
 
 
 prox_sphere_sphere::prox_sphere_sphere(const shared_ptr< sphere >& aSphere1,
-				       const shared_ptr< sphere >& aSphere2) :
-				       proximity_finder_3D(),
-				       mSphere1(aSphere1),
-				       mSphere2(aSphere2) { };
+                                       const shared_ptr< sphere >& aSphere2) :
+                                       proximity_finder_3D(),
+                                       mSphere1(aSphere1),
+                                       mSphere2(aSphere2) { };
     
     
 void RK_CALL prox_sphere_sphere::save(ReaK::serialization::oarchive& A, unsigned int) const {

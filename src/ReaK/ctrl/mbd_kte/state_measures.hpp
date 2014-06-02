@@ -92,11 +92,11 @@ class position_measure_gen : public kte_map, public system_output {
      * \param aAnchor the coordinate from which position is measured.
      */
     position_measure_gen(const std::string& aName,
-			 const shared_ptr< ReaK::gen_coord<double> >& aAnchor) :
-			 kte_map(aName),
-			 system_output(aName),
-			 mAnchor(aAnchor),
-			 mPosMeasure(0.0) { };
+                         const shared_ptr< ReaK::gen_coord<double> >& aAnchor) :
+                         kte_map(aName),
+                         system_output(aName),
+                         mAnchor(aAnchor),
+                         mPosMeasure(0.0) { };
 
     /**
      * Default destructor.
@@ -105,9 +105,9 @@ class position_measure_gen : public kte_map, public system_output {
     
     virtual void doMotion(kte_pass_flag aFlag = nothing, const shared_ptr<frame_storage>& aStorage = shared_ptr<frame_storage>()) {
       if(mAnchor)
-	mPosMeasure = mAnchor->q;
+        mPosMeasure = mAnchor->q;
       else
-	mPosMeasure = 0.0;
+        mPosMeasure = 0.0;
     };
 
     virtual void doForce(kte_pass_flag aFlag = nothing, const shared_ptr<frame_storage>& aStorage = shared_ptr<frame_storage>()) { };
@@ -124,9 +124,9 @@ class position_measure_gen : public kte_map, public system_output {
       kte_map::load(A,kte_map::getStaticObjectType()->TypeVersion());
       A & RK_SERIAL_LOAD_WITH_NAME(mAnchor);
       if(mAnchor)
-	mPosMeasure = mAnchor->q;
+        mPosMeasure = mAnchor->q;
       else
-	mPosMeasure = 0.0;
+        mPosMeasure = 0.0;
     };
 
     RK_RTTI_MAKE_CONCRETE_2BASE(position_measure_gen,0xC2100035,1,"position_measure_gen",kte_map,system_output)
@@ -173,7 +173,7 @@ class position_measure_2D : public kte_map, public system_output {
       if(i < 2)
         return mPosMeasure[i]; 
       else
-	return mPosMeasure[0];
+        return mPosMeasure[0];
     };
     
     /**
@@ -187,11 +187,11 @@ class position_measure_2D : public kte_map, public system_output {
      * \param aAnchor the coordinate from which position is measured.
      */
     position_measure_2D(const std::string& aName,
-			const shared_ptr< ReaK::frame_2D<double> >& aAnchor) :
-			kte_map(aName),
-			system_output(aName),
-			mAnchor(aAnchor),
-			mPosMeasure() { };
+                        const shared_ptr< ReaK::frame_2D<double> >& aAnchor) :
+                        kte_map(aName),
+                        system_output(aName),
+                        mAnchor(aAnchor),
+                        mPosMeasure() { };
 
     /**
      * Default destructor.
@@ -200,9 +200,9 @@ class position_measure_2D : public kte_map, public system_output {
     
     virtual void doMotion(kte_pass_flag aFlag = nothing, const shared_ptr<frame_storage>& aStorage = shared_ptr<frame_storage>()) {
       if(mAnchor)
-	mPosMeasure = mAnchor->Position;
+        mPosMeasure = mAnchor->Position;
       else
-	mPosMeasure = vect<double,2>();
+        mPosMeasure = vect<double,2>();
     };
 
     virtual void doForce(kte_pass_flag aFlag = nothing, const shared_ptr<frame_storage>& aStorage = shared_ptr<frame_storage>()) { };
@@ -219,9 +219,9 @@ class position_measure_2D : public kte_map, public system_output {
       kte_map::load(A,kte_map::getStaticObjectType()->TypeVersion());
       A & RK_SERIAL_LOAD_WITH_NAME(mAnchor);
       if(mAnchor) 
-	mPosMeasure = mAnchor->Position;
+        mPosMeasure = mAnchor->Position;
       else
-	mPosMeasure = vect<double,2>();
+        mPosMeasure = vect<double,2>();
     };
 
     RK_RTTI_MAKE_CONCRETE_2BASE(position_measure_2D,0xC2100036,1,"position_measure_2D",kte_map,system_output)
@@ -268,7 +268,7 @@ class position_measure_3D : public kte_map, public system_output {
       if(i < 3)
         return mPosMeasure[i]; 
       else
-	return mPosMeasure[0];
+        return mPosMeasure[0];
     };
     
     /**
@@ -282,11 +282,11 @@ class position_measure_3D : public kte_map, public system_output {
      * \param aAnchor the coordinate from which position is measured.
      */
     position_measure_3D(const std::string& aName,
-			const shared_ptr< frame_3D<double> >& aAnchor) :
-			 kte_map(aName),
-			 system_output(aName),
-			 mAnchor(aAnchor),
-			 mPosMeasure() { };
+                        const shared_ptr< frame_3D<double> >& aAnchor) :
+                         kte_map(aName),
+                         system_output(aName),
+                         mAnchor(aAnchor),
+                         mPosMeasure() { };
 
     /**
      * Default destructor.
@@ -295,9 +295,9 @@ class position_measure_3D : public kte_map, public system_output {
     
     virtual void doMotion(kte_pass_flag aFlag = nothing, const shared_ptr<frame_storage>& aStorage = shared_ptr<frame_storage>()) {
       if(mAnchor)
-	mPosMeasure = mAnchor->Position;
+        mPosMeasure = mAnchor->Position;
       else
-	mPosMeasure = vect<double,3>();
+        mPosMeasure = vect<double,3>();
     };
 
     virtual void doForce(kte_pass_flag aFlag = nothing, const shared_ptr<frame_storage>& aStorage = shared_ptr<frame_storage>()) { };
@@ -314,9 +314,9 @@ class position_measure_3D : public kte_map, public system_output {
       kte_map::load(A,kte_map::getStaticObjectType()->TypeVersion());
       A & RK_SERIAL_LOAD_WITH_NAME(mAnchor);
       if(mAnchor) 
-	mPosMeasure = mAnchor->Position;
+        mPosMeasure = mAnchor->Position;
       else
-	mPosMeasure = vect<double,3>();
+        mPosMeasure = vect<double,3>();
     };
 
     RK_RTTI_MAKE_CONCRETE_2BASE(position_measure_3D,0xC2100037,1,"position_measure_3D",kte_map,system_output)
@@ -372,11 +372,11 @@ class rotation_measure_2D : public kte_map, public system_output {
      * \param aAnchor the coordinate from which position is measured.
      */
     rotation_measure_2D(const std::string& aName,
-			const shared_ptr< frame_2D<double> >& aAnchor) :
-			 kte_map(aName),
-			 system_output(aName),
-			 mAnchor(aAnchor),
-			 mAngleMeasure() { };
+                        const shared_ptr< frame_2D<double> >& aAnchor) :
+                         kte_map(aName),
+                         system_output(aName),
+                         mAnchor(aAnchor),
+                         mAngleMeasure() { };
 
     /**
      * Default destructor.
@@ -385,9 +385,9 @@ class rotation_measure_2D : public kte_map, public system_output {
     
     virtual void doMotion(kte_pass_flag aFlag = nothing, const shared_ptr<frame_storage>& aStorage = shared_ptr<frame_storage>()) {
       if(mAnchor)
-	mAngleMeasure = mAnchor->Rotation.getAngle();
+        mAngleMeasure = mAnchor->Rotation.getAngle();
       else
-	mAngleMeasure = 0.0;
+        mAngleMeasure = 0.0;
     };
 
     virtual void doForce(kte_pass_flag aFlag = nothing, const shared_ptr<frame_storage>& aStorage = shared_ptr<frame_storage>()) { };
@@ -404,9 +404,9 @@ class rotation_measure_2D : public kte_map, public system_output {
       kte_map::load(A,kte_map::getStaticObjectType()->TypeVersion());
       A & RK_SERIAL_LOAD_WITH_NAME(mAnchor);
       if(mAnchor)
-	mAngleMeasure = mAnchor->Rotation.getAngle();
+        mAngleMeasure = mAnchor->Rotation.getAngle();
       else
-	mAngleMeasure = 0.0;
+        mAngleMeasure = 0.0;
     };
 
     RK_RTTI_MAKE_CONCRETE_2BASE(rotation_measure_2D,0xC2100038,1,"rotation_measure_2D",kte_map,system_output)
@@ -454,7 +454,7 @@ class rotation_measure_3D : public kte_map, public system_output {
       if(i < 4)
         return mQuatMeasure[i]; 
       else
-	return mQuatMeasure[0];
+        return mQuatMeasure[0];
     };
     
     /**
@@ -468,11 +468,11 @@ class rotation_measure_3D : public kte_map, public system_output {
      * \param aAnchor the coordinate from which position is measured.
      */
     rotation_measure_3D(const std::string& aName,
-			const shared_ptr< frame_3D<double> >& aAnchor) :
-			 kte_map(aName),
-			 system_output(aName),
-			 mAnchor(aAnchor),
-			 mQuatMeasure() { };
+                        const shared_ptr< frame_3D<double> >& aAnchor) :
+                         kte_map(aName),
+                         system_output(aName),
+                         mAnchor(aAnchor),
+                         mQuatMeasure() { };
 
     /**
      * Default destructor.
@@ -481,9 +481,9 @@ class rotation_measure_3D : public kte_map, public system_output {
     
     virtual void doMotion(kte_pass_flag aFlag = nothing, const shared_ptr<frame_storage>& aStorage = shared_ptr<frame_storage>()) {
       if(mAnchor)
-	mQuatMeasure = mAnchor->Quat;
+        mQuatMeasure = mAnchor->Quat;
       else
-	mQuatMeasure = quaternion<double>();
+        mQuatMeasure = quaternion<double>();
     };
 
     virtual void doForce(kte_pass_flag aFlag = nothing, const shared_ptr<frame_storage>& aStorage = shared_ptr<frame_storage>()) { };
@@ -500,9 +500,9 @@ class rotation_measure_3D : public kte_map, public system_output {
       kte_map::load(A,kte_map::getStaticObjectType()->TypeVersion());
       A & RK_SERIAL_LOAD_WITH_NAME(mAnchor);
       if(mAnchor)
-	mQuatMeasure = mAnchor->Quat;
+        mQuatMeasure = mAnchor->Quat;
       else
-	mQuatMeasure = quaternion<double>();
+        mQuatMeasure = quaternion<double>();
     };
 
     RK_RTTI_MAKE_CONCRETE_2BASE(rotation_measure_3D,0xC2100039,1,"rotation_measure_3D",kte_map,system_output)
@@ -558,11 +558,11 @@ class velocity_measure_gen : public kte_map, public system_output {
      * \param aAnchor the coordinate from which position is measured.
      */
     velocity_measure_gen(const std::string& aName,
-			 const shared_ptr< gen_coord<double> >& aAnchor) :
-			 kte_map(aName),
-			 system_output(aName),
-			 mAnchor(aAnchor),
-			 mVelMeasure(0.0) { };
+                         const shared_ptr< gen_coord<double> >& aAnchor) :
+                         kte_map(aName),
+                         system_output(aName),
+                         mAnchor(aAnchor),
+                         mVelMeasure(0.0) { };
 
     /**
      * Default destructor.
@@ -571,9 +571,9 @@ class velocity_measure_gen : public kte_map, public system_output {
     
     virtual void doMotion(kte_pass_flag aFlag = nothing, const shared_ptr<frame_storage>& aStorage = shared_ptr<frame_storage>()) {
       if(mAnchor)
-	mVelMeasure = mAnchor->q_dot;
+        mVelMeasure = mAnchor->q_dot;
       else
-	mVelMeasure = 0.0;
+        mVelMeasure = 0.0;
     };
 
     virtual void doForce(kte_pass_flag aFlag = nothing, const shared_ptr<frame_storage>& aStorage = shared_ptr<frame_storage>()) { };
@@ -590,9 +590,9 @@ class velocity_measure_gen : public kte_map, public system_output {
       kte_map::load(A,kte_map::getStaticObjectType()->TypeVersion());
       A & RK_SERIAL_LOAD_WITH_NAME(mAnchor);
       if(mAnchor)
-	mVelMeasure = mAnchor->q_dot;
+        mVelMeasure = mAnchor->q_dot;
       else
-	mVelMeasure = 0.0;
+        mVelMeasure = 0.0;
     };
 
     RK_RTTI_MAKE_CONCRETE_2BASE(velocity_measure_gen,0xC210003A,1,"velocity_measure_gen",kte_map,system_output)
@@ -639,7 +639,7 @@ class velocity_measure_2D : public kte_map, public system_output {
       if(i < 2)
         return mVelMeasure[i]; 
       else
-	return mVelMeasure[0];
+        return mVelMeasure[0];
     };
     
     /**
@@ -653,11 +653,11 @@ class velocity_measure_2D : public kte_map, public system_output {
      * \param aAnchor the coordinate from which position is measured.
      */
     velocity_measure_2D(const std::string& aName,
-			const shared_ptr< frame_2D<double> >& aAnchor) :
-			kte_map(aName),
-			system_output(aName),
-			mAnchor(aAnchor),
-			mVelMeasure() { };
+                        const shared_ptr< frame_2D<double> >& aAnchor) :
+                        kte_map(aName),
+                        system_output(aName),
+                        mAnchor(aAnchor),
+                        mVelMeasure() { };
 
     /**
      * Default destructor.
@@ -666,9 +666,9 @@ class velocity_measure_2D : public kte_map, public system_output {
     
     virtual void doMotion(kte_pass_flag aFlag = nothing, const shared_ptr<frame_storage>& aStorage = shared_ptr<frame_storage>()) {
       if(mAnchor)
-	mVelMeasure = mAnchor->Velocity;
+        mVelMeasure = mAnchor->Velocity;
       else
-	mVelMeasure = vect<double,2>();
+        mVelMeasure = vect<double,2>();
     };
 
     virtual void doForce(kte_pass_flag aFlag = nothing, const shared_ptr<frame_storage>& aStorage = shared_ptr<frame_storage>()) { };
@@ -685,9 +685,9 @@ class velocity_measure_2D : public kte_map, public system_output {
       kte_map::load(A,kte_map::getStaticObjectType()->TypeVersion());
       A & RK_SERIAL_LOAD_WITH_NAME(mAnchor);
       if(mAnchor) 
-	mVelMeasure = mAnchor->Velocity;
+        mVelMeasure = mAnchor->Velocity;
       else
-	mVelMeasure = vect<double,2>();
+        mVelMeasure = vect<double,2>();
     };
 
     RK_RTTI_MAKE_CONCRETE_2BASE(velocity_measure_2D,0xC210003B,1,"velocity_measure_2D",kte_map,system_output)
@@ -734,7 +734,7 @@ class velocity_measure_3D : public kte_map, public system_output {
       if(i < 3)
         return mVelMeasure[i]; 
       else
-	return mVelMeasure[0];
+        return mVelMeasure[0];
     };
     
     /**
@@ -748,11 +748,11 @@ class velocity_measure_3D : public kte_map, public system_output {
      * \param aAnchor the coordinate from which position is measured.
      */
     velocity_measure_3D(const std::string& aName,
-			const shared_ptr< frame_3D<double> >& aAnchor) :
-			 kte_map(aName),
-			 system_output(aName),
-			 mAnchor(aAnchor),
-			 mVelMeasure() { };
+                        const shared_ptr< frame_3D<double> >& aAnchor) :
+                         kte_map(aName),
+                         system_output(aName),
+                         mAnchor(aAnchor),
+                         mVelMeasure() { };
 
     /**
      * Default destructor.
@@ -761,9 +761,9 @@ class velocity_measure_3D : public kte_map, public system_output {
     
     virtual void doMotion(kte_pass_flag aFlag = nothing, const shared_ptr<frame_storage>& aStorage = shared_ptr<frame_storage>()) {
       if(mAnchor)
-	mVelMeasure = mAnchor->Velocity;
+        mVelMeasure = mAnchor->Velocity;
       else
-	mVelMeasure = vect<double,3>();
+        mVelMeasure = vect<double,3>();
     };
 
     virtual void doForce(kte_pass_flag aFlag = nothing, const shared_ptr<frame_storage>& aStorage = shared_ptr<frame_storage>()) { };
@@ -780,9 +780,9 @@ class velocity_measure_3D : public kte_map, public system_output {
       kte_map::load(A,kte_map::getStaticObjectType()->TypeVersion());
       A & RK_SERIAL_LOAD_WITH_NAME(mAnchor);
       if(mAnchor) 
-	mVelMeasure = mAnchor->Velocity;
+        mVelMeasure = mAnchor->Velocity;
       else
-	mVelMeasure = vect<double,3>();
+        mVelMeasure = vect<double,3>();
     };
 
     RK_RTTI_MAKE_CONCRETE_2BASE(velocity_measure_3D,0xC210003C,1,"velocity_measure_3D",kte_map,system_output)
@@ -840,11 +840,11 @@ class ang_velocity_measure_2D : public kte_map, public system_output {
      * \param aAnchor the coordinate from which position is measured.
      */
     ang_velocity_measure_2D(const std::string& aName,
-			    const shared_ptr< frame_2D<double> >& aAnchor) :
-			    kte_map(aName),
-			    system_output(aName),
-			    mAnchor(aAnchor),
-			    mAngVelMeasure() { };
+                            const shared_ptr< frame_2D<double> >& aAnchor) :
+                            kte_map(aName),
+                            system_output(aName),
+                            mAnchor(aAnchor),
+                            mAngVelMeasure() { };
 
     /**
      * Default destructor.
@@ -853,9 +853,9 @@ class ang_velocity_measure_2D : public kte_map, public system_output {
     
     virtual void doMotion(kte_pass_flag aFlag = nothing, const shared_ptr<frame_storage>& aStorage = shared_ptr<frame_storage>()) {
       if(mAnchor)
-	mAngVelMeasure = mAnchor->AngVelocity;
+        mAngVelMeasure = mAnchor->AngVelocity;
       else
-	mAngVelMeasure = 0.0;
+        mAngVelMeasure = 0.0;
     };
 
     virtual void doForce(kte_pass_flag aFlag = nothing, const shared_ptr<frame_storage>& aStorage = shared_ptr<frame_storage>()) { };
@@ -872,9 +872,9 @@ class ang_velocity_measure_2D : public kte_map, public system_output {
       kte_map::load(A,kte_map::getStaticObjectType()->TypeVersion());
       A & RK_SERIAL_LOAD_WITH_NAME(mAnchor);
       if(mAnchor) 
-	mAngVelMeasure = mAnchor->AngVelocity;
+        mAngVelMeasure = mAnchor->AngVelocity;
       else
-	mAngVelMeasure = 0.0;
+        mAngVelMeasure = 0.0;
     };
 
     RK_RTTI_MAKE_CONCRETE_2BASE(ang_velocity_measure_2D,0xC210003B,1,"ang_velocity_measure_2D",kte_map,system_output)
@@ -921,7 +921,7 @@ class ang_velocity_measure_3D : public kte_map, public system_output {
       if(i < 3)
         return mAngVelMeasure[i]; 
       else
-	return mAngVelMeasure[0];
+        return mAngVelMeasure[0];
     };
     
     /**
@@ -935,11 +935,11 @@ class ang_velocity_measure_3D : public kte_map, public system_output {
      * \param aAnchor the coordinate from which position is measured.
      */
     ang_velocity_measure_3D(const std::string& aName,
-			    const shared_ptr< frame_3D<double> >& aAnchor) :
-			    kte_map(aName),
-			    system_output(aName),
-			    mAnchor(aAnchor),
-			    mAngVelMeasure() { };
+                            const shared_ptr< frame_3D<double> >& aAnchor) :
+                            kte_map(aName),
+                            system_output(aName),
+                            mAnchor(aAnchor),
+                            mAngVelMeasure() { };
 
     /**
      * Default destructor.
@@ -948,9 +948,9 @@ class ang_velocity_measure_3D : public kte_map, public system_output {
     
     virtual void doMotion(kte_pass_flag aFlag = nothing, const shared_ptr<frame_storage>& aStorage = shared_ptr<frame_storage>()) {
       if(mAnchor)
-	mAngVelMeasure = mAnchor->AngVelocity;
+        mAngVelMeasure = mAnchor->AngVelocity;
       else
-	mAngVelMeasure = vect<double,3>();
+        mAngVelMeasure = vect<double,3>();
     };
 
     virtual void doForce(kte_pass_flag aFlag = nothing, const shared_ptr<frame_storage>& aStorage = shared_ptr<frame_storage>()) { };
@@ -967,9 +967,9 @@ class ang_velocity_measure_3D : public kte_map, public system_output {
       kte_map::load(A,kte_map::getStaticObjectType()->TypeVersion());
       A & RK_SERIAL_LOAD_WITH_NAME(mAnchor);
       if(mAnchor) 
-	mAngVelMeasure = mAnchor->AngVelocity;
+        mAngVelMeasure = mAnchor->AngVelocity;
       else
-	mAngVelMeasure = vect<double,3>();
+        mAngVelMeasure = vect<double,3>();
     };
 
     RK_RTTI_MAKE_CONCRETE_2BASE(ang_velocity_measure_3D,0xC210003C,1,"ang_velocity_measure_3D",kte_map,system_output)

@@ -38,10 +38,9 @@
 #ifndef REAK_QUASI_NEWTON_METHODS_HPP
 #define REAK_QUASI_NEWTON_METHODS_HPP
 
-#include "base/defs.hpp"
-
-#include "lin_alg/mat_alg.hpp"
-#include "lin_alg/mat_num_exceptions.hpp"
+#include <ReaK/core/base/defs.hpp>
+#include <ReaK/core/lin_alg/mat_alg.hpp>
+#include <ReaK/core/lin_alg/mat_num_exceptions.hpp>
 
 #include "trust_region_search.hpp"
 #include "line_search.hpp"
@@ -79,9 +78,9 @@ namespace optim {
  */
 template <typename Function, typename GradFunction, typename Vector, typename LineSearcher, typename InvHessianUpdater, typename LimitFunction>
 void quasi_newton_line_search(Function f, GradFunction df, Vector& x, unsigned int max_iter, LineSearcher get_alpha, 
-			      InvHessianUpdater update_inv_hessian, LimitFunction impose_limits, 
-			      typename vect_traits<Vector>::value_type abs_tol = typename vect_traits<Vector>::value_type(1e-6), 
-			      typename vect_traits<Vector>::value_type abs_grad_tol = typename vect_traits<Vector>::value_type(1e-6)) {
+                              InvHessianUpdater update_inv_hessian, LimitFunction impose_limits, 
+                              typename vect_traits<Vector>::value_type abs_tol = typename vect_traits<Vector>::value_type(1e-6), 
+                              typename vect_traits<Vector>::value_type abs_grad_tol = typename vect_traits<Vector>::value_type(1e-6)) {
   typedef typename vect_traits<Vector>::value_type ValueType;
   using std::sqrt; using std::fabs;
   
@@ -162,12 +161,12 @@ void quasi_newton_line_search(Function f, GradFunction df, Vector& x, unsigned i
  */
 template <typename Function, typename GradFunction, typename Vector, typename TrustRegionSolver, typename HessianUpdater, typename LimitFunction>
 void quasi_newton_trust_region(Function f, GradFunction df, Vector& x, 
-			       typename vect_traits<Vector>::value_type max_radius, unsigned int max_iter, 
-			       TrustRegionSolver solve_step, HessianUpdater update_hessian, LimitFunction impose_limits, 
-			       typename vect_traits<Vector>::value_type abs_tol = typename vect_traits<Vector>::value_type(1e-6), 
-			       typename vect_traits<Vector>::value_type abs_grad_tol = typename vect_traits<Vector>::value_type(1e-6), 
-			       typename vect_traits<Vector>::value_type eta = typename vect_traits<Vector>::value_type(1e-4), 
-			       typename vect_traits<Vector>::value_type r_tol = typename vect_traits<Vector>::value_type(1e-6)) {
+                               typename vect_traits<Vector>::value_type max_radius, unsigned int max_iter, 
+                               TrustRegionSolver solve_step, HessianUpdater update_hessian, LimitFunction impose_limits, 
+                               typename vect_traits<Vector>::value_type abs_tol = typename vect_traits<Vector>::value_type(1e-6), 
+                               typename vect_traits<Vector>::value_type abs_grad_tol = typename vect_traits<Vector>::value_type(1e-6), 
+                               typename vect_traits<Vector>::value_type eta = typename vect_traits<Vector>::value_type(1e-4), 
+                               typename vect_traits<Vector>::value_type r_tol = typename vect_traits<Vector>::value_type(1e-6)) {
   typedef typename vect_traits<Vector>::value_type ValueType;
   using std::sqrt; using std::fabs;
   
@@ -198,9 +197,9 @@ void quasi_newton_trust_region(Function f, GradFunction df, Vector& x,
     ValueType ratio = aredux / predux;
     if( ratio > ValueType(0.75) ) {
       if(norm_p > ValueType(0.8) * radius) {
-	radius *= ValueType(2.0);
-	if(radius > max_radius)
-	  radius = max_radius;
+        radius *= ValueType(2.0);
+        if(radius > max_radius)
+          radius = max_radius;
       };
     } else if( ratio < ValueType(0.1) ) {
       radius *= ValueType(0.5);
@@ -246,8 +245,8 @@ void quasi_newton_trust_region(Function f, GradFunction df, Vector& x,
  */
 template <typename Function, typename GradFunction, typename Vector>
 void bfgs_method(Function f, GradFunction df, Vector& x, unsigned int max_iter, 
-		 typename vect_traits<Vector>::value_type abs_tol = typename vect_traits<Vector>::value_type(1e-6), 
-		 typename vect_traits<Vector>::value_type abs_grad_tol = typename vect_traits<Vector>::value_type(1e-6)) {
+                 typename vect_traits<Vector>::value_type abs_tol = typename vect_traits<Vector>::value_type(1e-6), 
+                 typename vect_traits<Vector>::value_type abs_grad_tol = typename vect_traits<Vector>::value_type(1e-6)) {
   
   quasi_newton_line_search(f,df,x,max_iter,line_search_expand_and_zoom<typename vect_traits<Vector>::value_type>(1e-4,0.9),inv_hessian_update_bfgs(),no_limit_functor(),abs_tol,abs_grad_tol);
   
@@ -273,8 +272,8 @@ void bfgs_method(Function f, GradFunction df, Vector& x, unsigned int max_iter,
  */
 template <typename Function, typename GradFunction, typename Vector, typename LimitFunction>
 void limited_bfgs_method(Function f, GradFunction df, Vector& x, unsigned int max_iter, LimitFunction impose_limits, 
-			 typename vect_traits<Vector>::value_type abs_tol = typename vect_traits<Vector>::value_type(1e-6), 
-			 typename vect_traits<Vector>::value_type abs_grad_tol = typename vect_traits<Vector>::value_type(1e-6)) {
+                         typename vect_traits<Vector>::value_type abs_tol = typename vect_traits<Vector>::value_type(1e-6), 
+                         typename vect_traits<Vector>::value_type abs_grad_tol = typename vect_traits<Vector>::value_type(1e-6)) {
   
   quasi_newton_line_search(f,df,x,max_iter,line_search_expand_and_zoom<typename vect_traits<Vector>::value_type>(1e-4,0.9),inv_hessian_update_bfgs(),impose_limits,abs_tol,abs_grad_tol);
   
@@ -297,8 +296,8 @@ void limited_bfgs_method(Function f, GradFunction df, Vector& x, unsigned int ma
  */
 template <typename Function, typename GradFunction, typename Vector>
 void dfp_method(Function f, GradFunction df, Vector& x, unsigned int max_iter,
-		typename vect_traits<Vector>::value_type abs_tol = typename vect_traits<Vector>::value_type(1e-6),
-		typename vect_traits<Vector>::value_type abs_grad_tol = typename vect_traits<Vector>::value_type(1e-6)) {
+                typename vect_traits<Vector>::value_type abs_tol = typename vect_traits<Vector>::value_type(1e-6),
+                typename vect_traits<Vector>::value_type abs_grad_tol = typename vect_traits<Vector>::value_type(1e-6)) {
   
   quasi_newton_line_search(f,df,x,max_iter,line_search_expand_and_zoom<typename vect_traits<Vector>::value_type>(1e-4,0.9),inv_hessian_update_dfp(),no_limit_functor(),abs_tol,abs_grad_tol);
   
@@ -324,8 +323,8 @@ void dfp_method(Function f, GradFunction df, Vector& x, unsigned int max_iter,
  */
 template <typename Function, typename GradFunction, typename Vector, typename LimitFunction>
 void limited_dfp_method(Function f, GradFunction df, Vector& x, unsigned int max_iter, LimitFunction impose_limits, 
-			typename vect_traits<Vector>::value_type abs_tol = typename vect_traits<Vector>::value_type(1e-6), 
-			typename vect_traits<Vector>::value_type abs_grad_tol = typename vect_traits<Vector>::value_type(1e-6)) {
+                        typename vect_traits<Vector>::value_type abs_tol = typename vect_traits<Vector>::value_type(1e-6), 
+                        typename vect_traits<Vector>::value_type abs_grad_tol = typename vect_traits<Vector>::value_type(1e-6)) {
   
   quasi_newton_line_search(f,df,x,max_iter,line_search_expand_and_zoom<typename vect_traits<Vector>::value_type>(1e-4,0.9),inv_hessian_update_dfp(),impose_limits,abs_tol,abs_grad_tol);
   
@@ -349,9 +348,9 @@ void limited_dfp_method(Function f, GradFunction df, Vector& x, unsigned int max
  */
 template <typename Function, typename GradFunction, typename Vector>
 void broyden_class_method(Function f, GradFunction df, Vector& x, unsigned int max_iter,
-			  typename vect_traits<Vector>::value_type phi = typename vect_traits<Vector>::value_type(0.5), 
-			  typename vect_traits<Vector>::value_type abs_tol = typename vect_traits<Vector>::value_type(1e-6), 
-			  typename vect_traits<Vector>::value_type abs_grad_tol = typename vect_traits<Vector>::value_type(1e-6)) {
+                          typename vect_traits<Vector>::value_type phi = typename vect_traits<Vector>::value_type(0.5), 
+                          typename vect_traits<Vector>::value_type abs_tol = typename vect_traits<Vector>::value_type(1e-6), 
+                          typename vect_traits<Vector>::value_type abs_grad_tol = typename vect_traits<Vector>::value_type(1e-6)) {
   
   quasi_newton_line_search(f,df,x,max_iter,line_search_expand_and_zoom<typename vect_traits<Vector>::value_type>(1e-4,0.9),inv_hessian_update_broyden<typename vect_traits<Vector>::value_type>(phi),no_limit_functor(),abs_tol,abs_grad_tol);
   
@@ -378,9 +377,9 @@ void broyden_class_method(Function f, GradFunction df, Vector& x, unsigned int m
  */
 template <typename Function, typename GradFunction, typename Vector, typename LimitFunction>
 void limited_broyden_class_method(Function f, GradFunction df, Vector& x, unsigned int max_iter, LimitFunction impose_limits, 
-				  typename vect_traits<Vector>::value_type phi = typename vect_traits<Vector>::value_type(0.5), 
-				  typename vect_traits<Vector>::value_type abs_tol = typename vect_traits<Vector>::value_type(1e-6), 
-				  typename vect_traits<Vector>::value_type abs_grad_tol = typename vect_traits<Vector>::value_type(1e-6)) {
+                                  typename vect_traits<Vector>::value_type phi = typename vect_traits<Vector>::value_type(0.5), 
+                                  typename vect_traits<Vector>::value_type abs_tol = typename vect_traits<Vector>::value_type(1e-6), 
+                                  typename vect_traits<Vector>::value_type abs_grad_tol = typename vect_traits<Vector>::value_type(1e-6)) {
   
   quasi_newton_line_search(f,df,x,max_iter,line_search_expand_and_zoom<typename vect_traits<Vector>::value_type>(1e-4,0.9),inv_hessian_update_broyden<typename vect_traits<Vector>::value_type>(phi),impose_limits,abs_tol,abs_grad_tol);
   
@@ -406,14 +405,14 @@ void limited_broyden_class_method(Function f, GradFunction df, Vector& x, unsign
  */
 template <typename Function, typename GradFunction, typename Vector>
 void sr1_tr_method(Function f, GradFunction df, Vector& x, 
-		   typename vect_traits<Vector>::value_type max_radius = typename vect_traits<Vector>::value_type(1.0), 
-		   unsigned int max_iter = 100,
-		   typename vect_traits<Vector>::value_type abs_tol = typename vect_traits<Vector>::value_type(1e-6),
-		   typename vect_traits<Vector>::value_type abs_grad_tol = typename vect_traits<Vector>::value_type(1e-6)) {
+                   typename vect_traits<Vector>::value_type max_radius = typename vect_traits<Vector>::value_type(1.0), 
+                   unsigned int max_iter = 100,
+                   typename vect_traits<Vector>::value_type abs_tol = typename vect_traits<Vector>::value_type(1e-6),
+                   typename vect_traits<Vector>::value_type abs_grad_tol = typename vect_traits<Vector>::value_type(1e-6)) {
   
   quasi_newton_trust_region(f,df, x, max_radius, max_iter,
-			    trust_region_solver_dogleg(),
-			    hessian_update_sr1(),no_limit_functor(), abs_tol, abs_grad_tol);
+                            trust_region_solver_dogleg(),
+                            hessian_update_sr1(),no_limit_functor(), abs_tol, abs_grad_tol);
   
 };
 
@@ -438,14 +437,14 @@ void sr1_tr_method(Function f, GradFunction df, Vector& x,
  */
 template <typename Function, typename GradFunction, typename Vector, typename LimitFunction>
 void limited_sr1_tr_method(Function f, GradFunction df, Vector& x, LimitFunction impose_limits,
-		           typename vect_traits<Vector>::value_type max_radius = typename vect_traits<Vector>::value_type(1.0), 
-			   unsigned int max_iter = 100,
-		           typename vect_traits<Vector>::value_type abs_tol = typename vect_traits<Vector>::value_type(1e-6),
-		           typename vect_traits<Vector>::value_type abs_grad_tol = typename vect_traits<Vector>::value_type(1e-6)) {
+                           typename vect_traits<Vector>::value_type max_radius = typename vect_traits<Vector>::value_type(1.0), 
+                           unsigned int max_iter = 100,
+                           typename vect_traits<Vector>::value_type abs_tol = typename vect_traits<Vector>::value_type(1e-6),
+                           typename vect_traits<Vector>::value_type abs_grad_tol = typename vect_traits<Vector>::value_type(1e-6)) {
   
   quasi_newton_trust_region(f,df, x, max_radius, max_iter,
-			    trust_region_solver_dogleg(),
-			    hessian_update_sr1(),impose_limits, abs_tol, abs_grad_tol);
+                            trust_region_solver_dogleg(),
+                            hessian_update_sr1(),impose_limits, abs_tol, abs_grad_tol);
   
 };
 

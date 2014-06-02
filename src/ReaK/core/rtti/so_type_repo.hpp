@@ -34,7 +34,7 @@
 #define REAK_SO_TYPE_REPO_HPP
 
 
-#include "base/defs.hpp"
+#include <ReaK/core/base/defs.hpp>
 
 #include <map>
 #include <vector>

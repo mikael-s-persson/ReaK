@@ -32,14 +32,14 @@
 
 
 
-#include "defs.hpp"
+#include <ReaK/core/base/defs.hpp>
+#include <ReaK/core/base/py_fixes.hpp>
 
-#include "shared_object.hpp"
-#include "named_object.hpp"
+#include <ReaK/core/base/shared_object.hpp>
+#include <ReaK/core/base/named_object.hpp>
 
 #include <boost/python.hpp>
 
-#include "py_fixes.hpp"
 
 namespace PyReaK {
 
@@ -50,39 +50,39 @@ void export_base() {
   
   class_< ReaK::rtti::typed_object,
           ReaK::shared_ptr< ReaK::rtti::typed_object >, 
-	  boost::noncopyable
+          boost::noncopyable
         >("TypedObj",no_init);
   
   class_< ReaK::serialization::serializable,
           bases< ReaK::rtti::typed_object >,
           ReaK::shared_ptr< ReaK::serialization::serializable >, 
-	  boost::noncopyable
+          boost::noncopyable
         >("SerializableObj",no_init);
   
   class_< ReaK::shared_object_base, 
           ReaK::shared_ptr< ReaK::shared_object_base >, 
-	  boost::noncopyable
+          boost::noncopyable
         >("SharedObjBase",no_init);
   
   class_< ReaK::shared_object, 
           bases< ReaK::shared_object_base, 
                  ReaK::serialization::serializable >,
           ReaK::shared_ptr< ReaK::shared_object >, 
-	  boost::noncopyable
+          boost::noncopyable
         >("SharedObj",no_init);
   
   class_< ReaK::named_interface,
           ReaK::shared_ptr< ReaK::named_interface >, 
-	  boost::noncopyable
+          boost::noncopyable
         >("NamedInterface",no_init)
     .def("get_name", pure_virtual(&ReaK::named_interface::getName), return_value_policy<copy_const_reference>())
     .def("set_name", pure_virtual(&ReaK::named_interface::setName));
     
   class_< ReaK::named_object,
           bases< ReaK::shared_object,
-	         ReaK::named_interface >,
-	  ReaK::shared_ptr< ReaK::named_object > 
-	>("NamedObj");
+                 ReaK::named_interface >,
+          ReaK::shared_ptr< ReaK::named_object > 
+        >("NamedObj");
   def("create_named_obj", ReaK::rk_create<ReaK::named_object>);
   
 #ifndef BOOST_NO_CXX11_SMART_PTR

@@ -36,7 +36,13 @@
 #ifndef REAK_ARITHMETIC_TUPLE_HPP
 #define REAK_ARITHMETIC_TUPLE_HPP
 
-#include "base/defs.hpp"
+#include <ReaK/core/base/defs.hpp>
+#include <ReaK/core/serialization/archiver.hpp>
+#include <ReaK/core/rtti/so_register_type.hpp>
+#include <ReaK/core/rtti/typed_primitives.hpp>
+
+#include "vect_concepts.hpp"
+#include "vect_alg.hpp"
 
 #ifndef BOOST_NO_CXX11_HDR_TUPLE
 #include <tuple>
@@ -53,13 +59,6 @@
 #include <boost/mpl/greater.hpp>
 #include <boost/mpl/equal_to.hpp>
 #include <boost/mpl/prior.hpp>
-
-#include "serialization/archiver.hpp"
-#include "rtti/so_register_type.hpp"
-#include "rtti/typed_primitives.hpp"
-
-#include "vect_concepts.hpp"
-#include "vect_alg.hpp"
 
 namespace ReaK {
 
@@ -1488,7 +1487,7 @@ struct get_type_id< arithmetic_tuple< T1, T2, T3, T4, T5, T6, T7, T8, T9, T10 > 
 
 template <typename T1, typename T2, typename T3, typename T4, typename T5, 
           typename T6, typename T7, typename T8, typename T9, typename T10, 
-	  typename Tail>
+          typename Tail>
 struct get_type_info< arithmetic_tuple< T1, T2, T3, T4, T5, T6, T7, T8, T9, T10 >, Tail > {
   typedef detail::type_id< arithmetic_tuple< T1, T2, T3, T4, T5, T6, T7, T8, T9, T10 > , typename get_type_info_seq< T1, T2, T3, T4, T5, T6, T7, T8, T9, T10 >::template with_tail<Tail>::type > type;
   static std::string type_name() { return get_type_id< arithmetic_tuple< T1, T2, T3, T4, T5, T6, T7, T8, T9, T10 > >::type_name() + "<" + get_type_info_seq< T1, T2, T3, T4, T5, T6, T7, T8, T9, T10 >::type_name() + ">" + (boost::is_same< Tail, null_type_info >::value ? "" : "," + Tail::type_name()); };

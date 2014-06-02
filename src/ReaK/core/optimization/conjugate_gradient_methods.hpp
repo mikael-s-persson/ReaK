@@ -32,10 +32,10 @@
 #ifndef REAK_CONJUGATE_GRADIENT_METHODS_HPP
 #define REAK_CONJUGATE_GRADIENT_METHODS_HPP
 
-#include "base/defs.hpp"
+#include <ReaK/core/base/defs.hpp>
 
-#include "lin_alg/mat_alg.hpp"
-#include "lin_alg/mat_num_exceptions.hpp"
+#include <ReaK/core/lin_alg/mat_alg.hpp>
+#include <ReaK/core/lin_alg/mat_num_exceptions.hpp>
 
 namespace ReaK {
   
@@ -307,7 +307,7 @@ typename boost::enable_if<
     is_readable_matrix<Matrix>
   >,
 void >::type linear_conj_grad_method(const Vector& b, const Matrix& A, Vector& x, unsigned int max_iter = 100,
-				     typename vect_traits<Vector>::value_type abs_tol = typename vect_traits<Vector>::value_type(1e-6)) {
+                                     typename vect_traits<Vector>::value_type abs_tol = typename vect_traits<Vector>::value_type(1e-6)) {
   typedef typename vect_traits<Vector>::value_type ValueType;
   using std::sqrt;
   
@@ -358,7 +358,7 @@ typename boost::enable_if<
     is_readable_matrix<Matrix>
   >,
 void >::type linear_conj_grad_method(const Vector& b, const Matrix& A, const Matrix& M_inv, Vector& x, unsigned int max_iter = 100,
-				     typename vect_traits<Vector>::value_type abs_tol = typename vect_traits<Vector>::value_type(1e-6)) {
+                                     typename vect_traits<Vector>::value_type abs_tol = typename vect_traits<Vector>::value_type(1e-6)) {
   typedef typename vect_traits<Vector>::value_type ValueType;
   using std::sqrt;
   
@@ -411,8 +411,8 @@ void >::type linear_conj_grad_method(const Vector& b, const Matrix& A, const Mat
 template <typename Function, typename GradFunction, typename Vector, 
           typename BetaCalculator, typename LineSearcher>
 void non_linear_conj_grad_method(Function f, GradFunction df, Vector& x, unsigned int max_iter,
-				 BetaCalculator get_beta, LineSearcher get_alpha, 
-				 typename vect_traits<Vector>::value_type abs_tol = typename vect_traits<Vector>::value_type(1e-6)) {
+                                 BetaCalculator get_beta, LineSearcher get_alpha, 
+                                 typename vect_traits<Vector>::value_type abs_tol = typename vect_traits<Vector>::value_type(1e-6)) {
   typedef typename vect_traits<Vector>::value_type ValueType;
   using std::sqrt;
   

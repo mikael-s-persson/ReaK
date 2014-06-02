@@ -59,8 +59,8 @@ public:
    * Parametrized constructor.
    */
   jacobian_gen_gen(const value_type& aQdQd = value_type(), 
-		   const value_type& aQdQdd = value_type()) : qd_qd(aQdQd), qd_qdd(aQdQdd) { };
-		   
+                   const value_type& aQdQdd = value_type()) : qd_qd(aQdQd), qd_qdd(aQdQdd) { };
+                   
   self get_jac_relative_to(const shared_ptr< gen_coord<value_type> >& ) const {
     return *this;
   };
@@ -69,8 +69,8 @@ public:
   typename boost::enable_if< 
              boost::mpl::and_<
                is_fully_writable_matrix<Matrix1>,
-	       is_fully_writable_matrix<Matrix2>
-	     >,
+               is_fully_writable_matrix<Matrix2>
+             >,
   void >::type write_to_matrices(Matrix1& Jac, Matrix2& JacDot) const {
     if((Jac.get_row_count() != 1) || (Jac.get_col_count() != 1) || 
        (JacDot.get_row_count() != 1) || (JacDot.get_col_count() != 1))
@@ -127,31 +127,31 @@ public:
    */
   jacobian_gen_2D(const weak_ptr< frame_2D<value_type> >& aParent = weak_ptr< frame_2D<value_type> >(),
                   const vect<value_type,2>& aQdVel = (vect<value_type,2>()),
-		  const value_type& aQdAVel = value_type(), 
-		  const vect<value_type,2>& aQdAcc = (vect<value_type,2>()),
-		  const value_type& aQdAAcc = value_type()) : 
-		  Parent(aParent),
-		  qd_vel(aQdVel),
-		  qd_avel(aQdAVel),
-		  qd_acc(aQdAcc),
-		  qd_aacc(aQdAAcc) { };
+                  const value_type& aQdAVel = value_type(), 
+                  const vect<value_type,2>& aQdAcc = (vect<value_type,2>()),
+                  const value_type& aQdAAcc = value_type()) : 
+                  Parent(aParent),
+                  qd_vel(aQdVel),
+                  qd_avel(aQdAVel),
+                  qd_acc(aQdAcc),
+                  qd_aacc(aQdAAcc) { };
   
   self get_jac_relative_to(const shared_ptr< frame_2D<value_type> >& aFrame) const {
     frame_2D<value_type> f2 = aFrame->getFrameRelativeTo(Parent.lock());
     vect<value_type,2> v_tmp = (qd_avel % f2.Position + qd_vel) * f2.Rotation;
     return self( aFrame,
                  v_tmp,
-		 qd_avel,
-		 (qd_avel % f2.Velocity + qd_aacc % f2.Position + qd_acc) * f2.Rotation - f2.AngVelocity % v_tmp,
-		 qd_aacc );
+                 qd_avel,
+                 (qd_avel % f2.Velocity + qd_aacc % f2.Position + qd_acc) * f2.Rotation - f2.AngVelocity % v_tmp,
+                 qd_aacc );
   };
   
   template <typename Matrix1, typename Matrix2>
   typename boost::enable_if< 
              boost::mpl::and_<
                is_fully_writable_matrix<Matrix1>,
-	       is_fully_writable_matrix<Matrix2>
-	     >,
+               is_fully_writable_matrix<Matrix2>
+             >,
   void >::type write_to_matrices(Matrix1& Jac, Matrix2& JacDot) const {
     if((Jac.get_row_count() != 3) || (Jac.get_col_count() != 1) || 
        (JacDot.get_row_count() != 3) || (JacDot.get_col_count() != 1))
@@ -226,14 +226,14 @@ public:
    */
   jacobian_gen_3D(const weak_ptr< frame_3D<value_type> >& aParent = weak_ptr< frame_3D<value_type> >(),
                   const vect<value_type,3>& aQdVel = (vect<value_type,3>()),
-		  const vect<value_type,3>& aQdAVel = (vect<value_type,3>()), 
-		  const vect<value_type,3>& aQdAcc = (vect<value_type,3>()),
-		  const vect<value_type,3>& aQdAAcc = (vect<value_type,3>())) : 
-		  Parent(aParent),
-		  qd_vel(aQdVel),
-		  qd_avel(aQdAVel),
-		  qd_acc(aQdAcc),
-		  qd_aacc(aQdAAcc) { };
+                  const vect<value_type,3>& aQdAVel = (vect<value_type,3>()), 
+                  const vect<value_type,3>& aQdAcc = (vect<value_type,3>()),
+                  const vect<value_type,3>& aQdAAcc = (vect<value_type,3>())) : 
+                  Parent(aParent),
+                  qd_vel(aQdVel),
+                  qd_avel(aQdAVel),
+                  qd_acc(aQdAcc),
+                  qd_aacc(aQdAAcc) { };
   
   self get_jac_relative_to(const shared_ptr< frame_3D<value_type> >& aFrame) const {
     
@@ -244,18 +244,18 @@ public:
     vect<value_type,3> w_tmp = qd_avel * R;
     vect<value_type,3> v_tmp = (qd_avel % f2.Position + qd_vel) * R;
     return self( aFrame, 
-		 v_tmp, 
-		 w_tmp, 
-		 (qd_avel % f2.Velocity + qd_aacc % f2.Position + qd_acc) * R - f2.AngVelocity % v_tmp, 
-		 qd_aacc * R - f2.AngVelocity % w_tmp );
+                 v_tmp, 
+                 w_tmp, 
+                 (qd_avel % f2.Velocity + qd_aacc % f2.Position + qd_acc) * R - f2.AngVelocity % v_tmp, 
+                 qd_aacc * R - f2.AngVelocity % w_tmp );
   };
   
   template <typename Matrix1, typename Matrix2>
   typename boost::enable_if< 
              boost::mpl::and_<
                is_fully_writable_matrix<Matrix1>,
-	       is_fully_writable_matrix<Matrix2>
-	     >,
+               is_fully_writable_matrix<Matrix2>
+             >,
   void >::type write_to_matrices(Matrix1& Jac, Matrix2& JacDot) const {
     if((Jac.get_row_count() != 6) || (Jac.get_col_count() != 1) || 
        (JacDot.get_row_count() != 6) || (JacDot.get_col_count() != 1))
@@ -340,14 +340,14 @@ public:
    * Parametrized constructor.
    */
   jacobian_2D_gen(const vect<value_type,2>& aVelQd = (vect<value_type,2>()),
-		  const value_type& aAVelQd = value_type(), 
-		  const vect<value_type,2>& aVelQdd = (vect<value_type,2>()),
-		  const value_type& aAVelQdd = value_type()) : 
-		  vel_qd(aVelQd),
-		  avel_qd(aAVelQd),
-		  vel_qdd(aVelQdd),
-		  avel_qdd(aAVelQdd) { };
-		   
+                  const value_type& aAVelQd = value_type(), 
+                  const vect<value_type,2>& aVelQdd = (vect<value_type,2>()),
+                  const value_type& aAVelQdd = value_type()) : 
+                  vel_qd(aVelQd),
+                  avel_qd(aAVelQd),
+                  vel_qdd(aVelQdd),
+                  avel_qdd(aAVelQdd) { };
+                   
   self get_jac_relative_to(const shared_ptr< gen_coord<value_type> >& ) const {
     return *this;
   };
@@ -356,8 +356,8 @@ public:
   typename boost::enable_if< 
              boost::mpl::and_<
                is_fully_writable_matrix<Matrix1>,
-	       is_fully_writable_matrix<Matrix2>
-	     >,
+               is_fully_writable_matrix<Matrix2>
+             >,
   void >::type write_to_matrices(Matrix1& Jac, Matrix2& JacDot) const {
     if((Jac.get_row_count() != 1) || (Jac.get_col_count() != 3) || 
        (JacDot.get_row_count() != 1) || (JacDot.get_col_count() != 3))
@@ -428,45 +428,45 @@ public:
    */
   jacobian_2D_2D(const weak_ptr< frame_2D<value_type> >& aParent = weak_ptr< frame_2D<value_type> >(),
                  const vect<vect<value_type,2>,2>& aVelVel = (vect<vect<value_type,2>,2>()),
-		 const vect<value_type,2>& aVelAVel = (vect<value_type,2>()),
-		 const vect<value_type,2>& aAVelVel = (vect<value_type,2>()),
-		 const value_type& aAVelAVel = value_type(), 
-		 const vect<vect<value_type,2>,2>& aVelAcc = (vect<vect<value_type,2>,2>()),
-		 const vect<value_type,2>& aVelAAcc = (vect<value_type,2>()),
-		 const vect<value_type,2>& aAVelAcc = (vect<value_type,2>()),
-		 const value_type& aAVelAAcc = value_type()) : 
-		 Parent(aParent),
-		 vel_vel(aVelVel),
-		 vel_avel(aVelAVel),
-		 avel_vel(aAVelVel),
-		 avel_avel(aAVelAVel),
-		 vel_acc(aVelAcc),
-		 vel_aacc(aVelAAcc),
-		 avel_acc(aAVelAcc),
-		 avel_aacc(aAVelAAcc) { };
+                 const vect<value_type,2>& aVelAVel = (vect<value_type,2>()),
+                 const vect<value_type,2>& aAVelVel = (vect<value_type,2>()),
+                 const value_type& aAVelAVel = value_type(), 
+                 const vect<vect<value_type,2>,2>& aVelAcc = (vect<vect<value_type,2>,2>()),
+                 const vect<value_type,2>& aVelAAcc = (vect<value_type,2>()),
+                 const vect<value_type,2>& aAVelAcc = (vect<value_type,2>()),
+                 const value_type& aAVelAAcc = value_type()) : 
+                 Parent(aParent),
+                 vel_vel(aVelVel),
+                 vel_avel(aVelAVel),
+                 avel_vel(aAVelVel),
+                 avel_avel(aAVelAVel),
+                 vel_acc(aVelAcc),
+                 vel_aacc(aVelAAcc),
+                 avel_acc(aAVelAcc),
+                 avel_aacc(aAVelAAcc) { };
   
   self get_jac_relative_to(const shared_ptr< frame_2D<value_type> >& aFrame) const {
     
     frame_2D<value_type> f2 = aFrame->getFrameRelativeTo(Parent.lock());
 
     vect< vect<value_type,2>, 2> new_vel_vel((vel_avel[0] % f2.Position + vel_vel[0]) * f2.Rotation,
-			                 (vel_avel[1] % f2.Position + vel_vel[1]) * f2.Rotation);
+                                         (vel_avel[1] % f2.Position + vel_vel[1]) * f2.Rotation);
 
     vect<value_type,2> new_avel_vel = (avel_avel % f2.Position + avel_vel) * f2.Rotation;
 
     return self( aFrame, 
                  new_vel_vel,  //VelVel
-		 vel_avel,  //VelAVel
-		 new_avel_vel,  //AVelVel
-		 avel_avel,  //AVelAVel
-		 vect< vect<value_type,2>, 2>((vel_avel[0] % f2.Velocity + vel_aacc[0] % f2.Position + vel_acc[0]) * f2.Rotation
+                 vel_avel,  //VelAVel
+                 new_avel_vel,  //AVelVel
+                 avel_avel,  //AVelAVel
+                 vect< vect<value_type,2>, 2>((vel_avel[0] % f2.Velocity + vel_aacc[0] % f2.Position + vel_acc[0]) * f2.Rotation
                                                - f2.AngVelocity % new_vel_vel[0],
-			                      (vel_avel[1] % f2.Velocity + vel_aacc[1] % f2.Position + vel_acc[1]) * f2.Rotation
+                                              (vel_avel[1] % f2.Velocity + vel_aacc[1] % f2.Position + vel_acc[1]) * f2.Rotation
                                                - f2.AngVelocity % new_vel_vel[1]),  //VelAcc
-		 vel_aacc,  //VelAAcc
-		 (avel_avel % f2.Velocity + avel_aacc % f2.Position + avel_acc) * f2.Rotation
+                 vel_aacc,  //VelAAcc
+                 (avel_avel % f2.Velocity + avel_aacc % f2.Position + avel_acc) * f2.Rotation
                   - f2.AngVelocity % new_avel_vel,  //AVelAcc
-		 avel_aacc  //AVelAAcc
+                 avel_aacc  //AVelAAcc
                );
   };
   
@@ -474,8 +474,8 @@ public:
   typename boost::enable_if< 
              boost::mpl::and_<
                is_fully_writable_matrix<Matrix1>,
-	       is_fully_writable_matrix<Matrix2>
-	     >,
+               is_fully_writable_matrix<Matrix2>
+             >,
   void >::type write_to_matrices(Matrix1& Jac, Matrix2& JacDot) const {
     if((Jac.get_row_count() != 3) || (Jac.get_col_count() != 3) || 
        (JacDot.get_row_count() != 3) || (JacDot.get_col_count() != 3))
@@ -579,22 +579,22 @@ public:
    */
   jacobian_2D_3D(const weak_ptr< frame_3D<value_type> >& aParent = weak_ptr< frame_3D<value_type> >(),
                  const vect<vect<value_type,3>,2>& aVelVel = (vect<vect<value_type,3>,2>()),
-		 const vect<vect<value_type,3>,2>& aVelAVel = (vect<vect<value_type,3>,2>()),
-		 const vect<value_type,3>& aAVelVel = (vect<value_type,3>()),
-		 const vect<value_type,3>& aAVelAVel = (vect<value_type,3>()), 
-		 const vect<vect<value_type,3>,2>& aVelAcc = (vect<vect<value_type,3>,2>()),
-		 const vect<vect<value_type,3>,2>& aVelAAcc = (vect<vect<value_type,3>,2>()),
-		 const vect<value_type,3>& aAVelAcc = (vect<value_type,3>()),
-		 const vect<value_type,3>& aAVelAAcc = (vect<value_type,3>())) : 
-		 Parent(aParent),
-		 vel_vel(aVelVel),
-		 vel_avel(aVelAVel),
-		 avel_vel(aAVelVel),
-		 avel_avel(aAVelAVel),
-		 vel_acc(aVelAcc),
-		 vel_aacc(aVelAAcc),
-		 avel_acc(aAVelAcc),
-		 avel_aacc(aAVelAAcc) { };
+                 const vect<vect<value_type,3>,2>& aVelAVel = (vect<vect<value_type,3>,2>()),
+                 const vect<value_type,3>& aAVelVel = (vect<value_type,3>()),
+                 const vect<value_type,3>& aAVelAVel = (vect<value_type,3>()), 
+                 const vect<vect<value_type,3>,2>& aVelAcc = (vect<vect<value_type,3>,2>()),
+                 const vect<vect<value_type,3>,2>& aVelAAcc = (vect<vect<value_type,3>,2>()),
+                 const vect<value_type,3>& aAVelAcc = (vect<value_type,3>()),
+                 const vect<value_type,3>& aAVelAAcc = (vect<value_type,3>())) : 
+                 Parent(aParent),
+                 vel_vel(aVelVel),
+                 vel_avel(aVelAVel),
+                 avel_vel(aAVelVel),
+                 avel_avel(aAVelAVel),
+                 vel_acc(aVelAcc),
+                 vel_aacc(aVelAAcc),
+                 avel_acc(aAVelAcc),
+                 avel_aacc(aAVelAAcc) { };
   
   self get_jac_relative_to(const shared_ptr< frame_3D<value_type> >& aFrame) const {
     
@@ -603,30 +603,30 @@ public:
     rot_mat_3D<value_type> R(f2.Quat.getRotMat());
 
     vect< vect< value_type, 3>, 2> new_vel_avel(vel_avel[0] * R,
-						vel_avel[1] * R);
+                                                vel_avel[1] * R);
     vect< vect< value_type, 3>, 2> new_vel_aacc(vel_aacc[0] * R - f2.AngVelocity % new_vel_avel[0],
-						vel_aacc[1] * R - f2.AngVelocity % new_vel_avel[1]);
+                                                vel_aacc[1] * R - f2.AngVelocity % new_vel_avel[1]);
     
     vect< value_type, 3> new_avel_avel(avel_avel * R);
     vect< value_type, 3> new_avel_aacc(avel_aacc * R - f2.AngVelocity % new_avel_avel);
-	
+        
     vect< vect< value_type, 3>, 2> new_vel_vel((vel_avel[0] % f2.Position + vel_vel[0]) * R,
-					       (vel_avel[1] % f2.Position + vel_vel[1]) * R);
+                                               (vel_avel[1] % f2.Position + vel_vel[1]) * R);
     vect< vect< value_type, 3>, 2> new_vel_acc((vel_avel[0] % f2.Velocity + vel_aacc[0] % f2.Position + vel_acc[0]) * R - f2.AngVelocity % new_vel_vel[0],
-					       (vel_avel[1] % f2.Velocity + vel_aacc[1] % f2.Position + vel_acc[1]) * R - f2.AngVelocity % new_vel_vel[1]);
-	
+                                               (vel_avel[1] % f2.Velocity + vel_aacc[1] % f2.Position + vel_acc[1]) * R - f2.AngVelocity % new_vel_vel[1]);
+        
     vect< value_type, 3> new_avel_vel((avel_avel % f2.Position + avel_vel) * R);
     vect< value_type, 3> new_avel_acc((avel_avel % f2.Velocity + avel_aacc % f2.Position + avel_acc) * R - f2.AngVelocity % new_avel_vel);
     
     return self( aFrame, 
                  new_vel_vel,  
-		 new_vel_avel, 
-		 new_avel_vel,  
-		 new_avel_avel,  
-		 new_vel_acc,  
-		 new_vel_aacc,  
-		 new_avel_acc,  
-		 new_avel_aacc  
+                 new_vel_avel, 
+                 new_avel_vel,  
+                 new_avel_avel,  
+                 new_vel_acc,  
+                 new_vel_aacc,  
+                 new_avel_acc,  
+                 new_avel_aacc  
                );
   };
   
@@ -634,8 +634,8 @@ public:
   typename boost::enable_if< 
              boost::mpl::and_<
                is_fully_writable_matrix<Matrix1>,
-	       is_fully_writable_matrix<Matrix2>
-	     >,
+               is_fully_writable_matrix<Matrix2>
+             >,
   void >::type write_to_matrices(Matrix1& Jac, Matrix2& JacDot) const {
     if((Jac.get_row_count() != 6) || (Jac.get_col_count() != 3) || 
        (JacDot.get_row_count() != 6) || (JacDot.get_col_count() != 3))
@@ -765,14 +765,14 @@ public:
    * Parametrized constructor.
    */
   jacobian_3D_gen(const vect<value_type,3>& aVelQd = (vect<value_type,3>()),
-		  const vect<value_type,3>& aAVelQd = (vect<value_type,3>()), 
-		  const vect<value_type,3>& aVelQdd = (vect<value_type,3>()),
-		  const vect<value_type,3>& aAVelQdd = (vect<value_type,3>())) : 
-		  vel_qd(aVelQd),
-		  avel_qd(aAVelQd),
-		  vel_qdd(aVelQdd),
-		  avel_qdd(aAVelQdd) { };
-		   
+                  const vect<value_type,3>& aAVelQd = (vect<value_type,3>()), 
+                  const vect<value_type,3>& aVelQdd = (vect<value_type,3>()),
+                  const vect<value_type,3>& aAVelQdd = (vect<value_type,3>())) : 
+                  vel_qd(aVelQd),
+                  avel_qd(aAVelQd),
+                  vel_qdd(aVelQdd),
+                  avel_qdd(aAVelQdd) { };
+                   
   self get_jac_relative_to(const shared_ptr< gen_coord<value_type> >& ) const {
     return *this;
   };
@@ -781,8 +781,8 @@ public:
   typename boost::enable_if< 
              boost::mpl::and_<
                is_fully_writable_matrix<Matrix1>,
-	       is_fully_writable_matrix<Matrix2>
-	     >,
+               is_fully_writable_matrix<Matrix2>
+             >,
   void >::type write_to_matrices(Matrix1& Jac, Matrix2& JacDot) const {
     if((Jac.get_row_count() != 1) || (Jac.get_col_count() != 6) || 
        (JacDot.get_row_count() != 1) || (JacDot.get_col_count() != 6))
@@ -863,22 +863,22 @@ public:
    */
   jacobian_3D_2D(const weak_ptr< frame_2D<value_type> >& aParent = weak_ptr< frame_2D<value_type> >(),
                  const vect<vect<value_type,2>,3>& aVelVel = (vect<vect<value_type,2>,3>()),
-		 const vect<value_type,3>& aVelAVel = (vect<value_type,3>()),
-		 const vect<vect<value_type,2>,3>& aAVelVel = (vect<vect<value_type,2>,3>()),
-		 const vect<value_type,3>& aAVelAVel = (vect<value_type,3>()), 
-		 const vect<vect<value_type,2>,3>& aVelAcc = (vect<vect<value_type,2>,3>()),
-		 const vect<value_type,3>& aVelAAcc = (vect<value_type,3>()),
-		 const vect<vect<value_type,2>,3>& aAVelAcc = (vect<vect<value_type,2>,3>()),
-		 const vect<value_type,3>& aAVelAAcc = (vect<value_type,3>())) : 
-		 Parent(aParent),
-		 vel_vel(aVelVel),
-		 vel_avel(aVelAVel),
-		 avel_vel(aAVelVel),
-		 avel_avel(aAVelAVel),
-		 vel_acc(aVelAcc),
-		 vel_aacc(aVelAAcc),
-		 avel_acc(aAVelAcc),
-		 avel_aacc(aAVelAAcc) { };
+                 const vect<value_type,3>& aVelAVel = (vect<value_type,3>()),
+                 const vect<vect<value_type,2>,3>& aAVelVel = (vect<vect<value_type,2>,3>()),
+                 const vect<value_type,3>& aAVelAVel = (vect<value_type,3>()), 
+                 const vect<vect<value_type,2>,3>& aVelAcc = (vect<vect<value_type,2>,3>()),
+                 const vect<value_type,3>& aVelAAcc = (vect<value_type,3>()),
+                 const vect<vect<value_type,2>,3>& aAVelAcc = (vect<vect<value_type,2>,3>()),
+                 const vect<value_type,3>& aAVelAAcc = (vect<value_type,3>())) : 
+                 Parent(aParent),
+                 vel_vel(aVelVel),
+                 vel_avel(aVelAVel),
+                 avel_vel(aAVelVel),
+                 avel_avel(aAVelAVel),
+                 vel_acc(aVelAcc),
+                 vel_aacc(aVelAAcc),
+                 avel_acc(aAVelAcc),
+                 avel_aacc(aAVelAAcc) { };
   
   self get_jac_relative_to(const shared_ptr< frame_2D<value_type> >& aFrame) const {
     
@@ -886,37 +886,37 @@ public:
     frame_2D<value_type> f2 = aFrame->getFrameRelativeTo(Parent.lock());
     
     vect<vect<value_type,2>,3> new_vel_vel((vel_avel[0] % f2.Position + vel_vel[0]) * f2.Rotation,
-					   (vel_avel[1] % f2.Position + vel_vel[1]) * f2.Rotation,
-					   (vel_avel[2] % f2.Position + vel_vel[2]) * f2.Rotation
-					  );
+                                           (vel_avel[1] % f2.Position + vel_vel[1]) * f2.Rotation,
+                                           (vel_avel[2] % f2.Position + vel_vel[2]) * f2.Rotation
+                                          );
     vect<vect<value_type,2>,3> new_vel_acc((vel_avel[0] % f2.Velocity + vel_aacc[0] % f2.Position + vel_acc[0]) * f2.Rotation
                                             - f2.AngVelocity % new_vel_vel[0],
-					   (vel_avel[1] % f2.Velocity + vel_aacc[1] % f2.Position + vel_acc[1]) * f2.Rotation
+                                           (vel_avel[1] % f2.Velocity + vel_aacc[1] % f2.Position + vel_acc[1]) * f2.Rotation
                                             - f2.AngVelocity % new_vel_vel[1],
-					   (vel_avel[2] % f2.Velocity + vel_aacc[2] % f2.Position + vel_acc[2]) * f2.Rotation
+                                           (vel_avel[2] % f2.Velocity + vel_aacc[2] % f2.Position + vel_acc[2]) * f2.Rotation
                                             - f2.AngVelocity % new_vel_vel[2]
-					  );  
+                                          );  
     vect<vect<value_type,2>,3> new_avel_vel((avel_avel[0] % f2.Position + avel_vel[0]) * f2.Rotation,
-					    (avel_avel[1] % f2.Position + avel_vel[1]) * f2.Rotation,
-					    (avel_avel[2] % f2.Position + avel_vel[2]) * f2.Rotation
- 					   ); 
+                                            (avel_avel[1] % f2.Position + avel_vel[1]) * f2.Rotation,
+                                            (avel_avel[2] % f2.Position + avel_vel[2]) * f2.Rotation
+                                            ); 
     vect<vect<value_type,2>,3> new_avel_acc((avel_avel[0] % f2.Velocity + avel_aacc[0] % f2.Position + avel_acc[0]) * f2.Rotation
                                              - f2.AngVelocity % new_avel_vel[0],
-					    (avel_avel[1] % f2.Velocity + avel_aacc[1] % f2.Position + avel_acc[1]) * f2.Rotation
+                                            (avel_avel[1] % f2.Velocity + avel_aacc[1] % f2.Position + avel_acc[1]) * f2.Rotation
                                              - f2.AngVelocity % new_avel_vel[1],
-					    (avel_avel[2] % f2.Velocity + avel_aacc[2] % f2.Position + avel_acc[2]) * f2.Rotation
+                                            (avel_avel[2] % f2.Velocity + avel_aacc[2] % f2.Position + avel_acc[2]) * f2.Rotation
                                              - f2.AngVelocity % new_avel_vel[2]
- 					   ); 
+                                            ); 
 
     return self( aFrame, 
                  new_vel_vel,  //VelVel
-		 vel_avel,  //VelAVel
-		 new_avel_vel,  //AVelVel
-		 avel_avel,  //AVelAVel
-		 new_vel_acc,  //VelAcc
-		 vel_aacc,  //VelAAcc
-		 new_avel_acc,  //AVelAcc
-		 avel_aacc  //AVelAAcc
+                 vel_avel,  //VelAVel
+                 new_avel_vel,  //AVelVel
+                 avel_avel,  //AVelAVel
+                 new_vel_acc,  //VelAcc
+                 vel_aacc,  //VelAAcc
+                 new_avel_acc,  //AVelAcc
+                 avel_aacc  //AVelAAcc
                );
   };
   
@@ -924,8 +924,8 @@ public:
   typename boost::enable_if< 
              boost::mpl::and_<
                is_fully_writable_matrix<Matrix1>,
-	       is_fully_writable_matrix<Matrix2>
-	     >,
+               is_fully_writable_matrix<Matrix2>
+             >,
   void >::type write_to_matrices(Matrix1& Jac, Matrix2& JacDot) const {
     if((Jac.get_row_count() != 3) || (Jac.get_col_count() != 6) || 
        (JacDot.get_row_count() != 3) || (JacDot.get_col_count() != 6))
@@ -1057,22 +1057,22 @@ public:
    */
   jacobian_3D_3D(const weak_ptr< frame_3D<value_type> >& aParent = weak_ptr< frame_3D<value_type> >(),
                  const vect<vect<value_type,3>,3>& aVelVel = (vect<vect<value_type,3>,3>()),
-		 const vect<vect<value_type,3>,3>& aVelAVel = (vect<vect<value_type,3>,3>()),
-		 const vect<vect<value_type,3>,3>& aAVelVel = (vect<vect<value_type,3>,3>()),
-		 const vect<vect<value_type,3>,3>& aAVelAVel = (vect<vect<value_type,3>,3>()), 
-		 const vect<vect<value_type,3>,3>& aVelAcc = (vect<vect<value_type,3>,3>()),
-		 const vect<vect<value_type,3>,3>& aVelAAcc = (vect<vect<value_type,3>,3>()),
-		 const vect<vect<value_type,3>,3>& aAVelAcc = (vect<vect<value_type,3>,3>()),
-		 const vect<vect<value_type,3>,3>& aAVelAAcc = (vect<vect<value_type,3>,3>())) : 
-		 Parent(aParent),
-		 vel_vel(aVelVel),
-		 vel_avel(aVelAVel),
-		 avel_vel(aAVelVel),
-		 avel_avel(aAVelAVel),
-		 vel_acc(aVelAcc),
-		 vel_aacc(aVelAAcc),
-		 avel_acc(aAVelAcc),
-		 avel_aacc(aAVelAAcc) { };
+                 const vect<vect<value_type,3>,3>& aVelAVel = (vect<vect<value_type,3>,3>()),
+                 const vect<vect<value_type,3>,3>& aAVelVel = (vect<vect<value_type,3>,3>()),
+                 const vect<vect<value_type,3>,3>& aAVelAVel = (vect<vect<value_type,3>,3>()), 
+                 const vect<vect<value_type,3>,3>& aVelAcc = (vect<vect<value_type,3>,3>()),
+                 const vect<vect<value_type,3>,3>& aVelAAcc = (vect<vect<value_type,3>,3>()),
+                 const vect<vect<value_type,3>,3>& aAVelAcc = (vect<vect<value_type,3>,3>()),
+                 const vect<vect<value_type,3>,3>& aAVelAAcc = (vect<vect<value_type,3>,3>())) : 
+                 Parent(aParent),
+                 vel_vel(aVelVel),
+                 vel_avel(aVelAVel),
+                 avel_vel(aAVelVel),
+                 avel_avel(aAVelAVel),
+                 vel_acc(aVelAcc),
+                 vel_aacc(aVelAAcc),
+                 avel_acc(aAVelAcc),
+                 avel_aacc(aAVelAAcc) { };
   
   self get_jac_relative_to(const shared_ptr< frame_3D<value_type> >& aFrame) const {
     
@@ -1082,56 +1082,56 @@ public:
     rot_mat_3D<value_type> R(f2.Quat.getRotMat()); 
     
     vect<vect<value_type,3>,3> new_vel_avel(vel_avel[0] * R,
-					    vel_avel[1] * R,
-					    vel_avel[2] * R
- 					   );
+                                            vel_avel[1] * R,
+                                            vel_avel[2] * R
+                                            );
     vect<vect<value_type,3>,3> new_vel_aacc(vel_aacc[0] * R - f2.AngVelocity % new_vel_avel[0],
-					    vel_aacc[1] * R - f2.AngVelocity % new_vel_avel[1],
-					    vel_aacc[2] * R - f2.AngVelocity % new_vel_avel[2]
- 					   );
+                                            vel_aacc[1] * R - f2.AngVelocity % new_vel_avel[1],
+                                            vel_aacc[2] * R - f2.AngVelocity % new_vel_avel[2]
+                                            );
     
     vect<vect<value_type,3>,3> new_avel_avel(avel_avel[0] * R,
-					     avel_avel[1] * R,
-					     avel_avel[2] * R
-					    );
+                                             avel_avel[1] * R,
+                                             avel_avel[2] * R
+                                            );
     vect<vect<value_type,3>,3> new_avel_aacc(avel_aacc[0] * R - f2.AngVelocity % new_avel_avel[0],
-					     avel_aacc[1] * R - f2.AngVelocity % new_avel_avel[1],
-					     avel_aacc[2] * R - f2.AngVelocity % new_avel_avel[2]
-					    );
+                                             avel_aacc[1] * R - f2.AngVelocity % new_avel_avel[1],
+                                             avel_aacc[2] * R - f2.AngVelocity % new_avel_avel[2]
+                                            );
     
     vect<vect<value_type,3>,3> new_vel_vel((vel_avel[0] % f2.Position + vel_vel[0]) * R,
-					   (vel_avel[1] % f2.Position + vel_vel[1]) * R,
-					   (vel_avel[2] % f2.Position + vel_vel[2]) * R
-					  ); 
+                                           (vel_avel[1] % f2.Position + vel_vel[1]) * R,
+                                           (vel_avel[2] % f2.Position + vel_vel[2]) * R
+                                          ); 
     vect<vect<value_type,3>,3> new_vel_acc((vel_avel[0] % f2.Velocity + vel_aacc[0] % f2.Position + vel_acc[0]) * R
                                             - f2.AngVelocity % new_vel_vel[0],
-					   (vel_avel[1] % f2.Velocity + vel_aacc[1] % f2.Position + vel_acc[1]) * R
+                                           (vel_avel[1] % f2.Velocity + vel_aacc[1] % f2.Position + vel_acc[1]) * R
                                             - f2.AngVelocity % new_vel_vel[1],
-					   (vel_avel[2] % f2.Velocity + vel_aacc[2] % f2.Position + vel_acc[2]) * R
+                                           (vel_avel[2] % f2.Velocity + vel_aacc[2] % f2.Position + vel_acc[2]) * R
                                             - f2.AngVelocity % new_vel_vel[2]
-					  );
+                                          );
     
     vect<vect<value_type,3>,3> new_avel_vel((avel_avel[0] % f2.Position + avel_vel[0]) * R,
-					    (avel_avel[1] % f2.Position + avel_vel[1]) * R,
-					    (avel_avel[2] % f2.Position + avel_vel[2]) * R
- 					   );
+                                            (avel_avel[1] % f2.Position + avel_vel[1]) * R,
+                                            (avel_avel[2] % f2.Position + avel_vel[2]) * R
+                                            );
     vect<vect<value_type,3>,3> new_avel_acc((avel_avel[0] % f2.Velocity + avel_aacc[0] % f2.Position + avel_acc[0]) * R
                                              - f2.AngVelocity % new_avel_vel[0],
-					    (avel_avel[1] % f2.Velocity + avel_aacc[1] % f2.Position + avel_acc[1]) * R
+                                            (avel_avel[1] % f2.Velocity + avel_aacc[1] % f2.Position + avel_acc[1]) * R
                                              - f2.AngVelocity % new_avel_vel[1],
-					    (avel_avel[2] % f2.Velocity + avel_aacc[2] % f2.Position + avel_acc[2]) * R
+                                            (avel_avel[2] % f2.Velocity + avel_aacc[2] % f2.Position + avel_acc[2]) * R
                                              - f2.AngVelocity % new_avel_vel[2]
- 					   );
+                                            );
     
     return self( aFrame, 
                  new_vel_vel,  
-		 new_vel_avel, 
-		 new_avel_vel,  
-		 new_avel_avel,  
-		 new_vel_acc,  
-		 new_vel_aacc,  
-		 new_avel_acc,  
-		 new_avel_aacc  
+                 new_vel_avel, 
+                 new_avel_vel,  
+                 new_avel_avel,  
+                 new_vel_acc,  
+                 new_vel_aacc,  
+                 new_avel_acc,  
+                 new_avel_aacc  
                );
   };
   
@@ -1139,8 +1139,8 @@ public:
   typename boost::enable_if< 
              boost::mpl::and_<
                is_fully_writable_matrix<Matrix1>,
-	       is_fully_writable_matrix<Matrix2>
-	     >,
+               is_fully_writable_matrix<Matrix2>
+             >,
   void >::type write_to_matrices(Matrix1& Jac, Matrix2& JacDot) const {
     if((Jac.get_row_count() != 6) || (Jac.get_col_count() != 6) || 
        (JacDot.get_row_count() != 6) || (JacDot.get_col_count() != 6))

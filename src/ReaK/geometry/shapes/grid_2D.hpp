@@ -81,10 +81,10 @@ class grid_2D : public geometry_2D {
      * \param aSquareCounts The square-counts.
      */
     grid_2D(const std::string& aName = "",
-	    const shared_ptr< pose_2D<double> >& aAnchor = shared_ptr< pose_2D<double> >(),
-	    const pose_2D<double>& aPose = pose_2D<double>(),
-	    const vect<double,2>& aDimensions = (vect<double,2>()),
-	    const vect<std::size_t,2>& aSquareCounts = (vect<std::size_t,2>(10,10)));
+            const shared_ptr< pose_2D<double> >& aAnchor = shared_ptr< pose_2D<double> >(),
+            const pose_2D<double>& aPose = pose_2D<double>(),
+            const vect<double,2>& aDimensions = (vect<double,2>()),
+            const vect<std::size_t,2>& aSquareCounts = (vect<std::size_t,2>(10,10)));
     
     /**
      * Default destructor.

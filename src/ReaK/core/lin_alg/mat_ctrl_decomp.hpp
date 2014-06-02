@@ -129,7 +129,7 @@ mat_traits<Matrix1> >::type::size_type
     return N;
   mat<ValueType,mat_structure::rectangular> AB_accum( B );
   for(SizeType i = 1; i < N; ++i) {
-    AB_accum = sub(A)(range(r,N-1),range(N-AB_accum.get_row_count(),N-1)) * AB_accum;
+    AB_accum = sub(A)(range(r,N),range(N-AB_accum.get_row_count(),N)) * AB_accum;
     mat<ValueType,mat_structure::square> Tr2( (mat<ValueType,mat_structure::identity>(N)) );
     mat<ValueType,mat_structure::permutation> PCr2(M);
     mat_sub_block< mat<ValueType,mat_structure::square> > Tr2_sub(Tr2, N-r, N-r, r, r);

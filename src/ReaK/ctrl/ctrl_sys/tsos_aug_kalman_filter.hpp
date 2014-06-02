@@ -43,23 +43,23 @@
 #ifndef REAK_TSOS_AUG_KALMAN_FILTER_HPP
 #define REAK_TSOS_AUG_KALMAN_FILTER_HPP
 
+#include <ReaK/core/lin_alg/vect_concepts.hpp>
+#include <ReaK/core/lin_alg/mat_alg.hpp>
+#include <ReaK/core/lin_alg/mat_cholesky.hpp>
+
+#include <ReaK/ctrl/path_planning/metric_space_concept.hpp>
+
 #include "belief_state_concept.hpp"
 #include "discrete_linear_sss_concept.hpp"
 #include "augmented_sss_concept.hpp"
-#include <boost/utility/enable_if.hpp>
-#include <lin_alg/vect_concepts.hpp>
-#include <lin_alg/mat_alg.hpp>
-#include <lin_alg/mat_cholesky.hpp>
-
-#include <boost/static_assert.hpp>
 #include "covariance_concept.hpp"
 
 #include "kalman_filter.hpp"
 #include "gaussian_belief_state.hpp"
 #include "covariance_matrix.hpp"
 
-#include "path_planning/metric_space_concept.hpp"
-
+#include <boost/static_assert.hpp>
+#include <boost/utility/enable_if.hpp>
 #include <boost/mpl/and.hpp>
 
 namespace ReaK {
@@ -129,12 +129,12 @@ void >::type tsos_aug_kalman_predict(const LinearSystem& sys,
   const std::size_t n_u = sys.get_input_dimensions();
   const std::size_t m   = sys.get_state_dimensions() - n;
   
-  mat_sub_block<MatAType>      A_x  = sub(A)(range(0, n-1), range(0, n-1));
-  mat_sub_block<MatAType>      A_xa = sub(A)(range(0, n-1), range(n, n+m-1));
-  mat_const_sub_block<MatType> P_x  = sub(P_last)(range(0, n-1), range(0, n-1));
-  mat_const_sub_block<MatType> P_a  = sub(P_last)(range(n, n+m-1), range(n, n+m-1));
-  mat_const_sub_block<MatType> P_ax = sub(P_last)(range(n, n+m-1), range(0, n-1));
-  mat_sub_block<MatBType>      B_x  = sub(B)(range(0, n-1), range(0, n_u-1));
+  mat_sub_block<MatAType>      A_x  = sub(A)(range(0, n), range(0, n));
+  mat_sub_block<MatAType>      A_xa = sub(A)(range(0, n), range(n, n+m));
+  mat_const_sub_block<MatType> P_x  = sub(P_last)(range(0, n), range(0, n));
+  mat_const_sub_block<MatType> P_a  = sub(P_last)(range(n, n+m), range(n, n+m));
+  mat_const_sub_block<MatType> P_ax = sub(P_last)(range(n, n+m), range(0, n));
+  mat_sub_block<MatBType>      B_x  = sub(B)(range(0, n), range(0, n_u));
   
   mat<ValueType, mat_structure::rectangular> P_xa_p( 
     A_x * transpose_view(P_ax) + A_xa * P_a
@@ -240,15 +240,15 @@ void >::type tsos_aug_kalman_update(const LinearSystem& sys,
   
   mat<ValueType, mat_structure::square> I_KC(mat_ident<ValueType>(n+m) - K * C);
   mat< ValueType, mat_structure::rectangular > P_post(I_KC * P);
-  set_block(P_post, sub(P)(range(n, n+m-1), range(n, n+m-1)), n, n);
+  set_block(P_post, sub(P)(range(n, n+m), range(n, n+m)), n, n);
   b_x.set_covariance( CovType( MatType(P_post) ) );
   
 #if 0
   const std::size_t n_z = sys.get_output_dimensions();
   
-  mat_sub_block<MatCType>      C_x  = sub(C)(range(0,n_z-1),range(0,n-1));
-  mat_const_sub_block<MatType> P_x  = sub(P)(range(0, n-1), range(0, n-1));
-  mat_const_sub_block<MatType> P_xa = sub(P)(range(0, n-1), range(n, n+m-1));
+  mat_sub_block<MatCType>      C_x  = sub(C)(range(0,n_z),range(0,n));
+  mat_const_sub_block<MatType> P_x  = sub(P)(range(0, n), range(0, n));
+  mat_const_sub_block<MatType> P_xa = sub(P)(range(0, n), range(n, n+m));
   
   mat< ValueType, mat_structure::rectangular > CP_xa = C_x * P_xa;
   mat< ValueType, mat_structure::rectangular > CP_x  = C_x * P_x;
@@ -266,7 +266,7 @@ void >::type tsos_aug_kalman_update(const LinearSystem& sys,
   mat< ValueType, mat_structure::rectangular > P_xa_post(I_KC * P_xa);
   b_x.set_covariance( CovType( MatType( 
     ( P_x_post                  & P_xa_post ) |
-    ( transpose_view(P_xa_post) & sub(P)(range(n, n+m-1), range(n, n+m-1)) )
+    ( transpose_view(P_xa_post) & sub(P)(range(n, n+m), range(n, n+m)) )
   ) ) );
 #endif
 };
@@ -370,12 +370,12 @@ void >::type tsos_aug_kalman_filter_step(const LinearSystem& sys,
   sys.get_output_function_blocks(C, D, state_space, t + sys.get_time_step(), x, b_u.get_mean_state());
   
   
-  mat_sub_block<MatAType> A_x  = sub(A)(range(0, n-1), range(0, n-1));
-  mat_sub_block<MatAType> A_xa = sub(A)(range(0, n-1), range(n, n+m-1));
-  mat_sub_block<MatPType> P_x  = sub(P)(range(0, n-1), range(0, n-1));
-  mat_sub_block<MatPType> P_a  = sub(P)(range(n, n+m-1), range(n, n+m-1));
-  mat_sub_block<MatPType> P_ax = sub(P)(range(n, n+m-1), range(0, n-1));
-  mat_sub_block<MatBType> B_x  = sub(B)(range(0, n-1), range(0, n_u-1));
+  mat_sub_block<MatAType> A_x  = sub(A)(range(0, n), range(0, n));
+  mat_sub_block<MatAType> A_xa = sub(A)(range(0, n), range(n, n+m));
+  mat_sub_block<MatPType> P_x  = sub(P)(range(0, n), range(0, n));
+  mat_sub_block<MatPType> P_a  = sub(P)(range(n, n+m), range(n, n+m));
+  mat_sub_block<MatPType> P_ax = sub(P)(range(n, n+m), range(0, n));
+  mat_sub_block<MatBType> B_x  = sub(B)(range(0, n), range(0, n_u));
   
   mat<ValueType, mat_structure::rectangular> P_xa_p( 
     A_x * transpose_view(P_ax) + A_xa * P_a
@@ -399,12 +399,12 @@ void >::type tsos_aug_kalman_filter_step(const LinearSystem& sys,
   
   mat<ValueType, mat_structure::square> I_KC(mat_ident<ValueType>(n+m) - K * C);
   mat< ValueType, mat_structure::rectangular > P_post(I_KC * P);
-  set_block(P_post, sub(P)(range(n, n+m-1),range(n, n+m-1)), n, n);
+  set_block(P_post, sub(P)(range(n, n+m),range(n, n+m)), n, n);
   b_x.set_covariance( CovType( MatType( P_post ) ) );
   
   
 #if 0
-  mat_sub_block<MatCType>      C_x  = sub(C)(range(0,n_z-1),range(0,n-1));
+  mat_sub_block<MatCType>      C_x  = sub(C)(range(0,n_z),range(0,n));
   
   mat< ValueType, mat_structure::rectangular > CP_xa = C_x * P_xa_p;
   mat< ValueType, mat_structure::rectangular > CP_x  = C_x * P_x_p;
@@ -422,7 +422,7 @@ void >::type tsos_aug_kalman_filter_step(const LinearSystem& sys,
   mat< ValueType, mat_structure::rectangular > P_xa_post(I_KC * P_xa_p);
   b_x.set_covariance( CovType( MatType( 
     ( P_x_post                  & P_xa_post ) |
-    ( transpose_view(P_xa_post) & sub(P)(range(n, n+m-1), range(n, n+m-1)) )
+    ( transpose_view(P_xa_post) & sub(P)(range(n, n+m), range(n, n+m)) )
   ) ) );
 #endif
 };

@@ -289,7 +289,7 @@ namespace graph {
 
       template <class Vertex, class Graph>
       void update_vertex(Vertex u, Graph& g) {
-        boost::function_requires< boost::BidirectionalGraphConcept<Graph> >();
+        BOOST_CONCEPT_ASSERT((boost::BidirectionalGraphConcept<Graph>));
         typedef boost::graph_traits<Graph> GTraits;
         typename GTraits::in_edge_iterator ei, ei_end;
         
@@ -463,17 +463,17 @@ namespace graph {
    */
   template <typename Graph,
             typename Vertex,
-	    typename Topology,
+            typename Topology,
             typename AStarHeuristicMap,
             typename FADPRMVisitor,
-	    typename PredecessorMap,
+            typename PredecessorMap,
             typename DistanceMap,
-	    typename RHSMap,
+            typename RHSMap,
             typename WeightMap,
             typename PositionMap,
             typename DensityMap,
-	    typename NcSelector,
-	    typename ColorMap>
+            typename NcSelector,
+            typename ColorMap>
   inline void
   generate_fadprm_no_init
     (Graph &g, Vertex start_vertex, const Topology& free_space,

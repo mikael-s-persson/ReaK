@@ -113,16 +113,16 @@ void >::type orthogonalize_StableGramSchmidt(Matrix& A, bool Normalize = false, 
       for(SizeType k=0;k<N;k++)
         u += A(k,i) * A(k,i);
       if(fabs(u) < NumTol)
-	throw singularity_error("A");
+        throw singularity_error("A");
       u = sqrt(u);
       for(SizeType k=0;k<N;k++)
         A(k,i) /= u;
     } else {
       v[i] = 0.0;
       for(SizeType k=0;k<N;++k)
-	v[i] += A(k,i) * A(k,i);
+        v[i] += A(k,i) * A(k,i);
       if(fabs(v[i]) < NumTol)
-	throw singularity_error("A");
+        throw singularity_error("A");
     };
   };
 };
@@ -228,7 +228,7 @@ void forwardsub_L_impl(const Matrix1& L, Matrix2& B, typename mat_traits<Matrix1
     //Start solving L * Y = B
     for(SizeType i=0;i<N;++i) { //for every row of L
       for(SizeType k=0;k<i;++k) //for every element of row i in L before the diagonal.
-	B(i,j) -= L(i,k) * B(k,j); // subtract to B(i,j) the product of L(i,k) * Y(k,j)
+        B(i,j) -= L(i,k) * B(k,j); // subtract to B(i,j) the product of L(i,k) * Y(k,j)
       if(fabs(L(i,i)) < NumTol)
         throw singularity_error("L");
       B(i,j) /= L(i,i); // do Y(i,j) = (B(i,j) - sum_k(L(i,k) * Y(k,j))) / L(i,i)
@@ -255,7 +255,7 @@ typename mat_traits<Matrix1>::size_type decompose_RRQR_impl(Matrix1& A, Matrix2*
   
   vect_n<ValueType> c(M);
   for(SizeType i = 0; i < M; ++i)
-    c[i] = slice(A)(range(0,N-1),i) * slice(A)(range(0,N-1),i);
+    c[i] = slice(A)(range(0,N),i) * slice(A)(range(0,N),i);
   
   for(SizeType i=0;i<t;++i) {
     
@@ -272,7 +272,7 @@ typename mat_traits<Matrix1>::size_type decompose_RRQR_impl(Matrix1& A, Matrix2*
     if( k != i ) {
       P.add_column_swap(i,k);
       for(SizeType j = 0; j < N; ++j)
-	swap(A(j,i),A(j,k));
+        swap(A(j,i),A(j,k));
       swap(c[i],c[k]);
     };
     
@@ -299,9 +299,9 @@ typename mat_traits<Matrix1>::size_type decompose_RRQR_impl(Matrix1& A, Matrix2*
 template <typename Matrix1, typename Matrix2>
 typename mat_traits<Matrix1>::size_type 
   decompose_StrongRRQR_impl(Matrix1& A, Matrix2* Q, 
-			    mat<typename mat_traits<Matrix1>::value_type,mat_structure::permutation>& P, 
-			    typename mat_traits<Matrix1>::value_type f, 
-			    typename mat_traits<Matrix1>::value_type NumTol)
+                            mat<typename mat_traits<Matrix1>::value_type,mat_structure::permutation>& P, 
+                            typename mat_traits<Matrix1>::value_type f, 
+                            typename mat_traits<Matrix1>::value_type NumTol)
 {
   typedef typename mat_traits<Matrix1>::value_type ValueType;
   typedef typename mat_traits<Matrix1>::size_type SizeType;
@@ -319,7 +319,7 @@ typename mat_traits<Matrix1>::size_type
   
   vect_n<ValueType> c(M);
   for(SizeType i = 0; i < M; ++i)
-    c[i] = slice(A)(range(0,N-1),i) * slice(A)(range(0,N-1),i);
+    c[i] = slice(A)(range(0,N),i) * slice(A)(range(0,N),i);
   vect_n<ValueType> w(t,ValueType(0.0));
   
   for(SizeType i=0;i<t;++i) {
@@ -339,10 +339,10 @@ typename mat_traits<Matrix1>::size_type
     if( k != i ) {
       P.add_column_swap(i,k);
       for(SizeType j = 0; j < N; ++j)
-	swap(A(j,i),A(j,k));
+        swap(A(j,i),A(j,k));
       swap(c[i],c[k]);
       for(SizeType j = 0; j < i; ++j)
-	swap(AB(j,0),AB(j,k-i));
+        swap(AB(j,0),AB(j,k-i));
     };
     
     // perform the QR update:
@@ -361,7 +361,7 @@ typename mat_traits<Matrix1>::size_type
     AB_prev.set_col_count(M-i-1);
     for(SizeType j = i+1; j < M; ++j) {
       for(SizeType l = 0; l < i; ++l)
-	AB_prev(l,j-i-1) = AB(l,j-i) - AB(l,0) * A(i,j) / tau;
+        AB_prev(l,j-i-1) = AB(l,j-i) - AB(l,0) * A(i,j) / tau;
       c[j] = sqrt( c[j] * c[j] - A(i,j) * A(i,j) );
       AB_prev(i,j-i-1) = A(i,j) / tau;
     };
@@ -380,50 +380,50 @@ typename mat_traits<Matrix1>::size_type
       SizeType r_j = i+1;
       for(SizeType j = i+1; j < M; ++j) {
         for(SizeType l = 0; l <= i; ++l) {
-	  if(rho < fabs(AB(l,j-i-1))) {
-	    rho = fabs(AB(l,j-i-1));
-	    r_i = l; r_j = j;
-	  };
-	  if(rho < c[j] / w[l]) {
-	    rho = fabs(AB(l,j-i-1));
-	    r_i = l; r_j = j;
-	  };
+          if(rho < fabs(AB(l,j-i-1))) {
+            rho = fabs(AB(l,j-i-1));
+            r_i = l; r_j = j;
+          };
+          if(rho < c[j] / w[l]) {
+            rho = fabs(AB(l,j-i-1));
+            r_i = l; r_j = j;
+          };
         };
       };
       
       //break if rho is satisfactory.
       if(rho <= f)
-	break;
+        break;
       
       if( r_j != i+1 ) {
-	//swap r_j and i+1:
+        //swap r_j and i+1:
         P.add_column_swap(r_j,i+1);
         for(SizeType j = 0; j < N; ++j)
-	  swap(A(j,i+1),A(j,r_j));
+          swap(A(j,i+1),A(j,r_j));
         swap(c[i+1],c[r_j]);
         for(SizeType j = 0; j < i; ++j)
-	  swap(AB(j,0),AB(j,r_j-i-1));
+          swap(AB(j,0),AB(j,r_j-i-1));
       };
       
       if( r_i != i ) {
-	//swap i and r_i:
-	P.add_column_swap(r_i,i);
-	swap(w[r_i],w[i]);
-	for(SizeType j = 0; j < M-i-1; ++j)
-	  swap(AB(r_i,j),AB(i,j));
-	for(SizeType j = 0; j <= i; ++j)
-	  swap(A(j,r_i),A(j,i));
-	
-	//do a QR pass on the sub-matrix:
-	if(Q) {
+        //swap i and r_i:
+        P.add_column_swap(r_i,i);
+        swap(w[r_i],w[i]);
+        for(SizeType j = 0; j < M-i-1; ++j)
+          swap(AB(r_i,j),AB(i,j));
+        for(SizeType j = 0; j <= i; ++j)
+          swap(A(j,r_i),A(j,i));
+        
+        //do a QR pass on the sub-matrix:
+        if(Q) {
           mat_sub_block<Matrix2> subQ2(*Q,Q->get_row_count(),i-r_i+1,0,r_i);
-	  mat_sub_block<Matrix1> subA2(A,i-r_i+1,M-r_i,r_i,r_i);
+          mat_sub_block<Matrix1> subA2(A,i-r_i+1,M-r_i,r_i,r_i);
           decompose_QR_impl(subA2,&subQ2,NumTol);
         } else {
-	  mat_sub_block<Matrix1> subA2(A,i-r_i+1,M-r_i,r_i,r_i);
+          mat_sub_block<Matrix1> subA2(A,i-r_i+1,M-r_i,r_i,r_i);
           decompose_QR_impl(subA2,static_cast<Matrix2*>(NULL),NumTol);
         };
-	
+        
       };
       
       // perform the QR update:
@@ -447,15 +447,15 @@ typename mat_traits<Matrix1>::size_type
       ValueType rho2 = mu * mu + nu * nu;
       vect_n<ValueType> c2(M-i-2);
       for(SizeType j = i+2; j < M; ++j)
-	c2[j-i-2] = A(i+1,j);
+        c2[j-i-2] = A(i+1,j);
       mat<ValueType,mat_structure::rectangular> u(i,1);
       for(SizeType j = 0; j < i; ++j)
-	u(j,0) = A(j,i);
-      backsub_R_impl(sub(A)(range(0,i-1),range(0,i-1)),u,NumTol);
+        u(j,0) = A(j,i);
+      backsub_R_impl(sub(A)(range(0,i),range(0,i)),u,NumTol);
       
       P.add_column_swap(i,i+1);
       for(SizeType j = 0; j <= i+1; ++j)
-	swap(A(j,i),A(j,i+1));
+        swap(A(j,i),A(j,i+1));
       
       hhm.set(mat_row_slice<Matrix1>(A,i,i,2),NumTol);
     
@@ -468,20 +468,20 @@ typename mat_traits<Matrix1>::size_type
       };
       
       for(SizeType j = 0; j < i; ++j)
-	w[j] = sqrt( w[j] * w[j] + ((AB(j,0) + mu * u(j,0)) * (AB(j,0) + mu * u(j,0))) / (A(i,i) * A(i,i)) - (u(j,0) * u(j,0)) / (gamma * gamma));
+        w[j] = sqrt( w[j] * w[j] + ((AB(j,0) + mu * u(j,0)) * (AB(j,0) + mu * u(j,0))) / (A(i,i) * A(i,i)) - (u(j,0) * u(j,0)) / (gamma * gamma));
       w[i] = A(i,i);
       
       c[i+1] = A(i+1,i+1);
       for(SizeType j = i+2; j < M; ++j)
-	c[j] = sqrt( c[j] * c[j] + A(i+1,j) * A(i+1,j) - c2[j] * c2[j] );
+        c[j] = sqrt( c[j] * c[j] + A(i+1,j) * A(i+1,j) - c2[j] * c2[j] );
       
       for(SizeType j = i+2; j < M; ++j) {
         for(SizeType l = 0; l < i; ++l)
-	  AB(l,j-i-1) += (nu * u(l,0) * A(i+1,j) - AB(l,0) * A(i,j) ) / A(i,i);
+          AB(l,j-i-1) += (nu * u(l,0) * A(i+1,j) - AB(l,0) * A(i,j) ) / A(i,i);
         AB(i,j-i-1) = A(i,j) / A(i,i);
       };
       for(SizeType j = 0; j < i; ++j)
-	AB(j,0) = (nu * nu * u(j,0) - mu * AB(j,0)) / rho2;
+        AB(j,0) = (nu * nu * u(j,0) - mu * AB(j,0)) / rho2;
       AB(i,0) = mu / rho2;
       
     };
@@ -718,7 +718,7 @@ void >::type minnorm_QR(const Matrix1& A, Matrix2& x, const Matrix3& b, typename
   
   mat<ValueType,mat_structure::rectangular> b_tmp(b);
   detail::forwardsub_L_impl(R, b_tmp, NumTol);
-  x = sub(Q)(range(0, A.get_col_count()-1),range(0, A.get_row_count()-1)) * b_tmp;
+  x = sub(Q)(range(0, A.get_col_count()),range(0, A.get_row_count())) * b_tmp;
   
 };
 
@@ -872,7 +872,7 @@ void >::type linlsq_RRQR(const Matrix1& A, Matrix2& x, const Matrix3& b, typenam
   if(K < A.get_col_count()) {
     // A is rank-deficient.
     mat<ValueType,mat_structure::rectangular> x_tmp2(R.get_col_count(), x_tmp.get_col_count());
-    minnorm_QR(sub(R)(range(0,K-1),range(0,R.get_col_count()-1)), x_tmp2, sub(x_tmp)(range(0,K-1),range(0,x_tmp.get_col_count()-1)), NumTol);
+    minnorm_QR(sub(R)(range(0,K),range(0,R.get_col_count())), x_tmp2, sub(x_tmp)(range(0,K),range(0,x_tmp.get_col_count())), NumTol);
     x_tmp = x_tmp2;
   } else {
     // A is full-rank.
@@ -939,7 +939,7 @@ void >::type minnorm_RRQR(const Matrix1& A, Matrix2& x, const Matrix3& b, typena
   b_tmp = transpose(P) * b;
   if(K < A.get_row_count()) {
     mat<ValueType,mat_structure::rectangular> x_tmp(K, b.get_col_count());
-    detail::linlsq_QR_impl(sub(R)(range(0,A.get_row_count()-1),range(0,K-1)), x_tmp, b_tmp, NumTol);
+    detail::linlsq_QR_impl(sub(R)(range(0,A.get_row_count()),range(0,K)), x_tmp, b_tmp, NumTol);
     for(SizeType i = 0; i < K; ++i)
       for(SizeType j = 0; j < b_tmp.get_col_count(); ++j)
         b_tmp(i,j) = x_tmp(i,j);
@@ -950,7 +950,7 @@ void >::type minnorm_RRQR(const Matrix1& A, Matrix2& x, const Matrix3& b, typena
     detail::forwardsub_L_impl(R, b_tmp, NumTol);
   };
   
-  x = sub(Q)(range(0, A.get_col_count()-1),range(0, A.get_row_count()-1)) * b_tmp;
+  x = sub(Q)(range(0, A.get_col_count()),range(0, A.get_row_count())) * b_tmp;
 };
 
 

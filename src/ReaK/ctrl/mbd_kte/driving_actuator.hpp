@@ -83,7 +83,7 @@ class driving_actuator_gen : public force_actuator_gen, public system_input {
                          const shared_ptr< gen_coord<double> >& aFrame,
                          const shared_ptr< reacting_kte_gen >& aJoint) :
                          force_actuator_gen(aName,aFrame,aJoint),
-			 system_input(aName),
+                         system_input(aName),
                          mDriveForce(0.0) { };
 
     /**
@@ -143,15 +143,15 @@ class driving_actuator_2D : public force_actuator_2D, public system_input {
     
     virtual void setInput(unsigned int i, double aValue) { 
       if(i < 2) 
-	mDriveForce[i] = aValue;
+        mDriveForce[i] = aValue;
       else
-	mDriveTorque = aValue;
+        mDriveTorque = aValue;
     };
     virtual double getInput(unsigned int i) const { 
       if(i < 2)
         return mDriveForce[i]; 
       else
-	return mDriveTorque;
+        return mDriveTorque;
     }; 
     
     /**
@@ -230,19 +230,19 @@ class driving_actuator_3D : public force_actuator_3D, public system_input {
     
     virtual void setInput(unsigned int i, double aValue) { 
       if(i < 3) 
-	mDriveForce[i] = aValue;
+        mDriveForce[i] = aValue;
       else if(i < 6)
-	mDriveTorque[i-3] = aValue;
+        mDriveTorque[i-3] = aValue;
       else
-	mDriveForce[0] = aValue;
+        mDriveForce[0] = aValue;
     };
     virtual double getInput(unsigned int i) const { 
       if(i < 3) 
-	return mDriveForce[i];
+        return mDriveForce[i];
       else if(i < 6)
-	return mDriveTorque[i-3];
+        return mDriveTorque[i-3];
       else
-	return mDriveForce[0];
+        return mDriveForce[0];
     }; 
     
     /**

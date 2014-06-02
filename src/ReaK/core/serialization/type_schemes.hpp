@@ -34,12 +34,12 @@
 
 #include "archiver.hpp"
 
-#include "base/serializable.hpp"
-#include "base/shared_object.hpp"
+#include <ReaK/core/base/serializable.hpp>
+#include <ReaK/core/base/shared_object.hpp>
 
-#include "rtti/so_type.hpp"
-#include "rtti/typed_primitives.hpp"
-#include "rtti/typed_containers.hpp"
+#include <ReaK/core/rtti/so_type.hpp>
+#include <ReaK/core/rtti/typed_primitives.hpp>
+#include <ReaK/core/rtti/typed_containers.hpp>
 
 #include <string>
 #include <vector>

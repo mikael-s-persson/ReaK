@@ -101,13 +101,13 @@ class rigid_link_gen : public kte_map {
      * \param aOffset the offset of the rigid-link (or length of the link).
      */
     rigid_link_gen(const std::string& aName,
-		   const shared_ptr< gen_coord<double> >& aBase,
-		   const shared_ptr< gen_coord<double> >& aEnd,
-		   double aOffset) :
-		   kte_map(aName),
-		   mBase(aBase),
-		   mEnd(aEnd),
-		   mOffset(aOffset) { };
+                   const shared_ptr< gen_coord<double> >& aBase,
+                   const shared_ptr< gen_coord<double> >& aEnd,
+                   double aOffset) :
+                   kte_map(aName),
+                   mBase(aBase),
+                   mEnd(aEnd),
+                   mOffset(aOffset) { };
 
     /**
      * Default destructor.
@@ -124,14 +124,14 @@ class rigid_link_gen : public kte_map {
       kte_map::save(A,kte_map::getStaticObjectType()->TypeVersion());
       A & RK_SERIAL_SAVE_WITH_NAME(mBase)
         & RK_SERIAL_SAVE_WITH_NAME(mEnd)
-	& RK_SERIAL_SAVE_WITH_NAME(mOffset);
+        & RK_SERIAL_SAVE_WITH_NAME(mOffset);
     };
 
     virtual void RK_CALL load(serialization::iarchive& A, unsigned int) {
       kte_map::load(A,kte_map::getStaticObjectType()->TypeVersion());
       A & RK_SERIAL_LOAD_WITH_NAME(mBase)
         & RK_SERIAL_LOAD_WITH_NAME(mEnd)
-	& RK_SERIAL_LOAD_WITH_NAME(mOffset);
+        & RK_SERIAL_LOAD_WITH_NAME(mOffset);
 
     };
 
@@ -198,13 +198,13 @@ class rigid_link_2D : public kte_map {
      * \param aPoseOffset the pose offset of the rigid-link (length and twist of the link).
      */
     rigid_link_2D(const std::string& aName,
-		  const shared_ptr< frame_2D<double> >& aBase,
-		  const shared_ptr< frame_2D<double> >& aEnd,
-		  const pose_2D<double>& aPoseOffset) :
-		  kte_map(aName),
-		  mBase(aBase),
-		  mEnd(aEnd),
-		  mPoseOffset(aPoseOffset) { };
+                  const shared_ptr< frame_2D<double> >& aBase,
+                  const shared_ptr< frame_2D<double> >& aEnd,
+                  const pose_2D<double>& aPoseOffset) :
+                  kte_map(aName),
+                  mBase(aBase),
+                  mEnd(aEnd),
+                  mPoseOffset(aPoseOffset) { };
 
     /**
      * Default destructor.
@@ -221,14 +221,14 @@ class rigid_link_2D : public kte_map {
       kte_map::save(A,kte_map::getStaticObjectType()->TypeVersion());
       A & RK_SERIAL_SAVE_WITH_NAME(mBase)
         & RK_SERIAL_SAVE_WITH_NAME(mEnd)
-	& RK_SERIAL_SAVE_WITH_NAME(mPoseOffset);
+        & RK_SERIAL_SAVE_WITH_NAME(mPoseOffset);
     };
 
     virtual void RK_CALL load(serialization::iarchive& A, unsigned int) {
       kte_map::load(A,kte_map::getStaticObjectType()->TypeVersion());
       A & RK_SERIAL_LOAD_WITH_NAME(mBase)
         & RK_SERIAL_LOAD_WITH_NAME(mEnd)
-	& RK_SERIAL_LOAD_WITH_NAME(mPoseOffset);
+        & RK_SERIAL_LOAD_WITH_NAME(mPoseOffset);
 
     };
 
@@ -294,13 +294,13 @@ class rigid_link_3D : public kte_map {
      * \param aPoseOffset the pose offset of the rigid-link (length and twist of the link).
      */
     rigid_link_3D(const std::string& aName,
-		  const shared_ptr< frame_3D<double> >& aBase,
-		  const shared_ptr< frame_3D<double> >& aEnd,
-		  const pose_3D<double>& aPoseOffset) :
-		  kte_map(aName),
-		  mBase(aBase),
-		  mEnd(aEnd),
-		  mPoseOffset(aPoseOffset) { };
+                  const shared_ptr< frame_3D<double> >& aBase,
+                  const shared_ptr< frame_3D<double> >& aEnd,
+                  const pose_3D<double>& aPoseOffset) :
+                  kte_map(aName),
+                  mBase(aBase),
+                  mEnd(aEnd),
+                  mPoseOffset(aPoseOffset) { };
 
     /**
      * Default destructor.

@@ -134,7 +134,7 @@ class vect_const_ref_view {
      * \test PASSED
      */
     vect_const_ref_view<self> operator[](const std::pair<size_type,size_type>& r) const {
-      return vect_const_ref_view<self>(*this,r.second - r.first + 1,r.first);
+      return vect_const_ref_view<self>(*this,r.second - r.first,r.first);
     };
 
     /**
@@ -338,7 +338,7 @@ class vect_ref_view {
      * \test PASSED
      */
     vect_ref_view<self> operator[](const std::pair<size_type,size_type>& r) {
-      return vect_ref_view<self>(*this,r.second - r.first + 1,r.first);
+      return vect_ref_view<self>(*this,r.second - r.first,r.first);
     };
 
     /**
@@ -346,7 +346,7 @@ class vect_ref_view {
      * \test PASSED
      */
     vect_const_ref_view<self> operator[](const std::pair<size_type,size_type>& r) const {
-      return vect_const_ref_view<self>(*this,r.second - r.first + 1,r.first);
+      return vect_const_ref_view<self>(*this,r.second - r.first,r.first);
     };
 
     /**
@@ -615,7 +615,7 @@ class vect_copy_view {
      * \test PASSED
      */
     vect_ref_view<self> operator[](const std::pair<size_type,size_type>& r) {
-      return vect_ref_view<self>(*this,r.second - r.first + 1,r.first);
+      return vect_ref_view<self>(*this,r.second - r.first,r.first);
     };
 
     /**
@@ -623,7 +623,7 @@ class vect_copy_view {
      * \test PASSED
      */
     vect_const_ref_view<self> operator[](const std::pair<size_type,size_type>& r) const {
-      return vect_const_ref_view<self>(*this,r.second - r.first + 1,r.first);
+      return vect_const_ref_view<self>(*this,r.second - r.first,r.first);
     };
 
     /**
@@ -733,12 +733,12 @@ struct vect_copy_view_factory {
   vect_copy_view_factory(const Vector& aV) : v(aV) { };
 #ifdef BOOST_NO_CXX11_RVALUE_REFERENCES
   vect_copy_view<Vector> operator[](const std::pair<size_type,size_type>& indices) {
-    return vect_copy_view<Vector>(v,indices.second - indices.first + 1,indices.first);
+    return vect_copy_view<Vector>(v,indices.second - indices.first,indices.first);
   };
 #else
   vect_copy_view_factory(Vector&& aV) : v(std::move(aV)) { };
   vect_copy_view<Vector> operator[](const std::pair<size_type,size_type>& indices) {
-    return vect_copy_view<Vector>(std::move(v),indices.second - indices.first + 1,indices.first);
+    return vect_copy_view<Vector>(std::move(v),indices.second - indices.first,indices.first);
   };
 #endif
 };
@@ -750,7 +750,7 @@ struct vect_ref_view_factory {
   Vector& v;
   vect_ref_view_factory(Vector& aV) : v(aV) { };
   vect_ref_view<Vector> operator[](const std::pair<size_type,size_type>& indices) {
-    return vect_ref_view<Vector>(v,indices.second - indices.first + 1,indices.first);
+    return vect_ref_view<Vector>(v,indices.second - indices.first,indices.first);
   };
 };
 
@@ -761,7 +761,7 @@ struct vect_const_ref_view_factory {
   const Vector& v;
   vect_const_ref_view_factory(const Vector& aV) : v(aV) { };
   vect_const_ref_view<Vector> operator[](const std::pair<size_type,size_type>& indices) {
-    return vect_const_ref_view<Vector>(v,indices.second - indices.first + 1,indices.first);
+    return vect_const_ref_view<Vector>(v,indices.second - indices.first,indices.first);
   };
 };
 

@@ -34,12 +34,11 @@
 #ifndef REAK_DISCRETE_POINT_PATH_HPP
 #define REAK_DISCRETE_POINT_PATH_HPP
 
-#include "base/defs.hpp"
+#include <ReaK/core/base/defs.hpp>
 
-#include "path_planning/spatial_path_concept.hpp"
+#include <ReaK/ctrl/path_planning/spatial_path_concept.hpp>
 
 #include "waypoint_container.hpp"
-
 
 #include <boost/config.hpp>
 #include <boost/concept_check.hpp>

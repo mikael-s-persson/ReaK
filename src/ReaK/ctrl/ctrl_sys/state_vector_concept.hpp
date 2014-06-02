@@ -35,9 +35,9 @@
 #ifndef REAK_STATE_VECTOR_CONCEPT_HPP
 #define REAK_STATE_VECTOR_CONCEPT_HPP
 
-#include "lin_alg/vect_concepts.hpp"
-#include "lin_alg/vect_alg.hpp"
-#include "lin_alg/mat_slices.hpp"
+#include <ReaK/core/lin_alg/vect_concepts.hpp>
+#include <ReaK/core/lin_alg/vect_alg.hpp>
+#include <ReaK/core/lin_alg/mat_slices.hpp>
 
 #include <boost/concept_check.hpp>
 

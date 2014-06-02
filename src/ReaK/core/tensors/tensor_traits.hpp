@@ -40,7 +40,7 @@
 
 #include <boost/config.hpp>
 
-#include "rtti/so_type.hpp"
+#include <ReaK/core/rtti/so_type.hpp>
 
 namespace ReaK {
   

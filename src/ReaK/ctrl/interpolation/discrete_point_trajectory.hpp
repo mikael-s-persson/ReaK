@@ -34,9 +34,9 @@
 #ifndef REAK_DISCRETE_POINT_TRAJECTORY_HPP
 #define REAK_DISCRETE_POINT_TRAJECTORY_HPP
 
-#include "base/defs.hpp"
+#include <ReaK/core/base/defs.hpp>
 
-#include "path_planning/spatial_trajectory_concept.hpp"
+#include <ReaK/ctrl/path_planning/spatial_trajectory_concept.hpp>
 
 #include "waypoint_container.hpp"
 

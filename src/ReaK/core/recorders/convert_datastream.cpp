@@ -21,13 +21,13 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "data_record_po.hpp"
+#include <ReaK/core/recorders/data_record_po.hpp>
 
 #include <sstream>
 #include <iomanip>
 
-#include "base/chrono_incl.hpp"
-#include "base/thread_incl.hpp"
+#include <ReaK/core/base/chrono_incl.hpp>
+#include <ReaK/core/base/thread_incl.hpp>
 
 #include <boost/tuple/tuple.hpp>
 #include <boost/program_options.hpp>

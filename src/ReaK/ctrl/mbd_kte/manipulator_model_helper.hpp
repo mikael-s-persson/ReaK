@@ -117,8 +117,8 @@ class manip_kin_mdl_joint_io {
         (*it)->Position[2] = aJointPositions[j]; ++j;
         (*it)->Quat = quaternion<double>(vect<double,4>(aJointPositions[j],
                                                         aJointPositions[j+1],
-	                                                aJointPositions[j+2],
-						        aJointPositions[j+3])); j += 4;
+                                                        aJointPositions[j+2],
+                                                        aJointPositions[j+3])); j += 4;
       };
     };
     
@@ -380,55 +380,55 @@ class manip_kin_mdl_jac_calculator {
     
         for(unsigned int j=0; j < model->mDependentGenCoords.size(); ++j) {
           if(model->mDependentGenCoords[j]->mUpStreamJoints.find(model->mCoords[i]) != model->mDependentGenCoords[j]->mUpStreamJoints.end()) {
-	    mat_sub_block< Matrix1 > subJac = sub(Jac)(range(RowInd,RowInd),range(i,i));
-	    if(JacDot) {
-	      mat_sub_block< Matrix2 > subJacDot = sub(*JacDot)(range(RowInd,RowInd),range(i,i));
-	      model->mDependentGenCoords[j]
-	        ->mUpStreamJoints[model->mCoords[i]]
-	          ->write_to_matrices(subJac, subJacDot);
-	    } else {
-	      model->mDependentGenCoords[j]
-	        ->mUpStreamJoints[model->mCoords[i]]
-	          ->write_to_matrices(subJac);
-	    };
+            mat_sub_block< Matrix1 > subJac = sub(Jac)(range(RowInd,RowInd+1),range(i,i+1));
+            if(JacDot) {
+              mat_sub_block< Matrix2 > subJacDot = sub(*JacDot)(range(RowInd,RowInd+1),range(i,i+1));
+              model->mDependentGenCoords[j]
+                ->mUpStreamJoints[model->mCoords[i]]
+                  ->write_to_matrices(subJac, subJacDot);
+            } else {
+              model->mDependentGenCoords[j]
+                ->mUpStreamJoints[model->mCoords[i]]
+                  ->write_to_matrices(subJac);
+            };
           };
           RowInd++;
         };
     
         for(unsigned int j=0; j < model->mDependent2DFrames.size(); ++j) {
           if(model->mDependent2DFrames[j]->mUpStreamJoints.find(model->mCoords[i]) != model->mDependent2DFrames[j]->mUpStreamJoints.end()) {
-	    mat_sub_block< Matrix1 > subJac = sub(Jac)(range(RowInd,RowInd+2),range(i,i));
-	    if(JacDot) {
-	      mat_sub_block< Matrix2 > subJacDot = sub(*JacDot)(range(RowInd,RowInd+2),range(i,i));
-	      model->mDependent2DFrames[j]
-	        ->mUpStreamJoints[model->mCoords[i]]
-	          ->get_jac_relative_to(model->mDependent2DFrames[j]->mFrame)
-	            .write_to_matrices(subJac, subJacDot);
+            mat_sub_block< Matrix1 > subJac = sub(Jac)(range(RowInd,RowInd+3),range(i,i+1));
+            if(JacDot) {
+              mat_sub_block< Matrix2 > subJacDot = sub(*JacDot)(range(RowInd,RowInd+3),range(i,i+1));
+              model->mDependent2DFrames[j]
+                ->mUpStreamJoints[model->mCoords[i]]
+                  ->get_jac_relative_to(model->mDependent2DFrames[j]->mFrame)
+                    .write_to_matrices(subJac, subJacDot);
             } else {
-	      model->mDependent2DFrames[j]
-	        ->mUpStreamJoints[model->mCoords[i]]
-	          ->get_jac_relative_to(model->mDependent2DFrames[j]->mFrame)
-	            .write_to_matrices(subJac);
-	    };
+              model->mDependent2DFrames[j]
+                ->mUpStreamJoints[model->mCoords[i]]
+                  ->get_jac_relative_to(model->mDependent2DFrames[j]->mFrame)
+                    .write_to_matrices(subJac);
+            };
           };
           RowInd += 3;
         };
     
         for(unsigned int j=0; j < model->mDependent3DFrames.size(); ++j) {
           if(model->mDependent3DFrames[j]->mUpStreamJoints.find(model->mCoords[i]) != model->mDependent3DFrames[j]->mUpStreamJoints.end()) {
-	    mat_sub_block< Matrix1 > subJac = sub(Jac)(range(RowInd,RowInd+5),range(i,i));
-	    if(JacDot) {
-	      mat_sub_block< Matrix2 > subJacDot = sub(*JacDot)(range(RowInd,RowInd+5),range(i,i));
-  	      model->mDependent3DFrames[j]
-	        ->mUpStreamJoints[model->mCoords[i]]
-	          ->get_jac_relative_to(model->mDependent3DFrames[j]->mFrame)
-	            .write_to_matrices(subJac,subJacDot);
-	    } else {
-	      model->mDependent3DFrames[j]
-	        ->mUpStreamJoints[model->mCoords[i]]
-	          ->get_jac_relative_to(model->mDependent3DFrames[j]->mFrame)
-	            .write_to_matrices(subJac);
-	    };
+            mat_sub_block< Matrix1 > subJac = sub(Jac)(range(RowInd,RowInd+6),range(i,i+1));
+            if(JacDot) {
+              mat_sub_block< Matrix2 > subJacDot = sub(*JacDot)(range(RowInd,RowInd+6),range(i,i+1));
+                model->mDependent3DFrames[j]
+                ->mUpStreamJoints[model->mCoords[i]]
+                  ->get_jac_relative_to(model->mDependent3DFrames[j]->mFrame)
+                    .write_to_matrices(subJac,subJacDot);
+            } else {
+              model->mDependent3DFrames[j]
+                ->mUpStreamJoints[model->mCoords[i]]
+                  ->get_jac_relative_to(model->mDependent3DFrames[j]->mFrame)
+                    .write_to_matrices(subJac);
+            };
           };
           RowInd += 6;
         };
@@ -445,55 +445,55 @@ class manip_kin_mdl_jac_calculator {
 
         for(unsigned int j=0; j < model->mDependentGenCoords.size(); ++j) {
           if(model->mDependentGenCoords[j]->mUpStream2DJoints.find(model->mFrames2D[i]) != model->mDependentGenCoords[j]->mUpStream2DJoints.end()) {
-	    mat_sub_block< Matrix1 > subJac = sub(Jac)(range(RowInd,RowInd),range(3 * i + base_i, 3 * i + base_i + 2));
-	    if(JacDot) {
-	      mat_sub_block< Matrix2 > subJacDot = sub(*JacDot)(range(RowInd,RowInd),range(3 * i + base_i, 3 * i + base_i + 2));
-	      model->mDependentGenCoords[j]
-	        ->mUpStream2DJoints[model->mFrames2D[i]]
-	          ->write_to_matrices(subJac,subJacDot);
-	    } else {
-	      model->mDependentGenCoords[j]
-	        ->mUpStream2DJoints[model->mFrames2D[i]]
-	          ->write_to_matrices(subJac);
-	    };
+            mat_sub_block< Matrix1 > subJac = sub(Jac)(range(RowInd,RowInd+1),range(3 * i + base_i, 3 * i + base_i + 3));
+            if(JacDot) {
+              mat_sub_block< Matrix2 > subJacDot = sub(*JacDot)(range(RowInd,RowInd+1),range(3 * i + base_i, 3 * i + base_i + 3));
+              model->mDependentGenCoords[j]
+                ->mUpStream2DJoints[model->mFrames2D[i]]
+                  ->write_to_matrices(subJac,subJacDot);
+            } else {
+              model->mDependentGenCoords[j]
+                ->mUpStream2DJoints[model->mFrames2D[i]]
+                  ->write_to_matrices(subJac);
+            };
           };
           RowInd++;
         };
 
         for(unsigned int j=0; j < model->mDependent2DFrames.size(); ++j) {
           if(model->mDependent2DFrames[j]->mUpStream2DJoints.find(model->mFrames2D[i]) != model->mDependent2DFrames[j]->mUpStream2DJoints.end()) {
-	    mat_sub_block< Matrix1 > subJac = sub(Jac)(range(RowInd,RowInd+2),range(3 * i + base_i, 3 * i + base_i + 2));
-	    if(JacDot) {
-	      mat_sub_block< Matrix2 > subJacDot = sub(*JacDot)(range(RowInd,RowInd+2),range(3 * i + base_i, 3 * i + base_i + 2));
-  	      model->mDependent2DFrames[j]
-	        ->mUpStream2DJoints[model->mFrames2D[i]]
-	          ->get_jac_relative_to(model->mDependent2DFrames[j]->mFrame)
-	            .write_to_matrices(subJac,subJacDot);
-	    } else {
-	      model->mDependent2DFrames[j]
-	        ->mUpStream2DJoints[model->mFrames2D[i]]
-	          ->get_jac_relative_to(model->mDependent2DFrames[j]->mFrame)
-	            .write_to_matrices(subJac);
-	    };
+            mat_sub_block< Matrix1 > subJac = sub(Jac)(range(RowInd,RowInd+3),range(3 * i + base_i, 3 * i + base_i + 3));
+            if(JacDot) {
+              mat_sub_block< Matrix2 > subJacDot = sub(*JacDot)(range(RowInd,RowInd+3),range(3 * i + base_i, 3 * i + base_i + 3));
+                model->mDependent2DFrames[j]
+                ->mUpStream2DJoints[model->mFrames2D[i]]
+                  ->get_jac_relative_to(model->mDependent2DFrames[j]->mFrame)
+                    .write_to_matrices(subJac,subJacDot);
+            } else {
+              model->mDependent2DFrames[j]
+                ->mUpStream2DJoints[model->mFrames2D[i]]
+                  ->get_jac_relative_to(model->mDependent2DFrames[j]->mFrame)
+                    .write_to_matrices(subJac);
+            };
           };
           RowInd += 3;
         };
 
         for(unsigned int j=0; j < model->mDependent3DFrames.size(); ++j) {
           if(model->mDependent3DFrames[j]->mUpStream2DJoints.find(model->mFrames2D[i]) != model->mDependent3DFrames[j]->mUpStream2DJoints.end()) {
-	    mat_sub_block< Matrix1 > subJac = sub(Jac)(range(RowInd,RowInd+5),range(3 * i + base_i, 3 * i + base_i + 2));
-	    if(JacDot) {
-	      mat_sub_block< Matrix2 > subJacDot = sub(*JacDot)(range(RowInd,RowInd+5),range(3 * i + base_i, 3 * i + base_i + 2));
-	      model->mDependent3DFrames[j]
-	        ->mUpStream2DJoints[model->mFrames2D[i]]
-	          ->get_jac_relative_to(model->mDependent3DFrames[j]->mFrame)
-	            .write_to_matrices(subJac,subJacDot);
-	    } else {
-	      model->mDependent3DFrames[j]
-	        ->mUpStream2DJoints[model->mFrames2D[i]]
-	          ->get_jac_relative_to(model->mDependent3DFrames[j]->mFrame)
-	            .write_to_matrices(subJac);
-	    };
+            mat_sub_block< Matrix1 > subJac = sub(Jac)(range(RowInd,RowInd+6),range(3 * i + base_i, 3 * i + base_i + 3));
+            if(JacDot) {
+              mat_sub_block< Matrix2 > subJacDot = sub(*JacDot)(range(RowInd,RowInd+6),range(3 * i + base_i, 3 * i + base_i + 3));
+              model->mDependent3DFrames[j]
+                ->mUpStream2DJoints[model->mFrames2D[i]]
+                  ->get_jac_relative_to(model->mDependent3DFrames[j]->mFrame)
+                    .write_to_matrices(subJac,subJacDot);
+            } else {
+              model->mDependent3DFrames[j]
+                ->mUpStream2DJoints[model->mFrames2D[i]]
+                  ->get_jac_relative_to(model->mDependent3DFrames[j]->mFrame)
+                    .write_to_matrices(subJac);
+            };
           };
           RowInd += 6;
         };
@@ -511,55 +511,55 @@ class manip_kin_mdl_jac_calculator {
 
         for(unsigned int j=0; j < model->mDependentGenCoords.size(); ++j) {
           if(model->mDependentGenCoords[j]->mUpStreamJoints.find(model->mCoords[i]) != model->mDependentGenCoords[j]->mUpStreamJoints.end()) {
-	    mat_sub_block< Matrix1 > subJac = sub(Jac)(range(RowInd,RowInd),range(6 * i + base_i, 6 * i + base_i + 5));
-	    if(JacDot) {
-	      mat_sub_block< Matrix2 > subJacDot = sub(*JacDot)(range(RowInd,RowInd),range(6 * i + base_i, 6 * i + base_i + 5));
-	      model->mDependentGenCoords[j]
-	        ->mUpStream3DJoints[model->mFrames3D[i]]
-	          ->write_to_matrices(subJac,subJacDot);
-	    } else {
-	      model->mDependentGenCoords[j]
-	        ->mUpStream3DJoints[model->mFrames3D[i]]
-	          ->write_to_matrices(subJac);
-	    };
+            mat_sub_block< Matrix1 > subJac = sub(Jac)(range(RowInd,RowInd+1),range(6 * i + base_i, 6 * i + base_i + 6));
+            if(JacDot) {
+              mat_sub_block< Matrix2 > subJacDot = sub(*JacDot)(range(RowInd,RowInd+1),range(6 * i + base_i, 6 * i + base_i + 6));
+              model->mDependentGenCoords[j]
+                ->mUpStream3DJoints[model->mFrames3D[i]]
+                  ->write_to_matrices(subJac,subJacDot);
+            } else {
+              model->mDependentGenCoords[j]
+                ->mUpStream3DJoints[model->mFrames3D[i]]
+                  ->write_to_matrices(subJac);
+            };
           };
           RowInd++;
         };
 
         for(unsigned int j=0; j < model->mDependent2DFrames.size(); ++j) {
           if(model->mDependent2DFrames[j]->mUpStream3DJoints.find(model->mFrames3D[i]) != model->mDependent2DFrames[j]->mUpStream3DJoints.end()) {
-	    mat_sub_block< Matrix1 > subJac = sub(Jac)(range(RowInd,RowInd+2),range(6 * i + base_i, 6 * i + base_i + 5));
-	    if(JacDot) {
-	      mat_sub_block< Matrix2 > subJacDot = sub(*JacDot)(range(RowInd,RowInd+2),range(6 * i + base_i, 6 * i + base_i + 5));
-	      model->mDependent2DFrames[j]
-	        ->mUpStream3DJoints[model->mFrames3D[i]]
-	          ->get_jac_relative_to(model->mDependent2DFrames[j]->mFrame)
-	            .write_to_matrices(subJac,subJacDot);
-	    } else {
-	      model->mDependent2DFrames[j]
-	        ->mUpStream3DJoints[model->mFrames3D[i]]
-	          ->get_jac_relative_to(model->mDependent2DFrames[j]->mFrame)
-	            .write_to_matrices(subJac);
-	    };
+            mat_sub_block< Matrix1 > subJac = sub(Jac)(range(RowInd,RowInd+3),range(6 * i + base_i, 6 * i + base_i + 6));
+            if(JacDot) {
+              mat_sub_block< Matrix2 > subJacDot = sub(*JacDot)(range(RowInd,RowInd+3),range(6 * i + base_i, 6 * i + base_i + 6));
+              model->mDependent2DFrames[j]
+                ->mUpStream3DJoints[model->mFrames3D[i]]
+                  ->get_jac_relative_to(model->mDependent2DFrames[j]->mFrame)
+                    .write_to_matrices(subJac,subJacDot);
+            } else {
+              model->mDependent2DFrames[j]
+                ->mUpStream3DJoints[model->mFrames3D[i]]
+                  ->get_jac_relative_to(model->mDependent2DFrames[j]->mFrame)
+                    .write_to_matrices(subJac);
+            };
           };
           RowInd += 3;
         };
 
         for(unsigned int j=0; j < model->mDependent3DFrames.size(); ++j) {
           if(model->mDependent3DFrames[j]->mUpStream3DJoints.find(model->mFrames3D[i]) != model->mDependent3DFrames[j]->mUpStream3DJoints.end()) {
-            mat_sub_block< Matrix1 > subJac = sub(Jac)(range(RowInd,RowInd+5),range(6 * i + base_i, 6 * i + base_i + 5));
+            mat_sub_block< Matrix1 > subJac = sub(Jac)(range(RowInd,RowInd+6),range(6 * i + base_i, 6 * i + base_i + 6));
             if(JacDot) {
-	      mat_sub_block< Matrix2 > subJacDot = sub(*JacDot)(range(RowInd,RowInd+5),range(6 * i + base_i, 6 * i + base_i + 5));
-	      model->mDependent3DFrames[j]
-	        ->mUpStream3DJoints[model->mFrames3D[i]]
-	          ->get_jac_relative_to(model->mDependent3DFrames[j]->mFrame)
-	            .write_to_matrices(subJac,subJacDot);
-	    } else {
-	      model->mDependent3DFrames[j]
-	        ->mUpStream3DJoints[model->mFrames3D[i]]
-	          ->get_jac_relative_to(model->mDependent3DFrames[j]->mFrame)
-	            .write_to_matrices(subJac);
-	    };
+              mat_sub_block< Matrix2 > subJacDot = sub(*JacDot)(range(RowInd,RowInd+6),range(6 * i + base_i, 6 * i + base_i + 6));
+              model->mDependent3DFrames[j]
+                ->mUpStream3DJoints[model->mFrames3D[i]]
+                  ->get_jac_relative_to(model->mDependent3DFrames[j]->mFrame)
+                    .write_to_matrices(subJac,subJacDot);
+            } else {
+              model->mDependent3DFrames[j]
+                ->mUpStream3DJoints[model->mFrames3D[i]]
+                  ->get_jac_relative_to(model->mDependent3DFrames[j]->mFrame)
+                    .write_to_matrices(subJac);
+            };
           };
           RowInd += 6;
         };
@@ -612,31 +612,31 @@ class manip_clik_calculator {
       ineq_function(const manip_clik_calculator* aParent) : parent(aParent) { };
       
       vect_n<double> operator()(const vect_n<double>& x) const {
-	std::size_t l_size = 0;
-	for(std::size_t i = 0; i < parent->lower_bounds.size(); ++i) {
-	  if(parent->lower_bounds[i] != -std::numeric_limits<double>::infinity())
-	    ++l_size;
-	};
-	std::size_t u_size = 0;
-	for(std::size_t i = 0; i < parent->upper_bounds.size(); ++i) {
-	  if(parent->upper_bounds[i] != std::numeric_limits<double>::infinity())
-	    ++u_size;
-	};
-	vect_n<double> result(l_size + u_size);
-	std::size_t j = 0;
-	for(std::size_t i = 0; (i < parent->lower_bounds.size()) && (i < x.size()); ++i) {
-	  if(parent->lower_bounds[i] != -std::numeric_limits<double>::infinity()) {
-	    result[j] = x[i] - parent->lower_bounds[i];
-	    ++j;
-	  };
-	};
-	for(std::size_t i = 0; (i < parent->upper_bounds.size()) && (i < x.size()); ++i) {
-	  if(parent->upper_bounds[i] != std::numeric_limits<double>::infinity()) {
-	    result[j] = parent->upper_bounds[i] - x[i];
-	    ++j;
-	  };
-	};
-	return result;
+        std::size_t l_size = 0;
+        for(std::size_t i = 0; i < parent->lower_bounds.size(); ++i) {
+          if(parent->lower_bounds[i] != -std::numeric_limits<double>::infinity())
+            ++l_size;
+        };
+        std::size_t u_size = 0;
+        for(std::size_t i = 0; i < parent->upper_bounds.size(); ++i) {
+          if(parent->upper_bounds[i] != std::numeric_limits<double>::infinity())
+            ++u_size;
+        };
+        vect_n<double> result(l_size + u_size);
+        std::size_t j = 0;
+        for(std::size_t i = 0; (i < parent->lower_bounds.size()) && (i < x.size()); ++i) {
+          if(parent->lower_bounds[i] != -std::numeric_limits<double>::infinity()) {
+            result[j] = x[i] - parent->lower_bounds[i];
+            ++j;
+          };
+        };
+        for(std::size_t i = 0; (i < parent->upper_bounds.size()) && (i < x.size()); ++i) {
+          if(parent->upper_bounds[i] != std::numeric_limits<double>::infinity()) {
+            result[j] = parent->upper_bounds[i] - x[i];
+            ++j;
+          };
+        };
+        return result;
       };
       
     };
@@ -648,20 +648,20 @@ class manip_clik_calculator {
       
       template <typename Matrix>
       void operator()(Matrix& J, const vect_n<double>& x, const vect_n<double>& h) const {
-	J = mat<double,mat_structure::nil>(h.size(), x.size());
-	std::size_t j = 0;
-	for(std::size_t i = 0; (i < parent->lower_bounds.size()) && (i < x.size()); ++i) {
-	  if(parent->lower_bounds[i] != -std::numeric_limits<double>::infinity()) {
-	    J(j,i) = 1.0;
-	    ++j;
-	  };
-	};
-	for(std::size_t i = 0; (i < parent->upper_bounds.size()) && (i < x.size()); ++i) {
-	  if(parent->upper_bounds[i] != std::numeric_limits<double>::infinity()) {
-	    J(j,i) = -1.0;
-	    ++j;
-	  };
-	};
+        J = mat<double,mat_structure::nil>(h.size(), x.size());
+        std::size_t j = 0;
+        for(std::size_t i = 0; (i < parent->lower_bounds.size()) && (i < x.size()); ++i) {
+          if(parent->lower_bounds[i] != -std::numeric_limits<double>::infinity()) {
+            J(j,i) = 1.0;
+            ++j;
+          };
+        };
+        for(std::size_t i = 0; (i < parent->upper_bounds.size()) && (i < x.size()); ++i) {
+          if(parent->upper_bounds[i] != std::numeric_limits<double>::infinity()) {
+            J(j,i) = -1.0;
+            ++j;
+          };
+        };
       };
       
     };
@@ -672,77 +672,77 @@ class manip_clik_calculator {
       eq_function(const manip_clik_calculator* aParent) : parent(aParent) { };
       
       vect_n<double> operator()(const vect_n<double>& x) const {
-	
-	const std::vector< shared_ptr< joint_dependent_gen_coord > >& dep_gen_coords = parent->model->DependentCoords();
-	const std::vector< shared_ptr< joint_dependent_frame_2D > >& dep_frames_2D = parent->model->DependentFrames2D();
-	const std::vector< shared_ptr< joint_dependent_frame_3D > >& dep_frames_3D = parent->model->DependentFrames3D();
-	
-	if( ( dep_gen_coords.size() != parent->desired_gen_coords.size() ) ||
-	    ( dep_frames_2D.size() != parent->desired_frame_2D.size() ) ||
-	    ( dep_frames_3D.size() != parent->desired_frame_3D.size() ) ) 
-	  throw std::range_error("Improper inverse-kinematics problem, the number of desired frames does not match the number of end-effector frames!");
-	
-	manip_kin_mdl_joint_io(parent->model).setJointPositions(x[range(0,parent->model->getJointPositionsCount() - 1)]);
-	manip_kin_mdl_joint_io(parent->model).setJointVelocities(x[range(parent->model->getJointPositionsCount(),parent->model->getJointPositionsCount() + parent->model->getJointVelocitiesCount() - 1)]);
-	
-	parent->model->doMotion();
-	
-	vect_n<double> result(parent->model->getDependentVelocitiesCount() * 2
-	                    + parent->model->Frames2D().size() + parent->model->Frames3D().size());
-	
-	
-	// enforce the desired 'end-effector' frames.
-	std::size_t j = 0;
-	std::size_t k = parent->model->getDependentVelocitiesCount();
-	
-	for(std::size_t i = 0; i < dep_gen_coords.size(); ++i) {
-	  result[j] = dep_gen_coords[i]->mFrame->q - parent->desired_gen_coords[i].q; ++j;
-	  result[k] = dep_gen_coords[i]->mFrame->q_dot - parent->desired_gen_coords[i].q_dot; ++k;
-	};
-	
-	for(std::size_t i = 0; i < dep_frames_2D.size(); ++i) {
-	  frame_2D<double> err = parent->desired_frame_2D[i].getFrameRelativeTo(dep_frames_2D[i]->mFrame);
-	  result[j] = -err.Position[0]; ++j;
-	  result[j] = -err.Position[1]; ++j;
-	  result[j] = -err.Rotation.getAngle(); ++j;
-	  result[k] = -err.Velocity[0]; ++k;
-	  result[k] = -err.Velocity[1]; ++k;
-	  result[k] = -err.AngVelocity; ++k;
-	};
-	
-	for(std::size_t i = 0; i < dep_frames_3D.size(); ++i) {
-	  frame_3D<double> err = parent->desired_frame_3D[i].getFrameRelativeTo(dep_frames_3D[i]->mFrame);
-	  result[j] = -err.Position[0]; ++j;
-	  result[j] = -err.Position[1]; ++j;
-	  result[j] = -err.Position[2]; ++j;
-	  axis_angle<double> aa = axis_angle<double>(err.Quat);
-	  vect<double,3> v = aa.angle() * aa.axis(); 
-	  result[j] = -v[0]; ++j;
-	  result[j] = -v[1]; ++j;
-	  result[j] = -v[2]; ++j;
-	  result[k] = -err.Velocity[0]; ++k;
-	  result[k] = -err.Velocity[1]; ++k;
-	  result[k] = -err.Velocity[2]; ++k;
-	  result[k] = -err.AngVelocity[0]; ++k;
-	  result[k] = -err.AngVelocity[1]; ++k;
-	  result[k] = -err.AngVelocity[2]; ++k;
-	};
-	
-	// enforce the normality of the rotation representation.
-	j = parent->model->Coords().size();
-	for(std::size_t i = 0; i < parent->model->Frames2D().size(); ++i) {
-	  j += 2;
-	  result[k] = 1.0 - x[j] * x[j] - x[j+1] * x[j+1]; ++k;
-	  j += 2;
-	};
-	
-	for(std::size_t i = 0; i < parent->model->Frames3D().size(); ++i) {
-	  j += 3;
-	  result[k] = 1.0 - x[j] * x[j] - x[j+1] * x[j+1] - x[j+2] * x[j+2] - x[j+3] * x[j+3]; ++k;
-	  j += 4;
-	};
-	
-	return result;
+        
+        const std::vector< shared_ptr< joint_dependent_gen_coord > >& dep_gen_coords = parent->model->DependentCoords();
+        const std::vector< shared_ptr< joint_dependent_frame_2D > >& dep_frames_2D = parent->model->DependentFrames2D();
+        const std::vector< shared_ptr< joint_dependent_frame_3D > >& dep_frames_3D = parent->model->DependentFrames3D();
+        
+        if( ( dep_gen_coords.size() != parent->desired_gen_coords.size() ) ||
+            ( dep_frames_2D.size() != parent->desired_frame_2D.size() ) ||
+            ( dep_frames_3D.size() != parent->desired_frame_3D.size() ) ) 
+          throw std::range_error("Improper inverse-kinematics problem, the number of desired frames does not match the number of end-effector frames!");
+        
+        manip_kin_mdl_joint_io(parent->model).setJointPositions(x[range(0,parent->model->getJointPositionsCount())]);
+        manip_kin_mdl_joint_io(parent->model).setJointVelocities(x[range(parent->model->getJointPositionsCount(),parent->model->getJointPositionsCount() + parent->model->getJointVelocitiesCount())]);
+        
+        parent->model->doMotion();
+        
+        vect_n<double> result(parent->model->getDependentVelocitiesCount() * 2
+                            + parent->model->Frames2D().size() + parent->model->Frames3D().size());
+        
+        
+        // enforce the desired 'end-effector' frames.
+        std::size_t j = 0;
+        std::size_t k = parent->model->getDependentVelocitiesCount();
+        
+        for(std::size_t i = 0; i < dep_gen_coords.size(); ++i) {
+          result[j] = dep_gen_coords[i]->mFrame->q - parent->desired_gen_coords[i].q; ++j;
+          result[k] = dep_gen_coords[i]->mFrame->q_dot - parent->desired_gen_coords[i].q_dot; ++k;
+        };
+        
+        for(std::size_t i = 0; i < dep_frames_2D.size(); ++i) {
+          frame_2D<double> err = parent->desired_frame_2D[i].getFrameRelativeTo(dep_frames_2D[i]->mFrame);
+          result[j] = -err.Position[0]; ++j;
+          result[j] = -err.Position[1]; ++j;
+          result[j] = -err.Rotation.getAngle(); ++j;
+          result[k] = -err.Velocity[0]; ++k;
+          result[k] = -err.Velocity[1]; ++k;
+          result[k] = -err.AngVelocity; ++k;
+        };
+        
+        for(std::size_t i = 0; i < dep_frames_3D.size(); ++i) {
+          frame_3D<double> err = parent->desired_frame_3D[i].getFrameRelativeTo(dep_frames_3D[i]->mFrame);
+          result[j] = -err.Position[0]; ++j;
+          result[j] = -err.Position[1]; ++j;
+          result[j] = -err.Position[2]; ++j;
+          axis_angle<double> aa = axis_angle<double>(err.Quat);
+          vect<double,3> v = aa.angle() * aa.axis(); 
+          result[j] = -v[0]; ++j;
+          result[j] = -v[1]; ++j;
+          result[j] = -v[2]; ++j;
+          result[k] = -err.Velocity[0]; ++k;
+          result[k] = -err.Velocity[1]; ++k;
+          result[k] = -err.Velocity[2]; ++k;
+          result[k] = -err.AngVelocity[0]; ++k;
+          result[k] = -err.AngVelocity[1]; ++k;
+          result[k] = -err.AngVelocity[2]; ++k;
+        };
+        
+        // enforce the normality of the rotation representation.
+        j = parent->model->Coords().size();
+        for(std::size_t i = 0; i < parent->model->Frames2D().size(); ++i) {
+          j += 2;
+          result[k] = 1.0 - x[j] * x[j] - x[j+1] * x[j+1]; ++k;
+          j += 2;
+        };
+        
+        for(std::size_t i = 0; i < parent->model->Frames3D().size(); ++i) {
+          j += 3;
+          result[k] = 1.0 - x[j] * x[j] - x[j+1] * x[j+1] - x[j+2] * x[j+2] - x[j+3] * x[j+3]; ++k;
+          j += 4;
+        };
+        
+        return result;
       };
       
     };
@@ -754,89 +754,89 @@ class manip_clik_calculator {
       
       template <typename Matrix>
       void operator()(Matrix& J, const vect_n<double>& x, const vect_n<double>& h) const {
-	
-	const std::vector< shared_ptr< joint_dependent_gen_coord > >& dep_gen_coords = parent->model->DependentCoords();
-	const std::vector< shared_ptr< joint_dependent_frame_2D > >& dep_frames_2D = parent->model->DependentFrames2D();
-	const std::vector< shared_ptr< joint_dependent_frame_3D > >& dep_frames_3D = parent->model->DependentFrames3D();
-	
-	if( ( dep_gen_coords.size() != parent->desired_gen_coords.size() ) ||
-	    ( dep_frames_2D.size() != parent->desired_frame_2D.size() ) ||
-	    ( dep_frames_3D.size() != parent->desired_frame_3D.size() ) ) 
-	  throw std::range_error("Improper inverse-kinematics problem, the number of desired frames does not match the number of end-effector frames!");
-	
-	manip_kin_mdl_joint_io(parent->model).setJointPositions(x[range(0,parent->model->getJointPositionsCount() - 1)]);
-	manip_kin_mdl_joint_io(parent->model).setJointVelocities(x[range(parent->model->getJointPositionsCount(),parent->model->getJointPositionsCount() + parent->model->getJointVelocitiesCount() - 1)]);
-	
-	parent->model->doMotion();
-	
-	J = mat<double,mat_structure::nil>(h.size(), x.size());
-	
-	mat_sub_block<Matrix> Jac_tmp = sub(J)(range(0,parent->model->getDependentVelocitiesCount()-1),
-					       range(0,(x.size() - parent->model->Frames2D().size() - parent->model->Frames3D().size()) / 2 - 1));
-	mat_sub_block<Matrix> JacDot_tmp = sub(J)(range(parent->model->getDependentVelocitiesCount(),parent->model->getDependentVelocitiesCount() * 2 - 1),
-					          range(0,(x.size() - parent->model->Frames2D().size() - parent->model->Frames3D().size()) / 2 - 1));
-	
-	manip_kin_mdl_jac_calculator(parent->model).getJacobianMatrixAndDerivative(Jac_tmp, JacDot_tmp);
-	
-	sub(J)(range(parent->model->getDependentVelocitiesCount(),parent->model->getDependentVelocitiesCount() * 2 - 1),
-	       range((x.size() + parent->model->Frames2D().size() + parent->model->Frames3D().size()) / 2, x.size() - 1)) = Jac_tmp;
         
-	// j is the index to the last position element of x.
-	std::size_t j = (x.size() + parent->model->Frames2D().size() + parent->model->Frames3D().size()) / 2 - 1;
-	// k is the index to the last valid column of J.
-	std::size_t k = (x.size() - parent->model->Frames2D().size() - parent->model->Frames3D().size()) / 2 - 1;
-	// l is the index to the last normality-constraint row of J.
-	std::size_t l = h.size() - 1;
-	
-	for(std::size_t i = 0; i < parent->model->Frames3D().size(); ++i) {
-	  mat<double, mat_structure::rectangular> H_inv(3,4);  // NOTE : Check this again, shouldn't there be a factor of 2 or 0.5 ???
-	  H_inv(0,0) = -x[j - 2]; H_inv(1,0) = -x[j - 1]; H_inv(2,0) = -x[j];
-	  H_inv(0,1) =  x[j - 3]; H_inv(1,1) = -x[j]; H_inv(2,1) = x[j - 1];
-	  H_inv(0,2) =  x[j]; H_inv(1,2) =  x[j - 3]; H_inv(2,2) = -x[j - 2];
-	  H_inv(0,3) =  -x[j - 1]; H_inv(1,3) =  x[j - 2]; H_inv(2,3) = x[j - 3];
-	  
-	  // apply the transformation from quat_dot to omega:
-	  sub(J)(range(0,parent->model->getDependentVelocitiesCount() * 2 - 1),
-		 range(j-3,j)) = sub(J)(range(0,parent->model->getDependentVelocitiesCount() * 2 - 1),
-		                        range(k-2,k)) * H_inv;
-	  // fill in the normality-constraint jacobians:
+        const std::vector< shared_ptr< joint_dependent_gen_coord > >& dep_gen_coords = parent->model->DependentCoords();
+        const std::vector< shared_ptr< joint_dependent_frame_2D > >& dep_frames_2D = parent->model->DependentFrames2D();
+        const std::vector< shared_ptr< joint_dependent_frame_3D > >& dep_frames_3D = parent->model->DependentFrames3D();
+        
+        if( ( dep_gen_coords.size() != parent->desired_gen_coords.size() ) ||
+            ( dep_frames_2D.size() != parent->desired_frame_2D.size() ) ||
+            ( dep_frames_3D.size() != parent->desired_frame_3D.size() ) ) 
+          throw std::range_error("Improper inverse-kinematics problem, the number of desired frames does not match the number of end-effector frames!");
+        
+        manip_kin_mdl_joint_io(parent->model).setJointPositions(x[range(0,parent->model->getJointPositionsCount())]);
+        manip_kin_mdl_joint_io(parent->model).setJointVelocities(x[range(parent->model->getJointPositionsCount(),parent->model->getJointPositionsCount() + parent->model->getJointVelocitiesCount())]);
+        
+        parent->model->doMotion();
+        
+        J = mat<double,mat_structure::nil>(h.size(), x.size());
+        
+        mat_sub_block<Matrix> Jac_tmp = sub(J)(range(0,parent->model->getDependentVelocitiesCount()),
+                                               range(0,(x.size() - parent->model->Frames2D().size() - parent->model->Frames3D().size()) / 2));
+        mat_sub_block<Matrix> JacDot_tmp = sub(J)(range(parent->model->getDependentVelocitiesCount(),parent->model->getDependentVelocitiesCount() * 2),
+                                                  range(0,(x.size() - parent->model->Frames2D().size() - parent->model->Frames3D().size()) / 2));
+        
+        manip_kin_mdl_jac_calculator(parent->model).getJacobianMatrixAndDerivative(Jac_tmp, JacDot_tmp);
+        
+        sub(J)(range(parent->model->getDependentVelocitiesCount(),parent->model->getDependentVelocitiesCount() * 2),
+               range((x.size() + parent->model->Frames2D().size() + parent->model->Frames3D().size()) / 2, x.size())) = Jac_tmp;
+        
+        // j is the index to the last position element of x.
+        std::size_t j = (x.size() + parent->model->Frames2D().size() + parent->model->Frames3D().size()) / 2 - 1;
+        // k is the index to the last valid column of J.
+        std::size_t k = (x.size() - parent->model->Frames2D().size() - parent->model->Frames3D().size()) / 2 - 1;
+        // l is the index to the last normality-constraint row of J.
+        std::size_t l = h.size() - 1;
+        
+        for(std::size_t i = 0; i < parent->model->Frames3D().size(); ++i) {
+          mat<double, mat_structure::rectangular> H_inv(3,4);  // NOTE : Check this again, shouldn't there be a factor of 2 or 0.5 ???
+          H_inv(0,0) = -x[j - 2]; H_inv(1,0) = -x[j - 1]; H_inv(2,0) = -x[j];
+          H_inv(0,1) =  x[j - 3]; H_inv(1,1) = -x[j]; H_inv(2,1) = x[j - 1];
+          H_inv(0,2) =  x[j]; H_inv(1,2) =  x[j - 3]; H_inv(2,2) = -x[j - 2];
+          H_inv(0,3) =  -x[j - 1]; H_inv(1,3) =  x[j - 2]; H_inv(2,3) = x[j - 3];
+          
+          // apply the transformation from quat_dot to omega:
+          sub(J)(range(0,parent->model->getDependentVelocitiesCount() * 2),
+                 range(j-3,j+1)) = sub(J)(range(0,parent->model->getDependentVelocitiesCount() * 2),
+                                          range(k-2,k+1)) * H_inv;
+          // fill in the normality-constraint jacobians:
           J(l,j-3) = -2.0 * x[j-3];
-	  J(l,j-2) = -2.0 * x[j-2];
-	  J(l,j-1) = -2.0 * x[j-1];
-	  J(l,j) = -2.0 * x[j];
-	  k -= 3;
-	  j -= 4;
-	  --l;
-	  // copy the position row:
-	  for(std::size_t r = 0; r < 3; ++r)
-	    for(std::size_t s = 0; s < parent->model->getDependentVelocitiesCount() * 2; ++s)
-	      J(s,j-r) = J(s,k-r);
-	  k -= 3;
-	  j -= 3;
-	  
-	};
-	
-	for(std::size_t i = 0; i < parent->model->Frames2D().size(); ++i) {
-	  // apply the transformation from quat_dot to omega:
-	  for(std::size_t s = 0; s < parent->model->getDependentVelocitiesCount() * 2; ++s) {
-	    J(s,j-1) = -J(s,k) * x[j];
-	    J(s,j) = J(s,k) * x[j-1];
-	  };
-	  // fill in the normality-constraint jacobians:
+          J(l,j-2) = -2.0 * x[j-2];
           J(l,j-1) = -2.0 * x[j-1];
-	  J(l,j) = -2.0 * x[j];
-	  k -= 1;
-	  j -= 2;
-	  --l;
-	  // copy the position row:
-	  for(std::size_t r = 0; r < 2; ++r)
-	    for(std::size_t s = 0; s < parent->model->getDependentVelocitiesCount() * 2; ++s)
-	      J(s,j-r) = J(s,k-r);
-	  k -= 2;
-	  i -= 2;
-	  
-	};
-	
+          J(l,j) = -2.0 * x[j];
+          k -= 3;
+          j -= 4;
+          --l;
+          // copy the position row:
+          for(std::size_t r = 0; r < 3; ++r)
+            for(std::size_t s = 0; s < parent->model->getDependentVelocitiesCount() * 2; ++s)
+              J(s,j-r) = J(s,k-r);
+          k -= 3;
+          j -= 3;
+          
+        };
+        
+        for(std::size_t i = 0; i < parent->model->Frames2D().size(); ++i) {
+          // apply the transformation from quat_dot to omega:
+          for(std::size_t s = 0; s < parent->model->getDependentVelocitiesCount() * 2; ++s) {
+            J(s,j-1) = -J(s,k) * x[j];
+            J(s,j) = J(s,k) * x[j-1];
+          };
+          // fill in the normality-constraint jacobians:
+          J(l,j-1) = -2.0 * x[j-1];
+          J(l,j) = -2.0 * x[j];
+          k -= 1;
+          j -= 2;
+          --l;
+          // copy the position row:
+          for(std::size_t r = 0; r < 2; ++r)
+            for(std::size_t s = 0; s < parent->model->getDependentVelocitiesCount() * 2; ++s)
+              J(s,j-r) = J(s,k-r);
+          k -= 2;
+          i -= 2;
+          
+        };
+        
       };
       
     };
@@ -845,19 +845,19 @@ class manip_clik_calculator {
     
     typedef optim::nlip_newton_tr_factory<optim::oop_cost_function,
                                           optim::oop_cost_grad,
-					  optim::oop_cost_hess,
-					  double,
-					  eq_function,
-					  eq_jac_filler,
-					  ineq_function,
-					  ineq_jac_filler> optim_factory_type;
+                                          optim::oop_cost_hess,
+                                          double,
+                                          eq_function,
+                                          eq_jac_filler,
+                                          ineq_function,
+                                          ineq_jac_filler> optim_factory_type;
 //     typedef optim::nlip_quasi_newton_tr_factory<optim::oop_cost_function,
 //                                                 optim::oop_cost_grad,
-// 						double,
-// 						eq_function,
-// 						eq_jac_filler,
-// 						ineq_function,
-// 						ineq_jac_filler> optim_factory_type;
+//                                                 double,
+//                                                 eq_function,
+//                                                 eq_jac_filler,
+//                                                 ineq_function,
+//                                                 ineq_jac_filler> optim_factory_type;
     
     optim_factory_type optimizer;
 
@@ -873,32 +873,32 @@ class manip_clik_calculator {
      * \param aTau The portion (close to 1.0) of a total step to do without coming too close to the inequality constraint (barrier).
      */
     manip_clik_calculator(manipulator_kinematics_model* aModel, 
-		          const shared_ptr<const optim::cost_evaluator>& aCostEvaluator = shared_ptr<const optim::cost_evaluator>(),
-		          double aMaxRadius = 1.0, 
-		          double aMu = 0.1, 
-		          unsigned int aMaxIter = 300, 
-		          double aTol = 1e-6, 
-		          double aEta = 1e-3, 
-		          double aTau = 0.99) : 
-		          model(aModel), 
-		          cost_eval(aCostEvaluator),
-		          optimizer(
-		            optim::oop_cost_function(aCostEvaluator),
-		            optim::oop_cost_grad(aCostEvaluator),
-		            optim::oop_cost_hess(aCostEvaluator),
-		            aMaxRadius, aMu, aMaxIter,
-		            eq_function(NULL), eq_jac_filler(NULL),
-		            ineq_function(NULL), ineq_jac_filler(NULL),
-		            aTol, aEta, aTau
-		          ) { 
+                          const shared_ptr<const optim::cost_evaluator>& aCostEvaluator = shared_ptr<const optim::cost_evaluator>(),
+                          double aMaxRadius = 1.0, 
+                          double aMu = 0.1, 
+                          unsigned int aMaxIter = 300, 
+                          double aTol = 1e-6, 
+                          double aEta = 1e-3, 
+                          double aTau = 0.99) : 
+                          model(aModel), 
+                          cost_eval(aCostEvaluator),
+                          optimizer(
+                            optim::oop_cost_function(aCostEvaluator),
+                            optim::oop_cost_grad(aCostEvaluator),
+                            optim::oop_cost_hess(aCostEvaluator),
+                            aMaxRadius, aMu, aMaxIter,
+                            eq_function(NULL), eq_jac_filler(NULL),
+                            ineq_function(NULL), ineq_jac_filler(NULL),
+                            aTol, aEta, aTau
+                          ) { 
       if(!model)
-	throw optim::improper_problem("CLIK error: The model pointer cannot be null!");
+        throw optim::improper_problem("CLIK error: The model pointer cannot be null!");
       
       lower_bounds.resize(model->getJointPositionsCount() + model->getJointVelocitiesCount());
       upper_bounds.resize(model->getJointPositionsCount() + model->getJointVelocitiesCount());
       for(std::size_t i = 0; i < lower_bounds.size(); ++i) {
-	lower_bounds[i] = -std::numeric_limits<double>::infinity();
-	upper_bounds[i] =  std::numeric_limits<double>::infinity();
+        lower_bounds[i] = -std::numeric_limits<double>::infinity();
+        upper_bounds[i] =  std::numeric_limits<double>::infinity();
       };
       
       
@@ -914,15 +914,15 @@ class manip_clik_calculator {
       
       desired_gen_coords.resize( model->DependentCoords().size() );
       for(std::size_t i = 0; i < desired_gen_coords.size(); ++i)
-	desired_gen_coords[i] = *(model->DependentCoords()[i]->mFrame);
+        desired_gen_coords[i] = *(model->DependentCoords()[i]->mFrame);
       
       desired_frame_2D.resize( model->DependentFrames2D().size() );
       for(std::size_t i = 0; i < desired_frame_2D.size(); ++i)
-	desired_frame_2D[i] = *(model->DependentFrames2D()[i]->mFrame);
+        desired_frame_2D[i] = *(model->DependentFrames2D()[i]->mFrame);
       
       desired_frame_3D.resize( model->DependentFrames3D().size() );
       for(std::size_t i = 0; i < desired_frame_3D.size(); ++i)
-	desired_frame_3D[i] = *(model->DependentFrames3D()[i]->mFrame);
+        desired_frame_3D[i] = *(model->DependentFrames3D()[i]->mFrame);
       
     };
     
@@ -930,32 +930,32 @@ class manip_clik_calculator {
     vect_n<double> readJointStatesFromModel() {
       vect_n<double> x(model->getJointPositionsCount() + model->getJointVelocitiesCount());
       
-      vect_ref_view< vect_n<double> > pos_x = x[range(0,model->getJointPositionsCount()-1)];
+      vect_ref_view< vect_n<double> > pos_x = x[range(0,model->getJointPositionsCount())];
       manip_kin_mdl_joint_io(model).getJointPositions(pos_x);
       
-      vect_ref_view< vect_n<double> > vel_x = x[range(model->getJointPositionsCount(),model->getJointPositionsCount() + model->getJointVelocitiesCount() - 1)];
+      vect_ref_view< vect_n<double> > vel_x = x[range(model->getJointPositionsCount(),model->getJointPositionsCount() + model->getJointVelocitiesCount())];
       manip_kin_mdl_joint_io(model).getJointVelocities(vel_x);
       
       return x;
     };
     
     void writeJointStatesToModel(const vect_n<double>& x) const {
-      manip_kin_mdl_joint_io(model).setJointPositions(x[range(0,model->getJointPositionsCount()-1)]);
-      manip_kin_mdl_joint_io(model).setJointVelocities(x[range(model->getJointPositionsCount(),model->getJointPositionsCount() + model->getJointVelocitiesCount() - 1)]);
+      manip_kin_mdl_joint_io(model).setJointPositions(x[range(0,model->getJointPositionsCount())]);
+      manip_kin_mdl_joint_io(model).setJointVelocities(x[range(model->getJointPositionsCount(),model->getJointPositionsCount() + model->getJointVelocitiesCount())]);
     };
     
     void runOptimizer( vect_n<double>& x ) {
       shared_ptr<const optim::cost_evaluator> tmp_cost_eval = cost_eval;
       if(!cost_eval) {
-	tmp_cost_eval = shared_ptr<const optim::cost_evaluator>(
-	  new optim::quadratic_cost_evaluator(
-	    vect_n<double>(x.size(), double(0.0)),
-	    mat<double,mat_structure::symmetric>(
+        tmp_cost_eval = shared_ptr<const optim::cost_evaluator>(
+          new optim::quadratic_cost_evaluator(
+            vect_n<double>(x.size(), double(0.0)),
+            mat<double,mat_structure::symmetric>(
               ( mat<double,mat_structure::nil>(model->getJointPositionsCount(), model->getJointPositionsCount() + model->getJointVelocitiesCount()) |
-	      ( mat<double,mat_structure::nil>(model->getJointVelocitiesCount(), model->getJointPositionsCount()) & mat<double,mat_structure::identity>(model->getJointVelocitiesCount()) ) )
-	    ) 
-	  )
-	);
+              ( mat<double,mat_structure::nil>(model->getJointVelocitiesCount(), model->getJointPositionsCount()) & mat<double,mat_structure::identity>(model->getJointVelocitiesCount()) ) )
+            ) 
+          )
+        );
       };
       
       optimizer.f = optim::oop_cost_function(tmp_cost_eval);

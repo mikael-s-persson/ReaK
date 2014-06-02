@@ -163,8 +163,8 @@ void francis_QR_step(Matrix1& H, Matrix2* Z, typename mat_traits<Matrix1>::size_
   ValueType t = H(Offset + N-2,N-2) * H(Offset + N-1,N-1) 
               - H(Offset + N-2,N-1) * H(Offset + N-1,N-2);
   vect<ValueType,3> v(H(Offset,0) * H(Offset,0) + H(Offset,1) * H(Offset + 1,0) - s*H(Offset,0) + t, 
-		      H(Offset + 1,0) * (H(Offset,0) + H(Offset + 1,1) - s),
-		      H(Offset + 1,0) * H(Offset + 2,1));
+                      H(Offset + 1,0) * (H(Offset,0) + H(Offset + 1,1) - s),
+                      H(Offset + 1,0) * H(Offset + 2,1));
   for(SizeType k=0;k<N-2;++k) {
     hhm.set(v,NumTol);
     
@@ -231,13 +231,13 @@ void schur_decomp_impl(Matrix1& T, Matrix2* Q, typename mat_traits<Matrix1>::val
     //find a trailing quasi-upper-triangular sub-matrix
     for(; i > 0; --i) {
       if(fabs(T(i,i-1)) < absNumTol) {
-	T(i,i-1) = ValueType(0.0);
-	q = i;
-	last_off_diag_was_nil = true;
+        T(i,i-1) = ValueType(0.0);
+        q = i;
+        last_off_diag_was_nil = true;
       } else {
-	if(!last_off_diag_was_nil)
-	  break;
-	last_off_diag_was_nil = false;
+        if(!last_off_diag_was_nil)
+          break;
+        last_off_diag_was_nil = false;
       };
     };
     if(i == 0) //break if it is entirely quasi-upper-triangular.
@@ -247,16 +247,16 @@ void schur_decomp_impl(Matrix1& T, Matrix2* Q, typename mat_traits<Matrix1>::val
     p = 0;
     for(i = q-1; i > 0; --i) {
       if(fabs(T(i,i-1)) < absNumTol) {
-	T(i,i-1) = ValueType(0.0);
-	p = i;
-	break;
+        T(i,i-1) = ValueType(0.0);
+        p = i;
+        break;
       };
     };
     
     //set remaining sub-diagonals to zero if they are very small.
     for(i = p; i > 0; --i)
       if(fabs(T(i,i-1)) < absNumTol)
-	T(i,i-1) = ValueType(0.0);
+        T(i,i-1) = ValueType(0.0);
     
     if(Q) {
       mat_sub_block<Matrix2> subQ(*Q, Q->get_row_count(), Q->get_col_count() - p, 0, p);
@@ -297,8 +297,8 @@ void schur_decomp_impl(Matrix1& T, Matrix2* Q, typename mat_traits<Matrix1>::val
  */
 template <typename Matrix1, typename Matrix2, typename Matrix3, typename Matrix4>
 void deflate_hess_elem_down_impl(Matrix1& A, Matrix2& B, Matrix3* Q, Matrix4* Z,
-		                 typename mat_traits<Matrix1>::size_type p, 
-		                 typename mat_traits<Matrix1>::size_type q)
+                                 typename mat_traits<Matrix1>::size_type p, 
+                                 typename mat_traits<Matrix1>::size_type q)
 {
   typedef typename mat_traits<Matrix1>::value_type ValueType;
   typedef typename mat_traits<Matrix1>::size_type SizeType;
@@ -497,8 +497,8 @@ void deflate_hess_elem_up_impl(Matrix1& A, Matrix2& B, Matrix3* Q, Matrix4* Z,
 
 template <typename Matrix1, typename Matrix2, typename Matrix3, typename Matrix4>
 bool deflate_hess_all_up_impl(Matrix1& A, Matrix2& B, Matrix3* Q, Matrix4* Z,
-		              typename mat_traits<Matrix1>::size_type row_offset,
-		              typename mat_traits<Matrix1>::value_type NumTol)
+                              typename mat_traits<Matrix1>::size_type row_offset,
+                              typename mat_traits<Matrix1>::value_type NumTol)
 {
   using std::fabs;
   typedef typename mat_traits<Matrix1>::size_type SizeType;
@@ -510,26 +510,26 @@ bool deflate_hess_all_up_impl(Matrix1& A, Matrix2& B, Matrix3* Q, Matrix4* Z,
     deflated_prev_time = false;
     for(SizeType i = j; i < M; ++i) {
       if(fabs(B(row_offset + i, i)) < NumTol) {
-	mat_sub_block<Matrix1> subA(A, N, A.get_col_count() - j, 0, j);
-	mat_sub_block<Matrix2> subB(B, N, A.get_col_count() - j, 0, j);
-	if(Q) {
-	  mat_sub_block<Matrix3> subQ(*Q, Q->get_row_count(), N, 0, 0);
-	  if(Z) {
-	    mat_sub_block<Matrix4> subZ(*Z, Z->get_row_count(), N-j, 0, j);
-	    deflate_hess_elem_up_impl(subA, subB, &subQ, &subZ, i - j, row_offset + i);
-	  } else {
-	    deflate_hess_elem_up_impl(subA, subB, &subQ, static_cast<Matrix4*>(NULL), i - j, row_offset + i);
-	  };
-	} else {
-	  if(Z) {
-	    mat_sub_block<Matrix4> subZ(*Z, Z->get_row_count(), N-j, 0, 0);
-	    deflate_hess_elem_up_impl(subA, subB, static_cast<Matrix3*>(NULL), &subZ, i - j, row_offset + i);
-	  } else {
-	    deflate_hess_elem_up_impl(subA, subB, static_cast<Matrix3*>(NULL), static_cast<Matrix4*>(NULL), i - j, row_offset + i);
-	  };
-	};
-	deflated_prev_time = true;
-	break;
+        mat_sub_block<Matrix1> subA(A, N, A.get_col_count() - j, 0, j);
+        mat_sub_block<Matrix2> subB(B, N, A.get_col_count() - j, 0, j);
+        if(Q) {
+          mat_sub_block<Matrix3> subQ(*Q, Q->get_row_count(), N, 0, 0);
+          if(Z) {
+            mat_sub_block<Matrix4> subZ(*Z, Z->get_row_count(), N-j, 0, j);
+            deflate_hess_elem_up_impl(subA, subB, &subQ, &subZ, i - j, row_offset + i);
+          } else {
+            deflate_hess_elem_up_impl(subA, subB, &subQ, static_cast<Matrix4*>(NULL), i - j, row_offset + i);
+          };
+        } else {
+          if(Z) {
+            mat_sub_block<Matrix4> subZ(*Z, Z->get_row_count(), N-j, 0, 0);
+            deflate_hess_elem_up_impl(subA, subB, static_cast<Matrix3*>(NULL), &subZ, i - j, row_offset + i);
+          } else {
+            deflate_hess_elem_up_impl(subA, subB, static_cast<Matrix3*>(NULL), static_cast<Matrix4*>(NULL), i - j, row_offset + i);
+          };
+        };
+        deflated_prev_time = true;
+        break;
       };
     };
     if(j == 0 && !deflated_prev_time)
@@ -725,13 +725,13 @@ void gen_schur_decomp_impl(Matrix1& A, Matrix2& B, Matrix3* Q, Matrix4* Z, typen
     //find a trailing quasi-upper-triangular sub-matrix
     for(; i > 0; --i) {
       if(fabs(A(i,i-1)) < absNumTol) {
-	A(i,i-1) = ValueType(0.0);
-	q = i;
-	last_off_diag_was_nil = true;
+        A(i,i-1) = ValueType(0.0);
+        q = i;
+        last_off_diag_was_nil = true;
       } else {
-	if(!last_off_diag_was_nil)
-	  break;
-	last_off_diag_was_nil = false;
+        if(!last_off_diag_was_nil)
+          break;
+        last_off_diag_was_nil = false;
       };
     };
     if(i == 0) //break if it is entirely quasi-upper-triangular.
@@ -741,16 +741,16 @@ void gen_schur_decomp_impl(Matrix1& A, Matrix2& B, Matrix3* Q, Matrix4* Z, typen
     p = 0; // in case the below loop never gets to the condition.
     for(i = q-1; i > 0; --i) {
       if(fabs(A(i,i-1)) < absNumTol) {
-	A(i,i-1) = ValueType(0.0);
-	p = i;
-	break;
+        A(i,i-1) = ValueType(0.0);
+        p = i;
+        break;
       };
     };
     
     //set remaining sub-diagonals to zero if they are very small.
     for(i = p; i > 0; --i)
       if(fabs(A(i,i-1)) < absNumTol)
-	A(i,i-1) = ValueType(0.0);
+        A(i,i-1) = ValueType(0.0);
       
 //     std::cout << "After Examination: p = " << p << " q = " << q << std::endl;
 //     std::cout << "After Examination: A = " << A << std::endl;
@@ -763,7 +763,7 @@ void gen_schur_decomp_impl(Matrix1& A, Matrix2& B, Matrix3* Q, Matrix4* Z, typen
       mat_sub_block<Matrix3> subQ(*Q, Q->get_row_count(), Q->get_col_count() - p, 0, p); //Q_new will only change in the columns after p.
       if(Z) {
         mat_sub_block<Matrix3> subZ(*Z, Z->get_row_count(), Z->get_col_count() - p, 0, p); //Z_new will only change in the columns after p.
-	if(!deflate_hess_all_up_impl(subA,subB,&subQ,&subZ,p,absNumTol))
+        if(!deflate_hess_all_up_impl(subA,subB,&subQ,&subZ,p,absNumTol))
           francis_QZ_step(subA,subB,&subQ,&subZ,p,absNumTol);
       } else {
         if(!deflate_hess_all_up_impl(subA,subB,&subQ,static_cast<Matrix4*>(NULL),p,absNumTol))

@@ -21,7 +21,7 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "data_record.hpp"
+#include <ReaK/core/recorders/data_record.hpp>
 
 #include <boost/date_time/posix_time/posix_time.hpp>
 

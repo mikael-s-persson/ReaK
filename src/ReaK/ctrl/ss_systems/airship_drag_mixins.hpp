@@ -139,8 +139,8 @@ class linear_drag_state_model : public named_object {
       
       const double dt = t_1 - t_0;
       
-      const std::pair<std::size_t, std::size_t> p_r(sat3d_state_index, sat3d_state_index+2);
-      const std::pair<std::size_t, std::size_t> v_r(sat3d_state_index+3, sat3d_state_index+5);
+      const std::pair<std::size_t, std::size_t> p_r(sat3d_state_index, sat3d_state_index+3);
+      const std::pair<std::size_t, std::size_t> v_r(sat3d_state_index+3, sat3d_state_index+6);
       
       const std::size_t fd_r = inv_corr_start_index;
       
@@ -289,8 +289,8 @@ class torsional_drag_state_model : public named_object {
       
       const double dt = t_1 - t_0;
       
-      const std::pair<std::size_t, std::size_t> q_r(sat3d_state_index+6, sat3d_state_index+8);
-      const std::pair<std::size_t, std::size_t> w_r(sat3d_state_index+9, sat3d_state_index+11);
+      const std::pair<std::size_t, std::size_t> q_r(sat3d_state_index+6, sat3d_state_index+9);
+      const std::pair<std::size_t, std::size_t> w_r(sat3d_state_index+9, sat3d_state_index+12);
       
       const std::size_t td_r = inv_corr_start_index;
       

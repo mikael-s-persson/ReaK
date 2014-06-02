@@ -83,43 +83,43 @@ class frame_2D : public pose_2D<T> {
      * Parametrized constructor, all is set to corresponding parameters.
      */
     frame_2D(const weak_ptr< base >& aParent,
-	     const position_type& aPosition,
-	     const rotation_type& aRotation,
-	     const linear_vector_type& aVelocity,
-	     const angular_vector_type& aAngVelocity,
-	     const linear_vector_type& aAcceleration,
-	     const angular_vector_type& aAngAcceleration,
-	     const linear_vector_type& aForce,
-	     const angular_vector_type& aTorque) :
-	     pose_2D<T>(aParent, aPosition, aRotation),
-	     Velocity(aVelocity),
-	     AngVelocity(aAngVelocity),
-	     Acceleration(aAcceleration),
-	     AngAcceleration(aAngAcceleration),
-	     Force(aForce),
-	     Torque(aTorque) { };
+             const position_type& aPosition,
+             const rotation_type& aRotation,
+             const linear_vector_type& aVelocity,
+             const angular_vector_type& aAngVelocity,
+             const linear_vector_type& aAcceleration,
+             const angular_vector_type& aAngAcceleration,
+             const linear_vector_type& aForce,
+             const angular_vector_type& aTorque) :
+             pose_2D<T>(aParent, aPosition, aRotation),
+             Velocity(aVelocity),
+             AngVelocity(aAngVelocity),
+             Acceleration(aAcceleration),
+             AngAcceleration(aAngAcceleration),
+             Force(aForce),
+             Torque(aTorque) { };
 
     /**
      * Copy-constructor.
      */
     frame_2D(const self& aFrame) : pose_2D<T>(aFrame),
                                           Velocity(aFrame.Velocity),
-					  AngVelocity(aFrame.AngVelocity),
-					  Acceleration(aFrame.Acceleration),
-					  AngAcceleration(aFrame.AngAcceleration),
-					  Force(aFrame.Force),
-					  Torque(aFrame.Torque) { };
+                                          AngVelocity(aFrame.AngVelocity),
+                                          Acceleration(aFrame.Acceleration),
+                                          AngAcceleration(aFrame.AngAcceleration),
+                                          Force(aFrame.Force),
+                                          Torque(aFrame.Torque) { };
 
     /**
      * Explicit conversion from a simple pose, the additional values are set to zero.
      */
     explicit frame_2D(const base& aPose) : pose_2D<T>(aPose),
                                                  Velocity(),
-						 AngVelocity(0.0),
-						 Acceleration(),
-						 AngAcceleration(0.0),
-						 Force(),
-						 Torque(0.0) { };
+                                                 AngVelocity(0.0),
+                                                 Acceleration(),
+                                                 AngAcceleration(0.0),
+                                                 Force(),
+                                                 Torque(0.0) { };
 
     /**
      * Default virtual destructor.
@@ -349,14 +349,14 @@ class frame_2D : public pose_2D<T> {
      */
     self operator ~() const {
       return self(this->Parent,
-			 (-this->Position) * this->Rotation,
-			 invert(this->Rotation),
-			 ((AngVelocity % this->Position) - Velocity) * this->Rotation,
-			 -AngVelocity,
-			 ((AngVelocity * AngVelocity * this->Position) + (value_type(2.0) * AngVelocity) % Velocity + AngAcceleration % this->Position - Acceleration ) * this->Rotation,
-			 -AngAcceleration,
-			 -Force * this->Rotation,
-			 -Torque);
+                         (-this->Position) * this->Rotation,
+                         invert(this->Rotation),
+                         ((AngVelocity % this->Position) - Velocity) * this->Rotation,
+                         -AngVelocity,
+                         ((AngVelocity * AngVelocity * this->Position) + (value_type(2.0) * AngVelocity) % Velocity + AngAcceleration % this->Position - Acceleration ) * this->Rotation,
+                         -AngAcceleration,
+                         -Force * this->Rotation,
+                         -Torque);
     };
 
 /*******************************************************************************

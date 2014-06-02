@@ -35,12 +35,11 @@
 #ifndef REAK_SIMPLEX_METHOD_HPP
 #define REAK_SIMPLEX_METHOD_HPP
 
-#include "base/defs.hpp"
+#include <ReaK/core/base/defs.hpp>
+#include <ReaK/core/lin_alg/mat_alg.hpp>
+#include <ReaK/core/lin_alg/mat_qr_decomp.hpp>
 
 #include "optim_exceptions.hpp"
-
-#include "lin_alg/mat_alg.hpp"
-#include "lin_alg/mat_qr_decomp.hpp"
 
 #include <vector>
 
@@ -56,9 +55,9 @@ namespace detail {
   template <typename Matrix, typename Vector, typename T>
   void simplex_method_loop_impl(const Matrix& A, Matrix& B, const Vector& c, Vector& c_B, 
                                 Vector& x, const Vector& l, const Vector& u,
-				std::vector< typename vect_traits<Vector>::size_type >& i_b,
-				std::vector< typename vect_traits<Vector>::size_type >& i_n,
-				T tol) {
+                                std::vector< typename vect_traits<Vector>::size_type >& i_b,
+                                std::vector< typename vect_traits<Vector>::size_type >& i_n,
+                                T tol) {
     typedef typename vect_traits<Vector>::value_type ValueType;
     typedef typename vect_traits<Vector>::size_type SizeType;
     using std::swap;
@@ -80,9 +79,9 @@ namespace detail {
       ValueType sum;
       SizeType enter_var = N;
       for(SizeType i=0; i < N; ++i) {
-	sum = y * slice(A)(range(SizeType(0),M-1),i_n[i]);
+        sum = y * slice(A)(range(SizeType(0),M),i_n[i]);
         if (((sum < c[i_n[i]]) && (x[i_n[i]] < u[i_n[i]])) 
-	    || ((sum > c[i_n[i]]) && (x[i_n[i]] > l[i_n[i]]))) {
+            || ((sum > c[i_n[i]]) && (x[i_n[i]] > l[i_n[i]]))) {
           enter_var = i;
           break;
         };
@@ -90,7 +89,7 @@ namespace detail {
       if (enter_var == N)
         return;
       // Step 3
-      y = slice(A)(range(SizeType(0),M-1),i_n[enter_var]);
+      y = slice(A)(range(SizeType(0),M),i_n[enter_var]);
       y = y * B_Q;
       ReaK::detail::backsub_R_impl(B_R,y_mat,tol);
       // Step 4
@@ -120,10 +119,10 @@ namespace detail {
           x[i_n[enter_var]] += t_max;
           for (SizeType i=0; i < M; ++i)
             x[i_b[i]] -= t_max * y[i];
-	  slice(B)(range(SizeType(0),M-1),leave_var) = slice(A)(range(SizeType(0),M-1),i_n[enter_var]);
-	  decompose_QR(B,B_Q,B_R,tol);
+          slice(B)(range(SizeType(0),M),leave_var) = slice(A)(range(SizeType(0),M),i_n[enter_var]);
+          decompose_QR(B,B_Q,B_R,tol);
           c_B[leave_var] = c[i_n[enter_var]];
-	  swap(i_b[leave_var],i_n[enter_var]);
+          swap(i_b[leave_var],i_n[enter_var]);
         } else
           throw unbounded_problem("Simplex method failed due to an unbounded search domain!");
       } else if (sum > c[i_n[enter_var]]) {
@@ -152,10 +151,10 @@ namespace detail {
           x[i_n[enter_var]] -= t_max;
           for (SizeType i=0; i < M; ++i)
             x[i_b[i]] += t_max * y[i];
-	  slice(B)(range(SizeType(0),M-1),leave_var) = slice(A)(range(SizeType(0),M-1),i_n[enter_var]);
-	  decompose_QR(B,B_Q,B_R,tol);
+          slice(B)(range(SizeType(0),M),leave_var) = slice(A)(range(SizeType(0),M),i_n[enter_var]);
+          decompose_QR(B,B_Q,B_R,tol);
           c_B[leave_var] = c[i_n[enter_var]];
-	  swap(i_b[leave_var],i_n[enter_var]);
+          swap(i_b[leave_var],i_n[enter_var]);
         } else
           throw unbounded_problem("Simplex method failed due to an unbounded search domain!");
       };
@@ -195,7 +194,7 @@ namespace detail {
 template <typename Matrix, typename Vector>
 void simplex_method(const Matrix& A, const Vector& b, const Vector& c, 
                     Vector& x0, const Vector& l, const Vector& u,
-		    typename vect_traits<Vector>::value_type tol = std::numeric_limits<typename vect_traits<Vector>::value_type>::epsilon()) {
+                    typename vect_traits<Vector>::value_type tol = std::numeric_limits<typename vect_traits<Vector>::value_type>::epsilon()) {
   typedef typename vect_traits<Vector>::value_type ValueType;
   typedef typename vect_traits<Vector>::size_type SizeType;
   using std::swap;
@@ -218,8 +217,8 @@ void simplex_method(const Matrix& A, const Vector& b, const Vector& c,
   std::copy(u.begin(), u.end(), u_G.begin());
   
   Matrix A_G(M,N+M);
-  sub(A_G)(range(SizeType(0),M-1),range(SizeType(0),N-1)) = A;
-  sub(A_G)(range(SizeType(0),M-1),range(N,N+M-1)) = mat<ValueType,mat_structure::identity>(M);
+  sub(A_G)(range(SizeType(0),M),range(SizeType(0),N)) = A;
+  sub(A_G)(range(SizeType(0),M),range(N,N+M)) = mat<ValueType,mat_structure::identity>(M);
   
   Matrix B = Matrix(mat<ValueType,mat_structure::identity>(M));
   Matrix B_Q = Matrix(mat<ValueType,mat_structure::identity>(M));
@@ -271,16 +270,16 @@ void simplex_method(const Matrix& A, const Vector& b, const Vector& c,
   decompose_QR(B,B_Q,B_R,tol);
   for(SizeType i=0; i < M; ++i) {
     if(i_b[i] >= N) {
-      Vector y; y = slice(A_G)(range(SizeType(0),M-1),i_b[i]);
+      Vector y; y = slice(A_G)(range(SizeType(0),M),i_b[i]);
       y = y * B_Q;
       mat_vect_adaptor<Vector> y_mat(y);
       ReaK::detail::backsub_R_impl(B_R,y_mat,tol);
       for(SizeType j=0; j < N; ++j) {
-        ValueType sum = y * slice(A_G)(range(SizeType(0),M-1),i_n[j]);
+        ValueType sum = y * slice(A_G)(range(SizeType(0),M),i_n[j]);
         if ((sum != 0.0) && (i_n[j] < N)) {
-	  slice(B)(range(SizeType(0),M-1),i) = slice(A_G)(range(SizeType(0),M-1),i_n[j]);
+          slice(B)(range(SizeType(0),M),i) = slice(A_G)(range(SizeType(0),M),i_n[j]);
           swap(i_b[i],i_n[j]);
-	  break;
+          break;
         };
       };
       decompose_QR(B,B_Q,B_R,tol);
@@ -297,11 +296,11 @@ void simplex_method(const Matrix& A, const Vector& b, const Vector& c,
       Matrix tempB(M,M);
       Vector tempb(M);
       
-      tempB = ((sub(B)(range(SizeType(0),i_b[i]-N-1),range(SizeType(0),i-1)) & sub(B)(range(SizeType(0),i_b[i]-N-1),range(i+1,M))) |
-               (sub(B)(range(i_b[i]-N+1,M),range(SizeType(0),i-1)) & sub(B)(range(i_b[i]-N+1,M),range(i+1,M))));
+      tempB = ((sub(B)(range(SizeType(0),i_b[i]-N),range(SizeType(0),i)) & sub(B)(range(SizeType(0),i_b[i]-N),range(i+1,M+1))) |
+               (sub(B)(range(i_b[i]-N+1,M+1),range(SizeType(0),i)) & sub(B)(range(i_b[i]-N+1,M+1),range(i+1,M+1))));
       
-      tempA = ((sub(A_G)(range(SizeType(0),i_b[i]-N-1),range(SizeType(0),N-1))) |
-               (sub(A_G)(range(i_b[i]-N+1,M),range(SizeType(0),N-1))));
+      tempA = ((sub(A_G)(range(SizeType(0),i_b[i]-N),range(SizeType(0),N))) |
+               (sub(A_G)(range(i_b[i]-N+1,M+1),range(SizeType(0),N))));
       
       std::copy(b_G.begin(),b_G.begin() + i_b[i] - N, tempb.begin());
       std::copy(b_G.begin() + i_b[i] - N + 1, b_G.end(), tempb.begin() + i_b[i] - N);

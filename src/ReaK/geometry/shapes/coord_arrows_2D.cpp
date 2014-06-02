@@ -30,11 +30,11 @@ namespace geom {
 
 
 coord_arrows_2D::coord_arrows_2D(const std::string& aName,
-				 const shared_ptr< pose_2D<double> >& aAnchor,
-				 const pose_2D<double>& aPose,
-				 double aArrowLength) :
-				 geometry_2D(aName,aAnchor,aPose),
-				 mArrowLength(aArrowLength) { };
+                                 const shared_ptr< pose_2D<double> >& aAnchor,
+                                 const pose_2D<double>& aPose,
+                                 double aArrowLength) :
+                                 geometry_2D(aName,aAnchor,aPose),
+                                 mArrowLength(aArrowLength) { };
     
 void RK_CALL coord_arrows_2D::save(ReaK::serialization::oarchive& A, unsigned int) const {
   geometry_2D::save(A,geometry_2D::getStaticObjectType()->TypeVersion());

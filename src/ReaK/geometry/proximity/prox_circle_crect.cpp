@@ -85,10 +85,10 @@ void prox_circle_crect::computeProximity() {
 
 
 prox_circle_crect::prox_circle_crect(const shared_ptr< circle >& aCircle,
-				     const shared_ptr< capped_rectangle >& aCRect) :
-				     proximity_finder_2D(),
-				     mCircle(aCircle),
-				     mCRect(aCRect) { };
+                                     const shared_ptr< capped_rectangle >& aCRect) :
+                                     proximity_finder_2D(),
+                                     mCircle(aCircle),
+                                     mCRect(aCRect) { };
     
     
 void RK_CALL prox_circle_crect::save(ReaK::serialization::oarchive& A, unsigned int) const {

@@ -131,17 +131,17 @@ class spring_gen : public kte_map {
      * \param aSaturation saturation force of the spring, default 0 will disable saturation.
      */
     spring_gen(const std::string& aName,
-	       const shared_ptr< gen_coord<double> >& aAnchor1,
-	       const shared_ptr< gen_coord<double> >& aAnchor2,
-	       double aRestLength,
-	       double aStiffness,
+               const shared_ptr< gen_coord<double> >& aAnchor1,
+               const shared_ptr< gen_coord<double> >& aAnchor2,
+               double aRestLength,
+               double aStiffness,
                double aSaturation = 0.0) :
-	       kte_map(aName),
-	       mAnchor1(aAnchor1),
-	       mAnchor2(aAnchor2),
-	       mRestLength(aRestLength),
-	       mStiffness(aStiffness),
-	       mSaturation(aSaturation) { };
+               kte_map(aName),
+               mAnchor1(aAnchor1),
+               mAnchor2(aAnchor2),
+               mRestLength(aRestLength),
+               mStiffness(aStiffness),
+               mSaturation(aSaturation) { };
 
     /**
      * Default destructor.
@@ -159,18 +159,18 @@ class spring_gen : public kte_map {
       kte_map::save(A,kte_map::getStaticObjectType()->TypeVersion());
       A & RK_SERIAL_SAVE_WITH_NAME(mAnchor1)
         & RK_SERIAL_SAVE_WITH_NAME(mAnchor2)
-	& RK_SERIAL_SAVE_WITH_NAME(mRestLength)
-	& RK_SERIAL_SAVE_WITH_NAME(mStiffness)
-	& RK_SERIAL_SAVE_WITH_NAME(mSaturation);
+        & RK_SERIAL_SAVE_WITH_NAME(mRestLength)
+        & RK_SERIAL_SAVE_WITH_NAME(mStiffness)
+        & RK_SERIAL_SAVE_WITH_NAME(mSaturation);
     };
 
     virtual void RK_CALL load(ReaK::serialization::iarchive& A, unsigned int Version) {
       kte_map::load(A,kte_map::getStaticObjectType()->TypeVersion());
       A & RK_SERIAL_LOAD_WITH_NAME(mAnchor1)
         & RK_SERIAL_LOAD_WITH_NAME(mAnchor2)
-	& RK_SERIAL_LOAD_WITH_NAME(mRestLength)
-	& RK_SERIAL_LOAD_WITH_NAME(mStiffness)
-	& RK_SERIAL_LOAD_WITH_NAME(mSaturation);
+        & RK_SERIAL_LOAD_WITH_NAME(mRestLength)
+        & RK_SERIAL_LOAD_WITH_NAME(mStiffness)
+        & RK_SERIAL_LOAD_WITH_NAME(mSaturation);
     };
 
     RK_RTTI_MAKE_CONCRETE_1BASE(spring_gen,0xC210000D,1,"spring_gen",kte_map)
@@ -263,17 +263,17 @@ class spring_2D : public kte_map {
      * \param aSaturation saturation force of the spring, default 0 will disable saturation.
      */
     spring_2D(const std::string& aName,
-	      const shared_ptr< frame_2D<double> >& aAnchor1,
-	      const shared_ptr< frame_2D<double> >& aAnchor2,
-	      double aRestLength,
-	      double aStiffness,
+              const shared_ptr< frame_2D<double> >& aAnchor1,
+              const shared_ptr< frame_2D<double> >& aAnchor2,
+              double aRestLength,
+              double aStiffness,
               double aSaturation = 0.0) :
-	      kte_map(aName),
-	      mAnchor1(aAnchor1),
-	      mAnchor2(aAnchor2),
-	      mRestLength(aRestLength),
-	      mStiffness(aStiffness),
-	      mSaturation(aSaturation) { };
+              kte_map(aName),
+              mAnchor1(aAnchor1),
+              mAnchor2(aAnchor2),
+              mRestLength(aRestLength),
+              mStiffness(aStiffness),
+              mSaturation(aSaturation) { };
 
     /**
      * Default destructor.
@@ -290,18 +290,18 @@ class spring_2D : public kte_map {
       kte_map::save(A,kte_map::getStaticObjectType()->TypeVersion());
       A & RK_SERIAL_SAVE_WITH_NAME(mAnchor1)
         & RK_SERIAL_SAVE_WITH_NAME(mAnchor2)
-	& RK_SERIAL_SAVE_WITH_NAME(mRestLength)
-	& RK_SERIAL_SAVE_WITH_NAME(mStiffness)
-	& RK_SERIAL_SAVE_WITH_NAME(mSaturation);
+        & RK_SERIAL_SAVE_WITH_NAME(mRestLength)
+        & RK_SERIAL_SAVE_WITH_NAME(mStiffness)
+        & RK_SERIAL_SAVE_WITH_NAME(mSaturation);
     };
 
     virtual void RK_CALL load(ReaK::serialization::iarchive& A, unsigned int Version) {
       kte_map::load(A,kte_map::getStaticObjectType()->TypeVersion());
       A & RK_SERIAL_LOAD_WITH_NAME(mAnchor1)
         & RK_SERIAL_LOAD_WITH_NAME(mAnchor2)
-	& RK_SERIAL_LOAD_WITH_NAME(mRestLength)
-	& RK_SERIAL_LOAD_WITH_NAME(mStiffness)
-	& RK_SERIAL_LOAD_WITH_NAME(mSaturation);
+        & RK_SERIAL_LOAD_WITH_NAME(mRestLength)
+        & RK_SERIAL_LOAD_WITH_NAME(mStiffness)
+        & RK_SERIAL_LOAD_WITH_NAME(mSaturation);
     };
 
     RK_RTTI_MAKE_CONCRETE_1BASE(spring_2D,0xC210000E,1,"spring_2D",kte_map)
@@ -394,17 +394,17 @@ class spring_3D : public kte_map {
      * \param aSaturation saturation force of the spring, default 0 will disable saturation.
      */
     spring_3D(const std::string& aName,
-	      const shared_ptr< frame_3D<double> >& aAnchor1,
-	      const shared_ptr< frame_3D<double> >& aAnchor2,
-	      double aRestLength,
-	      double aStiffness,
+              const shared_ptr< frame_3D<double> >& aAnchor1,
+              const shared_ptr< frame_3D<double> >& aAnchor2,
+              double aRestLength,
+              double aStiffness,
               double aSaturation = 0.0) :
-	      kte_map(aName),
-	      mAnchor1(aAnchor1),
-	      mAnchor2(aAnchor2),
-	      mRestLength(aRestLength),
-	      mStiffness(aStiffness),
-	      mSaturation(aSaturation) { };
+              kte_map(aName),
+              mAnchor1(aAnchor1),
+              mAnchor2(aAnchor2),
+              mRestLength(aRestLength),
+              mStiffness(aStiffness),
+              mSaturation(aSaturation) { };
 
     /**
      * Default destructor.
@@ -421,18 +421,18 @@ class spring_3D : public kte_map {
       kte_map::save(A,kte_map::getStaticObjectType()->TypeVersion());
       A & RK_SERIAL_SAVE_WITH_NAME(mAnchor1)
         & RK_SERIAL_SAVE_WITH_NAME(mAnchor2)
-	& RK_SERIAL_SAVE_WITH_NAME(mRestLength)
-	& RK_SERIAL_SAVE_WITH_NAME(mStiffness)
-	& RK_SERIAL_SAVE_WITH_NAME(mSaturation);
+        & RK_SERIAL_SAVE_WITH_NAME(mRestLength)
+        & RK_SERIAL_SAVE_WITH_NAME(mStiffness)
+        & RK_SERIAL_SAVE_WITH_NAME(mSaturation);
     };
 
     virtual void RK_CALL load(ReaK::serialization::iarchive& A, unsigned int Version) {
       kte_map::load(A,kte_map::getStaticObjectType()->TypeVersion());
       A & RK_SERIAL_LOAD_WITH_NAME(mAnchor1)
         & RK_SERIAL_LOAD_WITH_NAME(mAnchor2)
-	& RK_SERIAL_LOAD_WITH_NAME(mRestLength)
-	& RK_SERIAL_LOAD_WITH_NAME(mStiffness)
-	& RK_SERIAL_LOAD_WITH_NAME(mSaturation);
+        & RK_SERIAL_LOAD_WITH_NAME(mRestLength)
+        & RK_SERIAL_LOAD_WITH_NAME(mStiffness)
+        & RK_SERIAL_LOAD_WITH_NAME(mSaturation);
     };
 
     RK_RTTI_MAKE_CONCRETE_1BASE(spring_3D,0xC210000F,1,"spring_3D",kte_map)

@@ -34,14 +34,15 @@
 #ifndef REAK_QUINTIC_HERMITE_INTERP_HPP
 #define REAK_QUINTIC_HERMITE_INTERP_HPP
 
-#include "path_planning/spatial_trajectory_concept.hpp"
+#include <ReaK/core/base/defs.hpp>
+#include <ReaK/core/lin_alg/arithmetic_tuple.hpp>
+#include <ReaK/core/lin_alg/mat_num_exceptions.hpp>
 
-#include "path_planning/tangent_bundle_concept.hpp"
+#include <ReaK/ctrl/path_planning/spatial_trajectory_concept.hpp>
+#include <ReaK/ctrl/path_planning/tangent_bundle_concept.hpp>
 
 #include "interpolated_trajectory.hpp"
 #include "generic_interpolator_factory.hpp"
-
-#include "lin_alg/arithmetic_tuple.hpp"
 
 #include <boost/config.hpp>
 #include <boost/concept_check.hpp>
@@ -53,7 +54,6 @@
 #include <list>
 #include <map>
 #include <limits>
-#include "lin_alg/mat_num_exceptions.hpp"
 
 namespace ReaK {
 
@@ -76,9 +76,9 @@ namespace detail {
       boost::mpl::size_t<3> 
     >,
   void >::type quintic_hermite_interpolate_HOT_impl(PointType&, const PointDiff2&,
-						    const PointDiff2&, const PointDiff2&, 
+                                                    const PointDiff2&, const PointDiff2&, 
                                                     const DiffSpace&, const TimeSpace&,
-					            double, double) {
+                                                    double, double) {
     /* nothing to do, but this function overload should be available, i.e., it is a no-op. */
   };
   
@@ -90,9 +90,9 @@ namespace detail {
       boost::mpl::size_t<3> 
     >,
   void >::type quintic_hermite_interpolate_HOT_impl(PointType& result, const PointDiff2& da1a0,
-						    const PointDiff2& da_term1, const PointDiff2& da_term2, 
+                                                    const PointDiff2& da_term1, const PointDiff2& da_term2, 
                                                     const DiffSpace& space, const TimeSpace& t_space,
-					            double t_factor, double t_normal) {
+                                                    double t_factor, double t_normal) {
         
    // lift( 
     get<3>(result) = lift_to_space<3>(
@@ -112,9 +112,9 @@ namespace detail {
       boost::mpl::size_t<4> 
     >,
   void >::type quintic_hermite_interpolate_HOT_impl(PointType& result, const PointDiff2& da1a0,
-						    const PointDiff2& da_term1, const PointDiff2& da_term2, 
+                                                    const PointDiff2& da_term1, const PointDiff2& da_term2, 
                                                     const DiffSpace& space, const TimeSpace& t_space,
-					            double t_factor, double t_normal) {
+                                                    double t_factor, double t_normal) {
     quintic_hermite_interpolate_HOT_impl< boost::mpl::size_t<3>, PointType, PointDiff2, DiffSpace, TimeSpace >(result,da1a0,da_term1,da_term2,space,t_space,t_factor,t_normal);
       
    // lift( diff(
@@ -136,9 +136,9 @@ namespace detail {
       boost::mpl::size_t<5> 
     >,
   void >::type quintic_hermite_interpolate_HOT_impl(PointType& result, const PointDiff2& da1a0,
-						    const PointDiff2& da_term1, const PointDiff2& da_term2, 
+                                                    const PointDiff2& da_term1, const PointDiff2& da_term2, 
                                                     const DiffSpace& space, const TimeSpace& t_space,
-					            double t_factor, double t_normal) {
+                                                    double t_factor, double t_normal) {
     quintic_hermite_interpolate_HOT_impl< boost::mpl::size_t<4>, PointType, PointDiff2, DiffSpace, TimeSpace >(result,da1a0,da_term1,da_term2,space,t_space,t_factor,t_normal);
     
    // lift( diff(
@@ -164,12 +164,12 @@ namespace detail {
       boost::mpl::size_t<6> 
     >,
   void >::type quintic_hermite_interpolate_impl(PointType& result, const PointType& a, const PointType& b,
-						const PointDiff0& dp1p0, const PointDiff1& dv1v0,
-						const PointDiff1& d_ldp1p0_v0, const PointDiff1& d_v1_ldp1p0,
-						const PointDiff1& i_a0, const PointDiff1& i_a1,
-						const PointDiff2& da1a0, const PointDiff2& da_term1, const PointDiff2& da_term2,
+                                                const PointDiff0& dp1p0, const PointDiff1& dv1v0,
+                                                const PointDiff1& d_ldp1p0_v0, const PointDiff1& d_v1_ldp1p0,
+                                                const PointDiff1& i_a0, const PointDiff1& i_a1,
+                                                const PointDiff2& da1a0, const PointDiff2& da_term1, const PointDiff2& da_term2,
                                                 const DiffSpace& space, const TimeSpace& t_space,
-					        double t_factor, double t_normal) {
+                                                double t_factor, double t_normal) {
     /*
     typedef typename derived_N_order_space<DiffSpace,TimeSpace,0>::type Space0;
     typedef typename derived_N_order_space<DiffSpace,TimeSpace,1>::type Space1;
@@ -201,7 +201,7 @@ namespace detail {
     get<0>(result) = get_space<0>(space,t_space).adjust(get<0>(a), 
    //   (10 t^3 - 15 t^4 + 6 t^5) * (diff(p1,p0) - 0.5 (desc(v0) + desc(v1)) )
       (10.0 * t3 - 15.0 * t4 + 6.0 * t5) * ( dp1p0 - 0.5 * ( descend_to_space<0>(get<1>(a),t_factor, space, t_space) 
-	                                                   + descend_to_space<0>(get<1>(b),t_factor, space, t_space) ) )
+                                                           + descend_to_space<0>(get<1>(b),t_factor, space, t_space) ) )
    //   + t desc(v0 +
       + t_normal * descend_to_space<0>( get_space<1>(space,t_space).adjust(get<1>(a),
    //           (t^2 - 0.5 t^3) diff(v1,v0) + (0.5 t - 1.5 t^2 + 1.5 t^3 - 0.5 t^4) desc(a0) + (0.5 t^2 - t^3 + 0.5 t^4) desc(a1) )
@@ -250,12 +250,12 @@ namespace detail {
       boost::mpl::size_t<5> 
     >,
   void >::type quintic_hermite_interpolate_impl(PointType& result, const PointType& a, const PointType& b,
-						const PointDiff0& dp1p0, const PointDiff1& dv1v0,
-						const PointDiff1& d_ldp1p0_v0, const PointDiff1& d_v1_ldp1p0,
-						const PointDiff1& i_a0, const PointDiff1& i_a1,
-						const PointDiff2& da1a0, const PointDiff2& da_term1, const PointDiff2& da_term2,
+                                                const PointDiff0& dp1p0, const PointDiff1& dv1v0,
+                                                const PointDiff1& d_ldp1p0_v0, const PointDiff1& d_v1_ldp1p0,
+                                                const PointDiff1& i_a0, const PointDiff1& i_a1,
+                                                const PointDiff2& da1a0, const PointDiff2& da_term1, const PointDiff2& da_term2,
                                                 const DiffSpace& space, const TimeSpace& t_space,
-					        double t_factor, double t_normal) {
+                                                double t_factor, double t_normal) {
     quintic_hermite_interpolate_impl< typename boost::mpl::prior<Idx>::type, PointType, PointDiff0, PointDiff1, PointDiff2, DiffSpace, TimeSpace >(result,a,b,dp1p0,dv1v0,d_ldp1p0_v0,d_v1_ldp1p0,i_a0,i_a1,da1a0,da_term1,da_term2,space,t_space,t_factor,t_normal);
     
     get< Idx::type::value >(result) = get_space< Idx::type::value >(space,t_space).origin();
@@ -393,7 +393,7 @@ class quintic_hermite_interpolator {
      */
     template <typename Factory>
     quintic_hermite_interpolator(const point_type& start_point, const point_type& end_point, double dt,
-		                 const SpaceType& space, const TimeSpaceType& t_space, const Factory& factory) {
+                                 const SpaceType& space, const TimeSpaceType& t_space, const Factory& factory) {
       initialize(start_point,end_point,dt,space,t_space,factory);
     };
     
@@ -409,7 +409,7 @@ class quintic_hermite_interpolator {
      */
     template <typename Factory>
     void initialize(const point_type& start_point, const point_type& end_point, double dt,
-		    const SpaceType& space, const TimeSpaceType& t_space, const Factory& factory) {
+                    const SpaceType& space, const TimeSpaceType& t_space, const Factory& factory) {
       delta_first_order = get_space<0>(space,t_space).difference( get<0>(end_point), get<0>(start_point) );
       delta_second_order = get_space<1>(space,t_space).difference( get<1>(end_point), get<1>(start_point) );
       
@@ -445,8 +445,8 @@ class quintic_hermite_interpolator {
      */
     template <typename Factory>
     void compute_point(point_type& result, const point_type& start_point, const point_type& end_point,
-		       const SpaceType& space, const TimeSpaceType& t_space, 
-		       double dt, double dt_total, const Factory& factory) const {
+                       const SpaceType& space, const TimeSpaceType& t_space, 
+                       double dt, double dt_total, const Factory& factory) const {
       if(std::fabs(dt_total) < std::numeric_limits<double>::epsilon())
         throw singularity_error("Normalizing factor in quintic Hermite spline is zero!");
       double t_normal = dt / dt_total;
@@ -568,7 +568,7 @@ class quintic_hermite_interp_traj : public interpolated_trajectory<Topology,quin
      */
     quintic_hermite_interp_traj(const shared_ptr<topology>& aSpace, const point_type& aStart, const point_type& aEnd, const distance_metric& aDist = distance_metric()) :
                                 base_class_type(aSpace, aStart, aEnd, aDist, quintic_hermite_interp_factory<Topology>(aSpace)) { };
-			
+                        
     /**
      * Constructs the path from a range of points and their space.
      * \tparam ForwardIter A forward-iterator type for getting points to initialize the path with.

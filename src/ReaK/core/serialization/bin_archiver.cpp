@@ -21,14 +21,14 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "bin_archiver.hpp"
+#include <ReaK/core/serialization/bin_archiver.hpp>
 
 
-#include "base/shared_object.hpp"
-#include "rtti/so_type.hpp"
-#include "rtti/so_type_repo.hpp"
+#include <ReaK/core/base/shared_object.hpp>
+#include <ReaK/core/rtti/so_type.hpp>
+#include <ReaK/core/rtti/so_type_repo.hpp>
 
-#include "archiving_exceptions.hpp"
+#include <ReaK/core/serialization/archiving_exceptions.hpp>
 
 
 #include <string>

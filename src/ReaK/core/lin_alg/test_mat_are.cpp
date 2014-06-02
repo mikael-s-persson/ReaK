@@ -21,13 +21,10 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "base/defs.hpp"
-
-#include "mat_alg.hpp"
-
-#include "mat_are_solver.hpp"
-
-#include "mat_norms.hpp"
+#include <ReaK/core/base/defs.hpp>
+#include <ReaK/core/lin_alg/mat_alg.hpp>
+#include <ReaK/core/lin_alg/mat_are_solver.hpp>
+#include <ReaK/core/lin_alg/mat_norms.hpp>
 
 #include <iostream>
 #include <fstream>
@@ -107,7 +104,7 @@ int main() {
   // now, r contains the number of controllable states.
   std::cout << " r = " << r << std::endl;
   mat<double,mat_structure::square> Rr(transpose(PCr) * R * PCr);
-  mat<double,mat_structure::rectangular> Trr(sub(Tr)(range(0,Tr.get_row_count()-1), range(0,r-1)));
+  mat<double,mat_structure::rectangular> Trr(sub(Tr)(range(0,Tr.get_row_count()), range(0,r)));
   mat<double,mat_structure::square> Qr(transpose_view(Trr) * Q * Trr);
   std::cout << " Trr = " << Trr << std::endl;
   std::cout << " Rr = " << Rr << std::endl;
@@ -115,8 +112,8 @@ int main() {
   
   mat<double,mat_structure::rectangular> Pr(r,r);
   mat<double,mat_structure::rectangular> Kr(B.get_col_count(),r);
-  solve_IHCT_LQR(sub(Ar)(range(0,r-1),range(0,r-1)), 
-                 sub(Br)(range(0,r-1),range(0,Br.get_col_count()-1)), 
+  solve_IHCT_LQR(sub(Ar)(range(0,r),range(0,r)), 
+                 sub(Br)(range(0,r),range(0,Br.get_col_count())), 
                  Qr, Rr, Kr, Pr, 1e-6, false);
   
   mat<double,mat_structure::rectangular> P = Trr * Pr * transpose_view(Trr);

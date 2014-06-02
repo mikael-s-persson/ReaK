@@ -846,7 +846,7 @@ int LMNonLinLsq(void* UserData, TBasisMap Map, FBasisFunction Jacf, T* u, T* x, 
           for(l=0, tmp=0.0; l<Map.output_count; ++l)
             tmp+=jac[i*Map.output_count+l]*jac[j*Map.output_count+l];
 
-		      /* store tmp in the corresponding upper and lower part elements */
+                      /* store tmp in the corresponding upper and lower part elements */
           jacTjac[j*Map.basis_count+i]=jacTjac[i*Map.basis_count+j]=tmp;
         };
 
@@ -872,7 +872,7 @@ int LMNonLinLsq(void* UserData, TBasisMap Map, FBasisFunction Jacf, T* u, T* x, 
       //}
     //}
 
-	  /* Compute ||J^T e||_inf and ||p||^2 */
+          /* Compute ||J^T e||_inf and ||p||^2 */
     for(i=0, p_L2=jacTe_inf=0.0; i<Map.basis_count; ++i){
       if(jacTe_inf < (tmp=FABS(jacTe[i]))) jacTe_inf=tmp;
 
@@ -1453,7 +1453,7 @@ int LMBoxNonLinLsq(void* UserData, TBasisMap Map, FBasisFunction Jacf, T* u, T *
             tmp+=jac[i*Map.output_count+l]*jac[j*Map.output_count+l];
           };
 
-		      /* store tmp in the corresponding upper and lower part elements */
+                      /* store tmp in the corresponding upper and lower part elements */
           jacTjac[i*Map.basis_count+j]=jacTjac[j*Map.basis_count+i]=tmp;
         };
 
@@ -1479,7 +1479,7 @@ int LMBoxNonLinLsq(void* UserData, TBasisMap Map, FBasisFunction Jacf, T* u, T *
     //  };
     //};
 
-	  /* Compute ||J^T e||_inf and ||p||^2. Note that ||J^T e||_inf
+          /* Compute ||J^T e||_inf and ||p||^2. Note that ||J^T e||_inf
      * is computed for free (i.e. inactive) variables only.
      * At a local minimum, if p[i]==ub[i] then g[i]>0;
      * if p[i]==lb[i] g[i]<0; otherwise g[i]=0

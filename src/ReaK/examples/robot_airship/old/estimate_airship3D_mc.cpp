@@ -62,29 +62,29 @@
 
 void print_usage() {
   std::cout << "Usage:\n"
-	    << "\t./estimate_airship3D [model_filename.xml] [init_conditions.xml] [inertia_data.xml] [result_filename] [time_step] [end_time] [Qu.xml] [R.xml] [skips_min] [skips_max]\n"
-	    << "\t\t model_filename.xml:\t The filename for the airship model to use.\n"
-	    << "\t\t init_conditions.xml:\t The filename for the airship's initial conditions.\n"
-	    << "\t\t inertia_data.xml:\t The filename for the airship's inertial data.\n"
-	    << "\t\t result_filename:\t The filename where to record the results as a space-separated values file.\n"
-	    << "\t\t time_step:\t\t The time-step of the data points in the model integration.\n"
-	    << "\t\t end_time:\t\t The end-time of the data points in the model integration.\n"
-	    << "\t\t Qu.xml:\t\t The filename for the airship's input disturbance covariance matrix.\n"
-	    << "\t\t R.xml:\t\t The filename for the airship's measurement noise covariance matrix.\n"
-	    << "\t\t skips_min:\t\t Minimum number of data rows to skip from measurements.\n"
-	    << "\t\t skips_max:\t\t Maximum number of data rows to skip from measurements.\n"
-	    << "\t\t mc_count:\t\t Number of Monte-Carlo runs to perform." << std::endl;
+            << "\t./estimate_airship3D [model_filename.xml] [init_conditions.xml] [inertia_data.xml] [result_filename] [time_step] [end_time] [Qu.xml] [R.xml] [skips_min] [skips_max]\n"
+            << "\t\t model_filename.xml:\t The filename for the airship model to use.\n"
+            << "\t\t init_conditions.xml:\t The filename for the airship's initial conditions.\n"
+            << "\t\t inertia_data.xml:\t The filename for the airship's inertial data.\n"
+            << "\t\t result_filename:\t The filename where to record the results as a space-separated values file.\n"
+            << "\t\t time_step:\t\t The time-step of the data points in the model integration.\n"
+            << "\t\t end_time:\t\t The end-time of the data points in the model integration.\n"
+            << "\t\t Qu.xml:\t\t The filename for the airship's input disturbance covariance matrix.\n"
+            << "\t\t R.xml:\t\t The filename for the airship's measurement noise covariance matrix.\n"
+            << "\t\t skips_min:\t\t Minimum number of data rows to skip from measurements.\n"
+            << "\t\t skips_max:\t\t Maximum number of data rows to skip from measurements.\n"
+            << "\t\t mc_count:\t\t Number of Monte-Carlo runs to perform." << std::endl;
 };
 
 
 bool load_parameters(int argc, char** argv, std::string& results_filename, 
-		     double& time_step, double& end_time,
-		     ReaK::ctrl::kte_nl_system& airship3D_system, 
-		     ReaK::vect_n<double>& x_0, double& mass, 
-		     ReaK::mat<double,ReaK::mat_structure::symmetric>& inertia_tensor,
-		     ReaK::mat<double,ReaK::mat_structure::diagonal>& Qu, 
-		     ReaK::mat<double,ReaK::mat_structure::diagonal>& R,
-		     unsigned int& skips_min, unsigned int& skips_max, unsigned int& mc_count) {
+                     double& time_step, double& end_time,
+                     ReaK::ctrl::kte_nl_system& airship3D_system, 
+                     ReaK::vect_n<double>& x_0, double& mass, 
+                     ReaK::mat<double,ReaK::mat_structure::symmetric>& inertia_tensor,
+                     ReaK::mat<double,ReaK::mat_structure::diagonal>& Qu, 
+                     ReaK::mat<double,ReaK::mat_structure::diagonal>& R,
+                     unsigned int& skips_min, unsigned int& skips_max, unsigned int& mc_count) {
   
   if(argc < 12) {
     print_usage();
@@ -233,15 +233,15 @@ int main(int argc, char** argv) {
   sys_type 
     airship3D_dt_sys( airship3D_system, 
                       dormand_prince45_integrator<double>("ode45_integrator",
-							  ReaK::vect_n<double>(),
-							  0.0,
-							  time_step * 0.01,
-							  weak_ptr< state_rate_function<double> >(),
-							  time_step,
-							  time_step * 0.00001,
-							  1e-2),
-		      time_step,
-		      "airship3D_dt_sys");
+                                                          ReaK::vect_n<double>(),
+                                                          0.0,
+                                                          time_step * 0.01,
+                                                          weak_ptr< state_rate_function<double> >(),
+                                                          time_step,
+                                                          time_step * 0.00001,
+                                                          1e-2),
+                      time_step,
+                      "airship3D_dt_sys");
   
   ctrl::airship3D_lin_dt_system airship3D_mdl_dt("airship3D_linear_discrete",mass,inertia_tensor,time_step);
   
@@ -435,17 +435,17 @@ int main(int argc, char** argv) {
         R_inv(3,3) = 4*R(4,4); R_inv(4,4) = 4*R(5,5); R_inv(5,5) = 4*R(6,6);
         ctrl::covariance_matrix< vect_n<double> > Rcovinv = ctrl::covariance_matrix< vect_n<double> >(ctrl::covariance_matrix< vect_n<double> >::matrix_type(R_inv));
         ctrl::covariance_matrix< vect_n<double> > Qcov;
-	Qcov = Qu_avg;
+        Qcov = Qu_avg;
         ctrl::gaussian_belief_state< vect_n<double>, ctrl::covariance_matrix< vect_n<double> > > b_u(vect_n<double>(0.0,0.0,0.0,0.0,0.0,0.0), 
-											             Qcov);
+                                                                                                     Qcov);
         ctrl::gaussian_belief_state< vect_n<double>, ctrl::covariance_matrix< vect_n<double> > > b_z(vect_n<double>(0.0,0.0,0.0,0.0,0.0,0.0,0.0), 
-											             Rcovinv);
+                                                                                                     Rcovinv);
         
         double std_dev[2] = {0.0,0.0}; int k = 0;
         std::list< std::pair< double, vect_n<double> > >::iterator it_orig = measurements.begin();
         for(std::list< std::pair< double, vect_n<double> > >::iterator it = measurements_noisy.begin(); it != measurements_noisy.end();) {
           
-	  b_z.set_mean_state(it->second);
+          b_z.set_mean_state(it->second);
           ctrl::invariant_kalman_filter_step(mdl_inv_dt,mdl_state_space,b,b_u,b_z,it->first - time_step * j);
           
           vect_n<double> b_mean = b.get_mean_state();
@@ -548,17 +548,17 @@ int main(int argc, char** argv) {
         R_inv(3,3) = 4*R(4,4); R_inv(4,4) = 4*R(5,5); R_inv(5,5) = 4*R(6,6);
         ctrl::covariance_matrix< vect_n<double> > Rcovinv = ctrl::covariance_matrix< vect_n<double> >(ctrl::covariance_matrix< vect_n<double> >::matrix_type(R_inv));
         ctrl::covariance_matrix< vect_n<double> > Qcov;
-	Qcov = Qu_avg;
+        Qcov = Qu_avg;
         ctrl::gaussian_belief_state< vect_n<double>, ctrl::covariance_matrix< vect_n<double> > > b_u(vect_n<double>(0.0,0.0,0.0,0.0,0.0,0.0), 
-											             Qcov);
+                                                                                                     Qcov);
         ctrl::gaussian_belief_state< vect_n<double>, ctrl::covariance_matrix< vect_n<double> > > b_z(vect_n<double>(0.0,0.0,0.0,0.0,0.0,0.0,0.0), 
-											             Rcovinv);
+                                                                                                     Rcovinv);
         
         double std_dev[2] = {0.0,0.0}; int k = 0;
         MeasIter it_orig = measurements.begin();
         for(MeasIter it = measurements_noisy.begin(); it != measurements_noisy.end();) {
           
-	  b_z.set_mean_state(it->second);
+          b_z.set_mean_state(it->second);
           ctrl::invariant_kalman_filter_step(mdl_inv_mom_dt,mdl_state_space,b,b_u,b_z,it->first - time_step * j);
           
           vect_n<double> b_mean = b.get_mean_state();
@@ -603,17 +603,17 @@ int main(int argc, char** argv) {
         R_inv(3,3) = 4*R(4,4); R_inv(4,4) = 4*R(5,5); R_inv(5,5) = 4*R(6,6);
         ctrl::covariance_matrix< vect_n<double> > Rcovinv = ctrl::covariance_matrix< vect_n<double> >(ctrl::covariance_matrix< vect_n<double> >::matrix_type(R_inv));
         ctrl::covariance_matrix< vect_n<double> > Qcov;
-	Qcov = Qu_avg;
+        Qcov = Qu_avg;
         ctrl::gaussian_belief_state< vect_n<double>, ctrl::covariance_matrix< vect_n<double> > > b_u(vect_n<double>(0.0,0.0,0.0,0.0,0.0,0.0), 
-											             Qcov);
+                                                                                                     Qcov);
         ctrl::gaussian_belief_state< vect_n<double>, ctrl::covariance_matrix< vect_n<double> > > b_z(vect_n<double>(0.0,0.0,0.0,0.0,0.0,0.0,0.0), 
-											             Rcovinv);
+                                                                                                     Rcovinv);
         
         double std_dev[2] = {0.0,0.0}; int k = 0;
         MeasIter it_orig = measurements.begin();
         for(MeasIter it = measurements_noisy.begin(); it != measurements_noisy.end();) {
           
-	  b_z.set_mean_state(it->second);
+          b_z.set_mean_state(it->second);
           ctrl::invariant_kalman_filter_step(mdl_inv_mid_dt,mdl_state_space,b,b_u,b_z,it->first - time_step * j);
           
           vect_n<double> b_mean = b.get_mean_state();

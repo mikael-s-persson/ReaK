@@ -32,7 +32,7 @@
 #ifndef REAK_QUICK_SORT_HPP
 #define REAK_QUICK_SORT_HPP
 
-#include "base/defs.hpp"
+#include <ReaK/core/base/defs.hpp>
 
 #include <algorithm>
 #include <iterator>

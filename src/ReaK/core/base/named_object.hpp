@@ -34,9 +34,11 @@
 #ifndef REAK_NAMED_OBJECT_HPP
 #define REAK_NAMED_OBJECT_HPP
 
-#include <string.h>
 #include "shared_object.hpp"
-#include "rtti/so_type_repo.hpp"
+
+#include <ReaK/core/rtti/so_type_repo.hpp>
+
+#include <string>
 
 namespace ReaK {
 

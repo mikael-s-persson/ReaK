@@ -100,11 +100,11 @@ std::vector< std::pair< double, ReaK::vect_n<double> > > batch_KF_on_timeseries(
   std::vector< std::pair< double, sat3D_measurement_point > >::const_iterator it = measurements.begin();
   while( it != measurements.end() ) {
     vect_n<double> z_vect(it->second.pose.size() + it->second.gyro.size() + it->second.IMU_a_m.size(), 0.0);
-    z_vect[range(0,6)] = it->second.pose;
+    z_vect[range(0,7)] = it->second.pose;
     if( it->second.gyro.size() ) {
-      z_vect[range(7,9)] = it->second.gyro;
+      z_vect[range(7,10)] = it->second.gyro;
       if( it->second.IMU_a_m.size() )
-        z_vect[range(10,15)] = it->second.IMU_a_m;
+        z_vect[range(10,16)] = it->second.IMU_a_m;
     };
     b_z.set_mean_state(z_vect);
     
@@ -114,17 +114,17 @@ std::vector< std::pair< double, ReaK::vect_n<double> > > batch_KF_on_timeseries(
     
     const sat3D_state_type& x_mean = b.get_mean_state();
     vect_n<double> result_vect(13 + 12 + 12, 0.0);
-    result_vect[range(0,2)]   = get_position(x_mean);
-    result_vect[range(3,6)]   = get_quaternion(x_mean);
-    result_vect[range(7,9)]   = get_velocity(x_mean);
-    result_vect[range(10,12)] = get_ang_velocity(x_mean);
+    result_vect[range(0,3)]   = get_position(x_mean);
+    result_vect[range(3,7)]   = get_quaternion(x_mean);
+    result_vect[range(7,10)]   = get_velocity(x_mean);
+    result_vect[range(10,13)] = get_ang_velocity(x_mean);
     
     if( it_orig != ground_truth.end() ) {
       axis_angle<double> aa_diff(invert(get_quaternion(x_mean).as_rotation()) * get_quaternion(it_orig->second).as_rotation());
-      result_vect[range(13,15)] = get_position(x_mean) - get_position(it_orig->second);
-      result_vect[range(16,18)] = aa_diff.angle() * aa_diff.axis();
-      result_vect[range(19,21)] = get_velocity(x_mean) - get_velocity(it_orig->second);
-      result_vect[range(22,24)] = get_ang_velocity(x_mean) - get_ang_velocity(it_orig->second);
+      result_vect[range(13,16)] = get_position(x_mean) - get_position(it_orig->second);
+      result_vect[range(16,19)] = aa_diff.angle() * aa_diff.axis();
+      result_vect[range(19,22)] = get_velocity(x_mean) - get_velocity(it_orig->second);
+      result_vect[range(22,25)] = get_ang_velocity(x_mean) - get_ang_velocity(it_orig->second);
     };
     
     const cov_matrix_type& P_xx = b.get_covariance().get_matrix();
@@ -189,7 +189,7 @@ void generate_timeseries(
     axis_angle<double> aa_noise(norm_2(aa_vect_noise), aa_vect_noise);
     quaternion<double> y_quat(vect<double,4>(y[3],y[4],y[5],y[6]));
     y_quat *= aa_noise.getQuaternion();
-    meas.pose[range(3,6)] = vect<double,4>(y_quat[0], y_quat[1], y_quat[2], y_quat[3]);
+    meas.pose[range(3,7)] = vect<double,4>(y_quat[0], y_quat[1], y_quat[2], y_quat[3]);
     
     std::size_t k = ground_truth.size();
     if( stat_results ) {
@@ -207,7 +207,7 @@ void generate_timeseries(
     };
     
     if( y.size() >= 10 ) {
-      meas.gyro = y[range(7,9)];
+      meas.gyro = y[range(7,10)];
       meas.gyro[0] += var_rnd() * sqrt(R(6,6));
       meas.gyro[1] += var_rnd() * sqrt(R(7,7));
       meas.gyro[2] += var_rnd() * sqrt(R(8,8));
@@ -220,7 +220,7 @@ void generate_timeseries(
                                                     + (meas.gyro[2] - y[9]) * (meas.gyro[2] - y[9]) ) ) / k;
       };
       if( y.size() >= 16 ) {
-        meas.IMU_a_m = y[range(10,15)];
+        meas.IMU_a_m = y[range(10,16)];
         meas.IMU_a_m[0] += var_rnd() * sqrt(R(9,9));
         meas.IMU_a_m[1] += var_rnd() * sqrt(R(10,10));
         meas.IMU_a_m[2] += var_rnd() * sqrt(R(11,11));

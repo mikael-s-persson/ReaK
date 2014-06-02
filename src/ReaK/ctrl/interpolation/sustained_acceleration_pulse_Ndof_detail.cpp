@@ -21,17 +21,17 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "sustained_acceleration_pulse_Ndof_detail.hpp"
+#include <ReaK/ctrl/interpolation/sustained_acceleration_pulse_Ndof_detail.hpp>
 
 #include <cmath>
 
 
-#include "root_finders/bisection_method.hpp"
-#include "root_finders/secant_method.hpp"
+#include <ReaK/core/root_finders/bisection_method.hpp>
+#include <ReaK/core/root_finders/secant_method.hpp>
 
-#include "sorting/insertion_sort.hpp"
+#include <ReaK/core/sorting/insertion_sort.hpp>
 
-#include "optimization/optim_exceptions.hpp"
+#include <ReaK/core/optimization/optim_exceptions.hpp>
 
 
 namespace ReaK {

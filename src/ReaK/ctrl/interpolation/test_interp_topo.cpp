@@ -27,8 +27,8 @@
 #include <ctime>
 #include <cmath>
 
-#include "topologies/time_topology.hpp"
-#include "topologies/differentiable_space.hpp"
+#include <ReaK/ctrl/topologies/time_topology.hpp>
+#include <ReaK/ctrl/topologies/differentiable_space.hpp>
 
 
 
@@ -40,35 +40,35 @@
 
 
 
-#include "topologies/hyperbox_topology.hpp"
-#include "topologies/Ndof_spaces.hpp"
+#include <ReaK/ctrl/topologies/hyperbox_topology.hpp>
+#include <ReaK/ctrl/topologies/Ndof_spaces.hpp>
 
 
 
 #ifdef RK_ENABLE_TEST_LINEAR_INTERPOLATOR
-#include "linear_interp.hpp"
+#include <ReaK/ctrl/interpolation/linear_interp.hpp>
 #endif
 
 #ifdef RK_ENABLE_TEST_CUBIC_INTERPOLATOR
-#include "cubic_hermite_interp.hpp"
+#include <ReaK/ctrl/interpolation/cubic_hermite_interp.hpp>
 #endif
 
 #ifdef RK_ENABLE_TEST_QUINTIC_INTERPOLATOR
-#include "quintic_hermite_interp.hpp"
+#include <ReaK/ctrl/interpolation/quintic_hermite_interp.hpp>
 #endif
 
 #ifdef RK_ENABLE_TEST_SVP_NDOF_INTERPOLATOR
-#include "sustained_velocity_pulse_Ndof.hpp"
-#include "interpolation/svp_Ndof_reach_topologies.hpp"
+#include <ReaK/ctrl/interpolation/sustained_velocity_pulse_Ndof.hpp>
+#include <ReaK/ctrl/interpolation/svp_Ndof_reach_topologies.hpp>
 #endif
 
 #ifdef RK_ENABLE_TEST_SAP_NDOF_INTERPOLATOR
-#include "sustained_acceleration_pulse_Ndof.hpp"
-#include "interpolation/sap_Ndof_reach_topologies.hpp"
+#include <ReaK/ctrl/interpolation/sustained_acceleration_pulse_Ndof.hpp>
+#include <ReaK/ctrl/interpolation/sap_Ndof_reach_topologies.hpp>
 #endif
 
 
-#include "base/scope_guard.hpp"
+#include <ReaK/core/base/scope_guard.hpp>
 
 
 #include <boost/program_options.hpp>

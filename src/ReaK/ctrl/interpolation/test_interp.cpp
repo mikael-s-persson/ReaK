@@ -27,17 +27,17 @@ using std::size_t;
 using std::ptrdiff_t;
 
 
-#include "topologies/time_topology.hpp"
-#include "topologies/time_poisson_topology.hpp"
-#include "topologies/line_topology.hpp"
-#include "topologies/differentiable_space.hpp"
-#include "topologies/temporal_space.hpp"
+#include <ReaK/ctrl/topologies/time_topology.hpp>
+#include <ReaK/ctrl/topologies/time_poisson_topology.hpp>
+#include <ReaK/ctrl/topologies/line_topology.hpp>
+#include <ReaK/ctrl/topologies/differentiable_space.hpp>
+#include <ReaK/ctrl/topologies/temporal_space.hpp>
 
-#include "linear_interp.hpp"
-#include "cubic_hermite_interp.hpp"
-#include "quintic_hermite_interp.hpp"
+#include <ReaK/ctrl/interpolation/linear_interp.hpp>
+#include <ReaK/ctrl/interpolation/cubic_hermite_interp.hpp>
+#include <ReaK/ctrl/interpolation/quintic_hermite_interp.hpp>
 
-#include "recorders/ssv_recorder.hpp"
+#include <ReaK/core/recorders/ssv_recorder.hpp>
 
 
 int main(int argc, char** argv) {

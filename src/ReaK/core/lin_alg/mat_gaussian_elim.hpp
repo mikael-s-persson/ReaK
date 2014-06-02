@@ -97,8 +97,8 @@ void >::type invert_gaussian(const Matrix1& A, Matrix2& A_inv, typename mat_trai
         };
         if(fabs(tmp(j,i)) > NumTol) {
           for(SizeType k=i;k<Size;++k)
-	    tmp(i,k) += tmp(j,k);
-	  for(SizeType k=0;k<Size;++k)
+            tmp(i,k) += tmp(j,k);
+          for(SizeType k=0;k<Size;++k)
             A_inv(i,k) += A_inv(j,k);
           break;
         };
@@ -117,8 +117,8 @@ void >::type invert_gaussian(const Matrix1& A, Matrix2& A_inv, typename mat_trai
         s = tmp(j,i);
         for(SizeType k=i;k<Size;++k)
           tmp(j,k) -= s*tmp(i,k);
-	for(SizeType k=0;k<Size;++k)
-	  A_inv(j,k) -= s*A_inv(i,k);
+        for(SizeType k=0;k<Size;++k)
+          A_inv(j,k) -= s*A_inv(i,k);
       };
     };
   };
@@ -177,7 +177,7 @@ void linsolve_PLU_impl(Matrix1& A, Matrix2& b, IndexVector& P, typename mat_trai
     s(i,0) = 0.0;
     for(SizeType j=0;j<An;++j)
       if(s(i,0) < fabs(A(i,j)))
-	s(i,0) = fabs(A(i,j));
+        s(i,0) = fabs(A(i,j));
   };
 
   for(SizeType k=0;k<An;++k) {
@@ -189,11 +189,11 @@ void linsolve_PLU_impl(Matrix1& A, Matrix2& b, IndexVector& P, typename mat_trai
     SizeType temp_i=k;
     for(SizeType i=k+1;i<An;++i)
       if(fabs(A(i,k) / s(i,0)) > fabs(A(temp_i,k) / s(temp_i,0)))
-	temp_i = i;
+        temp_i = i;
 
     if(k != temp_i) {
       for(SizeType i=0;i<An;++i)
-	swap(A(k,i),A(temp_i,i));
+        swap(A(k,i),A(temp_i,i));
       swap(s(k,0), s(temp_i,0));
       swap(P[k], P[temp_i]);
     };
@@ -202,7 +202,7 @@ void linsolve_PLU_impl(Matrix1& A, Matrix2& b, IndexVector& P, typename mat_trai
       for(SizeType i=0;i<k;++i)
         A(k,j) -= A(k,i) * A(i,j);
       if (fabs(A(k,k)) < NumTol)
-	throw singularity_error("A");
+        throw singularity_error("A");
       A(k,j) /= A(k,k);
     };
   };

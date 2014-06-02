@@ -36,7 +36,10 @@
 #ifndef REAK_MAT_SLICES_HPP
 #define REAK_MAT_SLICES_HPP
 
-#include "mat_alg_general.hpp"
+#include "mat_concepts.hpp"
+#include "mat_traits.hpp"
+#include "vect_concepts.hpp"
+#include "vect_views.hpp"
 
 #include "vect_alg.hpp"
 
@@ -971,11 +974,11 @@ struct mat_slice_factory {
   mat_slice_factory(Matrix& aM) : m(aM) { };
   mat_col_slice<Matrix> operator()(size_type row,
                                    const std::pair<size_type,size_type>& cols) {
-    return mat_col_slice<Matrix>(m,row,cols.first,cols.second - cols.first + 1);
+    return mat_col_slice<Matrix>(m,row,cols.first,cols.second - cols.first);
   };
   mat_row_slice<Matrix> operator()(const std::pair<size_type,size_type>& rows,
                                    size_type col) {
-    return mat_row_slice<Matrix>(m,col,rows.first,rows.second - rows.first + 1);
+    return mat_row_slice<Matrix>(m,col,rows.first,rows.second - rows.first);
   };
 };
 
@@ -987,11 +990,11 @@ struct mat_const_slice_factory {
   mat_const_slice_factory(const Matrix& aM) : m(aM) { };
   mat_const_col_slice<Matrix> operator()(size_type row,
                                    const std::pair<size_type,size_type>& cols) {
-    return mat_const_col_slice<Matrix>(m,row,cols.first,cols.second - cols.first + 1);
+    return mat_const_col_slice<Matrix>(m,row,cols.first,cols.second - cols.first);
   };
   mat_const_row_slice<Matrix> operator()(const std::pair<size_type,size_type>& rows,
                                    size_type col) {
-    return mat_const_row_slice<Matrix>(m,col,rows.first,rows.second - rows.first + 1);
+    return mat_const_row_slice<Matrix>(m,col,rows.first,rows.second - rows.first);
   };
 };
 

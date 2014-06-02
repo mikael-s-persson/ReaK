@@ -51,8 +51,8 @@
 #include <boost/tuple/tuple.hpp>
 #include <boost/utility/enable_if.hpp>
 
-#include "path_planning/metric_space_concept.hpp"
-#include "path_planning/random_sampler_concept.hpp"
+#include <ReaK/ctrl/path_planning/metric_space_concept.hpp>
+#include <ReaK/ctrl/path_planning/random_sampler_concept.hpp>
 
 #include <boost/graph/graph_concepts.hpp>
 #include <boost/graph/properties.hpp>

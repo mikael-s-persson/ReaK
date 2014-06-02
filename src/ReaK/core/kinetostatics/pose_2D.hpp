@@ -34,7 +34,7 @@
 
 #include "rotations_2D.hpp"
 
-#include "base/shared_object.hpp"
+#include <ReaK/core/base/shared_object.hpp>
 
 
 namespace ReaK {
@@ -74,17 +74,17 @@ class pose_2D : public shared_object {
      */
     pose_2D(const weak_ptr< self >& aParent, const position_type& aPosition, const rotation_type& aRotation) :
                 shared_object(),
-		Parent(aParent),
-		Position(aPosition),
-		Rotation(aRotation) { };
+                Parent(aParent),
+                Position(aPosition),
+                Rotation(aRotation) { };
 
     /**
      * Copy-constructor.
      */
     pose_2D(const self& aPose) : shared_object(),
                                           Parent(aPose.Parent),
-					  Position(aPose.Position),
-					  Rotation(aPose.Rotation) { };
+                                          Position(aPose.Position),
+                                          Rotation(aPose.Rotation) { };
 
     /**
      * Default destructor.
@@ -110,17 +110,17 @@ class pose_2D : public shared_object {
      */
     bool isParentPose(const shared_ptr< const self >& P) const {
       if(Parent.expired()) {
-	if(P)
-	  return true;
-	else
-	  return false;
-      } else {
-	if(P)
-	  return false;
-	else if(P == Parent.lock())
+        if(P)
           return true;
-	else
-	  return Parent.lock()->isParentPose(P);
+        else
+          return false;
+      } else {
+        if(P)
+          return false;
+        else if(P == Parent.lock())
+          return true;
+        else
+          return Parent.lock()->isParentPose(P);
       };
     };
 

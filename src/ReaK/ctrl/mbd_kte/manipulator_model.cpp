@@ -76,7 +76,7 @@ void manipulator_kinematics_model::getJacobianMatrix(mat<double,mat_structure::r
 };
 
 void manipulator_kinematics_model::getJacobianMatrixAndDerivative(mat<double,mat_structure::rectangular>& Jac, 
-								  mat<double,mat_structure::rectangular>& JacDot) const {
+                                                                  mat<double,mat_structure::rectangular>& JacDot) const {
   manip_kin_mdl_jac_calculator(this).getJacobianMatrixAndDerivative(Jac,JacDot);
 };
   
@@ -232,10 +232,10 @@ manipulator_dynamics_model& manipulator_dynamics_model::operator <<(const shared
 vect_n<double> manipulator_dynamics_model::getJointStates() const {
   vect_n<double> result(getJointStatesCount());
   
-  vect_ref_view< vect_n<double> > pos_result = result[range(0,getJointPositionsCount()-1)];
+  vect_ref_view< vect_n<double> > pos_result = result[range(0,getJointPositionsCount())];
   manip_kin_mdl_joint_io(this).getJointPositions(pos_result);
   
-  vect_ref_view< vect_n<double> > vel_result = result[range(getJointPositionsCount(),getJointPositionsCount() + getJointVelocitiesCount() - 1)];
+  vect_ref_view< vect_n<double> > vel_result = result[range(getJointPositionsCount(),getJointPositionsCount() + getJointVelocitiesCount())];
   manip_kin_mdl_joint_io(this).getJointVelocities(vel_result);
   
   return result;
@@ -245,10 +245,10 @@ void manipulator_dynamics_model::setJointStates(const vect_n<double>& aJointStat
   if(aJointStates.size() != getJointStatesCount())
     throw std::range_error("Joint-state vector has incorrect dimensions!");
   
-  vect_const_ref_view< vect_n<double> > positions = aJointStates[range(0,getJointPositionsCount()-1)];
+  vect_const_ref_view< vect_n<double> > positions = aJointStates[range(0,getJointPositionsCount())];
   manip_kin_mdl_joint_io(this).setJointPositions(positions);
   
-  vect_const_ref_view< vect_n<double> > velocities = aJointStates[range(getJointPositionsCount(),getJointPositionsCount() + getJointVelocitiesCount() - 1)];
+  vect_const_ref_view< vect_n<double> > velocities = aJointStates[range(getJointPositionsCount(),getJointPositionsCount() + getJointVelocitiesCount())];
   manip_kin_mdl_joint_io(this).setJointVelocities(velocities);
   
 };
@@ -357,10 +357,10 @@ void RK_CALL manipulator_dynamics_model::computeStateRate(double aTime,const vec
 vect_n<double> manipulator_dynamics_model::getDependentStates() const {
   vect_n<double> result(getDependentStatesCount());
   
-  vect_ref_view< vect_n<double> > pos_result = result[range(0,getDependentPositionsCount()-1)];
+  vect_ref_view< vect_n<double> > pos_result = result[range(0,getDependentPositionsCount())];
   manip_kin_mdl_joint_io(this).getDependentPositions(pos_result);
   
-  vect_ref_view< vect_n<double> > vel_result = result[range(getDependentPositionsCount(),getDependentPositionsCount() + getDependentVelocitiesCount() - 1)];
+  vect_ref_view< vect_n<double> > vel_result = result[range(getDependentPositionsCount(),getDependentPositionsCount() + getDependentVelocitiesCount())];
   manip_kin_mdl_joint_io(this).getDependentVelocities(vel_result);
   
   return result;

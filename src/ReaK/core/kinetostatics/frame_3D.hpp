@@ -86,21 +86,21 @@ class frame_3D : public pose_3D<T> {
      * Parametrized constructor, all is set to corresponding parameters.
      */
     frame_3D(const weak_ptr< base >& aParent,
-	     const position_type& aPosition,
-	     const rotation_type& aQuat,
-	     const linear_vector_type& aVelocity,
-	     const angular_vector_type& aAngVelocity,
-	     const linear_vector_type& aAcceleration,
-	     const angular_vector_type& aAngAcceleration,
-	     const linear_vector_type& aForce,
-	     const angular_vector_type& aTorque) :
-	     base(aParent, aPosition, aQuat),
-	     Velocity(aVelocity),
-	     AngVelocity(aAngVelocity),
-	     Acceleration(aAcceleration),
-	     AngAcceleration(aAngAcceleration),
-	     Force(aForce),
-	     Torque(aTorque) {
+             const position_type& aPosition,
+             const rotation_type& aQuat,
+             const linear_vector_type& aVelocity,
+             const angular_vector_type& aAngVelocity,
+             const linear_vector_type& aAcceleration,
+             const angular_vector_type& aAngAcceleration,
+             const linear_vector_type& aForce,
+             const angular_vector_type& aTorque) :
+             base(aParent, aPosition, aQuat),
+             Velocity(aVelocity),
+             AngVelocity(aAngVelocity),
+             Acceleration(aAcceleration),
+             AngAcceleration(aAngAcceleration),
+             Force(aForce),
+             Torque(aTorque) {
       UpdateQuatDot();
     };
 
@@ -109,11 +109,11 @@ class frame_3D : public pose_3D<T> {
      */
     frame_3D(const self& aFrame) : base(aFrame),
                                           Velocity(aFrame.Velocity),
-					  AngVelocity(aFrame.AngVelocity),
-					  Acceleration(aFrame.Acceleration),
-					  AngAcceleration(aFrame.AngAcceleration),
-					  Force(aFrame.Force),
-					  Torque(aFrame.Torque) {
+                                          AngVelocity(aFrame.AngVelocity),
+                                          Acceleration(aFrame.Acceleration),
+                                          AngAcceleration(aFrame.AngAcceleration),
+                                          Force(aFrame.Force),
+                                          Torque(aFrame.Torque) {
       UpdateQuatDot();
     };
 
@@ -122,12 +122,12 @@ class frame_3D : public pose_3D<T> {
      */
     explicit frame_3D(const base& Pose_) : base(Pose_),
                                                  Velocity(),
-						 AngVelocity(),
-						 Acceleration(),
-						 AngAcceleration(),
-						 Force(),
-						 Torque(),
-						 QuatDot() { };
+                                                 AngVelocity(),
+                                                 Acceleration(),
+                                                 AngAcceleration(),
+                                                 Force(),
+                                                 Torque(),
+                                                 QuatDot() { };
 
 
     /**
@@ -148,14 +148,14 @@ class frame_3D : public pose_3D<T> {
      */
     self getGlobalFrame() const {
       if(!this->Parent.expired()) {
-	self result;
+        self result;
         shared_ptr< const self > p = rtti::rk_dynamic_ptr_cast< const self >(this->Parent.lock());
         if(p)
           result = p->getGlobalFrame();
         else
           result = self(*(this->Parent.lock())).getGlobalFrame();
 
-	rot_mat_3D<value_type> R(result.Quat.getRotMat());
+        rot_mat_3D<value_type> R(result.Quat.getRotMat());
         result.Position += R * this->Position;
         result.Velocity += R * ( (result.AngVelocity % this->Position) + Velocity );
         result.Acceleration += R * ( (result.AngVelocity % (result.AngVelocity % this->Position)) + value_type(2.0) * (result.AngVelocity % Velocity) + (result.AngAcceleration % this->Position) + Acceleration );
@@ -179,7 +179,7 @@ class frame_3D : public pose_3D<T> {
      */
     self getFrameRelativeTo(const shared_ptr< const base >& F) const {
       if(!F)
-	return getGlobalFrame();
+        return getGlobalFrame();
       if(this->Parent.expired()) { //If this is at the global node, F can meet this there.
         shared_ptr< const self > p = rtti::rk_dynamic_ptr_cast< const self >(F);
         if(p)
@@ -190,21 +190,21 @@ class frame_3D : public pose_3D<T> {
         if(this->Parent.lock() == F)
           return *this;
         else {
-	  shared_ptr< const self > p = rtti::rk_dynamic_ptr_cast< const self >(this->Parent.lock());
-	  if(p)
+          shared_ptr< const self > p = rtti::rk_dynamic_ptr_cast< const self >(this->Parent.lock());
+          if(p)
             return p->getFrameRelativeTo(F) * (*this);
           else
             return self(*(this->Parent.lock())).getFrameRelativeTo(F) * (*this);
         };
       } else if(F->isParentPose(rtti::rk_static_ptr_cast< const base >(this->mThis))) { //If this is somewhere down F's chain.
         shared_ptr< const self >p = rtti::rk_dynamic_ptr_cast< const self >(F);
-	if(p)
+        if(p)
           return ~(p->getFrameRelativeTo(rtti::rk_static_ptr_cast< const base >(this->mThis)));
         else
           return ~(self(*F).getFrameRelativeTo(rtti::rk_static_ptr_cast< const base >(this->mThis)));
       } else { //Else means F's chain meets "this"'s chain somewhere down, possibly all the way to the global node.
         shared_ptr< const self > p = rtti::rk_dynamic_ptr_cast< const self >(this->Parent.lock());
-	if(p)
+        if(p)
           return p->getFrameRelativeTo(F) * (*this);
         else
           return self(*(this->Parent.lock())).getFrameRelativeTo(F) * (*this);

@@ -33,10 +33,10 @@
 #ifndef REAK_DISTANCE_TO_GOAL_HEURISTICS_HPP
 #define REAK_DISTANCE_TO_GOAL_HEURISTICS_HPP
 
-#include "base/defs.hpp"
-#include "base/serializable.hpp"
+#include <ReaK/core/base/defs.hpp>
+#include <ReaK/core/base/serializable.hpp>
 
-#include "path_planning/spatial_trajectory_concept.hpp"
+#include <ReaK/ctrl/path_planning/spatial_trajectory_concept.hpp>
 
 
 namespace ReaK {
@@ -63,7 +63,7 @@ class distance_to_goal_heuristic : public serialization::serializable {
   public:
     
     distance_to_goal_heuristic(const shared_ptr<const Trajectory>& aTraject, 
-			       const DistanceMetric& aDist = DistanceMetric()) :
+                               const DistanceMetric& aDist = DistanceMetric()) :
                                traject(aTraject), dist(aDist) { };
   
     /** 

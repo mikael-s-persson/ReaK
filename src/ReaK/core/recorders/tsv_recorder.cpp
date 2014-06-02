@@ -21,7 +21,7 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "tsv_recorder.hpp"
+#include <ReaK/core/recorders/tsv_recorder.hpp>
 
 namespace ReaK {
 

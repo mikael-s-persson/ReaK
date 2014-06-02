@@ -122,9 +122,9 @@ int main() {
 
     output_rec << sim_time
                << joint_coord->q
-	       << joint_coord->q_dot
-	       << joint_coord->q_ddot
-	       << f_nl << recorder::data_recorder::end_value_row;
+               << joint_coord->q_dot
+               << joint_coord->q_ddot
+               << f_nl << recorder::data_recorder::end_value_row;
 
     joint_coord->q += joint_coord->q_dot * 0.001;
     joint_coord->q_dot += joint_coord->q_ddot * 0.001;

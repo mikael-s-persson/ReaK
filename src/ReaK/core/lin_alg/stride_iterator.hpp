@@ -253,7 +253,7 @@ class stride_iterator<RAIter,0> {
      */
     friend difference_type operator-(const self& it1, const self& it2) {
       if(it1.stride != it2.stride)
-	throw std::range_error("Iterator stride mismatch.");
+        throw std::range_error("Iterator stride mismatch.");
       return (it1.pos - it2.pos) / it1.stride;
     };
 
@@ -262,7 +262,7 @@ class stride_iterator<RAIter,0> {
      */
     friend bool operator==(const self& it1, const self& it2) {
       if(it1.stride != it2.stride)
-	throw std::range_error("Iterator stride mismatch.");
+        throw std::range_error("Iterator stride mismatch.");
       return it1.pos == it2.pos;
     };
     /**
@@ -270,7 +270,7 @@ class stride_iterator<RAIter,0> {
      */
     friend bool operator!=(const self& it1, const self& it2) {
       if(it1.stride != it2.stride)
-	throw std::range_error("Iterator stride mismatch.");
+        throw std::range_error("Iterator stride mismatch.");
       return it1.pos != it2.pos;
     };
     /**
@@ -278,7 +278,7 @@ class stride_iterator<RAIter,0> {
      */
     friend bool operator<(const self& it1, const self& it2) {
       if(it1.stride != it2.stride)
-	throw std::range_error("Iterator stride mismatch.");
+        throw std::range_error("Iterator stride mismatch.");
       return it1.pos < it2.pos;
     };
     /**
@@ -286,7 +286,7 @@ class stride_iterator<RAIter,0> {
      */
     friend bool operator>(const self& it1, const self& it2) {
       if(it1.stride != it2.stride)
-	throw std::range_error("Iterator stride mismatch.");
+        throw std::range_error("Iterator stride mismatch.");
       return it1.pos > it2.pos;
     };
     /**
@@ -294,7 +294,7 @@ class stride_iterator<RAIter,0> {
      */
     friend bool operator<=(const self& it1, const self& it2) {
       if(it1.stride != it2.stride)
-	throw std::range_error("Iterator stride mismatch.");
+        throw std::range_error("Iterator stride mismatch.");
       return it1.pos <= it2.pos;
     };
     /**
@@ -302,7 +302,7 @@ class stride_iterator<RAIter,0> {
      */
     friend bool operator>=(const self& it1, const self& it2) {
       if(it1.stride != it2.stride)
-	throw std::range_error("Iterator stride mismatch.");
+        throw std::range_error("Iterator stride mismatch.");
       return it1.pos >= it2.pos;
     };
 };

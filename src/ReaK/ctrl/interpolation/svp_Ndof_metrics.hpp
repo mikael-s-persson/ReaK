@@ -34,17 +34,16 @@
 #ifndef REAK_SVP_NDOF_METRICS_HPP
 #define REAK_SVP_NDOF_METRICS_HPP
 
-#include "base/defs.hpp"
+#include <ReaK/core/base/defs.hpp>
+#include <ReaK/core/optimization/optim_exceptions.hpp>
 
-#include "path_planning/proper_metric_concept.hpp"
-
-#include <boost/config.hpp>
-#include <boost/concept_check.hpp>
+#include <ReaK/ctrl/path_planning/proper_metric_concept.hpp>
+#include <ReaK/ctrl/topologies/time_topology.hpp>
 
 #include "generic_interpolator_factory.hpp"
 #include "sustained_velocity_pulse_Ndof.hpp"
-#include "topologies/time_topology.hpp"
-#include "optimization/optim_exceptions.hpp"
+
+#include <boost/concept_check.hpp>
 
 namespace ReaK {
 

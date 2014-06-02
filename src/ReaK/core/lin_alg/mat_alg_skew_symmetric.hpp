@@ -276,7 +276,31 @@ class mat<T,mat_structure::skew_symmetric,Alignment,Allocator> : public serializ
       else
         return value_type(0.0);
     };
-
+    
+    /**
+     * Sub-matrix operator, accessor for read only.
+     * \test PASSED
+     */
+    mat_const_sub_block<self> operator()(const std::pair<size_type,size_type>& r, const std::pair<size_type,size_type>& c) const {
+      return sub(*this)(r,c);
+    };
+    
+    /**
+     * Sub-matrix operator, accessor for read only.
+     * \test PASSED
+     */
+    mat_const_col_slice<self> operator()(size_type r, const std::pair<size_type,size_type>& c) const {
+      return slice(*this)(r,c);
+    };
+    
+    /**
+     * Sub-matrix operator, accessor for read only.
+     * \test PASSED
+     */
+    mat_const_row_slice<self> operator()(const std::pair<size_type,size_type>& r, size_type c) const {
+      return slice(*this)(r,c);
+    };
+    
     /**
      * Gets the row-count (number of rows) of the matrix.
      * \return number of rows of the matrix.
@@ -758,6 +782,26 @@ class mat<T,mat_structure::skew_symmetric,Alignment,Allocator> : public serializ
     RK_RTTI_REGISTER_CLASS_1BASE(self,1,serialization::serializable)
   
 };
+
+
+#define RK_CREATE_SUBSKEWMATRIX_TRANSPOSE_OPERATORS(SUBMATRIX) \
+template <typename Matrix> \
+mat<typename mat_traits<Matrix>::value_type,mat_structure::skew_symmetric> transpose(const SUBMATRIX<Matrix,mat_structure::skew_symmetric>& M) { \
+  typedef mat<typename mat_traits<Matrix>::value_type,mat_structure::skew_symmetric> result_type; \
+  return result_type(-M); \
+}; \
+ \
+template <typename Matrix> \
+mat<typename mat_traits<Matrix>::value_type,mat_structure::skew_symmetric> transpose_move(const SUBMATRIX<Matrix,mat_structure::skew_symmetric>& M) { \
+  typedef mat<typename mat_traits<Matrix>::value_type,mat_structure::skew_symmetric> result_type; \
+  return result_type(-M); \
+};
+
+RK_CREATE_SUBSKEWMATRIX_TRANSPOSE_OPERATORS(mat_copy_sub_sym_block)
+RK_CREATE_SUBSKEWMATRIX_TRANSPOSE_OPERATORS(mat_sub_sym_block)
+RK_CREATE_SUBSKEWMATRIX_TRANSPOSE_OPERATORS(mat_const_sub_sym_block)
+
+#undef RK_CREATE_SUBSKEWMATRIX_TRANSPOSE_OPERATORS
 
 
 #ifndef BOOST_NO_CXX11_EXTERN_TEMPLATE

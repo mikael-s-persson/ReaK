@@ -21,7 +21,7 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "defs.hpp"
+#include <ReaK/core/base/defs.hpp>
 
 int main() {
  /* THE FOLLOWING HAS BEEN TESTED AND WORKS!

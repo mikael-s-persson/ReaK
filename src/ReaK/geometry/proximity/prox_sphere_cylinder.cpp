@@ -91,10 +91,10 @@ void prox_sphere_cylinder::computeProximity() {
 
 
 prox_sphere_cylinder::prox_sphere_cylinder(const shared_ptr< sphere >& aSphere,
-				           const shared_ptr< cylinder >& aCylinder) :
-				           proximity_finder_3D(),
-				           mSphere(aSphere),
-				           mCylinder(aCylinder) { };
+                                           const shared_ptr< cylinder >& aCylinder) :
+                                           proximity_finder_3D(),
+                                           mSphere(aSphere),
+                                           mCylinder(aCylinder) { };
     
     
 void RK_CALL prox_sphere_cylinder::save(ReaK::serialization::oarchive& A, unsigned int) const {

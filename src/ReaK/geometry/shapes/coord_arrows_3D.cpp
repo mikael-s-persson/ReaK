@@ -30,11 +30,11 @@ namespace geom {
 
 
 coord_arrows_3D::coord_arrows_3D(const std::string& aName,
-				 const shared_ptr< pose_3D<double> >& aAnchor,
-				 const pose_3D<double>& aPose,
-				 double aArrowLength) :
-				 geometry_3D(aName,aAnchor,aPose),
-				 mArrowLength(aArrowLength) { };
+                                 const shared_ptr< pose_3D<double> >& aAnchor,
+                                 const pose_3D<double>& aPose,
+                                 double aArrowLength) :
+                                 geometry_3D(aName,aAnchor,aPose),
+                                 mArrowLength(aArrowLength) { };
     
 void RK_CALL coord_arrows_3D::save(ReaK::serialization::oarchive& A, unsigned int) const {
   geometry_3D::save(A,geometry_3D::getStaticObjectType()->TypeVersion());

@@ -33,10 +33,9 @@
 #ifndef REAK_HESSIAN_APPROX_UPDATE_HPP
 #define REAK_HESSIAN_APPROX_UPDATE_HPP
 
-#include "base/defs.hpp"
-
-#include "lin_alg/mat_alg.hpp"
-#include "lin_alg/mat_num_exceptions.hpp"
+#include <ReaK/core/base/defs.hpp>
+#include <ReaK/core/lin_alg/mat_alg.hpp>
+#include <ReaK/core/lin_alg/mat_num_exceptions.hpp>
 
 
 namespace ReaK {

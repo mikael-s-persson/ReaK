@@ -156,9 +156,9 @@ void free_floater_2D_kinematics::getJacobianMatrixAndDerivativeImpl(
   std::size_t RowInd = 0;
   for(std::size_t j = 0; j < m_EEs.size(); ++j) {
     if(m_EEs[j]->mUpStream2DJoints.find(m_state_frame) != m_EEs[j]->mUpStream2DJoints.end()) {
-      mat_sub_block< Matrix > subJac = sub(Jac)(range(RowInd,RowInd+2),range(0, 2));
+      mat_sub_block< Matrix > subJac = sub(Jac)(range(RowInd,RowInd+3),range(0, 3));
       if(JacDot) {
-        mat_sub_block< Matrix > subJacDot = sub(*JacDot)(range(RowInd,RowInd+2),range(0, 2));
+        mat_sub_block< Matrix > subJacDot = sub(*JacDot)(range(RowInd,RowInd+3),range(0, 3));
         m_EEs[j]->mUpStream2DJoints[m_state_frame]->get_jac_relative_to(m_EEs[j]->mFrame).write_to_matrices(subJac,subJacDot);
       } else {
         m_EEs[j]->mUpStream2DJoints[m_state_frame]->get_jac_relative_to(m_EEs[j]->mFrame).write_to_matrices(subJac);
@@ -424,9 +424,9 @@ void free_floater_3D_kinematics::getJacobianMatrixAndDerivativeImpl(
   std::size_t RowInd = 0;
   for(std::size_t j = 0; j < m_EEs.size(); ++j) {
     if(m_EEs[j]->mUpStream3DJoints.find(m_state_frame) != m_EEs[j]->mUpStream3DJoints.end()) {
-      mat_sub_block< Matrix > subJac = sub(Jac)(range(RowInd,RowInd+5),range(0, 5));
+      mat_sub_block< Matrix > subJac = sub(Jac)(range(RowInd,RowInd+6),range(0, 6));
       if(JacDot) {
-        mat_sub_block< Matrix > subJacDot = sub(*JacDot)(range(RowInd,RowInd+5),range(0, 5));
+        mat_sub_block< Matrix > subJacDot = sub(*JacDot)(range(RowInd,RowInd+6),range(0, 6));
         m_EEs[j]->mUpStream3DJoints[m_state_frame]->get_jac_relative_to(m_EEs[j]->mFrame).write_to_matrices(subJac,subJacDot);
       } else {
         m_EEs[j]->mUpStream3DJoints[m_state_frame]->get_jac_relative_to(m_EEs[j]->mFrame).write_to_matrices(subJac);
