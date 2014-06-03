@@ -224,7 +224,7 @@ struct is_point_distribution< hyperball_topology<Vector> > : boost::mpl::true_ {
 
 #ifndef BOOST_NO_CXX11_EXTERN_TEMPLATE
 
-#include "lin_alg/vect_alg.hpp"
+#include <ReaK/core/lin_alg/vect_alg.hpp>
 
 namespace ReaK {
 

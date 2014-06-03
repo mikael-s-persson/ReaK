@@ -32,7 +32,7 @@
 #include <ReaK/ctrl/path_planning/path_planner_options.hpp>
 #include <ReaK/ctrl/kte_models/chaser_target_model_data.hpp>
 
-#include "rk_view3d_menu.hpp"
+#include <ReaK/gui_qt/rk_view3d_menu.hpp>
 
 #include <ReaK/gui_qt/chaser_target_config_widget.hpp>
 #include <ReaK/gui_qt/chaser_target_interact_widget.hpp>

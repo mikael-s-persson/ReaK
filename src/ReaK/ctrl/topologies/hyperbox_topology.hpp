@@ -238,7 +238,7 @@ struct is_metric_symmetric< hyperbox_topology<Vector, DistanceMetric> > : is_met
 
 #ifndef BOOST_NO_CXX11_EXTERN_TEMPLATE
 
-#include "lin_alg/vect_alg.hpp"
+#include <ReaK/core/lin_alg/vect_alg.hpp>
 
 namespace ReaK {
 

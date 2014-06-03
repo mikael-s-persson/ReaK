@@ -9,7 +9,7 @@
 #include <ReaK/ctrl/ss_systems/airship_assembled_models.hpp>
 #include <ReaK/core/serialization/archiver_factory.hpp>
 
-#include <lin_alg/mat_are_solver.hpp>
+#include <ReaK/core/lin_alg/mat_are_solver.hpp>
 
 ReaK::vect<double,3> current_pos = ReaK::vect<double,3>(0.0,0.0,0.0);
 ReaK::vect<double,3> current_vel = ReaK::vect<double,3>(0.0,0.0,0.0);
