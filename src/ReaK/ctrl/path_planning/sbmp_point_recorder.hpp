@@ -39,12 +39,12 @@
 #include <boost/config.hpp>
 #include <boost/concept_check.hpp>
 
-#include "seq_trajectory_base.hpp"
+#include <ReaK/ctrl/interpolation/seq_trajectory_base.hpp>
 #include "basic_sbmp_reporters.hpp"
 #include <boost/graph/graph_concepts.hpp>
 
 #include <ReaK/ctrl/topologies/direct_kinematics_topomap.hpp>
-#include "topological_map_concepts.hpp"
+#include <ReaK/ctrl/topologies/topological_map_concepts.hpp>
 
 #include <ReaK/core/recorders/data_record.hpp>
 #include <ReaK/core/recorders/ssv_recorder.hpp>

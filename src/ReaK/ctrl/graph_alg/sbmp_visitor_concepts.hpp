@@ -36,7 +36,7 @@
 #include <boost/graph/graph_concepts.hpp>
 #include <boost/property_map/property_map.hpp>
 
-#include <ReaK/ctrl/path_planning/metric_space_concept.hpp>
+#include <ReaK/ctrl/topologies/metric_space_concept.hpp>
 
 
 namespace ReaK {

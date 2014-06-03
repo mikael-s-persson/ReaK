@@ -34,8 +34,8 @@
 #define REAK_SUSTAINED_ACCELERATION_PULSE_DETAIL_HPP
 
 #include <ReaK/core/lin_alg/arithmetic_tuple.hpp>
-#include <ReaK/ctrl/path_planning/bounded_space_concept.hpp>
-#include <ReaK/ctrl/path_planning/tangent_bundle_concept.hpp>
+#include <ReaK/ctrl/topologies/bounded_space_concept.hpp>
+#include <ReaK/ctrl/topologies/tangent_bundle_concept.hpp>
 
 #include "sustained_velocity_pulse_detail.hpp"
 

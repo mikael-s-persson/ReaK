@@ -38,8 +38,8 @@
 #include <ReaK/core/base/named_object.hpp>
 #include <ReaK/core/base/global_rng.hpp>
 
-#include <ReaK/ctrl/path_planning/metric_space_concept.hpp>
-#include <ReaK/ctrl/path_planning/reversible_space_concept.hpp>
+#include "metric_space_concept.hpp"
+#include "reversible_space_concept.hpp"
 
 #include "default_random_sampler.hpp"
 

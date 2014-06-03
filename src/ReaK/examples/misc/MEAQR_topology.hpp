@@ -39,10 +39,10 @@
 #include <ReaK/ctrl/topologies/tuple_distance_metrics.hpp>
 #include <ReaK/ctrl/topologies/hyperbox_topology.hpp>
 
-#include <ReaK/ctrl/path_planning/proper_metric_concept.hpp>
+#include <ReaK/ctrl/topologies/proper_metric_concept.hpp>
 
-#include <ReaK/ctrl/path_planning/metric_space_concept.hpp>
-#include <ReaK/ctrl/path_planning/steerable_space_concept.hpp>
+#include <ReaK/ctrl/topologies/metric_space_concept.hpp>
+#include <ReaK/ctrl/topologies/steerable_space_concept.hpp>
 
 #include <ReaK/ctrl/interpolation/discrete_point_path.hpp>
 

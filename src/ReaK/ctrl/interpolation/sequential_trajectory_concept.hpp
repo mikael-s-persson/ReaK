@@ -37,8 +37,8 @@
 
 #include <boost/concept_check.hpp>
 
-#include "metric_space_concept.hpp"
-#include "temporal_space_concept.hpp"
+#include <ReaK/ctrl/topologies/metric_space_concept.hpp>
+#include <ReaK/ctrl/topologies/temporal_space_concept.hpp>
 
 namespace ReaK {
 

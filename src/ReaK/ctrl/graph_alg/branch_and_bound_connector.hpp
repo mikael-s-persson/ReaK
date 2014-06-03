@@ -39,7 +39,7 @@
 #include <functional>
 #include <boost/utility/enable_if.hpp>
 
-#include <ReaK/ctrl/path_planning/metric_space_concept.hpp>
+#include <ReaK/ctrl/topologies/metric_space_concept.hpp>
 
 #include "lazy_connector.hpp"
 

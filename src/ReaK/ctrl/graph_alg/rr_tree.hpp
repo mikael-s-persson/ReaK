@@ -62,8 +62,8 @@
 #include <boost/graph/graph_concepts.hpp>
 #include <boost/property_map/property_map.hpp>
 
-#include <ReaK/ctrl/path_planning/metric_space_concept.hpp>
-#include <ReaK/ctrl/path_planning/random_sampler_concept.hpp>
+#include <ReaK/ctrl/topologies/metric_space_concept.hpp>
+#include <ReaK/ctrl/topologies/random_sampler_concept.hpp>
 
 // BGL-Extra includes:
 #include <boost/graph/tree_adaptor.hpp>

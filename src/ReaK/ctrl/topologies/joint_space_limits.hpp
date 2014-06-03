@@ -39,7 +39,7 @@
 
 #include <ReaK/core/lin_alg/vect_alg.hpp>
 
-#include <ReaK/ctrl/path_planning/metric_space_concept.hpp>
+#include "metric_space_concept.hpp"
 #include "rate_limited_space_metamaps.hpp"
 
 

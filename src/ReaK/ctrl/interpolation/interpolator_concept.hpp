@@ -41,7 +41,7 @@
 
 #include <ReaK/core/base/defs.hpp>
 
-#include "temporal_space_concept.hpp"
+#include <ReaK/ctrl/topologies/temporal_space_concept.hpp>
 
 #include <boost/concept_check.hpp>
 

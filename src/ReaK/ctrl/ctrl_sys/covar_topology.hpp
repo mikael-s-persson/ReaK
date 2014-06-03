@@ -43,8 +43,8 @@
 #include <ReaK/core/lin_alg/mat_qr_decomp.hpp>
 #include <ReaK/core/lin_alg/mat_exp_methods.hpp>
 
-#include <ReaK/ctrl/path_planning/metric_space_concept.hpp>
-#include <ReaK/ctrl/path_planning/reversible_space_concept.hpp>
+#include <ReaK/ctrl/topologies/metric_space_concept.hpp>
+#include <ReaK/ctrl/topologies/reversible_space_concept.hpp>
 #include <ReaK/ctrl/topologies/default_random_sampler.hpp>
 
 #include "covariance_concept.hpp"

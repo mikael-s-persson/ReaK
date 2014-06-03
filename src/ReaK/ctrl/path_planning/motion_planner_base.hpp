@@ -40,13 +40,13 @@
 #include <ReaK/core/base/defs.hpp>
 #include <ReaK/core/base/named_object.hpp>
 
-#include "metric_space_concept.hpp"
-#include "steerable_space_concept.hpp"
-#include "random_sampler_concept.hpp"
-#include "subspace_concept.hpp"
+#include <ReaK/ctrl/topologies/metric_space_concept.hpp>
+#include <ReaK/ctrl/topologies/steerable_space_concept.hpp>
+#include <ReaK/ctrl/topologies/random_sampler_concept.hpp>
+#include <ReaK/ctrl/topologies/subspace_concept.hpp>
 
-#include "seq_trajectory_base.hpp"
-#include "seq_path_base.hpp"
+#include <ReaK/ctrl/interpolation/seq_trajectory_base.hpp>
+#include <ReaK/ctrl/interpolation/seq_path_base.hpp>
 
 #include "path_planner_options.hpp"
 #include "any_motion_graphs.hpp"

@@ -37,7 +37,7 @@
 #include <boost/config.hpp>
 #include <boost/concept_check.hpp>
 
-#include <ReaK/ctrl/path_planning/metric_space_concept.hpp>
+#include <ReaK/ctrl/topologies/metric_space_concept.hpp>
 
 namespace ReaK {
 

@@ -37,7 +37,7 @@
 
 #include <ReaK/ctrl/path_planning/motion_planner_base.hpp>
 
-#include <ReaK/ctrl/path_planning/metric_space_concept.hpp>
+#include <ReaK/ctrl/topologies/metric_space_concept.hpp>
 #include <ReaK/ctrl/path_planning/any_sbmp_reporter.hpp>
 
 #include <ReaK/ctrl/graph_alg/rrt_star.hpp>

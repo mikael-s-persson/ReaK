@@ -37,8 +37,8 @@
 #include <ReaK/core/base/defs.hpp>
 #include <ReaK/core/base/shared_object.hpp>
 
-#include <ReaK/ctrl/path_planning/metric_space_concept.hpp>
-#include <ReaK/ctrl/path_planning/topological_map_concepts.hpp>
+#include "metric_space_concept.hpp"
+#include "topological_map_concepts.hpp"
 
 
 namespace ReaK {

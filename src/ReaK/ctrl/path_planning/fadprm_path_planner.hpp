@@ -41,7 +41,7 @@
 #include <ReaK/core/base/named_object.hpp>
 
 #include "motion_planner_base.hpp"
-#include "metric_space_concept.hpp"
+#include <ReaK/ctrl/topologies/metric_space_concept.hpp>
 #include "any_sbmp_reporter.hpp"
 
 

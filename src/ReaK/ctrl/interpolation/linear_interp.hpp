@@ -38,8 +38,8 @@
 #include <ReaK/core/lin_alg/arithmetic_tuple.hpp>
 #include <ReaK/core/lin_alg/mat_num_exceptions.hpp>
 
-#include <ReaK/ctrl/path_planning/spatial_trajectory_concept.hpp>
-#include <ReaK/ctrl/path_planning/tangent_bundle_concept.hpp>
+#include "spatial_trajectory_concept.hpp"
+#include <ReaK/ctrl/topologies/tangent_bundle_concept.hpp>
 
 #include "interpolated_trajectory.hpp"
 #include "generic_interpolator_factory.hpp"

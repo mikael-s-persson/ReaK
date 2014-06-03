@@ -40,8 +40,8 @@
 #include <boost/config.hpp>
 #include <boost/concept_check.hpp>
 
-#include "seq_trajectory_base.hpp"
-#include "seq_path_base.hpp"
+#include <ReaK/ctrl/interpolation/seq_trajectory_base.hpp>
+#include <ReaK/ctrl/interpolation/seq_path_base.hpp>
 
 /** Main namespace for ReaK */
 namespace ReaK {

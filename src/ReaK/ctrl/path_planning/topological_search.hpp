@@ -61,7 +61,7 @@
 #include <iterator>
 #include <queue>
 
-#include "metric_space_concept.hpp"
+#include <ReaK/ctrl/topologies/metric_space_concept.hpp>
 
 #include <ReaK/core/base/misc_math.hpp>
 

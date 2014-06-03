@@ -38,9 +38,9 @@
 #include <ReaK/core/base/defs.hpp>
 #include <ReaK/core/base/named_object.hpp>
 
-#include <ReaK/ctrl/path_planning/random_sampler_concept.hpp>
-#include <ReaK/ctrl/path_planning/metric_space_concept.hpp>
-#include <ReaK/ctrl/path_planning/reversible_space_concept.hpp>
+#include "random_sampler_concept.hpp"
+#include "metric_space_concept.hpp"
+#include "reversible_space_concept.hpp"
 
 #include <ReaK/ctrl/interpolation/interpolated_topologies.hpp>
 #include "proxy_model_updater.hpp"

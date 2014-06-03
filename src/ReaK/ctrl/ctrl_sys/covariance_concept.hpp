@@ -41,7 +41,7 @@
 #include <ReaK/core/lin_alg/mat_concepts.hpp>
 #include <ReaK/core/lin_alg/arithmetic_tuple.hpp>
 
-#include <ReaK/ctrl/path_planning/metric_space_concept.hpp>
+#include <ReaK/ctrl/topologies/metric_space_concept.hpp>
 
 #include "state_vector_concept.hpp"
 

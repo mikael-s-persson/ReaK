@@ -58,7 +58,7 @@
 
 
 
-#include "metric_space_concept.hpp"
+#include <ReaK/ctrl/topologies/metric_space_concept.hpp>
 
 #include <boost/mpl/if.hpp>
 

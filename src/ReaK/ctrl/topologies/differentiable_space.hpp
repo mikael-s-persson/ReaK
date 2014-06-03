@@ -42,8 +42,8 @@
 #include <boost/static_assert.hpp>
 
 #include "time_topology.hpp"
-#include <ReaK/ctrl/path_planning/metric_space_concept.hpp>
-#include <ReaK/ctrl/path_planning/tangent_bundle_concept.hpp>
+#include "metric_space_concept.hpp"
+#include "tangent_bundle_concept.hpp"
 #include "metric_space_tuple.hpp"
 
 #include <cmath>

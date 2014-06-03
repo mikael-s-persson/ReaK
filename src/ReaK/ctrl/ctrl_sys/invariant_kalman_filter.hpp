@@ -45,7 +45,7 @@
 #include <ReaK/core/lin_alg/mat_alg.hpp>
 #include <ReaK/core/lin_alg/mat_cholesky.hpp>
 
-#include <ReaK/ctrl/path_planning/metric_space_concept.hpp>
+#include <ReaK/ctrl/topologies/metric_space_concept.hpp>
 
 #include "belief_state_concept.hpp"
 #include "discrete_linear_sss_concept.hpp"

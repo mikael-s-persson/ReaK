@@ -36,8 +36,8 @@
 #include <ReaK/core/base/shared_object.hpp>
 
 #include <ReaK/ctrl/graph_alg/any_graph.hpp>
-#include "seq_trajectory_base.hpp"
-#include "seq_path_base.hpp"
+#include <ReaK/ctrl/interpolation/seq_trajectory_base.hpp>
+#include <ReaK/ctrl/interpolation/seq_path_base.hpp>
 #include "any_motion_graphs.hpp"
 
 #include <boost/concept_check.hpp>

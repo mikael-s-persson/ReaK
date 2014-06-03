@@ -38,9 +38,9 @@
 
 #include <boost/concept_check.hpp>
 
-#include "subspace_concept.hpp"
-#include "seq_trajectory_base.hpp"
-#include "seq_path_base.hpp"
+#include <ReaK/ctrl/topologies/subspace_concept.hpp>
+#include <ReaK/ctrl/interpolation/seq_trajectory_base.hpp>
+#include <ReaK/ctrl/interpolation/seq_path_base.hpp>
 #include <boost/graph/graph_concepts.hpp>
 
 #include <fstream>

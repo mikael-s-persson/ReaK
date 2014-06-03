@@ -27,7 +27,7 @@
 #include "CRS_planner_data.hpp"
 
 #include <ReaK/ctrl/topologies/temporal_space.hpp>
-#include <ReaK/ctrl/path_planning/trajectory_base.hpp>
+#include <ReaK/ctrl/interpolation/trajectory_base.hpp>
 
 class SoTimerSensor;
 

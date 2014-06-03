@@ -36,10 +36,10 @@
 #include <ReaK/core/base/defs.hpp>
 #include <ReaK/core/base/named_object.hpp>
 
-#include <ReaK/ctrl/path_planning/metric_space_concept.hpp>
-#include <ReaK/ctrl/path_planning/reversible_space_concept.hpp>
-#include <ReaK/ctrl/path_planning/temporal_space_concept.hpp>
-#include <ReaK/ctrl/path_planning/proper_metric_concept.hpp>
+#include "metric_space_concept.hpp"
+#include "reversible_space_concept.hpp"
+#include "temporal_space_concept.hpp"
+#include "proper_metric_concept.hpp"
 
 #include "temporal_distance_metrics.hpp"
 #include "default_random_sampler.hpp"

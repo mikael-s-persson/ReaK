@@ -38,8 +38,8 @@
 
 #include "proxy_model_updater.hpp"
 
-#include <ReaK/ctrl/path_planning/metric_space_concept.hpp>
-#include <ReaK/ctrl/path_planning/spatial_trajectory_concept.hpp>  // for SpatialTrajectoryConcept
+#include "metric_space_concept.hpp"
+#include <ReaK/ctrl/interpolation/spatial_trajectory_concept.hpp>  // for SpatialTrajectoryConcept
 
 
 namespace ReaK {

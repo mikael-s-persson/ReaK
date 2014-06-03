@@ -35,7 +35,7 @@
 
 #include <ReaK/core/base/serializable.hpp>
 
-#include <ReaK/ctrl/path_planning/random_sampler_concept.hpp>
+#include "random_sampler_concept.hpp"
 
 #include "se3_topologies.hpp"
 

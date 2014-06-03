@@ -38,12 +38,12 @@
 
 #include <boost/concept_check.hpp>
 
-#include "trajectory_base.hpp"
+#include <ReaK/ctrl/interpolation/trajectory_base.hpp>
 #include "basic_sbmp_reporters.hpp"
 #include <boost/graph/graph_concepts.hpp>
 
 #include <ReaK/ctrl/topologies/direct_kinematics_topomap.hpp>
-#include "topological_map_concepts.hpp"
+#include <ReaK/ctrl/topologies/topological_map_concepts.hpp>
 
 #include <ReaK/ctrl/topologies/proxy_model_updater.hpp>
 

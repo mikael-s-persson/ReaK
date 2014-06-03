@@ -37,8 +37,8 @@
 #include <ReaK/core/base/defs.hpp>
 #include <ReaK/core/base/serializable.hpp>
 
-#include <ReaK/ctrl/path_planning/metric_space_concept.hpp>
-#include <ReaK/ctrl/path_planning/prob_distribution_concept.hpp>
+#include "metric_space_concept.hpp"
+#include "prob_distribution_concept.hpp"
 #include <ReaK/core/lin_alg/arithmetic_tuple.hpp>
 
 #include "tuple_distance_metrics.hpp"

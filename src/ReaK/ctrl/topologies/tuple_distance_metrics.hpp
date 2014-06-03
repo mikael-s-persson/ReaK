@@ -38,7 +38,7 @@
 #include <cmath>
 #include <ReaK/core/lin_alg/arithmetic_tuple.hpp>
 
-#include <ReaK/ctrl/path_planning/metric_space_concept.hpp>
+#include "metric_space_concept.hpp"
 
 namespace ReaK {
 

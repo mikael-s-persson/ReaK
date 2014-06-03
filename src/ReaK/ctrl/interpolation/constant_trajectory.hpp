@@ -31,8 +31,8 @@
 #ifndef REAK_CONSTANT_TRAJECTORY_HPP
 #define REAK_CONSTANT_TRAJECTORY_HPP
 
-#include <ReaK/ctrl/path_planning/spatial_path_concept.hpp>
-#include <ReaK/ctrl/path_planning/temporal_space_concept.hpp>
+#include "spatial_path_concept.hpp"
+#include <ReaK/ctrl/topologies/temporal_space_concept.hpp>
 
 #include <boost/config.hpp>
 #include <cmath>

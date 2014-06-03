@@ -39,7 +39,7 @@
 
 #include <ReaK/core/lin_alg/arithmetic_tuple.hpp>
 
-#include <ReaK/ctrl/path_planning/metric_space_concept.hpp>
+#include <ReaK/ctrl/topologies/metric_space_concept.hpp>
 
 #include "linear_ss_system_concept.hpp"
 #include "discrete_sss_concept.hpp"

@@ -42,8 +42,8 @@
 #include "any_motion_graphs.hpp"
 #include "any_knn_synchro.hpp"
 
-#include "metric_space_concept.hpp"
-#include "subspace_concept.hpp"
+#include <ReaK/ctrl/topologies/metric_space_concept.hpp>
+#include <ReaK/ctrl/topologies/subspace_concept.hpp>
 
 #include <boost/mpl/if.hpp>
 #include <boost/type_traits/is_convertible.hpp>

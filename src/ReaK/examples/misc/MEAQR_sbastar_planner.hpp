@@ -40,8 +40,8 @@
 #include <ReaK/ctrl/path_planning/motion_planner_base.hpp>
 #include <ReaK/ctrl/path_planning/sbmp_reporter_concept.hpp>
 
-#include <ReaK/ctrl/path_planning/metric_space_concept.hpp>
-#include <ReaK/ctrl/path_planning/seq_path_wrapper.hpp>
+#include <ReaK/ctrl/topologies/metric_space_concept.hpp>
+#include <ReaK/ctrl/interpolation/seq_path_wrapper.hpp>
 #include <ReaK/ctrl/interpolation/point_to_point_path.hpp>
 #include <ReaK/ctrl/path_planning/basic_sbmp_reporters.hpp>
 

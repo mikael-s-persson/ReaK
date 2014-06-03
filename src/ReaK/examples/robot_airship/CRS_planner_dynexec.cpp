@@ -54,12 +54,12 @@
 #include <ReaK/ctrl/path_planning/frame_tracer_coin3d.hpp>
 
 #include <ReaK/ctrl/interpolation/discrete_point_trajectory.hpp>
-#include <ReaK/ctrl/path_planning/trajectory_base.hpp>
+#include <ReaK/ctrl/interpolation/trajectory_base.hpp>
 #include <ReaK/ctrl/topologies/manip_planning_traits.hpp>
 
 #include <ReaK/ctrl/topologies/proxy_traj_applicator.hpp>
 #include <ReaK/ctrl/topologies/direct_inverse_kin_topomap.hpp>
-#include <ReaK/ctrl/path_planning/transformed_trajectory.hpp>
+#include <ReaK/ctrl/interpolation/transformed_trajectory.hpp>
 
 #include <ReaK/ctrl/topologies/Ndof_linear_spaces.hpp>
 #include <ReaK/ctrl/topologies/Ndof_cubic_spaces.hpp>

@@ -37,7 +37,7 @@
 #include <ReaK/core/base/defs.hpp>
 #include <ReaK/core/optimization/optim_exceptions.hpp>
 
-#include <ReaK/ctrl/path_planning/proper_metric_concept.hpp>
+#include <ReaK/ctrl/topologies/proper_metric_concept.hpp>
 #include <ReaK/ctrl/topologies/time_topology.hpp>
 
 #include "generic_interpolator_factory.hpp"

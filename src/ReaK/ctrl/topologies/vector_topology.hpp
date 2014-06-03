@@ -38,8 +38,8 @@
 
 #include <ReaK/core/lin_alg/vect_concepts.hpp>
 
-#include <ReaK/ctrl/path_planning/metric_space_concept.hpp>
-#include <ReaK/ctrl/path_planning/reversible_space_concept.hpp>
+#include "metric_space_concept.hpp"
+#include "reversible_space_concept.hpp"
 
 namespace ReaK {
 

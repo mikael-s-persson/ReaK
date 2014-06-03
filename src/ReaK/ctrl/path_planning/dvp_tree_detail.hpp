@@ -38,8 +38,8 @@
 #include <boost/graph/graph_concepts.hpp>
 #include <boost/property_map/property_map.hpp>
 
-#include "metric_space_concept.hpp"
-#include "proper_metric_concept.hpp"
+#include <ReaK/ctrl/topologies/metric_space_concept.hpp>
+#include <ReaK/ctrl/topologies/proper_metric_concept.hpp>
 
 #include <ReaK/core/base/global_rng.hpp>
 

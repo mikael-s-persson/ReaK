@@ -33,7 +33,7 @@
 #ifndef REAK_REACHABILITY_SORT_HPP
 #define REAK_REACHABILITY_SORT_HPP
 
-#include "reachability_space_concept.hpp"
+#include <ReaK/ctrl/topologies/reachability_space_concept.hpp>
 
 #include <boost/graph/graph_traits.hpp>
 #include <boost/graph/graph_concepts.hpp>

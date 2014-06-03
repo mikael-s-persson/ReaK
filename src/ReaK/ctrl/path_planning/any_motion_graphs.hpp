@@ -35,8 +35,8 @@
 #include <ReaK/core/lin_alg/arithmetic_tuple.hpp>
 #include <ReaK/ctrl/graph_alg/any_graph.hpp>
 
-#include "metric_space_concept.hpp"
-#include "steerable_space_concept.hpp"
+#include <ReaK/ctrl/topologies/metric_space_concept.hpp>
+#include <ReaK/ctrl/topologies/steerable_space_concept.hpp>
 
 #include <iostream>
 #include <iomanip>

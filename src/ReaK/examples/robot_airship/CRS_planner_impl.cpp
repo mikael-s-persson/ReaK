@@ -41,7 +41,7 @@
 #include <ReaK/core/serialization/archiver_factory.hpp>
 
 #include <ReaK/ctrl/interpolation/discrete_point_trajectory.hpp>
-#include <ReaK/ctrl/path_planning/trajectory_base.hpp>
+#include <ReaK/ctrl/interpolation/trajectory_base.hpp>
 
 #include "CRS_planner_data.hpp"
 

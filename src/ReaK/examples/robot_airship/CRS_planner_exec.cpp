@@ -55,7 +55,7 @@
 #include <ReaK/core/optimization/optim_exceptions.hpp>
 
 #include <ReaK/ctrl/interpolation/discrete_point_trajectory.hpp>
-#include <ReaK/ctrl/path_planning/trajectory_base.hpp>
+#include <ReaK/ctrl/interpolation/trajectory_base.hpp>
 #include <ReaK/ctrl/topologies/manip_planning_traits.hpp>
 
 #include <ReaK/ctrl/topologies/Ndof_linear_spaces.hpp>

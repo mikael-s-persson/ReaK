@@ -37,8 +37,8 @@
 #include "state_vector_concept.hpp"
 #include "discrete_sss_concept.hpp"
 
-#include <ReaK/ctrl/path_planning/predicted_trajectory_concept.hpp>
-#include <ReaK/ctrl/path_planning/temporal_space_concept.hpp>
+#include <ReaK/ctrl/interpolation/predicted_trajectory_concept.hpp>
+#include <ReaK/ctrl/topologies/temporal_space_concept.hpp>
 
 #include <ReaK/ctrl/topologies/temporal_space.hpp>
 #include <ReaK/ctrl/topologies/time_poisson_topology.hpp>

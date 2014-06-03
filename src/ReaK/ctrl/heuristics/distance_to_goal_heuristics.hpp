@@ -36,7 +36,7 @@
 #include <ReaK/core/base/defs.hpp>
 #include <ReaK/core/base/serializable.hpp>
 
-#include <ReaK/ctrl/path_planning/spatial_trajectory_concept.hpp>
+#include <ReaK/ctrl/interpolation/spatial_trajectory_concept.hpp>
 
 
 namespace ReaK {

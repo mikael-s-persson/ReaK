@@ -35,7 +35,7 @@
 
 #include <ReaK/core/base/serializable.hpp>
 
-#include <ReaK/ctrl/path_planning/temporal_space_concept.hpp>
+#include "temporal_space_concept.hpp"
 
 namespace ReaK {
 

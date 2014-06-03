@@ -36,9 +36,9 @@
 
 #include <ReaK/core/base/defs.hpp>
 
-#include <ReaK/ctrl/path_planning/temporal_space_concept.hpp>
-#include <ReaK/ctrl/path_planning/tangent_bundle_concept.hpp>
-#include <ReaK/ctrl/path_planning/bounded_space_concept.hpp>
+#include <ReaK/ctrl/topologies/temporal_space_concept.hpp>
+#include <ReaK/ctrl/topologies/tangent_bundle_concept.hpp>
+#include <ReaK/ctrl/topologies/bounded_space_concept.hpp>
 #include <ReaK/ctrl/topologies/rate_limited_spaces.hpp>
 
 #include "interpolated_trajectory.hpp"

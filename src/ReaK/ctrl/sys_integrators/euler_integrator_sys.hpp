@@ -38,9 +38,9 @@
 
 #include <ReaK/core/base/named_object.hpp>
 #include <ReaK/ctrl/ctrl_sys/state_space_sys_concept.hpp>
-#include <ReaK/ctrl/path_planning/metric_space_concept.hpp>
-#include <ReaK/ctrl/path_planning/temporal_space_concept.hpp>
-#include <ReaK/ctrl/path_planning/spatial_trajectory_concept.hpp>
+#include <ReaK/ctrl/topologies/metric_space_concept.hpp>
+#include <ReaK/ctrl/topologies/temporal_space_concept.hpp>
+#include <ReaK/ctrl/interpolation/spatial_trajectory_concept.hpp>
 
 namespace ReaK {
 

@@ -37,7 +37,7 @@
 #ifndef REAK_DVP_LAYOUT_ADJACENCY_LIST_HPP
 #define REAK_DVP_LAYOUT_ADJACENCY_LIST_HPP
 
-#include "metric_space_concept.hpp"
+#include <ReaK/ctrl/topologies/metric_space_concept.hpp>
 
 #include <ReaK/ctrl/graph_alg/adj_list_tree_overlay.hpp>
 

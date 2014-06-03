@@ -36,7 +36,7 @@
 #define REAK_GAUSSIAN_BELIEF_SPACE_HPP
 
 #include <ReaK/core/base/named_object.hpp>
-#include <ReaK/ctrl/path_planning/metric_space_concept.hpp>
+#include <ReaK/ctrl/topologies/metric_space_concept.hpp>
 #include <ReaK/ctrl/topologies/default_random_sampler.hpp>
 
 #include "gaussian_belief_state.hpp"

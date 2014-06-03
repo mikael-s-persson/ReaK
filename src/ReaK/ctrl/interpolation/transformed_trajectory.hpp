@@ -36,9 +36,9 @@
 #include <ReaK/core/base/defs.hpp>
 #include <ReaK/core/base/shared_object.hpp>
 
-#include "metric_space_concept.hpp"
+#include <ReaK/ctrl/topologies/metric_space_concept.hpp>
 #include "spatial_trajectory_concept.hpp"
-#include "topological_map_concepts.hpp"
+#include <ReaK/ctrl/topologies/topological_map_concepts.hpp>
 #include "sequential_trajectory_concept.hpp"
 
 #include <boost/concept_check.hpp>

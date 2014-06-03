@@ -38,7 +38,7 @@
 #include <cmath>
 #include <boost/concept_check.hpp>
 
-#include "metric_space_concept.hpp"
+#include <ReaK/ctrl/topologies/metric_space_concept.hpp>
 
 #include <exception>
 #include <string>

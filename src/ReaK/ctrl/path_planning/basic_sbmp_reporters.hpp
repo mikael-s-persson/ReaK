@@ -35,10 +35,10 @@
 #include <ReaK/core/base/defs.hpp>
 #include <ReaK/core/base/shared_object.hpp>
 
-#include "subspace_concept.hpp"
-#include "steerable_space_concept.hpp"
-#include "seq_trajectory_base.hpp"
-#include "seq_path_base.hpp"
+#include <ReaK/ctrl/topologies/subspace_concept.hpp>
+#include <ReaK/ctrl/topologies/steerable_space_concept.hpp>
+#include <ReaK/ctrl/interpolation/seq_trajectory_base.hpp>
+#include <ReaK/ctrl/interpolation/seq_path_base.hpp>
 
 #include <boost/concept_check.hpp>
 #include <boost/graph/graph_concepts.hpp>

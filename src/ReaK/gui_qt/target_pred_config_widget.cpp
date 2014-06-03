@@ -40,7 +40,7 @@
 #include <ReaK/ctrl/ctrl_sys/belief_state_predictor.hpp>
 #include <ReaK/ctrl/ctrl_sys/maximum_likelihood_mapping.hpp>
 #include <ReaK/ctrl/interpolation/constant_trajectory.hpp>
-#include <ReaK/ctrl/path_planning/transformed_trajectory.hpp>
+#include <ReaK/ctrl/interpolation/transformed_trajectory.hpp>
 
 
 #include <ReaK/core/recorders/data_record_options.hpp>

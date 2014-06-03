@@ -32,8 +32,8 @@
 #ifndef REAK_GENERIC_INTERPOLATOR_FACTORY_HPP
 #define REAK_GENERIC_INTERPOLATOR_FACTORY_HPP
 
-#include <ReaK/ctrl/path_planning/tangent_bundle_concept.hpp>
-#include <ReaK/ctrl/path_planning/temporal_space_concept.hpp>
+#include <ReaK/ctrl/topologies/tangent_bundle_concept.hpp>
+#include <ReaK/ctrl/topologies/temporal_space_concept.hpp>
 
 #include <ReaK/core/lin_alg/arithmetic_tuple.hpp>
 #include <ReaK/ctrl/topologies/metric_space_tuple.hpp>

@@ -43,7 +43,7 @@
 #include <vector>   // for vector
 #include <limits>   // for numeric_limits
 
-#include "metric_space_concept.hpp"
+#include <ReaK/ctrl/topologies/metric_space_concept.hpp>
 
 
 // BGL-Extra includes:

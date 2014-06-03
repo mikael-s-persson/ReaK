@@ -36,7 +36,7 @@
 
 #include <ReaK/core/base/defs.hpp>
 
-#include <ReaK/ctrl/path_planning/spatial_path_concept.hpp>
+#include "spatial_path_concept.hpp"
 
 #include "waypoint_container.hpp"
 

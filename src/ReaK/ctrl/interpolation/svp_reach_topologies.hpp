@@ -37,10 +37,10 @@
 #include <ReaK/core/base/defs.hpp>
 #include <ReaK/core/optimization/optim_exceptions.hpp>
 
-#include <ReaK/ctrl/path_planning/spatial_trajectory_concept.hpp>
-#include <ReaK/ctrl/path_planning/tangent_bundle_concept.hpp>
-#include <ReaK/ctrl/path_planning/bounded_space_concept.hpp>
-#include <ReaK/ctrl/path_planning/reversible_space_concept.hpp>
+#include "spatial_trajectory_concept.hpp"
+#include <ReaK/ctrl/topologies/tangent_bundle_concept.hpp>
+#include <ReaK/ctrl/topologies/bounded_space_concept.hpp>
+#include <ReaK/ctrl/topologies/reversible_space_concept.hpp>
 #include <ReaK/ctrl/topologies/generic_sampler_factory.hpp>
 #include <ReaK/ctrl/topologies/rate_limited_spaces.hpp>
 

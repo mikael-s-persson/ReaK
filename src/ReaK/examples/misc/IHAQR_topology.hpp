@@ -40,11 +40,11 @@
 #include <ReaK/ctrl/topologies/tuple_distance_metrics.hpp>
 #include <ReaK/ctrl/topologies/hyperbox_topology.hpp>
 
-#include <ReaK/ctrl/path_planning/proper_metric_concept.hpp>
+#include <ReaK/ctrl/topologies/proper_metric_concept.hpp>
 
 #include <ReaK/ctrl/interpolation/constant_trajectory.hpp>
 
-#include <ReaK/ctrl/path_planning/metric_space_concept.hpp>
+#include <ReaK/ctrl/topologies/metric_space_concept.hpp>
 #include <ReaK/ctrl/ctrl_sys/linear_ss_system_concept.hpp>
 
 #include <ReaK/ctrl/sys_integrators/dormand_prince45_integrator_sys.hpp>

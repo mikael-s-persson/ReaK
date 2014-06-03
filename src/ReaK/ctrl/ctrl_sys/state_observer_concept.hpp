@@ -42,7 +42,7 @@
 #ifndef REAK_STATE_OBSERVER_CONCEPT_HPP
 #define REAK_STATE_OBSERVER_CONCEPT_HPP
 
-#include <ReaK/ctrl/path_planning/metric_space_concept.hpp>
+#include <ReaK/ctrl/topologies/metric_space_concept.hpp>
 
 #include "state_space_sys_concept.hpp"
 #include "linear_ss_system_concept.hpp"
