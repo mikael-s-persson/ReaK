@@ -37,7 +37,10 @@
 #include <ReaK/core/recorders/data_record_po.hpp>
 
 #include <ReaK/ctrl/topologies/temporal_space.hpp>
+#include <ReaK/ctrl/interpolation/trajectory_base.hpp>
 #include <ReaK/ctrl/interpolation/discrete_point_trajectory.hpp>
+
+#include <ReaK/ctrl/ctrl_sys/augmented_to_state_mapping.hpp>
 
 #include <boost/random/normal_distribution.hpp>
 #include <ReaK/core/base/global_rng.hpp>
@@ -672,6 +675,53 @@ boost::function<void()> pred_stop_function;
 };
 
 
+template <typename Sat3DSystemType, typename MLTrajType>
+typename boost::enable_if<
+  ReaK::ctrl::is_augmented_ss_system<Sat3DSystemType>,
+ReaK::shared_ptr< ReaK::pp::trajectory_base< ReaK::pp::temporal_space<ReaK::pp::se3_1st_order_topology<double>::type, ReaK::pp::time_poisson_topology, ReaK::pp::time_distance_only> > > >::type
+  construct_wrapped_trajectory(const ReaK::shared_ptr< MLTrajType >& ML_traj, 
+                               const ReaK::ctrl::satellite_predictor_options& sat_options) {
+  using namespace ReaK;
+  using namespace ctrl;
+  using namespace pp;
+  
+  typedef se3_1st_order_topology<double>::type BaseSpaceType;
+  typedef temporal_space<BaseSpaceType, time_poisson_topology, time_distance_only> TemporalBaseSpaceType;
+  
+#define RK_D_INF std::numeric_limits<double>::infinity()
+  shared_ptr< TemporalBaseSpaceType > sat_base_temp_space(new TemporalBaseSpaceType(
+    "satellite3D_temporal_space", 
+    make_se3_space(
+      "satellite3D_state_space",
+      vect<double,3>(-RK_D_INF, -RK_D_INF, -RK_D_INF),
+      vect<double,3>( RK_D_INF,  RK_D_INF,  RK_D_INF),
+      RK_D_INF, RK_D_INF),
+    time_poisson_topology("satellite3D_time_space", sat_options.time_step, sat_options.predict_time_horizon * 0.5)));
+#undef RK_D_INF
+  
+  typedef transformed_trajectory<TemporalBaseSpaceType, MLTrajType, augmented_to_state_map> BaseTrajType;
+  typedef trajectory_base<TemporalBaseSpaceType> StateTrajType;
+  typedef trajectory_wrapper<BaseTrajType> WrappedStateTrajType;
+  
+  return shared_ptr< StateTrajType >(new WrappedStateTrajType("sat3D_predicted_traj", BaseTrajType(sat_base_temp_space, ML_traj)));
+};
+
+template <typename Sat3DSystemType, typename MLTrajType>
+typename boost::enable_if<
+  boost::mpl::not_< ReaK::ctrl::is_augmented_ss_system<Sat3DSystemType> >,
+ReaK::shared_ptr< ReaK::pp::trajectory_base< ReaK::pp::temporal_space<ReaK::pp::se3_1st_order_topology<double>::type, ReaK::pp::time_poisson_topology, ReaK::pp::time_distance_only> > > >::type
+  construct_wrapped_trajectory(const ReaK::shared_ptr< MLTrajType >& ML_traj, 
+                               const ReaK::ctrl::satellite_predictor_options& sat_options) {
+  using namespace ReaK;
+  using namespace pp;
+  
+  typedef ReaK::pp::trajectory_base< ReaK::pp::temporal_space<ReaK::pp::se3_1st_order_topology<double>::type, ReaK::pp::time_poisson_topology, ReaK::pp::time_distance_only> > StateTrajType;
+  typedef trajectory_wrapper<MLTrajType> WrappedStateTrajType;
+  
+  return shared_ptr< StateTrajType >(new WrappedStateTrajType("sat3D_predicted_traj", *ML_traj));
+};
+
+
 
 
 template <typename MeasureProvider, typename ResultLogger, typename Sat3DSystemType>
@@ -757,6 +807,14 @@ void batch_KF_meas_predict_with_predictor(
                     CovarMatType(sat_options.measurement_noise)),
     pred_assumpt
   ));
+  
+  
+  typedef transformed_trajectory<TempSpaceType, BeliefPredTrajType, maximum_likelihood_map> MLTrajType;
+  
+  shared_ptr< MLTrajType > ML_traj(new MLTrajType(sat_temp_space, predictor));
+  
+  construct_wrapped_trajectory<Sat3DSystemType>(ML_traj, sat_options);
+  
   
   double current_target_anim_time = meas_provider.get_current_time();
   
@@ -1567,9 +1625,9 @@ int main(int argc, char** argv) {
     
   } else {
     
-    int errcode = do_required_tasks(sat_options.get_IMU_sat_system(), sat_options, vm, data_in, names_in, sys_output_stem_name, data_out_stem_opt);
-    if(errcode)
-      return errcode;
+//     int errcode = do_required_tasks(sat_options.get_IMU_sat_system(), sat_options, vm, data_in, names_in, sys_output_stem_name, data_out_stem_opt);
+//     if(errcode)
+//       return errcode;
     
   };
   
