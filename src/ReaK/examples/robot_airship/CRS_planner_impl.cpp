@@ -77,7 +77,7 @@ void CRSPlannerGUI_animate_bestsol_trajectory(void* pv, SoSensor*) {
     animation_start = ReaKaux::chrono::high_resolution_clock::now();
   };
   if( (p->sol_anim.enabled) && ( (*cur_pit).time < manip_traj->get_end_time() ) ) {
-    if( (*cur_pit).time <= 0.001 * (ReaKaux::chrono::duration_cast<ReaKaux::chrono::milliseconds>(ReaKaux::chrono::high_resolution_clock::now() - animation_start)).count() ) {
+    if( ((*cur_pit).time - manip_traj->get_start_time()) <= 0.001 * (ReaKaux::chrono::duration_cast<ReaKaux::chrono::milliseconds>(ReaKaux::chrono::high_resolution_clock::now() - animation_start)).count() ) {
       cur_pit += 0.1;
       p->ct_config.sceneData.chaser_kin_model->setJointPositions(vect_n<double>((*cur_pit).pt));
       p->ct_config.sceneData.chaser_kin_model->doDirectMotion();
@@ -86,7 +86,8 @@ void CRSPlannerGUI_animate_bestsol_trajectory(void* pv, SoSensor*) {
     p->sol_anim.animation_timer->unschedule();
     animation_start = ReaKaux::chrono::high_resolution_clock::now();
     manip_traj.reset();
-    p->run_dialog.onCaptureReached();
+    emit p->notifyCaptureReached();
+//     p->run_dialog.onCaptureReached();
   };
 };
 
@@ -126,24 +127,18 @@ void CRSPlannerGUI::stopSolutionAnimation() {
 void CRSPlannerGUI_animate_target_trajectory(void* pv, SoSensor*) {
   CRSPlannerGUI* p = static_cast<CRSPlannerGUI*>(pv);
   
+  static shared_ptr< CRS_target_anim_data::trajectory_type > target_traj    = p->target_anim.trajectory;
+  static CRS_target_anim_data::trajectory_type::point_time_iterator cur_pit = target_traj->begin_time_travel();
   static ReaKaux::chrono::high_resolution_clock::time_point animation_start = ReaKaux::chrono::high_resolution_clock::now();
   
-  static shared_ptr< CRS_target_anim_data::trajectory_type > target_traj;
-  
-  static shared_ptr< CRS_target_anim_data::trajectory_type::point_time_iterator > cur_pit_ptr;
-  
   if(!target_traj) {
-    animation_start = ReaKaux::chrono::high_resolution_clock::now();
     target_traj = p->target_anim.trajectory;
-    if( target_traj ) 
-      cur_pit_ptr.reset(new CRS_target_anim_data::trajectory_type::point_time_iterator(target_traj->begin_time_travel()));
-    else
-      return;
+    cur_pit = target_traj->begin_time_travel();
+    animation_start = ReaKaux::chrono::high_resolution_clock::now();
   };
   
-  if( target_traj && p->target_anim.enabled && ( (*(*cur_pit_ptr)).time < target_traj->get_end_time() ) ) {
-    CRS_target_anim_data::trajectory_type::point_time_iterator& cur_pit = *cur_pit_ptr;
-    if( (*cur_pit).time <= 0.001 * (ReaKaux::chrono::duration_cast<ReaKaux::chrono::milliseconds>(ReaKaux::chrono::high_resolution_clock::now() - animation_start)).count() ) {
+  if( target_traj && p->target_anim.enabled && ( (*cur_pit).time < target_traj->get_end_time() ) ) {
+    if( ((*cur_pit).time - target_traj->get_start_time()) <= 0.001 * (ReaKaux::chrono::duration_cast<ReaKaux::chrono::milliseconds>(ReaKaux::chrono::high_resolution_clock::now() - animation_start)).count() ) {
       cur_pit += 0.1;
       *(p->ct_config.sceneData.target_kin_model->getFrame3D(0)) = get_frame_3D((*cur_pit).pt); 
       std::cout << "Position = " << p->ct_config.sceneData.target_kin_model->getFrame3D(0)->Position 
@@ -160,7 +155,6 @@ void CRSPlannerGUI_animate_target_trajectory(void* pv, SoSensor*) {
     };
   } else {
     p->target_anim.animation_timer->unschedule();
-    cur_pit_ptr.reset();
     target_traj.reset();
   };
 };
@@ -250,28 +244,34 @@ void CRSPlannerGUI::onShowRunDialog() {
 void CRSPlannerGUI::threadedPlanningFunction(int mode) {
   
   if((mode == 2) || (mode == 3)) {
-    run_dialog.publishConsoleMessage("Starting state estimation...\n");
+    emit notifyConsoleMessage("Starting state estimation...\n");
+//     run_dialog.publishConsoleMessage("Starting state estimation...\n");
     target_anim.trajectory.reset();
     target_pred_config.startStatePrediction();
     RK_NOTICE(1," reached!");
     if(!target_anim.trajectory) {
     RK_NOTICE(1," reached!");
-      QMessageBox::critical(this,
-                            "State-Prediction Error!",
-                            "The live state-estimation of the target failed to produce a viable predicted trajectory!",
-                            QMessageBox::Ok);
+      emit notifyConsoleMessage("State-Prediction Error!\nThe live state-estimation of the target failed to produce a viable predicted trajectory!");
+//       run_dialog.publishConsoleMessage("State-Prediction Error!\nThe live state-estimation of the target failed to produce a viable predicted trajectory!");
+//       QMessageBox::critical(this,
+//                             "State-Prediction Error!",
+//                             "The live state-estimation of the target failed to produce a viable predicted trajectory!",
+//                             QMessageBox::Ok);
     RK_NOTICE(1," reached!");
-      run_dialog.onReset();
+      emit notifyReset();
+//       run_dialog.onReset();
     RK_NOTICE(1," reached!");
       return;
     };
     RK_NOTICE(1," reached!");
-    run_dialog.publishConsoleMessage("State estimation done!\nSwitched to predicted target trajectory!\n");
+    emit notifyConsoleMessage("State estimation done!\nSwitched to predicted target trajectory!\n");
+//     run_dialog.publishConsoleMessage("State estimation done!\nSwitched to predicted target trajectory!\n");
     RK_NOTICE(1," reached!");
   };
   
     RK_NOTICE(1," reached!");
-  run_dialog.onInitializationDone();
+  emit notifyInitializationDone();
+//   run_dialog.onInitializationDone();
     RK_NOTICE(1," reached!");
   
   try {
@@ -289,22 +289,27 @@ void CRSPlannerGUI::threadedPlanningFunction(int mode) {
     std::stringstream ss;
     ss << "An exception was raised during the planning:\nwhat(): " << e.what();
     RK_NOTICE(1," reached! " << ss.str());
-    run_dialog.publishConsoleMessage("Motion-Planning Error!\nwhat(): " + std::string(e.what()));
+    emit notifyConsoleMessage("Motion-Planning Error!\nwhat(): " + QString(e.what()));
+//     run_dialog.publishConsoleMessage("Motion-Planning Error!\nwhat(): " + std::string(e.what()));
 //     QMessageBox::critical(this,
 //                   "Motion-Planning Error!",
 //                   QString::fromStdString(ss.str()),
 //                   QMessageBox::Ok);
     RK_NOTICE(1," reached!");
-    run_dialog.onReset();
+    emit notifyReset();
+//     run_dialog.onReset();
     RK_NOTICE(1," reached!");
   };
   
     RK_NOTICE(1," reached!");
-  run_dialog.onPlanningDone();
+  emit notifyPlanningDone();
+//   run_dialog.onPlanningDone();
     RK_NOTICE(1," reached!");
   
-  if(sol_anim.trajectory)
-    run_dialog.onLaunchOpportunity();
+  if(sol_anim.trajectory) {
+    emit notifyLaunchOpportunity();
+//     run_dialog.onLaunchOpportunity();
+  };
     RK_NOTICE(1," reached!");
   
 //   onInitializationDone();
@@ -322,7 +327,8 @@ void CRSPlannerGUI::onStartPlanning(int mode) {
                           "Motion-Planning Error!",
                           "Trying to run a dynamic planner with a non-temporal planning space! Please configure a temporal planning space!",
                           QMessageBox::Ok);
-    run_dialog.onReset();
+    emit notifyReset();
+//     run_dialog.onReset();
     return;
   };
   
@@ -403,7 +409,8 @@ void CRSPlannerGUI::executeSolutionTrajectory() {
   udp_buf.consume(len);
   
   if( (*cur_pit).time >= manip_traj->get_end_time() ) {
-    run_dialog.onCaptureReached();
+    emit notifyCaptureReached();
+//     run_dialog.onCaptureReached();
   };
   
   exec_robot_enabled = false;
@@ -492,10 +499,17 @@ CRSPlannerGUI::CRSPlannerGUI( QWidget * parent, Qt::WindowFlags flags ) :
   connect(actionRun_Planner, SIGNAL(triggered()), this, SLOT(runPlanner()));
   connect(actionRun_Dialog, SIGNAL(triggered()), this, SLOT(onShowRunDialog()));
   
-  connect(&run_dialog, SIGNAL(triggeredStartPlanning(int)), this, SLOT(onStartPlanning(int)));
-  connect(&run_dialog, SIGNAL(triggeredStopPlanning()), this, SLOT(onStopPlanning()));
-  connect(&run_dialog, SIGNAL(triggeredLaunch(int)), this, SLOT(onLaunch(int)));
-  connect(&run_dialog, SIGNAL(triggeredAbort()), this, SLOT(onAbort()));
+  connect(&run_dialog, SIGNAL(triggeredStartPlanning(int)), this, SLOT(onStartPlanning(int)), Qt::QueuedConnection);
+  connect(&run_dialog, SIGNAL(triggeredStopPlanning()), this, SLOT(onStopPlanning()), Qt::QueuedConnection);
+  connect(&run_dialog, SIGNAL(triggeredLaunch(int)), this, SLOT(onLaunch(int)), Qt::QueuedConnection);
+  connect(&run_dialog, SIGNAL(triggeredAbort()), this, SLOT(onAbort()), Qt::QueuedConnection);
+  
+  connect(this, SIGNAL(notifyCaptureReached()), &run_dialog, SLOT(onCaptureReached()), Qt::QueuedConnection);
+  connect(this, SIGNAL(notifyConsoleMessage(QString)), &run_dialog, SLOT(publishConsoleMessage(QString)), Qt::QueuedConnection);
+  connect(this, SIGNAL(notifyReset()), &run_dialog, SLOT(onReset()), Qt::QueuedConnection);
+  connect(this, SIGNAL(notifyInitializationDone()), &run_dialog, SLOT(onInitializationDone()), Qt::QueuedConnection);
+  connect(this, SIGNAL(notifyPlanningDone()), &run_dialog, SLOT(onPlanningDone()), Qt::QueuedConnection);
+  connect(this, SIGNAL(notifyLaunchOpportunity()), &run_dialog, SLOT(onLaunchOpportunity()), Qt::QueuedConnection);
   
   SoQt::init(this->centralwidget);
   

@@ -33,6 +33,7 @@
 
 #include <QDialog>
 #include <QTimer>
+#include <QString>
 
 namespace ReaK {
   
@@ -67,6 +68,8 @@ class CRSRunDialogWidget : public QDialog, private Ui::CRSRunDialog {
     
     void onReset();
     
+    void publishConsoleMessage(QString aMessage);
+    
   signals:
     
     void triggeredStartPlanning(int mode);
@@ -80,9 +83,6 @@ class CRSRunDialogWidget : public QDialog, private Ui::CRSRunDialog {
     
     QTimer flashing_button_timer;
     
-  public:
-    
-    void publishConsoleMessage(const std::string& aMessage);
     
 };
 

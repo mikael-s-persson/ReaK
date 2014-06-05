@@ -21,6 +21,7 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <ReaK/core/base/defs.hpp>
 #include "CRS_run_dialog.hpp"
 
 #include <QDialog>
@@ -28,6 +29,7 @@
 #include <QFileInfo>
 #include <QMessageBox>
 #include <QProcess>
+#include <QScrollBar>
 
 
 namespace ReaK {
@@ -65,7 +67,7 @@ void CRSRunDialogWidget::onStartPressed() {
   this->live_sim_check->setEnabled(false);
   this->live_run_check->setEnabled(false);
   
-  std::string mes = "Starting ";
+  QString mes = "Starting ";
   
   int mode = 0;
   if ( this->static_sim_check->isChecked() ) {
@@ -113,7 +115,7 @@ void CRSRunDialogWidget::onStopPressed() {
 
 void CRSRunDialogWidget::onLaunchPressed() {
   
-  std::string mes = "Starting ";
+  QString mes = "Starting ";
   
   int mode = 0;
   if ( this->static_sim_check->isChecked() ) {
@@ -248,12 +250,15 @@ void CRSRunDialogWidget::onReset() {
   
 //   this->status_text->clear();
   
+  this->publishConsoleMessage("\nReset complete! Ready to work...\n");
+  
   this->flashing_button_timer.stop();
   
 };
 
-void CRSRunDialogWidget::publishConsoleMessage(const std::string& aMessage) {
-  this->status_text->appendPlainText(QString::fromStdString(aMessage));
+void CRSRunDialogWidget::publishConsoleMessage(QString aMessage) {
+  this->status_text->appendPlainText(aMessage);
+  this->status_text->verticalScrollBar()->setSliderPosition(this->status_text->verticalScrollBar()->maximum());
 };
 
 

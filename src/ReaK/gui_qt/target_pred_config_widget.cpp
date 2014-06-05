@@ -983,6 +983,9 @@ void TargetPredConfigWidget::startStatePrediction() {
   shared_ptr< recorder::data_extractor > data_in;
   boost::tie(data_in, names_in) = data_in_opt.create_extractor();
   
+//   std::cout << "Names that were imbued:" << std::endl;
+//   for(std::size_t i = 0; i < names_in.size(); ++i)
+//     std::cout << names_in[i] << std::endl;
   
   // ---------- Call impl function with the appropriate system ----------
   

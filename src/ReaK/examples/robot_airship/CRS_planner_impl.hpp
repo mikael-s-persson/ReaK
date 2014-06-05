@@ -83,6 +83,19 @@ class CRSPlannerGUI : public QMainWindow, private Ui::CRSPlannerWindow {
     friend void CRSPlannerGUI_animate_bestsol_trajectory(void*, SoSensor*);
     friend void CRSPlannerGUI_animate_target_trajectory(void*, SoSensor*);
     
+  signals:
+    
+    void notifyCaptureReached();
+    
+    void notifyConsoleMessage(QString);
+    
+    void notifyReset();
+    
+    void notifyInitializationDone();
+    
+    void notifyPlanningDone();
+    
+    void notifyLaunchOpportunity();
     
   private:
     

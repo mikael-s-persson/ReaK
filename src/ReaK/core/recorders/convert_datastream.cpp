@@ -84,11 +84,18 @@ int main(int argc, char** argv) {
     
     stc::time_point t_0 = stc::now();
     while(true) {
+      
       (*data_in) >> nvr_in;
+      
       if(vm.count("echo"))
         std::cout << "\n\n\n\n";
+      
       for(std::size_t i = 0; i < names_in.size(); ++i) {
-        nvr_out[ names_in[i] ] = nvr_in[ names_in[i] ];
+        try {
+          nvr_out[ names_in[i] ] = nvr_in[ names_in[i] ];
+        } catch(out_of_bounds& e) { RK_UNUSED(e);
+          nvr_out[ names_in[i] ] = 0.0;
+        };
         if(vm.count("echo"))
           std::cout << names_in[i] << '\t' << std::setw(16) << nvr_out[ names_in[i] ] << '\n';
       };

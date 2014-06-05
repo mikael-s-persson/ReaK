@@ -139,11 +139,11 @@ std::pair< shared_ptr< data_extractor >, std::vector< std::string > > data_strea
     
     if( names.empty() ) {
       names = result.second;
-    } else {
-      for(std::vector< std::string >::const_iterator it = names.begin(), it_end = names.end(); it != it_end; ++it) {
-        if( std::find(result.second.begin(), result.second.end(), *it) == result.second.end() )
-          throw std::invalid_argument(*it);
-      };
+//     } else {
+//       for(std::vector< std::string >::const_iterator it = names.begin(), it_end = names.end(); it != it_end; ++it) {
+//         if( std::find(result.second.begin(), result.second.end(), *it) == result.second.end() )
+//           throw std::invalid_argument(*it);
+//       };
     };
     if( !time_sync_name.empty() &&
         ( std::find(result.second.begin(), result.second.end(), time_sync_name) == result.second.end() ) )
