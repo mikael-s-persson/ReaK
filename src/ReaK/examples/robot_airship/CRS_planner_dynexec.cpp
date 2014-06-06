@@ -113,7 +113,8 @@ void CRS_execute_dynamic_planner_impl(const ReaK::kte::chaser_target_data& scene
   shared_ptr< dynamic_workspace_type > workspace = 
     make_manip_dynamic_workspace<Order>(InterpTag(),
       chaser_concrete_model, scene_data.chaser_jt_limits, 
-      min_travel, target_state_traj->get_end_time() - target_state_traj->get_start_time(), plan_options.start_delay);
+      min_travel, target_state_traj->get_end_time() - target_state_traj->get_start_time(), 
+      plan_options.start_delay + target_state_traj->get_start_time());
   
   shared_ptr< rl_jt_space_type > jt_space = 
     make_manip_rl_jt_space<Order>(chaser_concrete_model, scene_data.chaser_jt_limits);
@@ -147,7 +148,7 @@ void CRS_execute_dynamic_planner_impl(const ReaK::kte::chaser_target_data& scene
   get<0>(start_inter) = jt_start;
   rl_point_type start_point = scene_data.chaser_jt_limits->map_to_space(start_inter, *normal_jt_space, *jt_space);
   
-  rl_temporal_point_type temporal_start_point(plan_options.start_delay, start_point);
+  rl_temporal_point_type temporal_start_point(plan_options.start_delay + target_state_traj->get_start_time(), start_point);
   
   
   // Create the reporter chain.

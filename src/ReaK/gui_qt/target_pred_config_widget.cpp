@@ -925,6 +925,8 @@ shared_ptr< CRS_target_anim_data::trajectory_type >
     pred_assumpt
   ));
   
+  predictor->set_minimal_horizon(sat_options.predict_time_horizon + (*current_target_anim_time));
+  
 //   prediction_updater<Sat3DSystemType>::should_stop = false;
 //   prediction_updater<Sat3DSystemType>::executer = shared_ptr< ReaKaux::thread >(new ReaKaux::thread(
 //     prediction_updater<Sat3DSystemType>(
