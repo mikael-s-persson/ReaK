@@ -100,7 +100,7 @@ class seq_trajectory_base : public named_object {
         
       public:
         
-        point_time_iterator(point_time_iterator_impl* aPImpl) : p_impl(aPImpl) { };
+        point_time_iterator(point_time_iterator_impl* aPImpl = NULL) : p_impl(aPImpl) { };
         
         point_time_iterator(const point_time_iterator& rhs) : p_impl(rhs.p_impl->clone()) { };
 #ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
@@ -171,7 +171,7 @@ class seq_trajectory_base : public named_object {
         
       public:
         
-        point_fraction_iterator(point_fraction_iterator_impl* aPImpl) : p_impl(aPImpl) { };
+        point_fraction_iterator(point_fraction_iterator_impl* aPImpl = NULL) : p_impl(aPImpl) { };
         
         point_fraction_iterator(const point_fraction_iterator& rhs) : p_impl(rhs.p_impl->clone()) { };
 #ifndef BOOST_NO_CXX11_RVALUE_REFERENCES

@@ -315,7 +315,7 @@ void CRS_execute_dynamic_planner_impl(const ReaK::kte::chaser_target_data& scene
     
     typedef typename seq_trajectory_base< dynamic_super_space_type >::point_time_iterator PtIter;
     typedef typename spatial_trajectory_traits<trajectory_type>::point_type TCSpacePointType;
-    for(PtIter it = bestsol_rltraj->begin_time_travel(); it != bestsol_rltraj->end_time_travel(); it += 0.1) {
+    for(PtIter it = bestsol_rltraj->begin_time_travel(); it != bestsol_rltraj->end_time_travel(); it += 0.001) {
       rl_temporal_point_type cur_pt = *it;
       sol_traj.push_back( TCSpacePointType(cur_pt.time, get<0>(scene_data.chaser_jt_limits->map_to_space(cur_pt.pt, *jt_space, *normal_jt_space))) );
     };

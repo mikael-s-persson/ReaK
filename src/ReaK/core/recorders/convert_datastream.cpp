@@ -38,6 +38,7 @@ namespace fs = boost::filesystem;
 
 namespace ch = ReaKaux::chrono;
 typedef ch::steady_clock stc;
+typedef ch::high_resolution_clock hrc;
 
 int main(int argc, char** argv) {
   using namespace ReaK;
@@ -49,6 +50,7 @@ int main(int argc, char** argv) {
   generic_options.add_options()
     ("help,h", "produce this help message.")
     ("echo", "echo all the output to the terminal (do not use with std-out streaming).")
+    ("add-rel-time", po::value<std::string>(), "add a relative timing of the received data to the output stream, as first column, with the name given.")
   ;
   
   po::options_description io_options = get_data_stream_options_po_desc(true, true);
@@ -73,22 +75,24 @@ int main(int argc, char** argv) {
     std::vector<std::string> names_in;
     boost::tie(data_in, names_in) = data_in_opt.create_extractor();
     
-    if(data_out_opt.names.size() == 0)
+    if(data_out_opt.names.size() == 0) {
       data_out_opt.names = names_in;
-    else
+    } else {
       names_in = data_out_opt.names;
+    };
+    if(vm.count("add-rel-time"))
+      data_out_opt.names.insert(data_out_opt.names.begin(), vm["add-rel-time"].as<std::string>());
     shared_ptr< data_recorder > data_out = data_out_opt.create_recorder();
     
     named_value_row nvr_in  = data_in->getFreshNamedValueRow();
     named_value_row nvr_out = data_out->getFreshNamedValueRow();
     
     stc::time_point t_0 = stc::now();
+    hrc::time_point hrt_0 = hrc::now();
     while(true) {
       
       (*data_in) >> nvr_in;
-      
-      if(vm.count("echo"))
-        std::cout << "\n\n\n\n";
+      hrc::time_point hrt_1 = hrc::now();
       
       for(std::size_t i = 0; i < names_in.size(); ++i) {
         try {
@@ -96,15 +100,21 @@ int main(int argc, char** argv) {
         } catch(out_of_bounds& e) { RK_UNUSED(e);
           nvr_out[ names_in[i] ] = 0.0;
         };
-        if(vm.count("echo"))
-          std::cout << names_in[i] << '\t' << std::setw(16) << nvr_out[ names_in[i] ] << '\n';
       };
-      if(vm.count("echo"))
-        std::cout << std::flush;
       if( !data_out_opt.time_sync_name.empty() ) {
         // wait until the proper time to output the value.
         stc::time_point t_to_reach = t_0 + ch::duration_cast<stc::duration>(ch::duration<double, ReaKaux::ratio<1,1> >(nvr_in[data_out_opt.time_sync_name]));
         ReaKaux::this_thread::sleep_until( t_to_reach );
+      } else if( vm.count("add-rel-time") ) {
+        nvr_out[ vm["add-rel-time"].as<std::string>() ] = ch::duration_cast< ch::duration<double> >(hrt_1 - hrt_0).count();
+      };
+      if(vm.count("echo")) {
+        std::cout << "\n\n\n\n";
+        if( vm.count("add-rel-time") )
+          std::cout << vm["add-rel-time"].as<std::string>() << '\t' << std::setw(16) << nvr_out[ vm["add-rel-time"].as<std::string>() ] << '\n';
+        for(std::size_t i = 0; i < names_in.size(); ++i)
+          std::cout << names_in[i] << '\t' << std::setw(16) << nvr_out[ names_in[i] ] << '\n';
+        std::cout << std::flush;
       };
       (*data_out) << nvr_out;
     };

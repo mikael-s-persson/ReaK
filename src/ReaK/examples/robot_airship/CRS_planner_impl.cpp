@@ -76,11 +76,15 @@ void CRSPlannerGUI_animate_bestsol_trajectory(void* pv, SoSensor*) {
     cur_pit = manip_traj->begin_time_travel();
     
     // Synchronize the trajectory to the current time (from target trajectory).
-    double t_offset = p->current_target_anim_time - (*cur_pit).time;
-    if(t_offset > 0.0)
-      cur_pit += t_offset;
+    //  at the start of planning, starting point is at time:  (delay + target-start-time)
+    //  therefore, start of solution, at time start-time, should satisfy:  target-start-time  ==  start-time - delay
+    //  and then, because we don't start animation at the start-time, we can adjust to the current time with:
+    //    t-offset = target-curr-time - (start-time - delay)
+//     double t_offset = p->current_target_anim_time - ((*cur_pit).time - p->plan_alg_config.planOptions.start_delay);
+    if(p->current_target_anim_time > (*cur_pit).time)
+      cur_pit += p->current_target_anim_time - (*cur_pit).time;
     
-    animation_start = ReaKaux::chrono::high_resolution_clock::now() - ReaKaux::chrono::duration_cast<ReaKaux::chrono::high_resolution_clock::duration>(ReaKaux::chrono::duration<double>(p->current_target_anim_time));
+    animation_start = ReaKaux::chrono::high_resolution_clock::now() - ReaKaux::chrono::duration_cast<ReaKaux::chrono::high_resolution_clock::duration>(ReaKaux::chrono::duration<double>(p->current_target_anim_time - p->plan_alg_config.planOptions.start_delay));
   };
   if( (p->sol_anim.enabled) && ( (*cur_pit).time < manip_traj->get_end_time() ) ) {
     if( ((*cur_pit).time - manip_traj->get_start_time()) <= 0.001 * (ReaKaux::chrono::duration_cast<ReaKaux::chrono::milliseconds>(ReaKaux::chrono::high_resolution_clock::now() - animation_start)).count() ) {
@@ -333,27 +337,18 @@ void CRSPlannerGUI::executeSolutionTrajectory() {
   
   // Setup the UDP streaming to the robot (FIXME remove the hard-coded address / port)
   boost::asio::io_service io_service;
-  boost::asio::ip::udp::endpoint endpoint(boost::asio::ip::address_v4::from_string("192.168.0.3"), 17050);
+  boost::asio::ip::udp::endpoint endpoint(boost::asio::ip::address_v4::from_string("127.0.0.1"), 17050);
+//   boost::asio::ip::udp::endpoint endpoint(boost::asio::ip::address_v4::from_string("192.168.0.3"), 17050);
   boost::asio::ip::udp::socket socket((io_service));
   boost::asio::basic_streambuf<> udp_buf;
+  std::ostream udp_buf_stream(&(udp_buf));
   socket.open(boost::asio::ip::udp::v4());
   socket.set_option(boost::asio::ip::udp::socket::reuse_address(true));
-  std::ostream udp_buf_stream(&(udp_buf));
   
   shared_ptr< CRS_sol_anim_data::trajectory_type > manip_traj = sol_anim.trajectory;
   CRS_sol_anim_data::trajectory_type::point_time_iterator cur_pit = manip_traj->begin_time_travel();
   
   ReaKaux::chrono::high_resolution_clock::time_point exec_start = ReaKaux::chrono::high_resolution_clock::now();
-  
-  // Synchronize the trajectory to the current time (from target trajectory).
-  double t_offset = current_target_anim_time - (*cur_pit).time;
-  if(t_offset > 0.0) {
-    cur_pit += t_offset;
-  } else {
-    
-  };
-  
-  exec_start = ReaKaux::chrono::high_resolution_clock::now();
   
   // UDP output for the robot:
   vect<double,7> cur_pt = (*cur_pit).pt;
@@ -362,15 +357,38 @@ void CRSPlannerGUI::executeSolutionTrajectory() {
   std::size_t len = socket.send_to(udp_buf.data(), endpoint);
   udp_buf.consume(len);
   
-  
-  while( exec_robot_thr && ( (*cur_pit).time < manip_traj->get_end_time() ) ) {
+  // Synchronize the trajectory to the current time (from target trajectory).
+  if(current_target_anim_time > (*cur_pit).time) {
+    cur_pit += current_target_anim_time - (*cur_pit).time;
+  } else {
+    ReaKaux::chrono::high_resolution_clock::time_point delayed_start = exec_start + 
+      ReaKaux::chrono::duration_cast<ReaKaux::chrono::high_resolution_clock::duration>(ReaKaux::chrono::duration<double>((*cur_pit).time - current_target_anim_time));
+    while(exec_robot_enabled && (exec_start < delayed_start)) {
+      std::cout << "Sending starting point, with time left = " << ReaKaux::chrono::duration_cast< ReaKaux::chrono::duration<double> >(delayed_start - exec_start).count() << std::endl;
+      ReaKaux::this_thread::sleep_until(exec_start + ReaKaux::chrono::microseconds(1000));
+      exec_start = ReaKaux::chrono::high_resolution_clock::now();
+      for(std::size_t i = 0; i < 7; ++i)
+        udp_buf_stream.write(reinterpret_cast<char*>(&cur_pt[i]),sizeof(double));
+      std::size_t len = socket.send_to(udp_buf.data(), endpoint);
+      udp_buf.consume(len);
+    };
+  };
+  exec_start = ReaKaux::chrono::high_resolution_clock::now();
+  while( exec_robot_enabled && ( (*cur_pit).time < manip_traj->get_end_time() ) ) {
     cur_pit += 0.001;
     ReaKaux::this_thread::sleep_until(exec_start + ReaKaux::chrono::microseconds(1000));
+    
+//     cur_pit += 0.01;
+//     ReaKaux::this_thread::sleep_until(exec_start + ReaKaux::chrono::microseconds(10000));
     
     exec_start = ReaKaux::chrono::high_resolution_clock::now();
     
     //UDP output for the robot:
     cur_pt = (*cur_pit).pt;
+    std::cout << " Sending values: ";
+    for(std::size_t i = 0; i < 7; ++i)
+      std::cout << std::setw(10) << cur_pt[i];
+    std::cout << std::endl;
     for(std::size_t i = 0; i < 7; ++i)
       udp_buf_stream.write(reinterpret_cast<char*>(&cur_pt[i]),sizeof(double));
     len = socket.send_to(udp_buf.data(), endpoint);
@@ -430,6 +448,9 @@ void CRSPlannerGUI::onAbort() {
   
   // then, stop the state prediction and/or planning
   this->onStopPlanning();
+  
+  // finally, stop any animation that might have been started
+  this->stopCompleteAnimation();
   
 };
 
