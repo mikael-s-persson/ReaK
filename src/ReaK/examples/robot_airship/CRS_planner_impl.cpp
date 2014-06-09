@@ -67,18 +67,20 @@ static QString last_used_path;
 void CRSPlannerGUI_animate_bestsol_trajectory(void* pv, SoSensor*) {
   CRSPlannerGUI* p = static_cast<CRSPlannerGUI*>(pv);
   
-  static shared_ptr< CRS_sol_anim_data::trajectory_type > manip_traj     = p->sol_anim.trajectory;
-  static CRS_sol_anim_data::trajectory_type::point_time_iterator cur_pit = manip_traj->begin_time_travel();
-  static ReaKaux::chrono::high_resolution_clock::time_point animation_start = ReaKaux::chrono::high_resolution_clock::now();
+  static shared_ptr< CRS_sol_anim_data::trajectory_type > manip_traj;
+  static CRS_sol_anim_data::trajectory_type::point_time_iterator cur_pit;
+  static ReaKaux::chrono::high_resolution_clock::time_point animation_start;
   
   if(!manip_traj) {
     manip_traj = p->sol_anim.trajectory;
     cur_pit = manip_traj->begin_time_travel();
     
     // Synchronize the trajectory to the current time (from target trajectory).
-    cur_pit += p->current_target_anim_time - (*cur_pit).time;
+    double t_offset = p->current_target_anim_time - (*cur_pit).time;
+    if(t_offset > 0.0)
+      cur_pit += t_offset;
     
-    animation_start = ReaKaux::chrono::high_resolution_clock::now() - ReaKaux::chrono::duration_cast<ReaKaux::chrono::high_resolution_clock::duration>(ReaKaux::chrono::duration<double>((*cur_pit).time));
+    animation_start = ReaKaux::chrono::high_resolution_clock::now() - ReaKaux::chrono::duration_cast<ReaKaux::chrono::high_resolution_clock::duration>(ReaKaux::chrono::duration<double>(p->current_target_anim_time));
   };
   if( (p->sol_anim.enabled) && ( (*cur_pit).time < manip_traj->get_end_time() ) ) {
     if( ((*cur_pit).time - manip_traj->get_start_time()) <= 0.001 * (ReaKaux::chrono::duration_cast<ReaKaux::chrono::milliseconds>(ReaKaux::chrono::high_resolution_clock::now() - animation_start)).count() ) {
@@ -130,18 +132,20 @@ void CRSPlannerGUI::stopSolutionAnimation() {
 void CRSPlannerGUI_animate_target_trajectory(void* pv, SoSensor*) {
   CRSPlannerGUI* p = static_cast<CRSPlannerGUI*>(pv);
   
-  static shared_ptr< CRS_target_anim_data::trajectory_type > target_traj    = p->target_anim.trajectory;
-  static CRS_target_anim_data::trajectory_type::point_time_iterator cur_pit = target_traj->begin_time_travel();
-  static ReaKaux::chrono::high_resolution_clock::time_point animation_start = ReaKaux::chrono::high_resolution_clock::now();
+  static shared_ptr< CRS_target_anim_data::trajectory_type > target_traj;
+  static CRS_target_anim_data::trajectory_type::point_time_iterator cur_pit;
+  static ReaKaux::chrono::high_resolution_clock::time_point animation_start;
   
   if(!target_traj) {
     target_traj = p->target_anim.trajectory;
     cur_pit = target_traj->begin_time_travel();
     
     // Synchronize the trajectory to the current time (from target trajectory).
-    cur_pit += p->current_target_anim_time - (*cur_pit).time;
+    double t_offset = p->current_target_anim_time - (*cur_pit).time;
+    if(t_offset > 0.0)
+      cur_pit += t_offset;
     
-    animation_start = ReaKaux::chrono::high_resolution_clock::now() - ReaKaux::chrono::duration_cast<ReaKaux::chrono::high_resolution_clock::duration>(ReaKaux::chrono::duration<double>((*cur_pit).time));
+    animation_start = ReaKaux::chrono::high_resolution_clock::now() - ReaKaux::chrono::duration_cast<ReaKaux::chrono::high_resolution_clock::duration>(ReaKaux::chrono::duration<double>(p->current_target_anim_time));
   };
   
   if( target_traj && p->target_anim.enabled && ( (*cur_pit).time < target_traj->get_end_time() ) ) {
@@ -339,10 +343,17 @@ void CRSPlannerGUI::executeSolutionTrajectory() {
   shared_ptr< CRS_sol_anim_data::trajectory_type > manip_traj = sol_anim.trajectory;
   CRS_sol_anim_data::trajectory_type::point_time_iterator cur_pit = manip_traj->begin_time_travel();
   
-  // Synchronize the trajectory to the current time (from target trajectory).
-  cur_pit += current_target_anim_time - (*cur_pit).time;
-  
   ReaKaux::chrono::high_resolution_clock::time_point exec_start = ReaKaux::chrono::high_resolution_clock::now();
+  
+  // Synchronize the trajectory to the current time (from target trajectory).
+  double t_offset = current_target_anim_time - (*cur_pit).time;
+  if(t_offset > 0.0) {
+    cur_pit += t_offset;
+  } else {
+    
+  };
+  
+  exec_start = ReaKaux::chrono::high_resolution_clock::now();
   
   // UDP output for the robot:
   vect<double,7> cur_pt = (*cur_pit).pt;
@@ -355,6 +366,8 @@ void CRSPlannerGUI::executeSolutionTrajectory() {
   while( exec_robot_thr && ( (*cur_pit).time < manip_traj->get_end_time() ) ) {
     cur_pit += 0.001;
     ReaKaux::this_thread::sleep_until(exec_start + ReaKaux::chrono::microseconds(1000));
+    
+    exec_start = ReaKaux::chrono::high_resolution_clock::now();
     
     //UDP output for the robot:
     cur_pt = (*cur_pit).pt;
