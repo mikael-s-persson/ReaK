@@ -848,6 +848,9 @@ shared_ptr< CRS_target_anim_data::trajectory_type >
       vect_n<double> z(nvr_in["p_x"], nvr_in["p_y"], nvr_in["p_z"], 
                        nvr_in["q_0"], nvr_in["q_1"], nvr_in["q_2"], nvr_in["q_3"]);
       
+      std::cout << "Meas. Position = " << vect<double,3>(z[0],z[1],z[2]) 
+                << "Meas. Rotation = " << vect<double,4>(z[3],z[4],z[5],z[6]) << std::endl;
+      
       try {
         
         vect<double,3> w(nvr_in["w_x"], nvr_in["w_y"], nvr_in["w_z"]);

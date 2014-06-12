@@ -151,12 +151,27 @@ int main(int argc, char ** argv) {
   (*airship3D_dyn_model) << airship3D_position;
   (*airship3D_dyn_model) << airship3D_rotation;
   
-  
+  /* Old values (none-sense, I think):
   shared_ptr< frame_3D<double> > 
     airship3D_grasp_frame( new frame_3D<double>(airship3D_output_frame,
       vect<double,3>(0.97 * std::sin(0.2 / 0.93),0.0,0.97 * std::cos(0.2 / 0.93)),
       axis_angle<double>(0.2 / 0.93 / 2.0,vect<double,3>(0.0,1.0,0.0)).getQuaternion()
       * quaternion<double>::yrot(M_PI) * quaternion<double>::zrot(0.5 * M_PI),
+      vect<double,3>(0.0,0.0,0.0), vect<double,3>(0.0,0.0,0.0), 
+      vect<double,3>(0.0,0.0,0.0), vect<double,3>(0.0,0.0,0.0), 
+      vect<double,3>(0.0,0.0,0.0), vect<double,3>(0.0,0.0,0.0)
+    ));
+  airship3D_grasp_frame->Position += airship3D_grasp_frame->Quat * (-0.3 * vect_k);
+  */
+  
+  double gr_radius = 0.93;
+  double gr_arc_length = 0.225;
+  double gr_beta = gr_arc_length / gr_radius;
+  
+  shared_ptr< frame_3D<double> > 
+    airship3D_grasp_frame( new frame_3D<double>(airship3D_output_frame,
+      vect<double,3>(gr_radius * std::cos(gr_beta), 0.0, gr_radius * std::sin(gr_beta)),
+      quaternion<double>::yrot(-0.5 * M_PI - gr_beta).getQuaternion(),
       vect<double,3>(0.0,0.0,0.0), vect<double,3>(0.0,0.0,0.0), 
       vect<double,3>(0.0,0.0,0.0), vect<double,3>(0.0,0.0,0.0), 
       vect<double,3>(0.0,0.0,0.0), vect<double,3>(0.0,0.0,0.0)
@@ -174,9 +189,9 @@ int main(int argc, char ** argv) {
   shared_ptr<box> grapple( new box("airship3D_grapple", 
     airship3D_output_frame, 
     pose_3D<double>(shared_ptr< pose_3D<double> >(),
-      vect<double,3>(0.97 * std::sin(0.2 / 0.93),0.0,0.97 * std::cos(0.2 / 0.93)),
-      quaternion<double>(axis_angle<double>(0.2 / 0.93 / 2.0,vect<double,3>(0.0,1.0,0.0)).getQuaternion())),
-    vect<double,3>(0.003,0.08,0.1)));
+      vect<double,3>((gr_radius + 0.05) * std::cos(gr_beta), 0.0, (gr_radius + 0.05) * std::sin(gr_beta)),
+      quaternion<double>::yrot(-0.5 * M_PI - gr_beta).getQuaternion()),
+    vect<double,3>(0.08,0.003,0.1)));
   
   shared_ptr<coord_arrows_3D> grapple_arrows(new coord_arrows_3D("airship3D_grapple_arrows",
     airship3D_grasp_frame,
