@@ -673,8 +673,9 @@ struct prediction_updater {
   
   int operator()() {
     
+#if 0
     TempBeliefPointType b_pred;
-    
+#endif
     RK_NOTICE(1," entered the prediction updater loop!");
     
     try {
@@ -711,11 +712,12 @@ struct prediction_updater {
         last_time = nvr_in["time"];
         (*current_target_anim_time) = last_time;
         
+#if 0
         b_pred = predictor->get_point_at_time(last_time);
         
         if( predictor->get_temporal_space().get_space_topology().distance(b, b_pred.pt) > diff_tolerance )
           predictor->set_initial_point(TempBeliefPointType(last_time, b));
-        
+#endif
       };
     } catch (std::exception& e) {
       RK_NOTICE(1," leaving the prediction updater loop with an error!");
@@ -930,15 +932,15 @@ shared_ptr< CRS_target_anim_data::trajectory_type >
   
   predictor->set_minimal_horizon(sat_options.predict_time_horizon + (*current_target_anim_time));
   
-//   prediction_updater<Sat3DSystemType>::should_stop = false;
-//   prediction_updater<Sat3DSystemType>::executer = shared_ptr< ReaKaux::thread >(new ReaKaux::thread(
-//     prediction_updater<Sat3DSystemType>(
-//       predictor,
-//       satellite3D_system,
-//       sat_temp_space, nvr_in, data_in,
-//       b, b_u, b_z, last_time, 0.5, current_target_anim_time)));
-//   
-//   pred_stop_function = prediction_updater<Sat3DSystemType>::stop_function;
+  prediction_updater<Sat3DSystemType>::should_stop = false;
+  prediction_updater<Sat3DSystemType>::executer = shared_ptr< ReaKaux::thread >(new ReaKaux::thread(
+    prediction_updater<Sat3DSystemType>(
+      predictor,
+      satellite3D_system,
+      sat_temp_space, nvr_in, data_in,
+      b, b_u, b_z, last_time, 0.5, current_target_anim_time)));
+  
+  pred_stop_function = prediction_updater<Sat3DSystemType>::stop_function;
   
   
   typedef transformed_trajectory<TempSpaceType, BeliefPredTrajType, maximum_likelihood_map> MLTrajType;
@@ -981,6 +983,7 @@ void TargetPredConfigWidget::startStatePrediction() {
   };
   
   data_in_opt.time_sync_name = "time";
+  data_in_opt.apply_network_order = true;
   
   sat_options.imbue_names_for_received_meas(data_in_opt);
   
@@ -988,9 +991,9 @@ void TargetPredConfigWidget::startStatePrediction() {
   shared_ptr< recorder::data_extractor > data_in;
   boost::tie(data_in, names_in) = data_in_opt.create_extractor();
   
-//   std::cout << "Names that were imbued:" << std::endl;
-//   for(std::size_t i = 0; i < names_in.size(); ++i)
-//     std::cout << names_in[i] << std::endl;
+  std::cout << "Names that were imbued:" << std::endl;
+  for(std::size_t i = 0; i < names_in.size(); ++i)
+    std::cout << names_in[i] << std::endl;
   
   // ---------- Call impl function with the appropriate system ----------
   

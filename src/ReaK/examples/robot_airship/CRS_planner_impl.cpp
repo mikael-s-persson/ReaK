@@ -61,6 +61,46 @@ using namespace ReaK;
 static QString last_used_path;
 
 
+namespace {
+
+union double_to_ulong {
+  double   d;
+  uint64_t ui64;
+  uint32_t ui32[2];
+};
+
+
+template <typename UnionT>
+void ntoh_2ui32(UnionT& value) {
+#if RK_BYTE_ORDER == RK_ORDER_LITTLE_ENDIAN
+  uint32_t tmp = ntohl(value.ui32[0]);
+  value.ui32[0] = ntohl(value.ui32[1]);
+  value.ui32[1] = tmp;
+#endif
+  // NOTE: for 64-bit values, there is no point in supporting PDP-endianness, as 64-bit values are not supported by PDP platforms.
+};
+
+template <typename UnionT>
+void hton_2ui32(UnionT& value) {
+#if RK_BYTE_ORDER == RK_ORDER_LITTLE_ENDIAN
+  uint32_t tmp = htonl(value.ui32[0]);
+  value.ui32[0] = htonl(value.ui32[1]);
+  value.ui32[1] = tmp;
+#endif
+  // NOTE: for 64-bit values, there is no point in supporting PDP-endianness, as 64-bit values are not supported by PDP platforms.
+};
+
+
+void write_double_to_net_stream(std::ostream& out, double value) {
+  double_to_ulong tmp; tmp.d = value;
+  hton_2ui32(tmp);
+  out.write(reinterpret_cast<char*>(&tmp),sizeof(double));
+//   out.write(reinterpret_cast<char*>(&value),sizeof(double));
+};
+
+
+};
+
 
 
 
@@ -337,8 +377,8 @@ void CRSPlannerGUI::executeSolutionTrajectory() {
   
   // Setup the UDP streaming to the robot (FIXME remove the hard-coded address / port)
   boost::asio::io_service io_service;
-  boost::asio::ip::udp::endpoint endpoint(boost::asio::ip::address_v4::from_string("127.0.0.1"), 17050);
-//   boost::asio::ip::udp::endpoint endpoint(boost::asio::ip::address_v4::from_string("192.168.0.3"), 17050);
+//   boost::asio::ip::udp::endpoint endpoint(boost::asio::ip::address_v4::from_string("127.0.0.1"), 17050);
+  boost::asio::ip::udp::endpoint endpoint(boost::asio::ip::address_v4::from_string("192.168.0.3"), 17050);
   boost::asio::ip::udp::socket socket((io_service));
   boost::asio::basic_streambuf<> udp_buf;
   std::ostream udp_buf_stream(&(udp_buf));
@@ -353,7 +393,7 @@ void CRSPlannerGUI::executeSolutionTrajectory() {
   // UDP output for the robot:
   vect<double,7> cur_pt = (*cur_pit).pt;
   for(std::size_t i = 0; i < 7; ++i)
-    udp_buf_stream.write(reinterpret_cast<char*>(&cur_pt[i]),sizeof(double));
+    write_double_to_net_stream(udp_buf_stream, cur_pt[i]);
   std::size_t len = socket.send_to(udp_buf.data(), endpoint);
   udp_buf.consume(len);
   
@@ -367,8 +407,12 @@ void CRSPlannerGUI::executeSolutionTrajectory() {
       std::cout << "Sending starting point, with time left = " << ReaKaux::chrono::duration_cast< ReaKaux::chrono::duration<double> >(delayed_start - exec_start).count() << std::endl;
       ReaKaux::this_thread::sleep_until(exec_start + ReaKaux::chrono::microseconds(1000));
       exec_start = ReaKaux::chrono::high_resolution_clock::now();
+      std::cout << " Sending values: ";
       for(std::size_t i = 0; i < 7; ++i)
-        udp_buf_stream.write(reinterpret_cast<char*>(&cur_pt[i]),sizeof(double));
+        std::cout << std::setw(10) << cur_pt[i];
+      std::cout << std::endl;
+      for(std::size_t i = 0; i < 7; ++i)
+        write_double_to_net_stream(udp_buf_stream, cur_pt[i]);
       std::size_t len = socket.send_to(udp_buf.data(), endpoint);
       udp_buf.consume(len);
     };
@@ -390,14 +434,14 @@ void CRSPlannerGUI::executeSolutionTrajectory() {
       std::cout << std::setw(10) << cur_pt[i];
     std::cout << std::endl;
     for(std::size_t i = 0; i < 7; ++i)
-      udp_buf_stream.write(reinterpret_cast<char*>(&cur_pt[i]),sizeof(double));
+      write_double_to_net_stream(udp_buf_stream, cur_pt[i]);
     len = socket.send_to(udp_buf.data(), endpoint);
     udp_buf.consume(len);
   };
   //UDP output for the robot:
   double terminating_value = -100.0;
   for(std::size_t i = 0; i < 7; ++i)
-    udp_buf_stream.write(reinterpret_cast<char*>(&terminating_value),sizeof(double));
+    write_double_to_net_stream(udp_buf_stream, terminating_value);
   len = socket.send_to(udp_buf.data(), endpoint);
   udp_buf.consume(len);
   
