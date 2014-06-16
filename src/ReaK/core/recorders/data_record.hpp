@@ -181,6 +181,8 @@ class data_recorder : public shared_object {
         void operator()();
     };
     
+    void closeRecordProcess();
+    
     /**
      * Overridable function which writes data to the file in whichever format specific to the derived class.
      */
@@ -193,6 +195,32 @@ class data_recorder : public shared_object {
     virtual void setStreamImpl(const shared_ptr<std::ostream>& aStreamPtr) = 0;
     
   public:
+    
+    /**
+     * Returns the flushing sample rate of this data streamer in Hz.
+     * \note A flushing sample rate of 0 signifies immediate transmission.
+     * \return The flushing sample rate of this data streamer in Hz.
+     */
+    unsigned int getFlushSampleRate() const { return flushSampleRate; };
+    
+    /**
+     * Sets the flushing sample rate of this data streamer in Hz.
+     * \note A flushing sample rate of 0 signifies immediate transmission.
+     * \param aFlushSampleRate The flushing sample rate of this data streamer in Hz.
+     */
+    void setFlushSampleRate(unsigned int aFlushSampleRate) { flushSampleRate = aFlushSampleRate; };
+    
+    /**
+     * Returns the maximum size of the data buffer, after which, data must be flushed to the stream.
+     * \return The maximum size of the data buffer, after which, data must be flushed to the stream.
+     */
+    unsigned int getMaxBufferSize() const { return maxBufferSize; };
+    
+    /**
+     * Sets the maximum size of the data buffer, after which, data must be flushed to the stream.
+     * \param aMinBufferSize The maximum size of the data buffer, after which, data must be flushed to the stream.
+     */
+    void setMaxBufferSize(unsigned int aMaxBufferSize) { maxBufferSize = aMaxBufferSize; };
     
     /**
      * This function is the factory to create named-value-row objects to represent a row of entries, addressable by name.
@@ -290,36 +318,8 @@ class data_recorder : public shared_object {
      */
     virtual void setFileName(const std::string& aFilename);
     
-    virtual void RK_CALL save(serialization::oarchive& A, unsigned int) const {
-      shared_object::save(A,shared_object::getStaticObjectType()->TypeVersion());
-      A & RK_SERIAL_SAVE_WITH_NAME(static_cast<unsigned int>(colCount))
-        & RK_SERIAL_SAVE_WITH_NAME(flushSampleRate)
-        & RK_SERIAL_SAVE_WITH_NAME(maxBufferSize)
-        & RK_SERIAL_SAVE_WITH_NAME(names);
-    };
-    virtual void RK_CALL load(serialization::iarchive& A, unsigned int) { 
-      ReaKaux::unique_lock< ReaKaux::mutex > lock_here(access_mutex);
-      colCount = 0;
-      if(writing_thread && writing_thread->joinable()) {
-        lock_here.unlock();
-        writing_thread->join();
-        lock_here.lock();
-      };
-      shared_object::load(A,shared_object::getStaticObjectType()->TypeVersion());
-      unsigned int aColCount;
-      A & RK_SERIAL_LOAD_WITH_ALIAS("colCount",aColCount)
-        & RK_SERIAL_LOAD_WITH_NAME(flushSampleRate)
-        & RK_SERIAL_LOAD_WITH_NAME(maxBufferSize)
-        & RK_SERIAL_LOAD_WITH_NAME(names);
-      colCount = aColCount;
-      for(std::size_t i = 0; i < colCount; ++i)
-        named_indices[names[i]] = i;
-      rowCount = 0;
-      currentColumn = 0;
-      values_rm = std::queue<double>();
-      lock_here.unlock();
-      writing_thread = ReaK::shared_ptr<ReaKaux::thread>(new ReaKaux::thread(record_process(*this)));
-    };
+    virtual void RK_CALL save(serialization::oarchive& A, unsigned int) const;
+    virtual void RK_CALL load(serialization::iarchive& A, unsigned int);
     
     RK_RTTI_MAKE_ABSTRACT_1BASE(data_recorder,0x81100001,1,"data_recorder",shared_object)
     
@@ -345,7 +345,7 @@ class data_extractor : public shared_object {
     
     ReaKaux::mutex access_mutex; ///< Mutex to lock the read/write on the data buffer.
     ReaK::shared_ptr<ReaKaux::thread> reading_thread; ///< Holds the instance of the data writing thread.
-
+    
     /**
      * This class is used as a callable function-object for data writing thread.
      */
@@ -355,7 +355,9 @@ class data_extractor : public shared_object {
         extract_process(data_extractor& aParent ) : parent(aParent) { };
         void operator()();
     };
-
+    
+    void closeExtractProcess();
+    
     /**
      * Overridable function which writes data to the file in whichever format specific to the derived class.
      */
@@ -369,7 +371,35 @@ class data_extractor : public shared_object {
      */
     virtual void setStreamImpl(const shared_ptr<std::istream>& aStreamPtr) = 0;
     
+    void setStreamWrappedCall(const shared_ptr<std::istream>& aStreamPtr);
+    
   public:
+    
+    /**
+     * Returns the flushing sample rate of this data streamer in Hz.
+     * \note A flushing sample rate of 0 signifies immediate transmission.
+     * \return The flushing sample rate of this data streamer in Hz.
+     */
+    unsigned int getFlushSampleRate() const { return flushSampleRate; };
+    
+    /**
+     * Sets the flushing sample rate of this data streamer in Hz.
+     * \note A flushing sample rate of 0 signifies immediate transmission.
+     * \param aFlushSampleRate The flushing sample rate of this data streamer in Hz.
+     */
+    void setFlushSampleRate(unsigned int aFlushSampleRate) { flushSampleRate = aFlushSampleRate; };
+    
+    /**
+     * Returns the minimum size of the data buffer, after which, data must be replenished from the stream.
+     * \return The minimum size of the data buffer, after which, data must be replenished from the stream.
+     */
+    unsigned int getMinBufferSize() const { return minBufferSize; };
+    
+    /**
+     * Sets the minimum size of the data buffer, after which, data must be replenished from the stream.
+     * \param aMinBufferSize The minimum size of the data buffer, after which, data must be replenished from the stream.
+     */
+    void setMinBufferSize(unsigned int aMinBufferSize) { minBufferSize = aMinBufferSize; };
     
     /**
      * This function is the factory to create named-value-row objects to represent a row of entries, addressable by name.
@@ -388,14 +418,14 @@ class data_extractor : public shared_object {
      * \return The number of columns in this extractor.
      */
     unsigned int getColCount() const { return colCount; };
-
+    
     /// Data record-specific flags for special operations.
     enum flag {
       end_value_row, ///< Ends the recording of the data entry for the current row.
       advance, ///< Reads the data buffer from the file.
       close ///< Closes the file and data buffer is flushed.
     };
-
+    
     /**
      * Default Constructor.
      */
@@ -450,14 +480,14 @@ class data_extractor : public shared_object {
      * Sets the stream.
      */
     void setStream(std::istream& aStream) {
-      setStreamImpl(shared_ptr<std::istream>(&aStream, null_deleter()));
+      setStreamWrappedCall(shared_ptr<std::istream>(&aStream, null_deleter()));
     };
     
     /**
      * Sets the stream via a shared-pointer.
      */
     void setStream(const shared_ptr<std::istream>& aStreamPtr) {
-      setStreamImpl(aStreamPtr);
+      setStreamWrappedCall(aStreamPtr);
     };
     
     /**
@@ -465,39 +495,11 @@ class data_extractor : public shared_object {
      */
     virtual void setFileName(const std::string& aFileName);
     
-    virtual void RK_CALL save(serialization::oarchive& A, unsigned int) const {
-      shared_object::save(A,shared_object::getStaticObjectType()->TypeVersion());
-      A & RK_SERIAL_SAVE_WITH_NAME(static_cast<unsigned int>(colCount))
-        & RK_SERIAL_SAVE_WITH_NAME(flushSampleRate)
-        & RK_SERIAL_SAVE_WITH_NAME(minBufferSize)
-        & RK_SERIAL_SAVE_WITH_NAME(names);
-    };
-    virtual void RK_CALL load(serialization::iarchive& A, unsigned int) {
-      ReaKaux::unique_lock< ReaKaux::mutex > lock_here(access_mutex);
-      colCount = 0;
-      if(reading_thread && reading_thread->joinable()) {
-        lock_here.unlock();
-        reading_thread->join();
-        lock_here.lock();
-      };
-      shared_object::load(A,shared_object::getStaticObjectType()->TypeVersion());
-      unsigned int aColCount;
-      A & RK_SERIAL_LOAD_WITH_ALIAS("colCount",aColCount)
-        & RK_SERIAL_LOAD_WITH_NAME(flushSampleRate)
-        & RK_SERIAL_LOAD_WITH_NAME(minBufferSize)
-        & RK_SERIAL_LOAD_WITH_NAME(names);
-      colCount = aColCount;
-      for(std::size_t i = 0; i < names.size(); ++i)
-        named_indices[names[i]] = i;
-      currentColumn = 0;
-      currentNameCol = 0;
-      values_rm = std::queue<double>();
-      lock_here.unlock();
-      reading_thread = ReaK::shared_ptr<ReaKaux::thread>(new ReaKaux::thread(extract_process(*this)));
-    };
-
+    virtual void RK_CALL save(serialization::oarchive& A, unsigned int) const;
+    virtual void RK_CALL load(serialization::iarchive& A, unsigned int);
+    
     RK_RTTI_MAKE_ABSTRACT_1BASE(data_extractor,0x81200001,1,"data_extractor",shared_object)
-
+    
 };
 
 

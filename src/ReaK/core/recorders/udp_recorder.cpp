@@ -113,7 +113,7 @@ class udp_client_impl {
     
     udp_client_impl(const std::string& ip4_address, std::size_t port_num) : 
       io_service(), 
-      endpoint(boost::asio::ip::address_v4::from_string(ip4_address), port_num), 
+      endpoint(), 
       socket(io_service) { 
       
       boost::asio::ip::udp::resolver addr_resolver(io_service);
@@ -143,11 +143,13 @@ class udp_client_impl {
 
 udp_recorder::udp_recorder() : data_recorder(), pimpl(), apply_network_order(false) { };
 
-udp_recorder::udp_recorder(const std::string& aFileName) {
+udp_recorder::udp_recorder(const std::string& aFileName) : apply_network_order(false) {
   setFileName(aFileName);
 };
 
-udp_recorder::~udp_recorder() { };
+udp_recorder::~udp_recorder() {
+  closeRecordProcess();
+};
 
 void udp_recorder::writeRow() {
   ReaKaux::unique_lock< ReaKaux::mutex > lock_here(access_mutex);
@@ -219,19 +221,22 @@ void udp_recorder::setFileName(const std::string& aFileName) {
 
 udp_extractor::udp_extractor() : data_extractor(), pimpl(), apply_network_order(false) { };
 
-udp_extractor::udp_extractor(const std::string& aFileName) : data_extractor(), pimpl() {
+udp_extractor::udp_extractor(const std::string& aFileName) : data_extractor(), pimpl(), apply_network_order(false) {
   setFileName(aFileName);
 };
 
-udp_extractor::~udp_extractor() {};
+udp_extractor::~udp_extractor() {
+  closeExtractProcess();
+};
 
 bool udp_extractor::readRow() {
   ReaKaux::unique_lock< ReaKaux::mutex > lock_here(access_mutex);
   shared_ptr<udp_client_impl> pimpl_tmp = pimpl;
   if((pimpl_tmp) && (pimpl_tmp->socket.is_open()) && (colCount > 0)) {
     try {
+      if(pimpl_tmp->socket.available() < colCount * sizeof(double))
+        return true;
       boost::asio::streambuf::mutable_buffers_type bufs = pimpl_tmp->row_buf.prepare(colCount * sizeof(double));
-//       std::size_t len = pimpl_tmp->socket.receive(bufs);
       std::size_t len = pimpl_tmp->socket.receive_from(bufs, pimpl_tmp->endpoint);
       pimpl_tmp->row_buf.commit(len);
       if(len < colCount * sizeof(double))
@@ -251,6 +256,7 @@ bool udp_extractor::readRow() {
         s_tmp.read(reinterpret_cast<char*>(&tmp),sizeof(double));
         values_rm.push(tmp);
       };
+//       RK_NOTICE(1," Received: " << values_rm.back());
     };
   };
   return true;
@@ -262,7 +268,6 @@ bool udp_extractor::readNames() {
     uint32_t data_len = 0;
     {
       boost::asio::streambuf::mutable_buffers_type bufs = pimpl_tmp->row_buf.prepare(sizeof(uint32_t));
-//       std::size_t len = pimpl_tmp->socket.receive(bufs);
       std::size_t len = pimpl_tmp->socket.receive_from(bufs, pimpl_tmp->endpoint);
       pimpl_tmp->row_buf.commit(len);
       std::istream s_tmp(&(pimpl_tmp->row_buf));
@@ -270,7 +275,6 @@ bool udp_extractor::readNames() {
       data_len = ntohl(data_len);
     };
     boost::asio::streambuf::mutable_buffers_type bufs = pimpl_tmp->row_buf.prepare(data_len);
-//     std::size_t len = pimpl_tmp->socket.receive(bufs);
     std::size_t len = pimpl_tmp->socket.receive_from(bufs, pimpl_tmp->endpoint);
     pimpl_tmp->row_buf.commit(len);
     std::istream s_tmp(&(pimpl_tmp->row_buf));
@@ -297,6 +301,8 @@ void udp_extractor::setFileName(const std::string& aFileName) {
   };
   pimpl = shared_ptr<udp_client_impl>(new udp_client_impl(ip4addr, portnum));
   readNames();
+  currentColumn = 0;
+  reading_thread = ReaK::shared_ptr<ReaKaux::thread>(new ReaKaux::thread(extract_process(*this)));
 };
 
 

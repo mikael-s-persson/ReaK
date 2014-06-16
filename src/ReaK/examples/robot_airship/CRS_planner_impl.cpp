@@ -375,6 +375,11 @@ void CRSPlannerGUI::onStopPlanning() {
 
 void CRSPlannerGUI::executeSolutionTrajectory() {
   
+  if( !sol_anim.trajectory ) {
+    emit notifyConsoleMessage("Execution Error! Cannot execute planned path, because no such plan exists!");
+    return;
+  };
+  
   // Setup the UDP streaming to the robot (FIXME remove the hard-coded address / port)
   boost::asio::io_service io_service;
 //   boost::asio::ip::udp::endpoint endpoint(boost::asio::ip::address_v4::from_string("127.0.0.1"), 17050);
@@ -463,6 +468,14 @@ void CRSPlannerGUI::onLaunch(int mode) {
       this->exec_robot_thr->join();
     delete this->exec_robot_thr;
     this->exec_robot_thr = NULL;
+  };
+  
+  if( !sol_anim.trajectory || !ct_config.sceneData.chaser_kin_model ) {
+    QMessageBox::critical(this,
+                  "Launch Error!",
+                  "The best-solution trajectory is missing (not loaded or erroneous)! Cannot launch chaser!",
+                  QMessageBox::Ok);
+    return;
   };
   
   if( mode == 0 ) {

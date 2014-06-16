@@ -123,11 +123,13 @@ class tcp_client_impl {
 
 tcp_recorder::tcp_recorder() : data_recorder(), pimpl(), apply_network_order(false) { };
 
-tcp_recorder::tcp_recorder(const std::string& aFileName) {
+tcp_recorder::tcp_recorder(const std::string& aFileName) : apply_network_order(false) {
   setFileName(aFileName);
 };
 
-tcp_recorder::~tcp_recorder() { };
+tcp_recorder::~tcp_recorder() {
+  closeRecordProcess();
+};
 
 void tcp_recorder::writeRow() {
   ReaKaux::unique_lock< ReaKaux::mutex > lock_here(access_mutex);
@@ -193,11 +195,13 @@ void tcp_recorder::setFileName(const std::string& aFileName) {
 
 tcp_extractor::tcp_extractor() : data_extractor(), pimpl(), apply_network_order(false) { };
 
-tcp_extractor::tcp_extractor(const std::string& aFileName) : data_extractor(), pimpl() {
+tcp_extractor::tcp_extractor(const std::string& aFileName) : data_extractor(), pimpl(), apply_network_order(false) {
   setFileName(aFileName);
 };
 
-tcp_extractor::~tcp_extractor() {};
+tcp_extractor::~tcp_extractor() {
+  closeExtractProcess();
+};
 
 bool tcp_extractor::readRow() {
   ReaKaux::unique_lock< ReaKaux::mutex > lock_here(access_mutex);
@@ -224,6 +228,7 @@ bool tcp_extractor::readRow() {
         s_tmp.read(reinterpret_cast<char*>(&tmp),sizeof(double));
         values_rm.push(tmp);
       };
+//       RK_NOTICE(1," Received: " << values_rm.back());
     };
   };
   return true;
@@ -268,6 +273,8 @@ void tcp_extractor::setFileName(const std::string& aFileName) {
   };
   pimpl = shared_ptr<tcp_client_impl>(new tcp_client_impl(ip4addr, portnum));
   readNames();
+  currentColumn = 0;
+  reading_thread = ReaK::shared_ptr<ReaKaux::thread>(new ReaKaux::thread(extract_process(*this)));
 };
 
 
