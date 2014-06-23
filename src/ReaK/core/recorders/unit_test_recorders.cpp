@@ -24,9 +24,7 @@
 #include <ReaK/core/recorders/ssv_recorder.hpp>
 #include <ReaK/core/recorders/tsv_recorder.hpp>
 #include <ReaK/core/recorders/bin_recorder.hpp>
-#include <ReaK/core/recorders/tcp_recorder.hpp>
-#include <ReaK/core/recorders/udp_recorder.hpp>
-#include <ReaK/core/recorders/raw_udp_recorder.hpp>
+#include <ReaK/core/recorders/network_recorder.hpp>
 #include <ReaK/core/recorders/vector_recorder.hpp>
 
 #include <sstream>
@@ -188,10 +186,14 @@ BOOST_AUTO_TEST_CASE( bin_record_extract_test )
 };
 
 
-struct server_runner {
+
+
+struct net_server_runner {
   bool* succeeded;
   unsigned int* num_points;
-  server_runner(bool* aSucceeded, unsigned int* aNumPoints) : succeeded(aSucceeded), num_points(aNumPoints) { };
+  std::string server_uri;
+  net_server_runner(bool* aSucceeded, unsigned int* aNumPoints, 
+                    const std::string& aURI) : succeeded(aSucceeded), num_points(aNumPoints), server_uri(aURI) { };
   
   void operator()() {
     
@@ -199,9 +201,8 @@ struct server_runner {
     using namespace recorder;
     
     try {
-      tcp_recorder output_rec("17017");
+      network_recorder output_rec(server_uri);
       output_rec << "x" << "2*x" << "x^2" << data_recorder::end_name_row;
-      
       for(double x = 0.0; x < 10.1; x += 0.5) {
         output_rec << x << 2*x << x*x << data_recorder::end_value_row;
         *num_points += 1;
@@ -211,14 +212,13 @@ struct server_runner {
       *succeeded = false;
       return;
     };
-    
     *succeeded = true;
   };  
   
 };
 
 
-BOOST_AUTO_TEST_CASE( tcp_record_extract_test )
+BOOST_AUTO_TEST_CASE( net_tcp_record_extract_test )
 {
   
   using namespace ReaK;
@@ -227,14 +227,14 @@ BOOST_AUTO_TEST_CASE( tcp_record_extract_test )
   bool server_worked = false;
   unsigned int server_sent = 0;
   
-  server_runner srv(&server_worked, &server_sent);
+  net_server_runner srv(&server_worked, &server_sent, "tcp:localhost:17020");
   ReaKaux::thread server_thd( srv );
   
   // it is necessary to give some time for the server to get up and waiting before a client can be created:
   ReaKaux::this_thread::sleep_for(ReaKaux::chrono::nanoseconds(10000));
   ReaKaux::this_thread::yield();
   
-  tcp_extractor input_rec("127.0.0.1:17017");
+  network_extractor input_rec("tcp:localhost:17020");
   
   BOOST_CHECK_EQUAL( input_rec.getColCount(), 3 );
   std::string s1, s2, s3;
@@ -260,37 +260,7 @@ BOOST_AUTO_TEST_CASE( tcp_record_extract_test )
 };
 
 
-struct udp_server_runner {
-  bool* succeeded;
-  unsigned int* num_points;
-  udp_server_runner(bool* aSucceeded, unsigned int* aNumPoints) : succeeded(aSucceeded), num_points(aNumPoints) { };
-  
-  void operator()() {
-    
-    using namespace ReaK;
-    using namespace recorder;
-    
-    try {
-      udp_recorder output_rec("17018");
-      output_rec << "x" << "2*x" << "x^2" << data_recorder::end_name_row;
-      
-      for(double x = 0.0; x < 10.1; x += 0.5) {
-        output_rec << x << 2*x << x*x << data_recorder::end_value_row;
-        *num_points += 1;
-      };
-      output_rec << data_recorder::flush;
-    } catch(...) {
-      *succeeded = false;
-      return;
-    };
-    
-    *succeeded = true;
-  };  
-  
-};
-
-
-BOOST_AUTO_TEST_CASE( udp_record_extract_test )
+BOOST_AUTO_TEST_CASE( net_udp_record_extract_test )
 {
   
   using namespace ReaK;
@@ -299,17 +269,16 @@ BOOST_AUTO_TEST_CASE( udp_record_extract_test )
   bool server_worked = false;
   unsigned int server_sent = 0;
   
-  udp_server_runner srv(&server_worked, &server_sent);
+  net_server_runner srv(&server_worked, &server_sent, "udp:localhost:17021");
   ReaKaux::thread server_thd( srv );
   
   // it is necessary to give some time for the server to get up and waiting before a client can be created:
   ReaKaux::this_thread::sleep_for(ReaKaux::chrono::nanoseconds(10000));
   ReaKaux::this_thread::yield();
   
-  udp_extractor input_rec("127.0.0.1:17018");
+  network_extractor input_rec("udp:localhost:17021");
   
   BOOST_CHECK_EQUAL( input_rec.getColCount(), 3 );
-  
   std::string s1, s2, s3;
   BOOST_CHECK_NO_THROW( input_rec >> s1 >> s2 >> s3 );
   BOOST_CHECK( s1 == "x" );
@@ -319,7 +288,6 @@ BOOST_AUTO_TEST_CASE( udp_record_extract_test )
   for(double x = 0; x < 10.1; x += 0.5) {
     double v1, v2, v3;
     BOOST_CHECK_NO_THROW( input_rec >> v1 >> v2 >> v3 );
-//     std::cout << v1 << " : " << v2 << " | " << (2.0*x) << " " << v3 << " | " << (x*x) << std::endl;
     BOOST_CHECK_CLOSE( v1, x, 1e-6 );
     BOOST_CHECK_CLOSE( v2, (2.0*x), 1e-6 );
     BOOST_CHECK_CLOSE( v3, (x*x), 1e-6 );
@@ -334,38 +302,7 @@ BOOST_AUTO_TEST_CASE( udp_record_extract_test )
 };
 
 
-
-struct raw_udp_server_runner {
-  bool* succeeded;
-  unsigned int* num_points;
-  raw_udp_server_runner(bool* aSucceeded, unsigned int* aNumPoints) : succeeded(aSucceeded), num_points(aNumPoints) { };
-  
-  void operator()() {
-    
-    using namespace ReaK;
-    using namespace recorder;
-    
-    try {
-      raw_udp_recorder output_rec("127.0.0.1:17019");
-      output_rec << "x" << "2*x" << "x^2" << data_recorder::end_name_row;
-      
-      for(double x = 0.0; x < 10.1; x += 0.5) {
-        output_rec << x << 2*x << x*x << data_recorder::end_value_row;
-        *num_points += 1;
-      };
-      output_rec << data_recorder::flush;
-    } catch(...) {
-      *succeeded = false;
-      return;
-    };
-    
-    *succeeded = true;
-  };  
-  
-};
-
-
-BOOST_AUTO_TEST_CASE( raw_udp_record_extract_test )
+BOOST_AUTO_TEST_CASE( net_raw_udp_record_extract_test )
 {
   
   using namespace ReaK;
@@ -374,27 +311,26 @@ BOOST_AUTO_TEST_CASE( raw_udp_record_extract_test )
   bool server_worked = false;
   unsigned int server_sent = 0;
   
-  raw_udp_extractor input_rec;
+  network_extractor input_rec;
   input_rec.addName("x");
   input_rec.addName("2*x");
   input_rec.addName("x^2");
+  
+  input_rec.setFileName("raw_udp:localhost:17022");
+  
   BOOST_CHECK_EQUAL( input_rec.getColCount(), 3 );
-  
-  input_rec.setFileName("127.0.0.1:17019");
-  
   std::string s1, s2, s3;
   BOOST_CHECK_NO_THROW( input_rec >> s1 >> s2 >> s3 );
   BOOST_CHECK( s1 == "x" );
   BOOST_CHECK( s2 == "2*x" );
   BOOST_CHECK( s3 == "x^2" );
   
-  raw_udp_server_runner srv(&server_worked, &server_sent);
+  net_server_runner srv(&server_worked, &server_sent, "raw_udp:localhost:17022");
   ReaKaux::thread server_thd( srv );
   
   for(double x = 0; x < 10.1; x += 0.5) {
     double v1, v2, v3;
     BOOST_CHECK_NO_THROW( input_rec >> v1 >> v2 >> v3 );
-//     std::cout << v1 << " : " << v2 << " | " << (2.0*x) << " " << v3 << " | " << (x*x) << std::endl;
     BOOST_CHECK_CLOSE( v1, x, 1e-6 );
     BOOST_CHECK_CLOSE( v2, (2.0*x), 1e-6 );
     BOOST_CHECK_CLOSE( v3, (x*x), 1e-6 );
@@ -407,6 +343,8 @@ BOOST_AUTO_TEST_CASE( raw_udp_record_extract_test )
   BOOST_CHECK( server_worked );
   
 };
+
+
 
 
 

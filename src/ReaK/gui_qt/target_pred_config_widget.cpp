@@ -983,7 +983,6 @@ void TargetPredConfigWidget::startStatePrediction() {
   };
   
   data_in_opt.time_sync_name = "time";
-  data_in_opt.apply_network_order = true;
   
   sat_options.imbue_names_for_received_meas(data_in_opt);
   

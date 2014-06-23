@@ -26,9 +26,7 @@
 #include <ReaK/core/recorders/bin_recorder.hpp>
 #include <ReaK/core/recorders/ssv_recorder.hpp>
 #include <ReaK/core/recorders/tsv_recorder.hpp>
-#include <ReaK/core/recorders/tcp_recorder.hpp>
-#include <ReaK/core/recorders/udp_recorder.hpp>
-#include <ReaK/core/recorders/raw_udp_recorder.hpp>
+#include <ReaK/core/recorders/network_recorder.hpp>
 #include <ReaK/core/recorders/vector_recorder.hpp>
 
 
@@ -50,31 +48,31 @@ shared_ptr< data_recorder > data_stream_options::create_recorder() const {
     case tab_separated:
       result = shared_ptr< data_recorder >(new tsv_recorder());
       break;
-    case tcp_stream: {
-      shared_ptr< tcp_recorder > tmp(new tcp_recorder());
-      tmp->apply_network_order = this->apply_network_order;
-      result = tmp;
+    case tcp_stream:
+    case udp_stream: 
+    case raw_udp_stream: 
+      result = shared_ptr< data_recorder >(new network_recorder());
       break;
-    };
-    case udp_stream: {
-      shared_ptr< udp_recorder > tmp(new udp_recorder());
-      tmp->apply_network_order = this->apply_network_order;
-      result = tmp;
-      break;
-    };
-    case raw_udp_stream: {
-      shared_ptr< raw_udp_recorder > tmp(new raw_udp_recorder());
-      tmp->apply_network_order = this->apply_network_order;
-      result = tmp;
-      break;
-    };
     case vector_stream:
       result = shared_ptr< data_recorder >(new vector_recorder());
       break;
   };
   
   if(file_name != "stdout") {
-    result->setFileName(file_name);
+    switch(kind) {
+      case tcp_stream:
+        result->setFileName("tcp:" + file_name);
+        break;
+      case udp_stream: 
+        result->setFileName("udp:" + file_name);
+        break;
+      case raw_udp_stream: 
+        result->setFileName("raw_udp:" + file_name);
+        break;
+      default:
+        result->setFileName(file_name);
+        break;
+    };
   } else {
     result->setStream(std::cout);
   };
@@ -103,31 +101,31 @@ std::pair< shared_ptr< data_extractor >, std::vector< std::string > > data_strea
     case tab_separated:
       result.first = shared_ptr< data_extractor >(new tsv_extractor());
       break;
-    case tcp_stream: {
-      shared_ptr< tcp_extractor > tmp(new tcp_extractor());
-      tmp->apply_network_order = this->apply_network_order;
-      result.first = tmp;
+    case tcp_stream:
+    case udp_stream:
+    case raw_udp_stream:
+      result.first = shared_ptr< data_extractor >(new network_extractor());
       break;
-    };
-    case udp_stream: {
-      shared_ptr< udp_extractor > tmp(new udp_extractor());
-      tmp->apply_network_order = this->apply_network_order;
-      result.first = tmp;
-      break;
-    };
-    case raw_udp_stream: {
-      shared_ptr< raw_udp_extractor > tmp(new raw_udp_extractor());
-      tmp->apply_network_order = this->apply_network_order;
-      result.first = tmp;
-      break;
-    };
     case vector_stream:
       result.first = shared_ptr< data_extractor >(new vector_extractor());
       break;
   };
   
   if(file_name != "stdin") {
-    result.first->setFileName(file_name);
+    switch(kind) {
+      case tcp_stream:
+        result.first->setFileName("tcp:" + file_name);
+        break;
+      case udp_stream: 
+        result.first->setFileName("udp:" + file_name);
+        break;
+      case raw_udp_stream: 
+        result.first->setFileName("raw_udp:" + file_name);
+        break;
+      default:
+        result.first->setFileName(file_name);
+        break;
+    };
   } else {
     result.first->setStream(std::cin);
   };
@@ -137,14 +135,9 @@ std::pair< shared_ptr< data_extractor >, std::vector< std::string > > data_strea
     for(std::size_t i = 0; i < result.second.size(); ++i)
       (*result.first) >> result.second[i];
     
-    if( names.empty() ) {
+    if( names.empty() )
       names = result.second;
-//     } else {
-//       for(std::vector< std::string >::const_iterator it = names.begin(), it_end = names.end(); it != it_end; ++it) {
-//         if( std::find(result.second.begin(), result.second.end(), *it) == result.second.end() )
-//           throw std::invalid_argument(*it);
-//       };
-    };
+    
     if( !time_sync_name.empty() &&
         ( std::find(result.second.begin(), result.second.end(), time_sync_name) == result.second.end() ) )
       throw std::invalid_argument(time_sync_name + " as time-sync column-name");
@@ -153,10 +146,9 @@ std::pair< shared_ptr< data_extractor >, std::vector< std::string > > data_strea
       throw std::invalid_argument("empty names for a raw-udp-extractor");
     result.second = names;
     
-    raw_udp_extractor* data_in_tmp = static_cast< raw_udp_extractor* >(result.first.get());
-    for(std::vector< std::string >::const_iterator it = names.begin(), it_end = names.end(); it != it_end; ++it) {
+    network_extractor* data_in_tmp = static_cast< network_extractor* >(result.first.get());
+    for(std::vector< std::string >::const_iterator it = names.begin(), it_end = names.end(); it != it_end; ++it)
       data_in_tmp->addName(*it);
-    };
   } else {
     if( names.empty() )
       throw std::invalid_argument("empty names for a vector-extractor");

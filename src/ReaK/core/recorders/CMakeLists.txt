@@ -5,9 +5,10 @@ set(RECORDERS_SOURCES
   "${SRCROOT}${RKRECORDERSDIR}/ssv_recorder.cpp"
   "${SRCROOT}${RKRECORDERSDIR}/tsv_recorder.cpp"
   "${SRCROOT}${RKRECORDERSDIR}/bin_recorder.cpp"
-  "${SRCROOT}${RKRECORDERSDIR}/tcp_recorder.cpp"
-  "${SRCROOT}${RKRECORDERSDIR}/udp_recorder.cpp"
-  "${SRCROOT}${RKRECORDERSDIR}/raw_udp_recorder.cpp"
+#   "${SRCROOT}${RKRECORDERSDIR}/tcp_recorder.cpp"
+#   "${SRCROOT}${RKRECORDERSDIR}/udp_recorder.cpp"
+#   "${SRCROOT}${RKRECORDERSDIR}/raw_udp_recorder.cpp"
+  "${SRCROOT}${RKRECORDERSDIR}/network_recorder.cpp"
   "${SRCROOT}${RKRECORDERSDIR}/vector_recorder.cpp"
 )
 
@@ -20,6 +21,7 @@ set(RECORDERS_HEADERS
   "${RKRECORDERSDIR}/tcp_recorder.hpp"
   "${RKRECORDERSDIR}/udp_recorder.hpp"
   "${RKRECORDERSDIR}/raw_udp_recorder.hpp"
+  "${RKRECORDERSDIR}/network_recorder.hpp"
   "${RKRECORDERSDIR}/vector_recorder.hpp"
 )
 

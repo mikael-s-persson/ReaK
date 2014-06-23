@@ -30,6 +30,8 @@
 
 #include <ReaK/core/serialization/archiving_exceptions.hpp>
 
+#include <ReaK/core/base/endian_conversions.hpp>
+
 
 #include <string>
 #include <map>
@@ -37,92 +39,9 @@
 
 #include <fstream>
 
-
-#include <stdint.h>
-
-#ifdef WIN32
-
-#include <winsock2.h>
-
-#else
-
-#include <netinet/in.h>
-//#include <arpa/inet.h>
-
-#endif
-
 namespace ReaK {
 
 namespace serialization {
-
-
-namespace {
-
-union float_to_ulong {
-  float    f;
-  uint32_t ui32;
-};
-
-union double_to_ulong {
-  double   d;
-  uint64_t ui64;
-  uint32_t ui32[2];
-};
-
-union ullong_to_ulong {
-  uint64_t ui64;
-  uint32_t ui32[2];
-};
-
-union long_to_ulong {
-  int32_t  i32;
-  uint32_t ui32;
-};
-
-union llong_to_ulong {
-  int64_t  i64;
-  uint64_t ui64;
-  uint32_t ui32[2];
-};
-
-
-template <typename UnionT>
-void ntoh_1ui32(UnionT& value) {
-#if RK_BYTE_ORDER != RK_ORDER_BIG_ENDIAN
-  value.ui32 = ntohl(value.ui32);
-#endif
-};
-
-template <typename UnionT>
-void hton_1ui32(UnionT& value) {
-#if RK_BYTE_ORDER != RK_ORDER_BIG_ENDIAN
-  value.ui32 = htonl(value.ui32);
-#endif
-};
-
-template <typename UnionT>
-void ntoh_2ui32(UnionT& value) {
-#if RK_BYTE_ORDER == RK_ORDER_LITTLE_ENDIAN
-  uint32_t tmp = ntohl(value.ui32[0]);
-  value.ui32[0] = ntohl(value.ui32[1]);
-  value.ui32[1] = tmp;
-#endif
-  // NOTE: for 64-bit values, there is no point in supporting PDP-endianness, as 64-bit values are not supported by PDP platforms.
-};
-
-template <typename UnionT>
-void hton_2ui32(UnionT& value) {
-#if RK_BYTE_ORDER == RK_ORDER_LITTLE_ENDIAN
-  uint32_t tmp = htonl(value.ui32[0]);
-  value.ui32[0] = htonl(value.ui32[1]);
-  value.ui32[1] = tmp;
-#endif
-  // NOTE: for 64-bit values, there is no point in supporting PDP-endianness, as 64-bit values are not supported by PDP platforms.
-};
-
-
-};
-
 
 
 bin_iarchive::bin_iarchive(const std::string& FileName) {
@@ -294,8 +213,8 @@ iarchive& RK_CALL bin_iarchive::load_int(const std::pair<std::string, int& >& i)
 };
 
 iarchive& RK_CALL bin_iarchive::load_unsigned_int(unsigned int& u) {
-  ullong_to_ulong tmp; 
-  file_stream->read(reinterpret_cast<char*>(&tmp),sizeof(ullong_to_ulong));
+  llong_to_ulong tmp; 
+  file_stream->read(reinterpret_cast<char*>(&tmp),sizeof(llong_to_ulong));
   ntoh_2ui32(tmp);
   u = static_cast<unsigned int>(tmp.ui64);
   return *this;
@@ -579,9 +498,9 @@ oarchive& RK_CALL bin_oarchive::save_int(const std::pair<std::string, int >& i) 
 };
 
 oarchive& RK_CALL bin_oarchive::save_unsigned_int(unsigned int u) {
-  ullong_to_ulong tmp; tmp.ui64 = u;
+  llong_to_ulong tmp; tmp.ui64 = u;
   hton_2ui32(tmp);
-  file_stream->write(reinterpret_cast<char*>(&tmp),sizeof(ullong_to_ulong));
+  file_stream->write(reinterpret_cast<char*>(&tmp),sizeof(llong_to_ulong));
   return *this;
 };
 

@@ -67,7 +67,6 @@ boost::program_options::options_description get_data_stream_options_po_desc(bool
       ("input-udp",     "if set, will try to listen to an input UDP data-stream")
       ("input-raw-udp", "if set, will try to listen to an input RAW UDP data-stream, for this to work, you must specify the list of columns via the 'keep-columns' option")
       ("input-format",  value< std::string >(), "specify the format for the input file (default is to use the file-extension of input-file (ssv, tsv, bin, etc.), or if piped, use 'ssv')")
-      ("input-in-network-order","if set, will input from a network data-stream by converting the 'double' values from two integers (32bit) and reordering the bytes into host order (ntohl)")
     ;
     result.add(input_options);
   };
@@ -81,7 +80,6 @@ boost::program_options::options_description get_data_stream_options_po_desc(bool
       ("output-udp",    "if set, will output a UDP data-stream")
       ("output-raw-udp","if set, will output a RAW UDP data-stream")
       ("output-format", value< std::string >(), "specify the format for the output file (default is to use the file-extension of input-file (ssv, tsv, bin, etc.), or if piped, use 'ssv')")
-      ("output-in-network-order","if set, will output a network data-stream by converting the 'double' values to two integers (32bit) and reordering the bytes into network order (htonl)")
     ;
     result.add(output_options);
   };
@@ -131,9 +129,6 @@ data_stream_options get_data_stream_options_from_po(boost::program_options::vari
       } else {
         result.kind = data_stream_options::tcp_stream;
       };
-      
-      if(vm.count("input-in-network-order"))
-        result.apply_network_order = true;
     } else {
       if(input_extension == "ssv") {
         result.kind = data_stream_options::space_separated;
@@ -185,9 +180,6 @@ data_stream_options get_data_stream_options_from_po(boost::program_options::vari
           result.kind = data_stream_options::tcp_stream;
       };
       result.file_name = ss.str();
-      
-      if(vm.count("output-in-network-order"))
-        result.apply_network_order = true;
     };
     
   };
