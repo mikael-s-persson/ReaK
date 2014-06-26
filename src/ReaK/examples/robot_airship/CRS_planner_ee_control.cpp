@@ -64,9 +64,10 @@ void CRS_execute_ee_control_impl(const ReaK::kte::chaser_target_data& scene_data
   typedef typename spatial_trajectory_traits<TargetStateTrajectory>::point_type TargetTempPointType;
   
   TargetTempPointType target_tp = target_state_traj->get_point_at_time(current_time);
-  target_state_traj->get_temporal_space().
   
-  detail::write_joint_coordinates_impl(target_tp.pt, space_in, scene_data.target_kin_model);
+  detail::write_joint_coordinates_impl(target_tp.pt, 
+                                       target_state_traj->get_temporal_space().get_space_topology(), 
+                                       scene_data.target_kin_model);
   scene_data.target_kin_model->doDirectMotion();
   
   vect_n<double> target_jt_original = scene_data.target_kin_model->getJointPositions(); 
