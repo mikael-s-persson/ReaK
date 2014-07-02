@@ -87,8 +87,17 @@ class planner_base : public named_object {
   protected:
     
     shared_ptr< space_type > m_space;
+    volatile bool m_keep_going_external;
     
   public:
+    
+    /**
+     * This function can be used to stop the planner, if possible. Planners that are 
+     * iterative in nature can usually be stopped at any arbitrary iteration, whether 
+     * a rough solution was already found or not (will be in stored in the planning-query object).
+     * \note It is possible that some derived-class planners are not stoppable.
+     */
+    void stop() { m_keep_going_external = false; };
     
     /**
      * This function computes a valid path in the C-free. If it cannot 
@@ -104,13 +113,15 @@ class planner_base : public named_object {
     /**
      * This function is called to reset the internal state of the planner.
      */
-    virtual void reset_internal_state() = 0;
+    virtual void reset_internal_state() {
+      m_keep_going_external = true;
+    };
     
     /**
      * Returns true if the solver should keep on going trying to solve the path-planning problem.
      * \return True if the solver should keep on going trying to solve the path-planning problem.
      */
-    virtual bool keep_going() const { return true; };
+    virtual bool keep_going() const { return m_keep_going_external; };
     
     /**
      * Parametrized constructor.
@@ -120,7 +131,7 @@ class planner_base : public named_object {
     planner_base(const std::string& aName,
                  const shared_ptr< space_type >& aWorld) :
                  named_object(),
-                 m_space(aWorld) { setName(aName); };
+                 m_space(aWorld), m_keep_going_external(true) { setName(aName); };
     
     virtual ~planner_base() { };
     
@@ -137,6 +148,7 @@ class planner_base : public named_object {
     virtual void RK_CALL load(serialization::iarchive& A, unsigned int) {
       named_object::load(A,named_object::getStaticObjectType()->TypeVersion());
       A & RK_SERIAL_LOAD_WITH_NAME(m_space);
+      m_keep_going_external = true;
     };
 
     RK_RTTI_MAKE_ABSTRACT_1BASE(self,0xC2460000,1,"planner_base",named_object)
@@ -363,6 +375,7 @@ class sample_based_planner : public planner_base<FreeSpaceType> {
      * This function is called to reset the internal state of the planner.
      */
     virtual void reset_internal_state() {
+      base_type::reset_internal_state();
       m_iteration_count = 0;
       m_reporter.reset_internal_state();
     };
@@ -371,7 +384,7 @@ class sample_based_planner : public planner_base<FreeSpaceType> {
      * Returns true if the solver should keep on going trying to solve the path-planning problem.
      * \return True if the solver should keep on going trying to solve the path-planning problem.
      */
-    virtual bool keep_going() const { return !has_reached_max_iterations(); };
+    virtual bool keep_going() const { return !has_reached_max_iterations() && this->m_keep_going_external; };
     
     
     /**

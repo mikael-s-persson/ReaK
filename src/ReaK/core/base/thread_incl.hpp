@@ -37,7 +37,7 @@
 
 #include "defs.hpp"
 
-
+#include "function_incl.hpp"
 
 //  C++11 thread features in GCC 4.7.0 and later
 //  NOTE: This does not include futures and the notify-all-at-exit, because they are not fully supported.
@@ -61,51 +61,51 @@ namespace ReaKaux {
 
   // thread:
 
-  using std::thread;
-  //using std::swap;
+  using ::std::thread;
+  //using ::std::swap;
 
   namespace this_thread {
 
-    using std::this_thread::get_id;
-    using std::this_thread::yield;
-    using std::this_thread::sleep_until;
-    using std::this_thread::sleep_for;
+    using ::std::this_thread::get_id;
+    using ::std::this_thread::yield;
+    using ::std::this_thread::sleep_until;
+    using ::std::this_thread::sleep_for;
 
   };
 
   // mutex:
 
-  using std::mutex;
-  using std::recursive_mutex;
-  using std::timed_mutex;
-  using std::recursive_timed_mutex;
+  using ::std::mutex;
+  using ::std::recursive_mutex;
+  using ::std::timed_mutex;
+  using ::std::recursive_timed_mutex;
 
-  using std::defer_lock_t;
-  using std::try_to_lock_t;
-  using std::adopt_lock_t;
+  using ::std::defer_lock_t;
+  using ::std::try_to_lock_t;
+  using ::std::adopt_lock_t;
 
-  using std::defer_lock;
-  using std::try_to_lock;
-  using std::adopt_lock;
+  using ::std::defer_lock;
+  using ::std::try_to_lock;
+  using ::std::adopt_lock;
 
-  using std::lock_guard;
-  using std::unique_lock;
+  using ::std::lock_guard;
+  using ::std::unique_lock;
 
-  //using std::swap;
+  //using ::std::swap;
 
-//   using std::try_lock;
-//   using std::lock;
+//   using ::std::try_lock;
+//   using ::std::lock;
 
-  using std::once_flag;
+  using ::std::once_flag;
 
-  using std::call_once;
+  using ::std::call_once;
 
   // condition_variable:
 
-  using std::condition_variable;
-  using std::condition_variable_any;
+  using ::std::condition_variable;
+  using ::std::condition_variable_any;
 
-  //using std::notify_all_at_thread_exit;
+  //using ::std::notify_all_at_thread_exit;
 
 
 };
@@ -126,53 +126,53 @@ namespace ReaKaux {
 
   // thread:
 
-  using boost::thread;
+  using ::boost::thread;
   //using std::swap;
 
   namespace this_thread {
 
-    using boost::this_thread::get_id;
-    using boost::this_thread::yield;
+    using ::boost::this_thread::get_id;
+    using ::boost::this_thread::yield;
 #if (BOOST_VERSION >= 105000)
-    using boost::this_thread::sleep_until;
-    using boost::this_thread::sleep_for;
+    using ::boost::this_thread::sleep_until;
+    using ::boost::this_thread::sleep_for;
 #endif
 
   };
 
   // mutex:
 
-  using boost::mutex;
-  using boost::recursive_mutex;
-  using boost::timed_mutex;
-  using boost::recursive_timed_mutex;
+  using ::boost::mutex;
+  using ::boost::recursive_mutex;
+  using ::boost::timed_mutex;
+  using ::boost::recursive_timed_mutex;
 
-  using boost::defer_lock_t;
-  using boost::try_to_lock_t;
-  using boost::adopt_lock_t;
+  using ::boost::defer_lock_t;
+  using ::boost::try_to_lock_t;
+  using ::boost::adopt_lock_t;
 
-  using boost::defer_lock;
-  using boost::try_to_lock;
-  using boost::adopt_lock;
+  using ::boost::defer_lock;
+  using ::boost::try_to_lock;
+  using ::boost::adopt_lock;
 
-  using boost::lock_guard;
-  using boost::unique_lock;
+  using ::boost::lock_guard;
+  using ::boost::unique_lock;
 
-  //using std::swap;
+  //using ::std::swap;
 
-//   using boost::try_lock;
-//   using boost::lock;
+//   using ::boost::try_lock;
+//   using ::boost::lock;
 
-  using boost::once_flag;
+  using ::boost::once_flag;
 
-  using boost::call_once;
+  using ::boost::call_once;
 
   // condition_variable:
 
-  using boost::condition_variable;
-  using boost::condition_variable_any;
+  using ::boost::condition_variable;
+  using ::boost::condition_variable_any;
 
-  //using boost::notify_all_at_thread_exit;
+  //using ::boost::notify_all_at_thread_exit;
 
 };
 

@@ -348,7 +348,8 @@ void CRSPlannerGUI::onStartPlanning(int mode) {
 //   mode == 3;  // live-run (predicted target-trajectory + executeDynamicPlanner + startCompleteAnimation + executeSolTrajectory)
   
   if(planning_thr) {
-    // TODO Signal the stop.
+    if(!stop_planner)
+      stop_planner();
     if(planning_thr->joinable())
       planning_thr->join();
     delete planning_thr;
@@ -364,7 +365,8 @@ void CRSPlannerGUI::onStopPlanning() {
   target_pred_config.stopStatePrediction();
   
   if(planning_thr) {
-    // TODO Signal the stop.
+    if(!stop_planner)
+      stop_planner();
     if(planning_thr->joinable())
       planning_thr->join();
     delete planning_thr;

@@ -70,11 +70,8 @@ if (NOT WIN32)
 
 endif()
 
-find_package(Boost 1.48 COMPONENTS chrono)
-set(Boost_OPTIONAL_LIBRARIES ${Boost_LIBRARIES})
-find_package(Boost 1.46 COMPONENTS thread date_time system program_options unit_test_framework filesystem random REQUIRED)
+find_package(Boost 1.48 COMPONENTS thread chrono date_time system program_options unit_test_framework filesystem random REQUIRED)
 if(Boost_FOUND)
-  set(Boost_LIBRARIES ${Boost_LIBRARIES} ${Boost_OPTIONAL_LIBRARIES})
   include_directories(SYSTEM ${Boost_INCLUDE_DIR})
   link_directories(${Boost_LIBRARY_DIRS})
   add_definitions( "-DREAK_HAS_BOOST" )

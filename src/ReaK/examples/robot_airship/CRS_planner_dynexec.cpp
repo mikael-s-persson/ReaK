@@ -78,7 +78,8 @@ void CRS_execute_dynamic_planner_impl(const ReaK::kte::chaser_target_data& scene
                                       double min_travel, bool print_timing, bool print_counter, 
                                       const ReaK::vect_n<double>& jt_start, 
                                       const ReaK::shared_ptr< TargetStateTrajectory >& target_state_traj,
-                                      ReaK::shared_ptr< ManipCSpaceTrajectory >& sol_trace) {
+                                      ReaK::shared_ptr< ManipCSpaceTrajectory >& sol_trace,
+                                      ReaKaux::function<void()>& plan_stopper) {
   using namespace ReaK;
   using namespace pp;
   
@@ -293,8 +294,12 @@ void CRS_execute_dynamic_planner_impl(const ReaK::kte::chaser_target_data& scene
     return;
   };
   
+  plan_stopper = ReaKaux::bind(&planner_base< dynamic_workspace_type >::stop, workspace_planner);
+  
   pp_query.reset_solution_records();
   workspace_planner->solve_planning_query(pp_query);
+  
+  plan_stopper = ReaKaux::function<void()>(); // clear the stopper function-pointer.
   
   shared_ptr< seq_trajectory_base< dynamic_super_space_type > > bestsol_rltraj;
   if(pp_query.solutions.size())
@@ -387,61 +392,61 @@ void CRSPlannerGUI::executeDynamicPlanner() {
     CRS_execute_dynamic_planner_impl<kte::manip_P3R3R_kinematics, linear_interpolation_tag, 0>(
       ct_config.sceneData, plan_alg_config.planOptions, 
       sw_motion_graph, sw_solutions, space_config.min_travel, print_timing, print_counter, 
-      jt_start, target_anim.trajectory, sol_anim.trajectory);
+      jt_start, target_anim.trajectory, sol_anim.trajectory, stop_planner);
   } else 
 #if 0
   if((space_config.space_order == 1) && (space_config.interp_id == 0)) {
     CRS_execute_dynamic_planner_impl<kte::manip_P3R3R_kinematics, linear_interpolation_tag, 1>(
       ct_config.sceneData, plan_alg_config.planOptions, 
       sw_motion_graph, sw_solutions, space_config.min_travel, print_timing, print_counter, 
-      jt_start, target_anim.trajectory, sol_anim.trajectory);
+      jt_start, target_anim.trajectory, sol_anim.trajectory, stop_planner);
   } else 
   if((space_config.space_order == 2) && (space_config.interp_id == 0)) {
     CRS_execute_dynamic_planner_impl<kte::manip_P3R3R_kinematics, linear_interpolation_tag, 2>(
       ct_config.sceneData, plan_alg_config.planOptions, 
       sw_motion_graph, sw_solutions, space_config.min_travel, print_timing, print_counter, 
-      jt_start, target_anim.trajectory, sol_anim.trajectory);
+      jt_start, target_anim.trajectory, sol_anim.trajectory, stop_planner);
   } else 
 #endif
   if((space_config.space_order == 1) && (space_config.interp_id == 1)) {
     CRS_execute_dynamic_planner_impl<kte::manip_P3R3R_kinematics, cubic_hermite_interpolation_tag, 1>(
       ct_config.sceneData, plan_alg_config.planOptions, 
       sw_motion_graph, sw_solutions, space_config.min_travel, print_timing, print_counter, 
-      jt_start, target_anim.trajectory, sol_anim.trajectory);
+      jt_start, target_anim.trajectory, sol_anim.trajectory, stop_planner);
   } else 
 #if 0
   if((space_config.space_order == 2) && (space_config.interp_id == 1)) {
     CRS_execute_dynamic_planner_impl<kte::manip_P3R3R_kinematics, cubic_hermite_interpolation_tag, 2>(
       ct_config.sceneData, plan_alg_config.planOptions, 
       sw_motion_graph, sw_solutions, space_config.min_travel, print_timing, print_counter, 
-      jt_start, target_anim.trajectory, sol_anim.trajectory);
+      jt_start, target_anim.trajectory, sol_anim.trajectory, stop_planner);
   } else 
 #endif
   if((space_config.space_order == 2) && (space_config.interp_id == 2)) {
     CRS_execute_dynamic_planner_impl<kte::manip_P3R3R_kinematics, quintic_hermite_interpolation_tag, 2>(
       ct_config.sceneData, plan_alg_config.planOptions, 
       sw_motion_graph, sw_solutions, space_config.min_travel, print_timing, print_counter, 
-      jt_start, target_anim.trajectory, sol_anim.trajectory);
+      jt_start, target_anim.trajectory, sol_anim.trajectory, stop_planner);
   } else 
   if((space_config.space_order == 1) && (space_config.interp_id == 3)) {
     CRS_execute_dynamic_planner_impl<kte::manip_P3R3R_kinematics, svp_Ndof_interpolation_tag, 1>(
       ct_config.sceneData, plan_alg_config.planOptions, 
       sw_motion_graph, sw_solutions, space_config.min_travel, print_timing, print_counter, 
-      jt_start, target_anim.trajectory, sol_anim.trajectory);
+      jt_start, target_anim.trajectory, sol_anim.trajectory, stop_planner);
   } else 
 #if 0
   if((space_config.space_order == 2) && (space_config.interp_id == 3)) {
     CRS_execute_static_planner_impl<kte::manip_P3R3R_kinematics, svp_Ndof_interpolation_tag, 2>(
       ct_config.sceneData, plan_alg_config.planOptions, 
       sw_motion_graph, sw_solutions, space_config.min_travel, print_timing, print_counter, 
-      jt_start, target_anim.trajectory, sol_anim.trajectory);
+      jt_start, target_anim.trajectory, sol_anim.trajectory, stop_planner);
   } else 
 #endif
   if((space_config.space_order == 2) && (space_config.interp_id == 4)) {
     CRS_execute_dynamic_planner_impl<kte::manip_P3R3R_kinematics, sap_Ndof_interpolation_tag, 2>(
       ct_config.sceneData, plan_alg_config.planOptions, 
       sw_motion_graph, sw_solutions, space_config.min_travel, print_timing, print_counter, 
-      jt_start, target_anim.trajectory, sol_anim.trajectory);
+      jt_start, target_anim.trajectory, sol_anim.trajectory, stop_planner);
   };
   
   

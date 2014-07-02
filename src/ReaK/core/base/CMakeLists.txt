@@ -7,6 +7,7 @@ set(BASE_HEADERS
   "${RKBASEDIR}/defs.hpp"
   "${RKBASEDIR}/exec_time_profiler.hpp"
   "${RKBASEDIR}/expected.hpp"
+  "${RKBASEDIR}/function_incl.hpp"
   "${RKBASEDIR}/global_rng.hpp"
   "${RKBASEDIR}/misc_math.hpp"
   "${RKBASEDIR}/named_object.hpp"

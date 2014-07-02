@@ -33,6 +33,7 @@
 #include <ReaK/ctrl/kte_models/chaser_target_model_data.hpp>
 
 #include <ReaK/gui_qt/rk_view3d_menu.hpp>
+#include <ReaK/core/base/thread_incl.hpp>
 
 #include <ReaK/gui_qt/chaser_target_config_widget.hpp>
 #include <ReaK/gui_qt/chaser_target_interact_widget.hpp>
@@ -120,6 +121,7 @@ class CRSPlannerGUI : public QMainWindow, private Ui::CRSPlannerWindow {
     
     ReaK::rkqt::CRSRunDialogWidget run_dialog;
     
+    ReaKaux::function<void()> stop_planner;
     void threadedPlanningFunction(int mode);
     
     ReaKaux::thread* planning_thr;

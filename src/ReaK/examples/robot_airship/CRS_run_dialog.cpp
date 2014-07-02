@@ -89,6 +89,7 @@ void CRSRunDialogWidget::onStartPressed() {
   
   this->stop_button->setEnabled(true);
   this->start_button->setEnabled(false);
+  this->proceed_button->setEnabled(false);
   
   this->publishConsoleMessage(mes);
   
@@ -134,6 +135,9 @@ void CRSRunDialogWidget::onLaunchPressed() {
     mode = 3;
     mes += "solution live execution...\nKEEP HAND ON EMERGENCY STOP BUTTON!!!\n";
   };
+  
+  this->stop_button->setEnabled(false);
+  this->start_button->setEnabled(false);
   
   this->publishConsoleMessage(mes);
   
@@ -184,8 +188,8 @@ void CRSRunDialogWidget::onPlanningDone() {
   this->planning_label->setText("Planning... Done!");
   this->planning_label->setStyleSheet("color: green;");
   
+  this->start_button->setEnabled(true);
   this->stop_button->setEnabled(false);
-  this->proceed_button->setEnabled(true);
   
 };
 
@@ -208,6 +212,8 @@ void CRSRunDialogWidget::onLaunchStarted() {
   this->launch_label->setText("Launching... Done");
   this->launch_label->setStyleSheet("color: green;");
   
+  this->stop_button->setEnabled(false);
+  this->start_button->setEnabled(false);
   this->proceed_button->setEnabled(false);
   
   this->flashing_button_timer.stop();
@@ -220,6 +226,10 @@ void CRSRunDialogWidget::onCaptureReached() {
   
   this->launch_label->setText("Captured!");
   this->launch_label->setStyleSheet("color: green;");
+  
+  this->stop_button->setEnabled(false);
+  this->start_button->setEnabled(true);
+  this->proceed_button->setEnabled(false);
   
   this->flashing_button_timer.stop();
   
