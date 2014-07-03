@@ -280,6 +280,15 @@ class data_recorder : public shared_object {
     data_recorder& operator <<(const std::string& name);
     
     /**
+     * Operator to record a vector of column names.
+     */
+    data_recorder& operator <<(const std::vector<std::string>& aNames) {
+      for(std::size_t i = 0; i < aNames.size(); ++i)
+        (*this) << aNames[i];
+      return *this;
+    };
+    
+    /**
      * Operator to record a column name.
      */
     data_recorder& operator <<(const char* name) { return (*this) << std::string(name); };
@@ -412,6 +421,12 @@ class data_extractor : public shared_object {
       };
       return named_value_row(named_indices);
     };
+    
+    /**
+     * Gets the current vector of column names.
+     * \return The current vector of column names.
+     */
+    const std::vector<std::string>& getNames() const { return names; };
     
     /**
      * This function returns the number of columns in this extractor.

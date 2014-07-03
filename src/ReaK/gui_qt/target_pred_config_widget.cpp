@@ -44,6 +44,9 @@
 
 
 #include <ReaK/core/recorders/data_record_options.hpp>
+#include <ReaK/core/recorders/ssv_recorder.hpp>
+
+#include <ctime>
 
 namespace ReaK {
   
@@ -606,6 +609,95 @@ void TargetPredConfigWidget::loadIMUConfig() {
 
 namespace {
 
+typedef ReaK::ctrl::satellite_model_options::state_type sat3D_state_type;
+typedef ReaK::ctrl::satellite_model_options::covar_type sat3D_cov_type;
+typedef sat3D_cov_type::matrix_type sat3D_cov_matrix_type;
+
+const sat3D_state_type& get_sat3D_state(const sat3D_state_type& x) { return x; };
+
+template <typename StateTuple>
+const sat3D_state_type& get_sat3D_state(const StateTuple& x) { using ReaK::get; return get<0>(x); };
+
+
+struct sat3D_meas_est_pred_to_recorders {
+  ReaK::shared_ptr< ReaK::recorder::data_recorder > meas_rec;
+  ReaK::shared_ptr< ReaK::recorder::data_recorder > est_rec;
+  ReaK::shared_ptr< ReaK::recorder::data_recorder > pred_rec;
+  
+  sat3D_meas_est_pred_to_recorders(
+    const ReaK::shared_ptr< ReaK::recorder::data_recorder >& aMeasRec,
+    const ReaK::shared_ptr< ReaK::recorder::data_recorder >& aEstRec,
+    const ReaK::shared_ptr< ReaK::recorder::data_recorder >& aPredRec
+  ) : meas_rec(aMeasRec), est_rec(aEstRec), pred_rec(aPredRec) { };
+  ~sat3D_meas_est_pred_to_recorders() { 
+    (*meas_rec) << ReaK::recorder::data_recorder::flush;
+    (*est_rec) << ReaK::recorder::data_recorder::flush;
+    (*pred_rec) << ReaK::recorder::data_recorder::flush;
+  };
+  
+  template <typename BeliefStateType, typename InputBeliefType, typename OutputBeliefType>
+  void add_record(const BeliefStateType& b,
+                  const BeliefStateType& b_pred,
+                  const InputBeliefType& b_u, 
+                  const OutputBeliefType& b_z,
+                  double time) {
+    using namespace ReaK;
+    using ReaK::to_vect;
+    
+    const sat3D_state_type& x_mean = get_sat3D_state(b.get_mean_state());
+    (*est_rec) << time 
+               << get_position(x_mean) << get_quaternion(x_mean)
+               << get_velocity(x_mean) << get_ang_velocity(x_mean);
+    
+    vect_n<double> all_x = to_vect<double>(b.get_mean_state());
+    for(std::size_t l = 13; l < all_x.size(); ++l)
+      (*est_rec) << all_x[l];
+    
+    const sat3D_state_type& x_pred_mean = get_sat3D_state(b_pred.get_mean_state());
+    (*pred_rec) << time 
+                << get_position(x_pred_mean) << get_quaternion(x_pred_mean)
+                << get_velocity(x_pred_mean) << get_ang_velocity(x_pred_mean);
+    
+    vect_n<double> all_x_pred = to_vect<double>(b_pred.get_mean_state());
+    for(std::size_t l = 13; l < all_x_pred.size(); ++l)
+      (*pred_rec) << all_x_pred[l];
+    
+    const vect_n<double>& z = b_z.get_mean_state();
+    (*meas_rec) << z << b_u.get_mean_state();
+    
+    axis_angle<double> aa_diff(invert(get_quaternion(x_mean).as_rotation()) * quaternion<double>(z[range(3,7)]));
+    (*est_rec) << (get_position(x_mean) - z[range(0,3)]) 
+               << (aa_diff.angle() * aa_diff.axis())
+               << vect<double,3>(0.0,0.0,0.0);
+    axis_angle<double> aa_pred_diff(invert(get_quaternion(x_pred_mean).as_rotation()) * quaternion<double>(z[range(3,7)]));
+    (*pred_rec) << (get_position(x_pred_mean) - z[range(0,3)]) 
+               << (aa_pred_diff.angle() * aa_pred_diff.axis())
+               << vect<double,3>(0.0,0.0,0.0);
+    if( z.size() >= 10 ) {
+      (*est_rec) << (get_ang_velocity(x_mean) - z[range(7,10)]);
+      (*pred_rec) << (get_ang_velocity(x_pred_mean) - z[range(7,10)]);
+    } else {
+      (*est_rec) << vect<double,3>(0.0,0.0,0.0);
+      (*pred_rec) << vect<double,3>(0.0,0.0,0.0);
+    };
+    
+    const sat3D_cov_matrix_type& P_xx = b.get_covariance().get_matrix();
+    for(std::size_t l = 0; l < P_xx.get_row_count(); ++l)
+      (*est_rec) << P_xx(l,l);
+    
+    const sat3D_cov_matrix_type& P_pred_xx = b_pred.get_covariance().get_matrix();
+    for(std::size_t l = 0; l < P_pred_xx.get_row_count(); ++l)
+      (*pred_rec) << P_pred_xx(l,l);
+    
+    (*meas_rec) << recorder::data_recorder::end_value_row;
+    (*est_rec)  << recorder::data_recorder::end_value_row;
+    (*pred_rec) << recorder::data_recorder::end_value_row;
+  };
+  
+};
+
+
+
 template <typename Sat3DSystemType>
 struct prediction_updater {
   
@@ -638,6 +730,8 @@ struct prediction_updater {
   recorder::named_value_row nvr_in;
   shared_ptr< recorder::data_extractor > data_in;
   
+  sat3D_meas_est_pred_to_recorders data_logger;
+  
   StateBeliefType b;
   InputBeliefType b_u;
   OutputBeliefType b_z;
@@ -655,6 +749,7 @@ struct prediction_updater {
     shared_ptr< TempSpaceType > aSatTempSpace,
     recorder::named_value_row aNVRIn,
     shared_ptr< recorder::data_extractor > aDataIn,
+    sat3D_meas_est_pred_to_recorders aDataLogger,
     StateBeliefType aB,
     InputBeliefType aBU,
     OutputBeliefType aBZ,
@@ -665,7 +760,7 @@ struct prediction_updater {
     predictor(aPredictor),
     satellite3D_system(aSatSys),
     sat_temp_space(aSatTempSpace), 
-    nvr_in(aNVRIn), data_in(aDataIn),
+    nvr_in(aNVRIn), data_in(aDataIn), data_logger(aDataLogger),
     b(aB), b_u(aBU), b_z(aBZ),
     last_time(aLastTime), 
     diff_tolerance(aDiffTolerance),
@@ -673,10 +768,7 @@ struct prediction_updater {
   
   int operator()() {
     
-#if 0
     TempBeliefPointType b_pred;
-#endif
-    RK_NOTICE(1," entered the prediction updater loop!");
     
     try {
       while ( !should_stop ) {
@@ -712,9 +804,10 @@ struct prediction_updater {
         last_time = nvr_in["time"];
         (*current_target_anim_time) = last_time;
         
-#if 0
         b_pred = predictor->get_point_at_time(last_time);
         
+        data_logger.add_record(b, b_pred.pt, b_u, b_z, last_time);
+#if 0
         if( predictor->get_temporal_space().get_space_topology().distance(b, b_pred.pt) > diff_tolerance )
           predictor->set_initial_point(TempBeliefPointType(last_time, b));
 #endif
@@ -841,6 +934,32 @@ shared_ptr< CRS_target_anim_data::trajectory_type >
   recorder::named_value_row nvr_in = data_in->getFreshNamedValueRow();
   double init_time = -1000.0;
   
+  std::time_t t_ctime = std::time(NULL);
+  char ctime_as_str[16];
+  if (std::strftime(ctime_as_str, sizeof(ctime_as_str), "%Y%m%d_%H%M", std::localtime(&t_ctime)))
+    ctime_as_str[0] = '\0';
+  
+  recorder::data_stream_options meas_out_opt;
+  meas_out_opt.kind = recorder::data_stream_options::space_separated;
+  meas_out_opt.file_name = "exp_results/robot_airship/";
+  recorder::data_stream_options est_out_opt = meas_out_opt;
+  recorder::data_stream_options pred_out_opt = meas_out_opt;
+  
+  meas_out_opt.file_name += std::string("meas_") + ctime_as_str + std::string(".ssv");
+  sat_options.imbue_names_for_received_meas(meas_out_opt);
+  
+  est_out_opt.file_name  += std::string("est_")  + ctime_as_str + std::string(".ssv");
+  sat_options.imbue_names_for_state_estimates(est_out_opt);
+  
+  pred_out_opt.file_name += std::string("pred_") + ctime_as_str + std::string(".ssv");
+  sat_options.imbue_names_for_state_estimates(pred_out_opt);
+  
+  shared_ptr< recorder::data_recorder > meas_out = meas_out_opt.create_recorder();
+  shared_ptr< recorder::data_recorder > est_out  = est_out_opt.create_recorder();
+  shared_ptr< recorder::data_recorder > pred_out = pred_out_opt.create_recorder();
+  
+  sat3D_meas_est_pred_to_recorders data_logger(meas_out, est_out, pred_out);
+  
   try {
     while ( current_Pnorm > sat_options.predict_Pnorm_threshold ) {
 //     do {
@@ -883,6 +1002,8 @@ shared_ptr< CRS_target_anim_data::trajectory_type >
       (*current_target_anim_time) = last_time;
       if(init_time < -900.0)
         init_time = last_time;
+      
+      data_logger.add_record(b, b, b_u, b_z, last_time);
       
     };
 //     } while(last_time - init_time < sat_options.predict_Pnorm_threshold);
@@ -937,7 +1058,7 @@ shared_ptr< CRS_target_anim_data::trajectory_type >
     prediction_updater<Sat3DSystemType>(
       predictor,
       satellite3D_system,
-      sat_temp_space, nvr_in, data_in,
+      sat_temp_space, nvr_in, data_in, data_logger,
       b, b_u, b_z, last_time, 0.5, current_target_anim_time)));
   
   pred_stop_function = prediction_updater<Sat3DSystemType>::stop_function;
