@@ -26,13 +26,14 @@
 
 # This is a header-only library:
 set(BGLEXTRA_LIBRARIES "")
+set(BGLEXTRA_LIBRARY ${BGLEXTRA_LIBRARIES})
 
 # Currently, only a single version (pending proposal to Boost anyways):
 set(BGLEXTRA_VERSION_STRING "1.0")
 
 find_path(_BGLEXTRA_INCLUDE_DIR adjacency_list_BC.hpp PATH_SUFFIXES "libbgl-extra/boost/graph" "boost/graph")
 string(REPLACE "/boost/graph" "" BGLEXTRA_INCLUDE_DIR ${_BGLEXTRA_INCLUDE_DIR})
-
+set(BGLEXTRA_INCLUDE_DIRS ${BGLEXTRA_INCLUDE_DIR})
 
 # handle the QUIETLY and REQUIRED arguments and set BGLEXTRA_FOUND to TRUE if
 # all listed variables are TRUE
@@ -47,3 +48,6 @@ FIND_PACKAGE_HANDLE_STANDARD_ARGS(BGLEXTRA
 # endif ()
 
 mark_as_advanced(BGLEXTRA_INCLUDE_DIR)
+mark_as_advanced(BGLEXTRA_INCLUDE_DIRS)
+mark_as_advanced(BGLEXTRA_LIBRARIES)
+mark_as_advanced(BGLEXTRA_LIBRARY)

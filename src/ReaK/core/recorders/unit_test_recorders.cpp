@@ -356,7 +356,7 @@ BOOST_AUTO_TEST_CASE( vector_record_extract_test )
   using namespace recorder;
   
   {
-    std::vector< vect_n<double> > vec;
+    std::vector< std::vector<double> > vec;
     {
       vector_recorder output_rec;
       output_rec.setVecData(&vec);

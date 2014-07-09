@@ -37,7 +37,6 @@
 #include "data_record.hpp"
 
 #include <vector>
-#include <ReaK/core/lin_alg/vect_alg.hpp>
 
 namespace ReaK {
 
@@ -52,7 +51,7 @@ namespace recorder {
  */
 class vector_recorder : public data_recorder {
   protected:
-    std::vector< vect_n<double> >* vec_data;
+    std::vector< std::vector<double> >* vec_data;
     
     virtual void writeRow();
     virtual void writeNames();
@@ -68,16 +67,16 @@ class vector_recorder : public data_recorder {
     /**
      * Constructor that opens a file with name aFileName.
      */
-    explicit vector_recorder(std::vector< vect_n<double> >* aVecData);
+    explicit vector_recorder(std::vector< std::vector<double> >* aVecData);
     
     /**
      * Destructor, closes the file.
      */
     virtual ~vector_recorder();
     
-    void setVecData(std::vector< vect_n<double> >* aVecData);
+    void setVecData(std::vector< std::vector<double> >* aVecData);
     
-    std::vector< vect_n<double> >* getVecData() const { return vec_data; };
+    std::vector< std::vector<double> >* getVecData() const { return vec_data; };
     
     virtual void setFileName(const std::string& aFileName);
     

@@ -30,7 +30,7 @@ namespace recorder {
 
 vector_recorder::vector_recorder() : data_recorder(), vec_data(NULL) { };
 
-vector_recorder::vector_recorder(std::vector< vect_n<double> >* aVecData) : data_recorder(), vec_data(aVecData) {
+vector_recorder::vector_recorder(std::vector< std::vector<double> >* aVecData) : data_recorder(), vec_data(aVecData) {
   setFileName("");
 };
 
@@ -41,7 +41,7 @@ void vector_recorder::writeRow() {
     return;
   ReaKaux::unique_lock< ReaKaux::mutex > lock_here(access_mutex);
   if((rowCount > 0) && (colCount > 0)) {
-    vect_n<double> v_tmp(colCount, 0.0);
+    std::vector<double> v_tmp(colCount, 0.0);
     for(std::size_t i = 0; i < colCount; ++i) {
       v_tmp[i] = values_rm.front();
       values_rm.pop();
@@ -55,7 +55,7 @@ void vector_recorder::writeNames() { };
 
 void vector_recorder::setFileName(const std::string& aFileName) { };
 
-void vector_recorder::setVecData(std::vector< vect_n<double> >* aVecData) {
+void vector_recorder::setVecData(std::vector< std::vector<double> >* aVecData) {
   vec_data = aVecData;
 };
 
@@ -65,7 +65,7 @@ void vector_recorder::setVecData(std::vector< vect_n<double> >* aVecData) {
 
 vector_extractor::vector_extractor() : data_extractor(), vec_data(NULL), cur_vec_index(0) { };
 
-vector_extractor::vector_extractor(const std::vector< vect_n<double> >* aVecData) : data_extractor(), vec_data(aVecData), cur_vec_index(0) {
+vector_extractor::vector_extractor(const std::vector< std::vector<double> >* aVecData) : data_extractor(), vec_data(aVecData), cur_vec_index(0) {
   
 };
 
@@ -84,7 +84,7 @@ bool vector_extractor::readRow() {
     return false;
   ReaKaux::unique_lock< ReaKaux::mutex > lock_here(access_mutex);
   if(colCount > 0) {
-    const vect_n<double>& v_tmp = (*vec_data)[cur_vec_index];
+    const std::vector<double>& v_tmp = (*vec_data)[cur_vec_index];
     for(std::size_t i = 0; (i < colCount) && (i < v_tmp.size()); ++i)
       values_rm.push(v_tmp[i]);
     ++cur_vec_index;
@@ -98,7 +98,7 @@ bool vector_extractor::readNames() {
 
 void vector_extractor::setFileName(const std::string& aFileName) { };
 
-void vector_extractor::setVecData(const std::vector< vect_n<double> >* aVecData) {
+void vector_extractor::setVecData(const std::vector< std::vector<double> >* aVecData) {
   vec_data = aVecData;
   cur_vec_index = 0;
 };
