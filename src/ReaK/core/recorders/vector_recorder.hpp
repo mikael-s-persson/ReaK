@@ -101,7 +101,7 @@ class vector_recorder : public data_recorder {
  */
 class vector_extractor : public data_extractor {
   protected:
-    const std::vector< vect_n<double> >* vec_data;
+    const std::vector< std::vector<double> >* vec_data;
     std::size_t cur_vec_index;
     
     virtual bool readRow();
@@ -120,16 +120,16 @@ class vector_extractor : public data_extractor {
     /**
      * Constructor that opens a file with name aFileName.
      */
-    explicit vector_extractor(const std::vector< vect_n<double> >* aVecData);
+    explicit vector_extractor(const std::vector< std::vector<double> >* aVecData);
     
     /**
      * Destructor, closes the file.
      */
     virtual ~vector_extractor();
     
-    void setVecData(const std::vector< vect_n<double> >* aVecData);
+    void setVecData(const std::vector< std::vector<double> >* aVecData);
     
-    const std::vector< vect_n<double> >& getVecData() const { return *vec_data; };
+    const std::vector< std::vector<double> >& getVecData() const { return *vec_data; };
     
     virtual void setFileName(const std::string& aFilename);
     
