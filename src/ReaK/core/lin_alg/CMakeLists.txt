@@ -65,35 +65,35 @@ add_library(reakobj_lin_alg OBJECT ${LINALG_SOURCES})
 setup_headers("${LINALG_HEADERS}" "${RKLINALGDIR}")
 
 add_executable(unit_test_vect_alg "${SRCROOT}${RKLINALGDIR}/unit_test_vect_alg.cpp")
-setup_custom_test_program(unit_test_vect_alg "${SRCROOT}${RKLINALGDIR}")
+setup_custom_test_program(unit_test_vect_alg)
 target_link_libraries(unit_test_vect_alg reak_core)
 
 add_executable(test_mat_alg "${SRCROOT}${RKLINALGDIR}/test_mat_alg.cpp")
-setup_custom_target(test_mat_alg "${SRCROOT}${RKLINALGDIR}")
+setup_custom_target(test_mat_alg)
 target_link_libraries(test_mat_alg reak_core)
 
 add_executable(unit_test_mat_alg "${SRCROOT}${RKLINALGDIR}/unit_test_mat_alg.cpp")
-setup_custom_test_program(unit_test_mat_alg "${SRCROOT}${RKLINALGDIR}")
+setup_custom_test_program(unit_test_mat_alg)
 target_link_libraries(unit_test_mat_alg reak_core)
 
 add_executable(test_mat_num "${SRCROOT}${RKLINALGDIR}/test_mat_num.cpp")
-setup_custom_target(test_mat_num "${SRCROOT}${RKLINALGDIR}")
+setup_custom_target(test_mat_num)
 target_link_libraries(test_mat_num reak_core)
 
 add_executable(unit_test_mat_num "${SRCROOT}${RKLINALGDIR}/unit_test_mat_num.cpp")
-setup_custom_test_program(unit_test_mat_num "${SRCROOT}${RKLINALGDIR}")
+setup_custom_test_program(unit_test_mat_num)
 target_link_libraries(unit_test_mat_num reak_core)
 
 add_executable(test_mat_num_perf "${SRCROOT}${RKLINALGDIR}/test_mat_num_perf.cpp")
-setup_custom_target(test_mat_num_perf "${SRCROOT}${RKLINALGDIR}")
+setup_custom_target(test_mat_num_perf)
 target_link_libraries(test_mat_num_perf reak_core)
 
 add_executable(test_mat_are "${SRCROOT}${RKLINALGDIR}/test_mat_are.cpp")
-setup_custom_target(test_mat_are "${SRCROOT}${RKLINALGDIR}")
+setup_custom_target(test_mat_are)
 target_link_libraries(test_mat_are reak_core)
 
 add_executable(unit_test_mat_are "${SRCROOT}${RKLINALGDIR}/unit_test_mat_are.cpp")
-setup_custom_test_program(unit_test_mat_are "${SRCROOT}${RKLINALGDIR}")
+setup_custom_test_program(unit_test_mat_are)
 get_target_property(UNIT_TEST_MAT_ARE_LOCATION unit_test_mat_are LOCATION)
 get_filename_component(UNIT_TEST_MAT_ARE_PATH ${UNIT_TEST_MAT_ARE_LOCATION} PATH)
 add_custom_command(TARGET unit_test_mat_are PRE_BUILD
@@ -108,7 +108,7 @@ add_custom_command(TARGET unit_test_mat_are PRE_BUILD
 target_link_libraries(unit_test_mat_are reak_core)
 
 add_executable(test_mat_views "${SRCROOT}${RKLINALGDIR}/test_views.cpp")
-setup_custom_target(test_mat_views "${SRCROOT}${RKLINALGDIR}")
+setup_custom_target(test_mat_views)
 target_link_libraries(test_mat_views reak_core)
 
 

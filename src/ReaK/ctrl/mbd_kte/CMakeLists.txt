@@ -63,11 +63,11 @@ add_library(reakobj_mbd_kte OBJECT ${MBDKTE_SOURCES})
 setup_headers("${MBDKTE_HEADERS}" "${RKMBDKTEDIR}")
 
 add_executable(test_mbd_basic "${SRCROOT}${RKMBDKTEDIR}/test_bm.cpp")
-setup_custom_target(test_mbd_basic "${SRCROOT}${RKMBDKTEDIR}")
+setup_custom_target(test_mbd_basic)
 target_link_libraries(test_mbd_basic reak_kte reak_core)
 
 add_executable(test_mbd_adv "${SRCROOT}${RKMBDKTEDIR}/test_am.cpp")
-setup_custom_target(test_mbd_adv "${SRCROOT}${RKMBDKTEDIR}")
+setup_custom_target(test_mbd_adv)
 target_link_libraries(test_mbd_adv reak_kte reak_core)
 
 

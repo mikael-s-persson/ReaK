@@ -30,17 +30,17 @@ set(GRAPH_ALG_HEADERS
 )
 
 #add_library(reak_graph_alg STATIC ${GRAPH_ALG_SOURCES})
-#setup_custom_target(reak_graph_alg "${SRCROOT}${RKGRAPHALGDIR}")
+#setup_custom_target(reak_graph_alg)
 setup_headers("${GRAPH_ALG_HEADERS}" "${RKGRAPHALGDIR}")
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
 
 add_executable(test_graphs "${SRCROOT}${RKGRAPHALGDIR}/test_graphs.cpp")
-setup_custom_target(test_graphs "${SRCROOT}${RKGRAPHALGDIR}")
+setup_custom_target(test_graphs)
 target_link_libraries(test_graphs reak_topologies reak_core)
 
 add_executable(unit_test_assoc_containers "${SRCROOT}${RKGRAPHALGDIR}/unit_test_assoc_containers.cpp")
-setup_custom_test_program(unit_test_assoc_containers "${SRCROOT}${RKGRAPHALGDIR}")
+setup_custom_test_program(unit_test_assoc_containers)
 target_link_libraries(unit_test_assoc_containers reak_core)
 
 

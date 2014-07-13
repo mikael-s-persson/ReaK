@@ -55,32 +55,32 @@ set(INTERPOLATION_HEADERS
 )
 
 add_library(reak_interp STATIC ${INTERPOLATION_SOURCES})
-setup_custom_target(reak_interp "${SRCROOT}${RKINTERPOLATIONDIR}")
+setup_custom_target(reak_interp)
 target_link_libraries(reak_interp reak_core)
 setup_headers("${INTERPOLATION_HEADERS}" "${RKINTERPOLATIONDIR}")
 
 add_executable(test_interp "${SRCROOT}${RKINTERPOLATIONDIR}/test_interp.cpp")
-setup_custom_target(test_interp "${SRCROOT}${RKINTERPOLATIONDIR}")
+setup_custom_target(test_interp)
 target_link_libraries(test_interp reak_topologies reak_interp reak_core)
 
 add_executable(test_lim_interp "${SRCROOT}${RKINTERPOLATIONDIR}/test_lim_interp.cpp")
-setup_custom_target(test_lim_interp "${SRCROOT}${RKINTERPOLATIONDIR}")
+setup_custom_target(test_lim_interp)
 target_link_libraries(test_lim_interp reak_topologies reak_interp reak_core)
 
 add_executable(test_Ndof_interp "${SRCROOT}${RKINTERPOLATIONDIR}/test_Ndof_interp.cpp")
-setup_custom_target(test_Ndof_interp "${SRCROOT}${RKINTERPOLATIONDIR}")
+setup_custom_target(test_Ndof_interp)
 target_link_libraries(test_Ndof_interp reak_topologies reak_interp reak_core)
 
 add_executable(test_interp_mc "${SRCROOT}${RKINTERPOLATIONDIR}/test_interp_mc.cpp")
-setup_custom_target(test_interp_mc "${SRCROOT}${RKINTERPOLATIONDIR}")
+setup_custom_target(test_interp_mc)
 target_link_libraries(test_interp_mc reak_topologies reak_interp reak_core)
 
 add_executable(test_interp_topo "${SRCROOT}${RKINTERPOLATIONDIR}/test_interp_topo.cpp")
-setup_custom_target(test_interp_topo "${SRCROOT}${RKINTERPOLATIONDIR}")
+setup_custom_target(test_interp_topo)
 target_link_libraries(test_interp_topo reak_topologies reak_interp reak_core)
 
 add_executable(test_interp_topo_rand "${SRCROOT}${RKINTERPOLATIONDIR}/test_interp_topo_rand.cpp")
-setup_custom_target(test_interp_topo_rand "${SRCROOT}${RKINTERPOLATIONDIR}")
+setup_custom_target(test_interp_topo_rand)
 target_link_libraries(test_interp_topo_rand reak_topologies reak_interp reak_core)
 
 

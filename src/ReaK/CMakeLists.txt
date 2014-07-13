@@ -3,12 +3,6 @@ project(ReaK)
 # The following definition of RK_VERBOSITY determines the depth-level of the debug option of the programs (usually between 0 (no debug output) and 10 (full debug output)).
 add_definitions(-DRK_VERBOSITY=3)
 
-if( ENABLE_EXTERN_TEMPLATES )
-  add_definitions(-DRK_ENABLE_EXTERN_TEMPLATES)
-endif()
-
-set(REAK_VERSION_NUMBER "0.26")
-
 #set(EXTRA_SYSTEM_LIBS)
 
 # These are the main sub-directories
@@ -20,7 +14,7 @@ set(RKGUIQTDIR "${REAKDIR}/gui_qt")
 
 set(RKSUBDIRS ${RKCOREDIR} ${RKCTRLDIR} ${RKEXAMPLESDIR} ${RKGEOMETRYDIR} ${RKGUIQTDIR})
 
-configure_doxyfile(ReaK "\"ReaK Library - All libraries\"" "\"A complete library for robotics modeling, control and path-planning.\"" "${DOXTOSRCDIR}${RKCOREDIR} ${DOXTOSRCDIR}${RKCTRLDIR} ${DOXTOSRCDIR}${RKEXAMPLESDIR}")
+configure_doxyfile(ReaK "\"ReaK Library - All libraries\"" "\"A complete library for robotics modeling, control and motion-planning.\"" "${RKCOREDIR};${RKCTRLDIR};${RKEXAMPLESDIR}")
 add_doxygen_target(ReaK)
 
 if( NOT WIN32 )
@@ -76,11 +70,9 @@ if(Boost_FOUND)
   link_directories(${Boost_LIBRARY_DIRS})
   add_definitions( "-DREAK_HAS_BOOST" )
   message(STATUS "Boost library version ${Boost_LIB_VERSION} found, with headers at '${Boost_INCLUDE_DIR}' and libraries at '${Boost_LIBRARY_DIRS}' for libraries: \n${Boost_LIBRARIES}")
-  set(BOOST_THREAD_LIB ${Boost_thread_LIBRARY})
-  set(BOOST_DATE_TIME_LIB ${Boost_date_time_LIBRARY})
   if(MSVC)
-    #disable the libraries, since it uses automatic linking:
-	set(Boost_LIBRARIES "")
+    # Disable the libraries, since it uses automatic linking:
+    set(Boost_LIBRARIES "")
   endif()
 endif()
 
@@ -126,5 +118,5 @@ foreach(CURRENT_RKSUBDIR ${RKSUBDIRS})
 add_subdirectory("${SRCROOT}${CURRENT_RKSUBDIR}")
 endforeach(CURRENT_RKSUBDIR)
 
-INCLUDE(PyReaK.cmake)
+include(PyReaK.cmake)
 

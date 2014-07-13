@@ -21,11 +21,11 @@ set(BASE_HEADERS
 
 
 #add_library(reak_base STATIC ${BASE_SOURCES})
-#setup_custom_target(reak_base "${SRCROOT}${RKBASEDIR}")
+#setup_custom_target(reak_base)
 setup_headers("${BASE_HEADERS}" "${RKBASEDIR}")
 
 add_executable(test_base "${SRCROOT}${RKBASEDIR}/test.cpp")
-setup_custom_target(test_base "${SRCROOT}${RKBASEDIR}")
+setup_custom_target(test_base)
 target_link_libraries(test_base reak_core)
 
 

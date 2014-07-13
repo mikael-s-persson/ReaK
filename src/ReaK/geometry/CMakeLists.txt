@@ -7,7 +7,7 @@ set(RKGEOMETRYSUBDIRS ${RKSHAPESDIR} ${RKPROXIMITYDIR})
 configure_doxyfile(ReaKgeom 
                    "\"ReaK Library - Geometry library\"" 
                    "\"A tool-set for geometric representations, proximity queries and rendering for 2D and 3D objects.\"" 
-                   "${DOXTOSRCDIR}${RKSHAPESDIR} ${DOXTOSRCDIR}${RKPROXIMITYDIR}")
+                   "${RKSHAPESDIR};${RKPROXIMITYDIR}")
 add_doxygen_target(ReaKgeom)
 
 
@@ -19,7 +19,7 @@ endforeach(CURRENT_RKGEOMETRYSUBDIR)
 
 
 add_library(reak_mbd STATIC $<TARGET_OBJECTS:reakobj_geom> $<TARGET_OBJECTS:reakobj_proximity> $<TARGET_OBJECTS:reakobj_mbd_kte> $<TARGET_OBJECTS:reakobj_kte_models> $<TARGET_OBJECTS:reakobj_kte_geom_models>)
-setup_custom_target(reak_mbd "${SRCROOT}${RKCTRLDIR}")
+setup_custom_target(reak_mbd)
 target_link_libraries(reak_mbd reak_core)
 
 

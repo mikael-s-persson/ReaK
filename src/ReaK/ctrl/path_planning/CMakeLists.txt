@@ -64,7 +64,7 @@ foreach(PLANNERS_DIM_COUNTER 7)
 endforeach(PLANNERS_DIM_COUNTER)
 
 add_library(reak_planners STATIC ${PLANNERS_OBJECT_FILES})
-setup_custom_target(reak_planners "${SRCROOT}${RKPATHPLANNINGDIR}")
+setup_custom_target(reak_planners)
 target_link_libraries(reak_planners reak_topologies reak_interp reak_core)
 
 
@@ -73,22 +73,22 @@ setup_headers("${PATH_PLANNING_HEADERS}" "${RKPATHPLANNINGDIR}")
 
 
 add_executable(test_vp_tree "${SRCROOT}${RKPATHPLANNINGDIR}/test_vp_tree.cpp")
-setup_custom_target(test_vp_tree "${SRCROOT}${RKPATHPLANNINGDIR}")
+setup_custom_target(test_vp_tree)
 target_link_libraries(test_vp_tree reak_topologies reak_core)
 
 add_executable(test_dvp_adj_list "${SRCROOT}${RKPATHPLANNINGDIR}/test_dvp_adj_list.cpp")
-setup_custom_target(test_dvp_adj_list "${SRCROOT}${RKPATHPLANNINGDIR}")
+setup_custom_target(test_dvp_adj_list)
 target_link_libraries(test_dvp_adj_list reak_topologies reak_core)
 
 add_executable(test_planners "${SRCROOT}${RKPATHPLANNINGDIR}/test_planners.cpp")
-setup_custom_target(test_planners "${SRCROOT}${RKPATHPLANNINGDIR}")
+setup_custom_target(test_planners)
 target_link_libraries(test_planners reak_topologies reak_core)
 
 
 add_custom_target(test_hidim_planners)
 foreach(HIDIM_COUNTER 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20)
   add_executable(test_hidim_planners_e${HIDIM_COUNTER} EXCLUDE_FROM_ALL "${SRCROOT}${RKPATHPLANNINGDIR}/test_hidim_planners.cpp")
-  setup_custom_target(test_hidim_planners_e${HIDIM_COUNTER} "${SRCROOT}${RKPATHPLANNINGDIR}")
+  setup_custom_target(test_hidim_planners_e${HIDIM_COUNTER})
   set_target_properties(test_hidim_planners_e${HIDIM_COUNTER} PROPERTIES COMPILE_DEFINITIONS "RK_HIDIM_PLANNER_N=${HIDIM_COUNTER}")
   target_link_libraries(test_hidim_planners_e${HIDIM_COUNTER} reak_topologies reak_core)
   add_dependencies(test_hidim_planners test_hidim_planners_e${HIDIM_COUNTER})
@@ -117,7 +117,7 @@ if()
   PLAYER_ADD_PLAYERCPP_CLIENT(pptester SOURCES "${SRCROOT}${RKPATHPLANNINGDIR}/qt_ui/pptester_impl.cpp" ${PATHPLANNING_PPTESTER_MOC_SRCS} ${PATHPLANNING_PPTESTER_UI_HDRS} LINKFLAGS ${replaceLib})
   target_link_libraries(pptester ${OpenCV_LIBS} ${QT_LIBRARIES})
   target_link_libraries(pptester reak_topologies reak_core)
-  setup_custom_target(pptester "${SRCROOT}${RKPATHPLANNINGDIR}")
+  setup_custom_target(pptester)
 endif()
 
 

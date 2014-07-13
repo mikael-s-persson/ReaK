@@ -31,26 +31,26 @@ set(OPTIM_HEADERS
 setup_headers("${OPTIM_HEADERS}" "${RKOPTIMDIR}")
 
 add_executable(test_optim "${SRCROOT}${RKOPTIMDIR}/test.cpp")
-setup_custom_target(test_optim "${SRCROOT}${RKOPTIMDIR}")
+setup_custom_target(test_optim)
 target_link_libraries(test_optim reak_core)
 
 
 add_executable(test_optim_nllsq "${SRCROOT}${RKOPTIMDIR}/test_nllsq.cpp")
-setup_custom_target(test_optim_nllsq "${SRCROOT}${RKOPTIMDIR}")
+setup_custom_target(test_optim_nllsq)
 target_link_libraries(test_optim_nllsq reak_core)
 
 
 add_executable(test_optim_lp "${SRCROOT}${RKOPTIMDIR}/test_lp.cpp")
-setup_custom_target(test_optim_lp "${SRCROOT}${RKOPTIMDIR}")
+setup_custom_target(test_optim_lp)
 target_link_libraries(test_optim_lp reak_core)
 
 
 add_executable(test_optim_qp "${SRCROOT}${RKOPTIMDIR}/test_qp.cpp")
-setup_custom_target(test_optim_qp "${SRCROOT}${RKOPTIMDIR}")
+setup_custom_target(test_optim_qp)
 target_link_libraries(test_optim_qp reak_core)
 
 
 add_executable(test_optim_nlp "${SRCROOT}${RKOPTIMDIR}/test_nlp.cpp")
-setup_custom_target(test_optim_nlp "${SRCROOT}${RKOPTIMDIR}")
+setup_custom_target(test_optim_nlp)
 target_link_libraries(test_optim_nlp reak_core)
 

@@ -34,11 +34,11 @@ setup_headers("${RECORDERS_HEADERS}" "${RKRECORDERSDIR}")
 if(Boost_CHRONO_FOUND)
 
 add_executable(convert_datastream "${SRCROOT}${RKRECORDERSDIR}/convert_datastream.cpp")
-setup_custom_target(convert_datastream "${SRCROOT}${RKRECORDERSDIR}")
+setup_custom_target(convert_datastream)
 target_link_libraries(convert_datastream reak_core)
 
 add_executable(unit_test_recorders "${SRCROOT}${RKRECORDERSDIR}/unit_test_recorders.cpp")
-setup_custom_test_program(unit_test_recorders "${SRCROOT}${RKRECORDERSDIR}")
+setup_custom_test_program(unit_test_recorders)
 target_link_libraries(unit_test_recorders reak_core)
 
 endif()

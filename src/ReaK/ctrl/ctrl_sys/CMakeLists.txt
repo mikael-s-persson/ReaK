@@ -41,7 +41,7 @@ set(CTRL_SYS_HEADERS
 )
 
 #add_library(reak_path_planning STATIC ${PATH_PLANNING_SOURCES})
-#setup_custom_target(reak_path_planning "${SRCROOT}${RKPATHPLANNINGDIR}")
+#setup_custom_target(reak_path_planning)
 setup_headers("${CTRL_SYS_HEADERS}" "${RKCTRLSYSDIR}")
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")

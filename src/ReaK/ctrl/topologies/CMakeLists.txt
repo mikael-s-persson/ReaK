@@ -96,7 +96,7 @@ set(TOPOLOGIES_HEADERS
 
 
 add_library(reak_topologies STATIC ${TOPOLOGIES_SOURCES})
-setup_custom_target(reak_topologies "${SRCROOT}${RKTOPOLOGIESDIR}")
+setup_custom_target(reak_topologies)
 setup_headers("${TOPOLOGIES_HEADERS}" "${RKTOPOLOGIESDIR}")
 target_link_libraries(reak_topologies reak_interp reak_core)
 if( OpenCV_FOUND )
@@ -107,7 +107,7 @@ if(NOT WIN32)
 
   if( OpenCV_FOUND )
     add_executable(test_sampling "${SRCROOT}${RKTOPOLOGIESDIR}/test_sampling.cpp")
-    setup_custom_target(test_sampling "${SRCROOT}${RKTOPOLOGIESDIR}")
+    setup_custom_target(test_sampling)
     target_link_libraries(test_sampling ${OpenCV_LIBS})
     target_link_libraries(test_sampling reak_topologies reak_core)
   endif()

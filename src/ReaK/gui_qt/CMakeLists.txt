@@ -5,13 +5,13 @@ if(QT_FOUND)
   include_directories( AFTER "${CMAKE_BINARY_DIR}${RKGUIQTDIR}" )
   
 #   add_library(reak_gui_qt STATIC ${RKGUIQT_SOURCES})
-#   setup_custom_target(reak_gui_qt "${SRCROOT}${RKGUIQTDIR}")
+#   setup_custom_target(reak_gui_qt)
 #   setup_headers("${RKGUIQT_HEADERS}" "${RKGUIQTDIR}")
 #   target_link_libraries(reak_gui_qt reak_topologies reak_mbd reak_core)
 #   target_link_libraries(reak_gui_qt ${QT_LIBRARIES})
   
 #   add_executable(test_CRS_planning "${SRCROOT}${RKROBOTAIRSHIPDIR}/test_CRS_planning.cpp")
-#   setup_custom_target(test_CRS_planning "${SRCROOT}${RKROBOTAIRSHIPDIR}")
+#   setup_custom_target(test_CRS_planning)
 #   target_link_libraries(test_CRS_planning reak_topologies reak_robot_airship reak_mbd_coin reak_core)
 #   target_link_libraries(test_CRS_planning ${SOQT4_LIBRARIES} ${QT_LIBRARIES})
   
@@ -59,13 +59,13 @@ if(QT_FOUND)
     
   
   add_library(reak_gui_qt STATIC ${RKGUIQT_SOURCES} ${RKGUIQT_MOC_SRCS} ${RKGUIQT_UI_HDRS})
-  setup_custom_target(reak_gui_qt "${SRCROOT}${RKGUIQTDIR}")
+  setup_custom_target(reak_gui_qt)
   setup_headers("${RKGUIQT_HEADERS}" "${RKGUIQTDIR}")
   target_link_libraries(reak_gui_qt reak_mbd_coin reak_ss_systems reak_topologies reak_core)
   target_link_libraries(reak_gui_qt ${QT_LIBRARIES})
   
   add_executable(test_objtreewidget "${SRCROOT}${RKGUIQTDIR}/test_objtreewidget.cpp")
-  setup_custom_target(test_objtreewidget "${SRCROOT}${RKGUIQTDIR}")
+  setup_custom_target(test_objtreewidget)
   target_link_libraries(test_objtreewidget reak_gui_qt reak_topologies reak_mbd reak_core)
   target_link_libraries(test_objtreewidget ${QT_LIBRARIES})
 
@@ -90,7 +90,7 @@ if(QT_FOUND)
     )
     
     add_executable(planner_3Dviewer ${PLANNER_3DVIEWER_SOURCES} ${PLANNER_3DVIEWER_MOC_SRCS} ${PLANNER_3DVIEWER_UI_HDRS})
-    setup_custom_target(planner_3Dviewer "${SRCROOT}${RKGUIQTDIR}")
+    setup_custom_target(planner_3Dviewer)
     target_link_libraries(planner_3Dviewer reak_gui_qt reak_topologies reak_interp reak_mbd_coin reak_topologies reak_core)
     target_link_libraries(planner_3Dviewer ${SOQT4_LIBRARIES} ${QT_LIBRARIES})
     
@@ -114,7 +114,7 @@ if(QT_FOUND)
     )
     
     add_executable(kte_model_viewer ${KTE_MODEL_VIEWER_SOURCES} ${KTE_MODEL_VIEWER_MOC_SRCS} ${KTE_MODEL_VIEWER_UI_HDRS})
-    setup_custom_target(kte_model_viewer "${SRCROOT}${RKGUIQTDIR}")
+    setup_custom_target(kte_model_viewer)
     target_link_libraries(kte_model_viewer reak_gui_qt reak_topologies reak_interp reak_mbd_coin reak_core)
     target_link_libraries(kte_model_viewer ${SOQT4_LIBRARIES} ${QT_LIBRARIES})
     
