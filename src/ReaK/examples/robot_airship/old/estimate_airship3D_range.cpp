@@ -25,7 +25,7 @@
 #include "airship3D_lin_model.hpp"
 
 #include "serialization/xml_archiver.hpp"
-#include "recorders/ssv_recorder.hpp"
+#include "recorders/ascii_recorder.hpp"
 
 
 #include "ctrl_sys/kalman_filter.hpp"
@@ -128,7 +128,7 @@ int main(int argc, char** argv) {
   std::list< std::pair< double, vect_n<double> > > measurements;
   std::list< std::pair< double, vect_n<double> > > measurements_noisy;
   {
-    recorder::ssv_extractor meas_file(meas_filename);
+    recorder::ascii_extractor meas_file(meas_filename);
     try {
       while(true) {
         double t;
@@ -176,7 +176,7 @@ int main(int argc, char** argv) {
   
   ctrl::covariance_matrix< vect_n<double> > Rcov = ctrl::covariance_matrix< vect_n<double> >(ctrl::covariance_matrix< vect_n<double> >::matrix_type(R));
   
-  recorder::ssv_recorder results(result_filename + "_stddevs_quat.ssv");
+  recorder::ascii_recorder results(result_filename + "_stddevs_quat.ssv");
   results << "time_step" << "ekf" << "iekf" << "imkf" << recorder::data_recorder::end_name_row;
   
   for(unsigned int j = skips_min+1; j<=skips_max+1; ++j) {

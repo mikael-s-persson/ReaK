@@ -25,7 +25,7 @@
 #include "airship2D_lin_model.hpp"
 
 #include "serialization/xml_archiver.hpp"
-#include "recorders/ssv_recorder.hpp"
+#include "recorders/ascii_recorder.hpp"
 
 
 #include "ctrl_sys/kalman_filter.hpp"
@@ -88,7 +88,7 @@ int main(int argc, char** argv) {
   
   std::list< std::pair< double, vect_n<double> > > measurements;
   {
-    recorder::ssv_extractor meas_file(meas_filename);
+    recorder::ascii_extractor meas_file(meas_filename);
     try {
       while(true) {
         double t;
@@ -132,7 +132,7 @@ int main(int argc, char** argv) {
   std::cout << "Running Kalman-Bucy Filter..." << std::endl;
   {
   ctrl::gaussian_belief_state< ctrl::covariance_matrix<double> > b = b_init;
-  recorder::ssv_recorder results(result_filename + "_kbf.ssv");
+  recorder::ascii_recorder results(result_filename + "_kbf.ssv");
   results << "time" << "pos_x" << "pos_y" << "cos(a)" << "sin(a)" << recorder::data_recorder::end_name_row;
   t1 = boost::posix_time::microsec_clock::local_time();
   for(std::list< std::pair< double, vect_n<double> > >::iterator it = measurements.begin(); it != measurements.end(); ++it) {
@@ -164,7 +164,7 @@ int main(int argc, char** argv) {
       ctrl::covariance_matrix<double>(ctrl::covariance_matrix<double>::matrix_type(mat<double,mat_structure::diagonal>(6,10.0))));
     
   ctrl::covariance_matrix<double> RcovInvar = ctrl::covariance_matrix<double>(ctrl::covariance_matrix<double>::matrix_type( mat_const_sub_sym_block< mat<double,mat_structure::diagonal> >(R,3,0) ));
-  recorder::ssv_recorder results(result_filename + "_ikbf.ssv");
+  recorder::ascii_recorder results(result_filename + "_ikbf.ssv");
   results << "time" << "pos_x" << "pos_y" << "cos(a)" << "sin(a)" << recorder::data_recorder::end_name_row;
   t1 = boost::posix_time::microsec_clock::local_time();
   for(std::list< std::pair< double, vect_n<double> > >::iterator it = measurements.begin(); it != measurements.end(); ++it) {
@@ -205,7 +205,7 @@ int main(int argc, char** argv) {
   ctrl::gaussian_belief_state< vect_n<double>, ctrl::covariance_matrix< vect_n<double> > > b_z(vect_n<double>(0.0,0.0,0.0), 
                                                                                                Rcov);
   
-  recorder::ssv_recorder results(result_filename + "_ekf.ssv");
+  recorder::ascii_recorder results(result_filename + "_ekf.ssv");
   results << "time" << "pos_x" << "pos_y" << "cos(a)" << "sin(a)" << recorder::data_recorder::end_name_row;
   t1 = boost::posix_time::microsec_clock::local_time();
   for(std::list< std::pair< double, vect_n<double> > >::iterator it = measurements.begin(); it != measurements.end(); ++it) {
@@ -235,7 +235,7 @@ int main(int argc, char** argv) {
                                                                                                ctrl::covariance_matrix< vect_n<double> >(Qu));
   ctrl::gaussian_belief_state< vect_n<double>, ctrl::covariance_matrix< vect_n<double> > > b_z(vect_n<double>(0.0,0.0,0.0), 
                                                                                                Rcov);
-  recorder::ssv_recorder results(result_filename + "_ukf.ssv");
+  recorder::ascii_recorder results(result_filename + "_ukf.ssv");
   results << "time" << "pos_x" << "pos_y" << "cos(a)" << "sin(a)" << recorder::data_recorder::end_name_row;
   t1 = boost::posix_time::microsec_clock::local_time();
   for(std::list< std::pair< double, vect_n<double> > >::iterator it = measurements.begin(); it != measurements.end(); ++it) {
@@ -283,7 +283,7 @@ int main(int argc, char** argv) {
   ctrl::gaussian_belief_state< vect_n<double>, ctrl::covariance_matrix< vect_n<double> > > b_z(vect_n<double>(0.0,0.0,0.0), 
                                                                                                Rcovinv);
   
-  recorder::ssv_recorder results(result_filename + "_iekf.ssv");
+  recorder::ascii_recorder results(result_filename + "_iekf.ssv");
   results << "time" << "pos_x" << "pos_y" << "cos(a)" << "sin(a)" << recorder::data_recorder::end_name_row;
   t1 = boost::posix_time::microsec_clock::local_time();
   for(std::list< std::pair< double, vect_n<double> > >::iterator it = measurements.begin(); it != measurements.end(); ++it) {
@@ -306,7 +306,7 @@ int main(int argc, char** argv) {
 #endif
   
   {
-  recorder::ssv_recorder results(result_filename + "_times.ssv");
+  recorder::ascii_recorder results(result_filename + "_times.ssv");
   results << "step_count" << "kbf(ms)" << "ikbf(ms)" << "ekf(ms)" << "ukf(ms)" << "iekf(ms)" << recorder::data_recorder::end_name_row;
   results << static_cast<double>(measurements.size()) 
               << static_cast<double>(dt[0].total_milliseconds()) 

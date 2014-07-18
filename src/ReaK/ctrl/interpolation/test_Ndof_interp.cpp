@@ -36,7 +36,7 @@ using std::ptrdiff_t;
 #include <ReaK/ctrl/topologies/Ndof_limits.hpp>
 #include <ReaK/ctrl/topologies/Ndof_spaces.hpp>
 
-#include <ReaK/core/recorders/ssv_recorder.hpp>
+#include <ReaK/core/recorders/ascii_recorder.hpp>
 #include <ReaK/ctrl/interpolation/sustained_velocity_pulse.hpp>
 #include <ReaK/ctrl/interpolation/sustained_acceleration_pulse.hpp>
 
@@ -104,7 +104,7 @@ int main(int argc, char** argv) {
     {
       std::stringstream ss; ss << "test_interp_results/" << in_filename << "_svp.ssv";
       
-      ReaK::recorder::ssv_recorder output_rec(ss.str());
+      ReaK::recorder::ascii_recorder output_rec(ss.str());
       output_rec << "time";
       for(std::size_t i = 0; i < TEST_SIZE; ++i) {
         std::stringstream ss2; ss2 << i;
@@ -147,7 +147,7 @@ int main(int argc, char** argv) {
     {
       std::stringstream ss; ss << "test_interp_results/" << in_filename << "_sap.ssv";
       
-      ReaK::recorder::ssv_recorder output_rec(ss.str());
+      ReaK::recorder::ascii_recorder output_rec(ss.str());
       output_rec << "time";
       for(std::size_t i = 0; i < TEST_SIZE; ++i) {
         std::stringstream ss2; ss2 << i;

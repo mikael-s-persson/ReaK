@@ -33,7 +33,7 @@ using std::ptrdiff_t;
 #include <ReaK/ctrl/topologies/differentiable_space.hpp>
 #include <ReaK/ctrl/topologies/temporal_space.hpp>
 
-#include <ReaK/core/recorders/ssv_recorder.hpp>
+#include <ReaK/core/recorders/ascii_recorder.hpp>
 #include <ReaK/ctrl/interpolation/sustained_velocity_pulse.hpp>
 #include <ReaK/ctrl/interpolation/sustained_acceleration_pulse.hpp>
 
@@ -116,7 +116,7 @@ int main(int argc, char** argv) {
     for(double current_end_time = min_time; current_end_time < max_time; current_end_time += interp_time_step) {
       std::stringstream ss; ss << "test_interp_results/svp_interp_" << current_end_time << ".ssv";
       RK_NOTICE(1,"Creating file: '" << ss.str() << "'");
-      ReaK::recorder::ssv_recorder output_rec(ss.str());
+      ReaK::recorder::ascii_recorder output_rec(ss.str());
       output_rec << "time" << "pos" << "vel" << "acc" << "jerk" << ReaK::recorder::data_recorder::end_name_row;
     
       pts[1].time = current_end_time;
@@ -133,7 +133,7 @@ int main(int argc, char** argv) {
     for(double current_end_time = min_time; current_end_time < max_time; current_end_time += interp_time_step) {
       std::stringstream ss; ss << "test_interp_results/sap_interp_" << current_end_time << ".ssv";
       RK_NOTICE(1,"Creating file: '" << ss.str() << "'");
-      ReaK::recorder::ssv_recorder output_rec(ss.str());
+      ReaK::recorder::ascii_recorder output_rec(ss.str());
       output_rec << "time" << "pos" << "vel" << "acc" << "jerk" << ReaK::recorder::data_recorder::end_name_row;
     
       pts[1].time = current_end_time;

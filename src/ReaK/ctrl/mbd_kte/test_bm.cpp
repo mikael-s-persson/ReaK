@@ -29,7 +29,7 @@
 #include <ReaK/ctrl/mbd_kte/jacobian_joint_map.hpp>
 #include <ReaK/ctrl/mbd_kte/mass_matrix_calculator.hpp>
 
-#include <ReaK/core/recorders/ssv_recorder.hpp>
+#include <ReaK/core/recorders/ascii_recorder.hpp>
 
 #include <ReaK/core/serialization/xml_archiver.hpp>
 
@@ -93,7 +93,7 @@ int main() {
 
 #endif
 
-  recorder::ssv_recorder output_rec("pendulum_results.ssvdat");
+  recorder::ascii_recorder output_rec("pendulum_results.ssv");
   output_rec << "time" << "q" << "qd" << "qdd" << "f" << recorder::data_recorder::end_name_row;
 
   double sim_time = 0.0;

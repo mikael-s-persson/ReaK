@@ -36,7 +36,7 @@
 #include "topologies/vector_topology.hpp"
 
 #include "serialization/xml_archiver.hpp"
-#include "recorders/ssv_recorder.hpp"
+#include "recorders/ascii_recorder.hpp"
 
 #include <boost/random/linear_congruential.hpp>
 #include <boost/random.hpp>
@@ -150,7 +150,7 @@ int main(int argc, char** argv) {
   
   pp::vector_topology< vect_n<double> > mdl_state_space;
   
-  recorder::ssv_recorder results(results_filename);
+  recorder::ascii_recorder results(results_filename);
   
   results << "time" << "pos_x" << "pos_y" << "angle" << "meas_x" << "meas_y" << "meas_ca" << "meas_sa" << recorder::data_recorder::end_name_row;
   

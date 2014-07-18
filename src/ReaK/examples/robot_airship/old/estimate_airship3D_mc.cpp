@@ -25,7 +25,7 @@
 #include "airship3D_lin_model.hpp"
 
 #include "serialization/xml_archiver.hpp"
-#include "recorders/ssv_recorder.hpp"
+#include "recorders/ascii_recorder.hpp"
 
 #include "ctrl_sys/gaussian_belief_state.hpp"
 #include "ctrl_sys/covariance_matrix.hpp"
@@ -655,7 +655,7 @@ int main(int argc, char** argv) {
   };
   
   
-  recorder::ssv_recorder results(result_filename + "_stddevs.ssv");
+  recorder::ascii_recorder results(result_filename + "_stddevs.ssv");
   results << "time_step" << "meas_p" << "meas_a" 
                          << "ekf2_p" << "ekf2_a" 
                          << "iekf_p" << "iekf_a" 

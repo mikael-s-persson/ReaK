@@ -33,7 +33,7 @@
 
 #include <ReaK/core/lin_alg/mat_num.hpp>
 
-#include <ReaK/core/recorders/ssv_recorder.hpp>
+#include <ReaK/core/recorders/ascii_recorder.hpp>
 
 #include <ReaK/core/serialization/xml_archiver.hpp>
 #include <ReaK/core/serialization/bin_archiver.hpp>
@@ -47,7 +47,7 @@ using namespace ReaK::kte;
 using namespace serialization;
 
 void simulate_system( shared_ptr< gen_coord<double> > joint_coord, kte_map_chain& adv_pendulum) {
-  recorder::ssv_recorder output_rec("adv_pendulum_results.ssvdat");
+  recorder::ascii_recorder output_rec("adv_pendulum_results.ssv");
   output_rec << "time" 
              << "q" 
              << "qd" 

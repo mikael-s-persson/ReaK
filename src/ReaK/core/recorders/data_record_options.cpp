@@ -24,8 +24,7 @@
 #include <ReaK/core/recorders/data_record_options.hpp>
 
 #include <ReaK/core/recorders/bin_recorder.hpp>
-#include <ReaK/core/recorders/ssv_recorder.hpp>
-#include <ReaK/core/recorders/tsv_recorder.hpp>
+#include <ReaK/core/recorders/ascii_recorder.hpp>
 #include <ReaK/core/recorders/network_recorder.hpp>
 #include <ReaK/core/recorders/vector_recorder.hpp>
 
@@ -43,10 +42,9 @@ shared_ptr< data_recorder > data_stream_options::create_recorder() const {
       result = shared_ptr< data_recorder >(new bin_recorder());
       break;
     case space_separated:
-      result = shared_ptr< data_recorder >(new ssv_recorder());
-      break;
     case tab_separated:
-      result = shared_ptr< data_recorder >(new tsv_recorder());
+    case comma_separated:
+      result = shared_ptr< data_recorder >(new ascii_recorder());
       break;
     case tcp_stream:
     case udp_stream: 
@@ -57,6 +55,21 @@ shared_ptr< data_recorder > data_stream_options::create_recorder() const {
       result = shared_ptr< data_recorder >(new vector_recorder());
       break;
   };
+  
+  switch(kind) {
+    case space_separated:
+      static_cast<ascii_recorder*>(result.get())->delimiter = " ";
+      break;
+    case tab_separated:
+      static_cast<ascii_recorder*>(result.get())->delimiter = "\t";
+      break;
+    case comma_separated:
+      static_cast<ascii_recorder*>(result.get())->delimiter = ",";
+      break;
+    default:
+      break;
+  };
+  
   
   if(file_name != "stdout") {
     switch(kind) {
@@ -96,10 +109,9 @@ std::pair< shared_ptr< data_extractor >, std::vector< std::string > > data_strea
       result.first = shared_ptr< data_extractor >(new bin_extractor());
       break;
     case space_separated:
-      result.first = shared_ptr< data_extractor >(new ssv_extractor());
-      break;
     case tab_separated:
-      result.first = shared_ptr< data_extractor >(new tsv_extractor());
+    case comma_separated:
+      result.first = shared_ptr< data_extractor >(new ascii_extractor());
       break;
     case tcp_stream:
     case udp_stream:
@@ -108,6 +120,20 @@ std::pair< shared_ptr< data_extractor >, std::vector< std::string > > data_strea
       break;
     case vector_stream:
       result.first = shared_ptr< data_extractor >(new vector_extractor());
+      break;
+  };
+  
+  switch(kind) {
+    case space_separated:
+      static_cast<ascii_extractor*>(result.first.get())->delimiter = " ";
+      break;
+    case tab_separated:
+      static_cast<ascii_extractor*>(result.first.get())->delimiter = "\t";
+      break;
+    case comma_separated:
+      static_cast<ascii_extractor*>(result.first.get())->delimiter = ",";
+      break;
+    default:
       break;
   };
   

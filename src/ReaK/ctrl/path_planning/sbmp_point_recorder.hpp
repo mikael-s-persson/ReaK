@@ -47,7 +47,7 @@
 #include <ReaK/ctrl/topologies/topological_map_concepts.hpp>
 
 #include <ReaK/core/recorders/data_record.hpp>
-#include <ReaK/core/recorders/ssv_recorder.hpp>
+#include <ReaK/core/recorders/ascii_recorder.hpp>
 
 /** Main namespace for ReaK */
 namespace ReaK {
@@ -131,7 +131,7 @@ class sbmp_point_recorder : public shared_object {
       
       std::stringstream ss;
       ss << std::setw(6) << std::setfill('0') << num_vertices(g) << ".ssv";
-      recorder::ssv_recorder rec_out(file_path + "progress_" + ss.str());
+      recorder::ascii_recorder rec_out(file_path + "progress_" + ss.str());
       bool not_initialized_yet = true;
       
       VIter vi, vi_end;
@@ -205,7 +205,7 @@ class sbmp_point_recorder : public shared_object {
       
       std::stringstream ss;
       ss << std::setw(6) << std::setfill('0') << num_vertices(g) << ".ssv";
-      recorder::ssv_recorder rec_out(file_path + "progress_" + ss.str());
+      recorder::ascii_recorder rec_out(file_path + "progress_" + ss.str());
       bool not_initialized_yet = true;
       
       VIter vi, vi_end;
@@ -256,7 +256,7 @@ class sbmp_point_recorder : public shared_object {
       
       std::stringstream ss;
       ss << std::setw(3) << std::setfill('0') << (solution_count++) << ".ssv";
-      recorder::ssv_recorder rec_out(file_path + "solution_" + ss.str());
+      recorder::ascii_recorder rec_out(file_path + "solution_" + ss.str());
       
       double t = traj->get_start_time();
       PointType u_pt = traj->get_point_at_time(t);
@@ -303,7 +303,7 @@ class sbmp_point_recorder : public shared_object {
       
       std::stringstream ss;
       ss << std::setw(3) << std::setfill('0') << (solution_count++) << ".ssv";
-      recorder::ssv_recorder rec_out(file_path + "solution_" + ss.str());
+      recorder::ascii_recorder rec_out(file_path + "solution_" + ss.str());
       
       PtIter it = p->begin_fraction_travel();
       PointType last_pt = *it;
@@ -429,7 +429,7 @@ class sbmp_point_recorder<JointStateSpace, identity_topo_map, NextReporter> : pu
       
       std::stringstream ss;
       ss << std::setw(6) << std::setfill('0') << num_vertices(g) << ".ssv";
-      recorder::ssv_recorder rec_out(file_path + "progress_" + ss.str());
+      recorder::ascii_recorder rec_out(file_path + "progress_" + ss.str());
       bool not_initialized_yet = true;
       
       VIter vi, vi_end;
@@ -497,7 +497,7 @@ class sbmp_point_recorder<JointStateSpace, identity_topo_map, NextReporter> : pu
       
       std::stringstream ss;
       ss << std::setw(6) << std::setfill('0') << num_vertices(g) << ".ssv";
-      recorder::ssv_recorder rec_out(file_path + "progress_" + ss.str());
+      recorder::ascii_recorder rec_out(file_path + "progress_" + ss.str());
       bool not_initialized_yet = true;
       
       VIter vi, vi_end;
@@ -546,7 +546,7 @@ class sbmp_point_recorder<JointStateSpace, identity_topo_map, NextReporter> : pu
       double t_total = traj->get_end_time() - traj->get_start_time();
       std::stringstream ss;
       ss << std::setw(3) << std::setfill('0') << (solution_count++) << "_" << t_total << ".ssv";
-      recorder::ssv_recorder rec_out(file_path + "solution_" + ss.str());
+      recorder::ascii_recorder rec_out(file_path + "solution_" + ss.str());
       
       double t = traj->get_start_time();
       PointType u_pt = traj->get_point_at_time(t);
@@ -588,7 +588,7 @@ class sbmp_point_recorder<JointStateSpace, identity_topo_map, NextReporter> : pu
       
       std::stringstream ss;
       ss << std::setw(3) << std::setfill('0') << (solution_count++) << ".ssv";
-      recorder::ssv_recorder rec_out(file_path + "solution_" + ss.str());
+      recorder::ascii_recorder rec_out(file_path + "solution_" + ss.str());
       
       PtIter it = p->begin_fraction_travel();
       vect_n<double> v_s_u = to_vect<double>(*it);

@@ -27,7 +27,7 @@
 #include <ReaK/ctrl/mbd_kte/revolute_joint.hpp>
 #include <ReaK/ctrl/mbd_kte/rigid_link.hpp>
 
-#include <ReaK/core/recorders/ssv_recorder.hpp>
+#include <ReaK/core/recorders/ascii_recorder.hpp>
 
 #include <ReaK/core/serialization/xml_archiver.hpp>
 
@@ -58,7 +58,7 @@ class pendulum_simulation_node : public node {
     shared_ptr< gen_coord<double> > joint_coord;
     kte_map_chain pendulum;
     double sim_time;
-    recorder::ssv_recorder output_rec;
+    recorder::ascii_recorder output_rec;
     bool& is_done;
   protected:
 
@@ -287,15 +287,6 @@ class pendulum_vmc_node : public pendulum_control_node {
 
 
 int main() {
-  kte_map_chain_hpp::init_rtti_register();
-  inertia_hpp::init_rtti_register();
-  revolute_joint_hpp::init_rtti_register();
-  rigid_link_hpp::init_rtti_register();
-  ssv_recorder_hpp::init_rtti_register();
-  root_node_hpp::init_rtti_register();
-  signal_hpp::init_rtti_register();
-
-
 
 
   root_node test_on_sim;

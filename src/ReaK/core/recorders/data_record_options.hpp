@@ -58,6 +58,7 @@ struct data_stream_options {
     binary = 0,
     space_separated,
     tab_separated,
+    comma_separated,
     tcp_stream,
     udp_stream,
     raw_udp_stream,
@@ -76,6 +77,8 @@ struct data_stream_options {
         return "ssv";
       case tab_separated:
         return "tsv";
+      case comma_separated:
+        return "csv";
       default:
         return "";
     };

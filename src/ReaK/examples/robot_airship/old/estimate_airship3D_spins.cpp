@@ -25,7 +25,7 @@
 #include "airship3D_lin_model.hpp"
 
 #include "serialization/xml_archiver.hpp"
-#include "recorders/ssv_recorder.hpp"
+#include "recorders/ascii_recorder.hpp"
 
 
 #include "ctrl_sys/kalman_filter.hpp"
@@ -148,7 +148,7 @@ int main(int argc, char** argv) {
   ctrl::covariance_matrix< vect_n<double> > Rcov = ctrl::covariance_matrix< vect_n<double> >(ctrl::covariance_matrix< vect_n<double> >::matrix_type(R));
   
   RK_NOTICE(1," reached!");
-  recorder::ssv_recorder results(result_filename + "_stddevs.ssv");
+  recorder::ascii_recorder results(result_filename + "_stddevs.ssv");
   results << "time_step" << "w_avg" << "std_p" << "std_q"
           << "EKF_p" << "EKF_q" << "EKF_w"
           << "IEKF_p" << "IEKF_q" << "IEKF_w"
@@ -168,7 +168,7 @@ int main(int argc, char** argv) {
     {
       std::stringstream ss_tmp;
       ss_tmp << test_num << ".ssv";
-      recorder::ssv_extractor meas_file(meas_filename + ss_tmp.str());
+      recorder::ascii_extractor meas_file(meas_filename + ss_tmp.str());
       //std::cout << " loading file: '" << ss_tmp.str() << "'" << std::endl;
       try {
         while(true) {

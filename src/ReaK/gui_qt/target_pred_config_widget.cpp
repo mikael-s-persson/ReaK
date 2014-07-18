@@ -44,7 +44,6 @@
 
 
 #include <ReaK/core/recorders/data_record_options.hpp>
-#include <ReaK/core/recorders/ssv_recorder.hpp>
 
 #include <ctime>
 

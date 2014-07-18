@@ -14,7 +14,7 @@
 #include "topologies/direct_kinematics_topomap.hpp"
 #include "topologies/inverse_kinematics_topomap.hpp"
 
-#include "recorders/tsv_recorder.hpp"
+#include "recorders/ascii_recorder.hpp"
 
 #include <iomanip>
 
@@ -254,7 +254,7 @@ int main() {
   
 #else
   
-  ReaK::recorder::tsv_recorder rec("models/CRS_A465_workspace.tsv");
+  ReaK::recorder::ascii_recorder rec("models/CRS_A465_workspace.ssv");
   rec << "x" << "y" << "z" << "yaw" << "pitch" << "value" << ReaK::recorder::data_recorder::end_name_row;
   
   for(std::size_t i = 0; i < 20; ++i) {

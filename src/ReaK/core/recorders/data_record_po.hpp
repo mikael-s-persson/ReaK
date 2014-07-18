@@ -66,7 +66,7 @@ boost::program_options::options_description get_data_stream_options_po_desc(bool
       ("input-tcp",     "if set, will try to listen to an input TCP data-stream")
       ("input-udp",     "if set, will try to listen to an input UDP data-stream")
       ("input-raw-udp", "if set, will try to listen to an input RAW UDP data-stream, for this to work, you must specify the list of columns via the 'keep-columns' option")
-      ("input-format",  value< std::string >(), "specify the format for the input file (default is to use the file-extension of input-file (ssv, tsv, bin, etc.), or if piped, use 'ssv')")
+      ("input-format",  value< std::string >(), "specify the format for the input file (default is to use the file-extension of input-file (ssv, tsv, csv, bin, etc.), or if piped, use 'ssv')")
     ;
     result.add(input_options);
   };
@@ -79,7 +79,7 @@ boost::program_options::options_description get_data_stream_options_po_desc(bool
       ("output-tcp",    "if set, will output a TCP data-stream")
       ("output-udp",    "if set, will output a UDP data-stream")
       ("output-raw-udp","if set, will output a RAW UDP data-stream")
-      ("output-format", value< std::string >(), "specify the format for the output file (default is to use the file-extension of input-file (ssv, tsv, bin, etc.), or if piped, use 'ssv')")
+      ("output-format", value< std::string >(), "specify the format for the output file (default is to use the file-extension of input-file (ssv, tsv, csv, bin, etc.), or if piped, use 'ssv')")
     ;
     result.add(output_options);
   };
@@ -134,6 +134,8 @@ data_stream_options get_data_stream_options_from_po(boost::program_options::vari
         result.kind = data_stream_options::space_separated;
       } else if(input_extension == "tsv") {
         result.kind = data_stream_options::tab_separated;
+      } else if(input_extension == "csv") {
+        result.kind = data_stream_options::comma_separated;
       } else if(input_extension == "bin") {
         result.kind = data_stream_options::binary;
       };
@@ -164,6 +166,8 @@ data_stream_options get_data_stream_options_from_po(boost::program_options::vari
         result.kind = data_stream_options::space_separated;
       } else if(output_extension == "tsv") {
         result.kind = data_stream_options::tab_separated;
+      } else if(output_extension == "csv") {
+        result.kind = data_stream_options::comma_separated;
       } else if(output_extension == "bin") {
         result.kind = data_stream_options::binary;
       };

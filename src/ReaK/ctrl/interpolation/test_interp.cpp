@@ -37,7 +37,7 @@ using std::ptrdiff_t;
 #include <ReaK/ctrl/interpolation/cubic_hermite_interp.hpp>
 #include <ReaK/ctrl/interpolation/quintic_hermite_interp.hpp>
 
-#include <ReaK/core/recorders/ssv_recorder.hpp>
+#include <ReaK/core/recorders/ascii_recorder.hpp>
 
 
 int main(int argc, char** argv) {
@@ -93,7 +93,7 @@ int main(int argc, char** argv) {
   };
     
   try {
-    ReaK::recorder::ssv_recorder output_rec("test_interp_results/linear_interp.ssv");
+    ReaK::recorder::ascii_recorder output_rec("test_interp_results/linear_interp.ssv");
     output_rec << "time" << "pos" << "vel" << "acc" << "jerk" << ReaK::recorder::data_recorder::end_name_row;
     
     ReaK::pp::linear_interp_traj<TempTopoType> interp(pts.begin(), pts.end(), topo);
@@ -111,7 +111,7 @@ int main(int argc, char** argv) {
   };
   
   try {
-    ReaK::recorder::ssv_recorder output_rec("test_interp_results/cubic_interp.ssv");
+    ReaK::recorder::ascii_recorder output_rec("test_interp_results/cubic_interp.ssv");
     output_rec << "time" << "pos" << "vel" << "acc" << "jerk" << ReaK::recorder::data_recorder::end_name_row;
     
     ReaK::pp::cubic_hermite_interp_traj<TempTopoType> interp(pts.begin(), pts.end(), topo);
@@ -129,7 +129,7 @@ int main(int argc, char** argv) {
   };
 
   try {
-    ReaK::recorder::ssv_recorder output_rec("test_interp_results/quintic_interp.ssv");
+    ReaK::recorder::ascii_recorder output_rec("test_interp_results/quintic_interp.ssv");
     output_rec << "time" << "pos" << "vel" << "acc" << "jerk" << ReaK::recorder::data_recorder::end_name_row;
     
     ReaK::pp::quintic_hermite_interp_traj<TempTopoType> interp(pts.begin(), pts.end(), topo);

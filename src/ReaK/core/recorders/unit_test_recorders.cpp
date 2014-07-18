@@ -21,10 +21,9 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <ReaK/core/recorders/ssv_recorder.hpp>
-#include <ReaK/core/recorders/tsv_recorder.hpp>
 #include <ReaK/core/recorders/bin_recorder.hpp>
 #include <ReaK/core/recorders/network_recorder.hpp>
+#include <ReaK/core/recorders/ascii_recorder.hpp>
 #include <ReaK/core/recorders/vector_recorder.hpp>
 
 #include <sstream>
@@ -40,7 +39,7 @@
 #include <boost/mpl/list.hpp>
 
 
-BOOST_AUTO_TEST_CASE( ssv_record_extract_test )
+BOOST_AUTO_TEST_CASE( ascii_space_record_extract_test )
 {
   using namespace ReaK;
   using namespace recorder;
@@ -48,7 +47,8 @@ BOOST_AUTO_TEST_CASE( ssv_record_extract_test )
   {
     std::stringstream ss;
     {
-      ssv_recorder output_rec;
+      ascii_recorder output_rec;
+      output_rec.delimiter = " ";
       output_rec.setStream(ss);
       
       BOOST_CHECK_NO_THROW( output_rec << "x" << "2*x" << "x^2" );
@@ -61,7 +61,8 @@ BOOST_AUTO_TEST_CASE( ssv_record_extract_test )
     };
     
     {
-      ssv_extractor input_rec;
+      ascii_extractor input_rec;
+      input_rec.delimiter = " ";
       input_rec.setStream(ss);
       
       BOOST_CHECK_EQUAL( input_rec.getColCount(), 3 );
@@ -86,8 +87,8 @@ BOOST_AUTO_TEST_CASE( ssv_record_extract_test )
   
 };
 
-// NOTE: also test the value-vector input-output.
-BOOST_AUTO_TEST_CASE( tsv_record_extract_test )
+
+BOOST_AUTO_TEST_CASE( ascii_tab_record_extract_test )
 {
   using namespace ReaK;
   using namespace recorder;
@@ -95,22 +96,22 @@ BOOST_AUTO_TEST_CASE( tsv_record_extract_test )
   {
     std::stringstream ss;
     {
-      tsv_recorder output_rec;
+      ascii_recorder output_rec;
+      output_rec.delimiter = "\t";
       output_rec.setStream(ss);
       
       BOOST_CHECK_NO_THROW( output_rec << "x" << "2*x" << "x^2" );
       BOOST_CHECK_NO_THROW( output_rec << data_recorder::end_name_row );
       for(double x = 0; x < 10.1; x += 0.5) {
-        std::vector<double> v_vect(3, 0.0);
-        v_vect[0] = x; v_vect[1] = 2*x; v_vect[2] = x*x; 
-        BOOST_CHECK_NO_THROW( output_rec << v_vect );
+        BOOST_CHECK_NO_THROW( output_rec << x << 2*x << x*x );
         BOOST_CHECK_NO_THROW( output_rec << data_recorder::end_value_row );
       };
       BOOST_CHECK_NO_THROW( output_rec << data_recorder::flush );
     };
     
     {
-      tsv_extractor input_rec;
+      ascii_extractor input_rec;
+      input_rec.delimiter = "\t";
       input_rec.setStream(ss);
       
       BOOST_CHECK_EQUAL( input_rec.getColCount(), 3 );
@@ -121,11 +122,11 @@ BOOST_AUTO_TEST_CASE( tsv_record_extract_test )
       BOOST_CHECK( s2 == "2*x" );
       BOOST_CHECK( s3 == "x^2" );
       for(double x = 0; x < 10.1; x += 0.5) {
-        std::vector<double> v_vect(3, 0.0);
-        BOOST_CHECK_NO_THROW( input_rec >> v_vect );
-        BOOST_CHECK_CLOSE( v_vect[0], x, 1e-6 );
-        BOOST_CHECK_CLOSE( v_vect[1], (2.0*x), 1e-6 );
-        BOOST_CHECK_CLOSE( v_vect[2], (x*x), 1e-6 );
+        double v1, v2, v3;
+        BOOST_CHECK_NO_THROW( input_rec >> v1 >> v2 >> v3 );
+        BOOST_CHECK_CLOSE( v1, x, 1e-6 );
+        BOOST_CHECK_CLOSE( v2, (2.0*x), 1e-6 );
+        BOOST_CHECK_CLOSE( v3, (x*x), 1e-6 );
         BOOST_CHECK_NO_THROW( input_rec >> data_extractor::end_value_row );
       };
       BOOST_CHECK_NO_THROW( input_rec >> data_extractor::close );
@@ -134,6 +135,56 @@ BOOST_AUTO_TEST_CASE( tsv_record_extract_test )
   };
   
 };
+
+
+BOOST_AUTO_TEST_CASE( ascii_comma_record_extract_test )
+{
+  using namespace ReaK;
+  using namespace recorder;
+  
+  {
+    std::stringstream ss;
+    {
+      ascii_recorder output_rec;
+      output_rec.delimiter = ", ";
+      output_rec.setStream(ss);
+      
+      BOOST_CHECK_NO_THROW( output_rec << "x" << "2*x" << "x^2" );
+      BOOST_CHECK_NO_THROW( output_rec << data_recorder::end_name_row );
+      for(double x = 0; x < 10.1; x += 0.5) {
+        BOOST_CHECK_NO_THROW( output_rec << x << 2*x << x*x );
+        BOOST_CHECK_NO_THROW( output_rec << data_recorder::end_value_row );
+      };
+      BOOST_CHECK_NO_THROW( output_rec << data_recorder::flush );
+    };
+    
+    {
+      ascii_extractor input_rec;
+      input_rec.delimiter = ", ";
+      input_rec.setStream(ss);
+      
+      BOOST_CHECK_EQUAL( input_rec.getColCount(), 3 );
+      
+      std::string s1, s2, s3;
+      BOOST_CHECK_NO_THROW( input_rec >> s1 >> s2 >> s3 );
+      BOOST_CHECK( s1 == "x" );
+      BOOST_CHECK( s2 == "2*x" );
+      BOOST_CHECK( s3 == "x^2" );
+      for(double x = 0; x < 10.1; x += 0.5) {
+        double v1, v2, v3;
+        BOOST_CHECK_NO_THROW( input_rec >> v1 >> v2 >> v3 );
+        BOOST_CHECK_CLOSE( v1, x, 1e-6 );
+        BOOST_CHECK_CLOSE( v2, (2.0*x), 1e-6 );
+        BOOST_CHECK_CLOSE( v3, (x*x), 1e-6 );
+        BOOST_CHECK_NO_THROW( input_rec >> data_extractor::end_value_row );
+      };
+      BOOST_CHECK_NO_THROW( input_rec >> data_extractor::close );
+    };
+    
+  };
+  
+};
+
 
 
 // NOTE: also test the named-value-row input-output.

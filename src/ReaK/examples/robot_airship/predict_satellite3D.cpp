@@ -32,7 +32,7 @@
 #include <ReaK/ctrl/ctrl_sys/covariance_matrix.hpp>
 
 #include <ReaK/core/serialization/archiver_factory.hpp>
-#include <ReaK/core/recorders/ssv_recorder.hpp>
+#include <ReaK/core/recorders/ascii_recorder.hpp>
 
 #include <ReaK/ctrl/topologies/temporal_space.hpp>
 #include <ReaK/ctrl/interpolation/discrete_point_trajectory.hpp>
@@ -156,7 +156,7 @@ void generate_timeseries(
     double start_time, double end_time,
     const cov_matrix_type& Qu,
     const cov_matrix_type& R,
-    ReaK::shared_ptr< ReaK::recorder::ssv_recorder > stat_results = ReaK::shared_ptr< ReaK::recorder::ssv_recorder >() ) {
+    ReaK::shared_ptr< ReaK::recorder::ascii_recorder > stat_results = ReaK::shared_ptr< ReaK::recorder::ascii_recorder >() ) {
   using namespace ReaK;
   
   measurements.clear();
@@ -286,7 +286,7 @@ void do_all_single_runs(
     
     std::stringstream ss;
     ss << output_stem_name << "_" << std::setfill('0') << std::setw(4) << int(1000 * skips * time_step) << "_" << filter_name << ".ssv";
-    recorder::ssv_recorder results(ss.str());
+    recorder::ascii_recorder results(ss.str());
     results << "time" 
             << "pos_x" << "pos_y" << "pos_z" << "q0" << "q1" << "q2" << "q3" 
             << "vel_x" << "vel_y" << "vel_z" << "avel_x" << "avel_y" << "avel_z"
@@ -313,7 +313,7 @@ void do_all_single_runs(
 
 template <typename Sat3DSystemType>
 void do_single_monte_carlo_run(
-    std::map< std::string, ReaK::shared_ptr< ReaK::recorder::ssv_recorder > >& results_map,
+    std::map< std::string, ReaK::shared_ptr< ReaK::recorder::ascii_recorder > >& results_map,
     const std::string& output_stem_name,
     const std::string& filter_name,
     const std::vector< std::pair< double, sat3D_measurement_point > >& measurements,
@@ -373,9 +373,9 @@ void do_single_monte_carlo_run(
     std::stringstream ss;
     ss << "_" << std::setfill('0') << std::setw(4) << int(1000 * skips * time_step) << "_" << filter_name;
     std::string file_middle = ss.str();
-    shared_ptr< recorder::ssv_recorder >& results = results_map[file_middle];
+    shared_ptr< recorder::ascii_recorder >& results = results_map[file_middle];
     if( !results ) {
-      results = shared_ptr< recorder::ssv_recorder >(new recorder::ssv_recorder(output_stem_name + file_middle + "_stddevs.ssv"));
+      results = shared_ptr< recorder::ascii_recorder >(new recorder::ascii_recorder(output_stem_name + file_middle + "_stddevs.ssv"));
       (*results) << "ep_x"  << "ep_y"  << "ep_z"  << "ea_x" << "ea_y" << "ea_z"
                   << "ev_x"  << "ev_y"  << "ev_z"  << "ew_x" << "ew_y" << "ew_z"
                   << "ep_m"  << "ea_m"  << "ev_m"  << "ew_m" 
@@ -692,7 +692,7 @@ int main(int argc, char** argv) {
   std::vector< std::pair< double, sat3D_state_type > > ground_truth;
   if( (!vm.count("monte-carlo")) && vm.count("measurements") && fs::exists( fs::path( strip_quotes(vm["measurements"].as<std::string>()) ) ) ) {
     try {
-      recorder::ssv_extractor measurements_file(strip_quotes(vm["measurements"].as<std::string>()));
+      recorder::ascii_extractor measurements_file(strip_quotes(vm["measurements"].as<std::string>()));
       while(true) {
         double t;
         measurements_file >> t;
@@ -879,7 +879,7 @@ int main(int argc, char** argv) {
         
         // and output those if asked for it:
         if( vm.count("generate-meas-file") ) {
-          recorder::ssv_recorder measurements_gen(output_stem_name + "_meas.ssv");
+          recorder::ascii_recorder measurements_gen(output_stem_name + "_meas.ssv");
           measurements_gen << "time" 
                            << "p_x" << "p_y" << "p_z" << "q_0" << "q_1" << "q_2" << "q_2" 
                            << "f_x" << "f_y" << "f_z" << "t_x" << "t_y" << "t_z" 
@@ -935,8 +935,8 @@ int main(int argc, char** argv) {
     } else {
       // do monte-carlo runs:
       set_frame_3D(x_init, initial_motion);
-      std::map< std::string, shared_ptr< recorder::ssv_recorder > > results_map;
-      shared_ptr< recorder::ssv_recorder > ground_truth_stats(new recorder::ssv_recorder(output_stem_name + "_meas_stddevs.ssv"));
+      std::map< std::string, shared_ptr< recorder::ascii_recorder > > results_map;
+      shared_ptr< recorder::ascii_recorder > ground_truth_stats(new recorder::ascii_recorder(output_stem_name + "_meas_stddevs.ssv"));
       (*ground_truth_stats) << "ep_x"  << "ep_y" << "ep_z"  << "ea_x" << "ea_y" << "ea_z"
                             << "ep_m"  << "ea_m" 
                             << recorder::data_recorder::end_name_row;
@@ -1032,7 +1032,7 @@ int main(int argc, char** argv) {
         
         // and output those if asked for it:
         if( vm.count("generate-meas-file") ) {
-          recorder::ssv_recorder measurements_gen(output_stem_name + "_meas.ssv");
+          recorder::ascii_recorder measurements_gen(output_stem_name + "_meas.ssv");
           measurements_gen << "time" 
                            << "p_x" << "p_y" << "p_z" << "q_0" << "q_1" << "q_2" << "q_2"
                            << "w_x" << "w_y" << "w_z" 
@@ -1088,8 +1088,8 @@ int main(int argc, char** argv) {
     } else {
       // do monte-carlo runs:
       set_frame_3D(x_init, initial_motion);
-      std::map< std::string, shared_ptr< recorder::ssv_recorder > > results_map;
-      shared_ptr< recorder::ssv_recorder > ground_truth_stats(new recorder::ssv_recorder(output_stem_name + "_meas_gyro_stddevs.ssv"));
+      std::map< std::string, shared_ptr< recorder::ascii_recorder > > results_map;
+      shared_ptr< recorder::ascii_recorder > ground_truth_stats(new recorder::ascii_recorder(output_stem_name + "_meas_gyro_stddevs.ssv"));
       (*ground_truth_stats) << "ep_x"  << "ep_y" << "ep_z" << "ea_x" << "ea_y" << "ea_z"
                             << "ep_m"  << "ea_m" 
                             << "ew_x"  << "ew_y" << "ew_z" << "ew_m" 
@@ -1179,7 +1179,7 @@ int main(int argc, char** argv) {
         
         // and output those if asked for it:
         if( vm.count("generate-meas-file") ) {
-          recorder::ssv_recorder measurements_gen(output_stem_name + "_meas.ssv");
+          recorder::ascii_recorder measurements_gen(output_stem_name + "_meas.ssv");
           measurements_gen << "time" 
                            << "p_x" << "p_y" << "p_z" << "q_0" << "q_1" << "q_2" << "q_2"
                            << "w_x" << "w_y" << "w_z" 
@@ -1235,8 +1235,8 @@ int main(int argc, char** argv) {
     } else {
       // do monte-carlo runs:
       set_frame_3D(x_init, initial_motion);
-      std::map< std::string, shared_ptr< recorder::ssv_recorder > > results_map;
-      shared_ptr< recorder::ssv_recorder > ground_truth_stats(new recorder::ssv_recorder(output_stem_name + "_meas_IMU_stddevs.ssv"));
+      std::map< std::string, shared_ptr< recorder::ascii_recorder > > results_map;
+      shared_ptr< recorder::ascii_recorder > ground_truth_stats(new recorder::ascii_recorder(output_stem_name + "_meas_IMU_stddevs.ssv"));
       (*ground_truth_stats) << "ep_x"  << "ep_y" << "ep_z" << "ea_x" << "ea_y" << "ea_z"
                             << "ep_m"  << "ea_m" 
                             << "ew_x"  << "ew_y" << "ew_z" << "ew_m" 
