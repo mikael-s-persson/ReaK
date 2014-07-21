@@ -662,16 +662,7 @@ protected:
   ///This function checks if a typeID is parent to this.
   virtual weak_pointer RK_CALL findAncestor_impl(const unsigned int* aTypeID ) const = 0;
   
-  static bool compare_equal(const unsigned int* pid1, const unsigned int* pid2) {
-    while((*pid1) && (*pid2)) {
-      if(*pid1 != *pid2)
-        return false;
-      ++pid1; ++pid2;
-    };
-    if(*pid1 != *pid2)
-      return false;
-    return true;
-  };
+  static bool compare_equal(const unsigned int* pid1, const unsigned int* pid2);
 
 public:
  
@@ -812,10 +803,6 @@ public:
   
   virtual bool isConcrete() const {
     return (mConstruct);
-  };
-
-  static shared_pointer Create(boost::function< shared_object_shared_pointer() > aConstruct) {
-    return shared_pointer(new so_type_descriptor<T,Version>(aConstruct),scoped_deleter());
   };
   
 };

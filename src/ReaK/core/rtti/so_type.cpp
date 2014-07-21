@@ -74,6 +74,16 @@ so_type_impl::so_type_impl() : so_type(),
                                mDescendants(&compare_shared), 
                                mAncestors(&compare_weak) { };
   
+bool so_type::compare_equal(const unsigned int* pid1, const unsigned int* pid2) {
+  while((*pid1) && (*pid2)) {
+    if(*pid1 != *pid2)
+      return false;
+    ++pid1; ++pid2;
+  };
+  if(*pid1 != *pid2)
+    return false;
+  return true;
+};
 
 so_type::shared_pointer RK_CALL so_type_impl::addDescendant(const so_type::shared_pointer& aObj ) {
   std::set< so_type::shared_pointer, so_type_impl::compare_shared_t>::iterator it = mDescendants.lower_bound(aObj);
