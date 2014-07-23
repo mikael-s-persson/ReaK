@@ -50,8 +50,8 @@ namespace rtti {
 template <typename T, typename Allocator>
 struct get_type_id< std::vector<T,Allocator> > {
   BOOST_STATIC_CONSTANT(unsigned int, ID = 0x00000008);
-  static std::string type_name() { return "std::vector"; };
-  static construct_ptr CreatePtr() { return NULL; };
+  static const char* type_name() BOOST_NOEXCEPT { return "std::vector"; };
+  static construct_ptr CreatePtr() BOOST_NOEXCEPT { return NULL; };
   
   typedef const std::vector<T,Allocator>& save_type;
   typedef std::vector<T,Allocator>& load_type;
@@ -59,16 +59,23 @@ struct get_type_id< std::vector<T,Allocator> > {
 
 template <typename T, typename Allocator, typename Tail>
 struct get_type_info< std::vector<T,Allocator>, Tail > {
-  typedef detail::type_id<  std::vector<T,Allocator> , typename get_type_info<T, Tail>::type> type;
-  static std::string type_name() { return get_type_id< std::vector<T,Allocator> >::type_name() + "<" + get_type_id<T>::type_name() + ">" + (boost::is_same< Tail, null_type_info >::value ? "" : "," + Tail::type_name()); };
+  typedef type_id<  std::vector<T,Allocator> , typename get_type_info<T, Tail>::type> type;
+  static std::string type_name() { 
+    std::string result = get_type_id< std::vector<T,Allocator> >::type_name();
+    result += "<";
+    result += get_type_id<T>::type_name();
+    result += ">";
+    result += get_type_name_tail<Tail>::value(); 
+    return result; //NRVO
+  };
 };
 
 
 template <typename T, typename Allocator>
 struct get_type_id< std::list<T,Allocator> > {
   BOOST_STATIC_CONSTANT(unsigned int, ID = 0x00000009);
-  static std::string type_name() { return "std::list"; };
-  static construct_ptr CreatePtr() { return NULL; };
+  static const char* type_name() BOOST_NOEXCEPT { return "std::list"; };
+  static construct_ptr CreatePtr() BOOST_NOEXCEPT { return NULL; };
   
   typedef const std::list<T,Allocator>& save_type;
   typedef std::list<T,Allocator>& load_type;
@@ -76,16 +83,23 @@ struct get_type_id< std::list<T,Allocator> > {
 
 template <typename T, typename Allocator, typename Tail>
 struct get_type_info< std::list<T,Allocator>, Tail > {
-  typedef detail::type_id<  std::list<T,Allocator> , typename get_type_info<T, Tail>::type> type;
-  static std::string type_name() { return get_type_id< std::list<T,Allocator> >::type_name() + "<" + get_type_id<T>::type_name() + ">" + (boost::is_same< Tail, null_type_info >::value ? "" : "," + Tail::type_name()); };
+  typedef type_id<  std::list<T,Allocator> , typename get_type_info<T, Tail>::type> type;
+  static std::string type_name() { 
+    std::string result = get_type_id< std::list<T,Allocator> >::type_name();
+    result += "<";
+    result += get_type_id<T>::type_name();
+    result += ">";
+    result += get_type_name_tail<Tail>::value();
+    return result; //NRVO
+  };
 };
 
 
 template <typename Key, typename T, typename Compare, typename Allocator>
 struct get_type_id< std::map<Key,T,Compare,Allocator> > {
   BOOST_STATIC_CONSTANT(unsigned int, ID = 0x0000000A);
-  static std::string type_name() { return "std::map"; };
-  static construct_ptr CreatePtr() { return NULL; };
+  static const char* type_name() BOOST_NOEXCEPT { return "std::map"; };
+  static construct_ptr CreatePtr() BOOST_NOEXCEPT { return NULL; };
   
   typedef const std::map<Key,T,Compare,Allocator>& save_type;
   typedef std::map<Key,T,Compare,Allocator>& load_type;
@@ -93,16 +107,25 @@ struct get_type_id< std::map<Key,T,Compare,Allocator> > {
 
 template <typename Key, typename T, typename Compare, typename Allocator, typename Tail>
 struct get_type_info< std::map<Key,T,Compare,Allocator>, Tail > {
-  typedef detail::type_id< std::map<Key,T,Compare,Allocator> , typename get_type_info<Key, get_type_info<T, Tail> >::type > type;
-  static std::string type_name() { return get_type_id< std::map<Key,T,Compare,Allocator> >::type_name() + "<" + get_type_id<Key>::type_name() + "," + get_type_id<T>::type_name() + ">" + (boost::is_same< Tail, null_type_info >::value ? "" : "," + Tail::type_name()); };
+  typedef type_id< std::map<Key,T,Compare,Allocator> , typename get_type_info<Key, get_type_info<T, Tail> >::type > type;
+  static std::string type_name() { 
+    std::string result = get_type_id< std::map<Key,T,Compare,Allocator> >::type_name();
+    result += "<";
+    result += get_type_id<Key>::type_name();
+    result += ",";
+    result += get_type_id<T>::type_name();
+    result += ">";
+    result += get_type_name_tail<Tail>::value(); 
+    return result; //NRVO
+  };
 };
 
 
 template <typename T, typename Compare, typename Allocator>
 struct get_type_id< std::set<T,Compare,Allocator> > {
   BOOST_STATIC_CONSTANT(unsigned int, ID = 0x0000000B);
-  static std::string type_name() { return "std::set"; };
-  static construct_ptr CreatePtr() { return NULL; };
+  static const char* type_name() BOOST_NOEXCEPT { return "std::set"; };
+  static construct_ptr CreatePtr() BOOST_NOEXCEPT { return NULL; };
   
   typedef const std::set<T,Compare,Allocator>& save_type;
   typedef std::set<T,Compare,Allocator>& load_type;
@@ -110,8 +133,15 @@ struct get_type_id< std::set<T,Compare,Allocator> > {
 
 template <typename T, typename Compare, typename Allocator, typename Tail>
 struct get_type_info< std::set<T,Compare,Allocator>, Tail > {
-  typedef detail::type_id< std::set<T,Compare,Allocator> , typename get_type_info<T, Tail>::type> type;
-  static std::string type_name() { return get_type_id< std::set<T,Compare,Allocator> >::type_name() + "<" + get_type_id<T>::type_name() + ">" + (boost::is_same< Tail, null_type_info >::value ? "" : "," + Tail::type_name()); };
+  typedef type_id< std::set<T,Compare,Allocator> , typename get_type_info<T, Tail>::type> type;
+  static std::string type_name() { 
+    std::string result = get_type_id< std::set<T,Compare,Allocator> >::type_name();
+    result += "<";
+    result += get_type_id<T>::type_name();
+    result += ">";
+    result += get_type_name_tail<Tail>::value();
+    return result; //NRVO
+  };
 };
 
 
@@ -119,8 +149,8 @@ struct get_type_info< std::set<T,Compare,Allocator>, Tail > {
 template <typename T1, typename T2>
 struct get_type_id< std::pair<T1,T2> > {
   BOOST_STATIC_CONSTANT(unsigned int, ID = 0x0000000C);
-  static std::string type_name() { return "std::pair"; };
-  static construct_ptr CreatePtr() { return NULL; };
+  static const char* type_name() BOOST_NOEXCEPT { return "std::pair"; };
+  static construct_ptr CreatePtr() BOOST_NOEXCEPT { return NULL; };
   
   typedef const std::pair<T1,T2>& save_type;
   typedef std::pair<T1,T2>& load_type;
@@ -128,8 +158,17 @@ struct get_type_id< std::pair<T1,T2> > {
 
 template <typename T1, typename T2, typename Tail>
 struct get_type_info< std::pair<T1,T2>, Tail > {
-  typedef detail::type_id< std::pair<T1,T2> , typename get_type_info<T1, get_type_info<T2, Tail> >::type > type;
-  static std::string type_name() { return get_type_id< std::pair<T1,T2> >::type_name() + "<" + get_type_id<T1>::type_name() + "," + get_type_id<T2>::type_name() + ">" + (boost::is_same< Tail, null_type_info >::value ? "" : "," + Tail::type_name()); };
+  typedef type_id< std::pair<T1,T2> , typename get_type_info<T1, get_type_info<T2, Tail> >::type > type;
+  static std::string type_name() { 
+    std::string result = get_type_id< std::pair<T1,T2> >::type_name();
+    result += "<";
+    result += get_type_id<T1>::type_name();
+    result += ",";
+    result += get_type_id<T2>::type_name();
+    result += ">";
+    result += get_type_name_tail<Tail>::value(); 
+    return result; //NRVO
+  };
 };
 
 

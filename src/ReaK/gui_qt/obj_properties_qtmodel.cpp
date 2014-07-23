@@ -107,7 +107,7 @@ bool ObjPropertiesQtModel::setData(const QModelIndex &index, const QVariant &val
   int row = index.row();
   
   std::pair< std::string, shared_ptr< serialization::type_scheme > > fld = current_fields.get_field(row);
-  shared_ptr< rtti::so_type > p_type = fld.second->getObjectType();
+  rtti::so_type* p_type = fld.second->getObjectType();
   QVariant tmp = value;
   
   bool convertWorked = false;
@@ -184,7 +184,7 @@ QWidget* ObjPropertiesQtDelegate::createEditor(QWidget* parent, const QStyleOpti
     return QStyledItemDelegate::createEditor(parent, option, index);
   
   std::pair< std::string, shared_ptr< serialization::type_scheme > > fld = parentModel->current_fields.get_field(index.row());
-  shared_ptr< rtti::so_type > p_type = fld.second->getObjectType();
+  rtti::so_type* p_type = fld.second->getObjectType();
   
   if(p_type == serialization::primitive_scheme<bool>::getStaticObjectType()) {
     QComboBox* box = new QComboBox(parent);
@@ -219,10 +219,9 @@ QWidget* ObjPropertiesQtDelegate::createEditor(QWidget* parent, const QStyleOpti
     return QStyledItemDelegate::createEditor(parent, option, index);
   } else if(p_type == serialization::serializable_ptr_scheme::getStaticObjectType()) {
     QComboBox* box = new QComboBox(parent);
-    weak_ptr< rtti::so_type > type_wptr = rtti::so_type_repo::getInstance().findType(fld.second->get_type_ID());
-    if(type_wptr.expired())
+    rtti::so_type* type_ptr = rtti::so_type_repo::getInstance().findType(fld.second->get_type_ID());
+    if(!type_ptr)
       return box;
-    shared_ptr< rtti::so_type > type_ptr = type_wptr.lock();
     std::vector< std::string > v_tmp = parentModel->obj_graph_editor.get_objects_derived_from(type_ptr);
     for(std::size_t i = 0; i < v_tmp.size(); ++i)
       box->addItem(QString::fromStdString(v_tmp[i]));
@@ -239,7 +238,7 @@ void ObjPropertiesQtDelegate::setEditorData(QWidget* editor, const QModelIndex& 
     return QStyledItemDelegate::setEditorData(editor, index);
   
   std::pair< std::string, shared_ptr< serialization::type_scheme > > fld = parentModel->current_fields.get_field(index.row());
-  shared_ptr< rtti::so_type > p_type = fld.second->getObjectType();
+  rtti::so_type* p_type = fld.second->getObjectType();
   
   if(p_type == serialization::primitive_scheme<bool>::getStaticObjectType()) {
     QComboBox* box = static_cast<QComboBox*>(editor);
@@ -282,7 +281,7 @@ void ObjPropertiesQtDelegate::setModelData(QWidget* editor, QAbstractItemModel* 
     return QStyledItemDelegate::setModelData(editor, model, index);
   
   std::pair< std::string, shared_ptr< serialization::type_scheme > > fld = parentModel->current_fields.get_field(index.row());
-  shared_ptr< rtti::so_type > p_type = fld.second->getObjectType();
+  rtti::so_type* p_type = fld.second->getObjectType();
   
   if(p_type == serialization::primitive_scheme<bool>::getStaticObjectType()) {
     QComboBox* box = static_cast<QComboBox*>(editor);
@@ -325,15 +324,14 @@ void ObjPropertiesQtDelegate::setModelData(QWidget* editor, QAbstractItemModel* 
       QDialog diag;
       diag_w.setupUi(&diag);
       
-      weak_ptr< rtti::so_type > basetype_wptr = rtti::getRKSharedObjTypeRepo().findType( fld.second->get_type_ID() );
-      if(basetype_wptr.expired())
+      rtti::so_type* basetype_ptr = rtti::getRKSharedObjTypeRepo().findType( fld.second->get_type_ID() );
+      if(!basetype_ptr)
         return;
       
-      shared_ptr< rtti::so_type > basetype_ptr = basetype_wptr.lock();
-      std::stack< shared_ptr< rtti::so_type > > btype_stack;
+      std::stack< rtti::so_type* > btype_stack;
       btype_stack.push(basetype_ptr);
       while(!btype_stack.empty()) {
-        shared_ptr< rtti::so_type > tmp_bt = btype_stack.top();
+        rtti::so_type* tmp_bt = btype_stack.top();
         btype_stack.pop();
         if(tmp_bt->isConcrete()) {
           QListWidgetItem* itm_ptr = new QListWidgetItem(QString::fromStdString(tmp_bt->TypeName()));
@@ -341,7 +339,7 @@ void ObjPropertiesQtDelegate::setModelData(QWidget* editor, QAbstractItemModel* 
           diag_w.listWidget->addItem(itm_ptr);
         };
         for(std::size_t i = 0; i < tmp_bt->getDirectDescendantCount(); ++i) {
-          shared_ptr< rtti::so_type > tmp = tmp_bt->getDirectDescendant(i);
+          rtti::so_type* tmp = tmp_bt->getDirectDescendant(i);
           if(tmp)
             btype_stack.push(tmp);
         };
@@ -352,10 +350,9 @@ void ObjPropertiesQtDelegate::setModelData(QWidget* editor, QAbstractItemModel* 
       if((diag_result == QDialog::Rejected) || (diag_w.listWidget->currentIndex().row() < 0))
         return;
       const unsigned int* newobj_typeID = reinterpret_cast<const unsigned int*>(diag_w.listWidget->currentItem()->data(Qt::UserRole).toULongLong());
-      weak_ptr< rtti::so_type > newobj_wtypeptr = basetype_ptr->findDescendant(newobj_typeID);
-      if(newobj_wtypeptr.expired())
+      rtti::so_type* newobj_typeptr = basetype_ptr->findDescendant(newobj_typeID);
+      if(!newobj_typeptr)
         return;
-      shared_ptr< rtti::so_type > newobj_typeptr = newobj_wtypeptr.lock();
       
       // Execute the "set initial values" dialog.
       shared_ptr< shared_object > newobj_ptr = newobj_typeptr->CreateObject();

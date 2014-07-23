@@ -173,8 +173,8 @@ template <typename T,
           typename Allocator>
 struct get_type_id< tensor<T,Order,Structure,Alignment,Allocator> > {
   BOOST_STATIC_CONSTANT(unsigned int, ID = 0x00000030);
-  static std::string type_name() { return "tensor"; };
-  static construct_ptr CreatePtr() { return NULL; };
+  static const char* type_name() BOOST_NOEXCEPT { return "tensor"; };
+  static construct_ptr CreatePtr() BOOST_NOEXCEPT { return NULL; };
   
   typedef const serialization::serializable& save_type;
   typedef serialization::serializable& load_type;
@@ -187,14 +187,22 @@ template <typename T,
           typename Allocator, 
           typename Tail>
 struct get_type_info< tensor<T,Order,Structure,Alignment,Allocator>, Tail > {
-  typedef detail::type_id< tensor<T,Order,Structure,Alignment,Allocator> , typename get_type_info<T,
-                                                                                    get_type_info< boost::mpl::integral_c<unsigned int,Order>,
-                                                                                    get_type_info< boost::mpl::integral_c<tensor_structure::tag,Structure>,
-                                                                                    get_type_info< boost::mpl::integral_c<tensor_alignment::tag,Alignment>, Tail> > > >::type > type;
-  static std::string type_name() { return get_type_id< tensor<T,Order,Structure,Alignment,Allocator> >::type_name() + "<" + get_type_id<T>::type_name() + "," 
-                                                                                                                          + get_type_id< boost::mpl::integral_c<unsigned int,Order> >::type_name() + "," 
-                                                                                                                          + get_type_id< boost::mpl::integral_c<tensor_structure::tag,Structure> >::type_name() + "," 
-                                                                                                                          + get_type_id< boost::mpl::integral_c<tensor_alignment::tag,Alignment> >::type_name() + ">" + (boost::is_same< Tail, null_type_info >::value ? "" : "," + Tail::type_name()); };
+  typedef type_id< tensor<T,Order,Structure,Alignment,Allocator>, 
+    typename get_type_info_seq<T,
+      boost::mpl::integral_c<unsigned int,Order>,
+      boost::mpl::integral_c<tensor_structure::tag,Structure>,
+      boost::mpl::integral_c<tensor_alignment::tag,Alignment> >::template with_tail<Tail>::type::type > type;
+  static std::string type_name() { 
+    std::string result = get_type_id< mat<T,Structure,Alignment,Allocator> >::type_name();
+    result += "<";
+    result += get_type_info_seq<T,
+      boost::mpl::integral_c<unsigned int,Order>,
+      boost::mpl::integral_c<tensor_structure::tag,Structure>,
+      boost::mpl::integral_c<tensor_alignment::tag,Alignment> >::type_name();
+    result += ">";
+    result += get_type_name_tail<Tail>::value(); 
+    return result; //NRVO
+  };
 };
 
 

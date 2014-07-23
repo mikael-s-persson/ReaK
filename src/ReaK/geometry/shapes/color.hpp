@@ -93,8 +93,8 @@ namespace rtti {
 template <>
 struct get_type_id< geom::color > {
   BOOST_STATIC_CONSTANT(unsigned int, ID = 0x00000031);
-  static std::string type_name() { return "color"; };
-  static construct_ptr CreatePtr() { return NULL; };
+  static const char* type_name() BOOST_NOEXCEPT { return "color"; };
+  static construct_ptr CreatePtr() BOOST_NOEXCEPT { return NULL; };
   
   typedef const serialization::serializable& save_type;
   typedef serialization::serializable& load_type;

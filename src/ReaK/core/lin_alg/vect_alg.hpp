@@ -42,6 +42,7 @@
 #include <string>
 #include <vector>
 #include <limits>
+#include <algorithm>
 
 #include <ReaK/core/base/defs.hpp>
 #include <ReaK/core/base/serializable.hpp>
@@ -947,8 +948,8 @@ namespace rtti {
 template <typename T, unsigned int Size>
 struct get_type_id< vect<T,Size> > {
   BOOST_STATIC_CONSTANT(unsigned int, ID = 0x00000011);
-  static std::string type_name() { return "vect"; };
-  static construct_ptr CreatePtr() { return NULL; };
+  static const char* type_name() BOOST_NOEXCEPT { return "vect"; };
+  static construct_ptr CreatePtr() BOOST_NOEXCEPT { return NULL; };
   
   typedef const serialization::serializable& save_type;
   typedef serialization::serializable& load_type;
@@ -956,9 +957,18 @@ struct get_type_id< vect<T,Size> > {
 
 template <typename T, unsigned int Size, typename Tail>
 struct get_type_info< vect<T,Size>, Tail > {
-  typedef detail::type_id< vect<T,Size> , typename get_type_info<T, 
+  typedef type_id< vect<T,Size> , typename get_type_info<T, 
                                                    get_type_info<boost::mpl::integral_c<unsigned int,Size> , Tail> >::type> type;
-  static std::string type_name() { return get_type_id< vect<T,Size> >::type_name() + "<" + get_type_id<T>::type_name() + "," + get_type_id< boost::mpl::integral_c<unsigned int,Size> >::type_name() + ">" + (boost::is_same< Tail, null_type_info >::value ? "" : "," + Tail::type_name()); };
+  static std::string type_name() { 
+    std::string result = get_type_id< vect<T,Size> >::type_name();
+    result += "<";
+    result += get_type_id<T>::type_name();
+    result += ",";
+    result += get_type_id< boost::mpl::integral_c<unsigned int,Size> >::type_name();
+    result += ">";
+    result += get_type_name_tail<Tail>::value();
+    return result; //NRVO
+  };
 };
 
 };
@@ -1913,8 +1923,8 @@ namespace rtti {
 template <typename T,typename Allocator>
 struct get_type_id< vect_n<T,Allocator> > {
   BOOST_STATIC_CONSTANT(unsigned int, ID = 0x00000010);
-  static std::string type_name() { return "vect_n"; };
-  static construct_ptr CreatePtr() { return NULL; };
+  static const char* type_name() BOOST_NOEXCEPT { return "vect_n"; };
+  static construct_ptr CreatePtr() BOOST_NOEXCEPT { return NULL; };
   
   typedef const serialization::serializable& save_type;
   typedef serialization::serializable& load_type;
@@ -1922,8 +1932,15 @@ struct get_type_id< vect_n<T,Allocator> > {
 
 template <typename T, typename Allocator, typename Tail>
 struct get_type_info< vect_n<T,Allocator>, Tail > {
-  typedef detail::type_id< vect_n<T,Allocator> , typename get_type_info<T, Tail>::type > type;
-  static std::string type_name() { return get_type_id< vect_n<T,Allocator> >::type_name() + "<" + get_type_id<T>::type_name() + ">" + (boost::is_same< Tail, null_type_info >::value ? "" : "," + Tail::type_name()); };
+  typedef type_id< vect_n<T,Allocator> , typename get_type_info<T, Tail>::type > type;
+  static std::string type_name() { 
+    std::string result = get_type_id< vect_n<T,Allocator> >::type_name();
+    result += "<";
+    result += get_type_id<T>::type_name();
+    result += ">";
+    result += get_type_name_tail<Tail>::value(); 
+    return result; //NRVO
+  };
 };
 
 };

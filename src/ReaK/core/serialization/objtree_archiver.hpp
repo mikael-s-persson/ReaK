@@ -364,7 +364,7 @@ class objtree_editor {
      * \param aType The type identifier of the base-class of which the objects are sought.
      * \return The list of all objects in the object-graph which meet the criteria, with object names compatible with the 'set_field_value' function in xml_field_editor.
      */
-    std::vector< std::string > get_objects_derived_from(const shared_ptr< rtti::so_type >& aType) const;
+    std::vector< std::string > get_objects_derived_from(rtti::so_type* aType) const;
     
 };
 

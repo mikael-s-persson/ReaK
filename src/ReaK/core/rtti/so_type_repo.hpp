@@ -33,12 +33,7 @@
 #ifndef REAK_SO_TYPE_REPO_HPP
 #define REAK_SO_TYPE_REPO_HPP
 
-
 #include <ReaK/core/base/defs.hpp>
-
-#include <map>
-#include <vector>
-#include <string>
 
 #include "so_type.hpp"
 
@@ -50,7 +45,7 @@ namespace rtti {
 /**
  * This class declares the interface for the repository of shared object types.
  */
-class so_type_repo : public shared_object_base {
+class so_type_repo {
 private:
   so_type_repo(const so_type_repo&);
   so_type_repo& operator=(const so_type_repo&);
@@ -64,25 +59,24 @@ private:
   
 protected:
   
-  virtual bool RK_CALL isInRing(so_type_repo* aRepo);
+  bool isInRing(so_type_repo* aRepo);
   
 public:
-  virtual void RK_CALL destroy() { delete this; };
   
-  virtual ~so_type_repo();
-
+  ~so_type_repo();
+  
   ///This function merges a repo with this.
-  virtual void RK_CALL merge( so_type_repo* aRepo );
-
-  ///This function finds a TypeID in the descendants (recusively) of this.
-  virtual so_type::weak_pointer RK_CALL findType (const unsigned int* aTypeID ) const;
+  void merge( so_type_repo* aRepo );
   
   ///This function finds a TypeID in the descendants (recusively) of this.
-  virtual so_type::weak_pointer RK_CALL findType (const so_type::shared_pointer& aTypeID ) const;
-
+  so_type* findType(const unsigned int* aTypeID) const;
+  
+  ///This function finds a TypeID in the descendants (recusively) of this.
+  so_type* findType(so_type* aTypeID) const;
+  
   ///This function adds a type to the repo.
-  virtual so_type::weak_pointer addType(const so_type::shared_pointer& aTypeID);
-
+  so_type* addType(so_type* aTypeID);
+  
   static so_type_repo& getInstance();
 };
 

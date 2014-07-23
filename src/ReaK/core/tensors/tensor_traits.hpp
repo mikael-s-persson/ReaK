@@ -92,78 +92,86 @@ namespace rtti {
 template <>
 struct get_type_id< boost::mpl::integral_c<tensor_alignment::tag, tensor_alignment::hi_dim_major > > {
   BOOST_STATIC_CONSTANT(unsigned int, ID = 1);
-  static std::string type_name() { return "hi_dim_major"; };
-  static construct_ptr CreatePtr() { return NULL; };
+  static const char* type_name() BOOST_NOEXCEPT { return "hi_dim_major"; };
+  static construct_ptr CreatePtr() BOOST_NOEXCEPT { return NULL; };
 };
 
 template <>
 struct get_type_id< boost::mpl::integral_c<tensor_alignment::tag, tensor_alignment::low_dim_major > > {
   BOOST_STATIC_CONSTANT(unsigned int, ID = 2);
-  static std::string type_name() { return "low_dim_major"; };
-  static construct_ptr CreatePtr() { return NULL; };
+  static const char* type_name() BOOST_NOEXCEPT { return "low_dim_major"; };
+  static construct_ptr CreatePtr() BOOST_NOEXCEPT { return NULL; };
 };
 
 template <mat_alignment::tag U, typename Tail>
 struct get_type_info< boost::mpl::integral_c<tensor_alignment::tag, U >, Tail > {
-  typedef detail::type_id<boost::mpl::integral_c<tensor_alignment::tag, U >, typename Tail::type> type;
-  static std::string type_name() { return get_type_id< boost::mpl::integral_c<tensor_alignment::tag, U > >::type_name() + (boost::is_same< Tail, null_type_info >::value ? "" : "," + Tail::type_name()); };
+  typedef type_id<boost::mpl::integral_c<tensor_alignment::tag, U >, typename Tail::type> type;
+  static std::string type_name() { 
+    std::string result = get_type_id< boost::mpl::integral_c<tensor_alignment::tag, U > >::type_name();
+    result += get_type_name_tail<Tail>::value(); 
+    return result; //NRVO
+  };
 };
 
   
 template <>
 struct get_type_id< boost::mpl::integral_c<tensor_structure::tag, tensor_structure::rectangular > > {
   BOOST_STATIC_CONSTANT(unsigned int, ID = 1);
-  static std::string type_name() { return "rectangular"; };
-  static construct_ptr CreatePtr() { return NULL; };
+  static const char* type_name() BOOST_NOEXCEPT { return "rectangular"; };
+  static construct_ptr CreatePtr() BOOST_NOEXCEPT { return NULL; };
 };
 
 template <>
 struct get_type_id< boost::mpl::integral_c<tensor_structure::tag, tensor_structure::square > > {
   BOOST_STATIC_CONSTANT(unsigned int, ID = 2);
-  static std::string type_name() { return "square"; };
-  static construct_ptr CreatePtr() { return NULL; };
+  static const char* type_name() BOOST_NOEXCEPT { return "square"; };
+  static construct_ptr CreatePtr() BOOST_NOEXCEPT { return NULL; };
 };
 
 template <>
 struct get_type_id< boost::mpl::integral_c<tensor_structure::tag, tensor_structure::diagonal > > {
   BOOST_STATIC_CONSTANT(unsigned int, ID = 3);
-  static std::string type_name() { return "diagonal"; };
-  static construct_ptr CreatePtr() { return NULL; };
+  static const char* type_name() BOOST_NOEXCEPT { return "diagonal"; };
+  static construct_ptr CreatePtr() BOOST_NOEXCEPT { return NULL; };
 };
 
 template <>
 struct get_type_id< boost::mpl::integral_c<tensor_structure::tag, tensor_structure::nil > > {
   BOOST_STATIC_CONSTANT(unsigned int, ID = 4);
-  static std::string type_name() { return "nil"; };
-  static construct_ptr CreatePtr() { return NULL; };
+  static const char* type_name() BOOST_NOEXCEPT { return "nil"; };
+  static construct_ptr CreatePtr() BOOST_NOEXCEPT { return NULL; };
 };
 
 template <>
 struct get_type_id< boost::mpl::integral_c<tensor_structure::tag, tensor_structure::identity > > {
   BOOST_STATIC_CONSTANT(unsigned int, ID = 5);
-  static std::string type_name() { return "identity"; };
-  static construct_ptr CreatePtr() { return NULL; };
+  static const char* type_name() BOOST_NOEXCEPT { return "identity"; };
+  static construct_ptr CreatePtr() BOOST_NOEXCEPT { return NULL; };
 };
 
 template <>
 struct get_type_id< boost::mpl::integral_c<tensor_structure::tag, tensor_structure::scalar > > {
   BOOST_STATIC_CONSTANT(unsigned int, ID = 6);
-  static std::string type_name() { return "scalar"; };
-  static construct_ptr CreatePtr() { return NULL; };
+  static const char* type_name() BOOST_NOEXCEPT { return "scalar"; };
+  static construct_ptr CreatePtr() BOOST_NOEXCEPT { return NULL; };
 };
 
 template <>
 struct get_type_id< boost::mpl::integral_c<tensor_structure::tag, tensor_structure::permutation > > {
   BOOST_STATIC_CONSTANT(unsigned int, ID = 7);
-  static std::string type_name() { return "permutation"; };
-  static construct_ptr CreatePtr() { return NULL; };
+  static const char* type_name() BOOST_NOEXCEPT { return "permutation"; };
+  static construct_ptr CreatePtr() BOOST_NOEXCEPT { return NULL; };
 };
 
 
 template <mat_structure::tag U, typename Tail>
 struct get_type_info< boost::mpl::integral_c<tensor_structure::tag, U >, Tail > {
-  typedef detail::type_id<boost::mpl::integral_c<tensor_structure::tag, U >, typename Tail::type> type;
-  static std::string type_name() { return get_type_id< boost::mpl::integral_c<tensor_structure::tag, U > >::type_name() + (boost::is_same< Tail, null_type_info >::value ? "" : "," + Tail::type_name()); };
+  typedef type_id<boost::mpl::integral_c<tensor_structure::tag, U >, typename Tail::type> type;
+  static std::string type_name() { 
+    std::string result = get_type_id< boost::mpl::integral_c<tensor_structure::tag, U > >::type_name();
+    result += get_type_name_tail<Tail>::value();
+    return result; //NRVO
+  };
 };
 
   

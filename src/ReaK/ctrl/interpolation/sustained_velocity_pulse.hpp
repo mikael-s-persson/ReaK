@@ -425,8 +425,8 @@ namespace rtti {
 template <>
 struct get_type_id< pp::svp_interpolation_tag > {
   BOOST_STATIC_CONSTANT(unsigned int, ID = 5);
-  static std::string type_name() { return "svp_interpolation_tag"; };
-  static construct_ptr CreatePtr() { return NULL; };
+  static const char* type_name() BOOST_NOEXCEPT { return "svp_interpolation_tag"; };
+  static construct_ptr CreatePtr() BOOST_NOEXCEPT { return NULL; };
 };
 
 };

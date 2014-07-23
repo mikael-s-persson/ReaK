@@ -25,6 +25,8 @@
 #include <ReaK/core/rtti/typed_object.hpp>
 
 #include <iostream>
+#include <algorithm>
+#include <set>
 
 
 namespace ReaK {
@@ -32,48 +34,227 @@ namespace ReaK {
 namespace rtti {
 
 
-bool so_type_impl::compare_shared(const so_type::shared_pointer& t1, const so_type::shared_pointer& t2) {
-  if(t1) {
-    if(t2) {
-      const unsigned int* pid1 = t1->TypeID_begin();
-      const unsigned int* pid2 = t2->TypeID_begin();
-      while((*pid1) && (*pid2)) {
-        if(*pid1 < *pid2)
-          return true;
-        else if(*pid1 > *pid2)
-          return false;
-        ++pid1; ++pid2;
-      };
-      if((*pid1 == 0) && (*pid2 > 0))
-        return true;
-      else 
-        return false;
-    } else
-      return false;
-  } else 
-    return true;
-};
-  
-bool so_type_impl::compare_weak(const so_type::weak_pointer& t1, const so_type::weak_pointer& t2) {
-  return compare_shared(t1.lock(),t2.lock());
+static unsigned int* create_dummy_so_type_id(const unsigned int* aTypeID) {
+  typedef unsigned int SizeType;
+  SizeType TypeIDLength = 0;
+  while(aTypeID && (aTypeID[TypeIDLength] != 0))
+    ++TypeIDLength;
+  ++TypeIDLength;
+  SizeType* typeID = so_type::createTypeID(TypeIDLength);
+  for(SizeType i = 0; i < TypeIDLength-1; ++i)
+    typeID[i] = aTypeID[i];
+  typeID[TypeIDLength-1] = 0;
+  return typeID;
 };
 
-// bool so_type_impl::compare_equal(const unsigned int* pid1, const unsigned int* pid2) {
-//   while((*pid1) && (*pid2)) {
-//     if(*pid1 != *pid2)
-//       return false;
-//     ++pid1; ++pid2;
-//   };
-//   if(*pid1 != *pid2)
-//     return false;
-//   return true;
-// };
+
+class so_type_impl : public so_type {
+public:
   
+  static bool compare_ptr(so_type_impl* t1, so_type_impl* t2) {
+    if(!t1)
+      return true;
+    if(!t2)
+      return false;
+    
+    const unsigned int* pid1 = t1->mTypeID;
+    const unsigned int* pid2 = t2->mTypeID;
+    while((*pid1) && (*pid2)) {
+      if(*pid1 < *pid2)
+        return true;
+      else if(*pid1 > *pid2)
+        return false;
+      ++pid1; ++pid2;
+    };
+    if((*pid1 == 0) && (*pid2 > 0))
+      return true;
+    else 
+      return false;
+  };
   
-so_type_impl::so_type_impl() : so_type(), 
-                               mDescendants(&compare_shared), 
-                               mAncestors(&compare_weak) { };
+  typedef bool (*compare_ptr_t)(so_type_impl*, so_type_impl*);
   
+  unsigned int mTypeVersion;
+  unsigned int* mTypeID;
+  std::string mTypeName;
+  construct_ptr mConstruct;
+  
+  std::set< so_type_impl*, compare_ptr_t > mDescendants;
+  std::set< so_type_impl*, compare_ptr_t > mAncestors;
+  
+  typedef std::set< so_type_impl*, compare_ptr_t>::iterator iter;
+  
+  so_type_impl(unsigned int aTypeVersion, unsigned int* aTypeID, 
+               std::string aTypeName, construct_ptr aConstruct) :
+               mTypeVersion(aTypeVersion), mTypeID(aTypeID),
+               mTypeName(aTypeName), mConstruct(aConstruct), 
+               mDescendants(&compare_ptr), mAncestors(&compare_ptr) { };
+  
+  ~so_type_impl() {
+    delete[] mTypeID;
+  };
+  
+  ///This function finds a TypeID in the descendants (recusively) of this.
+  so_type_impl* findDescendant_impl(const unsigned int* aTypeID ) {
+    if( compare_equal(aTypeID, this->mTypeID) )
+      return this;
+    
+    if(mDescendants.empty())
+      return NULL;
+    
+    unsigned int* d_typeID = create_dummy_so_type_id(aTypeID);
+    so_type_impl d(0, d_typeID, "Root", NULL);
+    iter it = mDescendants.lower_bound(&d);
+    
+    if((it != mDescendants.end()) && 
+       (compare_equal((*it)->mTypeID, aTypeID))) 
+      return (*it);
+    
+    for(it = mDescendants.begin(); it != mDescendants.end(); ++it) {
+      so_type_impl* p = (*it)->findDescendant_impl(aTypeID);
+      if(p)
+        return p;
+    };
+    
+    return NULL;
+  };
+  
+  ///This function gets the number of direct descendants of this.
+  unsigned int getDescendantCount_impl() {
+    return mDescendants.size();
+  };
+  
+  ///This function gets a Type record by index in the direct descendants of this.
+  so_type_impl* getDescendant_impl(unsigned int aIndex) {
+    if(aIndex >= mDescendants.size())
+      return NULL;
+    
+    iter it = mDescendants.begin();
+    std::advance(it, aIndex);
+    return *it;
+  };
+  
+  ///This function checks if a typeID is parent to this.
+  so_type_impl* findAncestor_impl(const unsigned int* aTypeID) {
+    if( compare_equal(aTypeID, this->mTypeID) ) 
+      return this;
+    
+    if(mAncestors.empty())
+      return NULL;
+    
+    unsigned int* d_typeID = create_dummy_so_type_id(aTypeID);
+    so_type_impl d(0, d_typeID, "Root", NULL);
+    iter it = mAncestors.lower_bound(&d);
+    
+    if((it != mAncestors.end()) && (*it) && 
+       (compare_equal((*it)->mTypeID, aTypeID))) 
+      return *it;
+    
+    for(it = mAncestors.begin(); it != mAncestors.end(); ++it) {
+      if(*it) {
+        so_type_impl* p = (*it)->findAncestor_impl(aTypeID);
+        if(p)
+          return p;
+      };
+    };
+    
+    return NULL;
+  };
+  
+  so_type_impl* addDescendant_impl(so_type_impl* aObj) {
+    iter it = mDescendants.lower_bound(aObj);
+    if((it != mDescendants.end()) && 
+       (compare_equal((*it)->mTypeID, aObj->mTypeID))) {
+      if((*it)->mTypeVersion < aObj->mTypeVersion) {
+        mDescendants.erase(it);
+        mDescendants.insert(aObj);
+      } else 
+        return *it;
+    } else
+      mDescendants.insert(it,aObj);
+    return aObj;
+  };
+
+  so_type_impl* addAncestor_impl(so_type_impl* aObj) {
+    if(aObj) {
+      iter it = mAncestors.lower_bound(aObj);
+      if((it != mAncestors.end()) && (*it) &&
+        (compare_equal((*it)->mTypeID, aObj->mTypeID))) {
+        if((*it)->mTypeVersion < aObj->mTypeVersion) {
+          mAncestors.erase(it);
+          mAncestors.insert(aObj);
+        } else 
+          return *it;
+      } else
+        mAncestors.insert(aObj);
+      aObj->addDescendant_impl(this);
+    };
+    return aObj;
+  };
+  
+  ///This function inserts this into a global repo.
+  void insertToRepo_impl(so_type_impl* aRepo) {
+    //Update all ancestors if there are any.
+    for(iter it = mAncestors.begin(); it != mAncestors.end();) {
+      so_type_impl* p = aRepo->findDescendant_impl((*it)->mTypeID);
+      if(p && (p != *it)) {
+        mAncestors.erase(it++);
+        mAncestors.insert(p);
+        p->addDescendant_impl(this); //Register as descendant of that ancestor.
+      } else {
+        if(!p) {
+          p = (*it);
+          if(p)
+            p->insertToRepo_impl(aRepo);
+        };
+        ++it;
+      };
+    };
+    
+    //Add to global repo if there is no ancestors to this.
+    if((*(this->mTypeID) != 0) && (mAncestors.empty()))
+      aRepo->addDescendant_impl(this);
+    
+    //insert all the descendants.
+    for(iter itd = mDescendants.begin(); itd != mDescendants.end(); ++itd) {
+      if(*itd)
+        (*itd)->insertToRepo_impl(aRepo);
+    };
+    
+  };
+  
+};
+
+
+so_type* so_type::createTypeInfo(unsigned int aTypeVersion, unsigned int* aTypeID, 
+                                 const std::string& aTypeName, construct_ptr aConstruct) {
+  return new so_type_impl(aTypeVersion, aTypeID, aTypeName, aConstruct);
+};
+
+so_type_ptr create_dummy_so_type(const unsigned int* aTypeID) {
+  typedef unsigned int SizeType;
+  SizeType TypeIDLength = 0;
+  while(aTypeID && (aTypeID[TypeIDLength] != 0))
+    ++TypeIDLength;
+  ++TypeIDLength;
+  SizeType* typeID = so_type::createTypeID(TypeIDLength);
+  for(SizeType i = 0; i < TypeIDLength-1; ++i)
+    typeID[i] = aTypeID[i];
+  typeID[TypeIDLength-1] = 0;
+  return so_type_ptr(new so_type_impl(0, typeID, "Root", NULL));
+};
+
+
+so_type_ptr::~so_type_ptr() {
+  delete static_cast<so_type_impl*>(ptr);
+};
+
+unsigned int* so_type::createTypeID(unsigned int aTypeIDSize) {
+  typedef unsigned int SizeType;
+  return new SizeType[aTypeIDSize];  // this is just to ensure that new / delete are in same TU
+};
+
+
 bool so_type::compare_equal(const unsigned int* pid1, const unsigned int* pid2) {
   while((*pid1) && (*pid2)) {
     if(*pid1 != *pid2)
@@ -85,135 +266,65 @@ bool so_type::compare_equal(const unsigned int* pid1, const unsigned int* pid2) 
   return true;
 };
 
-so_type::shared_pointer RK_CALL so_type_impl::addDescendant(const so_type::shared_pointer& aObj ) {
-  std::set< so_type::shared_pointer, so_type_impl::compare_shared_t>::iterator it = mDescendants.lower_bound(aObj);
-  if((it != mDescendants.end()) && 
-     (compare_equal((*it)->TypeID_begin(),aObj->TypeID_begin()))) {
-    if((*it)->TypeVersion() < aObj->TypeVersion()) {
-      mDescendants.erase(it);
-      mDescendants.insert(aObj);
-    } else 
-      return *it;
-  } else
-    mDescendants.insert(it,aObj);
-  return aObj;
+///This function adds a Descendant of this.
+so_type* so_type::addDescendant(so_type* aObj)  {
+  return static_cast<so_type_impl*>(this)->addDescendant_impl(static_cast<so_type_impl*>(aObj));
 };
 
-so_type::weak_pointer RK_CALL so_type_impl::addAncestor(so_type::shared_pointer& aThis, const so_type::weak_pointer& aObj) {
-  so_type::shared_pointer p = aObj.lock();
-  if(p) {
-    std::set< so_type::weak_pointer, so_type_impl::compare_weak_t>::iterator it = mAncestors.lower_bound(aObj);
-    if((it != mAncestors.end()) &&
-       ((*it).lock()) &&
-       (compare_equal((*it).lock()->TypeID_begin(),p->TypeID_begin()))) {
-      if((*it).lock()->TypeVersion() < p->TypeVersion()) {
-        mAncestors.erase(it);
-        mAncestors.insert(aObj);
-      } else 
-        return *it;
-    } else
-      mAncestors.insert(aObj);
-    p->addDescendant(aThis);
-  };
-  return aObj;
+so_type* so_type::addAncestor(so_type* aObj) {
+  return static_cast<so_type_impl*>(this)->addAncestor_impl(static_cast<so_type_impl*>(aObj));
 };
 
-  
 ///This function finds a TypeID in the descendants (recusively) of this.
-so_type::weak_pointer RK_CALL so_type_impl::findDescendant_impl(const unsigned int* aTypeID ) const {
-  if( compare_equal(aTypeID, this->TypeID_begin()) )
-    return so_type::weak_pointer(rk_static_ptr_cast<so_type>(mThis));
-  
-  if(mDescendants.empty())
-    return so_type::weak_pointer();
-  
-  detail::dummy_so_type d(aTypeID);
-  std::set< so_type::shared_pointer, so_type_impl::compare_shared_t>::const_iterator it = mDescendants.lower_bound(so_type::shared_pointer(&d,null_deleter()));
-  
-  if((it != mDescendants.end()) && (compare_equal((*it)->TypeID_begin(),aTypeID))) 
-    return *it;
-  
-  for(it = mDescendants.begin(); it != mDescendants.end(); ++it) {
-    so_type::weak_pointer p = (*it)->findDescendant(aTypeID);
-    if(p.lock())
-      return p;
-  };
-  
-  return so_type::weak_pointer();
+so_type* so_type::findDescendant(const unsigned int* aTypeID ) {
+  return static_cast<so_type_impl*>(this)->findDescendant_impl(aTypeID);
 };
 
+///This function finds a TypeID in the descendants (recusively) of this.
+so_type* so_type::findDescendant(so_type* aTypeID ) {
+  return static_cast<so_type_impl*>(this)->findDescendant_impl(aTypeID->TypeID_begin());
+};
 
 ///This function gets the number of direct descendants of this.
-unsigned int RK_CALL so_type_impl::getDescendantCount_impl() const {
-  return mDescendants.size();
+unsigned int so_type::getDirectDescendantCount() {
+  return static_cast<so_type_impl*>(this)->getDescendantCount_impl();
 };
 
-///This function gets a Type record by index in the direct descendants of this.
-so_type::shared_pointer RK_CALL so_type_impl::getDescendant_impl(unsigned int aIndex) const {
-  if(aIndex >= mDescendants.size())
-    return so_type::shared_pointer();
-  
-  std::set< so_type::shared_pointer, so_type_impl::compare_shared_t>::const_iterator it = mDescendants.begin();
-  std::advance(it, aIndex);
-  return *it;
+///This function gets a type record by index in the direct descendants of this.
+so_type* so_type::getDirectDescendant(unsigned int aIndex) {
+  return static_cast<so_type_impl*>(this)->getDescendant_impl(aIndex);
 };
-
 
 ///This function checks if a typeID is parent to this.
-so_type::weak_pointer RK_CALL so_type_impl::findAncestor_impl(const unsigned int* aTypeID ) const {
-  if( compare_equal(aTypeID, this->TypeID_begin()) ) 
-    return rk_static_ptr_cast<so_type>(mThis);
-    
-  if(mAncestors.empty())
-    return so_type::weak_pointer();
-  
-  detail::dummy_so_type d(aTypeID);
-  std::set< so_type::weak_pointer, so_type_impl::compare_weak_t>::const_iterator it = mAncestors.lower_bound(so_type::shared_pointer(&d,null_deleter()));
-  
-  if((it != mAncestors.end()) && (it->lock()) && (compare_equal(it->lock()->TypeID_begin(),aTypeID))) 
-    return *it;
-  
-  for(it = mAncestors.begin(); it != mAncestors.end(); ++it) {
-    if(it->lock()) {
-      so_type::weak_pointer p = it->lock()->findAncestor(aTypeID);
-      if(p.lock())
-        return p;
-    };
-  };
-  
-  return so_type::weak_pointer();
+so_type* so_type::findAncestor(const unsigned int* aTypeID ) {
+  return static_cast<so_type_impl*>(this)->findAncestor_impl(aTypeID);
 };
-  
+
+///This function checks if a typeID is parent to this.
+so_type* so_type::findAncestor(so_type* aTypeID ) {
+  return static_cast<so_type_impl*>(this)->findAncestor_impl(aTypeID->TypeID_begin());
+};
+
 ///This function inserts this into a global repo.
-void RK_CALL so_type_impl::insertToRepo(const so_type::shared_pointer& aThis,so_type::shared_pointer& aRepo) {
-  //Update all ancestors if there are any.
-  std::set<so_type::weak_pointer, so_type_impl::compare_weak_t >::iterator it = mAncestors.begin();
-  for(;it != mAncestors.end();) {
-    so_type::shared_pointer p( aRepo->findDescendant(it->lock()) );
-    if(p) {
-      mAncestors.erase(it++);
-      mAncestors.insert(p);
-      p->addDescendant(aThis); //Register as descendant of that ancestor.
-    } else {
-      p = it->lock();
-      if(p)
-        p->insertToRepo(p,aRepo);
-      ++it;
-    };
-  };
-
-  //Add to global repo if there is no ancestors to this.
-  if((*(TypeID_begin()) != 0) && (mAncestors.empty()))
-    aRepo->addDescendant(aThis);
-
-  //insert all the descendants.
-  std::set<so_type::shared_pointer, so_type_impl::compare_shared_t >::iterator itd = mDescendants.begin();
-  for(;itd != mDescendants.end(); ++itd) {
-    if(*itd)
-      (*itd)->insertToRepo(*itd,aRepo);
-  };
-
+void so_type::insertToRepo(so_type* aRepo) {
+  static_cast<so_type_impl*>(this)->insertToRepo_impl(static_cast<so_type_impl*>(aRepo));
 };
+
+const unsigned int* so_type::TypeID_begin() const { return static_cast<const so_type_impl*>(this)->mTypeID; };
+
+unsigned int so_type::TypeVersion() const { return static_cast<const so_type_impl*>(this)->mTypeVersion; };
+
+const std::string& so_type::TypeName() const { return static_cast<const so_type_impl*>(this)->mTypeName; };
+
+ReaK::shared_ptr<shared_object> so_type::CreateObject() const {
+  if(static_cast<const so_type_impl*>(this)->mConstruct)
+    return static_cast<const so_type_impl*>(this)->mConstruct();
+  else
+    return ReaK::shared_ptr<shared_object>();
+};
+
+bool so_type::isConcrete() const { return (static_cast<const so_type_impl*>(this)->mConstruct); };
+
 
 
 

@@ -196,14 +196,14 @@ iarchive& RK_CALL protobuf_iarchive::load_serializable_ptr(serializable_shared_p
   };
   
   //Find the class in question in the repository.
-  rtti::so_type::weak_pointer p( rtti::so_type_repo::getInstance().findType(&(typeIDvect[0])) );
-  if((p.expired()) || (p.lock()->TypeVersion() < hdr.type_version)) {
+  rtti::so_type* p = rtti::so_type_repo::getInstance().findType(&(typeIDvect[0]));
+  if((!p) || (p->TypeVersion() < hdr.type_version)) {
     std::streampos end_pos = file_stream->tellg();
     if (hdr.size + start_pos != end_pos)
       file_stream->seekg(start_pos + std::streampos(hdr.size));
     throw unsupported_type(unsupported_type::not_found_in_repo, &(typeIDvect[0]));
   };
-  ReaK::shared_ptr<shared_object> po(p.lock()->CreateObject());
+  ReaK::shared_ptr<shared_object> po(p->CreateObject());
   if(!po) {
     std::streampos end_pos = file_stream->tellg();
     if (hdr.size + start_pos != end_pos)
@@ -496,7 +496,7 @@ oarchive& RK_CALL protobuf_oarchive::saveToNewArchive_impl(const serializable_sh
       mObjRegMap[Item] = hdr.object_ID;
     };
 
-    rtti::so_type::shared_pointer obj_type = Item->getObjectType();
+    rtti::so_type* obj_type = Item->getObjectType();
     type_ID = obj_type->TypeID_begin();
     hdr.type_version = obj_type->TypeVersion();
     hdr.is_external = true;
@@ -580,7 +580,7 @@ oarchive& RK_CALL protobuf_oarchive::save_serializable_ptr(const serializable_sh
       mObjRegMap[Item] = hdr.object_ID;
     };
     
-    rtti::so_type::shared_pointer obj_type = Item->getObjectType();
+    rtti::so_type* obj_type = Item->getObjectType();
     type_ID = obj_type->TypeID_begin();
     hdr.type_version = obj_type->TypeVersion();
     hdr.is_external = false;
@@ -923,7 +923,8 @@ oarchive& RK_CALL protobuf_schemer::save_serializable_ptr(const std::pair<std::s
   
   unsigned int chunk_hdr = get_chunk_hdr(); 
   
-  std::string aObjTypeName = rtti::get_type_id<serializable_shared_pointer>::type_name() + "<" + Item.second->getObjectType()->TypeName() + ">";
+  std::string aObjTypeName = rtti::get_type_id<serializable_shared_pointer>::type_name();
+  aObjTypeName += "<" + Item.second->getObjectType()->TypeName() + ">";
   std::map< serializable_shared_pointer, unsigned int>::const_iterator it = mObjRegMap.find(Item.second);
   
   if(it == mObjRegMap.end()) {

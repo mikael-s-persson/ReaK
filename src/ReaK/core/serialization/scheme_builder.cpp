@@ -80,8 +80,11 @@ oarchive& RK_CALL scheme_builder::save_serializable_ptr(const std::pair<std::str
   
   std::map< std::string, shared_ptr< type_scheme > >& scheme_map = get_global_schemes();
   
+  rtti::so_type* so_type_ptr = Item.second->getObjectType();
+  
   // See if we need to add the shared_ptr< Type > type-scheme for this object type.
-  std::string ptr_type_name = rtti::get_type_id<serializable_shared_pointer>::type_name() + "<" + Item.second->getObjectType()->TypeName() + ">";
+  std::string ptr_type_name = rtti::get_type_id<serializable_shared_pointer>::type_name();
+  ptr_type_name += "<" + so_type_ptr->TypeName() + ">";
   std::map< std::string, shared_ptr< type_scheme > >::iterator itm = scheme_map.find( ptr_type_name );
   if(itm == scheme_map.end()) {
     std::map< std::string, shared_ptr< type_scheme > >::iterator objID_itm = scheme_map.find( rtti::get_type_id< unsigned int >::type_name() );
@@ -92,12 +95,10 @@ oarchive& RK_CALL scheme_builder::save_serializable_ptr(const std::pair<std::str
     } else 
       objID_sch = objID_itm->second;
     
-    rtti::so_type::shared_pointer so_type_sptr = Item.second->getObjectType();
-        
     shared_ptr< serializable_ptr_scheme > ser_sch_ptr = shared_ptr< serializable_ptr_scheme >(new serializable_ptr_scheme(
-      Item.second->getObjectType()->TypeName(),
-      Item.second->getObjectType()->TypeID_begin(),
-      Item.second->getObjectType()->TypeVersion(),
+      so_type_ptr->TypeName(),
+      so_type_ptr->TypeID_begin(),
+      so_type_ptr->TypeVersion(),
       objID_sch));
     scheme_map[ptr_type_name] = ser_sch_ptr;
   };
@@ -120,20 +121,22 @@ oarchive& RK_CALL scheme_builder::save_serializable(const std::pair<std::string,
   
   std::map< std::string, shared_ptr< type_scheme > >& scheme_map = get_global_schemes();
   
-  std::map< std::string, shared_ptr< type_scheme > >::iterator itm = scheme_map.find( Item.second.getObjectType()->TypeName() );
+  rtti::so_type* so_type_ptr = Item.second.getObjectType();
+  
+  std::map< std::string, shared_ptr< type_scheme > >::iterator itm = scheme_map.find( so_type_ptr->TypeName() );
   shared_ptr< type_scheme > sch_ptr;
   if(itm == scheme_map.end()) {
     shared_ptr< serializable_obj_scheme > ser_sch_ptr = shared_ptr< serializable_obj_scheme >(new serializable_obj_scheme(
-      Item.second.getObjectType()->TypeName(),
-      Item.second.getObjectType()->TypeID_begin(),
-      Item.second.getObjectType()->TypeVersion()
+      so_type_ptr->TypeName(),
+      so_type_ptr->TypeID_begin(),
+      so_type_ptr->TypeVersion()
     ));
-    scheme_map[Item.second.getObjectType()->TypeName()] = ser_sch_ptr;
+    scheme_map[so_type_ptr->TypeName()] = ser_sch_ptr;
     sch_ptr = ser_sch_ptr;
     
     field_stack.push(ser_sch_ptr);
     
-    Item.second.save(*this,Item.second.getObjectType()->TypeVersion());
+    Item.second.save(*this,so_type_ptr->TypeVersion());
     
     field_stack.pop();
   } else 
@@ -239,7 +242,8 @@ void RK_CALL scheme_builder::signal_polymorphic_field(const std::string& aBaseTy
   std::map< std::string, shared_ptr< type_scheme > >& scheme_map = get_global_schemes();
   
   // check if the scheme already exists
-  std::string ptr_type_name = rtti::get_type_id<serializable_shared_pointer>::type_name() + "<" + aBaseTypeName + ">";
+  std::string ptr_type_name = rtti::get_type_id<serializable_shared_pointer>::type_name();
+  ptr_type_name += "<" + aBaseTypeName + ">";
   std::map< std::string, shared_ptr< type_scheme > >::iterator itm = scheme_map.find( ptr_type_name );
   shared_ptr< type_scheme > sch_ptr;
   if(itm == scheme_map.end()) {
@@ -251,10 +255,8 @@ void RK_CALL scheme_builder::signal_polymorphic_field(const std::string& aBaseTy
     } else 
       objID_sch = objID_itm->second;
     
-    rtti::so_type::weak_pointer so_type_wptr = rtti::getRKSharedObjTypeRepo().findType(aTypeID);
-    if(!so_type_wptr.expired()) {
-      rtti::so_type::shared_pointer so_type_sptr = so_type_wptr.lock();
-        
+    rtti::so_type* so_type_sptr = rtti::getRKSharedObjTypeRepo().findType(aTypeID);
+    if(so_type_sptr) {
       shared_ptr< serializable_ptr_scheme > ser_sch_ptr = shared_ptr< serializable_ptr_scheme >(new serializable_ptr_scheme(
         so_type_sptr->TypeName(),
         so_type_sptr->TypeID_begin(),
@@ -267,7 +269,7 @@ void RK_CALL scheme_builder::signal_polymorphic_field(const std::string& aBaseTy
       field_stack.push(shared_ptr< serializable_obj_scheme >(new serializable_obj_scheme("DummyType", NULL, 0)));
       
       for(unsigned int i = 0; i < so_type_sptr->getDirectDescendantCount(); ++i) {
-        rtti::so_type::shared_pointer tmp = so_type_sptr->getDirectDescendant(i);
+        rtti::so_type* tmp = so_type_sptr->getDirectDescendant(i);
         signal_polymorphic_field(tmp->TypeName(), tmp->TypeID_begin(), "Dummy");
         save_serializable_ptr(tmp->CreateObject());  // if creation fails, the shared_ptr saver will not save it (abstract class).
       };

@@ -30,11 +30,12 @@ namespace ReaK {
 
 namespace rtti {
 
+
   
 so_type_repo& so_type_repo::getInstance() {
   static const unsigned int t = 0;
-  static so_type* static_TypeMap = new detail::dummy_so_type(&t);
-  static so_type_repo RKSharedObjTypeRepo(static_TypeMap);
+  static so_type_ptr static_TypeMap = create_dummy_so_type(&t);
+  static so_type_repo RKSharedObjTypeRepo(static_TypeMap.ptr);
   return RKSharedObjTypeRepo;
 };
 
@@ -42,18 +43,16 @@ so_type_repo& getRKSharedObjTypeRepo() {
   return so_type_repo::getInstance();
 };
 
-so_type_repo::so_type_repo(so_type* aTypeMap) : shared_object_base(), mTypeMap(aTypeMap) { next = this; prev = this; };
+so_type_repo::so_type_repo(so_type* aTypeMap) : mTypeMap(aTypeMap) { next = this; prev = this; };
 
 so_type_repo::~so_type_repo() {
   if(next != this) {
     prev->next = next;
     next->prev = prev; //take 'this' out of the ring (if not empty, of course).
   };
-  
-  delete mTypeMap;
 };
 
-bool RK_CALL so_type_repo::isInRing(so_type_repo* aRepo) {
+bool so_type_repo::isInRing(so_type_repo* aRepo) {
   so_type_repo* p = this;
   while(p->next != this) {
     if(p->next == aRepo)
@@ -65,7 +64,7 @@ bool RK_CALL so_type_repo::isInRing(so_type_repo* aRepo) {
 
 
 ///This function merges a repo with this.
-void RK_CALL so_type_repo::merge( so_type_repo* aRepo ) {
+void so_type_repo::merge( so_type_repo* aRepo ) {
   if(aRepo == NULL)
     return;
   if(isInRing(aRepo))
@@ -100,24 +99,24 @@ void RK_CALL so_type_repo::merge( so_type_repo* aRepo ) {
 
 ///This function finds a TypeID in the descendants (recusively) of this.
 
-so_type::weak_pointer RK_CALL so_type_repo::findType(const unsigned int* aTypeID ) const {
-  so_type::weak_pointer result = mTypeMap->findDescendant(aTypeID);
+so_type* so_type_repo::findType(const unsigned int* aTypeID ) const {
+  so_type* result = mTypeMap->findDescendant(aTypeID);
   const so_type_repo* p = this;
-  while((p->next != this) && (!result.lock())) {
+  while((p->next != this) && (!result)) {
     p = p->next;
     result = p->mTypeMap->findDescendant(aTypeID);
   };
   return result;
 };
 
-so_type::weak_pointer RK_CALL so_type_repo::findType(const so_type::shared_pointer& aTypeID ) const {
+so_type* so_type_repo::findType(so_type* aTypeID ) const {
   return findType(aTypeID->TypeID_begin());
 };
 
 ///This function adds a type to the repo.
-so_type::weak_pointer so_type_repo::addType(const so_type::shared_pointer& aTypeID) {
-  so_type::weak_pointer r = findType(aTypeID);
-  if((r.lock()) && (r.lock()->TypeVersion() > aTypeID->TypeVersion()))
+so_type* so_type_repo::addType(so_type* aTypeID) {
+  so_type* r = findType(aTypeID);
+  if((r) && (r->TypeVersion() > aTypeID->TypeVersion()))
     return r;
 
   return mTypeMap->addDescendant( aTypeID );

@@ -32,6 +32,7 @@
 #include <QScrollArea>
 
 #include <ReaK/core/serialization/archiver_factory.hpp>
+#include <ReaK/core/base/function_incl.hpp>
 
 #include <ReaK/ctrl/ctrl_sys/tsos_aug_inv_kalman_filter.hpp>
 #include <ReaK/ctrl/ctrl_sys/augmented_to_state_mapping.hpp>
@@ -839,7 +840,7 @@ volatile bool prediction_updater<Sat3DSystemType>::should_stop = false;
 template <typename Sat3DSystemType>
 shared_ptr< ReaKaux::thread > prediction_updater<Sat3DSystemType>::executer = shared_ptr< ReaKaux::thread >();
 
-boost::function<void()> pred_stop_function;
+ReaKaux::function<void()> pred_stop_function;
 
 // QProcess pred_side_script;
 
@@ -1016,9 +1017,9 @@ shared_ptr< CRS_target_anim_data::trajectory_type >
   
   // Start a thread that will update the predictor as new data comes in.
   
-  if( !pred_stop_function.empty() ) {
+  if( pred_stop_function ) {
     pred_stop_function();
-    pred_stop_function.clear();
+    pred_stop_function = NULL;
   };
   
   typedef constant_trajectory< vector_topology< vect_n<double> > > InputTrajType;
@@ -1160,9 +1161,9 @@ void TargetPredConfigWidget::startStatePrediction() {
 
 void TargetPredConfigWidget::stopStatePrediction() {
   
-  if( !pred_stop_function.empty() ) {
+  if( pred_stop_function ) {
     pred_stop_function();
-    pred_stop_function.clear();
+    pred_stop_function = NULL;
   };
   
 #if 0

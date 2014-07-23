@@ -135,11 +135,11 @@ class type_scheme : public shared_object {
       A & RK_SERIAL_LOAD_WITH_ALIAS("TypeName", m_type_name)
         & RK_SERIAL_LOAD_WITH_ALIAS("TypeID", ID_vect)
         & RK_SERIAL_LOAD_WITH_ALIAS("TypeVersion", m_type_version);
-      rtti::so_type::weak_pointer tmp_wptr = rtti::getRKSharedObjTypeRepo().findType(&ID_vect[0]);
-      if(tmp_wptr.expired())
+      rtti::so_type* tmp_wptr = rtti::getRKSharedObjTypeRepo().findType(&ID_vect[0]);
+      if(!tmp_wptr)
         m_type_ID_ptr = NULL;
       else
-        m_type_ID_ptr = tmp_wptr.lock()->TypeID_begin();
+        m_type_ID_ptr = tmp_wptr->TypeID_begin();
     };
 
     RK_RTTI_MAKE_ABSTRACT_1BASE(type_scheme,0x81300001,1,"type_scheme",shared_object)

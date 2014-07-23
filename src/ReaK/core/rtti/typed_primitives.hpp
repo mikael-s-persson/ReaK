@@ -44,8 +44,8 @@ namespace rtti {
 template <>
 struct get_type_id<int> {
   BOOST_STATIC_CONSTANT(unsigned int, ID = 0x00000001);
-  static std::string type_name() { return "int"; };
-  static construct_ptr CreatePtr() { return NULL; };
+  static const char* type_name() BOOST_NOEXCEPT { return "int"; };
+  static construct_ptr CreatePtr() BOOST_NOEXCEPT { return NULL; };
   
   typedef int save_type;
   typedef int& load_type;
@@ -54,8 +54,8 @@ struct get_type_id<int> {
 template <>
 struct get_type_id<unsigned int> {
   BOOST_STATIC_CONSTANT(unsigned int, ID = 0x00000002);
-  static std::string type_name() { return "unsigned int"; };
-  static construct_ptr CreatePtr() { return NULL; };
+  static const char* type_name() BOOST_NOEXCEPT { return "unsigned int"; };
+  static construct_ptr CreatePtr() BOOST_NOEXCEPT { return NULL; };
   
   typedef unsigned int save_type;
   typedef unsigned int& load_type;
@@ -64,8 +64,8 @@ struct get_type_id<unsigned int> {
 template <>
 struct get_type_id<long unsigned int> {
   BOOST_STATIC_CONSTANT(unsigned int, ID = 0x00000030);
-  static std::string type_name() { return "long unsigned int"; };
-  static construct_ptr CreatePtr() { return NULL; };
+  static const char* type_name() BOOST_NOEXCEPT { return "long unsigned int"; };
+  static construct_ptr CreatePtr() BOOST_NOEXCEPT { return NULL; };
   
   typedef const long unsigned int& save_type;
   typedef long unsigned int& load_type;
@@ -74,8 +74,8 @@ struct get_type_id<long unsigned int> {
 template <>
 struct get_type_id<char> {
   BOOST_STATIC_CONSTANT(unsigned int, ID = 0x00000031);
-  static std::string type_name() { return "char"; };
-  static construct_ptr CreatePtr() { return NULL; };
+  static const char* type_name() BOOST_NOEXCEPT { return "char"; };
+  static construct_ptr CreatePtr() BOOST_NOEXCEPT { return NULL; };
   
   typedef char save_type;
   typedef char& load_type;
@@ -84,8 +84,8 @@ struct get_type_id<char> {
 template <>
 struct get_type_id<unsigned char> {
   BOOST_STATIC_CONSTANT(unsigned int, ID = 0x00000032);
-  static std::string type_name() { return "unsigned char"; };
-  static construct_ptr CreatePtr() { return NULL; };
+  static const char* type_name() BOOST_NOEXCEPT { return "unsigned char"; };
+  static construct_ptr CreatePtr() BOOST_NOEXCEPT { return NULL; };
   
   typedef unsigned char save_type;
   typedef unsigned char& load_type;
@@ -94,8 +94,8 @@ struct get_type_id<unsigned char> {
 template <>
 struct get_type_id<float> {
   BOOST_STATIC_CONSTANT(unsigned int, ID = 0x00000003);
-  static std::string type_name() { return "float"; };
-  static construct_ptr CreatePtr() { return NULL; };
+  static const char* type_name() BOOST_NOEXCEPT { return "float"; };
+  static construct_ptr CreatePtr() BOOST_NOEXCEPT { return NULL; };
   
   typedef float save_type;
   typedef float& load_type;
@@ -104,8 +104,8 @@ struct get_type_id<float> {
 template <>
 struct get_type_id<double> {
   BOOST_STATIC_CONSTANT(unsigned int, ID = 0x00000004);
-  static std::string type_name() { return "double"; };
-  static construct_ptr CreatePtr() { return NULL; };
+  static const char* type_name() BOOST_NOEXCEPT { return "double"; };
+  static construct_ptr CreatePtr() BOOST_NOEXCEPT { return NULL; };
   
   typedef double save_type;
   typedef double& load_type;
@@ -114,8 +114,8 @@ struct get_type_id<double> {
 template <>
 struct get_type_id<bool> {
   BOOST_STATIC_CONSTANT(unsigned int, ID = 0x00000005);
-  static std::string type_name() { return "bool"; };
-  static construct_ptr CreatePtr() { return NULL; };
+  static const char* type_name() BOOST_NOEXCEPT { return "bool"; };
+  static construct_ptr CreatePtr() BOOST_NOEXCEPT { return NULL; };
   
   typedef bool save_type;
   typedef bool& load_type;
@@ -124,8 +124,8 @@ struct get_type_id<bool> {
 template <>
 struct get_type_id<std::string> {
   BOOST_STATIC_CONSTANT(unsigned int, ID = 0x00000006);
-  static std::string type_name() { return "string"; };
-  static construct_ptr CreatePtr() { return NULL; };
+  static const char* type_name() BOOST_NOEXCEPT { return "string"; };
+  static construct_ptr CreatePtr() BOOST_NOEXCEPT { return NULL; };
   
   typedef const std::string& save_type;
   typedef std::string& load_type;
@@ -133,8 +133,12 @@ struct get_type_id<std::string> {
 
 template <typename Tail>
 struct get_type_info< std::string, Tail > {
-  typedef detail::type_id< std::string, typename get_type_info<Tail>::type> type;
-  static std::string type_name() { return get_type_id< std::string >::type_name() + (boost::is_same< Tail, null_type_info >::value ? "" : "," + Tail::type_name()); };
+  typedef type_id< std::string, typename get_type_info<Tail>::type> type;
+  static std::string type_name() { 
+    std::string result = get_type_id< std::string >::type_name();
+    result += get_type_name_tail<Tail>::value(); 
+    return result; //NRVO
+  };
 };
 
 #ifdef BOOST_NO_CXX11_SMART_PTR
@@ -142,8 +146,8 @@ struct get_type_info< std::string, Tail > {
 template <typename T>
 struct get_type_id< boost::shared_ptr<T> > {
   BOOST_STATIC_CONSTANT(unsigned int, ID = get_type_id<T>::ID);
-  static std::string type_name() { return "shared_ptr"; };
-  static construct_ptr CreatePtr() { return NULL; };
+  static const char* type_name() BOOST_NOEXCEPT { return "shared_ptr"; };
+  static construct_ptr CreatePtr() BOOST_NOEXCEPT { return NULL; };
   
   typedef const boost::shared_ptr<T>& save_type;
   typedef boost::shared_ptr<T>& load_type;
@@ -152,8 +156,8 @@ struct get_type_id< boost::shared_ptr<T> > {
 template <typename T>
 struct get_type_id< boost::weak_ptr<T> > {
   BOOST_STATIC_CONSTANT(unsigned int, ID = get_type_id<T>::ID);
-  static std::string type_name() { return "weak_ptr"; };
-  static construct_ptr CreatePtr() { return NULL; };
+  static const char* type_name() BOOST_NOEXCEPT { return "weak_ptr"; };
+  static construct_ptr CreatePtr() BOOST_NOEXCEPT { return NULL; };
   
   typedef const boost::weak_ptr<T>& save_type;
   typedef boost::weak_ptr<T>& load_type;
@@ -164,8 +168,8 @@ struct get_type_id< boost::weak_ptr<T> > {
 template <typename T>
 struct get_type_id< std::shared_ptr<T> > {
   BOOST_STATIC_CONSTANT(unsigned int, ID = get_type_id<T>::ID);
-  static std::string type_name() { return "shared_ptr"; };
-  static construct_ptr CreatePtr() { return NULL; };
+  static const char* type_name() BOOST_NOEXCEPT { return "shared_ptr"; };
+  static construct_ptr CreatePtr() BOOST_NOEXCEPT { return NULL; };
   
   typedef const std::shared_ptr<T>& save_type;
   typedef std::shared_ptr<T>& load_type;
@@ -174,8 +178,8 @@ struct get_type_id< std::shared_ptr<T> > {
 template <typename T>
 struct get_type_id< std::weak_ptr<T> > {
   BOOST_STATIC_CONSTANT(unsigned int, ID = get_type_id<T>::ID);
-  static std::string type_name() { return "weak_ptr"; };
-  static construct_ptr CreatePtr() { return NULL; };
+  static const char* type_name() BOOST_NOEXCEPT { return "weak_ptr"; };
+  static construct_ptr CreatePtr() BOOST_NOEXCEPT { return NULL; };
   
   typedef const std::weak_ptr<T>& save_type;
   typedef std::weak_ptr<T>& load_type;
@@ -184,8 +188,8 @@ struct get_type_id< std::weak_ptr<T> > {
 template <typename T>
 struct get_type_id< std::unique_ptr<T> > {
   BOOST_STATIC_CONSTANT(unsigned int, ID = get_type_id<T>::ID);
-  static std::string type_name() { return "unique_ptr"; };
-  static construct_ptr CreatePtr() { return NULL; };
+  static const char* type_name() BOOST_NOEXCEPT { return "unique_ptr"; };
+  static construct_ptr CreatePtr() BOOST_NOEXCEPT { return NULL; };
   
   typedef const std::unique_ptr<T>& save_type;
   typedef std::unique_ptr<T>& load_type;

@@ -843,7 +843,7 @@ oarchive& RK_CALL objtree_oarchive::save_serializable_ptr(const std::pair<std::s
     if(!edge(current_node, object_ID, *obj_graph).second)
       add_edge(current_node, object_ID, *obj_graph);
     
-    rtti::so_type::shared_pointer obj_type = Item.second->getObjectType();
+    rtti::so_type* obj_type = Item.second->getObjectType();
     const unsigned int* type_ID = obj_type->TypeID_begin();
     unsigned int type_version = obj_type->TypeVersion();
     
@@ -1058,7 +1058,7 @@ std::string objtree_editor::get_object_name(object_node_desc aNode) const {
   return get_objtree_name(*obj_graph, aNode);
 };
 
-std::vector< std::string > objtree_editor::get_objects_derived_from(const shared_ptr< rtti::so_type >& aType) const {
+std::vector< std::string > objtree_editor::get_objects_derived_from(rtti::so_type* aType) const {
   boost::graph_traits< serialization::object_graph >::vertex_iterator vi, vi_end;
   boost::tie(vi,vi_end) = vertices(*obj_graph);
   std::vector< std::string > result;

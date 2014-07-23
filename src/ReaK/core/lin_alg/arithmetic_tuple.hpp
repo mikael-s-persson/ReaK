@@ -1459,8 +1459,8 @@ namespace rtti {
 template <typename... T>
 struct get_type_id< arithmetic_tuple< T... > > {
   BOOST_STATIC_CONSTANT(unsigned int, ID = 0x0000002C);
-  static std::string type_name() { return "arithmetic_tuple"; };
-  static construct_ptr CreatePtr() { return NULL; };
+  static const char* type_name() BOOST_NOEXCEPT { return "arithmetic_tuple"; };
+  static construct_ptr CreatePtr() BOOST_NOEXCEPT { return NULL; };
   
   typedef const arithmetic_tuple< T... >& save_type;
   typedef arithmetic_tuple< T... >& load_type;
@@ -1468,8 +1468,16 @@ struct get_type_id< arithmetic_tuple< T... > > {
 
 template <typename Tail, typename... T>
 struct get_type_info< arithmetic_tuple< T... >, Tail > {
-  typedef detail::type_id< arithmetic_tuple< T... > , typename get_type_info_seq< T... >::template with_tail<Tail>::type > type;
-  static std::string type_name() { return get_type_id< arithmetic_tuple< T... > >::type_name() + "<" + get_type_info_seq< T... >::type_name() + ">" + (boost::is_same< Tail, null_type_info >::value ? "" : "," + Tail::type_name()); };
+  typedef type_id< arithmetic_tuple<T...>, 
+    typename get_type_info_seq<T...>::template with_tail<Tail>::type::type > type;
+  static std::string type_name() { 
+    std::string result = get_type_id< arithmetic_tuple< T... > >::type_name();
+    result += "<";
+    result += get_type_info_seq< T... >::type_name();
+    result += ">";
+    result += get_type_name_tail<Tail>::value(); 
+    return result; // NRVO
+  };
 };
 
 #else
@@ -1478,8 +1486,8 @@ template <typename T1, typename T2, typename T3, typename T4, typename T5,
           typename T6, typename T7, typename T8, typename T9, typename T10>
 struct get_type_id< arithmetic_tuple< T1, T2, T3, T4, T5, T6, T7, T8, T9, T10 > > {
   BOOST_STATIC_CONSTANT(unsigned int, ID = 0x0000002C);
-  static std::string type_name() { return "arithmetic_tuple"; };
-  static construct_ptr CreatePtr() { return NULL; };
+  static const char* type_name() BOOST_NOEXCEPT { return "arithmetic_tuple"; };
+  static construct_ptr CreatePtr() BOOST_NOEXCEPT { return NULL; };
   
   typedef const arithmetic_tuple< T1, T2, T3, T4, T5, T6, T7, T8, T9, T10 >& save_type;
   typedef arithmetic_tuple< T1, T2, T3, T4, T5, T6, T7, T8, T9, T10 >& load_type;
@@ -1489,8 +1497,16 @@ template <typename T1, typename T2, typename T3, typename T4, typename T5,
           typename T6, typename T7, typename T8, typename T9, typename T10, 
           typename Tail>
 struct get_type_info< arithmetic_tuple< T1, T2, T3, T4, T5, T6, T7, T8, T9, T10 >, Tail > {
-  typedef detail::type_id< arithmetic_tuple< T1, T2, T3, T4, T5, T6, T7, T8, T9, T10 > , typename get_type_info_seq< T1, T2, T3, T4, T5, T6, T7, T8, T9, T10 >::template with_tail<Tail>::type > type;
-  static std::string type_name() { return get_type_id< arithmetic_tuple< T1, T2, T3, T4, T5, T6, T7, T8, T9, T10 > >::type_name() + "<" + get_type_info_seq< T1, T2, T3, T4, T5, T6, T7, T8, T9, T10 >::type_name() + ">" + (boost::is_same< Tail, null_type_info >::value ? "" : "," + Tail::type_name()); };
+  typedef type_id< arithmetic_tuple<T1,T2,T3,T4,T5,T6,T7,T8,T9,T10>, 
+    typename get_type_info_seq<T1,T2,T3,T4,T5,T6,T7,T8,T9,T10>::template with_tail<Tail>::type::type > type;
+  static std::string type_name() { 
+    std::string result = get_type_id< arithmetic_tuple<T1,T2,T3,T4,T5,T6,T7,T8,T9,T10> >::type_name();
+    result += "<";
+    result += get_type_info_seq<T1,T2,T3,T4,T5,T6,T7,T8,T9,T10>::type_name();
+    result += ">";
+    result += get_type_name_tail<Tail>::value(); 
+    return result; // NRVO
+  };
 };
 
 #endif

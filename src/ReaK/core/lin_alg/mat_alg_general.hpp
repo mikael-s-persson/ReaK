@@ -305,8 +305,8 @@ namespace rtti {
 template <typename T,mat_structure::tag Structure, mat_alignment::tag Alignment,typename Allocator>
 struct get_type_id< mat<T,Structure,Alignment,Allocator> > {
   BOOST_STATIC_CONSTANT(unsigned int, ID = 0x00000012);
-  static std::string type_name() { return "mat"; };
-  static construct_ptr CreatePtr() { return NULL; };
+  static const char* type_name() BOOST_NOEXCEPT { return "mat"; };
+  static construct_ptr CreatePtr() BOOST_NOEXCEPT { return NULL; };
   
   typedef const serialization::serializable& save_type;
   typedef serialization::serializable& load_type;
@@ -314,12 +314,20 @@ struct get_type_id< mat<T,Structure,Alignment,Allocator> > {
 
 template <typename T, mat_structure::tag Structure, mat_alignment::tag Alignment, typename Allocator, typename Tail>
 struct get_type_info< mat<T,Structure,Alignment,Allocator>, Tail > {
-  typedef detail::type_id< mat<T,Structure,Alignment,Allocator> , typename get_type_info<T,
-                                                                           get_type_info< boost::mpl::integral_c<mat_structure::tag,Structure>,
-                                                                           get_type_info< boost::mpl::integral_c<mat_alignment::tag,Alignment>, Tail> > >::type > type;
-  static std::string type_name() { return get_type_id< mat<T,Structure,Alignment,Allocator> >::type_name() + "<" + get_type_id<T>::type_name() + "," 
-                                                                                                                 + get_type_id< boost::mpl::integral_c<mat_structure::tag,Structure> >::type_name() + "," 
-                                                                                                                 + get_type_id< boost::mpl::integral_c<mat_alignment::tag,Alignment> >::type_name() + ">" + (boost::is_same< Tail, null_type_info >::value ? "" : "," + Tail::type_name()); };
+  typedef type_id< mat<T,Structure,Alignment,Allocator>, 
+    typename get_type_info_seq<T,
+      boost::mpl::integral_c<mat_structure::tag,Structure>,
+      boost::mpl::integral_c<mat_alignment::tag,Alignment> >::template with_tail<Tail>::type::type > type;
+  static std::string type_name() { 
+    std::string result = get_type_id< mat<T,Structure,Alignment,Allocator> >::type_name();
+    result += "<";
+    result += get_type_info_seq<T,
+      boost::mpl::integral_c<mat_structure::tag,Structure>,
+      boost::mpl::integral_c<mat_alignment::tag,Alignment> >::type_name();
+    result += ">";
+    result += get_type_name_tail<Tail>::value();
+    return result; //NVRO
+  };
 };
 
 template <typename T,
@@ -328,8 +336,8 @@ template <typename T,
           mat_alignment::tag Alignment>
 struct get_type_id< mat_fix<T,Structure,RowCount,ColCount,Alignment> > {
   BOOST_STATIC_CONSTANT(unsigned int, ID = 0x00000013);
-  static std::string type_name() { return "mat_fix"; };
-  static construct_ptr CreatePtr() { return NULL; };
+  static const char* type_name() BOOST_NOEXCEPT { return "mat_fix"; };
+  static construct_ptr CreatePtr() BOOST_NOEXCEPT { return NULL; };
   
   typedef const serialization::serializable& save_type;
   typedef serialization::serializable& load_type;
@@ -338,16 +346,24 @@ struct get_type_id< mat_fix<T,Structure,RowCount,ColCount,Alignment> > {
 template <typename T, mat_structure::tag Structure,
           unsigned int RowCount, unsigned int ColCount, mat_alignment::tag Alignment, typename Tail>
 struct get_type_info< mat_fix<T,Structure,RowCount,ColCount,Alignment>, Tail > {
-  typedef detail::type_id< mat_fix<T,Structure,RowCount,ColCount,Alignment> , typename get_type_info<T,
-                                                                                       get_type_info< boost::mpl::integral_c<mat_structure::tag,Structure>,
-                                                                                       get_type_info< boost::mpl::integral_c<unsigned int,RowCount>,
-                                                                                       get_type_info< boost::mpl::integral_c<unsigned int,ColCount>,
-                                                                                       get_type_info< boost::mpl::integral_c<mat_alignment::tag,Alignment>, Tail> > > > >::type > type;
-  static std::string type_name() { return get_type_id< mat_fix<T,Structure,RowCount,ColCount,Alignment> >::type_name() + "<" + get_type_id<T>::type_name() + "," 
-                                                                                                                             + get_type_id< boost::mpl::integral_c<mat_structure::tag,Structure> >::type_name() + "," 
-                                                                                                                             + get_type_id< boost::mpl::integral_c<unsigned int,RowCount> >::type_name() + "," 
-                                                                                                                             + get_type_id< boost::mpl::integral_c<unsigned int,ColCount> >::type_name() + "," 
-                                                                                                                             + get_type_id< boost::mpl::integral_c<mat_alignment::tag,Alignment> >::type_name() + ">" + (boost::is_same< Tail, null_type_info >::value ? "" : "," + Tail::type_name()); };
+  typedef type_id< mat_fix<T,Structure,RowCount,ColCount,Alignment>, 
+    typename get_type_info_seq<T,
+      boost::mpl::integral_c<mat_structure::tag,Structure>,
+      boost::mpl::integral_c<unsigned int,RowCount>,
+      boost::mpl::integral_c<unsigned int,ColCount>,
+      boost::mpl::integral_c<mat_alignment::tag,Alignment> >::template with_tail<Tail>::type::type > type;
+  static const char* type_name() { 
+    std::string result = get_type_id< mat_fix<T,Structure,RowCount,ColCount,Alignment> >::type_name();
+    result += "<";
+    result += get_type_info_seq<T,
+      boost::mpl::integral_c<mat_structure::tag,Structure>,
+      boost::mpl::integral_c<unsigned int,RowCount>,
+      boost::mpl::integral_c<unsigned int,ColCount>,
+      boost::mpl::integral_c<mat_alignment::tag,Alignment> >::type_name();
+    result += ">";
+    result += get_type_name_tail<Tail>::value();
+    return result; //NVRO
+  };
 };
 
 };

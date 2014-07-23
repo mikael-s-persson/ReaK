@@ -28,6 +28,8 @@
 #include <ReaK/core/recorders/network_recorder.hpp>
 #include <ReaK/core/recorders/vector_recorder.hpp>
 
+#include <algorithm>
+
 
 namespace ReaK {
 

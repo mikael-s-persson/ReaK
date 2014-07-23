@@ -241,12 +241,12 @@ iarchive& RK_CALL xml_iarchive::load_serializable_ptr(const std::pair<std::strin
   };
 
   //Find the class in question in the repository.
-  rtti::so_type::weak_pointer p( rtti::so_type_repo::getInstance().findType(&(typeID[0])) );
-  if((p.expired()) || (p.lock()->TypeVersion() < hdr.type_version)) {
+  rtti::so_type* p = rtti::so_type_repo::getInstance().findType(&(typeID[0]));
+  if((!p) || (p->TypeVersion() < hdr.type_version)) {
     skipToEndToken(Item.first);
     throw unsupported_type(unsupported_type::not_found_in_repo, &(typeID[0]));
   };
-  ReaK::shared_ptr<shared_object> po(p.lock()->CreateObject());
+  ReaK::shared_ptr<shared_object> po(p->CreateObject());
   if(!po) {
     skipToEndToken(Item.first);
     throw unsupported_type(unsupported_type::could_not_create, &(typeID[0]));
@@ -481,7 +481,7 @@ oarchive& RK_CALL xml_oarchive::saveToNewArchiveNamed_impl(const std::pair<std::
       mObjRegMap[Item.second] = hdr.object_ID;
     };
 
-    rtti::so_type::shared_pointer obj_type = Item.second->getObjectType();
+    rtti::so_type* obj_type = Item.second->getObjectType();
     const unsigned int* type_ID = obj_type->TypeID_begin();
     hdr.type_version = obj_type->TypeVersion();
     hdr.is_external = true;
@@ -541,7 +541,7 @@ oarchive& RK_CALL xml_oarchive::save_serializable_ptr(const std::pair<std::strin
       mObjRegMap[Item.second] = hdr.object_ID;
     };
 
-    rtti::so_type::shared_pointer obj_type = Item.second->getObjectType();
+    rtti::so_type* obj_type = Item.second->getObjectType();
     const unsigned int* type_ID = obj_type->TypeID_begin();
     hdr.type_version = obj_type->TypeVersion();
     hdr.is_external = false;
