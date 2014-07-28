@@ -171,10 +171,17 @@ std::unique_ptr<Y,Deleter> rk_dynamic_ptr_cast(std::unique_ptr<U,Deleter>&& p) {
 #define RK_RTTI_REGISTER_CUSTOM_FACTORY(CLASS_FACTORY) \
     static ReaK::rtti::construct_ptr rk_rtti_CreatePtr() { return CLASS_FACTORY; };
 
+#ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
+/// This MACRO creates the static elements for the current class that registers the CLASS_ID and CLASS_NAME.
+#define RK_RTTI_REGISTER_CLASS_ID(CLASS_NAME, CLASS_ID) \
+    BOOST_STATIC_CONSTEXPR unsigned int rk_rtti_ID = CLASS_ID; \
+    BOOST_STATIC_CONSTEXPR auto rk_rtti_TypeName = RK_LSA(CLASS_NAME);
+#else
 /// This MACRO creates the static elements for the current class that registers the CLASS_ID and CLASS_NAME.
 #define RK_RTTI_REGISTER_CLASS_ID(CLASS_NAME, CLASS_ID) \
     static const unsigned int rk_rtti_ID = CLASS_ID; \
     static const char* rk_rtti_TypeName() { return CLASS_NAME; };
+#endif
 
 /// This MACRO creates the static elements for the current class to be added to the global type registry (it is guaranteed to be added if the class is instantiated).
 #define RK_RTTI_REGISTER_CLASS_0BASE(CLASS_NAME,CLASS_VERSION) \

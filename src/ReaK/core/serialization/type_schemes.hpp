@@ -154,7 +154,13 @@ class primitive_scheme : public type_scheme {
   public:
     typedef primitive_scheme<T> self;
     
-    primitive_scheme() : type_scheme(rtti::get_type_id<T>::type_name(), NULL) {
+    primitive_scheme() : type_scheme("", NULL) {
+#ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
+      constexpr auto tname = rtti::get_type_id<T>::type_name;
+      m_type_name = tname.to_string();
+#else
+      m_type_name = rtti::get_type_id<T>::type_name();
+#endif
       unsigned int* tmp_ptr = new unsigned int[2];
       tmp_ptr[0] = rtti::get_type_id<T>::ID;
       tmp_ptr[1] = 0;

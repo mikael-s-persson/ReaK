@@ -83,15 +83,29 @@ oarchive& RK_CALL scheme_builder::save_serializable_ptr(const std::pair<std::str
   rtti::so_type* so_type_ptr = Item.second->getObjectType();
   
   // See if we need to add the shared_ptr< Type > type-scheme for this object type.
+#ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
+  constexpr auto tname = rtti::get_type_id<serializable_shared_pointer>::type_name;
+  std::string ptr_type_name = tname.to_string();
+#else
   std::string ptr_type_name = rtti::get_type_id<serializable_shared_pointer>::type_name();
+#endif
   ptr_type_name += "<" + so_type_ptr->TypeName() + ">";
   std::map< std::string, shared_ptr< type_scheme > >::iterator itm = scheme_map.find( ptr_type_name );
   if(itm == scheme_map.end()) {
+#ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
+    constexpr auto iname = rtti::get_type_id< unsigned int >::type_name;
+    std::map< std::string, shared_ptr< type_scheme > >::iterator objID_itm = scheme_map.find( iname.to_string() );
+#else
     std::map< std::string, shared_ptr< type_scheme > >::iterator objID_itm = scheme_map.find( rtti::get_type_id< unsigned int >::type_name() );
+#endif
     shared_ptr< type_scheme > objID_sch;
     if(objID_itm == scheme_map.end()) {
       objID_sch = shared_ptr< type_scheme >(new primitive_scheme< unsigned int >());
+#ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
+      scheme_map[iname.to_string()] = objID_sch;
+#else
       scheme_map[rtti::get_type_id< unsigned int >::type_name()] = objID_sch;
+#endif
     } else 
       objID_sch = objID_itm->second;
     
@@ -152,11 +166,20 @@ void scheme_builder::save_primitive(const std::string& aName) {
   
   std::map< std::string, shared_ptr< type_scheme > >& scheme_map = get_global_schemes();
   
+#ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
+  constexpr auto tname = rtti::get_type_id< T >::type_name;
+  std::map< std::string, shared_ptr< type_scheme > >::iterator itm = scheme_map.find( tname.to_string() );
+#else
   std::map< std::string, shared_ptr< type_scheme > >::iterator itm = scheme_map.find( rtti::get_type_id< T >::type_name() );
+#endif
   shared_ptr< type_scheme > sch_ptr;
   if(itm == scheme_map.end()) {
     sch_ptr = shared_ptr< type_scheme >(new primitive_scheme< T >());
+#ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
+    scheme_map[tname.to_string()] = sch_ptr;
+#else
     scheme_map[rtti::get_type_id< T >::type_name()] = sch_ptr;
+#endif
   } else 
     sch_ptr = itm->second;
   
@@ -242,16 +265,30 @@ void RK_CALL scheme_builder::signal_polymorphic_field(const std::string& aBaseTy
   std::map< std::string, shared_ptr< type_scheme > >& scheme_map = get_global_schemes();
   
   // check if the scheme already exists
+#ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
+  constexpr auto tname = rtti::get_type_id<serializable_shared_pointer>::type_name;
+  std::string ptr_type_name = tname.to_string();
+#else
   std::string ptr_type_name = rtti::get_type_id<serializable_shared_pointer>::type_name();
+#endif
   ptr_type_name += "<" + aBaseTypeName + ">";
   std::map< std::string, shared_ptr< type_scheme > >::iterator itm = scheme_map.find( ptr_type_name );
   shared_ptr< type_scheme > sch_ptr;
   if(itm == scheme_map.end()) {
+#ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
+    constexpr auto iname = rtti::get_type_id< unsigned int >::type_name;
+    std::map< std::string, shared_ptr< type_scheme > >::iterator objID_itm = scheme_map.find( iname.to_string() );
+#else
     std::map< std::string, shared_ptr< type_scheme > >::iterator objID_itm = scheme_map.find( rtti::get_type_id< unsigned int >::type_name() );
+#endif
     shared_ptr< type_scheme > objID_sch;
     if(objID_itm == scheme_map.end()) {
       objID_sch = shared_ptr< type_scheme >(new primitive_scheme< unsigned int >());
+#ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
+      scheme_map[iname.to_string()] = objID_sch;
+#else
       scheme_map[rtti::get_type_id< unsigned int >::type_name()] = objID_sch;
+#endif
     } else 
       objID_sch = objID_itm->second;
     

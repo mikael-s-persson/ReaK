@@ -34,7 +34,13 @@
 #define REAK_SO_TYPE_HPP
 
 #include <ReaK/core/base/defs.hpp>
-#include <ReaK/core/base/shared_object_base.hpp>
+
+// This would be nice but the compilation times / mem are insane when type names are computed as constexpr strings.
+// #define RK_RTTI_USE_CONSTEXPR_STRINGS
+
+#ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
+#include <ReaK/core/base/literal_string_list.hpp>
+#endif
 
 #include <string>
 #include <cstdio>
@@ -64,7 +70,13 @@ typedef ReaK::shared_ptr<shared_object> (RK_CALL *construct_ptr)();
 template <typename T>
 struct get_type_id {
   BOOST_STATIC_CONSTANT(unsigned int, ID = T::rk_rtti_ID);
+  
+#ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
+  BOOST_STATIC_CONSTEXPR auto type_name = T::rk_rtti_TypeName;
+#else
   static const char* type_name() BOOST_NOEXCEPT { return T::rk_rtti_TypeName(); };
+#endif
+  
   static construct_ptr CreatePtr() BOOST_NOEXCEPT { return T::rk_rtti_CreatePtr(); };
   
   typedef const serialization::serializable& save_type;
@@ -72,31 +84,60 @@ struct get_type_id {
 };
 
 
+#ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
+
+BOOST_CONSTEXPR_OR_CONST auto lsl_left_bracket = RK_LSA("<");
+BOOST_CONSTEXPR_OR_CONST auto lsl_right_bracket = RK_LSA(">");
+BOOST_CONSTEXPR_OR_CONST auto lsl_comma = RK_LSA(",");
+
+#endif
+
+
 template <unsigned int U>
 struct get_type_id< boost::mpl::integral_c<unsigned int,U> > {
   BOOST_STATIC_CONSTANT(unsigned int, ID = U);
+  
+#ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
+  BOOST_STATIC_CONSTEXPR auto type_name = ct_itoa<ID>::text;
+#else
   static const char* type_name() BOOST_NOEXCEPT { static char type_name_buf[32]; std::sprintf(type_name_buf,"%d",ID); return type_name_buf; };
+#endif
+  
   static construct_ptr CreatePtr() BOOST_NOEXCEPT { return NULL; };
 };
 
 template <>
 struct get_type_id< boost::mpl::true_ > {
   BOOST_STATIC_CONSTANT(unsigned int, ID = 2);
+#ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
+  BOOST_STATIC_CONSTEXPR auto type_name = RK_LSA("true");
+#else
   static const char* type_name() BOOST_NOEXCEPT { return "true"; };
+#endif
   static construct_ptr CreatePtr() BOOST_NOEXCEPT { return NULL; };
 };
 
 template <>
 struct get_type_id< boost::mpl::false_ > {
   BOOST_STATIC_CONSTANT(unsigned int, ID = 1);
+#ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
+  BOOST_STATIC_CONSTEXPR auto type_name = RK_LSA("false");
+#else
   static const char* type_name() BOOST_NOEXCEPT { return "false"; };
+#endif
   static construct_ptr CreatePtr() BOOST_NOEXCEPT { return NULL; };
 };
 
 template <int I>
 struct get_type_id< boost::mpl::int_<I> > {
   BOOST_STATIC_CONSTANT(unsigned int, ID = I);
+  
+#ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
+  BOOST_STATIC_CONSTEXPR auto type_name = ct_itoa<ID>::text;
+#else
   static const char* type_name() BOOST_NOEXCEPT { static char type_name_buf[32]; std::sprintf(type_name_buf,"%d",ID); return type_name_buf; };
+#endif
+  
   static construct_ptr CreatePtr() BOOST_NOEXCEPT { return NULL; };
 };
 
@@ -114,32 +155,48 @@ namespace {
     BOOST_STATIC_CONSTANT(unsigned int, ID = ::ReaK::rtti::get_type_id<T>::ID);
   };
   
-  template <typename Tail>
-  struct get_type_name_tail {
-    static std::string value() { 
-      std::string result = ",";
-      result += Tail::type_name();
-      return result; // NRVO
-    };
-  };
+};
   
-  template <>
-  struct get_type_name_tail<null_type_id> {
-    static const char* value() BOOST_NOEXCEPT { return ""; };
+template <typename Tail>
+struct get_type_name_tail {
+#ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
+  BOOST_STATIC_CONSTEXPR auto value = lsl_comma + Tail::type_name;
+#else
+  static std::string value() { 
+    std::string result = ",";
+    result += Tail::type_name();
+    return result; // NRVO
   };
-  
+#endif
+};
+
+template <>
+struct get_type_name_tail<null_type_id> {
+#ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
+  BOOST_STATIC_CONSTEXPR auto value = RK_LSA("");
+#else
+  static const char* value() BOOST_NOEXCEPT { return ""; };
+#endif
 };
 
 
 struct null_type_info {
   typedef null_type_id type;
+#ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
+  BOOST_STATIC_CONSTEXPR auto type_name = RK_LSA("");
+#else
   static const char* type_name() BOOST_NOEXCEPT { return ""; };
+#endif
 };
 
 template <>
 struct get_type_id< null_type_info > {
   BOOST_STATIC_CONSTANT(unsigned int, ID = 0);
+#ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
+  BOOST_STATIC_CONSTEXPR auto type_name = RK_LSA("");
+#else
   static const char* type_name() BOOST_NOEXCEPT { return ""; };
+#endif
   static construct_ptr CreatePtr() BOOST_NOEXCEPT { return NULL; };
 };
 
@@ -147,11 +204,15 @@ struct get_type_id< null_type_info > {
 template <typename T, typename Tail = null_type_info>
 struct get_type_info {
   typedef type_id<T, typename Tail::type> type;
+#ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
+  BOOST_STATIC_CONSTEXPR auto type_name = get_type_id<T>::type_name + get_type_name_tail<Tail>::value;
+#else
   static std::string type_name() { 
     std::string result = get_type_id<T>::type_name();
     result += get_type_name_tail<Tail>::value();
     return result; //NRVO 
   };
+#endif
 };
 
 
@@ -168,8 +229,13 @@ struct get_type_info_seq<T1> {
     typedef get_type_info<T1, Tail> type;
   };
   
+#ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
+  BOOST_STATIC_CONSTEXPR auto type_name = get_type_id<T1>::type_name;
+#else
   static std::string type_name() { return get_type_id<T1>::type_name(); };
+#endif
 };
+
 
 template <typename T1, typename... T>
 struct get_type_info_seq<T1, T...> {
@@ -179,12 +245,16 @@ struct get_type_info_seq<T1, T...> {
       typename get_type_info_seq< T... >::template with_tail<Tail>::type > type;
   };
   
+#ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
+  BOOST_STATIC_CONSTEXPR auto type_name = get_type_id<T1>::type_name + lsl_comma + get_type_info_seq< T... >::type_name;
+#else
   static std::string type_name() { 
     std::string result = get_type_id<T1>::type_name();
     result += ",";
     result += get_type_info_seq< T... >::type_name();
     return result; //NRVO
   };
+#endif
 };
 
 #else
@@ -200,7 +270,11 @@ struct get_type_info_seq<T1,void,void,void,void,void,void,void,void,void> {
     typedef get_type_info<T1, Tail> type;
   };
   
+#ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
+  BOOST_STATIC_CONSTEXPR auto type_name = get_type_id<T1>::type_name;
+#else
   static std::string type_name() { return get_type_id<T1>::type_name(); };
+#endif
 };
 
 template <typename T1, typename T2, typename T3, typename T4, typename T5, 
@@ -212,12 +286,16 @@ struct get_type_info_seq {
       typename get_type_info_seq<T2,T3,T4,T5,T6,T7,T8,T9,T10>::template with_tail<Tail>::type > type;
   };
   
+#ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
+  BOOST_STATIC_CONSTEXPR auto type_name = get_type_id<T1>::type_name + lsl_comma + get_type_info_seq<T2,T3,T4,T5,T6,T7,T8,T9,T10>::type_name;
+#else
   static std::string type_name() { 
     std::string result = get_type_id<T1>::type_name();
     result += ",";
     result += get_type_info_seq<T2,T3,T4,T5,T6,T7,T8,T9,T10>::type_name();
     return result; //NRVO
   };
+#endif
 };
 
 #endif
@@ -232,6 +310,9 @@ template <template <typename...> class U, typename Tail, typename... T>
 struct get_type_info< U<T...>, Tail > {
   typedef type_id< U<T...>, 
     typename get_type_info_seq<T...>::template with_tail<Tail>::type::type > type;
+#ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
+  BOOST_STATIC_CONSTEXPR auto type_name = get_type_id< U<T...> >::type_name + lsl_left_bracket + get_type_info_seq<T...>::type_name + lsl_right_bracket + get_type_name_tail<Tail>::value;
+#else
   static std::string type_name() { 
     std::string result = get_type_id< U<T...> >::type_name();
     result += "<";
@@ -240,6 +321,7 @@ struct get_type_info< U<T...>, Tail > {
     result += get_type_name_tail<Tail>::value(); 
     return result; //NRVO
   };
+#endif
 };
 
 #else
@@ -247,7 +329,10 @@ struct get_type_info< U<T...>, Tail > {
 template <template <typename> class U, typename T, typename Tail>
 struct get_type_info< U<T>, Tail > {
   typedef type_id< U<T>, 
-    typename get_type_info_seq<T1>::template with_tail<Tail>::type::type > type;
+    typename get_type_info_seq<T>::template with_tail<Tail>::type::type > type;
+#ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
+  BOOST_STATIC_CONSTEXPR auto type_name = get_type_id< U<T> >::type_name + lsl_left_bracket + get_type_info_seq<T>::type_name + lsl_right_bracket + get_type_name_tail<Tail>::value;
+#else
   static std::string type_name() { 
     std::string result = get_type_id< U<T> >::type_name();
     result += "<";
@@ -256,6 +341,7 @@ struct get_type_info< U<T>, Tail > {
     result += get_type_name_tail<Tail>::value(); 
     return result; //NRVO
   };
+#endif
 };
 
 template <template <typename,typename> class U, 
@@ -263,6 +349,9 @@ template <template <typename,typename> class U,
 struct get_type_info< U<T1,T2>, Tail > {
   typedef type_id< U<T1,T2>, 
     typename get_type_info_seq<T1,T2>::template with_tail<Tail>::type::type > type;
+#ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
+  BOOST_STATIC_CONSTEXPR auto type_name = get_type_id< U<T1,T2> >::type_name + lsl_left_bracket + get_type_info_seq<T1,T2>::type_name + lsl_right_bracket + get_type_name_tail<Tail>::value;
+#else
   static std::string type_name() { 
     std::string result = get_type_id< U<T1,T2> >::type_name();
     result += "<";
@@ -271,6 +360,7 @@ struct get_type_info< U<T1,T2>, Tail > {
     result += get_type_name_tail<Tail>::value(); 
     return result; //NRVO
   };
+#endif
 };
 
 template <template <typename,typename,typename> class U, 
@@ -278,6 +368,9 @@ template <template <typename,typename,typename> class U,
 struct get_type_info< U<T1,T2,T3>, Tail > {
   typedef type_id< U<T1,T2,T3>, 
     typename get_type_info_seq<T1,T2,T3>::template with_tail<Tail>::type::type > type;
+#ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
+  BOOST_STATIC_CONSTEXPR auto type_name = get_type_id< U<T1,T2,T3> >::type_name + lsl_left_bracket + get_type_info_seq<T1,T2,T3>::type_name + lsl_right_bracket + get_type_name_tail<Tail>::value;
+#else
   static std::string type_name() { 
     std::string result = get_type_id< U<T1,T2,T3> >::type_name();
     result += "<";
@@ -286,6 +379,7 @@ struct get_type_info< U<T1,T2,T3>, Tail > {
     result += get_type_name_tail<Tail>::value(); 
     return result; //NRVO
   };
+#endif
 };
 
 template <template <typename,typename,typename,typename> class U, 
@@ -293,6 +387,9 @@ template <template <typename,typename,typename,typename> class U,
 struct get_type_info< U<T1,T2,T3,T4>, Tail > {
   typedef type_id< U<T1,T2,T3,T4>, 
     typename get_type_info_seq<T1,T2,T3,T4>::template with_tail<Tail>::type::type > type;
+#ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
+  BOOST_STATIC_CONSTEXPR auto type_name = get_type_id< U<T1,T2,T3,T4> >::type_name + lsl_left_bracket + get_type_info_seq<T1,T2,T3,T4>::type_name + lsl_right_bracket + get_type_name_tail<Tail>::value;
+#else
   static std::string type_name() { 
     std::string result = get_type_id< U<T1,T2,T3,T4> >::type_name();
     result += "<";
@@ -301,6 +398,7 @@ struct get_type_info< U<T1,T2,T3,T4>, Tail > {
     result += get_type_name_tail<Tail>::value(); 
     return result; //NRVO
   };
+#endif
 };
 
 template <template <typename,typename,typename,typename,typename> class U, 
@@ -308,6 +406,9 @@ template <template <typename,typename,typename,typename,typename> class U,
 struct get_type_info< U<T1,T2,T3,T4,T5>, Tail > {
   typedef type_id< U<T1,T2,T3,T4,T5>, 
     typename get_type_info_seq<T1,T2,T3,T4,T5>::template with_tail<Tail>::type::type > type;
+#ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
+  BOOST_STATIC_CONSTEXPR auto type_name = get_type_id< U<T1,T2,T3,T4,T5> >::type_name + lsl_left_bracket + get_type_info_seq<T1,T2,T3,T4,T5>::type_name + lsl_right_bracket + get_type_name_tail<Tail>::value;
+#else
   static std::string type_name() { 
     std::string result = get_type_id< U<T1,T2,T3,T4,T5> >::type_name();
     result += "<";
@@ -316,6 +417,7 @@ struct get_type_info< U<T1,T2,T3,T4,T5>, Tail > {
     result += get_type_name_tail<Tail>::value(); 
     return result; //NRVO
   };
+#endif
 };
 
 template <template <typename,typename,typename,typename,typename,typename> class U, 
@@ -324,6 +426,9 @@ template <template <typename,typename,typename,typename,typename,typename> class
 struct get_type_info< U<T1,T2,T3,T4,T5,T6>, Tail > {
   typedef type_id< U<T1,T2,T3,T4,T5,T6>, 
     typename get_type_info_seq<T1,T2,T3,T4,T5,T6>::template with_tail<Tail>::type::type > type;
+#ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
+  BOOST_STATIC_CONSTEXPR auto type_name = get_type_id< U<T1,T2,T3,T4,T5,T6> >::type_name + lsl_left_bracket + get_type_info_seq<T1,T2,T3,T4,T5,T6>::type_name + lsl_right_bracket + get_type_name_tail<Tail>::value;
+#else
   static std::string type_name() { 
     std::string result = get_type_id< U<T1,T2,T3,T4,T5,T6> >::type_name();
     result += "<";
@@ -332,6 +437,7 @@ struct get_type_info< U<T1,T2,T3,T4,T5,T6>, Tail > {
     result += get_type_name_tail<Tail>::value(); 
     return result; //NRVO
   };
+#endif
 };
 
 template <template <typename,typename,typename,typename,typename,typename,typename> class U, 
@@ -340,6 +446,9 @@ template <template <typename,typename,typename,typename,typename,typename,typena
 struct get_type_info< U<T1,T2,T3,T4,T5,T6,T7>, Tail > {
   typedef type_id< U<T1,T2,T3,T4,T5,T6,T7>, 
     typename get_type_info_seq<T1,T2,T3,T4,T5,T6,T7>::template with_tail<Tail>::type::type > type;
+#ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
+  BOOST_STATIC_CONSTEXPR auto type_name = get_type_id< U<T1,T2,T3,T4,T5,T6,T7> >::type_name + lsl_left_bracket + get_type_info_seq<T1,T2,T3,T4,T5,T6,T7>::type_name + lsl_right_bracket + get_type_name_tail<Tail>::value;
+#else
   static std::string type_name() { 
     std::string result = get_type_id< U<T1,T2,T3,T4,T5,T6,T7> >::type_name();
     result += "<";
@@ -348,6 +457,7 @@ struct get_type_info< U<T1,T2,T3,T4,T5,T6,T7>, Tail > {
     result += get_type_name_tail<Tail>::value(); 
     return result; //NRVO
   };
+#endif
 };
 
 template <template <typename,typename,typename,typename,typename,typename,typename,typename> class U, 
@@ -356,6 +466,9 @@ template <template <typename,typename,typename,typename,typename,typename,typena
 struct get_type_info< U<T1,T2,T3,T4,T5,T6,T7,T8>, Tail > {
   typedef type_id< U<T1,T2,T3,T4,T5,T6,T7,T8>, 
     typename get_type_info_seq<T1,T2,T3,T4,T5,T6,T7,T8>::template with_tail<Tail>::type::type > type;
+#ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
+  BOOST_STATIC_CONSTEXPR auto type_name = get_type_id< U<T1,T2,T3,T4,T5,T6,T7,T8> >::type_name + lsl_left_bracket + get_type_info_seq<T1,T2,T3,T4,T5,T6,T7,T8>::type_name + lsl_right_bracket + get_type_name_tail<Tail>::value;
+#else
   static std::string type_name() { 
     std::string result = get_type_id< U<T1,T2,T3,T4,T5,T6,T7,T8> >::type_name();
     result += "<";
@@ -364,6 +477,7 @@ struct get_type_info< U<T1,T2,T3,T4,T5,T6,T7,T8>, Tail > {
     result += get_type_name_tail<Tail>::value(); 
     return result; //NRVO
   };
+#endif
 };
 
 template <template <typename,typename,typename,typename,typename,typename,typename,typename,typename> class U, 
@@ -372,6 +486,9 @@ template <template <typename,typename,typename,typename,typename,typename,typena
 struct get_type_info< U<T1,T2,T3,T4,T5,T6,T7,T8,T9>, Tail > {
   typedef type_id< U<T1,T2,T3,T4,T5,T6,T7,T8,T9>, 
     typename get_type_info_seq<T1,T2,T3,T4,T5,T6,T7,T8,T9>::template with_tail<Tail>::type::type > type;
+#ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
+  BOOST_STATIC_CONSTEXPR auto type_name = get_type_id< U<T1,T2,T3,T4,T5,T6,T7,T8,T9> >::type_name + lsl_left_bracket + get_type_info_seq<T1,T2,T3,T4,T5,T6,T7,T8,T9>::type_name + lsl_right_bracket + get_type_name_tail<Tail>::value;
+#else
   static std::string type_name() { 
     std::string result = get_type_id< U<T1,T2,T3,T4,T5,T6,T7,T8,T9> >::type_name();
     result += "<";
@@ -380,6 +497,7 @@ struct get_type_info< U<T1,T2,T3,T4,T5,T6,T7,T8,T9>, Tail > {
     result += get_type_name_tail<Tail>::value(); 
     return result; //NRVO
   };
+#endif
 };
 
 template <template <typename,typename,typename,typename,typename,typename,typename,typename,typename,typename> class U, 
@@ -388,6 +506,9 @@ template <template <typename,typename,typename,typename,typename,typename,typena
 struct get_type_info< U<T1,T2,T3,T4,T5,T6,T7,T8,T9,T10>, Tail > {
   typedef type_id< U<T1,T2,T3,T4,T5,T6,T7,T8,T9,T10>, 
     typename get_type_info_seq<T1,T2,T3,T4,T5,T6,T7,T8,T9,T10>::template with_tail<Tail>::type::type > type;
+#ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
+  BOOST_STATIC_CONSTEXPR auto type_name = get_type_id< U<T1,T2,T3,T4,T5,T6,T7,T8,T9,T10> >::type_name + lsl_left_bracket + get_type_info_seq<T1,T2,T3,T4,T5,T6,T7,T8,T9,T10>::type_name + lsl_right_bracket + get_type_name_tail<Tail>::value;
+#else
   static std::string type_name() { 
     std::string result = get_type_id< U<T1,T2,T3,T4,T5,T6,T7,T8,T9,T10> >::type_name();
     result += "<";
@@ -396,6 +517,7 @@ struct get_type_info< U<T1,T2,T3,T4,T5,T6,T7,T8,T9,T10>, Tail > {
     result += get_type_name_tail<Tail>::value(); 
     return result; //NRVO
   };
+#endif
 };
 
 #endif
@@ -405,41 +527,57 @@ struct get_type_info< U<T1,T2,T3,T4,T5,T6,T7,T8,T9,T10>, Tail > {
 template <unsigned int U, typename Tail>
 struct get_type_info< boost::mpl::integral_c<unsigned int,U>, Tail > {
   typedef type_id<boost::mpl::integral_c<unsigned int,U>, typename Tail::type> type;
+#ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
+  BOOST_STATIC_CONSTEXPR auto type_name = get_type_id< boost::mpl::integral_c<unsigned int,U> >::type_name + get_type_name_tail<Tail>::value;
+#else
   static std::string type_name() { 
     std::string result = get_type_id< boost::mpl::integral_c<unsigned int,U> >::type_name();
     result += get_type_name_tail<Tail>::value();
     return result; //NRVO
   };
+#endif
 };
 
 template <typename Tail>
 struct get_type_info< boost::mpl::true_, Tail > {
   typedef type_id<boost::mpl::true_, typename Tail::type> type;
+#ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
+  BOOST_STATIC_CONSTEXPR auto type_name = get_type_id<boost::mpl::true_>::type_name + get_type_name_tail<Tail>::value;
+#else
   static std::string type_name() { 
     std::string result = get_type_id<boost::mpl::true_>::type_name();
     result += get_type_name_tail<Tail>::value();
     return result; //NRVO
   };
+#endif
 };
 
 template <typename Tail>
 struct get_type_info< boost::mpl::false_, Tail > {
   typedef type_id<boost::mpl::false_, typename Tail::type> type;
+#ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
+  BOOST_STATIC_CONSTEXPR auto type_name = get_type_id<boost::mpl::false_>::type_name + get_type_name_tail<Tail>::value;
+#else
   static std::string type_name() { 
     std::string result = get_type_id<boost::mpl::false_>::type_name();
     result += get_type_name_tail<Tail>::value();
     return result; //NRVO
   };
+#endif
 };
 
 template <int I, typename Tail>
 struct get_type_info< boost::mpl::int_<I>, Tail > {
   typedef type_id<boost::mpl::int_<I>, typename Tail::type> type;
+#ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
+  BOOST_STATIC_CONSTEXPR auto type_name = get_type_id< boost::mpl::int_<I> >::type_name + get_type_name_tail<Tail>::value;
+#else
   static std::string type_name() { 
     std::string result = get_type_id< boost::mpl::int_<I> >::type_name();
     result += get_type_name_tail<Tail>::value();
     return result; //NRVO
   };
+#endif
 };
 
 
@@ -548,7 +686,12 @@ namespace {
     SizeType* typeID = so_type::createTypeID(TypeIDLength);
     for(SizeType i = 0; i < TypeIDLength; ++i)
       typeID[i] = get_type_id_prop< typename get_type_info<T>::type >::at(i);
+#ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
+    constexpr auto tname = get_type_info<T>::type_name;
+    return so_type_ptr(so_type::createTypeInfo(aVersion, typeID, tname.to_string(), get_type_id<T>::CreatePtr()));
+#else
     return so_type_ptr(so_type::createTypeInfo(aVersion, typeID, get_type_info<T>::type_name(), get_type_id<T>::CreatePtr()));
+#endif
   };
   
 };

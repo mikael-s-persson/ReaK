@@ -92,74 +92,115 @@ namespace rtti {
 template <>
 struct get_type_id< boost::mpl::integral_c<tensor_alignment::tag, tensor_alignment::hi_dim_major > > {
   BOOST_STATIC_CONSTANT(unsigned int, ID = 1);
+#ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
+  BOOST_STATIC_CONSTEXPR auto type_name = RK_LSA("hi_dim_major");
+#else
   static const char* type_name() BOOST_NOEXCEPT { return "hi_dim_major"; };
+#endif
   static construct_ptr CreatePtr() BOOST_NOEXCEPT { return NULL; };
 };
 
 template <>
 struct get_type_id< boost::mpl::integral_c<tensor_alignment::tag, tensor_alignment::low_dim_major > > {
   BOOST_STATIC_CONSTANT(unsigned int, ID = 2);
+#ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
+  BOOST_STATIC_CONSTEXPR auto type_name = RK_LSA("low_dim_major");
+#else
   static const char* type_name() BOOST_NOEXCEPT { return "low_dim_major"; };
+#endif
   static construct_ptr CreatePtr() BOOST_NOEXCEPT { return NULL; };
 };
 
 template <mat_alignment::tag U, typename Tail>
 struct get_type_info< boost::mpl::integral_c<tensor_alignment::tag, U >, Tail > {
   typedef type_id<boost::mpl::integral_c<tensor_alignment::tag, U >, typename Tail::type> type;
+#ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
+  BOOST_STATIC_CONSTEXPR auto type_name = get_type_id< boost::mpl::integral_c<tensor_alignment::tag, U > >::type_name
+    + get_type_name_tail<Tail>::value;
+#else
   static std::string type_name() { 
     std::string result = get_type_id< boost::mpl::integral_c<tensor_alignment::tag, U > >::type_name();
     result += get_type_name_tail<Tail>::value(); 
     return result; //NRVO
   };
+#endif
 };
 
   
 template <>
 struct get_type_id< boost::mpl::integral_c<tensor_structure::tag, tensor_structure::rectangular > > {
   BOOST_STATIC_CONSTANT(unsigned int, ID = 1);
+#ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
+  BOOST_STATIC_CONSTEXPR auto type_name = RK_LSA("rectangular");
+#else
   static const char* type_name() BOOST_NOEXCEPT { return "rectangular"; };
+#endif
   static construct_ptr CreatePtr() BOOST_NOEXCEPT { return NULL; };
 };
 
 template <>
 struct get_type_id< boost::mpl::integral_c<tensor_structure::tag, tensor_structure::square > > {
   BOOST_STATIC_CONSTANT(unsigned int, ID = 2);
+#ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
+  BOOST_STATIC_CONSTEXPR auto type_name = RK_LSA("square");
+#else
   static const char* type_name() BOOST_NOEXCEPT { return "square"; };
+#endif
   static construct_ptr CreatePtr() BOOST_NOEXCEPT { return NULL; };
 };
 
 template <>
 struct get_type_id< boost::mpl::integral_c<tensor_structure::tag, tensor_structure::diagonal > > {
   BOOST_STATIC_CONSTANT(unsigned int, ID = 3);
+#ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
+  BOOST_STATIC_CONSTEXPR auto type_name = RK_LSA("diagonal");
+#else
   static const char* type_name() BOOST_NOEXCEPT { return "diagonal"; };
+#endif
   static construct_ptr CreatePtr() BOOST_NOEXCEPT { return NULL; };
 };
 
 template <>
 struct get_type_id< boost::mpl::integral_c<tensor_structure::tag, tensor_structure::nil > > {
   BOOST_STATIC_CONSTANT(unsigned int, ID = 4);
+#ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
+  BOOST_STATIC_CONSTEXPR auto type_name = RK_LSA("nil");
+#else
   static const char* type_name() BOOST_NOEXCEPT { return "nil"; };
+#endif
   static construct_ptr CreatePtr() BOOST_NOEXCEPT { return NULL; };
 };
 
 template <>
 struct get_type_id< boost::mpl::integral_c<tensor_structure::tag, tensor_structure::identity > > {
   BOOST_STATIC_CONSTANT(unsigned int, ID = 5);
+#ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
+  BOOST_STATIC_CONSTEXPR auto type_name = RK_LSA("identity");
+#else
   static const char* type_name() BOOST_NOEXCEPT { return "identity"; };
+#endif
   static construct_ptr CreatePtr() BOOST_NOEXCEPT { return NULL; };
 };
 
 template <>
 struct get_type_id< boost::mpl::integral_c<tensor_structure::tag, tensor_structure::scalar > > {
   BOOST_STATIC_CONSTANT(unsigned int, ID = 6);
+#ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
+  BOOST_STATIC_CONSTEXPR auto type_name = RK_LSA("scalar");
+#else
   static const char* type_name() BOOST_NOEXCEPT { return "scalar"; };
+#endif
   static construct_ptr CreatePtr() BOOST_NOEXCEPT { return NULL; };
 };
 
 template <>
 struct get_type_id< boost::mpl::integral_c<tensor_structure::tag, tensor_structure::permutation > > {
   BOOST_STATIC_CONSTANT(unsigned int, ID = 7);
+#ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
+  BOOST_STATIC_CONSTEXPR auto type_name = RK_LSA("permutation");
+#else
   static const char* type_name() BOOST_NOEXCEPT { return "permutation"; };
+#endif
   static construct_ptr CreatePtr() BOOST_NOEXCEPT { return NULL; };
 };
 
@@ -167,11 +208,16 @@ struct get_type_id< boost::mpl::integral_c<tensor_structure::tag, tensor_structu
 template <mat_structure::tag U, typename Tail>
 struct get_type_info< boost::mpl::integral_c<tensor_structure::tag, U >, Tail > {
   typedef type_id<boost::mpl::integral_c<tensor_structure::tag, U >, typename Tail::type> type;
+#ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
+  BOOST_STATIC_CONSTEXPR auto type_name = get_type_id< boost::mpl::integral_c<tensor_structure::tag, U > >::type_name
+    + get_type_name_tail<Tail>::value;
+#else
   static std::string type_name() { 
     std::string result = get_type_id< boost::mpl::integral_c<tensor_structure::tag, U > >::type_name();
     result += get_type_name_tail<Tail>::value();
     return result; //NRVO
   };
+#endif
 };
 
   

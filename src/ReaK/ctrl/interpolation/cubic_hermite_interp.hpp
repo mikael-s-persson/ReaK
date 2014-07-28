@@ -458,7 +458,11 @@ namespace rtti {
 template <>
 struct get_type_id< pp::cubic_hermite_interpolation_tag > {
   BOOST_STATIC_CONSTANT(unsigned int, ID = 2);
+#ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
+  BOOST_STATIC_CONSTEXPR auto type_name = RK_LSA("cubic_hermite_interpolation_tag");
+#else
   static const char* type_name() BOOST_NOEXCEPT { return "cubic_hermite_interpolation_tag"; };
+#endif
   static construct_ptr CreatePtr() BOOST_NOEXCEPT { return NULL; };
 };
 

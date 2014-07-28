@@ -948,7 +948,11 @@ namespace rtti {
 template <typename T, unsigned int Size>
 struct get_type_id< vect<T,Size> > {
   BOOST_STATIC_CONSTANT(unsigned int, ID = 0x00000011);
+#ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
+  BOOST_STATIC_CONSTEXPR auto type_name = RK_LSA("vect");
+#else
   static const char* type_name() BOOST_NOEXCEPT { return "vect"; };
+#endif
   static construct_ptr CreatePtr() BOOST_NOEXCEPT { return NULL; };
   
   typedef const serialization::serializable& save_type;
@@ -959,6 +963,12 @@ template <typename T, unsigned int Size, typename Tail>
 struct get_type_info< vect<T,Size>, Tail > {
   typedef type_id< vect<T,Size> , typename get_type_info<T, 
                                                    get_type_info<boost::mpl::integral_c<unsigned int,Size> , Tail> >::type> type;
+#ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
+  BOOST_STATIC_CONSTEXPR auto type_name = get_type_id< vect<T,Size> >::type_name 
+    + lsl_left_bracket + get_type_id<T>::type_name + lsl_comma 
+    + get_type_id< boost::mpl::integral_c<unsigned int,Size> >::type_name + lsl_right_bracket
+    + get_type_name_tail<Tail>::value;
+#else
   static std::string type_name() { 
     std::string result = get_type_id< vect<T,Size> >::type_name();
     result += "<";
@@ -969,6 +979,7 @@ struct get_type_info< vect<T,Size>, Tail > {
     result += get_type_name_tail<Tail>::value();
     return result; //NRVO
   };
+#endif
 };
 
 };
@@ -1923,7 +1934,11 @@ namespace rtti {
 template <typename T,typename Allocator>
 struct get_type_id< vect_n<T,Allocator> > {
   BOOST_STATIC_CONSTANT(unsigned int, ID = 0x00000010);
+#ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
+  BOOST_STATIC_CONSTEXPR auto type_name = RK_LSA("vect_n");
+#else
   static const char* type_name() BOOST_NOEXCEPT { return "vect_n"; };
+#endif
   static construct_ptr CreatePtr() BOOST_NOEXCEPT { return NULL; };
   
   typedef const serialization::serializable& save_type;
@@ -1933,6 +1948,11 @@ struct get_type_id< vect_n<T,Allocator> > {
 template <typename T, typename Allocator, typename Tail>
 struct get_type_info< vect_n<T,Allocator>, Tail > {
   typedef type_id< vect_n<T,Allocator> , typename get_type_info<T, Tail>::type > type;
+#ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
+  BOOST_STATIC_CONSTEXPR auto type_name = get_type_id< vect_n<T,Allocator> >::type_name 
+    + lsl_left_bracket + get_type_id<T>::type_name + lsl_right_bracket
+    + get_type_name_tail<Tail>::value;
+#else
   static std::string type_name() { 
     std::string result = get_type_id< vect_n<T,Allocator> >::type_name();
     result += "<";
@@ -1941,6 +1961,7 @@ struct get_type_info< vect_n<T,Allocator>, Tail > {
     result += get_type_name_tail<Tail>::value(); 
     return result; //NRVO
   };
+#endif
 };
 
 };

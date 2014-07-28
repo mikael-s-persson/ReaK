@@ -93,7 +93,11 @@ namespace rtti {
 template <>
 struct get_type_id< geom::color > {
   BOOST_STATIC_CONSTANT(unsigned int, ID = 0x00000031);
+#ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
+  BOOST_STATIC_CONSTEXPR auto type_name = RK_LSA("color");
+#else
   static const char* type_name() BOOST_NOEXCEPT { return "color"; };
+#endif
   static construct_ptr CreatePtr() BOOST_NOEXCEPT { return NULL; };
   
   typedef const serialization::serializable& save_type;

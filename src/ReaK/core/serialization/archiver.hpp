@@ -544,7 +544,12 @@ class iarchive : public archive {
       unsigned int count;
       in >> count;
       v.resize(count);
+#ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
+      constexpr auto tname = rtti::get_type_info<T>::type_name;
+      in.start_repeated_field(tname.to_string());
+#else
       in.start_repeated_field(rtti::get_type_info<T>::type_name());
+#endif
       for(unsigned int i=0;i<count;++i)
         in >> v[i];
       in.finish_repeated_field();
@@ -557,7 +562,12 @@ class iarchive : public archive {
       unsigned int count;
       in & RK_SERIAL_LOAD_WITH_ALIAS(v.first + "_count", count);
       v.second.resize(count);
+#ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
+      constexpr auto tname = rtti::get_type_info<T>::type_name;
+      in.start_repeated_field(tname.to_string(),v.first);
+#else
       in.start_repeated_field(rtti::get_type_info<T>::type_name(),v.first);
+#endif
       for(unsigned int i=0;i<count;++i) {
         std::stringstream s_stream;
         s_stream << v.first << "_q[" << i << "]";
@@ -573,7 +583,12 @@ class iarchive : public archive {
       unsigned int count;
       in >> count;
       v.resize(count);
+#ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
+      constexpr auto tname = rtti::get_type_info<T>::type_name;
+      in.start_repeated_field(tname.to_string());
+#else
       in.start_repeated_field(rtti::get_type_info<T>::type_name());
+#endif
       typename std::list<T,Allocator>::iterator it = v.begin();
       for(;it!=v.end();++it)
         in >> (*it);
@@ -587,7 +602,12 @@ class iarchive : public archive {
       unsigned int count;
       in & RK_SERIAL_LOAD_WITH_ALIAS(v.first + "_count", count);
       v.second.resize(count);
+#ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
+      constexpr auto tname = rtti::get_type_info<T>::type_name;
+      in.start_repeated_field(tname.to_string(),v.first);
+#else
       in.start_repeated_field(rtti::get_type_info<T>::type_name(),v.first);
+#endif
       typename std::list<T,Allocator>::iterator it = v.second.begin();
       for(unsigned int i=0;it!=v.second.end();++it) {
         std::stringstream s_stream;
@@ -604,7 +624,13 @@ class iarchive : public archive {
       unsigned int count;
       in >> count;
       m.clear();
+#ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
+      constexpr auto kname = rtti::get_type_info<Key>::type_name;
+      constexpr auto tname = rtti::get_type_info<T>::type_name;
+      in.start_repeated_pair(kname.to_string(),tname.to_string());
+#else
       in.start_repeated_pair(rtti::get_type_info<Key>::type_name(),rtti::get_type_info<T>::type_name());
+#endif
       for(unsigned int i=0;i<count;++i) {
         Key value_key;
         in >> value_key;
@@ -620,7 +646,13 @@ class iarchive : public archive {
       unsigned int count;
       in & RK_SERIAL_LOAD_WITH_ALIAS(m.first + "_count", count);
       m.second.clear();
+#ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
+      constexpr auto kname = rtti::get_type_info<Key>::type_name;
+      constexpr auto tname = rtti::get_type_info<T>::type_name;
+      in.start_repeated_pair(kname.to_string(),tname.to_string(),m.first);
+#else
       in.start_repeated_pair(rtti::get_type_info<Key>::type_name(),rtti::get_type_info<T>::type_name(),m.first);
+#endif
       for(unsigned int i=0;i<count;++i) {
         std::stringstream key_s_stream;
         key_s_stream << m.first << "_key[" << i << "]";
@@ -640,7 +672,12 @@ class iarchive : public archive {
       unsigned int count;
       in >> count;
       v.clear();
+#ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
+      constexpr auto tname = rtti::get_type_info<T>::type_name;
+      in.start_repeated_field(tname.to_string());
+#else
       in.start_repeated_field(rtti::get_type_info<T>::type_name());
+#endif
       for(unsigned int i = 0;i < count;++i) {
         T temp;
         in >> temp;
@@ -656,7 +693,12 @@ class iarchive : public archive {
       unsigned int count;
       in & RK_SERIAL_LOAD_WITH_ALIAS(v.first + "_count", count);
       v.second.clear();
+#ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
+      constexpr auto tname = rtti::get_type_info<T>::type_name;
+      in.start_repeated_field(tname.to_string(),v.first);
+#else
       in.start_repeated_field(rtti::get_type_info<T>::type_name(),v.first);
+#endif
       for(unsigned int i=0; i < count;++i) {
         std::stringstream s_stream;
         s_stream << v.first << "_q[" << i << "]";
@@ -1142,7 +1184,12 @@ class oarchive : public archive {
     friend oarchive& operator <<(oarchive& out, const std::vector<T,Allocator>& v) {
       unsigned int count = v.size();
       out << count;
+#ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
+      constexpr auto tname = rtti::get_type_info<T>::type_name;
+      out.start_repeated_field(tname.to_string());
+#else
       out.start_repeated_field(rtti::get_type_info<T>::type_name());
+#endif
       for(unsigned int i=0;i<count;++i)
         out << v[i];
       out.finish_repeated_field();
@@ -1154,7 +1201,12 @@ class oarchive : public archive {
     friend oarchive& operator &(oarchive& out, const std::pair<std::string, const std::vector<T,Allocator>& >& v) {
       unsigned int count = v.second.size();
       out & RK_SERIAL_SAVE_WITH_ALIAS(v.first + "_count", count);
+#ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
+      constexpr auto tname = rtti::get_type_info<T>::type_name;
+      out.start_repeated_field(tname.to_string(),v.first);
+#else
       out.start_repeated_field(rtti::get_type_info<T>::type_name(),v.first);
+#endif
       for(unsigned int i=0;i<count;++i) {
         std::stringstream s_stream;
         s_stream << v.first << "_q[" << i << "]";
@@ -1169,7 +1221,12 @@ class oarchive : public archive {
     friend oarchive& operator <<(oarchive& out, const std::list<T,Allocator>& v) {
       unsigned int count = v.size();
       out << count;
+#ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
+      constexpr auto tname = rtti::get_type_info<T>::type_name;
+      out.start_repeated_field(tname.to_string());
+#else
       out.start_repeated_field(rtti::get_type_info<T>::type_name());
+#endif
       typename std::list<T,Allocator>::const_iterator it = v.begin();
       for(;it!=v.end();++it)
         out << (*it);
@@ -1182,7 +1239,12 @@ class oarchive : public archive {
     friend oarchive& operator &(oarchive& out, const std::pair<std::string, const std::list<T,Allocator>& >& v) {
       unsigned int count = v.second.size();
       out & RK_SERIAL_SAVE_WITH_ALIAS(v.first + "_count", count);
+#ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
+      constexpr auto tname = rtti::get_type_info<T>::type_name;
+      out.start_repeated_field(tname.to_string(),v.first);
+#else
       out.start_repeated_field(rtti::get_type_info<T>::type_name(),v.first);
+#endif
       typename std::list<T,Allocator>::const_iterator it = v.second.begin();
       for(unsigned int i=0;it!=v.second.end();++it) {
         std::stringstream s_stream;
@@ -1198,7 +1260,13 @@ class oarchive : public archive {
     friend oarchive& operator <<(oarchive& out, const std::map<Key,T,Compare,Allocator>& m) {
       unsigned int count = m.size();
       out << count;
+#ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
+      constexpr auto kname = rtti::get_type_info<Key>::type_name;
+      constexpr auto tname = rtti::get_type_info<T>::type_name;
+      out.start_repeated_pair(kname.to_string(),tname.to_string());
+#else
       out.start_repeated_pair(rtti::get_type_info<Key>::type_name(),rtti::get_type_info<T>::type_name());
+#endif
       typename std::map<Key,T,Compare,Allocator>::const_iterator it = m.begin();
       for(;it != m.end();it++)
         out << it->first << it->second;
@@ -1211,7 +1279,13 @@ class oarchive : public archive {
     friend oarchive& operator &(oarchive& out, const std::pair<std::string, const std::map<Key,T,Compare,Allocator>& >& m) {
       unsigned int count = m.second.size();
       out & std::pair<std::string, unsigned int >(m.first + "_count", count);
+#ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
+      constexpr auto kname = rtti::get_type_info<Key>::type_name;
+      constexpr auto tname = rtti::get_type_info<T>::type_name;
+      out.start_repeated_pair(kname.to_string(),tname.to_string(),m.first);
+#else
       out.start_repeated_pair(rtti::get_type_info<Key>::type_name(),rtti::get_type_info<T>::type_name(),m.first);
+#endif
       typename std::map<Key,T,Compare,Allocator>::const_iterator it = m.second.begin();
       for(unsigned int i=0;it != m.second.end();it++,++i) {
         std::stringstream key_s_stream;
@@ -1231,7 +1305,12 @@ class oarchive : public archive {
     friend oarchive& operator <<(oarchive& out, const std::set<T,Compare,Allocator>& v) {
       unsigned int count = v.size();
       out << count;
+#ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
+      constexpr auto tname = rtti::get_type_info<T>::type_name;
+      out.start_repeated_field(tname.to_string());
+#else
       out.start_repeated_field(rtti::get_type_info<T>::type_name());
+#endif
       typename std::set<T,Compare,Allocator>::const_iterator it = v.begin();
       for(;it!=v.end();++it)
         out << (*it);
@@ -1244,7 +1323,12 @@ class oarchive : public archive {
     friend oarchive& operator &(oarchive& out, const std::pair<std::string, const std::set<T,Compare,Allocator>& >& v) {
       unsigned int count = v.second.size();
       out & RK_SERIAL_SAVE_WITH_ALIAS(v.first + "_count", count);
+#ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
+      constexpr auto tname = rtti::get_type_info<T>::type_name;
+      out.start_repeated_field(tname.to_string(),v.first);
+#else
       out.start_repeated_field(rtti::get_type_info<T>::type_name(),v.first);
+#endif
       typename std::set<T,Compare,Allocator>::const_iterator it = v.second.begin();
       for(unsigned int i=0;it!=v.second.end();++it) {
         std::stringstream s_stream;

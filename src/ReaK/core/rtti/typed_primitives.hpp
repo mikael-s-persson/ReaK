@@ -44,7 +44,11 @@ namespace rtti {
 template <>
 struct get_type_id<int> {
   BOOST_STATIC_CONSTANT(unsigned int, ID = 0x00000001);
+#ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
+  BOOST_STATIC_CONSTEXPR auto type_name = RK_LSA("int");
+#else
   static const char* type_name() BOOST_NOEXCEPT { return "int"; };
+#endif
   static construct_ptr CreatePtr() BOOST_NOEXCEPT { return NULL; };
   
   typedef int save_type;
@@ -54,7 +58,11 @@ struct get_type_id<int> {
 template <>
 struct get_type_id<unsigned int> {
   BOOST_STATIC_CONSTANT(unsigned int, ID = 0x00000002);
+#ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
+  BOOST_STATIC_CONSTEXPR auto type_name = RK_LSA("unsigned int");
+#else
   static const char* type_name() BOOST_NOEXCEPT { return "unsigned int"; };
+#endif
   static construct_ptr CreatePtr() BOOST_NOEXCEPT { return NULL; };
   
   typedef unsigned int save_type;
@@ -64,7 +72,11 @@ struct get_type_id<unsigned int> {
 template <>
 struct get_type_id<long unsigned int> {
   BOOST_STATIC_CONSTANT(unsigned int, ID = 0x00000030);
+#ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
+  BOOST_STATIC_CONSTEXPR auto type_name = RK_LSA("long unsigned int");
+#else
   static const char* type_name() BOOST_NOEXCEPT { return "long unsigned int"; };
+#endif
   static construct_ptr CreatePtr() BOOST_NOEXCEPT { return NULL; };
   
   typedef const long unsigned int& save_type;
@@ -74,7 +86,11 @@ struct get_type_id<long unsigned int> {
 template <>
 struct get_type_id<char> {
   BOOST_STATIC_CONSTANT(unsigned int, ID = 0x00000031);
+#ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
+  BOOST_STATIC_CONSTEXPR auto type_name = RK_LSA("char");
+#else
   static const char* type_name() BOOST_NOEXCEPT { return "char"; };
+#endif
   static construct_ptr CreatePtr() BOOST_NOEXCEPT { return NULL; };
   
   typedef char save_type;
@@ -84,7 +100,11 @@ struct get_type_id<char> {
 template <>
 struct get_type_id<unsigned char> {
   BOOST_STATIC_CONSTANT(unsigned int, ID = 0x00000032);
+#ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
+  BOOST_STATIC_CONSTEXPR auto type_name = RK_LSA("unsigned char");
+#else
   static const char* type_name() BOOST_NOEXCEPT { return "unsigned char"; };
+#endif
   static construct_ptr CreatePtr() BOOST_NOEXCEPT { return NULL; };
   
   typedef unsigned char save_type;
@@ -94,7 +114,11 @@ struct get_type_id<unsigned char> {
 template <>
 struct get_type_id<float> {
   BOOST_STATIC_CONSTANT(unsigned int, ID = 0x00000003);
+#ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
+  BOOST_STATIC_CONSTEXPR auto type_name = RK_LSA("float");
+#else
   static const char* type_name() BOOST_NOEXCEPT { return "float"; };
+#endif
   static construct_ptr CreatePtr() BOOST_NOEXCEPT { return NULL; };
   
   typedef float save_type;
@@ -104,7 +128,11 @@ struct get_type_id<float> {
 template <>
 struct get_type_id<double> {
   BOOST_STATIC_CONSTANT(unsigned int, ID = 0x00000004);
+#ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
+  BOOST_STATIC_CONSTEXPR auto type_name = RK_LSA("double");
+#else
   static const char* type_name() BOOST_NOEXCEPT { return "double"; };
+#endif
   static construct_ptr CreatePtr() BOOST_NOEXCEPT { return NULL; };
   
   typedef double save_type;
@@ -114,7 +142,11 @@ struct get_type_id<double> {
 template <>
 struct get_type_id<bool> {
   BOOST_STATIC_CONSTANT(unsigned int, ID = 0x00000005);
+#ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
+  BOOST_STATIC_CONSTEXPR auto type_name = RK_LSA("bool");
+#else
   static const char* type_name() BOOST_NOEXCEPT { return "bool"; };
+#endif
   static construct_ptr CreatePtr() BOOST_NOEXCEPT { return NULL; };
   
   typedef bool save_type;
@@ -124,7 +156,11 @@ struct get_type_id<bool> {
 template <>
 struct get_type_id<std::string> {
   BOOST_STATIC_CONSTANT(unsigned int, ID = 0x00000006);
+#ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
+  BOOST_STATIC_CONSTEXPR auto type_name = RK_LSA("string");
+#else
   static const char* type_name() BOOST_NOEXCEPT { return "string"; };
+#endif
   static construct_ptr CreatePtr() BOOST_NOEXCEPT { return NULL; };
   
   typedef const std::string& save_type;
@@ -133,12 +169,16 @@ struct get_type_id<std::string> {
 
 template <typename Tail>
 struct get_type_info< std::string, Tail > {
-  typedef type_id< std::string, typename get_type_info<Tail>::type> type;
+  typedef type_id< std::string, typename Tail::type> type;
+#ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
+  BOOST_STATIC_CONSTEXPR auto type_name = get_type_id< std::string >::type_name + get_type_name_tail<Tail>::value;
+#else
   static std::string type_name() { 
     std::string result = get_type_id< std::string >::type_name();
     result += get_type_name_tail<Tail>::value(); 
     return result; //NRVO
   };
+#endif
 };
 
 #ifdef BOOST_NO_CXX11_SMART_PTR
@@ -146,7 +186,11 @@ struct get_type_info< std::string, Tail > {
 template <typename T>
 struct get_type_id< boost::shared_ptr<T> > {
   BOOST_STATIC_CONSTANT(unsigned int, ID = get_type_id<T>::ID);
+#ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
+  BOOST_STATIC_CONSTEXPR auto type_name = RK_LSA("shared_ptr");
+#else
   static const char* type_name() BOOST_NOEXCEPT { return "shared_ptr"; };
+#endif
   static construct_ptr CreatePtr() BOOST_NOEXCEPT { return NULL; };
   
   typedef const boost::shared_ptr<T>& save_type;
@@ -156,7 +200,11 @@ struct get_type_id< boost::shared_ptr<T> > {
 template <typename T>
 struct get_type_id< boost::weak_ptr<T> > {
   BOOST_STATIC_CONSTANT(unsigned int, ID = get_type_id<T>::ID);
+#ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
+  BOOST_STATIC_CONSTEXPR auto type_name = RK_LSA("weak_ptr");
+#else
   static const char* type_name() BOOST_NOEXCEPT { return "weak_ptr"; };
+#endif
   static construct_ptr CreatePtr() BOOST_NOEXCEPT { return NULL; };
   
   typedef const boost::weak_ptr<T>& save_type;
@@ -168,7 +216,11 @@ struct get_type_id< boost::weak_ptr<T> > {
 template <typename T>
 struct get_type_id< std::shared_ptr<T> > {
   BOOST_STATIC_CONSTANT(unsigned int, ID = get_type_id<T>::ID);
+#ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
+  BOOST_STATIC_CONSTEXPR auto type_name = RK_LSA("shared_ptr");
+#else
   static const char* type_name() BOOST_NOEXCEPT { return "shared_ptr"; };
+#endif
   static construct_ptr CreatePtr() BOOST_NOEXCEPT { return NULL; };
   
   typedef const std::shared_ptr<T>& save_type;
@@ -178,7 +230,11 @@ struct get_type_id< std::shared_ptr<T> > {
 template <typename T>
 struct get_type_id< std::weak_ptr<T> > {
   BOOST_STATIC_CONSTANT(unsigned int, ID = get_type_id<T>::ID);
+#ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
+  BOOST_STATIC_CONSTEXPR auto type_name = RK_LSA("weak_ptr");
+#else
   static const char* type_name() BOOST_NOEXCEPT { return "weak_ptr"; };
+#endif
   static construct_ptr CreatePtr() BOOST_NOEXCEPT { return NULL; };
   
   typedef const std::weak_ptr<T>& save_type;
@@ -188,7 +244,11 @@ struct get_type_id< std::weak_ptr<T> > {
 template <typename T>
 struct get_type_id< std::unique_ptr<T> > {
   BOOST_STATIC_CONSTANT(unsigned int, ID = get_type_id<T>::ID);
+#ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
+  BOOST_STATIC_CONSTEXPR auto type_name = RK_LSA("unique_ptr");
+#else
   static const char* type_name() BOOST_NOEXCEPT { return "unique_ptr"; };
+#endif
   static construct_ptr CreatePtr() BOOST_NOEXCEPT { return NULL; };
   
   typedef const std::unique_ptr<T>& save_type;

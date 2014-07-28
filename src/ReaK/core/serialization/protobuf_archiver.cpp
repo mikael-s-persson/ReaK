@@ -923,7 +923,12 @@ oarchive& RK_CALL protobuf_schemer::save_serializable_ptr(const std::pair<std::s
   
   unsigned int chunk_hdr = get_chunk_hdr(); 
   
+#ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
+  constexpr auto tname = rtti::get_type_id<serializable_shared_pointer>::type_name;
+  std::string aObjTypeName = tname.to_string();
+#else
   std::string aObjTypeName = rtti::get_type_id<serializable_shared_pointer>::type_name();
+#endif
   aObjTypeName += "<" + Item.second->getObjectType()->TypeName() + ">";
   std::map< serializable_shared_pointer, unsigned int>::const_iterator it = mObjRegMap.find(Item.second);
   

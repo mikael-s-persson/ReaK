@@ -988,7 +988,11 @@ namespace rtti {
 template <typename T>
 struct get_type_id< quat<T> > {
   BOOST_STATIC_CONSTANT(unsigned int, ID = 0x0000002B);
+#ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
+  BOOST_STATIC_CONSTEXPR auto type_name = RK_LSA("ReaK::quat");
+#else
   static const char* type_name() BOOST_NOEXCEPT { return "ReaK::quat"; };
+#endif
   static construct_ptr CreatePtr() BOOST_NOEXCEPT { return NULL; };
   
   typedef const quat<T>& save_type;
@@ -998,7 +1002,11 @@ struct get_type_id< quat<T> > {
 template <typename T>
 struct get_type_id< unit_quat<T> > {
   BOOST_STATIC_CONSTANT(unsigned int, ID = 0x0000002D);
+#ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
+  BOOST_STATIC_CONSTEXPR auto type_name = RK_LSA("ReaK::unit_quat");
+#else
   static const char* type_name() BOOST_NOEXCEPT { return "ReaK::unit_quat"; };
+#endif
   static construct_ptr CreatePtr() BOOST_NOEXCEPT { return NULL; };
   
   typedef const quat<T>& save_type;

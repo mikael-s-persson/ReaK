@@ -98,116 +98,180 @@ namespace rtti {
 template <>
 struct get_type_id< boost::mpl::integral_c<mat_alignment::tag, mat_alignment::column_major > > {
   BOOST_STATIC_CONSTANT(unsigned int, ID = 1);
+#ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
+  BOOST_STATIC_CONSTEXPR auto type_name = RK_LSA("column_major");
+#else
   static const char* type_name() BOOST_NOEXCEPT { return "column_major"; };
+#endif
   static construct_ptr CreatePtr() BOOST_NOEXCEPT { return NULL; };
 };
 
 template <>
 struct get_type_id< boost::mpl::integral_c<mat_alignment::tag, mat_alignment::row_major > > {
   BOOST_STATIC_CONSTANT(unsigned int, ID = 2);
+#ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
+  BOOST_STATIC_CONSTEXPR auto type_name = RK_LSA("row_major");
+#else
   static const char* type_name() BOOST_NOEXCEPT { return "row_major"; };
+#endif
   static construct_ptr CreatePtr() BOOST_NOEXCEPT { return NULL; };
 };
 
 template <mat_alignment::tag U, typename Tail>
 struct get_type_info< boost::mpl::integral_c<mat_alignment::tag, U >, Tail > {
   typedef type_id<boost::mpl::integral_c<mat_alignment::tag, U >, typename Tail::type> type;
+#ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
+  BOOST_STATIC_CONSTEXPR auto type_name = get_type_id< boost::mpl::integral_c<mat_alignment::tag, U > >::type_name + get_type_name_tail<Tail>::value;
+#else
   static std::string type_name() { 
     std::string result = get_type_id< boost::mpl::integral_c<mat_alignment::tag, U > >::type_name();
     result += get_type_name_tail<Tail>::value(); 
     return result; //NRVO
   };
+#endif
 };
 
   
 template <>
 struct get_type_id< boost::mpl::integral_c<mat_structure::tag, mat_structure::rectangular > > {
   BOOST_STATIC_CONSTANT(unsigned int, ID = 1);
+#ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
+  BOOST_STATIC_CONSTEXPR auto type_name = RK_LSA("rectangular");
+#else
   static const char* type_name() BOOST_NOEXCEPT { return "rectangular"; };
+#endif
   static construct_ptr CreatePtr() BOOST_NOEXCEPT { return NULL; };
 };
 
 template <>
 struct get_type_id< boost::mpl::integral_c<mat_structure::tag, mat_structure::square > > {
   BOOST_STATIC_CONSTANT(unsigned int, ID = 2);
+#ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
+  BOOST_STATIC_CONSTEXPR auto type_name = RK_LSA("square");
+#else
   static const char* type_name() BOOST_NOEXCEPT { return "square"; };
+#endif
   static construct_ptr CreatePtr() BOOST_NOEXCEPT { return NULL; };
 };
 
 template <>
 struct get_type_id< boost::mpl::integral_c<mat_structure::tag, mat_structure::symmetric > > {
   BOOST_STATIC_CONSTANT(unsigned int, ID = 3);
+#ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
+  BOOST_STATIC_CONSTEXPR auto type_name = RK_LSA("symmetric");
+#else
   static const char* type_name() BOOST_NOEXCEPT { return "symmetric"; };
+#endif
   static construct_ptr CreatePtr() BOOST_NOEXCEPT { return NULL; };
 };
 
 template <>
 struct get_type_id< boost::mpl::integral_c<mat_structure::tag, mat_structure::skew_symmetric > > {
   BOOST_STATIC_CONSTANT(unsigned int, ID = 4);
+#ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
+  BOOST_STATIC_CONSTEXPR auto type_name = RK_LSA("skew_symmetric");
+#else
   static const char* type_name() BOOST_NOEXCEPT { return "skew_symmetric"; };
+#endif
   static construct_ptr CreatePtr() BOOST_NOEXCEPT { return NULL; };
 };
 
 template <>
 struct get_type_id< boost::mpl::integral_c<mat_structure::tag, mat_structure::diagonal > > {
   BOOST_STATIC_CONSTANT(unsigned int, ID = 5);
+#ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
+  BOOST_STATIC_CONSTEXPR auto type_name = RK_LSA("diagonal");
+#else
   static const char* type_name() BOOST_NOEXCEPT { return "diagonal"; };
+#endif
   static construct_ptr CreatePtr() BOOST_NOEXCEPT { return NULL; };
 };
 
 template <>
 struct get_type_id< boost::mpl::integral_c<mat_structure::tag, mat_structure::upper_triangular > > {
   BOOST_STATIC_CONSTANT(unsigned int, ID = 6);
+#ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
+  BOOST_STATIC_CONSTEXPR auto type_name = RK_LSA("upper_triangular");
+#else
   static const char* type_name() BOOST_NOEXCEPT { return "upper_triangular"; };
+#endif
   static construct_ptr CreatePtr() BOOST_NOEXCEPT { return NULL; };
 };
 
 template <>
 struct get_type_id< boost::mpl::integral_c<mat_structure::tag, mat_structure::lower_triangular > > {
   BOOST_STATIC_CONSTANT(unsigned int, ID = 7);
+#ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
+  BOOST_STATIC_CONSTEXPR auto type_name = RK_LSA("lower_triangular");
+#else
   static const char* type_name() { return "lower_triangular"; };
+#endif
   static construct_ptr CreatePtr() { return NULL; };
 };
 
 template <>
 struct get_type_id< boost::mpl::integral_c<mat_structure::tag, mat_structure::orthogonal > > {
   BOOST_STATIC_CONSTANT(unsigned int, ID = 8);
+#ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
+  BOOST_STATIC_CONSTEXPR auto type_name = RK_LSA("orthogonal");
+#else
   static const char* type_name() BOOST_NOEXCEPT { return "orthogonal"; };
+#endif
   static construct_ptr CreatePtr() BOOST_NOEXCEPT { return NULL; };
 };
 
 template <>
 struct get_type_id< boost::mpl::integral_c<mat_structure::tag, mat_structure::tridiagonal > > {
   BOOST_STATIC_CONSTANT(unsigned int, ID = 9);
+#ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
+  BOOST_STATIC_CONSTEXPR auto type_name = RK_LSA("tridiagonal");
+#else
   static const char* type_name() BOOST_NOEXCEPT { return "tridiagonal"; };
+#endif
   static construct_ptr CreatePtr() BOOST_NOEXCEPT { return NULL; };
 };
 
 template <>
 struct get_type_id< boost::mpl::integral_c<mat_structure::tag, mat_structure::nil > > {
   BOOST_STATIC_CONSTANT(unsigned int, ID = 10);
+#ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
+  BOOST_STATIC_CONSTEXPR auto type_name = RK_LSA("nil");
+#else
   static const char* type_name() BOOST_NOEXCEPT { return "nil"; };
+#endif
   static construct_ptr CreatePtr() BOOST_NOEXCEPT { return NULL; };
 };
 
 template <>
 struct get_type_id< boost::mpl::integral_c<mat_structure::tag, mat_structure::identity > > {
   BOOST_STATIC_CONSTANT(unsigned int, ID = 11);
+#ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
+  BOOST_STATIC_CONSTEXPR auto type_name = RK_LSA("identity");
+#else
   static const char* type_name() BOOST_NOEXCEPT { return "identity"; };
+#endif
   static construct_ptr CreatePtr() BOOST_NOEXCEPT { return NULL; };
 };
 
 template <>
 struct get_type_id< boost::mpl::integral_c<mat_structure::tag, mat_structure::scalar > > {
   BOOST_STATIC_CONSTANT(unsigned int, ID = 12);
+#ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
+  BOOST_STATIC_CONSTEXPR auto type_name = RK_LSA("scalar");
+#else
   static const char* type_name() BOOST_NOEXCEPT { return "scalar"; };
+#endif
   static construct_ptr CreatePtr() BOOST_NOEXCEPT { return NULL; };
 };
 
 template <>
 struct get_type_id< boost::mpl::integral_c<mat_structure::tag, mat_structure::permutation > > {
   BOOST_STATIC_CONSTANT(unsigned int, ID = 13);
+#ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
+  BOOST_STATIC_CONSTEXPR auto type_name = RK_LSA("permutation");
+#else
   static const char* type_name() BOOST_NOEXCEPT { return "permutation"; };
+#endif
   static construct_ptr CreatePtr() BOOST_NOEXCEPT { return NULL; };
 };
 
@@ -215,11 +279,15 @@ struct get_type_id< boost::mpl::integral_c<mat_structure::tag, mat_structure::pe
 template <mat_structure::tag U, typename Tail>
 struct get_type_info< boost::mpl::integral_c<mat_structure::tag, U >, Tail > {
   typedef type_id<boost::mpl::integral_c<mat_structure::tag, U >, typename Tail::type> type;
+#ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
+  BOOST_STATIC_CONSTEXPR auto type_name = get_type_id< boost::mpl::integral_c<mat_structure::tag, U > >::type_name + get_type_name_tail<Tail>::value;
+#else
   static std::string type_name() {
     std::string result = get_type_id< boost::mpl::integral_c<mat_structure::tag, U > >::type_name();
     result += get_type_name_tail<Tail>::value();
     return result; //NRVO
   };
+#endif
 };
 
   

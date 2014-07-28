@@ -460,7 +460,11 @@ namespace rtti {
 template <typename T>
 struct get_type_id< complex<T> > {
   BOOST_STATIC_CONSTANT(unsigned int, ID = 0x00000007);
+#ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
+  BOOST_STATIC_CONSTEXPR auto type_name = RK_LSA("ReaK::complex");
+#else
   static const char* type_name() BOOST_NOEXCEPT { return "ReaK::complex"; };
+#endif
   static construct_ptr CreatePtr() BOOST_NOEXCEPT { return NULL; };
   
   typedef const complex<T>& save_type;
