@@ -39,7 +39,8 @@
 // #define RK_RTTI_USE_CONSTEXPR_STRINGS
 
 #ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
-#include <ReaK/core/base/literal_string_list.hpp>
+// #include <ReaK/core/base/literal_string_list.hpp>
+#include <ReaK/core/base/cnst_string.hpp>
 #endif
 
 #include <string>
