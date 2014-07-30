@@ -107,6 +107,13 @@ if(COIN3D_FOUND AND QT_FOUND)
 endif()
 
 
+# if (MSVC)
+# set(REAK_LINK_OPTIONS_BEGIN)
+# set(REAK_LINK_OPTIONS_END)
+# else()
+# set(REAK_LINK_OPTIONS_BEGIN "-Wl,-whole-archive")
+# set(REAK_LINK_OPTIONS_END "-Wl,-no-whole-archive")
+# endif()
 
 
 include_directories(BEFORE SYSTEM ${BOOST_INCLUDE_DIRS})

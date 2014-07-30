@@ -1287,6 +1287,16 @@ int do_required_tasks(ReaK::shared_ptr< Sat3DSystemType > satellite3D_system,
   std::vector< std::pair< double, sat3D_measurement_point > > measurements;
   std::vector< std::pair< double, sat3D_state_type > > ground_truth;
   
+  typedef pp::discrete_point_trajectory< sat3D_temp_space_type > RecTrajType;
+  shared_ptr< RecTrajType > traj_ptr;
+  if( vm.count("generate-meas-file") && ( vm.count("xml") + vm.count("protobuf") + vm.count("binary") > 0 ) )
+    traj_ptr = shared_ptr< RecTrajType >(new RecTrajType( 
+      shared_ptr<sat3D_temp_space_type>(new sat3D_temp_space_type(
+        "satellite3D_temporal_space",
+         sat3D_state_space_type(),
+         pp::time_poisson_topology("satellite3D_time_space", satellite3D_system->get_time_step(), (end_time - start_time) * 0.5)))));
+  
+  
   if( vm.count("generate-mdl-files") ) {
     try {
       *(serialization::open_oarchive(sys_output_stem_name + sat_options.get_sys_abbreviation() + "_mdl.rkx"))
@@ -1368,11 +1378,34 @@ int do_required_tasks(ReaK::shared_ptr< Sat3DSystemType > satellite3D_system,
           const sat3D_state_type& g = ground_truth[i].second;
           (*data_meas) << get_position(g) << get_quaternion(g) << get_velocity(g) << get_ang_velocity(g);
           (*data_meas) << recorder::data_recorder::end_value_row;
-//           if( traj_ptr )
-//             traj_ptr->push_back(sat3D_temp_point_type(ground_truth[i].first, g));
+          if( traj_ptr )
+            traj_ptr->push_back(sat3D_temp_point_type(ground_truth[i].first, g));
         };
       };
       (*data_meas) << recorder::data_recorder::flush;
+      
+      if( traj_ptr ) {
+        std::cout << "\nSaving the generated trajectory.." << std::flush;
+        std::cout << "." << std::flush;
+        
+        if( vm.count("xml") )
+          *(serialization::open_oarchive(data_out_stem_opt.file_name + "_traj.rkx"))
+            & RK_SERIAL_SAVE_WITH_ALIAS("se3_trajectory", *traj_ptr);
+        
+        std::cout << "." << std::flush;
+        
+        if( vm.count("protobuf") )
+          *(serialization::open_oarchive(data_out_stem_opt.file_name + "_traj.pbuf"))
+            & RK_SERIAL_SAVE_WITH_ALIAS("se3_trajectory", *traj_ptr);
+        
+        std::cout << "." << std::flush;
+        
+        if( vm.count("binary") )
+          *(serialization::open_oarchive(data_out_stem_opt.file_name + "_traj.rkb"))
+            & RK_SERIAL_SAVE_WITH_ALIAS("se3_trajectory", *traj_ptr);
+        
+        std::cout << "Finished!" << std::endl;
+      };
       
     };
     
@@ -1418,59 +1451,6 @@ int do_required_tasks(ReaK::shared_ptr< Sat3DSystemType > satellite3D_system,
     std::cout << "Finished!" << std::endl;
     
   };
-  
-  
-#if 0
-  typedef pp::discrete_point_trajectory< TempSpaceType > TrajType;
-  shared_ptr< TrajType > traj_ptr;
-  if( vm.count("generate-meas-file") && vm.count("output-traj-file") )
-    traj_ptr = shared_ptr< TrajType >(new TrajType( sat_space ));
-  
-  // and output those if asked for it:
-  if( (!vm.count("monte-carlo")) && vm.count("generate-meas-file") ) {
-    recorder::data_stream_options data_meas_opt = data_out_stem_opt;
-    data_meas_opt.file_name = output_stem_name + "_meas." + data_meas_opt.get_extension();
-    sat_options.imbue_names_for_generated_meas(data_meas_opt);
-    shared_ptr< recorder::data_recorder > data_meas = data_meas_opt.create_recorder();
-    for(std::size_t i = 0; i < measurements.size(); ++i) {
-      (*data_meas) << measurements[i].first;
-      const sat3D_measurement_point& m = measurements[i].second;
-      (*data_meas) << m.pose << m.gyro << m.IMU_a_m << m.u;  // if gyro-IMU not present, vectors will be zero-sized, not written to stream.
-      if(ground_truth.size() == measurements.size()) {
-        const sat3D_state_type& g = ground_truth[i].second;
-        (*data_meas) << get_position(g) << get_quaternion(g) << get_velocity(g) << get_ang_velocity(g);
-        (*data_meas) << recorder::data_recorder::end_value_row;
-        if( traj_ptr )
-          traj_ptr->push_back(sat3D_temp_point_type(ground_truth[i].first, g));
-      };
-    };
-    (*data_meas) << recorder::data_recorder::flush;
-  };
-  
-  if( vm.count("generate-meas-file") && (traj_ptr) && ( vm.count("xml") + vm.count("protobuf") + vm.count("binary") > 0 ) ) {
-    std::cout << "Saving the generated trajectory.." << std::flush;
-    std::cout << "." << std::flush;
-    
-    if( vm.count("xml") )
-      *(serialization::open_oarchive(output_stem_name + "_traj.rkx"))
-        & RK_SERIAL_SAVE_WITH_ALIAS("se3_trajectory", traj_ptr);
-    
-    std::cout << "." << std::flush;
-    
-    if( vm.count("protobuf") )
-      *(serialization::open_oarchive(output_stem_name + "_traj.pbuf"))
-        & RK_SERIAL_SAVE_WITH_ALIAS("se3_trajectory", traj_ptr);
-    
-    std::cout << "." << std::flush;
-    
-    if( vm.count("binary") )
-      *(serialization::open_oarchive(output_stem_name + "_traj.rkb"))
-        & RK_SERIAL_SAVE_WITH_ALIAS("se3_trajectory", traj_ptr);
-    
-    std::cout << "Finished!" << std::endl;
-  };
-#endif
-  
   
   
   return 0;
