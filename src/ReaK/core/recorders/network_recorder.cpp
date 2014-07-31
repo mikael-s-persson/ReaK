@@ -94,7 +94,9 @@ class network_client_impl {
       for(std::size_t i = 0; (i < colCount) && (s_tmp); ++i) {
         double_to_ulong tmp;
         s_tmp.read(reinterpret_cast<char*>(&tmp),sizeof(double));
+//         std::cout << " net value: " << tmp.d;
         ntoh_2ui32(tmp);
+//         std::cout << " host value: " << tmp.d << std::endl;
         values_rm.push(tmp.d);
 //         RK_NOTICE(1," Received: " << values_rm.back());
       };
@@ -440,6 +442,8 @@ void network_extractor::setFileName(const std::string& aFileName) {
   
   ReaKaux::unique_lock< ReaKaux::mutex > lock_here(access_mutex);
   
+//   std::cout << " Setting filename of network extractor: " << aFileName;
+  
   // Example filename (or URI): "tcp:localhost:17000" or "raw_udp:192.168.0.42:16069"
   std::string proto   = "tcp";
   std::string ip4addr = "localhost";
@@ -449,6 +453,8 @@ void network_extractor::setFileName(const std::string& aFileName) {
   std::getline(ss, ip4addr, ':');
   ss >> portnum;
   
+//   std::cout << " Proto: " << proto << " IP: " << ip4addr << " Port: " << portnum << std::endl;
+  
   if(proto == "tcp") {
     pimpl = shared_ptr<detail::tcp_client_impl>(new detail::tcp_client_impl(ip4addr, portnum));
   } else if(proto == "udp") {
@@ -456,8 +462,15 @@ void network_extractor::setFileName(const std::string& aFileName) {
   } else if(proto == "raw_udp") {
     pimpl = shared_ptr<detail::raw_udp_client_impl>(new detail::raw_udp_client_impl(ip4addr, portnum));
   };
+  
+//   if(!pimpl)
+//     std::cout << " ERROR: could not create the network client!" << std::endl;
+  
   readNames();
   currentColumn = 0;
+  
+//   std::cout << " ColCount = " << colCount << " and Names count: " << names.size() << std::endl;
+  
   reading_thread = shared_ptr<ReaKaux::thread>(new ReaKaux::thread(extract_process(*this)));
 };
 

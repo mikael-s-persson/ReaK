@@ -936,7 +936,7 @@ shared_ptr< CRS_target_anim_data::trajectory_type >
   
   std::time_t t_ctime = std::time(NULL);
   char ctime_as_str[16];
-  if (std::strftime(ctime_as_str, sizeof(ctime_as_str), "%Y%m%d_%H%M", std::localtime(&t_ctime)))
+  if (std::strftime(ctime_as_str, sizeof(ctime_as_str), "%Y%m%d_%H%M", std::localtime(&t_ctime)) == 0)
     ctime_as_str[0] = '\0';
   
   recorder::data_stream_options meas_out_opt;
@@ -969,8 +969,8 @@ shared_ptr< CRS_target_anim_data::trajectory_type >
       vect_n<double> z(nvr_in["p_x"], nvr_in["p_y"], nvr_in["p_z"], 
                        nvr_in["q_0"], nvr_in["q_1"], nvr_in["q_2"], nvr_in["q_3"]);
       
-      std::cout << "Meas. Position = " << vect<double,3>(z[0],z[1],z[2]) 
-                << "Meas. Rotation = " << vect<double,4>(z[3],z[4],z[5],z[6]) << std::endl;
+//       std::cout << " Meas. Position = " << vect<double,3>(z[0],z[1],z[2]) 
+//                 << " Meas. Rotation = " << vect<double,4>(z[3],z[4],z[5],z[6]) << std::endl;
       
       try {
         
@@ -1111,9 +1111,9 @@ void TargetPredConfigWidget::startStatePrediction() {
   shared_ptr< recorder::data_extractor > data_in;
   boost::tie(data_in, names_in) = data_in_opt.create_extractor();
   
-  std::cout << "Names that were imbued:" << std::endl;
-  for(std::size_t i = 0; i < names_in.size(); ++i)
-    std::cout << names_in[i] << std::endl;
+//   std::cout << "Names that were imbued:" << std::endl;
+//   for(std::size_t i = 0; i < names_in.size(); ++i)
+//     std::cout << names_in[i] << std::endl;
   
   // ---------- Call impl function with the appropriate system ----------
   
@@ -1154,7 +1154,6 @@ void TargetPredConfigWidget::startStatePrediction() {
         break;
     };
   };
-  RK_NOTICE(1," reached the end of startStatePrediction() function!");
   
 };
 

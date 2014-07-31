@@ -196,8 +196,8 @@ void CRSPlannerGUI_animate_target_trajectory(void* pv, SoSensor*) {
     if( ((*cur_pit).time - target_traj->get_start_time()) <= 0.001 * (ReaKaux::chrono::duration_cast<ReaKaux::chrono::milliseconds>(ReaKaux::chrono::high_resolution_clock::now() - animation_start)).count() ) {
       cur_pit += 0.1;
       *(p->ct_config.sceneData.target_kin_model->getFrame3D(0)) = get_frame_3D((*cur_pit).pt); 
-      std::cout << "Position = " << p->ct_config.sceneData.target_kin_model->getFrame3D(0)->Position 
-                << "Rotation = " << p->ct_config.sceneData.target_kin_model->getFrame3D(0)->Quat << std::endl;
+//       std::cout << " Position = " << p->ct_config.sceneData.target_kin_model->getFrame3D(0)->Position 
+//                 << " Rotation = " << p->ct_config.sceneData.target_kin_model->getFrame3D(0)->Quat << std::endl;
       p->ct_config.sceneData.target_kin_model->doDirectMotion();
       
       if( p->ct_config.sceneData.chaser_kin_model && p->ct_interact.isIKEnabled() && !(p->sol_anim.enabled)) {
@@ -348,7 +348,7 @@ void CRSPlannerGUI::onStartPlanning(int mode) {
 //   mode == 3;  // live-run (predicted target-trajectory + executeDynamicPlanner + startCompleteAnimation + executeSolTrajectory)
   
   if(planning_thr) {
-    if(!stop_planner)
+    if(stop_planner)
       stop_planner();
     if(planning_thr->joinable())
       planning_thr->join();
@@ -365,7 +365,7 @@ void CRSPlannerGUI::onStopPlanning() {
   target_pred_config.stopStatePrediction();
   
   if(planning_thr) {
-    if(!stop_planner)
+    if(stop_planner)
       stop_planner();
     if(planning_thr->joinable())
       planning_thr->join();
@@ -392,6 +392,24 @@ void CRSPlannerGUI::executeSolutionTrajectory() {
   socket.open(boost::asio::ip::udp::v4());
   socket.set_option(boost::asio::ip::udp::socket::reuse_address(true));
   
+  
+  // Setup the recording of the control signals to a space-separated file:
+  std::time_t t_ctime = std::time(NULL);
+  char ctime_as_str[16];
+  if (std::strftime(ctime_as_str, sizeof(ctime_as_str), "%Y%m%d_%H%M", std::localtime(&t_ctime)) == 0)
+    ctime_as_str[0] = '\0';
+  
+  recorder::data_stream_options jtctrl_out_opt;
+  jtctrl_out_opt.kind = recorder::data_stream_options::space_separated;
+  jtctrl_out_opt.file_name = std::string("exp_results/robot_airship/jtctrl_") + ctime_as_str + std::string(".ssv");
+  
+  jtctrl_out_opt
+    .add_name("time").add_name("q_0").add_name("q_1").add_name("q_2")
+    .add_name("q_3").add_name("q_4").add_name("q_5").add_name("q_6");
+  
+  shared_ptr< recorder::data_recorder > jtctrl_out = jtctrl_out_opt.create_recorder();
+  
+  
   shared_ptr< CRS_sol_anim_data::trajectory_type > manip_traj = sol_anim.trajectory;
   CRS_sol_anim_data::trajectory_type::point_time_iterator cur_pit = manip_traj->begin_time_travel();
   
@@ -404,24 +422,33 @@ void CRSPlannerGUI::executeSolutionTrajectory() {
   std::size_t len = socket.send_to(udp_buf.data(), endpoint);
   udp_buf.consume(len);
   
+  double cur_time = (*cur_pit).time;
+  
   // Synchronize the trajectory to the current time (from target trajectory).
-  if(current_target_anim_time > (*cur_pit).time) {
-    cur_pit += current_target_anim_time - (*cur_pit).time;
+  if(current_target_anim_time > cur_time) {
+    cur_pit += current_target_anim_time - cur_time;
   } else {
     ReaKaux::chrono::high_resolution_clock::time_point delayed_start = exec_start + 
-      ReaKaux::chrono::duration_cast<ReaKaux::chrono::high_resolution_clock::duration>(ReaKaux::chrono::duration<double>((*cur_pit).time - current_target_anim_time));
-    while(exec_robot_enabled && (exec_start < delayed_start)) {
-      std::cout << "Sending starting point, with time left = " << ReaKaux::chrono::duration_cast< ReaKaux::chrono::duration<double> >(delayed_start - exec_start).count() << std::endl;
+      ReaKaux::chrono::duration_cast<ReaKaux::chrono::high_resolution_clock::duration>(ReaKaux::chrono::duration<double>(cur_time - current_target_anim_time));
+    while(exec_robot_enabled && (exec_start < delayed_start) && (cur_time > current_target_anim_time)) {
+//       std::cout << "Sending starting point, with time left = " << ReaKaux::chrono::duration_cast< ReaKaux::chrono::duration<double> >(delayed_start - exec_start).count() << std::endl;
       ReaKaux::this_thread::sleep_until(exec_start + ReaKaux::chrono::microseconds(1000));
       exec_start = ReaKaux::chrono::high_resolution_clock::now();
-      std::cout << " Sending values: ";
-      for(std::size_t i = 0; i < 7; ++i)
-        std::cout << std::setw(10) << cur_pt[i];
-      std::cout << std::endl;
-      for(std::size_t i = 0; i < 7; ++i)
+//       std::cout << " Sending values: ";
+//       for(std::size_t i = 0; i < 7; ++i)
+//         std::cout << std::setw(10) << cur_pt[i];
+//       std::cout << std::endl;
+      if(jtctrl_out)
+        (*jtctrl_out) << 0.0;
+      for(std::size_t i = 0; i < 7; ++i) {
         write_double_to_net_stream(udp_buf_stream, cur_pt[i]);
+        if(jtctrl_out)
+          (*jtctrl_out) << cur_pt[i];
+      };
       std::size_t len = socket.send_to(udp_buf.data(), endpoint);
       udp_buf.consume(len);
+      if(jtctrl_out)
+        (*jtctrl_out) << recorder::data_recorder::end_value_row;
     };
   };
   exec_start = ReaKaux::chrono::high_resolution_clock::now();
@@ -435,15 +462,22 @@ void CRSPlannerGUI::executeSolutionTrajectory() {
     exec_start = ReaKaux::chrono::high_resolution_clock::now();
     
     //UDP output for the robot:
+    if(jtctrl_out)
+      (*jtctrl_out) << (*cur_pit).time;
     cur_pt = (*cur_pit).pt;
-    std::cout << " Sending values: ";
-    for(std::size_t i = 0; i < 7; ++i)
-      std::cout << std::setw(10) << cur_pt[i];
-    std::cout << std::endl;
-    for(std::size_t i = 0; i < 7; ++i)
+//     std::cout << " Sending values: ";
+//     for(std::size_t i = 0; i < 7; ++i)
+//       std::cout << std::setw(10) << cur_pt[i];
+//     std::cout << std::endl;
+    for(std::size_t i = 0; i < 7; ++i) {
       write_double_to_net_stream(udp_buf_stream, cur_pt[i]);
+      if(jtctrl_out)
+        (*jtctrl_out) << cur_pt[i];
+    };
     len = socket.send_to(udp_buf.data(), endpoint);
     udp_buf.consume(len);
+    if(jtctrl_out)
+      (*jtctrl_out) << recorder::data_recorder::end_value_row;
   };
   //UDP output for the robot:
   double terminating_value = -100.0;
@@ -451,6 +485,8 @@ void CRSPlannerGUI::executeSolutionTrajectory() {
     write_double_to_net_stream(udp_buf_stream, terminating_value);
   len = socket.send_to(udp_buf.data(), endpoint);
   udp_buf.consume(len);
+  if(jtctrl_out)
+    (*jtctrl_out) << recorder::data_recorder::flush;
   
   if( (*cur_pit).time >= manip_traj->get_end_time() ) {
     emit notifyCaptureReached();
@@ -510,6 +546,9 @@ void CRSPlannerGUI::onAbort() {
   
   // finally, stop any animation that might have been started
   this->stopCompleteAnimation();
+  
+  // finally, restore robot to set position.
+  this->ct_interact.onJointChange();
   
 };
 

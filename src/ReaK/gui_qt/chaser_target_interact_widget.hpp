@@ -45,7 +45,7 @@ class ChaserTargetInteractWidget : public QDockWidget, private Ui::ChaserTargetI
     ChaserTargetInteractWidget(kte::chaser_target_data* aPSceneData, QWidget * parent = NULL, Qt::WindowFlags flags = 0);
     virtual ~ChaserTargetInteractWidget();
     
-  private slots:
+  public slots:
     
     void savePositions();
     void loadPositions();

@@ -139,6 +139,24 @@ std::pair< shared_ptr< data_extractor >, std::vector< std::string > > data_strea
       break;
   };
   
+  if( kind == raw_udp_stream ) {
+    if( names.empty() )
+      throw std::invalid_argument("empty names for a raw-udp-extractor");
+    result.second = names;
+    
+    network_extractor* data_in_tmp = static_cast< network_extractor* >(result.first.get());
+    for(std::vector< std::string >::const_iterator it = names.begin(), it_end = names.end(); it != it_end; ++it)
+      data_in_tmp->addName(*it);
+  } else if( kind == vector_stream ) {
+    if( names.empty() )
+      throw std::invalid_argument("empty names for a vector-extractor");
+    result.second = names;
+    
+    vector_extractor* data_in_tmp = static_cast< vector_extractor* >(result.first.get());
+    for(std::vector< std::string >::const_iterator it = names.begin(), it_end = names.end(); it != it_end; ++it)
+      data_in_tmp->addName(*it);
+  };
+  
   if(file_name != "stdin") {
     switch(kind) {
       case tcp_stream:
@@ -169,22 +187,6 @@ std::pair< shared_ptr< data_extractor >, std::vector< std::string > > data_strea
     if( !time_sync_name.empty() &&
         ( std::find(result.second.begin(), result.second.end(), time_sync_name) == result.second.end() ) )
       throw std::invalid_argument(time_sync_name + " as time-sync column-name");
-  } else if( kind == raw_udp_stream ) {
-    if( names.empty() )
-      throw std::invalid_argument("empty names for a raw-udp-extractor");
-    result.second = names;
-    
-    network_extractor* data_in_tmp = static_cast< network_extractor* >(result.first.get());
-    for(std::vector< std::string >::const_iterator it = names.begin(), it_end = names.end(); it != it_end; ++it)
-      data_in_tmp->addName(*it);
-  } else {
-    if( names.empty() )
-      throw std::invalid_argument("empty names for a vector-extractor");
-    result.second = names;
-    
-    vector_extractor* data_in_tmp = static_cast< vector_extractor* >(result.first.get());
-    for(std::vector< std::string >::const_iterator it = names.begin(), it_end = names.end(); it != it_end; ++it)
-      data_in_tmp->addName(*it);
   };
   
   return result;

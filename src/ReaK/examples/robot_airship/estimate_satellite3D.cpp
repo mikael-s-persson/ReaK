@@ -782,7 +782,7 @@ void batch_KF_meas_predict_with_predictor(
 
 // Start a thread that will update the predictor as new data comes in.
   
-  if( !pred_stop_function.empty() ) {
+  if( pred_stop_function ) {
     pred_stop_function();
     pred_stop_function.clear();
   };
