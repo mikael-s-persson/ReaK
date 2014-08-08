@@ -41,7 +41,6 @@
 
 #include "waypoint_container.hpp"
 
-#include <boost/config.hpp>
 #include <boost/concept_check.hpp>
 #include <cmath>
 

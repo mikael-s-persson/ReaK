@@ -36,7 +36,6 @@
 #include <ReaK/core/base/defs.hpp>
 #include <ReaK/core/base/thread_incl.hpp>
 #include <ReaK/core/base/shared_object.hpp>
-#include <ReaK/core/rtti/so_type.hpp>
 
 #include <string>
 #include <exception>

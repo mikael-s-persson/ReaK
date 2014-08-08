@@ -103,10 +103,21 @@ struct data_stream_options {
   /// Stores the name of time-sync column for when streaming is paced with time.
   std::string time_sync_name;
   
+  /// Stores the frequency (Hz) of data flushes, if 0, then data is sent / received immediately.
+  unsigned int flush_rate;
+  
+  /// Stores the desired average size of the data buffer, if 0, then data is sent / received immediately without buffering.
+  unsigned int buffer_size;
+  
+  void set_unbuffered() { flush_rate = 0; buffer_size = 0; };
+  void set_buffered(unsigned int aFlushRate = 50, unsigned int aBufferSize = 500) { 
+    flush_rate = aFlushRate; buffer_size = aBufferSize; };
+  
+  
   /**
    * Default constructor.
    */
-  data_stream_options() : kind(space_separated) { };
+  data_stream_options() : kind(space_separated), flush_rate(50), buffer_size(500) { };
   
   /**
    * This function creates a data-recorder from the options that were set in

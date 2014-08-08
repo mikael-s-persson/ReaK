@@ -36,7 +36,6 @@
 #include <ReaK/core/base/defs.hpp>
 #include <ReaK/core/base/shared_object.hpp>
 
-#include <boost/config.hpp>
 #include <boost/concept_check.hpp>
 
 #include <ReaK/ctrl/interpolation/seq_trajectory_base.hpp>

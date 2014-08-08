@@ -67,6 +67,9 @@ boost::program_options::options_description get_data_stream_options_po_desc(bool
       ("input-udp",     "if set, will try to listen to an input UDP data-stream")
       ("input-raw-udp", "if set, will try to listen to an input RAW UDP data-stream, for this to work, you must specify the list of columns via the 'keep-columns' option")
       ("input-format",  value< std::string >(), "specify the format for the input file (default is to use the file-extension of input-file (ssv, tsv, csv, bin, etc.), or if piped, use 'ssv')")
+      ("input-flush-freq",  value< unsigned int >()->default_value(50), "specify the flushing frequency of the input datastream (default is 50Hz, if set to 0, input will be immediate (as soon as available))")
+      ("input-buffer-size", value< unsigned int >()->default_value(500), "specify the desired buffer size of the input datastream, without guarantee that the buffer will be limited to that amount (default is 500 bytes, if set to 0, input will not be buffered, i.e., read as you go)")
+      ("input-immediate-mode", "if set, will make the input datastream without buffering or regular flushing, i.e., the operations are immediate (note: this option overrides the flush-freq and buffer-size options)")
     ;
     result.add(input_options);
   };
@@ -80,6 +83,9 @@ boost::program_options::options_description get_data_stream_options_po_desc(bool
       ("output-udp",    "if set, will output a UDP data-stream")
       ("output-raw-udp","if set, will output a RAW UDP data-stream")
       ("output-format", value< std::string >(), "specify the format for the output file (default is to use the file-extension of input-file (ssv, tsv, csv, bin, etc.), or if piped, use 'ssv')")
+      ("output-flush-freq",  value< unsigned int >()->default_value(50), "specify the flushing frequency of the output datastream (default is 50Hz, if set to 0, output will be immediate)")
+      ("output-buffer-size", value< unsigned int >()->default_value(500), "specify the desired buffer size of the output datastream, without guarantee that the buffer will be limited to that amount (default is 500 bytes, if set to 0, output will not be buffered, i.e., sent as you go)")
+      ("output-immediate-mode", "if set, will make the output datastream without buffering or regular flushing, i.e., the operations are immediate (note: this option overrides the flush-freq and buffer-size options)")
     ;
     result.add(output_options);
   };
@@ -141,6 +147,13 @@ data_stream_options get_data_stream_options_from_po(boost::program_options::vari
       };
     };
     
+    if(vm.count("input-immediate-mode")) {
+      result.set_unbuffered();
+    } else {
+      result.flush_rate = vm["input-flush-freq"].as<unsigned int>();
+      result.buffer_size = vm["input-buffer-size"].as<unsigned int>();      
+    };
+    
   } else {
     // load options for output.
     
@@ -184,6 +197,13 @@ data_stream_options get_data_stream_options_from_po(boost::program_options::vari
           result.kind = data_stream_options::tcp_stream;
       };
       result.file_name = ss.str();
+    };
+    
+    if(vm.count("output-immediate-mode")) {
+      result.set_unbuffered();
+    } else {
+      result.flush_rate = vm["output-flush-freq"].as<unsigned int>();
+      result.buffer_size = vm["output-buffer-size"].as<unsigned int>();      
     };
     
   };

@@ -37,6 +37,8 @@
 #ifndef REAK_DISCRETE_LINEAR_SSS_CONCEPT_HPP
 #define REAK_DISCRETE_LINEAR_SSS_CONCEPT_HPP
 
+#include <ReaK/core/base/defs.hpp>
+
 #include <ReaK/core/lin_alg/arithmetic_tuple.hpp>
 
 #include <ReaK/ctrl/topologies/metric_space_concept.hpp>
@@ -44,7 +46,6 @@
 #include "linear_ss_system_concept.hpp"
 #include "discrete_sss_concept.hpp"
 
-#include <boost/config.hpp>
 #include <boost/concept_check.hpp>
 
 namespace ReaK {

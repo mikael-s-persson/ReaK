@@ -44,7 +44,6 @@
 #include "interpolated_trajectory.hpp"
 #include "generic_interpolator_factory.hpp"
 
-#include <boost/config.hpp>
 #include <boost/concept_check.hpp>
 #include <boost/mpl/less.hpp>
 #include <boost/mpl/greater.hpp>

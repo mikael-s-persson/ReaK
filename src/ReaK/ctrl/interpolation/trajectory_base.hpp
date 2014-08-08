@@ -42,7 +42,6 @@
 #include "sequential_trajectory_concept.hpp"
 #include "seq_trajectory_base.hpp"
 
-#include <boost/config.hpp>
 #include <boost/concept_check.hpp>
 
 #include <ReaK/core/lin_alg/mat_num_exceptions.hpp>

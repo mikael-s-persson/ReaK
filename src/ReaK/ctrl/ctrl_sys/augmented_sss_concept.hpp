@@ -35,7 +35,8 @@
 #ifndef REAK_AUGMENTED_SSS_CONCEPT_HPP
 #define REAK_AUGMENTED_SSS_CONCEPT_HPP
 
-#include <boost/config.hpp>
+#include <ReaK/core/base/defs.hpp>
+
 #include <boost/concept_check.hpp>
 #include <boost/mpl/bool.hpp>
 

@@ -36,8 +36,6 @@
 
 #include "shared_object.hpp"
 
-#include <ReaK/core/rtti/so_type_repo.hpp>
-
 #include <string>
 
 namespace ReaK {
@@ -77,9 +75,7 @@ class named_object : public virtual shared_object , public named_interface {
      */
     named_object() { };
 
-    virtual ~named_object() {
-      RK_NOTICE(4,"Object " << mName << " deleted.");
-    };
+    virtual ~named_object() { };
 
     /**
      * This method returns the name of the object.

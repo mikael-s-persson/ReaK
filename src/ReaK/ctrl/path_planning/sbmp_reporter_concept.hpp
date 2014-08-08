@@ -37,7 +37,6 @@
 
 #include <ReaK/core/base/defs.hpp>
 
-#include <boost/config.hpp>
 #include <boost/concept_check.hpp>
 
 #include <ReaK/ctrl/interpolation/seq_trajectory_base.hpp>

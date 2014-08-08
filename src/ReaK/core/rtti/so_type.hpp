@@ -147,40 +147,6 @@ struct null_type_id {
   BOOST_STATIC_CONSTANT(unsigned int, ID = 0);
 };
 
-
-namespace {
-  
-  template <typename T, typename Tail = null_type_id>
-  struct type_id {
-    typedef Tail tail;
-    BOOST_STATIC_CONSTANT(unsigned int, ID = ::ReaK::rtti::get_type_id<T>::ID);
-  };
-  
-};
-  
-template <typename Tail>
-struct get_type_name_tail {
-#ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
-  BOOST_STATIC_CONSTEXPR auto value = lsl_comma + Tail::type_name;
-#else
-  static std::string value() { 
-    std::string result = ",";
-    result += Tail::type_name();
-    return result; // NRVO
-  };
-#endif
-};
-
-template <>
-struct get_type_name_tail<null_type_id> {
-#ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
-  BOOST_STATIC_CONSTEXPR auto value = RK_LSA("");
-#else
-  static const char* value() BOOST_NOEXCEPT { return ""; };
-#endif
-};
-
-
 struct null_type_info {
   typedef null_type_id type;
 #ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
@@ -201,6 +167,38 @@ struct get_type_id< null_type_info > {
   static construct_ptr CreatePtr() BOOST_NOEXCEPT { return NULL; };
 };
 
+
+namespace {
+  
+  template <typename T, typename Tail = null_type_id>
+  struct type_id {
+    typedef Tail tail;
+    BOOST_STATIC_CONSTANT(unsigned int, ID = ::ReaK::rtti::get_type_id<T>::ID);
+  };
+  
+};
+
+template <typename Tail>
+struct get_type_name_tail {
+#ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
+  BOOST_STATIC_CONSTEXPR auto value = lsl_comma + Tail::type_name;
+#else
+  static std::string value() { 
+    std::string result = ",";
+    result += Tail::type_name();
+    return result; // NRVO
+  };
+#endif
+};
+
+template <>
+struct get_type_name_tail<null_type_info> {
+#ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
+  BOOST_STATIC_CONSTEXPR auto value = RK_LSA("");
+#else
+  static const char* value() BOOST_NOEXCEPT { return ""; };
+#endif
+};
 
 template <typename T, typename Tail = null_type_info>
 struct get_type_info {
@@ -663,6 +661,14 @@ struct so_type_ptr {
 
 namespace {
   
+  template <typename T> struct get_type_id_prop;
+  
+  template <>
+  struct get_type_id_prop<null_type_id> {
+    BOOST_STATIC_CONSTANT(unsigned int, count = 1);
+    static unsigned int at(unsigned int) { return 0; };
+  };
+  
   template <typename T>
   struct get_type_id_prop {
     BOOST_STATIC_CONSTANT(unsigned int, count = get_type_id_prop< typename T::tail >::count + 1);
@@ -674,11 +680,6 @@ namespace {
     };
   };
   
-  template <>
-  struct get_type_id_prop<null_type_id> {
-    BOOST_STATIC_CONSTANT(unsigned int, count = 1);
-    static unsigned int at(unsigned int) { return 0; };
-  };
   
   template <typename T>
   so_type_ptr create_type_descriptor(unsigned int aVersion = 1) {

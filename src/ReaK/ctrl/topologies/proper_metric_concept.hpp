@@ -48,11 +48,11 @@
 #ifndef REAK_PROPER_METRIC_CONCEPT_HPP
 #define REAK_PROPER_METRIC_CONCEPT_HPP
 
+#include <ReaK/core/base/defs.hpp>
 #include <ReaK/core/base/serializable.hpp>
 
 #include "metric_space_concept.hpp"
 
-#include <boost/config.hpp>
 #include <boost/concept_check.hpp>
 #include <boost/utility/enable_if.hpp>
 

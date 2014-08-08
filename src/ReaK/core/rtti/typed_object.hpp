@@ -35,14 +35,7 @@
 #define REAK_TYPED_OBJECT_HPP
 
 #include <ReaK/core/base/defs.hpp>
-
-#include "so_type_repo.hpp"
-#include "so_register_type.hpp"
-
-#include "typed_primitives.hpp"
-#include "typed_containers.hpp"
-
-#include <boost/preprocessor/stringize.hpp>
+#include <ReaK/core/rtti/rtti.hpp>
 
 namespace ReaK {
 

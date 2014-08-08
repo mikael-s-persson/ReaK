@@ -34,7 +34,8 @@
 #ifndef REAK_TEMPORAL_SPACE_CONCEPT_HPP
 #define REAK_TEMPORAL_SPACE_CONCEPT_HPP
 
-#include <boost/config.hpp>
+#include <ReaK/core/base/defs.hpp>
+
 #include <boost/concept_check.hpp>
 
 #include "metric_space_concept.hpp"

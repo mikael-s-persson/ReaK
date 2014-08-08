@@ -34,8 +34,10 @@
 
 #include "defs.hpp"
 
-#include <array>
+#if (!defined(BOOST_NO_CXX11_UNIFIED_INITIALIZATION_SYNTAX) && !defined(BOOST_NO_CXX11_HDR_ARRAY) && !defined(BOOST_NO_CXX11_AUTO_DECLARATIONS))
+
 #include <string>
+#include <array>
 
 /** Main namespace for ReaK */
 namespace ReaK {
@@ -86,6 +88,7 @@ struct cnst_string {
 
 #define RK_LSA(LITERAL_STR) ::ReaK::cnst_string<sizeof(LITERAL_STR)>{std::array<char,sizeof(LITERAL_STR)>{LITERAL_STR}}
 
+#ifndef BOOST_NO_CXX11_VARIADIC_TEMPLATES
 
 namespace detail { namespace {
 
@@ -145,8 +148,15 @@ struct ct_itoa {
   BOOST_STATIC_CONSTEXPR cnst_string<detail::gen_digit_seq<N>::count> text{text_impl(typename detail::gen_digit_seq<N>::type())};
 };
 
+#endif
 
 };
+
+#else
+
+#pragma message("Warning: The 'cnst_string.hpp' header (from ReaK library) was included, but this compiler does not support all the necessary C++11 features: unified initialization, std::array, auto declarations, and constexpr. cnst_string will be disabled, which could cause errors!")
+
+#endif
 
 #endif
 

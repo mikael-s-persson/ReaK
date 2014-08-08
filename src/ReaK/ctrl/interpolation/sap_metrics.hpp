@@ -42,7 +42,6 @@
 #include "sustained_acceleration_pulse.hpp"
 #include <ReaK/ctrl/topologies/time_topology.hpp>
 
-#include <boost/config.hpp>
 #include <boost/concept_check.hpp>
 
 namespace ReaK {

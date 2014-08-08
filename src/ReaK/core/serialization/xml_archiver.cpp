@@ -24,8 +24,7 @@
 #include <ReaK/core/serialization/xml_archiver.hpp>
 
 #include <ReaK/core/base/shared_object.hpp>
-#include <ReaK/core/rtti/so_type.hpp>
-#include <ReaK/core/rtti/so_type_repo.hpp>
+#include <ReaK/core/rtti/rtti.hpp>
 
 #include <ReaK/core/serialization/archiving_exceptions.hpp>
 

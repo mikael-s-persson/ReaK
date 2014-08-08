@@ -25,9 +25,7 @@
 
 
 #include <ReaK/core/base/shared_object.hpp>
-#include <ReaK/core/rtti/so_type.hpp>
-#include <ReaK/core/rtti/so_type_repo.hpp>
-#include <ReaK/core/rtti/typed_primitives.hpp>
+#include <ReaK/core/rtti/rtti.hpp>
 
 #include <ReaK/core/serialization/type_schemes.hpp>
 

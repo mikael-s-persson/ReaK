@@ -38,10 +38,11 @@
 #ifndef REAK_INVARIANT_SYSTEM_CONCEPT_HPP
 #define REAK_INVARIANT_SYSTEM_CONCEPT_HPP
 
+#include <ReaK/core/base/defs.hpp>
+
 #include "discrete_linear_sss_concept.hpp"
 #include "linear_ss_system_concept.hpp"
 
-#include <boost/config.hpp>
 #include <boost/concept_check.hpp>
 #include <boost/mpl/bool.hpp>
 

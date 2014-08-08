@@ -41,6 +41,7 @@
 #ifndef REAK_SS_CONTROLLER_CONCEPT_HPP
 #define REAK_SS_CONTROLLER_CONCEPT_HPP
 
+#include <ReaK/core/base/defs.hpp>
 #include <ReaK/ctrl/topologies/metric_space_concept.hpp>
 
 #include "state_space_sys_concept.hpp"
@@ -48,7 +49,6 @@
 #include "discrete_sss_concept.hpp"
 #include "discrete_linear_sss_concept.hpp"
 
-#include <boost/config.hpp>
 #include <boost/concept_check.hpp>
 
 /** Main namespace for ReaK */

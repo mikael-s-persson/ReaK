@@ -51,7 +51,6 @@
 #include "sap_metrics.hpp"
 #include "sap_samplers.hpp"
 
-#include <boost/config.hpp>
 #include <boost/concept_check.hpp>
 
 namespace ReaK {

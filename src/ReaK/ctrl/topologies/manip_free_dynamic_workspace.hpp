@@ -36,7 +36,6 @@
 #define REAK_MANIP_FREE_DYNAMIC_WORKSPACE_HPP
 
 #include <ReaK/core/base/defs.hpp>
-#include <boost/config.hpp>
 
 #include "manip_free_workspace.hpp"
 

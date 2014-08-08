@@ -38,6 +38,8 @@
 #ifndef REAK_COVARIANCE_CONCEPT_HPP
 #define REAK_COVARIANCE_CONCEPT_HPP
 
+#include <ReaK/core/base/defs.hpp>
+
 #include <ReaK/core/lin_alg/mat_concepts.hpp>
 #include <ReaK/core/lin_alg/arithmetic_tuple.hpp>
 
@@ -45,7 +47,6 @@
 
 #include "state_vector_concept.hpp"
 
-#include <boost/config.hpp>
 #include <boost/concept_check.hpp>
 
 

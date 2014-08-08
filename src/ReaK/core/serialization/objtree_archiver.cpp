@@ -24,8 +24,7 @@
 #include <ReaK/core/serialization/objtree_archiver.hpp>
 
 #include <ReaK/core/base/named_object.hpp>
-#include <ReaK/core/rtti/so_type.hpp>
-#include <ReaK/core/rtti/so_type_repo.hpp>
+#include <ReaK/core/rtti/rtti.hpp>
 
 #include <ReaK/core/serialization/scheme_builder.hpp>
 #include <ReaK/core/serialization/type_schemes.hpp>

@@ -54,7 +54,6 @@
 #include "vect_index_iterator.hpp"
 #include "mat_concepts.hpp"
 
-#include <boost/config.hpp>
 #include <boost/static_assert.hpp>
 #include <boost/mpl/and.hpp>
 

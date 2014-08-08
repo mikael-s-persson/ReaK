@@ -28,4 +28,12 @@ add_executable(test_base "${SRCROOT}${RKBASEDIR}/test.cpp")
 setup_custom_target(test_base)
 target_link_libraries(test_base reak_core)
 
+add_executable(unit_test_cnst_string "${SRCROOT}${RKBASEDIR}/unit_test_cnst_string.cpp")
+setup_custom_test_program(unit_test_cnst_string)
+target_link_libraries(unit_test_cnst_string reak_core)
+
+add_executable(unit_test_endian_conversions "${SRCROOT}${RKBASEDIR}/unit_test_endian_conversions.cpp")
+setup_custom_test_program(unit_test_endian_conversions)
+target_link_libraries(unit_test_endian_conversions reak_core)
+
 

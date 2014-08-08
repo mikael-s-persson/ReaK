@@ -34,6 +34,7 @@
 #ifndef REAK_CUBIC_HERMITE_INTERP_HPP
 #define REAK_CUBIC_HERMITE_INTERP_HPP
 
+#include <ReaK/core/base/defs.hpp>
 #include <ReaK/core/lin_alg/arithmetic_tuple.hpp>
 #include <ReaK/core/lin_alg/mat_num_exceptions.hpp>
 
@@ -43,7 +44,6 @@
 #include "interpolated_trajectory.hpp"
 #include "generic_interpolator_factory.hpp"
 
-#include <boost/config.hpp>
 #include <boost/concept_check.hpp>
 
 #include <cmath>

@@ -51,7 +51,6 @@
 
 #include <boost/random/uniform_01.hpp>
 #include <boost/random/linear_congruential.hpp>
-#include <boost/config.hpp> // For BOOST_STATIC_CONSTANT
 
 
 namespace ReaK {

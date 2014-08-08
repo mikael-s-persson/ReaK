@@ -37,8 +37,8 @@
 #ifndef REAK_REVERSIBLE_SPACE_CONCEPT_HPP
 #define REAK_REVERSIBLE_SPACE_CONCEPT_HPP
 
+#include <ReaK/core/base/defs.hpp>
 
-#include <boost/config.hpp>
 #include <cmath>
 #include <boost/concept_check.hpp>
 #include <boost/utility/enable_if.hpp>

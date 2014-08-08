@@ -38,9 +38,9 @@
 #ifndef REAK_TENSOR_TRAITS_HPP
 #define REAK_TENSOR_TRAITS_HPP
 
-#include <boost/config.hpp>
+#include <ReaK/core/base/defs.hpp>
 
-#include <ReaK/core/rtti/so_type.hpp>
+#include <ReaK/core/rtti/rtti.hpp>
 
 namespace ReaK {
   

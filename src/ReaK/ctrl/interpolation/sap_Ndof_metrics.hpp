@@ -40,7 +40,6 @@
 #include <ReaK/ctrl/topologies/proper_metric_concept.hpp>
 #include <ReaK/ctrl/topologies/time_topology.hpp>
 
-#include <boost/config.hpp>
 #include <boost/concept_check.hpp>
 
 #include "generic_interpolator_factory.hpp"

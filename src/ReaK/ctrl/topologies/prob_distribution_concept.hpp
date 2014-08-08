@@ -34,8 +34,8 @@
 #ifndef REAK_PROB_DISTRIBUTION_CONCEPT_HPP
 #define REAK_PROB_DISTRIBUTION_CONCEPT_HPP
 
+#include <ReaK/core/base/defs.hpp>
 
-#include <boost/config.hpp>
 #include <boost/concept_check.hpp>
 
 #include "metric_space_concept.hpp"

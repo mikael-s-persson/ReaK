@@ -38,9 +38,10 @@
 #ifndef REAK_REACHABILITY_SPACE_CONCEPT_HPP
 #define REAK_REACHABILITY_SPACE_CONCEPT_HPP
 
+#include <ReaK/core/base/defs.hpp>
+
 #include "temporal_space_concept.hpp"
 
-#include <boost/config.hpp>
 #include <boost/concept_check.hpp>
 
 namespace ReaK {

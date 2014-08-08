@@ -42,7 +42,6 @@
 
 #include "sustained_acceleration_pulse_Ndof.hpp"
 
-#include <boost/config.hpp>
 #include <boost/concept_check.hpp>
 
 #include <cmath>

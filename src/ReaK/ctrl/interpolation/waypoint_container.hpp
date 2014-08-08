@@ -39,7 +39,6 @@
 
 #include <ReaK/ctrl/topologies/temporal_space.hpp>
 
-#include <boost/config.hpp>
 #include <boost/concept_check.hpp>
 #include <cmath>
 

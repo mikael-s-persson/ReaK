@@ -33,14 +33,12 @@
 #ifndef REAK_TENSOR_MAT_ADAPTOR_HPP
 #define REAK_TENSOR_MAT_ADAPTOR_HPP
 
+#include <ReaK/core/base/defs.hpp>
+
 #include "tensor_traits.hpp"
 #include "tensor_concepts.hpp"
 
-#include <ReaK/core/lin_alg/mat_alg.hpp>
-
-#include <boost/config.hpp>
-
-#include <ReaK/core/rtti/so_type.hpp>
+#include <ReaK/core/rtti/rtti.hpp>
 
 namespace ReaK {
   

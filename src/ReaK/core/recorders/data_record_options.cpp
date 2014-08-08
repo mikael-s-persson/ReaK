@@ -58,6 +58,9 @@ shared_ptr< data_recorder > data_stream_options::create_recorder() const {
       break;
   };
   
+  result->setFlushSampleRate(flush_rate);
+  result->setMaxBufferSize(buffer_size);
+  
   switch(kind) {
     case space_separated:
       static_cast<ascii_recorder*>(result.get())->delimiter = " ";
@@ -124,6 +127,9 @@ std::pair< shared_ptr< data_extractor >, std::vector< std::string > > data_strea
       result.first = shared_ptr< data_extractor >(new vector_extractor());
       break;
   };
+  
+  result.first->setFlushSampleRate(flush_rate);
+  result.first->setMinBufferSize(buffer_size);
   
   switch(kind) {
     case space_separated:

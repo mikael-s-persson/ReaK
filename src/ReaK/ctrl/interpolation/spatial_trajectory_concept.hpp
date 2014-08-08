@@ -34,10 +34,11 @@
 #ifndef REAK_SPATIAL_TRAJECTORY_CONCEPT_HPP
 #define REAK_SPATIAL_TRAJECTORY_CONCEPT_HPP
 
+#include <ReaK/core/base/defs.hpp>
+
 #include "spatial_path_concept.hpp"
 #include <ReaK/ctrl/topologies/temporal_space_concept.hpp>
 
-#include <boost/config.hpp>
 #include <cmath>
 #include <boost/concept_check.hpp>
 
