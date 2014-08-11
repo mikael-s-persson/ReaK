@@ -34,6 +34,9 @@ add_executable(build_airship3D_target "${SRCROOT}${RKROBOTAIRSHIPDIR}/build_airs
 setup_custom_target(build_airship3D_target)
 target_link_libraries(build_airship3D_target reak_mbd)
 
+add_executable(get_CRS_rel_world_transform "${SRCROOT}${RKROBOTAIRSHIPDIR}/get_CRS_rel_world_transform.cpp")
+setup_custom_target(get_CRS_rel_world_transform)
+target_link_libraries(get_CRS_rel_world_transform reak_kte reak_core)
 
 
 if(COIN3D_FOUND AND QT_FOUND)
