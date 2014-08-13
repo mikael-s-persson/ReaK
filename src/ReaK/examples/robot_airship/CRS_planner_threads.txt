@@ -1,0 +1,39 @@
+
+CRS-planner threads and shared data:
+
+Qt GUI thread (1)
+  init:
+  loop:
+  final:
+
+
+Coin Rendering thread (2)
+  init:
+  loop:
+  final:
+
+
+Planning thread (3)
+  init:
+  loop:
+  final:
+
+
+Trajectory Feeding thread (4)
+  init:
+    sol_anim.trajectory (r)
+    current_target_anim_time (r)
+  init-loop:
+    current_target_anim_time (r)
+    exec_robot_enabled (r)
+  loop:
+    sol_anim.trajectory.get() (r)
+    exec_robot_enabled (r)
+  final:
+    exec_robot_enabled (w)
+
+
+
+
+
+

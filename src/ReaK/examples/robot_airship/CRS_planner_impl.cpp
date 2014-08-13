@@ -127,7 +127,8 @@ void CRSPlannerGUI_animate_bestsol_trajectory(void* pv, SoSensor*) {
     animation_start = ReaKaux::chrono::high_resolution_clock::now() - ReaKaux::chrono::duration_cast<ReaKaux::chrono::high_resolution_clock::duration>(ReaKaux::chrono::duration<double>(p->current_target_anim_time - p->plan_alg_config.planOptions.start_delay));
   };
   if( (p->sol_anim.enabled) && ( (*cur_pit).time < manip_traj->get_end_time() ) ) {
-    if( ((*cur_pit).time - manip_traj->get_start_time()) <= 0.001 * (ReaKaux::chrono::duration_cast<ReaKaux::chrono::milliseconds>(ReaKaux::chrono::high_resolution_clock::now() - animation_start)).count() ) {
+    if( (*cur_pit).time <= 0.001 * (ReaKaux::chrono::duration_cast<ReaKaux::chrono::milliseconds>(ReaKaux::chrono::high_resolution_clock::now() - animation_start)).count() ) {
+//     if( ((*cur_pit).time - manip_traj->get_start_time()) <= 0.001 * (ReaKaux::chrono::duration_cast<ReaKaux::chrono::milliseconds>(ReaKaux::chrono::high_resolution_clock::now() - animation_start)).count() ) {
       cur_pit += 0.1;
       p->ct_config.sceneData.chaser_kin_model->setJointPositions(vect_n<double>((*cur_pit).pt));
       p->ct_config.sceneData.chaser_kin_model->doDirectMotion();
@@ -193,7 +194,8 @@ void CRSPlannerGUI_animate_target_trajectory(void* pv, SoSensor*) {
   };
   
   if( target_traj && p->target_anim.enabled && ( (*cur_pit).time < target_traj->get_end_time() ) ) {
-    if( ((*cur_pit).time - target_traj->get_start_time()) <= 0.001 * (ReaKaux::chrono::duration_cast<ReaKaux::chrono::milliseconds>(ReaKaux::chrono::high_resolution_clock::now() - animation_start)).count() ) {
+    if( (*cur_pit).time <= 0.001 * (ReaKaux::chrono::duration_cast<ReaKaux::chrono::milliseconds>(ReaKaux::chrono::high_resolution_clock::now() - animation_start)).count() ) {
+//     if( ((*cur_pit).time - target_traj->get_start_time()) <= 0.001 * (ReaKaux::chrono::duration_cast<ReaKaux::chrono::milliseconds>(ReaKaux::chrono::high_resolution_clock::now() - animation_start)).count() ) {
       cur_pit += 0.1;
       *(p->ct_config.sceneData.target_kin_model->getFrame3D(0)) = get_frame_3D((*cur_pit).pt); 
 //       std::cout << " Position = " << p->ct_config.sceneData.target_kin_model->getFrame3D(0)->Position 
@@ -500,10 +502,10 @@ void CRSPlannerGUI::executeSolutionTrajectory() {
 
 void CRSPlannerGUI::onLaunch(int mode) {
   
-  if(this->exec_robot_thr) {
+  // first, stop the robot
+  if(this->exec_robot_thr && this->exec_robot_thr->joinable()) {
     this->exec_robot_enabled = false;
-    if(this->exec_robot_thr->joinable())
-      this->exec_robot_thr->join();
+    this->exec_robot_thr->join();
     delete this->exec_robot_thr;
     this->exec_robot_thr = NULL;
   };
@@ -533,10 +535,9 @@ void CRSPlannerGUI::onLaunch(int mode) {
 void CRSPlannerGUI::onAbort() {
   
   // first, stop the robot
-  if(this->exec_robot_thr) {
+  if(this->exec_robot_thr && this->exec_robot_thr->joinable()) {
     this->exec_robot_enabled = false;
-    if(this->exec_robot_thr->joinable())
-      this->exec_robot_thr->join();
+    this->exec_robot_thr->join();
     delete this->exec_robot_thr;
     this->exec_robot_thr = NULL;
   };

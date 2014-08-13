@@ -98,6 +98,12 @@ int main(int argc, char ** argv) {
   
   shared_ptr< frame_3D<double> > global_base( new frame_3D<double>());
   
+//  Output from calibration program:
+//   (Position = (0.176438; -0.356764; -0.0521845); Quaternion = (0.999986; 0.00301881; -0.00257751; 0.00343278))
+  global_base->Position = vect<double,3>(0.176438, -0.356764, -0.0521845);
+  global_base->Quat = quaternion<double>(vect<double,4>(0.999986, 0.00301881, -0.00257751, 0.00343278));
+  
+  
   shared_ptr< frame_3D<double> > airship3D_frame( new frame_3D<double>());
   
   shared_ptr< frame_3D<double> > airship3D_output_frame( new frame_3D<double>());

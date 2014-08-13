@@ -34,6 +34,7 @@
 
 #include <ReaK/gui_qt/rk_view3d_menu.hpp>
 #include <ReaK/core/base/thread_incl.hpp>
+#include <ReaK/core/base/atomic_incl.hpp>
 
 #include <ReaK/gui_qt/chaser_target_config_widget.hpp>
 #include <ReaK/gui_qt/chaser_target_interact_widget.hpp>
@@ -128,7 +129,7 @@ class CRSPlannerGUI : public QMainWindow, private Ui::CRSPlannerWindow {
     
     void executeSolutionTrajectory();
     
-    volatile bool exec_robot_enabled;
+    ReaKaux::atomic<bool> exec_robot_enabled;
     ReaKaux::thread* exec_robot_thr;
     
     
