@@ -107,17 +107,25 @@ int main(int argc, char ** argv) {
     RK_UNUSED(e);
   };
   
+  vect<double,3> CRS_centroid;
+  vect<double,3> world_centroid;
+  for(std::size_t i = 0; i < CRS_pts.size(); ++i) {
+    CRS_centroid   += CRS_pts[i];
+    world_centroid += world_pts[i];
+  };
+  CRS_centroid   *= 1.0 / CRS_pts.size();
+  world_centroid *= 1.0 / CRS_pts.size();
+  
   
   // NOTE: This is a bit of a brute-force method, but it's not expected that there are too many points.
   
   std::vector< vect<double,3> > CRS_vects;
   std::vector< vect<double,3> > world_vects;
   for(std::size_t i = 0; i < CRS_pts.size(); ++i) {
-    for(std::size_t j = i+1; j < CRS_pts.size(); ++j) {
-      CRS_vects.push_back(CRS_pts[j] - CRS_pts[i]);
-      world_vects.push_back(world_pts[j] - world_pts[i]);
-    };
+    CRS_vects.push_back(CRS_pts[i] - CRS_centroid);
+    world_vects.push_back(world_pts[i] - world_centroid);
   };
+  
   
   mat<double,mat_structure::rectangular> X(CRS_vects.size(),3);
   mat<double,mat_structure::rectangular> B(world_vects.size(),3);
@@ -132,12 +140,40 @@ int main(int argc, char ** argv) {
   mat<double,mat_structure::square> U(3);
   mat<double,mat_structure::diagonal> E(3);
   mat<double,mat_structure::square> V(3);
-
+  
   decompose_SVD(C,U,E,V);
   
-  mat<double,mat_structure::square> Rt(U * transpose_view(V));
+  if((std::fabs(E(0,0)) < 1e-6) && (std::fabs(E(1,1)) < 1e-6) && (std::fabs(E(2,2)) < 1e-6)) {
+    std::cout << "Singularity detected!" << std::endl;
+  };
+  
+  rot_mat_3D<double> Rt(U * transpose_view(V));
+  
+  // NOTE: This proper orthogonal test is not needed because the conversion to rot-matrix does it already.
+#if 0
+  double Rt_det = Rt(0,0) * (Rt(1,1) * Rt(2,2) - Rt(2,1) * Rt(1,2))
+                - Rt(0,1) * (Rt(1,0) * Rt(2,2) - Rt(2,0) * Rt(1,2))
+                + Rt(0,2) * (Rt(1,0) * Rt(2,1) - Rt(2,0) * Rt(1,1));
+  
+  if(Rt_det < 1.0) {
+    Rt = U * mat<double,mat_structure::diagonal>(vect<double,3>(1.0,1.0,-1.0)) * transpose_view(V);
+  };
+#endif
   
   std::cout << "Rt = \n" << Rt << std::endl;
+  
+  pose_3D<double> CRS_wo(weak_ptr< pose_3D<double> >(),
+    CRS_centroid - Rt * world_centroid,
+    quaternion<double>(Rt)
+  );
+  
+  std::cout << "CRS_wo = \n" << CRS_wo << std::endl;
+  
+//   for(std::size_t i = 0; i < world_vects.size(); ++i) {
+//     vect<double,3> CRS_new_pt = Rt * world_vects[i] + CRS_centroid;
+//     std::cout << " CRS = " << CRS_pts[i] << " New CRS = " << CRS_new_pt 
+//               << " ErrNorm = " << norm_2(CRS_pts[i] - CRS_new_pt) << std::endl;
+//   };
   
   return 0;
 };
