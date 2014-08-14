@@ -33,6 +33,7 @@
 
 #include <ReaK/core/serialization/archiver_factory.hpp>
 #include <ReaK/core/base/function_incl.hpp>
+#include <ReaK/core/base/atomic_incl.hpp>
 
 #include <ReaK/ctrl/ctrl_sys/tsos_aug_inv_kalman_filter.hpp>
 #include <ReaK/ctrl/ctrl_sys/augmented_to_state_mapping.hpp>
@@ -106,7 +107,7 @@ static QString last_used_path;
 
 
 TargetPredConfigWidget::TargetPredConfigWidget(CRS_target_anim_data* aTargetAnimData, 
-                                               double* aCurrentTargetAnimTime, 
+                                               ReaKaux::atomic<double>* aCurrentTargetAnimTime, 
                                                QWidget * parent, Qt::WindowFlags flags) :
   QDockWidget(tr("Predictor"), parent, flags),
   Ui::TargetPredConfig(),
@@ -739,9 +740,9 @@ struct prediction_updater {
   double last_time;
   double diff_tolerance;
   
-  double* current_target_anim_time;
+  ReaKaux::atomic<double>* current_target_anim_time;
   
-  static volatile bool should_stop;
+  static ReaKaux::atomic<bool> should_stop;
   
   prediction_updater(
     shared_ptr< BeliefPredTrajType > aPredictor,
@@ -755,7 +756,7 @@ struct prediction_updater {
     OutputBeliefType aBZ,
     double aLastTime, 
     double aDiffTolerance,
-    double* aCurrentTargetAnimTime
+    ReaKaux::atomic<double>* aCurrentTargetAnimTime
   ) : 
     predictor(aPredictor),
     satellite3D_system(aSatSys),
@@ -820,25 +821,22 @@ struct prediction_updater {
     return 0;
   };
   
-  static shared_ptr< ReaKaux::thread > executer;
+  static ReaKaux::thread executer;
   
   static void stop_function() {
     should_stop = true;
-    if(executer) {
-      if(executer->joinable())
-        executer->join();
-      executer.reset();
-    };
+    if(executer.joinable())
+      executer.join();
   };
   
 };
 
 
 template <typename Sat3DSystemType>
-volatile bool prediction_updater<Sat3DSystemType>::should_stop = false;
+ReaKaux::atomic<bool> prediction_updater<Sat3DSystemType>::should_stop(false);
 
 template <typename Sat3DSystemType>
-shared_ptr< ReaKaux::thread > prediction_updater<Sat3DSystemType>::executer = shared_ptr< ReaKaux::thread >();
+ReaKaux::thread prediction_updater<Sat3DSystemType>::executer = ReaKaux::thread();
 
 ReaKaux::function<void()> pred_stop_function;
 
@@ -898,7 +896,7 @@ shared_ptr< CRS_target_anim_data::trajectory_type >
   start_state_predictions(shared_ptr< Sat3DSystemType > satellite3D_system, 
                           const ctrl::satellite_predictor_options& sat_options,
                           shared_ptr< recorder::data_extractor > data_in,
-                          double* current_target_anim_time) {
+                          ReaKaux::atomic<double>* current_target_anim_time) {
   using namespace ctrl;
   using namespace pp;
   
@@ -1054,12 +1052,12 @@ shared_ptr< CRS_target_anim_data::trajectory_type >
   predictor->set_minimal_horizon(sat_options.predict_time_horizon + (*current_target_anim_time));
   
   prediction_updater<Sat3DSystemType>::should_stop = false;
-  prediction_updater<Sat3DSystemType>::executer = shared_ptr< ReaKaux::thread >(new ReaKaux::thread(
+  prediction_updater<Sat3DSystemType>::executer = ReaKaux::thread(
     prediction_updater<Sat3DSystemType>(
       predictor,
       satellite3D_system,
       sat_temp_space, nvr_in, data_in, data_logger,
-      b, b_u, b_z, last_time, 0.5, current_target_anim_time)));
+      b, b_u, b_z, last_time, 0.5, current_target_anim_time));
   
   pred_stop_function = prediction_updater<Sat3DSystemType>::stop_function;
   

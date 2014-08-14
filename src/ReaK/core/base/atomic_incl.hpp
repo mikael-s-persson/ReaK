@@ -49,13 +49,13 @@ namespace ReaKaux {
   
   using ::std::atomic;
   
-  using ::std::atomic_is_lock_free;
-  using ::std::atomic_store;
-  using ::std::atomic_store_explicit;
-  using ::std::atomic_load;
-  using ::std::atomic_load_explicit;
-  using ::std::atomic_exchange;
-  using ::std::atomic_exchange_explicit;
+//   using ::std::atomic_is_lock_free;
+//   using ::std::atomic_store;
+//   using ::std::atomic_store_explicit;
+//   using ::std::atomic_load;
+//   using ::std::atomic_load_explicit;
+//   using ::std::atomic_exchange;
+//   using ::std::atomic_exchange_explicit;
 //   using ::std::atomic_compare_exchange_weak;
 //   using ::std::atomic_compare_exchange_weak_explicit;
 //   using ::std::atomic_compare_exchange_strong;
@@ -97,13 +97,13 @@ namespace ReaKaux {
   
   using ::boost::atomic;
   
-  using ::boost::atomic_is_lock_free;
-  using ::boost::atomic_store;
-  using ::boost::atomic_store_explicit;
-  using ::boost::atomic_load;
-  using ::boost::atomic_load_explicit;
-  using ::boost::atomic_exchange;
-  using ::boost::atomic_exchange_explicit;
+//   using ::boost::atomic_is_lock_free;
+//   using ::boost::atomic_store;
+//   using ::boost::atomic_store_explicit;
+//   using ::boost::atomic_load;
+//   using ::boost::atomic_load_explicit;
+//   using ::boost::atomic_exchange;
+//   using ::boost::atomic_exchange_explicit;
 //   using ::boost::atomic_compare_exchange_weak;
 //   using ::boost::atomic_compare_exchange_weak_explicit;
 //   using ::boost::atomic_compare_exchange_strong;

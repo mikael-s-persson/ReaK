@@ -36,6 +36,7 @@
 
 #include <ReaK/core/lin_alg/vect_alg.hpp>
 #include <ReaK/core/kinetostatics/quat_alg.hpp>
+#include <ReaK/core/base/atomic_incl.hpp>
 
 #include "ui_target_predictor_config.h"
 
@@ -65,7 +66,7 @@ class TargetPredConfigWidget : public QDockWidget, private Ui::TargetPredConfig 
     Q_OBJECT
   
   public:
-    TargetPredConfigWidget(CRS_target_anim_data* aTargetAnimData, double* aCurrentTargetAnimTime, QWidget * parent = NULL, Qt::WindowFlags flags = 0);
+    TargetPredConfigWidget(CRS_target_anim_data* aTargetAnimData, ReaKaux::atomic<double>* aCurrentTargetAnimTime, QWidget * parent = NULL, Qt::WindowFlags flags = 0);
     virtual ~TargetPredConfigWidget();
     
   private slots:
@@ -112,7 +113,7 @@ class TargetPredConfigWidget : public QDockWidget, private Ui::TargetPredConfig 
     ctrl::satellite_predictor_options sat_options;
     
     CRS_target_anim_data* target_anim_data;
-    double* current_target_anim_time;
+    ReaKaux::atomic<double>* current_target_anim_time;
     
   public:
     

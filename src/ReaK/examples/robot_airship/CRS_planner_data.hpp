@@ -26,6 +26,7 @@
 
 #include <ReaK/ctrl/ss_systems/satellite_invar_models.hpp>
 #include <ReaK/ctrl/interpolation/trajectory_base.hpp>
+#include <ReaK/core/base/atomic_incl.hpp>
 
 class SoTimerSensor;
 
@@ -37,7 +38,7 @@ struct coin_animation_data {
   
   ReaK::shared_ptr< trajectory_type > trajectory;
   SoTimerSensor* animation_timer;
-  volatile bool enabled;
+  ReaKaux::atomic<bool> enabled;
 };
 
 

@@ -41,7 +41,7 @@ struct satellite_predict_data {
   
   ReaK::shared_ptr< state_traj_type > trajectory;
   SoTimerSensor* animation_timer;
-  volatile bool enabled;
+  ReaKaux::atomic<bool> enabled;
   
 };
 

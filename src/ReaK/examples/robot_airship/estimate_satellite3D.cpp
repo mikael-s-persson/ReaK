@@ -44,6 +44,7 @@
 
 #include <boost/random/normal_distribution.hpp>
 #include <ReaK/core/base/global_rng.hpp>
+#include <ReaK/core/base/atomic_incl.hpp>
 
 #include <boost/program_options.hpp>
 #include <boost/filesystem.hpp>
@@ -627,9 +628,9 @@ struct prediction_updater {
   double last_time;
   double diff_tolerance;
   
-  double* current_target_anim_time;
+  ReaKaux::atomic<double>* current_target_anim_time;
   
-  static volatile bool should_stop;
+  static ReaKaux::atomic<bool> should_stop;
   
   prediction_updater(
     ReaK::shared_ptr< BeliefPredTrajType > aPredictor,
@@ -642,7 +643,7 @@ struct prediction_updater {
     OutputBeliefType aBZ,
     double aLastTime, 
     double aDiffTolerance,
-    double* aCurrentTargetAnimTime
+    ReaKaux::atomic<double>* aCurrentTargetAnimTime
   ) : 
     predictor(aPredictor),
     satellite3D_system(aSatSys),
@@ -714,25 +715,22 @@ struct prediction_updater {
     return 0;
   };
   
-  static ReaK::shared_ptr< ReaKaux::thread > executer;
+  static ReaKaux::thread executer;
   
   static void stop_function() {
     should_stop = true;
-    if(executer) {
-      if(executer->joinable())
-        executer->join();
-      executer.reset();
-    };
+    if(executer.joinable())
+      executer.join();
   };
   
 };
 
 
 template <typename Sat3DSystemType, typename MeasureProvider, typename ResultLogger>
-volatile bool prediction_updater<Sat3DSystemType, MeasureProvider, ResultLogger>::should_stop = false;
+ReaKaux::atomic<bool> prediction_updater<Sat3DSystemType, MeasureProvider, ResultLogger>::should_stop = false;
 
 template <typename Sat3DSystemType, typename MeasureProvider, typename ResultLogger>
-ReaK::shared_ptr< ReaKaux::thread > prediction_updater<Sat3DSystemType, MeasureProvider, ResultLogger>::executer = ReaK::shared_ptr< ReaKaux::thread >();
+ReaKaux::thread prediction_updater<Sat3DSystemType, MeasureProvider, ResultLogger>::executer = ReaKaux::thread();
 
 boost::function<void()> pred_stop_function;
 
@@ -827,13 +825,13 @@ void batch_KF_meas_predict_with_predictor(
   ));
   
   
-  double current_target_anim_time = meas_provider.get_current_time();
+  ReaKaux::atomic<double> current_target_anim_time = meas_provider.get_current_time();
   
   prediction_updater<Sat3DSystemType,MeasureProvider,ResultLogger>::should_stop = false;
-  prediction_updater<Sat3DSystemType,MeasureProvider,ResultLogger>::executer = shared_ptr< ReaKaux::thread >(new ReaKaux::thread(
+  prediction_updater<Sat3DSystemType,MeasureProvider,ResultLogger>::executer = ReaKaux::thread(
     prediction_updater<Sat3DSystemType,MeasureProvider,ResultLogger>(
       predictor, sat_sys_ptr, sat_temp_space, meas_provider, result_logger,
-      b, b_u, b_z, meas_provider.get_current_time(), 0.5, &current_target_anim_time)));
+      b, b_u, b_z, meas_provider.get_current_time(), 0.5, &current_target_anim_time));
   
   pred_stop_function = prediction_updater<Sat3DSystemType,MeasureProvider,ResultLogger>::stop_function;
   

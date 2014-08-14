@@ -39,6 +39,7 @@
 
 #include <ReaK/core/base/defs.hpp>
 #include <ReaK/core/base/named_object.hpp>
+#include <ReaK/core/base/atomic_incl.hpp>
 
 #include <ReaK/ctrl/topologies/metric_space_concept.hpp>
 #include <ReaK/ctrl/topologies/steerable_space_concept.hpp>
@@ -87,7 +88,7 @@ class planner_base : public named_object {
   protected:
     
     shared_ptr< space_type > m_space;
-    volatile bool m_keep_going_external;
+    ReaKaux::atomic<bool> m_keep_going_external;
     
   public:
     

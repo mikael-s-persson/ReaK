@@ -349,16 +349,12 @@ void CRSPlannerGUI::onStartPlanning(int mode) {
 //   mode == 2;  // live-sim (predicted target-trajectory + executeDynamicPlanner + startCompleteAnimation)
 //   mode == 3;  // live-run (predicted target-trajectory + executeDynamicPlanner + startCompleteAnimation + executeSolTrajectory)
   
-  if(planning_thr) {
-    if(stop_planner)
-      stop_planner();
-    if(planning_thr->joinable())
-      planning_thr->join();
-    delete planning_thr;
-    planning_thr = NULL;
-  };
+  if(stop_planner)
+    stop_planner();
+  if(planning_thr.joinable())
+    planning_thr.join();
   
-  planning_thr = new ReaKaux::thread(boost::bind(&CRSPlannerGUI::threadedPlanningFunction, this, mode));
+  planning_thr = ReaKaux::thread(boost::bind(&CRSPlannerGUI::threadedPlanningFunction, this, mode));
   
 };
 
@@ -366,14 +362,10 @@ void CRSPlannerGUI::onStopPlanning() {
   
   target_pred_config.stopStatePrediction();
   
-  if(planning_thr) {
-    if(stop_planner)
-      stop_planner();
-    if(planning_thr->joinable())
-      planning_thr->join();
-    delete planning_thr;
-    planning_thr = NULL;
-  };
+  if(stop_planner)
+    stop_planner();
+  if(planning_thr.joinable())
+    planning_thr.join();
   
 };
 
@@ -503,11 +495,9 @@ void CRSPlannerGUI::executeSolutionTrajectory() {
 void CRSPlannerGUI::onLaunch(int mode) {
   
   // first, stop the robot
-  if(this->exec_robot_thr && this->exec_robot_thr->joinable()) {
+  if(this->exec_robot_thr.joinable()) {
     this->exec_robot_enabled = false;
-    this->exec_robot_thr->join();
-    delete this->exec_robot_thr;
-    this->exec_robot_thr = NULL;
+    this->exec_robot_thr.join();
   };
   
   if( !sol_anim.trajectory || !ct_config.sceneData.chaser_kin_model ) {
@@ -526,7 +516,7 @@ void CRSPlannerGUI::onLaunch(int mode) {
     current_target_anim_time = target_anim.trajectory->get_start_time();
   } else if( mode == 3 ) {
     exec_robot_enabled = true;
-    exec_robot_thr = new ReaKaux::thread(boost::bind(&CRSPlannerGUI::executeSolutionTrajectory, this));
+    exec_robot_thr = ReaKaux::thread(boost::bind(&CRSPlannerGUI::executeSolutionTrajectory, this));
   };
   startCompleteAnimation();
   
@@ -535,11 +525,9 @@ void CRSPlannerGUI::onLaunch(int mode) {
 void CRSPlannerGUI::onAbort() {
   
   // first, stop the robot
-  if(this->exec_robot_thr && this->exec_robot_thr->joinable()) {
+  if(this->exec_robot_thr.joinable()) {
     this->exec_robot_enabled = false;
-    this->exec_robot_thr->join();
-    delete this->exec_robot_thr;
-    this->exec_robot_thr = NULL;
+    this->exec_robot_thr.join();
   };
   
   // then, stop the state prediction and/or planning
@@ -565,8 +553,8 @@ CRSPlannerGUI::CRSPlannerGUI( QWidget * parent, Qt::WindowFlags flags ) :
     plan_alg_config(this),
     target_pred_config(&target_anim, &current_target_anim_time, this),
     run_dialog(this),
-    planning_thr(NULL),
-    exec_robot_thr(NULL) {
+    planning_thr(), 
+    exec_robot_thr() {
   setupUi(this);
   
   

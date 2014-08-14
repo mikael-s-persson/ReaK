@@ -110,7 +110,7 @@ class CRSPlannerGUI : public QMainWindow, private Ui::CRSPlannerWindow {
     
     CRS_sol_anim_data    sol_anim;
     CRS_target_anim_data target_anim;
-    double current_target_anim_time;
+    ReaKaux::atomic<double> current_target_anim_time;
     
     ReaK::rkqt::View3DMenu view3d_menu;
     
@@ -125,12 +125,12 @@ class CRSPlannerGUI : public QMainWindow, private Ui::CRSPlannerWindow {
     ReaKaux::function<void()> stop_planner;
     void threadedPlanningFunction(int mode);
     
-    ReaKaux::thread* planning_thr;
+    ReaKaux::thread planning_thr;
     
     void executeSolutionTrajectory();
     
     ReaKaux::atomic<bool> exec_robot_enabled;
-    ReaKaux::thread* exec_robot_thr;
+    ReaKaux::thread exec_robot_thr;
     
     
 };

@@ -35,6 +35,7 @@
 
 #include <ReaK/core/base/defs.hpp>
 #include <ReaK/core/base/thread_incl.hpp>
+#include <ReaK/core/base/atomic_incl.hpp>
 #include <ReaK/core/base/shared_object.hpp>
 
 #include <string>
@@ -157,9 +158,9 @@ class named_value_row {
  */
 class data_recorder : public shared_object {
   protected:
-    volatile unsigned int colCount; ///< Holds the column count.
-    volatile unsigned int rowCount; ///< Holds the number of rows of data records.
-    volatile unsigned int currentColumn; ///< Holds the current column to which the next data entry will be written to.
+    ReaKaux::atomic<unsigned int> colCount; ///< Holds the column count.
+    ReaKaux::atomic<unsigned int> rowCount; ///< Holds the number of rows of data records.
+    ReaKaux::atomic<unsigned int> currentColumn; ///< Holds the current column to which the next data entry will be written to.
     unsigned int flushSampleRate; ///< Holds the sample rate at which the data is automatically flushed to the file.
     unsigned int maxBufferSize; ///< Holds the maximum size for the data buffer, overload will trigger a file-flush.
     std::vector<std::string> names; ///< Holds the list of column names.
@@ -341,9 +342,9 @@ class data_recorder : public shared_object {
  */
 class data_extractor : public shared_object {
   protected:
-    volatile unsigned int colCount; ///< Holds the column count.
-    volatile unsigned int currentColumn; ///< Holds the current column to which the next data entry will be read from.
-    volatile unsigned int currentNameCol; ///< Holds the current column to which the next name entry will be read from.
+    ReaKaux::atomic<unsigned int> colCount; ///< Holds the column count.
+    ReaKaux::atomic<unsigned int> currentColumn; ///< Holds the current column to which the next data entry will be read from.
+    ReaKaux::atomic<unsigned int> currentNameCol; ///< Holds the current column to which the next name entry will be read from.
     unsigned int flushSampleRate; ///< Holds the sample rate at which the data is automatically flushed to the file.
     unsigned int minBufferSize; ///< Holds the minimum size for the data buffer, underload will trigger a file-read.
     std::vector<std::string> names; ///< Holds the list of column names.
