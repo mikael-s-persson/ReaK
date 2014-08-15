@@ -113,6 +113,8 @@ struct data_stream_options {
   void set_buffered(unsigned int aFlushRate = 50, unsigned int aBufferSize = 500) { 
     flush_rate = aFlushRate; buffer_size = aBufferSize; };
   
+  std::string get_URI() const;
+  void set_from_URI(const std::string& aURI);
   
   /**
    * Default constructor.

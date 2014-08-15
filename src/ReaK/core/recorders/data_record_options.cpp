@@ -35,6 +35,38 @@ namespace ReaK {
 
 namespace recorder {
 
+std::string data_stream_options::get_URI() const {
+  std::string result;
+  
+  switch(kind) {
+    case binary:
+    case space_separated:
+    case tab_separated:
+    case comma_separated:
+      result += "file:";
+      break;
+    case tcp_stream:
+      result += "tcp:";
+      break;
+    case udp_stream: 
+      result += "udp:";
+      break;
+    case raw_udp_stream: 
+      result += "raw_udp:";
+      break;
+    case vector_stream:
+      result = "memory";
+      break;
+  };
+  
+  
+  
+  
+};
+
+void data_stream_options::set_from_URI(const std::string& aURI) {
+  
+};
 
 shared_ptr< data_recorder > data_stream_options::create_recorder() const {
   
