@@ -29,6 +29,9 @@
 #include <ReaK/core/recorders/vector_recorder.hpp>
 
 #include <algorithm>
+#include <boost/graph/graph_concepts.hpp>
+
+#include <ctime>
 
 
 namespace ReaK {
@@ -55,16 +58,120 @@ std::string data_stream_options::get_URI() const {
       result += "raw_udp:";
       break;
     case vector_stream:
-      result = "memory";
+      result = "memory:";
       break;
   };
   
+  result += file_name;
+  std::size_t dot = result.find_last_of('.');
+  if((dot != std::string::npos) && (result.size() - dot == 4) &&
+     ((result.substr(dot, 4) == ".bin") || (result.substr(dot, 4) == ".ssv") || 
+      (result.substr(dot, 4) == ".tsv") || (result.substr(dot, 4) == ".csv"))) {
+    result.erase(dot, 4);
+  };
+  switch(kind) {
+    case binary:
+      result += ".bin";
+      break;
+    case space_separated:
+      result += ".ssv";
+      break;
+    case tab_separated:
+      result += ".tsv";
+      break;
+    case comma_separated:
+      result += ".csv";
+      break;
+    default:
+      break;
+  };
   
+  if(!time_sync_name.empty()) {
+    result += "|time=" + time_sync_name;
+  };
   
+  if(flush_rate != 50) {
+    std::stringstream ss;
+    ss << "|freq=" << flush_rate;
+    result += ss.str();
+  };
   
+  if(buffer_size != 500) {
+    std::stringstream ss;
+    ss << "|buf=" << buffer_size;
+    result += ss.str();
+  };
+  
+  return result;
 };
 
 void data_stream_options::set_from_URI(const std::string& aURI) {
+  
+  std::size_t cur_i = 0; 
+  std::size_t cur_sep = aURI.find(':');
+  std::string hdr_name = aURI.substr(0, cur_sep);
+  if(cur_sep != std::string::npos)
+    cur_i = cur_sep+1;
+  else
+    cur_i = std::string::npos;
+  
+  if(hdr_name == "memory") {
+    kind = vector_stream;
+    cur_sep = aURI.find('|', cur_i);
+    cur_i = cur_sep;
+  } else if(hdr_name == "file") {
+    cur_sep = aURI.find('|', cur_i);
+    file_name = aURI.substr(cur_i, cur_sep - cur_i);
+    cur_i = cur_sep;
+    std::size_t dot = file_name.find_last_of('.');
+    if((dot == std::string::npos) || (file_name.size() - dot != 4))
+      kind = space_separated;
+    else if(file_name.substr(dot, 4) == ".bin")
+      kind = binary;
+    else if(file_name.substr(dot, 4) == ".tsv")
+      kind = tab_separated;
+    else if(file_name.substr(dot, 4) == ".csv")
+      kind = comma_separated;
+    else
+      kind = space_separated;
+    if(file_name.substr(0, dot) == "stdout")
+      file_name = "stdout";
+    if(file_name.substr(0, dot) == "stdin")
+      file_name = "stdin";
+  } else {
+    if(hdr_name == "tcp")
+      kind = tcp_stream;
+    else if(hdr_name == "udp")
+      kind = udp_stream;
+    else if(hdr_name == "raw_udp")
+      kind = raw_udp_stream;
+    cur_sep = aURI.find('|', cur_i);
+    file_name = aURI.substr(cur_i, cur_sep - cur_i);
+    cur_i = cur_sep;
+  };
+  
+  // Default values:
+  time_sync_name = "";
+  flush_rate  = 50;
+  buffer_size = 500;
+  while(cur_i != std::string::npos) {
+    cur_sep = aURI.find('|', cur_i);
+    std::string cur_sec = aURI.substr(cur_i, cur_sep - cur_i);
+    cur_i = cur_sep;
+    std::size_t eq_sign = cur_sec.find('=');
+    std::string cur_sec_hdr = cur_sec.substr(0, eq_sign);
+    if(cur_sec_hdr == "|time") {
+      time_sync_name = cur_sec.substr(eq_sign+1);
+    } else if(cur_sec_hdr == "|freq") {
+      std::string cur_sec_val = cur_sec.substr(eq_sign+1);
+      std::stringstream ss(cur_sec_val);
+      ss >> flush_rate;
+    } else if(cur_sec_hdr == "|buf") {
+      std::string cur_sec_val = cur_sec.substr(eq_sign+1);
+      std::stringstream ss(cur_sec_val);
+      ss >> buffer_size;
+    };
+  };
   
 };
 
@@ -109,18 +216,60 @@ shared_ptr< data_recorder > data_stream_options::create_recorder() const {
   
   
   if(file_name != "stdout") {
+    
+    std::string new_fname;
+    
+    // Check if the file name contains a wildcard for a date or time stamp, or both:
+    std::size_t d = file_name.find("$d");
+    std::size_t t = file_name.find("$t");
+    if((d != std::string::npos) || (t != std::string::npos)) {
+      
+      // Record the current date and time:
+      std::time_t t_ctime = std::time(NULL);
+      char cdate_as_str[16];
+      if (std::strftime(cdate_as_str, sizeof(cdate_as_str), "%Y%m%d", std::localtime(&t_ctime)) == 0)
+        cdate_as_str[0] = '\0';
+      char ctime_as_str[16];
+      if (std::strftime(ctime_as_str, sizeof(ctime_as_str), "%H%M", std::localtime(&t_ctime)) == 0)
+        ctime_as_str[0] = '\0';
+      
+      if(d < t) {
+        new_fname.append(file_name.begin(), file_name.begin() + d);
+        new_fname.append(cdate_as_str);
+        if(t != std::string::npos) {
+          new_fname.append(file_name.begin()+d+2, file_name.begin()+t);
+          new_fname.append(ctime_as_str);
+          new_fname.append(file_name.begin()+t+2, file_name.end());
+        } else {
+          new_fname.append(file_name.begin()+d+2, file_name.end());
+        };
+      } else if(t < d) {
+        new_fname.append(file_name.begin(), file_name.begin() + t);
+        new_fname.append(ctime_as_str);
+        if(d != std::string::npos) {
+          new_fname.append(file_name.begin()+t+2, file_name.begin()+d);
+          new_fname.append(cdate_as_str);
+          new_fname.append(file_name.begin()+d+2, file_name.end());
+        } else {
+          new_fname.append(file_name.begin()+t+2, file_name.end());
+        };
+      };
+    } else {
+      new_fname = file_name;
+    };
+    
     switch(kind) {
       case tcp_stream:
-        result->setFileName("tcp:" + file_name);
+        result->setFileName("tcp:" + new_fname);
         break;
       case udp_stream: 
-        result->setFileName("udp:" + file_name);
+        result->setFileName("udp:" + new_fname);
         break;
       case raw_udp_stream: 
-        result->setFileName("raw_udp:" + file_name);
+        result->setFileName("raw_udp:" + new_fname);
         break;
       default:
-        result->setFileName(file_name);
+        result->setFileName(new_fname);
         break;
     };
   } else {

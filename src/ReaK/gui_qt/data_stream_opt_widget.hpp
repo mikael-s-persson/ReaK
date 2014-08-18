@@ -46,19 +46,51 @@ class DataStreamOptWidget : public QDockWidget, private Ui::DataStreamOpt {
     Q_OBJECT
   
   public:
-    DataStreamOptWidget(QWidget * parent = NULL, Qt::WindowFlags flags = 0);
+    DataStreamOptWidget(recorder::data_stream_options aDataOpt = recorder::data_stream_options(), 
+                        QWidget * parent = NULL, Qt::WindowFlags flags = 0);
     virtual ~DataStreamOptWidget();
     
   private slots:
     
     void onUpdateURIAndDataOpt();
     void onUpdateFieldsAndDataOpt();
+    void onUpdateDataOptNames();
     
   private:
     
   public:
     
     recorder::data_stream_options data_opt;
+    
+    void setEnabledNameEdits(bool aEnabled) { 
+      this->Columns_edit->setEnabled(aEnabled);
+      onUpdateFieldsAndDataOpt();
+      onUpdateDataOptNames();
+    };
+    
+    void setEnabledFreqSetting(bool aEnabled) { 
+      this->Freq_spin->setEnabled(aEnabled);
+    };
+    
+    void setEnabledBufferSetting(bool aEnabled) { 
+      this->Buffer_spin->setEnabled(aEnabled);
+    };
+    
+    void setEnabledTimeSyncSetting(bool aEnabled) { 
+      this->TimeSync_edit->setEnabled(aEnabled);
+    };
+    
+    enum stream_types {
+      allow_all,
+      file_only,
+      network_only
+    } mode;
+    
+    void setMode(stream_types aMode) { 
+      mode = aMode;
+      onUpdateFieldsAndDataOpt();
+      onUpdateDataOptNames();
+    };
     
 };
 

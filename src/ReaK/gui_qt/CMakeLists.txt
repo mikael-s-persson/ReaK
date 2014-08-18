@@ -24,6 +24,7 @@ if(QT_FOUND)
     "${SRCROOT}${RKGUIQTDIR}/ui/planner_alg_config.ui" 
     "${SRCROOT}${RKGUIQTDIR}/ui/chaser_target_interact.ui"
     "${SRCROOT}${RKGUIQTDIR}/ui/target_predictor_config.ui" 
+    "${SRCROOT}${RKGUIQTDIR}/ui/data_stream_opt.ui" 
   )
   QT4_WRAP_UI( RKGUIQT_UI_HDRS ${RKGUIQT_UIS} )
   set( RKGUIQT_MOC_HDRS
@@ -37,6 +38,7 @@ if(QT_FOUND)
     "${SRCROOT}${RKGUIQTDIR}/manip_space_config_widget.hpp"
     "${SRCROOT}${RKGUIQTDIR}/chaser_target_interact_widget.hpp"
     "${SRCROOT}${RKGUIQTDIR}/target_pred_config_widget.hpp"
+    "${SRCROOT}${RKGUIQTDIR}/data_stream_opt_widget.hpp"
   )
   QT4_WRAP_CPP( RKGUIQT_MOC_SRCS ${RKGUIQT_MOC_HDRS} OPTIONS "-DBOOST_TT_HAS_OPERATOR_HPP_INCLUDED")
   
@@ -51,6 +53,7 @@ if(QT_FOUND)
     "${SRCROOT}${RKGUIQTDIR}/manip_space_config_widget.cpp"
     "${SRCROOT}${RKGUIQTDIR}/chaser_target_interact_widget.cpp"
     "${SRCROOT}${RKGUIQTDIR}/target_pred_config_widget.cpp"
+    "${SRCROOT}${RKGUIQTDIR}/data_stream_opt_widget.cpp"
   )
   
   set(RKGUIQT_HEADERS 

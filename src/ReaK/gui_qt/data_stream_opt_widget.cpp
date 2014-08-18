@@ -44,9 +44,10 @@ namespace rkqt {
 
 
 
-DataStreamOptWidget::DataStreamOptWidget(QWidget * parent, Qt::WindowFlags flags) :
+DataStreamOptWidget::DataStreamOptWidget(recorder::data_stream_options aDataOpt, QWidget * parent, Qt::WindowFlags flags) :
   QDockWidget(tr("Predictor"), parent, flags),
-  Ui::DataStreamOpt()
+  Ui::DataStreamOpt(),
+  data_opt(aDataOpt), mode(allow_all)
 {
   QScrollArea* dock_scroll = new QScrollArea(this);
   dock_scroll->setWidgetResizable(true);
@@ -56,12 +57,13 @@ DataStreamOptWidget::DataStreamOptWidget(QWidget * parent, Qt::WindowFlags flags
   setupUi(dock_wid);
   
   connect(this->actionUpdateURI, SIGNAL(triggered()), this, SLOT(onUpdateURIAndDataOpt()));
-  connect(this->Columns_edit, SIGNAL(textChanged()), this, SLOT(onUpdateFieldsAndDataOpt()));
+  connect(this->Columns_edit, SIGNAL(textChanged()), this, SLOT(onUpdateDataOptNames()));
   connect(this->URI_edit, SIGNAL(textChanged(QString)), this, SLOT(onUpdateFieldsAndDataOpt()));
   
-  this->URI_edit->setPlainText(tr("file:./data.ssv"));
+  this->URI_edit->setText(tr("file:./data.ssv"));
   
   onUpdateFieldsAndDataOpt();
+  onUpdateDataOptNames();
   
 };
 
@@ -71,186 +73,177 @@ DataStreamOptWidget::~DataStreamOptWidget() {
 };
 
 
-
-void DataStreamOptWidget::onConfigsChanged() {
-  
-  typedef ctrl::satellite_predictor_options sat_opt;
-  
-  sat_options.system_kind = 0;
-  switch(this->kf_model_selection->currentIndex()) {
-    case 0:  // IEKF
-      sat_options.system_kind |= sat_opt::invariant;
-      break;
-    case 1:  // IMKF
-      sat_options.system_kind |= sat_opt::invar_mom;
-      break;
-    case 2:  // IMKFv2
-      sat_options.system_kind |= sat_opt::invar_mom2;
-      break;
-    case 3:  // IMKF_em
-      sat_options.system_kind |= sat_opt::invar_mom_em;
-      break;
-    case 4:  // IMKF_emd
-      sat_options.system_kind |= sat_opt::invar_mom_emd;
-      break;
-    case 5:  // IMKF_emdJ
-      sat_options.system_kind |= sat_opt::invar_mom_emdJ;
-      break;
-    case 6:  // TSOSAIKF_em
-      sat_options.system_kind |= sat_opt::invar_mom_em | sat_opt::TSOSAKF;
-      break;
-    case 7:  // TSOSAIKF_emd
-      sat_options.system_kind |= sat_opt::invar_mom_emd | sat_opt::TSOSAKF;
-      break;
-    case 8:  // TSOSAIKF_emdJ
-      sat_options.system_kind |= sat_opt::invar_mom_emdJ | sat_opt::TSOSAKF;
-      break;
-  };
-  
-  if(this->gyro_check->isChecked())
-    sat_options.system_kind |= sat_opt::gyro_measures;
-  if(this->IMU_check->isChecked())
-    sat_options.system_kind |= sat_opt::IMU_measures;
-  
-  switch(this->predict_assumption_selection->currentIndex()) {
-    case 0:  // No future measurements
-      sat_options.predict_assumption = sat_opt::no_measurements;
-      break;
-    case 1:  // Maximum-likelihood Measurements
-      sat_options.predict_assumption = sat_opt::most_likely_measurements;
-      break;
-    case 2:  // Full certainty
-      sat_options.predict_assumption = sat_opt::full_certainty;
-      break;
-  };
-  
-  
-  sat_options.time_step = getTimeStep();
-  
-  sat_options.mass = getMass();
-  sat_options.inertia_tensor = getInertiaTensor();
-  
-  sat_options.input_disturbance = getInputDisturbance();
-  sat_options.measurement_noise = getMeasurementNoise();
-  
-  sat_options.IMU_orientation = getIMUOrientation();
-  sat_options.IMU_location = getIMULocation();
-  sat_options.earth_orientation = getEarthOrientation();
-  sat_options.mag_field_direction = getMagFieldDirection();
-  
-  sat_options.initial_motion = frame_3D<double>();
-  
-  sat_options.predict_time_horizon = getTimeHorizon();
-  sat_options.predict_Pnorm_threshold = getPThreshold();
-  
-};
-
-
-void DataStreamOptWidget::updateConfigs() {
-  
-  typedef ctrl::satellite_predictor_options sat_opt;
-  
-  switch(sat_options.system_kind & 15) {
-    case sat_opt::invariant:  // IEKF
-      this->kf_model_selection->setCurrentIndex(0);
-      break;
-    case sat_opt::invar_mom:  // IMKF
-      this->kf_model_selection->setCurrentIndex(1);
-      break;
-    case sat_opt::invar_mom2:  // IMKFv2
-      this->kf_model_selection->setCurrentIndex(2);
-      break;
-    case sat_opt::invar_mom_em:  // IMKF_em
-      if(sat_options.system_kind & sat_opt::TSOSAKF)
-        this->kf_model_selection->setCurrentIndex(6);
-      else
-        this->kf_model_selection->setCurrentIndex(3);
-      break;
-    case sat_opt::invar_mom_emd:  // IMKF_emd
-      if(sat_options.system_kind & sat_opt::TSOSAKF)
-        this->kf_model_selection->setCurrentIndex(7);
-      else
-        this->kf_model_selection->setCurrentIndex(4);
-      break;
-    case sat_opt::invar_mom_emdJ:  // IMKF_emdJ
-      if(sat_options.system_kind & sat_opt::TSOSAKF)
-        this->kf_model_selection->setCurrentIndex(8);
-      else
-        this->kf_model_selection->setCurrentIndex(5);
-      break;
-  };
-  
-  if(sat_options.system_kind & sat_opt::gyro_measures)
-    this->gyro_check->setChecked(true);
-  if(sat_options.system_kind & sat_opt::IMU_measures)
-    this->IMU_check->setChecked(true);
-  
-  switch(sat_options.predict_assumption) {
-    case sat_opt::no_measurements:
-      this->predict_assumption_selection->setCurrentIndex(0);
-      break;
-    case sat_opt::most_likely_measurements:
-      this->predict_assumption_selection->setCurrentIndex(1);
-      break;
-    case sat_opt::full_certainty:
-      this->predict_assumption_selection->setCurrentIndex(2);
-      break;
-  };
-  
-  this->time_step_spin->setValue(sat_options.time_step);
-  
-  this->mass_spin->setValue(sat_options.mass);
-  inertia_storage->inertia_tensor = sat_options.inertia_tensor;
-  
-  this->Qf_spin->setValue((sat_options.input_disturbance(0,0) + sat_options.input_disturbance(1,1) + sat_options.input_disturbance(2,2)) / 3.0);
-  this->Qt_spin->setValue((sat_options.input_disturbance(3,3) + sat_options.input_disturbance(4,4) + sat_options.input_disturbance(5,5)) / 3.0);
-  
-  this->Rpos_spin->setValue((sat_options.measurement_noise(0,0) + sat_options.measurement_noise(1,1) + sat_options.measurement_noise(2,2)) / 3.0);
-  this->Rang_spin->setValue((sat_options.measurement_noise(3,3) + sat_options.measurement_noise(4,4) + sat_options.measurement_noise(5,5)) / 3.0);
-  if(sat_options.measurement_noise.get_col_count() > 6) {
-    this->Rgyro_spin->setValue((sat_options.measurement_noise(6,6) + sat_options.measurement_noise(7,7) + sat_options.measurement_noise(8,8)) / 3.0);
-    if(sat_options.measurement_noise.get_col_count() > 9) {
-      this->Racc_spin->setValue((sat_options.measurement_noise(9,9) + sat_options.measurement_noise(10,10) + sat_options.measurement_noise(11,11)) / 3.0);
-      this->Rmag_spin->setValue((sat_options.measurement_noise(12,12) + sat_options.measurement_noise(13,13) + sat_options.measurement_noise(14,14)) / 3.0);
-    };
-  };
-  
-  IMU_storage->IMU_orientation = sat_options.IMU_orientation;
-  IMU_storage->IMU_location = sat_options.IMU_location;
-  IMU_storage->earth_orientation = sat_options.earth_orientation;
-  IMU_storage->mag_field_direction = sat_options.mag_field_direction;
-  
-  this->horizon_spin->setValue(sat_options.predict_time_horizon);
-  this->Pthreshold_spin->setValue(sat_options.predict_Pnorm_threshold);
-  
-};
-
-
-
 void DataStreamOptWidget::onUpdateURIAndDataOpt() {
+  // fill data_opt with the values of the fields.
+  switch(mode) {
+    case network_only:
+      if(this->Format_combo->currentIndex() < 5) {
+        QMessageBox::information(this,
+                    "Format not allowed!",
+                    "Sorry, only network streams are allowed! Please choose a network data-stream type.",
+                    QMessageBox::Ok);
+        onUpdateFieldsAndDataOpt();
+        return;
+      };
+      break;
+    case file_only:
+      if(this->Format_combo->currentIndex() >= 5) {
+        QMessageBox::information(this,
+                    "Format not allowed!",
+                    "Sorry, only file streams are allowed! Please choose a file format.",
+                    QMessageBox::Ok);
+        onUpdateFieldsAndDataOpt();
+        return;
+      };
+    case allow_all:
+    default:
+      break;
+  };
+  switch(this->Format_combo->currentIndex()) {
+    case 1:
+      data_opt.kind = recorder::data_stream_options::binary;
+      break;
+    case 2:
+      data_opt.kind = recorder::data_stream_options::space_separated;
+      break;
+    case 3:
+      data_opt.kind = recorder::data_stream_options::comma_separated;
+      break;
+    case 4:
+      data_opt.kind = recorder::data_stream_options::tab_separated;
+      break;
+    case 5:
+      data_opt.kind = recorder::data_stream_options::tcp_stream;
+      break;
+    case 6:
+      data_opt.kind = recorder::data_stream_options::udp_stream;
+      break;
+    case 7:
+      data_opt.kind = recorder::data_stream_options::raw_udp_stream;
+      break;
+    default:
+      data_opt.kind = recorder::data_stream_options::vector_stream;
+      break;
+  };
+  switch(data_opt.kind) {
+    case recorder::data_stream_options::tcp_stream:
+    case recorder::data_stream_options::udp_stream:
+    case recorder::data_stream_options::raw_udp_stream:
+      this->Filename_label->setText(tr("IP Addr. / Host-name:"));
+      this->Filename_button->setEnabled(false);
+      this->Port_spin->setEnabled(true);
+      break;
+    case recorder::data_stream_options::binary:
+    case recorder::data_stream_options::space_separated:
+    case recorder::data_stream_options::comma_separated:
+    case recorder::data_stream_options::tab_separated:
+    default:
+      this->Filename_label->setText(tr("File Name:"));
+      this->Filename_button->setEnabled(true);
+      this->Port_spin->setEnabled(false);
+      break;
+  };
+  std::string fname = this->Filename_edit->text().toStdString();
+  std::size_t portnum = this->Port_spin->value();
+  if(this->Port_spin->isEnabled()) {
+    std::stringstream ss(fname);
+    ss << ":" << portnum;
+    fname = ss.str();
+  };
+  data_opt.file_name = fname;
   
+  data_opt.flush_rate = this->Freq_spin->value();
+  data_opt.buffer_size = this->Buffer_spin->value();
+  data_opt.time_sync_name = this->TimeSync_edit->text().toStdString();
+  
+  // create URI string to set the URI edit with.
+  this->URI_edit->setText(QString::fromStdString(data_opt.get_URI()));
 };
 
 void DataStreamOptWidget::onUpdateFieldsAndDataOpt() {
-  
-};
-
-
-void DataStreamOptWidget::onUpdateAvailableOptions() {
-  
-  switch(filter_method) {
-    case 0:  // IEKF
-      this->IMU_check->setChecked(false);
-      this->IMU_check->setEnabled(false);
+  // fill data_opt with the values of the URI.
+  data_opt.set_from_URI(this->URI_edit->text().toStdString());
+  // fill the fields with the values from data_opt.
+  switch(data_opt.kind) {
+    case recorder::data_stream_options::binary:
+      this->Format_combo->setCurrentIndex(1);
       break;
-    case 1:  // IMKF
-    case 2:  // IMKFv2
+    case recorder::data_stream_options::space_separated:
+      this->Format_combo->setCurrentIndex(2);
+      break;
+    case recorder::data_stream_options::comma_separated:
+      this->Format_combo->setCurrentIndex(3);
+      break;
+    case recorder::data_stream_options::tab_separated:
+      this->Format_combo->setCurrentIndex(4);
+      break;
+    case recorder::data_stream_options::tcp_stream:
+      this->Format_combo->setCurrentIndex(5);
+      break;
+    case recorder::data_stream_options::udp_stream:
+      this->Format_combo->setCurrentIndex(6);
+      break;
+    case recorder::data_stream_options::raw_udp_stream:
+      this->Format_combo->setCurrentIndex(7);
+      break;
     default:
-      this->IMU_check->setEnabled(false); // always false (for now!)
+      this->Format_combo->setCurrentIndex(0);
+      break;
+  };
+  switch(data_opt.kind) {
+    case recorder::data_stream_options::tcp_stream:
+    case recorder::data_stream_options::udp_stream:
+    case recorder::data_stream_options::raw_udp_stream:
+      this->Filename_label->setText(tr("IP Addr. / Host-name:"));
+      this->Filename_button->setEnabled(false);
+      this->Port_spin->setEnabled(true);
+      break;
+    case recorder::data_stream_options::binary:
+    case recorder::data_stream_options::space_separated:
+    case recorder::data_stream_options::comma_separated:
+    case recorder::data_stream_options::tab_separated:
+    default:
+      this->Filename_label->setText(tr("File Name:"));
+      this->Filename_button->setEnabled(true);
+      this->Port_spin->setEnabled(false);
       break;
   };
   
+  std::string fname = "localhost";
+  std::size_t portnum = 17000;
+  std::stringstream ss(data_opt.file_name);
+  std::getline(ss, fname, ':');
+  ss >> portnum;
+  this->Filename_edit->setText(QString::fromStdString(fname));
+  this->Port_spin->setValue(portnum);
+  
+  this->Freq_spin->setValue(data_opt.flush_rate);
+  this->Buffer_spin->setValue(data_opt.buffer_size);
+  this->TimeSync_edit->setText(QString::fromStdString(data_opt.time_sync_name));
+  
+  if(!this->Columns_edit->isEnabled()) {
+    // fill the Columns_edit with the names from data_opt.
+    std::stringstream ss;
+    for(std::size_t i = 0; i < data_opt.names.size(); ++i) {
+      ss << data_opt.names[i] << '\n';
+    };
+    this->Columns_edit->setPlainText(QString::fromStdString(ss.str()));
+  };
+  
 };
+
+void DataStreamOptWidget::onUpdateDataOptNames() {
+  // fill the data_opt names with the names from Columns_edit.
+  std::stringstream ss(this->Columns_edit->toPlainText().toStdString());
+  data_opt.names.clear();
+  for(std::size_t i = 0; i < data_opt.names.size(); ++i) {
+    std::string tmp;
+    std::getline(ss, tmp, '\n');
+    data_opt.add_name(tmp);
+  };
+};
+
+
 
 
 #if 0
