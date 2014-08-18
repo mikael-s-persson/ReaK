@@ -35,6 +35,7 @@
 #include <ReaK/gui_qt/rk_view3d_menu.hpp>
 #include <ReaK/core/base/thread_incl.hpp>
 #include <ReaK/core/base/atomic_incl.hpp>
+#include <ReaK/core/recorders/data_record_options.hpp>
 
 #include <ReaK/gui_qt/chaser_target_config_widget.hpp>
 #include <ReaK/gui_qt/chaser_target_interact_widget.hpp>
@@ -131,6 +132,8 @@ class CRSPlannerGUI : public QMainWindow, private Ui::CRSPlannerWindow {
     
     ReaKaux::atomic<bool> exec_robot_enabled;
     ReaKaux::thread exec_robot_thr;
+    ReaK::recorder::data_stream_options jtctrl_log_opt;
+    ReaK::recorder::data_stream_options jtctrl_network_opt;
     
     
 };

@@ -28,6 +28,8 @@
 #include <ReaK/core/recorders/network_recorder.hpp>
 #include <ReaK/core/recorders/vector_recorder.hpp>
 
+#include <ReaK/core/serialization/archiver_factory.hpp>
+
 #include <algorithm>
 #include <boost/graph/graph_concepts.hpp>
 
@@ -378,6 +380,82 @@ std::pair< shared_ptr< data_extractor >, std::vector< std::string > > data_strea
   
   return result;
 };
+
+
+void data_stream_options::load_all_configs(const std::string& aFileName) {
+  
+  shared_ptr< serialization::iarchive > p_ia = serialization::open_iarchive(aFileName);
+  
+  std::string stream_kind;
+  
+  (*p_ia) & RK_SERIAL_LOAD_WITH_NAME(stream_kind)
+          & RK_SERIAL_LOAD_WITH_NAME(file_name)
+          & RK_SERIAL_LOAD_WITH_NAME(names)
+          & RK_SERIAL_LOAD_WITH_NAME(time_sync_name)
+          & RK_SERIAL_LOAD_WITH_NAME(flush_rate)
+          & RK_SERIAL_LOAD_WITH_NAME(buffer_size);
+  
+  if(stream_kind == "binary")
+    kind = binary;
+  else if(stream_kind == "space_separated")
+    kind = space_separated;
+  else if(stream_kind == "tab_separated")
+    kind = tab_separated;
+  else if(stream_kind == "comma_separated")
+    kind = comma_separated;
+  else if(stream_kind == "tcp_stream")
+    kind = tcp_stream;
+  else if(stream_kind == "udp_stream")
+    kind = udp_stream;
+  else if(stream_kind == "raw_udp_stream")
+    kind = raw_udp_stream;
+  else //if(stream_kind == "vector_stream")
+    kind = vector_stream;
+  
+};
+
+void data_stream_options::save_all_configs(const std::string& aFileName) const {
+  
+  shared_ptr< serialization::oarchive > p_oa = serialization::open_oarchive(aFileName);
+  
+  std::string stream_kind;
+  
+  switch(kind) {
+    case binary:
+      stream_kind = "binary";
+      break;
+    case space_separated:
+      stream_kind = "space_separated";
+      break;
+    case tab_separated:
+      stream_kind = "tab_separated";
+      break;
+    case comma_separated:
+      stream_kind = "comma_separated";
+      break;
+    case tcp_stream:
+      stream_kind = "tcp_stream";
+      break;
+    case udp_stream:
+      stream_kind = "udp_stream";
+      break;
+    case raw_udp_stream:
+      stream_kind = "raw_udp_stream";
+      break;
+    default:
+      stream_kind = "vector_stream";
+      break;
+  };
+  
+  (*p_oa) & RK_SERIAL_SAVE_WITH_NAME(stream_kind)
+          & RK_SERIAL_SAVE_WITH_NAME(file_name)
+          & RK_SERIAL_SAVE_WITH_NAME(names)
+          & RK_SERIAL_SAVE_WITH_NAME(time_sync_name)
+          & RK_SERIAL_SAVE_WITH_NAME(flush_rate)
+          & RK_SERIAL_SAVE_WITH_NAME(buffer_size);
+  
+};
+
 
 
 };

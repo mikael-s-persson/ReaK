@@ -136,6 +136,18 @@ struct data_stream_options {
    */
   std::pair< shared_ptr< data_extractor >, std::vector< std::string > > create_extractor() const;
   
+  /**
+   * Loads all the configurations from the given file-name (ReaK archive).
+   * \param aFileName The file-name of the ReaK archive from which to load all the configurations.
+   */
+  void load_all_configs(const std::string& aFileName);
+  
+  /**
+   * Saves all the configurations to the given file-name (ReaK archive).
+   * \param aFileName The file-name of the ReaK archive to which to save all the configurations.
+   */
+  void save_all_configs(const std::string& aFileName) const;
+  
 };
 
 

@@ -37,6 +37,7 @@
 #include <ReaK/core/lin_alg/vect_alg.hpp>
 #include <ReaK/core/kinetostatics/quat_alg.hpp>
 #include <ReaK/core/base/atomic_incl.hpp>
+#include <ReaK/core/recorders/data_record_options.hpp>
 
 #include "ui_target_predictor_config.h"
 
@@ -116,6 +117,10 @@ class TargetPredConfigWidget : public QDockWidget, private Ui::TargetPredConfig 
     ReaKaux::atomic<double>* current_target_anim_time;
     
   public:
+    
+    recorder::data_stream_options meas_out_opt;
+    recorder::data_stream_options est_out_opt;
+    recorder::data_stream_options pred_out_opt;
     
     double getTimeStep() const;
     double getMass() const;

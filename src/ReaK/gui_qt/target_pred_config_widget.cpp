@@ -174,6 +174,14 @@ TargetPredConfigWidget::TargetPredConfigWidget(CRS_target_anim_data* aTargetAnim
   };
   
   
+  meas_out_opt.kind = recorder::data_stream_options::space_separated;
+  meas_out_opt.file_name = "exp_results/robot_airship/";
+  est_out_opt = meas_out_opt;
+  pred_out_opt = meas_out_opt;
+  meas_out_opt.file_name += std::string("meas_$d_$t.ssv");
+  est_out_opt.file_name  += std::string("est_$d_$t.ssv");
+  pred_out_opt.file_name += std::string("pred_$d_$t.ssv");
+  
   updateConfigs();
   
 };
@@ -896,6 +904,7 @@ shared_ptr< CRS_target_anim_data::trajectory_type >
   start_state_predictions(shared_ptr< Sat3DSystemType > satellite3D_system, 
                           const ctrl::satellite_predictor_options& sat_options,
                           shared_ptr< recorder::data_extractor > data_in,
+                          sat3D_meas_est_pred_to_recorders data_logger,
                           ReaKaux::atomic<double>* current_target_anim_time) {
   using namespace ctrl;
   using namespace pp;
@@ -931,32 +940,6 @@ shared_ptr< CRS_target_anim_data::trajectory_type >
   double current_Pnorm = norm_2(b.get_covariance().get_matrix());
   recorder::named_value_row nvr_in = data_in->getFreshNamedValueRow();
   double init_time = -1000.0;
-  
-  std::time_t t_ctime = std::time(NULL);
-  char ctime_as_str[16];
-  if (std::strftime(ctime_as_str, sizeof(ctime_as_str), "%Y%m%d_%H%M", std::localtime(&t_ctime)) == 0)
-    ctime_as_str[0] = '\0';
-  
-  recorder::data_stream_options meas_out_opt;
-  meas_out_opt.kind = recorder::data_stream_options::space_separated;
-  meas_out_opt.file_name = "exp_results/robot_airship/";
-  recorder::data_stream_options est_out_opt = meas_out_opt;
-  recorder::data_stream_options pred_out_opt = meas_out_opt;
-  
-  meas_out_opt.file_name += std::string("meas_") + ctime_as_str + std::string(".ssv");
-  sat_options.imbue_names_for_received_meas(meas_out_opt);
-  
-  est_out_opt.file_name  += std::string("est_")  + ctime_as_str + std::string(".ssv");
-  sat_options.imbue_names_for_state_estimates(est_out_opt);
-  
-  pred_out_opt.file_name += std::string("pred_") + ctime_as_str + std::string(".ssv");
-  sat_options.imbue_names_for_state_estimates(pred_out_opt);
-  
-  shared_ptr< recorder::data_recorder > meas_out = meas_out_opt.create_recorder();
-  shared_ptr< recorder::data_recorder > est_out  = est_out_opt.create_recorder();
-  shared_ptr< recorder::data_recorder > pred_out = pred_out_opt.create_recorder();
-  
-  sat3D_meas_est_pred_to_recorders data_logger(meas_out, est_out, pred_out);
   
   try {
     while ( current_Pnorm > sat_options.predict_Pnorm_threshold ) {
@@ -1109,6 +1092,14 @@ void TargetPredConfigWidget::startStatePrediction() {
   shared_ptr< recorder::data_extractor > data_in;
   boost::tie(data_in, names_in) = data_in_opt.create_extractor();
   
+  sat_options.imbue_names_for_received_meas(meas_out_opt);
+  sat_options.imbue_names_for_state_estimates(est_out_opt);
+  sat_options.imbue_names_for_state_estimates(pred_out_opt);
+  
+  sat3D_meas_est_pred_to_recorders data_logger(meas_out_opt.create_recorder(), 
+                                               est_out_opt.create_recorder(), 
+                                               pred_out_opt.create_recorder());
+  
 //   std::cout << "Names that were imbued:" << std::endl;
 //   for(std::size_t i = 0; i < names_in.size(); ++i)
 //     std::cout << names_in[i] << std::endl;
@@ -1122,16 +1113,20 @@ void TargetPredConfigWidget::startStatePrediction() {
       case sat_opt::invariant:  // IEKF
       case sat_opt::invar_mom:  // IMKF
       case sat_opt::invar_mom2:  // IMKFv2
-        target_anim_data->trajectory = start_state_predictions(sat_options.get_gyro_sat_system(), sat_options, data_in, current_target_anim_time);
+        target_anim_data->trajectory = start_state_predictions(sat_options.get_gyro_sat_system(), sat_options, data_in, 
+          data_logger, current_target_anim_time);
         break;
       case sat_opt::invar_mom_em:  // IMKF_em
-//         target_anim_data->trajectory = start_state_predictions(sat_options.get_gyro_em_airship_system(), sat_options, data_in, current_target_anim_time);
+//         target_anim_data->trajectory = start_state_predictions(sat_options.get_gyro_em_airship_system(), sat_options, data_in, 
+//           data_logger, current_target_anim_time);
 //         break;
       case sat_opt::invar_mom_emd:  // IMKF_emd
-        target_anim_data->trajectory = start_state_predictions(sat_options.get_gyro_emd_airship_system(), sat_options, data_in, current_target_anim_time);
+        target_anim_data->trajectory = start_state_predictions(sat_options.get_gyro_emd_airship_system(), sat_options, data_in, 
+          data_logger, current_target_anim_time);
         break;
       case sat_opt::invar_mom_emdJ:  // IMKF_emdJ
-        target_anim_data->trajectory = start_state_predictions(sat_options.get_gyro_emdJ_airship_system(), sat_options, data_in, current_target_anim_time);
+        target_anim_data->trajectory = start_state_predictions(sat_options.get_gyro_emdJ_airship_system(), sat_options, data_in, 
+          data_logger, current_target_anim_time);
         break;
     };
   } else {
@@ -1139,16 +1134,20 @@ void TargetPredConfigWidget::startStatePrediction() {
       case sat_opt::invariant:  // IEKF
       case sat_opt::invar_mom:  // IMKF
       case sat_opt::invar_mom2:  // IMKFv2
-        target_anim_data->trajectory = start_state_predictions(sat_options.get_base_sat_system(), sat_options, data_in, current_target_anim_time);
+        target_anim_data->trajectory = start_state_predictions(sat_options.get_base_sat_system(), sat_options, data_in, 
+          data_logger, current_target_anim_time);
         break;
       case sat_opt::invar_mom_em:  // IMKF_em
-        target_anim_data->trajectory = start_state_predictions(sat_options.get_em_airship_system(), sat_options, data_in, current_target_anim_time);
+        target_anim_data->trajectory = start_state_predictions(sat_options.get_em_airship_system(), sat_options, data_in, 
+          data_logger, current_target_anim_time);
         break;
       case sat_opt::invar_mom_emd:  // IMKF_emd
-        target_anim_data->trajectory = start_state_predictions(sat_options.get_emd_airship_system(), sat_options, data_in, current_target_anim_time);
+        target_anim_data->trajectory = start_state_predictions(sat_options.get_emd_airship_system(), sat_options, data_in, 
+          data_logger, current_target_anim_time);
         break;
       case sat_opt::invar_mom_emdJ:  // IMKF_emdJ
-        target_anim_data->trajectory = start_state_predictions(sat_options.get_emdJ_airship_system(), sat_options, data_in, current_target_anim_time);
+        target_anim_data->trajectory = start_state_predictions(sat_options.get_emdJ_airship_system(), sat_options, data_in, 
+          data_logger, current_target_anim_time);
         break;
     };
   };

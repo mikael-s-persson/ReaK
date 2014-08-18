@@ -376,6 +376,9 @@ void CRSPlannerGUI::executeSolutionTrajectory() {
     return;
   };
   
+// #define RK_CRSPLANNER_USE_RAW_ASIO_SOCKET
+  
+#ifdef RK_CRSPLANNER_USE_RAW_ASIO_SOCKET
   // Setup the UDP streaming to the robot (FIXME remove the hard-coded address / port)
   boost::asio::io_service io_service;
 //   boost::asio::ip::udp::endpoint endpoint(boost::asio::ip::address_v4::from_string("127.0.0.1"), 17050);
@@ -385,24 +388,12 @@ void CRSPlannerGUI::executeSolutionTrajectory() {
   std::ostream udp_buf_stream(&(udp_buf));
   socket.open(boost::asio::ip::udp::v4());
   socket.set_option(boost::asio::ip::udp::socket::reuse_address(true));
-  
+#else
+  shared_ptr< recorder::data_recorder > jtctrl_net = jtctrl_network_opt.create_recorder();
+#endif
   
   // Setup the recording of the control signals to a space-separated file:
-  std::time_t t_ctime = std::time(NULL);
-  char ctime_as_str[16];
-  if (std::strftime(ctime_as_str, sizeof(ctime_as_str), "%Y%m%d_%H%M", std::localtime(&t_ctime)) == 0)
-    ctime_as_str[0] = '\0';
-  
-  recorder::data_stream_options jtctrl_out_opt;
-  jtctrl_out_opt.kind = recorder::data_stream_options::space_separated;
-  jtctrl_out_opt.file_name = std::string("exp_results/robot_airship/jtctrl_") + ctime_as_str + std::string(".ssv");
-  
-  jtctrl_out_opt
-    .add_name("time").add_name("q_0").add_name("q_1").add_name("q_2")
-    .add_name("q_3").add_name("q_4").add_name("q_5").add_name("q_6");
-  
-  shared_ptr< recorder::data_recorder > jtctrl_out = jtctrl_out_opt.create_recorder();
-  
+  shared_ptr< recorder::data_recorder > jtctrl_out = jtctrl_log_opt.create_recorder();
   
   shared_ptr< CRS_sol_anim_data::trajectory_type > manip_traj = sol_anim.trajectory;
   CRS_sol_anim_data::trajectory_type::point_time_iterator cur_pit = manip_traj->begin_time_travel();
@@ -411,10 +402,14 @@ void CRSPlannerGUI::executeSolutionTrajectory() {
   
   // UDP output for the robot:
   vect<double,7> cur_pt = (*cur_pit).pt;
+#ifdef RK_CRSPLANNER_USE_RAW_ASIO_SOCKET
   for(std::size_t i = 0; i < 7; ++i)
     write_double_to_net_stream(udp_buf_stream, cur_pt[i]);
   std::size_t len = socket.send_to(udp_buf.data(), endpoint);
   udp_buf.consume(len);
+#else
+  (*jtctrl_net) << cur_pt << recorder::data_recorder::end_value_row;
+#endif
   
   double cur_time = (*cur_pit).time;
   
@@ -425,15 +420,11 @@ void CRSPlannerGUI::executeSolutionTrajectory() {
     ReaKaux::chrono::high_resolution_clock::time_point delayed_start = exec_start + 
       ReaKaux::chrono::duration_cast<ReaKaux::chrono::high_resolution_clock::duration>(ReaKaux::chrono::duration<double>(cur_time - current_target_anim_time));
     while(exec_robot_enabled && (exec_start < delayed_start) && (cur_time > current_target_anim_time)) {
-//       std::cout << "Sending starting point, with time left = " << ReaKaux::chrono::duration_cast< ReaKaux::chrono::duration<double> >(delayed_start - exec_start).count() << std::endl;
       ReaKaux::this_thread::sleep_until(exec_start + ReaKaux::chrono::microseconds(1000));
       exec_start = ReaKaux::chrono::high_resolution_clock::now();
-//       std::cout << " Sending values: ";
-//       for(std::size_t i = 0; i < 7; ++i)
-//         std::cout << std::setw(10) << cur_pt[i];
-//       std::cout << std::endl;
       if(jtctrl_out)
         (*jtctrl_out) << 0.0;
+#ifdef RK_CRSPLANNER_USE_RAW_ASIO_SOCKET
       for(std::size_t i = 0; i < 7; ++i) {
         write_double_to_net_stream(udp_buf_stream, cur_pt[i]);
         if(jtctrl_out)
@@ -443,6 +434,11 @@ void CRSPlannerGUI::executeSolutionTrajectory() {
       udp_buf.consume(len);
       if(jtctrl_out)
         (*jtctrl_out) << recorder::data_recorder::end_value_row;
+#else
+      (*jtctrl_net) << cur_pt << recorder::data_recorder::end_value_row;
+      if(jtctrl_out)
+        (*jtctrl_out) << cur_pt << recorder::data_recorder::end_value_row;
+#endif
     };
   };
   exec_start = ReaKaux::chrono::high_resolution_clock::now();
@@ -459,10 +455,7 @@ void CRSPlannerGUI::executeSolutionTrajectory() {
     if(jtctrl_out)
       (*jtctrl_out) << (*cur_pit).time;
     cur_pt = (*cur_pit).pt;
-//     std::cout << " Sending values: ";
-//     for(std::size_t i = 0; i < 7; ++i)
-//       std::cout << std::setw(10) << cur_pt[i];
-//     std::cout << std::endl;
+#ifdef RK_CRSPLANNER_USE_RAW_ASIO_SOCKET
     for(std::size_t i = 0; i < 7; ++i) {
       write_double_to_net_stream(udp_buf_stream, cur_pt[i]);
       if(jtctrl_out)
@@ -472,13 +465,23 @@ void CRSPlannerGUI::executeSolutionTrajectory() {
     udp_buf.consume(len);
     if(jtctrl_out)
       (*jtctrl_out) << recorder::data_recorder::end_value_row;
+#else
+    (*jtctrl_net) << cur_pt << recorder::data_recorder::end_value_row;
+    if(jtctrl_out)
+      (*jtctrl_out) << cur_pt << recorder::data_recorder::end_value_row;
+#endif
   };
   //UDP output for the robot:
   double terminating_value = -100.0;
+#ifdef RK_CRSPLANNER_USE_RAW_ASIO_SOCKET
   for(std::size_t i = 0; i < 7; ++i)
     write_double_to_net_stream(udp_buf_stream, terminating_value);
   len = socket.send_to(udp_buf.data(), endpoint);
   udp_buf.consume(len);
+#else
+  (*jtctrl_net) << terminating_value << terminating_value << terminating_value << terminating_value
+                << terminating_value << terminating_value << terminating_value << recorder::data_recorder::end_value_row;
+#endif
   if(jtctrl_out)
     (*jtctrl_out) << recorder::data_recorder::flush;
   
@@ -609,6 +612,23 @@ CRSPlannerGUI::CRSPlannerGUI( QWidget * parent, Qt::WindowFlags flags ) :
   
   sol_anim.animation_timer    = new SoTimerSensor(CRSPlannerGUI_animate_bestsol_trajectory, this);
   target_anim.animation_timer = new SoTimerSensor(CRSPlannerGUI_animate_target_trajectory, this);
+  
+  jtctrl_log_opt.kind = recorder::data_stream_options::space_separated;
+  jtctrl_log_opt.file_name = std::string("exp_results/robot_airship/jtctrl_$d_$t.ssv");
+  
+  jtctrl_log_opt
+    .add_name("time").add_name("q_0").add_name("q_1").add_name("q_2")
+    .add_name("q_3").add_name("q_4").add_name("q_5").add_name("q_6");
+  
+  jtctrl_network_opt.kind = recorder::data_stream_options::raw_udp_stream;
+  jtctrl_network_opt.file_name = std::string("192.168.0.3:17050");
+//   jtctrl_network_opt.file_name = std::string("127.0.0.1:17050");
+  jtctrl_network_opt.set_unbuffered();
+  jtctrl_network_opt.time_sync_name = "time";
+  
+  jtctrl_network_opt
+    .add_name("q_0").add_name("q_1").add_name("q_2")
+    .add_name("q_3").add_name("q_4").add_name("q_5").add_name("q_6");
   
 };
 
