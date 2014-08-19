@@ -669,6 +669,7 @@ int main(int argc, char** argv) {
     ("scene-data", po::value< std::string >(), "file-name of a complete model file")
     ("chaser-target-pos", po::value< std::string >(), "file-name of a chaser-target positions file")
     ("planning-cfg", po::value< std::string >(), "file-name of a planning algorithm configuration file")
+    ("space-cfg", po::value< std::string >(), "file-name of a robot state-space configuration file")
     ("jtctrl-log-cfg", po::value< std::string >(), "file-name of a configuration file for the chaser joint logging")
     ("jtctrl-network-cfg", po::value< std::string >(), "file-name of a configuration file for the chaser joint control network")
     ("target-meas-log-cfg", po::value< std::string >(), "file-name of a configuration file for the target measurement logging")
@@ -706,6 +707,9 @@ int main(int argc, char** argv) {
   
   if(vm.count("planning-cfg"))
     window.plan_alg_config.loadPlannerConfiguration(vm["planning-cfg"].as<std::string>());
+  
+  if(vm.count("space-cfg"))
+    window.space_config.loadSpaceConfiguration(vm["space-cfg"].as<std::string>());
   
   if(vm.count("jtctrl-log-cfg"))
     window.jtctrl_log_opt.load_all_configs(vm["jtctrl-log-cfg"].as<std::string>());

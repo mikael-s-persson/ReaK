@@ -45,7 +45,11 @@ class ManipSpaceConfigWidget : public QDockWidget, private Ui::ManipSpaceConfig 
     
   private slots:
     
-    void onUpdateAvailableOptions();
+    void updateInternalValues();
+    void updateExternalValues();
+    
+    void saveSpaceConfig();
+    void loadSpaceConfig();
     
   public:
     
@@ -57,6 +61,9 @@ class ManipSpaceConfigWidget : public QDockWidget, private Ui::ManipSpaceConfig 
     bool is_rate_limited;
     
     int output_space_order;
+    
+    void saveSpaceConfiguration(const std::string& aFilename);
+    void loadSpaceConfiguration(const std::string& aFilename);
     
 };
 
