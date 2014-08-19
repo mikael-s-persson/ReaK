@@ -64,6 +64,9 @@ class PlannerAlgConfigWidget : public QDockWidget, private Ui::PlannerAlgConfig 
     bool outputMotionGraph() const;
     bool outputSolution() const;
     
+    void savePlannerConfiguration(const std::string& aFilename);
+    void loadPlannerConfiguration(const std::string& aFilename);
+    
 };
 
 };

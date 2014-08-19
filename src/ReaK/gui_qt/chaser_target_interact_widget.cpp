@@ -152,6 +152,28 @@ void ChaserTargetInteractWidget::savePositions() {
   
   last_used_path = QFileInfo(fileName).absolutePath();
   
+  saveChaserTargetPositions(fileName.toStdString());
+  
+};
+
+void ChaserTargetInteractWidget::loadPositions() {
+  QString fileName = QFileDialog::getOpenFileName(
+    this, 
+    tr("Open Positions Record..."),
+    last_used_path,
+    tr("Chaser-Target Positions Record (*.ctpos.rkx *.ctpos.rkb *.ctpos.pbuf)"));
+  
+  if( fileName == tr("") )
+    return;
+  
+  last_used_path = QFileInfo(fileName).absolutePath();
+  
+  loadChaserTargetPositions(fileName.toStdString());
+  
+};
+
+void ChaserTargetInteractWidget::saveChaserTargetPositions(const std::string& aFilename) {
+  
   vect<double,7> chaser_positions;
   chaser_positions[0] = double(this->track_pos->value()) * 0.001;
   chaser_positions[1] = double(this->joint1_pos->value()) * 0.001;
@@ -172,9 +194,8 @@ void ChaserTargetInteractWidget::savePositions() {
   ea.roll() = double(this->target_roll->value()) * 0.001;
   quaternion<double> target_quaternion = ea.getQuaternion();
   
-  
   try {
-    *(serialization::open_oarchive(fileName.toStdString()))
+    *(serialization::open_oarchive(aFilename))
       & RK_SERIAL_SAVE_WITH_NAME(chaser_positions)
       & RK_SERIAL_SAVE_WITH_NAME(target_position)
       & RK_SERIAL_SAVE_WITH_NAME(target_quaternion);
@@ -188,24 +209,14 @@ void ChaserTargetInteractWidget::savePositions() {
   
 };
 
-void ChaserTargetInteractWidget::loadPositions() {
-  QString fileName = QFileDialog::getOpenFileName(
-    this, 
-    tr("Open Positions Record..."),
-    last_used_path,
-    tr("Chaser-Target Positions Record (*.ctpos.rkx *.ctpos.rkb *.ctpos.pbuf)"));
-  
-  if( fileName == tr("") )
-    return;
-  
-  last_used_path = QFileInfo(fileName).absolutePath();
+void ChaserTargetInteractWidget::loadChaserTargetPositions(const std::string& aFilename) {
   
   vect<double,7> chaser_positions;
   vect<double,3> target_position;
   quaternion<double> target_quaternion;
   
   try {
-    *(serialization::open_iarchive(fileName.toStdString()))
+    *(serialization::open_iarchive(aFilename))
       & RK_SERIAL_LOAD_WITH_NAME(chaser_positions)
       & RK_SERIAL_LOAD_WITH_NAME(target_position)
       & RK_SERIAL_LOAD_WITH_NAME(target_quaternion);
@@ -269,7 +280,6 @@ void ChaserTargetInteractWidget::loadTargetPosFromModel() {
   this->target_yaw->setValue(int(1000.0 * ea.yaw()));
   this->target_pitch->setValue(int(1000.0 * ea.pitch()));
   this->target_roll->setValue(int(1000.0 * ea.roll()));
-  
   
   onTargetChange();
 };

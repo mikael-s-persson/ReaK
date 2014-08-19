@@ -70,6 +70,9 @@ class ChaserTargetInteractWidget : public QDockWidget, private Ui::ChaserTargetI
     
     bool isIKEnabled() const;
     
+    void saveChaserTargetPositions(const std::string& aFilename);
+    void loadChaserTargetPositions(const std::string& aFilename);
+    
 };
 
 };

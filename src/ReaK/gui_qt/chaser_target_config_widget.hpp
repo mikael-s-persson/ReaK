@@ -79,6 +79,9 @@ class ChaserTargetConfigWidget : public QDockWidget, private Ui::ChaserTargetMdl
     
     kte::chaser_target_data sceneData;
     
+    void loadCompleteModel(const std::string& aFilename);
+    void saveCompleteModel(const std::string& aFilename);
+    
 };
 
 };

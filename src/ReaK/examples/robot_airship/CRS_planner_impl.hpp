@@ -109,6 +109,8 @@ class CRSPlannerGUI : public QMainWindow, private Ui::CRSPlannerWindow {
     CRSPlannerGUI( const CRSPlannerGUI& );
     CRSPlannerGUI& operator=( const CRSPlannerGUI& );
     
+  public:
+    
     CRS_sol_anim_data    sol_anim;
     CRS_target_anim_data target_anim;
     ReaKaux::atomic<double> current_target_anim_time;

@@ -318,18 +318,7 @@ void PlannerAlgConfigWidget::savePlannerConfig() {
   
   last_used_path = QFileInfo(fileName).absolutePath();
   
-  onConfigsChanged();
-  
-  try {
-    (*serialization::open_oarchive(fileName.toStdString())) << planOptions;
-  } catch(...) {
-    QMessageBox::information(this,
-                "File Type Not Supported!",
-                "Sorry, this file-type is not supported!",
-                QMessageBox::Ok);
-    return;
-  };
-  
+  savePlannerConfiguration(fileName.toStdString());
 };
 
 void PlannerAlgConfigWidget::loadPlannerConfig() {
@@ -342,8 +331,29 @@ void PlannerAlgConfigWidget::loadPlannerConfig() {
   
   last_used_path = QFileInfo(fileName).absolutePath();
   
+  loadPlannerConfiguration(fileName.toStdString());
+};
+
+void PlannerAlgConfigWidget::savePlannerConfiguration(const std::string& aFilename) {
+  
+  onConfigsChanged();
+  
   try {
-    (*serialization::open_iarchive(fileName.toStdString())) >> planOptions;
+    (*serialization::open_oarchive(aFilename)) << planOptions;
+  } catch(...) {
+    QMessageBox::information(this,
+                "File Type Not Supported!",
+                "Sorry, this file-type is not supported!",
+                QMessageBox::Ok);
+    return;
+  };
+  
+};
+
+void PlannerAlgConfigWidget::loadPlannerConfiguration(const std::string& aFilename) {
+  
+  try {
+    (*serialization::open_iarchive(aFilename)) >> planOptions;
   } catch(...) {
     QMessageBox::information(this,
                 "File Type Not Supported!",

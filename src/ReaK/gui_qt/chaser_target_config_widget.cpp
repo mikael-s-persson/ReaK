@@ -324,10 +324,35 @@ void ChaserTargetConfigWidget::loadCompleteMdl() {
   
   last_used_path = QFileInfo(fileName).absolutePath();
   
+  loadCompleteModel(fileName.toStdString());
+  
+};
+
+void ChaserTargetConfigWidget::editCompleteMdl() {
+  
+};
+
+void ChaserTargetConfigWidget::saveCompleteMdl() {
+  
+  QString fileName = QFileDialog::getSaveFileName(
+    this, tr("Save Chaser-Target Scenario..."), last_used_path,
+    tr("Chaser-Target Scenario (*.rkx *.rkb *.pbuf)"));
+  
+  if( fileName == tr("") )
+    return;
+  
+  last_used_path = QFileInfo(fileName).absolutePath();
+  
+  saveCompleteModel(fileName.toStdString());
+  
+};
+
+void ChaserTargetConfigWidget::loadCompleteModel(const std::string& aFilename) {
+  
   try {
-    (*serialization::open_iarchive(fileName.toStdString())) >> sceneData;
+    (*serialization::open_iarchive(aFilename)) >> sceneData;
     
-    this->complete_filename_edit->setText(fileName);
+    this->complete_filename_edit->setText(QString::fromStdString(aFilename));
     
     if(!sceneData.chaser_kin_model) {
       QMessageBox::information(this,
@@ -392,24 +417,11 @@ void ChaserTargetConfigWidget::loadCompleteMdl() {
   
 };
 
-void ChaserTargetConfigWidget::editCompleteMdl() {
-  
-};
-
-void ChaserTargetConfigWidget::saveCompleteMdl() {
-  
-  QString fileName = QFileDialog::getSaveFileName(
-    this, tr("Save Chaser-Target Scenario..."), last_used_path,
-    tr("Chaser-Target Scenario (*.rkx *.rkb *.pbuf)"));
-  
-  if( fileName == tr("") )
-    return;
-  
-  last_used_path = QFileInfo(fileName).absolutePath();
+void ChaserTargetConfigWidget::saveCompleteModel(const std::string& aFilename) {
   
   try {
-    (*serialization::open_oarchive(fileName.toStdString())) << sceneData;
-    this->complete_filename_edit->setText(fileName);
+    (*serialization::open_oarchive(aFilename)) << sceneData;
+    this->complete_filename_edit->setText(QString::fromStdString(aFilename));
   } catch(std::exception& e) {
     std::cout << "Got exception during saving complete scenario: " << e.what() << std::endl;
     QMessageBox::information(this,
@@ -420,8 +432,6 @@ void ChaserTargetConfigWidget::saveCompleteMdl() {
   };
   
 };
-
-
 
 
 
