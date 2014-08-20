@@ -470,17 +470,7 @@ void TargetPredConfigWidget::savePredictorConfig() {
   
   last_used_path = QFileInfo(fileName).absolutePath();
   
-  onConfigsChanged();
-  
-  try {
-    sat_options.save_all_configs(fileName.toStdString());
-  } catch(...) {
-    QMessageBox::information(this,
-                "File Type Not Supported!",
-                "Sorry, this file-type is not supported!",
-                QMessageBox::Ok);
-    return;
-  };
+  savePredictorConfigurations(fileName.toStdString());
   
 };
 
@@ -494,8 +484,30 @@ void TargetPredConfigWidget::loadPredictorConfig() {
   
   last_used_path = QFileInfo(fileName).absolutePath();
   
+  loadPredictorConfigurations(fileName.toStdString());
+  
+};
+
+void TargetPredConfigWidget::savePredictorConfigurations(const std::string& aFilename) {
+  
+  onConfigsChanged();
+  
   try {
-    sat_options.load_all_configs(fileName.toStdString());
+    sat_options.save_all_configs(aFilename);
+  } catch(...) {
+    QMessageBox::information(this,
+                "File Type Not Supported!",
+                "Sorry, this file-type is not supported!",
+                QMessageBox::Ok);
+    return;
+  };
+  
+};
+
+void TargetPredConfigWidget::loadPredictorConfigurations(const std::string& aFilename) {
+  
+  try {
+    sat_options.load_all_configs(aFilename);
   } catch(...) {
     QMessageBox::information(this,
                 "File Type Not Supported!",
@@ -505,6 +517,7 @@ void TargetPredConfigWidget::loadPredictorConfig() {
   };
   
   updateConfigs();
+  
 };
 
 

@@ -149,6 +149,10 @@ class TargetPredConfigWidget : public QDockWidget, private Ui::TargetPredConfig 
     void startStatePrediction();
     void stopStatePrediction();
     
+    void savePredictorConfigurations(const std::string& aFilename);
+    void loadPredictorConfigurations(const std::string& aFilename);
+    
+    
 };
 
 };
