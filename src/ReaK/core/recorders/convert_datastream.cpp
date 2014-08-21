@@ -89,6 +89,7 @@ int main(int argc, char** argv) {
     
     stc::time_point t_0 = stc::now();
     hrc::time_point hrt_0 = hrc::now();
+    double in_time_0 = std::numeric_limits<double>::infinity();
     while(true) {
       
       (*data_in) >> nvr_in;
@@ -102,8 +103,10 @@ int main(int argc, char** argv) {
         };
       };
       if( !data_out_opt.time_sync_name.empty() ) {
+        if(in_time_0 == std::numeric_limits<double>::infinity())
+          in_time_0 = nvr_in[data_out_opt.time_sync_name];
         // wait until the proper time to output the value.
-        stc::time_point t_to_reach = t_0 + ch::duration_cast<stc::duration>(ch::duration<double, ReaKaux::ratio<1,1> >(nvr_in[data_out_opt.time_sync_name]));
+        stc::time_point t_to_reach = t_0 + ch::duration_cast<stc::duration>(ch::duration<double, ReaKaux::ratio<1,1> >(nvr_in[data_out_opt.time_sync_name] - in_time_0));
         ReaKaux::this_thread::sleep_until( t_to_reach );
       } else if( vm.count("add-rel-time") ) {
         nvr_out[ vm["add-rel-time"].as<std::string>() ] = ch::duration_cast< ch::duration<double> >(hrt_1 - hrt_0).count();

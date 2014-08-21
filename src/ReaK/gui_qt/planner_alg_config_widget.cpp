@@ -151,6 +151,7 @@ void PlannerAlgConfigWidget::onConfigsChanged() {
 
 void PlannerAlgConfigWidget::updateConfigs() {
   
+  this->actionValuesChanged->disconnect(this, SLOT(onConfigsChanged()));
   
   this->max_expansion_spinbox->setValue(planOptions.max_random_walk);
   
@@ -220,6 +221,8 @@ void PlannerAlgConfigWidget::updateConfigs() {
       this->KNN_method_selection->setCurrentIndex(0);
       break;
   };
+  
+  connect(this->actionValuesChanged, SIGNAL(triggered()), this, SLOT(onConfigsChanged()));
   
   onUpdateAvailableOptions(this->planning_algo_selection->currentIndex());
   

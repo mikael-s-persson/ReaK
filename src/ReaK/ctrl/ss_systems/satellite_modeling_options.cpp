@@ -507,7 +507,7 @@ void satellite_predictor_options::load_predict_configs_impl(serialization::iarch
 void satellite_predictor_options::save_predict_configs_impl(serialization::oarchive& out) const {
   unsigned int pred_assume = predict_assumption;
   out
-    & RK_SERIAL_SAVE_WITH_NAME(initial_motion)
+    & RK_SERIAL_SAVE_WITH_NAME(predict_time_horizon)
     & RK_SERIAL_SAVE_WITH_NAME(predict_Pnorm_threshold)
     & RK_SERIAL_SAVE_WITH_ALIAS("predict_assumption",pred_assume);
 };

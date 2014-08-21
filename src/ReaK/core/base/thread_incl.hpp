@@ -55,6 +55,8 @@
 #include <thread>
 #include <mutex>
 #include <condition_variable>
+#include <future>
+#include <exception>
 
 
 namespace ReaKaux {
@@ -106,8 +108,14 @@ namespace ReaKaux {
   using ::std::condition_variable_any;
 
   //using ::std::notify_all_at_thread_exit;
-
-
+  
+  using ::std::future;
+  using ::std::future_error;
+  using ::std::promise;
+  
+  using ::std::exception_ptr;
+  using ::std::make_exception_ptr;
+  
 };
 
 #else
@@ -119,6 +127,8 @@ namespace ReaKaux {
 #include <boost/thread/recursive_mutex.hpp>
 #include <boost/thread/once.hpp>
 #include <boost/thread/condition_variable.hpp>
+#include <boost/thread/future.hpp>
+#include <boost/exception_ptr.hpp>
 #include <boost/version.hpp>
 
 
@@ -173,7 +183,14 @@ namespace ReaKaux {
   using ::boost::condition_variable_any;
 
   //using ::boost::notify_all_at_thread_exit;
-
+  
+  using ::boost::future;
+  using ::boost::future_error;
+  using ::boost::promise;
+  
+  using ::boost::exception_ptr;
+  using ::boost::make_exception_ptr;
+  
 };
 
 #endif

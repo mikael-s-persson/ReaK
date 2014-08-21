@@ -78,6 +78,8 @@ void ManipSpaceConfigWidget::updateInternalValues() {
 
 void ManipSpaceConfigWidget::updateExternalValues() {
   
+  this->actionValuesChanged->disconnect(this, SLOT(updateInternalValues()));
+  
   this->order_selection->setCurrentIndex(space_order);
   this->interp_selection->setCurrentIndex(interp_id);
   this->min_interval_spinbox->setValue(min_travel);
@@ -87,6 +89,8 @@ void ManipSpaceConfigWidget::updateExternalValues() {
   this->rate_limited_check->setChecked(is_rate_limited);
   
   this->output_space_selection->setCurrentIndex(output_space_order);
+  
+  connect(this->actionValuesChanged, SIGNAL(triggered()), this, SLOT(updateInternalValues()));
   
 };
 
