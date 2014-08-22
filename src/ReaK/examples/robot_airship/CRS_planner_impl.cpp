@@ -639,6 +639,18 @@ CRSPlannerGUI::CRSPlannerGUI( QWidget * parent, Qt::WindowFlags flags ) :
 
 CRSPlannerGUI::~CRSPlannerGUI() {
   
+  // first, stop the robot
+  if(this->exec_robot_thr.joinable()) {
+    this->exec_robot_enabled = false;
+    this->exec_robot_thr.join();
+  };
+  
+  // then, stop the state prediction and/or planning
+  this->onStopPlanning();
+  
+  // finally, stop any animation that might have been started
+  this->stopCompleteAnimation();
+  
   delete target_anim.animation_timer;
   delete sol_anim.animation_timer;
   

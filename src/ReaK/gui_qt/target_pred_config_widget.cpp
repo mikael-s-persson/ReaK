@@ -187,6 +187,8 @@ TargetPredConfigWidget::TargetPredConfigWidget(CRS_target_anim_data* aTargetAnim
 };
 
 TargetPredConfigWidget::~TargetPredConfigWidget() {
+  stopStatePrediction();
+  
   delete static_cast<QScrollArea*>(this->QDockWidget::widget())->widget();
   delete this->QDockWidget::widget();
 };
@@ -751,31 +753,26 @@ struct prediction_updater {
   typedef ctrl::belief_predicted_trajectory<BeliefSpaceType, PredFactoryType, InputTrajType> BeliefPredTrajType;
   
   
-  ReaKaux::promise< shared_ptr< BeliefPredTrajType > > predictor_promise;
-  shared_ptr< Sat3DSystemType > satellite3D_system;
-  const ctrl::satellite_predictor_options* p_sat_options;
+  ReaKaux::promise< shared_ptr< BeliefPredTrajType > > predictor_promise;  /* shared, sync'd by the promise-future mechanism */
+  shared_ptr< Sat3DSystemType > satellite3D_system;                        /* not shared */
+  ctrl::satellite_predictor_options sat_options;                           /* not shared, don't care that it's expensive to copy, I want to avoid shared states */
   
-  shared_ptr< TempSpaceType > sat_temp_space;
+  shared_ptr< recorder::data_extractor > data_in;                          /* not shared */
+  sat3D_meas_est_pred_to_recorders data_logger;                            /* not shared */
   
-  shared_ptr< recorder::data_extractor > data_in;
-  
-  sat3D_meas_est_pred_to_recorders data_logger;
-  
-  ReaKaux::atomic<double>* current_target_anim_time;
+  ReaKaux::atomic<double>* current_target_anim_time;                       /* shared, atomic operations */
   
   prediction_updater(
     ReaKaux::promise< shared_ptr< BeliefPredTrajType > >& aPredictorPromise,
     shared_ptr< Sat3DSystemType > aSatSys,
     const ctrl::satellite_predictor_options& aSatOptions,
-    shared_ptr< TempSpaceType > aSatTempSpace,
     shared_ptr< recorder::data_extractor > aDataIn,
     sat3D_meas_est_pred_to_recorders aDataLogger,
     ReaKaux::atomic<double>* aCurrentTargetAnimTime
   ) : 
     predictor_promise(),
     satellite3D_system(aSatSys),
-    p_sat_options(&aSatOptions),
-    sat_temp_space(aSatTempSpace), 
+    sat_options(aSatOptions),
     data_in(aDataIn), 
     data_logger(aDataLogger),
     current_target_anim_time(aCurrentTargetAnimTime) { 
@@ -794,15 +791,16 @@ struct prediction_updater {
     
     try {
       
-      shared_ptr< TempBeliefSpaceType > sat_temp_belief_space = satellite3D_system->get_temporal_belief_space(0.0, p_sat_options->predict_time_horizon);
+      shared_ptr< TempSpaceType > sat_temp_space = satellite3D_system->get_temporal_state_space(0.0, sat_options.predict_time_horizon);
+      shared_ptr< TempBeliefSpaceType > sat_temp_belief_space = satellite3D_system->get_temporal_belief_space(0.0, sat_options.predict_time_horizon);
       
       InputBeliefType b_u;
       b_u.set_mean_state(vect_n<double>(0.0,0.0,0.0,0.0,0.0,0.0));
-      b_u.set_covariance(CovarType(CovarMatType(p_sat_options->input_disturbance)));
+      b_u.set_covariance(CovarType(CovarMatType(sat_options.input_disturbance)));
       
       OutputBeliefType b_z;
       b_z.set_mean_state(vect_n<double>(0.0,0.0,0.0,1.0,0.0,0.0,0.0));
-      b_z.set_covariance(CovarType(CovarMatType(p_sat_options->measurement_noise)));
+      b_z.set_covariance(CovarType(CovarMatType(sat_options.measurement_noise)));
       
       StateBeliefType b = satellite3D_system->get_zero_state_belief(10.0);
       
@@ -812,7 +810,7 @@ struct prediction_updater {
       recorder::named_value_row nvr_in = data_in->getFreshNamedValueRow();
       double init_time = -1000.0;
       
-      while ( current_Pnorm > p_sat_options->predict_Pnorm_threshold ) {
+      while ( current_Pnorm > sat_options.predict_Pnorm_threshold ) {
         
         (*data_in) >> nvr_in;
         
@@ -858,7 +856,7 @@ struct prediction_updater {
       };
       
       typename BeliefPredTrajType::assumption pred_assumpt = BeliefPredTrajType::no_measurements;
-      switch(p_sat_options->predict_assumption) {
+      switch(sat_options.predict_assumption) {
         case satellite_predictor_options::no_measurements:  // No future measurements
           pred_assumpt = BeliefPredTrajType::no_measurements;
           break;
@@ -876,8 +874,8 @@ struct prediction_updater {
         TempBeliefPointType(last_time, b), 
         InputTrajType( vect_n<double>(0.0,0.0,0.0,0.0,0.0,0.0) ),
         PredFactoryType(satellite3D_system, 
-                        CovarMatType(p_sat_options->input_disturbance), 
-                        CovarMatType(p_sat_options->measurement_noise)),
+                        CovarMatType(sat_options.input_disturbance), 
+                        CovarMatType(sat_options.measurement_noise)),
         pred_assumpt
       ));
       
@@ -948,7 +946,7 @@ template <typename Sat3DSystemType, typename TempSpaceType, typename BeliefPredT
 typename boost::enable_if<
   ctrl::is_augmented_ss_system<Sat3DSystemType>,
 shared_ptr< CRS_target_anim_data::trajectory_type > >::type
-  construct_wrapped_trajectory(const shared_ptr< TempSpaceType >& sat_temp_space, 
+  construct_wrapped_trajectory(shared_ptr< TempSpaceType > sat_temp_space, 
                                const shared_ptr< BeliefPredTrajType >& predictor, 
                                const ctrl::satellite_predictor_options& sat_options, double extended_time_horizon) {
   using namespace ctrl;
@@ -984,7 +982,7 @@ template <typename Sat3DSystemType, typename TempSpaceType, typename BeliefPredT
 typename boost::enable_if<
   boost::mpl::not_< ctrl::is_augmented_ss_system<Sat3DSystemType> >,
 shared_ptr< CRS_target_anim_data::trajectory_type > >::type
-  construct_wrapped_trajectory(const shared_ptr< TempSpaceType >& sat_temp_space, 
+  construct_wrapped_trajectory(shared_ptr< TempSpaceType > sat_temp_space, 
                                const shared_ptr< BeliefPredTrajType >& predictor, 
                                const ctrl::satellite_predictor_options& sat_options, double extended_time_horizon) {
   using namespace pp;
@@ -1012,16 +1010,10 @@ shared_ptr< CRS_target_anim_data::trajectory_type >
   using namespace ctrl;
   using namespace pp;
   
-  typedef typename Sat3DSystemType::temporal_state_space_type TempSpaceType;
   typedef typename Sat3DSystemType::belief_space_type BeliefSpaceType;
-  
   typedef constant_trajectory< vector_topology< vect_n<double> > > InputTrajType;
-  
   typedef typename try_TSOSAIKF_belief_transfer_factory<Sat3DSystemType>::type PredFactoryType;
   typedef belief_predicted_trajectory<BeliefSpaceType, PredFactoryType, InputTrajType> BeliefPredTrajType;
-  
-  
-  shared_ptr< TempSpaceType > sat_temp_space = satellite3D_system->get_temporal_state_space(0.0, sat_options.predict_time_horizon);
   
   prediction_should_stop = true;
   if(prediction_executer.joinable())
@@ -1033,12 +1025,13 @@ shared_ptr< CRS_target_anim_data::trajectory_type >
   prediction_should_stop = false;
   prediction_executer = ReaKaux::thread(
     prediction_updater<Sat3DSystemType>(
-      predictor_promise, satellite3D_system, sat_options, sat_temp_space, 
+      predictor_promise, satellite3D_system, sat_options, 
       data_in, data_logger, current_target_anim_time));
   
   try {
-    shared_ptr< BeliefPredTrajType > predictor = predictor_future.get();
-    return construct_wrapped_trajectory<Sat3DSystemType>(sat_temp_space, predictor, sat_options, sat_options.predict_time_horizon + (*current_target_anim_time));
+    return construct_wrapped_trajectory<Sat3DSystemType>(
+      satellite3D_system->get_temporal_state_space(0.0, sat_options.predict_time_horizon), 
+      predictor_future.get(), sat_options, sat_options.predict_time_horizon + (*current_target_anim_time));
   } catch(std::runtime_error& e) { RK_UNUSED(e);
     return shared_ptr< CRS_target_anim_data::trajectory_type >();
   };

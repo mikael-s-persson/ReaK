@@ -217,6 +217,7 @@ void CRSRunDialogWidget::onLaunchStarted() {
   this->proceed_button->setEnabled(false);
   
   this->flashing_button_timer.stop();
+  this->proceed_button->setStyleSheet("color: navy; background-color: lime;");
   
 };
 
@@ -230,6 +231,7 @@ void CRSRunDialogWidget::onCaptureReached() {
   this->stop_button->setEnabled(false);
   this->start_button->setEnabled(true);
   this->proceed_button->setEnabled(false);
+  this->proceed_button->setStyleSheet("color: navy; background-color: lime;");
   
   this->flashing_button_timer.stop();
   
@@ -245,6 +247,7 @@ void CRSRunDialogWidget::onReset() {
   this->start_button->setEnabled(true);
   this->stop_button->setEnabled(false);
   this->proceed_button->setEnabled(false);
+  this->proceed_button->setStyleSheet("color: navy; background-color: lime;");
   
   this->init_label->setText("");
   this->init_label->setStyleSheet("color: red;");
