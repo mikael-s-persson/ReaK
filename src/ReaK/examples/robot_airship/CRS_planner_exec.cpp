@@ -269,11 +269,13 @@ void CRS_execute_static_planner_impl(const ReaK::kte::chaser_target_data& scene_
     if(mg_sep)
       mg_sep->ref();
     
+    SoDB::writelock();
     sw_motion_graph->removeAllChildren();
     if(mg_sep) {
       sw_motion_graph->addChild(mg_sep);
       mg_sep->unref();
     };
+    SoDB::writeunlock();
   };
   
   if(sw_solutions) {
@@ -284,11 +286,13 @@ void CRS_execute_static_planner_impl(const ReaK::kte::chaser_target_data& scene_
         sol_sep->ref();
     };
     
+    SoDB::writelock();
     sw_solutions->removeAllChildren();
     if(sol_sep) {
       sw_solutions->addChild(sol_sep);
       sol_sep->unref();
     };
+    SoDB::writeunlock();
   };
   
   chaser_concrete_model->setJointPositions( jt_start );

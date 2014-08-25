@@ -30,6 +30,7 @@
 #include <QDir>
 
 #include <Inventor/Qt/SoQt.h>
+#include <Inventor/SoDB.h>
 #include <Inventor/Qt/viewers/SoQtExaminerViewer.h>
 #include <Inventor/nodes/SoSeparator.h>
 #include <Inventor/nodes/SoSwitch.h>
@@ -306,7 +307,9 @@ void CRSPlannerGUI::onShowRunDialog() {
 void CRSPlannerGUI::threadedPlanningFunction(int mode) {
   
   if((mode == 2) || (mode == 3)) {
+    
     emit notifyConsoleMessage("Starting state estimation...\n");
+    
     target_anim.trajectory.reset();
     target_pred_config.startStatePrediction();
     if(!target_anim.trajectory) {
@@ -314,6 +317,7 @@ void CRSPlannerGUI::threadedPlanningFunction(int mode) {
       emit notifyReset();
       return;
     };
+    
     emit notifyConsoleMessage("State estimation done!\nSwitched to predicted target trajectory!\n");
   };
   
@@ -359,7 +363,6 @@ void CRSPlannerGUI::onStartPlanning(int mode) {
     planning_thr.join();
   
   planning_thr = ReaKaux::thread(boost::bind(&CRSPlannerGUI::threadedPlanningFunction, this, mode));
-  
 };
 
 void CRSPlannerGUI::onStopPlanning() {
@@ -421,10 +424,14 @@ void CRSPlannerGUI::executeSolutionTrajectory() {
   if(current_target_anim_time > cur_time) {
     cur_pit += current_target_anim_time - cur_time;
   } else {
+    
     ReaKaux::chrono::high_resolution_clock::time_point delayed_start = exec_start + 
       ReaKaux::chrono::duration_cast<ReaKaux::chrono::high_resolution_clock::duration>(ReaKaux::chrono::duration<double>(cur_time - current_target_anim_time));
+    
     while(exec_robot_enabled && (exec_start < delayed_start) && (cur_time > current_target_anim_time)) {
+      
       ReaKaux::this_thread::sleep_until(exec_start + ReaKaux::chrono::microseconds(1000));
+      
       exec_start = ReaKaux::chrono::high_resolution_clock::now();
       if(jtctrl_out)
         (*jtctrl_out) << 0.0;
@@ -445,11 +452,12 @@ void CRSPlannerGUI::executeSolutionTrajectory() {
 #endif
     };
   };
+  
   exec_start = ReaKaux::chrono::high_resolution_clock::now();
+  
   while( exec_robot_enabled && ( (*cur_pit).time < manip_traj->get_end_time() ) ) {
     cur_pit += 0.001;
     ReaKaux::this_thread::sleep_until(exec_start + ReaKaux::chrono::microseconds(1000));
-    
 //     cur_pit += 0.01;
 //     ReaKaux::this_thread::sleep_until(exec_start + ReaKaux::chrono::microseconds(10000));
     
@@ -459,6 +467,7 @@ void CRSPlannerGUI::executeSolutionTrajectory() {
     if(jtctrl_out)
       (*jtctrl_out) << (*cur_pit).time;
     cur_pt = (*cur_pit).pt;
+    
 #ifdef RK_CRSPLANNER_USE_RAW_ASIO_SOCKET
     for(std::size_t i = 0; i < 7; ++i) {
       write_double_to_net_stream(udp_buf_stream, cur_pt[i]);
@@ -475,6 +484,7 @@ void CRSPlannerGUI::executeSolutionTrajectory() {
       (*jtctrl_out) << cur_pt << recorder::data_recorder::end_value_row;
 #endif
   };
+  
   //UDP output for the robot:
   double terminating_value = -100.0;
 #ifdef RK_CRSPLANNER_USE_RAW_ASIO_SOCKET
@@ -486,15 +496,14 @@ void CRSPlannerGUI::executeSolutionTrajectory() {
   (*jtctrl_net) << terminating_value << terminating_value << terminating_value << terminating_value
                 << terminating_value << terminating_value << terminating_value << recorder::data_recorder::end_value_row;
 #endif
+  
   if(jtctrl_out)
     (*jtctrl_out) << recorder::data_recorder::flush;
   
   if( (*cur_pit).time >= manip_traj->get_end_time() ) {
     emit notifyCaptureReached();
   };
-  
   exec_robot_enabled = false;
-  
 };
 
 
