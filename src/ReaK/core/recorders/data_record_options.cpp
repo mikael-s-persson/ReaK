@@ -232,7 +232,7 @@ shared_ptr< data_recorder > data_stream_options::create_recorder() const {
       if (std::strftime(cdate_as_str, sizeof(cdate_as_str), "%Y%m%d", std::localtime(&t_ctime)) == 0)
         cdate_as_str[0] = '\0';
       char ctime_as_str[16];
-      if (std::strftime(ctime_as_str, sizeof(ctime_as_str), "%H%M", std::localtime(&t_ctime)) == 0)
+      if (std::strftime(ctime_as_str, sizeof(ctime_as_str), "%H%M%S", std::localtime(&t_ctime)) == 0)
         ctime_as_str[0] = '\0';
       
       if(d < t) {
