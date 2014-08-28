@@ -117,6 +117,9 @@ int main(int argc, char ** argv) {
     shared_ptr< capped_cylinder > link3_cyl(new capped_cylinder("link3_cyl", shared_ptr< frame_3D<double> >(), 
       pose_3D<double>(weak_ptr< pose_3D<double> >(),vect<double,3>(0.0,0.0,0.165),quaternion<double>()), 
       0.33, 0.07));
+    shared_ptr< capped_cylinder > link3_wire_cyl(new capped_cylinder("link3_wire_cyl", shared_ptr< frame_3D<double> >(), 
+      pose_3D<double>(weak_ptr< pose_3D<double> >(),vect<double,3>(0.0,0.1,0.05),axis_angle<double>(M_PI * 0.5, vect<double,3>(1.0,0.0,0.0)).getQuaternion()), 
+      0.15, 0.075));
     shared_ptr< capped_cylinder > link5_cyl(new capped_cylinder("link5_cyl", shared_ptr< frame_3D<double> >(), 
       pose_3D<double>(weak_ptr< pose_3D<double> >(),vect<double,3>(0.0,0.0,0.0381),quaternion<double>()), 
       0.0762, 0.05));
@@ -153,6 +156,7 @@ int main(int argc, char ** argv) {
       .addElement("manip_3R3R_joint_1_end",color(0.3,0.3,0.3),joint2_cyl)
       .addElement("manip_3R3R_joint_2_end",color(0.7,0.7,0.5),link2_cyl)
       .addElement("manip_3R3R_joint_3_end",color(0.7,0.7,0.5),link3_cyl)
+      .addElement("manip_3R3R_joint_3_end",color(0.3,0.3,0.3),link3_wire_cyl)
       .addElement("manip_3R3R_joint_5_end",color(0.1,0.1,0.1),link5_cyl)
       //.addElement("manip_3R3R_joint_6_end",color(0.6,0.6,0.0),EE_sphere)
       .addElement("manip_3R3R_joint_6_end",color(0.6,0.6,0.0),EE_bumblebee)
@@ -166,6 +170,7 @@ int main(int argc, char ** argv) {
       .addShape("manip_3R3R_joint_1_end",joint2_cyl)
       .addShape("manip_3R3R_joint_2_end",link2_cyl)
       .addShape("manip_3R3R_joint_3_end",link3_cyl)
+      .addShape("manip_3R3R_joint_3_end",link3_wire_cyl)
       .addShape("manip_3R3R_joint_5_end",link5_cyl)
       .addShape("manip_3R3R_joint_6_end",EE_sphere);
     };

@@ -120,6 +120,11 @@ int main(int argc, char ** argv) {
     pose_3D<double>(weak_ptr< pose_3D<double> >(), vect<double,3>(0.0,-1.71,0.15), quaternion<double>()),
     vect<double,3>(0.4,3.42,0.3)));
   
+  shared_ptr< plane > lab_operator_wall(new plane("MD148_operator_wall", 
+    shared_ptr< pose_3D<double> >(), 
+    pose_3D<double>(weak_ptr< pose_3D<double> >(), vect<double,3>(-0.8,-3.5,1.5), axis_angle<double>(M_PI * 0.5, vect<double,3>(-1.0,0.0,0.0)).getQuaternion()),
+    vect<double,2>(4.0,3.0)));
+  
   shared_ptr< capped_cylinder > lab_robot_track_left(new capped_cylinder("MD148_robot_track_left", 
     shared_ptr< pose_3D<double> >(), 
     pose_3D<double>(weak_ptr< pose_3D<double> >(), vect<double,3>(0.1,-1.71,0.15), axis_angle<double>(M_PI * 0.5, vect<double,3>(1.0,0.0,0.0)).getQuaternion()),
@@ -137,14 +142,16 @@ int main(int argc, char ** argv) {
   (*MD148_basic_lab)
     .addElement(color(0,0,0),lab_global_arrows)
     .addElement(color(0.3,0.3,0.3),lab_floor)
-    .addElement(color(0.8,0.8,0.8),lab_n_wall)
-    .addElement(color(0.8,0.8,0.8),lab_w_wall)
+//     .addElement(color(0.8,0.8,0.8),lab_n_wall)
+//     .addElement(color(0.8,0.8,0.8),lab_w_wall)
+//     .addElement(color(0.8,0.8,0.8),lab_operator_wall)
     .addElement(color(0.35,0.35,0.35),lab_robot_track);
   
   (*MD148_lab_proxy)
     .addShape(lab_floor)
     .addShape(lab_n_wall)
     .addShape(lab_w_wall)
+    .addShape(lab_operator_wall)
     .addShape(lab_robot_track_left)
     .addShape(lab_robot_track_right);
   
