@@ -11,21 +11,21 @@ implement interpolated topology (similar to SVP/SAP reach-topology)
 implement the dynamic topologies and planners   
   implement a point-to-point trajectory   ---------------------------------------X
   add iterators to the interpolated_trajectory   --------------------------------X
-    test interpolated_trajectory   
+    test interpolated_trajectory   ----------------------------------------------X
   add iterators to the constant_trajectory   ------------------------------------X
   create protected-virtual functions in the waypoint-cont-base   ----------------X
   add iterators to the belief_predicted_trajectory   ----------------------------X
-    test belief_predicted_trajectory   
+    test belief_predicted_trajectory   ------------------------------------------X
   create a topo-map from belief to max-likelihood   -----------------------------X
   implement the intercept_query   -----------------------------------------------X
     implement the search alg. to find intercept-point   -------------------------X
   add the capability to load target trajectories to app   -----------------------X
-  add the capability to run dyn intercept queries to app   
+  add the capability to run dyn intercept queries to app   ----------------------X
   create a simulation program to generate target trajectories   -----------------X
     add real-time feeding of noisy data   ---------------------------------------X
-  add the capability to load a belief predictor   
-    plug the belief predictor into the intercept queries   
-  add mechanisms, somewhere (?), to delay motion-plan start   
+  add the capability to load a belief predictor   -------------------------------X
+    plug the belief predictor into the intercept queries   ----------------------X
+  add mechanisms, somewhere (?), to delay motion-plan start   -------------------X
 
 
 finish reachability sorting algorithm
@@ -107,7 +107,7 @@ implement "adjacency-list on dvp-tree" overlay data structure   ----------------
       test on SE(3) 2nd order world    ------------------------------------------X (passed, with significant improvement)
 
 
-update the DVP-tree implementation to include asymmetric metrics   
+update the DVP-tree implementation to include asymmetric metrics   --------------X
   define concepts related to asymmetric metrics   -------------------------------X
   implement the tree construction for asym. metrics   ---------------------------X
   implement the KNN query for asym. metrics   -----------------------------------X
@@ -118,19 +118,31 @@ implement a "Sampling-based A*" (generalization of A* to sampled graphs)
   implement the basic sampling-based A* algorithm   -----------------------------X
     test on 2d point-robot world   ----------------------------------------------X
     test on CRS robot (static)   ------------------------------------------------X
-    test on CRS robot (dynamic)   
+    test on CRS robot (dynamic)   -----------------------------------------------X
   implement the "pruned" sampling-based A* algorithm   --------------------------X
     test on 2d point-robot world   ----------------------------------------------X
     test on CRS robot (static)   ------------------------------------------------X
-    test on CRS robot (dynamic)   
+    test on CRS robot (dynamic)   -----------------------------------------------X
   implement the lazy sampling-based A* algorithm   ------------------------------X
     test on 2d point-robot world   ----------------------------------------------X
     test on CRS robot (static)   ------------------------------------------------X
-    test on CRS robot (dynamic)   
+    test on CRS robot (dynamic)   -----------------------------------------------X
+  implement the branch-and-bound sampling-based A* algorithm   ------------------X
+    test on 2d point-robot world   ----------------------------------------------X
+    test on CRS robot (static)   ------------------------------------------------X
+    test on CRS robot (dynamic)   -----------------------------------------------X
+  implement the simulated-annealing sampling-based A* algorithm   ---------------X
+    test on 2d point-robot world   ----------------------------------------------X
+    test on CRS robot (static)   ------------------------------------------------X
+    test on CRS robot (dynamic)   -----------------------------------------------X
   implement the inconst-set traversal   -----------------------------------------X
     in SBA*   -------------------------------------------------------------------X
     in Pruned-SBA*   ------------------------------------------------------------X
     in Lazy-SBA*   --------------------------------------------------------------X
+  implement the bi-directional variants   ---------------------------------------X
+    in SBA*   -------------------------------------------------------------------X
+    in SA-SBA*   ----------------------------------------------------------------X
+    in RRT*   -------------------------------------------------------------------X
   implement a density threshold 
     in SBA*   
     in Pruned-SBA*   
@@ -146,6 +158,24 @@ implement a "Sampling-based A*" (generalization of A* to sampled graphs)
     test on CRS robot (static)   
     test on CRS robot (dynamic)   
     
+
+create a motion-graph mutation-sentinel framework   
+  anticipated pitfalls:
+    infinite recursions like add-edge -> add-vertex -> connect -> add-edge
+      could use operation queues   
+      could disable connection (make it optional)   
+      could split add and connect   
+    concurrency problems (in "replanning" scenarios)
+      could make the sentinel mutex'd
+    invalidate descriptors currently used in caller's context when callee adds things
+      I think graphs must already be non-invalidating (list or pool containers)
+
+
+implement a trajectory wrapper for "best in motion-graph"
+  add support in motion-graph sentinel for registering current robot location
+    consider start-vertex as next one to be reached
+  add support in motion-graph sentinel or algs for pruning of unreachable points
+    watch out for start-vertex invalidation
   
 
 
@@ -201,37 +231,45 @@ implement a set of basic geometries   ------------------------------------------
     Cylinder   ------------------------------------------------------------------X
     Capped Cylinder   -----------------------------------------------------------X
 
-implement export-import facilities for geometries
-  use some external lib for VRML / X3D import-export
-  interface to whatever FreeCAD is using
+implement export-import facilities for geometries   
+  use some external lib for VRML / X3D import-export   --------------------------X
+  interface to whatever FreeCAD is using   
 
 implement rendering facilities for geometries
-  interface to OpenInventor (Coin3D)
+  interface to OpenInventor (Coin3D)   ------------------------------------------X
   create a FreeCAD module
-  use some VRML / X3D renderer
+  use some VRML / X3D renderer   ------------------------------------------------O
 
 implement proximity-query methods
   implement closed-form solution when possible:
     rectangle - rectangle   -----------------------------------------------------X
     circle - circle   -----------------------------------------------------------X
     rectange - circle   ---------------------------------------------------------X
-    capped rectangle - rectangle   
-    capped rectangle - circle   
-    capped rectangle - capped rectangle   
+    capped rectangle - rectangle   ----------------------------------------------X
+    capped rectangle - circle   -------------------------------------------------X
+    capped rectangle - capped rectangle   ---------------------------------------X
+    capped cylinder - capped cylinder   -----------------------------------------X
+    box - capped cylinder   -----------------------------------------------------X
     sphere - sphere   -----------------------------------------------------------X
     sphere - box   --------------------------------------------------------------X
     sphere - cylinder   ---------------------------------------------------------X
-    sphere - capped cylinder   
+    sphere - capped cylinder   --------------------------------------------------X
     plane - plane   -------------------------------------------------------------X
     plane - sphere   ------------------------------------------------------------X
-    plane - box   
-    plane - cylinder   
-    plane - capped cylinder   
+    plane - box   ---------------------------------------------------------------X
+    plane - cylinder   ----------------------------------------------------------X
+    plane - capped cylinder   ---------------------------------------------------X
   implement a support-function for all geometries   
   implement a proximity-query based on support-function (NLP):
-    cylinder - cylinder
+    cylinder - cylinder   
+    capped cylinder - cylinder   
+    box - box   
+    box - cylinder   
     
-  implement a composite-shape proximity-query dispatcher   
+  implement a composite-shape proximity-query dispatcher   ----------------------X
+
+  implement an approximator of collision probability   
+    assume Gaussian probability on pose of bodies   
 
 
 ///----------------TEST SCENARIOS------------
@@ -242,22 +280,22 @@ Kalman filtering tests
     implement airship2D simulator   ---------------------------------------------X
       with input-disturbance   --------------------------------------------------X
   implement data extractor (inverse of data-recorders)   ------------------------X
-  implement airship2D estimator systems   
+  implement airship2D estimator systems   ---------------------------------------X
     implement airship2D linearized continuous-time model   ----------------------X
     implement invariant airship2D continuous-time model   -----------------------X
     implement airship2D linearized discrete-time model   ------------------------X
     implement invariant airship2D discrete-time model   -------------------------X
-  implement airship3D test models   
+  implement airship3D test models   ---------------------------------------------X
     implement airship3D model   -------------------------------------------------X
     implement airship3D simulator   ---------------------------------------------X
       with input disturbance   --------------------------------------------------X
-  implement airship3D estimator systems   
+  implement airship3D estimator systems   ---------------------------------------X
     implement airship3D linearized continuous-time model   ----------------------X
     implement invariant airship3D continuous-time model   -----------------------X
     implement airship3D linearized discrete-time model   ------------------------X
     implement invariant airship3D discrete-time model   -------------------------X
     implement invariant momentum-conserving airship3D discrete-time model   -----X
-  integrate airship models with Kalman filters   
+  integrate airship models with Kalman filters   --------------------------------X
     test all Kalman filters on airship2D   --------------------------------------X
     test all Kalman filters on airship3D   --------------------------------------X
 
@@ -271,9 +309,19 @@ Kalman filtering tests
 provide a non-intrusive means to make types serializable (by value-ref)   -------X (sfinae to the rescue, again!)
   (mainly to avoid instantiation of save/load functions in a class template)   --X (sfinae to the rescue, again!)
 
-implement protobuf-based archiver
+implement protobuf-based archiver   ---------------------------------------------X
+  implement protobuf scheme creator   -------------------------------------------X
 
 implement RPC-based archiver (both XML-RPC and Protobuf-RPC)
+
+
+///----------------RPC (Remote Procedure Call)--------------
+
+create and implement a discovery protocol
+
+create and implement a rpc protocol
+
+create and implement a publish-subscribe protocol
 
 
 ///----------------MATH----------------------
@@ -412,11 +460,7 @@ port integrators to generic continuous SSS concepts -- made an adaptor instead -
 
 ///----------------SIGNALS AND SYSTEMS-------
 
-reimplement as non-blocking using Boost.Atomic
-
-implement RPC-based (from serialization) signals (network and local) based on Boost.Asio
-
-reimplement connections as a Cloud-computing system
+reimplement as non-blocking using Boost.Atomic   ---? (never?)
 
 
 
