@@ -170,8 +170,14 @@ int main(int argc, char ** argv) {
   airship3D_grasp_frame->Position += airship3D_grasp_frame->Quat * (-0.3 * vect_k);
   */
   
+  // Original position (near prop A)
+//   double gr_radius = 0.93;
+//   double gr_arc_length = 0.225;
+  
+  // New position (lower, during bottom-heavy tests)
   double gr_radius = 0.93;
-  double gr_arc_length = 0.225;
+  double gr_arc_length = 0.584;
+  
   double gr_beta = gr_arc_length / gr_radius;
   
   shared_ptr< frame_3D<double> > 
