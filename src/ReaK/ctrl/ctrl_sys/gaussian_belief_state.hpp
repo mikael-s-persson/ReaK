@@ -356,6 +356,87 @@ struct gaussian_pdf<BeliefState, covariance_storage::decomposed> {
   
 };
 
+template <typename Vector, typename Matrix>
+typename mat_traits<Matrix>::value_type gaussian_pdf_at_diff(const Vector& dx, const Matrix& P) {
+  typedef typename mat_traits<Matrix>::value_type ValueType;
+  typedef typename mat_traits<Matrix>::size_type SizeType;
+  using std::sqrt; using std::exp; using std::pow;
+  
+  ValueType det_sqrt = 1.0;
+  Vector Pinv_dx = dx;
+  try {
+    mat<ValueType, mat_structure::square> L;
+    decompose_Cholesky(P, L);
+    for(SizeType i = 0; i < L.get_col_count(); ++i)
+      det_sqrt *= L(i,i);
+    mat_vect_adaptor< Vector > Pinv_dx_mat(Pinv_dx);
+    detail::backsub_Cholesky_impl(L, Pinv_dx_mat);
+  } catch(singularity_error&) { 
+    mat<double, mat_structure::diagonal> E(P.get_row_count());
+    mat<double, mat_structure::square> U(P.get_row_count()), V(P.get_row_count());
+    decompose_SVD(P,U,E,V);
+    for(SizeType i = 0; i < E.get_col_count(); ++i)
+      det_sqrt *= E(i,i);
+    det_sqrt = sqrt(det_sqrt);
+    mat<ValueType, mat_structure::square> Pinv(P.get_row_count());
+    pseudoinvert_SVD(U,E,V,Pinv,1-8);
+    Pinv_dx = Pinv * dx;
+  };
+  
+  ValueType dist_x = -0.5 * (dx * Pinv_dx);
+  ValueType factor = pow(2.0 * M_PI, -0.5 * P.get_row_count()) / det_sqrt;
+  return factor * exp(dist_x);
+};
+
+template <typename Matrix>
+typename mat_traits<Matrix>::value_type gaussian_pdf_at_mean_value(const Matrix& P) {
+  typedef typename mat_traits<Matrix>::value_type ValueType;
+  typedef typename mat_traits<Matrix>::size_type SizeType;
+  using std::sqrt; using std::pow;
+  
+  ValueType det_sqrt = 1.0;
+  try {
+    mat<ValueType, mat_structure::square> L;
+    decompose_Cholesky(P, L);
+    for(SizeType i = 0; i < L.get_col_count(); ++i)
+      det_sqrt *= L(i,i);
+  } catch(singularity_error&) { 
+    mat<double, mat_structure::diagonal> E(P.get_row_count());
+    mat<double, mat_structure::square> U(P.get_row_count()), V(P.get_row_count());
+    decompose_SVD(P,U,E,V);
+    for(SizeType i = 0; i < E.get_col_count(); ++i)
+      det_sqrt *= E(i,i);
+    det_sqrt = sqrt(det_sqrt);
+  };
+  return pow(2.0 * M_PI, -0.5 * P.get_row_count()) / det_sqrt;
+};
+
+
+template <typename Vector, typename Matrix>
+typename mat_traits<Matrix>::value_type gaussian_likelihood_ratio_of_diff(const Vector& dx, const Matrix& P) {
+  typedef typename mat_traits<Matrix>::value_type ValueType;
+  
+  Vector Pinv_dx = dx;
+  try {
+    mat<ValueType, mat_structure::square> L;
+    decompose_Cholesky(P, L);
+    mat_vect_adaptor< Vector > Pinv_dx_mat(Pinv_dx);
+    detail::backsub_Cholesky_impl(L, Pinv_dx_mat);
+  } catch(singularity_error&) { 
+    mat<double, mat_structure::diagonal> E(P.get_row_count());
+    mat<double, mat_structure::square> U(P.get_row_count()), V(P.get_row_count());
+    decompose_SVD(P,U,E,V);
+    mat<ValueType, mat_structure::square> Pinv(P.get_row_count());
+    pseudoinvert_SVD(U,E,V,Pinv,1-8);
+    Pinv_dx = Pinv * dx;
+  };
+  
+  ValueType dist_x = dx * Pinv_dx;
+  return dist_x;
+};
+
+
+
 
 /*
 template <typename Covariance, covariance_storage::tag Storage>
