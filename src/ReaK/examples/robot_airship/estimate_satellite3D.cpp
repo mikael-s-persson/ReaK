@@ -90,8 +90,18 @@ struct sat3D_meas_true_from_vectors {
   std::vector< std::pair< double, sat3D_measurement_point > >::const_iterator cur_meas;
   std::vector< std::pair< double, sat3D_state_type > >::const_iterator cur_true;
   
-  double get_current_time() const { return cur_meas->first; };
-  const sat3D_measurement_point& get_current_measurement() const { return cur_meas->second; };
+  double get_current_time() const { 
+    if( cur_meas < measurements->end() )
+      return cur_meas->first;
+    else
+      return measurements->rbegin()->first;
+  };
+  const sat3D_measurement_point& get_current_measurement() const { 
+    if( cur_meas < measurements->end() )
+      return cur_meas->second; 
+    else
+      return measurements->rbegin()->second;
+  };
   const sat3D_state_type* get_current_gnd_truth_ptr() const { 
     if(ground_truth && ground_truth->size())
       return &(cur_true->second); 
@@ -102,7 +112,7 @@ struct sat3D_meas_true_from_vectors {
   bool step_once() {
     for(std::size_t i = 0; i < skips; ++i) {
       ++cur_meas;
-      if( cur_meas == measurements->end() )
+      if( cur_meas >= measurements->end() )
         return false;
       if( ground_truth && cur_true != ground_truth->end() )
         ++cur_true;
@@ -384,8 +394,9 @@ struct sat3D_collect_stddevs {
 struct sat3D_collect_prediction_stats {
   ReaK::vect_n< double >* stats;
   std::size_t counter;
+  double time_since_pred;
   
-  sat3D_collect_prediction_stats(ReaK::vect_n< double >* aStats) : stats(aStats), counter(0) { };
+  sat3D_collect_prediction_stats(ReaK::vect_n< double >* aStats) : stats(aStats), counter(0), time_since_pred(0.0) { };
   
   void initialize() { 
     (*stats) = ReaK::vect_n< double >(9, 0.0);
@@ -395,11 +406,12 @@ struct sat3D_collect_prediction_stats {
   
   void finalize() {
     for(std::size_t j = 1; j < stats->size(); ++j)
-      (*stats)[j] = std::sqrt((*stats)[j]); // turn variances into std-devs.
+      (*stats)[j] = std::sqrt((*stats)[j]) / time_since_pred; // turn variances into std-devs.
   };
   
   void mark_prediction_start(double time) {
     (*stats)[0] = time;
+    time_since_pred = 0.0;
   };
   
   template <typename BeliefStateType, typename InputBeliefType, typename OutputBeliefType>
@@ -415,6 +427,7 @@ struct sat3D_collect_prediction_stats {
     
     const sat3D_state_type& x_mean = get_sat3D_state(b.get_mean_state());
     vect<double,3> pos_err, aa_err, vel_err, ang_vel_err;
+    
     if( true_state ) {
       axis_angle<double> aa_diff(invert(get_quaternion(x_mean).as_rotation()) * get_quaternion(*true_state).as_rotation());
       pos_err     = get_position(x_mean) - get_position(*true_state);
@@ -432,17 +445,18 @@ struct sat3D_collect_prediction_stats {
       else
         ang_vel_err = vect<double,3>(0.0,0.0,0.0);
     };
+    
     vect_n<double> state_err(12);
     state_err[range(0,3)]  = pos_err;
-    state_err[range(3,6)]  = aa_err;
-    state_err[range(6,9)]  = vel_err;
+    state_err[range(3,6)]  = vel_err;
+    state_err[range(6,9)]  = aa_err;
     state_err[range(9,12)] = ang_vel_err;
     
-    double time_since_pred = time - (*stats)[0];
-    (*stats)[1] = ( counter * (*stats)[1] + (pos_err * pos_err) / (time_since_pred * time_since_pred) ) / (counter + 1);
-    (*stats)[2] = ( counter * (*stats)[2] + (aa_err * aa_err) / (time_since_pred * time_since_pred) ) / (counter + 1);
-    (*stats)[3] = ( counter * (*stats)[3] + (vel_err * vel_err) / (time_since_pred * time_since_pred) ) / (counter + 1);
-    (*stats)[4] = ( counter * (*stats)[4] + (ang_vel_err * ang_vel_err) / (time_since_pred * time_since_pred) ) / (counter + 1);
+    time_since_pred = time - (*stats)[0];
+    (*stats)[1] = ( counter * (*stats)[1] + (pos_err * pos_err) ) / (counter + 1);
+    (*stats)[2] = ( counter * (*stats)[2] + (aa_err * aa_err) ) / (counter + 1);
+    (*stats)[3] = ( counter * (*stats)[3] + (vel_err * vel_err) ) / (counter + 1);
+    (*stats)[4] = ( counter * (*stats)[4] + (ang_vel_err * ang_vel_err) ) / (counter + 1);
     
     const cov_matrix_type& P_xx = b.get_covariance().get_matrix();
     
@@ -455,12 +469,14 @@ struct sat3D_collect_prediction_stats {
     double lr_to_meas = 0.0;
     if(R.get_row_count() == 6) {
       vect_n<double> meas_err(6,0.0);
-      meas_err = state_err[range(0,6)];
+      meas_err[range(0,3)] = state_err[range(0,3)];
+      meas_err[range(3,6)] = state_err[range(6,9)];
       pdf_to_meas = ctrl::gaussian_pdf_at_diff(meas_err, R);
       lr_to_meas = ctrl::gaussian_likelihood_ratio_of_diff(meas_err, R);
     } else {
       vect_n<double> meas_err(9, 0.0);
-      meas_err[range(0,6)] = state_err[range(0,6)];
+      meas_err[range(0,3)] = state_err[range(0,3)];
+      meas_err[range(3,6)] = state_err[range(6,9)];
       meas_err[range(6,9)] = state_err[range(9,12)];
       pdf_to_meas = ctrl::gaussian_pdf_at_diff(meas_err, mat<double,mat_structure::square>(R(range(0,9),range(0,9))));
       lr_to_meas = ctrl::gaussian_likelihood_ratio_of_diff(meas_err, mat<double,mat_structure::square>(R(range(0,9),range(0,9))));
@@ -468,8 +484,8 @@ struct sat3D_collect_prediction_stats {
     
     (*stats)[5] = ( counter * (*stats)[5] + (pdf_to_est * pdf_to_est) ) / (counter + 1);
     (*stats)[6] = ( counter * (*stats)[6] + (lr_to_est * lr_to_est) ) / (counter + 1);
-    (*stats)[7] = ( counter * (*stats)[7] + (pdf_to_meas * pdf_to_meas) / (time_since_pred * time_since_pred) ) / (counter + 1);
-    (*stats)[8] = ( counter * (*stats)[8] + (lr_to_meas * lr_to_meas) / (time_since_pred * time_since_pred) ) / (counter + 1);
+    (*stats)[7] = ( counter * (*stats)[7] + (pdf_to_meas * pdf_to_meas) ) / (counter + 1);
+    (*stats)[8] = ( counter * (*stats)[8] + (lr_to_meas * lr_to_meas) ) / (counter + 1);
     
     ++counter;
   };
@@ -548,6 +564,7 @@ void batch_KF_no_meas_predict(
       z_vect[range(7,10)] = cur_meas.gyro;
       if( cur_meas.IMU_a_m.size() )
         z_vect[range(10,16)] = cur_meas.IMU_a_m;
+      
     };
     b_z.set_mean_state(z_vect);
     b_u.set_mean_state(cur_meas.u);
@@ -558,7 +575,8 @@ void batch_KF_no_meas_predict(
       ctrl::invariant_kalman_filter_step(sat_sys, state_space, b, b_u, b_z, meas_provider.get_current_time());
     };
     
-    current_Pnorm = norm_2(b.get_covariance().get_matrix());
+    current_Pnorm = norm_2(b.get_covariance().get_matrix()(range(0,12),range(0,12)));
+    std::cout << "\rnorm = " << std::setprecision(10) << std::setw(15) << current_Pnorm << std::flush;
     
     result_logger.add_record(b, b_u, b_z, last_time, meas_provider.get_current_gnd_truth_ptr());
     
@@ -570,7 +588,17 @@ void batch_KF_no_meas_predict(
   // prediction phase:
   do {
     last_time = meas_provider.get_current_time();
-    b_u.set_mean_state(meas_provider.get_current_measurement().u);
+    const sat3D_measurement_point& cur_meas = meas_provider.get_current_measurement();
+    vect_n<double> z_vect(cur_meas.pose.size() + cur_meas.gyro.size() + cur_meas.IMU_a_m.size(), 0.0);
+    z_vect[range(0,7)] = cur_meas.pose;
+    if( cur_meas.gyro.size() ) {
+      z_vect[range(7,10)] = cur_meas.gyro;
+      if( cur_meas.IMU_a_m.size() )
+        z_vect[range(10,16)] = cur_meas.IMU_a_m;
+      
+    };
+    b_z.set_mean_state(z_vect);
+    b_u.set_mean_state(cur_meas.u);
     
     if(sat_options.system_kind & ctrl::satellite_model_options::TSOSAKF) {
       ctrl::tsos_aug_inv_kalman_predict(sat_sys, state_space, b, b_u, meas_provider.get_current_time());
@@ -583,6 +611,7 @@ void batch_KF_no_meas_predict(
   } while( meas_provider.step_once() );
   
   result_logger.finalize();
+  
 };
 
 
@@ -626,7 +655,7 @@ void batch_KF_ML_meas_predict(
       ctrl::invariant_kalman_filter_step(sat_sys, state_space, b, b_u, b_z, meas_provider.get_current_time());
     };
     
-    current_Pnorm = norm_2(b.get_covariance().get_matrix());
+    current_Pnorm = norm_2(b.get_covariance().get_matrix()(range(0,12),range(0,12)));
     
     result_logger.add_record(b, b_u, b_z, last_time, meas_provider.get_current_gnd_truth_ptr());
     
@@ -638,7 +667,17 @@ void batch_KF_ML_meas_predict(
   // prediction phase:
   do {
     last_time = meas_provider.get_current_time();
-    b_u.set_mean_state(meas_provider.get_current_measurement().u);
+    const sat3D_measurement_point& cur_meas = meas_provider.get_current_measurement();
+    vect_n<double> z_vect(cur_meas.pose.size() + cur_meas.gyro.size() + cur_meas.IMU_a_m.size(), 0.0);
+    z_vect[range(0,7)] = cur_meas.pose;
+    if( cur_meas.gyro.size() ) {
+      z_vect[range(7,10)] = cur_meas.gyro;
+      if( cur_meas.IMU_a_m.size() )
+        z_vect[range(10,16)] = cur_meas.IMU_a_m;
+      
+    };
+    b_z.set_mean_state(z_vect);
+    b_u.set_mean_state(cur_meas.u);
     
     if(sat_options.system_kind & ctrl::satellite_model_options::TSOSAKF) {
       ctrl::tsos_aug_inv_kalman_predict(sat_sys, state_space, b, b_u, meas_provider.get_current_time());
@@ -647,12 +686,13 @@ void batch_KF_ML_meas_predict(
     };
     
     // apply ML assumption:
-    b_z.set_mean_state(sat_sys.get_output(state_space, b.get_mean_state(), b_u.get_mean_state(), meas_provider.get_current_time()));
+    typename Sat3DSystemType::output_belief_type b_z_ml = b_z;
+    b_z_ml.set_mean_state(sat_sys.get_output(state_space, b.get_mean_state(), b_u.get_mean_state(), meas_provider.get_current_time()));
     
     if(sat_options.system_kind & ctrl::satellite_model_options::TSOSAKF) {
-      ctrl::tsos_aug_inv_kalman_update(sat_sys, state_space, b, b_u, b_z, meas_provider.get_current_time());
+      ctrl::tsos_aug_inv_kalman_update(sat_sys, state_space, b, b_u, b_z_ml, meas_provider.get_current_time());
     } else {
-      ctrl::invariant_kalman_update(sat_sys, state_space, b, b_u, b_z, meas_provider.get_current_time());
+      ctrl::invariant_kalman_update(sat_sys, state_space, b, b_u, b_z_ml, meas_provider.get_current_time());
     };
     
     result_logger.add_record(b, b_u, b_z, last_time, meas_provider.get_current_gnd_truth_ptr());
@@ -1307,6 +1347,7 @@ void do_prediction_monte_carlo_run(
 #endif
     
     (*results) << cur_Pnorm << stats << recorder::data_recorder::end_value_row;
+    
   };
   
   (*results) << recorder::data_recorder::flush;

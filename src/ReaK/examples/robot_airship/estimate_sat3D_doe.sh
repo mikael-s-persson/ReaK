@@ -23,17 +23,20 @@ OPTIONS="${OPTIONS} --pred-assumption 0"
 # OPTIONS="${OPTIONS} --pred-assumption 1"
 
 # OPTIONS="${OPTIONS} --tsosakf --Pa-matrix temp_sat3D_airship_Pa_em.rkx"
-# OPTIONS="${OPTIONS} --tsosakf --Pa-matrix temp_sat3D_airship_Pa_emd.rkx"
+OPTIONS="${OPTIONS} --tsosakf --Pa-matrix temp_sat3D_airship_Pa_emd.rkx"
 # OPTIONS="${OPTIONS} --tsosakf --Pa-matrix temp_sat3D_airship_Pa_emdJ.rkx"
 
-OPTIONS="${OPTIONS} --monte-carlo --min-skips 5 --max-skips 7"
+OPTIONS="${OPTIONS} --monte-carlo --min-skips 4 --max-skips 6"
 
 
-DM_COV=1e-20
-ECC_COV=1e-20
-LD_COV=1e-20
-RD_COV=1e-20
+DM_COV=1e-6
+ECC_COV=1e-6
+LD_COV=20
+RD_COV=1
 
+# POS_MEAS_COV=0.0005
+# ANG_MEAS_COV=0.0009
+# GYRO_MEAS_COV=0.0005
 POS_MEAS_COV=0.00005
 ANG_MEAS_COV=0.00009
 GYRO_MEAS_COV=0.00005
