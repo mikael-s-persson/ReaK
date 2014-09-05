@@ -394,9 +394,10 @@ struct sat3D_collect_stddevs {
 struct sat3D_collect_prediction_stats {
   ReaK::vect_n< double >* stats;
   std::size_t counter;
+  double start_time;
   double time_since_pred;
   
-  sat3D_collect_prediction_stats(ReaK::vect_n< double >* aStats) : stats(aStats), counter(0), time_since_pred(0.0) { };
+  sat3D_collect_prediction_stats(ReaK::vect_n< double >* aStats) : stats(aStats), counter(0), start_time(std::numeric_limits<double>::infinity()), time_since_pred(0.0) { };
   
   void initialize() { 
     (*stats) = ReaK::vect_n< double >(9, 0.0);
@@ -407,6 +408,7 @@ struct sat3D_collect_prediction_stats {
   void finalize() {
     for(std::size_t j = 1; j < stats->size(); ++j)
       (*stats)[j] = std::sqrt((*stats)[j]) / time_since_pred; // turn variances into std-devs.
+    (*stats)[0] -= start_time;  // time that it took to get good enough estimate to start prediction phase.
   };
   
   void mark_prediction_start(double time) {
@@ -421,6 +423,9 @@ struct sat3D_collect_prediction_stats {
                   double time,
                   const sat3D_state_type* true_state = NULL) {
     using namespace ReaK;
+    
+    if(start_time > time)
+      start_time = time;
     
     if(time < (*stats)[0])
       return;
