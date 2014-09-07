@@ -1,39 +1,6 @@
 #!/bin/bash
 
 
-#####################################################################
-# Evaluate a floating point number expression.
-
-function float_eval()
-{
-    local stat=0
-    local result=0.0
-    if [[ $# -gt 0 ]]; then
-        result=$(echo "scale=20; $*" | bc -q 2>/dev/null)
-        stat=$?
-        if [[ $stat -eq 0  &&  -z "$result" ]]; then stat=1; fi
-    fi
-    echo $result
-    return $stat
-}
-
-
-#####################################################################
-# Evaluate a floating point number conditional expression.
-
-function float_cond()
-{
-    local cond=0
-    if [[ $# -gt 0 ]]; then
-        cond=$(echo "$*" | bc -q 2>/dev/null)
-        if [[ -z "$cond" ]]; then cond=0; fi
-        if [[ "$cond" != 0  &&  "$cond" != 1 ]]; then cond=0; fi
-    fi
-    local stat=$((cond == 0))
-    return $stat
-}
-
-
 # All the constant options here:
 
 OPTIONS="--init-motion models/satellite3D_init.rkx"
@@ -60,7 +27,7 @@ OPTIONS="${OPTIONS} --pred-assumption 0"
 OPTIONS="${OPTIONS} --tsosakf --Pa-matrix temp_sat3D_airship_Pa_emd.rkx"
 # OPTIONS="${OPTIONS} --tsosakf --Pa-matrix temp_sat3D_airship_Pa_emdJ.rkx"
 
-OPTIONS="${OPTIONS} --monte-carlo --min-skips 4 --max-skips 6"
+OPTIONS="${OPTIONS} --monte-carlo --min-skips 3 --max-skips 5"
 
 if [[ "0" == "0" ]]
 then
@@ -68,10 +35,10 @@ then
 INTERVAL_DIV=4.0
 
 DM_COV_LO=0.0000001
-DM_COV_HI=0.0001
+DM_COV_HI=0.00001
 
 ECC_COV_LO=0.0000001
-ECC_COV_HI=0.0001
+ECC_COV_HI=0.00001
 
 LD_COV_LO=0.1
 LD_COV_HI=100
@@ -86,51 +53,72 @@ ANG_MEAS_COV_HI=0.0009
 GYRO_MEAS_COV_LO=0.000005
 GYRO_MEAS_COV_HI=0.0005
 
-DM_COV=$DM_COV_HI
-ECC_COV=$ECC_COV_HI
-LD_COV=$LD_COV_HI
+MEAS_COV_FACT_LO=0.1
+MEAS_COV_FACT_HI=100
 
-POS_MEAS_COV=$POS_MEAS_COV_HI
-ANG_MEAS_COV=$ANG_MEAS_COV_HI
-GYRO_MEAS_COV=$GYRO_MEAS_COV_HI
+FINAL_OUTPUT_FILE="$1/pred/all_predstats.ssv"
 
-FINAL_OUTPUT_FILE="$1/all_predstats.ssv"
-echo "% pos_meas_cov ang_meas_cov gyro_meas_cov dm_cov ecc_cov ld_cov rd_cov P_th success_rate pred_start_time ep_m ea_m ev_m ew_m pdf_est lr_est pdf_meas lr_meas" > $FINAL_OUTPUT_FILE
+# # Start from the beginning:
+# DM_COV=$DM_COV_HI
+# ECC_COV=$ECC_COV_HI
+# LD_COV=$LD_COV_HI
+# RD_COV=$RD_COV_HI
+# 
+# POS_MEAS_COV=$POS_MEAS_COV_HI
+# ANG_MEAS_COV=$ANG_MEAS_COV_HI
+# GYRO_MEAS_COV=$GYRO_MEAS_COV_HI
+# MEAS_COV_FACT=$MEAS_COV_FACT_HI
+# 
+# echo "% pos_meas_cov ang_meas_cov gyro_meas_cov dm_cov ecc_cov ld_cov rd_cov P_th success_rate pred_start_time ep_m ea_m ev_m ew_m pdf_est lr_est pdf_meas lr_meas" > $FINAL_OUTPUT_FILE
+
+# Start from this point:
+POS_MEAS_COV=.00001953125000000000
+ANG_MEAS_COV=.00003515625000000000
+GYRO_MEAS_COV=.00001953125000000000
+MEAS_COV_FACT=.39062500000000000000
+
+DM_COV=.00000062500000000000
+ECC_COV=.00000250000000000000
+LD_COV=100
+RD_COV=100
+
+
+mkdir $1/pred
 
 (( MC_TRIALS_COUNT = 0 ))
 
-POS_MEAS_COV=$POS_MEAS_COV_HI
-until (( $(echo "$POS_MEAS_COV > $POS_MEAS_COV_LO" | bc -q 2>/dev/null) == "0" ))
+
+until (( $(echo "$MEAS_COV_FACT > $MEAS_COV_FACT_LO" | bc -q 2>/dev/null) == "0" ))
 do
-  echo "pos-meas cov = $POS_MEAS_COV"
-  ANG_MEAS_COV=$ANG_MEAS_COV_HI
-  until (( $(echo "$ANG_MEAS_COV > $ANG_MEAS_COV_LO" | bc -q 2>/dev/null) == "0" ))
-  do
-    echo "ang-meas cov = $ANG_MEAS_COV"
-    GYRO_MEAS_COV=$GYRO_MEAS_COV_HI
-    until (( $(echo "$GYRO_MEAS_COV > $GYRO_MEAS_COV_LO" | bc -q 2>/dev/null) == "0" ))
-    do
-      echo "gyro-meas cov = $GYRO_MEAS_COV"
-      DM_COV=$DM_COV_HI
+  echo "meas cov factor = $MEAS_COV_FACT"
+
+# until (( $(echo "$POS_MEAS_COV > $POS_MEAS_COV_LO" | bc -q 2>/dev/null) == "0" ))
+# do
+#   echo "pos-meas cov = $POS_MEAS_COV"
+#   until (( $(echo "$ANG_MEAS_COV > $ANG_MEAS_COV_LO" | bc -q 2>/dev/null) == "0" ))
+#   do
+#     echo "ang-meas cov = $ANG_MEAS_COV"
+#     until (( $(echo "$GYRO_MEAS_COV > $GYRO_MEAS_COV_LO" | bc -q 2>/dev/null) == "0" ))
+#     do
+#       echo "gyro-meas cov = $GYRO_MEAS_COV"
+
       until (( $(echo "$DM_COV > $DM_COV_LO" | bc -q 2>/dev/null) == "0" ))
       do
         echo "dm cov = $DM_COV"
-        ECC_COV=$ECC_COV_HI
         until (( $(echo "$ECC_COV > $ECC_COV_LO" | bc -q 2>/dev/null) == "0" ))
         do
           echo "ecc. cov = $ECC_COV"
-          LD_COV=$LD_COV_HI
           until (( $(echo "$LD_COV > $LD_COV_LO" | bc -q 2>/dev/null) == "0" ))
           do
             echo "lin-drag cov = $LD_COV"
-            RD_COV=$RD_COV_HI
-            until (( $(echo "$RD_COV > $RD_COV_LO" | bc -q 2>/dev/null) == "0" ))
-            do
-              echo "rot-drag cov = $RD_COV"
+            RD_COV=$LD_COV
+#             until (( $(echo "$RD_COV > $RD_COV_LO" | bc -q 2>/dev/null) == "0" ))
+#             do
+#               echo "rot-drag cov = $RD_COV"
               
-              if [[ "0" == "1" ]]
+              if [[ "0" == "0" ]]
               then
-              ACCUM_FILE="$1/predstats_${POS_MEAS_COV}_${ANG_MEAS_COV}_${GYRO_MEAS_COV}_${DM_COV}_${ECC_COV}_${LD_COV}_${RD_COV}.ssv"
+              ACCUM_FILE="$1/pred/predstats_${POS_MEAS_COV}_${ANG_MEAS_COV}_${GYRO_MEAS_COV}_${DM_COV}_${ECC_COV}_${LD_COV}_${RD_COV}.ssv"
               echo "0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0 0.0" > $ACCUM_FILE
               
               echo "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\" ?>
@@ -168,12 +156,13 @@ do
               </reak_serialization>
               " > temp_sat3D_airship_R_gyro.rkx
               
-              for f in $1/*
+              for f in $1/*.ssv
               do
-                IN_OPTIONS="--input \"$f\" --input-format ssv"
-                OUT_OPTIONS="--output $1/tmp_predstats.ssv --output-format ssv"
+                echo "Processing file: $f"
+                IN_OPTIONS="--input $f --input-format ssv"
+                OUT_OPTIONS="--output $1/pred/tmp_predstats.ssv --output-format ssv"
                 ./estimate_satellite3D ${OPTIONS} ${IN_OPTIONS} ${OUT_OPTIONS}
-                for g in $1/tmp_predstats*.ssv
+                for g in $1/pred/tmp_predstats*.ssv
                 do
                   octave --quiet --norc --no-window-system --eval "add_predstats('$g','$ACCUM_FILE')"
                 done
@@ -181,7 +170,7 @@ do
               
               # Put all accumulated data into a single file:
               while read p; do
-                echo "POS_MEAS_COV ANG_MEAS_COV GYRO_MEAS_COV DM_COV ECC_COV LD_COV RD_COV $p" >> $FINAL_OUTPUT_FILE
+                echo "$POS_MEAS_COV $ANG_MEAS_COV $GYRO_MEAS_COV $DM_COV $ECC_COV $LD_COV $RD_COV $p" >> $FINAL_OUTPUT_FILE
               done <$ACCUM_FILE
               
               else
@@ -190,26 +179,39 @@ do
               
               fi
               
-              RD_COV=$(echo "scale=20; $RD_COV / $INTERVAL_DIV" | bc -q 2>/dev/null)
-            done
-            LD_COV=$(float_eval "$LD_COV / $INTERVAL_DIV")
+#               RD_COV=$(echo "scale=20; $RD_COV / $INTERVAL_DIV" | bc -q 2>/dev/null)
+#             done
+#             RD_COV=$RD_COV_HI
+            LD_COV=$(echo "scale=20; $LD_COV / $INTERVAL_DIV" | bc -q 2>/dev/null)
           done
-          ECC_COV=$(float_eval "$ECC_COV / $INTERVAL_DIV")
+          LD_COV=$LD_COV_HI
+          ECC_COV=$(echo "scale=20; $ECC_COV / $INTERVAL_DIV" | bc -q 2>/dev/null)
         done
-        DM_COV=$(float_eval "$DM_COV / $INTERVAL_DIV")
+        ECC_COV=$ECC_COV_HI
+        DM_COV=$(echo "scale=20; $DM_COV / $INTERVAL_DIV" | bc -q 2>/dev/null)
       done
-      GYRO_MEAS_COV=$(float_eval "$GYRO_MEAS_COV / $INTERVAL_DIV")
-    done
-    ANG_MEAS_COV=$(float_eval "$ANG_MEAS_COV / $INTERVAL_DIV")
-  done
-  POS_MEAS_COV=$(float_eval "$POS_MEAS_COV / $INTERVAL_DIV")
+      DM_COV=$DM_COV_HI
+#       GYRO_MEAS_COV=$(echo "scale=20; $GYRO_MEAS_COV / $INTERVAL_DIV" | bc -q 2>/dev/null)
+#     done
+#     GYRO_MEAS_COV=$GYRO_MEAS_COV_HI
+#     ANG_MEAS_COV=$(echo "scale=20; $ANG_MEAS_COV / $INTERVAL_DIV" | bc -q 2>/dev/null)
+#   done
+#   ANG_MEAS_COV=$ANG_MEAS_COV_HI
+#   POS_MEAS_COV=$(echo "scale=20; $POS_MEAS_COV / $INTERVAL_DIV" | bc -q 2>/dev/null)
+# done
+# POS_MEAS_COV=$POS_MEAS_COV_HI
+
+  MEAS_COV_FACT=$(echo "scale=20; $MEAS_COV_FACT / $INTERVAL_DIV" | bc -q 2>/dev/null)
+  POS_MEAS_COV=$(echo "scale=20; $MEAS_COV_FACT * 0.00005" | bc -q 2>/dev/null)
+  ANG_MEAS_COV=$(echo "scale=20; $MEAS_COV_FACT * 0.00009" | bc -q 2>/dev/null)
+  GYRO_MEAS_COV=$(echo "scale=20; $MEAS_COV_FACT * 0.00005" | bc -q 2>/dev/null)
 done
 
 echo "This will perform $MC_TRIALS_COUNT trials"
 
 rm temp_sat3D_airship_Pa_emd.rkx
 rm temp_sat3D_airship_R_gyro.rkx
-rm $1/tmp_predstats.ssv
+rm $1/pred/tmp_predstats.ssv
 
 else
 
