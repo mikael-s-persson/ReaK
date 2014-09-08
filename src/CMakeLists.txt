@@ -9,7 +9,7 @@ set(SRCINCLUDEROOT "${CODEROOT}/src")
 # set(SRCINCLUDEROOT "${CODEROOT}/include")
 
 set(DOXROOT_PATH "${CODEROOT}/dox")
-set(DOXTOSRCDIR_PATH "../src")
+set(DOXTOSRC_PATH "/../src")
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${SRCROOT}/CMakeMods)
 

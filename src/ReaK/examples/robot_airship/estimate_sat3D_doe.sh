@@ -34,17 +34,17 @@ then
 
 INTERVAL_DIV=4.0
 
-DM_COV_LO=0.0000001
-DM_COV_HI=0.00001
+DM_COV_LO=0.00001
+DM_COV_HI=0.001
 
-ECC_COV_LO=0.0000001
-ECC_COV_HI=0.00001
+ECC_COV_LO=0.0000009
+ECC_COV_HI=0.000001
 
-LD_COV_LO=0.1
-LD_COV_HI=100
+LD_COV_LO=10
+LD_COV_HI=1000
 
-RD_COV_LO=0.1
-RD_COV_HI=100
+RD_COV_LO=10
+RD_COV_HI=1000
 
 POS_MEAS_COV_LO=0.000005
 POS_MEAS_COV_HI=0.0005
@@ -53,8 +53,8 @@ ANG_MEAS_COV_HI=0.0009
 GYRO_MEAS_COV_LO=0.000005
 GYRO_MEAS_COV_HI=0.0005
 
-MEAS_COV_FACT_LO=0.1
-MEAS_COV_FACT_HI=100
+MEAS_COV_FACT_LO=0.9
+MEAS_COV_FACT_HI=1
 
 FINAL_OUTPUT_FILE="$1/pred/all_predstats.ssv"
 
@@ -72,15 +72,15 @@ FINAL_OUTPUT_FILE="$1/pred/all_predstats.ssv"
 # echo "% pos_meas_cov ang_meas_cov gyro_meas_cov dm_cov ecc_cov ld_cov rd_cov P_th success_rate pred_start_time ep_m ea_m ev_m ew_m pdf_est lr_est pdf_meas lr_meas" > $FINAL_OUTPUT_FILE
 
 # Start from this point:
-POS_MEAS_COV=.00001953125000000000
-ANG_MEAS_COV=.00003515625000000000
-GYRO_MEAS_COV=.00001953125000000000
-MEAS_COV_FACT=.39062500000000000000
+POS_MEAS_COV=0.0005
+ANG_MEAS_COV=0.0009
+GYRO_MEAS_COV=0.0005
+MEAS_COV_FACT=1
 
-DM_COV=.00000062500000000000
-ECC_COV=.00000250000000000000
-LD_COV=100
-RD_COV=100
+DM_COV=.00001562500000000000
+ECC_COV=0.000001
+LD_COV=250.00000000000000000000
+RD_COV=62.50000000000000000000
 
 
 mkdir $1/pred
@@ -111,10 +111,10 @@ do
           until (( $(echo "$LD_COV > $LD_COV_LO" | bc -q 2>/dev/null) == "0" ))
           do
             echo "lin-drag cov = $LD_COV"
-            RD_COV=$LD_COV
-#             until (( $(echo "$RD_COV > $RD_COV_LO" | bc -q 2>/dev/null) == "0" ))
-#             do
-#               echo "rot-drag cov = $RD_COV"
+#             RD_COV=$LD_COV
+            until (( $(echo "$RD_COV > $RD_COV_LO" | bc -q 2>/dev/null) == "0" ))
+            do
+              echo "rot-drag cov = $RD_COV"
               
               if [[ "0" == "0" ]]
               then
@@ -179,9 +179,9 @@ do
               
               fi
               
-#               RD_COV=$(echo "scale=20; $RD_COV / $INTERVAL_DIV" | bc -q 2>/dev/null)
-#             done
-#             RD_COV=$RD_COV_HI
+              RD_COV=$(echo "scale=20; $RD_COV / $INTERVAL_DIV" | bc -q 2>/dev/null)
+            done
+            RD_COV=$RD_COV_HI
             LD_COV=$(echo "scale=20; $LD_COV / $INTERVAL_DIV" | bc -q 2>/dev/null)
           done
           LD_COV=$LD_COV_HI
@@ -211,7 +211,7 @@ echo "This will perform $MC_TRIALS_COUNT trials"
 
 rm temp_sat3D_airship_Pa_emd.rkx
 rm temp_sat3D_airship_R_gyro.rkx
-rm $1/pred/tmp_predstats.ssv
+rm $1/pred/tmp_predstats*.ssv
 
 else
 
