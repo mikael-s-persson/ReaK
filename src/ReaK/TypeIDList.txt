@@ -117,7 +117,15 @@ summation_node<T>           0xC111****
 cost_evaluator              0xC1500001   bin: 1100 0001 0101 0000 0000 0000 0000 0001  D-R
 quadratic_cost_evaluator    0xC1500002   bin: 1100 0001 0101 0000 0000 0000 0000 0010  D-R
 added_cost_evaluator        0xC1500003   bin: 1100 0001 0101 0000 0000 0000 0000 0011  D-R
-clik_bent_joints_cost_eval  0xC1500003   bin: 1100 0001 0101 0000 0000 0000 0000 0100  D-R
+clik_bent_joints_cost_eval  0xC1500004   bin: 1100 0001 0101 0000 0000 0000 0000 0100  D-R
+
+
+//Remote Procedure Call framework 0xC16*****
+rpc_basic_header            0xC1600001   bin: 1100 0001 0101 0000 0000 0000 0000 0001  D-R
+rpc_call_header             0xC1600002   bin: 1100 0001 0101 0000 0000 0000 0000 0010  D-R
+rpc_return_header           0xC1600003   bin: 1100 0001 0101 0000 0000 0000 0000 0011  D-R
+rpc_exception_header        0xC1600004   bin: 1100 0001 0101 0000 0000 0000 0000 0100  D-R
+rpc_unrecognized_header     0xC1600005   bin: 1100 0001 0101 0000 0000 0000 0000 0101  D-R
 
 
 //Kinetostatic transmission elements 0xC21*****

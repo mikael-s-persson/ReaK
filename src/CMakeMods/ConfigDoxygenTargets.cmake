@@ -57,7 +57,7 @@ if(NOT EXISTS "${DOXROOT_PATH}")
   set(DOXROOT_PATH "${CMAKE_SOURCE_DIR}/../dox")
 endif()
 
-if(NOT EXISTS "${DOXTOSRC_PATH}")
+if(NOT EXISTS "${DOXROOT_PATH}/${DOXTOSRC_PATH}")
   set(DOXTOSRC_PATH "../src")
 endif()
 
@@ -157,7 +157,7 @@ macro(configure_doxyfile TARGET_NAME TARGET_TITLE TARGET_BRIEF TARGET_INPUT_PATH
     message(STATUS "Parsing input paths of Doxygen target ${TARGET_NAME} : '${TARGET_TITLE}' ...")
     foreach(INPUT_PATH ${TARGET_INPUT_PATHS})
       if(NOT EXISTS "${DOXROOT_PATH}/${DOXTOSRC_PATH}${INPUT_PATH}")
-        message(STATUS "  Could NOT find path: ${DOXTOSRC_PATH}${INPUT_PATH}")
+        message(STATUS "  Could NOT find path: ${DOXROOT_PATH}/${DOXTOSRC_PATH}${INPUT_PATH}")
       else()
         set(DOXY_TARGET_INPUT_PATH "${DOXY_TARGET_INPUT_PATH} ${DOXTOSRC_PATH}${INPUT_PATH}")
         message(STATUS "  Found path: ${DOXTOSRC_PATH}${INPUT_PATH}")

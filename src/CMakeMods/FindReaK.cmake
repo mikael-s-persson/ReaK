@@ -33,18 +33,21 @@
 # This is a header-only library:
 set(ReaK_LIBRARIES "")
 
-# Currently, only a single version (pending proposal to Boost anyways):
-set(ReaK_VERSION_STRING "0.28")
+# Currently, only a single version:
+set(ReaK_VERSION_STRING "0.28-0")
 
-find_path(_ReaK_INCLUDE_DIR reak_core_version.hpp PATH_SUFFIXES "ReaK/core")
+find_path(_ReaK_INCLUDE_DIR base/reak_core_version.hpp PATHS ${ReaK_INCLUDE_SEARCH_DIRS} PATH_SUFFIXES "ReaK/core")
 string(REPLACE "/ReaK/core" "" ReaK_INCLUDE_DIR ${_ReaK_INCLUDE_DIR})
+message(STATUS "Found the following include directory for ReaK: ${ReaK_INCLUDE_DIR} (obtained from '${_ReaK_INCLUDE_DIR}')")
 
 # Extract ReaK_VERSION from reak_core_version.hpp
 set(ReaK_VERSION 0)
-file(STRINGS "${_ReaK_INCLUDE_DIR}/reak_core_version.hpp" _ReaK_VERSION_HPP_CONTENTS REGEX "#define REAK_VERSION ")
+message(STATUS "Looking for a version number for ReaK in file: ${_ReaK_INCLUDE_DIR}/base/reak_core_version.hpp...")
+file(STRINGS "${_ReaK_INCLUDE_DIR}/base/reak_core_version.hpp" _ReaK_VERSION_HPP_CONTENTS REGEX "#define REAK_VERSION ")
 set(_ReaK_VERSION_REGEX "([0-9]+)")
 if("${_ReaK_VERSION_HPP_CONTENTS}" MATCHES ".*#define REAK_VERSION ${_ReaK_VERSION_REGEX}.*")
   set(ReaK_VERSION "${CMAKE_MATCH_1}")
+  message(STATUS "Found a version definition match: ${ReaK_VERSION} (obtained from '${_ReaK_VERSION_HPP_CONTENTS}')")
 endif()
 unset(_ReaK_VERSION_HPP_CONTENTS)
 unset(_ReaK_INCLUDE_DIR)
@@ -52,6 +55,8 @@ unset(_ReaK_INCLUDE_DIR)
 math(EXPR ReaK_MAJOR_VERSION "${ReaK_VERSION} / 100000")
 math(EXPR ReaK_MINOR_VERSION "${ReaK_VERSION} / 100 % 1000")
 math(EXPR ReaK_SUBMINOR_VERSION "${ReaK_VERSION} % 100")
+
+set(ReaK_VERSION_STRING "${ReaK_MAJOR_VERSION}.${ReaK_MINOR_VERSION}-${ReaK_SUBMINOR_VERSION}")
 
 # handle the QUIETLY and REQUIRED arguments and set REAK_FOUND to TRUE if
 # all listed variables are TRUE
@@ -69,15 +74,30 @@ foreach(COMPONENT ${ReaK_FIND_COMPONENTS})
     set(COMPONENT_BASE_REL_PATH "ReaK/core")
   elseif(${COMPONENT} STREQUAL "mbd" OR
          ${COMPONENT} STREQUAL "ctrl_est" OR
-         ${COMPONENT} STREQUAL "motion_plan" OR
-         ${COMPONENT} STREQUAL "geometry")
+         ${COMPONENT} STREQUAL "motion_plan")
     set(COMPONENT_BASE_REL_PATH "ReaK/ctrl")
+  elseif(${COMPONENT} STREQUAL "geometry")
+    set(COMPONENT_BASE_REL_PATH "ReaK/geometry")
   endif()
   
-  find_path(_ReaK_${COMPONENT}_INCLUDE_DIR reak_${COMPONENT}_version.hpp PATH_SUFFIXES ${COMPONENT_BASE_REL_PATH})
+  if(${COMPONENT} STREQUAL "core")
+    set(COMPONENT_SUBBASE_REL_PATH "base")
+  elseif(${COMPONENT} STREQUAL "math")
+    set(COMPONENT_SUBBASE_REL_PATH "lin_alg")
+  elseif(${COMPONENT} STREQUAL "mbd")
+    set(COMPONENT_SUBBASE_REL_PATH "mbd_kte")
+  elseif(${COMPONENT} STREQUAL "ctrl_est")
+    set(COMPONENT_SUBBASE_REL_PATH "ctrl_sys")
+  elseif(${COMPONENT} STREQUAL "motion_plan")
+    set(COMPONENT_SUBBASE_REL_PATH "path_planning")
+  elseif(${COMPONENT} STREQUAL "geometry")
+    set(COMPONENT_SUBBASE_REL_PATH "shapes")
+  endif()
+  
+  find_path(_ReaK_${COMPONENT}_INCLUDE_DIR ${COMPONENT_SUBBASE_REL_PATH}/reak_${COMPONENT}_version.hpp PATHS ${ReaK_INCLUDE_DIR} PATH_SUFFIXES ${COMPONENT_BASE_REL_PATH})
   string(REPLACE ${COMPONENT_BASE_REL_PATH} "" ReaK_${COMPONENT}_INCLUDE_DIR ${_ReaK_${COMPONENT}_INCLUDE_DIR})
   
-  find_library(ReaK_${COMPONENT}_LIBRARY reak_${COMPONENT})
+  find_library(ReaK_${COMPONENT}_LIBRARY reak_${COMPONENT} PATHS ${ReaK_LIBRARY_SEARCH_DIRS})
   if(${ReaK_${COMPONENT}_LIBRARY} STREQUAL "ReaK_${COMPONENT}_LIBRARY-NOTFOUND")
     unset(ReaK_${COMPONENT}_LIBRARY)
   endif()
