@@ -308,7 +308,7 @@
          <string> m^2</string>
         </property>
         <property name="decimals">
-         <number>6</number>
+         <number>7</number>
         </property>
         <property name="maximum">
          <double>0.010000000000000</double>
@@ -327,7 +327,7 @@
          <string> rad^2</string>
         </property>
         <property name="decimals">
-         <number>6</number>
+         <number>7</number>
         </property>
         <property name="maximum">
          <double>0.010000000000000</double>
@@ -362,7 +362,7 @@
          <string> (m/s^2)^2</string>
         </property>
         <property name="decimals">
-         <number>6</number>
+         <number>7</number>
         </property>
         <property name="maximum">
          <double>0.010000000000000</double>
@@ -384,7 +384,7 @@
          <string> (rad/s)^2</string>
         </property>
         <property name="decimals">
-         <number>6</number>
+         <number>7</number>
         </property>
         <property name="maximum">
          <double>0.010000000000000</double>
@@ -406,7 +406,7 @@
          <string> (unit-less)^2</string>
         </property>
         <property name="decimals">
-         <number>6</number>
+         <number>7</number>
         </property>
         <property name="maximum">
          <double>0.010000000000000</double>

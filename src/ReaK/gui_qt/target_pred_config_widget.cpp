@@ -420,6 +420,7 @@ void TargetPredConfigWidget::updateConfigs() {
   
   this->mass_spin->setValue(sat_options.mass);
   inertia_storage->inertia_tensor = sat_options.inertia_tensor;
+  ot_inertia_widget->mdl.refreshObjTree();
   
   this->Qf_spin->setValue((sat_options.input_disturbance(0,0) + sat_options.input_disturbance(1,1) + sat_options.input_disturbance(2,2)) / 3.0);
   this->Qt_spin->setValue((sat_options.input_disturbance(3,3) + sat_options.input_disturbance(4,4) + sat_options.input_disturbance(5,5)) / 3.0);
@@ -438,6 +439,7 @@ void TargetPredConfigWidget::updateConfigs() {
   IMU_storage->IMU_location = sat_options.IMU_location;
   IMU_storage->earth_orientation = sat_options.earth_orientation;
   IMU_storage->mag_field_direction = sat_options.mag_field_direction;
+  ot_IMU_widget->mdl.refreshObjTree();
   
   this->horizon_spin->setValue(sat_options.predict_time_horizon);
   this->Pthreshold_spin->setValue(sat_options.predict_Pnorm_threshold);
@@ -803,10 +805,18 @@ struct prediction_updater {
       b_z.set_covariance(CovarType(CovarMatType(sat_options.measurement_noise)));
       
       StateBeliefType b = satellite3D_system->get_zero_state_belief(10.0);
+      if( ( b.get_covariance().get_matrix().get_row_count() > 12 ) &&
+          ( sat_options.system_kind & ctrl::satellite_predictor_options::TSOSAKF ) &&
+          ( sat_options.steady_param_covariance.get_row_count() + 12 == b.get_covariance().get_matrix().get_row_count() ) ) {
+        mat<double,mat_structure::square> P(b.get_covariance().get_matrix());
+        set_block(P, sat_options.steady_param_covariance, 12, 12);
+        b.set_covariance(CovarType(CovarMatType(P)));
+      };
+      
       
       double last_time = 0.0;
       (*current_target_anim_time) = last_time;
-      double current_Pnorm = norm_2(b.get_covariance().get_matrix());
+      double current_Pnorm = norm_2(b.get_covariance().get_matrix()(range(0,12),range(0,12)));
       recorder::named_value_row nvr_in = data_in->getFreshNamedValueRow();
       double init_time = -1000.0;
       
@@ -843,8 +853,9 @@ struct prediction_updater {
                                         sat_temp_space->get_space_topology(), 
                                         b, b_u, b_z, last_time);
         
-        current_Pnorm = norm_2(b.get_covariance().get_matrix());
-  //       std::cout << "Current P-norm = " << current_Pnorm << std::endl;
+        current_Pnorm = norm_2(b.get_covariance().get_matrix()(range(0,12),range(0,12)));
+  //       current_Pnorm = norm_2(b.get_covariance().get_matrix());
+        std::cout << "Current P-norm = " << current_Pnorm << std::endl;
         
         last_time = nvr_in["time"];
         (*current_target_anim_time) = last_time;
