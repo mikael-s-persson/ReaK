@@ -38,6 +38,14 @@ add_executable(get_CRS_rel_world_transform "${SRCROOT}${RKROBOTAIRSHIPDIR}/get_C
 setup_custom_target(get_CRS_rel_world_transform)
 target_link_libraries(get_CRS_rel_world_transform reak_kte reak_core)
 
+add_executable(pose_to_grapple "${SRCROOT}${RKROBOTAIRSHIPDIR}/pose_to_grapple.cpp")
+setup_custom_target(pose_to_grapple)
+target_link_libraries(pose_to_grapple reak_mbd)
+
+add_executable(CRS_jtctrl_to_EE "${SRCROOT}${RKROBOTAIRSHIPDIR}/CRS_jtctrl_to_EE.cpp")
+setup_custom_target(CRS_jtctrl_to_EE)
+target_link_libraries(CRS_jtctrl_to_EE reak_topologies reak_interp reak_mbd)
+
 
 if(COIN3D_FOUND AND QT_FOUND)
 
