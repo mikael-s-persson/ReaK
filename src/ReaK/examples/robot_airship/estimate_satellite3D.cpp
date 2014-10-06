@@ -498,6 +498,41 @@ struct sat3D_collect_prediction_stats {
 
 
 
+template <typename StateBelief>
+struct estimation_error_norm_calc {
+  
+  double avg_aug_state_diff;
+  StateBelief prev_b;
+  
+  estimation_error_norm_calc(const StateBelief& curr_b) : avg_aug_state_diff(0.0), prev_b(curr_b) { };
+  
+  double evaluate_error(const StateBelief& curr_b) {
+    
+    double current_Pnorm = norm_2(curr_b.get_covariance().get_matrix()(range(0,12),range(0,12)));
+    
+    // TODO add code to average out the changes in the augmented states.
+    // TODO figure out how to deal with differing units.
+    
+    std::cout << "\rnorm = " << std::setprecision(10) << std::setw(15) << current_Pnorm << std::flush;
+    return current_Pnorm;
+  };
+  
+};
+
+template <>
+struct estimation_error_norm_calc<sat3D_state_belief_type> {
+  
+  estimation_error_norm_calc(const sat3D_state_belief_type& curr_b) { };
+  
+  double evaluate_error(const sat3D_state_belief_type& curr_b) {
+    double current_Pnorm = norm_2(curr_b.get_covariance().get_matrix());
+    std::cout << "\rnorm = " << std::setprecision(10) << std::setw(15) << current_Pnorm << std::flush;
+    return current_Pnorm;
+  };
+};
+
+
+
 template <typename MeasureProvider, typename ResultLogger, typename Sat3DSystemType>
 void batch_KF_on_timeseries(
     MeasureProvider meas_provider, 
