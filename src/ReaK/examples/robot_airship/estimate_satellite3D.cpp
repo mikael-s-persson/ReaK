@@ -81,6 +81,8 @@ typedef ReaK::ctrl::satellite_model_options::input_belief_type  sat3D_input_beli
 typedef ReaK::ctrl::satellite_model_options::output_belief_type sat3D_output_belief_type;
 
 
+#define RK_SAT_PREDICT_USE_AUG_AVG_ERROR
+
 
 struct sat3D_meas_true_from_vectors {
   const std::vector< std::pair< double, sat3D_measurement_point > >* measurements;
@@ -497,22 +499,37 @@ struct sat3D_collect_prediction_stats {
 };
 
 
+#ifdef RK_SAT_PREDICT_USE_AUG_AVG_ERROR
 
 template <typename StateBelief>
 struct estimation_error_norm_calc {
+  
+  typedef typename ReaK::ctrl::continuous_belief_state_traits<StateBelief>::covariance_type CovarType;
+  typedef typename ReaK::ctrl::covariance_mat_traits<CovarType>::matrix_type CovMatType;
   
   double avg_aug_state_diff;
   StateBelief prev_b;
   
   estimation_error_norm_calc(const StateBelief& curr_b) : avg_aug_state_diff(0.0), prev_b(curr_b) { };
   
-  double evaluate_error(const StateBelief& curr_b) {
+  template <typename Sat3DSystemType>
+  double evaluate_error(const StateBelief& curr_b, Sat3DSystemType&,
+                        const typename Sat3DSystemType::state_space_type& state_space) {
+    using ReaK::to_vect;
+    using ReaK::norm_2;
+    using ReaK::range;
     
-    double current_Pnorm = norm_2(curr_b.get_covariance().get_matrix()(range(0,12),range(0,12)));
+    const CovMatType& P = curr_b.get_covariance().get_matrix();
+    double current_Pnorm = norm_2(P(range(0,12),range(0,12)));
     
-    // TODO add code to average out the changes in the augmented states.
-    // TODO figure out how to deal with differing units.
+    ReaK::vect_n<double> dx = to_vect<double>(state_space.difference(prev_b.get_mean_state(), curr_b.get_mean_state()));
+    ReaK::vect_n<double> dx_aug(P.get_row_count() - 12, 0.0);
+    dx_aug = dx[range(12,P.get_row_count())];
+    dx = P(range(0,12),range(12,P.get_row_count())) * dx_aug;
     
+    // by triangular inequality, the state estimation variance cannot be more than Pnorm + norm(dx):
+    avg_aug_state_diff += norm_2(dx) * 0.1; // 10-pts running average.
+    current_Pnorm += avg_aug_state_diff;    // makes currentPnorm be upper-bound on variance of the state estimates.
     std::cout << "\rnorm = " << std::setprecision(10) << std::setw(15) << current_Pnorm << std::flush;
     return current_Pnorm;
   };
@@ -524,12 +541,16 @@ struct estimation_error_norm_calc<sat3D_state_belief_type> {
   
   estimation_error_norm_calc(const sat3D_state_belief_type& curr_b) { };
   
-  double evaluate_error(const sat3D_state_belief_type& curr_b) {
+  template <typename Sat3DSystemType>
+  double evaluate_error(const sat3D_state_belief_type& curr_b, Sat3DSystemType&,
+                        const typename Sat3DSystemType::state_space_type) {
     double current_Pnorm = norm_2(curr_b.get_covariance().get_matrix());
     std::cout << "\rnorm = " << std::setprecision(10) << std::setw(15) << current_Pnorm << std::flush;
     return current_Pnorm;
   };
 };
+
+#endif // RK_SAT_PREDICT_USE_AUG_AVG_ERROR
 
 
 
@@ -595,6 +616,10 @@ void batch_KF_no_meas_predict(
   double current_Pnorm = 0.0;
   double last_time = 0.0;
   
+#ifdef RK_SAT_PREDICT_USE_AUG_AVG_ERROR
+  estimation_error_norm_calc<typename Sat3DSystemType::state_belief_type> err_calc(b);
+#endif
+  
   do {
     last_time = meas_provider.get_current_time();
     const sat3D_measurement_point& cur_meas = meas_provider.get_current_measurement();
@@ -615,8 +640,12 @@ void batch_KF_no_meas_predict(
       ctrl::invariant_kalman_filter_step(sat_sys, state_space, b, b_u, b_z, meas_provider.get_current_time());
     };
     
+#ifdef RK_SAT_PREDICT_USE_AUG_AVG_ERROR
+    current_Pnorm = err_calc.evaluate_error(b, sat_sys, state_space);
+#else
     current_Pnorm = norm_2(b.get_covariance().get_matrix()(range(0,12),range(0,12)));
     std::cout << "\rnorm = " << std::setprecision(10) << std::setw(15) << current_Pnorm << std::flush;
+#endif
     
     result_logger.add_record(b, b_u, b_z, last_time, meas_provider.get_current_gnd_truth_ptr());
     
@@ -676,6 +705,10 @@ void batch_KF_ML_meas_predict(
   double current_Pnorm = 0.0;
   double last_time = 0.0;
   
+#ifdef RK_SAT_PREDICT_USE_AUG_AVG_ERROR
+  estimation_error_norm_calc<typename Sat3DSystemType::state_belief_type> err_calc(b);
+#endif
+  
   do {
     last_time = meas_provider.get_current_time();
     const sat3D_measurement_point& cur_meas = meas_provider.get_current_measurement();
@@ -695,7 +728,12 @@ void batch_KF_ML_meas_predict(
       ctrl::invariant_kalman_filter_step(sat_sys, state_space, b, b_u, b_z, meas_provider.get_current_time());
     };
     
+#ifdef RK_SAT_PREDICT_USE_AUG_AVG_ERROR
+    current_Pnorm = err_calc.evaluate_error(b, sat_sys, state_space);
+#else
     current_Pnorm = norm_2(b.get_covariance().get_matrix()(range(0,12),range(0,12)));
+    std::cout << "\rnorm = " << std::setprecision(10) << std::setw(15) << current_Pnorm << std::flush;
+#endif
     
     result_logger.add_record(b, b_u, b_z, last_time, meas_provider.get_current_gnd_truth_ptr());
     
@@ -963,6 +1001,10 @@ void batch_KF_meas_predict_with_predictor(
   double current_Pnorm = 0.0;
   double last_time = 0.0;
   
+#ifdef RK_SAT_PREDICT_USE_AUG_AVG_ERROR
+  estimation_error_norm_calc<typename Sat3DSystemType::state_belief_type> err_calc(b);
+#endif
+  
   do {
     last_time = meas_provider.get_current_time();
     const sat3D_measurement_point& cur_meas = meas_provider.get_current_measurement();
@@ -978,7 +1020,12 @@ void batch_KF_meas_predict_with_predictor(
     
     ctrl::invariant_kalman_filter_step(sat_sys, state_space, b, b_u, b_z, meas_provider.get_current_time());
     
-    current_Pnorm = norm_2(b.get_covariance().get_matrix());
+#ifdef RK_SAT_PREDICT_USE_AUG_AVG_ERROR
+    current_Pnorm = err_calc.evaluate_error(b, sat_sys, state_space);
+#else
+    current_Pnorm = norm_2(b.get_covariance().get_matrix()(range(0,12),range(0,12)));
+    std::cout << "\rnorm = " << std::setprecision(10) << std::setw(15) << current_Pnorm << std::flush;
+#endif
     
     result_logger.add_record(b, b_u, b_z, last_time, meas_provider.get_current_gnd_truth_ptr());
     
