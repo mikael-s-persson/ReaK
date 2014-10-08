@@ -612,13 +612,20 @@ class mat<T,mat_structure::diagonal,Alignment,Allocator> : public serialization:
     };
     
     /**
+     * Inverts this matrix.
+     */
+    void invert() {
+      for(size_type i = 0; i < rowCount; ++i)
+        q[i] = value_type(1.0) / q[i];
+    };
+    
+    /**
      * Inverts the matrix M.
      * \param M The diagonal matrix to be inverted.
      * \return The inverse of M.
      */
     friend self invert(self M) {
-      for(size_type i = 0; i < M.rowCount; ++i)
-        M.q[i] = value_type(1.0) / M.q[i];
+      M.invert();
       return M;
     };
     

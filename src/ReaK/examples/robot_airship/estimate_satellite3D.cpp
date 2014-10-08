@@ -522,13 +522,15 @@ struct estimation_error_norm_calc {
     const CovMatType& P = curr_b.get_covariance().get_matrix();
     double current_Pnorm = norm_2(P(range(0,12),range(0,12)));
     
+    ReaK::mat<double,ReaK::mat_structure::diagonal> P_a_inv(P(range(12,P.get_row_count()),range(12,P.get_row_count())));
+    P_a_inv.invert();
     ReaK::vect_n<double> dx = to_vect<double>(state_space.difference(prev_b.get_mean_state(), curr_b.get_mean_state()));
     ReaK::vect_n<double> dx_aug(P.get_row_count() - 12, 0.0);
     dx_aug = dx[range(12,P.get_row_count())];
-    dx = P(range(0,12),range(12,P.get_row_count())) * dx_aug;
+    dx = P(range(0,12),range(12,P.get_row_count())) * ( P_a_inv * dx_aug );
     
     // by triangular inequality, the state estimation variance cannot be more than Pnorm + norm(dx):
-    avg_aug_state_diff += norm_2(dx) * 0.1; // 10-pts running average.
+    avg_aug_state_diff = 0.9 * avg_aug_state_diff + norm_2(dx) * 0.1; // 10-pts running average.
     current_Pnorm += avg_aug_state_diff;    // makes currentPnorm be upper-bound on variance of the state estimates.
     std::cout << "\rnorm = " << std::setprecision(10) << std::setw(15) << current_Pnorm << std::flush;
     return current_Pnorm;
