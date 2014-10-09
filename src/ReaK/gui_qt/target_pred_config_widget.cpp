@@ -820,7 +820,7 @@ struct prediction_updater {
       recorder::named_value_row nvr_in = data_in->getFreshNamedValueRow();
       double init_time = -1000.0;
       
-      while ( current_Pnorm > sat_options.predict_Pnorm_threshold ) {
+      while ( (current_Pnorm > sat_options.predict_Pnorm_threshold) && !prediction_should_stop ) {
         
         (*data_in) >> nvr_in;
         
