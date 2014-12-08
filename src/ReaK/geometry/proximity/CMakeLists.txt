@@ -74,6 +74,11 @@ add_executable(test_nlp_proximity "${SRCROOT}${RKPROXIMITYDIR}/test_nlp_proximit
 setup_custom_target(test_nlp_proximity)
 target_link_libraries(test_nlp_proximity reak_geom_prox reak_core)
 
+add_executable(test_gjk_proximity "${SRCROOT}${RKPROXIMITYDIR}/test_gjk_proximity.cpp")
+setup_custom_target(test_gjk_proximity)
+target_link_libraries(test_gjk_proximity reak_geom_prox reak_core)
+
+
 
 
 

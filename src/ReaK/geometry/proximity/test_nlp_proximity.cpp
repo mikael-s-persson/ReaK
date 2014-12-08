@@ -91,16 +91,16 @@ struct proximity_solver {
         try {
         optim::make_nlip_newton_tr(geom::slack_minimize_func(),geom::slack_minimize_grad(),geom::slack_minimize_hess(),min_dim,0.1,300,1e-4,1e-3,0.9)
           .set_ineq_constraints(
-            geom::dual_boundary_func<geom::box_boundary_func, geom::box_boundary_func>(
-              geom::box_boundary_func(bx1), geom::box_boundary_func(bx2)),
-            geom::dual_boundary_jac<geom::box_boundary_jac, geom::box_boundary_jac>(
-              geom::box_boundary_jac(bx1), geom::box_boundary_jac(bx2)))
+            geom::dual_slacking_func<geom::box_slacking_func, geom::box_slacking_func>(
+              geom::box_slacking_func(bx1), geom::box_slacking_func(bx2)),
+            geom::dual_slacking_jac<geom::box_slacking_jac, geom::box_slacking_jac>(
+              geom::box_slacking_jac(bx1), geom::box_slacking_jac(bx2)))
           (x);
         } catch(...) { };
         
         std::cout << "  -- The raw solution obtained was: " << x << std::endl;
-        std::cout << "  -- The shape1 boundary functions give: " << geom::box_boundary_func(bx1)(x) << std::endl;
-        std::cout << "  -- The shape2 boundary functions give: " << geom::box_boundary_func(bx2)(x) << std::endl;
+        std::cout << "  -- The shape1 boundary functions give: " << geom::box_slacking_func(bx1)(x) << std::endl;
+        std::cout << "  -- The shape2 boundary functions give: " << geom::box_slacking_func(bx2)(x) << std::endl;
         
       } else {
         // box-cylinder case.
@@ -117,16 +117,16 @@ struct proximity_solver {
         try {
         optim::make_nlip_newton_tr(geom::slack_minimize_func(),geom::slack_minimize_grad(),geom::slack_minimize_hess(),min_dim,0.1,300,1e-4,1e-3,0.9)
           .set_ineq_constraints(
-            geom::dual_boundary_func<geom::box_boundary_func, geom::cylinder_boundary_func>(
-              geom::box_boundary_func(bx1), geom::cylinder_boundary_func(cy2)),
-            geom::dual_boundary_jac<geom::box_boundary_jac, geom::cylinder_boundary_jac>(
-              geom::box_boundary_jac(bx1), geom::cylinder_boundary_jac(cy2)))
+            geom::dual_slacking_func<geom::box_slacking_func, geom::cylinder_slacking_func>(
+              geom::box_slacking_func(bx1), geom::cylinder_slacking_func(cy2)),
+            geom::dual_slacking_jac<geom::box_slacking_jac, geom::cylinder_slacking_jac>(
+              geom::box_slacking_jac(bx1), geom::cylinder_slacking_jac(cy2)))
           (x);
         } catch(...) { };
         
         std::cout << "  -- The raw solution obtained was: " << x << std::endl;
-        std::cout << "  -- The shape1 boundary functions give: " << geom::box_boundary_func(bx1)(x) << std::endl;
-        std::cout << "  -- The shape2 boundary functions give: " << geom::cylinder_boundary_func(cy2)(x) << std::endl;
+        std::cout << "  -- The shape1 boundary functions give: " << geom::box_slacking_func(bx1)(x) << std::endl;
+        std::cout << "  -- The shape2 boundary functions give: " << geom::cylinder_slacking_func(cy2)(x) << std::endl;
         
       };
     } else {
@@ -151,16 +151,16 @@ struct proximity_solver {
         try {
         optim::make_nlip_newton_tr(geom::slack_minimize_func(),geom::slack_minimize_grad(),geom::slack_minimize_hess(),min_dim,0.1,300,1e-4,1e-3,0.9)
           .set_ineq_constraints(
-            geom::dual_boundary_func<geom::cylinder_boundary_func, geom::box_boundary_func>(
-              geom::cylinder_boundary_func(cy1), geom::box_boundary_func(bx2)),
-            geom::dual_boundary_jac<geom::cylinder_boundary_jac, geom::box_boundary_jac>(
-              geom::cylinder_boundary_jac(cy1), geom::box_boundary_jac(bx2)))
+            geom::dual_slacking_func<geom::cylinder_slacking_func, geom::box_slacking_func>(
+              geom::cylinder_slacking_func(cy1), geom::box_slacking_func(bx2)),
+            geom::dual_slacking_jac<geom::cylinder_slacking_jac, geom::box_slacking_jac>(
+              geom::cylinder_slacking_jac(cy1), geom::box_slacking_jac(bx2)))
           (x);
         } catch(...) { };
         
         std::cout << "  -- The raw solution obtained was: " << x << std::endl;
-        std::cout << "  -- The shape1 boundary functions give: " << geom::cylinder_boundary_func(cy1)(x) << std::endl;
-        std::cout << "  -- The shape2 boundary functions give: " << geom::box_boundary_func(bx2)(x) << std::endl;
+        std::cout << "  -- The shape1 boundary functions give: " << geom::cylinder_slacking_func(cy1)(x) << std::endl;
+        std::cout << "  -- The shape2 boundary functions give: " << geom::box_slacking_func(bx2)(x) << std::endl;
         
       } else {
         // cylinder-cylinder case.
@@ -177,16 +177,16 @@ struct proximity_solver {
         try {
         optim::make_nlip_newton_tr(geom::slack_minimize_func(),geom::slack_minimize_grad(),geom::slack_minimize_hess(),min_dim,0.1,300,1e-4,1e-3,0.9)
           .set_ineq_constraints(
-            geom::dual_boundary_func<geom::cylinder_boundary_func, geom::cylinder_boundary_func>(
-              geom::cylinder_boundary_func(cy1), geom::cylinder_boundary_func(cy2)),
-            geom::dual_boundary_jac<geom::cylinder_boundary_jac, geom::cylinder_boundary_jac>(
-              geom::cylinder_boundary_jac(cy1), geom::cylinder_boundary_jac(cy2)))
+            geom::dual_slacking_func<geom::cylinder_slacking_func, geom::cylinder_slacking_func>(
+              geom::cylinder_slacking_func(cy1), geom::cylinder_slacking_func(cy2)),
+            geom::dual_slacking_jac<geom::cylinder_slacking_jac, geom::cylinder_slacking_jac>(
+              geom::cylinder_slacking_jac(cy1), geom::cylinder_slacking_jac(cy2)))
           (x);
         } catch(...) { };
         
         std::cout << "  -- The raw solution obtained was: " << x << std::endl;
-        std::cout << "  -- The shape1 boundary functions give: " << geom::cylinder_boundary_func(cy1)(x) << std::endl;
-        std::cout << "  -- The shape2 boundary functions give: " << geom::cylinder_boundary_func(cy2)(x) << std::endl;
+        std::cout << "  -- The shape1 boundary functions give: " << geom::cylinder_slacking_func(cy1)(x) << std::endl;
+        std::cout << "  -- The shape2 boundary functions give: " << geom::cylinder_slacking_func(cy2)(x) << std::endl;
         
       };
     };

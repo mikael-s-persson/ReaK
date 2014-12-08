@@ -76,12 +76,12 @@ struct slack_minimize_hess {
 };
 
 
-struct cylinder_boundary_func {
+struct cylinder_slacking_func {
   shared_ptr< cylinder > mCylinder;
   
   static const std::size_t size = 3;
   
-  cylinder_boundary_func(const shared_ptr< cylinder >& aCylinder) : mCylinder(aCylinder) { };
+  cylinder_slacking_func(const shared_ptr< cylinder >& aCylinder) : mCylinder(aCylinder) { };
   
   // aX is the (slack (aX[0]), query-point (aX[1],aX[2],aX[3])).
   vect_n<double> operator()(const vect_n<double>& aX) {
@@ -97,12 +97,12 @@ struct cylinder_boundary_func {
   };
 };
 
-struct cylinder_boundary_jac {
+struct cylinder_slacking_jac {
   shared_ptr< cylinder > mCylinder;
   
   static const std::size_t size = 3;
   
-  cylinder_boundary_jac(const shared_ptr< cylinder >& aCylinder) : mCylinder(aCylinder) { };
+  cylinder_slacking_jac(const shared_ptr< cylinder >& aCylinder) : mCylinder(aCylinder) { };
   
   // aX is the (slack (aX[0]), query-point (aX[1],aX[2],aX[3])).
   template <typename Matrix>
@@ -143,12 +143,12 @@ struct cylinder_boundary_jac {
   };
 };
 
-struct ccylinder_boundary_func {
+struct ccylinder_slacking_func {
   shared_ptr< capped_cylinder > mCCylinder;
   
   static const std::size_t size = 1;
   
-  ccylinder_boundary_func(const shared_ptr< capped_cylinder >& aCCylinder) : mCCylinder(aCCylinder) { };
+  ccylinder_slacking_func(const shared_ptr< capped_cylinder >& aCCylinder) : mCCylinder(aCCylinder) { };
   
   // aX is the (slack (aX[0]), query-point (aX[1],aX[2],aX[3])).
   vect_n<double> operator()(const vect_n<double>& aX) {
@@ -171,12 +171,12 @@ struct ccylinder_boundary_func {
   };
 };
 
-struct ccylinder_boundary_jac {
+struct ccylinder_slacking_jac {
   shared_ptr< capped_cylinder > mCCylinder;
   
   static const std::size_t size = 1;
   
-  ccylinder_boundary_jac(const shared_ptr< capped_cylinder >& aCCylinder) : mCCylinder(aCCylinder) { };
+  ccylinder_slacking_jac(const shared_ptr< capped_cylinder >& aCCylinder) : mCCylinder(aCCylinder) { };
   
   // aX is the (slack (aX[0]), query-point (aX[1],aX[2],aX[3])).
   template <typename Matrix>
@@ -215,12 +215,12 @@ struct ccylinder_boundary_jac {
 };
 
 
-struct box_boundary_func {
+struct box_slacking_func {
   shared_ptr< box > mBox;
   
   static const std::size_t size = 6;
   
-  box_boundary_func(const shared_ptr< box >& aBox) : mBox(aBox) { };
+  box_slacking_func(const shared_ptr< box >& aBox) : mBox(aBox) { };
   
   // aX is the (slack (aX[0]), query-point (aX[1],aX[2],aX[3])).
   vect_n<double> operator()(const vect_n<double>& aX) {
@@ -237,12 +237,12 @@ struct box_boundary_func {
   };
 };
 
-struct box_boundary_jac {
+struct box_slacking_jac {
   shared_ptr< box > mBox;
   
   static const std::size_t size = 6;
   
-  box_boundary_jac(const shared_ptr< box >& aBox) : mBox(aBox) { };
+  box_slacking_jac(const shared_ptr< box >& aBox) : mBox(aBox) { };
   
   // aX is the (slack (aX[0]), query-point (aX[1],aX[2],aX[3])).
   template <typename Matrix>
@@ -261,11 +261,11 @@ struct box_boundary_jac {
 };
 
 template <typename BoundFunc1, typename BoundFunc2>
-struct dual_boundary_func {
+struct dual_slacking_func {
   BoundFunc1 mBound1;
   BoundFunc2 mBound2;
   
-  dual_boundary_func(BoundFunc1 aBound1, BoundFunc2 aBound2) : mBound1(aBound1), mBound2(aBound2) { };
+  dual_slacking_func(BoundFunc1 aBound1, BoundFunc2 aBound2) : mBound1(aBound1), mBound2(aBound2) { };
   
   vect_n<double> operator()(const vect_n<double>& aX) {
     vect_n<double> r1 = mBound1(aX);
@@ -279,11 +279,11 @@ struct dual_boundary_func {
 };
 
 template <typename BoundJac1, typename BoundJac2>
-struct dual_boundary_jac {
+struct dual_slacking_jac {
   BoundJac1 mBound1;
   BoundJac2 mBound2;
   
-  dual_boundary_jac(BoundJac1 aBound1, BoundJac2 aBound2) : mBound1(aBound1), mBound2(aBound2) { };
+  dual_slacking_jac(BoundJac1 aBound1, BoundJac2 aBound2) : mBound1(aBound1), mBound2(aBound2) { };
   
   template <typename Matrix>
   void operator()(Matrix& aJac, const vect_n<double>& aX, const vect_n<double>& aH) {
@@ -301,6 +301,105 @@ struct dual_boundary_jac {
   };
   
 };
+
+
+
+
+
+struct cylinder_boundary_func {
+  shared_ptr< cylinder > mCylinder;
+  
+  cylinder_boundary_func(const shared_ptr< cylinder >& aCylinder) : mCylinder(aCylinder) { };
+  
+  // aX is the query-direction (aX[0],aX[1],aX[2]).
+  vect<double,3> operator()(vect<double,3> v);
+};
+
+struct cylinder_boundary_jac {
+  shared_ptr< cylinder > mCylinder;
+  
+  cylinder_boundary_jac(const shared_ptr< cylinder >& aCylinder) : mCylinder(aCylinder) { };
+  
+  // aX is the query-direction (aX[0],aX[1],aX[2]).
+  mat<double,mat_structure::square> operator()(vect<double,3> v);
+};
+
+struct ccylinder_boundary_func {
+  shared_ptr< capped_cylinder > mCCylinder;
+  
+  ccylinder_boundary_func(const shared_ptr< capped_cylinder >& aCCylinder) : mCCylinder(aCCylinder) { };
+  
+  // aX is the query-direction (aX[0],aX[1],aX[2]).
+  vect<double,3> operator()(vect<double,3> v);
+};
+
+struct ccylinder_boundary_jac {
+  shared_ptr< capped_cylinder > mCCylinder;
+  
+  ccylinder_boundary_jac(const shared_ptr< capped_cylinder >& aCCylinder) : mCCylinder(aCCylinder) { };
+  
+  // aX is the query-direction (aX[0],aX[1],aX[2]).
+  mat<double,mat_structure::square> operator()(vect<double,3> v);
+};
+
+
+struct box_boundary_func {
+  shared_ptr< box > mBox;
+  
+  box_boundary_func(const shared_ptr< box >& aBox) : mBox(aBox) { };
+  
+  // aX is the query-direction (aX[0],aX[1],aX[2]).
+  vect<double,3> operator()(vect<double,3> v);
+};
+
+struct box_boundary_jac {
+  shared_ptr< box > mBox;
+  
+  box_boundary_jac(const shared_ptr< box >& aBox) : mBox(aBox) { };
+  
+  // aX is the query-direction (aX[0],aX[1],aX[2]).
+  mat<double,mat_structure::square> operator()(vect<double,3> v);
+};
+
+
+struct support_func_base {
+  virtual ~support_func_base() { };
+  
+  virtual vect<double,3> operator()(vect<double,3> v) const = 0;
+};
+
+struct cylinder_support_func : support_func_base {
+  shared_ptr< cylinder > mCylinder;
+  
+  cylinder_support_func(const shared_ptr< cylinder >& aCylinder) : mCylinder(aCylinder) { };
+  
+  // aX is the query-direction (aX[0],aX[1],aX[2]).
+  vect<double,3> operator()(vect<double,3> v) const;
+};
+
+struct ccylinder_support_func : support_func_base {
+  shared_ptr< capped_cylinder > mCCylinder;
+  
+  ccylinder_support_func(const shared_ptr< capped_cylinder >& aCCylinder) : mCCylinder(aCCylinder) { };
+  
+  // v is the query-direction.
+  vect<double,3> operator()(vect<double,3> v) const;
+};
+
+struct box_support_func : support_func_base {
+  shared_ptr< box > mBox;
+  
+  box_support_func(const shared_ptr< box >& aBox) : mBox(aBox) { };
+  
+  // v is the query-direction.
+  vect<double,3> operator()(vect<double,3> v) const;
+};
+
+
+
+proximity_record_3D findProximityByGJKEPA(const support_func_base& aShape1, const support_func_base& aShape2);
+
+
 
 
 };

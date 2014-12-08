@@ -59,11 +59,11 @@
 #include <ReaK/geometry/proximity/prox_sphere_cylinder.hpp>
 #include <ReaK/geometry/proximity/prox_sphere_box.hpp>
 #include <ReaK/geometry/proximity/prox_ccylinder_ccylinder.hpp>
-#include <ReaK/geometry/proximity/prox_ccylinder_cylinder.hpp>     // NOTE: not working.
+#include <ReaK/geometry/proximity/prox_ccylinder_cylinder.hpp>
 #include <ReaK/geometry/proximity/prox_ccylinder_box.hpp>
-#include <ReaK/geometry/proximity/prox_cylinder_cylinder.hpp>      // NOTE: not working.
-#include <ReaK/geometry/proximity/prox_cylinder_box.hpp>           // NOTE: not working.
-#include <ReaK/geometry/proximity/prox_box_box.hpp>                // NOTE: not working.
+#include <ReaK/geometry/proximity/prox_cylinder_cylinder.hpp>
+#include <ReaK/geometry/proximity/prox_cylinder_box.hpp>
+#include <ReaK/geometry/proximity/prox_box_box.hpp>
 
 
 namespace ReaK {
@@ -318,7 +318,7 @@ void proxy_query_pair_3D::createProxFinderList() {
         // if the other is a cylinder..
         else if(other_geom->getObjectType() == cylinder::getStaticObjectType()) {
           shared_ptr<cylinder> cy_geom = rtti::rk_static_ptr_cast<cylinder>(other_geom);
-          //mProxFinders.push_back(shared_ptr< prox_ccylinder_cylinder >(new prox_ccylinder_cylinder(cc_geom, cy_geom)));
+          mProxFinders.push_back(shared_ptr< prox_ccylinder_cylinder >(new prox_ccylinder_cylinder(cc_geom, cy_geom)));
         }
         // if the other is a box..
         else if(other_geom->getObjectType() == box::getStaticObjectType()) {
@@ -341,12 +341,12 @@ void proxy_query_pair_3D::createProxFinderList() {
         // if the other is a cylinder..
         if(other_geom->getObjectType() == cylinder::getStaticObjectType()) {
           shared_ptr<cylinder> cy2_geom = rtti::rk_static_ptr_cast<cylinder>(other_geom);
-          //mProxFinders.push_back(shared_ptr< prox_cylinder_cylinder >(new prox_cylinder_cylinder(cy_geom, cy2_geom)));
+          mProxFinders.push_back(shared_ptr< prox_cylinder_cylinder >(new prox_cylinder_cylinder(cy_geom, cy2_geom)));
         }
         // if the other is a box..
         else if(other_geom->getObjectType() == box::getStaticObjectType()) {
           shared_ptr<box> bx_geom = rtti::rk_static_ptr_cast<box>(other_geom);
-          //mProxFinders.push_back(shared_ptr< prox_cylinder_box >(new prox_cylinder_box(cy_geom, bx_geom)));
+          mProxFinders.push_back(shared_ptr< prox_cylinder_box >(new prox_cylinder_box(cy_geom, bx_geom)));
         };
       }
       // if one of the model is a box?
@@ -364,7 +364,7 @@ void proxy_query_pair_3D::createProxFinderList() {
         // if the other is a box..
         if(other_geom->getObjectType() == box::getStaticObjectType()) {
           shared_ptr<box> bx2_geom = rtti::rk_static_ptr_cast<box>(other_geom);
-          //mProxFinders.push_back(shared_ptr< prox_box_box >(new prox_box_box(bx_geom, bx2_geom)));
+          mProxFinders.push_back(shared_ptr< prox_box_box >(new prox_box_box(bx_geom, bx2_geom)));
         };
       };
     };

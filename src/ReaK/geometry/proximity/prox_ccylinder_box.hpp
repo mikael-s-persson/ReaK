@@ -53,8 +53,6 @@ class prox_ccylinder_box : public proximity_finder_3D {
     shared_ptr< capped_cylinder > mCCylinder;
     shared_ptr< box > mBox;
     
-    static void computeProximityOfLine(const shared_ptr< box >&, const vect<double,3>&, const vect<double,3>&, double, proximity_record_3D&);
-    
   public:
     
     /** Returns the first shape involved in the proximity query. */

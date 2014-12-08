@@ -21,12 +21,61 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <ReaK/geometry/proximity/prox_cylinder_box.hpp>
+
+#include <ReaK/geometry/proximity/prox_fundamentals_3D.hpp>
+
 
 /** Main namespace for ReaK */
 namespace ReaK {
 
 /** Main namespace for ReaK.Geometry */
 namespace geom {
+
+
+shared_ptr< shape_3D > prox_cylinder_box::getShape1() const {
+  return mCylinder;
+};
+
+shared_ptr< shape_3D > prox_cylinder_box::getShape2() const {
+  return mBox;
+};
+
+
+
+void prox_cylinder_box::computeProximity() {
+  if((!mCylinder) || (!mBox)) {
+    mLastResult.mDistance = std::numeric_limits<double>::infinity();
+    mLastResult.mPoint1 = vect<double,3>(0.0,0.0,0.0);
+    mLastResult.mPoint2 = vect<double,3>(0.0,0.0,0.0);
+    return;
+  };
+  
+  mLastResult = findProximityByGJKEPA(
+    cylinder_support_func(mCylinder), 
+    box_support_func(mBox));
+  
+};
+
+
+prox_cylinder_box::prox_cylinder_box(const shared_ptr< cylinder >& aCylinder,
+                                     const shared_ptr< box >& aBox) :
+                                     proximity_finder_3D(),
+                                     mCylinder(aCylinder),
+                                     mBox(aBox) { };
+    
+    
+void RK_CALL prox_cylinder_box::save(ReaK::serialization::oarchive& A, unsigned int) const {
+  proximity_finder_3D::save(A,proximity_finder_3D::getStaticObjectType()->TypeVersion());
+  A & RK_SERIAL_SAVE_WITH_NAME(mCylinder)
+    & RK_SERIAL_SAVE_WITH_NAME(mBox);
+};
+    
+void RK_CALL prox_cylinder_box::load(ReaK::serialization::iarchive& A, unsigned int) {
+  proximity_finder_3D::load(A,proximity_finder_3D::getStaticObjectType()->TypeVersion());
+  A & RK_SERIAL_LOAD_WITH_NAME(mCylinder)
+    & RK_SERIAL_LOAD_WITH_NAME(mBox);
+};
 
 
 

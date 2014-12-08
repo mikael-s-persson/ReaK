@@ -23,6 +23,8 @@
 
 #include <ReaK/geometry/proximity/prox_ccylinder_cylinder.hpp>
 
+#include <ReaK/geometry/proximity/prox_fundamentals_3D.hpp>
+
 #include <cmath>
 
 /** Main namespace for ReaK */
@@ -47,58 +49,10 @@ void prox_ccylinder_cylinder::computeProximity() {
     mLastResult.mPoint2 = vect<double,3>(0.0,0.0,0.0);
     return;
   };
-  using std::fabs; using std::sqrt; using ReaK::unit; using ReaK::norm_2;
   
-  vect<double,3> cy1_c = mCylinder->getPose().transformToGlobal(vect<double,3>(0.0,0.0,0.0));
-  vect<double,3> cy2_c = mCCylinder->getPose().transformToGlobal(vect<double,3>(0.0,0.0,0.0));
-  vect<double,3> cy2_t = mCCylinder->getPose().rotateToGlobal(vect<double,3>(0.0,0.0,1.0));
-  
-  vect<double,3> cy2_c_rel = mCylinder->getPose().transformFromGlobal(cy2_c);
-  vect<double,3> cy2_t_rel = mCylinder->getPose().rotateFromGlobal(cy2_t);
-  
-  if(sqrt(cy2_t_rel[0] * cy2_t_rel[0] + cy2_t_rel[1] * cy2_t_rel[1]) < 1e-5) {
-    // The capped-cylinders are parallel.
-    if((cy2_c_rel[2] + 0.5 * mCCylinder->getLength() > -0.5 * mCylinder->getLength()) || 
-       (cy2_c_rel[2] - 0.5 * mCCylinder->getLength() <  0.5 * mCylinder->getLength())) {
-      // there is an overlap between the capped-cylinder sides.
-      double max_z_rel = ((cy2_c_rel[2] + 0.5 * mCCylinder->getLength() <  0.5 * mCylinder->getLength()) ? (cy2_c_rel[2] + 0.5 * mCCylinder->getLength()) : ( 0.5 * mCylinder->getLength()));
-      double min_z_rel = ((cy2_c_rel[2] - 0.5 * mCCylinder->getLength() > -0.5 * mCylinder->getLength()) ? (cy2_c_rel[2] - 0.5 * mCCylinder->getLength()) : (-0.5 * mCylinder->getLength()));
-      double avg_z_rel = (max_z_rel + min_z_rel) * 0.5;
-      vect<double,3> cy2_r_rel = unit(vect<double,3>(cy2_c_rel[0],cy2_c_rel[1],0.0));
-      mLastResult.mPoint1 = mCylinder->getPose().transformToGlobal(vect<double,3>(mCylinder->getRadius() * cy2_r_rel[0], mCylinder->getRadius() * cy2_r_rel[1], avg_z_rel));
-      mLastResult.mPoint2 = mCylinder->getPose().transformToGlobal(vect<double,3>(cy2_c_rel[0] - mCCylinder->getRadius() * cy2_r_rel[0], cy2_c_rel[1] - mCCylinder->getRadius() * cy2_r_rel[1], avg_z_rel));
-      mLastResult.mDistance = sqrt(cy2_c_rel[0] * cy2_c_rel[0] + cy2_c_rel[1] * cy2_c_rel[1]) - mCylinder->getRadius() - mCCylinder->getRadius();
-      return;
-    };
-    // there is no overlap, and thus, this boils down to a sphere-disk problem.
-    vect<double,3> cy1_spc_rel(0.0,0.0,0.0);
-    vect<double,3> cy2_spc_rel = cy2_c_rel;
-    if(cy2_c_rel[2] < 0.0) {
-      cy1_spc_rel[2] -= 0.5 * mCylinder->getLength();
-      cy2_spc_rel[2] += 0.5 * mCCylinder->getLength();
-    } else {
-      cy1_spc_rel[2] += 0.5 * mCylinder->getLength();
-      cy2_spc_rel[2] -= 0.5 * mCCylinder->getLength();
-    };
-    double dist_v_rel = sqrt(cy2_spc_rel[0] * cy2_spc_rel[0] + cy2_spc_rel[1] * cy2_spc_rel[1]);
-    if(dist_v_rel < mCylinder->getRadius()) {
-      cy1_spc_rel[0] = cy2_spc_rel[0];
-      cy1_spc_rel[1] = cy2_spc_rel[1];
-    } else {
-      cy1_spc_rel[0] = (mCylinder->getRadius() / dist_v_rel) * cy2_spc_rel[0];
-      cy1_spc_rel[1] = (mCylinder->getRadius() / dist_v_rel) * cy2_spc_rel[1];
-    };
-    vect<double,3> diff_v_rel = cy2_spc_rel - cy1_spc_rel;
-    dist_v_rel = norm_2(diff_v_rel);
-    mLastResult.mPoint1 = mCylinder->getPose().transformToGlobal(cy2_spc_rel - (mCCylinder->getRadius() / dist_v_rel) * diff_v_rel);
-    mLastResult.mPoint2 = mCylinder->getPose().transformToGlobal(cy1_spc_rel);
-    mLastResult.mDistance = dist_v_rel - mCCylinder->getRadius();
-    return;
-  };
-  
-  
-  // NOTE: must resort to a non-linear solver.
-  
+  mLastResult = findProximityByGJKEPA(
+    ccylinder_support_func(mCCylinder), 
+    cylinder_support_func(mCylinder));
   
 };
 
