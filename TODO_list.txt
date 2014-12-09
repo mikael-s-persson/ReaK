@@ -5,7 +5,7 @@
 ///----------------ALGORITHMS----------------
 
 
-implement interpolated topology (similar to SVP/SAP reach-topology)
+implement interpolated topology (similar to SVP/SAP reach-topology)   -----------X
 
 
 implement the dynamic topologies and planners   
@@ -240,8 +240,8 @@ implement rendering facilities for geometries
   create a FreeCAD module
   use some VRML / X3D renderer   ------------------------------------------------O
 
-implement proximity-query methods
-  implement closed-form solution when possible:
+implement proximity-query methods   ---------------------------------------------X
+  implement closed-form solution when possible:   -------------------------------X
     rectangle - rectangle   -----------------------------------------------------X
     circle - circle   -----------------------------------------------------------X
     rectange - circle   ---------------------------------------------------------X
@@ -259,12 +259,13 @@ implement proximity-query methods
     plane - box   ---------------------------------------------------------------X
     plane - cylinder   ----------------------------------------------------------X
     plane - capped cylinder   ---------------------------------------------------X
-  implement a support-function for all geometries   
-  implement a proximity-query based on support-function (NLP):
-    cylinder - cylinder   
-    capped cylinder - cylinder   
-    box - box   
-    box - cylinder   
+  implement a support-function for all geometries   -----------------------------X
+  implement a proximity-query based on support-function (GJK)   -----------------X
+  implement the penetration depth EPA algorithm   ---------------
+    cylinder - cylinder   -------------------------------------------------------X
+    capped cylinder - cylinder   ------------------------------------------------X
+    box - box   -----------------------------------------------------------------X
+    box - cylinder   ------------------------------------------------------------X
     
   implement a composite-shape proximity-query dispatcher   ----------------------X
 
