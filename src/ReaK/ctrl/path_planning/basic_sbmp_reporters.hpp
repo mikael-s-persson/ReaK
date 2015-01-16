@@ -545,7 +545,13 @@ struct least_cost_sbmp_report : public shared_object {
   template <typename FreeSpaceType>
   void draw_solution(const FreeSpaceType& free_space, 
                      const shared_ptr< seq_trajectory_base< typename subspace_traits<FreeSpaceType>::super_space_type > >& traj) const {
-    double total_cost = traj->get_end_time() - traj->get_start_time();
+    typedef typename seq_trajectory_base< typename subspace_traits<FreeSpaceType>::super_space_type >::point_fraction_iterator FIter;
+    double total_cost = 0.0;
+    for(FIter it = traj->begin_fraction_travel(); it != traj->end_fraction_travel(); ) {
+      FIter it_next = it; it_next += 1.0;
+      total_cost += get(distance_metric, free_space.get_super_space())(*it, *it_next, free_space.get_super_space());
+      it = it_next;
+    };
     if(total_cost < current_best)
       current_best = total_cost;
     

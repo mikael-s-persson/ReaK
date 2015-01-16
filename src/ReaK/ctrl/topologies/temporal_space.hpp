@@ -116,6 +116,21 @@ struct temporal_point_time_ordering {
 };
 
 
+template <typename Vector, typename SpacePoint, typename TimePoint>
+void to_vect_impl( Vector& lhs, const temporal_point<SpacePoint,TimePoint>& rhs) {
+  using ReaK::detail::to_vect_impl;  // for ADL
+  to_vect_impl(lhs, rhs.time);
+  to_vect_impl(lhs, rhs.pt);
+};
+
+template <typename SpacePoint, typename TimePoint, typename Vector2>
+void from_vect_impl( temporal_point<SpacePoint,TimePoint>& lhs, const Vector2& rhs, std::size_t& i) {
+  using ReaK::detail::from_vect_impl;  // for ADL
+  from_vect_impl(lhs.time, rhs, i);
+  from_vect_impl(lhs.pt, rhs, i);
+};
+
+
 /**
  * This nested type represents the difference between two points of the temporal-space.
  */
@@ -212,6 +227,21 @@ struct temporal_point_difference : public serialization::serializable {
 
     RK_RTTI_MAKE_ABSTRACT_1BASE(self,0x0000002F,1,"temporal_point_difference",serialization::serializable)
 
+};
+
+
+template <typename Vector, typename SpaceDiff, typename TimeDiff>
+void to_vect_impl( Vector& lhs, const temporal_point_difference<SpaceDiff,TimeDiff>& rhs) {
+  using ReaK::detail::to_vect_impl;  // for ADL
+  to_vect_impl(lhs, rhs.time);
+  to_vect_impl(lhs, rhs.pt);
+};
+
+template <typename SpaceDiff, typename TimeDiff, typename Vector2>
+void from_vect_impl( temporal_point_difference<SpaceDiff,TimeDiff>& lhs, const Vector2& rhs, std::size_t& i) {
+  using ReaK::detail::from_vect_impl;  // for ADL
+  from_vect_impl(lhs.time, rhs, i);
+  from_vect_impl(lhs.pt, rhs, i);
 };
 
 

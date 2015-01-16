@@ -1084,8 +1084,9 @@ template <typename ValueType, typename VectorType>
 typename boost::disable_if<
   is_readable_vector< VectorType >,
 vect_n<ValueType> >::type to_vect(const VectorType& v) {
+  using ReaK::detail::to_vect_impl; // for ADL
   vect_n<ValueType> result_v;
-  detail::to_vect_impl(result_v, v);
+  to_vect_impl(result_v, v);
   return result_v;
 };
 
@@ -1108,9 +1109,10 @@ template <typename OutputType, typename VectorType>
 typename boost::disable_if<
   is_writable_vector< OutputType >,
 OutputType >::type from_vect(const VectorType& v) {
+  using ReaK::detail::from_vect_impl; // for ADL
   OutputType result_v;
   std::size_t i = 0;
-  detail::from_vect_impl(result_v, v, i);
+  from_vect_impl(result_v, v, i);
   return result_v;
 };
 
