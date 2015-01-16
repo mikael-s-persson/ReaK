@@ -28,7 +28,7 @@
 #include <iostream>
 
 
-#include <stdint.h>
+#include <cstdint>
 
 #ifdef WIN32
 
@@ -52,15 +52,15 @@ namespace {
 
 union double_to_ulong {
   double   d;
-  uint64_t ui64;
-  uint32_t ui32[2];
+  std::uint64_t ui64;
+  std::uint32_t ui32[2];
 };
 
 
 template <typename UnionT>
 void ntoh_2ui32(UnionT& value) {
 #if RK_BYTE_ORDER == RK_ORDER_LITTLE_ENDIAN
-  uint32_t tmp = ntohl(value.ui32[0]);
+  std::uint32_t tmp = ntohl(value.ui32[0]);
   value.ui32[0] = ntohl(value.ui32[1]);
   value.ui32[1] = tmp;
 #endif
@@ -70,7 +70,7 @@ void ntoh_2ui32(UnionT& value) {
 template <typename UnionT>
 void hton_2ui32(UnionT& value) {
 #if RK_BYTE_ORDER == RK_ORDER_LITTLE_ENDIAN
-  uint32_t tmp = htonl(value.ui32[0]);
+  std::uint32_t tmp = htonl(value.ui32[0]);
   value.ui32[0] = htonl(value.ui32[1]);
   value.ui32[1] = tmp;
 #endif

@@ -28,7 +28,7 @@
 #include <iostream>
 
 
-#include <stdint.h>
+#include <cstdint>
 
 #ifdef WIN32
 
@@ -49,15 +49,15 @@ namespace {
 
 union double_to_ulong {
   double   d;
-  uint64_t ui64;
-  uint32_t ui32[2];
+  std::uint64_t ui64;
+  std::uint32_t ui32[2];
 };
 
 
 template <typename UnionT>
 void ntoh_2ui32(UnionT& value) {
 #if RK_BYTE_ORDER == RK_ORDER_LITTLE_ENDIAN
-  uint32_t tmp = ntohl(value.ui32[0]);
+  std::uint32_t tmp = ntohl(value.ui32[0]);
   value.ui32[0] = ntohl(value.ui32[1]);
   value.ui32[1] = tmp;
 #endif
@@ -67,7 +67,7 @@ void ntoh_2ui32(UnionT& value) {
 template <typename UnionT>
 void hton_2ui32(UnionT& value) {
 #if RK_BYTE_ORDER == RK_ORDER_LITTLE_ENDIAN
-  uint32_t tmp = htonl(value.ui32[0]);
+  std::uint32_t tmp = htonl(value.ui32[0]);
   value.ui32[0] = htonl(value.ui32[1]);
   value.ui32[1] = tmp;
 #endif
@@ -181,9 +181,9 @@ void udp_recorder::writeNames() {
     for(std::vector<std::string>::iterator it = names.begin(); it != names.end(); ++it)
       ss << " " << *it;
     std::string data_str = ss.str();
-    uint32_t data_len = htonl(data_str.size());
+    std::uint32_t data_len = htonl(data_str.size());
     std::ostream s_tmp(&(pimpl->row_buf));
-    s_tmp.write(reinterpret_cast<char*>(&data_len), sizeof(uint32_t));
+    s_tmp.write(reinterpret_cast<char*>(&data_len), sizeof(std::uint32_t));
     std::size_t len = pimpl->socket.send_to(pimpl->row_buf.data(), pimpl->endpoint);
     pimpl->row_buf.consume(len);
     s_tmp.write(data_str.c_str(), data_str.size());
@@ -265,13 +265,13 @@ bool udp_extractor::readRow() {
 bool udp_extractor::readNames() {
   shared_ptr<udp_client_impl> pimpl_tmp = pimpl;
   if((pimpl_tmp) && (pimpl_tmp->socket.is_open())) {
-    uint32_t data_len = 0;
+    std::uint32_t data_len = 0;
     {
-      boost::asio::streambuf::mutable_buffers_type bufs = pimpl_tmp->row_buf.prepare(sizeof(uint32_t));
+      boost::asio::streambuf::mutable_buffers_type bufs = pimpl_tmp->row_buf.prepare(sizeof(std::uint32_t));
       std::size_t len = pimpl_tmp->socket.receive_from(bufs, pimpl_tmp->endpoint);
       pimpl_tmp->row_buf.commit(len);
       std::istream s_tmp(&(pimpl_tmp->row_buf));
-      s_tmp.read(reinterpret_cast<char*>(&data_len),sizeof(uint32_t));
+      s_tmp.read(reinterpret_cast<char*>(&data_len),sizeof(std::uint32_t));
       data_len = ntohl(data_len);
     };
     boost::asio::streambuf::mutable_buffers_type bufs = pimpl_tmp->row_buf.prepare(data_len);

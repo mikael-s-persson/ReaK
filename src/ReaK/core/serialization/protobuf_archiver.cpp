@@ -34,7 +34,7 @@
 #include <sstream>
 
 
-#include <stdint.h>
+#include <cstdint>
 
 
 namespace ReaK {
@@ -46,32 +46,32 @@ namespace {
 
 union float_to_ulong {
   float    f;
-  uint32_t ui32;
+  std::uint32_t ui32;
 };
 
 union double_to_ulong {
   double   d;
-  uint64_t ui64;
-  uint32_t ui32[2];
+  std::uint64_t ui64;
+  std::uint32_t ui32[2];
 };
 
 union llong_to_ulong {
-  int64_t  i64;
-  uint64_t ui64;
-  uint32_t ui32[2];
+  std::int64_t  i64;
+  std::uint64_t ui64;
+  std::uint32_t ui32[2];
 };
 
 union ulong_to_uword {
-  uint32_t ui32;
-  uint16_t ui16[2];
-  uint8_t ui8[4];
+  std::uint32_t ui32;
+  std::uint16_t ui16[2];
+  std::uint8_t ui8[4];
 };
 
 
-void le2h_1ui32(uint32_t& value) {
+void le2h_1ui32(std::uint32_t& value) {
 #if RK_BYTE_ORDER == RK_ORDER_BIG_ENDIAN
   ulong_to_uword tmp; tmp.ui32 = value;
-  uint8_t tmp_b = tmp.ui8[0];
+  std::uint8_t tmp_b = tmp.ui8[0];
   tmp.ui8[0] = tmp.ui8[3];
   tmp.ui8[3] = tmp_b;
   tmp_b = tmp.ui8[1];
@@ -80,7 +80,7 @@ void le2h_1ui32(uint32_t& value) {
   value = tmp.ui32;
 #elif RK_BYTE_ORDER == RK_ORDER_PDP_ENDIAN
   ulong_to_uword tmp; tmp.ui32 = value;
-  uint16_t tmp2 = tmp.ui16[0];
+  std::uint16_t tmp2 = tmp.ui16[0];
   tmp.ui16[0] = tmp.ui16[1];
   tmp.ui16[1] = tmp2;
   value = tmp.ui32;
@@ -92,7 +92,7 @@ void le2h_2ui32(UnionT& value) {
 #if RK_BYTE_ORDER == RK_ORDER_BIG_ENDIAN
   le2h_1ui32(value.ui32[0]);
   le2h_1ui32(value.ui32[1]);
-  uint32_t tmp = value.ui32[0];
+  std::uint32_t tmp = value.ui32[0];
   value.ui32[0] = value.ui32[1];
   value.ui32[1] = tmp;
 #endif
@@ -101,6 +101,13 @@ void le2h_2ui32(UnionT& value) {
 
 };
 
+
+static const char bad_stream_msg[] = "Protobuf archive could not be loaded due to an unexpected failure or bad state of the input stream!";
+static const char unexpected_eof_msg[] = "Protobuf archive is corrupt! Unexpectingly reached end-of-file!";
+static const char corrupt_header_msg[] = "Protobuf archive has a corrupt header!";
+static const char unknown_version_msg[] = "Protobuf archive is of an unknown file version!";
+
+static const char bad_out_stream_msg[] = "Protobuf archive could not be saved due to an unexpected failure or bad state of the output stream!";
 
 
 protobuf_iarchive::protobuf_iarchive(const std::string& FileName) {
@@ -113,9 +120,9 @@ protobuf_iarchive::protobuf_iarchive(const std::string& FileName) {
   protobuf_iarchive::load_unsigned_int(version);
   
   if(!(header == "reak_serialization::protobuf_archive"))
-    throw std::ios_base::failure("Protobuf Archive has a corrupt header!");
+    throw std::ios_base::failure(corrupt_header_msg);
   if(version != 2)
-    throw std::ios_base::failure("Protobuf Archive is of an unknown file version!");
+    throw std::ios_base::failure(unknown_version_msg);
   
 };
 
@@ -130,9 +137,9 @@ protobuf_iarchive::protobuf_iarchive(std::istream& aStream) {
   protobuf_iarchive::load_unsigned_int(version);
   
   if(!(header == "reak_serialization::protobuf_archive"))
-    throw std::ios_base::failure("Protobuf Archive has a corrupt header!");
+    throw std::ios_base::failure(corrupt_header_msg);
   if(version != 2)
-    throw std::ios_base::failure("Protobuf Archive is of an unknown file version!");
+    throw std::ios_base::failure(unknown_version_msg);
   
 };
 
@@ -155,6 +162,8 @@ iarchive& RK_CALL protobuf_iarchive::load_serializable_ptr(serializable_shared_p
   
   protobuf_iarchive::load_varint(hdr.size);
   std::streampos start_pos = file_stream->tellg();
+  if( start_pos < 0 )
+    throw std::ios_base::failure(bad_stream_msg);
   
   std::vector<unsigned int> typeIDvect;
   unsigned int i;
@@ -169,14 +178,16 @@ iarchive& RK_CALL protobuf_iarchive::load_serializable_ptr(serializable_shared_p
     // Item already null.
     std::streampos end_pos = file_stream->tellg();
     if (hdr.size + start_pos != end_pos)
-      file_stream->seekg(start_pos + std::streampos(hdr.size));
+      if( ! file_stream->seekg(start_pos + std::streampos(hdr.size)) )
+        throw std::ios_base::failure(bad_stream_msg);
     return *this;
   };
   if((hdr.object_ID < mObjRegistry.size()) && (mObjRegistry[hdr.object_ID])) {
     Item = mObjRegistry[hdr.object_ID];
     std::streampos end_pos = file_stream->tellg();
     if (hdr.size + start_pos != end_pos)
-      file_stream->seekg(start_pos + std::streampos(hdr.size));
+      if( ! file_stream->seekg(start_pos + std::streampos(hdr.size)) )
+        throw std::ios_base::failure(bad_stream_msg);
     return *this;
   };
   
@@ -185,7 +196,8 @@ iarchive& RK_CALL protobuf_iarchive::load_serializable_ptr(serializable_shared_p
     *this >> ext_filename;
     std::streampos end_pos = file_stream->tellg();
     if (hdr.size + start_pos != end_pos)
-      file_stream->seekg(start_pos + std::streampos(hdr.size));
+      if( ! file_stream->seekg(start_pos + std::streampos(hdr.size)) )
+        throw std::ios_base::failure(bad_stream_msg);
     
     protobuf_iarchive a(ext_filename);  // if this throws, let it propagate up (no point catching and throwing).
     a >> Item;
@@ -198,14 +210,16 @@ iarchive& RK_CALL protobuf_iarchive::load_serializable_ptr(serializable_shared_p
   if((!p) || (p->TypeVersion() < hdr.type_version)) {
     std::streampos end_pos = file_stream->tellg();
     if (hdr.size + start_pos != end_pos)
-      file_stream->seekg(start_pos + std::streampos(hdr.size));
+      if( ! file_stream->seekg(start_pos + std::streampos(hdr.size)) )
+        throw std::ios_base::failure(bad_stream_msg);
     throw unsupported_type(unsupported_type::not_found_in_repo, &(typeIDvect[0]));
   };
   ReaK::shared_ptr<shared_object> po(p->CreateObject());
   if(!po) {
     std::streampos end_pos = file_stream->tellg();
     if (hdr.size + start_pos != end_pos)
-      file_stream->seekg(start_pos + std::streampos(hdr.size));
+      if( ! file_stream->seekg(start_pos + std::streampos(hdr.size)) )
+        throw std::ios_base::failure(bad_stream_msg);
     throw unsupported_type(unsupported_type::could_not_create, &(typeIDvect[0]));
   };
   
@@ -223,7 +237,8 @@ iarchive& RK_CALL protobuf_iarchive::load_serializable_ptr(serializable_shared_p
   
   std::streampos end_pos = file_stream->tellg();
   if (hdr.size + start_pos != end_pos)
-    file_stream->seekg(start_pos + std::streampos(hdr.size));
+    if( ! file_stream->seekg(start_pos + std::streampos(hdr.size)) )
+      throw std::ios_base::failure(bad_stream_msg);
   
   return *this;
 };
@@ -262,7 +277,8 @@ iarchive& RK_CALL protobuf_iarchive::load_serializable(serializable& Item) {
   std::streampos end_pos = file_stream->tellg();
   
   if (hdr.size + start_pos != end_pos)
-    file_stream->seekg(start_pos + std::streampos(hdr.size));
+    if( ! file_stream->seekg(start_pos + std::streampos(hdr.size)) )
+      throw std::ios_base::failure(bad_stream_msg);
   
   return *this;
 };
@@ -306,13 +322,16 @@ iarchive& RK_CALL protobuf_iarchive::load_int(const std::pair<std::string, int& 
 
 void protobuf_iarchive::load_varint(unsigned int& u) {
   u = 0;
-  uint8_t tmp = 0;
-  file_stream->read(reinterpret_cast<char*>(&tmp),1);
+  std::uint8_t tmp = 0;
+  if( ! file_stream->read(reinterpret_cast<char*>(&tmp),1) )
+    throw std::ios_base::failure(unexpected_eof_msg);
+  std::uint8_t shifts = 0;
   u = tmp & 0x7F;
   while( tmp & 0x80 ) {
-    u <<= 7;
-    file_stream->read(reinterpret_cast<char*>(&tmp),1);
-    u |= tmp & 0x7F;
+    if( ! file_stream->read(reinterpret_cast<char*>(&tmp),1) )
+      throw std::ios_base::failure(unexpected_eof_msg);
+    shifts += 7;
+    u |= (tmp & 0x7F) << shifts;
   };
 };
 
@@ -348,7 +367,8 @@ iarchive& RK_CALL protobuf_iarchive::load_float(float& f) {
     throw std::ios_base::failure(ss.str());
   };
   float_to_ulong tmp; 
-  file_stream->read(reinterpret_cast<char*>(&tmp),sizeof(float_to_ulong));
+  if( ! file_stream->read(reinterpret_cast<char*>(&tmp),sizeof(float)) )
+    throw std::ios_base::failure(unexpected_eof_msg);
   le2h_1ui32(tmp.ui32);
   f = tmp.f;
   return *this;
@@ -370,7 +390,8 @@ iarchive& RK_CALL protobuf_iarchive::load_double(double& d) {
     throw std::ios_base::failure(ss.str());
   };
   double_to_ulong tmp; 
-  file_stream->read(reinterpret_cast<char*>(&tmp),sizeof(double_to_ulong));
+  if( ! file_stream->read(reinterpret_cast<char*>(&tmp),sizeof(double)) )
+    throw std::ios_base::failure(unexpected_eof_msg);
   le2h_2ui32(tmp);
   d = tmp.d;
   return *this;
@@ -392,7 +413,8 @@ iarchive& RK_CALL protobuf_iarchive::load_bool(bool& b) {
     throw std::ios_base::failure(ss.str());
   };
   char tmp = 0;
-  file_stream->read(&tmp,1);
+  if( ! file_stream->read(&tmp,1) )
+    throw std::ios_base::failure(unexpected_eof_msg);
   b = (tmp ? true : false);
   return *this;
 };
@@ -415,8 +437,8 @@ iarchive& RK_CALL protobuf_iarchive::load_string(std::string& s) {
   unsigned int u;
   protobuf_iarchive::load_varint(u);
   s.resize(u);
-  for(unsigned int j = 0; j < u; ++j)
-    file_stream->get(s[j]);
+  if( ! file_stream->read(&s[0],u) )
+    throw std::ios_base::failure(unexpected_eof_msg);
   return *this;
 };
 
@@ -473,6 +495,7 @@ oarchive& RK_CALL protobuf_oarchive::saveToNewArchive_impl(const serializable_sh
   
   shared_ptr< std::ostream > tmp_str_ptr = file_stream;
   
+  // TODO: Fix the exception-safety of this buffer-swapping code (ensure a swap back on exception):
   shared_ptr< std::stringstream > str_stream(new std::stringstream(std::ios::binary | std::ios::out));
   file_stream = str_stream;
   field_IDs.push(0);
@@ -533,7 +556,8 @@ oarchive& RK_CALL protobuf_oarchive::saveToNewArchive_impl(const serializable_sh
   str_stream->clear();
   
   protobuf_oarchive::save_varint(hdr.size);
-  *file_stream << str_stream->rdbuf();
+  if( ! (*file_stream << str_stream->str()) )
+    throw std::ios_base::failure(bad_out_stream_msg);
   
   if(!repeat_state.top())
     ++(field_IDs.top());  // increment the field ID.
@@ -557,6 +581,7 @@ oarchive& RK_CALL protobuf_oarchive::save_serializable_ptr(const serializable_sh
   
   shared_ptr< std::ostream > tmp_str_ptr = file_stream;
   
+  // TODO: Fix the exception-safety of this buffer-swapping code (ensure a swap back on exception):
   shared_ptr< std::stringstream > str_stream(new std::stringstream(std::ios::binary | std::ios::out));
   file_stream = str_stream;
   field_IDs.push(0);
@@ -614,7 +639,8 @@ oarchive& RK_CALL protobuf_oarchive::save_serializable_ptr(const serializable_sh
   str_stream->clear();
   
   protobuf_oarchive::save_varint(hdr.size);
-  *file_stream << str_stream->str();
+  if( ! (*file_stream << str_stream->str()) )
+    throw std::ios_base::failure(bad_out_stream_msg);
   
   if(!repeat_state.top())
     ++(field_IDs.top());  // increment the field ID.
@@ -638,6 +664,7 @@ oarchive& RK_CALL protobuf_oarchive::save_serializable(const serializable& Item)
   
   shared_ptr< std::ostream > tmp_str_ptr = file_stream;
   
+  // TODO: Fix the exception-safety of this buffer-swapping code (ensure a swap back on exception):
   shared_ptr< std::stringstream > str_stream(new std::stringstream(std::ios::binary | std::ios::out));
   file_stream = str_stream;
   field_IDs.push(0);
@@ -671,7 +698,8 @@ oarchive& RK_CALL protobuf_oarchive::save_serializable(const serializable& Item)
   str_stream->clear();
   
   protobuf_oarchive::save_varint(hdr.size);
-  *file_stream << str_stream->str();
+  if( ! (*file_stream << str_stream->str()) )
+    throw std::ios_base::failure(bad_out_stream_msg);
   
   if(!repeat_state.top())
     ++(field_IDs.top());  // increment the field ID.
@@ -710,15 +738,17 @@ oarchive& RK_CALL protobuf_oarchive::save_int(const std::pair<std::string, int >
 };
 
 void protobuf_oarchive::save_varint(unsigned int u) {
-  uint8_t buf[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};  // 80-bits, supports at most a 64-bit varint.
-  uint8_t* pbuf = &buf[9];
-  *pbuf = u & 0x7F; u >>= 7;
+  std::uint8_t buf[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0};  // 80-bits, supports at most a 64-bit varint.
+  std::uint8_t* pbuf = buf;
+  *pbuf = (u & 0x7F); u >>= 7;
   while(u) {
-    pbuf--;
-    *pbuf = 0x80 | (u & 0x7F);
+    *pbuf |= 0x80; // set first msb because there is more to come.
+    pbuf++;
+    *pbuf = (u & 0x7F); 
     u >>= 7;
   };
-  file_stream->write(reinterpret_cast<char*>(pbuf),&buf[9] - pbuf + 1);
+  if( ! file_stream->write(reinterpret_cast<char*>(pbuf), pbuf - buf + 1) )
+    throw std::ios_base::failure(bad_out_stream_msg);
 };
 
 oarchive& RK_CALL protobuf_oarchive::save_unsigned_int(unsigned int u) {
@@ -751,7 +781,8 @@ oarchive& RK_CALL protobuf_oarchive::save_float(float f) {
   protobuf_oarchive::save_varint(chunk_hdr);
   float_to_ulong tmp = { f };
   le2h_1ui32(tmp.ui32);
-  file_stream->write(reinterpret_cast<char*>(&tmp),sizeof(float_to_ulong));
+  if( ! file_stream->write(reinterpret_cast<char*>(&tmp),sizeof(float_to_ulong)) )
+    throw std::ios_base::failure(bad_out_stream_msg);
   if(!repeat_state.top())
     ++(field_IDs.top());  // increment the field ID.
   return *this;
@@ -773,7 +804,8 @@ oarchive& RK_CALL protobuf_oarchive::save_double(double d) {
   protobuf_oarchive::save_varint(chunk_hdr);
   double_to_ulong tmp = { d };
   le2h_2ui32(tmp);
-  file_stream->write(reinterpret_cast<char*>(&tmp),sizeof(double_to_ulong));
+  if( ! file_stream->write(reinterpret_cast<char*>(&tmp),sizeof(double_to_ulong)) )
+    throw std::ios_base::failure(bad_out_stream_msg);
   if(!repeat_state.top())
     ++(field_IDs.top());  // increment the field ID.
   return *this;
@@ -795,7 +827,8 @@ oarchive& RK_CALL protobuf_oarchive::save_bool(bool b) {
   protobuf_oarchive::save_varint(chunk_hdr);
   char tmp = 0;
   if(b) tmp = 1;
-  file_stream->put(tmp);
+  if( ! file_stream->put(tmp) )
+    throw std::ios_base::failure(bad_out_stream_msg);
   if(!repeat_state.top())
     ++(field_IDs.top());  // increment the field ID.
   return *this;
@@ -817,7 +850,8 @@ oarchive& RK_CALL protobuf_oarchive::save_string(const std::string& s) {
   protobuf_oarchive::save_varint(chunk_hdr);
   unsigned int u = s.length();
   protobuf_oarchive::save_varint(u);
-  file_stream->write(s.data(), s.length());
+  if( ! file_stream->write(s.data(), s.length()) )
+    throw std::ios_base::failure(bad_out_stream_msg);
   if(!repeat_state.top())
     ++(field_IDs.top());  // increment the field ID.
   return *this;
