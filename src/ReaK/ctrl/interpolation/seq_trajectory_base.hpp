@@ -273,6 +273,14 @@ class seq_trajectory_base : public named_object {
      */
     virtual point_fraction_iterator end_fraction_travel() const = 0;
     
+    /**
+     * Computes the travel distance between two points, if traveling along the path.
+     * \param a The first point.
+     * \param b The second point.
+     * \return The travel distance between two points if traveling along the path.
+     */
+    virtual double travel_distance(const point_type& a, const point_type& b) const = 0;
+    
 /*******************************************************************************
                    ReaK's RTTI and Serialization interfaces
 *******************************************************************************/

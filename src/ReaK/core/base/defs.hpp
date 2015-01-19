@@ -38,6 +38,10 @@
 
 #include <boost/config.hpp>
 
+#if defined(BOOST_GNU_STDLIB) && BOOST_GNU_STDLIB
+#include "libstdcpp3_boost_config_fixup.hpp"
+#endif
+
 #ifndef M_PI
 #define M_PI 3.1415926535898
 #endif

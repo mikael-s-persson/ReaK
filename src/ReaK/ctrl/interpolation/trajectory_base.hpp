@@ -87,13 +87,7 @@ class trajectory_base : public seq_trajectory_base<Topology> {
     
     virtual const topology& get_temporal_space() const = 0;
     
-    /**
-     * Computes the travel distance between two points, if traveling along the path.
-     * \param a The first point.
-     * \param b The second point.
-     * \return The travel distance between two points if traveling along the path.
-     */
-    virtual double travel_distance(const point_type& a, const point_type& b) const = 0;
+    using seq_trajectory_base<Topology>::travel_distance;
     
     /**
      * Computes the travel distance between two waypoint-point-pairs, if traveling along the path.

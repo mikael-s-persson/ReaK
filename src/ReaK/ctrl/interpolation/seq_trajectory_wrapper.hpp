@@ -181,6 +181,10 @@ class seq_trajectory_wrapper : public seq_trajectory_base< typename sequential_t
       return point_fraction_iterator(new point_fraction_iterator_impl(m_traj.end_fraction_travel()));
     };
     
+    virtual double travel_distance(const point_type& a, const point_type& b) const {
+      return m_traj.travel_distance(a, b);
+    };
+    
 /*******************************************************************************
                    ReaK's RTTI and Serialization interfaces
 *******************************************************************************/

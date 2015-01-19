@@ -67,7 +67,7 @@ struct is_Ndof_rl_space : boost::mpl::false_ { };
  * vectors are expressed as reach-time values of a Ndof space.
  */
 template <typename Vector>
-struct Ndof_reach_time_differentiation : public serialization::serializable {
+struct Ndof_reach_time_differentiation : public serializable {
   typedef Ndof_reach_time_differentiation<Vector> self;
   
   Vector max_rate_reach_time;
@@ -121,7 +121,7 @@ struct Ndof_reach_time_differentiation : public serialization::serializable {
     A & RK_SERIAL_LOAD_WITH_NAME(max_rate_reach_time);
   };
 
-  RK_RTTI_MAKE_ABSTRACT_1BASE(self,0xC2420002,1,"Ndof_reach_time_differentiation",serialization::serializable)
+  RK_RTTI_MAKE_ABSTRACT_1BASE(self,0xC2420002,1,"Ndof_reach_time_differentiation",serializable)
 };
 
 

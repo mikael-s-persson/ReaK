@@ -318,7 +318,7 @@ class cubic_hermite_interpolator {
  * \tparam TemporalTopology The temporal topology on which the interpolation is done, should model TemporalSpaceConcept.
  */
 template <typename TemporalTopology>
-class cubic_hermite_interp_factory : public serialization::serializable {
+class cubic_hermite_interp_factory : public serializable {
   public:
     typedef cubic_hermite_interp_factory<TemporalTopology> self;
     typedef TemporalTopology topology;
@@ -351,7 +351,7 @@ class cubic_hermite_interp_factory : public serialization::serializable {
       A & RK_SERIAL_LOAD_WITH_NAME(space);
     };
 
-    RK_RTTI_MAKE_ABSTRACT_1BASE(self,0xC2430002,1,"cubic_hermite_interp_factory",serialization::serializable)
+    RK_RTTI_MAKE_ABSTRACT_1BASE(self,0xC2430002,1,"cubic_hermite_interp_factory",serializable)
 };
 
 

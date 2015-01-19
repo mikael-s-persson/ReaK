@@ -519,7 +519,7 @@ struct AKF_belief_transfer {
  *         at least as a DiscreteLinearizedSystemType.
  */
 template <typename LinearSystem>
-class AKF_belief_transfer_factory : public serialization::serializable {
+class AKF_belief_transfer_factory : public serializable {
   public:
     typedef AKF_belief_transfer_factory<LinearSystem> self;
     
@@ -637,7 +637,7 @@ class AKF_belief_transfer_factory : public serialization::serializable {
         & RK_SERIAL_LOAD_WITH_NAME(reupdate_threshold);
     };
     
-    RK_RTTI_MAKE_ABSTRACT_1BASE(self,0xC2320005,1,"AKF_belief_transfer_factory",serialization::serializable)
+    RK_RTTI_MAKE_ABSTRACT_1BASE(self,0xC2320005,1,"AKF_belief_transfer_factory",serializable)
 };
 
 

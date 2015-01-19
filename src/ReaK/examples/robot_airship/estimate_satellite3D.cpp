@@ -969,7 +969,7 @@ struct prediction_updater {
 
 
 template <typename Sat3DSystemType, typename MeasureProvider, typename ResultLogger>
-ReaKaux::atomic<bool> prediction_updater<Sat3DSystemType, MeasureProvider, ResultLogger>::should_stop = false;
+ReaKaux::atomic<bool> prediction_updater<Sat3DSystemType, MeasureProvider, ResultLogger>::should_stop(false);
 
 template <typename Sat3DSystemType, typename MeasureProvider, typename ResultLogger>
 ReaKaux::thread prediction_updater<Sat3DSystemType, MeasureProvider, ResultLogger>::executer = ReaKaux::thread();

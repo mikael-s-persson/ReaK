@@ -134,7 +134,7 @@ get_proper_metric<MetricSpace> >::type::type get(proper_metric_t, const MetricSp
  * given topology (assuming it models the ProperMetricSpaceConcept).
  * \note Do not use this distance metric to define a topology, because it will be cyclic (infinite recursion).
  */
-struct default_proper_metric : public serialization::serializable {
+struct default_proper_metric : public serializable {
   
   default_proper_metric() { };
   
@@ -178,7 +178,7 @@ struct default_proper_metric : public serialization::serializable {
     virtual void RK_CALL load(serialization::iarchive& A, unsigned int) {
     };
 
-    RK_RTTI_MAKE_ABSTRACT_1BASE(default_proper_metric,0xC241000E,1,"default_proper_metric",serialization::serializable)
+    RK_RTTI_MAKE_ABSTRACT_1BASE(default_proper_metric,0xC241000E,1,"default_proper_metric",serializable)
 };
 
 

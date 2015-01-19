@@ -63,6 +63,7 @@ boost::program_options::options_description get_planning_option_po_desc() {
     ("bi-directional", "specify whether to use a bi-directional algorithm or not during planning. Only supported for some algorithms (RRT, RRT*, SBA*).")
     ("with-bnb", "specify whether to use a Branch-and-bound or not during planning to prune useless nodes from the motion-graph. Only supported for optimizing algorithms (RRT*, SBA*).")
     ("relaxation-factor", po::value< double >()->default_value(0.0), "specify the initial relaxation factor for the algorithm (default: 0.0). Only supported for heuristic-driven algorithms.")
+    ("start-delay", po::value< double >()->default_value(0.0), "specify the starting time delay for the algorithm (default: 0.0). Only for dynamic problems (temporal space).")
 //     ("density-cutoff", po::value< double >()->default_value(0.0), "specify the density cutoff (default: 0.0). Only supported for density-driven algorithms.")
     ("with-voronoi-pull", "specify whether to use a Voronoi pull or not to add an exploratory bias to the search (default: not).")
     ("sa-temperature", po::value< double >()->default_value(-1.0), "specify the initial Simulated Annealing temperature for algorithms that work on a exploration-exploitation schedule (e.g., SA-SBA*).")

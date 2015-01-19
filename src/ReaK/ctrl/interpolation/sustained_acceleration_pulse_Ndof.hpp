@@ -341,7 +341,7 @@ class sap_Ndof_interpolator {
  *                          whose 1-order and 2-order derivative space has a spherical bound (see SphereBoundedSpaceConcept).
  */
 template <typename TemporalTopology>
-class sap_Ndof_interp_factory : public serialization::serializable {
+class sap_Ndof_interp_factory : public serializable {
   public:
     typedef sap_Ndof_interp_factory<TemporalTopology> self;
     typedef TemporalTopology topology;
@@ -378,7 +378,7 @@ class sap_Ndof_interp_factory : public serialization::serializable {
       A & RK_SERIAL_LOAD_WITH_NAME(space);
     };
 
-    RK_RTTI_MAKE_ABSTRACT_1BASE(self,0xC2430007,1,"sap_Ndof_interp_factory",serialization::serializable)
+    RK_RTTI_MAKE_ABSTRACT_1BASE(self,0xC2430007,1,"sap_Ndof_interp_factory",serializable)
 };
 
 

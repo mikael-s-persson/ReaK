@@ -58,7 +58,7 @@ namespace pp {
  * a tangent vector to a point-difference, for topologies whose point-difference 
  * vectors are expressed as reach-time values.
  */
-struct reach_time_differentiation : public serialization::serializable {
+struct reach_time_differentiation : public serializable {
   
   double max_rate_reach_time;
   
@@ -107,7 +107,7 @@ struct reach_time_differentiation : public serialization::serializable {
     A & RK_SERIAL_LOAD_WITH_NAME(max_rate_reach_time);
   };
 
-  RK_RTTI_MAKE_ABSTRACT_1BASE(reach_time_differentiation,0xC2420001,1,"reach_time_differentiation",serialization::serializable)
+  RK_RTTI_MAKE_ABSTRACT_1BASE(reach_time_differentiation,0xC2420001,1,"reach_time_differentiation",serializable)
 };
 
 

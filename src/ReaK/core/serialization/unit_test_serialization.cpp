@@ -508,6 +508,7 @@ BOOST_AUTO_TEST_CASE( protobuf_serializers_test )
   using namespace serialization;
   
   {
+    
     std::stringstream ss;
     {
       protobuf_oarchive output_arc(ss);
@@ -522,7 +523,6 @@ BOOST_AUTO_TEST_CASE( protobuf_serializers_test )
       BOOST_CHECK_NO_THROW( output_arc << obj_with_no_names );
       BOOST_CHECK_NO_THROW( output_arc << ptr_with_no_names );
     };
-    
     
     {
       protobuf_iarchive input_arc(ss);

@@ -66,6 +66,9 @@ using namespace ReaK;
 static QString last_used_path;
 
 
+// #define RK_CRSPLANNER_USE_RAW_ASIO_SOCKET
+
+
 namespace {
 
 union double_to_ulong {
@@ -96,13 +99,14 @@ void hton_2ui32(UnionT& value) {
 };
 
 
+#ifdef RK_CRSPLANNER_USE_RAW_ASIO_SOCKET
 void write_double_to_net_stream(std::ostream& out, double value) {
   double_to_ulong tmp; tmp.d = value;
   hton_2ui32(tmp);
   out.write(reinterpret_cast<char*>(&tmp),sizeof(double));
 //   out.write(reinterpret_cast<char*>(&value),sizeof(double));
 };
-
+#endif
 
 };
 
@@ -383,7 +387,6 @@ void CRSPlannerGUI::executeSolutionTrajectory() {
     return;
   };
   
-// #define RK_CRSPLANNER_USE_RAW_ASIO_SOCKET
   
 #ifdef RK_CRSPLANNER_USE_RAW_ASIO_SOCKET
   // Setup the UDP streaming to the robot (FIXME remove the hard-coded address / port)

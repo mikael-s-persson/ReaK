@@ -111,6 +111,8 @@ struct sequential_path_traits {
  * b = (fit != fit);
  * b = (fit == fit);  Two fraction-iterator can be compared for equality.
  * 
+ * d = path.travel_distance(pt,pt);  The travel distance, along the path (p), between two points (pt,pt), can be obtained.
+ * 
  * \tparam SequentialPath The type to be checked for the requirements of this concept.
  * \tparam Topology The topology in which the spatial-path should reside.
  */
@@ -156,6 +158,8 @@ struct SequentialPathConcept {
     
     b = (fit != fit);
     b = (fit == fit);
+    
+    d   = path.travel_distance(pt, pt);
   };
   
 };

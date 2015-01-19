@@ -81,7 +81,17 @@ namespace ReaKaux {
   using ::boost::is_bind_expression;
   using ::boost::is_placeholder;
   
-  namespace placeholders = ::boost::placeholders;
+  namespace placeholders {
+    using ::_1;
+    using ::_2;
+    using ::_3;
+    using ::_4;
+    using ::_5;
+    using ::_6;
+    using ::_7;
+    using ::_8;
+    using ::_9;
+  };
   
   using ::boost::function;
   using ::boost::bad_function_call;

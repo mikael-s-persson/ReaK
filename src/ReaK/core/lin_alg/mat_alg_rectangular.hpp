@@ -65,7 +65,7 @@ struct is_fully_writable_matrix< mat<T,mat_structure::rectangular,Alignment,Allo
  */
 template <typename T,
           typename Allocator>
-class mat<T,mat_structure::rectangular,mat_alignment::column_major,Allocator> : public serialization::serializable {
+class mat<T,mat_structure::rectangular,mat_alignment::column_major,Allocator> : public serializable {
   public:    
     
     typedef mat<T,mat_structure::rectangular,mat_alignment::column_major,Allocator> self;
@@ -624,7 +624,7 @@ class mat<T,mat_structure::rectangular,mat_alignment::column_major,Allocator> : 
       colCount = tmp;
     };
     
-    RK_RTTI_REGISTER_CLASS_1BASE(self,1,serialization::serializable)
+    RK_RTTI_REGISTER_CLASS_1BASE(self,1,serializable)
   
     
   
@@ -686,7 +686,7 @@ RK_CREATE_SUBMATRIX_MINUS_TRANSPOSE_OPERATORS(mat_const_sub_block)
  * \tparam Allocator Standard allocator class (as in the STL), the default is std::allocator<T>.
  */
 template <typename T, typename Allocator>
-class mat<T,mat_structure::rectangular,mat_alignment::row_major,Allocator> : public serialization::serializable {
+class mat<T,mat_structure::rectangular,mat_alignment::row_major,Allocator> : public serializable {
   public:    
     
     typedef mat<T,mat_structure::rectangular,mat_alignment::row_major,Allocator> self;
@@ -1246,7 +1246,7 @@ class mat<T,mat_structure::rectangular,mat_alignment::row_major,Allocator> : pub
       colCount = tmp;
     };
     
-    RK_RTTI_REGISTER_CLASS_1BASE(self,1,serialization::serializable)
+    RK_RTTI_REGISTER_CLASS_1BASE(self,1,serializable)
   
 };
 

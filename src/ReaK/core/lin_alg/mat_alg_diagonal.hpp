@@ -62,7 +62,7 @@ struct mat_indexer<mat_structure::diagonal, Alignment> {
  * \tparam Allocator Standard allocator class (as in the STL), the default is std::allocator<T>.
  */
 template <class T, mat_alignment::tag Alignment, typename Allocator>
-class mat<T,mat_structure::diagonal,Alignment,Allocator> : public serialization::serializable {
+class mat<T,mat_structure::diagonal,Alignment,Allocator> : public serializable {
   public:    
     
     typedef mat<T,mat_structure::diagonal,Alignment,Allocator> self;
@@ -642,7 +642,7 @@ class mat<T,mat_structure::diagonal,Alignment,Allocator> : public serialization:
         & RK_SERIAL_LOAD_WITH_NAME(rowCount);
     };
     
-    RK_RTTI_REGISTER_CLASS_1BASE(self,1,serialization::serializable)
+    RK_RTTI_REGISTER_CLASS_1BASE(self,1,serializable)
 
 };
 

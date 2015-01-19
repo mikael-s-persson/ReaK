@@ -237,7 +237,7 @@ struct is_metric_symmetric : boost::mpl::true_ { };
  * given topology (assuming it models the MetricSpaceConcept).
  * \note Do not use this distance metric to define a topology, because it will be cyclic (infinite recursion).
  */
-struct default_distance_metric : public serialization::serializable {
+struct default_distance_metric : public serializable {
   
   default_distance_metric() { };
   
@@ -281,7 +281,7 @@ struct default_distance_metric : public serialization::serializable {
     virtual void RK_CALL load(serialization::iarchive& A, unsigned int) {
     };
 
-    RK_RTTI_MAKE_ABSTRACT_1BASE(default_distance_metric,0xC2410000,1,"default_distance_metric",serialization::serializable)
+    RK_RTTI_MAKE_ABSTRACT_1BASE(default_distance_metric,0xC2410000,1,"default_distance_metric",serializable)
 };
 
 
@@ -302,7 +302,7 @@ metric_space_traits< MetricSpace > >::type::distance_metric_type get(distance_me
  * \note Do not use this distance metric to define a topology, because it will be cyclic (infinite recursion).
  */
 template <typename DistanceMetric>
-struct symmetrized_metric : public serialization::serializable {
+struct symmetrized_metric : public serializable {
   typedef symmetrized_metric<DistanceMetric> self;
   
   DistanceMetric unsym_distance;
@@ -350,7 +350,7 @@ struct symmetrized_metric : public serialization::serializable {
     A & RK_SERIAL_LOAD_WITH_NAME(unsym_distance);
   };
 
-  RK_RTTI_MAKE_ABSTRACT_1BASE(self,0xC241000B,1,"symmetrized_metric",serialization::serializable)
+  RK_RTTI_MAKE_ABSTRACT_1BASE(self,0xC241000B,1,"symmetrized_metric",serializable)
 };
 
 

@@ -52,7 +52,7 @@ namespace pp {
  * This type represents the points of a temporal-space.
  */
 template <typename SpacePoint, typename TimePoint = double>
-struct temporal_point : public serialization::serializable {
+struct temporal_point : public serializable {
   typedef temporal_point<SpacePoint,TimePoint> self;
 
   TimePoint time; ///< Holds the time associated to the space-time point.
@@ -104,7 +104,7 @@ struct temporal_point : public serialization::serializable {
         & RK_SERIAL_LOAD_WITH_NAME(pt);
     };
 
-    RK_RTTI_MAKE_ABSTRACT_1BASE(self,0x0000002E,1,"temporal_point",serialization::serializable)
+    RK_RTTI_MAKE_ABSTRACT_1BASE(self,0x0000002E,1,"temporal_point",serializable)
 };
 
 
@@ -135,7 +135,7 @@ void from_vect_impl( temporal_point<SpacePoint,TimePoint>& lhs, const Vector2& r
  * This nested type represents the difference between two points of the temporal-space.
  */
 template <typename SpaceDiff, typename TimeDiff = double>
-struct temporal_point_difference : public serialization::serializable {
+struct temporal_point_difference : public serializable {
   typedef temporal_point_difference<SpaceDiff,TimeDiff> self;
 
   TimeDiff time; ///< Holds the time-difference.
@@ -225,7 +225,7 @@ struct temporal_point_difference : public serialization::serializable {
         & RK_SERIAL_LOAD_WITH_NAME(pt);
     };
 
-    RK_RTTI_MAKE_ABSTRACT_1BASE(self,0x0000002F,1,"temporal_point_difference",serialization::serializable)
+    RK_RTTI_MAKE_ABSTRACT_1BASE(self,0x0000002F,1,"temporal_point_difference",serializable)
 
 };
 
@@ -252,7 +252,7 @@ void from_vect_impl( temporal_point_difference<SpaceDiff,TimeDiff>& lhs, const V
  * \tparam SpatialMap A spatial topological map type. (held by value)
  */
 template <typename SpatialMap>
-class temporal_topo_map : public serialization::serializable {
+class temporal_topo_map : public serializable {
   private:
     
     SpatialMap spatial_map;
@@ -301,7 +301,7 @@ class temporal_topo_map : public serialization::serializable {
       A & RK_SERIAL_LOAD_WITH_NAME(spatial_map);
     };
 
-    RK_RTTI_MAKE_ABSTRACT_1BASE(self,0xC2400038,1,"temporal_topo_map",serialization::serializable)
+    RK_RTTI_MAKE_ABSTRACT_1BASE(self,0xC2400038,1,"temporal_topo_map",serializable)
 
 };
 
@@ -314,7 +314,7 @@ class temporal_topo_map : public serialization::serializable {
  * This class can be used to transform a time-space points into space-only points, i.e.,
  * it extracts the spatial component only of the time-space point.
  */
-class extract_spatial_component : public serialization::serializable {
+class extract_spatial_component : public serializable {
   public:
     
     typedef extract_spatial_component self;
@@ -342,7 +342,7 @@ class extract_spatial_component : public serialization::serializable {
 *******************************************************************************/
     virtual void RK_CALL save(serialization::oarchive& A, unsigned int) const { };
     virtual void RK_CALL load(serialization::iarchive& A, unsigned int) { };
-    RK_RTTI_MAKE_ABSTRACT_1BASE(self,0xC240003E,1,"extract_spatial_component",serialization::serializable)
+    RK_RTTI_MAKE_ABSTRACT_1BASE(self,0xC240003E,1,"extract_spatial_component",serializable)
 };
 
 

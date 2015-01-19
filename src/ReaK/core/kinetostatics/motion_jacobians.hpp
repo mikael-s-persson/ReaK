@@ -184,7 +184,7 @@ public:
 
   virtual void RK_CALL save(ReaK::serialization::oarchive& A, unsigned int) const {
     if(Parent.expired())
-      A & RK_SERIAL_SAVE_WITH_ALIAS("Parent",shared_ptr<serialization::serializable>());
+      A & RK_SERIAL_SAVE_WITH_ALIAS("Parent",shared_ptr<serializable>());
     else
       A & RK_SERIAL_SAVE_WITH_ALIAS("Parent",Parent.lock());
     A & RK_SERIAL_SAVE_WITH_NAME(qd_vel)
@@ -296,7 +296,7 @@ public:
 
   virtual void RK_CALL save(ReaK::serialization::oarchive& A, unsigned int) const {
     if(Parent.expired())
-      A & RK_SERIAL_SAVE_WITH_ALIAS("Parent",shared_ptr<serialization::serializable>());
+      A & RK_SERIAL_SAVE_WITH_ALIAS("Parent",shared_ptr<serializable>());
     else
       A & RK_SERIAL_SAVE_WITH_ALIAS("Parent",Parent.lock());
     A & RK_SERIAL_SAVE_WITH_NAME(qd_vel)
@@ -525,7 +525,7 @@ public:
 
   virtual void RK_CALL save(ReaK::serialization::oarchive& A, unsigned int) const {
     if(Parent.expired())
-      A & RK_SERIAL_SAVE_WITH_ALIAS("Parent",shared_ptr<serialization::serializable>());
+      A & RK_SERIAL_SAVE_WITH_ALIAS("Parent",shared_ptr<serializable>());
     else
       A & RK_SERIAL_SAVE_WITH_ALIAS("Parent",Parent.lock());
     A & RK_SERIAL_SAVE_WITH_NAME(vel_vel)
@@ -713,7 +713,7 @@ public:
 
   virtual void RK_CALL save(ReaK::serialization::oarchive& A, unsigned int) const {
     if(Parent.expired())
-      A & RK_SERIAL_SAVE_WITH_ALIAS("Parent",shared_ptr<serialization::serializable>());
+      A & RK_SERIAL_SAVE_WITH_ALIAS("Parent",shared_ptr<serializable>());
     else
       A & RK_SERIAL_SAVE_WITH_ALIAS("Parent",Parent.lock());
     A & RK_SERIAL_SAVE_WITH_NAME(vel_vel)
@@ -1003,7 +1003,7 @@ public:
 
   virtual void RK_CALL save(ReaK::serialization::oarchive& A, unsigned int) const {
     if(Parent.expired())
-      A & RK_SERIAL_SAVE_WITH_ALIAS("Parent",shared_ptr<serialization::serializable>());
+      A & RK_SERIAL_SAVE_WITH_ALIAS("Parent",shared_ptr<serializable>());
     else
       A & RK_SERIAL_SAVE_WITH_ALIAS("Parent",Parent.lock());
     A & RK_SERIAL_SAVE_WITH_NAME(vel_vel)
@@ -1272,7 +1272,7 @@ public:
 
   virtual void RK_CALL save(ReaK::serialization::oarchive& A, unsigned int) const {
     if(Parent.expired())
-      A & RK_SERIAL_SAVE_WITH_ALIAS("Parent",shared_ptr<serialization::serializable>());
+      A & RK_SERIAL_SAVE_WITH_ALIAS("Parent",shared_ptr<serializable>());
     else
       A & RK_SERIAL_SAVE_WITH_ALIAS("Parent",Parent.lock());
     A & RK_SERIAL_SAVE_WITH_NAME(vel_vel)

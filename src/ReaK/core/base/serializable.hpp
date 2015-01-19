@@ -33,15 +33,11 @@
 #define REAK_SERIALIZABLE_HPP
 
 #include "defs.hpp"
-
-#include <ReaK/core/rtti/typed_object.hpp>
+#include "typed_object.hpp"
 
 #include <ReaK/core/serialization/archiver.hpp>
 
 namespace ReaK {
-
-namespace serialization {
-
 
 /**
  * This class is the interface to be implemented in order to make a class serializable, i.e.
@@ -53,10 +49,10 @@ namespace serialization {
  * onto the input/output archive is all that is required really, see classes in the control
  * branch for examples).
  */
-class serializable : public rtti::typed_object {
+class serializable : public typed_object {
   public:
 
-    virtual ~serializable() { RK_NOTICE(8,"Serializable object destructor reached!"); };
+    virtual ~serializable() { };
 
     /**
      * This method saves the content of the object to a serial archive of any type.
@@ -78,13 +74,10 @@ class serializable : public rtti::typed_object {
      */
     virtual void RK_CALL load(serialization::iarchive& A, unsigned int Version) { RK_UNUSED(A); RK_UNUSED(Version); };
 
-    RK_RTTI_MAKE_ABSTRACT_1BASE(serializable, 0x80000000, 1, "serializable", rtti::typed_object)
+    RK_RTTI_MAKE_ABSTRACT_1BASE(serializable, 0x80000000, 1, "serializable", typed_object)
 
 };
 
-
-
-};
 
 };
 

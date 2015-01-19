@@ -47,7 +47,7 @@ namespace pp {
  * This class is a functor type which models the TemporalDistMetricConcept, and computes the 
  * distance based only on the distance in the spatial dimensions (space-topology).
  */
-struct spatial_distance_only : public serialization::serializable {
+struct spatial_distance_only : public serializable {
   
   spatial_distance_only() { };
   
@@ -92,7 +92,7 @@ struct spatial_distance_only : public serialization::serializable {
     virtual void RK_CALL load(serialization::iarchive& A, unsigned int) {
     };
 
-    RK_RTTI_MAKE_ABSTRACT_1BASE(spatial_distance_only,0xC2410010,1,"spatial_distance_only",serialization::serializable)
+    RK_RTTI_MAKE_ABSTRACT_1BASE(spatial_distance_only,0xC2410010,1,"spatial_distance_only",serializable)
 
 };
 
@@ -101,7 +101,7 @@ struct spatial_distance_only : public serialization::serializable {
  * This class is a functor type which models the TemporalDistMetricConcept, and computes the 
  * distance based only on the distance in the temporal dimensions (time-topology).
  */
-struct time_distance_only : public serialization::serializable {
+struct time_distance_only : public serializable {
   
   time_distance_only() { };
   
@@ -144,7 +144,7 @@ struct time_distance_only : public serialization::serializable {
     virtual void RK_CALL load(serialization::iarchive& A, unsigned int) {
     };
 
-    RK_RTTI_MAKE_ABSTRACT_1BASE(time_distance_only,0xC2410011,1,"time_distance_only",serialization::serializable)
+    RK_RTTI_MAKE_ABSTRACT_1BASE(time_distance_only,0xC2410011,1,"time_distance_only",serializable)
   
 };
 

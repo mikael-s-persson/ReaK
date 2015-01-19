@@ -48,7 +48,7 @@ namespace pp {
  * \note Do not use this random-sampler to define a topology, because it will be cyclic (infinite recursion).
  */
 template <typename Topology>
-struct fixed_topology_random_sampler : public serialization::serializable {
+struct fixed_topology_random_sampler : public serializable {
   typedef typename topology_traits< Topology >::point_type PointType;
   
   const Topology* m_space;
@@ -73,7 +73,7 @@ struct fixed_topology_random_sampler : public serialization::serializable {
     virtual void RK_CALL load(serialization::iarchive& A, unsigned int) {
     };
 
-    RK_RTTI_MAKE_ABSTRACT_1BASE(fixed_topology_random_sampler,0xC2450005,1,"fixed_topology_random_sampler",serialization::serializable)
+    RK_RTTI_MAKE_ABSTRACT_1BASE(fixed_topology_random_sampler,0xC2450005,1,"fixed_topology_random_sampler",serializable)
 };
 
 };

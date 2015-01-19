@@ -312,8 +312,8 @@ struct get_type_id< mat<T,Structure,Alignment,Allocator> > {
 #endif
   static construct_ptr CreatePtr() BOOST_NOEXCEPT { return NULL; };
   
-  typedef const serialization::serializable& save_type;
-  typedef serialization::serializable& load_type;
+  typedef const serializable& save_type;
+  typedef serializable& load_type;
 };
 
 template <typename T, mat_structure::tag Structure, mat_alignment::tag Alignment, typename Allocator, typename Tail>
@@ -356,8 +356,8 @@ struct get_type_id< mat_fix<T,Structure,RowCount,ColCount,Alignment> > {
 #endif
   static construct_ptr CreatePtr() BOOST_NOEXCEPT { return NULL; };
   
-  typedef const serialization::serializable& save_type;
-  typedef serialization::serializable& load_type;
+  typedef const serializable& save_type;
+  typedef serializable& load_type;
 };
 
 template <typename T, mat_structure::tag Structure,
@@ -379,7 +379,7 @@ struct get_type_info< mat_fix<T,Structure,RowCount,ColCount,Alignment>, Tail > {
       boost::mpl::integral_c<mat_alignment::tag,Alignment> >::type_name
     + lsl_right_bracket + get_type_name_tail<Tail>::value;
 #else
-  static const char* type_name() { 
+  static std::string type_name() { 
     std::string result = get_type_id< mat_fix<T,Structure,RowCount,ColCount,Alignment> >::type_name();
     result += "<";
     result += get_type_info_seq<T,

@@ -41,14 +41,18 @@
 
 //  C++11 thread features in GCC 4.7.0 and later
 //  NOTE: This does not include futures and the notify-all-at-exit, because they are not fully supported.
-#if __GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 7) || !defined(__GXX_EXPERIMENTAL_CXX0X__)
+// #if __GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 7) || !defined(__GXX_EXPERIMENTAL_CXX0X__)
+
+#if !defined(BOOST_NO_CXX11_HDR_THREAD)
 
 // This is a bit nasty...
+#if __GNUC__
 #ifndef _GLIBCXX_USE_SCHED_YIELD
 #define _GLIBCXX_USE_SCHED_YIELD
 #endif
 #ifndef _GLIBCXX_USE_NANOSLEEP
 #define _GLIBCXX_USE_NANOSLEEP
+#endif
 #endif
 
 // must use standard thread library because most supported versions of boost, up to 1.48 are broken for C++11 under GCC 4.7 or higher.
@@ -109,10 +113,6 @@ namespace ReaKaux {
 
   //using ::std::notify_all_at_thread_exit;
   
-  using ::std::future;
-  using ::std::future_error;
-  using ::std::promise;
-  
   using ::std::exception_ptr;
   using ::std::make_exception_ptr;
   
@@ -127,7 +127,6 @@ namespace ReaKaux {
 #include <boost/thread/recursive_mutex.hpp>
 #include <boost/thread/once.hpp>
 #include <boost/thread/condition_variable.hpp>
-#include <boost/thread/future.hpp>
 #include <boost/exception_ptr.hpp>
 #include <boost/version.hpp>
 
@@ -184,12 +183,39 @@ namespace ReaKaux {
 
   //using ::boost::notify_all_at_thread_exit;
   
+  using ::boost::exception_ptr;
+//   using ::boost::make_exception_ptr;
+  
+};
+
+#endif
+
+
+#ifndef BOOST_NO_CXX11_HDR_FUTURE
+
+// must use standard thread library because most supported versions of boost, up to 1.48 are broken for C++11 under GCC 4.7 or higher.
+#include <future>
+
+namespace ReaKaux {
+  
+  using ::std::future;
+  using ::std::future_error;
+  using ::std::promise;
+  
+};
+
+#else
+
+
+// must use the Boost library.
+#define BOOST_THREAD_PROVIDES_FUTURE
+#include <boost/thread/future.hpp>
+
+namespace ReaKaux {
+  
   using ::boost::future;
   using ::boost::future_error;
   using ::boost::promise;
-  
-  using ::boost::exception_ptr;
-  using ::boost::make_exception_ptr;
   
 };
 

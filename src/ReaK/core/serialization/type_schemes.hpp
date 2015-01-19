@@ -345,7 +345,7 @@ class serializable_obj_scheme : public type_scheme {
 
 /**
  * This derived class is used to represent the scheme for a serializable pointer to 
- * an object (anything derived from ReaK::serialization::serializable). This special 
+ * an object (anything derived from ReaK::serializable). This special 
  * scheme is required in order to deal with the object-ID field which allows for cross-linking
  * the different shared_ptr that point to the same object within an object hierarchy.
  */

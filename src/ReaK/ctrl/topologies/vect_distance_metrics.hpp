@@ -52,7 +52,7 @@ namespace pp {
  * This class will simply apply the Manhattan norm to the point-difference vectors in the 
  * given topology (assuming it models the MetricSpaceConcept, and that the point-differences model the ReadableVectorConcept).
  */
-struct manhattan_distance_metric : public serialization::serializable {
+struct manhattan_distance_metric : public serializable {
   
   manhattan_distance_metric() { };
   
@@ -99,7 +99,7 @@ struct manhattan_distance_metric : public serialization::serializable {
 
   virtual void RK_CALL load(serialization::iarchive& A, unsigned int) { };
 
-  RK_RTTI_MAKE_ABSTRACT_1BASE(manhattan_distance_metric,0xC2410001,1,"manhattan_distance_metric",serialization::serializable)
+  RK_RTTI_MAKE_ABSTRACT_1BASE(manhattan_distance_metric,0xC2410001,1,"manhattan_distance_metric",serializable)
 };
 
 typedef manhattan_distance_metric norm1_distance_metric;
@@ -110,7 +110,7 @@ typedef manhattan_distance_metric norm1_distance_metric;
  * This class will simply apply the Euclidean norm to the point-difference vectors in the 
  * given topology (assuming it models the MetricSpaceConcept, and that the point-differences model the ReadableVectorConcept).
  */
-struct euclidean_distance_metric : public serialization::serializable {
+struct euclidean_distance_metric : public serializable {
   
   euclidean_distance_metric() { };
   
@@ -158,7 +158,7 @@ struct euclidean_distance_metric : public serialization::serializable {
 
   virtual void RK_CALL load(serialization::iarchive& A, unsigned int) { };
 
-  RK_RTTI_MAKE_ABSTRACT_1BASE(euclidean_distance_metric,0xC2410002,1,"euclidean_distance_metric",serialization::serializable)
+  RK_RTTI_MAKE_ABSTRACT_1BASE(euclidean_distance_metric,0xC2410002,1,"euclidean_distance_metric",serializable)
 };
 
 typedef euclidean_distance_metric norm2_distance_metric;
@@ -169,7 +169,7 @@ typedef euclidean_distance_metric norm2_distance_metric;
  * This class will simply apply the Infinity-norm to the point-difference vectors in the 
  * given topology (assuming it models the MetricSpaceConcept, and that the point-differences model the ReadableVectorConcept).
  */
-struct inf_norm_distance_metric : public serialization::serializable {
+struct inf_norm_distance_metric : public serializable {
   
   inf_norm_distance_metric() { };
   
@@ -218,7 +218,7 @@ struct inf_norm_distance_metric : public serialization::serializable {
 
   virtual void RK_CALL load(serialization::iarchive& A, unsigned int) { };
 
-  RK_RTTI_MAKE_ABSTRACT_1BASE(inf_norm_distance_metric,0xC2410003,1,"inf_norm_distance_metric",serialization::serializable)
+  RK_RTTI_MAKE_ABSTRACT_1BASE(inf_norm_distance_metric,0xC2410003,1,"inf_norm_distance_metric",serializable)
 };
 
 
@@ -227,7 +227,7 @@ struct inf_norm_distance_metric : public serialization::serializable {
  * This class will simply apply the Euclidean norm to the point-difference vectors in the 
  * given topology (assuming it models the MetricSpaceConcept, and that the point-differences model the ReadableVectorConcept).
  */
-struct p_norm_distance_metric : public serialization::serializable {
+struct p_norm_distance_metric : public serializable {
   
   int p_value;
   
@@ -281,7 +281,7 @@ struct p_norm_distance_metric : public serialization::serializable {
     A & RK_SERIAL_LOAD_WITH_NAME(p_value);
   };
 
-  RK_RTTI_MAKE_ABSTRACT_1BASE(p_norm_distance_metric,0xC2410004,1,"p_norm_distance_metric",serialization::serializable)
+  RK_RTTI_MAKE_ABSTRACT_1BASE(p_norm_distance_metric,0xC2410004,1,"p_norm_distance_metric",serializable)
 };
 
 

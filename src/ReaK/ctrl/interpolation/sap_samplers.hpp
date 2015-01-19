@@ -55,7 +55,7 @@ namespace pp {
  * \tparam TimeSpaceType The time topology type against which the interpolation is done.
  */
 template <typename TimeSpaceType = time_topology>
-struct sap_rate_limited_sampler : public serialization::serializable {
+struct sap_rate_limited_sampler : public serializable {
   
   typedef sap_rate_limited_sampler<TimeSpaceType> self;
   
@@ -103,7 +103,7 @@ struct sap_rate_limited_sampler : public serialization::serializable {
     A & RK_SERIAL_LOAD_WITH_NAME(t_space);
   };
 
-  RK_RTTI_MAKE_ABSTRACT_1BASE(self,0xC2450002,1,"sap_rate_limited_sampler",serialization::serializable)
+  RK_RTTI_MAKE_ABSTRACT_1BASE(self,0xC2450002,1,"sap_rate_limited_sampler",serializable)
 };
 
 

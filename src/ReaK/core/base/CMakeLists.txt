@@ -17,6 +17,7 @@ set(BASE_HEADERS
   "${RKBASEDIR}/shared_object.hpp"
   "${RKBASEDIR}/shared_object_base.hpp"
   "${RKBASEDIR}/thread_incl.hpp"
+  "${RKBASEDIR}/typed_object.hpp"
 )
 
 

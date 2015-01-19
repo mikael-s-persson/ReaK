@@ -48,11 +48,8 @@ namespace ReaK {
  * deleted by this shared_ptr branch (i.e. will be deleted by another shared_ptr branch). This can
  * be used to break cycles in the object hierarchy.
  */
-struct null_deleter
-{
-    void operator()(void const *) const
-    {
-    }
+struct null_deleter {
+  void operator()(void const *) const { };
 };
 
 /**
@@ -65,30 +62,10 @@ struct null_deleter
  */
 class shared_object_base {
   protected:
-    typedef shared_ptr<shared_object_base> shared_this_pointer;
-    typedef weak_ptr<shared_object_base> weak_this_pointer;
-    shared_this_pointer mThis;
-    
-  public:
     virtual void RK_CALL destroy() = 0;
-    
-    /**
-     * This method returns a weak_ptr to this object. The weak pointer will expire as the object gets
-     * deleted.
-     * \note This pointer is weaker than a regular weak pointer because locking this pointer does not
-     *       guarantee that it remains for as long as the locked pointer exists so this is more intended
-     *       for use as a test pointer to see if the object still exists. If a real shared ownership 
-     *       scheme is desired, the shared pointer should be obtained from an owner of this object.
-     * \return weak pointer to this object. A lock on this pointer will not give shared ownership and 
-     *         should be regarded as a momentary access to the object with no guarantee that it will 
-     *         not get deleted in the meantime. A real shared ownership can only be obtained from the 
-     *         actual owner of this object.
-     */
-    weak_this_pointer RK_CALL getWeakPtr() const { return mThis; };
-    
-    shared_object_base() { mThis = shared_this_pointer(this,null_deleter()); };
-
-    virtual ~shared_object_base() { RK_NOTICE(8,"Shared object base destructor reached!");};
+    virtual ~shared_object_base() { };
+  public:
+    friend struct scoped_deleter;
 };
 
 /** 
@@ -99,7 +76,6 @@ class shared_object_base {
  */
 struct scoped_deleter {
   void operator()(shared_object_base * p) const {
-    RK_NOTICE(8,"Shared object base scoped deleter reached!");
     p->destroy();
   };
 };

@@ -1062,7 +1062,7 @@ std::vector< std::string > objtree_editor::get_objects_derived_from(rtti::so_typ
   boost::tie(vi,vi_end) = vertices(*obj_graph);
   std::vector< std::string > result;
   for(; vi != vi_end; ++vi) {
-    shared_ptr< serialization::serializable > p_obj = (*obj_graph)[*vi].p_obj;
+    shared_ptr< serializable > p_obj = (*obj_graph)[*vi].p_obj;
     if((p_obj) && (p_obj->castTo(aType)))
       result.push_back(get_object_name(*vi));
   };

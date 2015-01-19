@@ -180,8 +180,8 @@ struct get_type_id< tensor<T,Order,Structure,Alignment,Allocator> > {
 #endif
   static construct_ptr CreatePtr() BOOST_NOEXCEPT { return NULL; };
   
-  typedef const serialization::serializable& save_type;
-  typedef serialization::serializable& load_type;
+  typedef const serializable& save_type;
+  typedef serializable& load_type;
 };
 
 template <typename T, 

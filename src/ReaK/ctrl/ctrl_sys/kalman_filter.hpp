@@ -397,7 +397,7 @@ struct KF_belief_transfer {
  *         at least as a DiscreteLinearizedSystemType.
  */
 template <typename LinearSystem>
-class KF_belief_transfer_factory : public serialization::serializable {
+class KF_belief_transfer_factory : public serializable {
   public:
     typedef KF_belief_transfer_factory<LinearSystem> self;
     typedef KF_belief_transfer<self> predictor_type;
@@ -498,7 +498,7 @@ class KF_belief_transfer_factory : public serialization::serializable {
         & RK_SERIAL_LOAD_WITH_NAME(R);
     };
     
-    RK_RTTI_MAKE_ABSTRACT_1BASE(self,0xC2320001,1,"KF_belief_transfer_factory",serialization::serializable)
+    RK_RTTI_MAKE_ABSTRACT_1BASE(self,0xC2320001,1,"KF_belief_transfer_factory",serializable)
 };
 
 

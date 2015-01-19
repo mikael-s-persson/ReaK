@@ -202,7 +202,7 @@ void export_kinetostatics() {
   
   
   class_< ReaK::rot_mat_2D<double>,
-          bases< ReaK::serialization::serializable >
+          bases< ReaK::serializable >
         >("Rotation2D")
     .def(init<double>())
     .def(init< ReaK::vect<double,2> >())
@@ -220,7 +220,7 @@ void export_kinetostatics() {
     
   
   class_< ReaK::trans_mat_2D<double>,
-          bases< ReaK::serialization::serializable >
+          bases< ReaK::serializable >
         >("Transform2D")
     .def(init< double, ReaK::vect<double,2> >())
     .def(init< const ReaK::rot_mat_2D<double>&, ReaK::vect<double,2> >())
@@ -256,8 +256,10 @@ void export_kinetostatics() {
     .def(self *= self)
     .def(~self)
     .def("get_global_pose",&ReaK::pose_2D<double>::getGlobalPose)
-    .def("is_parent_pose",&ReaK::pose_2D<double>::isParentPose)
-    .def("get_pose_relative_to",&ReaK::pose_2D<double>::getPoseRelativeTo)
+    .def("is_parent_pose",static_cast< bool (ReaK::pose_2D<double>::*)(const ReaK::pose_2D<double>&) const >(&ReaK::pose_2D<double>::isParentPose))
+    .def("is_parent_pose",static_cast< bool (ReaK::pose_2D<double>::*)(const ReaK::shared_ptr< const ReaK::pose_2D<double> >&) const >(&ReaK::pose_2D<double>::isParentPose))
+    .def("get_pose_relative_to",static_cast< ReaK::pose_2D<double> (ReaK::pose_2D<double>::*)(const ReaK::pose_2D<double>&) const >(&ReaK::pose_2D<double>::getPoseRelativeTo))
+    .def("get_pose_relative_to",static_cast< ReaK::pose_2D<double> (ReaK::pose_2D<double>::*)(const ReaK::shared_ptr< const ReaK::pose_2D<double> >&) const >(&ReaK::pose_2D<double>::getPoseRelativeTo))
     .def("rotate_to_parent",&ReaK::pose_2D<double>::rotateToParent)
     .def("rotate_to_global",&ReaK::pose_2D<double>::rotateToGlobal)
     .def("rotate_from_parent",&ReaK::pose_2D<double>::rotateFromParent)
@@ -303,7 +305,8 @@ void export_kinetostatics() {
     .def(self *= other< ReaK::frame_2D<double> >())
     .def(~self)
     .def("get_global_frame",&ReaK::frame_2D<double>::getGlobalFrame)
-    .def("get_frame_relative_to",&ReaK::frame_2D<double>::getFrameRelativeTo)
+    .def("get_frame_relative_to",static_cast< ReaK::frame_2D<double> (ReaK::frame_2D<double>::*)(const ReaK::pose_2D<double>&) const >(&ReaK::frame_2D<double>::getFrameRelativeTo))
+    .def("get_frame_relative_to",static_cast< ReaK::frame_2D<double> (ReaK::frame_2D<double>::*)(const ReaK::shared_ptr< const ReaK::pose_2D<double> >&) const >(&ReaK::frame_2D<double>::getFrameRelativeTo))
     .def("add_frame_before",&ReaK::frame_2D<double>::addBefore, return_internal_reference<>())
     .def("add_frame_after",&ReaK::frame_2D<double>::addAfter, return_internal_reference<>())
     .def("__str__",obj_to_string< ReaK::frame_2D<double> >);
@@ -327,7 +330,7 @@ void export_kinetostatics() {
   
   
   class_< ReaK::rot_mat_3D<double>,
-          bases< ReaK::serialization::serializable >
+          bases< ReaK::serializable >
         >("Rotation3D")
     .def("__call__",&ReaK::rot_mat_3D<double>::operator())
     .def(self * self)
@@ -342,7 +345,7 @@ void export_kinetostatics() {
   
   
   class_< ReaK::quaternion<double>,
-          bases< ReaK::serialization::serializable >
+          bases< ReaK::serializable >
         >("QuaternionRot")
     .def(init< ReaK::vect<double,4> >())
     .def(init< ReaK::rot_mat_3D<double> >())
@@ -364,7 +367,7 @@ void export_kinetostatics() {
   
   
   class_< ReaK::euler_angles_TB<double>,
-          bases< ReaK::serialization::serializable >
+          bases< ReaK::serializable >
         >("EulerAngles")
     .def(init< double, double, double >())
     .def(init< ReaK::rot_mat_3D<double> >())
@@ -392,7 +395,7 @@ void export_kinetostatics() {
   
   
   class_< ReaK::axis_angle<double>,
-          bases< ReaK::serialization::serializable >
+          bases< ReaK::serializable >
         >("AxisAngle")
     .def(init< double, ReaK::vect<double,3> >())
     .def(init< ReaK::rot_mat_3D<double> >())
@@ -423,7 +426,7 @@ void export_kinetostatics() {
   
   
   class_< ReaK::trans_mat_3D<double>,
-          bases< ReaK::serialization::serializable >
+          bases< ReaK::serializable >
         >("Transform3D")
     .def(init< ReaK::quaternion<double>, ReaK::vect<double,3> >())
     .def(init< ReaK::rot_mat_3D<double>, ReaK::vect<double,3> >())
@@ -476,8 +479,10 @@ void export_kinetostatics() {
     .def(self *= self)
     .def(~self)
     .def("get_global_pose",&ReaK::pose_3D<double>::getGlobalPose)
-    .def("is_parent_pose",&ReaK::pose_3D<double>::isParentPose)
-    .def("get_pose_relative_to",&ReaK::pose_3D<double>::getPoseRelativeTo)
+    .def("is_parent_pose",static_cast< bool (ReaK::pose_3D<double>::*)(const ReaK::pose_3D<double>&) const >(&ReaK::pose_3D<double>::isParentPose))
+    .def("is_parent_pose",static_cast< bool (ReaK::pose_3D<double>::*)(const ReaK::shared_ptr< const ReaK::pose_3D<double> >&) const >(&ReaK::pose_3D<double>::isParentPose))
+    .def("get_pose_relative_to",static_cast< ReaK::pose_3D<double> (ReaK::pose_3D<double>::*)(const ReaK::pose_3D<double>&) const >(&ReaK::pose_3D<double>::getPoseRelativeTo))
+    .def("get_pose_relative_to",static_cast< ReaK::pose_3D<double> (ReaK::pose_3D<double>::*)(const ReaK::shared_ptr< const ReaK::pose_3D<double> >&) const >(&ReaK::pose_3D<double>::getPoseRelativeTo))
     .def("rotate_to_parent",&ReaK::pose_3D<double>::rotateToParent)
     .def("rotate_to_global",&ReaK::pose_3D<double>::rotateToGlobal)
     .def("rotate_from_parent",&ReaK::pose_3D<double>::rotateFromParent)
@@ -526,7 +531,8 @@ void export_kinetostatics() {
     .def(self *= other< ReaK::frame_3D<double> >())
     .def(~self)
     .def("get_global_frame",&ReaK::frame_3D<double>::getGlobalFrame)
-    .def("get_frame_relative_to",&ReaK::frame_3D<double>::getFrameRelativeTo)
+    .def("get_frame_relative_to",static_cast< ReaK::frame_3D<double> (ReaK::frame_3D<double>::*)(const ReaK::pose_3D<double>&) const >(&ReaK::frame_3D<double>::getFrameRelativeTo))
+    .def("get_frame_relative_to",static_cast< ReaK::frame_3D<double> (ReaK::frame_3D<double>::*)(const ReaK::shared_ptr< const ReaK::pose_3D<double> >&) const >(&ReaK::frame_3D<double>::getFrameRelativeTo))
     .def("add_frame_before",static_cast<ReaK::frame_3D<double>&(ReaK::frame_3D<double>::*)(const ReaK::pose_3D<double>&)>(&ReaK::frame_3D<double>::addBefore), return_internal_reference<>())
     .def("add_frame_after",static_cast<ReaK::frame_3D<double>&(ReaK::frame_3D<double>::*)(const ReaK::pose_3D<double>&)>(&ReaK::frame_3D<double>::addAfter), return_internal_reference<>())
     .def("add_frame_before",static_cast<ReaK::frame_3D<double>&(ReaK::frame_3D<double>::*)(const ReaK::frame_3D<double>&)>(&ReaK::frame_3D<double>::addBefore), return_internal_reference<>())

@@ -421,6 +421,18 @@ class waypoint_container_base< true, Topology, DistanceMetricBase > : public sha
       
       point_fraction_iterator& operator+=(double rhs) {
         double dt_total = (current_wpb.second->first - current_wpb.first->first);
+        while( dt_total < 1e-6 ) {
+          current_wpb.second++;
+          if( current_wpb.second == parent->waypoints.end() ) {
+            current_wpb.first  = (++(parent->waypoints.rbegin())).base();
+            current_wpb.second = current_wpb.first;
+            current_pt = current_wpb.first->second;
+            return *this;
+          } else {
+            dt_total = (current_wpb.second->first - current_wpb.first->first);
+          };
+        };
+        
         double cur_dt = (current_pt.time - current_wpb.first->first);
         
         while( ( cur_dt / dt_total + rhs > 1.0 ) || ( cur_dt / dt_total + rhs < 0.0 ) ) {
@@ -448,6 +460,7 @@ class waypoint_container_base< true, Topology, DistanceMetricBase > : public sha
         };
         
         current_pt = parent->move_time_diff_from_impl(current_pt, current_wpb, rhs * dt_total).second;
+        current_wpb = parent->get_waypoint_bounds(current_pt.time);
         return *this;
       };
       

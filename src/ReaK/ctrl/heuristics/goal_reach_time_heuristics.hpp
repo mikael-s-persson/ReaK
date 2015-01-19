@@ -46,7 +46,7 @@ namespace pp {
  * 
  */
 template <typename Trajectory, typename ReachTimeMetric>
-class goal_reach_time_heuristic : public serialization::serializable {
+class goal_reach_time_heuristic : public serializable {
   public:
     typedef goal_reach_time_heuristic<Trajectory,ReachTimeMetric> self;
     typedef typename spatial_trajectory_traits<Trajectory>::point_type point_type;
@@ -111,7 +111,7 @@ class goal_reach_time_heuristic : public serialization::serializable {
         & RK_SERIAL_LOAD_WITH_NAME(tolerance);
     };
 
-    RK_RTTI_MAKE_ABSTRACT_1BASE(self,0xC2410020,1,"goal_reach_time_heuristic",serialization::serializable)
+    RK_RTTI_MAKE_ABSTRACT_1BASE(self,0xC2410020,1,"goal_reach_time_heuristic",serializable)
 };
 
 

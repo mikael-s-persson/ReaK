@@ -267,7 +267,7 @@ class linear_interpolator {
  * \tparam TemporalTopology The temporal topology on which the interpolation is done, should model TemporalSpaceConcept.
  */
 template <typename TemporalTopology>
-class linear_interpolator_factory : public serialization::serializable {
+class linear_interpolator_factory : public serializable {
   public:
     typedef linear_interpolator_factory<TemporalTopology> self;
     typedef TemporalTopology topology;
@@ -300,7 +300,7 @@ class linear_interpolator_factory : public serialization::serializable {
       A & RK_SERIAL_LOAD_WITH_NAME(space);
     };
 
-    RK_RTTI_MAKE_ABSTRACT_1BASE(self,0xC2430001,1,"linear_interpolator_factory",serialization::serializable)
+    RK_RTTI_MAKE_ABSTRACT_1BASE(self,0xC2430001,1,"linear_interpolator_factory",serializable)
 };
 
 

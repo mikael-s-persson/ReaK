@@ -234,7 +234,7 @@ class reachability_space : public temporal_space<Topology, reachable_distance> {
  * This class is a functor type which models the TemporalDistMetricConcept, and computes the 
  * distance based only on the distance in the spatial dimensions (space-topology).
  */
-struct reach_plus_time_metric : public serialization::serializable {
+struct reach_plus_time_metric : public serializable {
   
   reach_plus_time_metric() { };
   
@@ -286,7 +286,7 @@ struct reach_plus_time_metric : public serialization::serializable {
     virtual void RK_CALL load(serialization::iarchive& A, unsigned int) {
     };
 
-    RK_RTTI_MAKE_ABSTRACT_1BASE(reach_plus_time_metric,0xC2410012,1,"reach_plus_time_metric",serialization::serializable)
+    RK_RTTI_MAKE_ABSTRACT_1BASE(reach_plus_time_metric,0xC2410012,1,"reach_plus_time_metric",serializable)
 
 };
 
@@ -301,7 +301,7 @@ struct is_metric_symmetric< reach_plus_time_metric > : boost::mpl::false_ { };
  * This class is a functor type which models the TemporalDistMetricConcept, and computes the 
  * distance based only on the distance in the spatial dimensions (space-topology).
  */
-struct proper_reach_plus_time_metric : public serialization::serializable {
+struct proper_reach_plus_time_metric : public serializable {
   
   proper_reach_plus_time_metric() { };
   
@@ -350,7 +350,7 @@ struct proper_reach_plus_time_metric : public serialization::serializable {
     virtual void RK_CALL load(serialization::iarchive& A, unsigned int) {
     };
 
-    RK_RTTI_MAKE_ABSTRACT_1BASE(proper_reach_plus_time_metric,0xC2410013,1,"proper_reach_plus_time_metric",serialization::serializable)
+    RK_RTTI_MAKE_ABSTRACT_1BASE(proper_reach_plus_time_metric,0xC2410013,1,"proper_reach_plus_time_metric",serializable)
 
 };
 

@@ -208,7 +208,7 @@ namespace detail {
  * This class will simply apply the Manhattan norm to the point-difference vectors in the 
  * given topology (assuming it models the MetricSpaceConcept, and that it is a tuple).
  */
-struct manhattan_tuple_distance : public serialization::serializable {
+struct manhattan_tuple_distance : public serializable {
   
   manhattan_tuple_distance() { };
   
@@ -250,7 +250,7 @@ struct manhattan_tuple_distance : public serialization::serializable {
 
   virtual void RK_CALL load(serialization::iarchive& A, unsigned int) { };
 
-  RK_RTTI_MAKE_ABSTRACT_1BASE(manhattan_tuple_distance,0xC2410005,1,"manhattan_tuple_distance",serialization::serializable)
+  RK_RTTI_MAKE_ABSTRACT_1BASE(manhattan_tuple_distance,0xC2410005,1,"manhattan_tuple_distance",serializable)
 };
 
 
@@ -260,7 +260,7 @@ struct manhattan_tuple_distance : public serialization::serializable {
  * This class will simply apply the Euclidean norm to the point-difference vectors in the 
  * given topology (assuming it models the MetricSpaceConcept and that it is a tuple).
  */
-struct euclidean_tuple_distance : public serialization::serializable {
+struct euclidean_tuple_distance : public serializable {
   
   euclidean_tuple_distance() { };
 
@@ -304,7 +304,7 @@ struct euclidean_tuple_distance : public serialization::serializable {
 
   virtual void RK_CALL load(serialization::iarchive& A, unsigned int) { };
 
-  RK_RTTI_MAKE_ABSTRACT_1BASE(euclidean_tuple_distance,0xC2410006,1,"euclidean_tuple_distance",serialization::serializable)
+  RK_RTTI_MAKE_ABSTRACT_1BASE(euclidean_tuple_distance,0xC2410006,1,"euclidean_tuple_distance",serializable)
 };
 
 
@@ -316,7 +316,7 @@ struct euclidean_tuple_distance : public serialization::serializable {
  * This class will simply apply the Infinity-norm to the point-difference vectors in the 
  * given topology (assuming it models the MetricSpaceConcept, and that it is a tuple).
  */
-struct inf_norm_tuple_distance : public serialization::serializable {
+struct inf_norm_tuple_distance : public serializable {
   
   inf_norm_tuple_distance() { };
   
@@ -357,7 +357,7 @@ struct inf_norm_tuple_distance : public serialization::serializable {
 
   virtual void RK_CALL load(serialization::iarchive& A, unsigned int) { };
 
-  RK_RTTI_MAKE_ABSTRACT_1BASE(inf_norm_tuple_distance,0xC2410007,1,"inf_norm_tuple_distance",serialization::serializable)
+  RK_RTTI_MAKE_ABSTRACT_1BASE(inf_norm_tuple_distance,0xC2410007,1,"inf_norm_tuple_distance",serializable)
 };
 
 
@@ -367,7 +367,7 @@ struct inf_norm_tuple_distance : public serialization::serializable {
  * This class will simply apply the Euclidean norm to the point-difference vectors in the 
  * given topology (assuming it models the MetricSpaceConcept, and that it is a tuple).
  */
-struct p_norm_tuple_distance : public serialization::serializable {
+struct p_norm_tuple_distance : public serializable {
   
   int p_value;
   
@@ -417,7 +417,7 @@ struct p_norm_tuple_distance : public serialization::serializable {
     A & RK_SERIAL_LOAD_WITH_NAME(p_value);
   };
 
-  RK_RTTI_MAKE_ABSTRACT_1BASE(p_norm_tuple_distance,0xC2410008,1,"p_norm_tuple_distance",serialization::serializable)
+  RK_RTTI_MAKE_ABSTRACT_1BASE(p_norm_tuple_distance,0xC2410008,1,"p_norm_tuple_distance",serializable)
 };
 
 

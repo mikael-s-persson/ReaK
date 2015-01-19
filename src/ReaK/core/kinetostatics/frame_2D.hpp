@@ -51,34 +51,34 @@ class frame_2D : public pose_2D<T> {
     typedef frame_2D<T> self;
     typedef pose_2D<T> base;
     typedef T value_type;
-
+    
     typedef T* pointer;
     typedef const T* const_pointer;
     typedef T& reference;
     typedef const T& const_reference;
-
+    
     typedef typename base::position_type position_type;
     typedef typename base::vector_type vector_type;
     typedef typename base::rotation_type rotation_type;
-
+    
     typedef vect<T,2> linear_vector_type;
     typedef T angular_vector_type;
-
+    
     linear_vector_type Velocity; ///< Velocity vector of this kinematic frame, relative-to and expressed-in parent coordinates.
     angular_vector_type AngVelocity; ///< Angular velocity of this kinematic frame, relative to parent coordinates.
-
+    
     linear_vector_type Acceleration; ///< Acceleration of this kinematic frame, relative-to and expressed-in parent coordinates.
     angular_vector_type AngAcceleration; ///< Angular Acceleration of this kinematic frame, relative to parent coordinates.
-
+    
     linear_vector_type Force; ///< Force flowing through this frame, expressed in this coordinate system (local).
     angular_vector_type Torque; ///< Torque flowing through this frame.
-
-
+    
+    
     /**
      * Default constructor, all is set to zero.
      */
     frame_2D() : pose_2D<T>(), Velocity(), AngVelocity(0.0), Acceleration(), AngAcceleration(0.0), Force(), Torque(0.0) { };
-
+    
     /**
      * Parametrized constructor, all is set to corresponding parameters.
      */
@@ -98,7 +98,7 @@ class frame_2D : public pose_2D<T> {
              AngAcceleration(aAngAcceleration),
              Force(aForce),
              Torque(aTorque) { };
-
+    
     /**
      * Copy-constructor.
      */
@@ -109,7 +109,7 @@ class frame_2D : public pose_2D<T> {
                                           AngAcceleration(aFrame.AngAcceleration),
                                           Force(aFrame.Force),
                                           Torque(aFrame.Torque) { };
-
+    
     /**
      * Explicit conversion from a simple pose, the additional values are set to zero.
      */
@@ -120,13 +120,48 @@ class frame_2D : public pose_2D<T> {
                                                  AngAcceleration(0.0),
                                                  Force(),
                                                  Torque(0.0) { };
-
+    
     /**
      * Default virtual destructor.
      */
     virtual ~frame_2D() { };
-
-
+    
+  protected:
+    
+    self getFrameRelativeToImpl(const base* F) const {
+      if(!F)
+        return getGlobalFrame();
+      if(this->Parent.expired()) { //If this is at the global node, F can meet this there.
+        if(rtti::rk_is_of_type<self>(F))
+          return (~(static_cast<const self*>(F)->getGlobalFrame())) * (*this);
+        else
+          return (~(self(*F).getGlobalFrame())) * (*this);
+      } else if(this->isParentPoseImpl(F)) { //If F is somewhere down "this"'s chain
+        shared_ptr< base > p = this->Parent.lock();
+        if(p.get() == F)
+          return *this;
+        else {
+          if(rtti::rk_is_of_type<self>(p))
+            return static_cast<const self*>(p.get())->getFrameRelativeToImpl(F) * (*this);
+          else
+            return self(*p).getFrameRelativeToImpl(F) * (*this);
+        };
+      } else if(F->isParentPose(*this)) { //If this is somewhere down F's chain.
+        if(rtti::rk_is_of_type<self>(F))
+          return ~(static_cast<const self*>(F)->getFrameRelativeToImpl(this));
+        else
+          return ~(self(*F).getFrameRelativeToImpl(this));
+      } else{ //Else means F's chain meets "this"'s chain somewhere down, possibly all the way to the global node.
+        shared_ptr< base > p = this->Parent.lock();
+        if(rtti::rk_is_of_type<self>(p))
+          return static_cast<const self*>(p.get())->getFrameRelativeToImpl(F) * (*this);
+        else
+          return self(*p).getFrameRelativeToImpl(F) * (*this);
+      };
+    };
+    
+  public:
+    
     /**
      * Returns this coordinate frame relative to the global inertial frame.
      * \note no operations are performed on forces.
@@ -152,7 +187,16 @@ class frame_2D : public pose_2D<T> {
       } else
         return *this;
     };
-
+    
+    /**
+     * Returns this coordinate frame relative to the frame or pose F.
+     * \note No operations are performed on forces. F is tested for being
+     *       castablet to a frame or not.
+     */
+    self getFrameRelativeTo(const base& F) const {
+      return getFrameRelativeToImpl(&F);
+    };
+    
     /**
      * Returns this coordinate frame relative to the frame or pose F.
      * \note No operations are performed on forces. F is tested for being
@@ -161,37 +205,9 @@ class frame_2D : public pose_2D<T> {
     self getFrameRelativeTo(const shared_ptr< const base >& F) const {
       if(!F)
         return getGlobalFrame();
-      if(this->Parent.expired()) { //If this is at the global node, F can meet this there.
-        shared_ptr< const self > p = rtti::rk_dynamic_ptr_cast< const self >(F);
-        if(p)
-          return (~(p->getGlobalFrame())) * (*this);
-        else
-          return (~(self(*F).getGlobalFrame())) * (*this);
-      } else if(this->isParentPose(F)) { //If F is somewhere down "this"'s chain
-        if(this->Parent.lock() == F)
-          return *this;
-        else {
-          shared_ptr< const self > p = rtti::rk_dynamic_ptr_cast< const self >(this->Parent.lock());
-          if(p)
-            return p->getFrameRelativeTo(F) * (*this);
-          else
-            return self(*(this->Parent.lock())).getFrameRelativeTo(F) * (*this);
-        };
-      } else if(F->isParentPose(rtti::rk_static_ptr_cast< const base >(this->mThis))) { //If this is somewhere down F's chain.
-        shared_ptr< const self >p = rtti::rk_dynamic_ptr_cast< const self >(F);
-        if(p)
-          return ~(p->getFrameRelativeTo(rtti::rk_static_ptr_cast< const base >(this->mThis)));
-        else
-          return ~(self(*F).getFrameRelativeTo(rtti::rk_static_ptr_cast< const base >(this->mThis)));
-      } else{ //Else means F's chain meets "this"'s chain somewhere down, possibly all the way to the global node.
-        shared_ptr< const self > p = rtti::rk_dynamic_ptr_cast< const self >(this->Parent.lock());
-        if(p)
-          return p->getFrameRelativeTo(F) * (*this);
-        else
-          return self(*(this->Parent.lock())).getFrameRelativeTo(F) * (*this);
-      };
+      return getFrameRelativeToImpl(F.get());
     };
-
+    
     /**
      * Adds frame Frame_ before this coordinate frame ("before" is meant in the same sense as for pose_2D::addBefore()).
      * The transformation uses classic "rotating frame" formulae.
@@ -209,7 +225,7 @@ class frame_2D : public pose_2D<T> {
 
       return *this;
     };
-
+    
     /**
      * Adds frame Frame_ after this coordinate frame ("after" is meant in the same sense as for pose_2D::addAfter()).
      * The transformation uses classic "rotating frame" formulae.
@@ -229,7 +245,7 @@ class frame_2D : public pose_2D<T> {
 
       return *this;
     };
-
+    
     /**
      * Assignment operator.
      */
@@ -247,7 +263,7 @@ class frame_2D : public pose_2D<T> {
 
       return *this;
     };
-
+    
     /**
      * Multiplication-assignment operator, equivalent to "this->addBefore( F )".
      * \note No operations are performed on forces.
@@ -264,7 +280,7 @@ class frame_2D : public pose_2D<T> {
 
       return *this;
     };
-
+    
     /**
      * Multiplication-assignment operator, equivalent to "this->addBefore( P )".
      * \note No operations are performed on forces.
@@ -279,7 +295,7 @@ class frame_2D : public pose_2D<T> {
 
       return *this;
     };
-
+    
     /**
      * Multiplication operator, equivalent to "result = *this; result->addBefore( F )".
      * \note No operations are performed on forces.
@@ -300,7 +316,7 @@ class frame_2D : public pose_2D<T> {
 
       return result;
     };
-
+    
     /**
      * Multiplication operator, equivalent to "result = *this; result->addBefore( P )".
      * \note No operations are performed on forces.
@@ -321,7 +337,7 @@ class frame_2D : public pose_2D<T> {
 
       return result;
     };
-
+    
     /**
      * Multiplication operator, equivalent to "frame_2D<T>(P) * F".
      * \note No operations are performed on forces.
@@ -342,7 +358,7 @@ class frame_2D : public pose_2D<T> {
 
       return result;
     };
-
+    
     /**
      * Inversion operator, i.e. "this->addBefore( ~this ) == Parent".
      * \note Forces are negated and rotated.
@@ -358,11 +374,11 @@ class frame_2D : public pose_2D<T> {
                          -Force * this->Rotation,
                          -Torque);
     };
-
+    
 /*******************************************************************************
                    ReaK's RTTI and Serialization interfaces
 *******************************************************************************/
-
+    
     virtual void RK_CALL save(ReaK::serialization::oarchive& A, unsigned int) const {
       base::save(A,base::getStaticObjectType()->TypeVersion());
       A & RK_SERIAL_SAVE_WITH_NAME(Velocity)
@@ -381,9 +397,9 @@ class frame_2D : public pose_2D<T> {
         & RK_SERIAL_LOAD_WITH_NAME(Force)
         & RK_SERIAL_LOAD_WITH_NAME(Torque);
     };
-
+    
     RK_RTTI_MAKE_CONCRETE_1BASE(self,0x0000001F,1,"frame_2D",base)
-
+    
 };
 
 

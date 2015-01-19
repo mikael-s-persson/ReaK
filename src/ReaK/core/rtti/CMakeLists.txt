@@ -10,7 +10,6 @@ set(RTTI_HEADERS
   "${RKRTTIDIR}/so_type.hpp"
   "${RKRTTIDIR}/so_type_repo.hpp"
   "${RKRTTIDIR}/typed_containers.hpp"
-  "${RKRTTIDIR}/typed_object.hpp"
   "${RKRTTIDIR}/typed_primitives.hpp"
 )
 

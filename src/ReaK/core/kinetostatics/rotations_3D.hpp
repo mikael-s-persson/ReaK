@@ -70,7 +70,7 @@ class trans_mat_3D;
  * \test All tests for this class have been passed!
  */
 template <typename T>
-class rot_mat_3D : public serialization::serializable {
+class rot_mat_3D : public serializable {
   public:
     typedef rot_mat_3D<T> self;
     typedef void allocator_type;
@@ -514,7 +514,7 @@ class rot_mat_3D : public serialization::serializable {
         & RK_SERIAL_LOAD_WITH_ALIAS("r33",q[8]);
     };
     
-    RK_RTTI_MAKE_ABSTRACT_1BASE(self,0x00000018,1,"rot_mat_3D",serialization::serializable)
+    RK_RTTI_MAKE_ABSTRACT_1BASE(self,0x00000018,1,"rot_mat_3D",serializable)
 
 };
 
@@ -549,7 +549,7 @@ struct is_readable_matrix< rot_mat_3D<T> > {
  * \test All tests for this class have been passed!
  */
 template <typename T>
-class quaternion : public serialization::serializable {
+class quaternion : public serializable {
   public:
     typedef quaternion<T> self;
     typedef void allocator_type;
@@ -1343,7 +1343,7 @@ class quaternion : public serialization::serializable {
         & RK_SERIAL_LOAD_WITH_NAME(q[3]);
     };
     
-    RK_RTTI_MAKE_ABSTRACT_1BASE(self,0x0000001A,1,"quaternion",serialization::serializable)
+    RK_RTTI_MAKE_ABSTRACT_1BASE(self,0x0000001A,1,"quaternion",serializable)
 
 };
 
@@ -1368,7 +1368,7 @@ std::ostream& operator <<(std::ostream& out_stream,const quaternion<T>& Q) {
  * This class repressents a rotation using Euler angles (Tait-Bryan), 321-body-fixed, in body frame.
  */
 template <class T>
-class euler_angles_TB : public serialization::serializable {
+class euler_angles_TB : public serializable {
   public:
     typedef euler_angles_TB<T> self;
     typedef void allocator_type;
@@ -1897,7 +1897,7 @@ class euler_angles_TB : public serialization::serializable {
         & RK_SERIAL_LOAD_WITH_NAME(q[2]);
     };
     
-    RK_RTTI_MAKE_ABSTRACT_1BASE(self,0x0000001B,1,"euler_angles_TB",serialization::serializable)
+    RK_RTTI_MAKE_ABSTRACT_1BASE(self,0x0000001B,1,"euler_angles_TB",serializable)
 
 };
 
@@ -1922,7 +1922,7 @@ std::ostream& operator <<(std::ostream& out_stream,const euler_angles_TB<T>& E) 
  * \test All tests for this class have been passed!
  */
 template <class T>
-class axis_angle : public serialization::serializable {
+class axis_angle : public serializable {
   public:
     typedef axis_angle<T> self;
     typedef void allocator_type;
@@ -2445,7 +2445,7 @@ class axis_angle : public serialization::serializable {
         & RK_SERIAL_LOAD_WITH_NAME(mAxis);
     };
     
-    RK_RTTI_MAKE_ABSTRACT_1BASE(self,0x0000001C,1,"axis_angle",serialization::serializable)
+    RK_RTTI_MAKE_ABSTRACT_1BASE(self,0x0000001C,1,"axis_angle",serializable)
     
 };
 
@@ -2470,7 +2470,7 @@ std::ostream& operator <<(std::ostream& out_stream,const axis_angle<T>& A) {
  * \test All tests for this class have been passed!
  */
 template <class T>
-class trans_mat_3D : public serialization::serializable {
+class trans_mat_3D : public serializable {
   public:
     typedef trans_mat_3D<T> self;
     typedef void allocator_type;
@@ -3275,7 +3275,7 @@ class trans_mat_3D : public serialization::serializable {
       q[3] = 0.0; q[7] = 0.0; q[11] = 0.0; q[15] = 1.0;
     };
 
-    RK_RTTI_MAKE_ABSTRACT_1BASE(self,0x00000019,1,"trans_mat_3D",serialization::serializable)
+    RK_RTTI_MAKE_ABSTRACT_1BASE(self,0x00000019,1,"trans_mat_3D",serializable)
 
 };
 

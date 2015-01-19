@@ -58,9 +58,7 @@ namespace ReaK {
 class shared_object; //forward-declaration.
 
 /** Main namespace for ReaK's Serialization */
-namespace serialization {
-  class serializable; //forward-declaration
-};
+class serializable; //forward-declaration
 
 /** Main namespace for ReaK's Run-time Type Identification (RTTI) */
 namespace rtti {
@@ -80,8 +78,8 @@ struct get_type_id {
   
   static construct_ptr CreatePtr() BOOST_NOEXCEPT { return T::rk_rtti_CreatePtr(); };
   
-  typedef const serialization::serializable& save_type;
-  typedef serialization::serializable& load_type;
+  typedef const serializable& save_type;
+  typedef serializable& load_type;
 };
 
 

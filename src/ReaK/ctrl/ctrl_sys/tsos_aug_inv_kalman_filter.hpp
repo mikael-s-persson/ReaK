@@ -681,7 +681,7 @@ struct TSOSAIKF_belief_transfer {
  *         at least as a DiscreteLinearizedSystemType.
  */
 template <typename InvariantSystem>
-class TSOSAIKF_belief_transfer_factory : public serialization::serializable {
+class TSOSAIKF_belief_transfer_factory : public serializable {
   public:
     typedef TSOSAIKF_belief_transfer_factory<InvariantSystem> self;
     typedef TSOSAIKF_belief_transfer<self> predictor_type;
@@ -782,7 +782,7 @@ class TSOSAIKF_belief_transfer_factory : public serialization::serializable {
         & RK_SERIAL_LOAD_WITH_NAME(R);
     };
     
-    RK_RTTI_MAKE_ABSTRACT_1BASE(self,0xC2320007,1,"TSOSAIKF_belief_transfer_factory",serialization::serializable)
+    RK_RTTI_MAKE_ABSTRACT_1BASE(self,0xC2320007,1,"TSOSAIKF_belief_transfer_factory",serializable)
 };
 
 

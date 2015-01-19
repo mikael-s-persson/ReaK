@@ -48,14 +48,14 @@ void export_base() {
 
   using namespace boost::python;
   
-  class_< ReaK::rtti::typed_object,
-          ReaK::shared_ptr< ReaK::rtti::typed_object >, 
+  class_< ReaK::typed_object,
+          ReaK::shared_ptr< ReaK::typed_object >, 
           boost::noncopyable
         >("TypedObj",no_init);
   
-  class_< ReaK::serialization::serializable,
-          bases< ReaK::rtti::typed_object >,
-          ReaK::shared_ptr< ReaK::serialization::serializable >, 
+  class_< ReaK::serializable,
+          bases< ReaK::typed_object >,
+          ReaK::shared_ptr< ReaK::serializable >, 
           boost::noncopyable
         >("SerializableObj",no_init);
   
@@ -66,7 +66,7 @@ void export_base() {
   
   class_< ReaK::shared_object, 
           bases< ReaK::shared_object_base, 
-                 ReaK::serialization::serializable >,
+                 ReaK::serializable >,
           ReaK::shared_ptr< ReaK::shared_object >, 
           boost::noncopyable
         >("SharedObj",no_init);
@@ -93,9 +93,9 @@ void export_base() {
   implicitly_convertible< std::shared_ptr< ReaK::shared_object >, 
                           std::shared_ptr< ReaK::shared_object_base > >();
   implicitly_convertible< std::shared_ptr< ReaK::shared_object >, 
-                          std::shared_ptr< ReaK::serialization::serializable > >();
-  implicitly_convertible< std::shared_ptr< ReaK::serialization::serializable >, 
-                          std::shared_ptr< ReaK::rtti::typed_object > >();
+                          std::shared_ptr< ReaK::serializable > >();
+  implicitly_convertible< std::shared_ptr< ReaK::serializable >, 
+                          std::shared_ptr< ReaK::typed_object > >();
 #endif
   
 };

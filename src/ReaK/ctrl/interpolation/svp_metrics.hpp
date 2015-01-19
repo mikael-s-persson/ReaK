@@ -55,7 +55,7 @@ namespace pp {
  * \tparam TimeSpaceType The time topology type against which the interpolation is done.
  */
 template <typename TimeSpaceType = time_topology, bool MakeProper = false>
-struct svp_reach_time_metric : public serialization::serializable {
+struct svp_reach_time_metric : public serializable {
   
   typedef svp_reach_time_metric<TimeSpaceType,MakeProper> self;
   
@@ -126,7 +126,7 @@ struct svp_reach_time_metric : public serialization::serializable {
       & RK_SERIAL_LOAD_WITH_NAME(maximum_iterations);
   };
 
-  RK_RTTI_MAKE_ABSTRACT_1BASE(self,0xC2410009,1,"svp_reach_time_metric",serialization::serializable)
+  RK_RTTI_MAKE_ABSTRACT_1BASE(self,0xC2410009,1,"svp_reach_time_metric",serializable)
 };
 
 
@@ -139,7 +139,7 @@ struct svp_reach_time_metric : public serialization::serializable {
  * \tparam TimeSpaceType The time topology type against which the interpolation is done.
  */
 template <typename TimeSpaceType>
-struct svp_reach_time_metric<TimeSpaceType, true> : public serialization::serializable {
+struct svp_reach_time_metric<TimeSpaceType, true> : public serializable {
   
   typedef svp_reach_time_metric<TimeSpaceType, true> self;
   
@@ -228,7 +228,7 @@ struct svp_reach_time_metric<TimeSpaceType, true> : public serialization::serial
     A & RK_SERIAL_LOAD_WITH_NAME(t_space);
   };
 
-  RK_RTTI_MAKE_ABSTRACT_1BASE(self,0xC2410009,1,"svp_reach_time_metric",serialization::serializable)
+  RK_RTTI_MAKE_ABSTRACT_1BASE(self,0xC2410009,1,"svp_reach_time_metric",serializable)
 };
 
 

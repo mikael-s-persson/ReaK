@@ -52,36 +52,38 @@ class frame_3D : public pose_3D<T> {
     typedef frame_3D<T> self;
     typedef pose_3D<T> base;
     typedef T value_type;
-
+    
     typedef T* pointer;
     typedef const T* const_pointer;
     typedef T& reference;
     typedef const T& const_reference;
-
+    
     typedef typename base::position_type position_type;
     typedef typename base::vector_type vector_type;
     typedef typename base::rotation_type rotation_type;
-
+    
     typedef vect<T,3> linear_vector_type;
     typedef vect<T,3> angular_vector_type;
     typedef vect<T,4> angular_rate_type;
-
+    
     linear_vector_type Velocity; ///< Velocity vector of this kinematic frame, relative-to and expressed-in parent coordinates.
     angular_vector_type AngVelocity; ///< Angular velocity of this kinematic frame, relative to parent coordinates, expressed in this coordinate system (local).
-
+    
     linear_vector_type Acceleration; ///< Acceleration of this kinematic frame, relative-to and expressed-in parent coordinates.
     angular_vector_type AngAcceleration; ///< Angular Acceleration of this kinematic frame, relative to parent coordinates, expressed in this coordinate system (local).
-
+    
     linear_vector_type Force; ///< Force flowing through this frame, expressed in this coordinate system (local).
     angular_vector_type Torque; ///< Torque flowing through this frame, expressed in this coordinate system (local).
-
+    
     angular_rate_type QuatDot; ///< Quaternion time-derivative, relative to parent coordinate, expressed in this coordinate system (local).
-
+    
     /**
      * Default constructor, all is set to zero.
      */
-    frame_3D() : base(), Velocity(), AngVelocity(), Acceleration(), AngAcceleration(), Force(), Torque(), QuatDot()  { };
-
+    frame_3D() : base(), Velocity(), AngVelocity(), 
+                 Acceleration(), AngAcceleration(), 
+                 Force(), Torque(), QuatDot()  { };
+    
     /**
      * Parametrized constructor, all is set to corresponding parameters.
      */
@@ -103,7 +105,7 @@ class frame_3D : public pose_3D<T> {
              Torque(aTorque) {
       UpdateQuatDot();
     };
-
+    
     /**
      * Copy-constructor.
      */
@@ -116,7 +118,7 @@ class frame_3D : public pose_3D<T> {
                                           Torque(aFrame.Torque) {
       UpdateQuatDot();
     };
-
+    
     /**
      * Explicit conversion from static 3D pose.
      */
@@ -128,20 +130,56 @@ class frame_3D : public pose_3D<T> {
                                                  Force(),
                                                  Torque(),
                                                  QuatDot() { };
-
-
+    
+    
     /**
      * Default destructor.
      */
     virtual ~frame_3D() { };
-
+    
+  protected:
+    
+    self getFrameRelativeToImpl(const base* F) const {
+      if(!F)
+        return getGlobalFrame();
+      if(this->Parent.expired()) { //If this is at the global node, F can meet this there.
+        if(rtti::rk_is_of_type<self>(F))
+          return (~(static_cast<const self*>(F)->getGlobalFrame())) * (*this);
+        else
+          return (~(self(*F).getGlobalFrame())) * (*this);
+      } else if(this->isParentPoseImpl(F)) { //If F is somewhere down "this"'s chain.
+        shared_ptr< base > p = this->Parent.lock();
+        if(p.get() == F)
+          return *this;
+        else {
+          if(rtti::rk_is_of_type<self>(p))
+            return static_cast<const self*>(p.get())->getFrameRelativeToImpl(F) * (*this);
+          else
+            return self(*p).getFrameRelativeToImpl(F) * (*this);
+        };
+      } else if(F->isParentPose(*this)) { //If this is somewhere down F's chain.
+        if(rtti::rk_is_of_type<self>(F))
+          return ~(static_cast<const self*>(F)->getFrameRelativeToImpl(this));
+        else
+          return ~(self(*F).getFrameRelativeToImpl(this));
+      } else { //Else means F's chain meets "this"'s chain somewhere down, possibly all the way to the global node.
+        shared_ptr< base > p = this->Parent.lock();
+        if(rtti::rk_is_of_type<self>(p))
+          return static_cast<const self*>(p.get())->getFrameRelativeToImpl(F) * (*this);
+        else
+          return self(*p).getFrameRelativeToImpl(F) * (*this);
+      };
+    };
+    
+  public:
+    
     /**
      * Updates the quaternion time-derivative to correspond to current angular velocity.
      */
     void UpdateQuatDot() {
       QuatDot = this->Quat.getQuaternionDot(AngVelocity);
     };
-
+    
     /**
      * Returns this coordinate frame relative to the global inertial frame.
      * \note no operations are performed on forces.
@@ -171,7 +209,16 @@ class frame_3D : public pose_3D<T> {
       } else
         return *this;
     };
-
+    
+    /**
+     * Returns this coordinate frame relative to the frame or pose F.
+     * \note No operations are performed on forces. F is tested for being
+     *       castablet to a frame or not.
+     */
+    self getFrameRelativeTo(const base& F) const {
+      return getFrameRelativeToImpl(&F);
+    };
+    
     /**
      * Returns this coordinate frame relative to the frame or pose F.
      * \note No operations are performed on forces. F is tested for being
@@ -180,37 +227,9 @@ class frame_3D : public pose_3D<T> {
     self getFrameRelativeTo(const shared_ptr< const base >& F) const {
       if(!F)
         return getGlobalFrame();
-      if(this->Parent.expired()) { //If this is at the global node, F can meet this there.
-        shared_ptr< const self > p = rtti::rk_dynamic_ptr_cast< const self >(F);
-        if(p)
-          return (~(p->getGlobalFrame())) * (*this);
-        else
-          return (~(self(*F).getGlobalFrame())) * (*this);
-      } else if(this->isParentPose(F)) { //If F is somewhere down "this"'s chain.
-        if(this->Parent.lock() == F)
-          return *this;
-        else {
-          shared_ptr< const self > p = rtti::rk_dynamic_ptr_cast< const self >(this->Parent.lock());
-          if(p)
-            return p->getFrameRelativeTo(F) * (*this);
-          else
-            return self(*(this->Parent.lock())).getFrameRelativeTo(F) * (*this);
-        };
-      } else if(F->isParentPose(rtti::rk_static_ptr_cast< const base >(this->mThis))) { //If this is somewhere down F's chain.
-        shared_ptr< const self >p = rtti::rk_dynamic_ptr_cast< const self >(F);
-        if(p)
-          return ~(p->getFrameRelativeTo(rtti::rk_static_ptr_cast< const base >(this->mThis)));
-        else
-          return ~(self(*F).getFrameRelativeTo(rtti::rk_static_ptr_cast< const base >(this->mThis)));
-      } else { //Else means F's chain meets "this"'s chain somewhere down, possibly all the way to the global node.
-        shared_ptr< const self > p = rtti::rk_dynamic_ptr_cast< const self >(this->Parent.lock());
-        if(p)
-          return p->getFrameRelativeTo(F) * (*this);
-        else
-          return self(*(this->Parent.lock())).getFrameRelativeTo(F) * (*this);
-      };
+      return getFrameRelativeToImpl(F.get());
     };
-
+    
     /**
      * Adds frame Frame_ before this coordinate frame ("before" is meant in the same sense as for pose_3D::addBefore()).
      * The transformation uses classic "rotating frame" formulae.
@@ -249,7 +268,7 @@ class frame_3D : public pose_3D<T> {
 
       return *this;
     };
-
+    
     /**
      * Adds frame Frame_ after this coordinate frame ("after" is meant in the same sense as for pose_3D::addAfter()).
      * The transformation uses classic "rotating frame" formulae.
@@ -306,7 +325,7 @@ class frame_3D : public pose_3D<T> {
       UpdateQuatDot();
       return *this;
     };
-
+    
     /**
      * Assignment operator.
      */
@@ -325,7 +344,7 @@ class frame_3D : public pose_3D<T> {
       UpdateQuatDot();
       return *this;
     };
-
+    
     /**
      * Multiplication-assignment operator, equivalent to "this->addBefore( F )".
      * \note No operations are performed on forces.
@@ -333,7 +352,7 @@ class frame_3D : public pose_3D<T> {
     self& operator *=(const self& F) {
       return addBefore(F);
     };
-
+    
     /**
      * Multiplication-assignment operator, equivalent to "this->addBefore( P )".
      * \note No operations are performed on forces.
@@ -341,7 +360,7 @@ class frame_3D : public pose_3D<T> {
     self& operator *=(const base& P) {
       return addBefore(P);
     };
-
+    
     /**
      * Multiplication operator, equivalent to "result = *this; result->addBefore( F )".
      * \note No operations are performed on forces.
@@ -351,7 +370,7 @@ class frame_3D : public pose_3D<T> {
       F1 *= F2;
       return F1;
     };
-
+    
     /**
      * Multiplication operator, equivalent to "result = *this; result->addBefore( P )".
      * \note No operations are performed on forces.
@@ -368,7 +387,7 @@ class frame_3D : public pose_3D<T> {
       result *= F;
       return result;
     };
-
+    
     /**
      * Inversion operator, i.e. "this->addBefore( ~this ) == Parent".
      * \note Forces are negated and rotated.
@@ -386,12 +405,12 @@ class frame_3D : public pose_3D<T> {
       result.Torque = R * (-Torque); //action-reaction
       return result;
     };
-
-
+    
+    
 /*******************************************************************************
                    ReaK's RTTI and Serialization interfaces
 *******************************************************************************/
-
+    
     virtual void RK_CALL save(ReaK::serialization::oarchive& A, unsigned int) const {
       pose_3D<T>::save(A,pose_3D<T>::getStaticObjectType()->TypeVersion());
       A & RK_SERIAL_SAVE_WITH_NAME(Velocity)
@@ -412,9 +431,9 @@ class frame_3D : public pose_3D<T> {
 
       UpdateQuatDot();
     };
-
+    
     RK_RTTI_MAKE_CONCRETE_1BASE(self,0x00000020,1,"frame_3D",base)
-
+    
 };
 
 

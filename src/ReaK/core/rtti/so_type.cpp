@@ -22,7 +22,7 @@
  */
 
 #include <ReaK/core/rtti/so_type.hpp>
-#include <ReaK/core/rtti/typed_object.hpp>
+#include <ReaK/core/base/typed_object.hpp>
 
 #include <iostream>
 #include <algorithm>

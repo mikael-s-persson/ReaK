@@ -622,7 +622,7 @@ struct te_mg_selector {
  * This stateless functor type can be used to print out the information about an A*-like motion-graph vertex.
  * This is a printing policy type for the vlist_sbmp_report class.
  */
-struct mg_vertex_printer : serialization::serializable {
+struct mg_vertex_printer : serializable {
   
   /**
    * This call operator prints all the information about a given vertex to a given output-stream.
@@ -641,7 +641,7 @@ struct mg_vertex_printer : serialization::serializable {
   virtual void RK_CALL save(serialization::oarchive& A, unsigned int) const { };
   virtual void RK_CALL load(serialization::iarchive& A, unsigned int) { };
   
-  RK_RTTI_MAKE_ABSTRACT_1BASE(mg_vertex_printer,0xC2460011,1,"mg_vertex_printer",serialization::serializable)
+  RK_RTTI_MAKE_ABSTRACT_1BASE(mg_vertex_printer,0xC2460011,1,"mg_vertex_printer",serializable)
 };
 
 
@@ -663,7 +663,7 @@ const std::size_t RECURSIVE_DENSE_MOTION_GRAPH_KIND   = 0x20;
  * This is a printing policy type for the vlist_sbmp_report class.
  */
 template <typename Topology>
-struct any_mg_vertex_printer : serialization::serializable {
+struct any_mg_vertex_printer : serializable {
   typedef any_mg_vertex_printer<Topology> self;
   typedef typename topology_traits<Topology>::point_type PointType;
   
@@ -722,7 +722,7 @@ struct any_mg_vertex_printer : serialization::serializable {
     A & RK_SERIAL_LOAD_WITH_NAME(graph_kind);
   };
   
-  RK_RTTI_MAKE_ABSTRACT_1BASE(self,0xC2460012,1,"any_mg_vertex_printer",serialization::serializable)
+  RK_RTTI_MAKE_ABSTRACT_1BASE(self,0xC2460012,1,"any_mg_vertex_printer",serializable)
 };
 
 

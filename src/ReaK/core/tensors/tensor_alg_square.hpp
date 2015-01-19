@@ -60,7 +60,7 @@ namespace ReaK {
  */
 template <typename T,
           typename Allocator>
-class tensor<T,3,tensor_structure::square,tensor_alignment::hi_dim_major,Allocator> : public serialization::serializable {
+class tensor<T,3,tensor_structure::square,tensor_alignment::hi_dim_major,Allocator> : public serializable {
   public:    
     
     typedef tensor<T,3,tensor_structure::square,tensor_alignment::hi_dim_major,Allocator> self;
@@ -402,7 +402,7 @@ class tensor<T,3,tensor_structure::square,tensor_alignment::hi_dim_major,Allocat
       count = tmp;
     };
     
-    RK_RTTI_REGISTER_CLASS_1BASE(self,1,serialization::serializable)
+    RK_RTTI_REGISTER_CLASS_1BASE(self,1,serializable)
   
     
   
@@ -422,7 +422,7 @@ class tensor<T,3,tensor_structure::square,tensor_alignment::hi_dim_major,Allocat
  */
 template <typename T,
           typename Allocator>
-class tensor<T,3,tensor_structure::square,tensor_alignment::low_dim_major,Allocator> : public serialization::serializable {
+class tensor<T,3,tensor_structure::square,tensor_alignment::low_dim_major,Allocator> : public serializable {
   public:    
     
     typedef tensor<T,3,tensor_structure::square,tensor_alignment::low_dim_major,Allocator> self;
@@ -761,7 +761,7 @@ class tensor<T,3,tensor_structure::square,tensor_alignment::low_dim_major,Alloca
       count = tmp;
     };
     
-    RK_RTTI_REGISTER_CLASS_1BASE(self,1,serialization::serializable)
+    RK_RTTI_REGISTER_CLASS_1BASE(self,1,serializable)
   
 };
 
@@ -788,7 +788,7 @@ class tensor<T,3,tensor_structure::square,tensor_alignment::low_dim_major,Alloca
  */
 template <typename T,
           typename Allocator>
-class tensor<T,4,tensor_structure::square,tensor_alignment::hi_dim_major,Allocator> : public serialization::serializable {
+class tensor<T,4,tensor_structure::square,tensor_alignment::hi_dim_major,Allocator> : public serializable {
   public:    
     
     typedef tensor<T,4,tensor_structure::square,tensor_alignment::hi_dim_major,Allocator> self;
@@ -1138,7 +1138,7 @@ class tensor<T,4,tensor_structure::square,tensor_alignment::hi_dim_major,Allocat
       count = tmp;
     };
     
-    RK_RTTI_REGISTER_CLASS_1BASE(self,1,serialization::serializable)
+    RK_RTTI_REGISTER_CLASS_1BASE(self,1,serializable)
   
     
   
@@ -1158,7 +1158,7 @@ class tensor<T,4,tensor_structure::square,tensor_alignment::hi_dim_major,Allocat
  */
 template <typename T,
           typename Allocator>
-class tensor<T,4,tensor_structure::square,tensor_alignment::low_dim_major,Allocator> : public serialization::serializable {
+class tensor<T,4,tensor_structure::square,tensor_alignment::low_dim_major,Allocator> : public serializable {
   public:    
     
     typedef tensor<T,4,tensor_structure::square,tensor_alignment::low_dim_major,Allocator> self;
@@ -1506,7 +1506,7 @@ class tensor<T,4,tensor_structure::square,tensor_alignment::low_dim_major,Alloca
       count = tmp;
     };
     
-    RK_RTTI_REGISTER_CLASS_1BASE(self,1,serialization::serializable)
+    RK_RTTI_REGISTER_CLASS_1BASE(self,1,serializable)
   
 };
 

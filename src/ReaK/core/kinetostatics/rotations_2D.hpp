@@ -56,7 +56,7 @@ template <class T> class trans_mat_2D;
  * \test All unit test for this class have been passed!
  */
 template <typename T>
-class rot_mat_2D : public serialization::serializable {
+class rot_mat_2D : public serializable {
   public:
     typedef rot_mat_2D<T> self;
     typedef void allocator_type;
@@ -420,7 +420,7 @@ class rot_mat_2D : public serialization::serializable {
         & RK_SERIAL_LOAD_WITH_ALIAS("sin",q[1]);
     };
     
-    RK_RTTI_MAKE_ABSTRACT_1BASE(self,0x00000016,1,"rot_mat_2D",serialization::serializable)
+    RK_RTTI_MAKE_ABSTRACT_1BASE(self,0x00000016,1,"rot_mat_2D",serializable)
 
 };
 
@@ -452,7 +452,7 @@ struct is_readable_matrix< rot_mat_2D<T> > {
  * \test All unit tests for this class have been passed!
  */
 template <typename T>
-class trans_mat_2D : public serialization::serializable {
+class trans_mat_2D : public serializable {
   public:
     typedef trans_mat_2D<T> self;
     typedef void allocator_type;
@@ -896,7 +896,7 @@ class trans_mat_2D : public serialization::serializable {
       q[8] = 1.0;
     };
 
-    RK_RTTI_MAKE_ABSTRACT_1BASE(self,0x00000017,1,"trans_mat_2D",serialization::serializable)
+    RK_RTTI_MAKE_ABSTRACT_1BASE(self,0x00000017,1,"trans_mat_2D",serializable)
 
 };
 

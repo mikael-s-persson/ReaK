@@ -289,7 +289,7 @@ ReaK Archive - Protobuf (*.pbuf)");
   } else if(dk_it != dk_models.end()) {
     saveDirectKinModel(*out_ar, current_obj_name, dk_it->second);
   } else {
-    ReaK::shared_ptr< ReaK::serialization::serializable > current_obj_ptr = (*objtree_graph)[current_obj_id].p_obj;
+    ReaK::shared_ptr< ReaK::serializable > current_obj_ptr = (*objtree_graph)[current_obj_id].p_obj;
     (*out_ar) << current_obj_ptr;
   };
   

@@ -289,7 +289,7 @@ class svp_interpolator {
  *                          whose 1-order derivative space has a spherical bound (see SphereBoundedSpaceConcept).
  */
 template <typename TemporalTopology>
-class svp_interpolator_factory : public serialization::serializable {
+class svp_interpolator_factory : public serializable {
   public:
     typedef svp_interpolator_factory<TemporalTopology> self;
     typedef TemporalTopology topology;
@@ -337,7 +337,7 @@ class svp_interpolator_factory : public serialization::serializable {
         & RK_SERIAL_LOAD_WITH_NAME(maximum_iterations);
     };
 
-    RK_RTTI_MAKE_ABSTRACT_1BASE(self,0xC2430004,1,"svp_interpolator_factory",serialization::serializable)
+    RK_RTTI_MAKE_ABSTRACT_1BASE(self,0xC2430004,1,"svp_interpolator_factory",serializable)
 };
 
 

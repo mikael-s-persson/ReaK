@@ -34,16 +34,13 @@
 #ifndef REAK_TYPED_OBJECT_HPP
 #define REAK_TYPED_OBJECT_HPP
 
-#include <ReaK/core/base/defs.hpp>
+#include "defs.hpp"
 #include <ReaK/core/rtti/rtti.hpp>
 
 namespace ReaK {
 
-namespace rtti {
-
-
 /**
- * The basic class "ReaK::rtti::typed_object" allows all descendants
+ * The basic class "ReaK::typed_object" allows all descendants
  * to be associated with at shared object type (so_type) structure. All descendant classes can
  * be registered in the ReaK::rtti system and thus, enjoy the dynamic casting
  * features of the ReaK platform, across executable modules. This feature is also required for
@@ -56,7 +53,7 @@ class typed_object {
     /**
      * This method is used to perform up- and down- casting of object pointers via a virtual call.
      */
-    virtual void* RK_CALL castTo(so_type* aTypeID) { 
+    virtual void* RK_CALL castTo(rtti::so_type* aTypeID) { 
       if(*(aTypeID->TypeID_begin()) == 0) 
         return reinterpret_cast<void*>(this); 
       else 
@@ -66,26 +63,45 @@ class typed_object {
     /**
      * This method is used to perform up- and down- casting of const-object pointers via a virtual call.
      */
-    virtual const void* RK_CALL castTo(so_type* aTypeID) const { 
+    virtual const void* RK_CALL castTo(rtti::so_type* aTypeID) const { 
       if(*(aTypeID->TypeID_begin()) == 0) 
         return reinterpret_cast<const void*>(this); 
       else 
         return NULL;
     };
 
-    virtual ~typed_object() { RK_NOTICE(8,"Typed object destructor reached!"); };
+    virtual ~typed_object() { };
 
        
     /** This method fetches the object type structure from the ReaK::rtti system or creates it if it has not been registered yet. */
-    virtual so_type* RK_CALL getObjectType() const {
+    virtual rtti::so_type* RK_CALL getObjectType() const {
       return NULL;
     };
     /** This method fetches the object type structure from the ReaK::rtti system or creates it if it has not been registered yet. */
-    static so_type* RK_CALL getStaticObjectType() {
+    static rtti::so_type* RK_CALL getStaticObjectType() {
       return NULL;
     };
-
+    
 };
+
+
+namespace rtti {
+
+template <typename T>
+bool rk_is_of_type(const typed_object& obj) {
+  return (obj.castTo(T::getStaticObjectType()) != NULL);
+};
+
+template <typename T>
+bool rk_is_of_type(const typed_object* obj) {
+  return (obj->castTo(T::getStaticObjectType()) != NULL);
+};
+
+template <typename T>
+bool rk_is_of_type(const shared_ptr<const typed_object>& obj) {
+  return (obj->castTo(T::getStaticObjectType()) != NULL);
+};
+
 
 #ifdef BOOST_NO_CXX11_SMART_PTR
 
@@ -150,6 +166,12 @@ std::unique_ptr<Y,Deleter> rk_dynamic_ptr_cast(std::unique_ptr<U,Deleter>&& p) {
   } else
     return std::unique_ptr<Y,Deleter>();
 };
+
+template <typename T,typename Deleter>
+bool rk_is_of_type(const std::unique_ptr<const typed_object, Deleter>& obj) {
+  return (obj->castTo(T::getStaticObjectType()) != NULL);
+};
+
 #endif
 
 
@@ -406,11 +428,6 @@ std::unique_ptr<Y,Deleter> rk_dynamic_ptr_cast(std::unique_ptr<U,Deleter>&& p) {
     RK_RTTI_REGISTER_CUSTOM_FACTORY(0) \
     RK_RTTI_REGISTER_CLASS_ID(CLASS_STR_NAME,CLASS_ID) \
     RK_RTTI_REGISTER_CLASS_4BASE(CLASS_NAME,CLASS_VERSION,BASE_NAME1,BASE_NAME2,BASE_NAME3,BASE_NAME4)
-
-
-
-
-
 
 
 

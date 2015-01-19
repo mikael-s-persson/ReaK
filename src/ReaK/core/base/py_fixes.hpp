@@ -41,7 +41,7 @@
 
 #ifndef BOOST_NO_CXX11_SMART_PTR
 
-#if (defined(__clang__) || (BOOST_VERSION < 105300))
+#if (BOOST_VERSION < 105300)
 
 namespace std {
   

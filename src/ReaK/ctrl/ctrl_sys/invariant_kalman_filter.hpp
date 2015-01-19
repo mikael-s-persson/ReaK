@@ -480,7 +480,7 @@ struct IKF_belief_transfer {
  * \tparam InvariantSystem An invariant discrete-time state-space system modeling the InvariantDiscreteSystemConcept.
  */
 template <typename InvariantSystem>
-class IKF_belief_transfer_factory : public serialization::serializable {
+class IKF_belief_transfer_factory : public serializable {
   public:
     typedef IKF_belief_transfer_factory<InvariantSystem> self;
     typedef IKF_belief_transfer<self> predictor_type;
@@ -581,7 +581,7 @@ class IKF_belief_transfer_factory : public serialization::serializable {
         & RK_SERIAL_LOAD_WITH_NAME(R);
     };
     
-    RK_RTTI_MAKE_ABSTRACT_1BASE(self,0xC2320002,1,"IKF_belief_transfer_factory",serialization::serializable)
+    RK_RTTI_MAKE_ABSTRACT_1BASE(self,0xC2320002,1,"IKF_belief_transfer_factory",serializable)
 };
 
 

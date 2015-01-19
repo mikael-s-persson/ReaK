@@ -108,6 +108,8 @@ struct sequential_trajectory_traits {
  * b = (fit != fit);
  * b = (fit == fit);  Two fraction-iterator can be compared for equality.
  * 
+ * d = traj.travel_distance(pt,pt);  The travel distance (as of the distance-metric), along the trajectory (p), between two points (pt,pt), can be obtained.
+ * 
  * \tparam SequentialTraj The type to be checked for the requirements of this concept.
  * \tparam Topology The topology in which the trajectory should reside.
  */
@@ -152,6 +154,8 @@ struct SequentialTrajectoryConcept {
     
     b = (fit != fit);
     b = (fit == fit);
+    
+    d = traj->travel_distance(pt,pt);
   };
   
 };

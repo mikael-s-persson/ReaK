@@ -71,7 +71,7 @@ void export_vect_alg() {
   using namespace boost::python;
   
   class_< ReaK::vect<double,2>,
-          bases< ReaK::serialization::serializable >
+          bases< ReaK::serializable >
         >("Vector2D")
     .def(init<double,double>())
     .def(self + self)
@@ -99,7 +99,7 @@ void export_vect_alg() {
   def("colinear",static_cast< bool(*)(const ReaK::vect<double,2>&, const ReaK::vect<double,2>&) >(&ReaK::colinear));
   
   class_< ReaK::vect<double,3>,
-          bases< ReaK::serialization::serializable >
+          bases< ReaK::serializable >
         >("Vector3D")
     .def(init<double,double,double>())
     .def(self + self)
@@ -127,7 +127,7 @@ void export_vect_alg() {
   def("colinear",static_cast< bool(*)(const ReaK::vect<double,3>&, const ReaK::vect<double,3>&) >(&ReaK::colinear));
   
   class_< ReaK::vect<double,4>,
-          bases< ReaK::serialization::serializable >
+          bases< ReaK::serializable >
         >("Vector4D")
     .def(init<double,double,double,double>())
     .def(self + self)
@@ -154,7 +154,7 @@ void export_vect_alg() {
   def("colinear",static_cast< bool(*)(const ReaK::vect<double,4>&, const ReaK::vect<double,4>&) >(&ReaK::colinear));
   
   class_< ReaK::vect_n<double, std::allocator<double> >,
-          bases< ReaK::serialization::serializable >
+          bases< ReaK::serializable >
         >("VectorND")
     .def(init<double,double,double>())
     .def(init<double,double,double,double>())

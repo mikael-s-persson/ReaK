@@ -37,7 +37,7 @@
 
 #include <ReaK/core/base/defs.hpp>
 #include <ReaK/core/base/shared_object_base.hpp>
-#include <ReaK/core/rtti/typed_object.hpp>
+#include <ReaK/core/base/typed_object.hpp>
 
 #include <boost/preprocessor/stringize.hpp>
 
@@ -75,10 +75,10 @@
 /** Main namespace for ReaK */
 namespace ReaK {
 
+class serializable;
+
 /** Main namespace for ReaK's Serialization */
 namespace serialization {
-
-class serializable;
 
 typedef ReaK::shared_ptr< serializable > serializable_shared_pointer;
 

@@ -155,7 +155,7 @@ class vect_n;  // forward-declaration.
  * This class implements a fixed-size templated vector class which holds components of primitive type.
  */
 template <typename T, unsigned int Size>
-class vect : public serialization::serializable {
+class vect : public serializable {
   public:
     typedef vect<T,Size> self;
     
@@ -938,7 +938,7 @@ class vect : public serialization::serializable {
         A & std::pair<std::string, typename ReaK::rtti::get_type_id<T>::load_type >("q",q[i]);
     };
     
-    RK_RTTI_REGISTER_CLASS_1BASE(self,1,serialization::serializable)
+    RK_RTTI_REGISTER_CLASS_1BASE(self,1,serializable)
 
 };
 
@@ -954,8 +954,8 @@ struct get_type_id< vect<T,Size> > {
 #endif
   static construct_ptr CreatePtr() BOOST_NOEXCEPT { return NULL; };
   
-  typedef const serialization::serializable& save_type;
-  typedef serialization::serializable& load_type;
+  typedef const serializable& save_type;
+  typedef serializable& load_type;
 };
 
 template <typename T, unsigned int Size, typename Tail>
@@ -1328,7 +1328,7 @@ vect<T,3> operator %(const vect_component<T,2>& V1,const vect<T,3>& V2) {
  * This class implements a variable-size templated vector class which holds components of dimensional quantities.
  */
 template <typename T, typename Allocator = std::allocator<T> >
-class vect_n : public serialization::serializable {
+class vect_n : public serializable {
   public:
     
     typedef vect_n<T,Allocator> self;
@@ -1923,7 +1923,7 @@ class vect_n : public serialization::serializable {
       A & std::pair<std::string, std::vector<T>&>("q",q);
     };
     
-    RK_RTTI_REGISTER_CLASS_1BASE(self,1,serialization::serializable)
+    RK_RTTI_REGISTER_CLASS_1BASE(self,1,serializable)
 
 };
 
@@ -1940,8 +1940,8 @@ struct get_type_id< vect_n<T,Allocator> > {
 #endif
   static construct_ptr CreatePtr() BOOST_NOEXCEPT { return NULL; };
   
-  typedef const serialization::serializable& save_type;
-  typedef serialization::serializable& load_type;
+  typedef const serializable& save_type;
+  typedef serializable& load_type;
 };
 
 template <typename T, typename Allocator, typename Tail>

@@ -63,7 +63,7 @@ namespace pp {
  * point-difference (e.g. finite-difference) to the tangent space, or to descend 
  * a tangent vector to a point-difference.
  */
-struct default_differentiation_rule : public serialization::serializable {
+struct default_differentiation_rule : public serializable {
   /**
    * This function will lift a point-difference vector into its corresponding tangent vector.
    * This function performs a simple division, dp / dt.
@@ -103,7 +103,7 @@ struct default_differentiation_rule : public serialization::serializable {
 
   virtual void RK_CALL load(serialization::iarchive& A, unsigned int) { };
 
-  RK_RTTI_MAKE_ABSTRACT_1BASE(default_differentiation_rule,0xC2420000,1,"default_differentiation_rule",serialization::serializable)
+  RK_RTTI_MAKE_ABSTRACT_1BASE(default_differentiation_rule,0xC2420000,1,"default_differentiation_rule",serializable)
 };
 
 /**

@@ -59,7 +59,7 @@ namespace pp {
  * \tparam TimeSpaceType The time topology type against which the interpolation is done.
  */
 template <typename TimeSpaceType = ReaK::pp::time_topology>
-struct svp_Ndof_rate_limited_sampler : public serialization::serializable {
+struct svp_Ndof_rate_limited_sampler : public serializable {
   
   typedef svp_Ndof_rate_limited_sampler<TimeSpaceType> self;
   
@@ -106,7 +106,7 @@ struct svp_Ndof_rate_limited_sampler : public serialization::serializable {
     A & RK_SERIAL_LOAD_WITH_NAME(t_space);
   };
 
-  RK_RTTI_MAKE_ABSTRACT_1BASE(self,0xC2450003,1,"svp_Ndof_rate_limited_sampler",serialization::serializable)
+  RK_RTTI_MAKE_ABSTRACT_1BASE(self,0xC2450003,1,"svp_Ndof_rate_limited_sampler",serializable)
 };
 
 

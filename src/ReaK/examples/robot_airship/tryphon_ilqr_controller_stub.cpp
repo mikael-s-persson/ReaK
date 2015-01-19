@@ -6,6 +6,7 @@
 
 #include <ReaK/core/lin_alg/vect_alg.hpp>
 #include <ReaK/core/lin_alg/mat_alg.hpp>
+#include <ReaK/core/kinetostatics/quat_alg.hpp>
 #include <ReaK/ctrl/ss_systems/airship_assembled_models.hpp>
 #include <ReaK/core/serialization/archiver_factory.hpp>
 
@@ -152,7 +153,6 @@ int main(int argc, char **argv)
   };
   
   
-  using ReaK::log;
   ReaK::vect_n<double> err(12, 0.0);
   ReaK::quaternion<double> cur_inv_quat;
   ReaK::unit_quat<double> quat_diff;

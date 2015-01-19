@@ -1632,7 +1632,7 @@ namespace detail {
   typename boost::enable_if<
     boost::mpl::equal_to< Idx, boost::mpl::size_t<0> >,
   T& >::type get_by_type_impl(Tuple&) {
-    char The_given_type_was_not_found_in_the_tuple[0];
+    char The_given_type_was_not_found_in_the_tuple[0]; RK_UNUSED(The_given_type_was_not_found_in_the_tuple);
   };
   
   template <typename Idx, typename T, typename Tuple>

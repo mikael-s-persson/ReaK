@@ -53,13 +53,14 @@ namespace ReaK {
  * defined classes). Usually, however, end-users will prefer the ReaK::named_object class which
  * adds a name to the objects (and it is the next descendant after ReaK::shared_object).
  */
-class shared_object : public shared_object_base, public serialization::serializable {
-  public:
+class shared_object : public serializable, public shared_object_base {
+  protected:
     virtual void RK_CALL destroy() { delete this; };
+  public:
     
     virtual ~shared_object() { };
     
-    RK_RTTI_MAKE_ABSTRACT_1BASE(shared_object,0x80000001,1,"shared_object",serialization::serializable)
+    RK_RTTI_MAKE_ABSTRACT_1BASE(shared_object,0x80000001,1,"shared_object",serializable)
     
 };
 

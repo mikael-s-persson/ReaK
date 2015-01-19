@@ -306,7 +306,7 @@ class svp_Ndof_interpolator {
  *                          whose 1-order derivative space has a spherical bound (see SphereBoundedSpaceConcept).
  */
 template <typename TemporalTopology>
-class svp_Ndof_interp_factory : public serialization::serializable {
+class svp_Ndof_interp_factory : public serializable {
   public:
     typedef svp_Ndof_interp_factory<TemporalTopology> self;
     typedef TemporalTopology topology;
@@ -344,7 +344,7 @@ class svp_Ndof_interp_factory : public serialization::serializable {
       A & RK_SERIAL_LOAD_WITH_NAME(space);
     };
 
-    RK_RTTI_MAKE_ABSTRACT_1BASE(self,0xC2430006,1,"svp_Ndof_interp_factory",serialization::serializable)
+    RK_RTTI_MAKE_ABSTRACT_1BASE(self,0xC2430006,1,"svp_Ndof_interp_factory",serializable)
 };
 
 

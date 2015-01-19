@@ -68,7 +68,7 @@ struct is_fully_writable_matrix< mat<T,mat_structure::square,Alignment,Allocator
  * \tparam Allocator Standard allocator class (as in the STL), the default is std::allocator<T>.
  */
 template <typename T, typename Allocator>
-class mat<T,mat_structure::square,mat_alignment::column_major,Allocator> : public serialization::serializable {
+class mat<T,mat_structure::square,mat_alignment::column_major,Allocator> : public serializable {
   public:    
     
     typedef mat<T,mat_structure::square,mat_alignment::column_major,Allocator> self;
@@ -645,7 +645,7 @@ class mat<T,mat_structure::square,mat_alignment::column_major,Allocator> : publi
       rowCount = tmp;
     };
     
-    RK_RTTI_REGISTER_CLASS_1BASE(self,1,serialization::serializable)
+    RK_RTTI_REGISTER_CLASS_1BASE(self,1,serializable)
   
 };
 
@@ -664,7 +664,7 @@ class mat<T,mat_structure::square,mat_alignment::column_major,Allocator> : publi
  * \tparam Allocator Standard allocator class (as in the STL), the default is std::allocator<T>.
  */
 template <typename T, typename Allocator>
-class mat<T,mat_structure::square,mat_alignment::row_major,Allocator> : public serialization::serializable {
+class mat<T,mat_structure::square,mat_alignment::row_major,Allocator> : public serializable {
   public:    
     
     typedef mat<T,mat_structure::square,mat_alignment::row_major,Allocator> self;
@@ -1221,7 +1221,7 @@ class mat<T,mat_structure::square,mat_alignment::row_major,Allocator> : public s
       rowCount = tmp;
     };
     
-    RK_RTTI_REGISTER_CLASS_1BASE(self,1,serialization::serializable)
+    RK_RTTI_REGISTER_CLASS_1BASE(self,1,serializable)
   
 };
 

@@ -616,7 +616,7 @@ int main(int argc, char** argv) {
   };
   
   vect_n<double> jt_desired(7,0.0);
-  if( scene_data.chaser_kin_model ) {
+  if( (vm.count("target-trajectory") == 0) && scene_data.chaser_kin_model ) {
     shared_ptr< frame_3D<double> > dep_EE_frame = scene_data.chaser_kin_model->getDependentFrame3D(0)->mFrame;
     if( vm.count("monte-carlo") + vm.count("single-run") > 0 ) {
       try {
@@ -632,6 +632,8 @@ int main(int argc, char** argv) {
     };
   };
   
+//   typedef ReaK::ctrl::satellite_model_options::temp_state_space_type sat3D_temp_space_type;
+//   pp::discrete_point_trajectory< sat3D_temp_space_type >
   
   shared_ptr< sat_trajectory_type > target_state_traj;
   if( scene_data.target_kin_model ) {
@@ -646,6 +648,7 @@ int main(int argc, char** argv) {
         target_state_traj = tmp_traj;
       } catch(std::exception& e) { 
         std::cerr << "Error: Could not load the target-trajectory file!" << std::endl;
+        return 11;
       };
     };
   };

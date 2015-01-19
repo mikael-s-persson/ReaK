@@ -45,7 +45,7 @@ namespace pp {
   
 /**
  */
-struct position_only_sampler : public serialization::serializable {
+struct position_only_sampler : public serializable {
   
   position_only_sampler() { };
   
@@ -77,7 +77,7 @@ struct position_only_sampler : public serialization::serializable {
     virtual void RK_CALL load(serialization::iarchive& A, unsigned int) {
     };
 
-    RK_RTTI_MAKE_ABSTRACT_1BASE(position_only_sampler,0xC2450006,1,"position_only_sampler",serialization::serializable)
+    RK_RTTI_MAKE_ABSTRACT_1BASE(position_only_sampler,0xC2450006,1,"position_only_sampler",serializable)
 };
 
 };

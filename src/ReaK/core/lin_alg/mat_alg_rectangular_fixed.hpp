@@ -63,7 +63,7 @@ struct is_fully_writable_matrix< mat_fixed<T,mat_structure::rectangular,RowCount
 template <typename T,
           unsigned int rowCount,
           unsigned int colCount>
-class mat_fixed<T,mat_structure::rectangular,rowCount,colCount,mat_alignment::column_major> : public serialization::serializable {
+class mat_fixed<T,mat_structure::rectangular,rowCount,colCount,mat_alignment::column_major> : public serializable {
   public:    
     
     typedef mat_fixed<T,mat_structure::rectangular,rowCount,colCount,mat_alignment::column_major> self;
@@ -378,7 +378,7 @@ class mat_fixed<T,mat_structure::rectangular,rowCount,colCount,mat_alignment::co
         A & RK_SERIAL_LOAD_WITH_NAME(q[i]);
     };
     
-    RK_RTTI_REGISTER_CLASS_1BASE(self,1,serialization::serializable)
+    RK_RTTI_REGISTER_CLASS_1BASE(self,1,serializable)
   
     
   
@@ -392,7 +392,7 @@ class mat_fixed<T,mat_structure::rectangular,rowCount,colCount,mat_alignment::co
  */
 template <typename T,
           typename Allocator>
-class mat<T,mat_structure::rectangular,mat_alignment::row_major,Allocator> : public serialization::serializable {
+class mat<T,mat_structure::rectangular,mat_alignment::row_major,Allocator> : public serializable {
   public:    
     
     typedef mat<T,mat_structure::rectangular,mat_alignment::row_major,Allocator> self;
@@ -807,7 +807,7 @@ class mat<T,mat_structure::rectangular,mat_alignment::row_major,Allocator> : pub
         & std::pair<std::string, unsigned int&>("colCount",colCount);
     };
     
-    RK_RTTI_REGISTER_CLASS_1BASE(self,1,serialization::serializable)
+    RK_RTTI_REGISTER_CLASS_1BASE(self,1,serializable)
   
 };
 

@@ -747,7 +747,7 @@ void protobuf_oarchive::save_varint(unsigned int u) {
     *pbuf = (u & 0x7F); 
     u >>= 7;
   };
-  if( ! file_stream->write(reinterpret_cast<char*>(pbuf), pbuf - buf + 1) )
+  if( ! file_stream->write(reinterpret_cast<char*>(buf), pbuf - buf + 1) )
     throw std::ios_base::failure(bad_out_stream_msg);
 };
 

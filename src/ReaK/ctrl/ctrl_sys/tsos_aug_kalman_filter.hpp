@@ -361,7 +361,6 @@ void >::type tsos_aug_kalman_filter_step(const LinearSystem& sys,
   
   const std::size_t n   = sys.get_actual_state_dimensions();
   const std::size_t n_u = sys.get_input_dimensions();
-  const std::size_t n_z = sys.get_output_dimensions();
   const std::size_t m   = sys.get_state_dimensions() - n;
   
   x = sys.get_next_state(state_space, x, b_u.get_mean_state(), t);
@@ -404,6 +403,8 @@ void >::type tsos_aug_kalman_filter_step(const LinearSystem& sys,
   
   
 #if 0
+  const std::size_t n_z = sys.get_output_dimensions();
+  
   mat_sub_block<MatCType>      C_x  = sub(C)(range(0,n_z),range(0,n));
   
   mat< ValueType, mat_structure::rectangular > CP_xa = C_x * P_xa_p;
@@ -587,7 +588,7 @@ struct TSOSAKF_belief_transfer {
  *         at least as a DiscreteLinearizedSystemType.
  */
 template <typename LinearSystem>
-class TSOSAKF_belief_transfer_factory : public serialization::serializable {
+class TSOSAKF_belief_transfer_factory : public serializable {
   public:
     typedef TSOSAKF_belief_transfer_factory<LinearSystem> self;
     typedef TSOSAKF_belief_transfer<self> predictor_type;
@@ -688,7 +689,7 @@ class TSOSAKF_belief_transfer_factory : public serialization::serializable {
         & RK_SERIAL_LOAD_WITH_NAME(R);
     };
     
-    RK_RTTI_MAKE_ABSTRACT_1BASE(self,0xC2320006,1,"TSOSAKF_belief_transfer_factory",serialization::serializable)
+    RK_RTTI_MAKE_ABSTRACT_1BASE(self,0xC2320006,1,"TSOSAKF_belief_transfer_factory",serializable)
 };
 
 

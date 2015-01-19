@@ -84,7 +84,7 @@ QVariant ObjTreeQtModel::data(const QModelIndex &index, int role) const {
   if(index.column() == 0) {
     return QVariant(QString::fromStdString(serialization::get_objtree_name(*obj_graph, item)));
   } else {  // column 1
-    shared_ptr< serialization::serializable > item_ptr = (*obj_graph)[item].p_obj;
+    shared_ptr< serializable > item_ptr = (*obj_graph)[item].p_obj;
     std::string s_tmp = item_ptr->getObjectType()->TypeName();
     if(s_tmp.length() > 40) {
       // Try to eliminate the template arguments.

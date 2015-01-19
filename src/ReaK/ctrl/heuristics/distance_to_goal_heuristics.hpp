@@ -47,7 +47,7 @@ namespace pp {
  * 
  */
 template <typename Trajectory, typename DistanceMetric = default_distance_metric>
-class distance_to_goal_heuristic : public serialization::serializable {
+class distance_to_goal_heuristic : public serializable {
   public:
     typedef distance_to_goal_heuristic<Trajectory,DistanceMetric> self;
     typedef typename spatial_trajectory_traits<Trajectory>::point_type point_type;
@@ -101,7 +101,7 @@ class distance_to_goal_heuristic : public serialization::serializable {
         & RK_SERIAL_LOAD_WITH_NAME(dist);
     };
 
-    RK_RTTI_MAKE_ABSTRACT_1BASE(self,0xC2410021,1,"distance_to_goal_heuristic",serialization::serializable)
+    RK_RTTI_MAKE_ABSTRACT_1BASE(self,0xC2410021,1,"distance_to_goal_heuristic",serializable)
 };
 
 

@@ -60,7 +60,7 @@ namespace ReaK {
  * \tparam Allocator Standard allocator class (as in the STL), the default is std::allocator<T>.
  */
 template <typename T, mat_alignment::tag Alignment, typename Allocator>
-class mat<T,mat_structure::identity, Alignment, Allocator> : public serialization::serializable {
+class mat<T,mat_structure::identity, Alignment, Allocator> : public serializable {
   public:    
     
     typedef mat<T,mat_structure::identity, Alignment, Allocator> self;
@@ -247,7 +247,7 @@ class mat<T,mat_structure::identity, Alignment, Allocator> : public serializatio
       A & RK_SERIAL_LOAD_WITH_NAME(rowCount);
     };
     
-    RK_RTTI_REGISTER_CLASS_1BASE(self,1,serialization::serializable)
+    RK_RTTI_REGISTER_CLASS_1BASE(self,1,serializable)
 
 };
 

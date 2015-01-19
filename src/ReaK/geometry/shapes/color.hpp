@@ -43,7 +43,7 @@ namespace geom {
 
 
 /** This class represents a color. */
-struct color : public serialization::serializable {
+struct color : public serializable {
   public:
     
     double R;
@@ -79,7 +79,7 @@ struct color : public serialization::serializable {
         & std::pair<std::string, typename ReaK::rtti::get_type_id<double>::load_type >("blue",B);
     };
     
-    RK_RTTI_REGISTER_CLASS_1BASE(color,1,serialization::serializable)
+    RK_RTTI_REGISTER_CLASS_1BASE(color,1,serializable)
     
 };
 
@@ -100,8 +100,8 @@ struct get_type_id< geom::color > {
 #endif
   static construct_ptr CreatePtr() BOOST_NOEXCEPT { return NULL; };
   
-  typedef const serialization::serializable& save_type;
-  typedef serialization::serializable& load_type;
+  typedef const serializable& save_type;
+  typedef serializable& load_type;
 };
 
 };

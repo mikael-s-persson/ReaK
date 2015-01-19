@@ -86,7 +86,7 @@ struct has_allocator_tensor< tensor<T,Order,tensor_structure::nil,Alignment,Allo
 template <typename T,
           tensor_alignment::tag Alignment,
           typename Allocator>
-class tensor<T,3,tensor_structure::nil,Alignment,Allocator> : public serialization::serializable {
+class tensor<T,3,tensor_structure::nil,Alignment,Allocator> : public serializable {
   public:    
     
     typedef tensor<T,3,tensor_structure::nil,Alignment,Allocator> self;
@@ -270,7 +270,7 @@ class tensor<T,3,tensor_structure::nil,Alignment,Allocator> : public serializati
       counts[2] = tmp;
     };
     
-    RK_RTTI_REGISTER_CLASS_1BASE(self,1,serialization::serializable)
+    RK_RTTI_REGISTER_CLASS_1BASE(self,1,serializable)
   
     
   
@@ -294,7 +294,7 @@ class tensor<T,3,tensor_structure::nil,Alignment,Allocator> : public serializati
 template <typename T,
           tensor_alignment::tag Alignment,
           typename Allocator>
-class tensor<T,4,tensor_structure::nil,Alignment,Allocator> : public serialization::serializable {
+class tensor<T,4,tensor_structure::nil,Alignment,Allocator> : public serializable {
   public:    
     
     typedef tensor<T,4,tensor_structure::nil,Alignment,Allocator> self;
@@ -483,7 +483,7 @@ class tensor<T,4,tensor_structure::nil,Alignment,Allocator> : public serializati
       counts[3] = tmp;
     };
     
-    RK_RTTI_REGISTER_CLASS_1BASE(self,1,serialization::serializable)
+    RK_RTTI_REGISTER_CLASS_1BASE(self,1,serializable)
   
 };
 
