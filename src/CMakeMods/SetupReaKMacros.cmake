@@ -50,7 +50,9 @@ else()
     else()
       message(STATUS "The compiler has no detectable C++11 support. Consider using a newer compiler for optimal performance.")
     endif()
+    mark_as_advanced(_COMPILER_SUPPORTS_CXX0X)
   endif()
+  mark_as_advanced(_COMPILER_SUPPORTS_CXX11)
 endif()
 
 if (${CMAKE_CXX_COMPILER_ID} STREQUAL "MSVC")
@@ -69,11 +71,24 @@ else()
   if(${CMAKE_CXX_COMPILER_ID} STREQUAL "GNU")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wl,--no-as-needed")
   elseif(${CMAKE_CXX_COMPILER_ID} STREQUAL "Clang")
+    # This is a hack because the major-minor version variables (${CLANG_VERSION_MAJOR}.${CLANG_VERSION_MINOR}) from cmake seem unreliable 
+    execute_process( COMMAND ${CMAKE_CXX_COMPILER} --version OUTPUT_VARIABLE clang_full_version_string )
+    string (REGEX REPLACE ".*clang version ([0-9]+\\.[0-9]+).*" "\\1" CLANG_VERSION_STRING ${clang_full_version_string})
+    
     # TODO This is just a temporary hack because of a version of clang failing to compile with a experimental 4.9 version of libstdc++.
 #     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -nostdinc++ -isystem /usr/include/c++/4.8 -isystem /usr/include/x86_64-linux-gnu/c++/4.8")
+    
+    message(STATUS "Detected Clang version: ${CLANG_VERSION_STRING}")
+    if( CLANG_VERSION_STRING VERSION_LESS 3.6 )
+#     if( "${CLANG_VERSION_MAJOR}.${CLANG_VERSION_MINOR}" STRLESS "3.6") 
+      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-missing-braces")
+    else()
+      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unused-local-typedef -Wno-missing-braces")
+    endif()
   endif()
 endif()
 message(STATUS "Configured compiler options for ${CMAKE_SYSTEM_NAME} system with ${CMAKE_CXX_COMPILER_ID} toolset.")
+message(STATUS "   using C++ options: ${CMAKE_CXX_FLAGS}")
 
 
 include(ConfigDoxygenTargets)
