@@ -170,16 +170,25 @@ namespace detail {
       if(use_sba_sampling) {
         Vertex u = Q.top(); Q.pop();
         
-        // stop if the best node does not meet the potential threshold.
-        if( ! sba_vis.has_search_potential(u, g) )
-          break;
+        // stop if the best nodes do not meet the potential threshold.
+        while( ! sba_vis.has_search_potential(u, g) ) {
+          if( Q.empty() ) {
+            u = boost::graph_traits<Graph>::null_vertex();
+            break;
+          };
+          u = Q.top(); Q.pop();
+        };
+        if( u == boost::graph_traits<Graph>::null_vertex() )
+          break; // no more nodes with search potential.
         
         sba_vis.examine_vertex(u, g);
         
         boost::tie(x_near, p_new, eprop) = sba_generate_node(u, g, sba_vis, sba_vis.m_position);
         
         // then push it back on the OPEN queue.
-        sba_vis.requeue_vertex(u,g);
+        if( ( x_near != boost::graph_traits<Graph>::null_vertex() ) ||
+            ( Q.empty() ) )
+          sba_vis.requeue_vertex(u,g);
         
         ++num_sba_vertices;
       } else {
@@ -198,8 +207,8 @@ namespace detail {
       
     }; // end while
     
-    std::cout << " SBA* vertices generated = " << num_sba_vertices << std::endl;
-    std::cout << " RRT* vertices generated = " << num_rrt_vertices << std::endl;
+//     std::cout << " SBA* vertices generated = " << num_sba_vertices << std::endl;
+//     std::cout << " RRT* vertices generated = " << num_rrt_vertices << std::endl;
   };
   
   template <typename Graph, typename Topology, typename SBARRTStarVisitor,
@@ -228,9 +237,16 @@ namespace detail {
       if(use_sba_sampling) {
         Vertex u = Q.top(); Q.pop();
         
-        // stop if the best node does not meet the potential threshold.
-        if( ! sba_vis.has_search_potential(u, g) )
-          break;
+        // stop if the best nodes do not meet the potential threshold.
+        while( ! sba_vis.has_search_potential(u, g) ) {
+          if( Q.empty() ) {
+            u = boost::graph_traits<Graph>::null_vertex();
+            break;
+          };
+          u = Q.top(); Q.pop();
+        };
+        if( u == boost::graph_traits<Graph>::null_vertex() )
+          break; // no more nodes with search potential.
         
         sba_vis.examine_vertex(u, g);
         
@@ -238,7 +254,10 @@ namespace detail {
           sba_generate_node(u, g, sba_vis, sba_vis.m_position);
         
         // then push it back on the OPEN queue.
-        sba_vis.requeue_vertex(u,g);
+        if( ( x_near_pred != boost::graph_traits<Graph>::null_vertex() ) ||
+            ( x_near_succ != boost::graph_traits<Graph>::null_vertex() ) || 
+            ( Q.empty() ) )
+          sba_vis.requeue_vertex(u,g);
         
         ++num_sba_vertices;
       } else {
@@ -270,8 +289,8 @@ namespace detail {
       
     }; // end while 
     
-    std::cout << " SBA* vertices generated = " << num_sba_vertices << std::endl;
-    std::cout << " RRT* vertices generated = " << num_rrt_vertices << std::endl;
+//     std::cout << " SBA* vertices generated = " << num_sba_vertices << std::endl;
+//     std::cout << " RRT* vertices generated = " << num_rrt_vertices << std::endl;
   };
   
   
