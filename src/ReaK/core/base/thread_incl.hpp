@@ -184,7 +184,10 @@ namespace ReaKaux {
   //using ::boost::notify_all_at_thread_exit;
   
   using ::boost::exception_ptr;
+  
 //   using ::boost::make_exception_ptr;
+  template <class T>
+  exception_ptr make_exception_ptr( T const & e ) { return ::boost::copy_exception(e); };
   
 };
 
