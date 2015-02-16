@@ -1,0 +1,5 @@
+
+
+add_executable(test_root_finders_perf "test_root_finders_perf.cpp")
+ReaK_setup_target(test_root_finders_perf)
+target_link_libraries(test_root_finders_perf reak_math)

@@ -1,0 +1,47 @@
+Creating filelist for control
+Creating filelist for core
+Creating filelist for geometry
+Creating filelist for math
+Creating filelist for mbd
+Creating filelist for planning
+Creating filelist for py
+Creating filelist for topologies
+Categorizing files.
+Finding a working MD5 command....
+Found a working MD5 command.
+Computing results.
+
+
+SLOC	Directory	SLOC-by-Language (Sorted)
+39188   math            cpp=39098,xml=90
+28736   topologies      cpp=28736
+18169   planning        cpp=18036,sh=133
+16246   control         cpp=16246
+13459   mbd             cpp=13459
+11854   core            cpp=11854
+7436    geometry        cpp=7436
+2422    py              cpp=2422
+
+
+Totals grouped by language (dominant language first):
+cpp:         137287 (99.84%)
+sh:             133 (0.10%)
+xml:             90 (0.07%)
+
+
+
+
+Total Physical Source Lines of Code (SLOC)                = 137,510
+Development Effort Estimate, Person-Years (Person-Months) = 35.18 (422.15)
+ (Basic COCOMO model, Person-Months = 2.4 * (KSLOC**1.05))
+Schedule Estimate, Years (Months)                         = 2.07 (24.87)
+ (Basic COCOMO model, Months = 2.5 * (person-months**0.38))
+Estimated Average Number of Developers (Effort/Schedule)  = 16.98
+Total Estimated Cost to Develop                           = $ 4,752,177
+ (average salary = $56,286/year, overhead = 2.40).
+SLOCCount, Copyright (C) 2001-2004 David A. Wheeler
+SLOCCount is Open Source Software/Free Software, licensed under the GNU GPL.
+SLOCCount comes with ABSOLUTELY NO WARRANTY, and you are welcome to
+redistribute it under certain conditions as specified by the GNU GPL license;
+see the documentation for details.
+Please credit this data as "generated using David A. Wheeler's 'SLOCCount'."
