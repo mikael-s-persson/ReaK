@@ -1,0 +1,7 @@
+perf_proximity results:
+
+from revision bf22803
+(classic OOP, shared-ptr, no pre-compute, no ordering)
+N=50     620,000 ns
+N=100  2,550,000 ns
+
