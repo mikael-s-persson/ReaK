@@ -18,3 +18,13 @@ N=100    540,000 ns
 
 committed revision: 8dea53d
 
+(classic OOP, with pre-computed global-poses, no ordering)
+N=50     140,000 ns
+N=100    540,000 ns
+
+committed revision: 0da2170
+
+(classic OOP, with pre-computed global-poses, ordering of shapes held by shared-ptr)
+N=50     124,000 ns
+N=100    500,000 ns
+

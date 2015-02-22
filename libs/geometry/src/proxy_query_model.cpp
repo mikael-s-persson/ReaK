@@ -65,6 +65,7 @@
 #include <ReaK/geometry/proximity/prox_cylinder_box.hpp>
 #include <ReaK/geometry/proximity/prox_box_box.hpp>
 
+#include <algorithm>
 
 namespace ReaK {
 
@@ -78,6 +79,17 @@ proxy_query_model_2D::proxy_query_model_2D(const std::string& aName) :
 
 proxy_query_model_2D::~proxy_query_model_2D() {
   
+};
+
+static bool compareShapes2DByType(const shared_ptr< shape_2D >& aShape1, 
+                                  const shared_ptr< shape_2D >& aShape2) {
+  return (aShape1->getObjectType() < aShape2->getObjectType());
+};
+
+proxy_query_model_2D& proxy_query_model_2D::addShape(const shared_ptr< shape_2D >& aShape) {
+  mShapeList.push_back(aShape);
+  std::inplace_merge(mShapeList.begin(), mShapeList.end()-1, mShapeList.end(), compareShapes2DByType);
+  return *this;
 };
 
 void proxy_query_model_2D::doPrecomputePass() {
@@ -270,6 +282,17 @@ proxy_query_model_3D::proxy_query_model_3D(const std::string& aName) :
 };
 
 proxy_query_model_3D::~proxy_query_model_3D() {};
+
+static bool compareShapes3DByType(const shared_ptr< shape_3D >& aShape1, 
+                                  const shared_ptr< shape_3D >& aShape2) {
+  return (aShape1->getObjectType() < aShape2->getObjectType());
+};
+
+proxy_query_model_3D& proxy_query_model_3D::addShape(const shared_ptr< shape_3D >& aShape) {
+  mShapeList.push_back(aShape);
+  std::inplace_merge(mShapeList.begin(), mShapeList.end()-1, mShapeList.end(), compareShapes3DByType);
+  return *this;
+};
 
 void proxy_query_model_3D::doPrecomputePass() {
   mPreComputePacks.resize(mShapeList.size());

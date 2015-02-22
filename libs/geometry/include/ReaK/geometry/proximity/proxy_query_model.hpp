@@ -64,10 +64,7 @@ class proxy_query_model_2D : public named_object {
      */
     virtual ~proxy_query_model_2D();
     
-    proxy_query_model_2D& addShape(const shared_ptr< shape_2D >& aShape) {
-      mShapeList.push_back(aShape);
-      return *this;
-    };
+    proxy_query_model_2D& addShape(const shared_ptr< shape_2D >& aShape);
     
     void doPrecomputePass();
     
@@ -170,10 +167,7 @@ class proxy_query_model_3D : public named_object {
      */
     virtual ~proxy_query_model_3D();
     
-    proxy_query_model_3D& addShape(const shared_ptr< shape_3D >& aShape) {
-      mShapeList.push_back(aShape);
-      return *this;
-    };
+    proxy_query_model_3D& addShape(const shared_ptr< shape_3D >& aShape);
     
     void doPrecomputePass();
     
