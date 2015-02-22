@@ -69,6 +69,7 @@ struct proximity_solver {
     
     if(mShape1->getObjectType() == geom::box::getStaticObjectType()) {
       shared_ptr< geom::box > bx1 = rtti::rk_dynamic_ptr_cast< geom::box >(mShape1);
+      pose_3D<double> bx1_pose = bx1->getPose().getGlobalPose();
       double min_dim = 0.5 * bx1->getDimensions()[0];
       if(min_dim > 0.5 * bx1->getDimensions()[1])
         min_dim = 0.5 * bx1->getDimensions()[1];
@@ -77,6 +78,7 @@ struct proximity_solver {
       if(mShape2->getObjectType() == geom::box::getStaticObjectType()) {
         // box-box case.
         shared_ptr< geom::box > bx2 = rtti::rk_dynamic_ptr_cast< geom::box >(mShape2);
+        pose_3D<double> bx2_pose = bx2->getPose().getGlobalPose();
         if(min_dim > 0.5 * bx2->getDimensions()[0])
           min_dim = 0.5 * bx2->getDimensions()[0];
         if(min_dim > 0.5 * bx2->getDimensions()[1])
@@ -92,19 +94,20 @@ struct proximity_solver {
         optim::make_nlip_newton_tr(geom::slack_minimize_func(),geom::slack_minimize_grad(),geom::slack_minimize_hess(),min_dim,0.1,300,1e-4,1e-3,0.9)
           .set_ineq_constraints(
             geom::dual_slacking_func<geom::box_slacking_func, geom::box_slacking_func>(
-              geom::box_slacking_func(bx1), geom::box_slacking_func(bx2)),
+              geom::box_slacking_func(*bx1,bx1_pose), geom::box_slacking_func(*bx2,bx2_pose)),
             geom::dual_slacking_jac<geom::box_slacking_jac, geom::box_slacking_jac>(
-              geom::box_slacking_jac(bx1), geom::box_slacking_jac(bx2)))
+              geom::box_slacking_jac(*bx1,bx1_pose), geom::box_slacking_jac(*bx2,bx2_pose)))
           (x);
         } catch(...) { };
         
         std::cout << "  -- The raw solution obtained was: " << x << std::endl;
-        std::cout << "  -- The shape1 boundary functions give: " << geom::box_slacking_func(bx1)(x) << std::endl;
-        std::cout << "  -- The shape2 boundary functions give: " << geom::box_slacking_func(bx2)(x) << std::endl;
+        std::cout << "  -- The shape1 boundary functions give: " << geom::box_slacking_func(*bx1,bx1_pose)(x) << std::endl;
+        std::cout << "  -- The shape2 boundary functions give: " << geom::box_slacking_func(*bx2,bx2_pose)(x) << std::endl;
         
       } else {
         // box-cylinder case.
         shared_ptr< geom::cylinder > cy2 = rtti::rk_dynamic_ptr_cast< geom::cylinder >(mShape2);
+        pose_3D<double> cy2_pose = cy2->getPose().getGlobalPose();
         if(min_dim > 0.5 * cy2->getLength())
           min_dim = 0.5 * cy2->getLength();
         if(min_dim > cy2->getRadius())
@@ -118,25 +121,27 @@ struct proximity_solver {
         optim::make_nlip_newton_tr(geom::slack_minimize_func(),geom::slack_minimize_grad(),geom::slack_minimize_hess(),min_dim,0.1,300,1e-4,1e-3,0.9)
           .set_ineq_constraints(
             geom::dual_slacking_func<geom::box_slacking_func, geom::cylinder_slacking_func>(
-              geom::box_slacking_func(bx1), geom::cylinder_slacking_func(cy2)),
+              geom::box_slacking_func(*bx1,bx1_pose), geom::cylinder_slacking_func(*cy2,cy2_pose)),
             geom::dual_slacking_jac<geom::box_slacking_jac, geom::cylinder_slacking_jac>(
-              geom::box_slacking_jac(bx1), geom::cylinder_slacking_jac(cy2)))
+              geom::box_slacking_jac(*bx1,bx1_pose), geom::cylinder_slacking_jac(*cy2,cy2_pose)))
           (x);
         } catch(...) { };
         
         std::cout << "  -- The raw solution obtained was: " << x << std::endl;
-        std::cout << "  -- The shape1 boundary functions give: " << geom::box_slacking_func(bx1)(x) << std::endl;
-        std::cout << "  -- The shape2 boundary functions give: " << geom::cylinder_slacking_func(cy2)(x) << std::endl;
+        std::cout << "  -- The shape1 boundary functions give: " << geom::box_slacking_func(*bx1,bx1_pose)(x) << std::endl;
+        std::cout << "  -- The shape2 boundary functions give: " << geom::cylinder_slacking_func(*cy2,cy2_pose)(x) << std::endl;
         
       };
     } else {
       shared_ptr< geom::cylinder > cy1 = rtti::rk_dynamic_ptr_cast< geom::cylinder >(mShape1);
+      pose_3D<double> cy1_pose = cy1->getPose().getGlobalPose();
       double min_dim = 0.5 * cy1->getLength();
       if(min_dim > cy1->getRadius())
         min_dim = cy1->getRadius();
       if(mShape2->getObjectType() == geom::box::getStaticObjectType()) {
         // cylinder-box case.
         shared_ptr< geom::box > bx2 = rtti::rk_dynamic_ptr_cast< geom::box >(mShape2);
+        pose_3D<double> bx2_pose = bx2->getPose().getGlobalPose();
         if(min_dim > 0.5 * bx2->getDimensions()[0])
           min_dim = 0.5 * bx2->getDimensions()[0];
         if(min_dim > 0.5 * bx2->getDimensions()[1])
@@ -152,19 +157,20 @@ struct proximity_solver {
         optim::make_nlip_newton_tr(geom::slack_minimize_func(),geom::slack_minimize_grad(),geom::slack_minimize_hess(),min_dim,0.1,300,1e-4,1e-3,0.9)
           .set_ineq_constraints(
             geom::dual_slacking_func<geom::cylinder_slacking_func, geom::box_slacking_func>(
-              geom::cylinder_slacking_func(cy1), geom::box_slacking_func(bx2)),
+              geom::cylinder_slacking_func(*cy1,cy1_pose), geom::box_slacking_func(*bx2,bx2_pose)),
             geom::dual_slacking_jac<geom::cylinder_slacking_jac, geom::box_slacking_jac>(
-              geom::cylinder_slacking_jac(cy1), geom::box_slacking_jac(bx2)))
+              geom::cylinder_slacking_jac(*cy1,cy1_pose), geom::box_slacking_jac(*bx2,bx2_pose)))
           (x);
         } catch(...) { };
         
         std::cout << "  -- The raw solution obtained was: " << x << std::endl;
-        std::cout << "  -- The shape1 boundary functions give: " << geom::cylinder_slacking_func(cy1)(x) << std::endl;
-        std::cout << "  -- The shape2 boundary functions give: " << geom::box_slacking_func(bx2)(x) << std::endl;
+        std::cout << "  -- The shape1 boundary functions give: " << geom::cylinder_slacking_func(*cy1,cy1_pose)(x) << std::endl;
+        std::cout << "  -- The shape2 boundary functions give: " << geom::box_slacking_func(*bx2,bx2_pose)(x) << std::endl;
         
       } else {
         // cylinder-cylinder case.
         shared_ptr< geom::cylinder > cy2 = rtti::rk_dynamic_ptr_cast< geom::cylinder >(mShape2);
+        pose_3D<double> cy2_pose = cy2->getPose().getGlobalPose();
         if(min_dim > 0.5 * cy2->getLength())
           min_dim = 0.5 * cy2->getLength();
         if(min_dim > cy2->getRadius())
@@ -178,15 +184,15 @@ struct proximity_solver {
         optim::make_nlip_newton_tr(geom::slack_minimize_func(),geom::slack_minimize_grad(),geom::slack_minimize_hess(),min_dim,0.1,300,1e-4,1e-3,0.9)
           .set_ineq_constraints(
             geom::dual_slacking_func<geom::cylinder_slacking_func, geom::cylinder_slacking_func>(
-              geom::cylinder_slacking_func(cy1), geom::cylinder_slacking_func(cy2)),
+              geom::cylinder_slacking_func(*cy1,cy1_pose), geom::cylinder_slacking_func(*cy2,cy2_pose)),
             geom::dual_slacking_jac<geom::cylinder_slacking_jac, geom::cylinder_slacking_jac>(
-              geom::cylinder_slacking_jac(cy1), geom::cylinder_slacking_jac(cy2)))
+              geom::cylinder_slacking_jac(*cy1,cy1_pose), geom::cylinder_slacking_jac(*cy2,cy2_pose)))
           (x);
         } catch(...) { };
         
         std::cout << "  -- The raw solution obtained was: " << x << std::endl;
-        std::cout << "  -- The shape1 boundary functions give: " << geom::cylinder_slacking_func(cy1)(x) << std::endl;
-        std::cout << "  -- The shape2 boundary functions give: " << geom::cylinder_slacking_func(cy2)(x) << std::endl;
+        std::cout << "  -- The shape1 boundary functions give: " << geom::cylinder_slacking_func(*cy1,cy1_pose)(x) << std::endl;
+        std::cout << "  -- The shape2 boundary functions give: " << geom::cylinder_slacking_func(*cy2,cy2_pose)(x) << std::endl;
         
       };
     };

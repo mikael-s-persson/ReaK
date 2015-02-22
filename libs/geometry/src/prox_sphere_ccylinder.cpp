@@ -32,14 +32,6 @@ namespace ReaK {
 namespace geom {
 
 
-shared_ptr< shape_3D > prox_sphere_ccylinder::getShape1() const {
-  return mSphere;
-};
-
-shared_ptr< shape_3D > prox_sphere_ccylinder::getShape2() const {
-  return mCCylinder;
-};
-    
 void prox_sphere_ccylinder::computeProximity(const shape_3D_precompute_pack& aPack1, 
                                              const shape_3D_precompute_pack& aPack2) {
   if((!mSphere) || (!mCCylinder)) {
@@ -50,9 +42,9 @@ void prox_sphere_ccylinder::computeProximity(const shape_3D_precompute_pack& aPa
   };
   using std::fabs; using std::sqrt;
   
-  const pose_3D<double>& sp_pose = (aPack1.parent == mSphere.get() ? 
+  const pose_3D<double>& sp_pose = (aPack1.parent == mSphere ? 
                                     aPack1.global_pose : aPack2.global_pose);
-  const pose_3D<double>& cy_pose = (aPack1.parent == mSphere.get() ? 
+  const pose_3D<double>& cy_pose = (aPack1.parent == mSphere ? 
                                     aPack2.global_pose : aPack1.global_pose);
   
   vect<double,3> sp_c = sp_pose.Position;
@@ -86,36 +78,14 @@ void prox_sphere_ccylinder::computeProximity(const shape_3D_precompute_pack& aPa
 };
 
 
-prox_sphere_ccylinder::prox_sphere_ccylinder(const shared_ptr< sphere >& aSphere,
-                                             const shared_ptr< capped_cylinder >& aCCylinder) :
+prox_sphere_ccylinder::prox_sphere_ccylinder(const sphere* aSphere,
+                                             const capped_cylinder* aCCylinder) :
                                              proximity_finder_3D(),
                                              mSphere(aSphere),
                                              mCCylinder(aCCylinder) { };
 
 
-void RK_CALL prox_sphere_ccylinder::save(ReaK::serialization::oarchive& A, unsigned int) const {
-  proximity_finder_3D::save(A,proximity_finder_3D::getStaticObjectType()->TypeVersion());
-  A & RK_SERIAL_SAVE_WITH_NAME(mSphere)
-    & RK_SERIAL_SAVE_WITH_NAME(mCCylinder);
-};
-
-void RK_CALL prox_sphere_ccylinder::load(ReaK::serialization::iarchive& A, unsigned int) {
-  proximity_finder_3D::load(A,proximity_finder_3D::getStaticObjectType()->TypeVersion());
-  A & RK_SERIAL_LOAD_WITH_NAME(mSphere)
-    & RK_SERIAL_LOAD_WITH_NAME(mCCylinder);
-};
-
-
 };
 
 };
-
-
-
-
-
-
-
-
-
 

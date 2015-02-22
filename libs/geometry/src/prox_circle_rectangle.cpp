@@ -30,14 +30,6 @@ namespace ReaK {
 namespace geom {
 
 
-shared_ptr< shape_2D > prox_circle_rectangle::getShape1() const {
-  return mCircle;
-};
-
-shared_ptr< shape_2D > prox_circle_rectangle::getShape2() const {
-  return mRectangle;
-};
-    
 void prox_circle_rectangle::computeProximity(const shape_2D_precompute_pack& aPack1, 
                                              const shape_2D_precompute_pack& aPack2) {
   if((!mCircle) || (!mRectangle)) {
@@ -49,9 +41,9 @@ void prox_circle_rectangle::computeProximity(const shape_2D_precompute_pack& aPa
   
   using std::fabs;
   
-  const pose_2D<double>& ci_pose = (aPack1.parent == mCircle.get() ? 
+  const pose_2D<double>& ci_pose = (aPack1.parent == mCircle ? 
                                     aPack1.global_pose : aPack2.global_pose);
-  const pose_2D<double>& re_pose = (aPack1.parent == mCircle.get() ? 
+  const pose_2D<double>& re_pose = (aPack1.parent == mCircle ? 
                                     aPack2.global_pose : aPack1.global_pose);
   
   vect<double,2> ci_c = ci_pose.Position;
@@ -91,36 +83,14 @@ void prox_circle_rectangle::computeProximity(const shape_2D_precompute_pack& aPa
 };
 
 
-prox_circle_rectangle::prox_circle_rectangle(const shared_ptr< circle >& aCircle,
-                                             const shared_ptr< rectangle >& aRectangle) :
+prox_circle_rectangle::prox_circle_rectangle(const circle* aCircle,
+                                             const rectangle* aRectangle) :
                                              proximity_finder_2D(),
                                              mCircle(aCircle),
                                              mRectangle(aRectangle) { };
-    
-    
-void RK_CALL prox_circle_rectangle::save(ReaK::serialization::oarchive& A, unsigned int) const {
-  proximity_finder_2D::save(A,proximity_finder_2D::getStaticObjectType()->TypeVersion());
-  A & RK_SERIAL_SAVE_WITH_NAME(mCircle)
-    & RK_SERIAL_SAVE_WITH_NAME(mRectangle);
-};
-    
-void RK_CALL prox_circle_rectangle::load(ReaK::serialization::iarchive& A, unsigned int) {
-  proximity_finder_2D::load(A,proximity_finder_2D::getStaticObjectType()->TypeVersion());
-  A & RK_SERIAL_LOAD_WITH_NAME(mCircle)
-    & RK_SERIAL_LOAD_WITH_NAME(mRectangle);
-};
 
 
 };
 
 };
-
-
-
-
-
-
-
-
-
 

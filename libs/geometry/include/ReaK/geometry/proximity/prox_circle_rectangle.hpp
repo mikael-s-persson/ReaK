@@ -50,15 +50,10 @@ namespace geom {
 class prox_circle_rectangle : public proximity_finder_2D {
   protected:
     
-    shared_ptr< circle > mCircle;
-    shared_ptr< rectangle > mRectangle;
+    const circle* mCircle;
+    const rectangle* mRectangle;
     
   public:
-    
-    /** Returns the first shape involved in the proximity query. */
-    virtual shared_ptr< shape_2D > getShape1() const;
-    /** Returns the second shape involved in the proximity query. */
-    virtual shared_ptr< shape_2D > getShape2() const;
     
     /** This function performs the proximity query on its associated shapes. */
     virtual void computeProximity(const shape_2D_precompute_pack& aPack1, 
@@ -69,22 +64,11 @@ class prox_circle_rectangle : public proximity_finder_2D {
      * \param aCircle The circle involved in the proximity query.
      * \param aRectangle The rectangle involved in the proximity query.
      */
-    prox_circle_rectangle(const shared_ptr< circle >& aCircle = shared_ptr< circle >(),
-                          const shared_ptr< rectangle >& aRectangle = shared_ptr< rectangle >());
+    prox_circle_rectangle(const circle* aCircle = NULL,
+                          const rectangle* aRectangle = NULL);
     
     /** Destructor. */
     virtual ~prox_circle_rectangle() { };
-    
-    
-/*******************************************************************************
-                   ReaK's RTTI and Serialization interfaces
-*******************************************************************************/
-    
-    virtual void RK_CALL save(ReaK::serialization::oarchive& A, unsigned int) const;
-    
-    virtual void RK_CALL load(ReaK::serialization::iarchive& A, unsigned int);
-    
-    RK_RTTI_MAKE_CONCRETE_1BASE(prox_circle_rectangle,0xC3200007,1,"prox_circle_rectangle",proximity_finder_2D)
     
 };
 
@@ -94,13 +78,5 @@ class prox_circle_rectangle : public proximity_finder_2D {
 };
 
 #endif
-
-
-
-
-
-
-
-
 
 

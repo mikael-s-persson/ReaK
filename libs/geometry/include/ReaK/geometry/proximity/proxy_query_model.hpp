@@ -138,15 +138,14 @@ class proxy_query_pair_2D : public named_object {
     virtual void RK_CALL save(ReaK::serialization::oarchive& A, unsigned int) const {
       named_object::save(A,named_object::getStaticObjectType()->TypeVersion());
       A & RK_SERIAL_SAVE_WITH_NAME(mModel1)
-        & RK_SERIAL_SAVE_WITH_NAME(mModel2)
-        & RK_SERIAL_SAVE_WITH_NAME(mProxFinders);
+        & RK_SERIAL_SAVE_WITH_NAME(mModel2);
     };
 
     virtual void RK_CALL load(ReaK::serialization::iarchive& A, unsigned int) {
       named_object::load(A,named_object::getStaticObjectType()->TypeVersion());
       A & RK_SERIAL_LOAD_WITH_NAME(mModel1)
-        & RK_SERIAL_LOAD_WITH_NAME(mModel2)
-        & RK_SERIAL_LOAD_WITH_NAME(mProxFinders);
+        & RK_SERIAL_LOAD_WITH_NAME(mModel2);
+      createProxFinderList();
     };
 
     RK_RTTI_MAKE_CONCRETE_1BASE(proxy_query_pair_2D,0xC320001C,1,"proxy_query_pair_2D",named_object)
@@ -245,15 +244,14 @@ class proxy_query_pair_3D : public named_object {
     virtual void RK_CALL save(ReaK::serialization::oarchive& A, unsigned int) const {
       named_object::save(A,named_object::getStaticObjectType()->TypeVersion());
       A & RK_SERIAL_SAVE_WITH_NAME(mModel1)
-        & RK_SERIAL_SAVE_WITH_NAME(mModel2)
-        & RK_SERIAL_SAVE_WITH_NAME(mProxFinders);
+        & RK_SERIAL_SAVE_WITH_NAME(mModel2);
     };
 
     virtual void RK_CALL load(ReaK::serialization::iarchive& A, unsigned int) {
       named_object::load(A,named_object::getStaticObjectType()->TypeVersion());
       A & RK_SERIAL_LOAD_WITH_NAME(mModel1)
-        & RK_SERIAL_LOAD_WITH_NAME(mModel2)
-        & RK_SERIAL_LOAD_WITH_NAME(mProxFinders);
+        & RK_SERIAL_LOAD_WITH_NAME(mModel2);
+      createProxFinderList();
     };
 
     RK_RTTI_MAKE_CONCRETE_1BASE(proxy_query_pair_3D,0xC320001D,1,"proxy_query_pair_3D",named_object)
@@ -266,13 +264,4 @@ class proxy_query_pair_3D : public named_object {
 };
 
 #endif
-
-
-
-
-
-
-
-
-
 

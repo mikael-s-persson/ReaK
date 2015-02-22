@@ -33,16 +33,6 @@ namespace ReaK {
 namespace geom {
 
 
-shared_ptr< shape_3D > prox_box_box::getShape1() const {
-  return mBox1;
-};
-
-shared_ptr< shape_3D > prox_box_box::getShape2() const {
-  return mBox2;
-};
-
-
-
 void prox_box_box::computeProximity(const shape_3D_precompute_pack& aPack1, 
                                     const shape_3D_precompute_pack& aPack2) {
   if((!mBox1) || (!mBox2)) {
@@ -52,9 +42,9 @@ void prox_box_box::computeProximity(const shape_3D_precompute_pack& aPack1,
     return;
   };
   
-  const pose_3D<double>& b1_pose = (aPack1.parent == mBox1.get() ? 
+  const pose_3D<double>& b1_pose = (aPack1.parent == mBox1 ? 
                                     aPack1.global_pose : aPack2.global_pose);
-  const pose_3D<double>& b2_pose = (aPack1.parent == mBox1.get() ? 
+  const pose_3D<double>& b2_pose = (aPack1.parent == mBox1 ? 
                                     aPack2.global_pose : aPack1.global_pose);
   
   mLastResult = findProximityByGJKEPA(
@@ -64,37 +54,13 @@ void prox_box_box::computeProximity(const shape_3D_precompute_pack& aPack1,
 };
 
 
-prox_box_box::prox_box_box(const shared_ptr< box >& aBox1,
-                           const shared_ptr< box >& aBox2) :
+prox_box_box::prox_box_box(const box* aBox1, const box* aBox2) :
                            proximity_finder_3D(),
                            mBox1(aBox1),
                            mBox2(aBox2) { };
-    
-    
-void RK_CALL prox_box_box::save(ReaK::serialization::oarchive& A, unsigned int) const {
-  proximity_finder_3D::save(A,proximity_finder_3D::getStaticObjectType()->TypeVersion());
-  A & RK_SERIAL_SAVE_WITH_NAME(mBox1)
-    & RK_SERIAL_SAVE_WITH_NAME(mBox2);
-};
-    
-void RK_CALL prox_box_box::load(ReaK::serialization::iarchive& A, unsigned int) {
-  proximity_finder_3D::load(A,proximity_finder_3D::getStaticObjectType()->TypeVersion());
-  A & RK_SERIAL_LOAD_WITH_NAME(mBox1)
-    & RK_SERIAL_LOAD_WITH_NAME(mBox2);
-};
-
 
 
 };
 
 };
-
-
-
-
-
-
-
-
-
 

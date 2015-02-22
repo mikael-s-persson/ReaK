@@ -32,14 +32,6 @@ namespace ReaK {
 namespace geom {
 
 
-shared_ptr< shape_3D > prox_plane_box::getShape1() const {
-  return mPlane;
-};
-
-shared_ptr< shape_3D > prox_plane_box::getShape2() const {
-  return mBox;
-};
-
 void prox_plane_box::computeProximity(const shape_3D_precompute_pack& aPack1, 
                                       const shape_3D_precompute_pack& aPack2) {
   if((!mBox) || (!mPlane)) {
@@ -50,9 +42,9 @@ void prox_plane_box::computeProximity(const shape_3D_precompute_pack& aPack1,
   };
   using std::fabs; using std::sqrt; using ReaK::unit;
   
-  const pose_3D<double>& bx_pose = (aPack1.parent == mBox.get() ? 
+  const pose_3D<double>& bx_pose = (aPack1.parent == mBox ? 
                                     aPack1.global_pose : aPack2.global_pose);
-  const pose_3D<double>& pl_pose = (aPack1.parent == mBox.get() ? 
+  const pose_3D<double>& pl_pose = (aPack1.parent == mBox ? 
                                     aPack2.global_pose : aPack1.global_pose);
   
   vect<double,3> bx_c = bx_pose.Position;
@@ -76,36 +68,15 @@ void prox_plane_box::computeProximity(const shape_3D_precompute_pack& aPack1,
 };
 
 
-prox_plane_box::prox_plane_box(const shared_ptr< plane >& aPlane,
-                               const shared_ptr< box >& aBox) :
+prox_plane_box::prox_plane_box(const plane* aPlane,
+                               const box* aBox) :
                                proximity_finder_3D(),
                                mPlane(aPlane),
                                mBox(aBox) { };
 
 
-void RK_CALL prox_plane_box::save(ReaK::serialization::oarchive& A, unsigned int) const {
-  proximity_finder_3D::save(A,proximity_finder_3D::getStaticObjectType()->TypeVersion());
-  A & RK_SERIAL_SAVE_WITH_NAME(mPlane)
-    & RK_SERIAL_SAVE_WITH_NAME(mBox);
-};
-
-void RK_CALL prox_plane_box::load(ReaK::serialization::iarchive& A, unsigned int) {
-  proximity_finder_3D::load(A,proximity_finder_3D::getStaticObjectType()->TypeVersion());
-  A & RK_SERIAL_LOAD_WITH_NAME(mPlane)
-    & RK_SERIAL_LOAD_WITH_NAME(mBox);
-};
-
-
 };
 
 };
-
-
-
-
-
-
-
-
 
 

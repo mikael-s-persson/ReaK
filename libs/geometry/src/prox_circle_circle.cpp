@@ -30,14 +30,6 @@ namespace ReaK {
 namespace geom {
 
 
-shared_ptr< shape_2D > prox_circle_circle::getShape1() const {
-  return mCircle1;
-};
-
-shared_ptr< shape_2D > prox_circle_circle::getShape2() const {
-  return mCircle2;
-};
-    
 void prox_circle_circle::computeProximity(const shape_2D_precompute_pack& aPack1, 
                                           const shape_2D_precompute_pack& aPack2) {
   if((!mCircle1) || (!mCircle2)) {
@@ -47,9 +39,9 @@ void prox_circle_circle::computeProximity(const shape_2D_precompute_pack& aPack1
     return;
   };
   
-  const pose_2D<double>& c1_pose = (aPack1.parent == mCircle1.get() ? 
+  const pose_2D<double>& c1_pose = (aPack1.parent == mCircle1 ? 
                                     aPack1.global_pose : aPack2.global_pose);
-  const pose_2D<double>& c2_pose = (aPack1.parent == mCircle1.get() ? 
+  const pose_2D<double>& c2_pose = (aPack1.parent == mCircle1 ? 
                                     aPack2.global_pose : aPack1.global_pose);
   
   vect<double,2> c1 = c1_pose.Position;
@@ -65,36 +57,13 @@ void prox_circle_circle::computeProximity(const shape_2D_precompute_pack& aPack1
 };
 
 
-prox_circle_circle::prox_circle_circle(const shared_ptr< circle >& aCircle1,
-                                       const shared_ptr< circle >& aCircle2) :
+prox_circle_circle::prox_circle_circle(const circle* aCircle1,
+                                       const circle* aCircle2) :
                                        proximity_finder_2D(),
                                        mCircle1(aCircle1),
                                        mCircle2(aCircle2) { };
-    
-    
-void RK_CALL prox_circle_circle::save(ReaK::serialization::oarchive& A, unsigned int) const {
-  proximity_finder_2D::save(A,proximity_finder_2D::getStaticObjectType()->TypeVersion());
-  A & RK_SERIAL_SAVE_WITH_NAME(mCircle1)
-    & RK_SERIAL_SAVE_WITH_NAME(mCircle2);
-};
-    
-void RK_CALL prox_circle_circle::load(ReaK::serialization::iarchive& A, unsigned int) {
-  proximity_finder_2D::load(A,proximity_finder_2D::getStaticObjectType()->TypeVersion());
-  A & RK_SERIAL_LOAD_WITH_NAME(mCircle1)
-    & RK_SERIAL_LOAD_WITH_NAME(mCircle2);
-};
-
 
 };
 
 };
-
-
-
-
-
-
-
-
-
 

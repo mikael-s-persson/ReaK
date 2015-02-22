@@ -50,17 +50,14 @@ namespace geom {
 class prox_crect_rectangle : public proximity_finder_2D {
   protected:
     
-    shared_ptr< capped_rectangle > mCRect;
-    shared_ptr< rectangle > mRectangle;
+    const capped_rectangle* mCRect;
+    const rectangle* mRectangle;
     
-    static void computeProximityOfLine(const rectangle&, const pose_2D<double>&, const vect<double,2>&, const vect<double,2>&, double, proximity_record_2D&);
+    static void computeProximityOfLine(const rectangle&, const pose_2D<double>&, 
+                                       const vect<double,2>&, const vect<double,2>&, 
+                                       double, proximity_record_2D&);
     
   public:
-    
-    /** Returns the first shape involved in the proximity query. */
-    virtual shared_ptr< shape_2D > getShape1() const;
-    /** Returns the second shape involved in the proximity query. */
-    virtual shared_ptr< shape_2D > getShape2() const;
     
     /** This function performs the proximity query on its associated shapes. */
     virtual void computeProximity(const shape_2D_precompute_pack& aPack1, 
@@ -71,22 +68,11 @@ class prox_crect_rectangle : public proximity_finder_2D {
      * \param aCRect The first capped rectangle involved in the proximity query.
      * \param aRectangle The second capped rectangle involved in the proximity query.
      */
-    prox_crect_rectangle(const shared_ptr< capped_rectangle >& aCRect = shared_ptr< capped_rectangle >(),
-                         const shared_ptr< rectangle >& aRectangle = shared_ptr< rectangle >());
+    prox_crect_rectangle(const capped_rectangle* aCRect = NULL,
+                         const rectangle* aRectangle = NULL);
     
     /** Destructor. */
     virtual ~prox_crect_rectangle() { };
-    
-    
-/*******************************************************************************
-                   ReaK's RTTI and Serialization interfaces
-*******************************************************************************/
-    
-    virtual void RK_CALL save(ReaK::serialization::oarchive& A, unsigned int) const;
-    
-    virtual void RK_CALL load(ReaK::serialization::iarchive& A, unsigned int);
-    
-    RK_RTTI_MAKE_CONCRETE_1BASE(prox_crect_rectangle,0xC3200009,1,"prox_crect_rectangle",proximity_finder_2D)
     
 };
 
@@ -96,13 +82,4 @@ class prox_crect_rectangle : public proximity_finder_2D {
 };
 
 #endif
-
-
-
-
-
-
-
-
-
 

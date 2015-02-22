@@ -49,15 +49,10 @@ namespace geom {
 class prox_sphere_sphere : public proximity_finder_3D {
   protected:
     
-    shared_ptr< sphere > mSphere1;
-    shared_ptr< sphere > mSphere2;
+    const sphere* mSphere1;
+    const sphere* mSphere2;
     
   public:
-    
-    /** Returns the first shape involved in the proximity query. */
-    virtual shared_ptr< shape_3D > getShape1() const;
-    /** Returns the second shape involved in the proximity query. */
-    virtual shared_ptr< shape_3D > getShape2() const;
     
     /** This function performs the proximity query on its associated shapes. */
     virtual void computeProximity(const shape_3D_precompute_pack& aPack1, 
@@ -68,22 +63,11 @@ class prox_sphere_sphere : public proximity_finder_3D {
      * \param aSphere1 The first sphere involved in the proximity query.
      * \param aSphere2 The second sphere involved in the proximity query.
      */
-    prox_sphere_sphere(const shared_ptr< sphere >& aSphere1 = shared_ptr< sphere >(),
-                       const shared_ptr< sphere >& aSphere2 = shared_ptr< sphere >());
+    prox_sphere_sphere(const sphere* aSphere1 = NULL,
+                       const sphere* aSphere2 = NULL);
     
     /** Destructor. */
     virtual ~prox_sphere_sphere() { };
-    
-    
-/*******************************************************************************
-                   ReaK's RTTI and Serialization interfaces
-*******************************************************************************/
-    
-    virtual void RK_CALL save(ReaK::serialization::oarchive& A, unsigned int) const;
-    
-    virtual void RK_CALL load(ReaK::serialization::iarchive& A, unsigned int);
-    
-    RK_RTTI_MAKE_CONCRETE_1BASE(prox_sphere_sphere,0xC3200010,1,"prox_sphere_sphere",proximity_finder_3D)
     
 };
 
@@ -93,13 +77,4 @@ class prox_sphere_sphere : public proximity_finder_3D {
 };
 
 #endif
-
-
-
-
-
-
-
-
-
 

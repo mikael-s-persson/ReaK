@@ -30,14 +30,6 @@ namespace ReaK {
 namespace geom {
 
 
-shared_ptr< shape_2D > prox_crect_crect::getShape1() const {
-  return mCRect1;
-};
-
-shared_ptr< shape_2D > prox_crect_crect::getShape2() const {
-  return mCRect2;
-};
-    
 void prox_crect_crect::computeProximity(const shape_2D_precompute_pack& aPack1, 
                                         const shape_2D_precompute_pack& aPack2) {
   mLastResult.mDistance = std::numeric_limits<double>::infinity();
@@ -46,9 +38,9 @@ void prox_crect_crect::computeProximity(const shape_2D_precompute_pack& aPack1,
   if((!mCRect1) || (!mCRect2))
     return;
   
-  const pose_2D<double>& cr1_pose = (aPack1.parent == mCRect1.get() ? 
+  const pose_2D<double>& cr1_pose = (aPack1.parent == mCRect1 ? 
                                      aPack1.global_pose : aPack2.global_pose);
-  const pose_2D<double>& cr2_pose = (aPack1.parent == mCRect1.get() ? 
+  const pose_2D<double>& cr2_pose = (aPack1.parent == mCRect1 ? 
                                      aPack2.global_pose : aPack1.global_pose);
   
   vect<double,2> cr2_c = cr2_pose.Position;
@@ -136,36 +128,13 @@ void prox_crect_crect::computeProximity(const shape_2D_precompute_pack& aPack1,
 };
 
 
-prox_crect_crect::prox_crect_crect(const shared_ptr< capped_rectangle >& aCRect1,
-                                   const shared_ptr< capped_rectangle >& aCRect2) :
+prox_crect_crect::prox_crect_crect(const capped_rectangle* aCRect1,
+                                   const capped_rectangle* aCRect2) :
                                    proximity_finder_2D(),
                                    mCRect1(aCRect1),
                                    mCRect2(aCRect2) { };
-    
-    
-void RK_CALL prox_crect_crect::save(ReaK::serialization::oarchive& A, unsigned int) const {
-  proximity_finder_2D::save(A,proximity_finder_2D::getStaticObjectType()->TypeVersion());
-  A & RK_SERIAL_SAVE_WITH_NAME(mCRect1)
-    & RK_SERIAL_SAVE_WITH_NAME(mCRect2);
-};
-    
-void RK_CALL prox_crect_crect::load(ReaK::serialization::iarchive& A, unsigned int) {
-  proximity_finder_2D::load(A,proximity_finder_2D::getStaticObjectType()->TypeVersion());
-  A & RK_SERIAL_LOAD_WITH_NAME(mCRect1)
-    & RK_SERIAL_LOAD_WITH_NAME(mCRect2);
-};
 
 
 };
 
 };
-
-
-
-
-
-
-
-
-
-

@@ -95,21 +95,23 @@ struct proximity_solver {
     
     if(mShape1->getObjectType() == geom::box::getStaticObjectType()) {
       shared_ptr< geom::box > bx1 = rtti::rk_dynamic_ptr_cast< geom::box >(mShape1);
+      pose_3D<double> bx1_pose = bx1->getPose().getGlobalPose();
       if(mShape2->getObjectType() == geom::box::getStaticObjectType()) {
         // box-box case.
         shared_ptr< geom::box > bx2 = rtti::rk_dynamic_ptr_cast< geom::box >(mShape2);
+        pose_3D<double> bx2_pose = bx2->getPose().getGlobalPose();
         
         std::cout << "Checking proximity between Box '" << bx1->getName() 
                   << "' and Box '" << bx2->getName() << "'..." << std::endl;
         
-        result = geom::findProximityByGJKEPA(geom::box_support_func(bx1), 
-                                             geom::box_support_func(bx2));
+        result = geom::findProximityByGJKEPA(geom::box_support_func(*bx1,bx1_pose), 
+                                             geom::box_support_func(*bx2,bx2_pose));
         
         v1 = mShape1->getPose().rotateToGlobal(mShape1->getPose().transformFromGlobal(result.mPoint1));
         v2 = mShape2->getPose().rotateToGlobal(mShape2->getPose().transformFromGlobal(result.mPoint2));
         
-        geom::box_boundary_func bf1(bx1);
-        geom::box_boundary_func bf2(bx2);
+        geom::box_boundary_func bf1(*bx1,bx1_pose);
+        geom::box_boundary_func bf2(*bx2,bx2_pose);
         v1 = bf1(v1);
         v2 = bf2(v2);
         
@@ -119,18 +121,19 @@ struct proximity_solver {
       } else {
         // box-cylinder case.
         shared_ptr< geom::cylinder > cy2 = rtti::rk_dynamic_ptr_cast< geom::cylinder >(mShape2);
+        pose_3D<double> cy2_pose = cy2->getPose().getGlobalPose();
         
         std::cout << "Checking proximity between Box '" << bx1->getName() 
                   << "' and Cylinder '" << cy2->getName() << "'..." << std::endl;
         
-        result = geom::findProximityByGJKEPA(geom::box_support_func(bx1),
-                                             geom::cylinder_support_func(cy2));
+        result = geom::findProximityByGJKEPA(geom::box_support_func(*bx1,bx1_pose),
+                                             geom::cylinder_support_func(*cy2, cy2_pose));
         
         v1 = mShape1->getPose().rotateToGlobal(mShape1->getPose().transformFromGlobal(result.mPoint1));
         v2 = mShape2->getPose().rotateToGlobal(mShape2->getPose().transformFromGlobal(result.mPoint2));
         
-        geom::box_boundary_func bf1(bx1);
-        geom::cylinder_boundary_func bf2(cy2);
+        geom::box_boundary_func bf1(*bx1,bx1_pose);
+        geom::cylinder_boundary_func bf2(*cy2, cy2_pose);
         v1 = bf1(v1);
         v2 = bf2(v2);
         
@@ -140,21 +143,23 @@ struct proximity_solver {
       };
     } else {
       shared_ptr< geom::cylinder > cy1 = rtti::rk_dynamic_ptr_cast< geom::cylinder >(mShape1);
+      pose_3D<double> cy1_pose = cy1->getPose().getGlobalPose();
       if(mShape2->getObjectType() == geom::box::getStaticObjectType()) {
         // cylinder-box case.
         shared_ptr< geom::box > bx2 = rtti::rk_dynamic_ptr_cast< geom::box >(mShape2);
+        pose_3D<double> bx2_pose = bx2->getPose().getGlobalPose();
         
         std::cout << "Checking proximity between Cylinder '" << cy1->getName() 
                   << "' and Box '" << bx2->getName() << "'..." << std::endl;
         
-        result = geom::findProximityByGJKEPA(geom::cylinder_support_func(cy1),
-                                             geom::box_support_func(bx2));
+        result = geom::findProximityByGJKEPA(geom::cylinder_support_func(*cy1,cy1_pose),
+                                             geom::box_support_func(*bx2,bx2_pose));
         
         v1 = mShape1->getPose().rotateToGlobal(mShape1->getPose().transformFromGlobal(result.mPoint1));
         v2 = mShape2->getPose().rotateToGlobal(mShape2->getPose().transformFromGlobal(result.mPoint2));
         
-        geom::cylinder_boundary_func bf1(cy1);
-        geom::box_boundary_func bf2(bx2);
+        geom::cylinder_boundary_func bf1(*cy1,cy1_pose);
+        geom::box_boundary_func bf2(*bx2,bx2_pose);
         v1 = bf1(v1);
         v2 = bf2(v2);
         
@@ -164,18 +169,19 @@ struct proximity_solver {
       } else {
         // cylinder-cylinder case.
         shared_ptr< geom::cylinder > cy2 = rtti::rk_dynamic_ptr_cast< geom::cylinder >(mShape2);
+        pose_3D<double> cy2_pose = cy2->getPose().getGlobalPose();
         
         std::cout << "Checking proximity between Cylinder '" << cy1->getName() 
                   << "' and Cylinder '" << cy2->getName() << "'..." << std::endl;
         
-        result = geom::findProximityByGJKEPA(geom::cylinder_support_func(cy1), 
-                                             geom::cylinder_support_func(cy2));
+        result = geom::findProximityByGJKEPA(geom::cylinder_support_func(*cy1,cy1_pose), 
+                                             geom::cylinder_support_func(*cy2, cy2_pose));
         
         v1 = mShape1->getPose().rotateToGlobal(mShape1->getPose().transformFromGlobal(result.mPoint1));
         v2 = mShape2->getPose().rotateToGlobal(mShape2->getPose().transformFromGlobal(result.mPoint2));
         
-        geom::cylinder_boundary_func bf1(cy1);
-        geom::cylinder_boundary_func bf2(cy2);
+        geom::cylinder_boundary_func bf1(*cy1,cy1_pose);
+        geom::cylinder_boundary_func bf2(*cy2, cy2_pose);
         v1 = bf1(v1);
         v2 = bf2(v2);
         

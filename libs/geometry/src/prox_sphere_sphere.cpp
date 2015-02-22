@@ -30,14 +30,6 @@ namespace ReaK {
 namespace geom {
 
 
-shared_ptr< shape_3D > prox_sphere_sphere::getShape1() const {
-  return mSphere1;
-};
-
-shared_ptr< shape_3D > prox_sphere_sphere::getShape2() const {
-  return mSphere2;
-};
-    
 void prox_sphere_sphere::computeProximity(const shape_3D_precompute_pack& aPack1, 
                                           const shape_3D_precompute_pack& aPack2) {
   if((!mSphere1) || (!mSphere2)) {
@@ -46,9 +38,9 @@ void prox_sphere_sphere::computeProximity(const shape_3D_precompute_pack& aPack1
     mLastResult.mPoint2 = vect<double,3>(0.0,0.0,0.0);
     return;
   };
-  vect<double,3> c1 = (aPack1.parent == mSphere1.get() ? 
+  vect<double,3> c1 = (aPack1.parent == mSphere1 ? 
                        aPack1.global_pose.Position : aPack2.global_pose.Position);
-  vect<double,3> c2 = (aPack1.parent == mSphere1.get() ? 
+  vect<double,3> c2 = (aPack1.parent == mSphere1 ? 
                        aPack2.global_pose.Position : aPack1.global_pose.Position);
   
   vect<double,3> diff_cc = c2 - c1;
@@ -61,36 +53,14 @@ void prox_sphere_sphere::computeProximity(const shape_3D_precompute_pack& aPack1
 };
 
 
-prox_sphere_sphere::prox_sphere_sphere(const shared_ptr< sphere >& aSphere1,
-                                       const shared_ptr< sphere >& aSphere2) :
+prox_sphere_sphere::prox_sphere_sphere(const sphere* aSphere1,
+                                       const sphere* aSphere2) :
                                        proximity_finder_3D(),
                                        mSphere1(aSphere1),
                                        mSphere2(aSphere2) { };
-    
-    
-void RK_CALL prox_sphere_sphere::save(ReaK::serialization::oarchive& A, unsigned int) const {
-  proximity_finder_3D::save(A,proximity_finder_3D::getStaticObjectType()->TypeVersion());
-  A & RK_SERIAL_SAVE_WITH_NAME(mSphere1)
-    & RK_SERIAL_SAVE_WITH_NAME(mSphere2);
-};
-    
-void RK_CALL prox_sphere_sphere::load(ReaK::serialization::iarchive& A, unsigned int) {
-  proximity_finder_3D::load(A,proximity_finder_3D::getStaticObjectType()->TypeVersion());
-  A & RK_SERIAL_LOAD_WITH_NAME(mSphere1)
-    & RK_SERIAL_LOAD_WITH_NAME(mSphere2);
-};
 
 
 };
 
 };
-
-
-
-
-
-
-
-
-
 

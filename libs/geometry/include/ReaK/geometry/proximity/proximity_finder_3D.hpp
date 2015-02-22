@@ -46,17 +46,12 @@ namespace geom {
 /**
  * This class is the base-class for a proximity query with 3D shapes.
  */
-class proximity_finder_3D : public shared_object {
+class proximity_finder_3D {
   protected:
     
     proximity_record_3D mLastResult;
     
   public:
-    
-    /** Returns the first shape involved in the proximity query. */
-    virtual shared_ptr< shape_3D > getShape1() const = 0;
-    /** Returns the second shape involved in the proximity query. */
-    virtual shared_ptr< shape_3D > getShape2() const = 0;
     
     /** This function performs the proximity query on its associated shapes. */
     virtual void computeProximity(const shape_3D_precompute_pack& aPack1, 
@@ -71,17 +66,6 @@ class proximity_finder_3D : public shared_object {
     /** Destructor. */
     virtual ~proximity_finder_3D() { };
     
-    
-/*******************************************************************************
-                   ReaK's RTTI and Serialization interfaces
-*******************************************************************************/
-    
-    virtual void RK_CALL save(ReaK::serialization::oarchive& A, unsigned int) const;
-    
-    virtual void RK_CALL load(ReaK::serialization::iarchive& A, unsigned int);
-    
-    RK_RTTI_MAKE_ABSTRACT_1BASE(proximity_finder_3D,0xC3200004,1,"proximity_finder_3D",shared_object)
-    
 };
 
 
@@ -90,13 +74,4 @@ class proximity_finder_3D : public shared_object {
 };
 
 #endif
-
-
-
-
-
-
-
-
-
 

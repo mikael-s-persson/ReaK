@@ -49,17 +49,13 @@ namespace geom {
 class prox_rectangle_rectangle : public proximity_finder_2D {
   protected:
     
-    shared_ptr< rectangle > mRectangle1;
-    shared_ptr< rectangle > mRectangle2;
+    const rectangle* mRectangle1;
+    const rectangle* mRectangle2;
     
-    static void computeProximityOfPoint(const rectangle&, const pose_2D<double>&, const vect<double,2>&, vect<double,2>&, double&);
+    static void computeProximityOfPoint(const rectangle&, const pose_2D<double>&, 
+                                        const vect<double,2>&, vect<double,2>&, double&);
     
   public:
-    
-    /** Returns the first shape involved in the proximity query. */
-    virtual shared_ptr< shape_2D > getShape1() const;
-    /** Returns the second shape involved in the proximity query. */
-    virtual shared_ptr< shape_2D > getShape2() const;
     
     /** This function performs the proximity query on its associated shapes. */
     virtual void computeProximity(const shape_2D_precompute_pack& aPack1, 
@@ -70,22 +66,11 @@ class prox_rectangle_rectangle : public proximity_finder_2D {
      * \param aRectangle1 The first rectangle involved in the proximity query.
      * \param aRectangle2 The second rectangle involved in the proximity query.
      */
-    prox_rectangle_rectangle(const shared_ptr< rectangle >& aRectangle1 = shared_ptr< rectangle >(),
-                             const shared_ptr< rectangle >& aRectangle2 = shared_ptr< rectangle >());
+    prox_rectangle_rectangle(const rectangle* aRectangle1 = NULL,
+                             const rectangle* aRectangle2 = NULL);
     
     /** Destructor. */
     virtual ~prox_rectangle_rectangle() { };
-    
-    
-/*******************************************************************************
-                   ReaK's RTTI and Serialization interfaces
-*******************************************************************************/
-    
-    virtual void RK_CALL save(ReaK::serialization::oarchive& A, unsigned int) const;
-    
-    virtual void RK_CALL load(ReaK::serialization::iarchive& A, unsigned int);
-    
-    RK_RTTI_MAKE_CONCRETE_1BASE(prox_rectangle_rectangle,0xC320000A,1,"prox_rectangle_rectangle",proximity_finder_2D)
     
 };
 
@@ -95,13 +80,4 @@ class prox_rectangle_rectangle : public proximity_finder_2D {
 };
 
 #endif
-
-
-
-
-
-
-
-
-
 

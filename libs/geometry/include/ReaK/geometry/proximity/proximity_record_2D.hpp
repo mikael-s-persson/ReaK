@@ -83,12 +83,3 @@ class proximity_record_2D : public shared_object {
 
 #endif
 
-
-
-
-
-
-
-
-
-

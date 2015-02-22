@@ -30,15 +30,6 @@ namespace ReaK {
 namespace geom {
 
 
-shared_ptr< shape_2D > prox_rectangle_rectangle::getShape1() const {
-  return mRectangle1;
-};
-
-shared_ptr< shape_2D > prox_rectangle_rectangle::getShape2() const {
-  return mRectangle2;
-};
-
-
 void prox_rectangle_rectangle::computeProximityOfPoint(const rectangle& aRectangle, 
                                                        const pose_2D<double>& aRecGblPose,
                                                        const vect<double,2>& aPoint, 
@@ -85,9 +76,9 @@ void prox_rectangle_rectangle::computeProximity(const shape_2D_precompute_pack& 
   if((!mRectangle1) || (!mRectangle2))
     return;
   
-  const pose_2D<double>& r1_pose = (aPack1.parent == mRectangle1.get() ? 
+  const pose_2D<double>& r1_pose = (aPack1.parent == mRectangle1 ? 
                                     aPack1.global_pose : aPack2.global_pose);
-  const pose_2D<double>& r2_pose = (aPack1.parent == mRectangle1.get() ? 
+  const pose_2D<double>& r2_pose = (aPack1.parent == mRectangle1 ? 
                                     aPack2.global_pose : aPack1.global_pose);
   
   vect<double,2> temp_pt;
@@ -169,36 +160,14 @@ void prox_rectangle_rectangle::computeProximity(const shape_2D_precompute_pack& 
 };
 
 
-prox_rectangle_rectangle::prox_rectangle_rectangle(const shared_ptr< rectangle >& aRectangle1,
-                                                   const shared_ptr< rectangle >& aRectangle2) :
+prox_rectangle_rectangle::prox_rectangle_rectangle(const rectangle* aRectangle1,
+                                                   const rectangle* aRectangle2) :
                                                    proximity_finder_2D(),
                                                    mRectangle1(aRectangle1),
                                                    mRectangle2(aRectangle2) { };
-    
-    
-void RK_CALL prox_rectangle_rectangle::save(ReaK::serialization::oarchive& A, unsigned int) const {
-  proximity_finder_2D::save(A,proximity_finder_2D::getStaticObjectType()->TypeVersion());
-  A & RK_SERIAL_SAVE_WITH_NAME(mRectangle1)
-    & RK_SERIAL_SAVE_WITH_NAME(mRectangle2);
-};
-    
-void RK_CALL prox_rectangle_rectangle::load(ReaK::serialization::iarchive& A, unsigned int) {
-  proximity_finder_2D::load(A,proximity_finder_2D::getStaticObjectType()->TypeVersion());
-  A & RK_SERIAL_LOAD_WITH_NAME(mRectangle1)
-    & RK_SERIAL_LOAD_WITH_NAME(mRectangle2);
-};
 
 
 };
 
 };
-
-
-
-
-
-
-
-
-
 

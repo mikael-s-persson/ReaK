@@ -32,16 +32,6 @@ namespace ReaK {
 namespace geom {
 
 
-shared_ptr< shape_3D > prox_ccylinder_box::getShape1() const {
-  return mCCylinder;
-};
-
-shared_ptr< shape_3D > prox_ccylinder_box::getShape2() const {
-  return mBox;
-};
-
-
-
 void prox_ccylinder_box::computeProximity(const shape_3D_precompute_pack& aPack1, 
                                           const shape_3D_precompute_pack& aPack2) {
   if((!mCCylinder) || (!mBox)) {
@@ -52,9 +42,9 @@ void prox_ccylinder_box::computeProximity(const shape_3D_precompute_pack& aPack1
   };
   using std::fabs; using std::sqrt;
   
-  const pose_3D<double>& cy_pose = (aPack1.parent == mCCylinder.get() ? 
+  const pose_3D<double>& cy_pose = (aPack1.parent == mCCylinder ? 
                                     aPack1.global_pose : aPack2.global_pose);
-  const pose_3D<double>& bx_pose = (aPack1.parent == mCCylinder.get() ? 
+  const pose_3D<double>& bx_pose = (aPack1.parent == mCCylinder ? 
                                     aPack2.global_pose : aPack1.global_pose);
   
   
@@ -76,36 +66,13 @@ void prox_ccylinder_box::computeProximity(const shape_3D_precompute_pack& aPack1
 };
 
 
-prox_ccylinder_box::prox_ccylinder_box(const shared_ptr< capped_cylinder >& aCCylinder,
-                                       const shared_ptr< box >& aBox) :
+prox_ccylinder_box::prox_ccylinder_box(const capped_cylinder* aCCylinder,
+                                       const box* aBox) :
                                        proximity_finder_3D(),
                                        mCCylinder(aCCylinder),
                                        mBox(aBox) { };
-    
-    
-void RK_CALL prox_ccylinder_box::save(ReaK::serialization::oarchive& A, unsigned int) const {
-  proximity_finder_3D::save(A,proximity_finder_3D::getStaticObjectType()->TypeVersion());
-  A & RK_SERIAL_SAVE_WITH_NAME(mCCylinder)
-    & RK_SERIAL_SAVE_WITH_NAME(mBox);
-};
-    
-void RK_CALL prox_ccylinder_box::load(ReaK::serialization::iarchive& A, unsigned int) {
-  proximity_finder_3D::load(A,proximity_finder_3D::getStaticObjectType()->TypeVersion());
-  A & RK_SERIAL_LOAD_WITH_NAME(mCCylinder)
-    & RK_SERIAL_LOAD_WITH_NAME(mBox);
-};
-
 
 };
 
 };
-
-
-
-
-
-
-
-
-
 

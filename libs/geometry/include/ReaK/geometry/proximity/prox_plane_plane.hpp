@@ -49,17 +49,13 @@ namespace geom {
 class prox_plane_plane : public proximity_finder_3D {
   protected:
     
-    shared_ptr< plane > mPlane1;
-    shared_ptr< plane > mPlane2;
+    const plane* mPlane1;
+    const plane* mPlane2;
     
-    static void computeProximityOfPoint(const plane&, const pose_3D<double>&, const vect<double,3>&, vect<double,3>&, double&);
+    static void computeProximityOfPoint(const plane&, const pose_3D<double>&, 
+                                        const vect<double,3>&, vect<double,3>&, double&);
     
   public:
-    
-    /** Returns the first shape involved in the proximity query. */
-    virtual shared_ptr< shape_3D > getShape1() const;
-    /** Returns the second shape involved in the proximity query. */
-    virtual shared_ptr< shape_3D > getShape2() const;
     
     /** This function performs the proximity query on its associated shapes. */
     virtual void computeProximity(const shape_3D_precompute_pack& aPack1, 
@@ -70,22 +66,11 @@ class prox_plane_plane : public proximity_finder_3D {
      * \param aPlane1 The first plane involved in the proximity query.
      * \param aPlane2 The second plane involved in the proximity query.
      */
-    prox_plane_plane(const shared_ptr< plane >& aPlane1 = shared_ptr< plane >(),
-                     const shared_ptr< plane >& aPlane2 = shared_ptr< plane >());
+    prox_plane_plane(const plane* aPlane1 = NULL,
+                     const plane* aPlane2 = NULL);
     
     /** Destructor. */
     virtual ~prox_plane_plane() { };
-    
-    
-/*******************************************************************************
-                   ReaK's RTTI and Serialization interfaces
-*******************************************************************************/
-    
-    virtual void RK_CALL save(ReaK::serialization::oarchive& A, unsigned int) const;
-    
-    virtual void RK_CALL load(ReaK::serialization::iarchive& A, unsigned int);
-    
-    RK_RTTI_MAKE_CONCRETE_1BASE(prox_plane_plane,0xC320000B,1,"prox_plane_plane",proximity_finder_3D)
     
 };
 
@@ -95,13 +80,5 @@ class prox_plane_plane : public proximity_finder_3D {
 };
 
 #endif
-
-
-
-
-
-
-
-
 
 

@@ -34,14 +34,6 @@ namespace ReaK {
 namespace geom {
 
 
-shared_ptr< shape_3D > prox_cylinder_cylinder::getShape1() const {
-  return mCylinder1;
-};
-
-shared_ptr< shape_3D > prox_cylinder_cylinder::getShape2() const {
-  return mCylinder2;
-};
-
 void prox_cylinder_cylinder::computeProximity(const shape_3D_precompute_pack& aPack1, 
                                               const shape_3D_precompute_pack& aPack2) {
   if((!mCylinder1) || (!mCylinder2)) {
@@ -51,9 +43,9 @@ void prox_cylinder_cylinder::computeProximity(const shape_3D_precompute_pack& aP
     return;
   };
   
-  const pose_3D<double>& c1_pose = (aPack1.parent == mCylinder1.get() ? 
+  const pose_3D<double>& c1_pose = (aPack1.parent == mCylinder1 ? 
                                     aPack1.global_pose : aPack2.global_pose);
-  const pose_3D<double>& c2_pose = (aPack1.parent == mCylinder1.get() ? 
+  const pose_3D<double>& c2_pose = (aPack1.parent == mCylinder1 ? 
                                     aPack2.global_pose : aPack1.global_pose);
   
   mLastResult = findProximityByGJKEPA(
@@ -63,36 +55,14 @@ void prox_cylinder_cylinder::computeProximity(const shape_3D_precompute_pack& aP
 };
 
 
-prox_cylinder_cylinder::prox_cylinder_cylinder(const shared_ptr< cylinder >& aCylinder1,
-                                               const shared_ptr< cylinder >& aCylinder2) :
+prox_cylinder_cylinder::prox_cylinder_cylinder(const cylinder* aCylinder1,
+                                               const cylinder* aCylinder2) :
                                                proximity_finder_3D(),
                                                mCylinder1(aCylinder1),
                                                mCylinder2(aCylinder2) { };
 
 
-void RK_CALL prox_cylinder_cylinder::save(ReaK::serialization::oarchive& A, unsigned int) const {
-  proximity_finder_3D::save(A,proximity_finder_3D::getStaticObjectType()->TypeVersion());
-  A & RK_SERIAL_SAVE_WITH_NAME(mCylinder1)
-    & RK_SERIAL_SAVE_WITH_NAME(mCylinder2);
-};
-
-void RK_CALL prox_cylinder_cylinder::load(ReaK::serialization::iarchive& A, unsigned int) {
-  proximity_finder_3D::load(A,proximity_finder_3D::getStaticObjectType()->TypeVersion());
-  A & RK_SERIAL_LOAD_WITH_NAME(mCylinder1)
-    & RK_SERIAL_LOAD_WITH_NAME(mCylinder2);
-};
-
-
 };
 
 };
-
-
-
-
-
-
-
-
-
 

@@ -50,15 +50,10 @@ namespace geom {
 class prox_sphere_ccylinder : public proximity_finder_3D {
   protected:
     
-    shared_ptr< sphere > mSphere;
-    shared_ptr< capped_cylinder > mCCylinder;
+    const sphere* mSphere;
+    const capped_cylinder* mCCylinder;
     
   public:
-    
-    /** Returns the first shape involved in the proximity query. */
-    virtual shared_ptr< shape_3D > getShape1() const;
-    /** Returns the second shape involved in the proximity query. */
-    virtual shared_ptr< shape_3D > getShape2() const;
     
     /** This function performs the proximity query on its associated shapes. */
     virtual void computeProximity(const shape_3D_precompute_pack& aPack1, 
@@ -69,22 +64,11 @@ class prox_sphere_ccylinder : public proximity_finder_3D {
      * \param aSphere The sphere involved in the proximity query.
      * \param aCCylinder The capped cylinder involved in the proximity query.
      */
-    prox_sphere_ccylinder(const shared_ptr< sphere >& aSphere = shared_ptr< sphere >(),
-                          const shared_ptr< capped_cylinder >& aCCylinder = shared_ptr< capped_cylinder >());
+    prox_sphere_ccylinder(const sphere* aSphere = NULL,
+                          const capped_cylinder* aCCylinder = NULL);
     
     /** Destructor. */
     virtual ~prox_sphere_ccylinder() { };
-    
-    
-/*******************************************************************************
-                   ReaK's RTTI and Serialization interfaces
-*******************************************************************************/
-    
-    virtual void RK_CALL save(ReaK::serialization::oarchive& A, unsigned int) const;
-    
-    virtual void RK_CALL load(ReaK::serialization::iarchive& A, unsigned int);
-    
-    RK_RTTI_MAKE_CONCRETE_1BASE(prox_sphere_ccylinder,0xC3200011,1,"prox_sphere_ccylinder",proximity_finder_3D)
     
 };
 
@@ -94,13 +78,4 @@ class prox_sphere_ccylinder : public proximity_finder_3D {
 };
 
 #endif
-
-
-
-
-
-
-
-
-
 

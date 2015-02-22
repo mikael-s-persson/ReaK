@@ -34,14 +34,6 @@ namespace ReaK {
 namespace geom {
 
 
-shared_ptr< shape_3D > prox_sphere_box::getShape1() const {
-  return mSphere;
-};
-
-shared_ptr< shape_3D > prox_sphere_box::getShape2() const {
-  return mBox;
-};
-    
 void prox_sphere_box::computeProximity(const shape_3D_precompute_pack& aPack1, 
                                        const shape_3D_precompute_pack& aPack2) {
   if((!mSphere) || (!mBox)) {
@@ -52,9 +44,9 @@ void prox_sphere_box::computeProximity(const shape_3D_precompute_pack& aPack1,
   };
   using std::fabs; using std::sqrt;
   
-  const pose_3D<double>& sp_pose = (aPack1.parent == mSphere.get() ? 
+  const pose_3D<double>& sp_pose = (aPack1.parent == mSphere ? 
                                     aPack1.global_pose : aPack2.global_pose);
-  const pose_3D<double>& bx_pose = (aPack1.parent == mSphere.get() ? 
+  const pose_3D<double>& bx_pose = (aPack1.parent == mSphere ? 
                                     aPack2.global_pose : aPack1.global_pose);
   
   vect<double,3> sp_c = sp_pose.Position;
@@ -74,36 +66,14 @@ void prox_sphere_box::computeProximity(const shape_3D_precompute_pack& aPack1,
 };
 
 
-prox_sphere_box::prox_sphere_box(const shared_ptr< sphere >& aSphere,
-                                 const shared_ptr< box >& aBox) :
+prox_sphere_box::prox_sphere_box(const sphere* aSphere,
+                                 const box* aBox) :
                                  proximity_finder_3D(),
                                  mSphere(aSphere),
                                  mBox(aBox) { };
-    
-    
-void RK_CALL prox_sphere_box::save(ReaK::serialization::oarchive& A, unsigned int) const {
-  proximity_finder_3D::save(A,proximity_finder_3D::getStaticObjectType()->TypeVersion());
-  A & RK_SERIAL_SAVE_WITH_NAME(mSphere)
-    & RK_SERIAL_SAVE_WITH_NAME(mBox);
-};
-    
-void RK_CALL prox_sphere_box::load(ReaK::serialization::iarchive& A, unsigned int) {
-  proximity_finder_3D::load(A,proximity_finder_3D::getStaticObjectType()->TypeVersion());
-  A & RK_SERIAL_LOAD_WITH_NAME(mSphere)
-    & RK_SERIAL_LOAD_WITH_NAME(mBox);
-};
 
 
 };
 
 };
-
-
-
-
-
-
-
-
-
 

@@ -50,15 +50,10 @@ namespace geom {
 class prox_plane_cylinder : public proximity_finder_3D {
   protected:
     
-    shared_ptr< plane > mPlane;
-    shared_ptr< cylinder > mCylinder;
+    const plane* mPlane;
+    const cylinder* mCylinder;
     
   public:
-    
-    /** Returns the first shape involved in the proximity query. */
-    virtual shared_ptr< shape_3D > getShape1() const;
-    /** Returns the second shape involved in the proximity query. */
-    virtual shared_ptr< shape_3D > getShape2() const;
     
     /** This function performs the proximity query on its associated shapes. */
     virtual void computeProximity(const shape_3D_precompute_pack& aPack1, 
@@ -69,22 +64,11 @@ class prox_plane_cylinder : public proximity_finder_3D {
      * \param aPlane The plane involved in the proximity query.
      * \param aCylinder The cylinder involved in the proximity query.
      */
-    prox_plane_cylinder(const shared_ptr< plane >& aPlane = shared_ptr< plane >(),
-                        const shared_ptr< cylinder >& aCylinder = shared_ptr< cylinder >());
+    prox_plane_cylinder(const plane* aPlane = NULL,
+                        const cylinder* aCylinder = NULL);
     
     /** Destructor. */
     virtual ~prox_plane_cylinder() { };
-    
-    
-/*******************************************************************************
-                   ReaK's RTTI and Serialization interfaces
-*******************************************************************************/
-    
-    virtual void RK_CALL save(ReaK::serialization::oarchive& A, unsigned int) const;
-    
-    virtual void RK_CALL load(ReaK::serialization::iarchive& A, unsigned int);
-    
-    RK_RTTI_MAKE_CONCRETE_1BASE(prox_plane_cylinder,0xC320000E,1,"prox_plane_cylinder",proximity_finder_3D)
     
 };
 
@@ -94,13 +78,4 @@ class prox_plane_cylinder : public proximity_finder_3D {
 };
 
 #endif
-
-
-
-
-
-
-
-
-
 

@@ -31,14 +31,6 @@ namespace ReaK {
 /** Main namespace for ReaK.Geometry */
 namespace geom {
 
-
-shared_ptr< shape_3D > prox_plane_sphere::getShape1() const {
-  return mPlane;
-};
-
-shared_ptr< shape_3D > prox_plane_sphere::getShape2() const {
-  return mSphere;
-};
     
 /*
 // this version assumes a finite plane for proximity purposes.
@@ -52,9 +44,9 @@ void prox_plane_sphere::computeProximity(const shape_3D_precompute_pack& aPack1,
   };
   using std::fabs; using std::sqrt;
   
-  const pose_3D<double>& sp_pose = (aPack1.parent == mSphere.get() ? 
+  const pose_3D<double>& sp_pose = (aPack1.parent == mSphere ? 
                                     aPack1.global_pose : aPack2.global_pose);
-  const pose_3D<double>& pl_pose = (aPack1.parent == mSphere.get() ? 
+  const pose_3D<double>& pl_pose = (aPack1.parent == mSphere ? 
                                     aPack2.global_pose : aPack1.global_pose);
   
   vect<double,3> sp_c = sp_pose.transformToGlobal(vect<double,3>(0.0,0.0,0.0));
@@ -118,9 +110,9 @@ void prox_plane_sphere::computeProximity(const shape_3D_precompute_pack& aPack1,
     return;
   };
   
-  const pose_3D<double>& sp_pose = (aPack1.parent == mSphere.get() ? 
+  const pose_3D<double>& sp_pose = (aPack1.parent == mSphere ? 
                                     aPack1.global_pose : aPack2.global_pose);
-  const pose_3D<double>& pl_pose = (aPack1.parent == mSphere.get() ? 
+  const pose_3D<double>& pl_pose = (aPack1.parent == mSphere ? 
                                     aPack2.global_pose : aPack1.global_pose);
   
   vect<double,3> sp_c = sp_pose.transformToGlobal(vect<double,3>(0.0,0.0,0.0));
@@ -132,36 +124,14 @@ void prox_plane_sphere::computeProximity(const shape_3D_precompute_pack& aPack1,
 };
 
 
-prox_plane_sphere::prox_plane_sphere(const shared_ptr< plane >& aPlane,
-                                     const shared_ptr< sphere >& aSphere) :
+prox_plane_sphere::prox_plane_sphere(const plane* aPlane,
+                                     const sphere* aSphere) :
                                      proximity_finder_3D(),
                                      mPlane(aPlane),
                                      mSphere(aSphere) { };
-    
-    
-void RK_CALL prox_plane_sphere::save(ReaK::serialization::oarchive& A, unsigned int) const {
-  proximity_finder_3D::save(A,proximity_finder_3D::getStaticObjectType()->TypeVersion());
-  A & RK_SERIAL_SAVE_WITH_NAME(mPlane)
-    & RK_SERIAL_SAVE_WITH_NAME(mSphere);
-};
-    
-void RK_CALL prox_plane_sphere::load(ReaK::serialization::iarchive& A, unsigned int) {
-  proximity_finder_3D::load(A,proximity_finder_3D::getStaticObjectType()->TypeVersion());
-  A & RK_SERIAL_LOAD_WITH_NAME(mPlane)
-    & RK_SERIAL_LOAD_WITH_NAME(mSphere);
-};
 
 
 };
 
 };
-
-
-
-
-
-
-
-
-
 

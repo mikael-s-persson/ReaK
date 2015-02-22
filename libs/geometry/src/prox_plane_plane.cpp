@@ -32,15 +32,6 @@ namespace ReaK {
 namespace geom {
 
 
-shared_ptr< shape_3D > prox_plane_plane::getShape1() const {
-  return mPlane1;
-};
-
-shared_ptr< shape_3D > prox_plane_plane::getShape2() const {
-  return mPlane2;
-};
-
-
 void prox_plane_plane::computeProximityOfPoint(const plane& aPlane,
                                                const pose_3D<double>& aPlGblPose,
                                                const vect<double,3>& aPoint, 
@@ -105,9 +96,9 @@ void prox_plane_plane::computeProximity(const shape_3D_precompute_pack& aPack1,
   if((!mPlane1) || (!mPlane2))
     return;
   
-  const pose_3D<double>& p1_pose = (aPack1.parent == mPlane1.get() ? 
+  const pose_3D<double>& p1_pose = (aPack1.parent == mPlane1 ? 
                                     aPack1.global_pose : aPack2.global_pose);
-  const pose_3D<double>& p2_pose = (aPack1.parent == mPlane1.get() ? 
+  const pose_3D<double>& p2_pose = (aPack1.parent == mPlane1 ? 
                                     aPack2.global_pose : aPack1.global_pose);
   
   vect<double,3> temp_pt;
@@ -191,36 +182,14 @@ void prox_plane_plane::computeProximity(const shape_3D_precompute_pack& aPack1,
 };
 
 
-prox_plane_plane::prox_plane_plane(const shared_ptr< plane >& aPlane1,
-                                   const shared_ptr< plane >& aPlane2) :
+prox_plane_plane::prox_plane_plane(const plane* aPlane1,
+                                   const plane* aPlane2) :
                                    proximity_finder_3D(),
                                    mPlane1(aPlane1),
                                    mPlane2(aPlane2) { };
-    
-    
-void RK_CALL prox_plane_plane::save(ReaK::serialization::oarchive& A, unsigned int) const {
-  proximity_finder_3D::save(A,proximity_finder_3D::getStaticObjectType()->TypeVersion());
-  A & RK_SERIAL_SAVE_WITH_NAME(mPlane1)
-    & RK_SERIAL_SAVE_WITH_NAME(mPlane2);
-};
-    
-void RK_CALL prox_plane_plane::load(ReaK::serialization::iarchive& A, unsigned int) {
-  proximity_finder_3D::load(A,proximity_finder_3D::getStaticObjectType()->TypeVersion());
-  A & RK_SERIAL_LOAD_WITH_NAME(mPlane1)
-    & RK_SERIAL_LOAD_WITH_NAME(mPlane2);
-};
 
 
 };
 
 };
-
-
-
-
-
-
-
-
-
 

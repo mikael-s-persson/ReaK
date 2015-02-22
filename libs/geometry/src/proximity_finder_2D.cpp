@@ -33,27 +33,7 @@ const proximity_record_2D& proximity_finder_2D::getLastResult() const {
   return mLastResult;
 };
 
-void RK_CALL proximity_finder_2D::save(ReaK::serialization::oarchive& A, unsigned int) const {
-  shared_object::save(A,shared_object::getStaticObjectType()->TypeVersion());
-  A & RK_SERIAL_SAVE_WITH_NAME(mLastResult);
-};
-
-void RK_CALL proximity_finder_2D::load(ReaK::serialization::iarchive& A, unsigned int) {
-  shared_object::load(A,shared_object::getStaticObjectType()->TypeVersion());
-  A & RK_SERIAL_LOAD_WITH_NAME(mLastResult);
-};
-
-
 };
 
 };
-
-
-
-
-
-
-
-
-
 

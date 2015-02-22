@@ -30,14 +30,6 @@ namespace ReaK {
 namespace geom {
 
 
-shared_ptr< shape_2D > prox_circle_crect::getShape1() const {
-  return mCircle;
-};
-
-shared_ptr< shape_2D > prox_circle_crect::getShape2() const {
-  return mCRect;
-};
-    
 void prox_circle_crect::computeProximity(const shape_2D_precompute_pack& aPack1, 
                                          const shape_2D_precompute_pack& aPack2) {
   if((!mCircle) || (!mCRect)) {
@@ -49,9 +41,9 @@ void prox_circle_crect::computeProximity(const shape_2D_precompute_pack& aPack1,
   
   using std::fabs;
   
-  const pose_2D<double>& ci_pose = (aPack1.parent == mCircle.get() ? 
+  const pose_2D<double>& ci_pose = (aPack1.parent == mCircle ? 
                                     aPack1.global_pose : aPack2.global_pose);
-  const pose_2D<double>& re_pose = (aPack1.parent == mCircle.get() ? 
+  const pose_2D<double>& re_pose = (aPack1.parent == mCircle ? 
                                     aPack2.global_pose : aPack1.global_pose);
   
   vect<double,2> ci_c = ci_pose.Position;
@@ -88,36 +80,14 @@ void prox_circle_crect::computeProximity(const shape_2D_precompute_pack& aPack1,
 };
 
 
-prox_circle_crect::prox_circle_crect(const shared_ptr< circle >& aCircle,
-                                     const shared_ptr< capped_rectangle >& aCRect) :
+prox_circle_crect::prox_circle_crect(const circle* aCircle,
+                                     const capped_rectangle* aCRect) :
                                      proximity_finder_2D(),
                                      mCircle(aCircle),
                                      mCRect(aCRect) { };
-    
-    
-void RK_CALL prox_circle_crect::save(ReaK::serialization::oarchive& A, unsigned int) const {
-  proximity_finder_2D::save(A,proximity_finder_2D::getStaticObjectType()->TypeVersion());
-  A & RK_SERIAL_SAVE_WITH_NAME(mCircle)
-    & RK_SERIAL_SAVE_WITH_NAME(mCRect);
-};
-    
-void RK_CALL prox_circle_crect::load(ReaK::serialization::iarchive& A, unsigned int) {
-  proximity_finder_2D::load(A,proximity_finder_2D::getStaticObjectType()->TypeVersion());
-  A & RK_SERIAL_LOAD_WITH_NAME(mCircle)
-    & RK_SERIAL_LOAD_WITH_NAME(mCRect);
-};
 
 
 };
 
 };
-
-
-
-
-
-
-
-
-
 

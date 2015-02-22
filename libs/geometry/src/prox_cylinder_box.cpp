@@ -33,16 +33,6 @@ namespace ReaK {
 namespace geom {
 
 
-shared_ptr< shape_3D > prox_cylinder_box::getShape1() const {
-  return mCylinder;
-};
-
-shared_ptr< shape_3D > prox_cylinder_box::getShape2() const {
-  return mBox;
-};
-
-
-
 void prox_cylinder_box::computeProximity(const shape_3D_precompute_pack& aPack1, 
                                          const shape_3D_precompute_pack& aPack2) {
   if((!mCylinder) || (!mBox)) {
@@ -52,9 +42,9 @@ void prox_cylinder_box::computeProximity(const shape_3D_precompute_pack& aPack1,
     return;
   };
   
-  const pose_3D<double>& cy_pose = (aPack1.parent == mCylinder.get() ? 
+  const pose_3D<double>& cy_pose = (aPack1.parent == mCylinder ? 
                                     aPack1.global_pose : aPack2.global_pose);
-  const pose_3D<double>& bx_pose = (aPack1.parent == mCylinder.get() ? 
+  const pose_3D<double>& bx_pose = (aPack1.parent == mCylinder ? 
                                     aPack2.global_pose : aPack1.global_pose);
   
   mLastResult = findProximityByGJKEPA(
@@ -64,37 +54,14 @@ void prox_cylinder_box::computeProximity(const shape_3D_precompute_pack& aPack1,
 };
 
 
-prox_cylinder_box::prox_cylinder_box(const shared_ptr< cylinder >& aCylinder,
-                                     const shared_ptr< box >& aBox) :
+prox_cylinder_box::prox_cylinder_box(const cylinder* aCylinder,
+                                     const box* aBox) :
                                      proximity_finder_3D(),
                                      mCylinder(aCylinder),
                                      mBox(aBox) { };
-    
-    
-void RK_CALL prox_cylinder_box::save(ReaK::serialization::oarchive& A, unsigned int) const {
-  proximity_finder_3D::save(A,proximity_finder_3D::getStaticObjectType()->TypeVersion());
-  A & RK_SERIAL_SAVE_WITH_NAME(mCylinder)
-    & RK_SERIAL_SAVE_WITH_NAME(mBox);
-};
-    
-void RK_CALL prox_cylinder_box::load(ReaK::serialization::iarchive& A, unsigned int) {
-  proximity_finder_3D::load(A,proximity_finder_3D::getStaticObjectType()->TypeVersion());
-  A & RK_SERIAL_LOAD_WITH_NAME(mCylinder)
-    & RK_SERIAL_LOAD_WITH_NAME(mBox);
-};
-
 
 
 };
 
 };
-
-
-
-
-
-
-
-
-
 
