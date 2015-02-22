@@ -139,6 +139,20 @@ int main(int argc, const char* argv[]) {
   
   std::cout << (duration_cast<nanoseconds>(accum_dt).count() / (num_runs * num_passes)) << std::endl;
   
+  std::cout << "sizes are:" << std::endl
+            << "plane     = " << sizeof(geom::plane) << std::endl
+            << "box       = " << sizeof(geom::box) << std::endl
+            << "sphere    = " << sizeof(geom::sphere) << std::endl
+            << "cylinder  = " << sizeof(geom::cylinder) << std::endl
+            << "ccylinder = " << sizeof(geom::capped_cylinder) << std::endl
+            << "pose_3D   = " << sizeof(pose_3D<double>) << std::endl
+            << "void*     = " << sizeof(void*) << std::endl
+            << "pose-ptr  = " << sizeof(shared_ptr< pose_3D<double> >) << std::endl
+            << "shared-ob = " << sizeof(shared_object) << std::endl
+            << "vect-3    = " << sizeof(vect<double,3>) << std::endl
+            << "quat.     = " << sizeof(quaternion<double>) << std::endl;
+            
+  
   return 0;
 };
 

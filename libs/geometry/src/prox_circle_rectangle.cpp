@@ -46,19 +46,21 @@ void prox_circle_rectangle::computeProximity(const shape_2D_precompute_pack& aPa
   const pose_2D<double>& re_pose = (aPack1.parent == mCircle ? 
                                     aPack2.global_pose : aPack1.global_pose);
   
-  vect<double,2> ci_c = ci_pose.Position;
+  const vect<double,2> ci_c = ci_pose.Position;
+  const vect<double,2> ci_c_rel = re_pose.transformFromGlobal(ci_c);
   
-  vect<double,2> ci_c_rel = re_pose.transformFromGlobal(ci_c);
+  const double ci_rad = mCircle->getRadius();
+  const vect<double,2> re_dim = mRectangle->getDimensions();
   
-  bool in_x_range = ((ci_c_rel[0] > -0.5 * mRectangle->getDimensions()[0]) &&
-                     (ci_c_rel[0] <  0.5 * mRectangle->getDimensions()[0]));
-  bool in_y_range = ((ci_c_rel[1] > -0.5 * mRectangle->getDimensions()[1]) &&
-                     (ci_c_rel[1] <  0.5 * mRectangle->getDimensions()[1]));
+  bool in_x_range = ((ci_c_rel[0] > -0.5 * re_dim[0]) &&
+                     (ci_c_rel[0] <  0.5 * re_dim[0]));
+  bool in_y_range = ((ci_c_rel[1] > -0.5 * re_dim[1]) &&
+                     (ci_c_rel[1] <  0.5 * re_dim[1]));
   
   if(in_x_range && in_y_range) {
     // The circle is inside the rectangle.
-    vect<double,2> bound_dists = vect<double,2>(0.5 * mRectangle->getDimensions()[0] - fabs(ci_c_rel[0]),
-                                                0.5 * mRectangle->getDimensions()[1] - fabs(ci_c_rel[1]));
+    const vect<double,2> bound_dists(0.5 * re_dim[0] - fabs(ci_c_rel[0]),
+                                     0.5 * re_dim[1] - fabs(ci_c_rel[1]));
     if(bound_dists[0] <= bound_dists[1]) {
       in_x_range = false;
     } else {
@@ -66,7 +68,7 @@ void prox_circle_rectangle::computeProximity(const shape_2D_precompute_pack& aPa
     };
   };
   
-  vect<double,2> corner_pt = 0.5 * mRectangle->getDimensions();
+  vect<double,2> corner_pt = 0.5 * re_dim;
   if(in_x_range)
     corner_pt[0] = ci_c_rel[0];
   else if(ci_c_rel[0] < 0.0)
@@ -76,10 +78,10 @@ void prox_circle_rectangle::computeProximity(const shape_2D_precompute_pack& aPa
   else if(ci_c_rel[1] < 0.0)
     corner_pt[1] = -corner_pt[1];
   mLastResult.mPoint2 = re_pose.transformToGlobal(corner_pt);
-  vect<double,2> diff_v = mLastResult.mPoint2 - ci_c;
-  double diff_d = norm_2(diff_v);
-  mLastResult.mPoint1 = ci_c + (mCircle->getRadius() / diff_d) * diff_v;
-  mLastResult.mDistance = diff_d - mCircle->getRadius();
+  const vect<double,2> diff_v = mLastResult.mPoint2 - ci_c;
+  const double diff_d = norm_2(diff_v);
+  mLastResult.mPoint1 = ci_c + (ci_rad / diff_d) * diff_v;
+  mLastResult.mDistance = diff_d - ci_rad;
 };
 
 

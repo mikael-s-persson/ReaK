@@ -52,6 +52,8 @@ void prox_plane_box::computeProximity(const shape_3D_precompute_pack& aPack1,
   vect<double,3> bx_y = pl_pose.rotateFromGlobal(bx_pose.rotateToGlobal(vect<double,3>(1.0,0.0,0.0)));
   vect<double,3> bx_z = pl_pose.rotateFromGlobal(bx_pose.rotateToGlobal(vect<double,3>(1.0,0.0,0.0)));
   
+  const vect<double,3> bx_dim = mBox->getDimensions();
+  
   if(bx_x[2] > 0.0)
     bx_x = -bx_x;
   if(bx_y[2] > 0.0)
@@ -60,7 +62,7 @@ void prox_plane_box::computeProximity(const shape_3D_precompute_pack& aPack1,
     bx_z = -bx_z;
   
   vect<double,3> bx_c_rel = pl_pose.transformFromGlobal(bx_c);
-  vect<double,3> bx_pt_rel = bx_c_rel + 0.5 * (mBox->getDimensions()[0] * bx_x + mBox->getDimensions()[1] * bx_y + mBox->getDimensions()[2] * bx_z);
+  vect<double,3> bx_pt_rel = bx_c_rel + 0.5 * (bx_dim[0] * bx_x + bx_dim[1] * bx_y + bx_dim[2] * bx_z);
   
   mLastResult.mPoint1 = pl_pose.transformToGlobal(vect<double,3>(bx_pt_rel[0],bx_pt_rel[1],0.0));
   mLastResult.mPoint2 = pl_pose.transformToGlobal(bx_pt_rel);

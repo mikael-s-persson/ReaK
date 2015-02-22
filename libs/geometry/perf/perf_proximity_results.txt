@@ -28,3 +28,14 @@ committed revision: 0da2170
 N=50     124,000 ns
 N=100    500,000 ns
 
+committed revision: dea1b5f
+
+(classic OOP, with pre-computed global-poses, ordering of shapes held by shared-ptr)
+N=50     122,000 ns
+N=100    480,000 ns
+
+committed revision: 
+
+
+
+

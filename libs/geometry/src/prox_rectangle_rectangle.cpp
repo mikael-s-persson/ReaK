@@ -39,15 +39,17 @@ void prox_rectangle_rectangle::computeProximityOfPoint(const rectangle& aRectang
   
   vect<double,2> pt_rel = aRecGblPose.transformFromGlobal(aPoint);
   
-  bool in_x_range = ((pt_rel[0] > -0.5 * aRectangle.getDimensions()[0]) &&
-                     (pt_rel[0] <  0.5 * aRectangle.getDimensions()[0]));
-  bool in_y_range = ((pt_rel[1] > -0.5 * aRectangle.getDimensions()[1]) &&
-                     (pt_rel[1] <  0.5 * aRectangle.getDimensions()[1]));
+  const vect<double,2> re_dim = aRectangle.getDimensions();
+  
+  bool in_x_range = ((pt_rel[0] > -0.5 * re_dim[0]) &&
+                     (pt_rel[0] <  0.5 * re_dim[0]));
+  bool in_y_range = ((pt_rel[1] > -0.5 * re_dim[1]) &&
+                     (pt_rel[1] <  0.5 * re_dim[1]));
   
   if(in_x_range && in_y_range) {
     // The circle is inside the rectangle.
-    vect<double,2> bound_dists = vect<double,2>(0.5 * aRectangle.getDimensions()[0] - fabs(pt_rel[0]),
-                                                0.5 * aRectangle.getDimensions()[1] - fabs(pt_rel[1]));
+    vect<double,2> bound_dists = vect<double,2>(0.5 * re_dim[0] - fabs(pt_rel[0]),
+                                                0.5 * re_dim[1] - fabs(pt_rel[1]));
     if(bound_dists[0] <= bound_dists[1]) {
       in_x_range = false;
     } else {
@@ -55,7 +57,7 @@ void prox_rectangle_rectangle::computeProximityOfPoint(const rectangle& aRectang
     };
   };
   
-  vect<double,2> corner_pt = 0.5 * aRectangle.getDimensions();
+  vect<double,2> corner_pt = 0.5 * re_dim;
   if(in_x_range)
     corner_pt[0] = pt_rel[0];
   else if(pt_rel[0] < 0.0)

@@ -44,15 +44,18 @@ void prox_circle_circle::computeProximity(const shape_2D_precompute_pack& aPack1
   const pose_2D<double>& c2_pose = (aPack1.parent == mCircle1 ? 
                                     aPack2.global_pose : aPack1.global_pose);
   
-  vect<double,2> c1 = c1_pose.Position;
-  vect<double,2> c2 = c2_pose.Position;
+  const vect<double,2> c1 = c1_pose.Position;
+  const vect<double,2> c2 = c2_pose.Position;
   
-  vect<double,2> diff_cc = c2 - c1;
-  double dist_cc = norm_2(diff_cc);
+  const double c1_rad = mCircle1->getRadius();
+  const double c2_rad = mCircle2->getRadius();
   
-  mLastResult.mDistance = dist_cc - mCircle1->getRadius() - mCircle2->getRadius();
-  mLastResult.mPoint1 = c1 + (mCircle1->getRadius() / dist_cc) * diff_cc;
-  mLastResult.mPoint2 = c2 - (mCircle2->getRadius() / dist_cc) * diff_cc;
+  const vect<double,2> diff_cc = c2 - c1;
+  const double dist_cc = norm_2(diff_cc);
+  
+  mLastResult.mDistance = dist_cc - c1_rad - c2_rad;
+  mLastResult.mPoint1 = c1 + (c1_rad / dist_cc) * diff_cc;
+  mLastResult.mPoint2 = c2 - (c2_rad / dist_cc) * diff_cc;
   
 };
 

@@ -35,20 +35,21 @@ namespace ReaK {
 namespace geom {
 
 proximity_record_3D findProximityBoxToPoint(const box& aBox, const pose_3D<double>& aBoxGblPose, const vect<double,3>& aPoint) {
-  vect<double,3> pt_rel = aBoxGblPose.transformFromGlobal(aPoint);
+  const vect<double,3> pt_rel = aBoxGblPose.transformFromGlobal(aPoint);
+  const vect<double,3> bx_dim = aBox.getDimensions();
   
-  bool in_x_range = ((pt_rel[0] > -0.5 * aBox.getDimensions()[0]) &&
-                     (pt_rel[0] <  0.5 * aBox.getDimensions()[0]));
-  bool in_y_range = ((pt_rel[1] > -0.5 * aBox.getDimensions()[1]) &&
-                     (pt_rel[1] <  0.5 * aBox.getDimensions()[1]));
-  bool in_z_range = ((pt_rel[2] > -0.5 * aBox.getDimensions()[2]) &&
-                     (pt_rel[2] <  0.5 * aBox.getDimensions()[2]));
+  bool in_x_range = ((pt_rel[0] > -0.5 * bx_dim[0]) &&
+                     (pt_rel[0] <  0.5 * bx_dim[0]));
+  bool in_y_range = ((pt_rel[1] > -0.5 * bx_dim[1]) &&
+                     (pt_rel[1] <  0.5 * bx_dim[1]));
+  bool in_z_range = ((pt_rel[2] > -0.5 * bx_dim[2]) &&
+                     (pt_rel[2] <  0.5 * bx_dim[2]));
   bool is_inside = (in_x_range && in_y_range && in_z_range);
   if(is_inside) {
     // The point is inside the box.
-    vect<double,3> bound_dists = vect<double,3>(0.5 * aBox.getDimensions()[0] - fabs(pt_rel[0]),
-                                                0.5 * aBox.getDimensions()[1] - fabs(pt_rel[1]),
-                                                0.5 * aBox.getDimensions()[2] - fabs(pt_rel[2]));
+    vect<double,3> bound_dists = vect<double,3>(0.5 * bx_dim[0] - fabs(pt_rel[0]),
+                                                0.5 * bx_dim[1] - fabs(pt_rel[1]),
+                                                0.5 * bx_dim[2] - fabs(pt_rel[2]));
     if((bound_dists[0] <= bound_dists[1]) &&
        (bound_dists[0] <= bound_dists[2])) {
       in_x_range = false;
@@ -60,7 +61,7 @@ proximity_record_3D findProximityBoxToPoint(const box& aBox, const pose_3D<doubl
     };
   }
   
-  vect<double,3> corner_pt = 0.5 * aBox.getDimensions();
+  vect<double,3> corner_pt = 0.5 * bx_dim;
   if(in_x_range)
     corner_pt[0] = pt_rel[0];
   else if(pt_rel[0] < 0.0)
@@ -126,11 +127,13 @@ proximity_record_3D findProximityBoxToLine(const box& aBox, const pose_3D<double
 vect<double,3> cylinder_boundary_func::operator()(vect<double,3> v) {
   using std::sqrt; using std::fabs;
   v = mGblPose->rotateFromGlobal(v);
-  double v_radius = sqrt(v[0] * v[0] + v[1] * v[1]);
-  if( v_radius * 0.5 * mCylinder->getLength() > mCylinder->getRadius() * fabs(v[2]) ) {
-    v *= mCylinder->getRadius() / v_radius;
+  const double v_radius = sqrt(v[0] * v[0] + v[1] * v[1]);
+  const double cy_len = mCylinder->getLength();
+  const double cy_rad = mCylinder->getRadius();
+  if( v_radius * 0.5 * cy_len > cy_rad * fabs(v[2]) ) {
+    v *= cy_rad / v_radius;
   } else {
-    v *= 0.5 * mCylinder->getLength() / fabs(v[2]);
+    v *= 0.5 * cy_len / fabs(v[2]);
   };
   return mGblPose->transformToGlobal(v);
 };
@@ -138,29 +141,31 @@ vect<double,3> cylinder_boundary_func::operator()(vect<double,3> v) {
 mat<double,mat_structure::square> cylinder_boundary_jac::operator()(vect<double,3> v) {
   using std::sqrt; using std::fabs;
   mat<double,mat_structure::square> R = mGblPose->Quat.getMat();
+  const double cy_len = mCylinder->getLength();
+  const double cy_rad = mCylinder->getRadius();
   // Jac_gbl = R * Jac_local * R^T 
   
   // Jac_local:
   v = mGblPose->rotateFromGlobal(v);
   double v_radius = sqrt(v[0] * v[0] + v[1] * v[1]);
   mat<double,mat_structure::square> Jac_local(3, 0.0);
-  if( v_radius * 0.5 * mCylinder->getLength() > mCylinder->getRadius() * fabs(v[2]) ) {
-    // v *= mCylinder->getRadius() / v_radius;
+  if( v_radius * 0.5 * cy_len > cy_rad * fabs(v[2]) ) {
+    // v *= cy_rad / v_radius;
     double v_rad3 = v_radius * v_radius * v_radius;
-    Jac_local(0,0) =  mCylinder->getRadius() * v[1] * v[1] / v_rad3;
-    Jac_local(0,1) = -mCylinder->getRadius() * v[0] * v[1] / v_rad3;
-    Jac_local(1,0) = -mCylinder->getRadius() * v[0] * v[1] / v_rad3;
-    Jac_local(1,1) =  mCylinder->getRadius() * v[0] * v[0] / v_rad3;
-    Jac_local(2,0) = -mCylinder->getRadius() * v[0] * v[2] / v_rad3;
-    Jac_local(2,1) = -mCylinder->getRadius() * v[1] * v[2] / v_rad3;
-    Jac_local(2,2) =  mCylinder->getRadius() / v_radius;
+    Jac_local(0,0) =  cy_rad * v[1] * v[1] / v_rad3;
+    Jac_local(0,1) = -cy_rad * v[0] * v[1] / v_rad3;
+    Jac_local(1,0) = -cy_rad * v[0] * v[1] / v_rad3;
+    Jac_local(1,1) =  cy_rad * v[0] * v[0] / v_rad3;
+    Jac_local(2,0) = -cy_rad * v[0] * v[2] / v_rad3;
+    Jac_local(2,1) = -cy_rad * v[1] * v[2] / v_rad3;
+    Jac_local(2,2) =  cy_rad / v_radius;
   } else {
-    // v *= 0.5 * mCylinder->getLength() / fabs(v[2]);
+    // v *= 0.5 * cy_len / fabs(v[2]);
     double v_z3 = v[2] * v[2] * fabs(v[2]);
-    Jac_local(0,0) =  0.5 * mCylinder->getLength() / fabs(v[2]);
-    Jac_local(0,2) = -0.5 * mCylinder->getLength() * v[0] * v[2] / v_z3;
-    Jac_local(1,1) =  0.5 * mCylinder->getLength() / fabs(v[2]);
-    Jac_local(1,2) = -0.5 * mCylinder->getLength() * v[1] * v[2] / v_z3;
+    Jac_local(0,0) =  0.5 * cy_len / fabs(v[2]);
+    Jac_local(0,2) = -0.5 * cy_len * v[0] * v[2] / v_z3;
+    Jac_local(1,1) =  0.5 * cy_len / fabs(v[2]);
+    Jac_local(1,2) = -0.5 * cy_len * v[1] * v[2] / v_z3;
 //       Jac_local(2,2) =  0.0;
   };
   
@@ -170,23 +175,27 @@ mat<double,mat_structure::square> cylinder_boundary_jac::operator()(vect<double,
 
 vect<double,3> ccylinder_boundary_func::operator()(vect<double,3> v) {
   using std::sqrt; using std::fabs;
+  const double cy_len = mCCylinder->getLength();
+  const double cy_rad = mCCylinder->getRadius();
   v = mGblPose->rotateFromGlobal(v);
   double v_radius = sqrt(v[0] * v[0] + v[1] * v[1]);
-  if( v_radius * 0.5 * mCCylinder->getLength() > mCCylinder->getRadius() * fabs(v[2]) ) {
-    v *= mCCylinder->getRadius() / v_radius;
+  if( v_radius * 0.5 * cy_len > cy_rad * fabs(v[2]) ) {
+    v *= cy_rad / v_radius;
   } else {
     double v_l2 = v_radius*v_radius + v[2]*v[2];
-    double A = sqrt((mCCylinder->getRadius() * mCCylinder->getRadius() 
-                      - 0.25 * mCCylinder->getLength() * mCCylinder->getLength()) * 
+    double A = sqrt((cy_rad * cy_rad 
+                      - 0.25 * cy_len * cy_len) * 
                       v_radius * v_radius
-                    + mCCylinder->getRadius() * mCCylinder->getRadius() * v[2] * v[2]);
-    v *= (0.5 * mCCylinder->getLength() * fabs(v[2]) + A) / v_l2;
+                    + cy_rad * cy_rad * v[2] * v[2]);
+    v *= (0.5 * cy_len * fabs(v[2]) + A) / v_l2;
   };
   return mGblPose->transformToGlobal(v);
 };
 
 mat<double,mat_structure::square> ccylinder_boundary_jac::operator()(vect<double,3> v) {
   using std::sqrt; using std::fabs;
+  const double cy_len = mCCylinder->getLength();
+  const double cy_rad = mCCylinder->getRadius();
   mat<double,mat_structure::square> R = mGblPose->Quat.getMat();
   // Jac_gbl = R * Jac_local * R^T 
   
@@ -194,24 +203,24 @@ mat<double,mat_structure::square> ccylinder_boundary_jac::operator()(vect<double
   v = mGblPose->rotateFromGlobal(v);
   double v_radius = sqrt(v[0] * v[0] + v[1] * v[1]);
   mat<double,mat_structure::square> Jac_local(3, 0.0);
-  if( v_radius * 0.5 * mCCylinder->getLength() > mCCylinder->getRadius() * fabs(v[2]) ) {
-    // v *= mCCylinder->getRadius() / v_radius;
+  if( v_radius * 0.5 * cy_len > cy_rad * fabs(v[2]) ) {
+    // v *= cy_rad / v_radius;
     double v_rad3 = v_radius * v_radius * v_radius;
-    Jac_local(0,0) =  mCCylinder->getRadius() * v[1] * v[1] / v_rad3;
-    Jac_local(0,1) = -mCCylinder->getRadius() * v[0] * v[1] / v_rad3;
-    Jac_local(1,0) = -mCCylinder->getRadius() * v[0] * v[1] / v_rad3;
-    Jac_local(1,1) =  mCCylinder->getRadius() * v[0] * v[0] / v_rad3;
-    Jac_local(2,0) = -mCCylinder->getRadius() * v[0] * v[2] / v_rad3;
-    Jac_local(2,1) = -mCCylinder->getRadius() * v[1] * v[2] / v_rad3;
-    Jac_local(2,2) =  mCCylinder->getRadius() / v_radius;
+    Jac_local(0,0) =  cy_rad * v[1] * v[1] / v_rad3;
+    Jac_local(0,1) = -cy_rad * v[0] * v[1] / v_rad3;
+    Jac_local(1,0) = -cy_rad * v[0] * v[1] / v_rad3;
+    Jac_local(1,1) =  cy_rad * v[0] * v[0] / v_rad3;
+    Jac_local(2,0) = -cy_rad * v[0] * v[2] / v_rad3;
+    Jac_local(2,1) = -cy_rad * v[1] * v[2] / v_rad3;
+    Jac_local(2,2) =  cy_rad / v_radius;
   } else {
     double v_l2 = v_radius*v_radius + v[2]*v[2];
-    double R2  = mCCylinder->getRadius() * mCCylinder->getRadius();
-    double R_L = (R2 - 0.25 * mCCylinder->getLength() * mCCylinder->getLength());
+    double R2  = cy_rad * cy_rad;
+    double R_L = (R2 - 0.25 * cy_len * cy_len);
     double A = sqrt(R_L * v_radius * v_radius + R2 * v[2] * v[2]);
-    double Lv_A = 0.5 * mCCylinder->getLength() * fabs(v[2]) + A;
+    double Lv_A = 0.5 * cy_len * fabs(v[2]) + A;
     double F1 = R_L / A - 2.0 * Lv_A / v_l2;
-    double F2 = R2 / A + 0.5 * mCCylinder->getLength() / fabs(v[2]) - 2.0 * Lv_A / v_l2;
+    double F2 = R2 / A + 0.5 * cy_len / fabs(v[2]) - 2.0 * Lv_A / v_l2;
 //       v *= Lv_A / v_l2;
     
     Jac_local(0,0) = v[0] * v[0] / v_l2 * F1 + Lv_A / v_l2;
@@ -234,25 +243,27 @@ mat<double,mat_structure::square> ccylinder_boundary_jac::operator()(vect<double
 
 vect<double,3> box_boundary_func::operator()(vect<double,3> v) {
   using std::fabs;
+  const vect<double,3> bx_dim = mBox->getDimensions();
   v = mGblPose->rotateFromGlobal(v);
   // there are three possible quadrants (facet where the support lays):
-  if((fabs(v[1]) * mBox->getDimensions()[0] < fabs(v[0]) * mBox->getDimensions()[1]) && 
-      (fabs(v[2]) * mBox->getDimensions()[0] < fabs(v[0]) * mBox->getDimensions()[2])) {
+  if((fabs(v[1]) * bx_dim[0] < fabs(v[0]) * bx_dim[1]) && 
+      (fabs(v[2]) * bx_dim[0] < fabs(v[0]) * bx_dim[2])) {
     // on the x-normal plane:
-    v *= 0.5 * mBox->getDimensions()[0] / fabs(v[0]);
-  } else if((fabs(v[0]) * mBox->getDimensions()[1] < fabs(v[1]) * mBox->getDimensions()[0]) && 
-            (fabs(v[2]) * mBox->getDimensions()[1] < fabs(v[1]) * mBox->getDimensions()[2])) {
+    v *= 0.5 * bx_dim[0] / fabs(v[0]);
+  } else if((fabs(v[0]) * bx_dim[1] < fabs(v[1]) * bx_dim[0]) && 
+            (fabs(v[2]) * bx_dim[1] < fabs(v[1]) * bx_dim[2])) {
     // on the y-normal plane:
-    v *= 0.5 * mBox->getDimensions()[1] / fabs(v[1]);
+    v *= 0.5 * bx_dim[1] / fabs(v[1]);
   } else {
     // on the z-normal plane:
-    v *= 0.5 * mBox->getDimensions()[2] / fabs(v[2]);
+    v *= 0.5 * bx_dim[2] / fabs(v[2]);
   };
   return mGblPose->transformToGlobal(v);
 };
 
 mat<double,mat_structure::square> box_boundary_jac::operator()(vect<double,3> v) {
   using std::sqrt; using std::fabs;
+  const vect<double,3> bx_dim = mBox->getDimensions();
   pose_3D<double> gbl_pose = mGblPose->getGlobalPose();
   mat<double,mat_structure::square> R = gbl_pose.Quat.getMat();
   // Jac_gbl = R * Jac_local * R^T 
@@ -260,34 +271,34 @@ mat<double,mat_structure::square> box_boundary_jac::operator()(vect<double,3> v)
   // Jac_local:
   v = gbl_pose.rotateFromGlobal(v);
   mat<double,mat_structure::square> Jac_local(3, 0.0);
-  if((fabs(v[1]) * mBox->getDimensions()[0] < fabs(v[0]) * mBox->getDimensions()[1]) && 
-      (fabs(v[2]) * mBox->getDimensions()[0] < fabs(v[0]) * mBox->getDimensions()[2])) {
+  if((fabs(v[1]) * bx_dim[0] < fabs(v[0]) * bx_dim[1]) && 
+      (fabs(v[2]) * bx_dim[0] < fabs(v[0]) * bx_dim[2])) {
     // on the x-normal plane:
-//       v *= 0.5 * mBox->getDimensions()[0] / fabs(v[0]);
+//       v *= 0.5 * bx_dim[0] / fabs(v[0]);
     double v_x3 = v[0] * v[0] * fabs(v[0]);
 //       Jac_local(0,0) =  0.0;
-    Jac_local(1,0) = -0.5 * mBox->getDimensions()[0] * v[1] * v[0] / v_x3;
-    Jac_local(1,1) =  0.5 * mBox->getDimensions()[0] / fabs(v[0]);
-    Jac_local(2,0) = -0.5 * mBox->getDimensions()[0] * v[2] * v[0] / v_x3;
-    Jac_local(2,2) =  0.5 * mBox->getDimensions()[0] / fabs(v[0]);
-  } else if((fabs(v[0]) * mBox->getDimensions()[1] < fabs(v[1]) * mBox->getDimensions()[0]) && 
-            (fabs(v[2]) * mBox->getDimensions()[1] < fabs(v[1]) * mBox->getDimensions()[2])) {
+    Jac_local(1,0) = -0.5 * bx_dim[0] * v[1] * v[0] / v_x3;
+    Jac_local(1,1) =  0.5 * bx_dim[0] / fabs(v[0]);
+    Jac_local(2,0) = -0.5 * bx_dim[0] * v[2] * v[0] / v_x3;
+    Jac_local(2,2) =  0.5 * bx_dim[0] / fabs(v[0]);
+  } else if((fabs(v[0]) * bx_dim[1] < fabs(v[1]) * bx_dim[0]) && 
+            (fabs(v[2]) * bx_dim[1] < fabs(v[1]) * bx_dim[2])) {
     // on the y-normal plane:
-//       v *= 0.5 * mBox->getDimensions()[1] / fabs(v[1]);
+//       v *= 0.5 * bx_dim[1] / fabs(v[1]);
     double v_y3 = v[1] * v[1] * fabs(v[1]);
-    Jac_local(0,0) =  0.5 * mBox->getDimensions()[1] / fabs(v[1]);
-    Jac_local(0,1) = -0.5 * mBox->getDimensions()[1] * v[0] * v[1] / v_y3;
+    Jac_local(0,0) =  0.5 * bx_dim[1] / fabs(v[1]);
+    Jac_local(0,1) = -0.5 * bx_dim[1] * v[0] * v[1] / v_y3;
 //       Jac_local(1,1) =  0.0;
-    Jac_local(2,1) = -0.5 * mBox->getDimensions()[1] * v[2] * v[1] / v_y3;
-    Jac_local(2,2) =  0.5 * mBox->getDimensions()[1] / fabs(v[1]);
+    Jac_local(2,1) = -0.5 * bx_dim[1] * v[2] * v[1] / v_y3;
+    Jac_local(2,2) =  0.5 * bx_dim[1] / fabs(v[1]);
   } else {
     // on the z-normal plane:
-//       v *= 0.5 * mBox->getDimensions()[2] / fabs(v[2]);
+//       v *= 0.5 * bx_dim[2] / fabs(v[2]);
     double v_z3 = v[2] * v[2] * fabs(v[2]);
-    Jac_local(0,0) =  0.5 * mBox->getDimensions()[2] / fabs(v[2]);
-    Jac_local(0,2) = -0.5 * mBox->getDimensions()[2] * v[0] * v[2] / v_z3;
-    Jac_local(1,1) =  0.5 * mBox->getDimensions()[2] / fabs(v[2]);
-    Jac_local(1,2) = -0.5 * mBox->getDimensions()[2] * v[1] * v[2] / v_z3;
+    Jac_local(0,0) =  0.5 * bx_dim[2] / fabs(v[2]);
+    Jac_local(0,2) = -0.5 * bx_dim[2] * v[0] * v[2] / v_z3;
+    Jac_local(1,1) =  0.5 * bx_dim[2] / fabs(v[2]);
+    Jac_local(1,2) = -0.5 * bx_dim[2] * v[1] * v[2] / v_z3;
 //       Jac_local(2,2) =  0.0;
   };
   
@@ -302,45 +313,49 @@ mat<double,mat_structure::square> box_boundary_jac::operator()(vect<double,3> v)
 
 vect<double,3> cylinder_support_func::operator()(vect<double,3> v) const {
   using std::sqrt; using std::fabs;
+  const double cy_len = mCylinder->getLength();
+  const double cy_rad = mCylinder->getRadius();
   v = mGblPose->rotateFromGlobal(v);
   double v_radius = sqrt(v[0] * v[0] + v[1] * v[1]);
   if( v_radius > 1e-5 ) {
 #ifndef REAK_PROX_SUPPORTS_USE_DISCRETE_APPROX
-    v[0] *= mCylinder->getRadius() / v_radius;
-    v[1] *= mCylinder->getRadius() / v_radius;
+    v[0] *= cy_rad / v_radius;
+    v[1] *= cy_rad / v_radius;
 #else
     using std::atan2; using std::sin; using std::cos; using std::round;
     // octogonal facets: (octogon vs. circle is pretty OK approximation, with 8-pts vs. infinite).
     double theta = round(atan2(v[1], v[0]) * 8.0 / M_PI) * M_PI / 8.0;
-    v[0] = cos(theta) * mCylinder->getRadius();
-    v[1] = sin(theta) * mCylinder->getRadius();
+    v[0] = cos(theta) * cy_rad;
+    v[1] = sin(theta) * cy_rad;
 #endif
     if( fabs(v[2]) > 1e-5 ) {
-      v[2] *= 0.5 * mCylinder->getLength() / fabs(v[2]);
+      v[2] *= 0.5 * cy_len / fabs(v[2]);
     } else {
       v[2] = 0.0; // at the center of cylinder.
     };
   } else {
     v[0] = 0.0; v[1] = 0.0; 
-    v[2] *= 0.5 * mCylinder->getLength() / fabs(v[2]);
+    v[2] *= 0.5 * cy_len / fabs(v[2]);
   };
   return mGblPose->transformToGlobal(v);
 };
 
 vect<double,3> ccylinder_support_func::operator()(vect<double,3> v) const {
   using std::sqrt; using std::fabs;
+  const double cy_len = mCCylinder->getLength();
+  const double cy_rad = mCCylinder->getRadius();
   v = mGblPose->rotateFromGlobal(v);
   double v_radius = sqrt(v[0] * v[0] + v[1] * v[1]);
   if( v_radius > 1e-5 ) {
 #ifndef REAK_PROX_SUPPORTS_USE_DISCRETE_APPROX
-    v[0] *= mCCylinder->getRadius() / v_radius;
-    v[1] *= mCCylinder->getRadius() / v_radius;
+    v[0] *= cy_rad / v_radius;
+    v[1] *= cy_rad / v_radius;
 #else
     using std::atan2; using std::sin; using std::cos; using std::round;
     // octogonal facets: (octogon vs. circle is pretty OK approximation, with 8-pts vs. infinite).
     double theta = round(atan2(v[1], v[0]) * 8.0 / M_PI) * M_PI / 8.0;
-    v[0] = cos(theta) * mCCylinder->getRadius();
-    v[1] = sin(theta) * mCCylinder->getRadius();
+    v[0] = cos(theta) * cy_rad;
+    v[1] = sin(theta) * cy_rad;
 #endif
     if( fabs(v[2]) > 1e-5 ) {
       double phi = atan2(v[2], v_radius);
@@ -349,32 +364,33 @@ vect<double,3> ccylinder_support_func::operator()(vect<double,3> v) const {
 #endif
       v[0] *= cos(phi);
       v[1] *= cos(phi);
-      v[2] *= 0.5 * mCCylinder->getLength() / fabs(v[2]);
-      v[2] += sin(phi) * mCCylinder->getRadius();
+      v[2] *= 0.5 * cy_len / fabs(v[2]);
+      v[2] += sin(phi) * cy_rad;
     } else {
       v[2] = 0.0; // at the center of cylinder.
     };
   } else {
     v[0] = 0.0; v[1] = 0.0; 
-    v[2] *= 0.5 * mCCylinder->getLength() / fabs(v[2]);
+    v[2] *= 0.5 * cy_len / fabs(v[2]);
   };
   return mGblPose->transformToGlobal(v);
 };
 
 vect<double,3> box_support_func::operator()(vect<double,3> v) const {
   using std::fabs;
+  const vect<double,3> bx_dim = mBox->getDimensions();
   v = mGblPose->rotateFromGlobal(v);
   
   if( fabs(v[0]) > 1e-5 )
-    v[0] *= 0.5 * mBox->getDimensions()[0] / fabs(v[0]);
+    v[0] *= 0.5 * bx_dim[0] / fabs(v[0]);
   else
     v[0] = 0.0;
   if( fabs(v[1]) > 1e-5 )
-    v[1] *= 0.5 * mBox->getDimensions()[1] / fabs(v[1]);
+    v[1] *= 0.5 * bx_dim[1] / fabs(v[1]);
   else
     v[1] = 0.0;
   if( fabs(v[2]) > 1e-5 )
-    v[2] *= 0.5 * mBox->getDimensions()[2] / fabs(v[2]);
+    v[2] *= 0.5 * bx_dim[2] / fabs(v[2]);
   else
     v[2] = 0.0;
   

@@ -118,9 +118,11 @@ void prox_plane_sphere::computeProximity(const shape_3D_precompute_pack& aPack1,
   vect<double,3> sp_c = sp_pose.transformToGlobal(vect<double,3>(0.0,0.0,0.0));
   vect<double,3> sp_c_rel = pl_pose.transformFromGlobal(sp_c);
   
+  const double sp_rad = mSphere->getRadius();
+  
   mLastResult.mPoint1 = pl_pose.transformToGlobal(vect<double,3>(sp_c_rel[0],sp_c_rel[1],0.0));
-  mLastResult.mPoint2 = pl_pose.transformToGlobal(vect<double,3>(sp_c_rel[0],sp_c_rel[1],sp_c_rel[2] - mSphere->getRadius()));
-  mLastResult.mDistance = sp_c_rel[2] - mSphere->getRadius();
+  mLastResult.mPoint2 = pl_pose.transformToGlobal(vect<double,3>(sp_c_rel[0],sp_c_rel[1],sp_c_rel[2] - sp_rad));
+  mLastResult.mDistance = sp_c_rel[2] - sp_rad;
 };
 
 

@@ -53,16 +53,19 @@ void prox_plane_ccylinder::computeProximity(const shape_3D_precompute_pack& aPac
   vect<double,3> cy_c_rel = pl_pose.transformFromGlobal(cy_c);
   vect<double,3> cy_t_rel = pl_pose.rotateFromGlobal(cy_t);
   
+  const double cy_len = mCCylinder->getLength();
+  const double cy_rad = mCCylinder->getRadius();
+  
   if(fabs(cy_t_rel[2]) < 1e-6) {
     // The capped-cylinder is sitting flat (on its side) on the plane.
     mLastResult.mPoint1 = pl_pose.transformToGlobal(vect<double,3>(cy_c_rel[0],cy_c_rel[1],0.0));
-    mLastResult.mPoint2 = pl_pose.transformToGlobal(vect<double,3>(cy_c_rel[0],cy_c_rel[1],cy_c_rel[2] - mCCylinder->getRadius()));
-    mLastResult.mDistance = cy_c_rel[2] - mCCylinder->getRadius();
+    mLastResult.mPoint2 = pl_pose.transformToGlobal(vect<double,3>(cy_c_rel[0],cy_c_rel[1],cy_c_rel[2] - cy_rad));
+    mLastResult.mDistance = cy_c_rel[2] - cy_rad;
   } else {
     // The capped-cylinder is at an angle to the plane.
     if(cy_t_rel[2] > 0.0)
       cy_t_rel = -cy_t_rel;
-    vect<double,3> cypt_rel = cy_c_rel + (0.5 * mCCylinder->getLength()) * cy_t_rel + vect<double,3>(0.0,0.0,-mCCylinder->getRadius());
+    vect<double,3> cypt_rel = cy_c_rel + (0.5 * cy_len) * cy_t_rel + vect<double,3>(0.0,0.0,-cy_rad);
     mLastResult.mPoint1 = pl_pose.transformToGlobal(vect<double,3>(cypt_rel[0],cypt_rel[1],0.0));
     mLastResult.mPoint2 = pl_pose.transformToGlobal(cypt_rel);
     mLastResult.mDistance = cypt_rel[2];

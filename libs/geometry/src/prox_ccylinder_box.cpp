@@ -48,20 +48,22 @@ void prox_ccylinder_box::computeProximity(const shape_3D_precompute_pack& aPack1
                                     aPack2.global_pose : aPack1.global_pose);
   
   
-  vect<double,3> cy_c = cy_pose.Position;
-  vect<double,3> cy_t = cy_pose.rotateToGlobal(vect<double,3>(0.0,0.0,1.0));
+  const vect<double,3> cy_c = cy_pose.Position;
+  const vect<double,3> cy_t = cy_pose.rotateToGlobal(vect<double,3>(0.0,0.0,1.0));
+  const double cy_len = mCCylinder->getLength();
+  const double cy_rad = mCCylinder->getRadius();
   
-  proximity_record_3D bxln_result = findProximityBoxToLine(*mBox, bx_pose, cy_c, cy_t, 0.5 * mCCylinder->getLength());
+  proximity_record_3D bxln_result = findProximityBoxToLine(*mBox, bx_pose, cy_c, cy_t, 0.5 * cy_len);
   
   // add a sphere-sweep around the point-box solution.
   vect<double,3> diff_v = bxln_result.mPoint1 - bxln_result.mPoint2;
   double diff_d = norm_2(diff_v);
   if(bxln_result.mDistance < 0.0)
-    mLastResult.mPoint1 = bxln_result.mPoint2 - (mCCylinder->getRadius() / diff_d) * diff_v;
+    mLastResult.mPoint1 = bxln_result.mPoint2 - (cy_rad / diff_d) * diff_v;
   else
-    mLastResult.mPoint1 = bxln_result.mPoint2 + (mCCylinder->getRadius() / diff_d) * diff_v;
+    mLastResult.mPoint1 = bxln_result.mPoint2 + (cy_rad / diff_d) * diff_v;
   mLastResult.mPoint2 = bxln_result.mPoint1;
-  mLastResult.mDistance = bxln_result.mDistance - mCCylinder->getRadius();
+  mLastResult.mDistance = bxln_result.mDistance - cy_rad;
   return;
 };
 

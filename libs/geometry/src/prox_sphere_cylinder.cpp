@@ -52,23 +52,27 @@ void prox_sphere_cylinder::computeProximity(const shape_3D_precompute_pack& aPac
   vect<double,3> sp_c_rel = cy_pose.transformFromGlobal(sp_c);
   double sp_c_rel_rad = sqrt(sp_c_rel[0] * sp_c_rel[0] + sp_c_rel[1] * sp_c_rel[1]);
   
-  if(fabs(sp_c_rel[2]) <= 0.5 * mCylinder->getLength()) {
+  const double sp_rad = mSphere->getRadius();
+  const double cy_len = mCylinder->getLength();
+  const double cy_rad = mCylinder->getRadius();
+  
+  if(fabs(sp_c_rel[2]) <= 0.5 * cy_len) {
     // The sphere is around the round side of the cylinder.
     //  this means the min-dist point is on the round shell of the cylinder in the direction of sphere center.
     vect<double,3> sp_c_proj = vect<double,3>(sp_c_rel[0],sp_c_rel[1],0.0);
     double sp_c_proj_d = norm_2(sp_c_proj);
-    mLastResult.mPoint2 = cy_pose.transformToGlobal(vect<double,3>(0.0,0.0,sp_c_rel[2]) + sp_c_proj * (mCylinder->getRadius() / sp_c_proj_d));
-    mLastResult.mPoint1 = cy_pose.transformToGlobal(sp_c_rel - sp_c_proj * (mSphere->getRadius() / sp_c_proj_d));
-    mLastResult.mDistance = sp_c_proj_d - mSphere->getRadius() - mCylinder->getRadius();
-  } else if(sp_c_rel_rad < mCylinder->getRadius()) {
+    mLastResult.mPoint2 = cy_pose.transformToGlobal(vect<double,3>(0.0,0.0,sp_c_rel[2]) + sp_c_proj * (cy_rad / sp_c_proj_d));
+    mLastResult.mPoint1 = cy_pose.transformToGlobal(sp_c_rel - sp_c_proj * (sp_rad / sp_c_proj_d));
+    mLastResult.mDistance = sp_c_proj_d - sp_rad - cy_rad;
+  } else if(sp_c_rel_rad < cy_rad) {
     // The sphere is above or below the cylinder.
     //  this boils down to a simple plane-sphere proximity.
     double fact = 1.0;
     if(sp_c_rel[2] < 0.0)
       fact = -1.0;
-    mLastResult.mPoint2 = cy_pose.transformToGlobal(vect<double,3>(sp_c_rel[0],sp_c_rel[1],fact * 0.5 * mCylinder->getLength()));
-    mLastResult.mPoint1 = cy_pose.transformToGlobal(vect<double,3>(sp_c_rel[0],sp_c_rel[1],sp_c_rel[2] - fact * mSphere->getRadius()));
-    mLastResult.mDistance = fact * sp_c_rel[2] - 0.5 * mCylinder->getLength() - mSphere->getRadius();
+    mLastResult.mPoint2 = cy_pose.transformToGlobal(vect<double,3>(sp_c_rel[0],sp_c_rel[1],fact * 0.5 * cy_len));
+    mLastResult.mPoint1 = cy_pose.transformToGlobal(vect<double,3>(sp_c_rel[0],sp_c_rel[1],sp_c_rel[2] - fact * sp_rad));
+    mLastResult.mDistance = fact * sp_c_rel[2] - 0.5 * cy_len - sp_rad;
   } else {
     // The sphere is outside the rims of the cylinder.
     //  this means the min-dist point is on the rim of the cylinder, in the direction of the sphere center.
@@ -77,12 +81,12 @@ void prox_sphere_cylinder::computeProximity(const shape_3D_precompute_pack& aPac
     double fact = 1.0;
     if(sp_c_rel[2] < 0.0)
       fact = -1.0;
-    vect<double,3> rim_pt = (mCylinder->getRadius() / sp_c_proj_d) * sp_c_proj + vect<double,3>(0.0,0.0,fact * 0.5 * mCylinder->getLength());
+    vect<double,3> rim_pt = (cy_rad / sp_c_proj_d) * sp_c_proj + vect<double,3>(0.0,0.0,fact * 0.5 * cy_len);
     mLastResult.mPoint2 = cy_pose.transformToGlobal(rim_pt);
     sp_c_proj = mLastResult.mPoint2 - sp_c;
     sp_c_proj_d = norm_2(sp_c_proj);
-    mLastResult.mPoint1 = sp_c + (mSphere->getRadius() / sp_c_proj_d) * sp_c_proj;
-    mLastResult.mDistance = sp_c_proj_d - mSphere->getRadius();
+    mLastResult.mPoint1 = sp_c + (sp_rad / sp_c_proj_d) * sp_c_proj;
+    mLastResult.mDistance = sp_c_proj_d - sp_rad;
   };
 };
 

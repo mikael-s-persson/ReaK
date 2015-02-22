@@ -56,12 +56,13 @@ void prox_sphere_box::computeProximity(const shape_3D_precompute_pack& aPack1,
   // add a sphere-sweep around the point-box solution.
   vect<double,3> diff_v = bxpt_result.mPoint1 - bxpt_result.mPoint2;
   double diff_d = norm_2(diff_v);
+  const double sp_rad = mSphere->getRadius();
   if(bxpt_result.mDistance < 0.0)
-    mLastResult.mPoint1 = bxpt_result.mPoint2 - (mSphere->getRadius() / diff_d) * diff_v;
+    mLastResult.mPoint1 = bxpt_result.mPoint2 - (sp_rad / diff_d) * diff_v;
   else
-    mLastResult.mPoint1 = bxpt_result.mPoint2 + (mSphere->getRadius() / diff_d) * diff_v;
+    mLastResult.mPoint1 = bxpt_result.mPoint2 + (sp_rad / diff_d) * diff_v;
   mLastResult.mPoint2 = bxpt_result.mPoint1;
-  mLastResult.mDistance = bxpt_result.mDistance - mSphere->getRadius();
+  mLastResult.mDistance = bxpt_result.mDistance - sp_rad;
   return;
 };
 

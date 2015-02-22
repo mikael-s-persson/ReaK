@@ -43,12 +43,15 @@ void prox_sphere_sphere::computeProximity(const shape_3D_precompute_pack& aPack1
   vect<double,3> c2 = (aPack1.parent == mSphere1 ? 
                        aPack2.global_pose.Position : aPack1.global_pose.Position);
   
+  const double s1_rad = mSphere1->getRadius();
+  const double s2_rad = mSphere2->getRadius();
+  
   vect<double,3> diff_cc = c2 - c1;
   double dist_cc = norm_2(diff_cc);
   
-  mLastResult.mDistance = dist_cc - mSphere1->getRadius() - mSphere2->getRadius();
-  mLastResult.mPoint1 = c1 + (mSphere1->getRadius() / dist_cc) * diff_cc;
-  mLastResult.mPoint2 = c2 - (mSphere2->getRadius() / dist_cc) * diff_cc;
+  mLastResult.mDistance = dist_cc - s1_rad - s2_rad;
+  mLastResult.mPoint1 = c1 + (s1_rad / dist_cc) * diff_cc;
+  mLastResult.mPoint2 = c2 - (s2_rad / dist_cc) * diff_cc;
   
 };
 

@@ -43,87 +43,90 @@ void prox_crect_crect::computeProximity(const shape_2D_precompute_pack& aPack1,
   const pose_2D<double>& cr2_pose = (aPack1.parent == mCRect1 ? 
                                      aPack2.global_pose : aPack1.global_pose);
   
-  vect<double,2> cr2_c = cr2_pose.Position;
-  vect<double,2> cr2_t = cr2_pose.rotateToGlobal(vect<double,2>(1.0,0.0));
+  const vect<double,2> cr2_c = cr2_pose.Position;
+  const vect<double,2> cr2_t = cr2_pose.rotateToGlobal(vect<double,2>(1.0,0.0));
   
-  vect<double,2> cr2_c_rel = cr1_pose.transformFromGlobal(cr2_c);
-  vect<double,2> cr2_t_rel = cr1_pose.rotateFromGlobal(cr2_t);
+  const vect<double,2> cr2_c_rel = cr1_pose.transformFromGlobal(cr2_c);
+  const vect<double,2> cr2_t_rel = cr1_pose.rotateFromGlobal(cr2_t);
+  
+  const vect<double,2> cr1_dim = mCRect1->getDimensions();
+  const vect<double,2> cr2_dim = mCRect2->getDimensions();
   
   
   if(fabs(cr2_t_rel[1]) < 1e-5) {
     // The capped-rectangles are parallel.
-    if((cr2_c_rel[0] + 0.5 * mCRect2->getDimensions()[0] > -0.5 * mCRect1->getDimensions()[0]) || 
-       (cr2_c_rel[0] - 0.5 * mCRect2->getDimensions()[0] <  0.5 * mCRect1->getDimensions()[0])) {
+    if((cr2_c_rel[0] + 0.5 * cr2_dim[0] > -0.5 * cr1_dim[0]) || 
+       (cr2_c_rel[0] - 0.5 * cr2_dim[0] <  0.5 * cr1_dim[0])) {
       // there is an overlap between the capped-rectangle sides.
-      double max_x_rel = ((cr2_c_rel[0] + 0.5 * mCRect2->getDimensions()[0] <  0.5 * mCRect1->getDimensions()[0]) ? (cr2_c_rel[0] + 0.5 * mCRect2->getDimensions()[0]) : ( 0.5 * mCRect1->getDimensions()[0]));
-      double min_x_rel = ((cr2_c_rel[0] - 0.5 * mCRect2->getDimensions()[0] > -0.5 * mCRect1->getDimensions()[0]) ? (cr2_c_rel[0] - 0.5 * mCRect2->getDimensions()[0]) : (-0.5 * mCRect1->getDimensions()[0]));
-      double avg_x_rel = (max_x_rel + min_x_rel) * 0.5;
+      const double max_x_rel = ((cr2_c_rel[0] + 0.5 * cr2_dim[0] <  0.5 * cr1_dim[0]) ? (cr2_c_rel[0] + 0.5 * cr2_dim[0]) : ( 0.5 * cr1_dim[0]));
+      const double min_x_rel = ((cr2_c_rel[0] - 0.5 * cr2_dim[0] > -0.5 * cr1_dim[0]) ? (cr2_c_rel[0] - 0.5 * cr2_dim[0]) : (-0.5 * cr1_dim[0]));
+      const double avg_x_rel = (max_x_rel + min_x_rel) * 0.5;
       vect<double,2> cr2_r_rel(0.0,1.0);
       if(cr2_c_rel[1] < 0.0)
         cr2_r_rel[1] = -1.0;
-      mLastResult.mPoint1 = cr1_pose.transformToGlobal(vect<double,2>(avg_x_rel, 0.5 * mCRect1->getDimensions()[1] * cr2_r_rel[1]));
-      mLastResult.mPoint2 = cr1_pose.transformToGlobal(vect<double,2>(avg_x_rel, cr2_c_rel[1] - 0.5 * mCRect2->getDimensions()[1] * cr2_r_rel[1]));
-      mLastResult.mDistance = fabs(cr2_c_rel[1]) - 0.5 * mCRect1->getDimensions()[1] - 0.5 * mCRect2->getDimensions()[1];
+      mLastResult.mPoint1 = cr1_pose.transformToGlobal(vect<double,2>(avg_x_rel, 0.5 * cr1_dim[1] * cr2_r_rel[1]));
+      mLastResult.mPoint2 = cr1_pose.transformToGlobal(vect<double,2>(avg_x_rel, cr2_c_rel[1] - 0.5 * cr2_dim[1] * cr2_r_rel[1]));
+      mLastResult.mDistance = fabs(cr2_c_rel[1]) - 0.5 * cr1_dim[1] - 0.5 * cr2_dim[1];
       return;
     };
     // there is no overlap, and thus, this boils down to a circle-circle problem.
     vect<double,2> cr1_cic_rel(0.0,0.0);
     vect<double,2> cr2_cic_rel = cr2_c_rel;
     if(cr2_c_rel[0] < 0.0) {
-      cr1_cic_rel[0] -= 0.5 * mCRect1->getDimensions()[0];
-      cr2_cic_rel[0] += 0.5 * mCRect2->getDimensions()[0];
+      cr1_cic_rel[0] -= 0.5 * cr1_dim[0];
+      cr2_cic_rel[0] += 0.5 * cr2_dim[0];
     } else {
-      cr1_cic_rel[0] += 0.5 * mCRect1->getDimensions()[0];
-      cr2_cic_rel[0] -= 0.5 * mCRect2->getDimensions()[0];
+      cr1_cic_rel[0] += 0.5 * cr1_dim[0];
+      cr2_cic_rel[0] -= 0.5 * cr2_dim[0];
     };
-    vect<double,2> diff_v_rel = cr2_cic_rel - cr1_cic_rel;
-    double dist_v_rel = norm_2(diff_v_rel);
-    mLastResult.mPoint1 = cr1_pose.transformToGlobal(cr1_cic_rel + (0.5 * mCRect1->getDimensions()[1] / dist_v_rel) * diff_v_rel);
-    mLastResult.mPoint2 = cr1_pose.transformToGlobal(cr2_cic_rel - (0.5 * mCRect2->getDimensions()[1] / dist_v_rel) * diff_v_rel);
-    mLastResult.mDistance = dist_v_rel - 0.5 * mCRect1->getDimensions()[1] - 0.5 * mCRect2->getDimensions()[1];
+    const vect<double,2> diff_v_rel = cr2_cic_rel - cr1_cic_rel;
+    const double dist_v_rel = norm_2(diff_v_rel);
+    mLastResult.mPoint1 = cr1_pose.transformToGlobal(cr1_cic_rel + (0.5 * cr1_dim[1] / dist_v_rel) * diff_v_rel);
+    mLastResult.mPoint2 = cr1_pose.transformToGlobal(cr2_cic_rel - (0.5 * cr2_dim[1] / dist_v_rel) * diff_v_rel);
+    mLastResult.mDistance = dist_v_rel - 0.5 * cr1_dim[1] - 0.5 * cr2_dim[1];
     return;
   };
   
   
   // Line-Line solution:
-  double d = cr2_t_rel * cr2_c_rel;
-  double denom = 1.0 - cr2_t_rel[0] * cr2_t_rel[0];
+  const double d = cr2_t_rel * cr2_c_rel;
+  const double denom = 1.0 - cr2_t_rel[0] * cr2_t_rel[0];
   double s_c = (cr2_t_rel[0] * cr2_c_rel[0] - d) / denom;
   double t_c = (cr2_c_rel[0] - cr2_t_rel[0] * d) / denom;
   
   // Segment-Segment solution:
-  if(s_c < -0.5 * mCRect2->getDimensions()[0]) {
-    s_c = -0.5 * mCRect2->getDimensions()[0];
-    t_c = cr2_c_rel[0] - 0.5 * mCRect2->getDimensions()[0] * cr2_t_rel[0];
-  } else if(s_c > 0.5 * mCRect2->getDimensions()[0]) {
-    s_c = 0.5 * mCRect2->getDimensions()[0];
-    t_c = cr2_c_rel[0] + 0.5 * mCRect2->getDimensions()[0] * cr2_t_rel[0];
+  if(s_c < -0.5 * cr2_dim[0]) {
+    s_c = -0.5 * cr2_dim[0];
+    t_c = cr2_c_rel[0] - 0.5 * cr2_dim[0] * cr2_t_rel[0];
+  } else if(s_c > 0.5 * cr2_dim[0]) {
+    s_c = 0.5 * cr2_dim[0];
+    t_c = cr2_c_rel[0] + 0.5 * cr2_dim[0] * cr2_t_rel[0];
   };
   
-  if(t_c < -0.5 * mCRect1->getDimensions()[0]) {
-    t_c = -0.5 * mCRect1->getDimensions()[0];
-    s_c = -0.5 * mCRect1->getDimensions()[0] * cr2_t_rel[0] - d;
-  } else if(t_c > 0.5 * mCRect1->getDimensions()[0]) {
-    t_c = 0.5 * mCRect1->getDimensions()[0];
-    s_c = 0.5 * mCRect1->getDimensions()[0] * cr2_t_rel[0] - d;
+  if(t_c < -0.5 * cr1_dim[0]) {
+    t_c = -0.5 * cr1_dim[0];
+    s_c = -0.5 * cr1_dim[0] * cr2_t_rel[0] - d;
+  } else if(t_c > 0.5 * cr1_dim[0]) {
+    t_c = 0.5 * cr1_dim[0];
+    s_c = 0.5 * cr1_dim[0] * cr2_t_rel[0] - d;
   };
   
-  if(s_c < -0.5 * mCRect2->getDimensions()[0])
-    s_c = -0.5 * mCRect2->getDimensions()[0];
-  else if(s_c > 0.5 * mCRect2->getDimensions()[0])
-    s_c = 0.5 * mCRect2->getDimensions()[0];
+  if(s_c < -0.5 * cr2_dim[0])
+    s_c = -0.5 * cr2_dim[0];
+  else if(s_c > 0.5 * cr2_dim[0])
+    s_c = 0.5 * cr2_dim[0];
   
   // we have parameters s and t for the min-dist points on the center segments.
   
   // just apply a circle-sweep on the line-segments.
-  vect<double,2> cr1_ptc(t_c,0.0);
-  vect<double,2> cr2_ptc = cr2_c_rel + s_c * cr2_t_rel;
+  const vect<double,2> cr1_ptc(t_c,0.0);
+  const vect<double,2> cr2_ptc = cr2_c_rel + s_c * cr2_t_rel;
   
-  vect<double,2> diff_v_rel = cr2_ptc - cr1_ptc;
-  double dist_v_rel = norm_2(diff_v_rel);
-  mLastResult.mPoint1 = cr1_pose.transformToGlobal(cr1_ptc + (0.5 * mCRect1->getDimensions()[1] / dist_v_rel) * diff_v_rel);
-  mLastResult.mPoint2 = cr1_pose.transformToGlobal(cr2_ptc - (0.5 * mCRect2->getDimensions()[1] / dist_v_rel) * diff_v_rel);
-  mLastResult.mDistance = dist_v_rel - 0.5 * mCRect1->getDimensions()[1] - 0.5 * mCRect2->getDimensions()[1];
+  const vect<double,2> diff_v_rel = cr2_ptc - cr1_ptc;
+  const double dist_v_rel = norm_2(diff_v_rel);
+  mLastResult.mPoint1 = cr1_pose.transformToGlobal(cr1_ptc + (0.5 * cr1_dim[1] / dist_v_rel) * diff_v_rel);
+  mLastResult.mPoint2 = cr1_pose.transformToGlobal(cr2_ptc - (0.5 * cr2_dim[1] / dist_v_rel) * diff_v_rel);
+  mLastResult.mDistance = dist_v_rel - 0.5 * cr1_dim[1] - 0.5 * cr2_dim[1];
   
 };
 

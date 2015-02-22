@@ -52,14 +52,18 @@ void prox_sphere_ccylinder::computeProximity(const shape_3D_precompute_pack& aPa
   vect<double,3> sp_c_rel = cy_pose.transformFromGlobal(sp_c);
   //double sp_c_rel_rad = sqrt(sp_c_rel[0] * sp_c_rel[0] + sp_c_rel[1] * sp_c_rel[1]);
   
-  if(fabs(sp_c_rel[2]) <= 0.5 * mCCylinder->getLength()) {
+  const double sp_rad = mSphere->getRadius();
+  const double cy_len = mCCylinder->getLength();
+  const double cy_rad = mCCylinder->getRadius();
+  
+  if(fabs(sp_c_rel[2]) <= 0.5 * cy_len) {
     // The sphere is around the round side of the cylinder.
     //  this means the min-dist point is on the round shell of the cylinder in the direction of sphere center.
     vect<double,3> sp_c_proj = vect<double,3>(sp_c_rel[0],sp_c_rel[1],0.0);
     double sp_c_proj_d = norm_2(sp_c_proj);
-    mLastResult.mPoint2 = cy_pose.transformToGlobal(vect<double,3>(0.0,0.0,sp_c_rel[2]) + sp_c_proj * (mCCylinder->getRadius() / sp_c_proj_d));
-    mLastResult.mPoint1 = cy_pose.transformToGlobal(sp_c_rel - sp_c_proj * (mSphere->getRadius() / sp_c_proj_d));
-    mLastResult.mDistance = sp_c_proj_d - mSphere->getRadius() - mCCylinder->getRadius();
+    mLastResult.mPoint2 = cy_pose.transformToGlobal(vect<double,3>(0.0,0.0,sp_c_rel[2]) + sp_c_proj * (cy_rad / sp_c_proj_d));
+    mLastResult.mPoint1 = cy_pose.transformToGlobal(sp_c_rel - sp_c_proj * (sp_rad / sp_c_proj_d));
+    mLastResult.mDistance = sp_c_proj_d - sp_rad - cy_rad;
   } else {
     // The sphere is above or below the capped cylinder.
     //  this boils down to a simple sphere-sphere proximity.
@@ -67,13 +71,13 @@ void prox_sphere_ccylinder::computeProximity(const shape_3D_precompute_pack& aPa
     if(sp_c_rel[2] < 0.0)
       fact = -1.0;
     
-    vect<double,3> cy_c2 = cy_pose.transformToGlobal(vect<double,3>(0.0,0.0,fact * 0.5 * mCCylinder->getLength()));
+    vect<double,3> cy_c2 = cy_pose.transformToGlobal(vect<double,3>(0.0,0.0,fact * 0.5 * cy_len));
     vect<double,3> diff_cc = cy_c2 - sp_c;
     double dist_cc = norm_2(diff_cc);
     
-    mLastResult.mDistance = dist_cc - mSphere->getRadius() - mCCylinder->getRadius();
-    mLastResult.mPoint1 = sp_c + (mSphere->getRadius() / dist_cc) * diff_cc;
-    mLastResult.mPoint2 = cy_c2 - (mCCylinder->getRadius() / dist_cc) * diff_cc;
+    mLastResult.mDistance = dist_cc - sp_rad - cy_rad;
+    mLastResult.mPoint1 = sp_c + (sp_rad / dist_cc) * diff_cc;
+    mLastResult.mPoint2 = cy_c2 - (cy_rad / dist_cc) * diff_cc;
   };
 };
 

@@ -47,83 +47,88 @@ void prox_ccylinder_ccylinder::computeProximity(const shape_3D_precompute_pack& 
   const pose_3D<double>& c2_pose = (aPack1.parent == mCCylinder1 ? 
                                     aPack2.global_pose : aPack1.global_pose);
   
-  vect<double,3> cy2_c = c2_pose.Position;
-  vect<double,3> cy2_t = c2_pose.rotateToGlobal(vect<double,3>(0.0,0.0,1.0));
+  const vect<double,3> cy2_c = c2_pose.Position;
+  const vect<double,3> cy2_t = c2_pose.rotateToGlobal(vect<double,3>(0.0,0.0,1.0));
   
-  vect<double,3> cy2_c_rel = c1_pose.transformFromGlobal(cy2_c);
-  vect<double,3> cy2_t_rel = c1_pose.rotateFromGlobal(cy2_t);
+  const vect<double,3> cy2_c_rel = c1_pose.transformFromGlobal(cy2_c);
+  const vect<double,3> cy2_t_rel = c1_pose.rotateFromGlobal(cy2_t);
+  
+  const double cy1_len = mCCylinder1->getLength();
+  const double cy1_rad = mCCylinder1->getRadius();
+  const double cy2_len = mCCylinder2->getLength();
+  const double cy2_rad = mCCylinder2->getRadius();
   
   if(sqrt(cy2_t_rel[0] * cy2_t_rel[0] + cy2_t_rel[1] * cy2_t_rel[1]) < 1e-5) {
     // The capped-cylinders are parallel.
-    if((cy2_c_rel[2] + 0.5 * mCCylinder2->getLength() > -0.5 * mCCylinder1->getLength()) || 
-       (cy2_c_rel[2] - 0.5 * mCCylinder2->getLength() <  0.5 * mCCylinder1->getLength())) {
+    if((cy2_c_rel[2] + 0.5 * cy2_len > -0.5 * cy1_len) || 
+       (cy2_c_rel[2] - 0.5 * cy2_len <  0.5 * cy1_len)) {
       // there is an overlap between the capped-cylinder sides.
-      double max_z_rel = ((cy2_c_rel[2] + 0.5 * mCCylinder2->getLength() <  0.5 * mCCylinder1->getLength()) ? (cy2_c_rel[2] + 0.5 * mCCylinder2->getLength()) : ( 0.5 * mCCylinder1->getLength()));
-      double min_z_rel = ((cy2_c_rel[2] - 0.5 * mCCylinder2->getLength() > -0.5 * mCCylinder1->getLength()) ? (cy2_c_rel[2] - 0.5 * mCCylinder2->getLength()) : (-0.5 * mCCylinder1->getLength()));
-      double avg_z_rel = (max_z_rel + min_z_rel) * 0.5;
-      vect<double,3> cy2_r_rel = unit(vect<double,3>(cy2_c_rel[0],cy2_c_rel[1],0.0));
-      mLastResult.mPoint1 = c1_pose.transformToGlobal(vect<double,3>(mCCylinder1->getRadius() * cy2_r_rel[0], mCCylinder1->getRadius() * cy2_r_rel[1], avg_z_rel));
-      mLastResult.mPoint2 = c1_pose.transformToGlobal(vect<double,3>(cy2_c_rel[0] - mCCylinder2->getRadius() * cy2_r_rel[0], cy2_c_rel[1] - mCCylinder2->getRadius() * cy2_r_rel[1], avg_z_rel));
-      mLastResult.mDistance = sqrt(cy2_c_rel[0] * cy2_c_rel[0] + cy2_c_rel[1] * cy2_c_rel[1]) - mCCylinder1->getRadius() - mCCylinder2->getRadius();
+      const double max_z_rel = ((cy2_c_rel[2] + 0.5 * cy2_len <  0.5 * cy1_len) ? (cy2_c_rel[2] + 0.5 * cy2_len) : ( 0.5 * cy1_len));
+      const double min_z_rel = ((cy2_c_rel[2] - 0.5 * cy2_len > -0.5 * cy1_len) ? (cy2_c_rel[2] - 0.5 * cy2_len) : (-0.5 * cy1_len));
+      const double avg_z_rel = (max_z_rel + min_z_rel) * 0.5;
+      const vect<double,3> cy2_r_rel = unit(vect<double,3>(cy2_c_rel[0],cy2_c_rel[1],0.0));
+      mLastResult.mPoint1 = c1_pose.transformToGlobal(vect<double,3>(cy1_rad * cy2_r_rel[0], cy1_rad * cy2_r_rel[1], avg_z_rel));
+      mLastResult.mPoint2 = c1_pose.transformToGlobal(vect<double,3>(cy2_c_rel[0] - cy2_rad * cy2_r_rel[0], cy2_c_rel[1] - cy2_rad * cy2_r_rel[1], avg_z_rel));
+      mLastResult.mDistance = sqrt(cy2_c_rel[0] * cy2_c_rel[0] + cy2_c_rel[1] * cy2_c_rel[1]) - cy1_rad - cy2_rad;
       return;
     };
     // there is no overlap, and thus, this boils down to a sphere-sphere problem.
     vect<double,3> cy1_spc_rel(0.0,0.0,0.0);
     vect<double,3> cy2_spc_rel = cy2_c_rel;
     if(cy2_c_rel[2] < 0.0) {
-      cy1_spc_rel[2] -= 0.5 * mCCylinder1->getLength();
-      cy2_spc_rel[2] += 0.5 * mCCylinder2->getLength();
+      cy1_spc_rel[2] -= 0.5 * cy1_len;
+      cy2_spc_rel[2] += 0.5 * cy2_len;
     } else {
-      cy1_spc_rel[2] += 0.5 * mCCylinder1->getLength();
-      cy2_spc_rel[2] -= 0.5 * mCCylinder2->getLength();
+      cy1_spc_rel[2] += 0.5 * cy1_len;
+      cy2_spc_rel[2] -= 0.5 * cy2_len;
     };
-    vect<double,3> diff_v_rel = cy2_spc_rel - cy1_spc_rel;
-    double dist_v_rel = norm_2(diff_v_rel);
-    mLastResult.mPoint1 = c1_pose.transformToGlobal(cy1_spc_rel + (mCCylinder1->getRadius() / dist_v_rel) * diff_v_rel);
-    mLastResult.mPoint2 = c1_pose.transformToGlobal(cy2_spc_rel - (mCCylinder2->getRadius() / dist_v_rel) * diff_v_rel);
-    mLastResult.mDistance = dist_v_rel - mCCylinder1->getRadius() - mCCylinder2->getRadius();
+    const vect<double,3> diff_v_rel = cy2_spc_rel - cy1_spc_rel;
+    const double dist_v_rel = norm_2(diff_v_rel);
+    mLastResult.mPoint1 = c1_pose.transformToGlobal(cy1_spc_rel + (cy1_rad / dist_v_rel) * diff_v_rel);
+    mLastResult.mPoint2 = c1_pose.transformToGlobal(cy2_spc_rel - (cy2_rad / dist_v_rel) * diff_v_rel);
+    mLastResult.mDistance = dist_v_rel - cy1_rad - cy2_rad;
     return;
   };
   
   // Line-Line solution:
-  double d = cy2_t_rel * cy2_c_rel;
-  double denom = 1.0 - cy2_t_rel[2] * cy2_t_rel[2];
+  const double d = cy2_t_rel * cy2_c_rel;
+  const double denom = 1.0 - cy2_t_rel[2] * cy2_t_rel[2];
   double s_c = (cy2_t_rel[2] * cy2_c_rel[2] - d) / denom;
   double t_c = (cy2_c_rel[2] - cy2_t_rel[2] * d) / denom;
   
   // Segment-Segment solution:
-  if(s_c < -0.5 * mCCylinder2->getLength()) {
-    s_c = -0.5 * mCCylinder2->getLength();
-    t_c = cy2_c_rel[2] - 0.5 * mCCylinder2->getLength() * cy2_t_rel[2];
-  } else if(s_c > 0.5 * mCCylinder2->getLength()) {
-    s_c = 0.5 * mCCylinder2->getLength();
-    t_c = cy2_c_rel[2] + 0.5 * mCCylinder2->getLength() * cy2_t_rel[2];
+  if(s_c < -0.5 * cy2_len) {
+    s_c = -0.5 * cy2_len;
+    t_c = cy2_c_rel[2] - 0.5 * cy2_len * cy2_t_rel[2];
+  } else if(s_c > 0.5 * cy2_len) {
+    s_c = 0.5 * cy2_len;
+    t_c = cy2_c_rel[2] + 0.5 * cy2_len * cy2_t_rel[2];
   };
   
-  if(t_c < -0.5 * mCCylinder1->getLength()) {
-    t_c = -0.5 * mCCylinder1->getLength();
-    s_c = -0.5 * mCCylinder1->getLength() * cy2_t_rel[2] - d;
-  } else if(t_c > 0.5 * mCCylinder1->getLength()) {
-    t_c = 0.5 * mCCylinder1->getLength();
-    s_c = 0.5 * mCCylinder1->getLength() * cy2_t_rel[2] - d;
+  if(t_c < -0.5 * cy1_len) {
+    t_c = -0.5 * cy1_len;
+    s_c = -0.5 * cy1_len * cy2_t_rel[2] - d;
+  } else if(t_c > 0.5 * cy1_len) {
+    t_c = 0.5 * cy1_len;
+    s_c = 0.5 * cy1_len * cy2_t_rel[2] - d;
   };
   
-  if(s_c < -0.5 * mCCylinder2->getLength())
-    s_c = -0.5 * mCCylinder2->getLength();
-  else if(s_c > 0.5 * mCCylinder2->getLength())
-    s_c = 0.5 * mCCylinder2->getLength();
+  if(s_c < -0.5 * cy2_len)
+    s_c = -0.5 * cy2_len;
+  else if(s_c > 0.5 * cy2_len)
+    s_c = 0.5 * cy2_len;
   
   // we have parameters s and t for the min-dist points on the center segments.
   
   // just apply a sphere-sweep on the line-segments.
-  vect<double,3> cy1_ptc(0.0,0.0,t_c);
-  vect<double,3> cy2_ptc = cy2_c_rel + s_c * cy2_t_rel;
+  const vect<double,3> cy1_ptc(0.0,0.0,t_c);
+  const vect<double,3> cy2_ptc = cy2_c_rel + s_c * cy2_t_rel;
   
-  vect<double,3> diff_v_rel = cy2_ptc - cy1_ptc;
-  double dist_v_rel = norm_2(diff_v_rel);
-  mLastResult.mPoint1 = c1_pose.transformToGlobal(cy1_ptc + (mCCylinder1->getRadius() / dist_v_rel) * diff_v_rel);
-  mLastResult.mPoint2 = c1_pose.transformToGlobal(cy2_ptc - (mCCylinder2->getRadius() / dist_v_rel) * diff_v_rel);
-  mLastResult.mDistance = dist_v_rel - mCCylinder1->getRadius() - mCCylinder2->getRadius();
+  const vect<double,3> diff_v_rel = cy2_ptc - cy1_ptc;
+  const double dist_v_rel = norm_2(diff_v_rel);
+  mLastResult.mPoint1 = c1_pose.transformToGlobal(cy1_ptc + (cy1_rad / dist_v_rel) * diff_v_rel);
+  mLastResult.mPoint2 = c1_pose.transformToGlobal(cy2_ptc - (cy2_rad / dist_v_rel) * diff_v_rel);
+  mLastResult.mDistance = dist_v_rel - cy1_rad - cy2_rad;
 };
 
 
