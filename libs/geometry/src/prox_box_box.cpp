@@ -43,7 +43,8 @@ shared_ptr< shape_3D > prox_box_box::getShape2() const {
 
 
 
-void prox_box_box::computeProximity() {
+void prox_box_box::computeProximity(const shape_3D_precompute_pack& aPack1, 
+                                    const shape_3D_precompute_pack& aPack2) {
   if((!mBox1) || (!mBox2)) {
     mLastResult.mDistance = std::numeric_limits<double>::infinity();
     mLastResult.mPoint1 = vect<double,3>(0.0,0.0,0.0);
@@ -51,9 +52,14 @@ void prox_box_box::computeProximity() {
     return;
   };
   
+  const pose_3D<double>& b1_pose = (aPack1.parent == mBox1.get() ? 
+                                    aPack1.global_pose : aPack2.global_pose);
+  const pose_3D<double>& b2_pose = (aPack1.parent == mBox1.get() ? 
+                                    aPack2.global_pose : aPack1.global_pose);
+  
   mLastResult = findProximityByGJKEPA(
-    box_support_func(mBox1), 
-    box_support_func(mBox2));
+    box_support_func(*mBox1, b1_pose), 
+    box_support_func(*mBox2, b2_pose));
   
 };
 

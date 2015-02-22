@@ -60,7 +60,8 @@ class prox_circle_circle : public proximity_finder_2D {
     virtual shared_ptr< shape_2D > getShape2() const;
     
     /** This function performs the proximity query on its associated shapes. */
-    virtual void computeProximity();
+    virtual void computeProximity(const shape_2D_precompute_pack& aPack1, 
+                                  const shape_2D_precompute_pack& aPack2);
     
     /** 
      * Default constructor.

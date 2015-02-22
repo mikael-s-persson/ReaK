@@ -39,27 +39,27 @@ shared_ptr< shape_2D > prox_crect_rectangle::getShape2() const {
 };
 
 
-void prox_crect_rectangle::computeProximityOfLine(const shared_ptr< rectangle >& aRectangle, const vect<double,2>& ln_c, const vect<double,2>& ln_t, double half_length, proximity_record_2D& result) {
+void prox_crect_rectangle::computeProximityOfLine(const rectangle& aRectangle, const pose_2D<double>& aGblPose, const vect<double,2>& ln_c, const vect<double,2>& ln_t, double half_length, proximity_record_2D& result) {
   
   using std::fabs;
   
-  vect<double,2> ln_c_rel = aRectangle->getPose().transformFromGlobal(ln_c);
-  vect<double,2> ln_t_rel = aRectangle->getPose().rotateFromGlobal(ln_t);
+  vect<double,2> ln_c_rel = aGblPose.transformFromGlobal(ln_c);
+  vect<double,2> ln_t_rel = aGblPose.rotateFromGlobal(ln_t);
   
   if(fabs(ln_t_rel[0]) < 1e-5) {
     // this means the line is vertical.
-    if((ln_c_rel[1] + half_length > -0.5 * aRectangle->getDimensions()[1]) || 
-       (ln_c_rel[1] - half_length <  0.5 * aRectangle->getDimensions()[1])) {
+    if((ln_c_rel[1] + half_length > -0.5 * aRectangle.getDimensions()[1]) || 
+       (ln_c_rel[1] - half_length <  0.5 * aRectangle.getDimensions()[1])) {
       // there is an overlap between the rectangle side and the line.
-      double max_y_rel = ((ln_c_rel[1] + half_length <  0.5 * aRectangle->getDimensions()[1]) ? (ln_c_rel[1] + half_length) : ( 0.5 * aRectangle->getDimensions()[1]));
-      double min_y_rel = ((ln_c_rel[1] - half_length > -0.5 * aRectangle->getDimensions()[1]) ? (ln_c_rel[1] - half_length) : (-0.5 * aRectangle->getDimensions()[1]));
+      double max_y_rel = ((ln_c_rel[1] + half_length <  0.5 * aRectangle.getDimensions()[1]) ? (ln_c_rel[1] + half_length) : ( 0.5 * aRectangle.getDimensions()[1]));
+      double min_y_rel = ((ln_c_rel[1] - half_length > -0.5 * aRectangle.getDimensions()[1]) ? (ln_c_rel[1] - half_length) : (-0.5 * aRectangle.getDimensions()[1]));
       double avg_y_rel = (max_y_rel + min_y_rel) * 0.5;
       vect<double,2> ln_r_rel(1.0,0.0);
       if(ln_c_rel[0] < 0.0)
         ln_r_rel[0] = -1.0;
-      result.mPoint1 = aRectangle->getPose().transformToGlobal(vect<double,2>(ln_c_rel[0], avg_y_rel));
-      result.mPoint2 = aRectangle->getPose().transformToGlobal(vect<double,2>(0.5 * aRectangle->getDimensions()[0] * ln_r_rel[0], avg_y_rel));
-      result.mDistance = fabs(ln_c_rel[0]) - 0.5 * aRectangle->getDimensions()[0];
+      result.mPoint1 = aGblPose.transformToGlobal(vect<double,2>(ln_c_rel[0], avg_y_rel));
+      result.mPoint2 = aGblPose.transformToGlobal(vect<double,2>(0.5 * aRectangle.getDimensions()[0] * ln_r_rel[0], avg_y_rel));
+      result.mDistance = fabs(ln_c_rel[0]) - 0.5 * aRectangle.getDimensions()[0];
       return;
     };
     
@@ -67,39 +67,39 @@ void prox_crect_rectangle::computeProximityOfLine(const shared_ptr< rectangle >&
     vect<double,2> re_pt_rel(0.0,0.0);
     vect<double,2> ln_pt_rel = ln_c_rel;
     if(ln_c_rel[0] < 0.0)
-      re_pt_rel[0] -= 0.5 * aRectangle->getDimensions()[0];
+      re_pt_rel[0] -= 0.5 * aRectangle.getDimensions()[0];
     else
-      re_pt_rel[0] += 0.5 * aRectangle->getDimensions()[0];
+      re_pt_rel[0] += 0.5 * aRectangle.getDimensions()[0];
     if(ln_c_rel[1] < 0.0) {
-      re_pt_rel[1] -= 0.5 * aRectangle->getDimensions()[1];
+      re_pt_rel[1] -= 0.5 * aRectangle.getDimensions()[1];
       ln_pt_rel[1] += half_length;
     } else {
-      re_pt_rel[1] += 0.5 * aRectangle->getDimensions()[1];
+      re_pt_rel[1] += 0.5 * aRectangle.getDimensions()[1];
       ln_pt_rel[1] -= half_length;
     };
     
     vect<double,2> diff_v_rel = ln_pt_rel - re_pt_rel;
     double dist_v_rel = norm_2(diff_v_rel);
-    result.mPoint1 = aRectangle->getPose().transformToGlobal(ln_pt_rel);
-    result.mPoint2 = aRectangle->getPose().transformToGlobal(re_pt_rel);
+    result.mPoint1 = aGblPose.transformToGlobal(ln_pt_rel);
+    result.mPoint2 = aGblPose.transformToGlobal(re_pt_rel);
     result.mDistance = dist_v_rel;
     return;
   };
   
   if(fabs(ln_t_rel[1]) < 1e-5) {
     // this means the line is horizontal.
-    if((ln_c_rel[0] + half_length > -0.5 * aRectangle->getDimensions()[0]) || 
-       (ln_c_rel[0] - half_length <  0.5 * aRectangle->getDimensions()[0])) {
+    if((ln_c_rel[0] + half_length > -0.5 * aRectangle.getDimensions()[0]) || 
+       (ln_c_rel[0] - half_length <  0.5 * aRectangle.getDimensions()[0])) {
       // there is an overlap between the rectangle side and the line.
-      double max_x_rel = ((ln_c_rel[0] + half_length <  0.5 * aRectangle->getDimensions()[0]) ? (ln_c_rel[0] + half_length) : ( 0.5 * aRectangle->getDimensions()[0]));
-      double min_x_rel = ((ln_c_rel[0] - half_length > -0.5 * aRectangle->getDimensions()[0]) ? (ln_c_rel[0] - half_length) : (-0.5 * aRectangle->getDimensions()[0]));
+      double max_x_rel = ((ln_c_rel[0] + half_length <  0.5 * aRectangle.getDimensions()[0]) ? (ln_c_rel[0] + half_length) : ( 0.5 * aRectangle.getDimensions()[0]));
+      double min_x_rel = ((ln_c_rel[0] - half_length > -0.5 * aRectangle.getDimensions()[0]) ? (ln_c_rel[0] - half_length) : (-0.5 * aRectangle.getDimensions()[0]));
       double avg_x_rel = (max_x_rel + min_x_rel) * 0.5;
       vect<double,2> ln_r_rel(0.0,1.0);
       if(ln_c_rel[1] < 0.0)
         ln_r_rel[1] = -1.0;
-      result.mPoint1 = aRectangle->getPose().transformToGlobal(vect<double,2>(avg_x_rel, ln_c_rel[1]));
-      result.mPoint2 = aRectangle->getPose().transformToGlobal(vect<double,2>(avg_x_rel, 0.5 * aRectangle->getDimensions()[1] * ln_r_rel[1]));
-      result.mDistance = fabs(ln_c_rel[1]) - 0.5 * aRectangle->getDimensions()[1];
+      result.mPoint1 = aGblPose.transformToGlobal(vect<double,2>(avg_x_rel, ln_c_rel[1]));
+      result.mPoint2 = aGblPose.transformToGlobal(vect<double,2>(avg_x_rel, 0.5 * aRectangle.getDimensions()[1] * ln_r_rel[1]));
+      result.mDistance = fabs(ln_c_rel[1]) - 0.5 * aRectangle.getDimensions()[1];
       return;
     };
     
@@ -107,21 +107,21 @@ void prox_crect_rectangle::computeProximityOfLine(const shared_ptr< rectangle >&
     vect<double,2> re_pt_rel(0.0,0.0);
     vect<double,2> ln_pt_rel = ln_c_rel;
     if(ln_c_rel[1] < 0.0)
-      re_pt_rel[1] -= 0.5 * aRectangle->getDimensions()[1];
+      re_pt_rel[1] -= 0.5 * aRectangle.getDimensions()[1];
     else
-      re_pt_rel[1] += 0.5 * aRectangle->getDimensions()[1];
+      re_pt_rel[1] += 0.5 * aRectangle.getDimensions()[1];
     if(ln_c_rel[0] < 0.0) {
-      re_pt_rel[0] -= 0.5 * aRectangle->getDimensions()[0];
+      re_pt_rel[0] -= 0.5 * aRectangle.getDimensions()[0];
       ln_pt_rel[0] += half_length;
     } else {
-      re_pt_rel[0] += 0.5 * aRectangle->getDimensions()[0];
+      re_pt_rel[0] += 0.5 * aRectangle.getDimensions()[0];
       ln_pt_rel[0] -= half_length;
     };
     
     vect<double,2> diff_v_rel = ln_pt_rel - re_pt_rel;
     double dist_v_rel = norm_2(diff_v_rel);
-    result.mPoint1 = aRectangle->getPose().transformToGlobal(ln_pt_rel);
-    result.mPoint2 = aRectangle->getPose().transformToGlobal(re_pt_rel);
+    result.mPoint1 = aGblPose.transformToGlobal(ln_pt_rel);
+    result.mPoint2 = aGblPose.transformToGlobal(re_pt_rel);
     result.mDistance = dist_v_rel;
     return;
   };
@@ -131,11 +131,11 @@ void prox_crect_rectangle::computeProximityOfLine(const shared_ptr< rectangle >&
   vect<double,2> ln_n_rel = 1.0 % ln_t_rel;
   if(ln_n_rel * ln_c_rel < 0.0)
     ln_n_rel = -ln_n_rel;
-  vect<double,2> corner_pt(-0.5 * aRectangle->getDimensions()[0], -0.5 * aRectangle->getDimensions()[1]);
+  vect<double,2> corner_pt(-0.5 * aRectangle.getDimensions()[0], -0.5 * aRectangle.getDimensions()[1]);
   if(ln_n_rel[0] > 0.0)
-    corner_pt[0] = 0.5 * aRectangle->getDimensions()[0];
+    corner_pt[0] = 0.5 * aRectangle.getDimensions()[0];
   if(ln_n_rel[1] > 0.0)
-    corner_pt[1] = 0.5 * aRectangle->getDimensions()[1];
+    corner_pt[1] = 0.5 * aRectangle.getDimensions()[1];
   
   vect<double,2> corner_pt_diff = (ln_c_rel - corner_pt);
   double dist_tmp = corner_pt_diff * ln_n_rel;
@@ -147,33 +147,33 @@ void prox_crect_rectangle::computeProximityOfLine(const shared_ptr< rectangle >&
       t_tmp = half_length;
     vect<double,2> ln_pt_rel = ln_c_rel + t_tmp * ln_t_rel;
     
-    double in_x_range = fabs(ln_pt_rel[0]) - 0.5 * aRectangle->getDimensions()[0];
-    double in_y_range = fabs(ln_pt_rel[1]) - 0.5 * aRectangle->getDimensions()[1];
+    double in_x_range = fabs(ln_pt_rel[0]) - 0.5 * aRectangle.getDimensions()[0];
+    double in_y_range = fabs(ln_pt_rel[1]) - 0.5 * aRectangle.getDimensions()[1];
     
     if((in_x_range < 0.0) && (in_y_range > in_x_range)) {
       corner_pt[0] = ln_pt_rel[0];
-      dist_tmp = fabs(ln_pt_rel[1]) - 0.5 * aRectangle->getDimensions()[1];
+      dist_tmp = fabs(ln_pt_rel[1]) - 0.5 * aRectangle.getDimensions()[1];
     } else if((in_y_range < 0.0) && (in_x_range > in_y_range)) {
       corner_pt[1] = ln_pt_rel[1];
-      dist_tmp = fabs(ln_pt_rel[0]) - 0.5 * aRectangle->getDimensions()[0];
+      dist_tmp = fabs(ln_pt_rel[0]) - 0.5 * aRectangle.getDimensions()[0];
     } else {
       if(ln_pt_rel[0] < 0.0)
-        corner_pt[0] = -0.5 * aRectangle->getDimensions()[0];
+        corner_pt[0] = -0.5 * aRectangle.getDimensions()[0];
       else
-        corner_pt[0] =  0.5 * aRectangle->getDimensions()[0];
+        corner_pt[0] =  0.5 * aRectangle.getDimensions()[0];
       if(ln_pt_rel[1] < 0.0)
-        corner_pt[1] = -0.5 * aRectangle->getDimensions()[1];
+        corner_pt[1] = -0.5 * aRectangle.getDimensions()[1];
       else
-        corner_pt[1] =  0.5 * aRectangle->getDimensions()[1];
+        corner_pt[1] =  0.5 * aRectangle.getDimensions()[1];
       dist_tmp = norm_2(ln_pt_rel - corner_pt);
     };
     
-    result.mPoint1 = aRectangle->getPose().transformToGlobal(ln_pt_rel);
-    result.mPoint2 = aRectangle->getPose().transformToGlobal(corner_pt);
+    result.mPoint1 = aGblPose.transformToGlobal(ln_pt_rel);
+    result.mPoint2 = aGblPose.transformToGlobal(corner_pt);
     result.mDistance = dist_tmp;
   } else {
-    result.mPoint1 = aRectangle->getPose().transformToGlobal(corner_pt + dist_tmp * ln_n_rel);
-    result.mPoint2 = aRectangle->getPose().transformToGlobal(corner_pt);
+    result.mPoint1 = aGblPose.transformToGlobal(corner_pt + dist_tmp * ln_n_rel);
+    result.mPoint2 = aGblPose.transformToGlobal(corner_pt);
     result.mDistance = dist_tmp;
   };
   
@@ -181,19 +181,23 @@ void prox_crect_rectangle::computeProximityOfLine(const shared_ptr< rectangle >&
 };
 
 
-void prox_crect_rectangle::computeProximity() {
+void prox_crect_rectangle::computeProximity(const shape_2D_precompute_pack& aPack1, 
+                                            const shape_2D_precompute_pack& aPack2) {
   mLastResult.mDistance = std::numeric_limits<double>::infinity();
   mLastResult.mPoint1 = vect<double,2>(0.0,0.0);
   mLastResult.mPoint2 = vect<double,2>(0.0,0.0);
   if((!mCRect) || (!mRectangle))
     return;
   
+  const pose_2D<double>& re_pose = (aPack1.parent == mRectangle.get() ? 
+                                    aPack1.global_pose : aPack2.global_pose);
+  const pose_2D<double>& cr_pose = (aPack1.parent == mRectangle.get() ? 
+                                    aPack2.global_pose : aPack1.global_pose);
   
-  vect<double,2> re_c = mRectangle->getPose().transformToGlobal(vect<double,2>(0.0,0.0));
-  vect<double,2> cr_c = mCRect->getPose().transformToGlobal(vect<double,2>(0.0,0.0));
-  vect<double,2> cr_t = mCRect->getPose().rotateToGlobal(vect<double,2>(1.0,0.0));
+  vect<double,2> cr_c = cr_pose.Position;
+  vect<double,2> cr_t = cr_pose.rotateToGlobal(vect<double,2>(1.0,0.0));
   
-  computeProximityOfLine(mRectangle, cr_c, cr_t, 0.5 * mCRect->getDimensions()[0], mLastResult); 
+  computeProximityOfLine(*mRectangle, re_pose, cr_c, cr_t, 0.5 * mCRect->getDimensions()[0], mLastResult); 
   
   // add a circle-sweep around the line-rectangle solution.
   vect<double,2> diff_v = mLastResult.mPoint2 - mLastResult.mPoint1;

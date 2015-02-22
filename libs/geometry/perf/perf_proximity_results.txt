@@ -1,7 +1,18 @@
 perf_proximity results:
 
-from revision bf22803
+starting revision: bf22803
+
+for revision: 4748830
 (classic OOP, shared-ptr, no pre-compute, no ordering)
 N=50     620,000 ns
 N=100  2,550,000 ns
+
+
+(classic OOP, shared-ptr, with pre-compute only on bounding sphere tests, no ordering)
+N=50     155,000 ns
+N=100    580,000 ns
+
+(classic OOP, shared-ptr, with pre-computed global-poses, no ordering)
+N=50     140,000 ns
+N=100    540,000 ns
 

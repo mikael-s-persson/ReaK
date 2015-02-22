@@ -42,7 +42,8 @@ shared_ptr< shape_3D > prox_plane_sphere::getShape2() const {
     
 /*
 // this version assumes a finite plane for proximity purposes.
-void prox_plane_sphere::computeProximity() {
+void prox_plane_sphere::computeProximity(const shape_3D_precompute_pack& aPack1, 
+                                         const shape_3D_precompute_pack& aPack2) {
   if((!mSphere) || (!mPlane)) {
     mLastResult.mDistance = std::numeric_limits<double>::infinity();
     mLastResult.mPoint1 = vect<double,3>(0.0,0.0,0.0);
@@ -51,10 +52,15 @@ void prox_plane_sphere::computeProximity() {
   };
   using std::fabs; using std::sqrt;
   
-  vect<double,3> sp_c = mSphere->getPose().transformToGlobal(vect<double,3>(0.0,0.0,0.0));
-  vect<double,3> pl_c = mPlane->getPose().transformToGlobal(vect<double,3>(0.0,0.0,0.0));
+  const pose_3D<double>& sp_pose = (aPack1.parent == mSphere.get() ? 
+                                    aPack1.global_pose : aPack2.global_pose);
+  const pose_3D<double>& pl_pose = (aPack1.parent == mSphere.get() ? 
+                                    aPack2.global_pose : aPack1.global_pose);
   
-  vect<double,3> sp_c_rel = mPlane->getPose().transformFromGlobal(sp_c);
+  vect<double,3> sp_c = sp_pose.transformToGlobal(vect<double,3>(0.0,0.0,0.0));
+  vect<double,3> pl_c = pl_pose.transformToGlobal(vect<double,3>(0.0,0.0,0.0));
+  
+  vect<double,3> sp_c_rel = pl_pose.transformFromGlobal(sp_c);
   
   if((sp_c_rel[0] > -0.5 * mPlane->getDimensions()[0]) &&
      (sp_c_rel[0] <  0.5 * mPlane->getDimensions()[0]) &&
@@ -66,8 +72,8 @@ void prox_plane_sphere::computeProximity() {
     if(sp_c_rel[2] < 0.0)
       fact = -1.0;
     
-    mLastResult.mPoint1 = mPlane->getPose().transformToGlobal(vect<double,3>(sp_c_rel[0],sp_c_rel[1],0.0));
-    mLastResult.mPoint2 = mPlane->getPose().transformToGlobal(vect<double,3>(sp_c_rel[0],sp_c_rel[1],sp_c_rel[2] - fact * mSphere->getRadius()));
+    mLastResult.mPoint1 = pl_pose.transformToGlobal(vect<double,3>(sp_c_rel[0],sp_c_rel[1],0.0));
+    mLastResult.mPoint2 = pl_pose.transformToGlobal(vect<double,3>(sp_c_rel[0],sp_c_rel[1],sp_c_rel[2] - fact * mSphere->getRadius()));
     mLastResult.mDistance = fact * sp_c_rel[2] - mSphere->getRadius();
   } else {
     vect<double,3> rim_pt;
@@ -78,7 +84,7 @@ void prox_plane_sphere::computeProximity() {
       if(sp_c_rel[1] < 0.0)
         fact = -1.0;
       vect<double,3> rim_pt = vect<double,3>(sp_c_rel[0],fact * 0.5 * mPlane->getDimensions()[1],0.0);
-      mLastResult.mPoint1 = mPlane->getPose().transformToGlobal(rim_pt);
+      mLastResult.mPoint1 = pl_pose.transformToGlobal(rim_pt);
     } else if((sp_c_rel[1] > -0.5 * mPlane->getDimensions()[1]) &&
               (sp_c_rel[1] <  0.5 * mPlane->getDimensions()[1])) {
       // The sphere is on the right or left of the plane (x-axis).
@@ -86,7 +92,7 @@ void prox_plane_sphere::computeProximity() {
       if(sp_c_rel[0] < 0.0)
         fact = -1.0;
       vect<double,3> rim_pt = vect<double,3>(fact * 0.5 * mPlane->getDimensions()[0],sp_c_rel[1],0.0);
-      mLastResult.mPoint1 = mPlane->getPose().transformToGlobal(rim_pt);
+      mLastResult.mPoint1 = pl_pose.transformToGlobal(rim_pt);
     } else {
       // The sphere is outside one of the corners of the plane.
       vect<double,3> rim_pt = vect<double,3>(0.5 * mPlane->getDimensions()[0],0.5 * mPlane->getDimensions()[1],0.0);
@@ -94,7 +100,7 @@ void prox_plane_sphere::computeProximity() {
         rim_pt[0] = -rim_pt[0];
       if(sp_c_rel[1] < 0.0)
         rim_pt[1] = -rim_pt[1];
-      mLastResult.mPoint1 = mPlane->getPose().transformToGlobal(rim_pt);
+      mLastResult.mPoint1 = pl_pose.transformToGlobal(rim_pt);
     };
     vect<double,3> diff = mLastResult.mPoint1 - sp_c;
     double diff_d = norm_2(diff);
@@ -103,7 +109,8 @@ void prox_plane_sphere::computeProximity() {
   };
 };*/
 
-void prox_plane_sphere::computeProximity() {
+void prox_plane_sphere::computeProximity(const shape_3D_precompute_pack& aPack1, 
+                                         const shape_3D_precompute_pack& aPack2) {
   if((!mSphere) || (!mPlane)) {
     mLastResult.mDistance = std::numeric_limits<double>::infinity();
     mLastResult.mPoint1 = vect<double,3>(0.0,0.0,0.0);
@@ -111,13 +118,16 @@ void prox_plane_sphere::computeProximity() {
     return;
   };
   
-  vect<double,3> sp_c = mSphere->getPose().transformToGlobal(vect<double,3>(0.0,0.0,0.0));
-  vect<double,3> pl_c = mPlane->getPose().transformToGlobal(vect<double,3>(0.0,0.0,0.0));
+  const pose_3D<double>& sp_pose = (aPack1.parent == mSphere.get() ? 
+                                    aPack1.global_pose : aPack2.global_pose);
+  const pose_3D<double>& pl_pose = (aPack1.parent == mSphere.get() ? 
+                                    aPack2.global_pose : aPack1.global_pose);
   
-  vect<double,3> sp_c_rel = mPlane->getPose().transformFromGlobal(sp_c);
+  vect<double,3> sp_c = sp_pose.transformToGlobal(vect<double,3>(0.0,0.0,0.0));
+  vect<double,3> sp_c_rel = pl_pose.transformFromGlobal(sp_c);
   
-  mLastResult.mPoint1 = mPlane->getPose().transformToGlobal(vect<double,3>(sp_c_rel[0],sp_c_rel[1],0.0));
-  mLastResult.mPoint2 = mPlane->getPose().transformToGlobal(vect<double,3>(sp_c_rel[0],sp_c_rel[1],sp_c_rel[2] - mSphere->getRadius()));
+  mLastResult.mPoint1 = pl_pose.transformToGlobal(vect<double,3>(sp_c_rel[0],sp_c_rel[1],0.0));
+  mLastResult.mPoint2 = pl_pose.transformToGlobal(vect<double,3>(sp_c_rel[0],sp_c_rel[1],sp_c_rel[2] - mSphere->getRadius()));
   mLastResult.mDistance = sp_c_rel[2] - mSphere->getRadius();
 };
 

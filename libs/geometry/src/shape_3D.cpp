@@ -43,7 +43,12 @@ void RK_CALL shape_3D::load(ReaK::serialization::iarchive& A, unsigned int) {
   geometry_3D::load(A,geometry_3D::getStaticObjectType()->TypeVersion());
 };
 
-
+shape_3D_precompute_pack shape_3D::createPrecomputePack() const {
+  shape_3D_precompute_pack result;
+  result.parent = this;
+  result.global_pose = mPose.getGlobalPose();
+  return result;
+};
 
 
 

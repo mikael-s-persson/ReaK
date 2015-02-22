@@ -42,7 +42,8 @@ shared_ptr< shape_3D > prox_sphere_box::getShape2() const {
   return mBox;
 };
     
-void prox_sphere_box::computeProximity() {
+void prox_sphere_box::computeProximity(const shape_3D_precompute_pack& aPack1, 
+                                       const shape_3D_precompute_pack& aPack2) {
   if((!mSphere) || (!mBox)) {
     mLastResult.mDistance = std::numeric_limits<double>::infinity();
     mLastResult.mPoint1 = vect<double,3>(0.0,0.0,0.0);
@@ -51,10 +52,14 @@ void prox_sphere_box::computeProximity() {
   };
   using std::fabs; using std::sqrt;
   
-  vect<double,3> sp_c = mSphere->getPose().transformToGlobal(vect<double,3>(0.0,0.0,0.0));
-  vect<double,3> bx_c = mBox->getPose().transformToGlobal(vect<double,3>(0.0,0.0,0.0));
+  const pose_3D<double>& sp_pose = (aPack1.parent == mSphere.get() ? 
+                                    aPack1.global_pose : aPack2.global_pose);
+  const pose_3D<double>& bx_pose = (aPack1.parent == mSphere.get() ? 
+                                    aPack2.global_pose : aPack1.global_pose);
   
-  proximity_record_3D bxpt_result = findProximityBoxToPoint(mBox, sp_c);
+  vect<double,3> sp_c = sp_pose.Position;
+  
+  proximity_record_3D bxpt_result = findProximityBoxToPoint(*mBox, bx_pose, sp_c);
   
   // add a sphere-sweep around the point-box solution.
   vect<double,3> diff_v = bxpt_result.mPoint1 - bxpt_result.mPoint2;

@@ -38,15 +38,22 @@ shared_ptr< shape_2D > prox_circle_circle::getShape2() const {
   return mCircle2;
 };
     
-void prox_circle_circle::computeProximity() {
+void prox_circle_circle::computeProximity(const shape_2D_precompute_pack& aPack1, 
+                                          const shape_2D_precompute_pack& aPack2) {
   if((!mCircle1) || (!mCircle2)) {
     mLastResult.mDistance = std::numeric_limits<double>::infinity();
     mLastResult.mPoint1 = vect<double,2>(0.0,0.0);
     mLastResult.mPoint2 = vect<double,2>(0.0,0.0);
     return;
   };
-  vect<double,2> c1 = mCircle1->getPose().transformToGlobal(vect<double,2>(0.0,0.0));
-  vect<double,2> c2 = mCircle2->getPose().transformToGlobal(vect<double,2>(0.0,0.0));
+  
+  const pose_2D<double>& c1_pose = (aPack1.parent == mCircle1.get() ? 
+                                    aPack1.global_pose : aPack2.global_pose);
+  const pose_2D<double>& c2_pose = (aPack1.parent == mCircle1.get() ? 
+                                    aPack2.global_pose : aPack1.global_pose);
+  
+  vect<double,2> c1 = c1_pose.Position;
+  vect<double,2> c2 = c2_pose.Position;
   
   vect<double,2> diff_cc = c2 - c1;
   double dist_cc = norm_2(diff_cc);

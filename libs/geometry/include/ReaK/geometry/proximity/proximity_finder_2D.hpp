@@ -59,7 +59,8 @@ class proximity_finder_2D : public shared_object {
     virtual shared_ptr< shape_2D > getShape2() const = 0;
     
     /** This function performs the proximity query on its associated shapes. */
-    virtual void computeProximity() = 0;
+    virtual void computeProximity(const shape_2D_precompute_pack& aPack1, 
+                                  const shape_2D_precompute_pack& aPack2) = 0;
     
     /** Returns the result of the last proximity query. */
     virtual const proximity_record_2D& getLastResult() const;

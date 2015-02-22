@@ -40,7 +40,8 @@ shared_ptr< shape_3D > prox_plane_cylinder::getShape2() const {
   return mCylinder;
 };
 
-void prox_plane_cylinder::computeProximity() {
+void prox_plane_cylinder::computeProximity(const shape_3D_precompute_pack& aPack1, 
+                                           const shape_3D_precompute_pack& aPack2) {
   if((!mCylinder) || (!mPlane)) {
     mLastResult.mDistance = std::numeric_limits<double>::infinity();
     mLastResult.mPoint1 = vect<double,3>(0.0,0.0,0.0);
@@ -49,22 +50,26 @@ void prox_plane_cylinder::computeProximity() {
   };
   using std::fabs; using std::sqrt; using ReaK::unit;
   
-  vect<double,3> cy_c = mCylinder->getPose().transformToGlobal(vect<double,3>(0.0,0.0,0.0));
-  vect<double,3> cy_t = mCylinder->getPose().rotateToGlobal(vect<double,3>(0.0,0.0,1.0));
-  vect<double,3> pl_c = mPlane->getPose().transformToGlobal(vect<double,3>(0.0,0.0,0.0));
+  const pose_3D<double>& cy_pose = (aPack1.parent == mCylinder.get() ? 
+                                    aPack1.global_pose : aPack2.global_pose);
+  const pose_3D<double>& pl_pose = (aPack1.parent == mCylinder.get() ? 
+                                    aPack2.global_pose : aPack1.global_pose);
   
-  vect<double,3> cy_c_rel = mPlane->getPose().transformFromGlobal(cy_c);
-  vect<double,3> cy_t_rel = mPlane->getPose().rotateFromGlobal(cy_t);
+  vect<double,3> cy_c = cy_pose.Position;
+  vect<double,3> cy_t = cy_pose.rotateToGlobal(vect<double,3>(0.0,0.0,1.0));
+  
+  vect<double,3> cy_c_rel = pl_pose.transformFromGlobal(cy_c);
+  vect<double,3> cy_t_rel = pl_pose.rotateFromGlobal(cy_t);
   
   if(fabs(cy_t_rel[2]) < 1e-6) {
     // The cylinder is sitting flat (on round side) on the plane.
-    mLastResult.mPoint1 = mPlane->getPose().transformToGlobal(vect<double,3>(cy_c_rel[0],cy_c_rel[1],0.0));
-    mLastResult.mPoint2 = mPlane->getPose().transformToGlobal(vect<double,3>(cy_c_rel[0],cy_c_rel[1],cy_c_rel[2] - mCylinder->getRadius()));
+    mLastResult.mPoint1 = pl_pose.transformToGlobal(vect<double,3>(cy_c_rel[0],cy_c_rel[1],0.0));
+    mLastResult.mPoint2 = pl_pose.transformToGlobal(vect<double,3>(cy_c_rel[0],cy_c_rel[1],cy_c_rel[2] - mCylinder->getRadius()));
     mLastResult.mDistance = cy_c_rel[2] - mCylinder->getRadius();
   } else if(sqrt(cy_t_rel[0] * cy_t_rel[0] + cy_t_rel[1] * cy_t_rel[1]) < 1e-6) {
     // The cylinder is sitting flat (on flat ends) on the plane.
-    mLastResult.mPoint1 = mPlane->getPose().transformToGlobal(vect<double,3>(cy_c_rel[0],cy_c_rel[1],0.0));
-    mLastResult.mPoint2 = mPlane->getPose().transformToGlobal(vect<double,3>(cy_c_rel[0],cy_c_rel[1],cy_c_rel[2] - 0.5 * mCylinder->getLength()));
+    mLastResult.mPoint1 = pl_pose.transformToGlobal(vect<double,3>(cy_c_rel[0],cy_c_rel[1],0.0));
+    mLastResult.mPoint2 = pl_pose.transformToGlobal(vect<double,3>(cy_c_rel[0],cy_c_rel[1],cy_c_rel[2] - 0.5 * mCylinder->getLength()));
     mLastResult.mDistance = cy_c_rel[2] - 0.5 * mCylinder->getLength();
   } else {
     // The cylinder is at an angle to the plane.
@@ -72,8 +77,8 @@ void prox_plane_cylinder::computeProximity() {
       cy_t_rel = -cy_t_rel;
     vect<double,3> cy_r_rel = unit(vect<double,3>(0.0,0.0,-1.0) + cy_t_rel[2] * cy_t_rel);
     vect<double,3> cypt_rel = cy_c_rel + (0.5 * mCylinder->getLength()) * cy_t_rel + mCylinder->getRadius() * cy_r_rel;
-    mLastResult.mPoint1 = mPlane->getPose().transformToGlobal(vect<double,3>(cypt_rel[0],cypt_rel[1],0.0));
-    mLastResult.mPoint2 = mPlane->getPose().transformToGlobal(cypt_rel);
+    mLastResult.mPoint1 = pl_pose.transformToGlobal(vect<double,3>(cypt_rel[0],cypt_rel[1],0.0));
+    mLastResult.mPoint2 = pl_pose.transformToGlobal(cypt_rel);
     mLastResult.mDistance = cypt_rel[2];
   };
 };

@@ -40,7 +40,8 @@ shared_ptr< shape_3D > prox_sphere_ccylinder::getShape2() const {
   return mCCylinder;
 };
     
-void prox_sphere_ccylinder::computeProximity() {
+void prox_sphere_ccylinder::computeProximity(const shape_3D_precompute_pack& aPack1, 
+                                             const shape_3D_precompute_pack& aPack2) {
   if((!mSphere) || (!mCCylinder)) {
     mLastResult.mDistance = std::numeric_limits<double>::infinity();
     mLastResult.mPoint1 = vect<double,3>(0.0,0.0,0.0);
@@ -49,10 +50,14 @@ void prox_sphere_ccylinder::computeProximity() {
   };
   using std::fabs; using std::sqrt;
   
-  vect<double,3> sp_c = mSphere->getPose().transformToGlobal(vect<double,3>(0.0,0.0,0.0));
-  vect<double,3> cy_c = mCCylinder->getPose().transformToGlobal(vect<double,3>(0.0,0.0,0.0));
+  const pose_3D<double>& sp_pose = (aPack1.parent == mSphere.get() ? 
+                                    aPack1.global_pose : aPack2.global_pose);
+  const pose_3D<double>& cy_pose = (aPack1.parent == mSphere.get() ? 
+                                    aPack2.global_pose : aPack1.global_pose);
   
-  vect<double,3> sp_c_rel = mCCylinder->getPose().transformFromGlobal(sp_c);
+  vect<double,3> sp_c = sp_pose.Position;
+  
+  vect<double,3> sp_c_rel = cy_pose.transformFromGlobal(sp_c);
   //double sp_c_rel_rad = sqrt(sp_c_rel[0] * sp_c_rel[0] + sp_c_rel[1] * sp_c_rel[1]);
   
   if(fabs(sp_c_rel[2]) <= 0.5 * mCCylinder->getLength()) {
@@ -60,8 +65,8 @@ void prox_sphere_ccylinder::computeProximity() {
     //  this means the min-dist point is on the round shell of the cylinder in the direction of sphere center.
     vect<double,3> sp_c_proj = vect<double,3>(sp_c_rel[0],sp_c_rel[1],0.0);
     double sp_c_proj_d = norm_2(sp_c_proj);
-    mLastResult.mPoint2 = mCCylinder->getPose().transformToGlobal(vect<double,3>(0.0,0.0,sp_c_rel[2]) + sp_c_proj * (mCCylinder->getRadius() / sp_c_proj_d));
-    mLastResult.mPoint1 = mCCylinder->getPose().transformToGlobal(sp_c_rel - sp_c_proj * (mSphere->getRadius() / sp_c_proj_d));
+    mLastResult.mPoint2 = cy_pose.transformToGlobal(vect<double,3>(0.0,0.0,sp_c_rel[2]) + sp_c_proj * (mCCylinder->getRadius() / sp_c_proj_d));
+    mLastResult.mPoint1 = cy_pose.transformToGlobal(sp_c_rel - sp_c_proj * (mSphere->getRadius() / sp_c_proj_d));
     mLastResult.mDistance = sp_c_proj_d - mSphere->getRadius() - mCCylinder->getRadius();
   } else {
     // The sphere is above or below the capped cylinder.
@@ -70,7 +75,7 @@ void prox_sphere_ccylinder::computeProximity() {
     if(sp_c_rel[2] < 0.0)
       fact = -1.0;
     
-    vect<double,3> cy_c2 = mCCylinder->getPose().transformToGlobal(vect<double,3>(0.0,0.0,fact * 0.5 * mCCylinder->getLength()));
+    vect<double,3> cy_c2 = cy_pose.transformToGlobal(vect<double,3>(0.0,0.0,fact * 0.5 * mCCylinder->getLength()));
     vect<double,3> diff_cc = cy_c2 - sp_c;
     double dist_cc = norm_2(diff_cc);
     

@@ -38,15 +38,18 @@ shared_ptr< shape_3D > prox_sphere_sphere::getShape2() const {
   return mSphere2;
 };
     
-void prox_sphere_sphere::computeProximity() {
+void prox_sphere_sphere::computeProximity(const shape_3D_precompute_pack& aPack1, 
+                                          const shape_3D_precompute_pack& aPack2) {
   if((!mSphere1) || (!mSphere2)) {
     mLastResult.mDistance = std::numeric_limits<double>::infinity();
     mLastResult.mPoint1 = vect<double,3>(0.0,0.0,0.0);
     mLastResult.mPoint2 = vect<double,3>(0.0,0.0,0.0);
     return;
   };
-  vect<double,3> c1 = mSphere1->getPose().transformToGlobal(vect<double,3>(0.0,0.0,0.0));
-  vect<double,3> c2 = mSphere2->getPose().transformToGlobal(vect<double,3>(0.0,0.0,0.0));
+  vect<double,3> c1 = (aPack1.parent == mSphere1.get() ? 
+                       aPack1.global_pose.Position : aPack2.global_pose.Position);
+  vect<double,3> c2 = (aPack1.parent == mSphere1.get() ? 
+                       aPack2.global_pose.Position : aPack1.global_pose.Position);
   
   vect<double,3> diff_cc = c2 - c1;
   double dist_cc = norm_2(diff_cc);

@@ -52,7 +52,7 @@ class prox_plane_plane : public proximity_finder_3D {
     shared_ptr< plane > mPlane1;
     shared_ptr< plane > mPlane2;
     
-    static void computeProximityOfPoint(const shared_ptr< plane >&, const vect<double,3>&, vect<double,3>&, double&);
+    static void computeProximityOfPoint(const plane&, const pose_3D<double>&, const vect<double,3>&, vect<double,3>&, double&);
     
   public:
     
@@ -62,7 +62,8 @@ class prox_plane_plane : public proximity_finder_3D {
     virtual shared_ptr< shape_3D > getShape2() const;
     
     /** This function performs the proximity query on its associated shapes. */
-    virtual void computeProximity();
+    virtual void computeProximity(const shape_3D_precompute_pack& aPack1, 
+                                  const shape_3D_precompute_pack& aPack2);
     
     /** 
      * Default constructor. 

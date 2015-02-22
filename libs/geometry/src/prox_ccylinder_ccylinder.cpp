@@ -40,7 +40,8 @@ shared_ptr< shape_3D > prox_ccylinder_ccylinder::getShape2() const {
   return mCCylinder2;
 };
 
-void prox_ccylinder_ccylinder::computeProximity() {
+void prox_ccylinder_ccylinder::computeProximity(const shape_3D_precompute_pack& aPack1, 
+                                                const shape_3D_precompute_pack& aPack2) {
   if((!mCCylinder1) || (!mCCylinder2)) {
     mLastResult.mDistance = std::numeric_limits<double>::infinity();
     mLastResult.mPoint1 = vect<double,3>(0.0,0.0,0.0);
@@ -49,12 +50,16 @@ void prox_ccylinder_ccylinder::computeProximity() {
   };
   using std::fabs; using std::sqrt; using ReaK::unit; using ReaK::norm_2;
   
-  vect<double,3> cy1_c = mCCylinder1->getPose().transformToGlobal(vect<double,3>(0.0,0.0,0.0));
-  vect<double,3> cy2_c = mCCylinder2->getPose().transformToGlobal(vect<double,3>(0.0,0.0,0.0));
-  vect<double,3> cy2_t = mCCylinder2->getPose().rotateToGlobal(vect<double,3>(0.0,0.0,1.0));
+  const pose_3D<double>& c1_pose = (aPack1.parent == mCCylinder1.get() ? 
+                                    aPack1.global_pose : aPack2.global_pose);
+  const pose_3D<double>& c2_pose = (aPack1.parent == mCCylinder1.get() ? 
+                                    aPack2.global_pose : aPack1.global_pose);
   
-  vect<double,3> cy2_c_rel = mCCylinder1->getPose().transformFromGlobal(cy2_c);
-  vect<double,3> cy2_t_rel = mCCylinder1->getPose().rotateFromGlobal(cy2_t);
+  vect<double,3> cy2_c = c2_pose.Position;
+  vect<double,3> cy2_t = c2_pose.rotateToGlobal(vect<double,3>(0.0,0.0,1.0));
+  
+  vect<double,3> cy2_c_rel = c1_pose.transformFromGlobal(cy2_c);
+  vect<double,3> cy2_t_rel = c1_pose.rotateFromGlobal(cy2_t);
   
   if(sqrt(cy2_t_rel[0] * cy2_t_rel[0] + cy2_t_rel[1] * cy2_t_rel[1]) < 1e-5) {
     // The capped-cylinders are parallel.
@@ -65,8 +70,8 @@ void prox_ccylinder_ccylinder::computeProximity() {
       double min_z_rel = ((cy2_c_rel[2] - 0.5 * mCCylinder2->getLength() > -0.5 * mCCylinder1->getLength()) ? (cy2_c_rel[2] - 0.5 * mCCylinder2->getLength()) : (-0.5 * mCCylinder1->getLength()));
       double avg_z_rel = (max_z_rel + min_z_rel) * 0.5;
       vect<double,3> cy2_r_rel = unit(vect<double,3>(cy2_c_rel[0],cy2_c_rel[1],0.0));
-      mLastResult.mPoint1 = mCCylinder1->getPose().transformToGlobal(vect<double,3>(mCCylinder1->getRadius() * cy2_r_rel[0], mCCylinder1->getRadius() * cy2_r_rel[1], avg_z_rel));
-      mLastResult.mPoint2 = mCCylinder1->getPose().transformToGlobal(vect<double,3>(cy2_c_rel[0] - mCCylinder2->getRadius() * cy2_r_rel[0], cy2_c_rel[1] - mCCylinder2->getRadius() * cy2_r_rel[1], avg_z_rel));
+      mLastResult.mPoint1 = c1_pose.transformToGlobal(vect<double,3>(mCCylinder1->getRadius() * cy2_r_rel[0], mCCylinder1->getRadius() * cy2_r_rel[1], avg_z_rel));
+      mLastResult.mPoint2 = c1_pose.transformToGlobal(vect<double,3>(cy2_c_rel[0] - mCCylinder2->getRadius() * cy2_r_rel[0], cy2_c_rel[1] - mCCylinder2->getRadius() * cy2_r_rel[1], avg_z_rel));
       mLastResult.mDistance = sqrt(cy2_c_rel[0] * cy2_c_rel[0] + cy2_c_rel[1] * cy2_c_rel[1]) - mCCylinder1->getRadius() - mCCylinder2->getRadius();
       return;
     };
@@ -82,8 +87,8 @@ void prox_ccylinder_ccylinder::computeProximity() {
     };
     vect<double,3> diff_v_rel = cy2_spc_rel - cy1_spc_rel;
     double dist_v_rel = norm_2(diff_v_rel);
-    mLastResult.mPoint1 = mCCylinder1->getPose().transformToGlobal(cy1_spc_rel + (mCCylinder1->getRadius() / dist_v_rel) * diff_v_rel);
-    mLastResult.mPoint2 = mCCylinder1->getPose().transformToGlobal(cy2_spc_rel - (mCCylinder2->getRadius() / dist_v_rel) * diff_v_rel);
+    mLastResult.mPoint1 = c1_pose.transformToGlobal(cy1_spc_rel + (mCCylinder1->getRadius() / dist_v_rel) * diff_v_rel);
+    mLastResult.mPoint2 = c1_pose.transformToGlobal(cy2_spc_rel - (mCCylinder2->getRadius() / dist_v_rel) * diff_v_rel);
     mLastResult.mDistance = dist_v_rel - mCCylinder1->getRadius() - mCCylinder2->getRadius();
     return;
   };
@@ -124,8 +129,8 @@ void prox_ccylinder_ccylinder::computeProximity() {
   
   vect<double,3> diff_v_rel = cy2_ptc - cy1_ptc;
   double dist_v_rel = norm_2(diff_v_rel);
-  mLastResult.mPoint1 = mCCylinder1->getPose().transformToGlobal(cy1_ptc + (mCCylinder1->getRadius() / dist_v_rel) * diff_v_rel);
-  mLastResult.mPoint2 = mCCylinder1->getPose().transformToGlobal(cy2_ptc - (mCCylinder2->getRadius() / dist_v_rel) * diff_v_rel);
+  mLastResult.mPoint1 = c1_pose.transformToGlobal(cy1_ptc + (mCCylinder1->getRadius() / dist_v_rel) * diff_v_rel);
+  mLastResult.mPoint2 = c1_pose.transformToGlobal(cy2_ptc - (mCCylinder2->getRadius() / dist_v_rel) * diff_v_rel);
   mLastResult.mDistance = dist_v_rel - mCCylinder1->getRadius() - mCCylinder2->getRadius();
 };
 

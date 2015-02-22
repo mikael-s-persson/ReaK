@@ -53,7 +53,7 @@ class prox_crect_rectangle : public proximity_finder_2D {
     shared_ptr< capped_rectangle > mCRect;
     shared_ptr< rectangle > mRectangle;
     
-    static void computeProximityOfLine(const shared_ptr< rectangle >&, const vect<double,2>&, const vect<double,2>&, double, proximity_record_2D&);
+    static void computeProximityOfLine(const rectangle&, const pose_2D<double>&, const vect<double,2>&, const vect<double,2>&, double, proximity_record_2D&);
     
   public:
     
@@ -63,7 +63,8 @@ class prox_crect_rectangle : public proximity_finder_2D {
     virtual shared_ptr< shape_2D > getShape2() const;
     
     /** This function performs the proximity query on its associated shapes. */
-    virtual void computeProximity();
+    virtual void computeProximity(const shape_2D_precompute_pack& aPack1, 
+                                  const shape_2D_precompute_pack& aPack2);
     
     /** 
      * Default constructor.

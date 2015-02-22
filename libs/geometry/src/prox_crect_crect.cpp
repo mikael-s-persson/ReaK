@@ -38,20 +38,24 @@ shared_ptr< shape_2D > prox_crect_crect::getShape2() const {
   return mCRect2;
 };
     
-void prox_crect_crect::computeProximity() {
+void prox_crect_crect::computeProximity(const shape_2D_precompute_pack& aPack1, 
+                                        const shape_2D_precompute_pack& aPack2) {
   mLastResult.mDistance = std::numeric_limits<double>::infinity();
   mLastResult.mPoint1 = vect<double,2>(0.0,0.0);
   mLastResult.mPoint2 = vect<double,2>(0.0,0.0);
   if((!mCRect1) || (!mCRect2))
     return;
   
+  const pose_2D<double>& cr1_pose = (aPack1.parent == mCRect1.get() ? 
+                                     aPack1.global_pose : aPack2.global_pose);
+  const pose_2D<double>& cr2_pose = (aPack1.parent == mCRect1.get() ? 
+                                     aPack2.global_pose : aPack1.global_pose);
   
-  vect<double,2> cr1_c = mCRect1->getPose().transformToGlobal(vect<double,2>(0.0,0.0));
-  vect<double,2> cr2_c = mCRect2->getPose().transformToGlobal(vect<double,2>(0.0,0.0));
-  vect<double,2> cr2_t = mCRect2->getPose().rotateToGlobal(vect<double,2>(1.0,0.0));
+  vect<double,2> cr2_c = cr2_pose.Position;
+  vect<double,2> cr2_t = cr2_pose.rotateToGlobal(vect<double,2>(1.0,0.0));
   
-  vect<double,2> cr2_c_rel = mCRect1->getPose().transformFromGlobal(cr2_c);
-  vect<double,2> cr2_t_rel = mCRect1->getPose().rotateFromGlobal(cr2_t);
+  vect<double,2> cr2_c_rel = cr1_pose.transformFromGlobal(cr2_c);
+  vect<double,2> cr2_t_rel = cr1_pose.rotateFromGlobal(cr2_t);
   
   
   if(fabs(cr2_t_rel[1]) < 1e-5) {
@@ -65,8 +69,8 @@ void prox_crect_crect::computeProximity() {
       vect<double,2> cr2_r_rel(0.0,1.0);
       if(cr2_c_rel[1] < 0.0)
         cr2_r_rel[1] = -1.0;
-      mLastResult.mPoint1 = mCRect1->getPose().transformToGlobal(vect<double,2>(avg_x_rel, 0.5 * mCRect1->getDimensions()[1] * cr2_r_rel[1]));
-      mLastResult.mPoint2 = mCRect1->getPose().transformToGlobal(vect<double,2>(avg_x_rel, cr2_c_rel[1] - 0.5 * mCRect2->getDimensions()[1] * cr2_r_rel[1]));
+      mLastResult.mPoint1 = cr1_pose.transformToGlobal(vect<double,2>(avg_x_rel, 0.5 * mCRect1->getDimensions()[1] * cr2_r_rel[1]));
+      mLastResult.mPoint2 = cr1_pose.transformToGlobal(vect<double,2>(avg_x_rel, cr2_c_rel[1] - 0.5 * mCRect2->getDimensions()[1] * cr2_r_rel[1]));
       mLastResult.mDistance = fabs(cr2_c_rel[1]) - 0.5 * mCRect1->getDimensions()[1] - 0.5 * mCRect2->getDimensions()[1];
       return;
     };
@@ -82,8 +86,8 @@ void prox_crect_crect::computeProximity() {
     };
     vect<double,2> diff_v_rel = cr2_cic_rel - cr1_cic_rel;
     double dist_v_rel = norm_2(diff_v_rel);
-    mLastResult.mPoint1 = mCRect1->getPose().transformToGlobal(cr1_cic_rel + (0.5 * mCRect1->getDimensions()[1] / dist_v_rel) * diff_v_rel);
-    mLastResult.mPoint2 = mCRect1->getPose().transformToGlobal(cr2_cic_rel - (0.5 * mCRect2->getDimensions()[1] / dist_v_rel) * diff_v_rel);
+    mLastResult.mPoint1 = cr1_pose.transformToGlobal(cr1_cic_rel + (0.5 * mCRect1->getDimensions()[1] / dist_v_rel) * diff_v_rel);
+    mLastResult.mPoint2 = cr1_pose.transformToGlobal(cr2_cic_rel - (0.5 * mCRect2->getDimensions()[1] / dist_v_rel) * diff_v_rel);
     mLastResult.mDistance = dist_v_rel - 0.5 * mCRect1->getDimensions()[1] - 0.5 * mCRect2->getDimensions()[1];
     return;
   };
@@ -125,8 +129,8 @@ void prox_crect_crect::computeProximity() {
   
   vect<double,2> diff_v_rel = cr2_ptc - cr1_ptc;
   double dist_v_rel = norm_2(diff_v_rel);
-  mLastResult.mPoint1 = mCRect1->getPose().transformToGlobal(cr1_ptc + (0.5 * mCRect1->getDimensions()[1] / dist_v_rel) * diff_v_rel);
-  mLastResult.mPoint2 = mCRect1->getPose().transformToGlobal(cr2_ptc - (0.5 * mCRect2->getDimensions()[1] / dist_v_rel) * diff_v_rel);
+  mLastResult.mPoint1 = cr1_pose.transformToGlobal(cr1_ptc + (0.5 * mCRect1->getDimensions()[1] / dist_v_rel) * diff_v_rel);
+  mLastResult.mPoint2 = cr1_pose.transformToGlobal(cr2_ptc - (0.5 * mCRect2->getDimensions()[1] / dist_v_rel) * diff_v_rel);
   mLastResult.mDistance = dist_v_rel - 0.5 * mCRect1->getDimensions()[1] - 0.5 * mCRect2->getDimensions()[1];
   
 };

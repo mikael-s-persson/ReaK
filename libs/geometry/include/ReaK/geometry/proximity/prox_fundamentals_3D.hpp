@@ -47,10 +47,10 @@ namespace ReaK {
 namespace geom {
 
 
-proximity_record_3D findProximityBoxToPoint(const shared_ptr< box >& aBox, const vect<double,3>& aPoint);
+proximity_record_3D findProximityBoxToPoint(const box& aBox, const pose_3D<double>& aBoxGblPose, const vect<double,3>& aPoint);
 
 
-proximity_record_3D findProximityBoxToLine(const shared_ptr< box >& aBox, const vect<double,3>& aCenter, const vect<double,3>& aTangent, double aHalfLength);
+proximity_record_3D findProximityBoxToLine(const box& aBox, const pose_3D<double>& aBoxGblPose, const vect<double,3>& aCenter, const vect<double,3>& aTangent, double aHalfLength);
 
 
 
@@ -77,18 +77,20 @@ struct slack_minimize_hess {
 
 
 struct cylinder_slacking_func {
-  shared_ptr< cylinder > mCylinder;
+  const cylinder* mCylinder;
+  const pose_3D<double>* mGblPose;
   
   static const std::size_t size = 3;
   
-  cylinder_slacking_func(const shared_ptr< cylinder >& aCylinder) : mCylinder(aCylinder) { };
+  cylinder_slacking_func(const cylinder& aCylinder, const pose_3D<double>& aGblPose) : 
+                         mCylinder(&aCylinder), mGblPose(&aGblPose) { };
   
   // aX is the (slack (aX[0]), query-point (aX[1],aX[2],aX[3])).
   vect_n<double> operator()(const vect_n<double>& aX) {
     using std::sqrt;
     vect_n<double> result(3);
     vect<double,3> pt(aX[1],aX[2],aX[3]);
-    vect<double,3> pt_rel = mCylinder->getPose().transformFromGlobal(pt);
+    vect<double,3> pt_rel = mGblPose->transformFromGlobal(pt);
     result[0] = pt_rel[2] + 0.5 * aX[0] * mCylinder->getLength(); // lower-bound.
     result[1] = 0.5 * aX[0] * mCylinder->getLength() - pt_rel[2]; // upper-bound.
     result[2] = aX[0] * mCylinder->getRadius() - sqrt(pt_rel[0] * pt_rel[0] + pt_rel[1] * pt_rel[1]);
@@ -98,22 +100,24 @@ struct cylinder_slacking_func {
 };
 
 struct cylinder_slacking_jac {
-  shared_ptr< cylinder > mCylinder;
+  const cylinder* mCylinder;
+  const pose_3D<double>* mGblPose;
   
   static const std::size_t size = 3;
   
-  cylinder_slacking_jac(const shared_ptr< cylinder >& aCylinder) : mCylinder(aCylinder) { };
+  cylinder_slacking_jac(const cylinder& aCylinder, const pose_3D<double>& aGblPose) : 
+                        mCylinder(&aCylinder), mGblPose(&aGblPose) { };
   
   // aX is the (slack (aX[0]), query-point (aX[1],aX[2],aX[3])).
   template <typename Matrix>
   void operator()(Matrix& aJac, const vect_n<double>& aX, const vect_n<double>& aH) {
     using std::sqrt;
     vect<double,3> pt(aX[1],aX[2],aX[3]);
-    vect<double,3> pt_rel = mCylinder->getPose().transformFromGlobal(pt);
+    vect<double,3> pt_rel = mGblPose->transformFromGlobal(pt);
     
-    vect<double,3> x_rel = mCylinder->getPose().rotateFromGlobal(vect<double,3>(1.0,0.0,0.0));
-    vect<double,3> y_rel = mCylinder->getPose().rotateFromGlobal(vect<double,3>(0.0,1.0,0.0));
-    vect<double,3> z_rel = mCylinder->getPose().rotateFromGlobal(vect<double,3>(0.0,0.0,1.0));
+    vect<double,3> x_rel = mGblPose->rotateFromGlobal(vect<double,3>(1.0,0.0,0.0));
+    vect<double,3> y_rel = mGblPose->rotateFromGlobal(vect<double,3>(0.0,1.0,0.0));
+    vect<double,3> z_rel = mGblPose->rotateFromGlobal(vect<double,3>(0.0,0.0,1.0));
     //aJac.resize(3,4);
     
     //result[0] = pt_rel[2] + 0.5 * aX[0] * mCylinder->getLength(); // lower-bound.
@@ -144,18 +148,20 @@ struct cylinder_slacking_jac {
 };
 
 struct ccylinder_slacking_func {
-  shared_ptr< capped_cylinder > mCCylinder;
+  const capped_cylinder* mCCylinder;
+  const pose_3D<double>* mGblPose;
   
   static const std::size_t size = 1;
   
-  ccylinder_slacking_func(const shared_ptr< capped_cylinder >& aCCylinder) : mCCylinder(aCCylinder) { };
+  ccylinder_slacking_func(const capped_cylinder& aCCylinder, const pose_3D<double>& aGblPose) :
+                          mCCylinder(&aCCylinder), mGblPose(&aGblPose) { };
   
   // aX is the (slack (aX[0]), query-point (aX[1],aX[2],aX[3])).
   vect_n<double> operator()(const vect_n<double>& aX) {
     using std::sqrt;
     vect_n<double> result(1);
     vect<double,3> pt(aX[1],aX[2],aX[3]);
-    vect<double,3> pt_rel = mCCylinder->getPose().transformFromGlobal(pt);
+    vect<double,3> pt_rel = mGblPose->transformFromGlobal(pt);
     
     if(pt_rel[2] > 0.5 * aX[0] * mCCylinder->getLength()) {
       double tmp = pt_rel[2] - 0.5 * aX[0] * mCCylinder->getLength();
@@ -172,22 +178,24 @@ struct ccylinder_slacking_func {
 };
 
 struct ccylinder_slacking_jac {
-  shared_ptr< capped_cylinder > mCCylinder;
+  const capped_cylinder* mCCylinder;
+  const pose_3D<double>* mGblPose;
   
   static const std::size_t size = 1;
   
-  ccylinder_slacking_jac(const shared_ptr< capped_cylinder >& aCCylinder) : mCCylinder(aCCylinder) { };
+  ccylinder_slacking_jac(const capped_cylinder& aCCylinder, const pose_3D<double>& aGblPose) :
+                         mCCylinder(&aCCylinder), mGblPose(&aGblPose) { };
   
   // aX is the (slack (aX[0]), query-point (aX[1],aX[2],aX[3])).
   template <typename Matrix>
   void operator()(Matrix& aJac, const vect_n<double>& aX, const vect_n<double>& aH) {
     using std::sqrt;
     vect<double,3> pt(aX[1],aX[2],aX[3]);
-    vect<double,3> pt_rel = mCCylinder->getPose().transformFromGlobal(pt);
+    vect<double,3> pt_rel = mGblPose->transformFromGlobal(pt);
     
-    vect<double,3> x_rel = mCCylinder->getPose().rotateFromGlobal(vect<double,3>(1.0,0.0,0.0));
-    vect<double,3> y_rel = mCCylinder->getPose().rotateFromGlobal(vect<double,3>(0.0,1.0,0.0));
-    vect<double,3> z_rel = mCCylinder->getPose().rotateFromGlobal(vect<double,3>(0.0,0.0,1.0));
+    vect<double,3> x_rel = mGblPose->rotateFromGlobal(vect<double,3>(1.0,0.0,0.0));
+    vect<double,3> y_rel = mGblPose->rotateFromGlobal(vect<double,3>(0.0,1.0,0.0));
+    vect<double,3> z_rel = mGblPose->rotateFromGlobal(vect<double,3>(0.0,0.0,1.0));
     //aJac.resize(1,4);
     aJac(0,0) = mCCylinder->getRadius();
     
@@ -216,17 +224,19 @@ struct ccylinder_slacking_jac {
 
 
 struct box_slacking_func {
-  shared_ptr< box > mBox;
+  const box* mBox;
+  const pose_3D<double>* mGblPose;
   
   static const std::size_t size = 6;
   
-  box_slacking_func(const shared_ptr< box >& aBox) : mBox(aBox) { };
+  box_slacking_func(const box& aBox, const pose_3D<double>& aGblPose) : 
+                    mBox(&aBox), mGblPose(&aGblPose) { };
   
   // aX is the (slack (aX[0]), query-point (aX[1],aX[2],aX[3])).
   vect_n<double> operator()(const vect_n<double>& aX) {
     vect_n<double> result(6);
     vect<double,3> pt(aX[1],aX[2],aX[3]);
-    vect<double,3> pt_rel = mBox->getPose().transformFromGlobal(pt);
+    vect<double,3> pt_rel = mGblPose->transformFromGlobal(pt);
     result[0] = pt_rel[0] + 0.5 * aX[0] * mBox->getDimensions()[0]; // lower-bound.
     result[1] = pt_rel[1] + 0.5 * aX[0] * mBox->getDimensions()[1]; // lower-bound.
     result[2] = pt_rel[2] + 0.5 * aX[0] * mBox->getDimensions()[2]; // lower-bound.
@@ -238,18 +248,20 @@ struct box_slacking_func {
 };
 
 struct box_slacking_jac {
-  shared_ptr< box > mBox;
+  const box* mBox;
+  const pose_3D<double>* mGblPose;
   
   static const std::size_t size = 6;
   
-  box_slacking_jac(const shared_ptr< box >& aBox) : mBox(aBox) { };
+  box_slacking_jac(const box& aBox, const pose_3D<double>& aGblPose) : 
+                   mBox(&aBox), mGblPose(&aGblPose) { };
   
   // aX is the (slack (aX[0]), query-point (aX[1],aX[2],aX[3])).
   template <typename Matrix>
   void operator()(Matrix& aJac, const vect_n<double>& aX, const vect_n<double>& aH) {
-    vect<double,3> x_rel = mBox->getPose().rotateFromGlobal(vect<double,3>(1.0,0.0,0.0));
-    vect<double,3> y_rel = mBox->getPose().rotateFromGlobal(vect<double,3>(0.0,1.0,0.0));
-    vect<double,3> z_rel = mBox->getPose().rotateFromGlobal(vect<double,3>(0.0,0.0,1.0));
+    vect<double,3> x_rel = mGblPose->rotateFromGlobal(vect<double,3>(1.0,0.0,0.0));
+    vect<double,3> y_rel = mGblPose->rotateFromGlobal(vect<double,3>(0.0,1.0,0.0));
+    vect<double,3> z_rel = mGblPose->rotateFromGlobal(vect<double,3>(0.0,0.0,1.0));
     //aJac.resize(6,4);
     aJac(0,0) = 0.5 * mBox->getDimensions()[0]; aJac(0,1) =  x_rel[0]; aJac(0,2) =  y_rel[0]; aJac(0,3) =  z_rel[0];
     aJac(1,0) = 0.5 * mBox->getDimensions()[1]; aJac(1,1) =  x_rel[1]; aJac(1,2) =  y_rel[1]; aJac(1,3) =  z_rel[1];
@@ -307,36 +319,44 @@ struct dual_slacking_jac {
 
 
 struct cylinder_boundary_func {
-  shared_ptr< cylinder > mCylinder;
+  const cylinder* mCylinder;
+  const pose_3D<double>* mGblPose;
   
-  cylinder_boundary_func(const shared_ptr< cylinder >& aCylinder) : mCylinder(aCylinder) { };
+  cylinder_boundary_func(const cylinder& aCylinder, const pose_3D<double>& aGblPose) : 
+                        mCylinder(&aCylinder), mGblPose(&aGblPose) { };
   
   // aX is the query-direction (aX[0],aX[1],aX[2]).
   vect<double,3> operator()(vect<double,3> v);
 };
 
 struct cylinder_boundary_jac {
-  shared_ptr< cylinder > mCylinder;
+  const cylinder* mCylinder;
+  const pose_3D<double>* mGblPose;
   
-  cylinder_boundary_jac(const shared_ptr< cylinder >& aCylinder) : mCylinder(aCylinder) { };
+  cylinder_boundary_jac(const cylinder& aCylinder, const pose_3D<double>& aGblPose) : 
+                        mCylinder(&aCylinder), mGblPose(&aGblPose) { };
   
   // aX is the query-direction (aX[0],aX[1],aX[2]).
   mat<double,mat_structure::square> operator()(vect<double,3> v);
 };
 
 struct ccylinder_boundary_func {
-  shared_ptr< capped_cylinder > mCCylinder;
+  const capped_cylinder* mCCylinder;
+  const pose_3D<double>* mGblPose;
   
-  ccylinder_boundary_func(const shared_ptr< capped_cylinder >& aCCylinder) : mCCylinder(aCCylinder) { };
+  ccylinder_boundary_func(const capped_cylinder& aCCylinder, const pose_3D<double>& aGblPose) :
+                          mCCylinder(&aCCylinder), mGblPose(&aGblPose) { };
   
   // aX is the query-direction (aX[0],aX[1],aX[2]).
   vect<double,3> operator()(vect<double,3> v);
 };
 
 struct ccylinder_boundary_jac {
-  shared_ptr< capped_cylinder > mCCylinder;
+  const capped_cylinder* mCCylinder;
+  const pose_3D<double>* mGblPose;
   
-  ccylinder_boundary_jac(const shared_ptr< capped_cylinder >& aCCylinder) : mCCylinder(aCCylinder) { };
+  ccylinder_boundary_jac(const capped_cylinder& aCCylinder, const pose_3D<double>& aGblPose) :
+                         mCCylinder(&aCCylinder), mGblPose(&aGblPose) { };
   
   // aX is the query-direction (aX[0],aX[1],aX[2]).
   mat<double,mat_structure::square> operator()(vect<double,3> v);
@@ -344,18 +364,22 @@ struct ccylinder_boundary_jac {
 
 
 struct box_boundary_func {
-  shared_ptr< box > mBox;
+  const box* mBox;
+  const pose_3D<double>* mGblPose;
   
-  box_boundary_func(const shared_ptr< box >& aBox) : mBox(aBox) { };
+  box_boundary_func(const box& aBox, const pose_3D<double>& aGblPose) : 
+                    mBox(&aBox), mGblPose(&aGblPose) { };
   
   // aX is the query-direction (aX[0],aX[1],aX[2]).
   vect<double,3> operator()(vect<double,3> v);
 };
 
 struct box_boundary_jac {
-  shared_ptr< box > mBox;
+  const box* mBox;
+  const pose_3D<double>* mGblPose;
   
-  box_boundary_jac(const shared_ptr< box >& aBox) : mBox(aBox) { };
+  box_boundary_jac(const box& aBox, const pose_3D<double>& aGblPose) : 
+                   mBox(&aBox), mGblPose(&aGblPose) { };
   
   // aX is the query-direction (aX[0],aX[1],aX[2]).
   mat<double,mat_structure::square> operator()(vect<double,3> v);
@@ -369,27 +393,33 @@ struct support_func_base {
 };
 
 struct cylinder_support_func : support_func_base {
-  shared_ptr< cylinder > mCylinder;
+  const cylinder* mCylinder;
+  const pose_3D<double>* mGblPose;
   
-  cylinder_support_func(const shared_ptr< cylinder >& aCylinder) : mCylinder(aCylinder) { };
+  cylinder_support_func(const cylinder& aCylinder, const pose_3D<double>& aGblPose) : 
+                        mCylinder(&aCylinder), mGblPose(&aGblPose) { };
   
   // aX is the query-direction (aX[0],aX[1],aX[2]).
   vect<double,3> operator()(vect<double,3> v) const;
 };
 
 struct ccylinder_support_func : support_func_base {
-  shared_ptr< capped_cylinder > mCCylinder;
+  const capped_cylinder* mCCylinder;
+  const pose_3D<double>* mGblPose;
   
-  ccylinder_support_func(const shared_ptr< capped_cylinder >& aCCylinder) : mCCylinder(aCCylinder) { };
+  ccylinder_support_func(const capped_cylinder& aCCylinder, const pose_3D<double>& aGblPose) :
+                         mCCylinder(&aCCylinder), mGblPose(&aGblPose) { };
   
   // v is the query-direction.
   vect<double,3> operator()(vect<double,3> v) const;
 };
 
 struct box_support_func : support_func_base {
-  shared_ptr< box > mBox;
+  const box* mBox;
+  const pose_3D<double>* mGblPose;
   
-  box_support_func(const shared_ptr< box >& aBox) : mBox(aBox) { };
+  box_support_func(const box& aBox, const pose_3D<double>& aGblPose) : 
+                   mBox(&aBox), mGblPose(&aGblPose) { };
   
   // v is the query-direction.
   vect<double,3> operator()(vect<double,3> v) const;

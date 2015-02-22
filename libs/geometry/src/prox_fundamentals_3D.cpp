@@ -34,22 +34,21 @@ namespace ReaK {
 /** Main namespace for ReaK.Geometry */
 namespace geom {
 
-
-proximity_record_3D findProximityBoxToPoint(const shared_ptr< box >& aBox, const vect<double,3>& aPoint) {
-  vect<double,3> pt_rel = aBox->getPose().transformFromGlobal(aPoint);
+proximity_record_3D findProximityBoxToPoint(const box& aBox, const pose_3D<double>& aBoxGblPose, const vect<double,3>& aPoint) {
+  vect<double,3> pt_rel = aBoxGblPose.transformFromGlobal(aPoint);
   
-  bool in_x_range = ((pt_rel[0] > -0.5 * aBox->getDimensions()[0]) &&
-                     (pt_rel[0] <  0.5 * aBox->getDimensions()[0]));
-  bool in_y_range = ((pt_rel[1] > -0.5 * aBox->getDimensions()[1]) &&
-                     (pt_rel[1] <  0.5 * aBox->getDimensions()[1]));
-  bool in_z_range = ((pt_rel[2] > -0.5 * aBox->getDimensions()[2]) &&
-                     (pt_rel[2] <  0.5 * aBox->getDimensions()[2]));
+  bool in_x_range = ((pt_rel[0] > -0.5 * aBox.getDimensions()[0]) &&
+                     (pt_rel[0] <  0.5 * aBox.getDimensions()[0]));
+  bool in_y_range = ((pt_rel[1] > -0.5 * aBox.getDimensions()[1]) &&
+                     (pt_rel[1] <  0.5 * aBox.getDimensions()[1]));
+  bool in_z_range = ((pt_rel[2] > -0.5 * aBox.getDimensions()[2]) &&
+                     (pt_rel[2] <  0.5 * aBox.getDimensions()[2]));
   bool is_inside = (in_x_range && in_y_range && in_z_range);
   if(is_inside) {
     // The point is inside the box.
-    vect<double,3> bound_dists = vect<double,3>(0.5 * aBox->getDimensions()[0] - fabs(pt_rel[0]),
-                                                0.5 * aBox->getDimensions()[1] - fabs(pt_rel[1]),
-                                                0.5 * aBox->getDimensions()[2] - fabs(pt_rel[2]));
+    vect<double,3> bound_dists = vect<double,3>(0.5 * aBox.getDimensions()[0] - fabs(pt_rel[0]),
+                                                0.5 * aBox.getDimensions()[1] - fabs(pt_rel[1]),
+                                                0.5 * aBox.getDimensions()[2] - fabs(pt_rel[2]));
     if((bound_dists[0] <= bound_dists[1]) &&
        (bound_dists[0] <= bound_dists[2])) {
       in_x_range = false;
@@ -61,7 +60,7 @@ proximity_record_3D findProximityBoxToPoint(const shared_ptr< box >& aBox, const
     };
   }
   
-  vect<double,3> corner_pt = 0.5 * aBox->getDimensions();
+  vect<double,3> corner_pt = 0.5 * aBox.getDimensions();
   if(in_x_range)
     corner_pt[0] = pt_rel[0];
   else if(pt_rel[0] < 0.0)
@@ -76,7 +75,7 @@ proximity_record_3D findProximityBoxToPoint(const shared_ptr< box >& aBox, const
     corner_pt[2] = -corner_pt[2];
   
   proximity_record_3D result;
-  result.mPoint1 = aBox->getPose().transformToGlobal(corner_pt);
+  result.mPoint1 = aBoxGblPose.transformToGlobal(corner_pt);
   double diff_d = norm_2(corner_pt - pt_rel);
   result.mPoint2 = aPoint;
   result.mDistance = (is_inside ? -diff_d : diff_d);
@@ -87,19 +86,22 @@ proximity_record_3D findProximityBoxToPoint(const shared_ptr< box >& aBox, const
 namespace detail {
   
   struct ProxBoxToLineFunctor {
-    shared_ptr< box > mBox;
+    const box* mBox;
+    const pose_3D<double>* mBoxGblPose;
     vect<double,3> mCenter;
     vect<double,3> mTangent;
     proximity_record_3D* mResult;
     
-    ProxBoxToLineFunctor(const shared_ptr< box >& aBox, 
+    ProxBoxToLineFunctor(const box& aBox,
+                         const pose_3D<double>& aBoxGblPose,
                          const vect<double,3>& aCenter, 
                          const vect<double,3>& aTangent, 
                          proximity_record_3D& aResult) :
-                         mBox(aBox), mCenter(aCenter), mTangent(aTangent), mResult(&aResult) { };
+                         mBox(&aBox), mBoxGblPose(&aBoxGblPose), 
+                         mCenter(aCenter), mTangent(aTangent), mResult(&aResult) { };
     
     double operator()(double t) const {
-      (*mResult) = findProximityBoxToPoint(mBox, mCenter + mTangent * t);
+      (*mResult) = findProximityBoxToPoint(*mBox, *mBoxGblPose, mCenter + mTangent * t);
       return mResult->mDistance;
     };
     
@@ -108,9 +110,11 @@ namespace detail {
 };
 
 
-proximity_record_3D findProximityBoxToLine(const shared_ptr< box >& aBox, const vect<double,3>& aCenter, const vect<double,3>& aTangent, double aHalfLength) {
+proximity_record_3D findProximityBoxToLine(const box& aBox, const pose_3D<double>& aBoxGblPose, 
+                                           const vect<double,3>& aCenter, 
+                                           const vect<double,3>& aTangent, double aHalfLength) {
   proximity_record_3D result;
-  detail::ProxBoxToLineFunctor fct(aBox, aCenter, aTangent, result);
+  detail::ProxBoxToLineFunctor fct(aBox, aBoxGblPose, aCenter, aTangent, result);
   double lb = -aHalfLength;
   double ub = aHalfLength;
   optim::golden_section_search(fct, lb, ub, 1e-3 * aHalfLength);
@@ -121,24 +125,23 @@ proximity_record_3D findProximityBoxToLine(const shared_ptr< box >& aBox, const 
 
 vect<double,3> cylinder_boundary_func::operator()(vect<double,3> v) {
   using std::sqrt; using std::fabs;
-  v = mCylinder->getPose().rotateFromGlobal(v);
+  v = mGblPose->rotateFromGlobal(v);
   double v_radius = sqrt(v[0] * v[0] + v[1] * v[1]);
   if( v_radius * 0.5 * mCylinder->getLength() > mCylinder->getRadius() * fabs(v[2]) ) {
     v *= mCylinder->getRadius() / v_radius;
   } else {
     v *= 0.5 * mCylinder->getLength() / fabs(v[2]);
   };
-  return mCylinder->getPose().transformToGlobal(v);
+  return mGblPose->transformToGlobal(v);
 };
 
 mat<double,mat_structure::square> cylinder_boundary_jac::operator()(vect<double,3> v) {
   using std::sqrt; using std::fabs;
-  pose_3D<double> gbl_pose = mCylinder->getPose().getGlobalPose();
-  mat<double,mat_structure::square> R = gbl_pose.Quat.getMat();
+  mat<double,mat_structure::square> R = mGblPose->Quat.getMat();
   // Jac_gbl = R * Jac_local * R^T 
   
   // Jac_local:
-  v = gbl_pose.rotateFromGlobal(v);
+  v = mGblPose->rotateFromGlobal(v);
   double v_radius = sqrt(v[0] * v[0] + v[1] * v[1]);
   mat<double,mat_structure::square> Jac_local(3, 0.0);
   if( v_radius * 0.5 * mCylinder->getLength() > mCylinder->getRadius() * fabs(v[2]) ) {
@@ -167,7 +170,7 @@ mat<double,mat_structure::square> cylinder_boundary_jac::operator()(vect<double,
 
 vect<double,3> ccylinder_boundary_func::operator()(vect<double,3> v) {
   using std::sqrt; using std::fabs;
-  v = mCCylinder->getPose().rotateFromGlobal(v);
+  v = mGblPose->rotateFromGlobal(v);
   double v_radius = sqrt(v[0] * v[0] + v[1] * v[1]);
   if( v_radius * 0.5 * mCCylinder->getLength() > mCCylinder->getRadius() * fabs(v[2]) ) {
     v *= mCCylinder->getRadius() / v_radius;
@@ -179,17 +182,16 @@ vect<double,3> ccylinder_boundary_func::operator()(vect<double,3> v) {
                     + mCCylinder->getRadius() * mCCylinder->getRadius() * v[2] * v[2]);
     v *= (0.5 * mCCylinder->getLength() * fabs(v[2]) + A) / v_l2;
   };
-  return mCCylinder->getPose().transformToGlobal(v);
+  return mGblPose->transformToGlobal(v);
 };
 
 mat<double,mat_structure::square> ccylinder_boundary_jac::operator()(vect<double,3> v) {
   using std::sqrt; using std::fabs;
-  pose_3D<double> gbl_pose = mCCylinder->getPose().getGlobalPose();
-  mat<double,mat_structure::square> R = gbl_pose.Quat.getMat();
+  mat<double,mat_structure::square> R = mGblPose->Quat.getMat();
   // Jac_gbl = R * Jac_local * R^T 
   
   // Jac_local:
-  v = gbl_pose.rotateFromGlobal(v);
+  v = mGblPose->rotateFromGlobal(v);
   double v_radius = sqrt(v[0] * v[0] + v[1] * v[1]);
   mat<double,mat_structure::square> Jac_local(3, 0.0);
   if( v_radius * 0.5 * mCCylinder->getLength() > mCCylinder->getRadius() * fabs(v[2]) ) {
@@ -232,7 +234,7 @@ mat<double,mat_structure::square> ccylinder_boundary_jac::operator()(vect<double
 
 vect<double,3> box_boundary_func::operator()(vect<double,3> v) {
   using std::fabs;
-  v = mBox->getPose().rotateFromGlobal(v);
+  v = mGblPose->rotateFromGlobal(v);
   // there are three possible quadrants (facet where the support lays):
   if((fabs(v[1]) * mBox->getDimensions()[0] < fabs(v[0]) * mBox->getDimensions()[1]) && 
       (fabs(v[2]) * mBox->getDimensions()[0] < fabs(v[0]) * mBox->getDimensions()[2])) {
@@ -246,12 +248,12 @@ vect<double,3> box_boundary_func::operator()(vect<double,3> v) {
     // on the z-normal plane:
     v *= 0.5 * mBox->getDimensions()[2] / fabs(v[2]);
   };
-  return mBox->getPose().transformToGlobal(v);
+  return mGblPose->transformToGlobal(v);
 };
 
 mat<double,mat_structure::square> box_boundary_jac::operator()(vect<double,3> v) {
   using std::sqrt; using std::fabs;
-  pose_3D<double> gbl_pose = mBox->getPose().getGlobalPose();
+  pose_3D<double> gbl_pose = mGblPose->getGlobalPose();
   mat<double,mat_structure::square> R = gbl_pose.Quat.getMat();
   // Jac_gbl = R * Jac_local * R^T 
   
@@ -300,7 +302,7 @@ mat<double,mat_structure::square> box_boundary_jac::operator()(vect<double,3> v)
 
 vect<double,3> cylinder_support_func::operator()(vect<double,3> v) const {
   using std::sqrt; using std::fabs;
-  v = mCylinder->getPose().rotateFromGlobal(v);
+  v = mGblPose->rotateFromGlobal(v);
   double v_radius = sqrt(v[0] * v[0] + v[1] * v[1]);
   if( v_radius > 1e-5 ) {
 #ifndef REAK_PROX_SUPPORTS_USE_DISCRETE_APPROX
@@ -322,12 +324,12 @@ vect<double,3> cylinder_support_func::operator()(vect<double,3> v) const {
     v[0] = 0.0; v[1] = 0.0; 
     v[2] *= 0.5 * mCylinder->getLength() / fabs(v[2]);
   };
-  return mCylinder->getPose().transformToGlobal(v);
+  return mGblPose->transformToGlobal(v);
 };
 
 vect<double,3> ccylinder_support_func::operator()(vect<double,3> v) const {
   using std::sqrt; using std::fabs;
-  v = mCCylinder->getPose().rotateFromGlobal(v);
+  v = mGblPose->rotateFromGlobal(v);
   double v_radius = sqrt(v[0] * v[0] + v[1] * v[1]);
   if( v_radius > 1e-5 ) {
 #ifndef REAK_PROX_SUPPORTS_USE_DISCRETE_APPROX
@@ -356,12 +358,12 @@ vect<double,3> ccylinder_support_func::operator()(vect<double,3> v) const {
     v[0] = 0.0; v[1] = 0.0; 
     v[2] *= 0.5 * mCCylinder->getLength() / fabs(v[2]);
   };
-  return mCCylinder->getPose().transformToGlobal(v);
+  return mGblPose->transformToGlobal(v);
 };
 
 vect<double,3> box_support_func::operator()(vect<double,3> v) const {
   using std::fabs;
-  v = mBox->getPose().rotateFromGlobal(v);
+  v = mGblPose->rotateFromGlobal(v);
   
   if( fabs(v[0]) > 1e-5 )
     v[0] *= 0.5 * mBox->getDimensions()[0] / fabs(v[0]);
@@ -376,7 +378,7 @@ vect<double,3> box_support_func::operator()(vect<double,3> v) const {
   else
     v[2] = 0.0;
   
-  return mBox->getPose().transformToGlobal(v);
+  return mGblPose->transformToGlobal(v);
 };
 
 

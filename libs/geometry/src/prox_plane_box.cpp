@@ -40,7 +40,8 @@ shared_ptr< shape_3D > prox_plane_box::getShape2() const {
   return mBox;
 };
 
-void prox_plane_box::computeProximity() {
+void prox_plane_box::computeProximity(const shape_3D_precompute_pack& aPack1, 
+                                      const shape_3D_precompute_pack& aPack2) {
   if((!mBox) || (!mPlane)) {
     mLastResult.mDistance = std::numeric_limits<double>::infinity();
     mLastResult.mPoint1 = vect<double,3>(0.0,0.0,0.0);
@@ -49,11 +50,15 @@ void prox_plane_box::computeProximity() {
   };
   using std::fabs; using std::sqrt; using ReaK::unit;
   
-  vect<double,3> bx_c = mBox->getPose().transformToGlobal(vect<double,3>(0.0,0.0,0.0));
-  vect<double,3> bx_x = mPlane->getPose().rotateFromGlobal(mBox->getPose().rotateToGlobal(vect<double,3>(1.0,0.0,0.0)));
-  vect<double,3> bx_y = mPlane->getPose().rotateFromGlobal(mBox->getPose().rotateToGlobal(vect<double,3>(1.0,0.0,0.0)));
-  vect<double,3> bx_z = mPlane->getPose().rotateFromGlobal(mBox->getPose().rotateToGlobal(vect<double,3>(1.0,0.0,0.0)));
-  vect<double,3> pl_c = mPlane->getPose().transformToGlobal(vect<double,3>(0.0,0.0,0.0));
+  const pose_3D<double>& bx_pose = (aPack1.parent == mBox.get() ? 
+                                    aPack1.global_pose : aPack2.global_pose);
+  const pose_3D<double>& pl_pose = (aPack1.parent == mBox.get() ? 
+                                    aPack2.global_pose : aPack1.global_pose);
+  
+  vect<double,3> bx_c = bx_pose.Position;
+  vect<double,3> bx_x = pl_pose.rotateFromGlobal(bx_pose.rotateToGlobal(vect<double,3>(1.0,0.0,0.0)));
+  vect<double,3> bx_y = pl_pose.rotateFromGlobal(bx_pose.rotateToGlobal(vect<double,3>(1.0,0.0,0.0)));
+  vect<double,3> bx_z = pl_pose.rotateFromGlobal(bx_pose.rotateToGlobal(vect<double,3>(1.0,0.0,0.0)));
   
   if(bx_x[2] > 0.0)
     bx_x = -bx_x;
@@ -62,11 +67,11 @@ void prox_plane_box::computeProximity() {
   if(bx_z[2] > 0.0)
     bx_z = -bx_z;
   
-  vect<double,3> bx_c_rel = mPlane->getPose().transformFromGlobal(bx_c);
+  vect<double,3> bx_c_rel = pl_pose.transformFromGlobal(bx_c);
   vect<double,3> bx_pt_rel = bx_c_rel + 0.5 * (mBox->getDimensions()[0] * bx_x + mBox->getDimensions()[1] * bx_y + mBox->getDimensions()[2] * bx_z);
   
-  mLastResult.mPoint1 = mPlane->getPose().transformToGlobal(vect<double,3>(bx_pt_rel[0],bx_pt_rel[1],0.0));
-  mLastResult.mPoint2 = mPlane->getPose().transformToGlobal(bx_pt_rel);
+  mLastResult.mPoint1 = pl_pose.transformToGlobal(vect<double,3>(bx_pt_rel[0],bx_pt_rel[1],0.0));
+  mLastResult.mPoint2 = pl_pose.transformToGlobal(bx_pt_rel);
   mLastResult.mDistance = bx_pt_rel[2];
 };
 

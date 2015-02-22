@@ -41,6 +41,17 @@ namespace ReaK {
 /** Main namespace for ReaK.Geometry */
 namespace geom {
 
+class shape_3D; // forward-decl
+
+class shape_3D_precompute_pack {
+  public:
+    const shape_3D* parent;
+    pose_3D<double> global_pose;
+    
+    shape_3D_precompute_pack() : parent(), global_pose() { };
+    
+};
+
 
 /** This class is a base-class for all 3D shapes (collidable primitives). */
 class shape_3D : public geometry_3D {
@@ -53,6 +64,8 @@ class shape_3D : public geometry_3D {
      * \return The maximum radius of the shape.
      */
     virtual double getBoundingRadius() const = 0;
+    
+    virtual shape_3D_precompute_pack createPrecomputePack() const;
     
     /**
      * Default constructor.

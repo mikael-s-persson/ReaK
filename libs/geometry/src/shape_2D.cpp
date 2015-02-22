@@ -44,6 +44,14 @@ void RK_CALL shape_2D::load(ReaK::serialization::iarchive& A, unsigned int) {
 };
 
 
+shape_2D_precompute_pack shape_2D::createPrecomputePack() const {
+  shape_2D_precompute_pack result;
+  result.parent = this;
+  result.global_pose = mPose.getGlobalPose();
+  return result;
+};
+
+
 
 
 

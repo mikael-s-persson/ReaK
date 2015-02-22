@@ -42,7 +42,8 @@ shared_ptr< shape_3D > prox_ccylinder_cylinder::getShape2() const {
   return mCylinder;
 };
 
-void prox_ccylinder_cylinder::computeProximity() {
+void prox_ccylinder_cylinder::computeProximity(const shape_3D_precompute_pack& aPack1, 
+                                               const shape_3D_precompute_pack& aPack2) {
   if((!mCCylinder) || (!mCylinder)) {
     mLastResult.mDistance = std::numeric_limits<double>::infinity();
     mLastResult.mPoint1 = vect<double,3>(0.0,0.0,0.0);
@@ -50,9 +51,14 @@ void prox_ccylinder_cylinder::computeProximity() {
     return;
   };
   
+  const pose_3D<double>& cc_pose = (aPack1.parent == mCCylinder.get() ? 
+                                    aPack1.global_pose : aPack2.global_pose);
+  const pose_3D<double>& cy_pose = (aPack1.parent == mCCylinder.get() ? 
+                                    aPack2.global_pose : aPack1.global_pose);
+  
   mLastResult = findProximityByGJKEPA(
-    ccylinder_support_func(mCCylinder), 
-    cylinder_support_func(mCylinder));
+    ccylinder_support_func(*mCCylinder, cc_pose), 
+    cylinder_support_func(*mCylinder, cy_pose));
   
 };
 

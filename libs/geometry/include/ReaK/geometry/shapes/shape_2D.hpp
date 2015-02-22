@@ -42,6 +42,18 @@ namespace ReaK {
 namespace geom {
 
 
+class shape_2D; // forward-decl
+
+class shape_2D_precompute_pack {
+  public:
+    const shape_2D* parent;
+    pose_2D<double> global_pose;
+    
+    shape_2D_precompute_pack() : parent(), global_pose() { };
+    
+};
+
+
 /** This class is a base-class for all 2D shapes (collidable primitives). */
 class shape_2D : public geometry_2D {
   protected:
@@ -53,6 +65,8 @@ class shape_2D : public geometry_2D {
      * \return The maximum radius of the shape.
      */
     virtual double getBoundingRadius() const = 0;
+    
+    virtual shape_2D_precompute_pack createPrecomputePack() const;
     
     /**
      * Default constructor.

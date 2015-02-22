@@ -42,7 +42,8 @@ shared_ptr< shape_3D > prox_ccylinder_box::getShape2() const {
 
 
 
-void prox_ccylinder_box::computeProximity() {
+void prox_ccylinder_box::computeProximity(const shape_3D_precompute_pack& aPack1, 
+                                          const shape_3D_precompute_pack& aPack2) {
   if((!mCCylinder) || (!mBox)) {
     mLastResult.mDistance = std::numeric_limits<double>::infinity();
     mLastResult.mPoint1 = vect<double,3>(0.0,0.0,0.0);
@@ -51,11 +52,16 @@ void prox_ccylinder_box::computeProximity() {
   };
   using std::fabs; using std::sqrt;
   
-  vect<double,3> cy_c = mCCylinder->getPose().transformToGlobal(vect<double,3>(0.0,0.0,0.0));
-  vect<double,3> cy_t = mCCylinder->getPose().rotateToGlobal(vect<double,3>(0.0,0.0,1.0));
-  vect<double,3> bx_c = mBox->getPose().transformToGlobal(vect<double,3>(0.0,0.0,0.0));
+  const pose_3D<double>& cy_pose = (aPack1.parent == mCCylinder.get() ? 
+                                    aPack1.global_pose : aPack2.global_pose);
+  const pose_3D<double>& bx_pose = (aPack1.parent == mCCylinder.get() ? 
+                                    aPack2.global_pose : aPack1.global_pose);
   
-  proximity_record_3D bxln_result = findProximityBoxToLine(mBox, cy_c, cy_t, 0.5 * mCCylinder->getLength());
+  
+  vect<double,3> cy_c = cy_pose.Position;
+  vect<double,3> cy_t = cy_pose.rotateToGlobal(vect<double,3>(0.0,0.0,1.0));
+  
+  proximity_record_3D bxln_result = findProximityBoxToLine(*mBox, bx_pose, cy_c, cy_t, 0.5 * mCCylinder->getLength());
   
   // add a sphere-sweep around the point-box solution.
   vect<double,3> diff_v = bxln_result.mPoint1 - bxln_result.mPoint2;

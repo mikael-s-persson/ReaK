@@ -52,21 +52,24 @@ class proxy_query_model_2D : public named_object {
   public:
     
     std::vector< shared_ptr< shape_2D > > mShapeList;
+    std::vector< shape_2D_precompute_pack > mPreComputePacks;
     
     /**
      * Default constructor.
      */
-    proxy_query_model_2D(const std::string& aName = "") : named_object(), mShapeList() { this->setName(aName); };
+    proxy_query_model_2D(const std::string& aName = "");
     
     /**
      * Default destructor.
      */
-    virtual ~proxy_query_model_2D() { };
+    virtual ~proxy_query_model_2D();
     
     proxy_query_model_2D& addShape(const shared_ptr< shape_2D >& aShape) {
       mShapeList.push_back(aShape);
       return *this;
     };
+    
+    void doPrecomputePass();
     
 /*******************************************************************************
                    ReaK's RTTI and Serialization interfaces
@@ -156,21 +159,24 @@ class proxy_query_model_3D : public named_object {
   public:
     
     std::vector< shared_ptr< shape_3D > > mShapeList;
+    std::vector< shape_3D_precompute_pack > mPreComputePacks;
     
     /**
      * Default constructor.
      */
-    proxy_query_model_3D(const std::string& aName = "") : named_object(), mShapeList() { setName(aName); };
+    proxy_query_model_3D(const std::string& aName = "");
     
     /**
      * Default destructor.
      */
-    virtual ~proxy_query_model_3D() { };
+    virtual ~proxy_query_model_3D();
     
     proxy_query_model_3D& addShape(const shared_ptr< shape_3D >& aShape) {
       mShapeList.push_back(aShape);
       return *this;
     };
+    
+    void doPrecomputePass();
     
 /*******************************************************************************
                    ReaK's RTTI and Serialization interfaces

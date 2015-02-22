@@ -38,7 +38,8 @@ shared_ptr< shape_2D > prox_circle_rectangle::getShape2() const {
   return mRectangle;
 };
     
-void prox_circle_rectangle::computeProximity() {
+void prox_circle_rectangle::computeProximity(const shape_2D_precompute_pack& aPack1, 
+                                             const shape_2D_precompute_pack& aPack2) {
   if((!mCircle) || (!mRectangle)) {
     mLastResult.mDistance = std::numeric_limits<double>::infinity();
     mLastResult.mPoint1 = vect<double,2>(0.0,0.0);
@@ -48,10 +49,14 @@ void prox_circle_rectangle::computeProximity() {
   
   using std::fabs;
   
-  vect<double,2> ci_c = mCircle->getPose().transformToGlobal(vect<double,2>(0.0,0.0));
-  vect<double,2> re_c = mRectangle->getPose().transformToGlobal(vect<double,2>(0.0,0.0));
+  const pose_2D<double>& ci_pose = (aPack1.parent == mCircle.get() ? 
+                                    aPack1.global_pose : aPack2.global_pose);
+  const pose_2D<double>& re_pose = (aPack1.parent == mCircle.get() ? 
+                                    aPack2.global_pose : aPack1.global_pose);
   
-  vect<double,2> ci_c_rel = mRectangle->getPose().transformFromGlobal(ci_c);
+  vect<double,2> ci_c = ci_pose.Position;
+  
+  vect<double,2> ci_c_rel = re_pose.transformFromGlobal(ci_c);
   
   bool in_x_range = ((ci_c_rel[0] > -0.5 * mRectangle->getDimensions()[0]) &&
                      (ci_c_rel[0] <  0.5 * mRectangle->getDimensions()[0]));
@@ -78,7 +83,7 @@ void prox_circle_rectangle::computeProximity() {
     corner_pt[1] = ci_c_rel[1];
   else if(ci_c_rel[1] < 0.0)
     corner_pt[1] = -corner_pt[1];
-  mLastResult.mPoint2 = mRectangle->getPose().transformToGlobal(corner_pt);
+  mLastResult.mPoint2 = re_pose.transformToGlobal(corner_pt);
   vect<double,2> diff_v = mLastResult.mPoint2 - ci_c;
   double diff_d = norm_2(diff_v);
   mLastResult.mPoint1 = ci_c + (mCircle->getRadius() / diff_d) * diff_v;
