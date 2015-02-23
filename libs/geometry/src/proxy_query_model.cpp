@@ -192,9 +192,13 @@ void proxy_query_pair_2D::createProxFinderList() {
   return;
 };
 
-shared_ptr< proximity_finder_2D > proxy_query_pair_2D::findMinimumDistance() const {
+proximity_record_2D proxy_query_pair_2D::findMinimumDistance() const {
+  proximity_record_2D result;
+  result.mDistance = std::numeric_limits<double>::infinity();
+  result.mPoint1 = vect<double,2>(0.0,0.0);
+  result.mPoint2 = vect<double,2>(0.0,0.0);
   if(mProxFinders.empty() || !mModel1 || !mModel2)
-    return shared_ptr< proximity_finder_2D >();
+    return result;
   
   mModel1->doPrecomputePass();
   mModel2->doPrecomputePass();
@@ -202,11 +206,25 @@ shared_ptr< proximity_finder_2D > proxy_query_pair_2D::findMinimumDistance() con
   std::size_t m1_i = 0;
   std::size_t m2_i = 0;
   
-  std::size_t min_i = 0;
-  mProxFinders[0]->computeProximity(mModel1->mPreComputePacks[m1_i], mModel2->mPreComputePacks[m2_i]);
-  double min_dist = mProxFinders[0]->getLastResult().mDistance;
-  
-  for(std::size_t i = 1; i < mProxFinders.size(); ++i) {
+  for(std::size_t i = 0; i < mProxFinders.size(); ++i) {
+    
+    vect<double,2> p1 = mModel1->mPreComputePacks[m1_i].global_pose.Position;
+    vect<double,2> p2 = mModel2->mPreComputePacks[m2_i].global_pose.Position;
+    
+    if(norm_2(p2 - p1) - mModel1->mShapeList[m1_i]->getBoundingRadius() 
+                       - mModel2->mShapeList[m2_i]->getBoundingRadius() > result.mDistance) {
+      ++m2_i;
+      if( m2_i >= mModel2->mPreComputePacks.size() ) {
+        ++m1_i;
+        m2_i = 0;
+      };
+      continue;
+    };
+    
+    mProxFinders[i]->computeProximity(mModel1->mPreComputePacks[m1_i], mModel2->mPreComputePacks[m2_i]);
+    if(mProxFinders[i]->getLastResult().mDistance < result.mDistance) {
+      result = mProxFinders[i]->getLastResult();
+    };
     
     ++m2_i;
     if( m2_i >= mModel2->mPreComputePacks.size() ) {
@@ -214,21 +232,9 @@ shared_ptr< proximity_finder_2D > proxy_query_pair_2D::findMinimumDistance() con
       m2_i = 0;
     };
     
-    vect<double,2> p1 = mModel1->mPreComputePacks[m1_i].global_pose.Position;
-    vect<double,2> p2 = mModel2->mPreComputePacks[m2_i].global_pose.Position;
-    
-    if(norm_2(p2 - p1) - mModel1->mShapeList[m1_i]->getBoundingRadius() 
-                       - mModel2->mShapeList[m2_i]->getBoundingRadius() > min_dist)
-      continue;
-    
-    mProxFinders[i]->computeProximity(mModel1->mPreComputePacks[m1_i], mModel2->mPreComputePacks[m2_i]);
-    if(mProxFinders[i]->getLastResult().mDistance < min_dist) {
-      min_i = i;
-      min_dist = mProxFinders[i]->getLastResult().mDistance;
-    };
   };
   
-  return mProxFinders[min_i];
+  return result;
 };
     
 bool proxy_query_pair_2D::gatherCollisionPoints(std::vector< proximity_record_2D >& aOutput) const {
@@ -467,9 +473,13 @@ void proxy_query_pair_3D::createProxFinderList() {
   return;
 };
 
-shared_ptr< proximity_finder_3D > proxy_query_pair_3D::findMinimumDistance() const {
+proximity_record_3D proxy_query_pair_3D::findMinimumDistance() const {
+  proximity_record_3D result;
+  result.mDistance = std::numeric_limits<double>::infinity();
+  result.mPoint1 = vect<double,3>(0.0,0.0,0.0);
+  result.mPoint2 = vect<double,3>(0.0,0.0,0.0);
   if(mProxFinders.empty() || !mModel1 || !mModel2)
-    return shared_ptr< proximity_finder_3D >();
+    return result;
   
   mModel1->doPrecomputePass();
   mModel2->doPrecomputePass();
@@ -477,11 +487,25 @@ shared_ptr< proximity_finder_3D > proxy_query_pair_3D::findMinimumDistance() con
   std::size_t m1_i = 0;
   std::size_t m2_i = 0;
   
-  std::size_t min_i = 0;
-  mProxFinders[0]->computeProximity(mModel1->mPreComputePacks[m1_i], mModel2->mPreComputePacks[m2_i]);
-  double min_dist = mProxFinders[0]->getLastResult().mDistance;
-  
-  for(std::size_t i = 1; i < mProxFinders.size(); ++i) {
+  for(std::size_t i = 0; i < mProxFinders.size(); ++i) {
+    
+    vect<double,3> p1 = mModel1->mPreComputePacks[m1_i].global_pose.Position;
+    vect<double,3> p2 = mModel2->mPreComputePacks[m2_i].global_pose.Position;
+    
+    if(norm_2(p2 - p1) - mModel1->mShapeList[m1_i]->getBoundingRadius() 
+                       - mModel2->mShapeList[m2_i]->getBoundingRadius() > result.mDistance) {
+      ++m2_i;
+      if( m2_i >= mModel2->mPreComputePacks.size() ) {
+        ++m1_i;
+        m2_i = 0;
+      };
+      continue;
+    };
+    
+    mProxFinders[i]->computeProximity(mModel1->mPreComputePacks[m1_i], mModel2->mPreComputePacks[m2_i]);
+    if(mProxFinders[i]->getLastResult().mDistance < result.mDistance) {
+      result = mProxFinders[i]->getLastResult();
+    };
     
     ++m2_i;
     if( m2_i >= mModel2->mPreComputePacks.size() ) {
@@ -489,21 +513,9 @@ shared_ptr< proximity_finder_3D > proxy_query_pair_3D::findMinimumDistance() con
       m2_i = 0;
     };
     
-    vect<double,3> p1 = mModel1->mPreComputePacks[m1_i].global_pose.Position;
-    vect<double,3> p2 = mModel2->mPreComputePacks[m2_i].global_pose.Position;
-    
-    if(norm_2(p2 - p1) - mModel1->mShapeList[m1_i]->getBoundingRadius() 
-                       - mModel2->mShapeList[m2_i]->getBoundingRadius() > min_dist)
-      continue;
-    
-    mProxFinders[i]->computeProximity(mModel1->mPreComputePacks[m1_i], mModel2->mPreComputePacks[m2_i]);
-    if(min_dist > mProxFinders[i]->getLastResult().mDistance) {
-      min_i = i;
-      min_dist = mProxFinders[i]->getLastResult().mDistance;
-    };
   };
   
-  return mProxFinders[min_i];
+  return result;
 };
     
 bool proxy_query_pair_3D::gatherCollisionPoints(std::vector< proximity_record_3D >& aOutput) const {

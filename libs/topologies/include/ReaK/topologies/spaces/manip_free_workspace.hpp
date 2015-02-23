@@ -83,14 +83,14 @@ class manip_dk_proxy_env_impl {
       // NOTE: it is assumed that the proxy environments are properly linked with the manipulator kinematic model.
       
       for( std::vector< shared_ptr< geom::proxy_query_pair_2D > >::const_iterator it = m_proxy_env_2D.begin(); it != m_proxy_env_2D.end(); ++it) {
-        shared_ptr< geom::proximity_finder_2D > tmp = (*it)->findMinimumDistance();
-        if((tmp) && (tmp->getLastResult().mDistance < 0.0))
+        geom::proximity_record_2D tmp = (*it)->findMinimumDistance();
+        if(tmp.mDistance < 0.0)
           return false;
       };
       
       for( std::vector< shared_ptr< geom::proxy_query_pair_3D > >::const_iterator it = m_proxy_env_3D.begin(); it != m_proxy_env_3D.end(); ++it) {
-        shared_ptr< geom::proximity_finder_3D > tmp = (*it)->findMinimumDistance();
-        if((tmp) && (tmp->getLastResult().mDistance < 0.0))
+        geom::proximity_record_3D tmp = (*it)->findMinimumDistance();
+        if(tmp.mDistance < 0.0)
           return false;
       };
       

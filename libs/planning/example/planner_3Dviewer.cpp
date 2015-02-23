@@ -296,7 +296,7 @@ Planner3DWindow::Planner3DWindow( QWidget * parent, Qt::WindowFlags flags ) :
   
   r_info.sw_proxy_geom = new SoSwitch();
   
-  shared_ptr< geom::proximity_finder_3D > lr_pline = r_info.robot_lab_proxy->findMinimumDistance();
+  geom::proximity_record_3D lr_pline = r_info.robot_lab_proxy->findMinimumDistance();
   
   SoSeparator* sep_lr_pline = new SoSeparator;
   
@@ -305,13 +305,8 @@ Planner3DWindow::Planner3DWindow( QWidget * parent, Qt::WindowFlags flags ) :
   sep_lr_pline->addChild(col_lr_pline);
   
   SoCoordinate3* coords_lr_pline = new SoCoordinate3;
-  if(lr_pline) {
-    coords_lr_pline->point.set1Value(0, lr_pline->getLastResult().mPoint1[0], lr_pline->getLastResult().mPoint1[1], lr_pline->getLastResult().mPoint1[2]);
-    coords_lr_pline->point.set1Value(1, lr_pline->getLastResult().mPoint2[0], lr_pline->getLastResult().mPoint2[1], lr_pline->getLastResult().mPoint2[2]);
-  } else {
-    coords_lr_pline->point.set1Value(0, 0.0, 0.0, 0.0);
-    coords_lr_pline->point.set1Value(1, 0.0, 0.0, 0.0);
-  };
+  coords_lr_pline->point.set1Value(0, lr_pline.mPoint1[0], lr_pline.mPoint1[1], lr_pline.mPoint1[2]);
+  coords_lr_pline->point.set1Value(1, lr_pline.mPoint2[0], lr_pline.mPoint2[1], lr_pline.mPoint2[2]);
   sep_lr_pline->addChild(coords_lr_pline);
   r_info.l_r_proxy_line = coords_lr_pline;
   
@@ -322,7 +317,7 @@ Planner3DWindow::Planner3DWindow( QWidget * parent, Qt::WindowFlags flags ) :
   r_info.sw_proxy_geom->addChild(sep_lr_pline);
   
   
-  shared_ptr< geom::proximity_finder_3D > ra_pline = r_info.robot_airship_proxy->findMinimumDistance();
+  geom::proximity_record_3D ra_pline = r_info.robot_airship_proxy->findMinimumDistance();
   
   SoSeparator* sep_ra_pline = new SoSeparator;
   
@@ -331,13 +326,8 @@ Planner3DWindow::Planner3DWindow( QWidget * parent, Qt::WindowFlags flags ) :
   sep_ra_pline->addChild(col_ra_pline);
   
   SoCoordinate3* coords_ra_pline = new SoCoordinate3;
-  if(ra_pline) {
-    coords_ra_pline->point.set1Value(0, ra_pline->getLastResult().mPoint1[0], ra_pline->getLastResult().mPoint1[1], ra_pline->getLastResult().mPoint1[2]);
-    coords_ra_pline->point.set1Value(1, ra_pline->getLastResult().mPoint2[0], ra_pline->getLastResult().mPoint2[1], ra_pline->getLastResult().mPoint2[2]);
-  } else {
-    coords_ra_pline->point.set1Value(0, 0.0, 0.0, 0.0);
-    coords_ra_pline->point.set1Value(1, 0.0, 0.0, 0.0);
-  };
+  coords_ra_pline->point.set1Value(0, ra_pline.mPoint1[0], ra_pline.mPoint1[1], ra_pline.mPoint1[2]);
+  coords_ra_pline->point.set1Value(1, ra_pline.mPoint2[0], ra_pline.mPoint2[1], ra_pline.mPoint2[2]);
   sep_ra_pline->addChild(coords_ra_pline);
   r_info.r_a_proxy_line = coords_ra_pline;
   
@@ -348,7 +338,7 @@ Planner3DWindow::Planner3DWindow( QWidget * parent, Qt::WindowFlags flags ) :
   r_info.sw_proxy_geom->addChild(sep_ra_pline);
   
   
-  shared_ptr< geom::proximity_finder_3D > la_pline = r_info.lab_airship_proxy->findMinimumDistance();
+  geom::proximity_record_3D la_pline = r_info.lab_airship_proxy->findMinimumDistance();
   
   SoSeparator* sep_la_pline = new SoSeparator;
   
@@ -357,13 +347,8 @@ Planner3DWindow::Planner3DWindow( QWidget * parent, Qt::WindowFlags flags ) :
   sep_la_pline->addChild(col_la_pline);
   
   SoCoordinate3* coords_la_pline = new SoCoordinate3;
-  if(la_pline) {
-    coords_la_pline->point.set1Value(0, la_pline->getLastResult().mPoint1[0], la_pline->getLastResult().mPoint1[1], la_pline->getLastResult().mPoint1[2]);
-    coords_la_pline->point.set1Value(1, la_pline->getLastResult().mPoint2[0], la_pline->getLastResult().mPoint2[1], la_pline->getLastResult().mPoint2[2]);
-  } else {
-    coords_la_pline->point.set1Value(0, 0.0, 0.0, 0.0);
-    coords_la_pline->point.set1Value(1, 0.0, 0.0, 0.0);
-  };
+  coords_la_pline->point.set1Value(0, la_pline.mPoint1[0], la_pline.mPoint1[1], la_pline.mPoint1[2]);
+  coords_la_pline->point.set1Value(1, la_pline.mPoint2[0], la_pline.mPoint2[1], la_pline.mPoint2[2]);
   sep_la_pline->addChild(coords_la_pline);
   r_info.l_a_proxy_line = coords_la_pline;
   
@@ -497,23 +482,17 @@ void Planner3DWindow::onSolutionsVisible() {
 };
 
 void Planner3DWindow::onProxyChange() {
-  ReaK::shared_ptr< ReaK::geom::proximity_finder_3D > lr_pline = r_info.robot_lab_proxy->findMinimumDistance();
-  if(lr_pline) {
-    r_info.l_r_proxy_line->point.set1Value(0, lr_pline->getLastResult().mPoint1[0], lr_pline->getLastResult().mPoint1[1], lr_pline->getLastResult().mPoint1[2]);
-    r_info.l_r_proxy_line->point.set1Value(1, lr_pline->getLastResult().mPoint2[0], lr_pline->getLastResult().mPoint2[1], lr_pline->getLastResult().mPoint2[2]);
-  };
+  ReaK::geom::proximity_record_3D lr_pline = r_info.robot_lab_proxy->findMinimumDistance();
+  r_info.l_r_proxy_line->point.set1Value(0, lr_pline.mPoint1[0], lr_pline.mPoint1[1], lr_pline.mPoint1[2]);
+  r_info.l_r_proxy_line->point.set1Value(1, lr_pline.mPoint2[0], lr_pline.mPoint2[1], lr_pline.mPoint2[2]);
   
-  ReaK::shared_ptr< ReaK::geom::proximity_finder_3D > ra_pline = r_info.robot_airship_proxy->findMinimumDistance();
-  if(ra_pline) {
-    r_info.r_a_proxy_line->point.set1Value(0, ra_pline->getLastResult().mPoint1[0], ra_pline->getLastResult().mPoint1[1], ra_pline->getLastResult().mPoint1[2]);
-    r_info.r_a_proxy_line->point.set1Value(1, ra_pline->getLastResult().mPoint2[0], ra_pline->getLastResult().mPoint2[1], ra_pline->getLastResult().mPoint2[2]);
-  };
+  ReaK::geom::proximity_record_3D ra_pline = r_info.robot_airship_proxy->findMinimumDistance();
+  r_info.r_a_proxy_line->point.set1Value(0, ra_pline.mPoint1[0], ra_pline.mPoint1[1], ra_pline.mPoint1[2]);
+  r_info.r_a_proxy_line->point.set1Value(1, ra_pline.mPoint2[0], ra_pline.mPoint2[1], ra_pline.mPoint2[2]);
   
-  ReaK::shared_ptr< ReaK::geom::proximity_finder_3D > la_pline = r_info.lab_airship_proxy->findMinimumDistance();
-  if(la_pline) {
-    r_info.l_a_proxy_line->point.set1Value(0, la_pline->getLastResult().mPoint1[0], la_pline->getLastResult().mPoint1[1], la_pline->getLastResult().mPoint1[2]);
-    r_info.l_a_proxy_line->point.set1Value(1, la_pline->getLastResult().mPoint2[0], la_pline->getLastResult().mPoint2[1], la_pline->getLastResult().mPoint2[2]);
-  };
+  ReaK::geom::proximity_record_3D la_pline = r_info.lab_airship_proxy->findMinimumDistance();
+  r_info.l_a_proxy_line->point.set1Value(0, la_pline.mPoint1[0], la_pline.mPoint1[1], la_pline.mPoint1[2]);
+  r_info.l_a_proxy_line->point.set1Value(1, la_pline.mPoint2[0], la_pline.mPoint2[1], la_pline.mPoint2[2]);
 };
 
 #endif

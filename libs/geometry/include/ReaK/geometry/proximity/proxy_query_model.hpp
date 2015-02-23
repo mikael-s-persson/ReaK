@@ -123,7 +123,7 @@ class proxy_query_pair_2D : public named_object {
      */
     virtual ~proxy_query_pair_2D() { };
     
-    virtual shared_ptr< proximity_finder_2D > findMinimumDistance() const;
+    virtual proximity_record_2D findMinimumDistance() const;
     
     virtual bool gatherCollisionPoints(std::vector< proximity_record_2D >& aOutput) const;
     
@@ -226,7 +226,7 @@ class proxy_query_pair_3D : public named_object {
      */
     virtual ~proxy_query_pair_3D() { };
     
-    virtual shared_ptr< proximity_finder_3D > findMinimumDistance() const;
+    virtual proximity_record_3D findMinimumDistance() const;
     
     virtual bool gatherCollisionPoints(std::vector< proximity_record_3D >& aOutput) const;
     
