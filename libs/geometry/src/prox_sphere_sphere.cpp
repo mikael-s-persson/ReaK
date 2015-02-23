@@ -30,6 +30,27 @@ namespace ReaK {
 namespace geom {
 
 
+proximity_record_3D compute_proximity(const sphere& aSphere1, 
+                                      const shape_3D_precompute_pack& aPack1,
+                                      const sphere& aSphere2, 
+                                      const shape_3D_precompute_pack& aPack2) {
+  proximity_record_3D result;
+  
+  vect<double,3> c1 = aPack1.global_pose.Position;
+  vect<double,3> c2 = aPack2.global_pose.Position;
+  
+  const double s1_rad = aSphere1.getRadius();
+  const double s2_rad = aSphere2.getRadius();
+  
+  vect<double,3> diff_cc = c2 - c1;
+  double dist_cc = norm_2(diff_cc);
+  
+  result.mDistance = dist_cc - s1_rad - s2_rad;
+  result.mPoint1 = c1 + (s1_rad / dist_cc) * diff_cc;
+  result.mPoint2 = c2 - (s2_rad / dist_cc) * diff_cc;
+  return result;
+};
+
 void prox_sphere_sphere::computeProximity(const shape_3D_precompute_pack& aPack1, 
                                           const shape_3D_precompute_pack& aPack2) {
   if((!mSphere1) || (!mSphere2)) {
@@ -38,20 +59,11 @@ void prox_sphere_sphere::computeProximity(const shape_3D_precompute_pack& aPack1
     mLastResult.mPoint2 = vect<double,3>(0.0,0.0,0.0);
     return;
   };
-  vect<double,3> c1 = (aPack1.parent == mSphere1 ? 
-                       aPack1.global_pose.Position : aPack2.global_pose.Position);
-  vect<double,3> c2 = (aPack1.parent == mSphere1 ? 
-                       aPack2.global_pose.Position : aPack1.global_pose.Position);
   
-  const double s1_rad = mSphere1->getRadius();
-  const double s2_rad = mSphere2->getRadius();
-  
-  vect<double,3> diff_cc = c2 - c1;
-  double dist_cc = norm_2(diff_cc);
-  
-  mLastResult.mDistance = dist_cc - s1_rad - s2_rad;
-  mLastResult.mPoint1 = c1 + (s1_rad / dist_cc) * diff_cc;
-  mLastResult.mPoint2 = c2 - (s2_rad / dist_cc) * diff_cc;
+  if( aPack1.parent == mSphere1 ) 
+    mLastResult = compute_proximity(*mSphere1,aPack1,*mSphere2,aPack2);
+  else
+    mLastResult = compute_proximity(*mSphere2,aPack1,*mSphere1,aPack2);
   
 };
 

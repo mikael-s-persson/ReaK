@@ -32,20 +32,15 @@ namespace ReaK {
 namespace geom {
 
 
-void prox_ccylinder_ccylinder::computeProximity(const shape_3D_precompute_pack& aPack1, 
-                                                const shape_3D_precompute_pack& aPack2) {
-  if((!mCCylinder1) || (!mCCylinder2)) {
-    mLastResult.mDistance = std::numeric_limits<double>::infinity();
-    mLastResult.mPoint1 = vect<double,3>(0.0,0.0,0.0);
-    mLastResult.mPoint2 = vect<double,3>(0.0,0.0,0.0);
-    return;
-  };
+proximity_record_3D compute_proximity(const capped_cylinder& aCCylinder1, 
+                                      const shape_3D_precompute_pack& aPack1,
+                                      const capped_cylinder& aCCylinder2, 
+                                      const shape_3D_precompute_pack& aPack2) {
   using std::fabs; using std::sqrt; using ReaK::unit; using ReaK::norm_2;
+  proximity_record_3D result;
   
-  const pose_3D<double>& c1_pose = (aPack1.parent == mCCylinder1 ? 
-                                    aPack1.global_pose : aPack2.global_pose);
-  const pose_3D<double>& c2_pose = (aPack1.parent == mCCylinder1 ? 
-                                    aPack2.global_pose : aPack1.global_pose);
+  const pose_3D<double>& c1_pose = aPack1.global_pose;
+  const pose_3D<double>& c2_pose = aPack2.global_pose;
   
   const vect<double,3> cy2_c = c2_pose.Position;
   const vect<double,3> cy2_t = c2_pose.rotateToGlobal(vect<double,3>(0.0,0.0,1.0));
@@ -53,10 +48,10 @@ void prox_ccylinder_ccylinder::computeProximity(const shape_3D_precompute_pack& 
   const vect<double,3> cy2_c_rel = c1_pose.transformFromGlobal(cy2_c);
   const vect<double,3> cy2_t_rel = c1_pose.rotateFromGlobal(cy2_t);
   
-  const double cy1_len = mCCylinder1->getLength();
-  const double cy1_rad = mCCylinder1->getRadius();
-  const double cy2_len = mCCylinder2->getLength();
-  const double cy2_rad = mCCylinder2->getRadius();
+  const double cy1_len = aCCylinder1.getLength();
+  const double cy1_rad = aCCylinder1.getRadius();
+  const double cy2_len = aCCylinder2.getLength();
+  const double cy2_rad = aCCylinder2.getRadius();
   
   if(sqrt(cy2_t_rel[0] * cy2_t_rel[0] + cy2_t_rel[1] * cy2_t_rel[1]) < 1e-5) {
     // The capped-cylinders are parallel.
@@ -67,10 +62,10 @@ void prox_ccylinder_ccylinder::computeProximity(const shape_3D_precompute_pack& 
       const double min_z_rel = ((cy2_c_rel[2] - 0.5 * cy2_len > -0.5 * cy1_len) ? (cy2_c_rel[2] - 0.5 * cy2_len) : (-0.5 * cy1_len));
       const double avg_z_rel = (max_z_rel + min_z_rel) * 0.5;
       const vect<double,3> cy2_r_rel = unit(vect<double,3>(cy2_c_rel[0],cy2_c_rel[1],0.0));
-      mLastResult.mPoint1 = c1_pose.transformToGlobal(vect<double,3>(cy1_rad * cy2_r_rel[0], cy1_rad * cy2_r_rel[1], avg_z_rel));
-      mLastResult.mPoint2 = c1_pose.transformToGlobal(vect<double,3>(cy2_c_rel[0] - cy2_rad * cy2_r_rel[0], cy2_c_rel[1] - cy2_rad * cy2_r_rel[1], avg_z_rel));
-      mLastResult.mDistance = sqrt(cy2_c_rel[0] * cy2_c_rel[0] + cy2_c_rel[1] * cy2_c_rel[1]) - cy1_rad - cy2_rad;
-      return;
+      result.mPoint1 = c1_pose.transformToGlobal(vect<double,3>(cy1_rad * cy2_r_rel[0], cy1_rad * cy2_r_rel[1], avg_z_rel));
+      result.mPoint2 = c1_pose.transformToGlobal(vect<double,3>(cy2_c_rel[0] - cy2_rad * cy2_r_rel[0], cy2_c_rel[1] - cy2_rad * cy2_r_rel[1], avg_z_rel));
+      result.mDistance = sqrt(cy2_c_rel[0] * cy2_c_rel[0] + cy2_c_rel[1] * cy2_c_rel[1]) - cy1_rad - cy2_rad;
+      return result;
     };
     // there is no overlap, and thus, this boils down to a sphere-sphere problem.
     vect<double,3> cy1_spc_rel(0.0,0.0,0.0);
@@ -84,10 +79,10 @@ void prox_ccylinder_ccylinder::computeProximity(const shape_3D_precompute_pack& 
     };
     const vect<double,3> diff_v_rel = cy2_spc_rel - cy1_spc_rel;
     const double dist_v_rel = norm_2(diff_v_rel);
-    mLastResult.mPoint1 = c1_pose.transformToGlobal(cy1_spc_rel + (cy1_rad / dist_v_rel) * diff_v_rel);
-    mLastResult.mPoint2 = c1_pose.transformToGlobal(cy2_spc_rel - (cy2_rad / dist_v_rel) * diff_v_rel);
-    mLastResult.mDistance = dist_v_rel - cy1_rad - cy2_rad;
-    return;
+    result.mPoint1 = c1_pose.transformToGlobal(cy1_spc_rel + (cy1_rad / dist_v_rel) * diff_v_rel);
+    result.mPoint2 = c1_pose.transformToGlobal(cy2_spc_rel - (cy2_rad / dist_v_rel) * diff_v_rel);
+    result.mDistance = dist_v_rel - cy1_rad - cy2_rad;
+    return result;
   };
   
   // Line-Line solution:
@@ -126,9 +121,26 @@ void prox_ccylinder_ccylinder::computeProximity(const shape_3D_precompute_pack& 
   
   const vect<double,3> diff_v_rel = cy2_ptc - cy1_ptc;
   const double dist_v_rel = norm_2(diff_v_rel);
-  mLastResult.mPoint1 = c1_pose.transformToGlobal(cy1_ptc + (cy1_rad / dist_v_rel) * diff_v_rel);
-  mLastResult.mPoint2 = c1_pose.transformToGlobal(cy2_ptc - (cy2_rad / dist_v_rel) * diff_v_rel);
-  mLastResult.mDistance = dist_v_rel - cy1_rad - cy2_rad;
+  result.mPoint1 = c1_pose.transformToGlobal(cy1_ptc + (cy1_rad / dist_v_rel) * diff_v_rel);
+  result.mPoint2 = c1_pose.transformToGlobal(cy2_ptc - (cy2_rad / dist_v_rel) * diff_v_rel);
+  result.mDistance = dist_v_rel - cy1_rad - cy2_rad;
+  return result;
+};
+
+void prox_ccylinder_ccylinder::computeProximity(const shape_3D_precompute_pack& aPack1, 
+                                                const shape_3D_precompute_pack& aPack2) {
+  if((!mCCylinder1) || (!mCCylinder2)) {
+    mLastResult.mDistance = std::numeric_limits<double>::infinity();
+    mLastResult.mPoint1 = vect<double,3>(0.0,0.0,0.0);
+    mLastResult.mPoint2 = vect<double,3>(0.0,0.0,0.0);
+    return;
+  };
+  
+  if(aPack1.parent == mCCylinder1)
+    mLastResult = compute_proximity(*mCCylinder1,aPack1,*mCCylinder2,aPack2);
+  else
+    mLastResult = compute_proximity(*mCCylinder2,aPack1,*mCCylinder1,aPack2);
+  
 };
 
 

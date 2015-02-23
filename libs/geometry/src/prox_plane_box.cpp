@@ -32,27 +32,22 @@ namespace ReaK {
 namespace geom {
 
 
-void prox_plane_box::computeProximity(const shape_3D_precompute_pack& aPack1, 
+proximity_record_3D compute_proximity(const plane& aPlane, 
+                                      const shape_3D_precompute_pack& aPack1,
+                                      const box& aBox, 
                                       const shape_3D_precompute_pack& aPack2) {
-  if((!mBox) || (!mPlane)) {
-    mLastResult.mDistance = std::numeric_limits<double>::infinity();
-    mLastResult.mPoint1 = vect<double,3>(0.0,0.0,0.0);
-    mLastResult.mPoint2 = vect<double,3>(0.0,0.0,0.0);
-    return;
-  };
   using std::fabs; using std::sqrt; using ReaK::unit;
+  proximity_record_3D result;
   
-  const pose_3D<double>& bx_pose = (aPack1.parent == mBox ? 
-                                    aPack1.global_pose : aPack2.global_pose);
-  const pose_3D<double>& pl_pose = (aPack1.parent == mBox ? 
-                                    aPack2.global_pose : aPack1.global_pose);
+  const pose_3D<double>& bx_pose = aPack1.global_pose;
+  const pose_3D<double>& pl_pose = aPack2.global_pose;
   
   vect<double,3> bx_c = bx_pose.Position;
   vect<double,3> bx_x = pl_pose.rotateFromGlobal(bx_pose.rotateToGlobal(vect<double,3>(1.0,0.0,0.0)));
   vect<double,3> bx_y = pl_pose.rotateFromGlobal(bx_pose.rotateToGlobal(vect<double,3>(1.0,0.0,0.0)));
   vect<double,3> bx_z = pl_pose.rotateFromGlobal(bx_pose.rotateToGlobal(vect<double,3>(1.0,0.0,0.0)));
   
-  const vect<double,3> bx_dim = mBox->getDimensions();
+  const vect<double,3> bx_dim = aBox.getDimensions();
   
   if(bx_x[2] > 0.0)
     bx_x = -bx_x;
@@ -64,9 +59,36 @@ void prox_plane_box::computeProximity(const shape_3D_precompute_pack& aPack1,
   vect<double,3> bx_c_rel = pl_pose.transformFromGlobal(bx_c);
   vect<double,3> bx_pt_rel = bx_c_rel + 0.5 * (bx_dim[0] * bx_x + bx_dim[1] * bx_y + bx_dim[2] * bx_z);
   
-  mLastResult.mPoint1 = pl_pose.transformToGlobal(vect<double,3>(bx_pt_rel[0],bx_pt_rel[1],0.0));
-  mLastResult.mPoint2 = pl_pose.transformToGlobal(bx_pt_rel);
-  mLastResult.mDistance = bx_pt_rel[2];
+  result.mPoint1 = pl_pose.transformToGlobal(vect<double,3>(bx_pt_rel[0],bx_pt_rel[1],0.0));
+  result.mPoint2 = pl_pose.transformToGlobal(bx_pt_rel);
+  result.mDistance = bx_pt_rel[2];
+  return result;
+};
+
+proximity_record_3D compute_proximity(const box& aBox, 
+                                      const shape_3D_precompute_pack& aPack1,
+                                      const plane& aPlane, 
+                                      const shape_3D_precompute_pack& aPack2) {
+  using std::swap;
+  proximity_record_3D result = compute_proximity(aPlane, aPack2, aBox, aPack1);
+  swap(result.mPoint1,result.mPoint2);
+  return result;
+};
+
+void prox_plane_box::computeProximity(const shape_3D_precompute_pack& aPack1, 
+                                      const shape_3D_precompute_pack& aPack2) {
+  if((!mBox) || (!mPlane)) {
+    mLastResult.mDistance = std::numeric_limits<double>::infinity();
+    mLastResult.mPoint1 = vect<double,3>(0.0,0.0,0.0);
+    mLastResult.mPoint2 = vect<double,3>(0.0,0.0,0.0);
+    return;
+  };
+  
+  if( aPack1.parent == mPlane ) 
+    mLastResult = compute_proximity(*mPlane,aPack1,*mBox,aPack2);
+  else
+    mLastResult = compute_proximity(*mBox,aPack1,*mPlane,aPack2);
+  
 };
 
 

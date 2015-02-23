@@ -34,6 +34,27 @@ namespace ReaK {
 namespace geom {
 
 
+proximity_record_3D compute_proximity(const capped_cylinder& aCCylinder, 
+                                      const shape_3D_precompute_pack& aPack1,
+                                      const cylinder& aCylinder, 
+                                      const shape_3D_precompute_pack& aPack2) {
+  
+  return findProximityByGJKEPA(
+    ccylinder_support_func(aCCylinder, aPack1.global_pose), 
+    cylinder_support_func(aCylinder, aPack2.global_pose));
+  
+};
+
+proximity_record_3D compute_proximity(const cylinder& aCylinder, 
+                                      const shape_3D_precompute_pack& aPack1,
+                                      const capped_cylinder& aCCylinder, 
+                                      const shape_3D_precompute_pack& aPack2) {
+  using std::swap;
+  proximity_record_3D result = compute_proximity(aCCylinder, aPack2, aCylinder, aPack1);
+  swap(result.mPoint1,result.mPoint2);
+  return result;
+};
+
 void prox_ccylinder_cylinder::computeProximity(const shape_3D_precompute_pack& aPack1, 
                                                const shape_3D_precompute_pack& aPack2) {
   if((!mCCylinder) || (!mCylinder)) {
@@ -43,14 +64,10 @@ void prox_ccylinder_cylinder::computeProximity(const shape_3D_precompute_pack& a
     return;
   };
   
-  const pose_3D<double>& cc_pose = (aPack1.parent == mCCylinder ? 
-                                    aPack1.global_pose : aPack2.global_pose);
-  const pose_3D<double>& cy_pose = (aPack1.parent == mCCylinder ? 
-                                    aPack2.global_pose : aPack1.global_pose);
-  
-  mLastResult = findProximityByGJKEPA(
-    ccylinder_support_func(*mCCylinder, cc_pose), 
-    cylinder_support_func(*mCylinder, cy_pose));
+  if(aPack1.parent == mCCylinder)
+    mLastResult = compute_proximity(*mCCylinder,aPack1,*mCylinder,aPack2);
+  else
+    mLastResult = compute_proximity(*mCylinder,aPack1,*mCCylinder,aPack2);
   
 };
 

@@ -44,6 +44,22 @@ namespace ReaK {
 namespace geom {
 
 
+proximity_record_2D compute_proximity_of_line(const rectangle& aRectangle, 
+                                              const pose_2D<double>& aGblPose, 
+                                              const vect<double,2>& ln_c, 
+                                              const vect<double,2>& ln_t, 
+                                              double half_length);
+
+proximity_record_2D compute_proximity(const capped_rectangle& aCRect, 
+                                      const shape_2D_precompute_pack& aPack1,
+                                      const rectangle& aRectangle, 
+                                      const shape_2D_precompute_pack& aPack2);
+
+proximity_record_2D compute_proximity(const rectangle& aRectangle, 
+                                      const shape_2D_precompute_pack& aPack1,
+                                      const capped_rectangle& aCRect, 
+                                      const shape_2D_precompute_pack& aPack2);
+
 /**
  * This class is for proximity queries between a capped rectangle and a rectangle.
  */
@@ -52,10 +68,6 @@ class prox_crect_rectangle : public proximity_finder_2D {
     
     const capped_rectangle* mCRect;
     const rectangle* mRectangle;
-    
-    static void computeProximityOfLine(const rectangle&, const pose_2D<double>&, 
-                                       const vect<double,2>&, const vect<double,2>&, 
-                                       double, proximity_record_2D&);
     
   public:
     

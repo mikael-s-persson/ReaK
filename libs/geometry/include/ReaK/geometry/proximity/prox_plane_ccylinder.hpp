@@ -44,6 +44,16 @@ namespace ReaK {
 namespace geom {
 
 
+proximity_record_3D compute_proximity(const plane& aPlane, 
+                                      const shape_3D_precompute_pack& aPack1,
+                                      const capped_cylinder& aCCylinder, 
+                                      const shape_3D_precompute_pack& aPack2);
+
+proximity_record_3D compute_proximity(const capped_cylinder& aCCylinder, 
+                                      const shape_3D_precompute_pack& aPack1,
+                                      const plane& aPlane, 
+                                      const shape_3D_precompute_pack& aPack2);
+
 /**
  * This class is for proximity queries between a plane and a cylinder.
  */

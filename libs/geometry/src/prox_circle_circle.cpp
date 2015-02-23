@@ -30,6 +30,27 @@ namespace ReaK {
 namespace geom {
 
 
+proximity_record_2D compute_proximity(const circle& aCircle1, const shape_2D_precompute_pack& aPack1,
+                                      const circle& aCircle2, const shape_2D_precompute_pack& aPack2) {
+  proximity_record_2D result;
+  
+  const vect<double,2> c1 = aPack1.global_pose.Position;
+  const vect<double,2> c2 = aPack2.global_pose.Position;
+  
+  const double c1_rad = aCircle1.getRadius();
+  const double c2_rad = aCircle2.getRadius();
+  
+  const vect<double,2> diff_cc = c2 - c1;
+  const double dist_cc = norm_2(diff_cc);
+  
+  result.mDistance = dist_cc - c1_rad - c2_rad;
+  result.mPoint1 = c1 + (c1_rad / dist_cc) * diff_cc;
+  result.mPoint2 = c2 - (c2_rad / dist_cc) * diff_cc;
+  
+  return result;
+};
+
+
 void prox_circle_circle::computeProximity(const shape_2D_precompute_pack& aPack1, 
                                           const shape_2D_precompute_pack& aPack2) {
   if((!mCircle1) || (!mCircle2)) {
@@ -39,23 +60,10 @@ void prox_circle_circle::computeProximity(const shape_2D_precompute_pack& aPack1
     return;
   };
   
-  const pose_2D<double>& c1_pose = (aPack1.parent == mCircle1 ? 
-                                    aPack1.global_pose : aPack2.global_pose);
-  const pose_2D<double>& c2_pose = (aPack1.parent == mCircle1 ? 
-                                    aPack2.global_pose : aPack1.global_pose);
-  
-  const vect<double,2> c1 = c1_pose.Position;
-  const vect<double,2> c2 = c2_pose.Position;
-  
-  const double c1_rad = mCircle1->getRadius();
-  const double c2_rad = mCircle2->getRadius();
-  
-  const vect<double,2> diff_cc = c2 - c1;
-  const double dist_cc = norm_2(diff_cc);
-  
-  mLastResult.mDistance = dist_cc - c1_rad - c2_rad;
-  mLastResult.mPoint1 = c1 + (c1_rad / dist_cc) * diff_cc;
-  mLastResult.mPoint2 = c2 - (c2_rad / dist_cc) * diff_cc;
+  if( aPack1.parent == mCircle1 )
+    mLastResult = compute_proximity(*mCircle1,aPack1,*mCircle2,aPack2);
+  else
+    mLastResult = compute_proximity(*mCircle2,aPack1,*mCircle1,aPack2);
   
 };
 

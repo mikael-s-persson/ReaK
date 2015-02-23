@@ -30,27 +30,21 @@ namespace ReaK {
 namespace geom {
 
 
-void prox_circle_rectangle::computeProximity(const shape_2D_precompute_pack& aPack1, 
-                                             const shape_2D_precompute_pack& aPack2) {
-  if((!mCircle) || (!mRectangle)) {
-    mLastResult.mDistance = std::numeric_limits<double>::infinity();
-    mLastResult.mPoint1 = vect<double,2>(0.0,0.0);
-    mLastResult.mPoint2 = vect<double,2>(0.0,0.0);
-    return;
-  };
-  
+proximity_record_2D compute_proximity(const circle& aCircle, 
+                                      const shape_2D_precompute_pack& aPack1,
+                                      const rectangle& aRectangle, 
+                                      const shape_2D_precompute_pack& aPack2) {
   using std::fabs;
+  proximity_record_2D result;
   
-  const pose_2D<double>& ci_pose = (aPack1.parent == mCircle ? 
-                                    aPack1.global_pose : aPack2.global_pose);
-  const pose_2D<double>& re_pose = (aPack1.parent == mCircle ? 
-                                    aPack2.global_pose : aPack1.global_pose);
+  const pose_2D<double>& ci_pose = aPack1.global_pose;
+  const pose_2D<double>& re_pose = aPack2.global_pose;
   
   const vect<double,2> ci_c = ci_pose.Position;
   const vect<double,2> ci_c_rel = re_pose.transformFromGlobal(ci_c);
   
-  const double ci_rad = mCircle->getRadius();
-  const vect<double,2> re_dim = mRectangle->getDimensions();
+  const double ci_rad = aCircle.getRadius();
+  const vect<double,2> re_dim = aRectangle.getDimensions();
   
   bool in_x_range = ((ci_c_rel[0] > -0.5 * re_dim[0]) &&
                      (ci_c_rel[0] <  0.5 * re_dim[0]));
@@ -77,11 +71,38 @@ void prox_circle_rectangle::computeProximity(const shape_2D_precompute_pack& aPa
     corner_pt[1] = ci_c_rel[1];
   else if(ci_c_rel[1] < 0.0)
     corner_pt[1] = -corner_pt[1];
-  mLastResult.mPoint2 = re_pose.transformToGlobal(corner_pt);
-  const vect<double,2> diff_v = mLastResult.mPoint2 - ci_c;
+  result.mPoint2 = re_pose.transformToGlobal(corner_pt);
+  const vect<double,2> diff_v = result.mPoint2 - ci_c;
   const double diff_d = norm_2(diff_v);
-  mLastResult.mPoint1 = ci_c + (ci_rad / diff_d) * diff_v;
-  mLastResult.mDistance = diff_d - ci_rad;
+  result.mPoint1 = ci_c + (ci_rad / diff_d) * diff_v;
+  result.mDistance = diff_d - ci_rad;
+  return result;
+};
+
+proximity_record_2D compute_proximity(const rectangle& aRectangle, 
+                                      const shape_2D_precompute_pack& aPack1,
+                                      const circle& aCircle, 
+                                      const shape_2D_precompute_pack& aPack2) {
+  using std::swap;
+  proximity_record_2D result = compute_proximity(aCircle, aPack2, aRectangle, aPack1);
+  swap(result.mPoint1,result.mPoint2);
+  return result;
+};
+
+void prox_circle_rectangle::computeProximity(const shape_2D_precompute_pack& aPack1, 
+                                             const shape_2D_precompute_pack& aPack2) {
+  if((!mCircle) || (!mRectangle)) {
+    mLastResult.mDistance = std::numeric_limits<double>::infinity();
+    mLastResult.mPoint1 = vect<double,2>(0.0,0.0);
+    mLastResult.mPoint2 = vect<double,2>(0.0,0.0);
+    return;
+  };
+  
+  if( aPack1.parent == mCircle )
+    mLastResult = compute_proximity(*mCircle,aPack1,*mRectangle,aPack2);
+  else
+    mLastResult = compute_proximity(*mRectangle,aPack1,*mCircle,aPack2);
+  
 };
 
 

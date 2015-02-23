@@ -32,11 +32,11 @@ namespace ReaK {
 namespace geom {
 
 
-void prox_plane_plane::computeProximityOfPoint(const plane& aPlane,
-                                               const pose_3D<double>& aPlGblPose,
-                                               const vect<double,3>& aPoint, 
-                                               vect<double,3>& aPointRec, 
-                                               double& aDistance) {
+void compute_proximity_of_point(const plane& aPlane,
+                                const pose_3D<double>& aPlGblPose,
+                                const vect<double,3>& aPoint, 
+                                vect<double,3>& aPointRec, 
+                                double& aDistance) {
   using std::fabs; using std::sqrt;
   
   vect<double,3> pt_rel = aPlGblPose.transformFromGlobal(aPoint);
@@ -86,6 +86,100 @@ void prox_plane_plane::computeProximityOfPoint(const plane& aPlane,
   
 };
 
+proximity_record_3D compute_proximity(const plane& aPlane1, 
+                                      const shape_3D_precompute_pack& aPack1,
+                                      const plane& aPlane2, 
+                                      const shape_3D_precompute_pack& aPack2) {
+  proximity_record_3D result;
+  result.mDistance = std::numeric_limits<double>::infinity();
+  
+  const pose_3D<double>& p1_pose = aPack1.global_pose;
+  const pose_3D<double>& p2_pose = aPack2.global_pose;
+  
+  const vect<double,2> p1_dim = aPlane1.getDimensions();
+  const vect<double,2> p2_dim = aPlane2.getDimensions();
+  
+  vect<double,3> temp_pt;
+  double temp_dist;
+  
+  vect<double,3> corner = vect<double,3>(0.5 * p2_dim[0],
+                                         0.5 * p2_dim[1], 0.0);
+  vect<double,3> corner_gbl = p2_pose.transformToGlobal(corner);
+  compute_proximity_of_point(aPlane1, p1_pose, corner_gbl, temp_pt, temp_dist);
+  if(temp_dist < result.mDistance) {
+    result.mDistance = temp_dist;
+    result.mPoint1 = temp_pt;
+    result.mPoint2 = corner_gbl;
+  };
+  
+  corner[1] = -corner[1];
+  corner_gbl = p2_pose.transformToGlobal(corner);
+  compute_proximity_of_point(aPlane1, p1_pose, corner_gbl, temp_pt, temp_dist);
+  if(temp_dist < result.mDistance) {
+    result.mDistance = temp_dist;
+    result.mPoint1 = temp_pt;
+    result.mPoint2 = corner_gbl;
+  };
+  
+  corner[0] = -corner[0];
+  corner_gbl = p2_pose.transformToGlobal(corner);
+  compute_proximity_of_point(aPlane1, p1_pose, corner_gbl, temp_pt, temp_dist);
+  if(temp_dist < result.mDistance) {
+    result.mDistance = temp_dist;
+    result.mPoint1 = temp_pt;
+    result.mPoint2 = corner_gbl;
+  };
+  
+  corner[1] = -corner[1];
+  corner_gbl = p2_pose.transformToGlobal(corner);
+  compute_proximity_of_point(aPlane1, p1_pose, corner_gbl, temp_pt, temp_dist);
+  if(temp_dist < result.mDistance) {
+    result.mDistance = temp_dist;
+    result.mPoint1 = temp_pt;
+    result.mPoint2 = corner_gbl;
+  };
+  
+  
+  corner = vect<double,3>(0.5 * p1_dim[0],
+                          0.5 * p1_dim[1], 0.0);
+  corner_gbl = p1_pose.transformToGlobal(corner);
+  compute_proximity_of_point(aPlane2, p2_pose, corner_gbl, temp_pt, temp_dist);
+  if(temp_dist < result.mDistance) {
+    result.mDistance = temp_dist;
+    result.mPoint2 = temp_pt;
+    result.mPoint1 = corner_gbl;
+  };
+  
+  corner[1] = -corner[1];
+  corner_gbl = p1_pose.transformToGlobal(corner);
+  compute_proximity_of_point(aPlane2, p2_pose, corner_gbl, temp_pt, temp_dist);
+  if(temp_dist < result.mDistance) {
+    result.mDistance = temp_dist;
+    result.mPoint2 = temp_pt;
+    result.mPoint1 = corner_gbl;
+  };
+  
+  corner[0] = -corner[0];
+  corner_gbl = p1_pose.transformToGlobal(corner);
+  compute_proximity_of_point(aPlane2, p2_pose, corner_gbl, temp_pt, temp_dist);
+  if(temp_dist < result.mDistance) {
+    result.mDistance = temp_dist;
+    result.mPoint2 = temp_pt;
+    result.mPoint1 = corner_gbl;
+  };
+  
+  corner[1] = -corner[1];
+  corner_gbl = p1_pose.transformToGlobal(corner);
+  compute_proximity_of_point(aPlane2, p2_pose, corner_gbl, temp_pt, temp_dist);
+  if(temp_dist < result.mDistance) {
+    result.mDistance = temp_dist;
+    result.mPoint2 = temp_pt;
+    result.mPoint1 = corner_gbl;
+  };
+  
+  return result;
+};
+
     
 void prox_plane_plane::computeProximity(const shape_3D_precompute_pack& aPack1, 
                                         const shape_3D_precompute_pack& aPack2) {
@@ -96,91 +190,10 @@ void prox_plane_plane::computeProximity(const shape_3D_precompute_pack& aPack1,
   if((!mPlane1) || (!mPlane2))
     return;
   
-  const pose_3D<double>& p1_pose = (aPack1.parent == mPlane1 ? 
-                                    aPack1.global_pose : aPack2.global_pose);
-  const pose_3D<double>& p2_pose = (aPack1.parent == mPlane1 ? 
-                                    aPack2.global_pose : aPack1.global_pose);
-  
-  const vect<double,2> p1_dim = mPlane1->getDimensions();
-  const vect<double,2> p2_dim = mPlane2->getDimensions();
-  
-  vect<double,3> temp_pt;
-  double temp_dist;
-  
-  vect<double,3> corner = vect<double,3>(0.5 * p2_dim[0],
-                                         0.5 * p2_dim[1], 0.0);
-  vect<double,3> corner_gbl = p2_pose.transformToGlobal(corner);
-  computeProximityOfPoint(*mPlane1, p1_pose, corner_gbl, temp_pt, temp_dist);
-  if(temp_dist < mLastResult.mDistance) {
-    mLastResult.mDistance = temp_dist;
-    mLastResult.mPoint1 = temp_pt;
-    mLastResult.mPoint2 = corner_gbl;
-  };
-  
-  corner[1] = -corner[1];
-  corner_gbl = p2_pose.transformToGlobal(corner);
-  computeProximityOfPoint(*mPlane1, p1_pose, corner_gbl, temp_pt, temp_dist);
-  if(temp_dist < mLastResult.mDistance) {
-    mLastResult.mDistance = temp_dist;
-    mLastResult.mPoint1 = temp_pt;
-    mLastResult.mPoint2 = corner_gbl;
-  };
-  
-  corner[0] = -corner[0];
-  corner_gbl = p2_pose.transformToGlobal(corner);
-  computeProximityOfPoint(*mPlane1, p1_pose, corner_gbl, temp_pt, temp_dist);
-  if(temp_dist < mLastResult.mDistance) {
-    mLastResult.mDistance = temp_dist;
-    mLastResult.mPoint1 = temp_pt;
-    mLastResult.mPoint2 = corner_gbl;
-  };
-  
-  corner[1] = -corner[1];
-  corner_gbl = p2_pose.transformToGlobal(corner);
-  computeProximityOfPoint(*mPlane1, p1_pose, corner_gbl, temp_pt, temp_dist);
-  if(temp_dist < mLastResult.mDistance) {
-    mLastResult.mDistance = temp_dist;
-    mLastResult.mPoint1 = temp_pt;
-    mLastResult.mPoint2 = corner_gbl;
-  };
-  
-  
-  corner = vect<double,3>(0.5 * p1_dim[0],
-                          0.5 * p1_dim[1], 0.0);
-  corner_gbl = p1_pose.transformToGlobal(corner);
-  computeProximityOfPoint(*mPlane2, p2_pose, corner_gbl, temp_pt, temp_dist);
-  if(temp_dist < mLastResult.mDistance) {
-    mLastResult.mDistance = temp_dist;
-    mLastResult.mPoint2 = temp_pt;
-    mLastResult.mPoint1 = corner_gbl;
-  };
-  
-  corner[1] = -corner[1];
-  corner_gbl = p1_pose.transformToGlobal(corner);
-  computeProximityOfPoint(*mPlane2, p2_pose, corner_gbl, temp_pt, temp_dist);
-  if(temp_dist < mLastResult.mDistance) {
-    mLastResult.mDistance = temp_dist;
-    mLastResult.mPoint2 = temp_pt;
-    mLastResult.mPoint1 = corner_gbl;
-  };
-  
-  corner[0] = -corner[0];
-  corner_gbl = p1_pose.transformToGlobal(corner);
-  computeProximityOfPoint(*mPlane2, p2_pose, corner_gbl, temp_pt, temp_dist);
-  if(temp_dist < mLastResult.mDistance) {
-    mLastResult.mDistance = temp_dist;
-    mLastResult.mPoint2 = temp_pt;
-    mLastResult.mPoint1 = corner_gbl;
-  };
-  
-  corner[1] = -corner[1];
-  corner_gbl = p1_pose.transformToGlobal(corner);
-  computeProximityOfPoint(*mPlane2, p2_pose, corner_gbl, temp_pt, temp_dist);
-  if(temp_dist < mLastResult.mDistance) {
-    mLastResult.mDistance = temp_dist;
-    mLastResult.mPoint2 = temp_pt;
-    mLastResult.mPoint1 = corner_gbl;
-  };
+  if( aPack1.parent == mPlane1 ) 
+    mLastResult = compute_proximity(*mPlane1,aPack1,*mPlane2,aPack2);
+  else
+    mLastResult = compute_proximity(*mPlane2,aPack1,*mPlane1,aPack2);
   
 };
 

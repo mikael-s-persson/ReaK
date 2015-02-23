@@ -43,6 +43,11 @@ namespace ReaK {
 namespace geom {
 
 
+proximity_record_2D compute_proximity(const capped_rectangle& aCRect1, 
+                                      const shape_2D_precompute_pack& aPack1,
+                                      const capped_rectangle& aCRect2, 
+                                      const shape_2D_precompute_pack& aPack2);
+
 /**
  * This class is for proximity queries between two capped rectangles.
  */

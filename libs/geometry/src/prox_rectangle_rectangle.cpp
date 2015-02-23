@@ -30,11 +30,11 @@ namespace ReaK {
 namespace geom {
 
 
-void prox_rectangle_rectangle::computeProximityOfPoint(const rectangle& aRectangle, 
-                                                       const pose_2D<double>& aRecGblPose,
-                                                       const vect<double,2>& aPoint, 
-                                                       vect<double,2>& aPointRec, 
-                                                       double& aDistance) {
+void compute_proximity_of_point(const rectangle& aRectangle, 
+                                const pose_2D<double>& aRecGblPose,
+                                const vect<double,2>& aPoint, 
+                                vect<double,2>& aPointRec, 
+                                double& aDistance) {
   using std::fabs;
   
   vect<double,2> pt_rel = aRecGblPose.transformFromGlobal(aPoint);
@@ -69,7 +69,96 @@ void prox_rectangle_rectangle::computeProximityOfPoint(const rectangle& aRectang
   aPointRec = aRecGblPose.transformToGlobal(corner_pt);
   aDistance = norm_2(aPointRec - aPoint);
 };
-    
+
+proximity_record_2D compute_proximity(const rectangle& aRectangle1, 
+                                      const shape_2D_precompute_pack& aPack1,
+                                      const rectangle& aRectangle2, 
+                                      const shape_2D_precompute_pack& aPack2) {
+  proximity_record_2D result;
+  result.mDistance = std::numeric_limits<double>::infinity();
+  
+  const pose_2D<double>& r1_pose = aPack1.global_pose;
+  const pose_2D<double>& r2_pose = aPack2.global_pose;
+  
+  vect<double,2> temp_pt;
+  double temp_dist;
+  
+  vect<double,2> corner = 0.5 * aRectangle2.getDimensions();
+  vect<double,2> corner_gbl = r2_pose.transformToGlobal(corner);
+  compute_proximity_of_point(aRectangle1, r1_pose, corner_gbl, temp_pt, temp_dist);
+  if(temp_dist < result.mDistance) {
+    result.mDistance = temp_dist;
+    result.mPoint1 = temp_pt;
+    result.mPoint2 = corner_gbl;
+  };
+  
+  corner[1] = -corner[1];
+  corner_gbl = r2_pose.transformToGlobal(corner);
+  compute_proximity_of_point(aRectangle1, r1_pose, corner_gbl, temp_pt, temp_dist);
+  if(temp_dist < result.mDistance) {
+    result.mDistance = temp_dist;
+    result.mPoint1 = temp_pt;
+    result.mPoint2 = corner_gbl;
+  };
+  
+  corner[0] = -corner[0];
+  corner_gbl = r2_pose.transformToGlobal(corner);
+  compute_proximity_of_point(aRectangle1, r1_pose, corner_gbl, temp_pt, temp_dist);
+  if(temp_dist < result.mDistance) {
+    result.mDistance = temp_dist;
+    result.mPoint1 = temp_pt;
+    result.mPoint2 = corner_gbl;
+  };
+  
+  corner[1] = -corner[1];
+  corner_gbl = r2_pose.transformToGlobal(corner);
+  compute_proximity_of_point(aRectangle1, r1_pose, corner_gbl, temp_pt, temp_dist);
+  if(temp_dist < result.mDistance) {
+    result.mDistance = temp_dist;
+    result.mPoint1 = temp_pt;
+    result.mPoint2 = corner_gbl;
+  };
+  
+  
+  corner = 0.5 * aRectangle1.getDimensions();
+  corner_gbl = r1_pose.transformToGlobal(corner);
+  compute_proximity_of_point(aRectangle2, r2_pose, corner_gbl, temp_pt, temp_dist);
+  if(temp_dist < result.mDistance) {
+    result.mDistance = temp_dist;
+    result.mPoint2 = temp_pt;
+    result.mPoint1 = corner_gbl;
+  };
+  
+  corner[1] = -corner[1];
+  corner_gbl = r1_pose.transformToGlobal(corner);
+  compute_proximity_of_point(aRectangle2, r2_pose, corner_gbl, temp_pt, temp_dist);
+  if(temp_dist < result.mDistance) {
+    result.mDistance = temp_dist;
+    result.mPoint2 = temp_pt;
+    result.mPoint1 = corner_gbl;
+  };
+  
+  corner[0] = -corner[0];
+  corner_gbl = r1_pose.transformToGlobal(corner);
+  compute_proximity_of_point(aRectangle2, r2_pose, corner_gbl, temp_pt, temp_dist);
+  if(temp_dist < result.mDistance) {
+    result.mDistance = temp_dist;
+    result.mPoint2 = temp_pt;
+    result.mPoint1 = corner_gbl;
+  };
+  
+  corner[1] = -corner[1];
+  corner_gbl = r1_pose.transformToGlobal(corner);
+  compute_proximity_of_point(aRectangle2, r2_pose, corner_gbl, temp_pt, temp_dist);
+  if(temp_dist < result.mDistance) {
+    result.mDistance = temp_dist;
+    result.mPoint2 = temp_pt;
+    result.mPoint1 = corner_gbl;
+  };
+  
+  return result;
+};
+
 void prox_rectangle_rectangle::computeProximity(const shape_2D_precompute_pack& aPack1, 
                                                 const shape_2D_precompute_pack& aPack2) {
   mLastResult.mDistance = std::numeric_limits<double>::infinity();
@@ -78,86 +167,10 @@ void prox_rectangle_rectangle::computeProximity(const shape_2D_precompute_pack& 
   if((!mRectangle1) || (!mRectangle2))
     return;
   
-  const pose_2D<double>& r1_pose = (aPack1.parent == mRectangle1 ? 
-                                    aPack1.global_pose : aPack2.global_pose);
-  const pose_2D<double>& r2_pose = (aPack1.parent == mRectangle1 ? 
-                                    aPack2.global_pose : aPack1.global_pose);
-  
-  vect<double,2> temp_pt;
-  double temp_dist;
-  
-  vect<double,2> corner = 0.5 * mRectangle2->getDimensions();
-  vect<double,2> corner_gbl = r2_pose.transformToGlobal(corner);
-  computeProximityOfPoint(*mRectangle1, r1_pose, corner_gbl, temp_pt, temp_dist);
-  if(temp_dist < mLastResult.mDistance) {
-    mLastResult.mDistance = temp_dist;
-    mLastResult.mPoint1 = temp_pt;
-    mLastResult.mPoint2 = corner_gbl;
-  };
-  
-  corner[1] = -corner[1];
-  corner_gbl = r2_pose.transformToGlobal(corner);
-  computeProximityOfPoint(*mRectangle1, r1_pose, corner_gbl, temp_pt, temp_dist);
-  if(temp_dist < mLastResult.mDistance) {
-    mLastResult.mDistance = temp_dist;
-    mLastResult.mPoint1 = temp_pt;
-    mLastResult.mPoint2 = corner_gbl;
-  };
-  
-  corner[0] = -corner[0];
-  corner_gbl = r2_pose.transformToGlobal(corner);
-  computeProximityOfPoint(*mRectangle1, r1_pose, corner_gbl, temp_pt, temp_dist);
-  if(temp_dist < mLastResult.mDistance) {
-    mLastResult.mDistance = temp_dist;
-    mLastResult.mPoint1 = temp_pt;
-    mLastResult.mPoint2 = corner_gbl;
-  };
-  
-  corner[1] = -corner[1];
-  corner_gbl = r2_pose.transformToGlobal(corner);
-  computeProximityOfPoint(*mRectangle1, r1_pose, corner_gbl, temp_pt, temp_dist);
-  if(temp_dist < mLastResult.mDistance) {
-    mLastResult.mDistance = temp_dist;
-    mLastResult.mPoint1 = temp_pt;
-    mLastResult.mPoint2 = corner_gbl;
-  };
-  
-  
-  corner = 0.5 * mRectangle1->getDimensions();
-  corner_gbl = r1_pose.transformToGlobal(corner);
-  computeProximityOfPoint(*mRectangle2, r2_pose, corner_gbl, temp_pt, temp_dist);
-  if(temp_dist < mLastResult.mDistance) {
-    mLastResult.mDistance = temp_dist;
-    mLastResult.mPoint2 = temp_pt;
-    mLastResult.mPoint1 = corner_gbl;
-  };
-  
-  corner[1] = -corner[1];
-  corner_gbl = r1_pose.transformToGlobal(corner);
-  computeProximityOfPoint(*mRectangle2, r2_pose, corner_gbl, temp_pt, temp_dist);
-  if(temp_dist < mLastResult.mDistance) {
-    mLastResult.mDistance = temp_dist;
-    mLastResult.mPoint2 = temp_pt;
-    mLastResult.mPoint1 = corner_gbl;
-  };
-  
-  corner[0] = -corner[0];
-  corner_gbl = r1_pose.transformToGlobal(corner);
-  computeProximityOfPoint(*mRectangle2, r2_pose, corner_gbl, temp_pt, temp_dist);
-  if(temp_dist < mLastResult.mDistance) {
-    mLastResult.mDistance = temp_dist;
-    mLastResult.mPoint2 = temp_pt;
-    mLastResult.mPoint1 = corner_gbl;
-  };
-  
-  corner[1] = -corner[1];
-  corner_gbl = r1_pose.transformToGlobal(corner);
-  computeProximityOfPoint(*mRectangle2, r2_pose, corner_gbl, temp_pt, temp_dist);
-  if(temp_dist < mLastResult.mDistance) {
-    mLastResult.mDistance = temp_dist;
-    mLastResult.mPoint2 = temp_pt;
-    mLastResult.mPoint1 = corner_gbl;
-  };
+  if( aPack1.parent == mRectangle1 ) 
+    mLastResult = compute_proximity(*mRectangle1,aPack1,*mRectangle2,aPack2);
+  else
+    mLastResult = compute_proximity(*mRectangle2,aPack1,*mRectangle1,aPack2);
   
 };
 

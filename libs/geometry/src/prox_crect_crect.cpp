@@ -30,18 +30,14 @@ namespace ReaK {
 namespace geom {
 
 
-void prox_crect_crect::computeProximity(const shape_2D_precompute_pack& aPack1, 
-                                        const shape_2D_precompute_pack& aPack2) {
-  mLastResult.mDistance = std::numeric_limits<double>::infinity();
-  mLastResult.mPoint1 = vect<double,2>(0.0,0.0);
-  mLastResult.mPoint2 = vect<double,2>(0.0,0.0);
-  if((!mCRect1) || (!mCRect2))
-    return;
+proximity_record_2D compute_proximity(const capped_rectangle& aCRect1, 
+                                      const shape_2D_precompute_pack& aPack1,
+                                      const capped_rectangle& aCRect2, 
+                                      const shape_2D_precompute_pack& aPack2) {
+  proximity_record_2D result;
   
-  const pose_2D<double>& cr1_pose = (aPack1.parent == mCRect1 ? 
-                                     aPack1.global_pose : aPack2.global_pose);
-  const pose_2D<double>& cr2_pose = (aPack1.parent == mCRect1 ? 
-                                     aPack2.global_pose : aPack1.global_pose);
+  const pose_2D<double>& cr1_pose = aPack1.global_pose;
+  const pose_2D<double>& cr2_pose = aPack2.global_pose;
   
   const vect<double,2> cr2_c = cr2_pose.Position;
   const vect<double,2> cr2_t = cr2_pose.rotateToGlobal(vect<double,2>(1.0,0.0));
@@ -49,8 +45,8 @@ void prox_crect_crect::computeProximity(const shape_2D_precompute_pack& aPack1,
   const vect<double,2> cr2_c_rel = cr1_pose.transformFromGlobal(cr2_c);
   const vect<double,2> cr2_t_rel = cr1_pose.rotateFromGlobal(cr2_t);
   
-  const vect<double,2> cr1_dim = mCRect1->getDimensions();
-  const vect<double,2> cr2_dim = mCRect2->getDimensions();
+  const vect<double,2> cr1_dim = aCRect1.getDimensions();
+  const vect<double,2> cr2_dim = aCRect2.getDimensions();
   
   
   if(fabs(cr2_t_rel[1]) < 1e-5) {
@@ -64,10 +60,10 @@ void prox_crect_crect::computeProximity(const shape_2D_precompute_pack& aPack1,
       vect<double,2> cr2_r_rel(0.0,1.0);
       if(cr2_c_rel[1] < 0.0)
         cr2_r_rel[1] = -1.0;
-      mLastResult.mPoint1 = cr1_pose.transformToGlobal(vect<double,2>(avg_x_rel, 0.5 * cr1_dim[1] * cr2_r_rel[1]));
-      mLastResult.mPoint2 = cr1_pose.transformToGlobal(vect<double,2>(avg_x_rel, cr2_c_rel[1] - 0.5 * cr2_dim[1] * cr2_r_rel[1]));
-      mLastResult.mDistance = fabs(cr2_c_rel[1]) - 0.5 * cr1_dim[1] - 0.5 * cr2_dim[1];
-      return;
+      result.mPoint1 = cr1_pose.transformToGlobal(vect<double,2>(avg_x_rel, 0.5 * cr1_dim[1] * cr2_r_rel[1]));
+      result.mPoint2 = cr1_pose.transformToGlobal(vect<double,2>(avg_x_rel, cr2_c_rel[1] - 0.5 * cr2_dim[1] * cr2_r_rel[1]));
+      result.mDistance = fabs(cr2_c_rel[1]) - 0.5 * cr1_dim[1] - 0.5 * cr2_dim[1];
+      return result;
     };
     // there is no overlap, and thus, this boils down to a circle-circle problem.
     vect<double,2> cr1_cic_rel(0.0,0.0);
@@ -81,10 +77,10 @@ void prox_crect_crect::computeProximity(const shape_2D_precompute_pack& aPack1,
     };
     const vect<double,2> diff_v_rel = cr2_cic_rel - cr1_cic_rel;
     const double dist_v_rel = norm_2(diff_v_rel);
-    mLastResult.mPoint1 = cr1_pose.transformToGlobal(cr1_cic_rel + (0.5 * cr1_dim[1] / dist_v_rel) * diff_v_rel);
-    mLastResult.mPoint2 = cr1_pose.transformToGlobal(cr2_cic_rel - (0.5 * cr2_dim[1] / dist_v_rel) * diff_v_rel);
-    mLastResult.mDistance = dist_v_rel - 0.5 * cr1_dim[1] - 0.5 * cr2_dim[1];
-    return;
+    result.mPoint1 = cr1_pose.transformToGlobal(cr1_cic_rel + (0.5 * cr1_dim[1] / dist_v_rel) * diff_v_rel);
+    result.mPoint2 = cr1_pose.transformToGlobal(cr2_cic_rel - (0.5 * cr2_dim[1] / dist_v_rel) * diff_v_rel);
+    result.mDistance = dist_v_rel - 0.5 * cr1_dim[1] - 0.5 * cr2_dim[1];
+    return result;
   };
   
   
@@ -124,9 +120,24 @@ void prox_crect_crect::computeProximity(const shape_2D_precompute_pack& aPack1,
   
   const vect<double,2> diff_v_rel = cr2_ptc - cr1_ptc;
   const double dist_v_rel = norm_2(diff_v_rel);
-  mLastResult.mPoint1 = cr1_pose.transformToGlobal(cr1_ptc + (0.5 * cr1_dim[1] / dist_v_rel) * diff_v_rel);
-  mLastResult.mPoint2 = cr1_pose.transformToGlobal(cr2_ptc - (0.5 * cr2_dim[1] / dist_v_rel) * diff_v_rel);
-  mLastResult.mDistance = dist_v_rel - 0.5 * cr1_dim[1] - 0.5 * cr2_dim[1];
+  result.mPoint1 = cr1_pose.transformToGlobal(cr1_ptc + (0.5 * cr1_dim[1] / dist_v_rel) * diff_v_rel);
+  result.mPoint2 = cr1_pose.transformToGlobal(cr2_ptc - (0.5 * cr2_dim[1] / dist_v_rel) * diff_v_rel);
+  result.mDistance = dist_v_rel - 0.5 * cr1_dim[1] - 0.5 * cr2_dim[1];
+  return result;
+};
+
+void prox_crect_crect::computeProximity(const shape_2D_precompute_pack& aPack1, 
+                                        const shape_2D_precompute_pack& aPack2) {
+  mLastResult.mDistance = std::numeric_limits<double>::infinity();
+  mLastResult.mPoint1 = vect<double,2>(0.0,0.0);
+  mLastResult.mPoint2 = vect<double,2>(0.0,0.0);
+  if((!mCRect1) || (!mCRect2))
+    return;
+  
+  if( aPack1.parent == mCRect1 )
+    mLastResult = compute_proximity(*mCRect1,aPack1,*mCRect2,aPack2);
+  else
+    mLastResult = compute_proximity(*mCRect2,aPack1,*mCRect1,aPack2);
   
 };
 

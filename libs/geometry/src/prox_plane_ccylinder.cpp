@@ -32,6 +32,52 @@ namespace ReaK {
 namespace geom {
 
 
+proximity_record_3D compute_proximity(const plane& aPlane, 
+                                      const shape_3D_precompute_pack& aPack1,
+                                      const capped_cylinder& aCCylinder, 
+                                      const shape_3D_precompute_pack& aPack2) {
+  using std::fabs; using std::sqrt; using ReaK::unit;
+  proximity_record_3D result;
+  
+  const pose_3D<double>& cy_pose = aPack1.global_pose;
+  const pose_3D<double>& pl_pose = aPack2.global_pose;
+  
+  vect<double,3> cy_c = cy_pose.Position;
+  vect<double,3> cy_t = cy_pose.rotateToGlobal(vect<double,3>(0.0,0.0,1.0));
+  
+  vect<double,3> cy_c_rel = pl_pose.transformFromGlobal(cy_c);
+  vect<double,3> cy_t_rel = pl_pose.rotateFromGlobal(cy_t);
+  
+  const double cy_len = aCCylinder.getLength();
+  const double cy_rad = aCCylinder.getRadius();
+  
+  if(fabs(cy_t_rel[2]) < 1e-6) {
+    // The capped-cylinder is sitting flat (on its side) on the plane.
+    result.mPoint1 = pl_pose.transformToGlobal(vect<double,3>(cy_c_rel[0],cy_c_rel[1],0.0));
+    result.mPoint2 = pl_pose.transformToGlobal(vect<double,3>(cy_c_rel[0],cy_c_rel[1],cy_c_rel[2] - cy_rad));
+    result.mDistance = cy_c_rel[2] - cy_rad;
+  } else {
+    // The capped-cylinder is at an angle to the plane.
+    if(cy_t_rel[2] > 0.0)
+      cy_t_rel = -cy_t_rel;
+    vect<double,3> cypt_rel = cy_c_rel + (0.5 * cy_len) * cy_t_rel + vect<double,3>(0.0,0.0,-cy_rad);
+    result.mPoint1 = pl_pose.transformToGlobal(vect<double,3>(cypt_rel[0],cypt_rel[1],0.0));
+    result.mPoint2 = pl_pose.transformToGlobal(cypt_rel);
+    result.mDistance = cypt_rel[2];
+  };
+  return result;
+};
+
+proximity_record_3D compute_proximity(const capped_cylinder& aCCylinder, 
+                                      const shape_3D_precompute_pack& aPack1,
+                                      const plane& aPlane, 
+                                      const shape_3D_precompute_pack& aPack2) {
+  using std::swap;
+  proximity_record_3D result = compute_proximity(aPlane, aPack2, aCCylinder, aPack1);
+  swap(result.mPoint1,result.mPoint2);
+  return result;
+};
+
 void prox_plane_ccylinder::computeProximity(const shape_3D_precompute_pack& aPack1, 
                                             const shape_3D_precompute_pack& aPack2) {
   if((!mCCylinder) || (!mPlane)) {
@@ -40,36 +86,12 @@ void prox_plane_ccylinder::computeProximity(const shape_3D_precompute_pack& aPac
     mLastResult.mPoint2 = vect<double,3>(0.0,0.0,0.0);
     return;
   };
-  using std::fabs; using std::sqrt; using ReaK::unit;
   
-  const pose_3D<double>& cy_pose = (aPack1.parent == mCCylinder ? 
-                                    aPack1.global_pose : aPack2.global_pose);
-  const pose_3D<double>& pl_pose = (aPack1.parent == mCCylinder ? 
-                                    aPack2.global_pose : aPack1.global_pose);
+  if( aPack1.parent == mPlane ) 
+    mLastResult = compute_proximity(*mPlane,aPack1,*mCCylinder,aPack2);
+  else
+    mLastResult = compute_proximity(*mCCylinder,aPack1,*mPlane,aPack2);
   
-  vect<double,3> cy_c = cy_pose.Position;
-  vect<double,3> cy_t = cy_pose.rotateToGlobal(vect<double,3>(0.0,0.0,1.0));
-  
-  vect<double,3> cy_c_rel = pl_pose.transformFromGlobal(cy_c);
-  vect<double,3> cy_t_rel = pl_pose.rotateFromGlobal(cy_t);
-  
-  const double cy_len = mCCylinder->getLength();
-  const double cy_rad = mCCylinder->getRadius();
-  
-  if(fabs(cy_t_rel[2]) < 1e-6) {
-    // The capped-cylinder is sitting flat (on its side) on the plane.
-    mLastResult.mPoint1 = pl_pose.transformToGlobal(vect<double,3>(cy_c_rel[0],cy_c_rel[1],0.0));
-    mLastResult.mPoint2 = pl_pose.transformToGlobal(vect<double,3>(cy_c_rel[0],cy_c_rel[1],cy_c_rel[2] - cy_rad));
-    mLastResult.mDistance = cy_c_rel[2] - cy_rad;
-  } else {
-    // The capped-cylinder is at an angle to the plane.
-    if(cy_t_rel[2] > 0.0)
-      cy_t_rel = -cy_t_rel;
-    vect<double,3> cypt_rel = cy_c_rel + (0.5 * cy_len) * cy_t_rel + vect<double,3>(0.0,0.0,-cy_rad);
-    mLastResult.mPoint1 = pl_pose.transformToGlobal(vect<double,3>(cypt_rel[0],cypt_rel[1],0.0));
-    mLastResult.mPoint2 = pl_pose.transformToGlobal(cypt_rel);
-    mLastResult.mDistance = cypt_rel[2];
-  };
 };
 
 

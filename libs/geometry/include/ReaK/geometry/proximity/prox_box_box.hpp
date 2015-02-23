@@ -45,6 +45,10 @@ namespace ReaK {
 namespace geom {
 
 
+proximity_record_3D compute_proximity(const box& aBox1, const shape_3D_precompute_pack& aPack1,
+                                      const box& aBox2, const shape_3D_precompute_pack& aPack2);
+
+
 /**
  * This class is for proximity queries between a box and a box.
  */

@@ -43,6 +43,18 @@ namespace ReaK {
 namespace geom {
 
 
+void compute_proximity_of_point(const rectangle& aRectangle, 
+                                const pose_2D<double>& aRecGblPose,
+                                const vect<double,2>& aPoint, 
+                                vect<double,2>& aPointRec, 
+                                double& aDistance);
+
+proximity_record_2D compute_proximity(const rectangle& aRectangle1, 
+                                      const shape_2D_precompute_pack& aPack1,
+                                      const rectangle& aRectangle2, 
+                                      const shape_2D_precompute_pack& aPack2);
+
+
 /**
  * This class is for proximity queries between two rectangles.
  */
@@ -51,9 +63,6 @@ class prox_rectangle_rectangle : public proximity_finder_2D {
     
     const rectangle* mRectangle1;
     const rectangle* mRectangle2;
-    
-    static void computeProximityOfPoint(const rectangle&, const pose_2D<double>&, 
-                                        const vect<double,2>&, vect<double,2>&, double&);
     
   public:
     

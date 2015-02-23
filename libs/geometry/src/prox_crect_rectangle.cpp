@@ -30,9 +30,13 @@ namespace ReaK {
 namespace geom {
 
 
-void prox_crect_rectangle::computeProximityOfLine(const rectangle& aRectangle, const pose_2D<double>& aGblPose, const vect<double,2>& ln_c, const vect<double,2>& ln_t, double half_length, proximity_record_2D& result) {
-  
+proximity_record_2D compute_proximity_of_line(const rectangle& aRectangle, 
+                                              const pose_2D<double>& aGblPose, 
+                                              const vect<double,2>& ln_c, 
+                                              const vect<double,2>& ln_t, 
+                                              double half_length) {
   using std::fabs;
+  proximity_record_2D result;
   
   const vect<double,2> re_dim = aRectangle.getDimensions();
   
@@ -53,7 +57,7 @@ void prox_crect_rectangle::computeProximityOfLine(const rectangle& aRectangle, c
       result.mPoint1 = aGblPose.transformToGlobal(vect<double,2>(ln_c_rel[0], avg_y_rel));
       result.mPoint2 = aGblPose.transformToGlobal(vect<double,2>(0.5 * re_dim[0] * ln_r_rel[0], avg_y_rel));
       result.mDistance = fabs(ln_c_rel[0]) - 0.5 * re_dim[0];
-      return;
+      return result;
     };
     
     // there is no overlap, and thus, this boils down to a point-point problem.
@@ -76,7 +80,7 @@ void prox_crect_rectangle::computeProximityOfLine(const rectangle& aRectangle, c
     result.mPoint1 = aGblPose.transformToGlobal(ln_pt_rel);
     result.mPoint2 = aGblPose.transformToGlobal(re_pt_rel);
     result.mDistance = dist_v_rel;
-    return;
+    return result;
   };
   
   if(fabs(ln_t_rel[1]) < 1e-5) {
@@ -93,7 +97,7 @@ void prox_crect_rectangle::computeProximityOfLine(const rectangle& aRectangle, c
       result.mPoint1 = aGblPose.transformToGlobal(vect<double,2>(avg_x_rel, ln_c_rel[1]));
       result.mPoint2 = aGblPose.transformToGlobal(vect<double,2>(avg_x_rel, 0.5 * re_dim[1] * ln_r_rel[1]));
       result.mDistance = fabs(ln_c_rel[1]) - 0.5 * re_dim[1];
-      return;
+      return result;
     };
     
     // there is no overlap, and thus, this boils down to a point-point problem.
@@ -116,7 +120,7 @@ void prox_crect_rectangle::computeProximityOfLine(const rectangle& aRectangle, c
     result.mPoint1 = aGblPose.transformToGlobal(ln_pt_rel);
     result.mPoint2 = aGblPose.transformToGlobal(re_pt_rel);
     result.mDistance = dist_v_rel;
-    return;
+    return result;
   };
   
   // in any other case, we have to resort to the segment-point test.
@@ -170,9 +174,45 @@ void prox_crect_rectangle::computeProximityOfLine(const rectangle& aRectangle, c
     result.mDistance = dist_tmp;
   };
   
-  return;
+  return result;
 };
 
+proximity_record_2D compute_proximity(const capped_rectangle& aCRect, 
+                                      const shape_2D_precompute_pack& aPack1,
+                                      const rectangle& aRectangle, 
+                                      const shape_2D_precompute_pack& aPack2) {
+  proximity_record_2D result;
+  
+  const pose_2D<double>& re_pose = aPack1.global_pose;
+  const pose_2D<double>& cr_pose = aPack2.global_pose;
+  
+  vect<double,2> cr_c = cr_pose.Position;
+  vect<double,2> cr_t = cr_pose.rotateToGlobal(vect<double,2>(1.0,0.0));
+  
+  const vect<double,2> cr_dim = aCRect.getDimensions();
+  
+  result = compute_proximity_of_line(aRectangle, re_pose, cr_c, cr_t, 0.5 * cr_dim[0]); 
+  
+  // add a circle-sweep around the line-rectangle solution.
+  vect<double,2> diff_v = result.mPoint2 - result.mPoint1;
+  double diff_d = norm_2(diff_v);
+  if(result.mDistance < 0.0)
+    result.mPoint1 -= (0.5 * cr_dim[1] / diff_d) * diff_v;
+  else
+    result.mPoint1 += (0.5 * cr_dim[1] / diff_d) * diff_v;
+  result.mDistance -= 0.5 * cr_dim[1];
+  return result;
+};
+
+proximity_record_2D compute_proximity(const rectangle& aRectangle, 
+                                      const shape_2D_precompute_pack& aPack1,
+                                      const capped_rectangle& aCRect, 
+                                      const shape_2D_precompute_pack& aPack2) {
+  using std::swap;
+  proximity_record_2D result = compute_proximity(aCRect, aPack2, aRectangle, aPack1);
+  swap(result.mPoint1,result.mPoint2);
+  return result;
+};
 
 void prox_crect_rectangle::computeProximity(const shape_2D_precompute_pack& aPack1, 
                                             const shape_2D_precompute_pack& aPack2) {
@@ -182,27 +222,11 @@ void prox_crect_rectangle::computeProximity(const shape_2D_precompute_pack& aPac
   if((!mCRect) || (!mRectangle))
     return;
   
-  const pose_2D<double>& re_pose = (aPack1.parent == mRectangle ? 
-                                    aPack1.global_pose : aPack2.global_pose);
-  const pose_2D<double>& cr_pose = (aPack1.parent == mRectangle ? 
-                                    aPack2.global_pose : aPack1.global_pose);
-  
-  vect<double,2> cr_c = cr_pose.Position;
-  vect<double,2> cr_t = cr_pose.rotateToGlobal(vect<double,2>(1.0,0.0));
-  
-  const vect<double,2> cr_dim = mCRect->getDimensions();
-  
-  computeProximityOfLine(*mRectangle, re_pose, cr_c, cr_t, 0.5 * cr_dim[0], mLastResult); 
-  
-  // add a circle-sweep around the line-rectangle solution.
-  vect<double,2> diff_v = mLastResult.mPoint2 - mLastResult.mPoint1;
-  double diff_d = norm_2(diff_v);
-  if(mLastResult.mDistance < 0.0)
-    mLastResult.mPoint1 -= (0.5 * cr_dim[1] / diff_d) * diff_v;
+  if( aPack1.parent == mCRect )
+    mLastResult = compute_proximity(*mCRect,aPack1,*mRectangle,aPack2);
   else
-    mLastResult.mPoint1 += (0.5 * cr_dim[1] / diff_d) * diff_v;
-  mLastResult.mDistance -= 0.5 * cr_dim[1];
-  return;
+    mLastResult = compute_proximity(*mRectangle,aPack1,*mCRect,aPack2);
+  
 };
 
 

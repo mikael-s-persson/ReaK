@@ -43,6 +43,17 @@ namespace ReaK {
 namespace geom {
 
 
+void compute_proximity_of_point(const plane& aPlane,
+                                const pose_3D<double>& aPlGblPose,
+                                const vect<double,3>& aPoint, 
+                                vect<double,3>& aPointRec, 
+                                double& aDistance);
+
+proximity_record_3D compute_proximity(const plane& aPlane1, 
+                                      const shape_3D_precompute_pack& aPack1,
+                                      const plane& aPlane2, 
+                                      const shape_3D_precompute_pack& aPack2);
+
 /**
  * This class is for proximity queries between two planes.
  */
@@ -51,9 +62,6 @@ class prox_plane_plane : public proximity_finder_3D {
     
     const plane* mPlane1;
     const plane* mPlane2;
-    
-    static void computeProximityOfPoint(const plane&, const pose_3D<double>&, 
-                                        const vect<double,3>&, vect<double,3>&, double&);
     
   public:
     

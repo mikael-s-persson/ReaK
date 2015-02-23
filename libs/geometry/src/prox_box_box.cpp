@@ -33,6 +33,16 @@ namespace ReaK {
 namespace geom {
 
 
+proximity_record_3D compute_proximity(const box& aBox1, const shape_3D_precompute_pack& aPack1,
+                                      const box& aBox2, const shape_3D_precompute_pack& aPack2) {
+  
+  return findProximityByGJKEPA(
+    box_support_func(aBox1, aPack1.global_pose), 
+    box_support_func(aBox2, aPack2.global_pose));
+  
+};
+
+
 void prox_box_box::computeProximity(const shape_3D_precompute_pack& aPack1, 
                                     const shape_3D_precompute_pack& aPack2) {
   if((!mBox1) || (!mBox2)) {
@@ -42,14 +52,11 @@ void prox_box_box::computeProximity(const shape_3D_precompute_pack& aPack1,
     return;
   };
   
-  const pose_3D<double>& b1_pose = (aPack1.parent == mBox1 ? 
-                                    aPack1.global_pose : aPack2.global_pose);
-  const pose_3D<double>& b2_pose = (aPack1.parent == mBox1 ? 
-                                    aPack2.global_pose : aPack1.global_pose);
-  
-  mLastResult = findProximityByGJKEPA(
-    box_support_func(*mBox1, b1_pose), 
-    box_support_func(*mBox2, b2_pose));
+  if( aPack1.parent == mBox1 ) {
+    mLastResult = compute_proximity(*mBox1, aPack1, *mBox2, aPack2);
+  } else {
+    mLastResult = compute_proximity(*mBox2, aPack1, *mBox1, aPack2);
+  }; // note, respect the order of packs.
   
 };
 
