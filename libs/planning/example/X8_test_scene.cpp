@@ -327,7 +327,7 @@ int main(int argc, char ** argv) {
     r_info.sw_proxy_show = new SoSwitch();
     geom::oi_scene_graph sg_proxy;
     
-    sg_proxy << *(r_info.X8_geom_proxy->mShapeList[0]);
+    sg_proxy << r_info.X8_geom_proxy->getShape(0);
     r_info.sw_proxy_show->addChild(sg_proxy.getSceneGraph());
     r_info.sw_proxy_show->whichChild.setValue(SO_SWITCH_NONE);
     

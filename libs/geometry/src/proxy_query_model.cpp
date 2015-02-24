@@ -67,179 +67,187 @@
 
 #include <algorithm>
 
+#include <boost/variant/variant.hpp>
+#include <boost/variant/apply_visitor.hpp>
+
 namespace ReaK {
 
 namespace geom {
 
 
+namespace {
+  
+  struct convert_to_shape_2D_visitor {
+    shape_2D& operator()(shape_2D& s) const {
+      return s;
+    };
+    typedef shape_2D& result_type;
+  };
+  
+};
+
+struct proxy_query_model_2D::variant_shape_cache {
+  struct any_shape {
+    boost::variant<circle, capped_rectangle, rectangle> value;
+    
+    bool operator<(const any_shape& rhs) const { return this->value.which() < rhs.value.which(); };
+  };
+  std::vector< any_shape > shapes;
+  
+  typedef std::vector< any_shape >::iterator iterator;
+  
+  void addShape(const shape_2D& aShape) {
+    any_shape tmp;
+    // if the other is a circle..
+    if(aShape.getObjectType() == circle::getStaticObjectType()) {
+      tmp.value = static_cast<const circle&>(aShape);
+    }
+    // if the other is a capped_rectangle..
+    else if(aShape.getObjectType() == capped_rectangle::getStaticObjectType()) {
+      tmp.value = static_cast<const capped_rectangle&>(aShape);
+    }
+    // if the other is a rectangle..
+    else if(aShape.getObjectType() == rectangle::getStaticObjectType()) {
+      tmp.value = static_cast<const rectangle&>(aShape);
+    };
+    shapes.push_back(tmp);
+    std::inplace_merge(shapes.begin(), shapes.end()-1, shapes.end());
+  };
+  
+};
+
 proxy_query_model_2D::proxy_query_model_2D(const std::string& aName) : 
-  named_object(), mShapeList(), mPreComputePacks() { 
+  named_object(), mShapeCache(new variant_shape_cache()), mPreComputePacks() { 
   setName(aName); 
 };
 
 proxy_query_model_2D::~proxy_query_model_2D() {
-  
-};
-
-static bool compareShapes2DByType(const shared_ptr< shape_2D >& aShape1, 
-                                  const shared_ptr< shape_2D >& aShape2) {
-  return (aShape1->getObjectType() < aShape2->getObjectType());
+  delete mShapeCache;
 };
 
 proxy_query_model_2D& proxy_query_model_2D::addShape(const shared_ptr< shape_2D >& aShape) {
-  mShapeList.push_back(aShape);
-  std::inplace_merge(mShapeList.begin(), mShapeList.end()-1, mShapeList.end(), compareShapes2DByType);
+  mShapeCache->addShape(*aShape);
   return *this;
 };
 
-void proxy_query_model_2D::doPrecomputePass() {
-  mPreComputePacks.resize(mShapeList.size());
+
+const shape_2D& proxy_query_model_2D::getShape(std::size_t i) const {
+  return boost::apply_visitor(convert_to_shape_2D_visitor(), mShapeCache->shapes[i].value);
+};
+
+std::size_t proxy_query_model_2D::getShapeCount() const {
+  return mShapeCache->shapes.size();
+};
+
+
+namespace {
   
-  std::vector< shape_2D_precompute_pack >::iterator it_pre = mPreComputePacks.begin();
-  for(std::vector< shared_ptr< shape_2D > >::iterator 
-      it = mShapeList.begin(), it_end = mShapeList.end(); it != it_end; ++it, ++it_pre) {
-    *it_pre = (*it)->createPrecomputePack();
+  struct precomputer_shape_2D_visitor {
+    std::vector< shape_2D_precompute_pack >::iterator it_pre;
+    precomputer_shape_2D_visitor(std::vector< shape_2D_precompute_pack >::iterator aItPre) : it_pre(aItPre) { };
+    void operator()(shape_2D& s) const {
+      *it_pre = s.createPrecomputePack();
+    };
+    typedef void result_type;
   };
   
 };
 
-
-void proxy_query_pair_2D::createProxFinderList() {
-  mProxFinders.clear();
-  if(!mModel1 || !mModel2)
-    return;
+void proxy_query_model_2D::doPrecomputePass() {
+  mPreComputePacks.resize(mShapeCache->shapes.size());
   
-  // for all shapes in mModel1
-  for(std::size_t i = 0; i < mModel1->mShapeList.size(); ++i) {
-    if(!mModel1->mShapeList[i])
-      continue;
-    // for all shapes in mModel2
-    for(std::size_t j = 0; j < mModel2->mShapeList.size(); ++j) {
-      if(!mModel2->mShapeList[j])
-        continue;
-      // if one of the model is a circle?
-      if((mModel1->mShapeList[i]->getObjectType() == circle::getStaticObjectType()) ||
-         (mModel2->mShapeList[j]->getObjectType() == circle::getStaticObjectType())) {
-        shared_ptr<circle> ci_geom;
-        shared_ptr<shape_2D> other_geom;
-        if(mModel1->mShapeList[i]->getObjectType() == circle::getStaticObjectType()) {
-          ci_geom = rtti::rk_static_ptr_cast<circle>(mModel1->mShapeList[i]);
-          other_geom = mModel2->mShapeList[j];
-        } else {
-          ci_geom = rtti::rk_static_ptr_cast<circle>(mModel2->mShapeList[j]);
-          other_geom = mModel1->mShapeList[i];
-        };
-        // if the other is a circle..
-        if(other_geom->getObjectType() == circle::getStaticObjectType()) {
-          shared_ptr<circle> ci2_geom = rtti::rk_static_ptr_cast<circle>(other_geom);
-          mProxFinders.push_back(shared_ptr< prox_circle_circle >(new prox_circle_circle(ci_geom.get(), ci2_geom.get())));
-        }
-        // if the other is a capped-rectangle..
-        else if(other_geom->getObjectType() == capped_rectangle::getStaticObjectType()) {
-          shared_ptr<capped_rectangle> cr_geom = rtti::rk_static_ptr_cast<capped_rectangle>(other_geom);
-          mProxFinders.push_back(shared_ptr< prox_circle_crect >(new prox_circle_crect(ci_geom.get(), cr_geom.get())));
-        }
-        // if the other is a rectangle..
-        else if(other_geom->getObjectType() == rectangle::getStaticObjectType()) {
-          shared_ptr<rectangle> re_geom = rtti::rk_static_ptr_cast<rectangle>(other_geom);
-          mProxFinders.push_back(shared_ptr< prox_circle_rectangle >(new prox_circle_rectangle(ci_geom.get(), re_geom.get())));
-        };
-      }
-      // if one of the model is a capped-rectangle?
-      else if((mModel1->mShapeList[i]->getObjectType() == capped_rectangle::getStaticObjectType()) ||
-              (mModel2->mShapeList[j]->getObjectType() == capped_rectangle::getStaticObjectType())) {
-        shared_ptr<capped_rectangle> cr_geom;
-        shared_ptr<shape_2D> other_geom;
-        if(mModel1->mShapeList[i]->getObjectType() == capped_rectangle::getStaticObjectType()) {
-          cr_geom = rtti::rk_static_ptr_cast<capped_rectangle>(mModel1->mShapeList[i]);
-          other_geom = mModel2->mShapeList[j];
-        } else {
-          cr_geom = rtti::rk_static_ptr_cast<capped_rectangle>(mModel2->mShapeList[j]);
-          other_geom = mModel1->mShapeList[i];
-        };
-        // if the other is a capped-rectangle..
-        if(other_geom->getObjectType() == capped_rectangle::getStaticObjectType()) {
-          shared_ptr<capped_rectangle> cr2_geom = rtti::rk_static_ptr_cast<capped_rectangle>(other_geom);
-          mProxFinders.push_back(shared_ptr< prox_crect_crect >(new prox_crect_crect(cr_geom.get(), cr2_geom.get())));
-        }
-        // if the other is a rectangle..
-        else if(other_geom->getObjectType() == rectangle::getStaticObjectType()) {
-          shared_ptr<rectangle> re_geom = rtti::rk_static_ptr_cast<rectangle>(other_geom);
-          mProxFinders.push_back(shared_ptr< prox_crect_rectangle >(new prox_crect_rectangle(cr_geom.get(), re_geom.get())));
-        };
-      }
-      // if one of the model is a rectangle?
-      else if((mModel1->mShapeList[i]->getObjectType() == rectangle::getStaticObjectType()) ||
-              (mModel2->mShapeList[j]->getObjectType() == rectangle::getStaticObjectType())) {
-        shared_ptr<rectangle> re_geom;
-        shared_ptr<shape_2D> other_geom;
-        if(mModel1->mShapeList[i]->getObjectType() == rectangle::getStaticObjectType()) {
-          re_geom = rtti::rk_static_ptr_cast<rectangle>(mModel1->mShapeList[i]);
-          other_geom = mModel2->mShapeList[j];
-        } else {
-          re_geom = rtti::rk_static_ptr_cast<rectangle>(mModel2->mShapeList[j]);
-          other_geom = mModel1->mShapeList[i];
-        };
-        // if the other is a rectangle..
-        if(other_geom->getObjectType() == rectangle::getStaticObjectType()) {
-          shared_ptr<rectangle> re2_geom = rtti::rk_static_ptr_cast<rectangle>(other_geom);
-          mProxFinders.push_back(shared_ptr< prox_rectangle_rectangle >(new prox_rectangle_rectangle(re_geom.get(), re2_geom.get())));
-        };
-      };
-    };
+  std::vector< shape_2D_precompute_pack >::iterator it_pre = mPreComputePacks.begin();
+  for(variant_shape_cache::iterator it = mShapeCache->shapes.begin(), 
+      it_end = mShapeCache->shapes.end(); it != it_end; ++it_pre, ++it) {
+    boost::apply_visitor(precomputer_shape_2D_visitor(it_pre), it->value);
   };
   
-  return;
+};
+
+void RK_CALL proxy_query_model_2D::save(ReaK::serialization::oarchive& A, unsigned int) const {
+  named_object::save(A,named_object::getStaticObjectType()->TypeVersion());
+  
+  // This is ugly and inefficient, but it keeps backward compatibility.
+  std::vector< shared_ptr< shape_2D > > mShapeList;
+  for(variant_shape_cache::iterator it = mShapeCache->shapes.begin(), 
+      it_end = mShapeCache->shapes.end(); it != it_end; ++it) {
+    mShapeList.push_back(shared_ptr< shape_2D >(
+      &boost::apply_visitor(convert_to_shape_2D_visitor(), it->value), null_deleter()));
+  };
+  
+  A & RK_SERIAL_SAVE_WITH_NAME(mShapeList);
+};
+
+void RK_CALL proxy_query_model_2D::load(ReaK::serialization::iarchive& A, unsigned int) {
+  named_object::load(A,named_object::getStaticObjectType()->TypeVersion());
+  std::vector< shared_ptr< shape_2D > > mShapeList;
+  A & RK_SERIAL_LOAD_WITH_NAME(mShapeList);
+  
+  // This is ugly and inefficient, but it keeps backward compatibility.
+  for(std::vector< shared_ptr< shape_2D > >::iterator it = mShapeList.begin(), 
+      it_end = mShapeList.end(); it != it_end; ++it) {
+    addShape(*it);
+  };
+  
+};
+
+namespace {
+  
+  struct compute_proximity_2D_visitor {
+    const shape_2D_precompute_pack* p1;
+    const shape_2D_precompute_pack* p2;
+    compute_proximity_2D_visitor(const shape_2D_precompute_pack& aP1,
+                                 const shape_2D_precompute_pack& aP2) : p1(&aP1), p2(&aP2) { };
+    template <typename T, typename U>
+    proximity_record_2D operator()(const T& s1, const U& s2) const {
+      return compute_proximity(s1, *p1, s2, *p2);
+    };
+    typedef proximity_record_2D result_type;
+  };
+  
+  struct get_bounding_radius_2D_visitor {
+    double operator()(const shape_2D& s) const {
+      return s.getBoundingRadius();
+    };
+    typedef double result_type;
+  };
+  
 };
 
 proximity_record_2D proxy_query_pair_2D::findMinimumDistance() const {
   proximity_record_2D result;
-  result.mDistance = std::numeric_limits<double>::infinity();
-  result.mPoint1 = vect<double,2>(0.0,0.0);
-  result.mPoint2 = vect<double,2>(0.0,0.0);
-  if(mProxFinders.empty() || !mModel1 || !mModel2)
+  
+  if(!mModel1 || !mModel2)
     return result;
   
   mModel1->doPrecomputePass();
   mModel2->doPrecomputePass();
   
-  std::size_t m1_i = 0;
-  std::size_t m2_i = 0;
-  
-  for(std::size_t i = 0; i < mProxFinders.size(); ++i) {
-    
+  for(std::size_t m1_i = 0; m1_i < mModel1->mPreComputePacks.size(); ++m1_i) {
     vect<double,2> p1 = mModel1->mPreComputePacks[m1_i].global_pose.Position;
-    vect<double,2> p2 = mModel2->mPreComputePacks[m2_i].global_pose.Position;
-    
-    if(norm_2(p2 - p1) - mModel1->mShapeList[m1_i]->getBoundingRadius() 
-                       - mModel2->mShapeList[m2_i]->getBoundingRadius() > result.mDistance) {
-      ++m2_i;
-      if( m2_i >= mModel2->mPreComputePacks.size() ) {
-        ++m1_i;
-        m2_i = 0;
-      };
-      continue;
+    double brad1 = boost::apply_visitor(get_bounding_radius_2D_visitor(), 
+                                        mModel1->mShapeCache->shapes[m1_i].value);
+    for(std::size_t m2_i = 0; m2_i < mModel2->mPreComputePacks.size(); ++m2_i) {
+      vect<double,2> p2 = mModel2->mPreComputePacks[m2_i].global_pose.Position;
+      double brad2 = boost::apply_visitor(get_bounding_radius_2D_visitor(), 
+                                          mModel2->mShapeCache->shapes[m2_i].value);
+      if(norm_2(p2 - p1) - brad1 - brad2 > result.mDistance)
+        continue;
+      
+      proximity_record_2D tmp = boost::apply_visitor(compute_proximity_2D_visitor(
+        mModel1->mPreComputePacks[m1_i], mModel2->mPreComputePacks[m2_i]), 
+        mModel1->mShapeCache->shapes[m1_i].value, mModel2->mShapeCache->shapes[m2_i].value);
+      
+      if(result.mDistance > tmp.mDistance)
+        result = tmp;
     };
-    
-    proximity_record_2D tmp = mProxFinders[i]->computeProximity(mModel1->mPreComputePacks[m1_i], 
-                                                                mModel2->mPreComputePacks[m2_i]);
-    if(tmp.mDistance < result.mDistance) {
-      result = tmp;
-    };
-    
-    ++m2_i;
-    if( m2_i >= mModel2->mPreComputePacks.size() ) {
-      ++m1_i;
-      m2_i = 0;
-    };
-    
   };
   
   return result;
 };
     
 bool proxy_query_pair_2D::gatherCollisionPoints(std::vector< proximity_record_2D >& aOutput) const {
-  if(mProxFinders.empty() || !mModel1 || !mModel2)
+  if(!mModel1 || !mModel2)
     return false;
   
   mModel1->doPrecomputePass();
@@ -247,282 +255,215 @@ bool proxy_query_pair_2D::gatherCollisionPoints(std::vector< proximity_record_2D
   
   bool collision_found = false;
   
-  std::size_t m1_i = 0;
-  std::size_t m2_i = 0;
-  
-  for(std::size_t i = 0; i < mProxFinders.size(); ++i) {
-    
+  for(std::size_t m1_i = 0; m1_i < mModel1->mPreComputePacks.size(); ++m1_i) {
     vect<double,2> p1 = mModel1->mPreComputePacks[m1_i].global_pose.Position;
-    vect<double,2> p2 = mModel2->mPreComputePacks[m2_i].global_pose.Position;
-    
-    if(norm_2(p2 - p1) - mModel1->mShapeList[m1_i]->getBoundingRadius() 
-                       - mModel2->mShapeList[m2_i]->getBoundingRadius() > 0.0) {
-      ++m2_i;
-      if( m2_i >= mModel2->mPreComputePacks.size() ) {
-        ++m1_i;
-        m2_i = 0;
+    double brad1 = boost::apply_visitor(get_bounding_radius_2D_visitor(), 
+                                        mModel1->mShapeCache->shapes[m1_i].value);
+    for(std::size_t m2_i = 0; m2_i < mModel2->mPreComputePacks.size(); ++m2_i) {
+      vect<double,2> p2 = mModel2->mPreComputePacks[m2_i].global_pose.Position;
+      double brad2 = boost::apply_visitor(get_bounding_radius_2D_visitor(), 
+                                          mModel2->mShapeCache->shapes[m2_i].value);
+      if(norm_2(p2 - p1) - brad1 - brad2 > 0.0)
+        continue;
+      
+      proximity_record_2D tmp = boost::apply_visitor(compute_proximity_2D_visitor(
+        mModel1->mPreComputePacks[m1_i], mModel2->mPreComputePacks[m2_i]), 
+        mModel1->mShapeCache->shapes[m1_i].value, mModel2->mShapeCache->shapes[m2_i].value);
+      
+      if(tmp.mDistance < 0.0) {
+        aOutput.push_back(tmp);
+        collision_found = true;
       };
-      continue;
     };
-    
-    proximity_record_2D tmp = mProxFinders[i]->computeProximity(mModel1->mPreComputePacks[m1_i], 
-                                                                mModel2->mPreComputePacks[m2_i]);
-    if(tmp.mDistance < 0.0) {
-      aOutput.push_back(tmp);
-      collision_found = true;
-    };
-    
-    ++m2_i;
-    if( m2_i >= mModel2->mPreComputePacks.size() ) {
-      ++m1_i;
-      m2_i = 0;
-    };
-    
   };
   
   return collision_found;
 };
 
 
+
+namespace {
+  
+  struct convert_to_shape_3D_visitor {
+    shape_3D& operator()(shape_3D& s) const {
+      return s;
+    };
+    typedef shape_3D& result_type;
+  };
+  
+};
+
+struct proxy_query_model_3D::variant_shape_cache {
+  struct any_shape {
+    boost::variant<plane, sphere, box, cylinder, capped_cylinder> value;
+    
+    bool operator<(const any_shape& rhs) const { return this->value.which() < rhs.value.which(); };
+  };
+  std::vector< any_shape > shapes;
+  
+  typedef std::vector< any_shape >::iterator iterator;
+  
+  void addShape(const shape_3D& aShape) {
+    any_shape tmp;
+    // if the other is a plane..
+    if(aShape.getObjectType() == plane::getStaticObjectType()) {
+      tmp.value = static_cast<const plane&>(aShape);
+    }
+    // if the other is a sphere..
+    else if(aShape.getObjectType() == sphere::getStaticObjectType()) {
+      tmp.value = static_cast<const sphere&>(aShape);
+    }
+    // if the other is a ccylinder..
+    else if(aShape.getObjectType() == capped_cylinder::getStaticObjectType()) {
+      tmp.value = static_cast<const capped_cylinder&>(aShape);
+    }
+    // if the other is a cylinder..
+    else if(aShape.getObjectType() == cylinder::getStaticObjectType()) {
+      tmp.value = static_cast<const cylinder&>(aShape);
+    }
+    // if the other is a box..
+    else if(aShape.getObjectType() == box::getStaticObjectType()) {
+      tmp.value = static_cast<const box&>(aShape);
+    };
+    
+    shapes.push_back(tmp);
+    std::inplace_merge(shapes.begin(), shapes.end()-1, shapes.end());
+  };
+  
+};
+
 proxy_query_model_3D::proxy_query_model_3D(const std::string& aName) : 
-  named_object(), mShapeList(), mPreComputePacks() { 
+  named_object(), mShapeCache(new variant_shape_cache()), mPreComputePacks() { 
   setName(aName); 
 };
 
-proxy_query_model_3D::~proxy_query_model_3D() {};
-
-static bool compareShapes3DByType(const shared_ptr< shape_3D >& aShape1, 
-                                  const shared_ptr< shape_3D >& aShape2) {
-  return (aShape1->getObjectType() < aShape2->getObjectType());
+proxy_query_model_3D::~proxy_query_model_3D() {
+  delete mShapeCache;
 };
 
 proxy_query_model_3D& proxy_query_model_3D::addShape(const shared_ptr< shape_3D >& aShape) {
-  mShapeList.push_back(aShape);
-  std::inplace_merge(mShapeList.begin(), mShapeList.end()-1, mShapeList.end(), compareShapes3DByType);
+  mShapeCache->addShape(*aShape);
   return *this;
 };
 
+const shape_3D& proxy_query_model_3D::getShape(std::size_t i) const {
+  return boost::apply_visitor(convert_to_shape_3D_visitor(), mShapeCache->shapes[i].value);
+};
+
+std::size_t proxy_query_model_3D::getShapeCount() const {
+  return mShapeCache->shapes.size();
+};
+
+
+namespace {
+  
+  struct precomputer_shape_3D_visitor {
+    std::vector< shape_3D_precompute_pack >::iterator it_pre;
+    precomputer_shape_3D_visitor(std::vector< shape_3D_precompute_pack >::iterator aItPre) : it_pre(aItPre) { };
+    void operator()(shape_3D& s) const {
+      *it_pre = s.createPrecomputePack();
+    };
+    typedef void result_type;
+  };
+  
+};
+
 void proxy_query_model_3D::doPrecomputePass() {
-  mPreComputePacks.resize(mShapeList.size());
+  mPreComputePacks.resize(mShapeCache->shapes.size());
   
   std::vector< shape_3D_precompute_pack >::iterator it_pre = mPreComputePacks.begin();
-  for(std::vector< shared_ptr< shape_3D > >::iterator 
-      it = mShapeList.begin(), it_end = mShapeList.end(); it != it_end; ++it, ++it_pre) {
-    *it_pre = (*it)->createPrecomputePack();
+  for(variant_shape_cache::iterator it = mShapeCache->shapes.begin(), 
+      it_end = mShapeCache->shapes.end(); it != it_end; ++it_pre, ++it) {
+    boost::apply_visitor(precomputer_shape_3D_visitor(it_pre), it->value);
   };
   
 };
 
 
-void proxy_query_pair_3D::createProxFinderList() {
-  mProxFinders.clear();
-  if(!mModel1 || !mModel2)
-    return;
+void RK_CALL proxy_query_model_3D::save(ReaK::serialization::oarchive& A, unsigned int) const {
+  named_object::save(A,named_object::getStaticObjectType()->TypeVersion());
   
-  // for all shapes in mModel1
-  for(std::size_t i = 0; i < mModel1->mShapeList.size(); ++i) {
-    if(!mModel1->mShapeList[i])
-      continue;
-    
-    // for all shapes in mModel2
-    for(std::size_t j = 0; j < mModel2->mShapeList.size(); ++j) {
-      if(!mModel2->mShapeList[j])
-        continue;
-      
-      // if one of the model is a plane?
-      if((mModel1->mShapeList[i]->getObjectType() == plane::getStaticObjectType()) ||
-         (mModel2->mShapeList[j]->getObjectType() == plane::getStaticObjectType())) {
-        shared_ptr<plane> pl_geom;
-        shared_ptr<shape_3D> other_geom;
-        if(mModel1->mShapeList[i]->getObjectType() == plane::getStaticObjectType()) {
-          pl_geom = rtti::rk_static_ptr_cast<plane>(mModel1->mShapeList[i]);
-          other_geom = mModel2->mShapeList[j];
-        } else {
-          pl_geom = rtti::rk_static_ptr_cast<plane>(mModel2->mShapeList[j]);
-          other_geom = mModel1->mShapeList[i];
-        };
-        // if the other is a plane..
-        if(other_geom->getObjectType() == plane::getStaticObjectType()) {
-          shared_ptr<plane> pl2_geom = rtti::rk_static_ptr_cast<plane>(other_geom);
-          mProxFinders.push_back(shared_ptr< prox_plane_plane >(new prox_plane_plane(pl_geom.get(), pl2_geom.get())));
-        }
-        // if the other is a sphere..
-        else if(other_geom->getObjectType() == sphere::getStaticObjectType()) {
-          shared_ptr<sphere> sp_geom = rtti::rk_static_ptr_cast<sphere>(other_geom);
-          mProxFinders.push_back(shared_ptr< prox_plane_sphere >(new prox_plane_sphere(pl_geom.get(), sp_geom.get())));
-        }
-        // if the other is a ccylinder..
-        else if(other_geom->getObjectType() == capped_cylinder::getStaticObjectType()) {
-          shared_ptr<capped_cylinder> cc_geom = rtti::rk_static_ptr_cast<capped_cylinder>(other_geom);
-          mProxFinders.push_back(shared_ptr< prox_plane_ccylinder >(new prox_plane_ccylinder(pl_geom.get(), cc_geom.get())));
-        }
-        // if the other is a cylinder..
-        else if(other_geom->getObjectType() == cylinder::getStaticObjectType()) {
-          shared_ptr<cylinder> cy_geom = rtti::rk_static_ptr_cast<cylinder>(other_geom);
-          mProxFinders.push_back(shared_ptr< prox_plane_cylinder >(new prox_plane_cylinder(pl_geom.get(), cy_geom.get())));
-        }
-        // if the other is a box..
-        else if(other_geom->getObjectType() == box::getStaticObjectType()) {
-          shared_ptr<box> bx_geom = rtti::rk_static_ptr_cast<box>(other_geom);
-          mProxFinders.push_back(shared_ptr< prox_plane_box >(new prox_plane_box(pl_geom.get(), bx_geom.get())));
-        };
-      }
-      // if one of the model is a sphere?
-      else if((mModel1->mShapeList[i]->getObjectType() == sphere::getStaticObjectType()) ||
-              (mModel2->mShapeList[j]->getObjectType() == sphere::getStaticObjectType())) {
-        shared_ptr<sphere> sp_geom;
-        shared_ptr<shape_3D> other_geom;
-        if(mModel1->mShapeList[i]->getObjectType() == sphere::getStaticObjectType()) {
-          sp_geom = rtti::rk_static_ptr_cast<sphere>(mModel1->mShapeList[i]);
-          other_geom = mModel2->mShapeList[j];
-        } else {
-          sp_geom = rtti::rk_static_ptr_cast<sphere>(mModel2->mShapeList[j]);
-          other_geom = mModel1->mShapeList[i];
-        };
-        // if the other is a sphere..
-        if(other_geom->getObjectType() == sphere::getStaticObjectType()) {
-          shared_ptr<sphere> sp2_geom = rtti::rk_static_ptr_cast<sphere>(other_geom);
-          mProxFinders.push_back(shared_ptr< prox_sphere_sphere >(new prox_sphere_sphere(sp_geom.get(), sp2_geom.get())));
-        }
-        // if the other is a ccylinder..
-        else if(other_geom->getObjectType() == capped_cylinder::getStaticObjectType()) {
-          shared_ptr<capped_cylinder> cc_geom = rtti::rk_static_ptr_cast<capped_cylinder>(other_geom);
-          mProxFinders.push_back(shared_ptr< prox_sphere_ccylinder >(new prox_sphere_ccylinder(sp_geom.get(), cc_geom.get())));
-        }
-        // if the other is a cylinder..
-        else if(other_geom->getObjectType() == cylinder::getStaticObjectType()) {
-          shared_ptr<cylinder> cy_geom = rtti::rk_static_ptr_cast<cylinder>(other_geom);
-          mProxFinders.push_back(shared_ptr< prox_sphere_cylinder >(new prox_sphere_cylinder(sp_geom.get(), cy_geom.get())));
-        }
-        // if the other is a box..
-        else if(other_geom->getObjectType() == box::getStaticObjectType()) {
-          shared_ptr<box> bx_geom = rtti::rk_static_ptr_cast<box>(other_geom);
-          mProxFinders.push_back(shared_ptr< prox_sphere_box >(new prox_sphere_box(sp_geom.get(), bx_geom.get())));
-        };
-      }
-      // if one of the model is a ccylinder?
-      else if((mModel1->mShapeList[i]->getObjectType() == capped_cylinder::getStaticObjectType()) ||
-              (mModel2->mShapeList[j]->getObjectType() == capped_cylinder::getStaticObjectType())) {
-        shared_ptr<capped_cylinder> cc_geom;
-        shared_ptr<shape_3D> other_geom;
-        if(mModel1->mShapeList[i]->getObjectType() == capped_cylinder::getStaticObjectType()) {
-          cc_geom = rtti::rk_static_ptr_cast<capped_cylinder>(mModel1->mShapeList[i]);
-          other_geom = mModel2->mShapeList[j];
-        } else {
-          cc_geom = rtti::rk_static_ptr_cast<capped_cylinder>(mModel2->mShapeList[j]);
-          other_geom = mModel1->mShapeList[i];
-        };
-        // if the other is a ccylinder..
-        if(other_geom->getObjectType() == capped_cylinder::getStaticObjectType()) {
-          shared_ptr<capped_cylinder> cc2_geom = rtti::rk_static_ptr_cast<capped_cylinder>(other_geom);
-          mProxFinders.push_back(shared_ptr< prox_ccylinder_ccylinder >(new prox_ccylinder_ccylinder(cc_geom.get(), cc2_geom.get())));
-        }
-        // if the other is a cylinder..
-        else if(other_geom->getObjectType() == cylinder::getStaticObjectType()) {
-          shared_ptr<cylinder> cy_geom = rtti::rk_static_ptr_cast<cylinder>(other_geom);
-          mProxFinders.push_back(shared_ptr< prox_ccylinder_cylinder >(new prox_ccylinder_cylinder(cc_geom.get(), cy_geom.get())));
-        }
-        // if the other is a box..
-        else if(other_geom->getObjectType() == box::getStaticObjectType()) {
-          shared_ptr<box> bx_geom = rtti::rk_static_ptr_cast<box>(other_geom);
-          mProxFinders.push_back(shared_ptr< prox_ccylinder_box >(new prox_ccylinder_box(cc_geom.get(), bx_geom.get())));
-        };
-      }
-      // if one of the model is a cylinder?
-      else if((mModel1->mShapeList[i]->getObjectType() == cylinder::getStaticObjectType()) ||
-              (mModel2->mShapeList[j]->getObjectType() == cylinder::getStaticObjectType())) {
-        shared_ptr<cylinder> cy_geom;
-        shared_ptr<shape_3D> other_geom;
-        if(mModel1->mShapeList[i]->getObjectType() == cylinder::getStaticObjectType()) {
-          cy_geom = rtti::rk_static_ptr_cast<cylinder>(mModel1->mShapeList[i]);
-          other_geom = mModel2->mShapeList[j];
-        } else {
-          cy_geom = rtti::rk_static_ptr_cast<cylinder>(mModel2->mShapeList[j]);
-          other_geom = mModel1->mShapeList[i];
-        };
-        // if the other is a cylinder..
-        if(other_geom->getObjectType() == cylinder::getStaticObjectType()) {
-          shared_ptr<cylinder> cy2_geom = rtti::rk_static_ptr_cast<cylinder>(other_geom);
-          mProxFinders.push_back(shared_ptr< prox_cylinder_cylinder >(new prox_cylinder_cylinder(cy_geom.get(), cy2_geom.get())));
-        }
-        // if the other is a box..
-        else if(other_geom->getObjectType() == box::getStaticObjectType()) {
-          shared_ptr<box> bx_geom = rtti::rk_static_ptr_cast<box>(other_geom);
-          mProxFinders.push_back(shared_ptr< prox_cylinder_box >(new prox_cylinder_box(cy_geom.get(), bx_geom.get())));
-        };
-      }
-      // if one of the model is a box?
-      else if((mModel1->mShapeList[i]->getObjectType() == box::getStaticObjectType()) ||
-              (mModel2->mShapeList[j]->getObjectType() == box::getStaticObjectType())) {
-        shared_ptr<box> bx_geom;
-        shared_ptr<shape_3D> other_geom;
-        if(mModel1->mShapeList[i]->getObjectType() == box::getStaticObjectType()) {
-          bx_geom = rtti::rk_static_ptr_cast<box>(mModel1->mShapeList[i]);
-          other_geom = mModel2->mShapeList[j];
-        } else {
-          bx_geom = rtti::rk_static_ptr_cast<box>(mModel2->mShapeList[j]);
-          other_geom = mModel1->mShapeList[i];
-        };
-        // if the other is a box..
-        if(other_geom->getObjectType() == box::getStaticObjectType()) {
-          shared_ptr<box> bx2_geom = rtti::rk_static_ptr_cast<box>(other_geom);
-          mProxFinders.push_back(shared_ptr< prox_box_box >(new prox_box_box(bx_geom.get(), bx2_geom.get())));
-        };
-      };
-    };
+  // This is inefficient, but it keeps backward compatibility.
+  std::vector< shared_ptr< shape_3D > > mShapeList;
+  for(variant_shape_cache::iterator it = mShapeCache->shapes.begin(), 
+      it_end = mShapeCache->shapes.end(); it != it_end; ++it) {
+    mShapeList.push_back(shared_ptr< shape_3D >(
+      &boost::apply_visitor(convert_to_shape_3D_visitor(), it->value), null_deleter()));
   };
   
-  return;
+  A & RK_SERIAL_SAVE_WITH_NAME(mShapeList);
+};
+
+void RK_CALL proxy_query_model_3D::load(ReaK::serialization::iarchive& A, unsigned int) {
+  named_object::load(A,named_object::getStaticObjectType()->TypeVersion());
+  std::vector< shared_ptr< shape_3D > > mShapeList;
+  A & RK_SERIAL_LOAD_WITH_NAME(mShapeList);
+  
+  // This is inefficient, but it keeps backward compatibility.
+  for(std::vector< shared_ptr< shape_3D > >::iterator it = mShapeList.begin(), 
+      it_end = mShapeList.end(); it != it_end; ++it) {
+    addShape(*it);
+  };
+  
+};
+
+namespace {
+  
+  struct compute_proximity_3D_visitor {
+    const shape_3D_precompute_pack* p1;
+    const shape_3D_precompute_pack* p2;
+    compute_proximity_3D_visitor(const shape_3D_precompute_pack& aP1,
+                                 const shape_3D_precompute_pack& aP2) : p1(&aP1), p2(&aP2) { };
+    template <typename T, typename U>
+    proximity_record_3D operator()(const T& s1, const U& s2) const {
+      return compute_proximity(s1, *p1, s2, *p2);
+    };
+    typedef proximity_record_3D result_type;
+  };
+  
+  struct get_bounding_radius_3D_visitor {
+    double operator()(const shape_3D& s) const {
+      return s.getBoundingRadius();
+    };
+    typedef double result_type;
+  };
+  
 };
 
 proximity_record_3D proxy_query_pair_3D::findMinimumDistance() const {
   proximity_record_3D result;
-  result.mDistance = std::numeric_limits<double>::infinity();
-  result.mPoint1 = vect<double,3>(0.0,0.0,0.0);
-  result.mPoint2 = vect<double,3>(0.0,0.0,0.0);
-  if(mProxFinders.empty() || !mModel1 || !mModel2)
+  
+  if(!mModel1 || !mModel2)
     return result;
   
   mModel1->doPrecomputePass();
   mModel2->doPrecomputePass();
   
-  std::size_t m1_i = 0;
-  std::size_t m2_i = 0;
-  
-  for(std::size_t i = 0; i < mProxFinders.size(); ++i) {
-    
+  for(std::size_t m1_i = 0; m1_i < mModel1->mPreComputePacks.size(); ++m1_i) {
     vect<double,3> p1 = mModel1->mPreComputePacks[m1_i].global_pose.Position;
-    vect<double,3> p2 = mModel2->mPreComputePacks[m2_i].global_pose.Position;
-    
-    if(norm_2(p2 - p1) - mModel1->mShapeList[m1_i]->getBoundingRadius() 
-                       - mModel2->mShapeList[m2_i]->getBoundingRadius() > result.mDistance) {
-      ++m2_i;
-      if( m2_i >= mModel2->mPreComputePacks.size() ) {
-        ++m1_i;
-        m2_i = 0;
-      };
-      continue;
+    double brad1 = boost::apply_visitor(get_bounding_radius_3D_visitor(), 
+                                        mModel1->mShapeCache->shapes[m1_i].value);
+    for(std::size_t m2_i = 0; m2_i < mModel2->mPreComputePacks.size(); ++m2_i) {
+      vect<double,3> p2 = mModel2->mPreComputePacks[m2_i].global_pose.Position;
+      double brad2 = boost::apply_visitor(get_bounding_radius_3D_visitor(), 
+                                          mModel2->mShapeCache->shapes[m2_i].value);
+      if(norm_2(p2 - p1) - brad1 - brad2 > result.mDistance)
+        continue;
+      
+      proximity_record_3D tmp = boost::apply_visitor(compute_proximity_3D_visitor(
+        mModel1->mPreComputePacks[m1_i], mModel2->mPreComputePacks[m2_i]), 
+        mModel1->mShapeCache->shapes[m1_i].value, mModel2->mShapeCache->shapes[m2_i].value);
+      
+      if(result.mDistance > tmp.mDistance)
+        result = tmp;
     };
-    
-    proximity_record_3D tmp = mProxFinders[i]->computeProximity(mModel1->mPreComputePacks[m1_i], 
-                                                                mModel2->mPreComputePacks[m2_i]);
-    if(tmp.mDistance < result.mDistance) {
-      result = tmp;
-    };
-    
-    ++m2_i;
-    if( m2_i >= mModel2->mPreComputePacks.size() ) {
-      ++m1_i;
-      m2_i = 0;
-    };
-    
   };
   
   return result;
 };
     
 bool proxy_query_pair_3D::gatherCollisionPoints(std::vector< proximity_record_3D >& aOutput) const {
-  if(mProxFinders.empty() || !mModel1 || !mModel2)
+  if(!mModel1 || !mModel2)
     return false;
   
   mModel1->doPrecomputePass();
@@ -530,37 +471,26 @@ bool proxy_query_pair_3D::gatherCollisionPoints(std::vector< proximity_record_3D
   
   bool collision_found = false;
   
-  std::size_t m1_i = 0;
-  std::size_t m2_i = 0;
-  
-  for(std::size_t i = 0; i < mProxFinders.size(); ++i) {
-    
+  for(std::size_t m1_i = 0; m1_i < mModel1->mPreComputePacks.size(); ++m1_i) {
     vect<double,3> p1 = mModel1->mPreComputePacks[m1_i].global_pose.Position;
-    vect<double,3> p2 = mModel2->mPreComputePacks[m2_i].global_pose.Position;
-    
-    if(norm_2(p2 - p1) - mModel1->mShapeList[m1_i]->getBoundingRadius() 
-                       - mModel2->mShapeList[m2_i]->getBoundingRadius() > 0.0) {
-      ++m2_i;
-      if( m2_i >= mModel2->mPreComputePacks.size() ) {
-        ++m1_i;
-        m2_i = 0;
+    double brad1 = boost::apply_visitor(get_bounding_radius_3D_visitor(), 
+                                        mModel1->mShapeCache->shapes[m1_i].value);
+    for(std::size_t m2_i = 0; m2_i < mModel2->mPreComputePacks.size(); ++m2_i) {
+      vect<double,3> p2 = mModel2->mPreComputePacks[m2_i].global_pose.Position;
+      double brad2 = boost::apply_visitor(get_bounding_radius_3D_visitor(), 
+                                          mModel2->mShapeCache->shapes[m2_i].value);
+      if(norm_2(p2 - p1) - brad1 - brad2 > 0.0)
+        continue;
+      
+      proximity_record_3D tmp = boost::apply_visitor(compute_proximity_3D_visitor(
+        mModel1->mPreComputePacks[m1_i], mModel2->mPreComputePacks[m2_i]), 
+        mModel1->mShapeCache->shapes[m1_i].value, mModel2->mShapeCache->shapes[m2_i].value);
+      
+      if(tmp.mDistance < 0.0) {
+        aOutput.push_back(tmp);
+        collision_found = true;
       };
-      continue;
     };
-    
-    proximity_record_3D tmp = mProxFinders[i]->computeProximity(mModel1->mPreComputePacks[m1_i], 
-                                                                mModel2->mPreComputePacks[m2_i]);
-    if(tmp.mDistance < 0.0) {
-      aOutput.push_back(tmp);
-      collision_found = true;
-    };
-    
-    ++m2_i;
-    if( m2_i >= mModel2->mPreComputePacks.size() ) {
-      ++m1_i;
-      m2_i = 0;
-    };
-    
   };
   
   return collision_found;
