@@ -66,8 +66,8 @@ class prox_sphere_box : public proximity_finder_3D {
   public:
     
     /** This function performs the proximity query on its associated shapes. */
-    virtual void computeProximity(const shape_3D_precompute_pack& aPack1, 
-                                  const shape_3D_precompute_pack& aPack2);
+    virtual proximity_record_3D computeProximity(const shape_3D_precompute_pack& aPack1, 
+                                                 const shape_3D_precompute_pack& aPack2);
     
     /** 
      * Default constructor. 

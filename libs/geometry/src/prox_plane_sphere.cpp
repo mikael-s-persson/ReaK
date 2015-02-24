@@ -66,12 +66,10 @@ proximity_record_3D compute_proximity(const sphere& aSphere,
 // this version assumes a finite plane for proximity purposes.
 void prox_plane_sphere::computeProximity(const shape_3D_precompute_pack& aPack1, 
                                          const shape_3D_precompute_pack& aPack2) {
-  if((!mSphere) || (!mPlane)) {
-    mLastResult.mDistance = std::numeric_limits<double>::infinity();
-    mLastResult.mPoint1 = vect<double,3>(0.0,0.0,0.0);
-    mLastResult.mPoint2 = vect<double,3>(0.0,0.0,0.0);
-    return;
-  };
+  proximity_record_3D result;
+  if((!mSphere) || (!mPlane))
+    return result;
+  
   using std::fabs; using std::sqrt;
   
   const pose_3D<double>& sp_pose = (aPack1.parent == mSphere ? 
@@ -94,9 +92,9 @@ void prox_plane_sphere::computeProximity(const shape_3D_precompute_pack& aPack1,
     if(sp_c_rel[2] < 0.0)
       fact = -1.0;
     
-    mLastResult.mPoint1 = pl_pose.transformToGlobal(vect<double,3>(sp_c_rel[0],sp_c_rel[1],0.0));
-    mLastResult.mPoint2 = pl_pose.transformToGlobal(vect<double,3>(sp_c_rel[0],sp_c_rel[1],sp_c_rel[2] - fact * mSphere->getRadius()));
-    mLastResult.mDistance = fact * sp_c_rel[2] - mSphere->getRadius();
+    result.mPoint1 = pl_pose.transformToGlobal(vect<double,3>(sp_c_rel[0],sp_c_rel[1],0.0));
+    result.mPoint2 = pl_pose.transformToGlobal(vect<double,3>(sp_c_rel[0],sp_c_rel[1],sp_c_rel[2] - fact * mSphere->getRadius()));
+    result.mDistance = fact * sp_c_rel[2] - mSphere->getRadius();
   } else {
     vect<double,3> rim_pt;
     if((sp_c_rel[0] > -0.5 * mPlane->getDimensions()[0]) &&
@@ -106,7 +104,7 @@ void prox_plane_sphere::computeProximity(const shape_3D_precompute_pack& aPack1,
       if(sp_c_rel[1] < 0.0)
         fact = -1.0;
       vect<double,3> rim_pt = vect<double,3>(sp_c_rel[0],fact * 0.5 * mPlane->getDimensions()[1],0.0);
-      mLastResult.mPoint1 = pl_pose.transformToGlobal(rim_pt);
+      result.mPoint1 = pl_pose.transformToGlobal(rim_pt);
     } else if((sp_c_rel[1] > -0.5 * mPlane->getDimensions()[1]) &&
               (sp_c_rel[1] <  0.5 * mPlane->getDimensions()[1])) {
       // The sphere is on the right or left of the plane (x-axis).
@@ -114,7 +112,7 @@ void prox_plane_sphere::computeProximity(const shape_3D_precompute_pack& aPack1,
       if(sp_c_rel[0] < 0.0)
         fact = -1.0;
       vect<double,3> rim_pt = vect<double,3>(fact * 0.5 * mPlane->getDimensions()[0],sp_c_rel[1],0.0);
-      mLastResult.mPoint1 = pl_pose.transformToGlobal(rim_pt);
+      result.mPoint1 = pl_pose.transformToGlobal(rim_pt);
     } else {
       // The sphere is outside one of the corners of the plane.
       vect<double,3> rim_pt = vect<double,3>(0.5 * mPlane->getDimensions()[0],0.5 * mPlane->getDimensions()[1],0.0);
@@ -122,29 +120,25 @@ void prox_plane_sphere::computeProximity(const shape_3D_precompute_pack& aPack1,
         rim_pt[0] = -rim_pt[0];
       if(sp_c_rel[1] < 0.0)
         rim_pt[1] = -rim_pt[1];
-      mLastResult.mPoint1 = pl_pose.transformToGlobal(rim_pt);
+      result.mPoint1 = pl_pose.transformToGlobal(rim_pt);
     };
-    vect<double,3> diff = mLastResult.mPoint1 - sp_c;
+    vect<double,3> diff = result.mPoint1 - sp_c;
     double diff_d = norm_2(diff);
-    mLastResult.mPoint2 = sp_c + (mSphere->getRadius() / diff_d) * diff;
-    mLastResult.mDistance = diff_d - mSphere->getRadius();
+    result.mPoint2 = sp_c + (mSphere->getRadius() / diff_d) * diff;
+    result.mDistance = diff_d - mSphere->getRadius();
   };
+  return result;
 };*/
 
-void prox_plane_sphere::computeProximity(const shape_3D_precompute_pack& aPack1, 
-                                         const shape_3D_precompute_pack& aPack2) {
-  if((!mSphere) || (!mPlane)) {
-    mLastResult.mDistance = std::numeric_limits<double>::infinity();
-    mLastResult.mPoint1 = vect<double,3>(0.0,0.0,0.0);
-    mLastResult.mPoint2 = vect<double,3>(0.0,0.0,0.0);
-    return;
-  };
+proximity_record_3D prox_plane_sphere::computeProximity(const shape_3D_precompute_pack& aPack1, 
+                                                        const shape_3D_precompute_pack& aPack2) {
+  if((!mSphere) || (!mPlane))
+    return proximity_record_3D();
   
   if( aPack1.parent == mPlane ) 
-    mLastResult = compute_proximity(*mPlane,aPack1,*mSphere,aPack2);
+    return compute_proximity(*mPlane,aPack1,*mSphere,aPack2);
   else
-    mLastResult = compute_proximity(*mSphere,aPack1,*mPlane,aPack2);
-  
+    return compute_proximity(*mSphere,aPack1,*mPlane,aPack2);
 };
 
 

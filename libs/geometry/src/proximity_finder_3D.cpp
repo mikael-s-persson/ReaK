@@ -29,10 +29,6 @@ namespace ReaK {
 /** Main namespace for ReaK.Geometry */
 namespace geom {
 
-const proximity_record_3D& proximity_finder_3D::getLastResult() const {
-  return mLastResult;
-};
-
 };
 
 };

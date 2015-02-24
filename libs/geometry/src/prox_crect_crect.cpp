@@ -126,19 +126,15 @@ proximity_record_2D compute_proximity(const capped_rectangle& aCRect1,
   return result;
 };
 
-void prox_crect_crect::computeProximity(const shape_2D_precompute_pack& aPack1, 
-                                        const shape_2D_precompute_pack& aPack2) {
-  mLastResult.mDistance = std::numeric_limits<double>::infinity();
-  mLastResult.mPoint1 = vect<double,2>(0.0,0.0);
-  mLastResult.mPoint2 = vect<double,2>(0.0,0.0);
+proximity_record_2D prox_crect_crect::computeProximity(const shape_2D_precompute_pack& aPack1, 
+                                                       const shape_2D_precompute_pack& aPack2) {
   if((!mCRect1) || (!mCRect2))
-    return;
+    return proximity_record_2D();
   
   if( aPack1.parent == mCRect1 )
-    mLastResult = compute_proximity(*mCRect1,aPack1,*mCRect2,aPack2);
+    return compute_proximity(*mCRect1,aPack1,*mCRect2,aPack2);
   else
-    mLastResult = compute_proximity(*mCRect2,aPack1,*mCRect1,aPack2);
-  
+    return compute_proximity(*mCRect2,aPack1,*mCRect1,aPack2);
 };
 
 

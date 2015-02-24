@@ -47,18 +47,11 @@ namespace geom {
  * This class is the base-class for a proximity query with 3D shapes.
  */
 class proximity_finder_3D {
-  protected:
-    
-    proximity_record_3D mLastResult;
-    
   public:
     
     /** This function performs the proximity query on its associated shapes. */
-    virtual void computeProximity(const shape_3D_precompute_pack& aPack1, 
-                                  const shape_3D_precompute_pack& aPack2) = 0;
-    
-    /** Returns the result of the last proximity query. */
-    virtual const proximity_record_3D& getLastResult() const;
+    virtual proximity_record_3D computeProximity(const shape_3D_precompute_pack& aPack1, 
+                                                 const shape_3D_precompute_pack& aPack2) = 0;
     
     /** Default constructor. */
     proximity_finder_3D() { };

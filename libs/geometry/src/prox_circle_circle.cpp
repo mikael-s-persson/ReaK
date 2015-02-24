@@ -51,20 +51,15 @@ proximity_record_2D compute_proximity(const circle& aCircle1, const shape_2D_pre
 };
 
 
-void prox_circle_circle::computeProximity(const shape_2D_precompute_pack& aPack1, 
-                                          const shape_2D_precompute_pack& aPack2) {
-  if((!mCircle1) || (!mCircle2)) {
-    mLastResult.mDistance = std::numeric_limits<double>::infinity();
-    mLastResult.mPoint1 = vect<double,2>(0.0,0.0);
-    mLastResult.mPoint2 = vect<double,2>(0.0,0.0);
-    return;
-  };
+proximity_record_2D prox_circle_circle::computeProximity(const shape_2D_precompute_pack& aPack1, 
+                                                         const shape_2D_precompute_pack& aPack2) {
+  if((!mCircle1) || (!mCircle2))
+    return proximity_record_2D();
   
   if( aPack1.parent == mCircle1 )
-    mLastResult = compute_proximity(*mCircle1,aPack1,*mCircle2,aPack2);
+    return compute_proximity(*mCircle1,aPack1,*mCircle2,aPack2);
   else
-    mLastResult = compute_proximity(*mCircle2,aPack1,*mCircle1,aPack2);
-  
+    return compute_proximity(*mCircle2,aPack1,*mCircle1,aPack2);
 };
 
 

@@ -35,29 +35,21 @@ namespace geom {
 
 proximity_record_3D compute_proximity(const box& aBox1, const shape_3D_precompute_pack& aPack1,
                                       const box& aBox2, const shape_3D_precompute_pack& aPack2) {
-  
   return findProximityByGJKEPA(
     box_support_func(aBox1, aPack1.global_pose), 
     box_support_func(aBox2, aPack2.global_pose));
-  
 };
 
 
-void prox_box_box::computeProximity(const shape_3D_precompute_pack& aPack1, 
-                                    const shape_3D_precompute_pack& aPack2) {
-  if((!mBox1) || (!mBox2)) {
-    mLastResult.mDistance = std::numeric_limits<double>::infinity();
-    mLastResult.mPoint1 = vect<double,3>(0.0,0.0,0.0);
-    mLastResult.mPoint2 = vect<double,3>(0.0,0.0,0.0);
-    return;
-  };
+proximity_record_3D prox_box_box::computeProximity(const shape_3D_precompute_pack& aPack1, 
+                                                   const shape_3D_precompute_pack& aPack2) {
+  if((!mBox1) || (!mBox2))
+    return proximity_record_3D();
   
-  if( aPack1.parent == mBox1 ) {
-    mLastResult = compute_proximity(*mBox1, aPack1, *mBox2, aPack2);
-  } else {
-    mLastResult = compute_proximity(*mBox2, aPack1, *mBox1, aPack2);
-  }; // note, respect the order of packs.
-  
+  if( aPack1.parent == mBox1 )
+    return compute_proximity(*mBox1, aPack1, *mBox2, aPack2);
+  else // note, respect the order of packs.
+    return compute_proximity(*mBox2, aPack1, *mBox1, aPack2);
 };
 
 

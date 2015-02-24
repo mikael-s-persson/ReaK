@@ -35,6 +35,8 @@
 #include <ReaK/core/base/shared_object.hpp>
 #include <ReaK/math/lin_alg/vect_alg.hpp>
 
+#include <limits>
+
 /** Main namespace for ReaK */
 namespace ReaK {
 
@@ -56,7 +58,7 @@ class proximity_record_3D : public shared_object {
     double mDistance;
     
     /** Default constructor. */
-    proximity_record_3D() { };
+    proximity_record_3D() : mPoint1(), mPoint2(), mDistance(std::numeric_limits<double>::infinity()) { };
     
     /** Destructor. */
     virtual ~proximity_record_3D() { };

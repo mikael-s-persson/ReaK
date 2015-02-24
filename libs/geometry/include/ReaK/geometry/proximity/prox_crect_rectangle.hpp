@@ -72,8 +72,8 @@ class prox_crect_rectangle : public proximity_finder_2D {
   public:
     
     /** This function performs the proximity query on its associated shapes. */
-    virtual void computeProximity(const shape_2D_precompute_pack& aPack1, 
-                                  const shape_2D_precompute_pack& aPack2);
+    virtual proximity_record_2D computeProximity(const shape_2D_precompute_pack& aPack1, 
+                                                 const shape_2D_precompute_pack& aPack2);
     
     /** 
      * Default constructor.

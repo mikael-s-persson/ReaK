@@ -89,20 +89,15 @@ proximity_record_2D compute_proximity(const rectangle& aRectangle,
   return result;
 };
 
-void prox_circle_rectangle::computeProximity(const shape_2D_precompute_pack& aPack1, 
-                                             const shape_2D_precompute_pack& aPack2) {
-  if((!mCircle) || (!mRectangle)) {
-    mLastResult.mDistance = std::numeric_limits<double>::infinity();
-    mLastResult.mPoint1 = vect<double,2>(0.0,0.0);
-    mLastResult.mPoint2 = vect<double,2>(0.0,0.0);
-    return;
-  };
+proximity_record_2D prox_circle_rectangle::computeProximity(const shape_2D_precompute_pack& aPack1, 
+                                                            const shape_2D_precompute_pack& aPack2) {
+  if((!mCircle) || (!mRectangle)) 
+    return proximity_record_2D();
   
   if( aPack1.parent == mCircle )
-    mLastResult = compute_proximity(*mCircle,aPack1,*mRectangle,aPack2);
+    return compute_proximity(*mCircle,aPack1,*mRectangle,aPack2);
   else
-    mLastResult = compute_proximity(*mRectangle,aPack1,*mCircle,aPack2);
-  
+    return compute_proximity(*mRectangle,aPack1,*mCircle,aPack2);
 };
 
 

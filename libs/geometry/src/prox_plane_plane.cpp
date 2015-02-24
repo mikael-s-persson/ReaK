@@ -181,20 +181,15 @@ proximity_record_3D compute_proximity(const plane& aPlane1,
 };
 
     
-void prox_plane_plane::computeProximity(const shape_3D_precompute_pack& aPack1, 
-                                        const shape_3D_precompute_pack& aPack2) {
-  mLastResult.mDistance = std::numeric_limits<double>::infinity();
-  mLastResult.mPoint1 = vect<double,3>(0.0,0.0,0.0);
-  mLastResult.mPoint2 = vect<double,3>(0.0,0.0,0.0);
-  
+proximity_record_3D prox_plane_plane::computeProximity(const shape_3D_precompute_pack& aPack1, 
+                                                       const shape_3D_precompute_pack& aPack2) {
   if((!mPlane1) || (!mPlane2))
-    return;
+    return proximity_record_3D();
   
   if( aPack1.parent == mPlane1 ) 
-    mLastResult = compute_proximity(*mPlane1,aPack1,*mPlane2,aPack2);
+    return compute_proximity(*mPlane1,aPack1,*mPlane2,aPack2);
   else
-    mLastResult = compute_proximity(*mPlane2,aPack1,*mPlane1,aPack2);
-  
+    return compute_proximity(*mPlane2,aPack1,*mPlane1,aPack2);
 };
 
 

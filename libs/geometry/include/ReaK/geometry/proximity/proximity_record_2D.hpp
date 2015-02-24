@@ -57,7 +57,7 @@ class proximity_record_2D : public shared_object {
     double mDistance;
     
     /** Default constructor. */
-    proximity_record_2D() { };
+    proximity_record_2D() : mPoint1(), mPoint2(), mDistance(std::numeric_limits<double>::infinity()) { };
     
     /** Destructor. */
     virtual ~proximity_record_2D() { };

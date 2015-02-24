@@ -221,9 +221,10 @@ proximity_record_2D proxy_query_pair_2D::findMinimumDistance() const {
       continue;
     };
     
-    mProxFinders[i]->computeProximity(mModel1->mPreComputePacks[m1_i], mModel2->mPreComputePacks[m2_i]);
-    if(mProxFinders[i]->getLastResult().mDistance < result.mDistance) {
-      result = mProxFinders[i]->getLastResult();
+    proximity_record_2D tmp = mProxFinders[i]->computeProximity(mModel1->mPreComputePacks[m1_i], 
+                                                                mModel2->mPreComputePacks[m2_i]);
+    if(tmp.mDistance < result.mDistance) {
+      result = tmp;
     };
     
     ++m2_i;
@@ -264,9 +265,10 @@ bool proxy_query_pair_2D::gatherCollisionPoints(std::vector< proximity_record_2D
       continue;
     };
     
-    mProxFinders[i]->computeProximity(mModel1->mPreComputePacks[m1_i], mModel2->mPreComputePacks[m2_i]);
-    if(mProxFinders[i]->getLastResult().mDistance < 0.0) {
-      aOutput.push_back(mProxFinders[i]->getLastResult());
+    proximity_record_2D tmp = mProxFinders[i]->computeProximity(mModel1->mPreComputePacks[m1_i], 
+                                                                mModel2->mPreComputePacks[m2_i]);
+    if(tmp.mDistance < 0.0) {
+      aOutput.push_back(tmp);
       collision_found = true;
     };
     
@@ -502,9 +504,10 @@ proximity_record_3D proxy_query_pair_3D::findMinimumDistance() const {
       continue;
     };
     
-    mProxFinders[i]->computeProximity(mModel1->mPreComputePacks[m1_i], mModel2->mPreComputePacks[m2_i]);
-    if(mProxFinders[i]->getLastResult().mDistance < result.mDistance) {
-      result = mProxFinders[i]->getLastResult();
+    proximity_record_3D tmp = mProxFinders[i]->computeProximity(mModel1->mPreComputePacks[m1_i], 
+                                                                mModel2->mPreComputePacks[m2_i]);
+    if(tmp.mDistance < result.mDistance) {
+      result = tmp;
     };
     
     ++m2_i;
@@ -545,9 +548,10 @@ bool proxy_query_pair_3D::gatherCollisionPoints(std::vector< proximity_record_3D
       continue;
     };
     
-    mProxFinders[i]->computeProximity(mModel1->mPreComputePacks[m1_i], mModel2->mPreComputePacks[m2_i]);
-    if(mProxFinders[i]->getLastResult().mDistance < 0.0) {
-      aOutput.push_back(mProxFinders[i]->getLastResult());
+    proximity_record_3D tmp = mProxFinders[i]->computeProximity(mModel1->mPreComputePacks[m1_i], 
+                                                                mModel2->mPreComputePacks[m2_i]);
+    if(tmp.mDistance < 0.0) {
+      aOutput.push_back(tmp);
       collision_found = true;
     };
     

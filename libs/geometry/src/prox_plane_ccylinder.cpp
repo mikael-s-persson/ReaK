@@ -78,20 +78,15 @@ proximity_record_3D compute_proximity(const capped_cylinder& aCCylinder,
   return result;
 };
 
-void prox_plane_ccylinder::computeProximity(const shape_3D_precompute_pack& aPack1, 
-                                            const shape_3D_precompute_pack& aPack2) {
-  if((!mCCylinder) || (!mPlane)) {
-    mLastResult.mDistance = std::numeric_limits<double>::infinity();
-    mLastResult.mPoint1 = vect<double,3>(0.0,0.0,0.0);
-    mLastResult.mPoint2 = vect<double,3>(0.0,0.0,0.0);
-    return;
-  };
+proximity_record_3D prox_plane_ccylinder::computeProximity(const shape_3D_precompute_pack& aPack1, 
+                                                           const shape_3D_precompute_pack& aPack2) {
+  if((!mCCylinder) || (!mPlane)) 
+    return proximity_record_3D();
   
   if( aPack1.parent == mPlane ) 
-    mLastResult = compute_proximity(*mPlane,aPack1,*mCCylinder,aPack2);
+    return compute_proximity(*mPlane,aPack1,*mCCylinder,aPack2);
   else
-    mLastResult = compute_proximity(*mCCylinder,aPack1,*mPlane,aPack2);
-  
+    return compute_proximity(*mCCylinder,aPack1,*mPlane,aPack2);
 };
 
 

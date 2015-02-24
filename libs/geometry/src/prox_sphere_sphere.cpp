@@ -51,20 +51,15 @@ proximity_record_3D compute_proximity(const sphere& aSphere1,
   return result;
 };
 
-void prox_sphere_sphere::computeProximity(const shape_3D_precompute_pack& aPack1, 
-                                          const shape_3D_precompute_pack& aPack2) {
-  if((!mSphere1) || (!mSphere2)) {
-    mLastResult.mDistance = std::numeric_limits<double>::infinity();
-    mLastResult.mPoint1 = vect<double,3>(0.0,0.0,0.0);
-    mLastResult.mPoint2 = vect<double,3>(0.0,0.0,0.0);
-    return;
-  };
+proximity_record_3D prox_sphere_sphere::computeProximity(const shape_3D_precompute_pack& aPack1, 
+                                                         const shape_3D_precompute_pack& aPack2) {
+  if((!mSphere1) || (!mSphere2)) 
+    return proximity_record_3D();
   
   if( aPack1.parent == mSphere1 ) 
-    mLastResult = compute_proximity(*mSphere1,aPack1,*mSphere2,aPack2);
+    return compute_proximity(*mSphere1,aPack1,*mSphere2,aPack2);
   else
-    mLastResult = compute_proximity(*mSphere2,aPack1,*mSphere1,aPack2);
-  
+    return compute_proximity(*mSphere2,aPack1,*mSphere1,aPack2);
 };
 
 
