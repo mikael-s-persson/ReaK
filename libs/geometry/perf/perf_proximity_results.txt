@@ -39,8 +39,11 @@ committed revision: ecf09b5
 committed revision: 856ceaa
 
 (variant-based double-dispatch, with pre-computed global-poses, ordering of shapes cached by value)
-N=50     108,000 ns
-N=100    410,000 ns
+N=50     106,000 ns
+N=100    405,000 ns
+
+committed revision: 2f743d8
+
 
 
 

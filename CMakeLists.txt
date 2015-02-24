@@ -12,6 +12,10 @@ set(DOXYFILE_INPUT "${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile.in")
 
 include(SetupReaKMacros)
 
+# set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -fprofile-use" )
+# set(CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} -fprofile-use" )
+# set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -O3 -march=native -flto" )
+# set(CMAKE_EXE_LINKER_FLAGS  "${CMAKE_EXE_LINKER_FLAGS} -O3 -march=native -flto" )
 
 include(InstallRequiredSystemLibraries)
 set(CPACK_GENERATOR "TGZ;DEB")
