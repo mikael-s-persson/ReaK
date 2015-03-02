@@ -47,7 +47,7 @@ namespace ReaK {
 
 namespace pp {
   
-namespace detail {
+namespace detail { namespace {
 
   
 
@@ -57,195 +57,213 @@ class generic_interpolator_impl : public InterpolatorImpl< SpaceType, TimeSpaceT
 
 
   
-  template <std::size_t Size, typename SpaceTuple, template <typename,typename> class InterpolatorImpl, typename TimeSpace >
-  struct generic_interpolator_impl_tuple_impl { 
+  template <typename SpaceTuple, template <typename,typename> class InterpolatorImpl, typename TimeSpace >
+  struct generic_interpolator_impl_tuple { 
     //BOOST_STATIC_ASSERT(false);
   };
   
 #ifndef BOOST_NO_CXX11_VARIADIC_TEMPLATES
   
-  template <std::size_t Size, template <typename,typename> class InterpolatorImpl, typename TimeSpace, typename... Spaces>
-  struct generic_interpolator_impl_tuple_impl< Size, std::tuple<Spaces...>, InterpolatorImpl, TimeSpace > {
-    typedef arithmetic_tuple< generic_interpolator_impl< InterpolatorImpl, Spaces, TimeSpace>... > type;
-  };
-  
-  template <std::size_t Size, template <typename,typename> class InterpolatorImpl, typename TimeSpace, typename... Spaces>
-  struct generic_interpolator_impl_tuple_impl< Size, arithmetic_tuple<Spaces...>, InterpolatorImpl, TimeSpace > {
+  template <template <typename,typename> class InterpolatorImpl, typename TimeSpace, typename... Spaces>
+  struct generic_interpolator_impl_tuple< arithmetic_tuple<Spaces...>, InterpolatorImpl, TimeSpace > {
     typedef arithmetic_tuple< generic_interpolator_impl< InterpolatorImpl, Spaces, TimeSpace>... > type;
   };
   
 #else
-  template <typename SpaceTuple, template <typename,typename> class InterpolatorImpl, typename TimeSpace>
-  struct generic_interpolator_impl_tuple_impl< 1, SpaceTuple, InterpolatorImpl, TimeSpace > { 
-    typedef arithmetic_tuple< generic_interpolator_impl< InterpolatorImpl, typename arithmetic_tuple_element<0,SpaceTuple>::type, TimeSpace > > type;
+  
+  template <typename S0, template <typename,typename> class InterpolatorImpl, typename TimeSpace>
+  struct generic_interpolator_impl_tuple< 
+      arithmetic_tuple<S0,void,void,void,void,void,void,void,void,void>, 
+    InterpolatorImpl, TimeSpace > { 
+    typedef arithmetic_tuple< 
+      generic_interpolator_impl< InterpolatorImpl, S0, TimeSpace > 
+    > type;
   };
-
-  template <typename SpaceTuple, template <typename,typename> class InterpolatorImpl, typename TimeSpace>
-  struct generic_interpolator_impl_tuple_impl< 2, SpaceTuple, InterpolatorImpl, TimeSpace > { 
-    typedef arithmetic_tuple< generic_interpolator_impl< InterpolatorImpl, typename arithmetic_tuple_element<0,SpaceTuple>::type, TimeSpace >,
-                              generic_interpolator_impl< InterpolatorImpl, typename arithmetic_tuple_element<1,SpaceTuple>::type, TimeSpace > > type;
+  
+  template <typename S0, typename S1, 
+            template <typename,typename> class InterpolatorImpl, typename TimeSpace>
+  struct generic_interpolator_impl_tuple< 
+      arithmetic_tuple<S0,S1,void,void,void,void,void,void,void,void>, 
+    InterpolatorImpl, TimeSpace > { 
+    typedef arithmetic_tuple< 
+      generic_interpolator_impl< InterpolatorImpl, S0, TimeSpace >,
+      generic_interpolator_impl< InterpolatorImpl, S1, TimeSpace >
+    > type;
   };
-
-  template <typename SpaceTuple, template <typename,typename> class InterpolatorImpl, typename TimeSpace>
-  struct generic_interpolator_impl_tuple_impl< 3, SpaceTuple, InterpolatorImpl, TimeSpace > { 
-    typedef arithmetic_tuple< generic_interpolator_impl< InterpolatorImpl, typename arithmetic_tuple_element<0,SpaceTuple>::type, TimeSpace >,
-                              generic_interpolator_impl< InterpolatorImpl, typename arithmetic_tuple_element<1,SpaceTuple>::type, TimeSpace >,
-                              generic_interpolator_impl< InterpolatorImpl, typename arithmetic_tuple_element<2,SpaceTuple>::type, TimeSpace > > type;
+  
+  template <typename S0, typename S1, typename S2, 
+            template <typename,typename> class InterpolatorImpl, typename TimeSpace>
+  struct generic_interpolator_impl_tuple< 
+      arithmetic_tuple<S0,S1,S2,void,void,void,void,void,void,void>, 
+    InterpolatorImpl, TimeSpace > { 
+    typedef arithmetic_tuple< 
+      generic_interpolator_impl< InterpolatorImpl, S0, TimeSpace >,
+      generic_interpolator_impl< InterpolatorImpl, S1, TimeSpace >,
+      generic_interpolator_impl< InterpolatorImpl, S2, TimeSpace >
+    > type;
   };
-
-  template <typename SpaceTuple, template <typename,typename> class InterpolatorImpl, typename TimeSpace>
-  struct generic_interpolator_impl_tuple_impl< 4, SpaceTuple, InterpolatorImpl, TimeSpace > { 
-    typedef arithmetic_tuple< generic_interpolator_impl< InterpolatorImpl, typename arithmetic_tuple_element<0,SpaceTuple>::type, TimeSpace >,
-                              generic_interpolator_impl< InterpolatorImpl, typename arithmetic_tuple_element<1,SpaceTuple>::type, TimeSpace >,
-                              generic_interpolator_impl< InterpolatorImpl, typename arithmetic_tuple_element<2,SpaceTuple>::type, TimeSpace >,
-                              generic_interpolator_impl< InterpolatorImpl, typename arithmetic_tuple_element<3,SpaceTuple>::type, TimeSpace > > type;
+  
+  template <typename S0, typename S1, typename S2, typename S3, 
+            template <typename,typename> class InterpolatorImpl, typename TimeSpace>
+  struct generic_interpolator_impl_tuple< 
+      arithmetic_tuple<S0,S1,S2,S3,void,void,void,void,void,void>, 
+    InterpolatorImpl, TimeSpace > { 
+    typedef arithmetic_tuple< 
+      generic_interpolator_impl< InterpolatorImpl, S0, TimeSpace >,
+      generic_interpolator_impl< InterpolatorImpl, S1, TimeSpace >,
+      generic_interpolator_impl< InterpolatorImpl, S2, TimeSpace >,
+      generic_interpolator_impl< InterpolatorImpl, S3, TimeSpace >
+    > type;
   };
-
-  template <typename SpaceTuple, template <typename,typename> class InterpolatorImpl, typename TimeSpace>
-  struct generic_interpolator_impl_tuple_impl< 5, SpaceTuple, InterpolatorImpl, TimeSpace > { 
-    typedef arithmetic_tuple< generic_interpolator_impl< InterpolatorImpl, typename arithmetic_tuple_element<0,SpaceTuple>::type, TimeSpace >,
-                              generic_interpolator_impl< InterpolatorImpl, typename arithmetic_tuple_element<1,SpaceTuple>::type, TimeSpace >,
-                              generic_interpolator_impl< InterpolatorImpl, typename arithmetic_tuple_element<2,SpaceTuple>::type, TimeSpace >,
-                              generic_interpolator_impl< InterpolatorImpl, typename arithmetic_tuple_element<3,SpaceTuple>::type, TimeSpace >,
-                              generic_interpolator_impl< InterpolatorImpl, typename arithmetic_tuple_element<4,SpaceTuple>::type, TimeSpace > > type;
+  
+  template <typename S0, typename S1, typename S2, typename S3, typename S4, 
+            template <typename,typename> class InterpolatorImpl, typename TimeSpace>
+  struct generic_interpolator_impl_tuple< 
+      arithmetic_tuple<S0,S1,S2,S3,S4,void,void,void,void,void>, 
+    InterpolatorImpl, TimeSpace > { 
+    typedef arithmetic_tuple< 
+      generic_interpolator_impl< InterpolatorImpl, S0, TimeSpace >,
+      generic_interpolator_impl< InterpolatorImpl, S1, TimeSpace >,
+      generic_interpolator_impl< InterpolatorImpl, S2, TimeSpace >,
+      generic_interpolator_impl< InterpolatorImpl, S3, TimeSpace >,
+      generic_interpolator_impl< InterpolatorImpl, S4, TimeSpace >
+    > type;
   };
-
-  template <typename SpaceTuple, template <typename,typename> class InterpolatorImpl, typename TimeSpace>
-  struct generic_interpolator_impl_tuple_impl< 6, SpaceTuple, InterpolatorImpl, TimeSpace > { 
-    typedef arithmetic_tuple< generic_interpolator_impl< InterpolatorImpl, typename arithmetic_tuple_element<0,SpaceTuple>::type, TimeSpace >,
-                              generic_interpolator_impl< InterpolatorImpl, typename arithmetic_tuple_element<1,SpaceTuple>::type, TimeSpace >,
-                              generic_interpolator_impl< InterpolatorImpl, typename arithmetic_tuple_element<2,SpaceTuple>::type, TimeSpace >,
-                              generic_interpolator_impl< InterpolatorImpl, typename arithmetic_tuple_element<3,SpaceTuple>::type, TimeSpace >,
-                              generic_interpolator_impl< InterpolatorImpl, typename arithmetic_tuple_element<4,SpaceTuple>::type, TimeSpace >,
-                              generic_interpolator_impl< InterpolatorImpl, typename arithmetic_tuple_element<5,SpaceTuple>::type, TimeSpace > > type;
+  
+  template <typename S0, typename S1, typename S2, typename S3, typename S4, 
+            typename S5, 
+            template <typename,typename> class InterpolatorImpl, typename TimeSpace>
+  struct generic_interpolator_impl_tuple< 
+      arithmetic_tuple<S0,S1,S2,S3,S4,S5,void,void,void,void>, 
+    InterpolatorImpl, TimeSpace > { 
+    typedef arithmetic_tuple< 
+      generic_interpolator_impl< InterpolatorImpl, S0, TimeSpace >,
+      generic_interpolator_impl< InterpolatorImpl, S1, TimeSpace >,
+      generic_interpolator_impl< InterpolatorImpl, S2, TimeSpace >,
+      generic_interpolator_impl< InterpolatorImpl, S3, TimeSpace >,
+      generic_interpolator_impl< InterpolatorImpl, S4, TimeSpace >,
+      generic_interpolator_impl< InterpolatorImpl, S5, TimeSpace >
+    > type;
   };
-
-  template <typename SpaceTuple, template <typename,typename> class InterpolatorImpl, typename TimeSpace>
-  struct generic_interpolator_impl_tuple_impl< 7, SpaceTuple, InterpolatorImpl, TimeSpace > { 
-    typedef arithmetic_tuple< generic_interpolator_impl< InterpolatorImpl, typename arithmetic_tuple_element<0,SpaceTuple>::type, TimeSpace >,
-                              generic_interpolator_impl< InterpolatorImpl, typename arithmetic_tuple_element<1,SpaceTuple>::type, TimeSpace >,
-                              generic_interpolator_impl< InterpolatorImpl, typename arithmetic_tuple_element<2,SpaceTuple>::type, TimeSpace >,
-                              generic_interpolator_impl< InterpolatorImpl, typename arithmetic_tuple_element<3,SpaceTuple>::type, TimeSpace >,
-                              generic_interpolator_impl< InterpolatorImpl, typename arithmetic_tuple_element<4,SpaceTuple>::type, TimeSpace >,
-                              generic_interpolator_impl< InterpolatorImpl, typename arithmetic_tuple_element<5,SpaceTuple>::type, TimeSpace >,
-                              generic_interpolator_impl< InterpolatorImpl, typename arithmetic_tuple_element<6,SpaceTuple>::type, TimeSpace > > type;
+  
+  template <typename S0, typename S1, typename S2, typename S3, typename S4, 
+            typename S5, typename S6, 
+            template <typename,typename> class InterpolatorImpl, typename TimeSpace>
+  struct generic_interpolator_impl_tuple< 
+      arithmetic_tuple<S0,S1,S2,S3,S4,S5,S6,void,void,void>, 
+    InterpolatorImpl, TimeSpace > { 
+    typedef arithmetic_tuple< 
+      generic_interpolator_impl< InterpolatorImpl, S0, TimeSpace >,
+      generic_interpolator_impl< InterpolatorImpl, S1, TimeSpace >,
+      generic_interpolator_impl< InterpolatorImpl, S2, TimeSpace >,
+      generic_interpolator_impl< InterpolatorImpl, S3, TimeSpace >,
+      generic_interpolator_impl< InterpolatorImpl, S4, TimeSpace >,
+      generic_interpolator_impl< InterpolatorImpl, S5, TimeSpace >,
+      generic_interpolator_impl< InterpolatorImpl, S6, TimeSpace >
+    > type;
   };
-
-  template <typename SpaceTuple, template <typename,typename> class InterpolatorImpl, typename TimeSpace>
-  struct generic_interpolator_impl_tuple_impl< 8, SpaceTuple, InterpolatorImpl, TimeSpace > { 
-    typedef arithmetic_tuple< generic_interpolator_impl< InterpolatorImpl, typename arithmetic_tuple_element<0,SpaceTuple>::type, TimeSpace >,
-                              generic_interpolator_impl< InterpolatorImpl, typename arithmetic_tuple_element<1,SpaceTuple>::type, TimeSpace >,
-                              generic_interpolator_impl< InterpolatorImpl, typename arithmetic_tuple_element<2,SpaceTuple>::type, TimeSpace >,
-                              generic_interpolator_impl< InterpolatorImpl, typename arithmetic_tuple_element<3,SpaceTuple>::type, TimeSpace >,
-                              generic_interpolator_impl< InterpolatorImpl, typename arithmetic_tuple_element<4,SpaceTuple>::type, TimeSpace >,
-                              generic_interpolator_impl< InterpolatorImpl, typename arithmetic_tuple_element<5,SpaceTuple>::type, TimeSpace >,
-                              generic_interpolator_impl< InterpolatorImpl, typename arithmetic_tuple_element<6,SpaceTuple>::type, TimeSpace >,
-                              generic_interpolator_impl< InterpolatorImpl, typename arithmetic_tuple_element<7,SpaceTuple>::type, TimeSpace > > type;
+  
+  template <typename S0, typename S1, typename S2, typename S3, typename S4, 
+            typename S5, typename S6, typename S7, 
+            template <typename,typename> class InterpolatorImpl, typename TimeSpace>
+  struct generic_interpolator_impl_tuple< 
+      arithmetic_tuple<S0,S1,S2,S3,S4,S5,S6,S7,void,void>, 
+    InterpolatorImpl, TimeSpace > { 
+    typedef arithmetic_tuple< 
+      generic_interpolator_impl< InterpolatorImpl, S0, TimeSpace >,
+      generic_interpolator_impl< InterpolatorImpl, S1, TimeSpace >,
+      generic_interpolator_impl< InterpolatorImpl, S2, TimeSpace >,
+      generic_interpolator_impl< InterpolatorImpl, S3, TimeSpace >,
+      generic_interpolator_impl< InterpolatorImpl, S4, TimeSpace >,
+      generic_interpolator_impl< InterpolatorImpl, S5, TimeSpace >,
+      generic_interpolator_impl< InterpolatorImpl, S6, TimeSpace >,
+      generic_interpolator_impl< InterpolatorImpl, S7, TimeSpace >
+    > type;
   };
-
-  template <typename SpaceTuple, template <typename,typename> class InterpolatorImpl, typename TimeSpace>
-  struct generic_interpolator_impl_tuple_impl< 9, SpaceTuple, InterpolatorImpl, TimeSpace > { 
-    typedef arithmetic_tuple< generic_interpolator_impl< InterpolatorImpl, typename arithmetic_tuple_element<0,SpaceTuple>::type, TimeSpace >,
-                              generic_interpolator_impl< InterpolatorImpl, typename arithmetic_tuple_element<1,SpaceTuple>::type, TimeSpace >,
-                              generic_interpolator_impl< InterpolatorImpl, typename arithmetic_tuple_element<2,SpaceTuple>::type, TimeSpace >,
-                              generic_interpolator_impl< InterpolatorImpl, typename arithmetic_tuple_element<3,SpaceTuple>::type, TimeSpace >,
-                              generic_interpolator_impl< InterpolatorImpl, typename arithmetic_tuple_element<4,SpaceTuple>::type, TimeSpace >,
-                              generic_interpolator_impl< InterpolatorImpl, typename arithmetic_tuple_element<5,SpaceTuple>::type, TimeSpace >,
-                              generic_interpolator_impl< InterpolatorImpl, typename arithmetic_tuple_element<6,SpaceTuple>::type, TimeSpace >,
-                              generic_interpolator_impl< InterpolatorImpl, typename arithmetic_tuple_element<7,SpaceTuple>::type, TimeSpace >,
-                              generic_interpolator_impl< InterpolatorImpl, typename arithmetic_tuple_element<8,SpaceTuple>::type, TimeSpace > > type;
+  
+  template <typename S0, typename S1, typename S2, typename S3, typename S4, 
+            typename S5, typename S6, typename S7, typename S8, 
+            template <typename,typename> class InterpolatorImpl, typename TimeSpace>
+  struct generic_interpolator_impl_tuple< 
+      arithmetic_tuple<S0,S1,S2,S3,S4,S5,S6,S7,S8,void>, 
+    InterpolatorImpl, TimeSpace > { 
+    typedef arithmetic_tuple< 
+      generic_interpolator_impl< InterpolatorImpl, S0, TimeSpace >,
+      generic_interpolator_impl< InterpolatorImpl, S1, TimeSpace >,
+      generic_interpolator_impl< InterpolatorImpl, S2, TimeSpace >,
+      generic_interpolator_impl< InterpolatorImpl, S3, TimeSpace >,
+      generic_interpolator_impl< InterpolatorImpl, S4, TimeSpace >,
+      generic_interpolator_impl< InterpolatorImpl, S5, TimeSpace >,
+      generic_interpolator_impl< InterpolatorImpl, S6, TimeSpace >,
+      generic_interpolator_impl< InterpolatorImpl, S7, TimeSpace >,
+      generic_interpolator_impl< InterpolatorImpl, S8, TimeSpace >
+    > type;
   };
-
-  template <typename SpaceTuple, template <typename,typename> class InterpolatorImpl, typename TimeSpace>
-  struct generic_interpolator_impl_tuple_impl< 10, SpaceTuple, InterpolatorImpl, TimeSpace > { 
-    typedef arithmetic_tuple< generic_interpolator_impl< InterpolatorImpl, typename arithmetic_tuple_element<0,SpaceTuple>::type, TimeSpace >,
-                              generic_interpolator_impl< InterpolatorImpl, typename arithmetic_tuple_element<1,SpaceTuple>::type, TimeSpace >,
-                              generic_interpolator_impl< InterpolatorImpl, typename arithmetic_tuple_element<2,SpaceTuple>::type, TimeSpace >,
-                              generic_interpolator_impl< InterpolatorImpl, typename arithmetic_tuple_element<3,SpaceTuple>::type, TimeSpace >,
-                              generic_interpolator_impl< InterpolatorImpl, typename arithmetic_tuple_element<4,SpaceTuple>::type, TimeSpace >,
-                              generic_interpolator_impl< InterpolatorImpl, typename arithmetic_tuple_element<5,SpaceTuple>::type, TimeSpace >,
-                              generic_interpolator_impl< InterpolatorImpl, typename arithmetic_tuple_element<6,SpaceTuple>::type, TimeSpace >,
-                              generic_interpolator_impl< InterpolatorImpl, typename arithmetic_tuple_element<7,SpaceTuple>::type, TimeSpace >,
-                              generic_interpolator_impl< InterpolatorImpl, typename arithmetic_tuple_element<8,SpaceTuple>::type, TimeSpace >,
-                              generic_interpolator_impl< InterpolatorImpl, typename arithmetic_tuple_element<9,SpaceTuple>::type, TimeSpace > > type;
+  
+  template <typename S0, typename S1, typename S2, typename S3, typename S4, 
+            typename S5, typename S6, typename S7, typename S8, typename S9, 
+            template <typename,typename> class InterpolatorImpl, typename TimeSpace>
+  struct generic_interpolator_impl_tuple< 
+      arithmetic_tuple<S0,S1,S2,S3,S4,S5,S6,S7,S8,S9>, 
+    InterpolatorImpl, TimeSpace > { 
+    typedef arithmetic_tuple< 
+      generic_interpolator_impl< InterpolatorImpl, S0, TimeSpace >,
+      generic_interpolator_impl< InterpolatorImpl, S1, TimeSpace >,
+      generic_interpolator_impl< InterpolatorImpl, S2, TimeSpace >,
+      generic_interpolator_impl< InterpolatorImpl, S3, TimeSpace >,
+      generic_interpolator_impl< InterpolatorImpl, S4, TimeSpace >,
+      generic_interpolator_impl< InterpolatorImpl, S5, TimeSpace >,
+      generic_interpolator_impl< InterpolatorImpl, S6, TimeSpace >,
+      generic_interpolator_impl< InterpolatorImpl, S7, TimeSpace >,
+      generic_interpolator_impl< InterpolatorImpl, S8, TimeSpace >,
+      generic_interpolator_impl< InterpolatorImpl, S9, TimeSpace >
+    > type;
   };
 
 #endif
 
-  template <typename SpaceTuple, template <typename,typename> class InterpolatorImpl, typename TimeSpace>
-  struct generic_interpolator_impl_tuple : generic_interpolator_impl_tuple_impl< arithmetic_tuple_size<SpaceTuple>::type::value, SpaceTuple, InterpolatorImpl, TimeSpace > { };
-  
 
 
-template <std::size_t Idx>
-class gen_interpolator_recursion_impl {
-  public:
-    
-    template <typename InterpolatorTuple, typename PointType, typename SpaceTuple, typename TimeSpace, typename Factory>
-    static void initialize(InterpolatorTuple& interp,
-                                  const PointType& start_point, const PointType& end_point, double dt,
-                                  const SpaceTuple& space, const TimeSpace& t_space, const Factory& factory) {
-      gen_interpolator_recursion_impl< Idx-1 >::initialize(interp,start_point,end_point,dt,space,t_space,factory);
-      
-      get<Idx>(interp).initialize(get<Idx>(start_point), get<Idx>(end_point), dt, 
-                                  get<Idx>(space), t_space, factory);
-    };
-    
-    template <typename InterpolatorTuple, typename PointType, typename SpaceTuple, typename TimeSpace, typename Factory>
-    static void compute_point(const InterpolatorTuple& interp,
-                              PointType& result, const PointType& start_point, const PointType& end_point, 
-                              const SpaceTuple& space, const TimeSpace& t_space, 
-                              double dt, double dt_total, const Factory& factory) {
-      gen_interpolator_recursion_impl< Idx-1 >::compute_point(interp,result,start_point,end_point,space,t_space,dt,dt_total,factory);
-      
-      get<Idx>(interp).compute_point(get<Idx>(result), get<Idx>(start_point), get<Idx>(end_point),
-                                     get<Idx>(space), t_space, dt, dt_total, factory);
-    };
-    
-    template <typename InterpolatorTuple>
-    static double get_minimum_travel_time(const InterpolatorTuple& interp) {
-      double result = gen_interpolator_recursion_impl< Idx-1 >::get_minimum_travel_time(interp);
-      
-      double result_0 = get<Idx>(interp).get_minimum_travel_time();
-      if( result > result_0 ) 
-        return result;
-      else
-        return result_0;
-    };
-    
-    
+template <typename TimeSpace, typename Factory>
+struct gen_interp_impl_initializer {
+  const TimeSpace* p_t_space;
+  const Factory* p_factory;
+  double dt;
+  gen_interp_impl_initializer(const TimeSpace& t_space, const Factory& factory, double aDt) :
+                              p_t_space(&t_space), p_factory(&factory), dt(aDt) {};
+  template <typename Interpolator, typename Point, typename Space>
+  void operator()(Interpolator& interp, const Point& start_point, 
+                  const Point& end_point, const Space& space) const {
+    interp.initialize(start_point, end_point, dt, space, *p_t_space, *p_factory);
+  };
 };
 
-
-template <>
-class gen_interpolator_recursion_impl<0> {
-  public:
-    
-    template <typename InterpolatorTuple, typename PointType, typename SpaceTuple, typename TimeSpace, typename Factory>
-    static void initialize(InterpolatorTuple& interp,
-                                  const PointType& start_point, const PointType& end_point, double dt,
-                                  const SpaceTuple& space, const TimeSpace& t_space, const Factory& factory) {
-      get<0>(interp).initialize(get<0>(start_point), get<0>(end_point), dt, 
-                                  get<0>(space), t_space, factory);
-    };
-    
-    template <typename InterpolatorTuple, typename PointType, typename SpaceTuple, typename TimeSpace, typename Factory>
-    static void compute_point(const InterpolatorTuple& interp,
-                              PointType& result, const PointType& start_point, const PointType& end_point, 
-                              const SpaceTuple& space, const TimeSpace& t_space, 
-                              double dt, double dt_total, const Factory& factory) {
-      get<0>(interp).compute_point(get<0>(result), get<0>(start_point), get<0>(end_point),
-                                   get<0>(space), t_space, dt, dt_total, factory);
-    };
-    
-    template <typename InterpolatorTuple>
-    static double get_minimum_travel_time(const InterpolatorTuple& interp) {
-      return get<0>(interp).get_minimum_travel_time();
-    };
-    
-    
+template <typename TimeSpace, typename Factory>
+struct gen_interp_impl_computer {
+  const TimeSpace* p_t_space;
+  const Factory* p_factory;
+  double dt, dt_total;
+  gen_interp_impl_computer(const TimeSpace& t_space, const Factory& factory, 
+                           double aDt, double aDtTotal) :
+                           p_t_space(&t_space), p_factory(&factory), 
+                           dt(aDt), dt_total(aDtTotal) {};
+  template <typename Interpolator, typename Point, typename Space>
+  void operator()(const Interpolator& interp, Point& result, 
+                  const Point& start_point, const Point& end_point, const Space& space) const {
+    interp.compute_point(result, start_point, end_point, space, *p_t_space, dt, dt_total, *p_factory);
+  };
 };
 
+struct gen_interp_impl_mintime {
+  double* p_result;
+  gen_interp_impl_mintime(double& result) : p_result(&result) {};
+  template <typename Interpolator>
+  void operator()(const Interpolator& interp) const {
+    double r0 = interp.get_minimum_travel_time();
+    if( (*p_result) < r0 )
+      (*p_result) = r0;
+  };
+};
 
 
 template < template <typename, typename> class InterpolatorImpl,
@@ -266,26 +284,30 @@ class generic_interpolator_impl< InterpolatorImpl, metric_space_tuple<SpaceTuple
     template <typename Factory>
     void initialize(const point_type& start_point, const point_type& end_point, double dt,
                     const SpaceType& space, const TimeSpaceType& t_space, const Factory& factory) {
-      gen_interpolator_recursion_impl< arithmetic_tuple_size< SpaceTuple >::value - 1 >::initialize(interp, start_point, end_point, dt, space, t_space, factory);
+      tuple_for_each(interp, start_point, end_point, space, 
+        gen_interp_impl_initializer<TimeSpaceType,Factory>(t_space, factory, dt)
+      );
     };
     
     template <typename Factory>
     void compute_point(point_type& result, const point_type& start_point, const point_type& end_point,
                        const SpaceType& space, const TimeSpaceType& t_space, 
                        double dt, double dt_total, const Factory& factory) const {
-      gen_interpolator_recursion_impl< arithmetic_tuple_size< SpaceTuple >::value - 1 >::compute_point(interp, result, start_point, end_point, space, t_space, dt, dt_total, factory);
+      tuple_for_each(interp, result, start_point, end_point, space, 
+        gen_interp_impl_computer<TimeSpaceType,Factory>(t_space, factory, dt, dt_total)
+      );
     };
     
     double get_minimum_travel_time() const {
-      return gen_interpolator_recursion_impl< arithmetic_tuple_size< SpaceTuple >::value - 1 >::get_minimum_travel_time(interp);
+      double result = 0.0;
+      tuple_for_each(interp, gen_interp_impl_mintime(result));
+      return result;
     };
     
-    
 };
 
 
-};
-
+}; };
 
 
 

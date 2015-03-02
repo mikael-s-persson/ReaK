@@ -49,14 +49,14 @@ namespace ReaK {
 
 namespace pp {
 
-namespace detail {
+namespace detail { namespace {
 
 
 
 
-/*******************************************************************************************************************
+/*****************************************************************************************************
                                  FUNCTIONS TO CREATE RATE-LIMITED JOINT-SPACES
-*******************************************************************************************************************/
+******************************************************************************************************/
 
 
   template <typename OutSpace, typename InSpace, typename RateLimitMap>
@@ -165,9 +165,6 @@ namespace detail {
   };
 
 
-
-
-  
 
   template <typename OutSpace, typename InSpace, typename RateLimitMap>
   typename boost::enable_if<
@@ -301,9 +298,6 @@ namespace detail {
                 );
   };
 
-
-  
-  
 
 
   template <typename OutSpace, typename InSpace, typename RateLimitMap>
@@ -495,8 +489,6 @@ namespace detail {
   };
 
 
-
-
   template <typename OutSpace, typename InSpace, typename RateLimitMap>
   typename boost::enable_if<
     boost::mpl::and_<
@@ -681,33 +673,36 @@ namespace detail {
                 );
     f3d_i += 2;
   };
-
-  // declarations only:
-  template <typename Idx, typename OutSpace, typename InSpace, typename RateLimitMap>
+  
+  
+  template <typename OutSpace, typename InSpace, typename RateLimitMap>
   typename boost::disable_if<
-    boost::mpl::less<
-      Idx,
-      boost::mpl::size_t<1>
+    boost::mpl::or_<
+      is_rate_limited_joint_space< OutSpace >,
+      is_rate_limited_se2_space< OutSpace >,
+      is_rate_limited_se3_space< OutSpace >,
+      is_Ndof_rl_space< OutSpace >
     >,
-  void >::type create_rl_joint_spaces_impl(OutSpace& space_out,
-                                           const InSpace& space_in,
-                                           const RateLimitMap& j_limits,
-                                           std::size_t& gen_i, std::size_t& f2d_i, std::size_t& f3d_i);
-
-  // declarations only:
-  template <typename Idx, typename OutSpace, typename InSpace, typename RateLimitMap>
-  typename boost::enable_if<
-    boost::mpl::less<
-      Idx,
-      boost::mpl::size_t<1>
-    >,
-  void >::type create_rl_joint_spaces_impl(OutSpace& space_out,
-                                           const InSpace& space_in,
-                                           const RateLimitMap& j_limits,
-                                           std::size_t& gen_i, std::size_t& f2d_i, std::size_t& f3d_i);
-
-
-
+  void >::type create_rl_joint_space_impl(OutSpace& space_out,
+                                          const InSpace& space_in,
+                                          const RateLimitMap& j_limits,
+                                          std::size_t& gen_i, std::size_t& f2d_i, std::size_t& f3d_i);
+  
+  template <typename RateLimitMap>
+  struct create_rl_joint_space_functor {
+    std::size_t* p_gen_i;
+    std::size_t* p_f2d_i;
+    std::size_t* p_f3d_i;
+    const RateLimitMap* p_j_limits;
+    create_rl_joint_space_functor(std::size_t& gen_i, std::size_t& f2d_i, 
+                                  std::size_t& f3d_i, const RateLimitMap& j_limits) : 
+                                  p_gen_i(&gen_i), p_f2d_i(&f2d_i), p_f3d_i(&f3d_i), p_j_limits(&j_limits) {};
+    template <typename OutSpace, typename InSpace>
+    void operator()(OutSpace& space_out, const InSpace& space_in) {
+      create_rl_joint_space_impl(space_out, space_in, *p_j_limits, *p_gen_i, *p_f2d_i, *p_f3d_i);
+    };
+  };
+  
   template <typename OutSpace, typename InSpace, typename RateLimitMap>
   typename boost::disable_if<
     boost::mpl::or_<
@@ -720,47 +715,10 @@ namespace detail {
                                           const InSpace& space_in,
                                           const RateLimitMap& j_limits,
                                           std::size_t& gen_i, std::size_t& f2d_i, std::size_t& f3d_i) {
-    create_rl_joint_spaces_impl< typename boost::mpl::prior< arithmetic_tuple_size< OutSpace > >::type >(space_out, space_in, j_limits, gen_i, f2d_i, f3d_i);
+    tuple_for_each(space_out, space_in, 
+      create_rl_joint_space_functor<RateLimitMap>(gen_i, f2d_i, f3d_i, j_limits));
   };
-
-
-
-  template <typename Idx, typename OutSpace, typename InSpace, typename RateLimitMap>
-  typename boost::disable_if<
-    boost::mpl::less<
-      Idx,
-      boost::mpl::size_t<1>
-    >,
-  void >::type create_rl_joint_spaces_impl(OutSpace& space_out,
-                                           const InSpace& space_in,
-                                           const RateLimitMap& j_limits,
-                                           std::size_t& gen_i, std::size_t& f2d_i, std::size_t& f3d_i) {
-
-    create_rl_joint_spaces_impl< typename boost::mpl::prior<Idx>::type >(space_out,space_in,j_limits,gen_i,f2d_i,f3d_i);
-
-    create_rl_joint_space_impl(get< Idx::type::value >(space_out),
-                               get< Idx::type::value >(space_in),
-                               j_limits, gen_i, f2d_i, f3d_i);
-
-  };
-
-  template <typename Idx, typename OutSpace, typename InSpace, typename RateLimitMap>
-  typename boost::enable_if<
-    boost::mpl::less<
-      Idx,
-      boost::mpl::size_t<1>
-    >,
-  void >::type create_rl_joint_spaces_impl(OutSpace& space_out,
-                                           const InSpace& space_in,
-                                           const RateLimitMap& j_limits,
-                                           std::size_t& gen_i, std::size_t& f2d_i, std::size_t& f3d_i) {
-
-    create_rl_joint_space_impl(get< 0 >(space_out),
-                               get< 0 >(space_in),
-                               j_limits, gen_i, f2d_i, f3d_i);
-
-  };
-
+  
   template <typename OutSpace, typename InSpace, typename RateLimitMap>
   typename boost::disable_if<
     boost::mpl::or_<
@@ -770,17 +728,15 @@ namespace detail {
       is_Ndof_rl_space< OutSpace >
     >,
   void >::type create_rl_joint_spaces_impl(OutSpace& space_out,
-                                   const InSpace& space_in,
-                                   const RateLimitMap& j_limits) {
+                                           const InSpace& space_in,
+                                           const RateLimitMap& j_limits) {
     std::size_t gen_i = 0;
     std::size_t f2d_i = 0;
     std::size_t f3d_i = 0;
-    create_rl_joint_spaces_impl< typename boost::mpl::prior< arithmetic_tuple_size< OutSpace > >::type >(space_out,
-                                                                                          space_in,
-                                                                                          j_limits, gen_i, f2d_i, f3d_i);
-
+    tuple_for_each(space_out, space_in, 
+      create_rl_joint_space_functor<RateLimitMap>(gen_i, f2d_i, f3d_i, j_limits));
   };
-
+  
   template <typename OutSpace, typename InSpace, typename RateLimitMap>
   typename boost::enable_if<
     boost::mpl::or_<
@@ -790,8 +746,8 @@ namespace detail {
       is_Ndof_rl_space< OutSpace >
     >,
   void >::type create_rl_joint_spaces_impl(OutSpace& space_out,
-                                   const InSpace& space_in,
-                                   const RateLimitMap& j_limits) {
+                                           const InSpace& space_in,
+                                           const RateLimitMap& j_limits) {
     std::size_t gen_i = 0;
     std::size_t f2d_i = 0;
     std::size_t f3d_i = 0;
@@ -799,16 +755,18 @@ namespace detail {
                                j_limits, gen_i, f2d_i, f3d_i);
 
   };
+  
+  
+  
 
 
 
 
 
 
-
-/*******************************************************************************************************************
+/***********************************************************************************************************
                                  FUNCTIONS TO CREATE NORMAL JOINT-SPACES
-*******************************************************************************************************************/
+************************************************************************************************************/
 
 
   template <typename OutSpace, typename InSpace, typename RateLimitMap>
@@ -907,8 +865,6 @@ namespace detail {
     ++gen_i;
   };
 
-
-  
 
   template <typename OutSpace, typename InSpace, typename RateLimitMap>
   typename boost::enable_if<
@@ -1032,10 +988,6 @@ namespace detail {
                          )
                 );
   };
-
-
-  
-  
 
 
 
@@ -1210,8 +1162,6 @@ namespace detail {
   };
 
 
-
-
   template <typename OutSpace, typename InSpace, typename RateLimitMap>
   typename boost::enable_if<
     boost::mpl::and_<
@@ -1377,31 +1327,35 @@ namespace detail {
   };
 
 
-  // declaration only:
-  template <typename Idx, typename OutSpace, typename InSpace, typename RateLimitMap>
+  template <typename OutSpace, typename InSpace, typename RateLimitMap>
   typename boost::disable_if<
-    boost::mpl::less<
-      Idx,
-      boost::mpl::size_t<1>
+    boost::mpl::or_<
+      is_rate_limited_joint_space< InSpace >,
+      is_rate_limited_se2_space< InSpace >,
+      is_rate_limited_se3_space< InSpace >,
+      is_Ndof_rl_space< InSpace >
     >,
-  void >::type create_normal_joint_spaces_impl(OutSpace& space_out,
-                                               const InSpace& space_in,
-                                               const RateLimitMap& j_limits,
-                                               std::size_t& gen_i, std::size_t& f2d_i, std::size_t& f3d_i);
-
-  // declaration only:
-  template <typename Idx, typename OutSpace, typename InSpace, typename RateLimitMap>
-  typename boost::enable_if<
-    boost::mpl::less<
-      Idx,
-      boost::mpl::size_t<1>
-    >,
-  void >::type create_normal_joint_spaces_impl(OutSpace& space_out,
-                                               const InSpace& space_in,
-                                               const RateLimitMap& j_limits,
-                                               std::size_t& gen_i, std::size_t& f2d_i, std::size_t& f3d_i);
-
-
+  void >::type create_normal_joint_space_impl(OutSpace& space_out,
+                                              const InSpace& space_in,
+                                              const RateLimitMap& j_limits,
+                                              std::size_t& gen_i, std::size_t& f2d_i, std::size_t& f3d_i);
+  
+  template <typename RateLimitMap>
+  struct create_normal_joint_space_functor {
+    std::size_t* p_gen_i;
+    std::size_t* p_f2d_i;
+    std::size_t* p_f3d_i;
+    const RateLimitMap* p_j_limits;
+    create_normal_joint_space_functor(std::size_t& gen_i, std::size_t& f2d_i, 
+                                      std::size_t& f3d_i, const RateLimitMap& j_limits) : 
+                                      p_gen_i(&gen_i), p_f2d_i(&f2d_i), 
+                                      p_f3d_i(&f3d_i), p_j_limits(&j_limits) {};
+    template <typename OutSpace, typename InSpace>
+    void operator()(OutSpace& space_out, const InSpace& space_in) {
+      create_normal_joint_space_impl(space_out, space_in, *p_j_limits, *p_gen_i, *p_f2d_i, *p_f3d_i);
+    };
+  };
+  
   template <typename OutSpace, typename InSpace, typename RateLimitMap>
   typename boost::disable_if<
     boost::mpl::or_<
@@ -1414,47 +1368,10 @@ namespace detail {
                                               const InSpace& space_in,
                                               const RateLimitMap& j_limits,
                                               std::size_t& gen_i, std::size_t& f2d_i, std::size_t& f3d_i) {
-    create_normal_joint_spaces_impl< typename boost::mpl::prior< arithmetic_tuple_size< OutSpace > >::type >(space_out, space_in, j_limits, gen_i, f2d_i, f3d_i);
+    tuple_for_each(space_out, space_in, 
+      create_normal_joint_space_functor<RateLimitMap>(gen_i, f2d_i, f3d_i, j_limits));
   };
-
-
-
-  template <typename Idx, typename OutSpace, typename InSpace, typename RateLimitMap>
-  typename boost::disable_if<
-    boost::mpl::less<
-      Idx,
-      boost::mpl::size_t<1>
-    >,
-  void >::type create_normal_joint_spaces_impl(OutSpace& space_out,
-                                               const InSpace& space_in,
-                                               const RateLimitMap& j_limits,
-                                               std::size_t& gen_i, std::size_t& f2d_i, std::size_t& f3d_i) {
-
-    create_normal_joint_spaces_impl< typename boost::mpl::prior<Idx>::type >(space_out,space_in,j_limits,gen_i,f2d_i,f3d_i);
-
-    create_normal_joint_space_impl(get< Idx::type::value >(space_out),
-                                   get< Idx::type::value >(space_in),
-                                   j_limits, gen_i, f2d_i, f3d_i);
-
-  };
-
-  template <typename Idx, typename OutSpace, typename InSpace, typename RateLimitMap>
-  typename boost::enable_if<
-    boost::mpl::less<
-      Idx,
-      boost::mpl::size_t<1>
-    >,
-  void >::type create_normal_joint_spaces_impl(OutSpace& space_out,
-                                               const InSpace& space_in,
-                                               const RateLimitMap& j_limits,
-                                               std::size_t& gen_i, std::size_t& f2d_i, std::size_t& f3d_i) {
-
-    create_normal_joint_space_impl(get< 0 >(space_out),
-                                   get< 0 >(space_in),
-                                   j_limits, gen_i, f2d_i, f3d_i);
-
-  };
-
+  
   template <typename OutSpace, typename InSpace, typename RateLimitMap>
   typename boost::disable_if<
     boost::mpl::or_<
@@ -1464,15 +1381,13 @@ namespace detail {
       is_Ndof_rl_space< InSpace >
     >,
   void >::type create_normal_joint_spaces_impl(OutSpace& space_out,
-                                       const InSpace& space_in,
-                                       const RateLimitMap& j_limits) {
+                                               const InSpace& space_in,
+                                               const RateLimitMap& j_limits) {
     std::size_t gen_i = 0;
     std::size_t f2d_i = 0;
     std::size_t f3d_i = 0;
-    create_normal_joint_spaces_impl< typename boost::mpl::prior< arithmetic_tuple_size< OutSpace > >::type >(space_out,
-                                                                                              space_in,
-                                                                                              j_limits, gen_i, f2d_i, f3d_i);
-
+    tuple_for_each(space_out, space_in, 
+      create_normal_joint_space_functor<RateLimitMap>(gen_i, f2d_i, f3d_i, j_limits));
   };
 
   template <typename OutSpace, typename InSpace, typename RateLimitMap>
@@ -1484,8 +1399,8 @@ namespace detail {
       is_Ndof_rl_space< InSpace >
     >,
   void >::type create_normal_joint_spaces_impl(OutSpace& space_out,
-                                       const InSpace& space_in,
-                                       const RateLimitMap& j_limits) {
+                                               const InSpace& space_in,
+                                               const RateLimitMap& j_limits) {
     std::size_t gen_i = 0;
     std::size_t f2d_i = 0;
     std::size_t f3d_i = 0;
@@ -1495,9 +1410,9 @@ namespace detail {
 
 
 
-/*******************************************************************************************************************
+/**************************************************************************************************
                                  FUNCTIONS TO CREATE RATE-LIMITED JOINT-SPACE VECTORS
-*******************************************************************************************************************/
+***************************************************************************************************/
 
 
   template <typename RateLimitMap>
@@ -1774,79 +1689,40 @@ namespace detail {
     get< 2 >(get< 1 >(result)) = get< 2 >(get< 1 >(pt)) * (1.0 / j_limits.frame3D_jerk_limits[f3d_i + 1]);
     f3d_i += 2;
   };
-
-
-  // declaration only:
-  template <typename Idx, typename OutPoint, typename InPoint, typename RateLimitMap>
-  typename boost::disable_if<
-    boost::mpl::less<
-      Idx,
-      boost::mpl::size_t<1>
-    >,
-  void >::type create_rl_joint_vectors_impl(OutPoint& result,
-                                            const InPoint& pt,
-                                            const RateLimitMap& j_limits,
-                                            std::size_t& gen_i, std::size_t& f2d_i, std::size_t& f3d_i);
-
-  // declaration only:
-  template <typename Idx, typename OutPoint, typename InPoint, typename RateLimitMap>
-  typename boost::enable_if<
-    boost::mpl::less<
-      Idx,
-      boost::mpl::size_t<1>
-    >,
-  void >::type create_rl_joint_vectors_impl(OutPoint& result,
-                                            const InPoint& pt,
-                                            const RateLimitMap& j_limits,
-                                            std::size_t& gen_i, std::size_t& f2d_i, std::size_t& f3d_i);
-
-
+  
+  
+  
+  template <typename OutPoint, typename InPoint, typename RateLimitMap>
+  void create_rl_joint_vector_impl(OutPoint& result,
+                                   const InPoint& pt,
+                                   const RateLimitMap& j_limits,
+                                   std::size_t& gen_i, std::size_t& f2d_i, std::size_t& f3d_i);
+  
+  template <typename RateLimitMap>
+  struct create_rl_joint_vector_functor {
+    std::size_t* p_gen_i;
+    std::size_t* p_f2d_i;
+    std::size_t* p_f3d_i;
+    const RateLimitMap* p_j_limits;
+    create_rl_joint_vector_functor(std::size_t& gen_i, std::size_t& f2d_i, 
+                                   std::size_t& f3d_i, const RateLimitMap& j_limits) : 
+                                   p_gen_i(&gen_i), p_f2d_i(&f2d_i), 
+                                   p_f3d_i(&f3d_i), p_j_limits(&j_limits) {};
+    template <typename OutPoint, typename InPoint>
+    void operator()(OutPoint& result, const InPoint& pt) {
+      create_rl_joint_vector_impl(result, pt, *p_j_limits, *p_gen_i, *p_f2d_i, *p_f3d_i);
+    };
+  };
+  
   template <typename OutPoint, typename InPoint, typename RateLimitMap>
   void create_rl_joint_vector_impl(OutPoint& result,
                                    const InPoint& pt,
                                    const RateLimitMap& j_limits,
                                    std::size_t& gen_i, std::size_t& f2d_i, std::size_t& f3d_i) {
-    create_rl_joint_vectors_impl< typename boost::mpl::prior< arithmetic_tuple_size< OutPoint > >::type >(result, pt, j_limits, gen_i, f2d_i, f3d_i);
+    tuple_for_each(result, pt, 
+      create_rl_joint_vector_functor<RateLimitMap>(gen_i, f2d_i, f3d_i, j_limits));
   };
-
-
-
-  template <typename Idx, typename OutPoint, typename InPoint, typename RateLimitMap>
-  typename boost::disable_if<
-    boost::mpl::less<
-      Idx,
-      boost::mpl::size_t<1>
-    >,
-  void >::type create_rl_joint_vectors_impl(OutPoint& result,
-                                            const InPoint& pt,
-                                            const RateLimitMap& j_limits,
-                                            std::size_t& gen_i, std::size_t& f2d_i, std::size_t& f3d_i) {
-
-    create_rl_joint_vectors_impl< typename boost::mpl::prior<Idx>::type >(result,pt,j_limits,gen_i,f2d_i,f3d_i);
-
-    create_rl_joint_vector_impl(get< Idx::type::value >(result),
-                                get< Idx::type::value >(pt),
-                                j_limits, gen_i, f2d_i, f3d_i);
-
-  };
-
-  template <typename Idx, typename OutPoint, typename InPoint, typename RateLimitMap>
-  typename boost::enable_if<
-    boost::mpl::less<
-      Idx,
-      boost::mpl::size_t<1>
-    >,
-  void >::type create_rl_joint_vectors_impl(OutPoint& result,
-                                            const InPoint& pt,
-                                            const RateLimitMap& j_limits,
-                                            std::size_t& gen_i, std::size_t& f2d_i, std::size_t& f3d_i) {
-
-    create_rl_joint_vector_impl(get< 0 >(result),
-                                get< 0 >(pt),
-                                j_limits, gen_i, f2d_i, f3d_i);
-
-  };
-
+  
   template <typename OutPoint, typename InPoint, typename RateLimitMap>
   void create_rl_joint_vectors_impl(OutPoint& result,
                                     const InPoint& pt,
@@ -1854,8 +1730,10 @@ namespace detail {
     std::size_t gen_i = 0;
     std::size_t f2d_i = 0;
     std::size_t f3d_i = 0;
-    create_rl_joint_vectors_impl< typename boost::mpl::prior< arithmetic_tuple_size< OutPoint > >::type >(result, pt, j_limits, gen_i, f2d_i, f3d_i);
+    tuple_for_each(result, pt, 
+      create_rl_joint_vector_functor<RateLimitMap>(gen_i, f2d_i, f3d_i, j_limits));
   };
+
 
 
 
@@ -2137,96 +2015,54 @@ namespace detail {
     get< 2 >(get< 1 >(result)) = get< 2 >(get< 1 >(pt)) * j_limits.frame3D_jerk_limits[f3d_i + 1];
     f3d_i += 2;
   };
-
-
-
-  // declaration only:
-  template <typename Idx, typename OutPoint, typename InPoint, typename RateLimitMap>
-  typename boost::disable_if<
-    boost::mpl::less<
-      Idx,
-      boost::mpl::size_t<1>
-    >,
-  void >::type create_normal_joint_vectors_impl(OutPoint& result,
-                                            const InPoint& pt,
-                                            const RateLimitMap& j_limits,
-                                            std::size_t& gen_i, std::size_t& f2d_i, std::size_t& f3d_i);
-
-  // declaration only:
-  template <typename Idx, typename OutPoint, typename InPoint, typename RateLimitMap>
-  typename boost::enable_if<
-    boost::mpl::less<
-      Idx,
-      boost::mpl::size_t<1>
-    >,
-  void >::type create_normal_joint_vectors_impl(OutPoint& result,
-                                            const InPoint& pt,
-                                            const RateLimitMap& j_limits,
-                                            std::size_t& gen_i, std::size_t& f2d_i, std::size_t& f3d_i);
-
-
-
+  
+  
+  
   template <typename OutPoint, typename InPoint, typename RateLimitMap>
   void create_normal_joint_vector_impl(OutPoint& result,
-                                   const InPoint& pt,
-                                   const RateLimitMap& j_limits,
-                                   std::size_t& gen_i, std::size_t& f2d_i, std::size_t& f3d_i) {
-    create_normal_joint_vectors_impl< typename boost::mpl::prior< arithmetic_tuple_size< OutPoint > >::type >(result, pt, j_limits, gen_i, f2d_i, f3d_i);
+                                       const InPoint& pt,
+                                       const RateLimitMap& j_limits,
+                                       std::size_t& gen_i, std::size_t& f2d_i, std::size_t& f3d_i);
+  
+  template <typename RateLimitMap>
+  struct create_normal_joint_vector_functor {
+    std::size_t* p_gen_i;
+    std::size_t* p_f2d_i;
+    std::size_t* p_f3d_i;
+    const RateLimitMap* p_j_limits;
+    create_normal_joint_vector_functor(std::size_t& gen_i, std::size_t& f2d_i, 
+                                       std::size_t& f3d_i, const RateLimitMap& j_limits) : 
+                                       p_gen_i(&gen_i), p_f2d_i(&f2d_i), 
+                                       p_f3d_i(&f3d_i), p_j_limits(&j_limits) {};
+    template <typename OutPoint, typename InPoint>
+    void operator()(OutPoint& result, const InPoint& pt) {
+      create_normal_joint_vector_impl(result, pt, *p_j_limits, *p_gen_i, *p_f2d_i, *p_f3d_i);
+    };
   };
-
-
-
-
-  template <typename Idx, typename OutPoint, typename InPoint, typename RateLimitMap>
-  typename boost::disable_if<
-    boost::mpl::less<
-      Idx,
-      boost::mpl::size_t<1>
-    >,
-  void >::type create_normal_joint_vectors_impl(OutPoint& result,
-                                            const InPoint& pt,
-                                            const RateLimitMap& j_limits,
-                                            std::size_t& gen_i, std::size_t& f2d_i, std::size_t& f3d_i) {
-    
-    create_normal_joint_vectors_impl< typename boost::mpl::prior<Idx>::type >(result,pt,j_limits,gen_i,f2d_i,f3d_i);
-    
-    create_normal_joint_vector_impl(get< Idx::type::value >(result),
-                                get< Idx::type::value >(pt),
-                                j_limits, gen_i, f2d_i, f3d_i);
-    
+  
+  template <typename OutPoint, typename InPoint, typename RateLimitMap>
+  void create_normal_joint_vector_impl(OutPoint& result,
+                                       const InPoint& pt,
+                                       const RateLimitMap& j_limits,
+                                       std::size_t& gen_i, std::size_t& f2d_i, std::size_t& f3d_i) {
+    tuple_for_each(result, pt, 
+      create_normal_joint_vector_functor<RateLimitMap>(gen_i, f2d_i, f3d_i, j_limits));
   };
-
-  template <typename Idx, typename OutPoint, typename InPoint, typename RateLimitMap>
-  typename boost::enable_if<
-    boost::mpl::less<
-      Idx,
-      boost::mpl::size_t<1>
-    >,
-  void >::type create_normal_joint_vectors_impl(OutPoint& result,
-                                            const InPoint& pt,
-                                            const RateLimitMap& j_limits,
-                                            std::size_t& gen_i, std::size_t& f2d_i, std::size_t& f3d_i) {
-
-    create_normal_joint_vector_impl(get< 0 >(result),
-                                get< 0 >(pt),
-                                j_limits, gen_i, f2d_i, f3d_i);
-
-  };
-
+  
   template <typename OutPoint, typename InPoint, typename RateLimitMap>
   void create_normal_joint_vectors_impl(OutPoint& result,
-                                    const InPoint& pt,
-                                    const RateLimitMap& j_limits) {
+                                        const InPoint& pt,
+                                        const RateLimitMap& j_limits) {
     std::size_t gen_i = 0;
     std::size_t f2d_i = 0;
     std::size_t f3d_i = 0;
-    create_normal_joint_vectors_impl< typename boost::mpl::prior< arithmetic_tuple_size< OutPoint > >::type >(result, pt, j_limits, gen_i, f2d_i, f3d_i);
+    tuple_for_each(result, pt, 
+      create_normal_joint_vector_functor<RateLimitMap>(gen_i, f2d_i, f3d_i, j_limits));
   };
-
-
-
-
-};
+  
+  
+  
+}; };
 
 };
 

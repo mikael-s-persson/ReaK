@@ -38,6 +38,7 @@
 #include "rotations_3D.hpp"
 
 #include <cmath>
+#include <cassert>
 
 namespace ReaK {
 
@@ -78,27 +79,27 @@ class quat {
     /**
      * Explicit cast from a real number to a quat.
      */
-    explicit quat(const scalar_type& aRe = scalar_type()) { q[0] = aRe; q[3] = q[2] = q[1] = value_type(); };
+    explicit quat(const scalar_type& aRe = scalar_type()) BOOST_NOEXCEPT { q[0] = aRe; q[3] = q[2] = q[1] = value_type(); };
     
     /**
      * Constructor from cartesian complex values, real and imaginary parts.
      */
-    quat(const scalar_type& aRe, const vector_type& aIm) { q[0] = aRe; q[1] = aIm[0]; q[2] = aIm[1]; q[3] = aIm[2]; };
+    quat(const scalar_type& aRe, const vector_type& aIm) BOOST_NOEXCEPT { q[0] = aRe; q[1] = aIm[0]; q[2] = aIm[1]; q[3] = aIm[2]; };
   
     /**
      * Converts a vector into a pure quaternion.
      */
-    explicit quat(const vector_type& aIm) { q[0] = scalar_type(); q[1] = aIm[0]; q[2] = aIm[1]; q[3] = aIm[2]; };
+    explicit quat(const vector_type& aIm) BOOST_NOEXCEPT { q[0] = scalar_type(); q[1] = aIm[0]; q[2] = aIm[1]; q[3] = aIm[2]; };
     
     /**
      * Converts a 4D vector into a quaternion.
      */
-    explicit quat(const vect<value_type,4>& V) { q[0] = V[0]; q[1] = V[1]; q[2] = V[2]; q[3] = V[3]; };
+    explicit quat(const vect<value_type,4>& V) BOOST_NOEXCEPT { q[0] = V[0]; q[1] = V[1]; q[2] = V[2]; q[3] = V[3]; };
     
     /**
      * Convstructs a quaternion from 4 components.
      */
-    quat(const_reference q0, const_reference q1, const_reference q2, const_reference q3) { q[0] = q0; q[1] = q1; q[2] = q2; q[3] = q3; };
+    quat(const_reference q0, const_reference q1, const_reference q2, const_reference q3) BOOST_NOEXCEPT { q[0] = q0; q[1] = q1; q[2] = q2; q[3] = q3; };
     
     //Copy-constructor is default.
     //Assignment operator is default.
@@ -108,9 +109,8 @@ class quat {
      * Array indexing operator, accessor for read only.
      * \test PASSED
      */
-    const_reference operator [](size_type i) const {
-      if(i >= 4)
-        throw std::range_error("Quaternion index out of range.");
+    const_reference operator [](size_type i) const BOOST_NOEXCEPT {
+      assert(i < 4);
       return q[i];
     };
     
@@ -118,33 +118,32 @@ class quat {
      * Array indexing operator, accessor for lvalue.
      * \test PASSED
      */
-    reference operator [](size_type i) {
-      if(i >= 4)
-        throw std::range_error("Quaternion index out of range.");
+    reference operator [](size_type i) BOOST_NOEXCEPT {
+      assert(i < 4);
       return q[i];
     };
     
     /**
      * Returns the size of the quaternion (viewed as a 4D vector).
      */
-    size_type size() const { return 4; };
+    size_type size() const BOOST_NOEXCEPT { return 4; };
     
     /**
      * Returns an iterator to the first element of the quaternion (viewed as a 4D vector).
      */
-    iterator begin() { return q; };
+    iterator begin() BOOST_NOEXCEPT { return q; };
     /**
      * Returns a const-iterator to the first element of the quaternion (viewed as a 4D vector).
      */
-    const_iterator begin() const { return q; };
+    const_iterator begin() const BOOST_NOEXCEPT { return q; };
     /**
      * Returns an iterator to the one-past-last element of the quaternion (viewed as a 4D vector).
      */
-    iterator end() { return q + 4; };
+    iterator end() BOOST_NOEXCEPT { return q + 4; };
     /**
      * Returns a const-iterator to the one-past-last element of the quaternion (viewed as a 4D vector).
      */
-    const_iterator end() const { return q + 4; };
+    const_iterator end() const BOOST_NOEXCEPT { return q + 4; };
     
       
 /*******************************************************************************
@@ -154,7 +153,7 @@ class quat {
     /**
      * Assignment operator.
      */
-    self& operator =(const scalar_type& R) {
+    self& operator =(const scalar_type& R) BOOST_NOEXCEPT {
       q[0] = R;
       q[3] = q[2] = q[1] = value_type();
       return *this; 
@@ -163,7 +162,7 @@ class quat {
     /**
      * Assignment operator.
      */
-    self& operator =(const vector_type& I) {
+    self& operator =(const vector_type& I) BOOST_NOEXCEPT {
       q[0] = value_type();
       q[1] = I[0];
       q[2] = I[1];
@@ -172,7 +171,7 @@ class quat {
     };
   
     /** Addition-assignment operator. */
-    self& operator +=(const self& C) {
+    self& operator +=(const self& C) BOOST_NOEXCEPT {
       q[0] += C.q[0];
       q[1] += C.q[1];
       q[1] += C.q[2];
@@ -181,13 +180,13 @@ class quat {
     };
   
     /** Addition-assignment operator with a real value. */
-    self& operator +=(const scalar_type& R) {
+    self& operator +=(const scalar_type& R) BOOST_NOEXCEPT {
       q[0] += R;
       return *this;
     };
 
     /** Addition-assignment operator with a real value. */
-    self& operator +=(const vector_type& V) {
+    self& operator +=(const vector_type& V) BOOST_NOEXCEPT {
       q[1] += V[0];
       q[2] += V[1];
       q[3] += V[2];
@@ -195,7 +194,7 @@ class quat {
     };
 
     /** Substraction-assignment operator. */
-    self& operator -=(const self& C) {
+    self& operator -=(const self& C) BOOST_NOEXCEPT {
       q[0] -= C.q[0];
       q[1] -= C.q[1];
       q[1] -= C.q[2];
@@ -204,13 +203,13 @@ class quat {
     };
   
     /** Substraction-assignment operator with a real value. */
-    self& operator -=(const scalar_type& R) {
+    self& operator -=(const scalar_type& R) BOOST_NOEXCEPT {
       q[0] -= R;
       return *this;
     };
 
     /** Substraction-assignment operator with a real value. */
-    self& operator -=(const vector_type& V) {
+    self& operator -=(const vector_type& V) BOOST_NOEXCEPT {
       q[1] -= V[0];
       q[2] -= V[1];
       q[3] -= V[2];
@@ -218,12 +217,12 @@ class quat {
     };
 
     /** Multiplication-assignment operator. */
-    self& operator *=(const self& C) {
+    self& operator *=(const self& C) BOOST_NOEXCEPT {
       return (*this = ((*this) * C));
     };
 
     /** Multiplication-assignment operator with a real value. */
-    self& operator *=(const scalar_type& R) {
+    self& operator *=(const scalar_type& R) BOOST_NOEXCEPT {
       q[0] *= R;
       q[1] *= R;
       q[2] *= R;
@@ -237,57 +236,57 @@ class quat {
 *******************************************************************************/
   
     /** Addition operator. */
-    friend self operator +(const self& C1, const self& C2) {
+    friend self operator +(const self& C1, const self& C2) BOOST_NOEXCEPT {
       return self(C1.q[0] + C2.q[0], C1.q[1] + C2.q[1], C1.q[2] + C2.q[2], C1.q[3] + C2.q[3]);
     };
 
     /** Addition operator. */
-    friend self operator +(const self& C1, const scalar_type& C2) {
+    friend self operator +(const self& C1, const scalar_type& C2) BOOST_NOEXCEPT {
       return self(C1.q[0] + C2, C1.q[1], C1.q[2], C1.q[3]);
     };
 
     /** Addition operator. */
-    friend self operator +(const scalar_type& C1, const self& C2) {
+    friend self operator +(const scalar_type& C1, const self& C2) BOOST_NOEXCEPT {
       return self(C2.q[0] + C1, C2.q[1], C2.q[2], C2.q[3]);
     };
     
     /** Addition operator. */
-    friend self operator +(const self& C1, const vector_type& C2) {
+    friend self operator +(const self& C1, const vector_type& C2) BOOST_NOEXCEPT {
       return self(C1.q[0], C1.q[1] + C2[0], C1.q[2] + C2[1], C1.q[3] + C2[2]);
     };
     
     /** Addition operator. */
-    friend self operator +(const vector_type& C1, const self& C2) {
+    friend self operator +(const vector_type& C1, const self& C2) BOOST_NOEXCEPT {
       return self(C2.q[0], C1[0] + C2.q[1], C1[1] + C2.q[2], C1[2] + C2.q[3]);
     };
   
     /** Negation operator. */
-    friend self operator -(const self& Q) {
+    friend self operator -(const self& Q) BOOST_NOEXCEPT {
       return self(-Q.q[0], -Q.q[1], -Q.q[2], -Q.q[3]);
     };
   
     /** Substraction operator. */
-    friend self operator -(const self& C1, const self& C2) {
+    friend self operator -(const self& C1, const self& C2) BOOST_NOEXCEPT {
       return self(C1.q[0] - C2.q[0], C1.q[1] - C2.q[1], C1.q[2] - C2.q[2], C1.q[3] - C2.q[3]);
     };
 
     /** Substraction operator. */
-    friend self operator -(const self& C1, const scalar_type& C2) {
+    friend self operator -(const self& C1, const scalar_type& C2) BOOST_NOEXCEPT {
       return self(C1.q[0] - C2, C1.q[1], C1.q[2], C1.q[3]);
     };
 
     /** Substraction operator. */
-    friend self operator -(const scalar_type& C1, const self& C2) {
+    friend self operator -(const scalar_type& C1, const self& C2) BOOST_NOEXCEPT {
       return self(C1 - C2.q[0], -C2.q[1], -C2.q[2], -C2.q[3]);
     };
   
     /** Substraction operator. */
-    friend self operator -(const self& C1, const vector_type& C2) {
+    friend self operator -(const self& C1, const vector_type& C2) BOOST_NOEXCEPT {
       return self(C1.q[0], C1.q[1] - C2[0], C1.q[2] - C2[1], C1.q[3] - C2[2]);
     };
 
     /** Substraction operator. */
-    friend self operator -(const vector_type& C1, const self& C2) {
+    friend self operator -(const vector_type& C1, const self& C2) BOOST_NOEXCEPT {
       return self(-C2.q[0], C1[0] - C2.q[1], C1[1] - C2.q[2], C1[2] - C2.q[3]);
     };
 
@@ -296,7 +295,7 @@ class quat {
      * \test PASSED
      */
     friend
-    self operator *(const self& Q1, const self& Q2) {
+    self operator *(const self& Q1, const self& Q2) BOOST_NOEXCEPT {
       return self(Q2.q[0] * Q1.q[0] - Q2.q[1] * Q1.q[1] - Q2.q[2] * Q1.q[2] - Q2.q[3] * Q1.q[3],
                   Q2.q[0] * Q1.q[1] + Q2.q[3] * Q1.q[2] - Q2.q[2] * Q1.q[3] + Q2.q[1] * Q1.q[0],
                   Q2.q[0] * Q1.q[2] - Q2.q[3] * Q1.q[1] + Q2.q[1] * Q1.q[3] + Q2.q[2] * Q1.q[0],
@@ -308,7 +307,7 @@ class quat {
      * \test PASSED
      */
     friend
-    self operator *(const self& Q1, const scalar_type& Q2) {
+    self operator *(const self& Q1, const scalar_type& Q2) BOOST_NOEXCEPT {
       return self(Q2 * Q1.q[0], Q2 * Q1.q[1], Q2 * Q1.q[2], Q2 * Q1.q[3]);
     };
   
@@ -317,7 +316,7 @@ class quat {
      * \test PASSED
      */
     friend
-    self operator *(const scalar_type& Q1, const self& Q2) {
+    self operator *(const scalar_type& Q1, const self& Q2) BOOST_NOEXCEPT {
       return self(Q1 * Q2.q[0], Q1 * Q2.q[1], Q1 * Q2.q[2], Q1 * Q2.q[3]);
     };
   
@@ -326,7 +325,7 @@ class quat {
      * \test PASSED
      */
     friend
-    self operator *(const self& Q1, const vector_type& Q2) {
+    self operator *(const self& Q1, const vector_type& Q2) BOOST_NOEXCEPT {
       return self(-Q2[0] * Q1.q[1] - Q2[1] * Q1.q[2] - Q2[2] * Q1.q[3],
                    Q2[2] * Q1.q[2] - Q2[1] * Q1.q[3] + Q2[0] * Q1.q[0],
                   -Q2[2] * Q1.q[1] + Q2[0] * Q1.q[3] + Q2[1] * Q1.q[0],
@@ -338,7 +337,7 @@ class quat {
      * \test PASSED
      */
     friend
-    self operator *(const vector_type& Q1, const self& Q2) {
+    self operator *(const vector_type& Q1, const self& Q2) BOOST_NOEXCEPT {
       return self(-Q2.q[1] * Q1[0] - Q2.q[2] * Q1[1] - Q2.q[3] * Q1[2],
                    Q2.q[0] * Q1[0] + Q2.q[3] * Q1[1] - Q2.q[2] * Q1[2],
                    Q2.q[0] * Q1[1] - Q2.q[3] * Q1[0] + Q2.q[1] * Q1[2],
@@ -350,58 +349,58 @@ class quat {
 *******************************************************************************/
  
     /** Equality-comparison operator. */
-    friend bool operator ==(const self& C1, const self& C2) {
+    friend bool operator ==(const self& C1, const self& C2) BOOST_NOEXCEPT {
       return ((C1.q[0] == C2.q[0]) && (C1.q[1] == C2.q[1]) && (C1.q[2] == C2.q[2]) && (C1.q[3] == C2.q[3]));
     };
   
     /** Equality-comparison operator with a real value. */
-    friend bool operator ==(const self& C, const scalar_type& R) {
+    friend bool operator ==(const self& C, const scalar_type& R) BOOST_NOEXCEPT {
       return ((C.q[0] == R) && (C.q[1] == value_type()) && (C.q[2] == value_type()) && (C.q[3] == value_type()));
     };
   
     /** Equality-comparison operator with a real value. */
-    friend bool operator ==(const scalar_type& R, const self& C) {
+    friend bool operator ==(const scalar_type& R, const self& C) BOOST_NOEXCEPT {
       return ((C.q[0] == R) && (C.q[1] == value_type()) && (C.q[2] == value_type()) && (C.q[3] == value_type()));
     };
   
     /** Equality-comparison operator with a vector value. */
-    friend bool operator ==(const self& C, const vector_type& V) {
+    friend bool operator ==(const self& C, const vector_type& V) BOOST_NOEXCEPT {
       return ((C.q[0] == scalar_type()) && (C.q[1] == V[0]) && (C.q[2] == V[1]) && (C.q[3] == V[2]));
     };
   
     /** Equality-comparison operator with a vector value. */
-    friend bool operator ==(const vector_type& V, const self& C) {
+    friend bool operator ==(const vector_type& V, const self& C) BOOST_NOEXCEPT {
       return ((C.q[0] == scalar_type()) && (C.q[1] == V[0]) && (C.q[2] == V[1]) && (C.q[3] == V[2]));
     };
 
     /** Inequality-comparison operator. */
-    friend bool operator !=(const self& C1, const self& C2) {
+    friend bool operator !=(const self& C1, const self& C2) BOOST_NOEXCEPT {
       return ((C1.q[0] != C2.q[0]) || (C1.q[1] != C2.q[1]) || (C1.q[2] != C2.q[2]) || (C1.q[3] != C2.q[3]));
     };
   
     /** Inequality-comparison operator with a real value. */
-    friend bool operator !=(const self& C, const scalar_type& R) {
+    friend bool operator !=(const self& C, const scalar_type& R) BOOST_NOEXCEPT {
       return ((C.q[0] != R) || (C.q[1] != value_type()) || (C.q[2] != value_type()) || (C.q[3] != value_type()));
     };
   
     /** Inequality-comparison operator with a real value. */
-    friend bool operator !=(const scalar_type& R, const self& C) {
+    friend bool operator !=(const scalar_type& R, const self& C) BOOST_NOEXCEPT {
       return ((C.q[0] != R) || (C.q[1] != value_type()) || (C.q[2] != value_type()) || (C.q[3] != value_type()));
     };
   
     /** Inequality-comparison operator with a vector value. */
-    friend bool operator !=(const self& C, const vector_type& V) {
+    friend bool operator !=(const self& C, const vector_type& V) BOOST_NOEXCEPT {
       return ((C.q[0] == scalar_type()) || (C.q[1] != V[0]) || (C.q[2] != V[1]) || (C.q[3] != V[2]));
     };
   
     /** Inequality-comparison operator with a vector value. */
-    friend bool operator !=(const vector_type& V, const self& C) {
+    friend bool operator !=(const vector_type& V, const self& C) BOOST_NOEXCEPT {
       return ((C.q[0] != scalar_type()) || (C.q[1] != V[0]) || (C.q[2] != V[1]) || (C.q[3] != V[2]));
     };    
     
   
     /** Quaternionic conjugate for a quaternion value. */
-    friend self conj(const self& x) {
+    friend self conj(const self& x) BOOST_NOEXCEPT {
       return self(x.q[0],-x.q[1],-x.q[2],-x.q[3]);
     };
     
@@ -409,7 +408,7 @@ class quat {
      * Square magnitude of the quaternion.
      * \test PASSED
      */
-    friend value_type norm_2_sqr(const self& v) {
+    friend value_type norm_2_sqr(const self& v) BOOST_NOEXCEPT {
       return v.q[0] * v.q[0] + v.q[1] * v.q[1] + v.q[2] * v.q[2] + v.q[3] * v.q[3];
     };
 
@@ -417,7 +416,7 @@ class quat {
      * Magnitude of the quaternion.
      * \test PASSED
      */
-    friend value_type norm_2(const self& v) {
+    friend value_type norm_2(const self& v) BOOST_NOEXCEPT {
       using std::sqrt;
       return sqrt( norm_2_sqr(v) );
     };
@@ -427,7 +426,7 @@ class quat {
      * Unit quaternion in the same direction.
      * \test PASSED
      */
-    friend self unit(const self& v) {
+    friend self unit(const self& v) BOOST_NOEXCEPT {
       return v * (1.0 / norm_2(v));
     };
 
@@ -435,7 +434,7 @@ class quat {
      * Checks if two quaternions are colinear.
      * \test PASSED
      */
-    friend bool colinear(const self& v1, const self& v2) {
+    friend bool colinear(const self& v1, const self& v2) BOOST_NOEXCEPT {
       using std::fabs;
       T tmp_mag1 = norm_2(v1);
       T tmp_mag2 = norm_2(v2);
@@ -449,7 +448,7 @@ class quat {
     //Exponential and logarithmic functions:
 
     /** Compute exponential function (function), for a quaternion value. */
-    friend self exp(const self& x) {
+    friend self exp(const self& x) BOOST_NOEXCEPT {
       using std::sin; using std::cos;
       using std::exp;
       using std::sqrt;
@@ -461,7 +460,7 @@ class quat {
     };  
 
     /** Compute natural logarithm (function), for a quaternion value. */
-    friend self log(const self& x) {
+    friend self log(const self& x) BOOST_NOEXCEPT {
       using std::atan2;
       using std::log;
       using std::fabs;
@@ -477,12 +476,12 @@ class quat {
     //Power functions
 
     /** Raise to power (function), for a quaternion value.*/
-    friend self pow(const self& base, const self& exponent) {
+    friend self pow(const self& base, const self& exponent) BOOST_NOEXCEPT {
       return exp(exponent * log(base));
     };  
 
     /** Compute square root (function), for a quaternion value.*/
-    friend self sqrt(const self& x) {
+    friend self sqrt(const self& x) BOOST_NOEXCEPT {
       return exp( 0.5 * log(x) );
       //T angle = atan2(x.Im,x.Re);
       //return pow(x.Re * x.Re + x.Im * x.Im,0.25) * complex<T>(cos(0.5 * angle),sin(0.5 * angle));
@@ -491,7 +490,7 @@ class quat {
     /**
      * Inverts the quaternion.
      */
-    friend self invert(const self& x) {
+    friend self invert(const self& x) BOOST_NOEXCEPT {
       value_type tmp = 1.0 / norm_2_sqr(x);
       return self(x.q[0] * tmp, -x.q[1] * tmp, -x.q[2] * tmp, -x.q[3] * tmp);
     };
@@ -500,17 +499,17 @@ class quat {
     //Rounding, absolute value and remainder functions:
 
     /** Round up value (function), for a quaternion value. */
-    friend self ceil(const self& x) {
+    friend self ceil(const self& x) BOOST_NOEXCEPT {
       return self(ceil(x.q[0]),ceil(x.q[1]),ceil(x.q[2]),ceil(x.q[3]));
     };  
 
     /** Compute absolute value (function), for a quaternion value. */
-    friend value_type fabs(const self& x) {
+    friend value_type fabs(const self& x) BOOST_NOEXCEPT {
       return norm_2(x);
     };  
 
     /** Round down value (function), for a quaternion value.*/
-    friend self floor(const self& x) {
+    friend self floor(const self& x) BOOST_NOEXCEPT {
       return self(floor(x.q[0]),floor(x.q[1]),floor(x.q[2]),floor(x.q[3]));
     };
   
@@ -518,7 +517,7 @@ class quat {
     //Trigonometric functions:
 
     /** Compute cosine (function), for a quaternion value.*/
-    friend self cos(const self& x) {
+    friend self cos(const self& x) BOOST_NOEXCEPT {
       using std::cos; using std::sin; 
       using std::cosh; using std::sinh;
       using std::sqrt;
@@ -530,7 +529,7 @@ class quat {
     }; 
 
     /** Compute sine (function), for a quaternion value.*/
-    friend self sin(const self& x) {
+    friend self sin(const self& x) BOOST_NOEXCEPT {
       using std::cos; using std::sin; 
       using std::cosh; using std::sinh;
       using std::sqrt;
@@ -542,7 +541,7 @@ class quat {
     };  
 
     /** Compute tangent (function), for a quaternion value.*/
-    friend self tan(const self& x) {
+    friend self tan(const self& x) BOOST_NOEXCEPT {
       using std::cos; using std::sin; 
       using std::cosh; using std::sinh;
       using std::sqrt; using std::tan;
@@ -555,7 +554,7 @@ class quat {
     };  
 
     /** Compute arc cosine (function), for a quaternion value.*/
-    friend self acos(const self& x) {
+    friend self acos(const self& x) BOOST_NOEXCEPT {
       using std::sqrt;
       using std::pow; using std::log;
       using std::atan2; using std::cos; using std::sin; using std::acos;
@@ -581,7 +580,7 @@ class quat {
     };
 
     /** Compute arc sine (function), for a quaternion value.*/
-    friend self asin(const self& x) {
+    friend self asin(const self& x) BOOST_NOEXCEPT {
       using std::sqrt;
       using std::pow; using std::log;
       using std::atan2; using std::cos; using std::sin; using std::asin;
@@ -607,7 +606,7 @@ class quat {
     };  
 
     /** Compute arc tangent (function), for a quaternion value.*/
-    friend self atan(const self& x) {
+    friend self atan(const self& x) BOOST_NOEXCEPT {
       using std::sqrt;
       using std::pow; using std::log;
       using std::atan2; using std::cos; using std::sin; using std::atan;
@@ -629,14 +628,14 @@ class quat {
     };  
 
     /** Compute arc tangent with two parameters (function), for a quaternion value.*/
-    friend self atan2(const self& y, const self& x) {
+    friend self atan2(const self& y, const self& x) BOOST_NOEXCEPT {
       return atan(y * invert(x));
     };  
 
 //Hyperbolic functions:
 
     /** Compute hyperbolic cosine (function), for a quaternion value.*/
-    friend self cosh(const self& x) {
+    friend self cosh(const self& x) BOOST_NOEXCEPT {
       using std::cos; using std::sin; 
       using std::cosh; using std::sinh;
       using std::sqrt;
@@ -648,7 +647,7 @@ class quat {
     };  
 
     /** Compute hyperbolic sine (function), for a quaternion value.*/
-    friend self sinh(const self& x) {
+    friend self sinh(const self& x) BOOST_NOEXCEPT {
       using std::cos; using std::sin; 
       using std::cosh; using std::sinh;
       using std::sqrt;
@@ -660,7 +659,7 @@ class quat {
     };  
 
     /** Compute hyperbolic tangent (function), for a quaternion value.*/
-    friend self tanh(const self& x) {
+    friend self tanh(const self& x) BOOST_NOEXCEPT {
       using std::cos; using std::sin; 
       using std::cosh; using std::sinh;
       using std::sqrt;
@@ -717,12 +716,12 @@ class unit_quat : public quat<T> {
     /**
      * Default constructor, always yields (1.0, 0.0, 0.0, 0.0).
      */
-    unit_quat() : quat<T>(scalar_type(1.0)) { };
+    unit_quat() BOOST_NOEXCEPT : quat<T>(scalar_type(1.0)) { };
     
     /**
      * Constructor from quaternion value.
      */
-    explicit unit_quat(const quat<T>& aQ) : quat<T>(scalar_type(1.0)) { 
+    explicit unit_quat(const quat<T>& aQ) BOOST_NOEXCEPT : quat<T>(scalar_type(1.0)) { 
       using std::sqrt;
       scalar_type factor = sqrt(aQ.q[0] * aQ.q[0] + aQ.q[1] * aQ.q[1] + aQ.q[2] * aQ.q[2] + aQ.q[3] * aQ.q[3]); 
       if( factor > std::numeric_limits<scalar_type>::epsilon() ) {
@@ -737,7 +736,7 @@ class unit_quat : public quat<T> {
     /**
      * Converts a 4D vector into a quaternion.
      */
-    explicit unit_quat(const vect<value_type,4>& V): quat<T>(scalar_type(1.0)) { 
+    explicit unit_quat(const vect<value_type,4>& V) BOOST_NOEXCEPT : quat<T>(scalar_type(1.0)) { 
       using std::sqrt;
       scalar_type factor = norm_2(V); 
       if( factor > std::numeric_limits<scalar_type>::epsilon() ) {
@@ -752,7 +751,7 @@ class unit_quat : public quat<T> {
     /**
      * Convstructs a quaternion from 4 components.
      */
-    unit_quat(const_reference q0, const_reference q1, const_reference q2, const_reference q3) : quat<T>(scalar_type(1.0)) { 
+    unit_quat(const_reference q0, const_reference q1, const_reference q2, const_reference q3) BOOST_NOEXCEPT : quat<T>(scalar_type(1.0)) { 
       using std::sqrt;
       scalar_type factor = sqrt(q0 * q0 + q1 * q1 + q2 * q2 + q3 * q3); 
       if( factor > std::numeric_limits<scalar_type>::epsilon() ) {
@@ -764,7 +763,7 @@ class unit_quat : public quat<T> {
       };
     };
     
-    explicit unit_quat(const quaternion< value_type >& aQ) : quat<T>(aQ[0],aQ[1],aQ[2],aQ[3]) { };
+    explicit unit_quat(const quaternion< value_type >& aQ) BOOST_NOEXCEPT : quat<T>(aQ[0],aQ[1],aQ[2],aQ[3]) { };
     
     //Copy-constructor is default.
     //Assignment operator is default.
@@ -775,25 +774,24 @@ class unit_quat : public quat<T> {
      * Array indexing operator, accessor for read only.
      * \test PASSED
      */
-    const_reference operator [](size_type i) const {
-      if(i >= 4)
-        throw std::range_error("Quaternion index out of range.");
+    const_reference operator [](size_type i) const BOOST_NOEXCEPT {
+      assert(i < 4);
       return this->q[i];
     };
     
     /**
      * Returns a const-iterator to the first element of the quaternion (viewed as a 4D vector).
      */
-    const_iterator begin() const { return this->q; };
+    const_iterator begin() const BOOST_NOEXCEPT { return this->q; };
     /**
      * Returns a const-iterator to the one-past-last element of the quaternion (viewed as a 4D vector).
      */
-    const_iterator end() const { return this->q + 4; };
+    const_iterator end() const BOOST_NOEXCEPT { return this->q + 4; };
     
     /**
      * Returns the same unit-quaternion, but now as a quaternion class, which is used to represent 3D rotations.
      */
-    quaternion< value_type > as_rotation() const {
+    quaternion< value_type > as_rotation() const BOOST_NOEXCEPT {
       return quaternion< value_type >(this->q[0],this->q[1],this->q[2],this->q[3]);
     };
       
@@ -804,7 +802,7 @@ class unit_quat : public quat<T> {
     /**
      * Assignment operator.
      */
-    self& operator =(const self& Q) {
+    self& operator =(const self& Q) BOOST_NOEXCEPT {
       this->q[0] = Q.q[0];
       this->q[1] = Q.q[1];
       this->q[2] = Q.q[2];
@@ -813,7 +811,7 @@ class unit_quat : public quat<T> {
     };
     
     /** Multiplication-assignment operator. */
-    self& operator *=(const self& C) {
+    self& operator *=(const self& C) BOOST_NOEXCEPT {
       return (*this = ((*this) * C));
     };
   
@@ -822,7 +820,7 @@ class unit_quat : public quat<T> {
 *******************************************************************************/
   
     /** Negation operator. */
-    friend self operator -(self Q) {
+    friend self operator -(self Q) BOOST_NOEXCEPT {
       Q.q[0] = -Q.q[0];
       Q.q[1] = -Q.q[1];
       Q.q[2] = -Q.q[2];
@@ -835,7 +833,7 @@ class unit_quat : public quat<T> {
      * \test PASSED
      */
     friend
-    self operator *(const self& Q1, const self& Q2) {
+    self operator *(const self& Q1, const self& Q2) BOOST_NOEXCEPT {
       return self(Q2.q[0] * Q1.q[0] - Q2.q[1] * Q1.q[1] - Q2.q[2] * Q1.q[2] - Q2.q[3] * Q1.q[3],
                   Q2.q[0] * Q1.q[1] + Q2.q[3] * Q1.q[2] - Q2.q[2] * Q1.q[3] + Q2.q[1] * Q1.q[0],
                   Q2.q[0] * Q1.q[2] - Q2.q[3] * Q1.q[1] + Q2.q[1] * Q1.q[3] + Q2.q[2] * Q1.q[0],
@@ -845,7 +843,7 @@ class unit_quat : public quat<T> {
     
   
     /** Quaternionic conjugate for a quaternion value. */
-    friend self conj(const self& x) {
+    friend self conj(const self& x) BOOST_NOEXCEPT {
       self result(x);
       result.q[1] = -x.q[1];
       result.q[2] = -x.q[2];
@@ -857,7 +855,7 @@ class unit_quat : public quat<T> {
      * Square magnitude of the quaternion.
      * \test PASSED
      */
-    friend value_type norm_2_sqr(const self& v) {
+    friend value_type norm_2_sqr(const self& v) BOOST_NOEXCEPT {
       return value_type(1.0);
     };
 
@@ -865,7 +863,7 @@ class unit_quat : public quat<T> {
      * Magnitude of the quaternion.
      * \test PASSED
      */
-    friend value_type norm_2(const self& v) {
+    friend value_type norm_2(const self& v) BOOST_NOEXCEPT {
       return value_type(1.0);
     };
 
@@ -874,7 +872,7 @@ class unit_quat : public quat<T> {
      * Unit quaternion in the same direction.
      * \test PASSED
      */
-    friend self unit(const self& v) {
+    friend self unit(const self& v) BOOST_NOEXCEPT {
       return v;
     };
   
@@ -883,7 +881,7 @@ class unit_quat : public quat<T> {
 
     
     /** Compute natural logarithm (function), for a quaternion value. */
-    friend vector_type log(const self& x) {
+    friend vector_type log(const self& x) BOOST_NOEXCEPT {
       using std::atan2;
       using std::sqrt;
       value_type st = sqrt(x.q[1] * x.q[1] + x.q[2] * x.q[2] + x.q[3] * x.q[3]);
@@ -901,19 +899,19 @@ class unit_quat : public quat<T> {
     //Power functions
 
     /** Raise to power (function), for a quaternion value.*/
-    friend self pow(const self& base, const scalar_type& exponent) {
+    friend self pow(const self& base, const scalar_type& exponent) BOOST_NOEXCEPT {
       return exp(exponent * log(base));
     };  
 
     /** Compute square root (function), for a quaternion value.*/
-    friend self sqrt(const self& x) {
+    friend self sqrt(const self& x) BOOST_NOEXCEPT {
       return exp( 0.5 * log(x) );
     };  
     
     /**
      * Inverts the quaternion.
      */
-    friend self invert(const self& x) {
+    friend self invert(const self& x) BOOST_NOEXCEPT {
       return conj(x);
     };
 
@@ -921,7 +919,7 @@ class unit_quat : public quat<T> {
     //Rounding, absolute value and remainder functions:
 
     /** Compute absolute value (function), for a quaternion value. */
-    friend value_type fabs(const self& x) {
+    friend value_type fabs(const self& x) BOOST_NOEXCEPT {
       return 1.0;
     };  
   
@@ -933,7 +931,7 @@ class unit_quat : public quat<T> {
 
 /** Compute exponential function (function), for a quaternion value. */
 template <typename T>
-unit_quat<T> exp(const vect<T,3>& x) {
+unit_quat<T> exp(const vect<T,3>& x) BOOST_NOEXCEPT {
   using std::sin; using std::cos;
   using std::exp;
   using std::sqrt;

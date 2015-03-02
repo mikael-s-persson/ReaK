@@ -51,6 +51,8 @@
 #include <boost/tuple/tuple.hpp>
 #endif
 
+#include <ReaK/core/base/index_sequence.hpp>
+
 #include <boost/utility/enable_if.hpp>
 #include <boost/mpl/size_t.hpp>
 #include <boost/mpl/and.hpp>
@@ -87,6 +89,19 @@ template <typename Tuple>
 struct arithmetic_tuple_size : 
   boost::mpl::size_t< 0 > { };
 
+template <typename Tuple>
+struct arithmetic_tuple_size< const Tuple > : 
+  arithmetic_tuple_size< Tuple > { };
+
+template <typename Tuple>
+struct arithmetic_tuple_size< volatile Tuple > : 
+  arithmetic_tuple_size< Tuple > { };
+
+template <typename Tuple>
+struct arithmetic_tuple_size< const volatile Tuple > : 
+  arithmetic_tuple_size< Tuple > { };
+
+
 #ifndef BOOST_NO_CXX11_HDR_TUPLE
 
 /**
@@ -101,6 +116,7 @@ template <typename... T>
 class arithmetic_tuple : public std::tuple< T... > {
   public:
     typedef std::tuple< T... > arithmetic_tuple_base_class;
+    typedef arithmetic_tuple< T... > self;
   public:
     
     constexpr arithmetic_tuple() : arithmetic_tuple_base_class() { };
@@ -112,11 +128,11 @@ class arithmetic_tuple : public std::tuple< T... > {
     
 #ifndef BOOST_NO_CXX11_DEFAULTED_FUNCTIONS
     
-    arithmetic_tuple(const arithmetic_tuple< T... >&) = default;
-    arithmetic_tuple(arithmetic_tuple< T... >&&) = default;
+    arithmetic_tuple(const self&) = default;
+    arithmetic_tuple(self&&) = default;
     
-    arithmetic_tuple< T... >& operator=(const arithmetic_tuple< T... >&) = default;
-    arithmetic_tuple< T... >& operator=(arithmetic_tuple< T... >&&) = default;
+    self& operator=(const self&) = default;
+    self& operator=(self&&) = default;
     
 #endif
     
@@ -220,7 +236,7 @@ arithmetic_tuple< typename std::remove_reference<T>::type... > make_arithmetic_t
  * arithmetic operators are also available on all the types contained in the tuple.
  * \tparam Tn The types contained in the arithmetic-tuple.
  */
-template <typename T1, typename T2 = void, typename T3 = void, typename T4 = void, typename T5 = void, 
+template <typename T1 = void, typename T2 = void, typename T3 = void, typename T4 = void, typename T5 = void, 
           typename T6 = void, typename T7 = void, typename T8 = void, typename T9 = void, typename T10 = void>
 class arithmetic_tuple : public boost::tuples::tuple< T1, T2, T3, T4, T5, T6, T7, T8, T9, T10 > {
   public:
@@ -234,6 +250,75 @@ class arithmetic_tuple : public boost::tuples::tuple< T1, T2, T3, T4, T5, T6, T7
                               const T10& t10 = T10()) : arithmetic_tuple_base_class(t1,t2,t3,t4,t5,t6,t7,t8,t9,t10) { };
     
     
+    template <typename Tuple, typename Func>
+    static void for_each(Tuple& lhs, Func f) {
+      f(get<0>(lhs));
+      f(get<1>(lhs));
+      f(get<2>(lhs));
+      f(get<3>(lhs));
+      f(get<4>(lhs));
+      f(get<5>(lhs));
+      f(get<6>(lhs));
+      f(get<7>(lhs));
+      f(get<8>(lhs));
+      f(get<9>(lhs));
+    };
+    
+    template <typename Tuple1, typename Tuple2, typename Func>
+    static void for_each(Tuple1& lhs, Tuple2& rhs, Func f) {
+      f(get<0>(lhs),get<0>(rhs));
+      f(get<1>(lhs),get<1>(rhs));
+      f(get<2>(lhs),get<2>(rhs));
+      f(get<3>(lhs),get<3>(rhs));
+      f(get<4>(lhs),get<4>(rhs));
+      f(get<5>(lhs),get<5>(rhs));
+      f(get<6>(lhs),get<6>(rhs));
+      f(get<7>(lhs),get<7>(rhs));
+      f(get<8>(lhs),get<8>(rhs));
+      f(get<9>(lhs),get<9>(rhs));
+    };
+    
+    template <typename Tuple1, typename Tuple2, typename Tuple3, typename Func>
+    static void for_each(Tuple1& lhs, Tuple2& rhs, Tuple3& fhs, Func f) {
+      f(get<0>(lhs),get<0>(rhs),get<0>(fhs));
+      f(get<1>(lhs),get<1>(rhs),get<1>(fhs));
+      f(get<2>(lhs),get<2>(rhs),get<2>(fhs));
+      f(get<3>(lhs),get<3>(rhs),get<3>(fhs));
+      f(get<4>(lhs),get<4>(rhs),get<4>(fhs));
+      f(get<5>(lhs),get<5>(rhs),get<5>(fhs));
+      f(get<6>(lhs),get<6>(rhs),get<6>(fhs));
+      f(get<7>(lhs),get<7>(rhs),get<7>(fhs));
+      f(get<8>(lhs),get<8>(rhs),get<8>(fhs));
+      f(get<9>(lhs),get<9>(rhs),get<9>(fhs));
+    };
+    
+    template <typename Tuple1, typename Tuple2, typename Tuple3, typename Tuple4, typename Func>
+    static void for_each(Tuple1& lhs, Tuple2& rhs, Tuple3& fhs, Tuple4& ghs, Func f) {
+      f(get<0>(lhs),get<0>(rhs),get<0>(fhs),get<0>(ghs));
+      f(get<1>(lhs),get<1>(rhs),get<1>(fhs),get<1>(ghs));
+      f(get<2>(lhs),get<2>(rhs),get<2>(fhs),get<2>(ghs));
+      f(get<3>(lhs),get<3>(rhs),get<3>(fhs),get<3>(ghs));
+      f(get<4>(lhs),get<4>(rhs),get<4>(fhs),get<4>(ghs));
+      f(get<5>(lhs),get<5>(rhs),get<5>(fhs),get<5>(ghs));
+      f(get<6>(lhs),get<6>(rhs),get<6>(fhs),get<6>(ghs));
+      f(get<7>(lhs),get<7>(rhs),get<7>(fhs),get<7>(ghs));
+      f(get<8>(lhs),get<8>(rhs),get<8>(fhs),get<8>(ghs));
+      f(get<9>(lhs),get<9>(rhs),get<9>(fhs),get<9>(ghs));
+    };
+    
+    template <typename Tuple1, typename Tuple2, typename Tuple3, typename Tuple4, typename Tuple5, typename Func>
+    static void for_each(Tuple1& lhs, Tuple2& rhs, Tuple3& fhs, Tuple4& ghs, Tuple5& hhs, Func f) {
+      f(get<0>(lhs),get<0>(rhs),get<0>(fhs),get<0>(ghs),get<0>(hhs));
+      f(get<1>(lhs),get<1>(rhs),get<1>(fhs),get<1>(ghs),get<1>(hhs));
+      f(get<2>(lhs),get<2>(rhs),get<2>(fhs),get<2>(ghs),get<2>(hhs));
+      f(get<3>(lhs),get<3>(rhs),get<3>(fhs),get<3>(ghs),get<3>(hhs));
+      f(get<4>(lhs),get<4>(rhs),get<4>(fhs),get<4>(ghs),get<4>(hhs));
+      f(get<5>(lhs),get<5>(rhs),get<5>(fhs),get<5>(ghs),get<5>(hhs));
+      f(get<6>(lhs),get<6>(rhs),get<6>(fhs),get<6>(ghs),get<6>(hhs));
+      f(get<7>(lhs),get<7>(rhs),get<7>(fhs),get<7>(ghs),get<7>(hhs));
+      f(get<8>(lhs),get<8>(rhs),get<8>(fhs),get<8>(ghs),get<8>(hhs));
+      f(get<9>(lhs),get<9>(rhs),get<9>(fhs),get<9>(ghs),get<9>(hhs));
+    };
     
 };
 
@@ -265,7 +350,70 @@ class arithmetic_tuple< T1, T2, T3, T4, T5, T6, T7, T8, T9, void > : public boos
                               const T7& t7 = T7(), const T8& t8 = T8(), const T9& t9 = T9()) : 
                               arithmetic_tuple_base_class(t1,t2,t3,t4,t5,t6,t7,t8,t9) { };
     
+    template <typename Tuple, typename Func>
+    static void for_each(Tuple& lhs, Func f) {
+      f(get<0>(lhs));
+      f(get<1>(lhs));
+      f(get<2>(lhs));
+      f(get<3>(lhs));
+      f(get<4>(lhs));
+      f(get<5>(lhs));
+      f(get<6>(lhs));
+      f(get<7>(lhs));
+      f(get<8>(lhs));
+    };
     
+    template <typename Tuple1, typename Tuple2, typename Func>
+    static void for_each(Tuple1& lhs, Tuple2& rhs, Func f) {
+      f(get<0>(lhs),get<0>(rhs));
+      f(get<1>(lhs),get<1>(rhs));
+      f(get<2>(lhs),get<2>(rhs));
+      f(get<3>(lhs),get<3>(rhs));
+      f(get<4>(lhs),get<4>(rhs));
+      f(get<5>(lhs),get<5>(rhs));
+      f(get<6>(lhs),get<6>(rhs));
+      f(get<7>(lhs),get<7>(rhs));
+      f(get<8>(lhs),get<8>(rhs));
+    };
+    
+    template <typename Tuple1, typename Tuple2, typename Tuple3, typename Func>
+    static void for_each(Tuple1& lhs, Tuple2& rhs, Tuple3& fhs, Func f) {
+      f(get<0>(lhs),get<0>(rhs),get<0>(fhs));
+      f(get<1>(lhs),get<1>(rhs),get<1>(fhs));
+      f(get<2>(lhs),get<2>(rhs),get<2>(fhs));
+      f(get<3>(lhs),get<3>(rhs),get<3>(fhs));
+      f(get<4>(lhs),get<4>(rhs),get<4>(fhs));
+      f(get<5>(lhs),get<5>(rhs),get<5>(fhs));
+      f(get<6>(lhs),get<6>(rhs),get<6>(fhs));
+      f(get<7>(lhs),get<7>(rhs),get<7>(fhs));
+      f(get<8>(lhs),get<8>(rhs),get<8>(fhs));
+    };
+    
+    template <typename Tuple1, typename Tuple2, typename Tuple3, typename Tuple4, typename Func>
+    static void for_each(Tuple1& lhs, Tuple2& rhs, Tuple3& fhs, Tuple4& ghs, Func f) {
+      f(get<0>(lhs),get<0>(rhs),get<0>(fhs),get<0>(ghs));
+      f(get<1>(lhs),get<1>(rhs),get<1>(fhs),get<1>(ghs));
+      f(get<2>(lhs),get<2>(rhs),get<2>(fhs),get<2>(ghs));
+      f(get<3>(lhs),get<3>(rhs),get<3>(fhs),get<3>(ghs));
+      f(get<4>(lhs),get<4>(rhs),get<4>(fhs),get<4>(ghs));
+      f(get<5>(lhs),get<5>(rhs),get<5>(fhs),get<5>(ghs));
+      f(get<6>(lhs),get<6>(rhs),get<6>(fhs),get<6>(ghs));
+      f(get<7>(lhs),get<7>(rhs),get<7>(fhs),get<7>(ghs));
+      f(get<8>(lhs),get<8>(rhs),get<8>(fhs),get<8>(ghs));
+    };
+    
+    template <typename Tuple1, typename Tuple2, typename Tuple3, typename Tuple4, typename Tuple5, typename Func>
+    static void for_each(Tuple1& lhs, Tuple2& rhs, Tuple3& fhs, Tuple4& ghs, Tuple5& hhs, Func f) {
+      f(get<0>(lhs),get<0>(rhs),get<0>(fhs),get<0>(ghs),get<0>(hhs));
+      f(get<1>(lhs),get<1>(rhs),get<1>(fhs),get<1>(ghs),get<1>(hhs));
+      f(get<2>(lhs),get<2>(rhs),get<2>(fhs),get<2>(ghs),get<2>(hhs));
+      f(get<3>(lhs),get<3>(rhs),get<3>(fhs),get<3>(ghs),get<3>(hhs));
+      f(get<4>(lhs),get<4>(rhs),get<4>(fhs),get<4>(ghs),get<4>(hhs));
+      f(get<5>(lhs),get<5>(rhs),get<5>(fhs),get<5>(ghs),get<5>(hhs));
+      f(get<6>(lhs),get<6>(rhs),get<6>(fhs),get<6>(ghs),get<6>(hhs));
+      f(get<7>(lhs),get<7>(rhs),get<7>(fhs),get<7>(ghs),get<7>(hhs));
+      f(get<8>(lhs),get<8>(rhs),get<8>(fhs),get<8>(ghs),get<8>(hhs));
+    };
     
 };
 
@@ -283,7 +431,65 @@ class arithmetic_tuple< T1, T2, T3, T4, T5, T6, T7, T8, void, void > : public bo
                               const T7& t7 = T7(), const T8& t8 = T8()) : 
                               arithmetic_tuple_base_class(t1,t2,t3,t4,t5,t6,t7,t8) { };
     
+    template <typename Tuple, typename Func>
+    static void for_each(Tuple& lhs, Func f) {
+      f(get<0>(lhs));
+      f(get<1>(lhs));
+      f(get<2>(lhs));
+      f(get<3>(lhs));
+      f(get<4>(lhs));
+      f(get<5>(lhs));
+      f(get<6>(lhs));
+      f(get<7>(lhs));
+    };
     
+    template <typename Tuple1, typename Tuple2, typename Func>
+    static void for_each(Tuple1& lhs, Tuple2& rhs, Func f) {
+      f(get<0>(lhs),get<0>(rhs));
+      f(get<1>(lhs),get<1>(rhs));
+      f(get<2>(lhs),get<2>(rhs));
+      f(get<3>(lhs),get<3>(rhs));
+      f(get<4>(lhs),get<4>(rhs));
+      f(get<5>(lhs),get<5>(rhs));
+      f(get<6>(lhs),get<6>(rhs));
+      f(get<7>(lhs),get<7>(rhs));
+    };
+    
+    template <typename Tuple1, typename Tuple2, typename Tuple3, typename Func>
+    static void for_each(Tuple1& lhs, Tuple2& rhs, Tuple3& fhs, Func f) {
+      f(get<0>(lhs),get<0>(rhs),get<0>(fhs));
+      f(get<1>(lhs),get<1>(rhs),get<1>(fhs));
+      f(get<2>(lhs),get<2>(rhs),get<2>(fhs));
+      f(get<3>(lhs),get<3>(rhs),get<3>(fhs));
+      f(get<4>(lhs),get<4>(rhs),get<4>(fhs));
+      f(get<5>(lhs),get<5>(rhs),get<5>(fhs));
+      f(get<6>(lhs),get<6>(rhs),get<6>(fhs));
+      f(get<7>(lhs),get<7>(rhs),get<7>(fhs));
+    };
+    
+    template <typename Tuple1, typename Tuple2, typename Tuple3, typename Tuple4, typename Func>
+    static void for_each(Tuple1& lhs, Tuple2& rhs, Tuple3& fhs, Tuple4& ghs, Func f) {
+      f(get<0>(lhs),get<0>(rhs),get<0>(fhs),get<0>(ghs));
+      f(get<1>(lhs),get<1>(rhs),get<1>(fhs),get<1>(ghs));
+      f(get<2>(lhs),get<2>(rhs),get<2>(fhs),get<2>(ghs));
+      f(get<3>(lhs),get<3>(rhs),get<3>(fhs),get<3>(ghs));
+      f(get<4>(lhs),get<4>(rhs),get<4>(fhs),get<4>(ghs));
+      f(get<5>(lhs),get<5>(rhs),get<5>(fhs),get<5>(ghs));
+      f(get<6>(lhs),get<6>(rhs),get<6>(fhs),get<6>(ghs));
+      f(get<7>(lhs),get<7>(rhs),get<7>(fhs),get<7>(ghs));
+    };
+    
+    template <typename Tuple1, typename Tuple2, typename Tuple3, typename Tuple4, typename Tuple5, typename Func>
+    static void for_each(Tuple1& lhs, Tuple2& rhs, Tuple3& fhs, Tuple4& ghs, Tuple5& hhs, Func f) {
+      f(get<0>(lhs),get<0>(rhs),get<0>(fhs),get<0>(ghs),get<0>(hhs));
+      f(get<1>(lhs),get<1>(rhs),get<1>(fhs),get<1>(ghs),get<1>(hhs));
+      f(get<2>(lhs),get<2>(rhs),get<2>(fhs),get<2>(ghs),get<2>(hhs));
+      f(get<3>(lhs),get<3>(rhs),get<3>(fhs),get<3>(ghs),get<3>(hhs));
+      f(get<4>(lhs),get<4>(rhs),get<4>(fhs),get<4>(ghs),get<4>(hhs));
+      f(get<5>(lhs),get<5>(rhs),get<5>(fhs),get<5>(ghs),get<5>(hhs));
+      f(get<6>(lhs),get<6>(rhs),get<6>(fhs),get<6>(ghs),get<6>(hhs));
+      f(get<7>(lhs),get<7>(rhs),get<7>(fhs),get<7>(ghs),get<7>(hhs));
+    };
     
 };
 
@@ -301,7 +507,60 @@ class arithmetic_tuple< T1, T2, T3, T4, T5, T6, T7, void, void, void > : public 
                               const T7& t7 = T7()) : 
                               arithmetic_tuple_base_class(t1,t2,t3,t4,t5,t6,t7) { };
     
+    template <typename Tuple, typename Func>
+    static void for_each(Tuple& lhs, Func f) {
+      f(get<0>(lhs));
+      f(get<1>(lhs));
+      f(get<2>(lhs));
+      f(get<3>(lhs));
+      f(get<4>(lhs));
+      f(get<5>(lhs));
+      f(get<6>(lhs));
+    };
     
+    template <typename Tuple1, typename Tuple2, typename Func>
+    static void for_each(Tuple1& lhs, Tuple2& rhs, Func f) {
+      f(get<0>(lhs),get<0>(rhs));
+      f(get<1>(lhs),get<1>(rhs));
+      f(get<2>(lhs),get<2>(rhs));
+      f(get<3>(lhs),get<3>(rhs));
+      f(get<4>(lhs),get<4>(rhs));
+      f(get<5>(lhs),get<5>(rhs));
+      f(get<6>(lhs),get<6>(rhs));
+    };
+    
+    template <typename Tuple1, typename Tuple2, typename Tuple3, typename Func>
+    static void for_each(Tuple1& lhs, Tuple2& rhs, Tuple3& fhs, Func f) {
+      f(get<0>(lhs),get<0>(rhs),get<0>(fhs));
+      f(get<1>(lhs),get<1>(rhs),get<1>(fhs));
+      f(get<2>(lhs),get<2>(rhs),get<2>(fhs));
+      f(get<3>(lhs),get<3>(rhs),get<3>(fhs));
+      f(get<4>(lhs),get<4>(rhs),get<4>(fhs));
+      f(get<5>(lhs),get<5>(rhs),get<5>(fhs));
+      f(get<6>(lhs),get<6>(rhs),get<6>(fhs));
+    };
+    
+    template <typename Tuple1, typename Tuple2, typename Tuple3, typename Tuple4, typename Func>
+    static void for_each(Tuple1& lhs, Tuple2& rhs, Tuple3& fhs, Tuple4& ghs, Func f) {
+      f(get<0>(lhs),get<0>(rhs),get<0>(fhs),get<0>(ghs));
+      f(get<1>(lhs),get<1>(rhs),get<1>(fhs),get<1>(ghs));
+      f(get<2>(lhs),get<2>(rhs),get<2>(fhs),get<2>(ghs));
+      f(get<3>(lhs),get<3>(rhs),get<3>(fhs),get<3>(ghs));
+      f(get<4>(lhs),get<4>(rhs),get<4>(fhs),get<4>(ghs));
+      f(get<5>(lhs),get<5>(rhs),get<5>(fhs),get<5>(ghs));
+      f(get<6>(lhs),get<6>(rhs),get<6>(fhs),get<6>(ghs));
+    };
+    
+    template <typename Tuple1, typename Tuple2, typename Tuple3, typename Tuple4, typename Tuple5, typename Func>
+    static void for_each(Tuple1& lhs, Tuple2& rhs, Tuple3& fhs, Tuple4& ghs, Tuple5& hhs, Func f) {
+      f(get<0>(lhs),get<0>(rhs),get<0>(fhs),get<0>(ghs),get<0>(hhs));
+      f(get<1>(lhs),get<1>(rhs),get<1>(fhs),get<1>(ghs),get<1>(hhs));
+      f(get<2>(lhs),get<2>(rhs),get<2>(fhs),get<2>(ghs),get<2>(hhs));
+      f(get<3>(lhs),get<3>(rhs),get<3>(fhs),get<3>(ghs),get<3>(hhs));
+      f(get<4>(lhs),get<4>(rhs),get<4>(fhs),get<4>(ghs),get<4>(hhs));
+      f(get<5>(lhs),get<5>(rhs),get<5>(fhs),get<5>(ghs),get<5>(hhs));
+      f(get<6>(lhs),get<6>(rhs),get<6>(fhs),get<6>(ghs),get<6>(hhs));
+    };
     
 };
 
@@ -318,7 +577,55 @@ class arithmetic_tuple< T1, T2, T3, T4, T5, T6, void, void, void, void > : publi
                               const T4& t4 = T4(), const T5& t5 = T5(), const T6& t6 = T6()) : 
                               arithmetic_tuple_base_class(t1,t2,t3,t4,t5,t6) { };
     
+    template <typename Tuple, typename Func>
+    static void for_each(Tuple& lhs, Func f) {
+      f(get<0>(lhs));
+      f(get<1>(lhs));
+      f(get<2>(lhs));
+      f(get<3>(lhs));
+      f(get<4>(lhs));
+      f(get<5>(lhs));
+    };
     
+    template <typename Tuple1, typename Tuple2, typename Func>
+    static void for_each(Tuple1& lhs, Tuple2& rhs, Func f) {
+      f(get<0>(lhs),get<0>(rhs));
+      f(get<1>(lhs),get<1>(rhs));
+      f(get<2>(lhs),get<2>(rhs));
+      f(get<3>(lhs),get<3>(rhs));
+      f(get<4>(lhs),get<4>(rhs));
+      f(get<5>(lhs),get<5>(rhs));
+    };
+    
+    template <typename Tuple1, typename Tuple2, typename Tuple3, typename Func>
+    static void for_each(Tuple1& lhs, Tuple2& rhs, Tuple3& fhs, Func f) {
+      f(get<0>(lhs),get<0>(rhs),get<0>(fhs));
+      f(get<1>(lhs),get<1>(rhs),get<1>(fhs));
+      f(get<2>(lhs),get<2>(rhs),get<2>(fhs));
+      f(get<3>(lhs),get<3>(rhs),get<3>(fhs));
+      f(get<4>(lhs),get<4>(rhs),get<4>(fhs));
+      f(get<5>(lhs),get<5>(rhs),get<5>(fhs));
+    };
+    
+    template <typename Tuple1, typename Tuple2, typename Tuple3, typename Tuple4, typename Func>
+    static void for_each(Tuple1& lhs, Tuple2& rhs, Tuple3& fhs, Tuple4& ghs, Func f) {
+      f(get<0>(lhs),get<0>(rhs),get<0>(fhs),get<0>(ghs));
+      f(get<1>(lhs),get<1>(rhs),get<1>(fhs),get<1>(ghs));
+      f(get<2>(lhs),get<2>(rhs),get<2>(fhs),get<2>(ghs));
+      f(get<3>(lhs),get<3>(rhs),get<3>(fhs),get<3>(ghs));
+      f(get<4>(lhs),get<4>(rhs),get<4>(fhs),get<4>(ghs));
+      f(get<5>(lhs),get<5>(rhs),get<5>(fhs),get<5>(ghs));
+    };
+    
+    template <typename Tuple1, typename Tuple2, typename Tuple3, typename Tuple4, typename Tuple5, typename Func>
+    static void for_each(Tuple1& lhs, Tuple2& rhs, Tuple3& fhs, Tuple4& ghs, Tuple5& hhs, Func f) {
+      f(get<0>(lhs),get<0>(rhs),get<0>(fhs),get<0>(ghs),get<0>(hhs));
+      f(get<1>(lhs),get<1>(rhs),get<1>(fhs),get<1>(ghs),get<1>(hhs));
+      f(get<2>(lhs),get<2>(rhs),get<2>(fhs),get<2>(ghs),get<2>(hhs));
+      f(get<3>(lhs),get<3>(rhs),get<3>(fhs),get<3>(ghs),get<3>(hhs));
+      f(get<4>(lhs),get<4>(rhs),get<4>(fhs),get<4>(ghs),get<4>(hhs));
+      f(get<5>(lhs),get<5>(rhs),get<5>(fhs),get<5>(ghs),get<5>(hhs));
+    };
     
 };
 
@@ -334,7 +641,50 @@ class arithmetic_tuple< T1, T2, T3, T4, T5, void, void, void, void, void > : pub
                               const T4& t4 = T4(), const T5& t5 = T5()) : 
                               arithmetic_tuple_base_class(t1,t2,t3,t4,t5) { };
     
+    template <typename Tuple, typename Func>
+    static void for_each(Tuple& lhs, Func f) {
+      f(get<0>(lhs));
+      f(get<1>(lhs));
+      f(get<2>(lhs));
+      f(get<3>(lhs));
+      f(get<4>(lhs));
+    };
     
+    template <typename Tuple1, typename Tuple2, typename Func>
+    static void for_each(Tuple1& lhs, Tuple2& rhs, Func f) {
+      f(get<0>(lhs),get<0>(rhs));
+      f(get<1>(lhs),get<1>(rhs));
+      f(get<2>(lhs),get<2>(rhs));
+      f(get<3>(lhs),get<3>(rhs));
+      f(get<4>(lhs),get<4>(rhs));
+    };
+    
+    template <typename Tuple1, typename Tuple2, typename Tuple3, typename Func>
+    static void for_each(Tuple1& lhs, Tuple2& rhs, Tuple3& fhs, Func f) {
+      f(get<0>(lhs),get<0>(rhs),get<0>(fhs));
+      f(get<1>(lhs),get<1>(rhs),get<1>(fhs));
+      f(get<2>(lhs),get<2>(rhs),get<2>(fhs));
+      f(get<3>(lhs),get<3>(rhs),get<3>(fhs));
+      f(get<4>(lhs),get<4>(rhs),get<4>(fhs));
+    };
+    
+    template <typename Tuple1, typename Tuple2, typename Tuple3, typename Tuple4, typename Func>
+    static void for_each(Tuple1& lhs, Tuple2& rhs, Tuple3& fhs, Tuple4& ghs, Func f) {
+      f(get<0>(lhs),get<0>(rhs),get<0>(fhs),get<0>(ghs));
+      f(get<1>(lhs),get<1>(rhs),get<1>(fhs),get<1>(ghs));
+      f(get<2>(lhs),get<2>(rhs),get<2>(fhs),get<2>(ghs));
+      f(get<3>(lhs),get<3>(rhs),get<3>(fhs),get<3>(ghs));
+      f(get<4>(lhs),get<4>(rhs),get<4>(fhs),get<4>(ghs));
+    };
+    
+    template <typename Tuple1, typename Tuple2, typename Tuple3, typename Tuple4, typename Tuple5, typename Func>
+    static void for_each(Tuple1& lhs, Tuple2& rhs, Tuple3& fhs, Tuple4& ghs, Tuple5& hhs, Func f) {
+      f(get<0>(lhs),get<0>(rhs),get<0>(fhs),get<0>(ghs),get<0>(hhs));
+      f(get<1>(lhs),get<1>(rhs),get<1>(fhs),get<1>(ghs),get<1>(hhs));
+      f(get<2>(lhs),get<2>(rhs),get<2>(fhs),get<2>(ghs),get<2>(hhs));
+      f(get<3>(lhs),get<3>(rhs),get<3>(fhs),get<3>(ghs),get<3>(hhs));
+      f(get<4>(lhs),get<4>(rhs),get<4>(fhs),get<4>(ghs),get<4>(hhs));
+    };
     
 };
 
@@ -350,7 +700,45 @@ class arithmetic_tuple< T1, T2, T3, T4, void, void, void, void, void, void > : p
                               const T4& t4 = T4()) : 
                               arithmetic_tuple_base_class(t1,t2,t3,t4) { };
     
+    template <typename Tuple, typename Func>
+    static void for_each(Tuple& lhs, Func f) {
+      f(get<0>(lhs));
+      f(get<1>(lhs));
+      f(get<2>(lhs));
+      f(get<3>(lhs));
+    };
     
+    template <typename Tuple1, typename Tuple2, typename Func>
+    static void for_each(Tuple1& lhs, Tuple2& rhs, Func f) {
+      f(get<0>(lhs),get<0>(rhs));
+      f(get<1>(lhs),get<1>(rhs));
+      f(get<2>(lhs),get<2>(rhs));
+      f(get<3>(lhs),get<3>(rhs));
+    };
+    
+    template <typename Tuple1, typename Tuple2, typename Tuple3, typename Func>
+    static void for_each(Tuple1& lhs, Tuple2& rhs, Tuple3& fhs, Func f) {
+      f(get<0>(lhs),get<0>(rhs),get<0>(fhs));
+      f(get<1>(lhs),get<1>(rhs),get<1>(fhs));
+      f(get<2>(lhs),get<2>(rhs),get<2>(fhs));
+      f(get<3>(lhs),get<3>(rhs),get<3>(fhs));
+    };
+    
+    template <typename Tuple1, typename Tuple2, typename Tuple3, typename Tuple4, typename Func>
+    static void for_each(Tuple1& lhs, Tuple2& rhs, Tuple3& fhs, Tuple4& ghs, Func f) {
+      f(get<0>(lhs),get<0>(rhs),get<0>(fhs),get<0>(ghs));
+      f(get<1>(lhs),get<1>(rhs),get<1>(fhs),get<1>(ghs));
+      f(get<2>(lhs),get<2>(rhs),get<2>(fhs),get<2>(ghs));
+      f(get<3>(lhs),get<3>(rhs),get<3>(fhs),get<3>(ghs));
+    };
+    
+    template <typename Tuple1, typename Tuple2, typename Tuple3, typename Tuple4, typename Tuple5, typename Func>
+    static void for_each(Tuple1& lhs, Tuple2& rhs, Tuple3& fhs, Tuple4& ghs, Tuple5& hhs, Func f) {
+      f(get<0>(lhs),get<0>(rhs),get<0>(fhs),get<0>(ghs),get<0>(hhs));
+      f(get<1>(lhs),get<1>(rhs),get<1>(fhs),get<1>(ghs),get<1>(hhs));
+      f(get<2>(lhs),get<2>(rhs),get<2>(fhs),get<2>(ghs),get<2>(hhs));
+      f(get<3>(lhs),get<3>(rhs),get<3>(fhs),get<3>(ghs),get<3>(hhs));
+    };
     
 };
 
@@ -365,7 +753,40 @@ class arithmetic_tuple< T1, T2, T3, void, void, void, void, void, void, void > :
     explicit arithmetic_tuple(const T1& t1 = T1(), const T2& t2 = T2(), const T3& t3 = T3()) : 
                               arithmetic_tuple_base_class(t1,t2,t3) { };
     
+    template <typename Tuple, typename Func>
+    static void for_each(Tuple& lhs, Func f) {
+      f(get<0>(lhs));
+      f(get<1>(lhs));
+      f(get<2>(lhs));
+    };
     
+    template <typename Tuple1, typename Tuple2, typename Func>
+    static void for_each(Tuple1& lhs, Tuple2& rhs, Func f) {
+      f(get<0>(lhs),get<0>(rhs));
+      f(get<1>(lhs),get<1>(rhs));
+      f(get<2>(lhs),get<2>(rhs));
+    };
+    
+    template <typename Tuple1, typename Tuple2, typename Tuple3, typename Func>
+    static void for_each(Tuple1& lhs, Tuple2& rhs, Tuple3& fhs, Func f) {
+      f(get<0>(lhs),get<0>(rhs),get<0>(fhs));
+      f(get<1>(lhs),get<1>(rhs),get<1>(fhs));
+      f(get<2>(lhs),get<2>(rhs),get<2>(fhs));
+    };
+    
+    template <typename Tuple1, typename Tuple2, typename Tuple3, typename Tuple4, typename Func>
+    static void for_each(Tuple1& lhs, Tuple2& rhs, Tuple3& fhs, Tuple4& ghs, Func f) {
+      f(get<0>(lhs),get<0>(rhs),get<0>(fhs),get<0>(ghs));
+      f(get<1>(lhs),get<1>(rhs),get<1>(fhs),get<1>(ghs));
+      f(get<2>(lhs),get<2>(rhs),get<2>(fhs),get<2>(ghs));
+    };
+    
+    template <typename Tuple1, typename Tuple2, typename Tuple3, typename Tuple4, typename Tuple5, typename Func>
+    static void for_each(Tuple1& lhs, Tuple2& rhs, Tuple3& fhs, Tuple4& ghs, Tuple5& hhs, Func f) {
+      f(get<0>(lhs),get<0>(rhs),get<0>(fhs),get<0>(ghs),get<0>(hhs));
+      f(get<1>(lhs),get<1>(rhs),get<1>(fhs),get<1>(ghs),get<1>(hhs));
+      f(get<2>(lhs),get<2>(rhs),get<2>(fhs),get<2>(ghs),get<2>(hhs));
+    };
     
 };
 
@@ -380,7 +801,35 @@ class arithmetic_tuple< T1, T2, void, void, void, void, void, void, void, void >
     explicit arithmetic_tuple(const T1& t1 = T1(), const T2& t2 = T2()) : 
                               arithmetic_tuple_base_class(t1,t2) { };
     
+    template <typename Tuple, typename Func>
+    static void for_each(Tuple& lhs, Func f) {
+      f(get<0>(lhs));
+      f(get<1>(lhs));
+    };
     
+    template <typename Tuple1, typename Tuple2, typename Func>
+    static void for_each(Tuple1& lhs, Tuple2& rhs, Func f) {
+      f(get<0>(lhs),get<0>(rhs));
+      f(get<1>(lhs),get<1>(rhs));
+    };
+    
+    template <typename Tuple1, typename Tuple2, typename Tuple3, typename Func>
+    static void for_each(Tuple1& lhs, Tuple2& rhs, Tuple3& fhs, Func f) {
+      f(get<0>(lhs),get<0>(rhs),get<0>(fhs));
+      f(get<1>(lhs),get<1>(rhs),get<1>(fhs));
+    };
+    
+    template <typename Tuple1, typename Tuple2, typename Tuple3, typename Tuple4, typename Func>
+    static void for_each(Tuple1& lhs, Tuple2& rhs, Tuple3& fhs, Tuple4& ghs, Func f) {
+      f(get<0>(lhs),get<0>(rhs),get<0>(fhs),get<0>(ghs));
+      f(get<1>(lhs),get<1>(rhs),get<1>(fhs),get<1>(ghs));
+    };
+    
+    template <typename Tuple1, typename Tuple2, typename Tuple3, typename Tuple4, typename Tuple5, typename Func>
+    static void for_each(Tuple1& lhs, Tuple2& rhs, Tuple3& fhs, Tuple4& ghs, Tuple5& hhs, Func f) {
+      f(get<0>(lhs),get<0>(rhs),get<0>(fhs),get<0>(ghs),get<0>(hhs));
+      f(get<1>(lhs),get<1>(rhs),get<1>(fhs),get<1>(ghs),get<1>(hhs));
+    };
     
 };
 
@@ -395,7 +844,57 @@ class arithmetic_tuple< T1, void, void, void, void, void, void, void, void, void
     explicit arithmetic_tuple(const T1& t1 = T1()) : 
                               arithmetic_tuple_base_class(t1) { };
     
+    template <typename Tuple, typename Func>
+    static void for_each(Tuple& lhs, Func f) {
+      f(get<0>(lhs));
+    };
     
+    template <typename Tuple1, typename Tuple2, typename Func>
+    static void for_each(Tuple1& lhs, Tuple2& rhs, Func f) {
+      f(get<0>(lhs),get<0>(rhs));
+    };
+    
+    template <typename Tuple1, typename Tuple2, typename Tuple3, typename Func>
+    static void for_each(Tuple1& lhs, Tuple2& rhs, Tuple3& fhs, Func f) {
+      f(get<0>(lhs),get<0>(rhs),get<0>(fhs));
+    };
+    
+    template <typename Tuple1, typename Tuple2, typename Tuple3, typename Tuple4, typename Func>
+    static void for_each(Tuple1& lhs, Tuple2& rhs, Tuple3& fhs, Tuple4& ghs, Func f) {
+      f(get<0>(lhs),get<0>(rhs),get<0>(fhs),get<0>(ghs));
+    };
+    
+    template <typename Tuple1, typename Tuple2, typename Tuple3, typename Tuple4, typename Tuple5, typename Func>
+    static void for_each(Tuple1& lhs, Tuple2& rhs, Tuple3& fhs, Tuple4& ghs, Tuple5& hhs, Func f) {
+      f(get<0>(lhs),get<0>(rhs),get<0>(fhs),get<0>(ghs),get<0>(hhs));
+    };
+    
+};
+
+/* Specialization, see general template docs. */
+template <>
+class arithmetic_tuple< void, void, void, void, void, void, void, void, void, void > : public boost::tuples::tuple<> {
+  public:
+    typedef boost::tuples::tuple<> arithmetic_tuple_base_class;
+  public:
+    
+    
+    explicit arithmetic_tuple() : arithmetic_tuple_base_class() { };
+    
+    template <typename Tuple, typename Func>
+    static void for_each(Tuple&, Func) {};
+    
+    template <typename Tuple1, typename Tuple2, typename Func>
+    static void for_each(Tuple1&, Tuple2&, Func) {};
+    
+    template <typename Tuple1, typename Tuple2, typename Tuple3, typename Func>
+    static void for_each(Tuple1&, Tuple2&, Tuple3&, Func) {};
+    
+    template <typename Tuple1, typename Tuple2, typename Tuple3, typename Tuple4, typename Func>
+    static void for_each(Tuple1&, Tuple2&, Tuple3&, Tuple4&, Func) {};
+    
+    template <typename Tuple1, typename Tuple2, typename Tuple3, typename Tuple4, typename Tuple5, typename Func>
+    static void for_each(Tuple1&, Tuple2&, Tuple3&, Tuple4&, Tuple5&, Func) {};
     
 };
 
@@ -498,6 +997,203 @@ arithmetic_tuple< T1, T2, T3, T4, T5, T6, T7, T8, T9, T10 > make_arithmetic_tupl
 #endif
 
 
+namespace {
+
+#ifndef BOOST_NO_CXX11_VARIADIC_TEMPLATES
+
+template <typename Tuple, typename Func, std::size_t... Idx>
+void tuple_for_each_impl(Tuple& lhs, Func f, index_sequence<Idx...>) {
+  // Using Louis Dionne's "swallow" trick:
+  typedef int swallow[];
+  (void)swallow{1,
+    (f(get<Idx>(lhs)), void(), int())...
+  };
+};
+
+template <typename Tuple1, typename Tuple2, typename Func, std::size_t... Idx>
+void tuple_for_each_impl(Tuple1& lhs, Tuple2& rhs, Func f, index_sequence<Idx...>) {
+  // Using Louis Dionne's "swallow" trick:
+  typedef int swallow[];
+  (void)swallow{1,
+    (f(get<Idx>(lhs), get<Idx>(rhs)), void(), int())...
+  };
+};
+
+template <typename Tuple1, typename Tuple2, typename Tuple3, 
+          typename Func, std::size_t... Idx>
+void tuple_for_each_impl(Tuple1& lhs, Tuple2& rhs, Tuple3& fhs, Func f, index_sequence<Idx...>) {
+  // Using Louis Dionne's "swallow" trick:
+  typedef int swallow[];
+  (void)swallow{1,
+    (f(get<Idx>(lhs), get<Idx>(rhs), get<Idx>(fhs)), void(), int())...
+  };
+};
+
+template <typename Tuple1, typename Tuple2, typename Tuple3, typename Tuple4, 
+          typename Func, std::size_t... Idx>
+void tuple_for_each_impl(Tuple1& lhs, Tuple2& rhs, Tuple3& fhs, Tuple4& ghs, 
+                         Func f, index_sequence<Idx...>) {
+  // Using Louis Dionne's "swallow" trick:
+  typedef int swallow[];
+  (void)swallow{1,
+    (f(get<Idx>(lhs), get<Idx>(rhs), get<Idx>(fhs), get<Idx>(ghs)), void(), int())...
+  };
+};
+
+template <typename Tuple1, typename Tuple2, typename Tuple3, typename Tuple4, typename Tuple5, 
+          typename Func, std::size_t... Idx>
+void tuple_for_each_impl(Tuple1& lhs, Tuple2& rhs, Tuple3& fhs, Tuple4& ghs, Tuple5& hhs, 
+                         Func f, index_sequence<Idx...>) {
+  // Using Louis Dionne's "swallow" trick:
+  typedef int swallow[];
+  (void)swallow{1,
+    (f(get<Idx>(lhs), get<Idx>(rhs), get<Idx>(fhs), get<Idx>(ghs), get<Idx>(hhs)), void(), int())...
+  };
+};
+
+template <typename Tuple, typename Func>
+void tuple_for_each(Tuple& lhs, Func f) { 
+  typedef typename make_index_sequence< arithmetic_tuple_size<Tuple>::value >::type idx_seq;
+  tuple_for_each_impl(lhs, f, idx_seq());
+};
+
+template <typename Tuple1, typename Tuple2, typename Func>
+void tuple_for_each(Tuple1& lhs, Tuple2& rhs, Func f) { 
+  typedef typename make_index_sequence< arithmetic_tuple_size<Tuple1>::value >::type idx_seq;
+  tuple_for_each_impl(lhs, rhs, f, idx_seq());
+};
+
+template <typename Tuple1, typename Tuple2, typename Tuple3, typename Func>
+void tuple_for_each(Tuple1& lhs, Tuple2& rhs, Tuple3& fhs, Func f) { 
+  typedef typename make_index_sequence< arithmetic_tuple_size<Tuple1>::value >::type idx_seq;
+  tuple_for_each_impl(lhs, rhs, fhs, f, idx_seq());
+};
+
+template <typename Tuple1, typename Tuple2, typename Tuple3, typename Tuple4, typename Func>
+void tuple_for_each(Tuple1& lhs, Tuple2& rhs, Tuple3& fhs, Tuple4& ghs, Func f) { 
+  typedef typename make_index_sequence< arithmetic_tuple_size<Tuple1>::value >::type idx_seq;
+  tuple_for_each_impl(lhs, rhs, fhs, ghs, f, idx_seq());
+};
+
+template <typename Tuple1, typename Tuple2, typename Tuple3, typename Tuple4, typename Tuple5, typename Func>
+void tuple_for_each(Tuple1& lhs, Tuple2& rhs, Tuple3& fhs, Tuple4& ghs, Tuple5& hhs, Func f) { 
+  typedef typename make_index_sequence< arithmetic_tuple_size<Tuple1>::value >::type idx_seq;
+  tuple_for_each_impl(lhs, rhs, fhs, ghs, hhs, f, idx_seq());
+};
+
+#else
+
+template <typename Tuple, typename Func>
+void tuple_for_each(Tuple& lhs, Func f) { 
+  lhs.for_each(lhs,f);
+};
+
+template <typename Tuple1, typename Tuple2, typename Func>
+void tuple_for_each(Tuple1& lhs, Tuple2& rhs, Func f) { 
+  lhs.for_each(lhs,rhs,f);
+};
+
+template <typename Tuple1, typename Tuple2, typename Tuple3, typename Func>
+void tuple_for_each(Tuple1& lhs, Tuple2& rhs, Tuple3& fhs, Func f) { 
+  lhs.for_each(lhs,rhs,fhs,f);
+};
+
+template <typename Tuple1, typename Tuple2, typename Tuple3, typename Tuple4, typename Func>
+void tuple_for_each(Tuple1& lhs, Tuple2& rhs, Tuple3& fhs, Tuple4& ghs, Func f) { 
+  lhs.for_each(lhs,rhs,fhs,ghs,f);
+};
+
+template <typename Tuple1, typename Tuple2, typename Tuple3, typename Tuple4, typename Tuple5, typename Func>
+void tuple_for_each(Tuple1& lhs, Tuple2& rhs, Tuple3& fhs, Tuple4& ghs, Tuple5& hhs, Func f) { 
+  lhs.for_each(lhs,rhs,fhs,ghs,hhs,f);
+};
+
+#endif
+
+};
+
+
+template <typename Tuple>
+typename boost::enable_if< is_arithmetic_tuple<Tuple>,
+Tuple >::type operator +(const Tuple& lhs, const Tuple& rhs);
+
+template <typename Tuple>
+typename boost::enable_if< is_arithmetic_tuple<Tuple>,
+Tuple >::type operator -(const Tuple& lhs, const Tuple& rhs);
+    
+template <typename Tuple>
+typename boost::enable_if< is_arithmetic_tuple<Tuple>,
+Tuple >::type operator -(const Tuple& lhs);
+
+template <typename Tuple>
+typename boost::enable_if< is_arithmetic_tuple<Tuple>,
+Tuple& >::type operator +=(Tuple& lhs, const Tuple& rhs);
+    
+template <typename Tuple>
+typename boost::enable_if< is_arithmetic_tuple<Tuple>,
+Tuple& >::type operator -=(Tuple& lhs, const Tuple& rhs);
+    
+template <typename Tuple>
+typename boost::enable_if< is_arithmetic_tuple<Tuple>,
+Tuple >::type operator *(const Tuple& lhs, const Tuple& rhs);
+    
+template <typename Tuple>
+typename boost::enable_if< is_arithmetic_tuple<Tuple>,
+Tuple >::type operator /(const Tuple& lhs, const Tuple& rhs);
+    
+template <typename Tuple, typename Scalar>
+typename boost::enable_if< is_arithmetic_tuple<Tuple>,
+Tuple >::type operator *(const Tuple& lhs, const Scalar& rhs);
+    
+template <typename Tuple, typename Scalar>
+typename boost::enable_if< is_arithmetic_tuple<Tuple>,
+Tuple >::type operator *(const Scalar& lhs, const Tuple& rhs);
+    
+template <typename Tuple, typename Scalar>
+typename boost::enable_if< is_arithmetic_tuple<Tuple>,
+Tuple >::type operator /(const Tuple& lhs, const Scalar& rhs);
+    
+template <typename Tuple>
+typename boost::enable_if< is_arithmetic_tuple<Tuple>,
+Tuple& >::type operator *=(Tuple& lhs, const Tuple& rhs);
+    
+template <typename Tuple>
+typename boost::enable_if< is_arithmetic_tuple<Tuple>,
+Tuple& >::type operator /=(Tuple& lhs, const Tuple& rhs);
+    
+template <typename Tuple, typename Scalar>
+typename boost::enable_if< is_arithmetic_tuple<Tuple>,
+Tuple& >::type operator *=(Tuple& lhs, const Scalar& rhs);
+    
+template <typename Tuple, typename Scalar>
+typename boost::enable_if< is_arithmetic_tuple<Tuple>,
+Tuple& >::type operator /=(Tuple& lhs, const Scalar& rhs);
+
+template <typename Tuple>
+typename boost::enable_if< is_arithmetic_tuple<Tuple>,
+std::ostream& >::type operator <<(std::ostream& out, const Tuple& rhs);
+
+namespace serialization {
+
+template <typename Tuple>
+typename boost::enable_if< is_arithmetic_tuple<Tuple>,
+oarchive& >::type operator <<(oarchive& out, const Tuple& rhs);
+
+template <typename Tuple>
+typename boost::enable_if< is_arithmetic_tuple<Tuple>,
+oarchive& >::type operator &(oarchive& out, const std::pair<std::string, const Tuple& >& rhs);
+
+template <typename Tuple>
+typename boost::enable_if< is_arithmetic_tuple<Tuple>,
+iarchive& >::type operator >>(iarchive& in, Tuple& rhs);
+
+template <typename Tuple>
+typename boost::enable_if< is_arithmetic_tuple<Tuple>,
+iarchive& >::type operator &(iarchive& in, const std::pair<std::string, Tuple& >& rhs);
+
+};
+
+
 
 namespace detail {
   
@@ -505,32 +1201,6 @@ namespace detail {
                              Implementation details
 *****************************************************************************************/
   
-  
-  template <typename Idx, typename Vector, typename Tuple>
-  inline 
-  typename boost::enable_if< 
-    boost::mpl::equal_to< 
-      Idx, 
-      boost::mpl::size_t<0> 
-    >,
-  void >::type tuple_to_vect_impl( Vector&, const Tuple&); // forward-declare
-  
-  template <typename Idx, typename Vector, typename Tuple>
-  inline 
-  typename boost::enable_if< 
-    boost::mpl::greater< 
-      Idx, 
-      boost::mpl::size_t<0> 
-    >,
-  void >::type tuple_to_vect_impl( Vector& lhs, const Tuple& rhs); // forward-declare
-  
-  template <typename Vector, typename Tuple>
-  inline 
-  typename boost::enable_if<
-    is_arithmetic_tuple< Tuple >,
-  void >::type to_vect_impl( Vector& lhs, const Tuple& rhs) {
-    tuple_to_vect_impl< arithmetic_tuple_size<Tuple>, Vector, Tuple >(lhs, rhs);
-  };
   
   template <typename Vector1, typename Vector2>
   inline 
@@ -555,54 +1225,33 @@ namespace detail {
     lhs[lhs.size()-1] = rhs;
   };
   
-  template <typename Idx, typename Vector, typename Tuple>
-  inline 
-  typename boost::enable_if< 
-    boost::mpl::equal_to< 
-      Idx, 
-      boost::mpl::size_t<0> 
-    >,
-  void >::type tuple_to_vect_impl( Vector&, const Tuple&) { };
-  
-  template <typename Idx, typename Vector, typename Tuple>
-  inline 
-  typename boost::enable_if< 
-    boost::mpl::greater< 
-      Idx, 
-      boost::mpl::size_t<0> 
-    >,
-  void >::type tuple_to_vect_impl( Vector& lhs, const Tuple& rhs) {
-    tuple_to_vect_impl< typename boost::mpl::prior<Idx>::type, Vector, Tuple >(lhs,rhs);
-    to_vect_impl(lhs, get<boost::mpl::prior<Idx>::type::value>(rhs));
-  };
-  
-  
-  
-  template <typename Idx, typename Tuple, typename Vector>
-  inline 
-  typename boost::enable_if< 
-    boost::mpl::equal_to< 
-      Idx, 
-      boost::mpl::size_t<0> 
-    >,
-  void >::type tuple_from_vect_impl( Tuple&, const Vector&, std::size_t& i); // forward delcare
-  
-  template <typename Idx, typename Tuple, typename Vector>
-  inline 
-  typename boost::enable_if< 
-    boost::mpl::greater< 
-      Idx, 
-      boost::mpl::size_t<0> 
-    >,
-  void >::type tuple_from_vect_impl( Tuple& lhs, const Vector& rhs, std::size_t& i); // forward delcare
-  
-  template <typename Tuple, typename Vector>
+  template <typename Vector, typename Tuple>
   inline 
   typename boost::enable_if<
     is_arithmetic_tuple< Tuple >,
-  void >::type from_vect_impl( Tuple& lhs, const Vector& rhs, std::size_t& i) {
-    tuple_from_vect_impl< arithmetic_tuple_size<Tuple>, Tuple, Vector >(lhs, rhs, i);
+  void >::type to_vect_impl( Vector& lhs, const Tuple& rhs);
+  
+  namespace {
+    template <typename Vector>
+    struct to_vect_impl_caller {
+      Vector* p_lhs;
+      to_vect_impl_caller(Vector& lhs) : p_lhs(&lhs) {};
+      template <typename T>
+      void operator()(const T& rhs) const {
+        to_vect_impl(*p_lhs, rhs);
+      };
+    };
   };
+  
+  template <typename Vector, typename Tuple>
+  inline 
+  typename boost::enable_if<
+    is_arithmetic_tuple< Tuple >,
+  void >::type to_vect_impl( Vector& lhs, const Tuple& rhs) {
+    tuple_for_each(rhs, to_vect_impl_caller<Vector>(lhs));
+  };
+  
+  
   
   template <typename Vector1, typename Vector2>
   inline 
@@ -624,446 +1273,209 @@ namespace detail {
     lhs = rhs[i++];
   };
   
-  template <typename Idx, typename Tuple, typename Vector>
+  template <typename Tuple, typename Vector>
   inline 
-  typename boost::enable_if< 
-    boost::mpl::equal_to< 
-      Idx, 
-      boost::mpl::size_t<0> 
-    >,
-  void >::type tuple_from_vect_impl( Tuple&, const Vector&, std::size_t& i) { };
+  typename boost::enable_if<
+    is_arithmetic_tuple< Tuple >,
+  void >::type from_vect_impl( Tuple& lhs, const Vector& rhs, std::size_t& i);
   
-  template <typename Idx, typename Tuple, typename Vector>
+  namespace {
+    template <typename Vector>
+    struct from_vect_impl_caller {
+      const Vector* p_rhs;
+      std::size_t* p_i;
+      from_vect_impl_caller(const Vector& rhs, std::size_t& i) : p_rhs(&rhs), p_i(&i) {};
+      template <typename T>
+      void operator()(T& lhs) const {
+        from_vect_impl(lhs, *p_rhs, *p_i);
+      };
+    };
+  };
+  
+  template <typename Tuple, typename Vector>
   inline 
-  typename boost::enable_if< 
-    boost::mpl::greater< 
-      Idx, 
-      boost::mpl::size_t<0> 
-    >,
-  void >::type tuple_from_vect_impl( Tuple& lhs, const Vector& rhs, std::size_t& i) {
-    tuple_from_vect_impl< typename boost::mpl::prior<Idx>::type, Tuple, Vector >(lhs, rhs, i);
-    from_vect_impl(get<boost::mpl::prior<Idx>::type::value>(lhs), rhs, i);
+  typename boost::enable_if<
+    is_arithmetic_tuple< Tuple >,
+  void >::type from_vect_impl( Tuple& lhs, const Vector& rhs, std::size_t& i) {
+    tuple_for_each(lhs, from_vect_impl_caller<Vector>(rhs,i));
   };
   
   
   
   
-  
-  
-  template <typename Idx, typename Tuple>
-  inline 
-  typename boost::enable_if< 
-    boost::mpl::equal_to< 
-      Idx, 
-      boost::mpl::size_t<0> 
-    >,
-  void >::type tuple_addassign_impl( Tuple& lhs, const Tuple& rhs) { };
-
-  template <typename Idx, typename Tuple>
-  inline 
-  typename boost::enable_if< 
-    boost::mpl::greater< 
-      Idx, 
-      boost::mpl::size_t<0> 
-    >,
-  void >::type tuple_addassign_impl( Tuple& lhs, const Tuple& rhs) {
-    tuple_addassign_impl< typename boost::mpl::prior<Idx>::type,Tuple >(lhs,rhs);
-    get<boost::mpl::prior<Idx>::type::value>(lhs) += get<boost::mpl::prior<Idx>::type::value>(rhs);
+  namespace {
+    struct tuple_addassign_impl_caller {
+      template <typename T1, typename T2>
+      void operator()(T1& lhs, T2& rhs) const {
+        lhs += rhs;
+      };
+    };
+    
+    struct tuple_subassign_impl_caller {
+      template <typename T1, typename T2>
+      void operator()(T1& lhs, T2& rhs) const {
+        lhs -= rhs;
+      };
+    };
+    
+    struct tuple_mulassign_impl_caller {
+      template <typename T1, typename T2>
+      void operator()(T1& lhs, T2& rhs) const {
+        lhs *= rhs;
+      };
+    };
+    
+    struct tuple_divassign_impl_caller {
+      template <typename T1, typename T2>
+      void operator()(T1& lhs, T2& rhs) const {
+        lhs /= rhs;
+      };
+    };
+    
+    template <typename Scalar>
+    struct tuple_smulassign_impl_caller {
+      const Scalar* p_s;
+      tuple_smulassign_impl_caller(const Scalar& s) : p_s(&s) {};
+      template <typename T>
+      void operator()(T& lhs) const {
+        lhs *= *p_s;
+      };
+    };
+    
+    template <typename Scalar>
+    struct tuple_sdivassign_impl_caller {
+      const Scalar* p_s;
+      tuple_sdivassign_impl_caller(const Scalar& s) : p_s(&s) {};
+      template <typename T>
+      void operator()(T& lhs) const {
+        lhs /= *p_s;
+      };
+    };
+    
+    struct tuple_add_impl_caller {
+      template <typename TR, typename T1, typename T2>
+      void operator()(TR& result, T1& lhs, T2& rhs) const {
+        result = lhs + rhs;
+      };
+    };
+    
+    struct tuple_sub_impl_caller {
+      template <typename TR, typename T1, typename T2>
+      void operator()(TR& result, T1& lhs, T2& rhs) const {
+        result = lhs - rhs;
+      };
+    };
+    
+    struct tuple_neg_impl_caller {
+      template <typename TR, typename T1>
+      void operator()(TR& result, T1& lhs) const {
+        result = -lhs;
+      };
+    };
+    
+    struct tuple_mul_impl_caller {
+      template <typename TR, typename T1, typename T2>
+      void operator()(TR& result, T1& lhs, T2& rhs) const {
+        result = lhs * rhs;
+      };
+    };
+    
+    struct tuple_div_impl_caller {
+      template <typename TR, typename T1, typename T2>
+      void operator()(TR& result, T1& lhs, T2& rhs) const {
+        result = lhs / rhs;
+      };
+    };
+    
+    template <typename Scalar>
+    struct tuple_muls_impl_caller {
+      const Scalar* p_s;
+      tuple_muls_impl_caller(const Scalar& s) : p_s(&s) {};
+      template <typename TR, typename T1>
+      void operator()(TR& result, T1& lhs) const {
+        result = lhs * (*p_s);
+      };
+    };
+    
+    template <typename Scalar>
+    struct tuple_smul_impl_caller {
+      const Scalar* p_s;
+      tuple_smul_impl_caller(const Scalar& s) : p_s(&s) {};
+      template <typename TR, typename T1>
+      void operator()(TR& result, T1& rhs) const {
+        result = (*p_s) * rhs;
+      };
+    };
+    
+    template <typename Scalar>
+    struct tuple_divs_impl_caller {
+      const Scalar* p_s;
+      tuple_divs_impl_caller(const Scalar& s) : p_s(&s) {};
+      template <typename TR, typename T1>
+      void operator()(TR& result, T1& lhs) const {
+        result = lhs / (*p_s);
+      };
+    };
+    
+    struct tuple_std_output_impl_caller {
+      std::ostream* p_out;
+      mutable bool is_first;
+      tuple_std_output_impl_caller(std::ostream& out) : p_out(&out), is_first(true) {};
+      template <typename T>
+      void operator()(T& lhs) const {
+        if( !is_first )
+          (*p_out) << "; ";
+        (*p_out) << lhs;
+        is_first = false;
+      };
+    };
+    
+    struct tuple_save_impl_caller {
+      serialization::oarchive* p_out;
+      tuple_save_impl_caller(serialization::oarchive& out) : p_out(&out) {};
+      template <typename T>
+      void operator()(T& lhs) const {
+        (*p_out) << lhs;
+      };
+    };
+    
+    struct tuple_save_nvp_impl_caller {
+      serialization::oarchive* p_out;
+      const std::string* p_name;
+      mutable std::size_t cur_idx;
+      tuple_save_nvp_impl_caller(serialization::oarchive& out, const std::string& name) : 
+                                 p_out(&out), p_name(&name), cur_idx(0) {};
+      template <typename T>
+      void operator()(T& lhs) const {
+        std::stringstream ss(*p_name); ss << "_q" << cur_idx;
+        (*p_out) & serialization::make_save_nvp(ss.str(), lhs);
+        ++cur_idx;
+      };
+    };
+    
+    struct tuple_load_impl_caller {
+      serialization::iarchive* p_in;
+      tuple_load_impl_caller(serialization::iarchive& in) : p_in(&in) {};
+      template <typename T>
+      void operator()(T& lhs) const {
+        (*p_in) >> lhs;
+      };
+    };
+    
+    struct tuple_load_nvp_impl_caller {
+      serialization::iarchive* p_in;
+      const std::string* p_name;
+      mutable std::size_t cur_idx;
+      tuple_load_nvp_impl_caller(serialization::iarchive& in, const std::string& name) : 
+                                 p_in(&in), p_name(&name), cur_idx(0) {};
+      template <typename T>
+      void operator()(T& lhs) const {
+        std::stringstream ss(*p_name); ss << "_q" << cur_idx;
+        (*p_in) & serialization::make_load_nvp(ss.str(), lhs);
+        ++cur_idx;
+      };
+    };
   };
-  
-  template <typename Idx, typename Tuple>
-  inline 
-  typename boost::enable_if< 
-    boost::mpl::equal_to< 
-      Idx,
-      boost::mpl::size_t<0>
-    >,
-  void >::type tuple_subassign_impl( Tuple& lhs, const Tuple& rhs) { };
-
-  template <typename Idx, typename Tuple>
-  inline 
-  typename boost::enable_if< 
-    boost::mpl::greater< 
-      Idx,
-      boost::mpl::size_t<0>
-    >,
-  void >::type tuple_subassign_impl( Tuple& lhs, const Tuple& rhs) {
-    tuple_subassign_impl< typename boost::mpl::prior<Idx>::type,Tuple>(lhs,rhs);
-    get<boost::mpl::prior<Idx>::type::value>(lhs) -= get<boost::mpl::prior<Idx>::type::value>(rhs);
-  };
-  
-  template <typename Idx, typename Tuple>
-  inline 
-  typename boost::enable_if< 
-    boost::mpl::equal_to< 
-      Idx, 
-      boost::mpl::size_t<0> 
-    >,
-  void >::type tuple_mulassign_impl( Tuple& lhs, const Tuple& rhs) { };
-
-  template <typename Idx, typename Tuple>
-  inline 
-  typename boost::enable_if< 
-    boost::mpl::greater< 
-      Idx, 
-      boost::mpl::size_t<0> 
-    >,
-  void >::type tuple_mulassign_impl( Tuple& lhs, const Tuple& rhs) {
-    tuple_mulassign_impl<typename boost::mpl::prior<Idx>::type,Tuple>(lhs,rhs);
-    get<boost::mpl::prior<Idx>::type::value>(lhs) *= get<boost::mpl::prior<Idx>::type::value>(rhs);
-  };
-  
-  template <typename Idx, typename Tuple>
-  inline 
-  typename boost::enable_if< 
-    boost::mpl::equal_to< 
-      Idx, 
-      boost::mpl::size_t<0> 
-    >,
-  void >::type tuple_divassign_impl( Tuple& lhs, const Tuple& rhs) { };
-
-  template <typename Idx, typename Tuple>
-  inline 
-  typename boost::enable_if< 
-    boost::mpl::greater< 
-      Idx, 
-      boost::mpl::size_t<0> 
-    >,
-  void >::type tuple_divassign_impl( Tuple& lhs, const Tuple& rhs) {
-    tuple_divassign_impl<typename boost::mpl::prior<Idx>::type,Tuple>(lhs,rhs);
-    get<boost::mpl::prior<Idx>::type::value>(lhs) /= get<boost::mpl::prior<Idx>::type::value>(rhs);
-  };
-  
-  template <typename Idx, typename Tuple, typename Scalar>
-  inline 
-  typename boost::enable_if< 
-    boost::mpl::equal_to< 
-      Idx, 
-      boost::mpl::size_t<0> 
-    >,
-  void >::type tuple_smulassign_impl( Tuple& lhs, const Scalar& rhs) { };
-
-  template <typename Idx, typename Tuple, typename Scalar>
-  inline 
-  typename boost::enable_if< 
-    boost::mpl::greater< 
-      Idx, 
-      boost::mpl::size_t<0> 
-    >,
-  void >::type tuple_smulassign_impl( Tuple& lhs, const Scalar& rhs) {
-    tuple_smulassign_impl<typename boost::mpl::prior<Idx>::type,Tuple,Scalar>(lhs,rhs);
-    get<boost::mpl::prior<Idx>::type::value>(lhs) *= rhs;
-  };
-  
-  template <typename Idx, typename Tuple, typename Scalar>
-  inline 
-  typename boost::enable_if< 
-    boost::mpl::equal_to< 
-      Idx, 
-      boost::mpl::size_t<0> 
-    >,
-  void >::type tuple_sdivassign_impl( Tuple& lhs, const Scalar& rhs) { };
-
-  template <typename Idx, typename Tuple, typename Scalar>
-  inline 
-  typename boost::enable_if< 
-    boost::mpl::greater< 
-      Idx, 
-      boost::mpl::size_t<0> 
-    >,
-  void >::type tuple_sdivassign_impl( Tuple& lhs, const Scalar& rhs) {
-    tuple_sdivassign_impl<typename boost::mpl::prior<Idx>::type,Tuple,Scalar>(lhs,rhs);
-    get<boost::mpl::prior<Idx>::type::value>(lhs) /= rhs;
-  };
-  
-  
-  
-  template <typename Idx, typename Tuple>
-  inline 
-  typename boost::enable_if< 
-    boost::mpl::equal_to< 
-      Idx, 
-      boost::mpl::size_t<0> 
-    >,
-  void >::type tuple_add_impl( Tuple& result, const Tuple& lhs, const Tuple& rhs) { };
-
-  template <typename Idx, typename Tuple>
-  inline 
-  typename boost::enable_if< 
-    boost::mpl::greater< 
-      Idx, 
-      boost::mpl::size_t<0> 
-    >,
-  void >::type tuple_add_impl( Tuple& result, const Tuple& lhs, const Tuple& rhs) {
-    tuple_add_impl<typename boost::mpl::prior<Idx>::type,Tuple>(result,lhs,rhs);
-    get<boost::mpl::prior<Idx>::type::value>(result) = get<boost::mpl::prior<Idx>::type::value>(lhs) + get<boost::mpl::prior<Idx>::type::value>(rhs);
-  };
-  
-  template <typename Idx, typename Tuple>
-  inline 
-  typename boost::enable_if< 
-    boost::mpl::equal_to< 
-      Idx, 
-      boost::mpl::size_t<0> 
-    >,
-  void >::type tuple_sub_impl( Tuple& result, const Tuple& lhs, const Tuple& rhs) { };
-
-  template <typename Idx, typename Tuple>
-  inline 
-  typename boost::enable_if< 
-    boost::mpl::greater< 
-      Idx, 
-      boost::mpl::size_t<0> 
-    >,
-  void >::type tuple_sub_impl( Tuple& result, const Tuple& lhs, const Tuple& rhs) {
-    tuple_sub_impl<typename boost::mpl::prior<Idx>::type,Tuple>(result,lhs,rhs);
-    get<boost::mpl::prior<Idx>::type::value>(result) = get<boost::mpl::prior<Idx>::type::value>(lhs) - get<boost::mpl::prior<Idx>::type::value>(rhs);
-  };
-  
-  template <typename Idx, typename Tuple>
-  inline 
-  typename boost::enable_if< 
-    boost::mpl::equal_to< 
-      Idx, 
-      boost::mpl::size_t<0> 
-    >,
-  void >::type tuple_neg_impl( Tuple& result, const Tuple& lhs) { };
-
-  template <typename Idx, typename Tuple>
-  inline 
-  typename boost::enable_if< 
-    boost::mpl::greater< 
-      Idx, 
-      boost::mpl::size_t<0> 
-    >,
-  void >::type tuple_neg_impl( Tuple& result, const Tuple& lhs) {
-    tuple_neg_impl<typename boost::mpl::prior<Idx>::type,Tuple>(result,lhs);
-    get<boost::mpl::prior<Idx>::type::value>(result) = -get<boost::mpl::prior<Idx>::type::value>(lhs);
-  };
-  
-  template <typename Idx, typename Tuple>
-  inline 
-  typename boost::enable_if< 
-    boost::mpl::equal_to< 
-      Idx, 
-      boost::mpl::size_t<0> 
-    >,
-  void >::type tuple_mul_impl( Tuple& result, const Tuple& lhs, const Tuple& rhs) { };
-
-  template <typename Idx, typename Tuple>
-  inline 
-  typename boost::enable_if< 
-    boost::mpl::greater< 
-      Idx, 
-      boost::mpl::size_t<0> 
-    >,
-  void >::type tuple_mul_impl( Tuple& result, const Tuple& lhs, const Tuple& rhs) {
-    tuple_mul_impl<typename boost::mpl::prior<Idx>::type,Tuple>(result,lhs,rhs);
-    get<boost::mpl::prior<Idx>::type::value>(result) = get<boost::mpl::prior<Idx>::type::value>(lhs) * get<boost::mpl::prior<Idx>::type::value>(rhs);
-  };
-  
-  template <typename Idx, typename Tuple>
-  inline 
-  typename boost::enable_if< 
-    boost::mpl::equal_to< 
-      Idx, 
-      boost::mpl::size_t<0> 
-    >,
-  void >::type tuple_div_impl( Tuple& result, const Tuple& lhs, const Tuple& rhs) { };
-
-  template <typename Idx, typename Tuple>
-  inline 
-  typename boost::enable_if< 
-    boost::mpl::greater< 
-      Idx, 
-      boost::mpl::size_t<0> 
-    >,
-  void >::type tuple_div_impl( Tuple& result, const Tuple& lhs, const Tuple& rhs) {
-    tuple_div_impl<typename boost::mpl::prior<Idx>::type,Tuple>(result,lhs,rhs);
-    get<boost::mpl::prior<Idx>::type::value>(result) = get<boost::mpl::prior<Idx>::type::value>(lhs) / get<boost::mpl::prior<Idx>::type::value>(rhs);
-  };
-  
-  template <typename Idx, typename Tuple, typename Scalar>
-  inline 
-  typename boost::enable_if< 
-    boost::mpl::equal_to< 
-      Idx, 
-      boost::mpl::size_t<0> 
-    >,
-  void >::type tuple_muls_impl( Tuple& result, const Tuple& lhs, const Scalar& rhs) { };
-
-  template <typename Idx, typename Tuple, typename Scalar>
-  inline 
-  typename boost::enable_if< 
-    boost::mpl::greater< 
-      Idx, 
-      boost::mpl::size_t<0> 
-    >,
-  void >::type tuple_muls_impl( Tuple& result, const Tuple& lhs, const Scalar& rhs) {
-    tuple_muls_impl<typename boost::mpl::prior<Idx>::type,Tuple,Scalar>(result,lhs,rhs);
-    get<boost::mpl::prior<Idx>::type::value>(result) = get<boost::mpl::prior<Idx>::type::value>(lhs) * rhs;
-  };
-  
-  template <typename Idx, typename Tuple, typename Scalar>
-  inline 
-  typename boost::enable_if< 
-    boost::mpl::equal_to< 
-      Idx, 
-      boost::mpl::size_t<0> 
-    >,
-  void >::type tuple_smul_impl( Tuple& result, const Scalar& lhs, const Tuple& rhs) { };
-
-  template <typename Idx, typename Tuple, typename Scalar>
-  inline 
-  typename boost::enable_if< 
-    boost::mpl::greater< 
-      Idx, 
-      boost::mpl::size_t<0> 
-    >,
-  void >::type tuple_smul_impl( Tuple& result, const Scalar& lhs, const Tuple& rhs) {
-    tuple_smul_impl<typename boost::mpl::prior<Idx>::type,Tuple,Scalar>(result,lhs,rhs);
-    get<boost::mpl::prior<Idx>::type::value>(result) = lhs * get<boost::mpl::prior<Idx>::type::value>(rhs);
-  };
-  
-  template <typename Idx, typename Tuple, typename Scalar>
-  inline 
-  typename boost::enable_if< 
-    boost::mpl::equal_to< 
-      Idx, 
-      boost::mpl::size_t<0> 
-    >,
-  void >::type tuple_divs_impl( Tuple& result, const Tuple& lhs, const Scalar& rhs) { };
-
-  template <typename Idx, typename Tuple, typename Scalar>
-  inline 
-  typename boost::enable_if< 
-    boost::mpl::greater< 
-      Idx, 
-      boost::mpl::size_t<0> 
-    >,
-  void >::type tuple_divs_impl( Tuple& result, const Tuple& lhs, const Scalar& rhs) {
-    tuple_divs_impl<typename boost::mpl::prior<Idx>::type,Tuple,Scalar>(result,lhs,rhs);
-    get<boost::mpl::prior<Idx>::type::value>(result) = get<boost::mpl::prior<Idx>::type::value>(lhs) / rhs;
-  };
-  
-  
-  
-  
-  
-  template <typename Idx, typename Tuple>
-  inline 
-  typename boost::enable_if< 
-    boost::mpl::equal_to< 
-      Idx, 
-      boost::mpl::size_t<0> 
-    >,
-  void >::type tuple_std_output_impl( std::ostream& lhs, const Tuple& rhs) { 
-    lhs << "( " << get<Idx::type::value>(rhs);
-  };
-
-  template <typename Idx, typename Tuple>
-  inline 
-  typename boost::enable_if< 
-    boost::mpl::greater< 
-      Idx, 
-      boost::mpl::size_t<0> 
-    >,
-  void >::type tuple_std_output_impl( std::ostream& lhs, const Tuple& rhs) {
-    tuple_std_output_impl<typename boost::mpl::prior<Idx>::type,Tuple>(lhs,rhs);
-    lhs << "; " << get<Idx::type::value>(rhs);
-  };
-  
-  
-  
-  template <typename Idx, typename Tuple>
-  inline 
-  typename boost::enable_if< 
-    boost::mpl::equal_to< 
-      Idx, 
-      boost::mpl::size_t<0> 
-    >,
-  void >::type tuple_save_impl( serialization::oarchive& lhs, const Tuple& rhs) { };
-
-  template <typename Idx, typename Tuple>
-  inline 
-  typename boost::enable_if< 
-    boost::mpl::greater< 
-      Idx, 
-      boost::mpl::size_t<0> 
-    >,
-  void >::type tuple_save_impl( serialization::oarchive& lhs, const Tuple& rhs) {
-    tuple_save_impl<typename boost::mpl::prior<Idx>::type,Tuple>(lhs,rhs);
-    lhs << get<boost::mpl::prior<Idx>::type::value>(rhs);
-  };
-  
-  template <typename Idx, typename Tuple>
-  inline 
-  typename boost::enable_if< 
-    boost::mpl::equal_to< 
-      Idx, 
-      boost::mpl::size_t<0> 
-    >,
-  void >::type tuple_save_nvp_impl( serialization::oarchive& lhs, const std::pair< std::string, const Tuple& >& rhs) { };
-
-  template <typename Idx, typename Tuple>
-  inline 
-  typename boost::enable_if< 
-    boost::mpl::greater< 
-      Idx, 
-      boost::mpl::size_t<0> 
-    >,
-  void >::type tuple_save_nvp_impl( serialization::oarchive& lhs, const std::pair< std::string, const Tuple& >& rhs) {
-    tuple_save_nvp_impl<typename boost::mpl::prior<Idx>::type,Tuple>(lhs,rhs);
-    std::stringstream ss(rhs.first); ss << "_q" << boost::mpl::prior<Idx>::type::value;
-    lhs & serialization::make_save_nvp(ss.str(),get<boost::mpl::prior<Idx>::type::value>(rhs.second));
-  };
-  
-  
-  
-  
-  template <typename Idx, typename Tuple>
-  inline 
-  typename boost::enable_if< 
-    boost::mpl::equal_to< 
-      Idx, 
-      boost::mpl::size_t<0> 
-    >,
-  void >::type tuple_load_impl( serialization::iarchive& lhs, Tuple& rhs) { };
-
-  template <typename Idx, typename Tuple>
-  inline 
-  typename boost::enable_if< 
-    boost::mpl::greater< 
-      Idx, 
-      boost::mpl::size_t<0> 
-    >,
-  void >::type tuple_load_impl( serialization::iarchive& lhs, Tuple& rhs) {
-    tuple_load_impl<typename boost::mpl::prior<Idx>::type,Tuple>(lhs,rhs);
-    lhs >> get<boost::mpl::prior<Idx>::type::value>(rhs);
-  };
-  
-  template <typename Idx, typename Tuple>
-  inline 
-  typename boost::enable_if< 
-    boost::mpl::equal_to< 
-      Idx, 
-      boost::mpl::size_t<0> 
-    >,
-  void >::type tuple_load_nvp_impl( serialization::iarchive& lhs, const std::pair< std::string, Tuple& >& rhs) { };
-
-  template <typename Idx, typename Tuple>
-  inline 
-  typename boost::enable_if< 
-    boost::mpl::greater< 
-      Idx, 
-      boost::mpl::size_t<0> 
-    >,
-  void >::type tuple_load_nvp_impl( serialization::iarchive& lhs, const std::pair< std::string, Tuple& >& rhs) {
-    tuple_load_nvp_impl<typename boost::mpl::prior<Idx>::type,Tuple>(lhs,rhs);
-    std::stringstream ss(rhs.first); ss << "_q" << boost::mpl::prior<Idx>::type::value;
-    lhs & serialization::make_load_nvp(ss.str(),get<boost::mpl::prior<Idx>::type::value>(rhs.second));
-  };
-  
   
 /*****************************************************************************************
                            END OF Implementation details
@@ -1138,7 +1550,7 @@ template <typename Tuple>
 typename boost::enable_if< is_arithmetic_tuple<Tuple>,
 Tuple >::type operator +(const Tuple& lhs, const Tuple& rhs) {
   Tuple result;
-  detail::tuple_add_impl<arithmetic_tuple_size<Tuple>,Tuple>(result, lhs, rhs);
+  tuple_for_each(result, lhs, rhs, detail::tuple_add_impl_caller());
   return result;
 };
 
@@ -1155,7 +1567,7 @@ template <typename Tuple>
 typename boost::enable_if< is_arithmetic_tuple<Tuple>,
 Tuple >::type operator -(const Tuple& lhs, const Tuple& rhs) {
   Tuple result;
-  detail::tuple_sub_impl<arithmetic_tuple_size<Tuple>,Tuple>(result, lhs, rhs);
+  tuple_for_each(result, lhs, rhs, detail::tuple_sub_impl_caller());
   return result;
 };
     
@@ -1171,7 +1583,7 @@ template <typename Tuple>
 typename boost::enable_if< is_arithmetic_tuple<Tuple>,
 Tuple >::type operator -(const Tuple& lhs) {
   Tuple result;
-  detail::tuple_neg_impl<arithmetic_tuple_size<Tuple>,Tuple>(result, lhs);
+  tuple_for_each(result, lhs, detail::tuple_neg_impl_caller());
   return result;
 };
 
@@ -1187,7 +1599,7 @@ Tuple >::type operator -(const Tuple& lhs) {
 template <typename Tuple>
 typename boost::enable_if< is_arithmetic_tuple<Tuple>,
 Tuple& >::type operator +=(Tuple& lhs, const Tuple& rhs) {
-  detail::tuple_addassign_impl<arithmetic_tuple_size<Tuple>,Tuple>(lhs, rhs);
+  tuple_for_each(lhs, rhs, detail::tuple_addassign_impl_caller());
   return lhs;
 };
     
@@ -1203,7 +1615,7 @@ Tuple& >::type operator +=(Tuple& lhs, const Tuple& rhs) {
 template <typename Tuple>
 typename boost::enable_if< is_arithmetic_tuple<Tuple>,
 Tuple& >::type operator -=(Tuple& lhs, const Tuple& rhs) {
-  detail::tuple_subassign_impl<arithmetic_tuple_size<Tuple>,Tuple>(lhs, rhs);
+  tuple_for_each(lhs, rhs, detail::tuple_subassign_impl_caller());
   return lhs;
 };
     
@@ -1220,7 +1632,7 @@ template <typename Tuple>
 typename boost::enable_if< is_arithmetic_tuple<Tuple>,
 Tuple >::type operator *(const Tuple& lhs, const Tuple& rhs) {
   Tuple result;
-  detail::tuple_mul_impl<arithmetic_tuple_size<Tuple>,Tuple>(result, lhs, rhs);
+  tuple_for_each(result, lhs, rhs, detail::tuple_mul_impl_caller());
   return result;
 };
     
@@ -1237,7 +1649,7 @@ template <typename Tuple>
 typename boost::enable_if< is_arithmetic_tuple<Tuple>,
 Tuple >::type operator /(const Tuple& lhs, const Tuple& rhs) {
   Tuple result;
-  detail::tuple_div_impl<arithmetic_tuple_size<Tuple>,Tuple>(result, lhs, rhs);
+  tuple_for_each(result, lhs, rhs, detail::tuple_div_impl_caller());
   return result;
 };
     
@@ -1255,7 +1667,7 @@ template <typename Tuple, typename Scalar>
 typename boost::enable_if< is_arithmetic_tuple<Tuple>,
 Tuple >::type operator *(const Tuple& lhs, const Scalar& rhs) {
   Tuple result;
-  detail::tuple_muls_impl<arithmetic_tuple_size<Tuple>,Tuple,Scalar>(result, lhs, rhs);
+  tuple_for_each(result, lhs, detail::tuple_muls_impl_caller<Scalar>(rhs));
   return result;
 };
     
@@ -1273,7 +1685,7 @@ template <typename Tuple, typename Scalar>
 typename boost::enable_if< is_arithmetic_tuple<Tuple>,
 Tuple >::type operator *(const Scalar& lhs, const Tuple& rhs) {
   Tuple result;
-  detail::tuple_smul_impl<arithmetic_tuple_size<Tuple>,Tuple,Scalar>(result, lhs, rhs);
+  tuple_for_each(result, rhs, detail::tuple_smul_impl_caller<Scalar>(lhs));
   return result;
 };
     
@@ -1291,7 +1703,7 @@ template <typename Tuple, typename Scalar>
 typename boost::enable_if< is_arithmetic_tuple<Tuple>,
 Tuple >::type operator /(const Tuple& lhs, const Scalar& rhs) {
   Tuple result;
-  detail::tuple_divs_impl<arithmetic_tuple_size<Tuple>,Tuple,Scalar>(result, lhs, rhs);
+  tuple_for_each(result, lhs, detail::tuple_divs_impl_caller<Scalar>(rhs));
   return result;
 };
     
@@ -1307,7 +1719,7 @@ Tuple >::type operator /(const Tuple& lhs, const Scalar& rhs) {
 template <typename Tuple>
 typename boost::enable_if< is_arithmetic_tuple<Tuple>,
 Tuple& >::type operator *=(Tuple& lhs, const Tuple& rhs) {
-  detail::tuple_mulassign_impl<arithmetic_tuple_size<Tuple>,Tuple>(lhs, rhs);
+  tuple_for_each(lhs, rhs, detail::tuple_mulassign_impl_caller());
   return lhs;
 };
     
@@ -1323,7 +1735,7 @@ Tuple& >::type operator *=(Tuple& lhs, const Tuple& rhs) {
 template <typename Tuple>
 typename boost::enable_if< is_arithmetic_tuple<Tuple>,
 Tuple& >::type operator /=(Tuple& lhs, const Tuple& rhs) {
-  detail::tuple_divassign_impl<arithmetic_tuple_size<Tuple>,Tuple>(lhs, rhs);
+  tuple_for_each(lhs, rhs, detail::tuple_divassign_impl_caller());
   return lhs;
 };
     
@@ -1340,7 +1752,7 @@ Tuple& >::type operator /=(Tuple& lhs, const Tuple& rhs) {
 template <typename Tuple, typename Scalar>
 typename boost::enable_if< is_arithmetic_tuple<Tuple>,
 Tuple& >::type operator *=(Tuple& lhs, const Scalar& rhs) {
-  detail::tuple_smulassign_impl<arithmetic_tuple_size<Tuple>,Tuple,Scalar>(lhs, rhs);
+  tuple_for_each(lhs, detail::tuple_smulassign_impl_caller<Scalar>(rhs));
   return lhs;
 };
     
@@ -1357,7 +1769,7 @@ Tuple& >::type operator *=(Tuple& lhs, const Scalar& rhs) {
 template <typename Tuple, typename Scalar>
 typename boost::enable_if< is_arithmetic_tuple<Tuple>,
 Tuple& >::type operator /=(Tuple& lhs, const Scalar& rhs) {
-  detail::tuple_sdivassign_impl<arithmetic_tuple_size<Tuple>,Tuple,Scalar>(lhs, rhs);
+  tuple_for_each(lhs, detail::tuple_sdivassign_impl_caller<Scalar>(rhs));
   return lhs;
 };
 
@@ -1376,8 +1788,10 @@ Tuple& >::type operator /=(Tuple& lhs, const Scalar& rhs) {
 template <typename Tuple>
 typename boost::enable_if< is_arithmetic_tuple<Tuple>,
 std::ostream& >::type operator <<(std::ostream& out, const Tuple& rhs) {
-  detail::tuple_std_output_impl<typename boost::mpl::prior< arithmetic_tuple_size<Tuple> >::type, Tuple>(out,rhs);
-  return out << ")";
+  out << "( ";
+  tuple_for_each(rhs, detail::tuple_std_output_impl_caller(out));
+  out << ")";
+  return out;
 };
 
 
@@ -1397,7 +1811,7 @@ namespace serialization {
 template <typename Tuple>
 typename boost::enable_if< is_arithmetic_tuple<Tuple>,
 oarchive& >::type operator <<(oarchive& out, const Tuple& rhs) {
-  detail::tuple_save_impl<arithmetic_tuple_size<Tuple>, Tuple>(out,rhs);
+  tuple_for_each(rhs, detail::tuple_save_impl_caller(out));
   return out;
 };
 
@@ -1413,7 +1827,7 @@ oarchive& >::type operator <<(oarchive& out, const Tuple& rhs) {
 template <typename Tuple>
 typename boost::enable_if< is_arithmetic_tuple<Tuple>,
 oarchive& >::type operator &(oarchive& out, const std::pair<std::string, const Tuple& >& rhs) {
-  detail::tuple_save_nvp_impl<arithmetic_tuple_size<Tuple>, Tuple>(out,rhs);
+  tuple_for_each(rhs.second, detail::tuple_save_nvp_impl_caller(out, rhs.first));
   return out;
 };
 
@@ -1429,7 +1843,7 @@ oarchive& >::type operator &(oarchive& out, const std::pair<std::string, const T
 template <typename Tuple>
 typename boost::enable_if< is_arithmetic_tuple<Tuple>,
 iarchive& >::type operator >>(iarchive& in, Tuple& rhs) {
-  detail::tuple_load_impl<arithmetic_tuple_size<Tuple>, Tuple>(in,rhs);
+  tuple_for_each(rhs, detail::tuple_load_impl_caller(in));
   return in;
 };
 
@@ -1445,7 +1859,7 @@ iarchive& >::type operator >>(iarchive& in, Tuple& rhs) {
 template <typename Tuple>
 typename boost::enable_if< is_arithmetic_tuple<Tuple>,
 iarchive& >::type operator &(iarchive& in, const std::pair<std::string, Tuple& >& rhs) {
-  detail::tuple_load_nvp_impl<arithmetic_tuple_size<Tuple>, Tuple>(in,rhs);
+  tuple_for_each(rhs.second, detail::tuple_load_nvp_impl_caller(in, rhs.first));
   return in;
 };
 

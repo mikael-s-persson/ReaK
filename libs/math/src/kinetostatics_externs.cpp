@@ -32,6 +32,7 @@
 
 namespace ReaK {
 
+#if 0
 template class rot_mat_2D<double>;
 template class trans_mat_2D<double>;
 
@@ -44,10 +45,6 @@ template class trans_mat_2D<float>;
 
 template std::ostream& operator <<(std::ostream& out_stream, const rot_mat_2D<float>& R);
 template std::ostream& operator <<(std::ostream& out_stream, const trans_mat_2D<float>& M);
-
-
-
-
 
 
 
@@ -169,7 +166,7 @@ template bool operator !=(const euler_angles_TB<float>& E, const axis_angle<floa
 template bool operator ==(const axis_angle<float>& A, const euler_angles_TB<float>& E);
 template bool operator !=(const axis_angle<float>& A, const euler_angles_TB<float>& E);
 
-
+#endif
 
 
 

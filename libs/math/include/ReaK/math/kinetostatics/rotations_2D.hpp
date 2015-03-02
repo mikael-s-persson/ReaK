@@ -43,7 +43,7 @@
 #include <ReaK/math/lin_alg/mat_alg_skew_symmetric.hpp>
 #include <ReaK/math/lin_alg/vect_alg.hpp>
 
-
+#include <cassert>
 
 namespace ReaK {
 
@@ -56,7 +56,7 @@ template <class T> class trans_mat_2D;
  * \test All unit test for this class have been passed!
  */
 template <typename T>
-class rot_mat_2D : public serializable {
+class rot_mat_2D {
   public:
     typedef rot_mat_2D<T> self;
     typedef void allocator_type;
@@ -86,7 +86,7 @@ class rot_mat_2D : public serializable {
   private:
     T q[2];
 
-    explicit rot_mat_2D(const_reference cos_a,const_reference sin_a) { q[0] = cos_a; q[1] = sin_a; };
+    explicit rot_mat_2D(const_reference cos_a,const_reference sin_a) BOOST_NOEXCEPT { q[0] = cos_a; q[1] = sin_a; };
 
   public:
     friend class trans_mat_2D<T>;
@@ -99,13 +99,13 @@ class rot_mat_2D : public serializable {
      * Default Constructor with no rotation.
      * \test PASSED
      */
-    rot_mat_2D() { q[0] = 1.0; q[1] = 0.0; };
+    rot_mat_2D() BOOST_NOEXCEPT { q[0] = 1.0; q[1] = 0.0; };
 
     /**
      * Explicit constructor of a rotation matrix from a rotation angle.
      * \test PASSED
      */
-    explicit rot_mat_2D(const_reference Angle) {
+    explicit rot_mat_2D(const_reference Angle) BOOST_NOEXCEPT {
       using std::cos; using std::sin;
       q[0] = cos(Angle);
       q[1] = sin(Angle);
@@ -116,7 +116,7 @@ class rot_mat_2D : public serializable {
      * Explicit constructor of a rotation matrix from a cosine and sine of an angle.
      * \test PASSED
      */
-    explicit rot_mat_2D(vect<value_type,2> v) {
+    explicit rot_mat_2D(vect<value_type,2> v) BOOST_NOEXCEPT {
       v = unit(v);
       q[0] = v[0];
       q[1] = v[1];
@@ -132,12 +132,19 @@ class rot_mat_2D : public serializable {
     };
 
     //Default copy constructor is fine for this class.
-
+#ifdef BOOST_NO_DEFAULTED_FUNCTIONS
     /**
-     * Destructor.
+     * Assignment operator.
      * \test PASSED
      */
-    ~rot_mat_2D() { };
+    rot_mat_2D(const self& R) BOOST_NOEXCEPT {
+      q[0] = R.q[0];
+      q[1] = R.q[1];
+    };
+#else
+    rot_mat_2D(const self& R) BOOST_NOEXCEPT = default;
+#endif
+    
 
 /*******************************************************************************
                          Accessors and Methods
@@ -156,7 +163,7 @@ class rot_mat_2D : public serializable {
      * Returns the angle (-pi .. pi) of the rotation matrix.
      * \test PASSED
      */
-    value_type getAngle() const {
+    value_type getAngle() const BOOST_NOEXCEPT {
       using std::atan2;
       return atan2(q[1],q[0]);
     };
@@ -165,7 +172,7 @@ class rot_mat_2D : public serializable {
      * Sets the angle (in radians) of the rotation matrix.
      * \test PASSED
      */
-    void setAngle(const_reference Angle) {
+    void setAngle(const_reference Angle) BOOST_NOEXCEPT {
       using std::sin;
       using std::cos;
       q[0] = cos(Angle);
@@ -200,22 +207,26 @@ class rot_mat_2D : public serializable {
       return q[i];
     };
     
-    size_type get_row_count() const { return 2; };
-    size_type get_col_count() const { return 2; };
+    size_type get_row_count() const BOOST_NOEXCEPT { return 2; };
+    size_type get_col_count() const BOOST_NOEXCEPT { return 2; };
 
 /*******************************************************************************
                          Assignment Operators
 *******************************************************************************/
 
+#ifdef BOOST_NO_DEFAULTED_FUNCTIONS
     /**
      * Assignment operator.
      * \test PASSED
      */
-    self& operator =(const self& R) {
+    self& operator =(const self& R) BOOST_NOEXCEPT {
       q[0] = R.q[0];
       q[1] = R.q[1];
       return *this;
     };
+#else
+    self& operator =(const self& R) BOOST_NOEXCEPT = default;
+#endif
     
     template <typename Matrix>
     typename boost::enable_if_c< is_readable_matrix<Matrix>::value &&
@@ -232,7 +243,7 @@ class rot_mat_2D : public serializable {
      * Multiply-and-store operator.
      * \test PASSED
      */
-    self& operator *=(const self& R) {
+    self& operator *=(const self& R) BOOST_NOEXCEPT {
       value_type tmp = q[0] * R.q[0] - q[1] * R.q[1];
       q[1] = q[1] * R.q[0] + q[0] * R.q[1];
       q[0] = tmp;
@@ -261,7 +272,7 @@ class rot_mat_2D : public serializable {
      * \test PASSED
      */
     friend
-    self operator *(const self& R1,const self& R2) {
+    self operator *(const self& R1,const self& R2) BOOST_NOEXCEPT {
       return self( R1.q[0] * R2.q[0] - R1.q[1] * R2.q[1],
                    R1.q[1] * R2.q[0] + R1.q[0] * R2.q[1] );
     };
@@ -289,7 +300,7 @@ class rot_mat_2D : public serializable {
      * \test PASSED
      */
     friend
-    vect<value_type,2> operator *(const self& R, const vect<value_type,2>& V) {
+    vect<value_type,2> operator *(const self& R, const vect<value_type,2>& V) BOOST_NOEXCEPT {
       return vect<value_type,2>(V[0] * R.q[0] - V[1] * R.q[1],V[0] * R.q[1] + V[1] * R.q[0]);
     };
 
@@ -297,7 +308,7 @@ class rot_mat_2D : public serializable {
      * Row 2D vector times a rotation matrix.
      * \test PASSED
      */
-    friend vect<value_type,2> operator *(const vect<value_type,2>& V,const self& R) {
+    friend vect<value_type,2> operator *(const vect<value_type,2>& V,const self& R) BOOST_NOEXCEPT {
       return vect<value_type,2>(V[0] * R.q[0] + V[1] * R.q[1], V[1] * R.q[0] - V[0] * R.q[1]);
     };
     
@@ -328,7 +339,7 @@ class rot_mat_2D : public serializable {
      * \test PASSED
      */
     friend
-    bool operator ==(const self& R1, const self& R2) {
+    bool operator ==(const self& R1, const self& R2) BOOST_NOEXCEPT {
       return ((R1.q[0] == R2.q[0]) && (R1.q[1] == R2.q[1]));
     };
 
@@ -337,7 +348,7 @@ class rot_mat_2D : public serializable {
      * \test PASSED
      */
     friend
-    bool operator !=(const self& R1, const self& R2) {
+    bool operator !=(const self& R1, const self& R2) BOOST_NOEXCEPT {
       return ((R1.q[0] != R2.q[0]) || (R1.q[1] != R2.q[1]));
     };
 
@@ -350,7 +361,7 @@ class rot_mat_2D : public serializable {
      * \test PASSED
      */
     friend 
-    self transpose(const self& R) {
+    self transpose(const self& R) BOOST_NOEXCEPT {
       return self(R.q[0],-R.q[1]);
     };
     
@@ -359,7 +370,7 @@ class rot_mat_2D : public serializable {
      * \test PASSED
      */
     friend 
-    self transpose_move(const self& R) {
+    self transpose_move(const self& R) BOOST_NOEXCEPT {
       return self(R.q[0],-R.q[1]);
     };
 
@@ -368,7 +379,7 @@ class rot_mat_2D : public serializable {
      * \test PASSED
      */
     friend
-    value_type trace(const self& R) {
+    value_type trace(const self& R) BOOST_NOEXCEPT {
       return value_type(2.0)*R.q[0];
     };
 
@@ -377,7 +388,7 @@ class rot_mat_2D : public serializable {
      * \test PASSED
      */
     friend
-    value_type determinant(const self&) {
+    value_type determinant(const self&) BOOST_NOEXCEPT {
       return value_type(1.0);
     };
 
@@ -386,7 +397,7 @@ class rot_mat_2D : public serializable {
      * \test PASSED
      */
     friend
-    self invert(const self& R) {
+    self invert(const self& R) BOOST_NOEXCEPT {
       return transpose(R);
     };
 
@@ -405,24 +416,51 @@ class rot_mat_2D : public serializable {
     mat<value_type,mat_structure::skew_symmetric> getSkewSymPart() const {
       return mat<value_type,mat_structure::skew_symmetric>(-q[1]);
     };
-
-
-/*******************************************************************************
-                   ReaK's RTTI and Serialization interfaces
-*******************************************************************************/
-
-    virtual void RK_CALL save(serialization::oarchive& A, unsigned int) const {
-      A & RK_SERIAL_SAVE_WITH_ALIAS("cos",q[0])
-        & RK_SERIAL_SAVE_WITH_ALIAS("sin",q[1]);
-    };
-    virtual void RK_CALL load(serialization::iarchive& A, unsigned int) {
-      A & RK_SERIAL_LOAD_WITH_ALIAS("cos",q[0])
-        & RK_SERIAL_LOAD_WITH_ALIAS("sin",q[1]);
+    
+    
+    /// Loading a rot_mat_2D value with a name.
+    friend serialization::iarchive& RK_CALL operator &(serialization::iarchive& in, const std::pair<std::string, rot_mat_2D<T>& >& R) {
+      return in & RK_SERIAL_LOAD_WITH_ALIAS(R.first + "_cos",R.second.q[0])
+                & RK_SERIAL_LOAD_WITH_ALIAS(R.first + "_sin",R.second.q[1]);
     };
     
-    RK_RTTI_MAKE_ABSTRACT_1BASE(self,0x00000016,1,"rot_mat_2D",serializable)
+    /// Loading a rot_mat_2D value.
+    friend serialization::iarchive& RK_CALL operator >>(serialization::iarchive& in, rot_mat_2D<T>& R) {
+      return in & RK_SERIAL_LOAD_WITH_NAME(R);
+    };
+    
+    /// Saving a rot_mat_2D value with a name.
+    friend serialization::oarchive& RK_CALL operator &(serialization::oarchive& out, const std::pair<std::string, const rot_mat_2D<T>& >& R) {
+      return out & RK_SERIAL_SAVE_WITH_ALIAS(R.first + "_cos",R.second.q[0])
+                 & RK_SERIAL_SAVE_WITH_ALIAS(R.first + "_sin",R.second.q[1]);
+    };
+    
+    /// Saving a rot_mat_2D value.
+    friend serialization::oarchive& RK_CALL operator <<(serialization::oarchive& out, const rot_mat_2D<T>& R) {
+      return out & RK_SERIAL_SAVE_WITH_NAME(R);
+    };
+    
+};
+
+
+namespace rtti {
+
+template <typename T>
+struct get_type_id< rot_mat_2D<T> > {
+  BOOST_STATIC_CONSTANT(unsigned int, ID = 0x00000016);
+#ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
+  BOOST_STATIC_CONSTEXPR auto type_name = RK_LSA("ReaK::rot_mat_2D");
+#else
+  static const char* type_name() BOOST_NOEXCEPT { return "ReaK::rot_mat_2D"; };
+#endif
+  static construct_ptr CreatePtr() BOOST_NOEXCEPT { return NULL; };
+  
+  typedef const rot_mat_2D<T>& save_type;
+  typedef rot_mat_2D<T>& load_type;
+};
 
 };
+
 
 /**
  * Prints a 2D rotation matrix to a standard output stream (<<) as "(angle = a)".
@@ -452,7 +490,7 @@ struct is_readable_matrix< rot_mat_2D<T> > {
  * \test All unit tests for this class have been passed!
  */
 template <typename T>
-class trans_mat_2D : public serializable {
+class trans_mat_2D {
   public:
     typedef trans_mat_2D<T> self;
     typedef void allocator_type;
@@ -484,7 +522,7 @@ class trans_mat_2D : public serializable {
     value_type q[9];
 
     explicit trans_mat_2D(const_reference a11, const_reference a12, const_reference a13, 
-                          const_reference a21, const_reference a22, const_reference a23) {
+                          const_reference a21, const_reference a22, const_reference a23) BOOST_NOEXCEPT {
       q[0] = a11; q[3] = a12; q[6] = a13;
       q[1] = a21; q[4] = a22; q[7] = a23;
       q[2] = 0.0; q[5] = 0.0; q[8] = 1.0;
@@ -499,7 +537,7 @@ class trans_mat_2D : public serializable {
      * Default constructor.
      * \test PASSED
      */
-    trans_mat_2D() {
+    trans_mat_2D() BOOST_NOEXCEPT {
       q[0] = 1.0; q[3] = 0.0; q[6] = 0.0;
       q[1] = 0.0; q[4] = 1.0; q[7] = 0.0;
       q[2] = 0.0; q[5] = 0.0; q[8] = 1.0;
@@ -509,7 +547,7 @@ class trans_mat_2D : public serializable {
      * Constructor from a rotation angle and a translation vector.
      * \test PASSED
      */
-    explicit trans_mat_2D(const_reference Angle, translation_type Translation = translation_type()) {
+    explicit trans_mat_2D(const_reference Angle, translation_type Translation = translation_type()) BOOST_NOEXCEPT {
       q[4] =  (q[0] = cos(Angle));
       q[3] = -(q[1] = sin(Angle));
       q[6] = Translation[0];
@@ -519,7 +557,7 @@ class trans_mat_2D : public serializable {
       q[8] = 1.0;
     };
     
-    explicit trans_mat_2D(const rot_mat_2D<value_type>& R, translation_type Translation = translation_type()) {
+    explicit trans_mat_2D(const rot_mat_2D<value_type>& R, translation_type Translation = translation_type()) BOOST_NOEXCEPT {
       q[4] =  (q[0] = R(0,0));
       q[3] = -(q[1] = R(1,0));
       q[6] = Translation[0];
@@ -542,14 +580,19 @@ class trans_mat_2D : public serializable {
       q[8] = 1.0;
     };
 
-    // Copy Constructor. Default is fine. \test PASSED
-
+    //Default copy constructor is fine for this class.
+#ifdef BOOST_NO_DEFAULTED_FUNCTIONS
     /**
-     * Destructor.
+     * Assignment operator.
      * \test PASSED
      */
-    ~trans_mat_2D() { };
-
+    trans_mat_2D(const self& M) BOOST_NOEXCEPT {
+      std::copy(M.q, M.q + 9, q);
+    };
+#else
+    trans_mat_2D(const self&) BOOST_NOEXCEPT = default;
+#endif
+    
 
 /*******************************************************************************
                          Accessors and Methods
@@ -567,7 +610,7 @@ class trans_mat_2D : public serializable {
      * Provides a copy of the rotation matrix part of the transformation matrix.
      * \test PASSED
      */
-    rot_mat_2D<value_type> getRotMat() const {
+    rot_mat_2D<value_type> getRotMat() const BOOST_NOEXCEPT {
       return rot_mat_2D<value_type>(q[0],q[1]);
     };
 
@@ -575,7 +618,7 @@ class trans_mat_2D : public serializable {
      * Sets the rotation part of the transformation matrix.
      * \test PASSED
      */
-    void setRotMat(const rot_mat_2D<value_type>& R) {
+    void setRotMat(const rot_mat_2D<value_type>& R) BOOST_NOEXCEPT {
       q[4] = (q[0] = R.q[0]);
       q[3] = -(q[1] = R.q[1]);
     };
@@ -584,7 +627,7 @@ class trans_mat_2D : public serializable {
      * Returns the angle of the rotation matrix.
      * \test PASSED
      */
-    value_type getAngle() const {
+    value_type getAngle() const BOOST_NOEXCEPT {
       return atan2(q[1],q[0]);
     };
 
@@ -592,7 +635,7 @@ class trans_mat_2D : public serializable {
      * Returns the angle of the rotation matrix.
      * \test PASSED
      */
-    void setAngle(const_reference Angle) {
+    void setAngle(const_reference Angle) BOOST_NOEXCEPT {
       q[4] = (q[0] = cos(Angle));
       q[3] = -(q[1] = sin(Angle));
     };
@@ -601,7 +644,7 @@ class trans_mat_2D : public serializable {
      * Provides a copy of the translation part of the transformation matrix.
      * \test PASSED
      */
-    translation_type getTranslation() const {
+    translation_type getTranslation() const BOOST_NOEXCEPT {
       return translation_type(q[6],q[7]);
     };
 
@@ -609,7 +652,7 @@ class trans_mat_2D : public serializable {
      * Sets the translation part of the transformation matrix.
      * \test PASSED
      */
-    void setTranslation(const translation_type& Translation) {
+    void setTranslation(const translation_type& Translation) BOOST_NOEXCEPT {
       q[6] = Translation.q[0];
       q[7] = Translation.q[1];
     };
@@ -634,29 +677,26 @@ class trans_mat_2D : public serializable {
       return q[j*3+i];
     };
     
-    size_type get_row_count() const { return 3; };
-    size_type get_col_count() const { return 3; };
+    size_type get_row_count() const BOOST_NOEXCEPT { return 3; };
+    size_type get_col_count() const BOOST_NOEXCEPT { return 3; };
 
 /*******************************************************************************
                          Assignment Operators
 *******************************************************************************/
 
+    //Default assignment is fine for this class.
+#ifdef BOOST_NO_DEFAULTED_FUNCTIONS
     /**
-     * Standard Assignment operator.
+     * Assignment operator.
      * \test PASSED
      */
-    self& operator =(const self& M) {
-      q[0] = M.q[0];
-      q[1] = M.q[1];
-      q[2] = 0.0;
-      q[3] = M.q[3];
-      q[4] = M.q[4];
-      q[5] = 0.0;
-      q[6] = M.q[6];
-      q[7] = M.q[7];
-      q[8] = 1.0;
+    self& operator =(const self& M) BOOST_NOEXCEPT {
+      std::copy(M.q, M.q + 9, q);
       return *this;
     };
+#else
+    self& operator =(const self&) BOOST_NOEXCEPT = default;
+#endif
     
     template <typename Matrix>
     typename boost::enable_if_c< is_readable_matrix<Matrix>::value &&
@@ -676,7 +716,7 @@ class trans_mat_2D : public serializable {
      * Multiply-and-store operator.
      * \test PASSED
      */
-    self& operator *=(const self& M) {
+    self& operator *=(const self& M) BOOST_NOEXCEPT {
       return (*this = (*this) * M);
     };
     
@@ -696,7 +736,7 @@ class trans_mat_2D : public serializable {
      * Multiplication with rotation matrix.
      */
     friend 
-    self operator *(const rot_mat_2D<value_type>& R, const self& M) {
+    self operator *(const rot_mat_2D<value_type>& R, const self& M) BOOST_NOEXCEPT {
       return self(R) * M;
     };
     
@@ -704,7 +744,7 @@ class trans_mat_2D : public serializable {
      * Multiplication with rotation matrix.
      */
     friend 
-    self operator *(const self& M, const rot_mat_2D<value_type>& R) {
+    self operator *(const self& M, const rot_mat_2D<value_type>& R) BOOST_NOEXCEPT {
       return M * self(R);
     };
     
@@ -713,7 +753,7 @@ class trans_mat_2D : public serializable {
      * \test PASSED
      */
     friend
-    self operator *(const self& M1,const self& M2) {
+    self operator *(const self& M1,const self& M2) BOOST_NOEXCEPT {
       return trans_mat_2D<T>(M1.q[0]*M2.q[0] + M1.q[3]*M2.q[1],
                              M1.q[0]*M2.q[3] + M1.q[3]*M2.q[4],
                              M1.q[0]*M2.q[6] + M1.q[3]*M2.q[7] + M1.q[6],
@@ -768,7 +808,7 @@ class trans_mat_2D : public serializable {
      * \test PASSED
      */
     friend
-    vect<value_type,2> operator *(const self& M, const vect<value_type,2>& V) {
+    vect<value_type,2> operator *(const self& M, const vect<value_type,2>& V) BOOST_NOEXCEPT {
       return vect<value_type,2>(V[0] * M.q[0] + V[1] * M.q[3] + M.q[6],V[0] * M.q[1] + V[1] * M.q[4] + M.q[7]);
     };
 
@@ -777,7 +817,7 @@ class trans_mat_2D : public serializable {
      * \test PASSED
      */
     friend
-    vect<value_type,3> operator *(const self& M, const vect<value_type,3>& V) {
+    vect<value_type,3> operator *(const self& M, const vect<value_type,3>& V) BOOST_NOEXCEPT {
       return vect<value_type,3>(V[0] * M.q[0] + V[1] * M.q[3] + V[2] * M.q[6],V[0] * M.q[1] + V[1] * M.q[4] + V[2] * M.q[7], V[2] * M.q[8]);
     };
 
@@ -790,7 +830,7 @@ class trans_mat_2D : public serializable {
      * \test PASSED
      */
     friend
-    bool operator ==(const self& M1, const self& M2) {
+    bool operator ==(const self& M1, const self& M2) BOOST_NOEXCEPT {
       return ((M1.q[0] == M2.q[0]) && (M1.q[1] == M2.q[1]) && (M1.q[6] == M2.q[6]) && (M1.q[7] == M2.q[7]));
     };
 
@@ -799,7 +839,7 @@ class trans_mat_2D : public serializable {
      * \test PASSED
      */
     friend
-    bool operator !=(const self& M1, const self& M2) {
+    bool operator !=(const self& M1, const self& M2) BOOST_NOEXCEPT {
       return ((M1.q[0] != M2.q[0]) || (M1.q[1] != M2.q[1]) || (M1.q[6] != M2.q[6]) || (M1.q[7] != M2.q[7]));
     };
 
@@ -811,7 +851,7 @@ class trans_mat_2D : public serializable {
      * Rotate-only a 2D vector.
      * \test PASSED
      */
-    vect<value_type,2> rotate(const vect<value_type,2>& V) const {
+    vect<value_type,2> rotate(const vect<value_type,2>& V) const BOOST_NOEXCEPT {
       return vect<value_type,2>(V[0] * q[0] + V[1] * q[3],V[0] * q[1] + V[1] * q[4]);
     };
 
@@ -826,7 +866,7 @@ class trans_mat_2D : public serializable {
      * \test PASSED
      */
     friend
-    mat<value_type,mat_structure::square> transpose(const self& M) {
+    mat<value_type,mat_structure::square> transpose(const self& M) BOOST_NOEXCEPT {
       return mat<value_type,mat_structure::square>(M.q[0],M.q[1],0.0,M.q[3],M.q[4],0.0,M.q[6],M.q[7],1.0);
     };
 
@@ -835,7 +875,7 @@ class trans_mat_2D : public serializable {
      * \test PASSED
      */
     friend
-    value_type trace(const self& M) {
+    value_type trace(const self& M) BOOST_NOEXCEPT {
       return M.q[0] + M.q[4] + value_type(1.0);
     };
 
@@ -844,7 +884,7 @@ class trans_mat_2D : public serializable {
      * \test PASSED
      */
     friend
-    value_type determinant(const self&) {
+    value_type determinant(const self&) BOOST_NOEXCEPT {
       return value_type(1.0);
     };
 
@@ -853,7 +893,7 @@ class trans_mat_2D : public serializable {
      * \test PASSED
      */
     friend
-    self invert(const self& M) {
+    self invert(const self& M) BOOST_NOEXCEPT {
       return self(M.q[0],M.q[1],-M.q[0]*M.q[6]-M.q[1]*M.q[7],M.q[3],M.q[4],-M.q[3]*M.q[6]-M.q[4]*M.q[7]);
     };
 
@@ -874,35 +914,61 @@ class trans_mat_2D : public serializable {
     };
 
 
-/*******************************************************************************
-                   ReaK's RTTI and Serialization interfaces
-*******************************************************************************/
-
-    virtual void RK_CALL save(serialization::oarchive& A, unsigned int) const {
-      A & RK_SERIAL_SAVE_WITH_ALIAS("cos",q[0])
-        & RK_SERIAL_SAVE_WITH_ALIAS("sin",q[1])
-        & RK_SERIAL_SAVE_WITH_ALIAS("t_x",q[6])
-        & RK_SERIAL_SAVE_WITH_ALIAS("t_y",q[7]);
+    /// Loading a trans_mat_2D value with a name.
+    friend serialization::iarchive& RK_CALL operator &(serialization::iarchive& in, const std::pair<std::string, trans_mat_2D<T>& >& R) {
+      in & RK_SERIAL_LOAD_WITH_ALIAS(R.first + "_cos",R.second.q[0])
+         & RK_SERIAL_LOAD_WITH_ALIAS(R.first + "_sin",R.second.q[1])
+         & RK_SERIAL_LOAD_WITH_ALIAS(R.first + "_t_x",R.second.q[6])
+         & RK_SERIAL_LOAD_WITH_ALIAS(R.first + "_t_y",R.second.q[7]);
+      R.second.q[3] = -R.second.q[1];
+      R.second.q[4] = R.second.q[0];
+      R.second.q[2] = 0.0;
+      R.second.q[5] = 0.0;
+      R.second.q[8] = 1.0;
+      return in;
     };
-    virtual void RK_CALL load(serialization::iarchive& A, unsigned int) {
-      A & RK_SERIAL_LOAD_WITH_ALIAS("cos",q[0])
-        & RK_SERIAL_LOAD_WITH_ALIAS("sin",q[1])
-        & RK_SERIAL_LOAD_WITH_ALIAS("t_x",q[6])
-        & RK_SERIAL_LOAD_WITH_ALIAS("t_y",q[7]);
-      q[3] = -q[1];
-      q[4] = q[0];
-      q[2] = 0.0;
-      q[5] = 0.0;
-      q[8] = 1.0;
+    
+    /// Loading a trans_mat_2D value.
+    friend serialization::iarchive& RK_CALL operator <<(serialization::iarchive& out, const trans_mat_2D<T>& R) {
+      return out & RK_SERIAL_LOAD_WITH_NAME(R);
     };
+    
+    /// Saving a trans_mat_2D value with a name.
+    friend serialization::oarchive& RK_CALL operator &(serialization::oarchive& out, const std::pair<std::string, const trans_mat_2D<T>& >& R) {
+      return out & RK_SERIAL_SAVE_WITH_ALIAS(R.first + "_cos",R.second.q[0])
+                 & RK_SERIAL_SAVE_WITH_ALIAS(R.first + "_sin",R.second.q[1])
+                 & RK_SERIAL_SAVE_WITH_ALIAS(R.first + "_t_x",R.second.q[6])
+                 & RK_SERIAL_SAVE_WITH_ALIAS(R.first + "_t_y",R.second.q[7]);
+    };
+    
+    /// Saving a trans_mat_2D value.
+    friend serialization::oarchive& RK_CALL operator <<(serialization::oarchive& out, const trans_mat_2D<T>& R) {
+      return out & RK_SERIAL_SAVE_WITH_NAME(R);
+    };
+    
+};
 
-    RK_RTTI_MAKE_ABSTRACT_1BASE(self,0x00000017,1,"trans_mat_2D",serializable)
+namespace rtti {
+
+template <typename T>
+struct get_type_id< trans_mat_2D<T> > {
+  BOOST_STATIC_CONSTANT(unsigned int, ID = 0x00000017);
+#ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
+  BOOST_STATIC_CONSTEXPR auto type_name = RK_LSA("ReaK::trans_mat_2D");
+#else
+  static const char* type_name() BOOST_NOEXCEPT { return "ReaK::trans_mat_2D"; };
+#endif
+  static construct_ptr CreatePtr() BOOST_NOEXCEPT { return NULL; };
+  
+  typedef const trans_mat_2D<T>& save_type;
+  typedef trans_mat_2D<T>& load_type;
+};
 
 };
 
 
-/**
- * Prints a 2D rotation matrix to a standard output stream (<<) as "(angle = a; translation = (tx; ty))".
+
+/** * Prints a 2D rotation matrix to a standard output stream (<<) as "(angle = a; translation = (tx; ty))".
  * \test PASSED
  */
 template <class T>
@@ -922,7 +988,8 @@ struct is_readable_matrix< trans_mat_2D<T> > {
 
 
 
-#ifndef BOOST_NO_CXX11_EXTERN_TEMPLATE
+#if 0
+// #ifndef BOOST_NO_CXX11_EXTERN_TEMPLATE
 
 extern template class rot_mat_2D<double>;
 extern template class trans_mat_2D<double>;

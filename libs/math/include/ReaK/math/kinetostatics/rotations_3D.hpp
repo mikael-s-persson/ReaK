@@ -42,6 +42,7 @@
 #include <ReaK/math/lin_alg/mat_alg_skew_symmetric.hpp>
 #include <ReaK/math/lin_alg/vect_alg.hpp>
 
+#include <cassert>
 
 namespace ReaK {
 
@@ -70,7 +71,7 @@ class trans_mat_3D;
  * \test All tests for this class have been passed!
  */
 template <typename T>
-class rot_mat_3D : public serializable {
+class rot_mat_3D {
   public:
     typedef rot_mat_3D<T> self;
     typedef void allocator_type;
@@ -105,28 +106,11 @@ class rot_mat_3D : public serializable {
      */
     explicit rot_mat_3D(const_reference a11, const_reference a12, const_reference a13, 
                         const_reference a21, const_reference a22, const_reference a23, 
-                        const_reference a31, const_reference a32, const_reference a33) {
+                        const_reference a31, const_reference a32, const_reference a33) BOOST_NOEXCEPT {
       q[0] = a11; q[1] = a21; q[2] = a31;
       q[3] = a12; q[4] = a22; q[5] = a32;
       q[6] = a13; q[7] = a23; q[8] = a33;
     };
-
-    /**
-     * Assignment to a matrix.
-     * \test PASSED
-     */
-//     self& operator =(const mat_cm<T>& M) {
-//       q[0] = M.q[0];
-//       q[1] = M.q[1];
-//       q[2] = M.q[2];
-//       q[3] = M.q[3];
-//       q[4] = M.q[4];
-//       q[5] = M.q[5];
-//       q[6] = M.q[6];
-//       q[7] = M.q[7];
-//       q[8] = M.q[8];
-//       return *this;
-//     };
 
   public:
 
@@ -143,7 +127,7 @@ class rot_mat_3D : public serializable {
      * Default constructor, sets the matrix to identity (no rotation).
      * \test PASSED
      */
-    rot_mat_3D() {
+    rot_mat_3D() BOOST_NOEXCEPT {
       q[0] = 1.0; q[1] = 0.0; q[2] = 0.0;
       q[3] = 0.0; q[4] = 1.0; q[5] = 0.0;
       q[6] = 0.0; q[7] = 0.0; q[8] = 1.0;
@@ -153,7 +137,7 @@ class rot_mat_3D : public serializable {
      * Constructor from an array of components.
      * \test PASSED
      */
-    rot_mat_3D(const_pointer M) {
+    rot_mat_3D(const_pointer M) BOOST_NOEXCEPT {
       vect<value_type,3> v1 = unit(vect<value_type,3>(M));
       q[0] = v1[0];
       q[1] = v1[1];
@@ -169,17 +153,13 @@ class rot_mat_3D : public serializable {
       q[8] = v2[2];
     };
     
-    rot_mat_3D(const self& R) {
-      q[0] = R.q[0];
-      q[1] = R.q[1];
-      q[2] = R.q[2];
-      q[3] = R.q[3];
-      q[4] = R.q[4];
-      q[5] = R.q[5];
-      q[6] = R.q[6];
-      q[7] = R.q[7];
-      q[8] = R.q[8];
+#ifdef BOOST_NO_DEFAULTED_FUNCTIONS
+    rot_mat_3D(const self& R) BOOST_NOEXCEPT {
+      std::copy(R.q, R.q + 9, q);
     };
+#else
+    rot_mat_3D(const self&) BOOST_NOEXCEPT = default;
+#endif
     
     template <typename Matrix>
     explicit rot_mat_3D(const Matrix& M, typename boost::enable_if_c< is_readable_matrix<Matrix>::value &&
@@ -202,12 +182,7 @@ class rot_mat_3D : public serializable {
     };
 
     // Copy constructor. Default is good. \test PASSED
-    /**
-     * Destructor.
-     * \test PASSED
-     */
-    ~rot_mat_3D() { };
-
+    
 /*******************************************************************************
                          Accessors and Methods
 *******************************************************************************/
@@ -224,9 +199,8 @@ class rot_mat_3D : public serializable {
      * Array indexing operator, accessor for read only.
      * \test PASSED
      */
-    value_type operator [](size_type i) const {
-      if(i >= 9)
-        throw std::range_error("Matrix index out of range.");
+    value_type operator [](size_type i) const BOOST_NOEXCEPT {
+      assert(i < 9);
       return q[i];
     };
 
@@ -234,31 +208,26 @@ class rot_mat_3D : public serializable {
      * Array double-indexing operator, ith row and jth column, accessor for read only.
      * \test PASSED
      */
-    value_type operator ()(size_type i,size_type j) const {
-      if((i >= 3) || (j >= 3))
-        throw std::range_error("Matrix index out of range.");
+    value_type operator ()(size_type i,size_type j) const BOOST_NOEXCEPT {
+      assert((i < 3) && (j < 3));
       return q[j*3+i];
     };
     
-    size_type get_row_count() const { return 3; };
-    size_type get_col_count() const { return 3; };
+    size_type get_row_count() const BOOST_NOEXCEPT { return 3; };
+    size_type get_col_count() const BOOST_NOEXCEPT { return 3; };
 
 /*******************************************************************************
                          Assignment Operators
 *******************************************************************************/
 
-    self& operator =(const self& M) {
-      q[0] = M.q[0];
-      q[1] = M.q[1];
-      q[2] = M.q[2];
-      q[3] = M.q[3];
-      q[4] = M.q[4];
-      q[5] = M.q[5];
-      q[6] = M.q[6];
-      q[7] = M.q[7];
-      q[8] = M.q[8];
+#ifdef BOOST_NO_DEFAULTED_FUNCTIONS
+    self& operator =(const self& M) BOOST_NOEXCEPT {
+      std::copy(M.q, M.q + 9, q);
       return *this;
-    }; 
+    };
+#else
+    self& operator =(const self& M) BOOST_NOEXCEPT = default;
+#endif
     
     template <typename Matrix>
     typename boost::enable_if_c< is_readable_matrix<Matrix>::value &&
@@ -284,21 +253,21 @@ class rot_mat_3D : public serializable {
     /**
      * Assignment operator from a quaternion representation.
      */
-    self& operator =(const quaternion<value_type>& Q) {
+    self& operator =(const quaternion<value_type>& Q) BOOST_NOEXCEPT {
       return (*this = Q.getRotMat());
     };
 
     /**
      * Assignment operator from a euler angles TB representation.
      */
-    self& operator =(const euler_angles_TB<value_type>& E) {
+    self& operator =(const euler_angles_TB<value_type>& E) BOOST_NOEXCEPT {
       return (*this = E.getRotMat());
     };
 
     /**
      * Assignment operator from an axis / angle representation.
      */
-    self& operator =(const axis_angle<value_type>& A) {
+    self& operator =(const axis_angle<value_type>& A) BOOST_NOEXCEPT {
       return (*this = A.getRotMat());
     };
 
@@ -306,7 +275,7 @@ class rot_mat_3D : public serializable {
      * Multiplication by a rotation matrix and store.
      * \test PASSED
      */
-    self& operator *=(const self& M) {
+    self& operator *=(const self& M) BOOST_NOEXCEPT {
       *this = self(q[0]*M.q[0] + q[3]*M.q[1] + q[6]*M.q[2],q[0]*M.q[3] + q[3]*M.q[4] + q[6]*M.q[5],q[0]*M.q[6] + q[3]*M.q[7] + q[6]*M.q[8],
                    q[1]*M.q[0] + q[4]*M.q[1] + q[7]*M.q[2],q[1]*M.q[3] + q[4]*M.q[4] + q[7]*M.q[5],q[1]*M.q[6] + q[4]*M.q[7] + q[7]*M.q[8],
                    q[2]*M.q[0] + q[5]*M.q[1] + q[8]*M.q[2],q[2]*M.q[3] + q[5]*M.q[4] + q[8]*M.q[5],q[2]*M.q[6] + q[5]*M.q[7] + q[8]*M.q[8]);
@@ -322,7 +291,7 @@ class rot_mat_3D : public serializable {
      * \test PASSED
      */
     friend
-    self operator *(const self& M1, const self& M2) {
+    self operator *(const self& M1, const self& M2) BOOST_NOEXCEPT {
       return self(M1.q[0]*M2.q[0] + M1.q[3]*M2.q[1] + M1.q[6]*M2.q[2], M1.q[0]*M2.q[3] + M1.q[3]*M2.q[4] + M1.q[6]*M2.q[5], M1.q[0]*M2.q[6] + M1.q[3]*M2.q[7] + M1.q[6]*M2.q[8],
                   M1.q[1]*M2.q[0] + M1.q[4]*M2.q[1] + M1.q[7]*M2.q[2], M1.q[1]*M2.q[3] + M1.q[4]*M2.q[4] + M1.q[7]*M2.q[5], M1.q[1]*M2.q[6] + M1.q[4]*M2.q[7] + M1.q[7]*M2.q[8],
                   M1.q[2]*M2.q[0] + M1.q[5]*M2.q[1] + M1.q[8]*M2.q[2], M1.q[2]*M2.q[3] + M1.q[5]*M2.q[4] + M1.q[8]*M2.q[5], M1.q[2]*M2.q[6] + M1.q[5]*M2.q[7] + M1.q[8]*M2.q[8]);
@@ -369,14 +338,14 @@ class rot_mat_3D : public serializable {
      * \test PASSED
      */
     friend
-    vect<value_type,3> operator *(const self& R, const vect<value_type,3>& V) {
+    vect<value_type,3> operator *(const self& R, const vect<value_type,3>& V) BOOST_NOEXCEPT {
       return vect<value_type,3>( R.q[0]*V[0] + R.q[3]*V[1] + R.q[6]*V[2],
                                  R.q[1]*V[0] + R.q[4]*V[1] + R.q[7]*V[2],
                                  R.q[2]*V[0] + R.q[5]*V[1] + R.q[8]*V[2]);
     };
 
     friend 
-    vect<value_type,3> operator *(const vect<value_type,3>& V, const self& R) {
+    vect<value_type,3> operator *(const vect<value_type,3>& V, const self& R) BOOST_NOEXCEPT {
       return vect<value_type,3>( R.q[0]*V[0] + R.q[1]*V[1] + R.q[2]*V[2],
                                  R.q[3]*V[0] + R.q[4]*V[1] + R.q[5]*V[2],
                                  R.q[6]*V[0] + R.q[7]*V[1] + R.q[8]*V[2]);
@@ -392,7 +361,7 @@ class rot_mat_3D : public serializable {
      * \test PASSED
      */
     friend
-    bool operator ==(const self& M1, const self& M2) {
+    bool operator ==(const self& M1, const self& M2) BOOST_NOEXCEPT {
       return ((M1.q[0] == M2.q[0]) &&
               (M1.q[1] == M2.q[1]) &&
               (M1.q[2] == M2.q[2]) &&
@@ -406,7 +375,7 @@ class rot_mat_3D : public serializable {
      * \test PASSED
      */
     friend
-    bool operator !=(const self& M1,const self& M2) {
+    bool operator !=(const self& M1,const self& M2) BOOST_NOEXCEPT {
       return ((M1.q[0] != M2.q[0]) ||
               (M1.q[1] != M2.q[1]) ||
               (M1.q[2] != M2.q[2]) ||
@@ -425,12 +394,12 @@ class rot_mat_3D : public serializable {
      * \test PASSED
      */
     friend
-    self transpose(const self& R) {
+    self transpose(const self& R) BOOST_NOEXCEPT {
       return self(R.q[0],R.q[1],R.q[2],R.q[3],R.q[4],R.q[5],R.q[6],R.q[7],R.q[8]);
     };
     
     friend
-    self transpose_move(const self& R) {
+    self transpose_move(const self& R) BOOST_NOEXCEPT {
       return self(R.q[0],R.q[1],R.q[2],R.q[3],R.q[4],R.q[5],R.q[6],R.q[7],R.q[8]);
     };
 
@@ -439,7 +408,7 @@ class rot_mat_3D : public serializable {
      * \test PASSED
      */
     friend
-    self cofactor(const self& R) {
+    self cofactor(const self& R) BOOST_NOEXCEPT {
       return R;
     };
 
@@ -448,7 +417,7 @@ class rot_mat_3D : public serializable {
      * \test PASSED
      */
     friend
-    self invert(const self& R) {
+    self invert(const self& R) BOOST_NOEXCEPT {
       return self(R.q[0],R.q[1],R.q[2],R.q[3],R.q[4],R.q[5],R.q[6],R.q[7],R.q[8]);
     };
 
@@ -457,7 +426,7 @@ class rot_mat_3D : public serializable {
      * \test PASSED
      */
     friend
-    value_type trace(const self& R) {
+    value_type trace(const self& R) BOOST_NOEXCEPT {
       return R.q[0] + R.q[4] + R.q[8];
     };
 
@@ -466,7 +435,7 @@ class rot_mat_3D : public serializable {
      * \test PASSED
      */
     friend
-    value_type determinant(const self&) {
+    value_type determinant(const self&) BOOST_NOEXCEPT {
       return value_type(1.0);
     };
 
@@ -485,38 +454,64 @@ class rot_mat_3D : public serializable {
     mat<value_type,mat_structure::skew_symmetric> getSkewSymPart() const {
       return mat<value_type,mat_structure::skew_symmetric>(*this);
     };
-
-
-/*******************************************************************************
-                   ReaK's RTTI and Serialization interfaces
-*******************************************************************************/
-
-    virtual void RK_CALL save(serialization::oarchive& A, unsigned int) const {
-      A & RK_SERIAL_SAVE_WITH_ALIAS("r11",q[0])
-        & RK_SERIAL_SAVE_WITH_ALIAS("r21",q[1])
-        & RK_SERIAL_SAVE_WITH_ALIAS("r31",q[2])
-        & RK_SERIAL_SAVE_WITH_ALIAS("r12",q[3])
-        & RK_SERIAL_SAVE_WITH_ALIAS("r22",q[4])
-        & RK_SERIAL_SAVE_WITH_ALIAS("r32",q[5])
-        & RK_SERIAL_SAVE_WITH_ALIAS("r13",q[6])
-        & RK_SERIAL_SAVE_WITH_ALIAS("r23",q[7])
-        & RK_SERIAL_SAVE_WITH_ALIAS("r33",q[8]);
-    };
-    virtual void RK_CALL load(serialization::iarchive& A, unsigned int) {
-      A & RK_SERIAL_LOAD_WITH_ALIAS("r11",q[0])
-        & RK_SERIAL_LOAD_WITH_ALIAS("r21",q[1])
-        & RK_SERIAL_LOAD_WITH_ALIAS("r31",q[2])
-        & RK_SERIAL_LOAD_WITH_ALIAS("r12",q[3])
-        & RK_SERIAL_LOAD_WITH_ALIAS("r22",q[4])
-        & RK_SERIAL_LOAD_WITH_ALIAS("r32",q[5])
-        & RK_SERIAL_LOAD_WITH_ALIAS("r13",q[6])
-        & RK_SERIAL_LOAD_WITH_ALIAS("r23",q[7])
-        & RK_SERIAL_LOAD_WITH_ALIAS("r33",q[8]);
+    
+    
+    /// Loading a rot_mat_3D value with a name.
+    friend serialization::iarchive& RK_CALL operator &(serialization::iarchive& in, const std::pair<std::string, rot_mat_3D<T>& >& R) {
+      return in & RK_SERIAL_LOAD_WITH_ALIAS(R.first + "_r11",R.second.q[0])
+                & RK_SERIAL_LOAD_WITH_ALIAS(R.first + "_r21",R.second.q[1])
+                & RK_SERIAL_LOAD_WITH_ALIAS(R.first + "_r31",R.second.q[2])
+                & RK_SERIAL_LOAD_WITH_ALIAS(R.first + "_r12",R.second.q[3])
+                & RK_SERIAL_LOAD_WITH_ALIAS(R.first + "_r22",R.second.q[4])
+                & RK_SERIAL_LOAD_WITH_ALIAS(R.first + "_r32",R.second.q[5])
+                & RK_SERIAL_LOAD_WITH_ALIAS(R.first + "_r13",R.second.q[6])
+                & RK_SERIAL_LOAD_WITH_ALIAS(R.first + "_r23",R.second.q[7])
+                & RK_SERIAL_LOAD_WITH_ALIAS(R.first + "_r33",R.second.q[8]);
     };
     
-    RK_RTTI_MAKE_ABSTRACT_1BASE(self,0x00000018,1,"rot_mat_3D",serializable)
+    /// Loading a rot_mat_3D value.
+    friend serialization::iarchive& RK_CALL operator >>(serialization::iarchive& in, rot_mat_3D<T>& R) {
+      return in & RK_SERIAL_LOAD_WITH_NAME(R);
+    };
+    
+    /// Saving a rot_mat_3D value with a name.
+    friend serialization::oarchive& RK_CALL operator &(serialization::oarchive& out, const std::pair<std::string, const rot_mat_3D<T>& >& R) {
+      return out & RK_SERIAL_SAVE_WITH_ALIAS(R.first + "_r11",R.second.q[0])
+                 & RK_SERIAL_SAVE_WITH_ALIAS(R.first + "_r21",R.second.q[1])
+                 & RK_SERIAL_SAVE_WITH_ALIAS(R.first + "_r31",R.second.q[2])
+                 & RK_SERIAL_SAVE_WITH_ALIAS(R.first + "_r12",R.second.q[3])
+                 & RK_SERIAL_SAVE_WITH_ALIAS(R.first + "_r22",R.second.q[4])
+                 & RK_SERIAL_SAVE_WITH_ALIAS(R.first + "_r32",R.second.q[5])
+                 & RK_SERIAL_SAVE_WITH_ALIAS(R.first + "_r13",R.second.q[6])
+                 & RK_SERIAL_SAVE_WITH_ALIAS(R.first + "_r23",R.second.q[7])
+                 & RK_SERIAL_SAVE_WITH_ALIAS(R.first + "_r33",R.second.q[8]);
+    };
+    
+    /// Saving a rot_mat_3D value.
+    friend serialization::oarchive& RK_CALL operator <<(serialization::oarchive& out, const rot_mat_3D<T>& R) {
+      return out & RK_SERIAL_SAVE_WITH_NAME(R);
+    };
+    
+};
+
+namespace rtti {
+
+template <typename T>
+struct get_type_id< rot_mat_3D<T> > {
+  BOOST_STATIC_CONSTANT(unsigned int, ID = 0x00000018);
+#ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
+  BOOST_STATIC_CONSTEXPR auto type_name = RK_LSA("ReaK::rot_mat_3D");
+#else
+  static const char* type_name() BOOST_NOEXCEPT { return "ReaK::rot_mat_3D"; };
+#endif
+  static construct_ptr CreatePtr() BOOST_NOEXCEPT { return NULL; };
+  
+  typedef const rot_mat_3D<T>& save_type;
+  typedef rot_mat_3D<T>& load_type;
+};
 
 };
+
 
 /**
  * Prints a rotation matrix to a standard output stream (<<) as
@@ -549,7 +544,7 @@ struct is_readable_matrix< rot_mat_3D<T> > {
  * \test All tests for this class have been passed!
  */
 template <typename T>
-class quaternion : public serializable {
+class quaternion {
   public:
     typedef quaternion<T> self;
     typedef void allocator_type;
@@ -568,7 +563,7 @@ class quaternion : public serializable {
   private:
     value_type q[4];
 
-    quaternion(const_reference q0, const_reference q1, const_reference q2, const_reference q3) { q[0] = q0; q[1] = q1; q[2] = q2; q[3] = q3; return; };
+    quaternion(const_reference q0, const_reference q1, const_reference q2, const_reference q3) BOOST_NOEXCEPT { q[0] = q0; q[1] = q1; q[2] = q2; q[3] = q3; return; };
   public:
 
     friend class euler_angles_TB<value_type>;
@@ -581,52 +576,52 @@ class quaternion : public serializable {
         value_type q0;
         value_type qx;
         
-        xrot(const_reference Q0, const_reference QX) : q0(Q0), qx(QX) { };
+        xrot(const_reference Q0, const_reference QX) BOOST_NOEXCEPT : q0(Q0), qx(QX) { };
       public:
         friend class quaternion<value_type>; // befriend parent.
         
-        xrot(const_reference ang = value_type(0.0)) {
+        xrot(const_reference ang = value_type(0.0)) BOOST_NOEXCEPT {
           using std::sin; using std::cos;
           q0 = cos(ang * 0.5);
           qx = sin(ang * 0.5);
         };
         
-        value_type s() const { return q0; };
-        value_type v() const { return qx; };
+        value_type s() const BOOST_NOEXCEPT { return q0; };
+        value_type v() const BOOST_NOEXCEPT { return qx; };
         
-        value_type get_angle() const {
+        value_type get_angle() const BOOST_NOEXCEPT {
           using std::atan2;
           return value_type(2.0) * atan2(qx, q0);
         };
         
-        void set_angle(const_reference ang) {
+        void set_angle(const_reference ang) BOOST_NOEXCEPT {
           using std::sin; using std::cos;
           q0 = cos(ang * 0.5);
           qx = sin(ang * 0.5);
         };
         
-        vect<value_type,3> get_axis() const {
+        vect<value_type,3> get_axis() const BOOST_NOEXCEPT {
           return vect<value_type,3>(value_type(1.0),value_type(0.0),value_type(0.0));
         };
         
-        quaternion<value_type> getQuaternion() const {
+        quaternion<value_type> getQuaternion() const BOOST_NOEXCEPT {
           return quaternion<value_type>(q0, qx, value_type(0.0), value_type(0.0));
         };
         
-        xrot& operator *=(const xrot& Q2) {
+        xrot& operator *=(const xrot& Q2) BOOST_NOEXCEPT {
           value_type tmp = Q2.q0 * q0 - Q2.qx * qx;
           qx = Q2.q0 * qx + Q2.qx * q0;
           q0 = tmp;
           return *this;
         };
         
-        friend xrot operator *(const xrot& Q1, const xrot& Q2) {
+        friend xrot operator *(const xrot& Q1, const xrot& Q2) BOOST_NOEXCEPT {
           return xrot(Q2.q0 * Q1.q0 - Q2.qx * Q1.qx,
                       Q2.q0 * Q1.qx + Q2.qx * Q1.q0);
         };
         
         friend
-        vect<value_type,3> operator *(const xrot& Q, const vect<value_type,3>& V) {
+        vect<value_type,3> operator *(const xrot& Q, const vect<value_type,3>& V) BOOST_NOEXCEPT {
           value_type t0 =   Q.q0 * Q.qx;
           value_type t3 =  -Q.qx * Q.qx;
           return vect<value_type,3>( V[0],
@@ -641,52 +636,52 @@ class quaternion : public serializable {
         value_type q0;
         value_type qy;
         
-        yrot(const_reference Q0, const_reference QY) : q0(Q0), qy(QY) { };
+        yrot(const_reference Q0, const_reference QY) BOOST_NOEXCEPT : q0(Q0), qy(QY) { };
       public:
         friend class quaternion<value_type>; // befriend parent.
         
-        yrot(const_reference ang = value_type(0.0)) {
+        yrot(const_reference ang = value_type(0.0)) BOOST_NOEXCEPT {
           using std::sin; using std::cos;
           q0 = cos(ang * 0.5);
           qy = sin(ang * 0.5);
         };
         
-        value_type s() const { return q0; };
-        value_type v() const { return qy; };
+        value_type s() const BOOST_NOEXCEPT { return q0; };
+        value_type v() const BOOST_NOEXCEPT { return qy; };
         
-        value_type get_angle() const {
+        value_type get_angle() const BOOST_NOEXCEPT {
           using std::atan2;
           return value_type(2.0) * atan2(qy, q0);
         };
         
-        void set_angle(const_reference ang) {
+        void set_angle(const_reference ang) BOOST_NOEXCEPT {
           using std::sin; using std::cos;
           q0 = cos(ang * 0.5);
           qy = sin(ang * 0.5);
         };
         
-        vect<value_type,3> get_axis() const {
+        vect<value_type,3> get_axis() const BOOST_NOEXCEPT {
           return vect<value_type,3>(value_type(0.0),value_type(1.0),value_type(0.0));
         };
         
-        quaternion<value_type> getQuaternion() const {
+        quaternion<value_type> getQuaternion() const BOOST_NOEXCEPT {
           return quaternion<value_type>(q0, value_type(0.0), qy, value_type(0.0));
         };
         
-        yrot& operator *=(const yrot& Q2) {
+        yrot& operator *=(const yrot& Q2) BOOST_NOEXCEPT {
           value_type tmp = Q2.q0 * q0 - Q2.qy * qy;
           qy = Q2.q0 * qy + Q2.qy * q0;
           q0 = tmp;
           return *this;
         };
         
-        friend yrot operator *(const yrot& Q1, const yrot& Q2) {
+        friend yrot operator *(const yrot& Q1, const yrot& Q2) BOOST_NOEXCEPT {
           return yrot(Q2.q0 * Q1.q0 - Q2.qy * Q1.qy,
                       Q2.q0 * Q1.qy + Q2.qy * Q1.q0);
         };
         
         friend
-        vect<value_type,3> operator *(const yrot& Q, const vect<value_type,3>& V) {
+        vect<value_type,3> operator *(const yrot& Q, const vect<value_type,3>& V) BOOST_NOEXCEPT {
           value_type t1 =   Q.q0 * Q.qy;
           value_type t6 =  -Q.qy * Q.qy;
           return vect<value_type,3>( 
@@ -702,52 +697,52 @@ class quaternion : public serializable {
         value_type q0;
         value_type qz;
         
-        zrot(const_reference Q0, const_reference QZ) : q0(Q0), qz(QZ) { };
+        zrot(const_reference Q0, const_reference QZ) BOOST_NOEXCEPT : q0(Q0), qz(QZ) { };
       public:
         friend class quaternion<value_type>; // befriend parent.
         
-        zrot(const_reference ang = value_type(0.0)) {
+        zrot(const_reference ang = value_type(0.0)) BOOST_NOEXCEPT {
           using std::sin; using std::cos;
           q0 = cos(ang * 0.5);
           qz = sin(ang * 0.5);
         };
         
-        value_type s() const { return q0; };
-        value_type v() const { return qz; };
+        value_type s() const BOOST_NOEXCEPT { return q0; };
+        value_type v() const BOOST_NOEXCEPT { return qz; };
         
-        value_type get_angle() const {
+        value_type get_angle() const BOOST_NOEXCEPT {
           using std::atan2;
           return value_type(2.0) * atan2(qz, q0);
         };
         
-        void set_angle(const_reference ang) {
+        void set_angle(const_reference ang) BOOST_NOEXCEPT {
           using std::sin; using std::cos;
           q0 = cos(ang * 0.5);
           qz = sin(ang * 0.5);
         };
         
-        vect<value_type,3> get_axis() const {
+        vect<value_type,3> get_axis() const BOOST_NOEXCEPT {
           return vect<value_type,3>(value_type(0.0),value_type(0.0),value_type(1.0));
         };
         
-        quaternion<value_type> getQuaternion() const {
+        quaternion<value_type> getQuaternion() const BOOST_NOEXCEPT {
           return quaternion<value_type>(q0, value_type(0.0), value_type(0.0), qz);
         };
         
-        zrot& operator *=(const zrot& Q2) {
+        zrot& operator *=(const zrot& Q2) BOOST_NOEXCEPT {
           value_type tmp = Q2.q0 * q0 - Q2.qz * qz;
           qz = Q2.q0 * qz + Q2.qz * q0;
           q0 = tmp;
           return *this;
         };
         
-        friend zrot operator *(const zrot& Q1, const zrot& Q2) {
+        friend zrot operator *(const zrot& Q1, const zrot& Q2) BOOST_NOEXCEPT {
           return zrot(Q2.q0 * Q1.q0 - Q2.qz * Q1.qz,
                       Q2.q0 * Q1.qz + Q2.qz * Q1.q0);
         };
         
         friend
-        vect<value_type,3> operator *(const zrot& Q, const vect<value_type,3>& V) {
+        vect<value_type,3> operator *(const zrot& Q, const vect<value_type,3>& V) BOOST_NOEXCEPT {
           value_type t2 =   Q.q0 * Q.qz;
           value_type t8 =  -Q.qz * Q.qz;
           return vect<value_type,3>( 
@@ -759,7 +754,7 @@ class quaternion : public serializable {
     };
     
     friend 
-    self operator*(const xrot& q1, const yrot& q2) {
+    self operator*(const xrot& q1, const yrot& q2) BOOST_NOEXCEPT {
       return self(
         q2.s() * q1.s(),
         q2.s() * q1.v(),
@@ -768,7 +763,7 @@ class quaternion : public serializable {
     };
     
     friend 
-    self operator*(const yrot& q1, const xrot& q2) {
+    self operator*(const yrot& q1, const xrot& q2) BOOST_NOEXCEPT {
       return self(
         q2.s() * q1.s(),
         q2.v() * q1.s(),
@@ -777,7 +772,7 @@ class quaternion : public serializable {
     };
     
     friend 
-    self operator*(const zrot& q1, const xrot& q2) {
+    self operator*(const zrot& q1, const xrot& q2) BOOST_NOEXCEPT {
       return self(
         q2.s() * q1.s(),
         q2.v() * q1.s(),
@@ -786,7 +781,7 @@ class quaternion : public serializable {
     };
     
     friend 
-    self operator*(const xrot& q1, const zrot& q2) {
+    self operator*(const xrot& q1, const zrot& q2) BOOST_NOEXCEPT {
       return self(
         q2.s() * q1.s(),
         q2.s() * q1.v(),
@@ -795,7 +790,7 @@ class quaternion : public serializable {
     };
     
     friend 
-    self operator*(const yrot& q1, const zrot& q2) {
+    self operator*(const yrot& q1, const zrot& q2) BOOST_NOEXCEPT {
       return self(
         q2.s() * q1.s(),
         q2.v() * q1.v(),
@@ -804,7 +799,7 @@ class quaternion : public serializable {
     };
     
     friend 
-    self operator*(const zrot& q1, const yrot& q2) {
+    self operator*(const zrot& q1, const yrot& q2) BOOST_NOEXCEPT {
       return self(
         q2.s() * q1.s(),
        -q2.v() * q1.v(),
@@ -813,7 +808,7 @@ class quaternion : public serializable {
     };
     
     friend 
-    self operator*(const self& q1, const xrot& q2) {
+    self operator*(const self& q1, const xrot& q2) BOOST_NOEXCEPT {
       return self(
         q2.s() * q1.q[0] - q2.v() * q1.q[1],
         q2.s() * q1.q[1] + q2.v() * q1.q[0],
@@ -822,7 +817,7 @@ class quaternion : public serializable {
     };
     
     friend 
-    self operator*(const self& q1, const yrot& q2) {
+    self operator*(const self& q1, const yrot& q2) BOOST_NOEXCEPT {
       return self(
         q2.s() * q1.q[0] - q2.v() * q1.q[2],
         q2.s() * q1.q[1] - q2.v() * q1.q[3],
@@ -831,7 +826,7 @@ class quaternion : public serializable {
     };
     
     friend 
-    self operator*(const self& q1, const zrot& q2) {
+    self operator*(const self& q1, const zrot& q2) BOOST_NOEXCEPT {
       return self(
         q2.s() * q1.q[0] - q2.v() * q1.q[3],
         q2.s() * q1.q[1] + q2.v() * q1.q[2],
@@ -839,7 +834,7 @@ class quaternion : public serializable {
         q2.s() * q1.q[3] + q2.v() * q1.q[0]);
     };
     
-    self& operator*=(const xrot& q2) {
+    self& operator*=(const xrot& q2) BOOST_NOEXCEPT {
       value_type tmp = q2.s() * q[0] - q2.v() * q[1];
       q[1] = q2.s() * q[1] + q2.v() * q[0];
       q[0] = tmp;
@@ -849,7 +844,7 @@ class quaternion : public serializable {
       return *this;
     };
     
-    self& operator*=(const yrot& q2) {
+    self& operator*=(const yrot& q2) BOOST_NOEXCEPT {
       value_type tmp = q2.s() * q[0] - q2.v() * q[2];
       q[2] = q2.s() * q[2] + q2.v() * q[0];
       q[0] = tmp;
@@ -859,7 +854,7 @@ class quaternion : public serializable {
       return *this;
     };
     
-    self& operator*=(const zrot& q2) {
+    self& operator*=(const zrot& q2) BOOST_NOEXCEPT {
       value_type tmp = q2.s() * q[0] - q2.v() * q[3];
       q[3] = q2.s() * q[3] + q2.v() * q[0];
       q[0] = tmp;
@@ -870,7 +865,7 @@ class quaternion : public serializable {
     };
     
     friend 
-    self operator*(const xrot& q1, const self& q2) {
+    self operator*(const xrot& q1, const self& q2) BOOST_NOEXCEPT {
       return self(
         q2.q[0] * q1.s() - q2.q[1] * q1.v(),
         q2.q[1] * q1.s() + q2.q[0] * q1.v(),
@@ -879,7 +874,7 @@ class quaternion : public serializable {
     };
     
     friend 
-    self operator*(const yrot& q1, const self& q2) {
+    self operator*(const yrot& q1, const self& q2) BOOST_NOEXCEPT {
       return self(
         q2.q[0] * q1.s() - q2.q[2] * q1.v(),
         q2.q[1] * q1.s() + q2.q[3] * q1.v(),
@@ -888,7 +883,7 @@ class quaternion : public serializable {
     };
     
     friend 
-    self operator*(const zrot& q1, const self& q2) {
+    self operator*(const zrot& q1, const self& q2) BOOST_NOEXCEPT {
       return self(
         q2.q[0] * q1.s() - q2.q[3] * q1.v(),
         q2.q[1] * q1.s() - q2.q[2] * q1.v(),
@@ -905,16 +900,22 @@ class quaternion : public serializable {
      * Default Constructor.
      * \test PASSED
      */
-    quaternion() { q[0] = 1.0; q[1] = 0.0; q[2] = 0.0; q[3] = 0.0; };
+    quaternion() BOOST_NOEXCEPT { q[0] = 1.0; q[1] = 0.0; q[2] = 0.0; q[3] = 0.0; };
 
+#ifdef BOOST_NO_DEFAULTED_FUNCTIONS
     /**
      * Copy-constructor.
      * \test PASSED
      */
-    quaternion(const self& Q) { q[0] = Q.q[0]; q[1] = Q.q[1]; q[2] = Q.q[2]; q[3] = Q.q[3]; };
+    quaternion(const self& Q) BOOST_NOEXCEPT { 
+      std::copy(Q.q, Q.q + 4, q);
+    };
+#else
+    quaternion(const self&) BOOST_NOEXCEPT = default;
+#endif
     
     template <typename Vector>
-    explicit quaternion(const Vector& aV, typename boost::enable_if_c< is_readable_vector<Vector>::value, void* >::type dummy = NULL) { RK_UNUSED(dummy); 
+    explicit quaternion(const Vector& aV, typename boost::enable_if_c< is_readable_vector<Vector>::value, void* >::type dummy = NULL) BOOST_NOEXCEPT { RK_UNUSED(dummy); 
       vect<value_type,4> v = unit(vect<value_type,4>(aV[0],aV[1],aV[2],aV[3])); 
       q[0] = v[0]; q[1] = v[1]; q[2] = v[2]; q[3] = v[3]; 
     };
@@ -923,7 +924,7 @@ class quaternion : public serializable {
      * Constructor from a rotation matrix.
      * \test PASSED
      */
-    explicit quaternion(const rot_mat_3D<value_type>& R) {
+    explicit quaternion(const rot_mat_3D<value_type>& R) BOOST_NOEXCEPT {
       using std::sqrt;
       value_type tra = R.q[0] + R.q[4] + R.q[8];
       if (tra > 0.01) {
@@ -949,12 +950,6 @@ class quaternion : public serializable {
       };
       return;
     };
-
-    /**
-     * Destructor.
-     * \test PASSED
-     */
-    ~quaternion() { };
 
 /*******************************************************************************
                          Accessors and Methods
@@ -983,7 +978,7 @@ class quaternion : public serializable {
      * Provides the rotation matrix corresponding to the quaternion.
      * \test PASSED
      */
-    rot_mat_3D<value_type> getRotMat() const {
+    rot_mat_3D<value_type> getRotMat() const BOOST_NOEXCEPT {
       value_type t01(value_type(2.0)*q[0]*q[1]);
       value_type t02(value_type(2.0)*q[0]*q[2]);
       value_type t03(value_type(2.0)*q[0]*q[3]);
@@ -1002,9 +997,8 @@ class quaternion : public serializable {
      * Array indexing operator, accessor for read only.
      * \test PASSED
      */
-    const_reference operator [](size_type i) const {
-      if(i >= 4)
-        throw std::range_error("Matrix index out of range.");
+    const_reference operator [](size_type i) const BOOST_NOEXCEPT {
+      assert(i < 4);
       return q[i];
     };
 
@@ -1012,23 +1006,24 @@ class quaternion : public serializable {
                          Assignment Operators
 *******************************************************************************/
 
+#ifdef BOOST_NO_DEFAULTED_FUNCTIONS
     /**
      * Assignment operator from a quaternion.
      * \test PASSED
      */
-    self& operator =(const self& Q) {
-      q[0] = Q.q[0];
-      q[1] = Q.q[1];
-      q[2] = Q.q[2];
-      q[3] = Q.q[3];
+    self& operator =(const self& Q) BOOST_NOEXCEPT {
+      std::copy(Q.q, Q.q + 4, q);
       return *this;
     };
+#else
+    self& operator =(const self&) BOOST_NOEXCEPT = default;
+#endif
 
     /**
      * Assignment operator from a rotation matrix.
      * \test PASSED
      */
-    self& operator =(const rot_mat_3D<value_type>& R) {
+    self& operator =(const rot_mat_3D<value_type>& R) BOOST_NOEXCEPT {
       return (*this = self(R));
     };
 
@@ -1036,7 +1031,7 @@ class quaternion : public serializable {
      * Assignment operator from a euler angles TB representation.
      * \test PASSED
      */
-    self& operator =(const euler_angles_TB<value_type>& E) {
+    self& operator =(const euler_angles_TB<value_type>& E) BOOST_NOEXCEPT {
       return (*this = E.getQuaternion());
     };
 
@@ -1044,7 +1039,7 @@ class quaternion : public serializable {
      * Assignment operator from an axis / angle representation.
      * \test PASSED
      */
-    self& operator =(const axis_angle<value_type>& A) {
+    self& operator =(const axis_angle<value_type>& A) BOOST_NOEXCEPT {
       return (*this = A.getQuaternion());
     };
 
@@ -1052,7 +1047,7 @@ class quaternion : public serializable {
      * Multiply-and-store operator from a quaternion.
      * \test PASSED
      */
-    self& operator *=(const self& Q) {
+    self& operator *=(const self& Q) BOOST_NOEXCEPT {
       return (*this = *this * Q);
     };
     
@@ -1060,7 +1055,7 @@ class quaternion : public serializable {
      * Multiply-and-store operator from a rotation matrix.
      * \test PASSED
      */
-    self& operator *=(const rot_mat_3D<value_type>& R) {
+    self& operator *=(const rot_mat_3D<value_type>& R) BOOST_NOEXCEPT {
       return (*this *= self(R));
     };
 
@@ -1068,7 +1063,7 @@ class quaternion : public serializable {
      * Multiply-and-store operator from a euler angles TB representation.
      * \test PASSED
      */
-    self& operator *=(const euler_angles_TB<value_type>& E) {
+    self& operator *=(const euler_angles_TB<value_type>& E) BOOST_NOEXCEPT {
       return (*this *= E.getQuaternion());
     };
 
@@ -1076,7 +1071,7 @@ class quaternion : public serializable {
      * Multiply-and-store operator from an axis / angle representation.
      * \test PASSED
      */
-    self& operator *=(const axis_angle<value_type>& A) {
+    self& operator *=(const axis_angle<value_type>& A) BOOST_NOEXCEPT {
       return (*this *= A.getQuaternion());
     };
 
@@ -1090,7 +1085,7 @@ class quaternion : public serializable {
      * \test PASSED
      */
     friend
-    self operator *(const self& Q1, const self& Q2) {
+    self operator *(const self& Q1, const self& Q2) BOOST_NOEXCEPT {
       return self(Q2.q[0]*Q1.q[0]-Q2.q[1]*Q1.q[1]-Q2.q[2]*Q1.q[2]-Q2.q[3]*Q1.q[3],
                   Q2.q[0]*Q1.q[1]+Q2.q[3]*Q1.q[2]-Q2.q[2]*Q1.q[3]+Q2.q[1]*Q1.q[0],
                   Q2.q[0]*Q1.q[2]-Q2.q[3]*Q1.q[1]+Q2.q[1]*Q1.q[3]+Q2.q[2]*Q1.q[0],
@@ -1134,7 +1129,7 @@ class quaternion : public serializable {
      * \test PASSED
      */
     friend
-    vect<value_type,3> operator *(const self& Q, const vect<value_type,3>& V) {
+    vect<value_type,3> operator *(const self& Q, const vect<value_type,3>& V) BOOST_NOEXCEPT {
       value_type t[9];
       t[0] =   Q.q[0]*Q.q[1];
       t[1] =   Q.q[0]*Q.q[2];
@@ -1151,21 +1146,21 @@ class quaternion : public serializable {
     };
     
     friend
-    vect<value_type,3> operator *(const self& Q, const vect_component<value_type,0>& x_value) {
+    vect<value_type,3> operator *(const self& Q, const vect_component<value_type,0>& x_value) BOOST_NOEXCEPT {
       return vect<value_type,3>( x_value.q - 2.0 * (Q.q[2] * Q.q[2] + Q.q[3] * Q.q[3]) * x_value.q,
                                              2.0 * (Q.q[0] * Q.q[3] + Q.q[1] * Q.q[2]) * x_value.q,
                                              2.0 * (Q.q[1] * Q.q[3] - Q.q[0] * Q.q[2]) * x_value.q);
     };
     
     friend
-    vect<value_type,3> operator *(const self& Q, const vect_component<value_type,1>& y_value) {
+    vect<value_type,3> operator *(const self& Q, const vect_component<value_type,1>& y_value) BOOST_NOEXCEPT {
       return vect<value_type,3>( 2.0 * (Q.q[1] * Q.q[2] - Q.q[0] * Q.q[3]) * y_value.q,
                      y_value.q - 2.0 * (Q.q[1] * Q.q[1] + Q.q[3] * Q.q[3]) * y_value.q,
                                  2.0 * (Q.q[0] * Q.q[1] + Q.q[2] * Q.q[3]) * y_value.q);
     };
     
     friend
-    vect<value_type,3> operator *(const self& Q, const vect_component<value_type,2>& z_value) {
+    vect<value_type,3> operator *(const self& Q, const vect_component<value_type,2>& z_value) BOOST_NOEXCEPT {
       return vect<value_type,3>( 2.0 * (Q.q[0] * Q.q[2] + Q.q[1] * Q.q[3]) * z_value.q,
                                  2.0 * (Q.q[2] * Q.q[3] - Q.q[0] * Q.q[1]) * z_value.q,
                      z_value.q - 2.0 * (Q.q[1] * Q.q[1] + Q.q[2] * Q.q[2]) * z_value.q);
@@ -1180,7 +1175,7 @@ class quaternion : public serializable {
      * \test PASSED
      */
     friend
-    bool operator ==(const self& Q1, const self& Q2) {
+    bool operator ==(const self& Q1, const self& Q2) BOOST_NOEXCEPT {
       return ((Q1.q[0] == Q2.q[0]) && (Q1.q[1] == Q2.q[1]) && (Q1.q[2] == Q2.q[2]) && (Q1.q[3] == Q2.q[3]));
     };
 
@@ -1189,7 +1184,7 @@ class quaternion : public serializable {
      * \test PASSED
      */
     friend
-    bool operator !=(const self& Q1, const self& Q2) {
+    bool operator !=(const self& Q1, const self& Q2) BOOST_NOEXCEPT {
       return ((Q1.q[0] != Q2.q[0]) || (Q1.q[1] != Q2.q[1]) || (Q1.q[2] != Q2.q[2]) || (Q1.q[3] != Q2.q[3]));
     };
 
@@ -1203,7 +1198,7 @@ class quaternion : public serializable {
      * Gets the time-derivative of the quaternion that corresponds to the angular velocity Omega.
      * \test PASSED
      */
-    vect<value_type,4> getQuaternionDot(const vect<value_type,3>& Omega) const {
+    vect<value_type,4> getQuaternionDot(const vect<value_type,3>& Omega) const BOOST_NOEXCEPT {
       return vect<value_type,4>(-value_type(0.5)*(q[1]*Omega.q[0] + q[2]*Omega.q[1] + q[3]*Omega.q[2]),
                                  value_type(0.5)*(q[0]*Omega.q[0] - q[3]*Omega.q[1] + q[2]*Omega.q[2]),
                                  value_type(0.5)*(q[0]*Omega.q[1] + q[3]*Omega.q[0] - q[1]*Omega.q[2]),
@@ -1214,7 +1209,7 @@ class quaternion : public serializable {
      * Gets the angular velocity that corresponds to the time-derivative of the quaternion.
      * \test PASSED
      */
-    vect<value_type,3> getOmega(const vect<value_type,4>& QuaternionDot) const {
+    vect<value_type,3> getOmega(const vect<value_type,4>& QuaternionDot) const BOOST_NOEXCEPT {
       return vect<value_type,3>(value_type(2.0)*(-q[1]*QuaternionDot.q[0] + q[0]*QuaternionDot.q[1] + q[3]*QuaternionDot.q[2] - q[2]*QuaternionDot.q[3]),
                                 value_type(2.0)*(-q[2]*QuaternionDot.q[0] - q[3]*QuaternionDot.q[1] + q[0]*QuaternionDot.q[2] + q[1]*QuaternionDot.q[3]),
                                 value_type(2.0)*(-q[3]*QuaternionDot.q[0] + q[2]*QuaternionDot.q[1] - q[1]*QuaternionDot.q[2] + q[0]*QuaternionDot.q[3]));
@@ -1224,7 +1219,7 @@ class quaternion : public serializable {
      * Gets the 2-time-derivative of the quaternion that corresponds to the angular velocity Omega.
      * \test PASSED
      */
-    vect<value_type,4> getQuaternionDotDot(const vect<value_type,4>& QD, const vect<value_type,3>& W, const vect<value_type,3>& WD) const {
+    vect<value_type,4> getQuaternionDotDot(const vect<value_type,4>& QD, const vect<value_type,3>& W, const vect<value_type,3>& WD) const BOOST_NOEXCEPT {
       return vect<value_type,4>(-value_type(0.5)*( q[1]*WD.q[0] + q[2]*WD.q[1] + q[3]*WD.q[2] + QD.q[1]*W.q[0] + QD.q[2]*W.q[1] + QD.q[3]*W.q[2]),
                                  value_type(0.5)*( q[0]*WD.q[0] - q[3]*WD.q[1] + q[2]*WD.q[2] + QD.q[0]*W.q[0] - QD.q[3]*W.q[1] + QD.q[2]*W.q[2]),
                                  value_type(0.5)*( q[3]*WD.q[0] + q[0]*WD.q[1] - q[1]*WD.q[2] + QD.q[3]*W.q[0] + QD.q[0]*W.q[1] - QD.q[1]*W.q[2]),
@@ -1235,7 +1230,7 @@ class quaternion : public serializable {
      * Gets the angular acceleration that corresponds to the 2-time-derivative of the quaternion.
      * \test PASSED
      */
-    vect<value_type,3> getOmegaDot(const vect<value_type,4>& QD, const vect<value_type,4>& QDD) const {
+    vect<value_type,3> getOmegaDot(const vect<value_type,4>& QD, const vect<value_type,4>& QDD) const BOOST_NOEXCEPT {
       return vect<value_type,3>(value_type(2.0)*(-q[1]*QDD.q[0] + q[0]*QDD.q[1] + q[3]*QDD.q[2] - q[2]*QDD.q[3] - QD.q[1]*QD.q[0] + QD.q[0]*QD.q[1] + QD.q[3]*QD.q[2] - QD.q[2]*QD.q[3]),
                                 value_type(2.0)*(-q[2]*QDD.q[0] - q[3]*QDD.q[1] + q[0]*QDD.q[2] + q[1]*QDD.q[3] - QD.q[2]*QD.q[0] - QD.q[3]*QD.q[1] + QD.q[0]*QD.q[2] + QD.q[1]*QD.q[3]),
                                 value_type(2.0)*(-q[3]*QDD.q[0] + q[2]*QDD.q[1] - q[1]*QDD.q[2] + q[0]*QDD.q[3] - QD.q[3]*QD.q[0] + QD.q[2]*QD.q[1] - QD.q[1]*QD.q[2] + QD.q[0]*QD.q[3]));
@@ -1250,7 +1245,7 @@ class quaternion : public serializable {
      * \test PASSED
      */
     friend
-    self transpose(const self& Q) {
+    self transpose(const self& Q) BOOST_NOEXCEPT {
       return self(Q.q[0],-Q.q[1],-Q.q[2],-Q.q[3]);
     };
     
@@ -1259,7 +1254,7 @@ class quaternion : public serializable {
      * \test PASSED
      */
     friend
-    self transpose_move(const self& Q) {
+    self transpose_move(const self& Q) BOOST_NOEXCEPT {
       return self(Q.q[0],-Q.q[1],-Q.q[2],-Q.q[3]);
     };
 
@@ -1268,7 +1263,7 @@ class quaternion : public serializable {
      * \test PASSED
      */
     friend
-    self cofactor(const self& Q) {
+    self cofactor(const self& Q) BOOST_NOEXCEPT {
       return Q;
     };
 
@@ -1277,7 +1272,7 @@ class quaternion : public serializable {
      * \test PASSED
      */
     friend
-    self invert(const self& Q) {
+    self invert(const self& Q) BOOST_NOEXCEPT {
       return self(Q.q[0],-Q.q[1],-Q.q[2],-Q.q[3]);
     };
 
@@ -1286,7 +1281,7 @@ class quaternion : public serializable {
      * \test PASSED
      */
     friend
-    value_type trace(const self& Q) {
+    value_type trace(const self& Q) BOOST_NOEXCEPT {
       return value_type(4.0)*Q.q[0]*Q.q[0] - value_type(1.0);
     };
 
@@ -1295,7 +1290,7 @@ class quaternion : public serializable {
      * \test PASSED
      */
     friend
-    value_type determinant(const self& Q) {
+    value_type determinant(const self& Q) BOOST_NOEXCEPT {
       return value_type(1.0);
     };
 
@@ -1325,25 +1320,51 @@ class quaternion : public serializable {
       value_type t03(value_type(2.0)*q[0]*q[3]);
       return mat<value_type,mat_structure::skew_symmetric>( -t03, t02, -t01);
     };
-
-/*******************************************************************************
-                   ReaK's RTTI and Serialization interfaces
-*******************************************************************************/
-
-    virtual void RK_CALL save(serialization::oarchive& A, unsigned int) const {
-      A & RK_SERIAL_SAVE_WITH_NAME(q[0])
-        & RK_SERIAL_SAVE_WITH_NAME(q[1])
-        & RK_SERIAL_SAVE_WITH_NAME(q[2])
-        & RK_SERIAL_SAVE_WITH_NAME(q[3]);
-    };
-    virtual void RK_CALL load(serialization::iarchive& A, unsigned int) {
-      A & RK_SERIAL_LOAD_WITH_NAME(q[0])
-        & RK_SERIAL_LOAD_WITH_NAME(q[1])
-        & RK_SERIAL_LOAD_WITH_NAME(q[2])
-        & RK_SERIAL_LOAD_WITH_NAME(q[3]);
+    
+    
+    /// Loading a quaternion value with a name.
+    friend serialization::iarchive& RK_CALL operator &(serialization::iarchive& in, const std::pair<std::string, quaternion<T>& >& R) {
+      return in & RK_SERIAL_LOAD_WITH_ALIAS(R.first + "_q0",R.second.q[0])
+                & RK_SERIAL_LOAD_WITH_ALIAS(R.first + "_q1",R.second.q[1])
+                & RK_SERIAL_LOAD_WITH_ALIAS(R.first + "_q2",R.second.q[2])
+                & RK_SERIAL_LOAD_WITH_ALIAS(R.first + "_q3",R.second.q[3]);
     };
     
-    RK_RTTI_MAKE_ABSTRACT_1BASE(self,0x0000001A,1,"quaternion",serializable)
+    /// Loading a quaternion value.
+    friend serialization::iarchive& RK_CALL operator >>(serialization::iarchive& in, quaternion<T>& R) {
+      return in & RK_SERIAL_LOAD_WITH_NAME(R);
+    };
+    
+    /// Saving a quaternion value with a name.
+    friend serialization::oarchive& RK_CALL operator &(serialization::oarchive& out, const std::pair<std::string, const quaternion<T>& >& R) {
+      return out & RK_SERIAL_SAVE_WITH_ALIAS(R.first + "_q0",R.second.q[0])
+                 & RK_SERIAL_SAVE_WITH_ALIAS(R.first + "_q1",R.second.q[1])
+                 & RK_SERIAL_SAVE_WITH_ALIAS(R.first + "_q2",R.second.q[2])
+                 & RK_SERIAL_SAVE_WITH_ALIAS(R.first + "_q3",R.second.q[3]);
+    };
+    
+    /// Saving a quaternion value.
+    friend serialization::oarchive& RK_CALL operator <<(serialization::oarchive& out, const quaternion<T>& R) {
+      return out & RK_SERIAL_SAVE_WITH_NAME(R);
+    };
+    
+};
+
+namespace rtti {
+
+template <typename T>
+struct get_type_id< quaternion<T> > {
+  BOOST_STATIC_CONSTANT(unsigned int, ID = 0x0000001A);
+#ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
+  BOOST_STATIC_CONSTEXPR auto type_name = RK_LSA("ReaK::quaternion");
+#else
+  static const char* type_name() BOOST_NOEXCEPT { return "ReaK::quaternion"; };
+#endif
+  static construct_ptr CreatePtr() BOOST_NOEXCEPT { return NULL; };
+  
+  typedef const quaternion<T>& save_type;
+  typedef quaternion<T>& load_type;
+};
 
 };
 
@@ -1368,7 +1389,7 @@ std::ostream& operator <<(std::ostream& out_stream,const quaternion<T>& Q) {
  * This class repressents a rotation using Euler angles (Tait-Bryan), 321-body-fixed, in body frame.
  */
 template <class T>
-class euler_angles_TB : public serializable {
+class euler_angles_TB {
   public:
     typedef euler_angles_TB<T> self;
     typedef void allocator_type;
@@ -1398,7 +1419,7 @@ class euler_angles_TB : public serializable {
      * Default Constructor.
      * \test PASSED
      */
-    euler_angles_TB() {
+    euler_angles_TB() BOOST_NOEXCEPT {
       q[0] = 0.0;
       q[1] = 0.0;
       q[2] = 0.0;
@@ -1408,27 +1429,31 @@ class euler_angles_TB : public serializable {
      * Constructor from three euler angles.
      * \test PASSED
      */
-    euler_angles_TB(const_reference Yaw_,const_reference Pitch_,const_reference Roll_) {
+    euler_angles_TB(const_reference Yaw_,const_reference Pitch_,const_reference Roll_) BOOST_NOEXCEPT {
       q[0] = Yaw_;
       q[1] = Pitch_;
       q[2] = Roll_;
     };
 
+#ifdef BOOST_NO_DEFAULTED_FUNCTIONS
     /**
      * Copy-constructor.
      * \test PASSED
      */
-    euler_angles_TB(const self& E) {
+    euler_angles_TB(const self& E) BOOST_NOEXCEPT {
       q[0] = E.q[0];
       q[1] = E.q[1];
       q[2] = E.q[2];
     };
+#else
+    euler_angles_TB(const self&) BOOST_NOEXCEPT = default;
+#endif
 
     /**
      * Constructor from a quaternion.
      * \test PASSED
      */
-    explicit euler_angles_TB(const quaternion<value_type>& Q) {
+    explicit euler_angles_TB(const quaternion<value_type>& Q) BOOST_NOEXCEPT {
       using std::asin;
       using std::atan2;
       using std::cos;
@@ -1450,7 +1475,7 @@ class euler_angles_TB : public serializable {
      * Constructor from a rotation matrix.
      * \test PASSED
      */
-    explicit euler_angles_TB(const rot_mat_3D<value_type>& R) {
+    explicit euler_angles_TB(const rot_mat_3D<value_type>& R) BOOST_NOEXCEPT {
       using std::asin;
       using std::atan2;
       using std::cos;
@@ -1467,7 +1492,7 @@ class euler_angles_TB : public serializable {
       return;
     };
 
-    euler_angles_TB(const rot_mat_3D<value_type>& R,const euler_angles_TB<value_type>& Predicted) {
+    euler_angles_TB(const rot_mat_3D<value_type>& R,const euler_angles_TB<value_type>& Predicted) BOOST_NOEXCEPT {
       using std::asin;
       using std::atan2;
       using std::cos;
@@ -1533,12 +1558,6 @@ class euler_angles_TB : public serializable {
       return Result;*/
     };
 
-    /**
-     * Destructor.
-     * \test PASSED
-     */
-    ~euler_angles_TB() { };
-
 /*******************************************************************************
                          Accessors and Methods
 *******************************************************************************/
@@ -1547,39 +1566,39 @@ class euler_angles_TB : public serializable {
      * Get yaw, read-write.
      * \test PASSED
      */
-    reference yaw() { return q[0]; };
+    reference yaw() BOOST_NOEXCEPT { return q[0]; };
     /**
      * Get pitch, read-write.
      * \test PASSED
      */
-    reference pitch() { return q[1]; };
+    reference pitch() BOOST_NOEXCEPT { return q[1]; };
     /**
      * Get roll, read-write.
      * \test PASSED
      */
-    reference roll() { return q[2]; };
+    reference roll() BOOST_NOEXCEPT { return q[2]; };
 
     /**
      * Get yaw, read-only.
      * \test PASSED
      */
-    const_reference yaw() const { return q[0]; };
+    const_reference yaw() const BOOST_NOEXCEPT { return q[0]; };
     /**
      * Get pitch, read-only.
      * \test PASSED
      */
-    const_reference pitch() const { return q[1]; };
+    const_reference pitch() const BOOST_NOEXCEPT { return q[1]; };
     /**
      * Get roll, read-only.
      * \test PASSED
      */
-    const_reference roll() const { return q[2]; };
+    const_reference roll() const BOOST_NOEXCEPT { return q[2]; };
 
     /**
      * Provides a quaternion corresponding to this rotation.
      * \test PASSED
      */
-    quaternion<value_type> getQuaternion() const {
+    quaternion<value_type> getQuaternion() const BOOST_NOEXCEPT {
       using std::cos;
       using std::sin;
       value_type cpsi = cos(value_type(0.5)*q[0]);
@@ -1600,7 +1619,7 @@ class euler_angles_TB : public serializable {
      * Provides a rotation matrix corresponding to this rotation.
      * \test PASSED
      */
-    rot_mat_3D<value_type> getRotMat() const {
+    rot_mat_3D<value_type> getRotMat() const BOOST_NOEXCEPT {
       using std::sin;
       using std::cos;
       value_type s1(sin(q[0]));
@@ -1638,22 +1657,26 @@ class euler_angles_TB : public serializable {
                          Assignment Operators
 *******************************************************************************/
 
+#ifdef BOOST_NO_DEFAULTED_FUNCTIONS
     /**
      * Standard assignment operator.
      * \test PASSED
      */
-    self& operator =(const self& E) {
+    self& operator =(const self& E) BOOST_NOEXCEPT {
       q[0] = E.q[0];
       q[1] = E.q[1];
       q[2] = E.q[2];
       return *this;
     };
+#else
+    self& operator =(const self&) BOOST_NOEXCEPT = default;
+#endif
 
     /**
      * Assignment from a quaternion.
      * \test PASSED
      */
-    self& operator =(const quaternion<value_type>& Q) {
+    self& operator =(const quaternion<value_type>& Q) BOOST_NOEXCEPT {
       return *this = self(Q);
     };
 
@@ -1661,7 +1684,7 @@ class euler_angles_TB : public serializable {
      * Assignment from a rotation matrix.
      * \test PASSED
      */
-    self& operator =(const rot_mat_3D<value_type>& R) {
+    self& operator =(const rot_mat_3D<value_type>& R) BOOST_NOEXCEPT {
       return *this = self(R);
     };
 
@@ -1669,7 +1692,7 @@ class euler_angles_TB : public serializable {
      * Assignment from an axis / angle representation.
      * \test PASSED
      */
-    self& operator =(const axis_angle<T>& A) {
+    self& operator =(const axis_angle<T>& A) BOOST_NOEXCEPT {
       return (*this = A.getEulerAnglesTB());
     };
 
@@ -1677,7 +1700,7 @@ class euler_angles_TB : public serializable {
      * Multiply-and-store from a euler angles.
      * \test PASSED
      */
-    self& operator *=(const self& E) {
+    self& operator *=(const self& E) BOOST_NOEXCEPT {
       return (*this = (this->getRotMat() * E.getRotMat()));
     };
 
@@ -1685,7 +1708,7 @@ class euler_angles_TB : public serializable {
      * Multiply-and-store from a rotation matrix.
      * \test PASSED
      */
-    self& operator *=(const rot_mat_3D<value_type>& R) {
+    self& operator *=(const rot_mat_3D<value_type>& R) BOOST_NOEXCEPT {
       return (*this = (this->getRotMat() * R));
     };
 
@@ -1693,7 +1716,7 @@ class euler_angles_TB : public serializable {
      * Multiply-and-store from a quaternion.
      * \test PASSED
      */
-    self& operator *=(const quaternion<value_type>& Q) {
+    self& operator *=(const quaternion<value_type>& Q) BOOST_NOEXCEPT {
       return (*this = (this->getQuaternion() * Q));
     };
     
@@ -1701,7 +1724,7 @@ class euler_angles_TB : public serializable {
      * Assignment from an axis / angle representation.
      * \test PASSED
      */
-    self& operator *=(const axis_angle<T>& A) {
+    self& operator *=(const axis_angle<T>& A) BOOST_NOEXCEPT {
       return (*this = this->getRotMat() * A.getRotMat());
     };
 
@@ -1714,7 +1737,7 @@ class euler_angles_TB : public serializable {
      * \test PASSED
      */
     friend
-    rot_mat_3D<value_type> operator *(const self& E1, const self& E2) {
+    rot_mat_3D<value_type> operator *(const self& E1, const self& E2) BOOST_NOEXCEPT {
       return E1.getRotMat() * E2.getRotMat();
     };
 
@@ -1755,7 +1778,7 @@ class euler_angles_TB : public serializable {
      * \test PASSED
      */
     friend
-    vect<value_type,3> operator *(const self& E, const vect<value_type,3>& V) {
+    vect<value_type,3> operator *(const self& E, const vect<value_type,3>& V) BOOST_NOEXCEPT {
       return E.getRotMat() * V;
     };
 
@@ -1768,7 +1791,7 @@ class euler_angles_TB : public serializable {
      * \test PASSED
      */
     friend
-    bool operator ==(const self& E1, const self& E2) {
+    bool operator ==(const self& E1, const self& E2) BOOST_NOEXCEPT {
       return ((E1.q[0] == E2.q[0]) && (E1.q[1] == E2.q[1]) && (E1.q[2] == E2.q[2]));
     };
 
@@ -1777,7 +1800,7 @@ class euler_angles_TB : public serializable {
      * \test PASSED
      */
     friend
-    bool operator !=(const self& E1, const self& E2) {
+    bool operator !=(const self& E1, const self& E2) BOOST_NOEXCEPT {
       return ((E1.q[0] != E2.q[0]) || (E1.q[1] != E2.q[1]) || (E1.q[2] != E2.q[2]));
     };
 
@@ -1791,7 +1814,7 @@ class euler_angles_TB : public serializable {
      * \test PASSED
      */
     friend 
-    self transpose(const self& E) {
+    self transpose(const self& E) BOOST_NOEXCEPT {
       using std::sin;
       using std::cos;
       using std::asin;
@@ -1831,7 +1854,7 @@ class euler_angles_TB : public serializable {
      * \test PASSED
      */
     friend
-    self cofactor(const self& E) {
+    self cofactor(const self& E) BOOST_NOEXCEPT {
       return E;
     };
 
@@ -1840,7 +1863,7 @@ class euler_angles_TB : public serializable {
      * \test PASSED
      */
     friend
-    self invert(const self& E) {
+    self invert(const self& E) BOOST_NOEXCEPT {
       return transpose(E);
     };
 
@@ -1849,7 +1872,7 @@ class euler_angles_TB : public serializable {
      * \test PASSED
      */
     friend
-    value_type trace(const self& E) {
+    value_type trace(const self& E) BOOST_NOEXCEPT {
       using std::sin;
       using std::cos;
       value_type t = cos(value_type(0.5)*E.q[2])*cos(value_type(0.5)*E.q[1])*cos(value_type(0.5)*E.q[0]) + sin(value_type(0.5)*E.q[2])*sin(value_type(0.5)*E.q[1])*sin(value_type(0.5)*E.q[0]);
@@ -1861,7 +1884,7 @@ class euler_angles_TB : public serializable {
      * \test PASSED
      */
     friend
-    value_type determinant(const self&) {
+    value_type determinant(const self&) BOOST_NOEXCEPT {
       return value_type(1.0);
     };
 
@@ -1882,22 +1905,47 @@ class euler_angles_TB : public serializable {
     };
     
     
-/*******************************************************************************
-                   ReaK's RTTI and Serialization interfaces
-*******************************************************************************/
-
-    virtual void RK_CALL save(serialization::oarchive& A, unsigned int) const {
-      A & RK_SERIAL_SAVE_WITH_NAME(q[0])
-        & RK_SERIAL_SAVE_WITH_NAME(q[1])
-        & RK_SERIAL_SAVE_WITH_NAME(q[2]);
-    };
-    virtual void RK_CALL load(serialization::iarchive& A, unsigned int) {
-      A & RK_SERIAL_LOAD_WITH_NAME(q[0])
-        & RK_SERIAL_LOAD_WITH_NAME(q[1])
-        & RK_SERIAL_LOAD_WITH_NAME(q[2]);
+    /// Loading a euler_angles_TB value with a name.
+    friend serialization::iarchive& RK_CALL operator &(serialization::iarchive& in, const std::pair<std::string, euler_angles_TB<T>& >& R) {
+      return in & RK_SERIAL_LOAD_WITH_ALIAS(R.first + "_yaw",R.second.q[0])
+                & RK_SERIAL_LOAD_WITH_ALIAS(R.first + "_pitch",R.second.q[1])
+                & RK_SERIAL_LOAD_WITH_ALIAS(R.first + "_roll",R.second.q[2]);
     };
     
-    RK_RTTI_MAKE_ABSTRACT_1BASE(self,0x0000001B,1,"euler_angles_TB",serializable)
+    /// Loading a euler_angles_TB value.
+    friend serialization::iarchive& RK_CALL operator >>(serialization::iarchive& in, euler_angles_TB<T>& R) {
+      return in & RK_SERIAL_LOAD_WITH_NAME(R);
+    };
+    
+    /// Saving a euler_angles_TB value with a name.
+    friend serialization::oarchive& RK_CALL operator &(serialization::oarchive& out, const std::pair<std::string, const euler_angles_TB<T>& >& R) {
+      return out & RK_SERIAL_SAVE_WITH_ALIAS(R.first + "_yaw",R.second.q[0])
+                 & RK_SERIAL_SAVE_WITH_ALIAS(R.first + "_pitch",R.second.q[1])
+                 & RK_SERIAL_SAVE_WITH_ALIAS(R.first + "_roll",R.second.q[2]);
+    };
+    
+    /// Saving a euler_angles_TB value.
+    friend serialization::oarchive& RK_CALL operator <<(serialization::oarchive& out, const euler_angles_TB<T>& R) {
+      return out & RK_SERIAL_SAVE_WITH_NAME(R);
+    };
+    
+};
+
+namespace rtti {
+
+template <typename T>
+struct get_type_id< euler_angles_TB<T> > {
+  BOOST_STATIC_CONSTANT(unsigned int, ID = 0x0000001B);
+#ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
+  BOOST_STATIC_CONSTEXPR auto type_name = RK_LSA("ReaK::euler_angles_TB");
+#else
+  static const char* type_name() BOOST_NOEXCEPT { return "ReaK::euler_angles_TB"; };
+#endif
+  static construct_ptr CreatePtr() BOOST_NOEXCEPT { return NULL; };
+  
+  typedef const euler_angles_TB<T>& save_type;
+  typedef euler_angles_TB<T>& load_type;
+};
 
 };
 
@@ -1922,7 +1970,7 @@ std::ostream& operator <<(std::ostream& out_stream,const euler_angles_TB<T>& E) 
  * \test All tests for this class have been passed!
  */
 template <class T>
-class axis_angle : public serializable {
+class axis_angle {
   public:
     typedef axis_angle<T> self;
     typedef void allocator_type;
@@ -1953,13 +2001,13 @@ class axis_angle : public serializable {
      * Default Constructor.
      * \test PASSED
      */
-    axis_angle() : mAngle(0.0), mAxis(1.0,0.0,0.0) { };
+    axis_angle() BOOST_NOEXCEPT : mAngle(0.0), mAxis(1.0,0.0,0.0) { };
 
     /**
      * Constructor from angle and axis.
      * \test PASSED
      */
-    axis_angle(const value_type& aAngle,const vect<value_type,3>& aAxis) : mAngle(aAngle) { 
+    axis_angle(const value_type& aAngle,const vect<value_type,3>& aAxis) BOOST_NOEXCEPT : mAngle(aAngle) { 
       using std::sqrt;
       value_type tmp = norm_2(aAxis);
       if(tmp > value_type(0.0000001)) {
@@ -1973,17 +2021,21 @@ class axis_angle : public serializable {
       };
     };
 
+#ifdef BOOST_NO_DEFAULTED_FUNCTIONS
     /**
      * Copy-constructor.
      * \test PASSED
      */
-    axis_angle(const self& A) : mAngle(A.mAngle), mAxis(A.mAxis) { };
+    axis_angle(const self& A) BOOST_NOEXCEPT : mAngle(A.mAngle), mAxis(A.mAxis) { };
+#else
+    axis_angle(const self& A) BOOST_NOEXCEPT = default;
+#endif
     
     /**
      * Constructor from a quaternion.
      * \test PASSED
      */
-    explicit axis_angle(const quaternion<value_type>& Q) {
+    explicit axis_angle(const quaternion<value_type>& Q) BOOST_NOEXCEPT {
       using std::sqrt;
       using std::acos;
       vect<value_type, 4> v(Q.q[0],Q.q[1],Q.q[2],Q.q[3]); v = unit(v);
@@ -2009,7 +2061,7 @@ class axis_angle : public serializable {
      * Constructor from a rotation matrix.
      * \test PASSED
      */
-    explicit axis_angle(const rot_mat_3D<value_type>& R) {
+    explicit axis_angle(const rot_mat_3D<value_type>& R) BOOST_NOEXCEPT {
       using std::sin;
       using std::acos;
       value_type tmp(value_type(0.5)*(trace(R) - value_type(1.0)));
@@ -2031,7 +2083,7 @@ class axis_angle : public serializable {
      * Constructor from euler angles.
      * \test PASSED
      */
-    explicit axis_angle(const euler_angles_TB<value_type>& E) {
+    explicit axis_angle(const euler_angles_TB<value_type>& E) BOOST_NOEXCEPT {
       using std::sin;
       using std::cos;
       using std::sqrt;
@@ -2072,7 +2124,7 @@ class axis_angle : public serializable {
      * Provides the angle, read-write.
      * \test PASSED
      */
-    reference angle() {
+    reference angle() BOOST_NOEXCEPT {
       return mAngle;
     };
 
@@ -2080,7 +2132,7 @@ class axis_angle : public serializable {
      * Provides the axis, read-write.
      * \test PASSED
      */
-    vect<value_type,3>& axis() {
+    vect<value_type,3>& axis() BOOST_NOEXCEPT {
       return mAxis;
     };
 
@@ -2088,7 +2140,7 @@ class axis_angle : public serializable {
      * Provides the angle, read-only.
      * \test PASSED
      */
-    const_reference angle() const {
+    const_reference angle() const BOOST_NOEXCEPT {
       return mAngle;
     };
 
@@ -2096,7 +2148,7 @@ class axis_angle : public serializable {
      * Provides the axis, read-only.
      * \test PASSED
      */
-    const vect<value_type,3>& axis() const {
+    const vect<value_type,3>& axis() const BOOST_NOEXCEPT {
       return mAxis;
     };
 
@@ -2104,7 +2156,7 @@ class axis_angle : public serializable {
      * Provides a quaternion representation of this rotation.
      * \test PASSED
      */
-    quaternion<value_type> getQuaternion() const {
+    quaternion<value_type> getQuaternion() const BOOST_NOEXCEPT {
       using std::cos;
       using std::sin;
       value_type t = norm_2(mAxis);
@@ -2118,7 +2170,7 @@ class axis_angle : public serializable {
      * Provides a euler angles representation of this rotation.
      * \test PASSED
      */
-    euler_angles_TB<value_type> getEulerAnglesTB() const {
+    euler_angles_TB<value_type> getEulerAnglesTB() const BOOST_NOEXCEPT {
       using std::sin;
       using std::cos;
       using std::asin;
@@ -2156,7 +2208,7 @@ class axis_angle : public serializable {
      * Provides a rotation matrix representation of this rotation.
      * \test PASSED
      */
-    rot_mat_3D<value_type> getRotMat() const {
+    rot_mat_3D<value_type> getRotMat() const BOOST_NOEXCEPT {
       using std::cos;
       using std::sin;
       value_type ca(cos(mAngle));
@@ -2206,21 +2258,25 @@ class axis_angle : public serializable {
                          Assignment Operators
 *******************************************************************************/
 
+#ifdef BOOST_NO_DEFAULTED_FUNCTIONS
     /**
      * Assignment from an axis / angle representation.
      * \test PASSED
      */
-    self& operator =(const self& A) {
+    self& operator =(const self& A) BOOST_NOEXCEPT {
       mAngle = A.mAngle;
       mAxis = A.mAxis;
       return *this;
     };
+#else
+    self& operator =(const self& A) BOOST_NOEXCEPT = default;
+#endif
 
     /**
      * Standard assignment operator.
      * \test PASSED
      */
-    self& operator =(const euler_angles_TB<value_type>& E) {
+    self& operator =(const euler_angles_TB<value_type>& E) BOOST_NOEXCEPT {
       return (*this = self(E));
     };
 
@@ -2228,7 +2284,7 @@ class axis_angle : public serializable {
      * Assignment from a quaternion.
      * \test PASSED
      */
-    self& operator =(const quaternion<value_type>& Q) {
+    self& operator =(const quaternion<value_type>& Q) BOOST_NOEXCEPT {
       return (*this = self(Q));
     };
 
@@ -2236,7 +2292,7 @@ class axis_angle : public serializable {
      * Assignment from a rotation matrix.
      * \test PASSED
      */
-    self& operator =(const rot_mat_3D<value_type>& R) {
+    self& operator =(const rot_mat_3D<value_type>& R) BOOST_NOEXCEPT {
       return (*this = self(R));
     };
 
@@ -2244,7 +2300,7 @@ class axis_angle : public serializable {
      * Multiply-and-store from a axis / angle.
      * \test PASSED
      */
-    self& operator *=(const self& A) {
+    self& operator *=(const self& A) BOOST_NOEXCEPT {
       return (*this = this->getQuaternion() * A.getQuaternion());
     };
 
@@ -2252,7 +2308,7 @@ class axis_angle : public serializable {
      * Multiply-and-store from a euler angles.
      * \test PASSED
      */
-    self& operator *=(const euler_angles_TB<value_type>& E) {
+    self& operator *=(const euler_angles_TB<value_type>& E) BOOST_NOEXCEPT {
       return (*this = (this->getRotMat() * E.getRotMat()));
     };
 
@@ -2260,7 +2316,7 @@ class axis_angle : public serializable {
      * Multiply-and-store from a rotation matrix.
      * \test PASSED
      */
-    self& operator *=(const rot_mat_3D<value_type>& R) {
+    self& operator *=(const rot_mat_3D<value_type>& R) BOOST_NOEXCEPT {
       return (*this = (this->getRotMat() * R));
     };
 
@@ -2268,7 +2324,7 @@ class axis_angle : public serializable {
      * Multiply-and-store from a quaternion.
      * \test PASSED
      */
-    self& operator *=(const quaternion<value_type>& Q) {
+    self& operator *=(const quaternion<value_type>& Q) BOOST_NOEXCEPT {
       return (*this = (this->getQuaternion() * Q));
     };
 
@@ -2281,7 +2337,7 @@ class axis_angle : public serializable {
      * \test PASSED
      */
     friend
-    quaternion<value_type> operator *(const self& A1, const self& A2) {
+    quaternion<value_type> operator *(const self& A1, const self& A2) BOOST_NOEXCEPT {
       return A1.getQuaternion() * A2.getQuaternion();
     };
 
@@ -2322,7 +2378,7 @@ class axis_angle : public serializable {
      * \test PASSED
      */
     friend
-    vect<value_type,3> operator *(const self& A, const vect<value_type,3>& V) {
+    vect<value_type,3> operator *(const self& A, const vect<value_type,3>& V) BOOST_NOEXCEPT {
       return A.getRotMat() * V;
     };
 
@@ -2335,7 +2391,7 @@ class axis_angle : public serializable {
      * \test PASSED
      */
     friend
-    bool operator ==(const self& A1, const self& A2) {
+    bool operator ==(const self& A1, const self& A2) BOOST_NOEXCEPT {
       return ((A1.mAngle == A2.mAngle) && (A1.mAxis == A2.mAxis));
     };
 
@@ -2344,7 +2400,7 @@ class axis_angle : public serializable {
      * \test PASSED
      */
     friend
-    bool operator !=(const self& A1, const self& A2) {
+    bool operator !=(const self& A1, const self& A2) BOOST_NOEXCEPT {
       return ((A1.mAngle != A2.mAngle) || (A1.mAxis != A2.mAxis));
     };
 
@@ -2357,7 +2413,7 @@ class axis_angle : public serializable {
      * \test PASSED
      */
     friend 
-    self transpose(const self& A) {
+    self transpose(const self& A) BOOST_NOEXCEPT {
       return self(-A.mAngle,A.mAxis);
     };
 
@@ -2366,7 +2422,7 @@ class axis_angle : public serializable {
      * \test PASSED
      */
     friend
-    self cofactor(const self& A) {
+    self cofactor(const self& A) BOOST_NOEXCEPT {
       return A;
     };
 
@@ -2375,7 +2431,7 @@ class axis_angle : public serializable {
      * \test PASSED
      */
     friend 
-    self invert(const self& A) {
+    self invert(const self& A) BOOST_NOEXCEPT {
       return self(-A.mAngle,A.mAxis);
     };
 
@@ -2384,7 +2440,7 @@ class axis_angle : public serializable {
      * \test PASSED
      */
     friend
-    value_type trace(const self& A) {
+    value_type trace(const self& A) BOOST_NOEXCEPT {
       using std::cos;
       return value_type(2.0)*cos(A.mAngle) + value_type(1.0);
     };
@@ -2394,7 +2450,7 @@ class axis_angle : public serializable {
      * \test PASSED
      */
     friend
-    value_type determinant(const self&) {
+    value_type determinant(const self&) BOOST_NOEXCEPT {
       return value_type(1.0);
     };
 
@@ -2431,22 +2487,47 @@ class axis_angle : public serializable {
                                                                 -t01);
     };
     
-        
-/*******************************************************************************
-                   ReaK's RTTI and Serialization interfaces
-*******************************************************************************/
+    
+    /// Loading a axis_angle value with a name.
+    friend serialization::iarchive& RK_CALL operator &(serialization::iarchive& in, const std::pair<std::string, axis_angle<T>& >& R) {
+      return in & RK_SERIAL_LOAD_WITH_ALIAS(R.first + "_angle",R.second.mAngle)
+                & RK_SERIAL_LOAD_WITH_ALIAS(R.first + "_axis",R.second.mAxis);
+    };
+    
+    /// Loading a axis_angle value.
+    friend serialization::iarchive& RK_CALL operator >>(serialization::iarchive& in, axis_angle<T>& R) {
+      return in & RK_SERIAL_LOAD_WITH_NAME(R);
+    };
+    
+    /// Saving a axis_angle value with a name.
+    friend serialization::oarchive& RK_CALL operator &(serialization::oarchive& out, const std::pair<std::string, const axis_angle<T>& >& R) {
+      return out & RK_SERIAL_SAVE_WITH_ALIAS(R.first + "_angle",R.second.mAngle)
+                 & RK_SERIAL_SAVE_WITH_ALIAS(R.first + "_axis",R.second.mAxis);
+    };
+    
+    /// Saving a axis_angle value.
+    friend serialization::oarchive& RK_CALL operator <<(serialization::oarchive& out, const axis_angle<T>& R) {
+      return out & RK_SERIAL_SAVE_WITH_NAME(R);
+    };
+    
+};
 
-    virtual void RK_CALL save(serialization::oarchive& A, unsigned int) const {
-      A & RK_SERIAL_SAVE_WITH_NAME(mAngle)
-        & RK_SERIAL_SAVE_WITH_NAME(mAxis);
-    };
-    virtual void RK_CALL load(serialization::iarchive& A, unsigned int) {
-      A & RK_SERIAL_LOAD_WITH_NAME(mAngle)
-        & RK_SERIAL_LOAD_WITH_NAME(mAxis);
-    };
-    
-    RK_RTTI_MAKE_ABSTRACT_1BASE(self,0x0000001C,1,"axis_angle",serializable)
-    
+namespace rtti {
+
+template <typename T>
+struct get_type_id< axis_angle<T> > {
+  BOOST_STATIC_CONSTANT(unsigned int, ID = 0x0000001C);
+#ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
+  BOOST_STATIC_CONSTEXPR auto type_name = RK_LSA("ReaK::axis_angle");
+#else
+  static const char* type_name() BOOST_NOEXCEPT { return "ReaK::axis_angle"; };
+#endif
+  static construct_ptr CreatePtr() BOOST_NOEXCEPT { return NULL; };
+  
+  typedef const axis_angle<T>& save_type;
+  typedef axis_angle<T>& load_type;
+};
+
 };
 
 
@@ -2470,7 +2551,7 @@ std::ostream& operator <<(std::ostream& out_stream,const axis_angle<T>& A) {
  * \test All tests for this class have been passed!
  */
 template <class T>
-class trans_mat_3D : public serializable {
+class trans_mat_3D {
   public:
     typedef trans_mat_3D<T> self;
     typedef void allocator_type;
@@ -2503,33 +2584,13 @@ class trans_mat_3D : public serializable {
 
     trans_mat_3D(const_reference a11, const_reference a12, const_reference a13, const_reference a14, 
                  const_reference a21, const_reference a22, const_reference a23, const_reference a24, 
-                 const_reference a31, const_reference a32, const_reference a33, const_reference a34) {
+                 const_reference a31, const_reference a32, const_reference a33, const_reference a34) BOOST_NOEXCEPT {
       q[0] = a11; q[1] = a21; q[2] = a31; q[3] = value_type(0.0);
       q[4] = a12; q[5] = a22; q[6] = a32; q[7] = value_type(0.0);
       q[8] = a13; q[9] = a23; q[10] = a33; q[11] = value_type(0.0);
       q[12] = a14; q[13] = a24; q[14] = a34; q[15] = value_type(1.0);
     };
-
-//     trans_mat_3D operator =(const mat<T>& M) {
-//       q[0] = M[0];
-//       q[1] = M[1];
-//       q[2] = M[2];
-//       q[3] = 0.0;
-//       q[4] = M[4];
-//       q[5] = M[5];
-//       q[6] = M[6];
-//       q[7] = 0.0;
-//       q[8] = M[8];
-//       q[9] = M[9];
-//       q[10] = M[10];
-//       q[11] = 0.0;
-//       q[12] = M[12];
-//       q[13] = M[13];
-//       q[14] = M[14];
-//       q[15] = 1.0;
-//       return *this;
-//     };
-
+    
   public:
 
 /*******************************************************************************
@@ -2540,18 +2601,19 @@ class trans_mat_3D : public serializable {
      * Default Constructor.
      * \test PASSED
      */
-    trans_mat_3D() {
-      q[0] = value_type(1.0); q[1] = value_type(0.0); q[2] = value_type(0.0); q[3] = value_type(0.0);
-      q[4] = value_type(0.0); q[5] = value_type(1.0); q[6] = value_type(0.0); q[7] = value_type(0.0);
-      q[8] = value_type(0.0); q[9] = value_type(0.0); q[10] = value_type(1.0); q[11] = value_type(0.0);
-      q[12] = value_type(0.0); q[13] = value_type(0.0); q[14] = value_type(0.0); q[15] = value_type(1.0);
+    trans_mat_3D() BOOST_NOEXCEPT {
+      std::fill(q, q + 16, value_type(0.0));
+      q[0] = value_type(1.0);
+      q[5] = value_type(1.0);
+      q[10] = value_type(1.0);
+      q[15] = value_type(1.0);
     };
 
     /**
      * Constructor from a 4x4 array (16 values).
      * \test PASSED
      */
-    explicit trans_mat_3D(const_pointer M) {
+    explicit trans_mat_3D(const_pointer M) BOOST_NOEXCEPT {
       vect<value_type,3> v1 = unit(vect<value_type,3>(M));
       q[0] = v1[0];
       q[1] = v1[1];
@@ -2609,27 +2671,31 @@ class trans_mat_3D : public serializable {
     };
 
     /**
+     * Constructor from a rotation matrix and an optional translation vector V.
+     * \test PASSED
+     */
+    explicit trans_mat_3D(const rot_mat_3D<value_type>& R, 
+                          const translation_type& V = translation_type(value_type(0.0),value_type(0.0),value_type(0.0))) BOOST_NOEXCEPT {
+      setRotMat(R);
+      q[3] = value_type(0.0);
+      q[7] = value_type(0.0);
+      q[11] = value_type(0.0);
+      setTranslation(V);
+      q[15] = value_type(1.0);
+    };
+
+    /**
      * Constructor from a quaternion representation and an optional translation vector V.
      * \test PASSED
      */
     explicit trans_mat_3D(const quaternion<value_type>& Q, 
-                          const translation_type& V = translation_type(value_type(0.0),value_type(0.0),value_type(0.0))) {
+                          const translation_type& V = translation_type(value_type(0.0),value_type(0.0),value_type(0.0))) BOOST_NOEXCEPT {
       rot_mat_3D<value_type> R(Q.getRotMat());
-      q[0] = R.q[0];
-      q[1] = R.q[1];
-      q[2] = R.q[2];
+      setRotMat(R);
       q[3] = value_type(0.0);
-      q[4] = R.q[3];
-      q[5] = R.q[4];
-      q[6] = R.q[5];
       q[7] = value_type(0.0);
-      q[8] = R.q[6];
-      q[9] = R.q[7];
-      q[10] = R.q[8];
       q[11] = value_type(0.0);
-      q[12] = V[0];
-      q[13] = V[1];
-      q[14] = V[2];
+      setTranslation(V);
       q[15] = value_type(1.0);
     };
 
@@ -2638,23 +2704,13 @@ class trans_mat_3D : public serializable {
      * \test PASSED
      */
     explicit trans_mat_3D(const euler_angles_TB<value_type>& E, 
-                          const translation_type& V = translation_type(value_type(0.0),value_type(0.0),value_type(0.0))) {
+                          const translation_type& V = translation_type(value_type(0.0),value_type(0.0),value_type(0.0))) BOOST_NOEXCEPT {
       rot_mat_3D<value_type> R(E.getRotMat());
-      q[0] = R.q[0];
-      q[1] = R.q[1];
-      q[2] = R.q[2];
+      setRotMat(R);
       q[3] = value_type(0.0);
-      q[4] = R.q[3];
-      q[5] = R.q[4];
-      q[6] = R.q[5];
       q[7] = value_type(0.0);
-      q[8] = R.q[6];
-      q[9] = R.q[7];
-      q[10] = R.q[8];
       q[11] = value_type(0.0);
-      q[12] = V[0];
-      q[13] = V[1];
-      q[14] = V[2];
+      setTranslation(V);
       q[15] = value_type(1.0);
     };
 
@@ -2663,57 +2719,24 @@ class trans_mat_3D : public serializable {
      * \test PASSED
      */
     explicit trans_mat_3D(const axis_angle<value_type>& A, 
-                          const translation_type& V = translation_type(value_type(0.0),value_type(0.0),value_type(0.0))) {
+                          const translation_type& V = translation_type(value_type(0.0),value_type(0.0),value_type(0.0))) BOOST_NOEXCEPT {
       rot_mat_3D<value_type> R(A.getRotMat());
-      q[0] = R.q[0];
-      q[1] = R.q[1];
-      q[2] = R.q[2];
+      setRotMat(R);
       q[3] = value_type(0.0);
-      q[4] = R.q[3];
-      q[5] = R.q[4];
-      q[6] = R.q[5];
       q[7] = value_type(0.0);
-      q[8] = R.q[6];
-      q[9] = R.q[7];
-      q[10] = R.q[8];
       q[11] = value_type(0.0);
-      q[12] = V[0];
-      q[13] = V[1];
-      q[14] = V[2];
+      setTranslation(V);
       q[15] = value_type(1.0);
     };
 
-    /**
-     * Constructor from a rotation matrix and an optional translation vector V.
-     * \test PASSED
-     */
-    explicit trans_mat_3D(const rot_mat_3D<value_type>& R, 
-                          const translation_type& V = translation_type(value_type(0.0),value_type(0.0),value_type(0.0))) {
-      q[0] = R.q[0];
-      q[1] = R.q[1];
-      q[2] = R.q[2];
-      q[3] = value_type(0.0);
-      q[4] = R.q[3];
-      q[5] = R.q[4];
-      q[6] = R.q[5];
-      q[7] = value_type(0.0);
-      q[8] = R.q[6];
-      q[9] = R.q[7];
-      q[10] = R.q[8];
-      q[11] = value_type(0.0);
-      q[12] = V[0];
-      q[13] = V[1];
-      q[14] = V[2];
-      q[15] = value_type(1.0);
-    };
-
+#ifdef BOOST_NO_DEFAULTED_FUNCTIONS
     // Copy-constructor. Default is good. \test PASSED
-
-    /**
-     * Destructor.
-     * \test PASSED
-     */
-    ~trans_mat_3D() { };
+    trans_mat_3D(const self& T) BOOST_NOEXCEPT {
+      std::copy(T.q, T.q + 16, q);
+    };
+#else
+    trans_mat_3D(const self&) BOOST_NOEXCEPT = default;
+#endif
 
 /*******************************************************************************
                          Accessors and Methods
@@ -2731,7 +2754,7 @@ class trans_mat_3D : public serializable {
      * Provides the rotation part of the transformation as a rotation matrix.
      * \test PASSED
      */
-    rot_mat_3D<value_type> getRotMat() const {
+    rot_mat_3D<value_type> getRotMat() const BOOST_NOEXCEPT {
       return rot_mat_3D<value_type>(q[0],q[4],q[8],
                                     q[1],q[5],q[9],
                                     q[2],q[6],q[10]);
@@ -2741,7 +2764,7 @@ class trans_mat_3D : public serializable {
      * Sets the rotation part of the transformation from a rotation matrix.
      * \test PASSED
      */
-    void setRotMat(const rot_mat_3D<value_type>& R) {
+    void setRotMat(const rot_mat_3D<value_type>& R) BOOST_NOEXCEPT {
       q[0]  = R.q[0];
       q[1]  = R.q[1];
       q[2]  = R.q[2];
@@ -2757,7 +2780,7 @@ class trans_mat_3D : public serializable {
      * Returns the quaternion of the rotation matrix.
      * \test PASSED
      */
-    quaternion<value_type> getQuaternion() const {
+    quaternion<value_type> getQuaternion() const BOOST_NOEXCEPT {
       return quaternion<value_type>(getRotMat());
     };
 
@@ -2765,7 +2788,7 @@ class trans_mat_3D : public serializable {
      * Sets the quaternion of the rotation matrix.
      * \test PASSED
      */
-    void setQuaternion(const quaternion<value_type>& Q) {
+    void setQuaternion(const quaternion<value_type>& Q) BOOST_NOEXCEPT {
       setRotMat(Q.getRotMat());
     };
 
@@ -2773,7 +2796,7 @@ class trans_mat_3D : public serializable {
      * Returns the euler angles TB of the rotation matrix.
      * \test PASSED
      */
-    euler_angles_TB<value_type> getEulerAnglesTB() const {
+    euler_angles_TB<value_type> getEulerAnglesTB() const BOOST_NOEXCEPT {
       return euler_angles_TB<value_type>(getRotMat());
     };
 
@@ -2781,7 +2804,7 @@ class trans_mat_3D : public serializable {
      * Sets the euler angles TB of the rotation matrix.
      * \test PASSED
      */
-    void setEulerAnglesTB(const euler_angles_TB<value_type>& E) {
+    void setEulerAnglesTB(const euler_angles_TB<value_type>& E) BOOST_NOEXCEPT {
       setRotMat(E.getRotMat());
     };
 
@@ -2789,7 +2812,7 @@ class trans_mat_3D : public serializable {
      * Returns the axis / angle of the rotation matrix.
      * \test PASSED
      */
-    axis_angle<value_type> getAxisAngle() const {
+    axis_angle<value_type> getAxisAngle() const BOOST_NOEXCEPT {
       return axis_angle<value_type>(getRotMat());
     };
 
@@ -2797,7 +2820,7 @@ class trans_mat_3D : public serializable {
      * Sets the axis / angle of the rotation matrix.
      * \test PASSED
      */
-    void setAxisAngle(const axis_angle<value_type>& A) {
+    void setAxisAngle(const axis_angle<value_type>& A) BOOST_NOEXCEPT {
       setRotMat(A.getRotMat());
     };
 
@@ -2805,7 +2828,7 @@ class trans_mat_3D : public serializable {
      * Provides the translation part of the transformation matrix as a vector.
      * \test PASSED
      */
-    translation_type getTranslation() const {
+    translation_type getTranslation() const BOOST_NOEXCEPT {
       return translation_type(q[12],q[13],q[14]);
     };
 
@@ -2813,7 +2836,7 @@ class trans_mat_3D : public serializable {
      * Sets the translation part of the transformation matrix to a vector.
      * \test PASSED
      */
-    void setTranslation(const translation_type& Translation) {
+    void setTranslation(const translation_type& Translation) BOOST_NOEXCEPT {
       q[12] = Translation[0];
       q[13] = Translation[1];
       q[14] = Translation[2];
@@ -2823,9 +2846,8 @@ class trans_mat_3D : public serializable {
      * Array indexing operator, accessor for read only.
      * \test PASSED
      */
-    const_reference operator [](size_type i) const {
-      if(i >= 16)
-        throw std::range_error("Matrix index out of range.");
+    const_reference operator [](size_type i) const BOOST_NOEXCEPT {
+      assert(i < 16);
       return q[i];
     };
 
@@ -2833,41 +2855,30 @@ class trans_mat_3D : public serializable {
      * Array double-indexing operator, ith row and jth column, accessor for read only.
      * \test PASSED
      */
-    const_reference operator ()(size_type i,size_type j) const {
-      if((i >= 4) || (j >= 4))
-        throw std::range_error("Matrix index out of range.");
+    const_reference operator ()(size_type i,size_type j) const BOOST_NOEXCEPT {
+      assert((i < 4) || (j < 4));
       return q[j*4+i];
     };
     
-    size_type get_row_count() const { return 4; };
-    size_type get_col_count() const { return 4; };
+    size_type get_row_count() const BOOST_NOEXCEPT { return 4; };
+    size_type get_col_count() const BOOST_NOEXCEPT { return 4; };
 
 /*******************************************************************************
                          Assignment Operators
 *******************************************************************************/
+
+#ifdef BOOST_NO_DEFAULTED_FUNCTIONS
     /**
      * Assignment operator with transformation matrix.
      * \test PASSED
      */
-    self& operator =(const self& M) {
-      q[0] = M.q[0];
-      q[1] = M.q[1];
-      q[2] = M.q[2];
-      q[3] = value_type(0.0);
-      q[4] = M.q[4];
-      q[5] = M.q[5];
-      q[6] = M.q[6];
-      q[7] = value_type(0.0);
-      q[8] = M.q[8];
-      q[9] = M.q[9];
-      q[10]= M.q[10];
-      q[11]= value_type(0.0);
-      q[12]= M.q[12];
-      q[13]= M.q[13];
-      q[14]= M.q[14];
-      q[15]= value_type(1.0);
+    self& operator =(const self& M) BOOST_NOEXCEPT {
+      std::copy(M.q, M.q + 16, q);
       return *this;
     }; 
+#else
+    self& operator =(const self&) BOOST_NOEXCEPT = default;
+#endif
     
     /**
      * Assignment operator with regular matrix.
@@ -2910,7 +2921,7 @@ class trans_mat_3D : public serializable {
      * Assignment operator with rotation matrix.
      * \test PASSED
      */
-    self& operator =(const rot_mat_3D<value_type>& R)  {
+    self& operator =(const rot_mat_3D<value_type>& R) BOOST_NOEXCEPT  {
       q[0] = R.q[0];
       q[1] = R.q[1];
       q[2] = R.q[2];
@@ -2934,7 +2945,7 @@ class trans_mat_3D : public serializable {
      * Assignment operator with a quaternion representation.
      * \test PASSED
      */
-    self& operator =(const quaternion<value_type>& Q) {
+    self& operator =(const quaternion<value_type>& Q) BOOST_NOEXCEPT {
       rot_mat_3D<value_type> R(Q.getRotMat());
       q[0] = R.q[0];
       q[1] = R.q[1];
@@ -2959,7 +2970,7 @@ class trans_mat_3D : public serializable {
      * Assignment operator with euler angles TB representation.
      * \test PASSED
      */
-    self& operator =(const euler_angles_TB<value_type>& E) {
+    self& operator =(const euler_angles_TB<value_type>& E) BOOST_NOEXCEPT {
       rot_mat_3D<value_type> R(E.getRotMat());
       q[0] = R.q[0];
       q[1] = R.q[1];
@@ -2984,7 +2995,7 @@ class trans_mat_3D : public serializable {
      * Assignment operator with an axis / angle representation.
      * \test PASSED
      */
-    self& operator =(const axis_angle<value_type>& A) {
+    self& operator =(const axis_angle<value_type>& A) BOOST_NOEXCEPT {
       rot_mat_3D<value_type> R(A.getRotMat());
       q[0] = R.q[0];
       q[1] = R.q[1];
@@ -3009,7 +3020,7 @@ class trans_mat_3D : public serializable {
      * Multiply-and-store with a transformation matrix.
      * \test PASSED
      */
-    self& operator *=(const self& M) {
+    self& operator *=(const self& M) BOOST_NOEXCEPT {
       (*this) = self(q[0]*M.q[0] + q[4]*M.q[1] + q[8] *M.q[2], q[0]*M.q[4] + q[4]*M.q[5] + q[8] *M.q[6], q[0]*M.q[8] + q[4]*M.q[9] + q[8] *M.q[10], q[0]*M.q[12] + q[4]*M.q[13] + q[8]*M.q[14]  + q[12],
                      q[1]*M.q[0] + q[5]*M.q[1] + q[9] *M.q[2], q[1]*M.q[4] + q[5]*M.q[5] + q[9] *M.q[6], q[1]*M.q[8] + q[5]*M.q[9] + q[9] *M.q[10], q[1]*M.q[12] + q[5]*M.q[13] + q[9]*M.q[14]  + q[13],
                      q[2]*M.q[0] + q[6]*M.q[1] + q[10]*M.q[2], q[2]*M.q[4] + q[6]*M.q[5] + q[10]*M.q[6], q[2]*M.q[8] + q[6]*M.q[9] + q[10]*M.q[10], q[2]*M.q[12] + q[6]*M.q[13] + q[10]*M.q[14] + q[14]);
@@ -3020,7 +3031,7 @@ class trans_mat_3D : public serializable {
      * Multiply-and-store with a rotation matrix.
      * \test PASSED
      */
-    self& operator *=(const rot_mat_3D<value_type>& R) {
+    self& operator *=(const rot_mat_3D<value_type>& R) BOOST_NOEXCEPT {
       (*this) = self(q[0]*R.q[0] + q[4]*R.q[1] + q[8] *R.q[2], q[0]*R.q[3] + q[4]*R.q[4] + q[8] *R.q[5], q[0]*R.q[6] + q[4]*R.q[7] + q[8] *R.q[8], q[12],
                      q[1]*R.q[0] + q[5]*R.q[1] + q[9] *R.q[2], q[1]*R.q[3] + q[5]*R.q[4] + q[9] *R.q[5], q[1]*R.q[6] + q[5]*R.q[7] + q[9] *R.q[8], q[13],
                      q[2]*R.q[0] + q[6]*R.q[1] + q[10]*R.q[2], q[2]*R.q[3] + q[6]*R.q[4] + q[10]*R.q[5], q[2]*R.q[6] + q[6]*R.q[7] + q[10]*R.q[8], q[14]);
@@ -3031,7 +3042,7 @@ class trans_mat_3D : public serializable {
      * Multiply-and-store with a quaternion representation.
      * \test PASSED
      */
-    self& operator *=(const quaternion<value_type>& Q) {
+    self& operator *=(const quaternion<value_type>& Q) BOOST_NOEXCEPT {
       return (*this *= Q.getRotMat());
     };
 
@@ -3039,7 +3050,7 @@ class trans_mat_3D : public serializable {
      * Multiply-and-store with a euler angles TB representation.
      * \test PASSED
      */
-    self& operator *=(const euler_angles_TB<value_type>& E) {
+    self& operator *=(const euler_angles_TB<value_type>& E) BOOST_NOEXCEPT {
       return (*this *= E.getRotMat());
     };
 
@@ -3047,7 +3058,7 @@ class trans_mat_3D : public serializable {
      * Multiply-and-store with an axis / angle representation.
      * \test PASSED
      */
-    self& operator *=(const axis_angle<value_type>& A) {
+    self& operator *=(const axis_angle<value_type>& A) BOOST_NOEXCEPT {
       return (*this *= A.getRotMat());
     };
 
@@ -3060,7 +3071,7 @@ class trans_mat_3D : public serializable {
      * \test PASSED
      */
     friend
-    self operator *(const self& M1, const self& M2) {
+    self operator *(const self& M1, const self& M2) BOOST_NOEXCEPT {
       return self(M1.q[0]*M2.q[0] + M1.q[4]*M2.q[1] + M1.q[8] *M2.q[2], M1.q[0]*M2.q[4] + M1.q[4]*M2.q[5] + M1.q[8] *M2.q[6], M1.q[0]*M2.q[8] + M1.q[4]*M2.q[9] + M1.q[8] *M2.q[10], M1.q[0]*M2.q[12] + M1.q[4]*M2.q[13] + M1.q[8]*M2.q[14]  + M1.q[12],
                   M1.q[1]*M2.q[0] + M1.q[5]*M2.q[1] + M1.q[9] *M2.q[2], M1.q[1]*M2.q[4] + M1.q[5]*M2.q[5] + M1.q[9] *M2.q[6], M1.q[1]*M2.q[8] + M1.q[5]*M2.q[9] + M1.q[9] *M2.q[10], M1.q[1]*M2.q[12] + M1.q[5]*M2.q[13] + M1.q[9]*M2.q[14]  + M1.q[13],
                   M1.q[2]*M2.q[0] + M1.q[6]*M2.q[1] + M1.q[10]*M2.q[2], M1.q[2]*M2.q[4] + M1.q[6]*M2.q[5] + M1.q[10]*M2.q[6], M1.q[2]*M2.q[8] + M1.q[6]*M2.q[9] + M1.q[10]*M2.q[10], M1.q[2]*M2.q[12] + M1.q[6]*M2.q[13] + M1.q[10]*M2.q[14] + M1.q[14]);
@@ -3103,7 +3114,7 @@ class trans_mat_3D : public serializable {
      * \test PASSED
      */
     friend
-    self operator *(const self& M, const rot_mat_3D<T>& R) {
+    self operator *(const self& M, const rot_mat_3D<T>& R) BOOST_NOEXCEPT {
       return self(M.q[0]*R[0] + M.q[4]*R[1] + M.q[8] *R[2], M.q[0]*R[3] + M.q[4]*R[4] + M.q[8] *R[5], M.q[0]*R[6] + M.q[4]*R[7] + M.q[8] *R[8], M.q[12],
                   M.q[1]*R[0] + M.q[5]*R[1] + M.q[9] *R[2], M.q[1]*R[3] + M.q[5]*R[4] + M.q[9] *R[5], M.q[1]*R[6] + M.q[5]*R[7] + M.q[9] *R[8], M.q[13],
                   M.q[2]*R[0] + M.q[6]*R[1] + M.q[10]*R[2], M.q[2]*R[3] + M.q[6]*R[4] + M.q[10]*R[5], M.q[2]*R[6] + M.q[6]*R[7] + M.q[10]*R[8], M.q[14]);
@@ -3114,7 +3125,7 @@ class trans_mat_3D : public serializable {
      * \test PASSED
      */
     friend
-    vect<value_type,3> operator *(const self& M, const vect<value_type,3>& V) {
+    vect<value_type,3> operator *(const self& M, const vect<value_type,3>& V) BOOST_NOEXCEPT {
       return vect<value_type,3>( M.q[0]*V[0] + M.q[4]*V[1] + M.q[8] *V[2] + M.q[12],
                                  M.q[1]*V[0] + M.q[5]*V[1] + M.q[9] *V[2] + M.q[13],
                                  M.q[2]*V[0] + M.q[6]*V[1] + M.q[10]*V[2] + M.q[14]);
@@ -3125,7 +3136,7 @@ class trans_mat_3D : public serializable {
      * \test PASSED
      */
     friend
-    vect<value_type,4> operator *(const self& M, const vect<value_type,4>& V) {
+    vect<value_type,4> operator *(const self& M, const vect<value_type,4>& V) BOOST_NOEXCEPT {
       return vect<value_type,4>( M.q[0]*V[0] + M.q[4]*V[1] + M.q[8] *V[2] + M.q[12]*V[3],
                                  M.q[1]*V[0] + M.q[5]*V[1] + M.q[9] *V[2] + M.q[13]*V[3],
                                  M.q[2]*V[0] + M.q[6]*V[1] + M.q[10]*V[2] + M.q[14]*V[3],
@@ -3141,7 +3152,7 @@ class trans_mat_3D : public serializable {
      * \test PASSED
      */
     friend
-    bool operator ==(const self& M1, const self& M2) {
+    bool operator ==(const self& M1, const self& M2) BOOST_NOEXCEPT {
       return ((M1.q[0] == M2.q[0]) && (M1.q[1] == M2.q[1]) && (M1.q[2] == M2.q[2]) &&
               (M1.q[4] == M2.q[4]) && (M1.q[5] == M2.q[5]) && (M1.q[6] == M2.q[6]) &&
               (M1.q[12] == M2.q[12]) && (M1.q[13] == M2.q[13]) && (M1.q[14] == M2.q[14]));
@@ -3152,7 +3163,7 @@ class trans_mat_3D : public serializable {
      * \test PASSED
      */
     friend
-    bool operator !=(const self& M1, const self& M2) {
+    bool operator !=(const self& M1, const self& M2) BOOST_NOEXCEPT {
       return ((M1.q[0] != M2.q[0]) || (M1.q[1] != M2.q[1]) || (M1.q[2] != M2.q[2]) ||
               (M1.q[4] != M2.q[4]) || (M1.q[5] != M2.q[5]) || (M1.q[6] != M2.q[6]) ||
               (M1.q[12] != M2.q[12]) || (M1.q[13] != M2.q[13]) || (M1.q[14] != M2.q[14]));
@@ -3166,7 +3177,7 @@ class trans_mat_3D : public serializable {
      * Rotate-only a 3D column vector.
      * \test PASSED
      */
-    vect<value_type,3> rotate(const vect<value_type,3>& V) const {
+    vect<value_type,3> rotate(const vect<value_type,3>& V) const BOOST_NOEXCEPT {
       return vect<value_type,3>(q[0]*V[0] + q[4]*V[1] + q[8]*V[2],
                                 q[1]*V[0] + q[5]*V[1] + q[9]*V[2],
                                 q[2]*V[0] + q[6]*V[1] + q[10]*V[2]);
@@ -3182,7 +3193,7 @@ class trans_mat_3D : public serializable {
      * \test PASSED
      */
     friend
-    mat<value_type,mat_structure::square> transpose(const self& M) {
+    mat<value_type,mat_structure::square> transpose(const self& M) BOOST_NOEXCEPT {
       return mat<value_type,mat_structure::square>(M.q[0],M.q[1],M.q[2],0.0,M.q[4],M.q[5],M.q[6],0.0,M.q[8],M.q[9],M.q[10],0.0,M.q[12],M.q[13],M.q[14],1.0);
     };
     
@@ -3192,7 +3203,7 @@ class trans_mat_3D : public serializable {
      * \test PASSED
      */
     friend
-    mat<value_type,mat_structure::square> transpose_move(const self& M) {
+    mat<value_type,mat_structure::square> transpose_move(const self& M) BOOST_NOEXCEPT {
       return mat<value_type,mat_structure::square>(M.q[0],M.q[1],M.q[2],0.0,M.q[4],M.q[5],M.q[6],0.0,M.q[8],M.q[9],M.q[10],0.0,M.q[12],M.q[13],M.q[14],1.0);
     };
 
@@ -3201,7 +3212,7 @@ class trans_mat_3D : public serializable {
      * \test PASSED
      */
     friend
-    value_type trace(const self& M) {
+    value_type trace(const self& M) BOOST_NOEXCEPT {
       return M.q[0] + M.q[5] + M.q[10] + value_type(1.0);
     };
 
@@ -3210,7 +3221,7 @@ class trans_mat_3D : public serializable {
      * \test PASSED
      */
     friend
-    value_type determinant(const self&) {
+    value_type determinant(const self&) BOOST_NOEXCEPT {
       return value_type(1.0);
     };
 
@@ -3219,7 +3230,7 @@ class trans_mat_3D : public serializable {
      * \test PASSED
      */
     friend
-    self invert(const self& M) {
+    self invert(const self& M) BOOST_NOEXCEPT {
       return self(M.q[0],M.q[1],M.q[2],-M.q[0]*M.q[12]-M.q[1]*M.q[13]-M.q[2]*M.q[14],
                   M.q[4],M.q[5],M.q[6],-M.q[4]*M.q[12]-M.q[5]*M.q[13]-M.q[6]*M.q[14],
                   M.q[8],M.q[9],M.q[10],-M.q[8]*M.q[12]-M.q[9]*M.q[13]-M.q[10]*M.q[14]);
@@ -3240,42 +3251,73 @@ class trans_mat_3D : public serializable {
     mat<value_type,mat_structure::skew_symmetric> getSkewSymPart() const {
       return mat<value_type,mat_structure::skew_symmetric>(getMat());
     };
-
-/*******************************************************************************
-                   ReaK's RTTI and Serialization interfaces
-*******************************************************************************/
-
-    virtual void RK_CALL save(serialization::oarchive& A, unsigned int) const {
-      A & RK_SERIAL_SAVE_WITH_ALIAS("r11",q[0])
-        & RK_SERIAL_SAVE_WITH_ALIAS("r21",q[1])
-        & RK_SERIAL_SAVE_WITH_ALIAS("r31",q[2])
-        & RK_SERIAL_SAVE_WITH_ALIAS("r12",q[4])
-        & RK_SERIAL_SAVE_WITH_ALIAS("r22",q[5])
-        & RK_SERIAL_SAVE_WITH_ALIAS("r32",q[6])
-        & RK_SERIAL_SAVE_WITH_ALIAS("r13",q[8])
-        & RK_SERIAL_SAVE_WITH_ALIAS("r23",q[9])
-        & RK_SERIAL_SAVE_WITH_ALIAS("r33",q[10])
-        & RK_SERIAL_SAVE_WITH_ALIAS("t_x",q[12])
-        & RK_SERIAL_SAVE_WITH_ALIAS("t_y",q[13])
-        & RK_SERIAL_SAVE_WITH_ALIAS("t_z",q[14]);
+    
+    
+    /// Loading a trans_mat_3D value with a name.
+    friend serialization::iarchive& RK_CALL operator &(serialization::iarchive& in, 
+                                                       const std::pair<std::string, trans_mat_3D<T>& >& M) {
+      in & RK_SERIAL_LOAD_WITH_ALIAS(M.first + "_r11",M.second.q[0])
+         & RK_SERIAL_LOAD_WITH_ALIAS(M.first + "_r21",M.second.q[1])
+         & RK_SERIAL_LOAD_WITH_ALIAS(M.first + "_r31",M.second.q[2])
+         & RK_SERIAL_LOAD_WITH_ALIAS(M.first + "_r12",M.second.q[4])
+         & RK_SERIAL_LOAD_WITH_ALIAS(M.first + "_r22",M.second.q[5])
+         & RK_SERIAL_LOAD_WITH_ALIAS(M.first + "_r32",M.second.q[6])
+         & RK_SERIAL_LOAD_WITH_ALIAS(M.first + "_r13",M.second.q[8])
+         & RK_SERIAL_LOAD_WITH_ALIAS(M.first + "_r23",M.second.q[9])
+         & RK_SERIAL_LOAD_WITH_ALIAS(M.first + "_r33",M.second.q[10])
+         & RK_SERIAL_LOAD_WITH_ALIAS(M.first + "_t_x",M.second.q[12])
+         & RK_SERIAL_LOAD_WITH_ALIAS(M.first + "_t_y",M.second.q[13])
+         & RK_SERIAL_LOAD_WITH_ALIAS(M.first + "_t_z",M.second.q[14]);
+      M.second.q[3] = 0.0; M.second.q[7] = 0.0; M.second.q[11] = 0.0; M.second.q[15] = 1.0;
+      return in;
     };
-    virtual void RK_CALL load(serialization::iarchive& A, unsigned int) {
-      A & RK_SERIAL_LOAD_WITH_ALIAS("r11",q[0])
-        & RK_SERIAL_LOAD_WITH_ALIAS("r21",q[1])
-        & RK_SERIAL_LOAD_WITH_ALIAS("r31",q[2])
-        & RK_SERIAL_LOAD_WITH_ALIAS("r12",q[4])
-        & RK_SERIAL_LOAD_WITH_ALIAS("r22",q[5])
-        & RK_SERIAL_LOAD_WITH_ALIAS("r32",q[6])
-        & RK_SERIAL_LOAD_WITH_ALIAS("r13",q[8])
-        & RK_SERIAL_LOAD_WITH_ALIAS("r23",q[9])
-        & RK_SERIAL_LOAD_WITH_ALIAS("r33",q[10])
-        & RK_SERIAL_LOAD_WITH_ALIAS("t_x",q[12])
-        & RK_SERIAL_LOAD_WITH_ALIAS("t_y",q[13])
-        & RK_SERIAL_LOAD_WITH_ALIAS("t_z",q[14]);
-      q[3] = 0.0; q[7] = 0.0; q[11] = 0.0; q[15] = 1.0;
+    
+    /// Loading a trans_mat_3D value.
+    friend serialization::iarchive& RK_CALL operator >>(serialization::iarchive& in, 
+                                                        trans_mat_3D<T>& M) {
+      return in & RK_SERIAL_LOAD_WITH_ALIAS("T",M);
     };
+    
+    /// Saving a trans_mat_3D value with a name.
+    friend serialization::oarchive& RK_CALL operator &(serialization::oarchive& out, 
+                                                       const std::pair<std::string, const trans_mat_3D<T>& >& M) {
+      return out & RK_SERIAL_SAVE_WITH_ALIAS(M.first + "_r11",M.second.q[0])
+                 & RK_SERIAL_SAVE_WITH_ALIAS(M.first + "_r21",M.second.q[1])
+                 & RK_SERIAL_SAVE_WITH_ALIAS(M.first + "_r31",M.second.q[2])
+                 & RK_SERIAL_SAVE_WITH_ALIAS(M.first + "_r12",M.second.q[4])
+                 & RK_SERIAL_SAVE_WITH_ALIAS(M.first + "_r22",M.second.q[5])
+                 & RK_SERIAL_SAVE_WITH_ALIAS(M.first + "_r32",M.second.q[6])
+                 & RK_SERIAL_SAVE_WITH_ALIAS(M.first + "_r13",M.second.q[8])
+                 & RK_SERIAL_SAVE_WITH_ALIAS(M.first + "_r23",M.second.q[9])
+                 & RK_SERIAL_SAVE_WITH_ALIAS(M.first + "_r33",M.second.q[10])
+                 & RK_SERIAL_SAVE_WITH_ALIAS(M.first + "_t_x",M.second.q[12])
+                 & RK_SERIAL_SAVE_WITH_ALIAS(M.first + "_t_y",M.second.q[13])
+                 & RK_SERIAL_SAVE_WITH_ALIAS(M.first + "_t_z",M.second.q[14]);
+    };
+    
+    /// Saving a trans_mat_3D value.
+    friend serialization::oarchive& RK_CALL operator <<(serialization::oarchive& out, 
+                                                        const trans_mat_3D<T>& M) {
+      return out & RK_SERIAL_SAVE_WITH_ALIAS("T",M);
+    };
+    
+};
 
-    RK_RTTI_MAKE_ABSTRACT_1BASE(self,0x00000019,1,"trans_mat_3D",serializable)
+namespace rtti {
+
+template <typename T>
+struct get_type_id< trans_mat_3D<T> > {
+  BOOST_STATIC_CONSTANT(unsigned int, ID = 0x00000019);
+#ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
+  BOOST_STATIC_CONSTEXPR auto type_name = RK_LSA("ReaK::trans_mat_3D");
+#else
+  static const char* type_name() BOOST_NOEXCEPT { return "ReaK::trans_mat_3D"; };
+#endif
+  static construct_ptr CreatePtr() BOOST_NOEXCEPT { return NULL; };
+  
+  typedef const trans_mat_3D<T>& save_type;
+  typedef trans_mat_3D<T>& load_type;
+};
 
 };
 
@@ -3317,7 +3359,7 @@ struct is_readable_matrix< trans_mat_3D<T> > {
  * \test PASSED
  */
 template <typename T>
-rot_mat_3D<T> operator *(const rot_mat_3D<T>& R, const quaternion<T>& Q) {
+rot_mat_3D<T> operator *(const rot_mat_3D<T>& R, const quaternion<T>& Q) BOOST_NOEXCEPT {
   return R * Q.getRotMat();
 };
 
@@ -3326,7 +3368,7 @@ rot_mat_3D<T> operator *(const rot_mat_3D<T>& R, const quaternion<T>& Q) {
  * \test PASSED
  */
 template <typename T>
-rot_mat_3D<T> operator *(const quaternion<T>& Q, const rot_mat_3D<T>& R) {
+rot_mat_3D<T> operator *(const quaternion<T>& Q, const rot_mat_3D<T>& R) BOOST_NOEXCEPT {
   return Q.getRotMat() * R;
 };
 
@@ -3335,7 +3377,7 @@ rot_mat_3D<T> operator *(const quaternion<T>& Q, const rot_mat_3D<T>& R) {
  * \test PASSED
  */
 template <typename T>
-rot_mat_3D<T> operator *(const rot_mat_3D<T>& R, const euler_angles_TB<T>& E) {
+rot_mat_3D<T> operator *(const rot_mat_3D<T>& R, const euler_angles_TB<T>& E) BOOST_NOEXCEPT {
   return R * E.getRotMat();
 };
 
@@ -3344,7 +3386,7 @@ rot_mat_3D<T> operator *(const rot_mat_3D<T>& R, const euler_angles_TB<T>& E) {
  * \test PASSED
  */
 template <typename T>
-rot_mat_3D<T> operator *(const euler_angles_TB<T>& E, const rot_mat_3D<T>& R) {
+rot_mat_3D<T> operator *(const euler_angles_TB<T>& E, const rot_mat_3D<T>& R) BOOST_NOEXCEPT {
   return E.getRotMat() * R;
 };
 
@@ -3353,7 +3395,7 @@ rot_mat_3D<T> operator *(const euler_angles_TB<T>& E, const rot_mat_3D<T>& R) {
  * \test PASSED
  */
 template <typename T>
-quaternion<T> operator *(const quaternion<T>& Q, const euler_angles_TB<T>& E) {
+quaternion<T> operator *(const quaternion<T>& Q, const euler_angles_TB<T>& E) BOOST_NOEXCEPT {
   return Q * E.getQuaternion();
 };
 
@@ -3362,7 +3404,7 @@ quaternion<T> operator *(const quaternion<T>& Q, const euler_angles_TB<T>& E) {
  * \test PASSED
  */
 template <typename T>
-quaternion<T> operator *(const euler_angles_TB<T>& E, const quaternion<T>& Q) {
+quaternion<T> operator *(const euler_angles_TB<T>& E, const quaternion<T>& Q) BOOST_NOEXCEPT {
   return E.getQuaternion() * Q;
 };
 
@@ -3371,7 +3413,7 @@ quaternion<T> operator *(const euler_angles_TB<T>& E, const quaternion<T>& Q) {
  * \test PASSED
  */
  template <typename T>
-rot_mat_3D<T> operator *(const rot_mat_3D<T>& R, const axis_angle<T>& A) {
+rot_mat_3D<T> operator *(const rot_mat_3D<T>& R, const axis_angle<T>& A) BOOST_NOEXCEPT {
   return R * A.getRotMat();
 };
 
@@ -3380,7 +3422,7 @@ rot_mat_3D<T> operator *(const rot_mat_3D<T>& R, const axis_angle<T>& A) {
  * \test PASSED
  */
 template <typename T>
-rot_mat_3D<T> operator *(const axis_angle<T>& A, const rot_mat_3D<T>& R) {
+rot_mat_3D<T> operator *(const axis_angle<T>& A, const rot_mat_3D<T>& R) BOOST_NOEXCEPT {
   return A.getRotMat() * R;
 };
 
@@ -3389,7 +3431,7 @@ rot_mat_3D<T> operator *(const axis_angle<T>& A, const rot_mat_3D<T>& R) {
  * \test PASSED
  */
 template <typename T>
-quaternion<T> operator *(const quaternion<T>& Q, const axis_angle<T>& A) {
+quaternion<T> operator *(const quaternion<T>& Q, const axis_angle<T>& A) BOOST_NOEXCEPT {
   return Q * A.getQuaternion();
 };
 
@@ -3398,7 +3440,7 @@ quaternion<T> operator *(const quaternion<T>& Q, const axis_angle<T>& A) {
  * \test PASSED
  */
 template <typename T>
-quaternion<T> operator *(const axis_angle<T>& A, const quaternion<T>& Q) {
+quaternion<T> operator *(const axis_angle<T>& A, const quaternion<T>& Q) BOOST_NOEXCEPT {
   return A.getQuaternion() * Q;
 };
     
@@ -3407,7 +3449,7 @@ quaternion<T> operator *(const axis_angle<T>& A, const quaternion<T>& Q) {
  * \test PASSED
  */
 template <typename T>
-rot_mat_3D<T> operator *(const euler_angles_TB<T>& E, const axis_angle<T>& A) {
+rot_mat_3D<T> operator *(const euler_angles_TB<T>& E, const axis_angle<T>& A) BOOST_NOEXCEPT {
   return E.getRotMat() * A.getRotMat();
 };
 
@@ -3416,7 +3458,7 @@ rot_mat_3D<T> operator *(const euler_angles_TB<T>& E, const axis_angle<T>& A) {
  * \test PASSED
  */
 template <typename T>
-rot_mat_3D<T> operator *(const axis_angle<T>& A, const euler_angles_TB<T>& E) {
+rot_mat_3D<T> operator *(const axis_angle<T>& A, const euler_angles_TB<T>& E) BOOST_NOEXCEPT {
   return A.getRotMat() * E.getRotMat();
 };
 
@@ -3425,7 +3467,7 @@ rot_mat_3D<T> operator *(const axis_angle<T>& A, const euler_angles_TB<T>& E) {
  * \test PASSED
  */
 template <typename T>
-trans_mat_3D<T> operator *(const rot_mat_3D<T>& R, const trans_mat_3D<T>& M) {
+trans_mat_3D<T> operator *(const rot_mat_3D<T>& R, const trans_mat_3D<T>& M) BOOST_NOEXCEPT {
   return trans_mat_3D<T>(R) * M;
 };
 
@@ -3434,7 +3476,7 @@ trans_mat_3D<T> operator *(const rot_mat_3D<T>& R, const trans_mat_3D<T>& M) {
  * \test PASSED
  */
 template <typename T>
-trans_mat_3D<T> operator *(const quaternion<T>& Q, const trans_mat_3D<T>& M) {
+trans_mat_3D<T> operator *(const quaternion<T>& Q, const trans_mat_3D<T>& M) BOOST_NOEXCEPT {
   return trans_mat_3D<T>(Q.getRotMat()) * M;
 };
 
@@ -3443,7 +3485,7 @@ trans_mat_3D<T> operator *(const quaternion<T>& Q, const trans_mat_3D<T>& M) {
  * \test PASSED
  */
 template <typename T>
-trans_mat_3D<T> operator *(const trans_mat_3D<T>& M, const quaternion<T>& Q) {
+trans_mat_3D<T> operator *(const trans_mat_3D<T>& M, const quaternion<T>& Q) BOOST_NOEXCEPT {
   return M * Q.getRotMat();
 };
 
@@ -3452,7 +3494,7 @@ trans_mat_3D<T> operator *(const trans_mat_3D<T>& M, const quaternion<T>& Q) {
  * \test PASSED
  */
 template <typename T>
-trans_mat_3D<T> operator *(const euler_angles_TB<T>& E, const trans_mat_3D<T>& M) {
+trans_mat_3D<T> operator *(const euler_angles_TB<T>& E, const trans_mat_3D<T>& M) BOOST_NOEXCEPT {
   return trans_mat_3D<T>(E) * M;
 };
 
@@ -3461,7 +3503,7 @@ trans_mat_3D<T> operator *(const euler_angles_TB<T>& E, const trans_mat_3D<T>& M
  * \test PASSED
  */
 template <typename T>
-trans_mat_3D<T> operator *(const trans_mat_3D<T>& M, const euler_angles_TB<T>& E) {
+trans_mat_3D<T> operator *(const trans_mat_3D<T>& M, const euler_angles_TB<T>& E) BOOST_NOEXCEPT {
   return M * E.getRotMat();
 };
 
@@ -3470,7 +3512,7 @@ trans_mat_3D<T> operator *(const trans_mat_3D<T>& M, const euler_angles_TB<T>& E
  * \test PASSED
  */
 template <typename T>
-trans_mat_3D<T> operator *(const axis_angle<T>& A, const trans_mat_3D<T>& M) {
+trans_mat_3D<T> operator *(const axis_angle<T>& A, const trans_mat_3D<T>& M) BOOST_NOEXCEPT {
   return trans_mat_3D<T>(A) * M;
 };
 
@@ -3479,7 +3521,7 @@ trans_mat_3D<T> operator *(const axis_angle<T>& A, const trans_mat_3D<T>& M) {
  * \test PASSED
  */
 template <typename T>
-trans_mat_3D<T> operator *(const trans_mat_3D<T>& M, const axis_angle<T>& A) {
+trans_mat_3D<T> operator *(const trans_mat_3D<T>& M, const axis_angle<T>& A) BOOST_NOEXCEPT {
   return M * A.getRotMat();
 };
     
@@ -3496,7 +3538,7 @@ trans_mat_3D<T> operator *(const trans_mat_3D<T>& M, const axis_angle<T>& A) {
  * \test PASSED
  */
 template <typename T>
-bool operator ==(const rot_mat_3D<T>& R, const quaternion<T>& Q) {
+bool operator ==(const rot_mat_3D<T>& R, const quaternion<T>& Q) BOOST_NOEXCEPT {
   return Q.getRotMat() == R;
 };
 
@@ -3505,7 +3547,7 @@ bool operator ==(const rot_mat_3D<T>& R, const quaternion<T>& Q) {
  * \test PASSED
  */
 template <typename T>
-bool operator !=(const rot_mat_3D<T>& R, const quaternion<T>& Q) {
+bool operator !=(const rot_mat_3D<T>& R, const quaternion<T>& Q) BOOST_NOEXCEPT {
   return Q.getRotMat() != R;
 };
 
@@ -3514,7 +3556,7 @@ bool operator !=(const rot_mat_3D<T>& R, const quaternion<T>& Q) {
  * \test PASSED
  */
 template <typename T>
-bool operator ==(const quaternion<T>& Q, const rot_mat_3D<T>& R) {
+bool operator ==(const quaternion<T>& Q, const rot_mat_3D<T>& R) BOOST_NOEXCEPT {
   return Q.getRotMat() == R;
 };
 
@@ -3523,7 +3565,7 @@ bool operator ==(const quaternion<T>& Q, const rot_mat_3D<T>& R) {
  * \test PASSED
  */
 template <typename T>
-bool operator !=(const quaternion<T>& Q, const rot_mat_3D<T>& R) {
+bool operator !=(const quaternion<T>& Q, const rot_mat_3D<T>& R) BOOST_NOEXCEPT {
   return Q.getRotMat() != R;
 };
 
@@ -3532,7 +3574,7 @@ bool operator !=(const quaternion<T>& Q, const rot_mat_3D<T>& R) {
  * \test PASSED
  */
 template <typename T>
-bool operator ==(const quaternion<T>& Q, const euler_angles_TB<T>& E) {
+bool operator ==(const quaternion<T>& Q, const euler_angles_TB<T>& E) BOOST_NOEXCEPT {
   return Q == E.getQuaternion();
 };
 
@@ -3541,7 +3583,7 @@ bool operator ==(const quaternion<T>& Q, const euler_angles_TB<T>& E) {
  * \test PASSED
  */
 template <typename T>
-bool operator !=(const quaternion<T>& Q, const euler_angles_TB<T>& E) {
+bool operator !=(const quaternion<T>& Q, const euler_angles_TB<T>& E) BOOST_NOEXCEPT {
   return Q != E.getQuaternion();
 };
 
@@ -3550,7 +3592,7 @@ bool operator !=(const quaternion<T>& Q, const euler_angles_TB<T>& E) {
  * \test PASSED
  */
 template <typename T>
-bool operator ==(const euler_angles_TB<T>& E, const quaternion<T>& Q) {
+bool operator ==(const euler_angles_TB<T>& E, const quaternion<T>& Q) BOOST_NOEXCEPT {
   return Q == E.getQuaternion();
 };
 
@@ -3559,7 +3601,7 @@ bool operator ==(const euler_angles_TB<T>& E, const quaternion<T>& Q) {
  * \test PASSED
  */
 template <typename T>
-bool operator !=(const euler_angles_TB<T>& E, const quaternion<T>& Q) {
+bool operator !=(const euler_angles_TB<T>& E, const quaternion<T>& Q) BOOST_NOEXCEPT {
   return Q != E.getQuaternion();
 };
 
@@ -3568,7 +3610,7 @@ bool operator !=(const euler_angles_TB<T>& E, const quaternion<T>& Q) {
  * \test PASSED
  */
 template <typename T>
-bool operator ==(const rot_mat_3D<T>& R, const euler_angles_TB<T>& E) {
+bool operator ==(const rot_mat_3D<T>& R, const euler_angles_TB<T>& E) BOOST_NOEXCEPT {
   return R == E.getRotMat();
 };
 
@@ -3577,7 +3619,7 @@ bool operator ==(const rot_mat_3D<T>& R, const euler_angles_TB<T>& E) {
  * \test PASSED
  */
 template <typename T>
-bool operator !=(const rot_mat_3D<T>& R, const euler_angles_TB<T>& E) {
+bool operator !=(const rot_mat_3D<T>& R, const euler_angles_TB<T>& E) BOOST_NOEXCEPT {
   return R != E.getRotMat();
 };
 
@@ -3586,7 +3628,7 @@ bool operator !=(const rot_mat_3D<T>& R, const euler_angles_TB<T>& E) {
  * \test PASSED
  */
 template <typename T>
-bool operator ==(const euler_angles_TB<T>& E, const rot_mat_3D<T>& R) {
+bool operator ==(const euler_angles_TB<T>& E, const rot_mat_3D<T>& R) BOOST_NOEXCEPT {
   return R == E.getRotMat();
 };
 
@@ -3595,7 +3637,7 @@ bool operator ==(const euler_angles_TB<T>& E, const rot_mat_3D<T>& R) {
  * \test PASSED
  */
 template <typename T>
-bool operator !=(const euler_angles_TB<T>& E, const rot_mat_3D<T>& R) {
+bool operator !=(const euler_angles_TB<T>& E, const rot_mat_3D<T>& R) BOOST_NOEXCEPT {
   return R != E.getRotMat();
 };
 
@@ -3604,7 +3646,7 @@ bool operator !=(const euler_angles_TB<T>& E, const rot_mat_3D<T>& R) {
  * \test PASSED
  */
 template <typename T>
-bool operator ==(const rot_mat_3D<T>& R, const axis_angle<T>& A) {
+bool operator ==(const rot_mat_3D<T>& R, const axis_angle<T>& A) BOOST_NOEXCEPT {
   return R == A.getRotMat();
 };
 
@@ -3613,7 +3655,7 @@ bool operator ==(const rot_mat_3D<T>& R, const axis_angle<T>& A) {
  * \test PASSED
  */
 template <typename T>
-bool operator !=(const rot_mat_3D<T>& R, const axis_angle<T>& A) {
+bool operator !=(const rot_mat_3D<T>& R, const axis_angle<T>& A) BOOST_NOEXCEPT {
   return R != A.getRotMat();
 };
 
@@ -3622,7 +3664,7 @@ bool operator !=(const rot_mat_3D<T>& R, const axis_angle<T>& A) {
  * \test PASSED
  */
 template <typename T>
-bool operator ==(const axis_angle<T>& A, const rot_mat_3D<T>& R) {
+bool operator ==(const axis_angle<T>& A, const rot_mat_3D<T>& R) BOOST_NOEXCEPT {
   return R == A.getRotMat();
 };
 
@@ -3631,7 +3673,7 @@ bool operator ==(const axis_angle<T>& A, const rot_mat_3D<T>& R) {
  * \test PASSED
  */
 template <typename T>
-bool operator !=(const axis_angle<T>& A, const rot_mat_3D<T>& R) {
+bool operator !=(const axis_angle<T>& A, const rot_mat_3D<T>& R) BOOST_NOEXCEPT {
   return R != A.getRotMat();
 };
 
@@ -3640,7 +3682,7 @@ bool operator !=(const axis_angle<T>& A, const rot_mat_3D<T>& R) {
  * \test PASSED
  */
 template <typename T>
-bool operator ==(const quaternion<T>& Q, const axis_angle<T>& A) {
+bool operator ==(const quaternion<T>& Q, const axis_angle<T>& A) BOOST_NOEXCEPT {
   return Q == A.getQuaternion();
 };
 
@@ -3649,7 +3691,7 @@ bool operator ==(const quaternion<T>& Q, const axis_angle<T>& A) {
  * \test PASSED
  */
 template <typename T>
-bool operator !=(const quaternion<T>& Q, const axis_angle<T>& A) {
+bool operator !=(const quaternion<T>& Q, const axis_angle<T>& A) BOOST_NOEXCEPT {
   return Q != A.getQuaternion();
 };
 
@@ -3658,7 +3700,7 @@ bool operator !=(const quaternion<T>& Q, const axis_angle<T>& A) {
  * \test PASSED
  */
 template <typename T>
-bool operator ==(const axis_angle<T>& A, const quaternion<T>& Q) {
+bool operator ==(const axis_angle<T>& A, const quaternion<T>& Q) BOOST_NOEXCEPT {
   return Q == A.getQuaternion();
 };
 
@@ -3667,7 +3709,7 @@ bool operator ==(const axis_angle<T>& A, const quaternion<T>& Q) {
  * \test PASSED
  */
 template <typename T>
-bool operator !=(const axis_angle<T>& A, const quaternion<T>& Q) {
+bool operator !=(const axis_angle<T>& A, const quaternion<T>& Q) BOOST_NOEXCEPT {
   return Q != A.getQuaternion();
 };
 
@@ -3676,7 +3718,7 @@ bool operator !=(const axis_angle<T>& A, const quaternion<T>& Q) {
  * \test PASSED
  */
 template <typename T>
-bool operator ==(const euler_angles_TB<T>& E, const axis_angle<T>& A) {
+bool operator ==(const euler_angles_TB<T>& E, const axis_angle<T>& A) BOOST_NOEXCEPT {
   return E == A.getEulerAnglesTB();
 };
 
@@ -3685,7 +3727,7 @@ bool operator ==(const euler_angles_TB<T>& E, const axis_angle<T>& A) {
  * \test PASSED
  */
 template <typename T>
-bool operator !=(const euler_angles_TB<T>& E, const axis_angle<T>& A) {
+bool operator !=(const euler_angles_TB<T>& E, const axis_angle<T>& A) BOOST_NOEXCEPT {
   return E != A.getEulerAnglesTB();
 };
 
@@ -3694,7 +3736,7 @@ bool operator !=(const euler_angles_TB<T>& E, const axis_angle<T>& A) {
  * \test PASSED
  */
 template <typename T>
-bool operator ==(const axis_angle<T>& A, const euler_angles_TB<T>& E) {
+bool operator ==(const axis_angle<T>& A, const euler_angles_TB<T>& E) BOOST_NOEXCEPT {
   return E == A.getEulerAnglesTB();
 };
 
@@ -3703,13 +3745,13 @@ bool operator ==(const axis_angle<T>& A, const euler_angles_TB<T>& E) {
  * \test PASSED
  */
 template <typename T>
-bool operator !=(const axis_angle<T>& A, const euler_angles_TB<T>& E) {
+bool operator !=(const axis_angle<T>& A, const euler_angles_TB<T>& E) BOOST_NOEXCEPT {
   return E != A.getEulerAnglesTB();
 };
 
 
-
-#ifndef BOOST_NO_CXX11_EXTERN_TEMPLATE
+#if 0
+// #ifndef BOOST_NO_CXX11_EXTERN_TEMPLATE
 
 extern template class rot_mat_3D<double>;
 extern template class quaternion<double>;

@@ -223,7 +223,7 @@ void perform_mc_tests(const po::variables_map& vm, std::size_t dyn_sp_dim) {
   Vector sb = Config::default_vect(dyn_sp_dim);
   Vector ab = Config::default_vect(dyn_sp_dim);
   Vector jb = Config::default_vect(dyn_sp_dim);
-  for(std::size_t i = 0; i < dyn_sp_dim; ++i) {
+  for(std::size_t i = 0; i < lb.size(); ++i) {
     lb[i] = -2.0;
     ub[i] =  2.0;
     sb[i] =  2.0 * max_rad_freq;
@@ -279,7 +279,7 @@ void perform_mc_tests(const po::variables_map& vm, std::size_t dyn_sp_dim) {
     double curve_freq  = double(std::rand() % 1000) * (max_rad_freq / 1000.0);
     Vector curve_ampl = Config::default_vect(dyn_sp_dim);
     Vector curve_phase = Config::default_vect(dyn_sp_dim);
-    for(std::size_t j = 0; j < dyn_sp_dim; ++j) {
+    for(std::size_t j = 0; j < curve_ampl.size(); ++j) {
       curve_ampl[j]  = double(std::rand() % 1000) * 0.001;
       curve_phase[j] = double(std::rand() % 1000) * (M_PI / 500.0);
     };
@@ -289,7 +289,7 @@ void perform_mc_tests(const po::variables_map& vm, std::size_t dyn_sp_dim) {
       Vector vel = curve_ampl;
       Vector acc = curve_ampl;
       
-      for(std::size_t j = 0; j < dyn_sp_dim; ++j) {
+      for(std::size_t j = 0; j < pos.size(); ++j) {
         pos[j] *=  std::sin(curve_freq * t + curve_phase[j]) / (2.0 * max_rad_freq);
         vel[j] *=  curve_freq * std::cos(curve_freq * t + curve_phase[j]) / (2.0 * max_rad_freq * max_rad_freq);
         acc[j] *= -curve_freq * curve_freq * std::sin(curve_freq * t + curve_phase[j]) / (2.0 * max_rad_freq * max_rad_freq * max_rad_freq);

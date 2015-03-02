@@ -47,213 +47,67 @@ namespace ReaK {
 
 namespace pp {
   
-namespace detail {
+namespace detail { namespace {
 
-  
 
-template < typename Sampler,
-           typename SpaceType>
-class generic_sampler_impl { 
-  public:
-    typedef generic_sampler_impl< Sampler, SpaceType > self;
-    
-    typedef typename topology_traits<SpaceType>::point_type point_type;
-    
-  public:
-    
-    template <typename Factory>
-    static void generate_sample(const Sampler& sampler, point_type& result, const SpaceType& space, const Factory& factory) {
-      result = sampler(space,factory);
-    };
-    
-    static void generate_sample(const Sampler& sampler, point_type& result, const SpaceType& space) {
-      result = sampler(space);
-    };
+template <typename Sampler, typename PointType, typename SpaceType, typename Factory>
+void generate_sample_impl(const Sampler& sampler, PointType& result, 
+                          const SpaceType& space, const Factory& factory) {
+  result = sampler(space, factory);
+};
+
+template <typename Sampler, typename PointType, typename SpaceType>
+void generate_sample_impl(const Sampler& sampler, PointType& result, 
+                          const SpaceType& space) {
+  result = sampler(space);
+};
+
+template <typename Sampler, typename PointType, typename SpaceTuple, typename TupleDistMetric, typename Factory>
+void generate_sample_impl(const Sampler& sampler, PointType& result, 
+                          const metric_space_tuple<SpaceTuple,TupleDistMetric>& space, 
+                          const Factory& factory);
+
+template <typename Sampler, typename PointType, typename SpaceTuple, typename TupleDistMetric>
+void generate_sample_impl(const Sampler& sampler, PointType& result, 
+                          const metric_space_tuple<SpaceTuple,TupleDistMetric>& space);
+
+template <typename Sampler, typename Factory = void>
+struct tuple_sample_generator {
+  Sampler* p_sampler;
+  const Factory* p_factory;
+  tuple_sample_generator(Sampler& sampler, const Factory& factory) : 
+                         p_sampler(&sampler), p_factory(&factory) {};
+  template <typename PointType, typename SpaceType>
+  void operator()(PointType& result, const SpaceType& space) const {
+    generate_sample_impl(*p_sampler, result, space, *p_factory);
+  };
+};
+
+template <typename Sampler>
+struct tuple_sample_generator<Sampler, void> {
+  Sampler* p_sampler;
+  tuple_sample_generator(Sampler& sampler) : p_sampler(&sampler) {};
+  template <typename PointType, typename SpaceType>
+  void operator()(PointType& result, const SpaceType& space) const {
+    generate_sample_impl(*p_sampler, result, space);
+  };
+};
+
+template <typename Sampler, typename PointType, typename SpaceTuple, typename TupleDistMetric, typename Factory>
+void generate_sample_impl(const Sampler& sampler, PointType& result, 
+                          const metric_space_tuple<SpaceTuple,TupleDistMetric>& space, 
+                          const Factory& factory) {
+  tuple_for_each(result, space, tuple_sample_generator<Sampler,Factory>(sampler, factory));
+};
+
+template <typename Sampler, typename PointType, typename SpaceTuple, typename TupleDistMetric>
+void generate_sample_impl(const Sampler& sampler, PointType& result, 
+                          const metric_space_tuple<SpaceTuple,TupleDistMetric>& space) {
+  tuple_for_each(result, space, tuple_sample_generator<Sampler>(sampler));
 };
 
 
-  
-  template <std::size_t Size, typename SpaceTuple, typename Sampler >
-  struct generic_sampler_impl_tuple_impl { 
-    //BOOST_STATIC_ASSERT(false);
-  };
-  
-#ifndef BOOST_NO_CXX11_VARIADIC_TEMPLATES
-  
-  template <std::size_t Size, typename Sampler, typename... Spaces>
-  struct generic_sampler_impl_tuple_impl< Size, std::tuple<Spaces...>, Sampler > {
-    typedef arithmetic_tuple< generic_sampler_impl< Sampler, Spaces >... > type;
-  };
-  
-  template <std::size_t Size, typename Sampler, typename... Spaces>
-  struct generic_sampler_impl_tuple_impl< Size, arithmetic_tuple<Spaces...>, Sampler > {
-    typedef arithmetic_tuple< generic_sampler_impl< Sampler, Spaces >... > type;
-  };
-  
-#else
-  template <typename SpaceTuple, typename Sampler>
-  struct generic_sampler_impl_tuple_impl< 1, SpaceTuple, Sampler > { 
-    typedef arithmetic_tuple< generic_sampler_impl< Sampler, typename arithmetic_tuple_element<0,SpaceTuple>::type > > type;
-  };
-
-  template <typename SpaceTuple, typename Sampler>
-  struct generic_sampler_impl_tuple_impl< 2, SpaceTuple, Sampler > { 
-    typedef arithmetic_tuple< generic_sampler_impl< Sampler, typename arithmetic_tuple_element<0,SpaceTuple>::type >,
-                              generic_sampler_impl< Sampler, typename arithmetic_tuple_element<1,SpaceTuple>::type > > type;
-  };
-
-  template <typename SpaceTuple, typename Sampler>
-  struct generic_sampler_impl_tuple_impl< 3, SpaceTuple, Sampler > { 
-    typedef arithmetic_tuple< generic_sampler_impl< Sampler, typename arithmetic_tuple_element<0,SpaceTuple>::type >,
-                              generic_sampler_impl< Sampler, typename arithmetic_tuple_element<1,SpaceTuple>::type >,
-                              generic_sampler_impl< Sampler, typename arithmetic_tuple_element<2,SpaceTuple>::type > > type;
-  };
-
-  template <typename SpaceTuple, typename Sampler>
-  struct generic_sampler_impl_tuple_impl< 4, SpaceTuple, Sampler > { 
-    typedef arithmetic_tuple< generic_sampler_impl< Sampler, typename arithmetic_tuple_element<0,SpaceTuple>::type >,
-                              generic_sampler_impl< Sampler, typename arithmetic_tuple_element<1,SpaceTuple>::type >,
-                              generic_sampler_impl< Sampler, typename arithmetic_tuple_element<2,SpaceTuple>::type >,
-                              generic_sampler_impl< Sampler, typename arithmetic_tuple_element<3,SpaceTuple>::type > > type;
-  };
-
-  template <typename SpaceTuple, typename Sampler>
-  struct generic_sampler_impl_tuple_impl< 5, SpaceTuple, Sampler > { 
-    typedef arithmetic_tuple< generic_sampler_impl< Sampler, typename arithmetic_tuple_element<0,SpaceTuple>::type >,
-                              generic_sampler_impl< Sampler, typename arithmetic_tuple_element<1,SpaceTuple>::type >,
-                              generic_sampler_impl< Sampler, typename arithmetic_tuple_element<2,SpaceTuple>::type >,
-                              generic_sampler_impl< Sampler, typename arithmetic_tuple_element<3,SpaceTuple>::type >,
-                              generic_sampler_impl< Sampler, typename arithmetic_tuple_element<4,SpaceTuple>::type > > type;
-  };
-
-  template <typename SpaceTuple, typename Sampler>
-  struct generic_sampler_impl_tuple_impl< 6, SpaceTuple, Sampler > { 
-    typedef arithmetic_tuple< generic_sampler_impl< Sampler, typename arithmetic_tuple_element<0,SpaceTuple>::type >,
-                              generic_sampler_impl< Sampler, typename arithmetic_tuple_element<1,SpaceTuple>::type >,
-                              generic_sampler_impl< Sampler, typename arithmetic_tuple_element<2,SpaceTuple>::type >,
-                              generic_sampler_impl< Sampler, typename arithmetic_tuple_element<3,SpaceTuple>::type >,
-                              generic_sampler_impl< Sampler, typename arithmetic_tuple_element<4,SpaceTuple>::type >,
-                              generic_sampler_impl< Sampler, typename arithmetic_tuple_element<5,SpaceTuple>::type > > type;
-  };
-
-  template <typename SpaceTuple, typename Sampler>
-  struct generic_sampler_impl_tuple_impl< 7, SpaceTuple, Sampler > { 
-    typedef arithmetic_tuple< generic_sampler_impl< Sampler, typename arithmetic_tuple_element<0,SpaceTuple>::type >,
-                              generic_sampler_impl< Sampler, typename arithmetic_tuple_element<1,SpaceTuple>::type >,
-                              generic_sampler_impl< Sampler, typename arithmetic_tuple_element<2,SpaceTuple>::type >,
-                              generic_sampler_impl< Sampler, typename arithmetic_tuple_element<3,SpaceTuple>::type >,
-                              generic_sampler_impl< Sampler, typename arithmetic_tuple_element<4,SpaceTuple>::type >,
-                              generic_sampler_impl< Sampler, typename arithmetic_tuple_element<5,SpaceTuple>::type >,
-                              generic_sampler_impl< Sampler, typename arithmetic_tuple_element<6,SpaceTuple>::type > > type;
-  };
-
-  template <typename SpaceTuple, typename Sampler>
-  struct generic_sampler_impl_tuple_impl< 8, SpaceTuple, Sampler > { 
-    typedef arithmetic_tuple< generic_sampler_impl< Sampler, typename arithmetic_tuple_element<0,SpaceTuple>::type >,
-                              generic_sampler_impl< Sampler, typename arithmetic_tuple_element<1,SpaceTuple>::type >,
-                              generic_sampler_impl< Sampler, typename arithmetic_tuple_element<2,SpaceTuple>::type >,
-                              generic_sampler_impl< Sampler, typename arithmetic_tuple_element<3,SpaceTuple>::type >,
-                              generic_sampler_impl< Sampler, typename arithmetic_tuple_element<4,SpaceTuple>::type >,
-                              generic_sampler_impl< Sampler, typename arithmetic_tuple_element<5,SpaceTuple>::type >,
-                              generic_sampler_impl< Sampler, typename arithmetic_tuple_element<6,SpaceTuple>::type >,
-                              generic_sampler_impl< Sampler, typename arithmetic_tuple_element<7,SpaceTuple>::type > > type;
-  };
-
-  template <typename SpaceTuple, typename Sampler>
-  struct generic_sampler_impl_tuple_impl< 9, SpaceTuple, Sampler > { 
-    typedef arithmetic_tuple< generic_sampler_impl< Sampler, typename arithmetic_tuple_element<0,SpaceTuple>::type >,
-                              generic_sampler_impl< Sampler, typename arithmetic_tuple_element<1,SpaceTuple>::type >,
-                              generic_sampler_impl< Sampler, typename arithmetic_tuple_element<2,SpaceTuple>::type >,
-                              generic_sampler_impl< Sampler, typename arithmetic_tuple_element<3,SpaceTuple>::type >,
-                              generic_sampler_impl< Sampler, typename arithmetic_tuple_element<4,SpaceTuple>::type >,
-                              generic_sampler_impl< Sampler, typename arithmetic_tuple_element<5,SpaceTuple>::type >,
-                              generic_sampler_impl< Sampler, typename arithmetic_tuple_element<6,SpaceTuple>::type >,
-                              generic_sampler_impl< Sampler, typename arithmetic_tuple_element<7,SpaceTuple>::type >,
-                              generic_sampler_impl< Sampler, typename arithmetic_tuple_element<8,SpaceTuple>::type > > type;
-  };
-
-  template <typename SpaceTuple, typename Sampler>
-  struct generic_sampler_impl_tuple_impl< 10, SpaceTuple, Sampler > { 
-    typedef arithmetic_tuple< generic_sampler_impl< Sampler, typename arithmetic_tuple_element<0,SpaceTuple>::type >,
-                              generic_sampler_impl< Sampler, typename arithmetic_tuple_element<1,SpaceTuple>::type >,
-                              generic_sampler_impl< Sampler, typename arithmetic_tuple_element<2,SpaceTuple>::type >,
-                              generic_sampler_impl< Sampler, typename arithmetic_tuple_element<3,SpaceTuple>::type >,
-                              generic_sampler_impl< Sampler, typename arithmetic_tuple_element<4,SpaceTuple>::type >,
-                              generic_sampler_impl< Sampler, typename arithmetic_tuple_element<5,SpaceTuple>::type >,
-                              generic_sampler_impl< Sampler, typename arithmetic_tuple_element<6,SpaceTuple>::type >,
-                              generic_sampler_impl< Sampler, typename arithmetic_tuple_element<7,SpaceTuple>::type >,
-                              generic_sampler_impl< Sampler, typename arithmetic_tuple_element<8,SpaceTuple>::type >,
-                              generic_sampler_impl< Sampler, typename arithmetic_tuple_element<9,SpaceTuple>::type > > type;
-  };
-
-#endif
-
-  template <typename SpaceTuple, typename Sampler>
-  struct generic_sampler_impl_tuple : generic_sampler_impl_tuple_impl< arithmetic_tuple_size<SpaceTuple>::type::value, SpaceTuple, Sampler > { };
-  
-
-
-template <std::size_t Idx, typename SamplerTuple>
-class gen_sampler_recursion_impl {
-  public:
-    
-    template <typename Sampler, typename PointType, typename SpaceTuple, typename Factory>
-    static void generate_sample(Sampler& sampler, PointType& result, const SpaceTuple& space, const Factory& factory) {
-      gen_sampler_recursion_impl< Idx-1, SamplerTuple >::generate_sample(sampler, result, space, factory);
-      
-      arithmetic_tuple_element<Idx,SamplerTuple>::type::generate_sample(sampler, get<Idx>(result), get<Idx>(space), factory);
-    };
-    
-    template <typename Sampler, typename PointType, typename SpaceTuple>
-    static void generate_sample(Sampler& sampler, PointType& result, const SpaceTuple& space) {
-      gen_sampler_recursion_impl< Idx-1, SamplerTuple >::generate_sample(sampler, result, space);
-      
-      arithmetic_tuple_element<Idx,SamplerTuple>::type::generate_sample(sampler, get<Idx>(result), get<Idx>(space));
-    };
-};
-
-
-template <typename SamplerTuple>
-class gen_sampler_recursion_impl<0, SamplerTuple> {
-  public:
-    
-    template <typename Sampler, typename PointType, typename SpaceTuple, typename Factory>
-    static void generate_sample(const Sampler& sampler, PointType& result, const SpaceTuple& space, const Factory& factory) {
-      arithmetic_tuple_element<0,SamplerTuple>::type::generate_sample(sampler, get<0>(result), get<0>(space), factory);
-    };
-    
-    template <typename Sampler, typename PointType, typename SpaceTuple>
-    static void generate_sample(const Sampler& sampler, PointType& result, const SpaceTuple& space) {
-      arithmetic_tuple_element<0,SamplerTuple>::type::generate_sample(sampler, get<0>(result), get<0>(space));
-    };
-    
-};
-
-
-
-template < typename Sampler,
-           typename SpaceTuple, typename TupleDistMetric>
-class generic_sampler_impl< Sampler, metric_space_tuple<SpaceTuple,TupleDistMetric> > {
-  public:
-    typedef generic_sampler_impl< Sampler, metric_space_tuple<SpaceTuple,TupleDistMetric> > self;
-    
-    typedef metric_space_tuple<SpaceTuple,TupleDistMetric> SpaceType;
-    typedef typename topology_traits<SpaceType>::point_type point_type;
-    
-  public:
-    
-    template <typename Factory>
-    static void generate_sample(const Sampler& sampler, point_type& result, const SpaceType& space, const Factory& factory) {
-      gen_sampler_recursion_impl< arithmetic_tuple_size< SpaceTuple >::value - 1, typename generic_sampler_impl_tuple< SpaceTuple, Sampler >::type >::generate_sample(sampler, result, space, factory);
-    };
-    
-    static void generate_sample(const Sampler& sampler, point_type& result, const SpaceType& space) {
-      gen_sampler_recursion_impl< arithmetic_tuple_size< SpaceTuple >::value - 1, typename generic_sampler_impl_tuple< SpaceTuple, Sampler >::type >::generate_sample(sampler, result, space);
-    };
-};
-
-
-};
+}; };
 
 
 /**
@@ -268,8 +122,6 @@ class generic_sampler {
     typedef typename topology_traits<SpaceType>::point_type point_type;
     typedef SpaceType topology;
     
-    typedef detail::generic_sampler_impl< Sampler, topology> sampler_impl_type;
-    
   private:
     const Factory* parent;
     Sampler sampler;
@@ -279,18 +131,19 @@ class generic_sampler {
     /**
      * Default constructor.
      */
-    generic_sampler(Sampler aSampler = Sampler(), const Factory* aParent = NULL) : parent(aParent), sampler(aSampler) { };
+    generic_sampler(Sampler aSampler = Sampler(), const Factory* aParent = NULL) : 
+                    parent(aParent), sampler(aSampler) { };
     
     template <typename OtherFactory>
     point_type operator()(const topology& space, const OtherFactory& aNewParent) const {
       point_type result;
-      sampler_impl_type::generate_sample(sampler, result, space, aNewParent);
+      detail::generate_sample_impl(sampler, result, space, aNewParent);
       return result;
     };
     
     point_type operator()(const topology& space) const {
       point_type result;
-      sampler_impl_type::generate_sample(sampler, result, space, *parent);
+      detail::generate_sample_impl(sampler, result, space, *parent);
       return result;
     };
     
@@ -302,8 +155,6 @@ class generic_sampler<Sampler, SpaceType, void> {
     typedef generic_sampler<Sampler, SpaceType, void> self;
     typedef typename topology_traits<SpaceType>::point_type point_type;
     typedef SpaceType topology;
-    
-    typedef detail::generic_sampler_impl< Sampler, topology> sampler_impl_type;
     
   private:
     Sampler sampler;
@@ -318,18 +169,17 @@ class generic_sampler<Sampler, SpaceType, void> {
     template <typename OtherFactory>
     point_type operator()(const topology& space, const OtherFactory& aParent) const {
       point_type result;
-      sampler_impl_type::generate_sample(sampler, result, space, aParent);
+      detail::generate_sample_impl(sampler, result, space, aParent);
       return result;
     };
     
     point_type operator()(const topology& space) const {
       point_type result;
-      sampler_impl_type::generate_sample(sampler, result, space);
+      detail::generate_sample_impl(sampler, result, space);
       return result;
     };
     
 };
-
 
 
 };
@@ -337,12 +187,5 @@ class generic_sampler<Sampler, SpaceType, void> {
 };
 
 #endif
-
-
-
-
-
-
-
 
 

@@ -45,9 +45,9 @@
 #include <algorithm>
 
 #include <ReaK/core/base/defs.hpp>
-#include <ReaK/core/base/serializable.hpp>
 #include <ReaK/core/rtti/so_register_type.hpp>
 #include <ReaK/core/rtti/typed_primitives.hpp>
+#include <ReaK/core/serialization/archiver.hpp>
 
 #include "vect_concepts.hpp"
 #include "vect_views.hpp"
@@ -56,6 +56,7 @@
 
 #include <boost/static_assert.hpp>
 #include <boost/mpl/and.hpp>
+#include <boost/utility/enable_if.hpp>
 
 namespace ReaK {
   
@@ -77,13 +78,13 @@ class vect_component {
     
     value_type q;
     
-    explicit vect_component(const_reference Q = 0) : q(Q) { };
+    explicit vect_component(const_reference Q = 0) BOOST_NOEXCEPT : q(Q) { };
     
     /**
      * Array indexing operator, accessor for read only.
      * \test PASSED
      */
-    value_type operator [](size_type i) const {
+    value_type operator [](size_type i) const BOOST_NOEXCEPT {
       return (i == Index ? q : value_type());
     };
     
@@ -91,47 +92,47 @@ class vect_component {
      * Call operator, accessor for read only.
      * \test PASSED
      */
-    value_type operator ()(size_type i) const {
+    value_type operator ()(size_type i) const BOOST_NOEXCEPT {
       return (i == Index ? q : value_type());
     };
     
     
     friend 
-    self operator+(const self& lhs, const self& rhs) {
+    self operator+(const self& lhs, const self& rhs) BOOST_NOEXCEPT {
       return self(lhs.q + rhs.q);
     };
     
     friend 
-    self operator-(const self& lhs, const self& rhs) {
+    self operator-(const self& lhs, const self& rhs) BOOST_NOEXCEPT {
       return self(lhs.q - rhs.q);
     };
     
     friend 
-    self operator-(const self& lhs) {
+    self operator-(const self& lhs) BOOST_NOEXCEPT {
       return self(-lhs.q);
     };
     
-    self& operator+=(const self& rhs) {
+    self& operator+=(const self& rhs) BOOST_NOEXCEPT {
       q += rhs.q;
       return *this;
     };
     
-    self& operator-=(const self& rhs) {
+    self& operator-=(const self& rhs) BOOST_NOEXCEPT {
       q -= rhs.q;
       return *this;
     };
     
     friend 
-    self operator*(const self& lhs, const_reference rhs) {
+    self operator*(const self& lhs, const_reference rhs) BOOST_NOEXCEPT {
       return self(lhs.q * rhs);
     };
     
     friend 
-    self operator*(const_reference lhs, const self& rhs) {
+    self operator*(const_reference lhs, const self& rhs) BOOST_NOEXCEPT {
       return self(lhs * rhs.q);
     };
     
-    self& operator*=(const_reference rhs) {
+    self& operator*=(const_reference rhs) BOOST_NOEXCEPT {
       q *= rhs;
       return *this;
     };
@@ -155,7 +156,7 @@ class vect_n;  // forward-declaration.
  * This class implements a fixed-size templated vector class which holds components of primitive type.
  */
 template <typename T, unsigned int Size>
-class vect : public serializable {
+class vect {
   public:
     typedef vect<T,Size> self;
     
@@ -165,60 +166,58 @@ class vect : public serializable {
     typedef T* pointer;
     typedef const T* const_pointer;
     typedef std::allocator<T> allocator_type; //just in case it is cast to variable-length vector.
-  
+    
     typedef pointer iterator;
     typedef const_pointer const_iterator;
-  
+    
     typedef std::size_t size_type;
     typedef std::ptrdiff_t difference_type;
-  
+    
     BOOST_STATIC_CONSTANT(std::size_t, dimensions = Size);
     
     T q[Size]; /**< Components of the vector.*/
-
-    //typedef array_order<1> order;
     
     /**
      * Returns the size of the vector.
      */
-    size_type size() const { return Size; };
+    size_type size() const BOOST_NOEXCEPT { return Size; };
     /**
      * Returns the max-size of the vector.
      */
-    size_type max_size() const { return Size; };
+    size_type max_size() const BOOST_NOEXCEPT { return Size; };
     /**
      * Returns the capacity of the vector.
      */
-    size_type capacity() const { return Size; };
+    size_type capacity() const BOOST_NOEXCEPT { return Size; };
     /**
      * Resizes the vector.
      */
-    void resize(size_type sz, T c = T()) const { };
+    void resize(size_type sz, T c = T()) const BOOST_NOEXCEPT { };
     /**
      * Checks if the vector is empty.
      */
-    bool empty() const { return false; };
+    bool empty() const BOOST_NOEXCEPT { return false; };
     /**
      * Reserve a capacity for the vector.
      */
-    void reserve(size_type sz) const { };
+    void reserve(size_type sz) const BOOST_NOEXCEPT { };
     
     /**
      * Returns an iterator to the first element of the vector.
      */
-    iterator begin() { return q; };
+    iterator begin() BOOST_NOEXCEPT { return q; };
     /**
      * Returns a const-iterator to the first element of the vector.
      */
-    const_iterator begin() const { return q; };
+    const_iterator begin() const BOOST_NOEXCEPT { return q; };
     /**
      * Returns an iterator to the one-past-last element of the vector.
      */
-    iterator end() { return q + Size; };
+    iterator end() BOOST_NOEXCEPT { return q + Size; };
     /**
      * Returns a const-iterator to the one-past-last element of the vector.
      */
-    const_iterator end() const { return q + Size; };
+    const_iterator end() const BOOST_NOEXCEPT { return q + Size; };
 
 /*******************************************************************************
                          Constructors / Destructors
@@ -227,72 +226,60 @@ class vect : public serializable {
      * Default constructor: sets all to zero.
      * \test PASSED
      */
-    vect() {
-      for(size_type i = 0;i < Size;++i)
-        q[i] = value_type();
+    vect() BOOST_NOEXCEPT {
+      for(pointer p_i = q, p_end = q + Size; p_i < p_end; ++p_i)
+        *p_i = value_type();
       return;
     };
     
     template <typename U, typename Allocator>
-    vect(const vect_n<U,Allocator>& V);
+    vect(const vect_n<U,Allocator>& V) BOOST_NOEXCEPT;
 
     /**
      * Constructor from an array of values of type T.
      * \test PASSED
      */
-    vect(const_pointer Q) {
-      for(size_type i=0;i < Size;++i)
-        q[i] = Q[i];
+    vect(const_pointer Q) BOOST_NOEXCEPT {
+      for(pointer p_i = q, p_end = q + Size; p_i < p_end; ++p_i, ++Q)
+        *p_i = *Q;
       return;
     };
 
+#ifdef BOOST_NO_DEFAULTED_FUNCTIONS
     /**
      * Standard Copy Constructor with standard semantics.
      * \test PASSED
      */
-    vect(const self& V) {
-      for(size_type i=0;i < Size;++i)
-        q[i] = V.q[i];
+    vect(const self& V) BOOST_NOEXCEPT {
+      const_pointer Q = V.q;
+      for(pointer p_i = q, p_end = q + Size; p_i < p_end; ++p_i, ++Q)
+        *p_i = *Q;
       return;
     };
-    
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
-    /**
-     * Standard Move Constructor with standard semantics.
-     * \test PASSED
-     */
-    vect(self&& V) {
-      for(size_type i=0;i < Size;++i)
-        q[i] = V.q[i];
-      return;
-    };
+#else
+    vect(const self& V) BOOST_NOEXCEPT = default;
 #endif
     
     template <typename U, unsigned int OtherSize>
-    explicit vect(const vect<U,OtherSize>& rhs) {
+    explicit vect(const vect<U,OtherSize>& rhs) BOOST_NOEXCEPT {
       BOOST_STATIC_ASSERT(Size >= OtherSize);
-      for(size_type i = 0; i < OtherSize; ++i)
-        q[i] = rhs[i];
-      for(size_type i = OtherSize; i < Size; ++i)
-        q[i] = value_type();
+      const_pointer Q = rhs.q;
+      pointer p_i = q;
+      for(pointer p_end = q + OtherSize; p_i < p_end; ++p_i, ++Q)
+        *p_i = *Q;
+      for(pointer p_end = q + Size; p_i < p_end; ++p_i)
+        *p_i = value_type();
       return;
     };
     
     template <typename U, unsigned int Index>
-    explicit vect(const vect_component<U,Index>& rhs) {
+    explicit vect(const vect_component<U,Index>& rhs) BOOST_NOEXCEPT {
       BOOST_STATIC_ASSERT(Size > Index);
-      for(size_type i = 0; i < Size; ++i)
-        q[i] = value_type();
+      for(pointer p_i = q, p_end = q + Size; p_i < p_end; ++p_i)
+        *p_i = value_type();
       q[Index] = rhs.q;
       return;
     };
-    
-
-    /**
-     * Destructor.
-     * \test PASSED
-     */
-    ~vect() { };
     
     
 #ifdef BOOST_NO_CXX11_VARIADIC_TEMPLATES
@@ -301,11 +288,12 @@ class vect : public serializable {
      * Constructor for 1 values.
      * \test PASSED
      */
-    explicit vect(const_reference Q1) {
+    explicit vect(const_reference Q1) BOOST_NOEXCEPT {
       BOOST_STATIC_ASSERT(Size >= 1);
-      q[0] = Q1;
-      for(size_type i=1;i<Size;++i)
-        q[i] = value_type();
+      pointer p_i = q;
+      *p_i++ = Q1;
+      for(pointer p_end = q + Size; p_i < p_end; ++p_i)
+        *p_i = value_type();
       return;
     };
 
@@ -313,12 +301,13 @@ class vect : public serializable {
      * Constructor for 2 values.
      * \test PASSED
      */
-    vect(const_reference Q1,const_reference Q2) {
+    vect(const_reference Q1,const_reference Q2) BOOST_NOEXCEPT {
       BOOST_STATIC_ASSERT(Size >= 2);
-      q[0] = Q1;
-      q[1] = Q2;
-      for(size_type i=2;i<Size;++i)
-        q[i] = value_type();
+      pointer p_i = q;
+      *p_i++ = Q1;
+      *p_i++ = Q2;
+      for(pointer p_end = q + Size; p_i < p_end; ++p_i)
+        *p_i = value_type();
       return;
     };
 
@@ -326,13 +315,14 @@ class vect : public serializable {
      * Constructor for 3 values.
      * \test PASSED
      */
-    vect(const_reference Q1,const_reference Q2,const_reference Q3) {
+    vect(const_reference Q1,const_reference Q2,const_reference Q3) BOOST_NOEXCEPT {
       BOOST_STATIC_ASSERT(Size >= 3);
-      q[0] = Q1;
-      q[1] = Q2;
-      q[2] = Q3;
-      for(size_type i=3;i<Size;++i)
-        q[i] = value_type();
+      pointer p_i = q;
+      *p_i++ = Q1;
+      *p_i++ = Q2;
+      *p_i++ = Q3;
+      for(pointer p_end = q + Size; p_i < p_end; ++p_i)
+        *p_i = value_type();
       return;
     };
 
@@ -340,14 +330,15 @@ class vect : public serializable {
      * Constructor for 4 values.
      * \test PASSED
      */
-    vect(const_reference Q1,const_reference Q2,const_reference Q3,const_reference Q4) {
+    vect(const_reference Q1,const_reference Q2,const_reference Q3,const_reference Q4) BOOST_NOEXCEPT {
       BOOST_STATIC_ASSERT(Size >= 4);
-      q[0] = Q1;
-      q[1] = Q2;
-      q[2] = Q3;
-      q[3] = Q4;
-      for(size_type i=4;i<Size;++i)
-        q[i] = value_type();
+      pointer p_i = q;
+      *p_i++ = Q1;
+      *p_i++ = Q2;
+      *p_i++ = Q3;
+      *p_i++ = Q4;
+      for(pointer p_end = q + Size; p_i < p_end; ++p_i)
+        *p_i = value_type();
       return;
     };
 
@@ -356,15 +347,16 @@ class vect : public serializable {
      * \test PASSED
      */
     vect(const_reference Q1,const_reference Q2,const_reference Q3,
-         const_reference Q4,const_reference Q5) {
+         const_reference Q4,const_reference Q5) BOOST_NOEXCEPT {
       BOOST_STATIC_ASSERT(Size >= 5);
-      q[0] = Q1;
-      q[1] = Q2;
-      q[2] = Q3;
-      q[3] = Q4;
-      q[4] = Q5;
-      for(size_type i=5;i<Size;++i)
-        q[i] = value_type();
+      pointer p_i = q;
+      *p_i++ = Q1;
+      *p_i++ = Q2;
+      *p_i++ = Q3;
+      *p_i++ = Q4;
+      *p_i++ = Q5;
+      for(pointer p_end = q + Size; p_i < p_end; ++p_i)
+        *p_i = value_type();
       return;
     };
 
@@ -373,16 +365,17 @@ class vect : public serializable {
      * \test PASSED
      */
     vect(const_reference Q1,const_reference Q2,const_reference Q3,
-         const_reference Q4,const_reference Q5,const_reference Q6) {
+         const_reference Q4,const_reference Q5,const_reference Q6) BOOST_NOEXCEPT {
       BOOST_STATIC_ASSERT(Size >= 6);
-      q[0] = Q1;
-      q[1] = Q2;
-      q[2] = Q3;
-      q[3] = Q4;
-      q[4] = Q5;
-      q[5] = Q6;
-      for(size_type i=6;i<Size;++i)
-        q[i] = value_type();
+      pointer p_i = q;
+      *p_i++ = Q1;
+      *p_i++ = Q2;
+      *p_i++ = Q3;
+      *p_i++ = Q4;
+      *p_i++ = Q5;
+      *p_i++ = Q6;
+      for(pointer p_end = q + Size; p_i < p_end; ++p_i)
+        *p_i = value_type();
       return;
     };
 
@@ -391,17 +384,18 @@ class vect : public serializable {
      * \test PASSED
      */
     vect(const_reference Q1,const_reference Q2,const_reference Q3,const_reference Q4,
-         const_reference Q5,const_reference Q6,const_reference Q7) {
+         const_reference Q5,const_reference Q6,const_reference Q7) BOOST_NOEXCEPT {
       BOOST_STATIC_ASSERT(Size >= 7);
-      q[0] = Q1;
-      q[1] = Q2;
-      q[2] = Q3;
-      q[3] = Q4;
-      q[4] = Q5;
-      q[5] = Q6;
-      q[6] = Q7;
-      for(size_type i=7;i<Size;++i)
-        q[i] = value_type();
+      pointer p_i = q;
+      *p_i++ = Q1;
+      *p_i++ = Q2;
+      *p_i++ = Q3;
+      *p_i++ = Q4;
+      *p_i++ = Q5;
+      *p_i++ = Q6;
+      *p_i++ = Q7;
+      for(pointer p_end = q + Size; p_i < p_end; ++p_i)
+        *p_i = value_type();
       return;
     };
 
@@ -410,18 +404,19 @@ class vect : public serializable {
      * \test PASSED
      */
     vect(const_reference Q1,const_reference Q2,const_reference Q3,const_reference Q4,
-         const_reference Q5,const_reference Q6,const_reference Q7,const_reference Q8) {
+         const_reference Q5,const_reference Q6,const_reference Q7,const_reference Q8) BOOST_NOEXCEPT {
       BOOST_STATIC_ASSERT(Size >= 8);
-      q[0] = Q1;
-      q[1] = Q2;
-      q[2] = Q3;
-      q[3] = Q4;
-      q[4] = Q5;
-      q[5] = Q6;
-      q[6] = Q7;
-      q[7] = Q8;
-      for(size_type i=8;i<Size;++i)
-        q[i] = value_type();
+      pointer p_i = q;
+      *p_i++ = Q1;
+      *p_i++ = Q2;
+      *p_i++ = Q3;
+      *p_i++ = Q4;
+      *p_i++ = Q5;
+      *p_i++ = Q6;
+      *p_i++ = Q7;
+      *p_i++ = Q8;
+      for(pointer p_end = q + Size; p_i < p_end; ++p_i)
+        *p_i = value_type();
       return;
     };
 
@@ -430,19 +425,20 @@ class vect : public serializable {
      * \test PASSED
      */
     vect(const_reference Q1,const_reference Q2,const_reference Q3,const_reference Q4,const_reference Q5,
-         const_reference Q6,const_reference Q7,const_reference Q8,const_reference Q9) {
+         const_reference Q6,const_reference Q7,const_reference Q8,const_reference Q9) BOOST_NOEXCEPT {
       BOOST_STATIC_ASSERT(Size >= 9);
-      q[0] = Q1;
-      q[1] = Q2;
-      q[2] = Q3;
-      q[3] = Q4;
-      q[4] = Q5;
-      q[5] = Q6;
-      q[6] = Q7;
-      q[7] = Q8;
-      q[8] = Q9;
-      for(size_type i=9;i<Size;++i)
-        q[i] = value_type();
+      pointer p_i = q;
+      *p_i++ = Q1;
+      *p_i++ = Q2;
+      *p_i++ = Q3;
+      *p_i++ = Q4;
+      *p_i++ = Q5;
+      *p_i++ = Q6;
+      *p_i++ = Q7;
+      *p_i++ = Q8;
+      *p_i++ = Q9;
+      for(pointer p_end = q + Size; p_i < p_end; ++p_i)
+        *p_i = value_type();
       return;
     };
 
@@ -451,20 +447,21 @@ class vect : public serializable {
      * \test PASSED
      */
     vect(const_reference Q1,const_reference Q2,const_reference Q3,const_reference Q4,const_reference Q5,
-         const_reference Q6,const_reference Q7,const_reference Q8,const_reference Q9,const_reference Q10) {
+         const_reference Q6,const_reference Q7,const_reference Q8,const_reference Q9,const_reference Q10) BOOST_NOEXCEPT {
       BOOST_STATIC_ASSERT(Size >= 10);
-      q[0] = Q1;
-      q[1] = Q2;
-      q[2] = Q3;
-      q[3] = Q4;
-      q[4] = Q5;
-      q[5] = Q6;
-      q[6] = Q7;
-      q[7] = Q8;
-      q[8] = Q9;
-      q[9] = Q10;
-      for(size_type i=10;i<Size;++i)
-        q[i] = value_type();
+      pointer p_i = q;
+      *p_i++ = Q1;
+      *p_i++ = Q2;
+      *p_i++ = Q3;
+      *p_i++ = Q4;
+      *p_i++ = Q5;
+      *p_i++ = Q6;
+      *p_i++ = Q7;
+      *p_i++ = Q8;
+      *p_i++ = Q9;
+      *p_i++ = Q10;
+      for(pointer p_end = q + Size; p_i < p_end; ++p_i)
+        *p_i = value_type();
       return;
     };
 
@@ -474,21 +471,22 @@ class vect : public serializable {
      */
     vect(const_reference Q1,const_reference Q2,const_reference Q3,const_reference Q4,const_reference Q5,
          const_reference Q6,const_reference Q7,const_reference Q8,const_reference Q9,const_reference Q10,
-         const_reference Q11) {
+         const_reference Q11) BOOST_NOEXCEPT {
       BOOST_STATIC_ASSERT(Size >= 11);
-      q[0] = Q1;
-      q[1] = Q2;
-      q[2] = Q3;
-      q[3] = Q4;
-      q[4] = Q5;
-      q[5] = Q6;
-      q[6] = Q7;
-      q[7] = Q8;
-      q[8] = Q9;
-      q[9] = Q10;
-      q[10] = Q11;
-      for(size_type i=11;i<Size;++i)
-        q[i] = value_type();
+      pointer p_i = q;
+      *p_i++ = Q1;
+      *p_i++ = Q2;
+      *p_i++ = Q3;
+      *p_i++ = Q4;
+      *p_i++ = Q5;
+      *p_i++ = Q6;
+      *p_i++ = Q7;
+      *p_i++ = Q8;
+      *p_i++ = Q9;
+      *p_i++ = Q10;
+      *p_i++ = Q11;
+      for(pointer p_end = q + Size; p_i < p_end; ++p_i)
+        *p_i = value_type();
       return;
     };
 
@@ -498,22 +496,23 @@ class vect : public serializable {
      */
     vect(const_reference Q1,const_reference Q2,const_reference Q3,const_reference Q4,const_reference Q5,
          const_reference Q6,const_reference Q7,const_reference Q8,const_reference Q9,const_reference Q10,
-         const_reference Q11, const_reference Q12) {
+         const_reference Q11, const_reference Q12) BOOST_NOEXCEPT {
       BOOST_STATIC_ASSERT(Size >= 12);
-      q[0] = Q1;
-      q[1] = Q2;
-      q[2] = Q3;
-      q[3] = Q4;
-      q[4] = Q5;
-      q[5] = Q6;
-      q[6] = Q7;
-      q[7] = Q8;
-      q[8] = Q9;
-      q[9] = Q10;
-      q[10] = Q11;
-      q[11] = Q12;
-      for(size_type i=12;i<Size;++i)
-        q[i] = value_type();
+      pointer p_i = q;
+      *p_i++ = Q1;
+      *p_i++ = Q2;
+      *p_i++ = Q3;
+      *p_i++ = Q4;
+      *p_i++ = Q5;
+      *p_i++ = Q6;
+      *p_i++ = Q7;
+      *p_i++ = Q8;
+      *p_i++ = Q9;
+      *p_i++ = Q10;
+      *p_i++ = Q11;
+      *p_i++ = Q12;
+      for(pointer p_end = q + Size; p_i < p_end; ++p_i)
+        *p_i = value_type();
       return;
     };
 
@@ -523,23 +522,24 @@ class vect : public serializable {
      */
     vect(const_reference Q1,const_reference Q2,const_reference Q3,const_reference Q4,const_reference Q5,
          const_reference Q6,const_reference Q7,const_reference Q8,const_reference Q9,const_reference Q10,
-         const_reference Q11, const_reference Q12, const_reference Q13) {
+         const_reference Q11, const_reference Q12, const_reference Q13) BOOST_NOEXCEPT {
       BOOST_STATIC_ASSERT(Size >= 13);
-      q[0] = Q1;
-      q[1] = Q2;
-      q[2] = Q3;
-      q[3] = Q4;
-      q[4] = Q5;
-      q[5] = Q6;
-      q[6] = Q7;
-      q[7] = Q8;
-      q[8] = Q9;
-      q[9] = Q10;
-      q[10] = Q11;
-      q[11] = Q12;
-      q[12] = Q13;
-      for(size_type i=13;i<Size;++i)
-        q[i] = value_type();
+      pointer p_i = q;
+      *p_i++ = Q1;
+      *p_i++ = Q2;
+      *p_i++ = Q3;
+      *p_i++ = Q4;
+      *p_i++ = Q5;
+      *p_i++ = Q6;
+      *p_i++ = Q7;
+      *p_i++ = Q8;
+      *p_i++ = Q9;
+      *p_i++ = Q10;
+      *p_i++ = Q11;
+      *p_i++ = Q12;
+      *p_i++ = Q13;
+      for(pointer p_end = q + Size; p_i < p_end; ++p_i)
+        *p_i = value_type();
       return;
     };
 
@@ -549,24 +549,25 @@ class vect : public serializable {
      */
     vect(const_reference Q1,const_reference Q2,const_reference Q3,const_reference Q4,const_reference Q5,
          const_reference Q6,const_reference Q7,const_reference Q8,const_reference Q9,const_reference Q10,
-         const_reference Q11, const_reference Q12, const_reference Q13, const_reference Q14) {
+         const_reference Q11, const_reference Q12, const_reference Q13, const_reference Q14) BOOST_NOEXCEPT {
       BOOST_STATIC_ASSERT(Size >= 14);
-      q[0] = Q1;
-      q[1] = Q2;
-      q[2] = Q3;
-      q[3] = Q4;
-      q[4] = Q5;
-      q[5] = Q6;
-      q[6] = Q7;
-      q[7] = Q8;
-      q[8] = Q9;
-      q[9] = Q10;
-      q[10] = Q11;
-      q[11] = Q12;
-      q[12] = Q13;
-      q[13] = Q14;
-      for(size_type i=14;i<Size;++i)
-        q[i] = value_type();
+      pointer p_i = q;
+      *p_i++ = Q1;
+      *p_i++ = Q2;
+      *p_i++ = Q3;
+      *p_i++ = Q4;
+      *p_i++ = Q5;
+      *p_i++ = Q6;
+      *p_i++ = Q7;
+      *p_i++ = Q8;
+      *p_i++ = Q9;
+      *p_i++ = Q10;
+      *p_i++ = Q11;
+      *p_i++ = Q12;
+      *p_i++ = Q13;
+      *p_i++ = Q14;
+      for(pointer p_end = q + Size; p_i < p_end; ++p_i)
+        *p_i = value_type();
       return;
     };
 
@@ -576,25 +577,26 @@ class vect : public serializable {
      */
     vect(const_reference Q1,const_reference Q2,const_reference Q3,const_reference Q4,const_reference Q5,
          const_reference Q6,const_reference Q7,const_reference Q8,const_reference Q9,const_reference Q10,
-         const_reference Q11, const_reference Q12, const_reference Q13, const_reference Q14, const_reference Q15) {
+         const_reference Q11, const_reference Q12, const_reference Q13, const_reference Q14, const_reference Q15) BOOST_NOEXCEPT {
       BOOST_STATIC_ASSERT(Size >= 15);
-      q[0] = Q1;
-      q[1] = Q2;
-      q[2] = Q3;
-      q[3] = Q4;
-      q[4] = Q5;
-      q[5] = Q6;
-      q[6] = Q7;
-      q[7] = Q8;
-      q[8] = Q9;
-      q[9] = Q10;
-      q[10] = Q11;
-      q[11] = Q12;
-      q[12] = Q13;
-      q[13] = Q14;
-      q[14] = Q15;
-      for(size_type i=15;i<Size;++i)
-        q[i] = value_type();
+      pointer p_i = q;
+      *p_i++ = Q1;
+      *p_i++ = Q2;
+      *p_i++ = Q3;
+      *p_i++ = Q4;
+      *p_i++ = Q5;
+      *p_i++ = Q6;
+      *p_i++ = Q7;
+      *p_i++ = Q8;
+      *p_i++ = Q9;
+      *p_i++ = Q10;
+      *p_i++ = Q11;
+      *p_i++ = Q12;
+      *p_i++ = Q13;
+      *p_i++ = Q14;
+      *p_i++ = Q15;
+      for(pointer p_end = q + Size; p_i < p_end; ++p_i)
+        *p_i = value_type();
       return;
     };
 
@@ -605,26 +607,27 @@ class vect : public serializable {
     vect(const_reference Q1,const_reference Q2,const_reference Q3,const_reference Q4,const_reference Q5,
          const_reference Q6,const_reference Q7,const_reference Q8,const_reference Q9,const_reference Q10,
          const_reference Q11, const_reference Q12, const_reference Q13, const_reference Q14, const_reference Q15,
-         const_reference Q16) {
+         const_reference Q16) BOOST_NOEXCEPT {
       BOOST_STATIC_ASSERT(Size >= 16);
-      q[0] = Q1;
-      q[1] = Q2;
-      q[2] = Q3;
-      q[3] = Q4;
-      q[4] = Q5;
-      q[5] = Q6;
-      q[6] = Q7;
-      q[7] = Q8;
-      q[8] = Q9;
-      q[9] = Q10;
-      q[10] = Q11;
-      q[11] = Q12;
-      q[12] = Q13;
-      q[13] = Q14;
-      q[14] = Q15;
-      q[15] = Q16;
-      for(size_type i=16;i<Size;++i)
-        q[i] = value_type();
+      pointer p_i = q;
+      *p_i++ = Q1;
+      *p_i++ = Q2;
+      *p_i++ = Q3;
+      *p_i++ = Q4;
+      *p_i++ = Q5;
+      *p_i++ = Q6;
+      *p_i++ = Q7;
+      *p_i++ = Q8;
+      *p_i++ = Q9;
+      *p_i++ = Q10;
+      *p_i++ = Q11;
+      *p_i++ = Q12;
+      *p_i++ = Q13;
+      *p_i++ = Q14;
+      *p_i++ = Q15;
+      *p_i++ = Q16;
+      for(pointer p_end = q + Size; p_i < p_end; ++p_i)
+        *p_i = value_type();
       return;
     };
 
@@ -635,27 +638,28 @@ class vect : public serializable {
     vect(const_reference Q1,const_reference Q2,const_reference Q3,const_reference Q4,const_reference Q5,
          const_reference Q6,const_reference Q7,const_reference Q8,const_reference Q9,const_reference Q10,
          const_reference Q11, const_reference Q12, const_reference Q13, const_reference Q14, const_reference Q15,
-         const_reference Q16, const_reference Q17) {
+         const_reference Q16, const_reference Q17) BOOST_NOEXCEPT {
       BOOST_STATIC_ASSERT(Size >= 17);
-      q[0] = Q1;
-      q[1] = Q2;
-      q[2] = Q3;
-      q[3] = Q4;
-      q[4] = Q5;
-      q[5] = Q6;
-      q[6] = Q7;
-      q[7] = Q8;
-      q[8] = Q9;
-      q[9] = Q10;
-      q[10] = Q11;
-      q[11] = Q12;
-      q[12] = Q13;
-      q[13] = Q14;
-      q[14] = Q15;
-      q[15] = Q16;
-      q[16] = Q17;
-      for(size_type i=17;i<Size;++i)
-        q[i] = value_type();
+      pointer p_i = q;
+      *p_i++ = Q1;
+      *p_i++ = Q2;
+      *p_i++ = Q3;
+      *p_i++ = Q4;
+      *p_i++ = Q5;
+      *p_i++ = Q6;
+      *p_i++ = Q7;
+      *p_i++ = Q8;
+      *p_i++ = Q9;
+      *p_i++ = Q10;
+      *p_i++ = Q11;
+      *p_i++ = Q12;
+      *p_i++ = Q13;
+      *p_i++ = Q14;
+      *p_i++ = Q15;
+      *p_i++ = Q16;
+      *p_i++ = Q17;
+      for(pointer p_end = q + Size; p_i < p_end; ++p_i)
+        *p_i = value_type();
       return;
     };
 
@@ -666,28 +670,29 @@ class vect : public serializable {
     vect(const_reference Q1,const_reference Q2,const_reference Q3,const_reference Q4,const_reference Q5,
          const_reference Q6,const_reference Q7,const_reference Q8,const_reference Q9,const_reference Q10,
          const_reference Q11, const_reference Q12, const_reference Q13, const_reference Q14, const_reference Q15,
-         const_reference Q16, const_reference Q17, const_reference Q18) {
+         const_reference Q16, const_reference Q17, const_reference Q18) BOOST_NOEXCEPT {
       BOOST_STATIC_ASSERT(Size >= 18);
-      q[0] = Q1;
-      q[1] = Q2;
-      q[2] = Q3;
-      q[3] = Q4;
-      q[4] = Q5;
-      q[5] = Q6;
-      q[6] = Q7;
-      q[7] = Q8;
-      q[8] = Q9;
-      q[9] = Q10;
-      q[10] = Q11;
-      q[11] = Q12;
-      q[12] = Q13;
-      q[13] = Q14;
-      q[14] = Q15;
-      q[15] = Q16;
-      q[16] = Q17;
-      q[17] = Q18;
-      for(size_type i=18;i<Size;++i)
-        q[i] = value_type();
+      pointer p_i = q;
+      *p_i++ = Q1;
+      *p_i++ = Q2;
+      *p_i++ = Q3;
+      *p_i++ = Q4;
+      *p_i++ = Q5;
+      *p_i++ = Q6;
+      *p_i++ = Q7;
+      *p_i++ = Q8;
+      *p_i++ = Q9;
+      *p_i++ = Q10;
+      *p_i++ = Q11;
+      *p_i++ = Q12;
+      *p_i++ = Q13;
+      *p_i++ = Q14;
+      *p_i++ = Q15;
+      *p_i++ = Q16;
+      *p_i++ = Q17;
+      *p_i++ = Q18;
+      for(pointer p_end = q + Size; p_i < p_end; ++p_i)
+        *p_i = value_type();
       return;
     };
 
@@ -698,29 +703,30 @@ class vect : public serializable {
     vect(const_reference Q1,const_reference Q2,const_reference Q3,const_reference Q4,const_reference Q5,
          const_reference Q6,const_reference Q7,const_reference Q8,const_reference Q9,const_reference Q10,
          const_reference Q11, const_reference Q12, const_reference Q13, const_reference Q14, const_reference Q15,
-         const_reference Q16, const_reference Q17, const_reference Q18, const_reference Q19) {
+         const_reference Q16, const_reference Q17, const_reference Q18, const_reference Q19) BOOST_NOEXCEPT {
       BOOST_STATIC_ASSERT(Size >= 19);
-      q[0] = Q1;
-      q[1] = Q2;
-      q[2] = Q3;
-      q[3] = Q4;
-      q[4] = Q5;
-      q[5] = Q6;
-      q[6] = Q7;
-      q[7] = Q8;
-      q[8] = Q9;
-      q[9] = Q10;
-      q[10] = Q11;
-      q[11] = Q12;
-      q[12] = Q13;
-      q[13] = Q14;
-      q[14] = Q15;
-      q[15] = Q16;
-      q[16] = Q17;
-      q[17] = Q18;
-      q[18] = Q19;
-      for(size_type i=19;i<Size;++i)
-        q[i] = value_type();
+      pointer p_i = q;
+      *p_i++ = Q1;
+      *p_i++ = Q2;
+      *p_i++ = Q3;
+      *p_i++ = Q4;
+      *p_i++ = Q5;
+      *p_i++ = Q6;
+      *p_i++ = Q7;
+      *p_i++ = Q8;
+      *p_i++ = Q9;
+      *p_i++ = Q10;
+      *p_i++ = Q11;
+      *p_i++ = Q12;
+      *p_i++ = Q13;
+      *p_i++ = Q14;
+      *p_i++ = Q15;
+      *p_i++ = Q16;
+      *p_i++ = Q17;
+      *p_i++ = Q18;
+      *p_i++ = Q19;
+      for(pointer p_end = q + Size; p_i < p_end; ++p_i)
+        *p_i = value_type();
       return;
     };
 
@@ -731,30 +737,31 @@ class vect : public serializable {
     vect(const_reference Q1,const_reference Q2,const_reference Q3,const_reference Q4,const_reference Q5,
          const_reference Q6,const_reference Q7,const_reference Q8,const_reference Q9,const_reference Q10,
          const_reference Q11, const_reference Q12, const_reference Q13, const_reference Q14, const_reference Q15,
-         const_reference Q16, const_reference Q17, const_reference Q18, const_reference Q19, const_reference Q20) {
+         const_reference Q16, const_reference Q17, const_reference Q18, const_reference Q19, const_reference Q20) BOOST_NOEXCEPT {
       BOOST_STATIC_ASSERT(Size >= 20);
-      q[0] = Q1;
-      q[1] = Q2;
-      q[2] = Q3;
-      q[3] = Q4;
-      q[4] = Q5;
-      q[5] = Q6;
-      q[6] = Q7;
-      q[7] = Q8;
-      q[8] = Q9;
-      q[9] = Q10;
-      q[10] = Q11;
-      q[11] = Q12;
-      q[12] = Q13;
-      q[13] = Q14;
-      q[14] = Q15;
-      q[15] = Q16;
-      q[16] = Q17;
-      q[17] = Q18;
-      q[18] = Q19;
-      q[19] = Q20;
-      for(size_type i=20;i<Size;++i)
-        q[i] = value_type();
+      pointer p_i = q;
+      *p_i++ = Q1;
+      *p_i++ = Q2;
+      *p_i++ = Q3;
+      *p_i++ = Q4;
+      *p_i++ = Q5;
+      *p_i++ = Q6;
+      *p_i++ = Q7;
+      *p_i++ = Q8;
+      *p_i++ = Q9;
+      *p_i++ = Q10;
+      *p_i++ = Q11;
+      *p_i++ = Q12;
+      *p_i++ = Q13;
+      *p_i++ = Q14;
+      *p_i++ = Q15;
+      *p_i++ = Q16;
+      *p_i++ = Q17;
+      *p_i++ = Q18;
+      *p_i++ = Q19;
+      *p_i++ = Q20;
+      for(pointer p_end = q + Size; p_i < p_end; ++p_i)
+        *p_i = value_type();
       return;
     };
     
@@ -762,14 +769,14 @@ class vect : public serializable {
     
   private:
     
-    static void set_value_impl(value_type* pval, const value_type& a1) {
-      *pval = a1;
+    static void set_value_impl(pointer& pval, const value_type& a1) BOOST_NOEXCEPT {
+      *pval++ = a1;
     };
     
     template <typename... Args>
-    static void set_value_impl(value_type* pval, const value_type& a1, const Args&... tail) {
-      *pval = a1;
-      set_value_impl(++pval, tail...);
+    static void set_value_impl(pointer& pval, const value_type& a1, const Args&... tail) BOOST_NOEXCEPT {
+      *pval++ = a1;
+      set_value_impl(pval, tail...);
     };
     
   public:
@@ -779,11 +786,12 @@ class vect : public serializable {
      * \test PASSED
      */
     template <typename... Args>
-    vect(const value_type& a1, Args... args) {
+    vect(const value_type& a1, Args... args) BOOST_NOEXCEPT {
       BOOST_STATIC_ASSERT(Size > sizeof...(Args));
-      set_value_impl(q, a1, args...);
-      for(size_type i = sizeof...(Args) + 1; i < Size; ++i)
-        q[i] = value_type();
+      pointer p_i = q;
+      set_value_impl(p_i, a1, args...);
+      for(pointer p_end = q + Size; p_i < p_end; ++p_i)
+        *p_i = value_type();
       return;
     };
     
@@ -797,7 +805,7 @@ class vect : public serializable {
      * Array indexing operator, accessor for read/write.
      * \test PASSED
      */
-    reference operator [](size_type i) {
+    reference operator [](size_type i) BOOST_NOEXCEPT {
       return q[i];
     };
 
@@ -805,7 +813,7 @@ class vect : public serializable {
      * Array indexing operator, accessor for read only.
      * \test PASSED
      */
-    const_reference operator [](size_type i) const {
+    const_reference operator [](size_type i) const BOOST_NOEXCEPT {
       return q[i];
     };
     
@@ -829,7 +837,7 @@ class vect : public serializable {
      * Array indexing operator, accessor for read/write.
      * \test PASSED
      */
-    reference operator ()(size_type i) {
+    reference operator ()(size_type i) BOOST_NOEXCEPT {
       return q[i];
     };
 
@@ -837,7 +845,7 @@ class vect : public serializable {
      * Array indexing operator, accessor for read only.
      * \test PASSED
      */
-    const_reference operator ()(size_type i) const {
+    const_reference operator ()(size_type i) const BOOST_NOEXCEPT {
       return q[i];
     };
 
@@ -845,15 +853,20 @@ class vect : public serializable {
                          Assignment Operators
 *******************************************************************************/
 
+#ifdef BOOST_NO_DEFAULTED_FUNCTIONS
     /**
      * Standard assignment operator.
      * \test PASSED
      */
-    self& operator =(const self& V) {
-      for(size_type i=0;i<Size;++i)
-        q[i] = V[i];
+    self& operator =(const self& V) BOOST_NOEXCEPT {
+      const_pointer Q = V.q;
+      for(pointer p_i = q, p_end = q + Size; p_i < p_end; ++p_i, ++Q)
+        *p_i = *Q;
       return *this;
     };
+#else
+    self& operator =(const self& V) BOOST_NOEXCEPT = default;
+#endif
     
     /**
      * Standard assignment operator.
@@ -871,23 +884,23 @@ class vect : public serializable {
     };
     
     template <typename U, unsigned int Index>
-    self& operator=(const vect_component<U,Index>& V) {
+    self& operator=(const vect_component<U,Index>& V) BOOST_NOEXCEPT {
       BOOST_STATIC_ASSERT(Size > Index);
-      for(size_type i=0; i < Size; ++i)
-        q[i] = value_type();
+      for(pointer p_i = q, p_end = q + Size; p_i < p_end; ++p_i)
+        *p_i = value_type();
       q[Index] = V.q;
     };
     
     template <typename U, unsigned int Index>
     friend
-    self operator+(self lhs, const vect_component<U,Index>& rhs) {
+    self operator+(self lhs, const vect_component<U,Index>& rhs) BOOST_NOEXCEPT {
       BOOST_STATIC_ASSERT(Size > Index);
       lhs.q[Index] += rhs.q;
       return lhs;
     };
     
     template <typename U, unsigned int Index>
-    self& operator+=(const vect_component<U,Index>& rhs) {
+    self& operator+=(const vect_component<U,Index>& rhs) BOOST_NOEXCEPT {
       BOOST_STATIC_ASSERT(Size > Index);
       q[Index] += rhs.q;
       return *this;
@@ -895,7 +908,7 @@ class vect : public serializable {
     
     template <typename U, unsigned int Index>
     friend
-    self operator+(const vect_component<U,Index>& lhs, self rhs) {
+    self operator+(const vect_component<U,Index>& lhs, self rhs) BOOST_NOEXCEPT {
       BOOST_STATIC_ASSERT(Size > Index);
       rhs.q[Index] += lhs.q;
       return rhs;
@@ -903,14 +916,14 @@ class vect : public serializable {
     
     template <typename U, unsigned int Index>
     friend
-    self operator-(self lhs, const vect_component<U,Index>& rhs) {
+    self operator-(self lhs, const vect_component<U,Index>& rhs) BOOST_NOEXCEPT {
       BOOST_STATIC_ASSERT(Size > Index);
       lhs.q[Index] -= rhs.q;
       return lhs;
     };
     
     template <typename U, unsigned int Index>
-    self& operator-=(const vect_component<U,Index>& rhs) {
+    self& operator-=(const vect_component<U,Index>& rhs) BOOST_NOEXCEPT {
       BOOST_STATIC_ASSERT(Size > Index);
       q[Index] -= rhs.q;
       return *this;
@@ -918,28 +931,13 @@ class vect : public serializable {
     
     template <typename U, unsigned int Index>
     friend
-    self operator-(const vect_component<U,Index>& lhs, const self& rhs) {
+    self operator-(const vect_component<U,Index>& lhs, const self& rhs) BOOST_NOEXCEPT {
       BOOST_STATIC_ASSERT(Size > Index);
       self result = -rhs;
       result.q[Index] += lhs.q;
       return result;
     };
-
-/*******************************************************************************
-                   ReaK's RTTI and Serialization interfaces
-*******************************************************************************/
-
-    virtual void RK_CALL save(serialization::oarchive& A, unsigned int) const {
-      for(size_type i=0;i<Size;++i)
-        A & std::pair<std::string, typename ReaK::rtti::get_type_id<T>::save_type >("q",q[i]);
-    };
-    virtual void RK_CALL load(serialization::iarchive& A, unsigned int) {
-      for(size_type i=0;i<Size;++i)
-        A & std::pair<std::string, typename ReaK::rtti::get_type_id<T>::load_type >("q",q[i]);
-    };
     
-    RK_RTTI_REGISTER_CLASS_1BASE(self,1,serializable)
-
 };
 
 namespace rtti {
@@ -954,8 +952,8 @@ struct get_type_id< vect<T,Size> > {
 #endif
   static construct_ptr CreatePtr() BOOST_NOEXCEPT { return NULL; };
   
-  typedef const serializable& save_type;
-  typedef serializable& load_type;
+  typedef const vect<T,Size>& save_type;
+  typedef vect<T,Size>& load_type;
 };
 
 template <typename T, unsigned int Size, typename Tail>
@@ -981,6 +979,42 @@ struct get_type_info< vect<T,Size>, Tail > {
 #endif
 };
 
+};
+
+namespace serialization {
+  template <typename T, unsigned int Size>
+  iarchive& operator >>(iarchive& in, vect<T,Size>& v) {
+    for(unsigned int i = 0; i != Size; ++i)
+      in >> v[i];
+    return in;
+  };
+  
+  template <typename T, unsigned int Size>
+  iarchive& operator &(iarchive& in, const std::pair< std::string, vect<T,Size>& >& v) {
+    for(unsigned int i = 0; i != Size; ++i) {
+      std::stringstream s_stream;
+      s_stream << v.first << "_q[" << i << "]";
+      in & RK_SERIAL_LOAD_WITH_ALIAS(s_stream.str(), v.second[i]);
+    };
+    return in;
+  };
+  
+  template <typename T, unsigned int Size>
+  oarchive& operator <<(oarchive& out, const vect<T,Size>& v) {
+    for(unsigned int i = 0; i != Size; ++i)
+      out << v[i];
+    return out;
+  };
+  
+  template <typename T, unsigned int Size>
+  oarchive& operator &(oarchive& out, const std::pair< std::string, const vect<T,Size>& >& v) {
+    for(unsigned int i = 0; i != Size; ++i) {
+      std::stringstream s_stream;
+      s_stream << v.first << "_q[" << i << "]";
+      out & RK_SERIAL_SAVE_WITH_ALIAS(s_stream.str(), v.second[i]);
+    };
+    return out;
+  };
 };
 
 
@@ -1020,102 +1054,102 @@ struct has_allocator_vector< vect<T,Size> > {
 *******************************************************************************/
 
 template <typename T>
-vect<T,1> make_vect(const T& Q1) {
+vect<T,1> make_vect(const T& Q1) BOOST_NOEXCEPT {
   return vect<T,1>(Q1);
 };
 
 template <typename T>
-vect<T,2> make_vect(const T& Q1,const T& Q2) {
+vect<T,2> make_vect(const T& Q1,const T& Q2) BOOST_NOEXCEPT {
   return vect<T,2>(Q1,Q2);
 };
 
 template <typename T>
-vect<T,3> make_vect(const T& Q1,const T& Q2,const T& Q3) {
+vect<T,3> make_vect(const T& Q1,const T& Q2,const T& Q3) BOOST_NOEXCEPT {
   return vect<T,3>(Q1,Q2,Q3);
 };
 
 template <typename T>
-vect<T,4> make_vect(const T& Q1,const T& Q2,const T& Q3,const T& Q4) {
+vect<T,4> make_vect(const T& Q1,const T& Q2,const T& Q3,const T& Q4) BOOST_NOEXCEPT {
   return vect<T,4>(Q1,Q2,Q3,Q4);
 };
 
 template <typename T>
-vect<T,5> make_vect(const T& Q1,const T& Q2,const T& Q3,const T& Q4,const T& Q5) {
+vect<T,5> make_vect(const T& Q1,const T& Q2,const T& Q3,const T& Q4,const T& Q5) BOOST_NOEXCEPT {
   return vect<T,5>(Q1,Q2,Q3,Q4,Q5);
 };
 
 template <typename T>
-vect<T,6> make_vect(const T& Q1,const T& Q2,const T& Q3,const T& Q4,const T& Q5,const T& Q6) {
+vect<T,6> make_vect(const T& Q1,const T& Q2,const T& Q3,const T& Q4,const T& Q5,const T& Q6) BOOST_NOEXCEPT {
   return vect<T,6>(Q1,Q2,Q3,Q4,Q5,Q6);
 };
 
 template <typename T>
-vect<T,7> make_vect(const T& Q1,const T& Q2,const T& Q3,const T& Q4,const T& Q5,const T& Q6,const T& Q7) {
+vect<T,7> make_vect(const T& Q1,const T& Q2,const T& Q3,const T& Q4,const T& Q5,const T& Q6,const T& Q7) BOOST_NOEXCEPT {
   return vect<T,7>(Q1,Q2,Q3,Q4,Q5,Q6,Q7);
 };
 
 template <typename T>
-vect<T,8> make_vect(const T& Q1,const T& Q2,const T& Q3,const T& Q4,const T& Q5,const T& Q6,const T& Q7,const T& Q8) {
+vect<T,8> make_vect(const T& Q1,const T& Q2,const T& Q3,const T& Q4,const T& Q5,const T& Q6,const T& Q7,const T& Q8) BOOST_NOEXCEPT {
   return vect<T,8>(Q1,Q2,Q3,Q4,Q5,Q6,Q7,Q8);
 };
 
 template <typename T>
-vect<T,9> make_vect(const T& Q1,const T& Q2,const T& Q3,const T& Q4,const T& Q5,const T& Q6,const T& Q7,const T& Q8,const T& Q9) {
+vect<T,9> make_vect(const T& Q1,const T& Q2,const T& Q3,const T& Q4,const T& Q5,const T& Q6,const T& Q7,const T& Q8,const T& Q9) BOOST_NOEXCEPT {
   return vect<T,9>(Q1,Q2,Q3,Q4,Q5,Q6,Q7,Q8,Q9);
 };
 
 template <typename T>
-vect<T,10> make_vect(const T& Q1,const T& Q2,const T& Q3,const T& Q4,const T& Q5,const T& Q6,const T& Q7,const T& Q8,const T& Q9,const T& Q10) {
+vect<T,10> make_vect(const T& Q1,const T& Q2,const T& Q3,const T& Q4,const T& Q5,const T& Q6,const T& Q7,const T& Q8,const T& Q9,const T& Q10) BOOST_NOEXCEPT {
   return vect<T,10>(Q1,Q2,Q3,Q4,Q5,Q6,Q7,Q8,Q9,Q10);
 };
 
 template <typename T>
-vect<T,11> make_vect(const T& Q1,const T& Q2,const T& Q3,const T& Q4,const T& Q5,const T& Q6,const T& Q7,const T& Q8,const T& Q9,const T& Q10,const T& Q11) {
+vect<T,11> make_vect(const T& Q1,const T& Q2,const T& Q3,const T& Q4,const T& Q5,const T& Q6,const T& Q7,const T& Q8,const T& Q9,const T& Q10,const T& Q11) BOOST_NOEXCEPT {
   return vect<T,11>(Q1,Q2,Q3,Q4,Q5,Q6,Q7,Q8,Q9,Q10,Q11);
 };
 
 template <typename T>
-vect<T,12> make_vect(const T& Q1,const T& Q2,const T& Q3,const T& Q4,const T& Q5,const T& Q6,const T& Q7,const T& Q8,const T& Q9,const T& Q10,const T& Q11,const T& Q12) {
+vect<T,12> make_vect(const T& Q1,const T& Q2,const T& Q3,const T& Q4,const T& Q5,const T& Q6,const T& Q7,const T& Q8,const T& Q9,const T& Q10,const T& Q11,const T& Q12) BOOST_NOEXCEPT {
   return vect<T,12>(Q1,Q2,Q3,Q4,Q5,Q6,Q7,Q8,Q9,Q10,Q11,Q12);
 };
 
 template <typename T>
-vect<T,13> make_vect(const T& Q1,const T& Q2,const T& Q3,const T& Q4,const T& Q5,const T& Q6,const T& Q7,const T& Q8,const T& Q9,const T& Q10,const T& Q11,const T& Q12,const T& Q13) {
+vect<T,13> make_vect(const T& Q1,const T& Q2,const T& Q3,const T& Q4,const T& Q5,const T& Q6,const T& Q7,const T& Q8,const T& Q9,const T& Q10,const T& Q11,const T& Q12,const T& Q13) BOOST_NOEXCEPT {
   return vect<T,13>(Q1,Q2,Q3,Q4,Q5,Q6,Q7,Q8,Q9,Q10,Q11,Q12,Q13);
 };
 
 template <typename T>
-vect<T,14> make_vect(const T& Q1,const T& Q2,const T& Q3,const T& Q4,const T& Q5,const T& Q6,const T& Q7,const T& Q8,const T& Q9,const T& Q10,const T& Q11,const T& Q12,const T& Q13,const T& Q14) {
+vect<T,14> make_vect(const T& Q1,const T& Q2,const T& Q3,const T& Q4,const T& Q5,const T& Q6,const T& Q7,const T& Q8,const T& Q9,const T& Q10,const T& Q11,const T& Q12,const T& Q13,const T& Q14) BOOST_NOEXCEPT {
   return vect<T,14>(Q1,Q2,Q3,Q4,Q5,Q6,Q7,Q8,Q9,Q10,Q11,Q12,Q13,Q14);
 };
 
 template <typename T>
-vect<T,15> make_vect(const T& Q1,const T& Q2,const T& Q3,const T& Q4,const T& Q5,const T& Q6,const T& Q7,const T& Q8,const T& Q9,const T& Q10,const T& Q11,const T& Q12,const T& Q13,const T& Q14,const T& Q15) {
+vect<T,15> make_vect(const T& Q1,const T& Q2,const T& Q3,const T& Q4,const T& Q5,const T& Q6,const T& Q7,const T& Q8,const T& Q9,const T& Q10,const T& Q11,const T& Q12,const T& Q13,const T& Q14,const T& Q15) BOOST_NOEXCEPT {
   return vect<T,15>(Q1,Q2,Q3,Q4,Q5,Q6,Q7,Q8,Q9,Q10,Q11,Q12,Q13,Q14,Q15);
 };
 
 template <typename T>
-vect<T,16> make_vect(const T& Q1,const T& Q2,const T& Q3,const T& Q4,const T& Q5,const T& Q6,const T& Q7,const T& Q8,const T& Q9,const T& Q10,const T& Q11,const T& Q12,const T& Q13,const T& Q14,const T& Q15,const T& Q16) {
+vect<T,16> make_vect(const T& Q1,const T& Q2,const T& Q3,const T& Q4,const T& Q5,const T& Q6,const T& Q7,const T& Q8,const T& Q9,const T& Q10,const T& Q11,const T& Q12,const T& Q13,const T& Q14,const T& Q15,const T& Q16) BOOST_NOEXCEPT {
   return vect<T,16>(Q1,Q2,Q3,Q4,Q5,Q6,Q7,Q8,Q9,Q10,Q11,Q12,Q13,Q14,Q15,Q16);
 };
 
 template <typename T>
-vect<T,17> make_vect(const T& Q1,const T& Q2,const T& Q3,const T& Q4,const T& Q5,const T& Q6,const T& Q7,const T& Q8,const T& Q9,const T& Q10,const T& Q11,const T& Q12,const T& Q13,const T& Q14,const T& Q15,const T& Q16,const T& Q17) {
+vect<T,17> make_vect(const T& Q1,const T& Q2,const T& Q3,const T& Q4,const T& Q5,const T& Q6,const T& Q7,const T& Q8,const T& Q9,const T& Q10,const T& Q11,const T& Q12,const T& Q13,const T& Q14,const T& Q15,const T& Q16,const T& Q17) BOOST_NOEXCEPT {
   return vect<T,17>(Q1,Q2,Q3,Q4,Q5,Q6,Q7,Q8,Q9,Q10,Q11,Q12,Q13,Q14,Q15,Q16,Q17);
 };
 
 template <typename T>
-vect<T,18> make_vect(const T& Q1,const T& Q2,const T& Q3,const T& Q4,const T& Q5,const T& Q6,const T& Q7,const T& Q8,const T& Q9,const T& Q10,const T& Q11,const T& Q12,const T& Q13,const T& Q14,const T& Q15,const T& Q16,const T& Q17,const T& Q18) {
+vect<T,18> make_vect(const T& Q1,const T& Q2,const T& Q3,const T& Q4,const T& Q5,const T& Q6,const T& Q7,const T& Q8,const T& Q9,const T& Q10,const T& Q11,const T& Q12,const T& Q13,const T& Q14,const T& Q15,const T& Q16,const T& Q17,const T& Q18) BOOST_NOEXCEPT {
   return vect<T,18>(Q1,Q2,Q3,Q4,Q5,Q6,Q7,Q8,Q9,Q10,Q11,Q12,Q13,Q14,Q15,Q16,Q17,Q18);
 };
 
 template <typename T>
-vect<T,19> make_vect(const T& Q1,const T& Q2,const T& Q3,const T& Q4,const T& Q5,const T& Q6,const T& Q7,const T& Q8,const T& Q9,const T& Q10,const T& Q11,const T& Q12,const T& Q13,const T& Q14,const T& Q15,const T& Q16,const T& Q17,const T& Q18,const T& Q19) {
+vect<T,19> make_vect(const T& Q1,const T& Q2,const T& Q3,const T& Q4,const T& Q5,const T& Q6,const T& Q7,const T& Q8,const T& Q9,const T& Q10,const T& Q11,const T& Q12,const T& Q13,const T& Q14,const T& Q15,const T& Q16,const T& Q17,const T& Q18,const T& Q19) BOOST_NOEXCEPT {
   return vect<T,19>(Q1,Q2,Q3,Q4,Q5,Q6,Q7,Q8,Q9,Q10,Q11,Q12,Q13,Q14,Q15,Q16,Q17,Q18,Q19);
 };
 
 template <typename T>
-vect<T,20> make_vect(const T& Q1,const T& Q2,const T& Q3,const T& Q4,const T& Q5,const T& Q6,const T& Q7,const T& Q8,const T& Q9,const T& Q10,const T& Q11,const T& Q12,const T& Q13,const T& Q14,const T& Q15,const T& Q16,const T& Q17,const T& Q18,const T& Q19,const T& Q20) {
+vect<T,20> make_vect(const T& Q1,const T& Q2,const T& Q3,const T& Q4,const T& Q5,const T& Q6,const T& Q7,const T& Q8,const T& Q9,const T& Q10,const T& Q11,const T& Q12,const T& Q13,const T& Q14,const T& Q15,const T& Q16,const T& Q17,const T& Q18,const T& Q19,const T& Q20) BOOST_NOEXCEPT {
   return vect<T,20>(Q1,Q2,Q3,Q4,Q5,Q6,Q7,Q8,Q9,Q10,Q11,Q12,Q13,Q14,Q15,Q16,Q17,Q18,Q19,Q20);
 };
 
@@ -1133,7 +1167,7 @@ vect<T,20> make_vect(const T& Q1,const T& Q2,const T& Q3,const T& Q4,const T& Q5
  * \test PASSED
  */
 template <typename T, unsigned int Size>
-vect<T,Size> diff(const vect<T,Size>& v1, const vect<T,Size>& v2) {
+vect<T,Size> diff(const vect<T,Size>& v1, const vect<T,Size>& v2) BOOST_NOEXCEPT {
   return v1 - v2;
 };
 
@@ -1142,7 +1176,7 @@ vect<T,Size> diff(const vect<T,Size>& v1, const vect<T,Size>& v2) {
  * \test PASSED
  */
 template <typename T, unsigned int Size>
-vect<T,Size> add(const vect<T,Size>& v1, const vect<T,Size>& v2) {
+vect<T,Size> add(const vect<T,Size>& v1, const vect<T,Size>& v2) BOOST_NOEXCEPT {
   return v1 + v2;
 };
 
@@ -1159,27 +1193,27 @@ vect<T,Size> add(const vect<T,Size>& v1, const vect<T,Size>& v2) {
  * \test PASSED
  */
 template <class T>
-T operator %(const vect<T,2>& V1,const vect<T,2>& V2) {
+T operator %(const vect<T,2>& V1,const vect<T,2>& V2) BOOST_NOEXCEPT {
   return V1[0] * V2[1] - V1[1] * V2[0];
 };
 
 template <class T>
-T operator %(const vect_component<T,0>& V1,const vect_component<T,0>& V2) {
+T operator %(const vect_component<T,0>& V1,const vect_component<T,0>& V2) BOOST_NOEXCEPT {
   return T(0.0);
 };
 
 template <class T>
-T operator %(const vect_component<T,1>& V1,const vect_component<T,1>& V2) {
+T operator %(const vect_component<T,1>& V1,const vect_component<T,1>& V2) BOOST_NOEXCEPT {
   return T(0.0);
 };
 
 template <class T>
-vect_component<T,2> operator %(const vect_component<T,0>& V1,const vect_component<T,1>& V2) {
+vect_component<T,2> operator %(const vect_component<T,0>& V1,const vect_component<T,1>& V2) BOOST_NOEXCEPT {
   return vect_component<T,2>(V1.q * V2.q);
 };
 
 template <class T>
-vect_component<T,2> operator %(const vect_component<T,1>& V1,const vect_component<T,0>& V2) {
+vect_component<T,2> operator %(const vect_component<T,1>& V1,const vect_component<T,0>& V2) BOOST_NOEXCEPT {
   return vect_component<T,2>(-V1.q * V2.q);
 };
 
@@ -1188,7 +1222,7 @@ vect_component<T,2> operator %(const vect_component<T,1>& V1,const vect_componen
  * \test PASSED
  */
 template <class T>
-vect<T,2> operator %(const T& S, const vect<T,2>& V) {
+vect<T,2> operator %(const T& S, const vect<T,2>& V) BOOST_NOEXCEPT {
   vect<T,2> result;
   result[0] = -V[1]*S;
   result[1] =  V[0]*S;
@@ -1196,12 +1230,12 @@ vect<T,2> operator %(const T& S, const vect<T,2>& V) {
 };
 
 template <class T>
-vect_component<T,1> operator %(const T& S,const vect_component<T,0>& V) {
+vect_component<T,1> operator %(const T& S,const vect_component<T,0>& V) BOOST_NOEXCEPT {
   return vect_component<T,1>(V.q*S);
 };
 
 template <class T>
-vect_component<T,0> operator %(const T& S,const vect_component<T,1>& V) {
+vect_component<T,0> operator %(const T& S,const vect_component<T,1>& V) BOOST_NOEXCEPT {
   return vect_component<T,0>(-V.q*S);
 };
 
@@ -1210,7 +1244,7 @@ vect_component<T,0> operator %(const T& S,const vect_component<T,1>& V) {
  * \test PASSED
  */
 template <class T>
-vect<T,2> operator %(const vect<T,2>& V,const T& S) {
+vect<T,2> operator %(const vect<T,2>& V,const T& S) BOOST_NOEXCEPT {
   vect<T,2> result;
   result[0] =  V[1]*S;
   result[1] = -V[0]*S;
@@ -1218,12 +1252,12 @@ vect<T,2> operator %(const vect<T,2>& V,const T& S) {
 };
 
 template <class T>
-vect_component<T,1> operator %(const vect_component<T,0>& V, const T& S) {
+vect_component<T,1> operator %(const vect_component<T,0>& V, const T& S) BOOST_NOEXCEPT {
   return vect_component<T,1>(-V.q*S);
 };
 
 template <class T>
-vect_component<T,0> operator %(const vect_component<T,1>& V, const T& S) {
+vect_component<T,0> operator %(const vect_component<T,1>& V, const T& S) BOOST_NOEXCEPT {
   return vect_component<T,0>(V.q*S);
 };
 
@@ -1232,7 +1266,7 @@ vect_component<T,0> operator %(const vect_component<T,1>& V, const T& S) {
  * \test PASSED
  */
 template <class T>
-vect<T,3> operator %(const vect<T,3>& V1 , const vect<T,3>& V2) {
+vect<T,3> operator %(const vect<T,3>& V1 , const vect<T,3>& V2) BOOST_NOEXCEPT {
   vect<T,3> result;
   result[0] = V1[1]*V2[2] - V1[2]*V2[1];
   result[1] = V1[2]*V2[0] - V1[0]*V2[2];
@@ -1241,32 +1275,32 @@ vect<T,3> operator %(const vect<T,3>& V1 , const vect<T,3>& V2) {
 };
 
 template <class T>
-vect_component<T,1> operator %(const vect_component<T,0>& V1,const vect_component<T,2>& V2) {
+vect_component<T,1> operator %(const vect_component<T,0>& V1,const vect_component<T,2>& V2) BOOST_NOEXCEPT {
   return vect_component<T,1>(-V1.q * V2.q);
 };
 
 template <class T>
-vect_component<T,1> operator %(const vect_component<T,2>& V1,const vect_component<T,0>& V2) {
+vect_component<T,1> operator %(const vect_component<T,2>& V1,const vect_component<T,0>& V2) BOOST_NOEXCEPT {
   return vect_component<T,1>(V1.q * V2.q);
 };
 
 template <class T>
-vect_component<T,0> operator %(const vect_component<T,1>& V1,const vect_component<T,2>& V2) {
+vect_component<T,0> operator %(const vect_component<T,1>& V1,const vect_component<T,2>& V2) BOOST_NOEXCEPT {
   return vect_component<T,2>(V1.q * V2.q);
 };
 
 template <class T>
-vect_component<T,0> operator %(const vect_component<T,2>& V1,const vect_component<T,1>& V2) {
+vect_component<T,0> operator %(const vect_component<T,2>& V1,const vect_component<T,1>& V2) BOOST_NOEXCEPT {
   return vect_component<T,2>(-V1.q * V2.q);
 };
 
 template <class T>
-T operator %(const vect_component<T,2>& V1,const vect_component<T,2>& V2) {
+T operator %(const vect_component<T,2>& V1,const vect_component<T,2>& V2) BOOST_NOEXCEPT {
   return T(0.0);
 };
 
 template <class T>
-vect<T,3> operator %(const vect<T,3>& V1,const vect_component<T,0>& V2) {
+vect<T,3> operator %(const vect<T,3>& V1,const vect_component<T,0>& V2) BOOST_NOEXCEPT {
   vect<T,3> result;
   result[0] =  T(0.0);
   result[1] =  V1[2] * V2.q;
@@ -1275,7 +1309,7 @@ vect<T,3> operator %(const vect<T,3>& V1,const vect_component<T,0>& V2) {
 };
 
 template <class T>
-vect<T,3> operator %(const vect<T,3>& V1,const vect_component<T,1>& V2) {
+vect<T,3> operator %(const vect<T,3>& V1,const vect_component<T,1>& V2) BOOST_NOEXCEPT {
   vect<T,3> result;
   result[0] = -V1[2]*V2.q;
   result[1] =  T(0.0);
@@ -1284,7 +1318,7 @@ vect<T,3> operator %(const vect<T,3>& V1,const vect_component<T,1>& V2) {
 };
 
 template <class T>
-vect<T,3> operator %(const vect<T,3>& V1,const vect_component<T,2>& V2) {
+vect<T,3> operator %(const vect<T,3>& V1,const vect_component<T,2>& V2) BOOST_NOEXCEPT {
   vect<T,3> result;
   result[0] =  V1[1] * V2.q;
   result[1] = -V1[0] * V2.q;
@@ -1293,7 +1327,7 @@ vect<T,3> operator %(const vect<T,3>& V1,const vect_component<T,2>& V2) {
 };
 
 template <class T>
-vect<T,3> operator %(const vect_component<T,0>& V1,const vect<T,3>& V2) {
+vect<T,3> operator %(const vect_component<T,0>& V1,const vect<T,3>& V2) BOOST_NOEXCEPT {
   vect<T,3> result;
   result[0] =  T(0.0);
   result[1] = -V2[2] * V1.q;
@@ -1302,7 +1336,7 @@ vect<T,3> operator %(const vect_component<T,0>& V1,const vect<T,3>& V2) {
 };
 
 template <class T>
-vect<T,3> operator %(const vect_component<T,1>& V1,const vect<T,3>& V2) {
+vect<T,3> operator %(const vect_component<T,1>& V1,const vect<T,3>& V2) BOOST_NOEXCEPT {
   vect<T,3> result;
   result[0] =  V2[2]*V1.q;
   result[1] =  T(0.0);
@@ -1311,7 +1345,7 @@ vect<T,3> operator %(const vect_component<T,1>& V1,const vect<T,3>& V2) {
 };
 
 template <class T>
-vect<T,3> operator %(const vect_component<T,2>& V1,const vect<T,3>& V2) {
+vect<T,3> operator %(const vect_component<T,2>& V1,const vect<T,3>& V2) BOOST_NOEXCEPT {
   vect<T,3> result;
   result[0] = -V2[1] * V1.q;
   result[1] =  V2[0] * V1.q;
@@ -1328,7 +1362,7 @@ vect<T,3> operator %(const vect_component<T,2>& V1,const vect<T,3>& V2) {
  * This class implements a variable-size templated vector class which holds components of dimensional quantities.
  */
 template <typename T, typename Allocator = std::allocator<T> >
-class vect_n : public serializable {
+class vect_n {
   public:
     
     typedef vect_n<T,Allocator> self;
@@ -1353,15 +1387,15 @@ class vect_n : public serializable {
     /**
      * Returns the size of the vector.
      */
-    size_type size() const { return q.size(); };
+    size_type size() const BOOST_NOEXCEPT { return q.size(); };
     /**
      * Returns the max-size of the vector.
      */
-    size_type max_size() const { return q.max_size(); };
+    size_type max_size() const BOOST_NOEXCEPT { return q.max_size(); };
     /**
      * Returns the capacity of the vector.
      */
-    size_type capacity() const { return q.capacity(); };
+    size_type capacity() const BOOST_NOEXCEPT { return q.capacity(); };
     /**
      * Resizes the vector.
      */
@@ -1369,7 +1403,7 @@ class vect_n : public serializable {
     /**
      * Checks if the vector is empty.
      */
-    bool empty() const { return q.empty(); };
+    bool empty() const BOOST_NOEXCEPT { return q.empty(); };
     /**
      * Reserve a capacity for the vector.
      */
@@ -1378,19 +1412,19 @@ class vect_n : public serializable {
     /**
      * Returns an iterator to the first element of the vector.
      */
-    iterator begin() { return q.begin(); };
+    iterator begin() BOOST_NOEXCEPT { return q.begin(); };
     /**
      * Returns a const-iterator to the first element of the vector.
      */
-    const_iterator begin() const { return q.begin(); };
+    const_iterator begin() const BOOST_NOEXCEPT { return q.begin(); };
     /**
      * Returns an iterator to the one-past-last element of the vector.
      */
-    iterator end() { return q.end(); };
+    iterator end() BOOST_NOEXCEPT { return q.end(); };
     /**
      * Returns a const-iterator to the one-past-last element of the vector.
      */
-    const_iterator end() const { return q.end(); };
+    const_iterator end() const BOOST_NOEXCEPT { return q.end(); };
 
 /*******************************************************************************
                          Constructors / Destructors
@@ -1433,27 +1467,24 @@ class vect_n : public serializable {
      */
     template <typename OtherAllocator>
     vect_n(const vect_n<value_type,OtherAllocator>& V,const allocator_type& aAlloc = allocator_type()) : q(V.begin(),V.end(),aAlloc) {};
-
+    
     /**
      * Constructor from a fixed-length vector.
      */
     template <unsigned int Size>
     vect_n(const vect<value_type,Size>& V,const allocator_type& aAlloc = allocator_type()) : q(V.begin(),V.end(),aAlloc) { };
-
-    /**
-     * Destructor.
-     * \test PASSED
-     */
-    ~vect_n() { };
-
+    
+#ifdef BOOST_NO_CXX11_VARIADIC_TEMPLATES
+    
     /**
      * Constructor for 3 values.
      * \test PASSED
      */
     vect_n(const_reference Q1,const_reference Q2,const_reference Q3) : q(3) {
-      q[0] = Q1;
-      q[1] = Q2;
-      q[2] = Q3;
+      iterator it = q.begin();
+      *it++ = Q1;
+      *it++ = Q2;
+      *it++ = Q3;
       return;
     };
 
@@ -1462,10 +1493,11 @@ class vect_n : public serializable {
      * \test PASSED
      */
     vect_n(const_reference Q1,const_reference Q2,const_reference Q3,const_reference Q4) : q(4) {
-      q[0] = Q1;
-      q[1] = Q2;
-      q[2] = Q3;
-      q[3] = Q4;
+      iterator it = q.begin();
+      *it++ = Q1;
+      *it++ = Q2;
+      *it++ = Q3;
+      *it++ = Q4;
       return;
     };
 
@@ -1475,11 +1507,12 @@ class vect_n : public serializable {
      */
     vect_n(const_reference Q1,const_reference Q2,const_reference Q3,
            const_reference Q4,const_reference Q5) : q(5) {
-      q[0] = Q1;
-      q[1] = Q2;
-      q[2] = Q3;
-      q[3] = Q4;
-      q[4] = Q5;
+      iterator it = q.begin();
+      *it++ = Q1;
+      *it++ = Q2;
+      *it++ = Q3;
+      *it++ = Q4;
+      *it++ = Q5;
       return;
     };
 
@@ -1489,12 +1522,13 @@ class vect_n : public serializable {
      */
     vect_n(const_reference Q1,const_reference Q2,const_reference Q3,
            const_reference Q4,const_reference Q5,const_reference Q6) : q(6) {
-      q[0] = Q1;
-      q[1] = Q2;
-      q[2] = Q3;
-      q[3] = Q4;
-      q[4] = Q5;
-      q[5] = Q6;
+      iterator it = q.begin();
+      *it++ = Q1;
+      *it++ = Q2;
+      *it++ = Q3;
+      *it++ = Q4;
+      *it++ = Q5;
+      *it++ = Q6;
       return;
     };
 
@@ -1504,13 +1538,14 @@ class vect_n : public serializable {
      */
     vect_n(const_reference Q1,const_reference Q2,const_reference Q3,const_reference Q4,
            const_reference Q5,const_reference Q6,const_reference Q7) : q(7) {
-      q[0] = Q1;
-      q[1] = Q2;
-      q[2] = Q3;
-      q[3] = Q4;
-      q[4] = Q5;
-      q[5] = Q6;
-      q[6] = Q7;
+      iterator it = q.begin();
+      *it++ = Q1;
+      *it++ = Q2;
+      *it++ = Q3;
+      *it++ = Q4;
+      *it++ = Q5;
+      *it++ = Q6;
+      *it++ = Q7;
       return;
     };
 
@@ -1520,14 +1555,15 @@ class vect_n : public serializable {
      */
     vect_n(const_reference Q1,const_reference Q2,const_reference Q3,const_reference Q4,
            const_reference Q5,const_reference Q6,const_reference Q7,const_reference Q8) : q(8) {
-      q[0] = Q1;
-      q[1] = Q2;
-      q[2] = Q3;
-      q[3] = Q4;
-      q[4] = Q5;
-      q[5] = Q6;
-      q[6] = Q7;
-      q[7] = Q8;
+      iterator it = q.begin();
+      *it++ = Q1;
+      *it++ = Q2;
+      *it++ = Q3;
+      *it++ = Q4;
+      *it++ = Q5;
+      *it++ = Q6;
+      *it++ = Q7;
+      *it++ = Q8;
       return;
     };
 
@@ -1537,15 +1573,16 @@ class vect_n : public serializable {
      */
     vect_n(const_reference Q1,const_reference Q2,const_reference Q3,const_reference Q4,const_reference Q5,
            const_reference Q6,const_reference Q7,const_reference Q8,const_reference Q9) : q(9) {
-      q[0] = Q1;
-      q[1] = Q2;
-      q[2] = Q3;
-      q[3] = Q4;
-      q[4] = Q5;
-      q[5] = Q6;
-      q[6] = Q7;
-      q[7] = Q8;
-      q[8] = Q9;
+      iterator it = q.begin();
+      *it++ = Q1;
+      *it++ = Q2;
+      *it++ = Q3;
+      *it++ = Q4;
+      *it++ = Q5;
+      *it++ = Q6;
+      *it++ = Q7;
+      *it++ = Q8;
+      *it++ = Q9;
       return;
     };
 
@@ -1555,16 +1592,17 @@ class vect_n : public serializable {
      */
     vect_n(const_reference Q1,const_reference Q2,const_reference Q3,const_reference Q4,const_reference Q5,
            const_reference Q6,const_reference Q7,const_reference Q8,const_reference Q9,const_reference Q10) : q(10) {
-      q[0] = Q1;
-      q[1] = Q2;
-      q[2] = Q3;
-      q[3] = Q4;
-      q[4] = Q5;
-      q[5] = Q6;
-      q[6] = Q7;
-      q[7] = Q8;
-      q[8] = Q9;
-      q[9] = Q10;
+      iterator it = q.begin();
+      *it++ = Q1;
+      *it++ = Q2;
+      *it++ = Q3;
+      *it++ = Q4;
+      *it++ = Q5;
+      *it++ = Q6;
+      *it++ = Q7;
+      *it++ = Q8;
+      *it++ = Q9;
+      *it++ = Q10;
       return;
     };
 
@@ -1575,17 +1613,18 @@ class vect_n : public serializable {
     vect_n(const_reference Q1,const_reference Q2,const_reference Q3,const_reference Q4,const_reference Q5,
            const_reference Q6,const_reference Q7,const_reference Q8,const_reference Q9,const_reference Q10,
            const_reference Q11) : q(11) {
-      q[0] = Q1;
-      q[1] = Q2;
-      q[2] = Q3;
-      q[3] = Q4;
-      q[4] = Q5;
-      q[5] = Q6;
-      q[6] = Q7;
-      q[7] = Q8;
-      q[8] = Q9;
-      q[9] = Q10;
-      q[10] = Q11;
+      iterator it = q.begin();
+      *it++ = Q1;
+      *it++ = Q2;
+      *it++ = Q3;
+      *it++ = Q4;
+      *it++ = Q5;
+      *it++ = Q6;
+      *it++ = Q7;
+      *it++ = Q8;
+      *it++ = Q9;
+      *it++ = Q10;
+      *it++ = Q11;
       return;
     };
 
@@ -1596,18 +1635,19 @@ class vect_n : public serializable {
     vect_n(const_reference Q1,const_reference Q2,const_reference Q3,const_reference Q4,const_reference Q5,
            const_reference Q6,const_reference Q7,const_reference Q8,const_reference Q9,const_reference Q10,
            const_reference Q11,const_reference Q12) : q(12) {
-      q[0] = Q1;
-      q[1] = Q2;
-      q[2] = Q3;
-      q[3] = Q4;
-      q[4] = Q5;
-      q[5] = Q6;
-      q[6] = Q7;
-      q[7] = Q8;
-      q[8] = Q9;
-      q[9] = Q10;
-      q[10] = Q11;
-      q[11] = Q12;
+      iterator it = q.begin();
+      *it++ = Q1;
+      *it++ = Q2;
+      *it++ = Q3;
+      *it++ = Q4;
+      *it++ = Q5;
+      *it++ = Q6;
+      *it++ = Q7;
+      *it++ = Q8;
+      *it++ = Q9;
+      *it++ = Q10;
+      *it++ = Q11;
+      *it++ = Q12;
       return;
     };
 
@@ -1618,19 +1658,20 @@ class vect_n : public serializable {
     vect_n(const_reference Q1,const_reference Q2,const_reference Q3,const_reference Q4,const_reference Q5,
            const_reference Q6,const_reference Q7,const_reference Q8,const_reference Q9,const_reference Q10,
            const_reference Q11,const_reference Q12,const_reference Q13) : q(13) {
-      q[0] = Q1;
-      q[1] = Q2;
-      q[2] = Q3;
-      q[3] = Q4;
-      q[4] = Q5;
-      q[5] = Q6;
-      q[6] = Q7;
-      q[7] = Q8;
-      q[8] = Q9;
-      q[9] = Q10;
-      q[10] = Q11;
-      q[11] = Q12;
-      q[12] = Q13;
+      iterator it = q.begin();
+      *it++ = Q1;
+      *it++ = Q2;
+      *it++ = Q3;
+      *it++ = Q4;
+      *it++ = Q5;
+      *it++ = Q6;
+      *it++ = Q7;
+      *it++ = Q8;
+      *it++ = Q9;
+      *it++ = Q10;
+      *it++ = Q11;
+      *it++ = Q12;
+      *it++ = Q13;
       return;
     };
 
@@ -1641,20 +1682,21 @@ class vect_n : public serializable {
     vect_n(const_reference Q1,const_reference Q2,const_reference Q3,const_reference Q4,const_reference Q5,
            const_reference Q6,const_reference Q7,const_reference Q8,const_reference Q9,const_reference Q10,
            const_reference Q11,const_reference Q12,const_reference Q13,const_reference Q14) : q(14) {
-      q[0] = Q1;
-      q[1] = Q2;
-      q[2] = Q3;
-      q[3] = Q4;
-      q[4] = Q5;
-      q[5] = Q6;
-      q[6] = Q7;
-      q[7] = Q8;
-      q[8] = Q9;
-      q[9] = Q10;
-      q[10] = Q11;
-      q[11] = Q12;
-      q[12] = Q13;
-      q[13] = Q14;
+      iterator it = q.begin();
+      *it++ = Q1;
+      *it++ = Q2;
+      *it++ = Q3;
+      *it++ = Q4;
+      *it++ = Q5;
+      *it++ = Q6;
+      *it++ = Q7;
+      *it++ = Q8;
+      *it++ = Q9;
+      *it++ = Q10;
+      *it++ = Q11;
+      *it++ = Q12;
+      *it++ = Q13;
+      *it++ = Q14;
       return;
     };
 
@@ -1665,21 +1707,22 @@ class vect_n : public serializable {
     vect_n(const_reference Q1,const_reference Q2,const_reference Q3,const_reference Q4,const_reference Q5,
            const_reference Q6,const_reference Q7,const_reference Q8,const_reference Q9,const_reference Q10,
            const_reference Q11,const_reference Q12,const_reference Q13,const_reference Q14,const_reference Q15) : q(15) {
-      q[0] = Q1;
-      q[1] = Q2;
-      q[2] = Q3;
-      q[3] = Q4;
-      q[4] = Q5;
-      q[5] = Q6;
-      q[6] = Q7;
-      q[7] = Q8;
-      q[8] = Q9;
-      q[9] = Q10;
-      q[10] = Q11;
-      q[11] = Q12;
-      q[12] = Q13;
-      q[13] = Q14;
-      q[14] = Q15;
+      iterator it = q.begin();
+      *it++ = Q1;
+      *it++ = Q2;
+      *it++ = Q3;
+      *it++ = Q4;
+      *it++ = Q5;
+      *it++ = Q6;
+      *it++ = Q7;
+      *it++ = Q8;
+      *it++ = Q9;
+      *it++ = Q10;
+      *it++ = Q11;
+      *it++ = Q12;
+      *it++ = Q13;
+      *it++ = Q14;
+      *it++ = Q15;
       return;
     };
 
@@ -1691,22 +1734,23 @@ class vect_n : public serializable {
            const_reference Q6,const_reference Q7,const_reference Q8,const_reference Q9,const_reference Q10,
            const_reference Q11,const_reference Q12,const_reference Q13,const_reference Q14,const_reference Q15,
            const_reference Q16) : q(16) {
-      q[0] = Q1;
-      q[1] = Q2;
-      q[2] = Q3;
-      q[3] = Q4;
-      q[4] = Q5;
-      q[5] = Q6;
-      q[6] = Q7;
-      q[7] = Q8;
-      q[8] = Q9;
-      q[9] = Q10;
-      q[10] = Q11;
-      q[11] = Q12;
-      q[12] = Q13;
-      q[13] = Q14;
-      q[14] = Q15;
-      q[15] = Q16;
+      iterator it = q.begin();
+      *it++ = Q1;
+      *it++ = Q2;
+      *it++ = Q3;
+      *it++ = Q4;
+      *it++ = Q5;
+      *it++ = Q6;
+      *it++ = Q7;
+      *it++ = Q8;
+      *it++ = Q9;
+      *it++ = Q10;
+      *it++ = Q11;
+      *it++ = Q12;
+      *it++ = Q13;
+      *it++ = Q14;
+      *it++ = Q15;
+      *it++ = Q16;
       return;
     };
 
@@ -1718,23 +1762,24 @@ class vect_n : public serializable {
            const_reference Q6,const_reference Q7,const_reference Q8,const_reference Q9,const_reference Q10,
            const_reference Q11,const_reference Q12,const_reference Q13,const_reference Q14,const_reference Q15,
            const_reference Q16,const_reference Q17) : q(17) {
-      q[0] = Q1;
-      q[1] = Q2;
-      q[2] = Q3;
-      q[3] = Q4;
-      q[4] = Q5;
-      q[5] = Q6;
-      q[6] = Q7;
-      q[7] = Q8;
-      q[8] = Q9;
-      q[9] = Q10;
-      q[10] = Q11;
-      q[11] = Q12;
-      q[12] = Q13;
-      q[13] = Q14;
-      q[14] = Q15;
-      q[15] = Q16;
-      q[16] = Q17;
+      iterator it = q.begin();
+      *it++ = Q1;
+      *it++ = Q2;
+      *it++ = Q3;
+      *it++ = Q4;
+      *it++ = Q5;
+      *it++ = Q6;
+      *it++ = Q7;
+      *it++ = Q8;
+      *it++ = Q9;
+      *it++ = Q10;
+      *it++ = Q11;
+      *it++ = Q12;
+      *it++ = Q13;
+      *it++ = Q14;
+      *it++ = Q15;
+      *it++ = Q16;
+      *it++ = Q17;
       return;
     };
 
@@ -1746,24 +1791,25 @@ class vect_n : public serializable {
            const_reference Q6,const_reference Q7,const_reference Q8,const_reference Q9,const_reference Q10,
            const_reference Q11,const_reference Q12,const_reference Q13,const_reference Q14,const_reference Q15,
            const_reference Q16,const_reference Q17,const_reference Q18) : q(18) {
-      q[0] = Q1;
-      q[1] = Q2;
-      q[2] = Q3;
-      q[3] = Q4;
-      q[4] = Q5;
-      q[5] = Q6;
-      q[6] = Q7;
-      q[7] = Q8;
-      q[8] = Q9;
-      q[9] = Q10;
-      q[10] = Q11;
-      q[11] = Q12;
-      q[12] = Q13;
-      q[13] = Q14;
-      q[14] = Q15;
-      q[15] = Q16;
-      q[16] = Q17;
-      q[17] = Q18;
+      iterator it = q.begin();
+      *it++ = Q1;
+      *it++ = Q2;
+      *it++ = Q3;
+      *it++ = Q4;
+      *it++ = Q5;
+      *it++ = Q6;
+      *it++ = Q7;
+      *it++ = Q8;
+      *it++ = Q9;
+      *it++ = Q10;
+      *it++ = Q11;
+      *it++ = Q12;
+      *it++ = Q13;
+      *it++ = Q14;
+      *it++ = Q15;
+      *it++ = Q16;
+      *it++ = Q17;
+      *it++ = Q18;
       return;
     };
 
@@ -1775,25 +1821,26 @@ class vect_n : public serializable {
            const_reference Q6,const_reference Q7,const_reference Q8,const_reference Q9,const_reference Q10,
            const_reference Q11,const_reference Q12,const_reference Q13,const_reference Q14,const_reference Q15,
            const_reference Q16,const_reference Q17,const_reference Q18,const_reference Q19) : q(19) {
-      q[0] = Q1;
-      q[1] = Q2;
-      q[2] = Q3;
-      q[3] = Q4;
-      q[4] = Q5;
-      q[5] = Q6;
-      q[6] = Q7;
-      q[7] = Q8;
-      q[8] = Q9;
-      q[9] = Q10;
-      q[10] = Q11;
-      q[11] = Q12;
-      q[12] = Q13;
-      q[13] = Q14;
-      q[14] = Q15;
-      q[15] = Q16;
-      q[16] = Q17;
-      q[17] = Q18;
-      q[18] = Q19;
+      iterator it = q.begin();
+      *it++ = Q1;
+      *it++ = Q2;
+      *it++ = Q3;
+      *it++ = Q4;
+      *it++ = Q5;
+      *it++ = Q6;
+      *it++ = Q7;
+      *it++ = Q8;
+      *it++ = Q9;
+      *it++ = Q10;
+      *it++ = Q11;
+      *it++ = Q12;
+      *it++ = Q13;
+      *it++ = Q14;
+      *it++ = Q15;
+      *it++ = Q16;
+      *it++ = Q17;
+      *it++ = Q18;
+      *it++ = Q19;
       return;
     };
 
@@ -1805,28 +1852,59 @@ class vect_n : public serializable {
            const_reference Q6,const_reference Q7,const_reference Q8,const_reference Q9,const_reference Q10,
            const_reference Q11,const_reference Q12,const_reference Q13,const_reference Q14,const_reference Q15,
            const_reference Q16,const_reference Q17,const_reference Q18,const_reference Q19,const_reference Q20) : q(20) {
-      q[0] = Q1;
-      q[1] = Q2;
-      q[2] = Q3;
-      q[3] = Q4;
-      q[4] = Q5;
-      q[5] = Q6;
-      q[6] = Q7;
-      q[7] = Q8;
-      q[8] = Q9;
-      q[9] = Q10;
-      q[10] = Q11;
-      q[11] = Q12;
-      q[12] = Q13;
-      q[13] = Q14;
-      q[14] = Q15;
-      q[15] = Q16;
-      q[16] = Q17;
-      q[17] = Q18;
-      q[18] = Q19;
-      q[19] = Q20;
+      iterator it = q.begin();
+      *it++ = Q1;
+      *it++ = Q2;
+      *it++ = Q3;
+      *it++ = Q4;
+      *it++ = Q5;
+      *it++ = Q6;
+      *it++ = Q7;
+      *it++ = Q8;
+      *it++ = Q9;
+      *it++ = Q10;
+      *it++ = Q11;
+      *it++ = Q12;
+      *it++ = Q13;
+      *it++ = Q14;
+      *it++ = Q15;
+      *it++ = Q16;
+      *it++ = Q17;
+      *it++ = Q18;
+      *it++ = Q19;
+      *it++ = Q20;
       return;
     };
+    
+#else
+    
+  private:
+    
+    static void set_value_impl(iterator& pval, const_reference a1) BOOST_NOEXCEPT {
+      *pval++ = a1;
+    };
+    
+    template <typename... Args>
+    static void set_value_impl(iterator& pval, const_reference a1, const Args&... tail) BOOST_NOEXCEPT {
+      *pval++ = a1;
+      set_value_impl(pval, tail...);
+    };
+    
+  public:
+    
+    /**
+     * Constructor for Size values.
+     * \test PASSED
+     */
+    template <typename... Args>
+    vect_n(const_reference a1, const_reference a2, const_reference a3, Args... args) BOOST_NOEXCEPT : 
+           q(3 + sizeof...(Args)) {
+      iterator p_i = q.begin();
+      set_value_impl(p_i, a1, a2, a3, args...);
+      return;
+    };
+    
+#endif
 
 /*******************************************************************************
                          Accessors and Methods
@@ -1836,7 +1914,7 @@ class vect_n : public serializable {
      * Array indexing operator, accessor for read/write. <
      * \test PASSED
      */
-    reference operator [](size_type i) {
+    reference operator [](size_type i) BOOST_NOEXCEPT {
       return q[i];
     };
 
@@ -1844,7 +1922,7 @@ class vect_n : public serializable {
      * Array indexing operator, accessor for read only.
      * \test PASSED
      */
-    const_reference operator [](size_type i) const {
+    const_reference operator [](size_type i) const BOOST_NOEXCEPT {
       return q[i];
     };
     
@@ -1852,7 +1930,7 @@ class vect_n : public serializable {
      * Sub-vector operator, accessor for read/write.
      * \test PASSED
      */
-    vect_ref_view<self> operator[](const std::pair<size_type,size_type>& r) {
+    vect_ref_view<self> operator[](const std::pair<size_type,size_type>& r) BOOST_NOEXCEPT {
       return sub(*this)[r];
     };
 
@@ -1860,7 +1938,7 @@ class vect_n : public serializable {
      * Sub-vector operator, accessor for read only.
      * \test PASSED
      */
-    vect_const_ref_view<self> operator[](const std::pair<size_type,size_type>& r) const {
+    vect_const_ref_view<self> operator[](const std::pair<size_type,size_type>& r) const BOOST_NOEXCEPT {
       return sub(*this)[r];
     };
     
@@ -1868,7 +1946,7 @@ class vect_n : public serializable {
      * Array indexing operator, accessor for read/write. <
      * \test PASSED
      */
-    reference operator ()(size_type i) {
+    reference operator ()(size_type i) BOOST_NOEXCEPT {
       return q[i];
     };
 
@@ -1876,7 +1954,7 @@ class vect_n : public serializable {
      * Array indexing operator, accessor for read only.
      * \test PASSED
      */
-    const_reference operator ()(size_type i) const {
+    const_reference operator ()(size_type i) const BOOST_NOEXCEPT {
       return q[i];
     };
     
@@ -1911,20 +1989,7 @@ class vect_n : public serializable {
         q[i] = V[i];
       return *this;
     };
-
-/*******************************************************************************
-                   ReaK's RTTI and Serialization interfaces
-*******************************************************************************/
-
-    virtual void RK_CALL save(serialization::oarchive& A, unsigned int) const {
-      A & std::pair<std::string, const std::vector<T>&>("q",q);
-    };
-    virtual void RK_CALL load(serialization::iarchive& A, unsigned int) {
-      A & std::pair<std::string, std::vector<T>&>("q",q);
-    };
     
-    RK_RTTI_REGISTER_CLASS_1BASE(self,1,serializable)
-
 };
 
 
@@ -1940,8 +2005,8 @@ struct get_type_id< vect_n<T,Allocator> > {
 #endif
   static construct_ptr CreatePtr() BOOST_NOEXCEPT { return NULL; };
   
-  typedef const serializable& save_type;
-  typedef serializable& load_type;
+  typedef const vect_n<T,Allocator>& save_type;
+  typedef vect_n<T,Allocator>& load_type;
 };
 
 template <typename T, typename Allocator, typename Tail>
@@ -1965,6 +2030,31 @@ struct get_type_info< vect_n<T,Allocator>, Tail > {
 
 };
 
+namespace serialization {
+  template <typename T, typename Allocator>
+  iarchive& operator >>(iarchive& in, vect_n<T,Allocator>& v) {
+    in >> v.q;
+    return in;
+  };
+  
+  template <typename T, typename Allocator>
+  iarchive& operator &(iarchive& in, const std::pair< std::string, vect_n<T,Allocator>& >& v) {
+    in & RK_SERIAL_LOAD_WITH_ALIAS(v.first, v.second.q);
+    return in;
+  };
+  
+  template <typename T, typename Allocator>
+  oarchive& operator <<(oarchive& out, const vect_n<T,Allocator>& v) {
+    out << v.q;
+    return out;
+  };
+  
+  template <typename T, typename Allocator>
+  oarchive& operator &(oarchive& out, const std::pair< std::string, const vect_n<T,Allocator>& >& v) {
+    out & RK_SERIAL_SAVE_WITH_ALIAS(v.first, v.second.q);
+    return out;
+  };
+};
 
 
 template <typename T,typename Allocator>
@@ -2057,14 +2147,13 @@ vect_n<T> make_vect_n(const T& Q1,const T& Q2,const T& Q3,const T& Q4,const T& Q
 
 template <typename T, unsigned int Size>
 template <typename U, typename Allocator>
-vect<T,Size>::vect(const vect_n<U,Allocator>& V) {
-  std::size_t sz = Size;
-  if(sz > V.size())
-    sz = V.size();
-  for(std::size_t i = 0; i < sz; ++i)
-    q[i] = V[i];
-  for(std::size_t i = sz; i < Size; ++i)
-    q[i] = T();
+vect<T,Size>::vect(const vect_n<U,Allocator>& V) BOOST_NOEXCEPT {
+  if( Size > V.size() ) {
+    std::copy(V.begin(), V.end(), q);
+    std::fill(q + V.size(), q + Size, T());
+  } else {
+    std::copy(V.begin(), V.begin() + Size, q); 
+  };
 };
 
 
@@ -2087,7 +2176,7 @@ class vect_scalar {
     typedef const T& const_reference;
     typedef T* pointer;
     typedef const T* const_pointer;
-    typedef void allocator_type;
+    typedef std::allocator<T> allocator_type;
   
     typedef void iterator;
     typedef vect_index_const_iter<self> const_iterator;
@@ -2104,36 +2193,36 @@ class vect_scalar {
     /**
      * Returns the size of the vector.
      */
-    size_type size() const { return Size; };
+    size_type size() const BOOST_NOEXCEPT { return Size; };
     /**
      * Returns the max-size of the vector.
      */
-    size_type max_size() const { return Size; };
+    size_type max_size() const BOOST_NOEXCEPT { return Size; };
     /**
      * Returns the capacity of the vector.
      */
-    size_type capacity() const { return Size; };
+    size_type capacity() const BOOST_NOEXCEPT { return Size; };
     /**
      * Resizes the vector.
      */
-    void resize(size_type sz, T c = T()) { };
+    void resize(size_type sz, T c = T()) BOOST_NOEXCEPT { };
     /**
      * Checks if the vector is empty.
      */
-    bool empty() const { return true; };
+    bool empty() const BOOST_NOEXCEPT { return true; };
     /**
      * Reserve a capacity for the vector.
      */
-    void reserve(size_type sz) const { };
+    void reserve(size_type sz) const BOOST_NOEXCEPT { };
     
     /**
      * Returns a const-iterator to the first element of the vector.
      */
-    const_iterator begin() const { return const_iterator(*this,0); };
+    const_iterator begin() const BOOST_NOEXCEPT { return const_iterator(*this,0); };
     /**
      * Returns a const-iterator to the one-past-last element of the vector.
      */
-    const_iterator end() const { return const_iterator(*this,Size); };
+    const_iterator end() const BOOST_NOEXCEPT { return const_iterator(*this,Size); };
 
 /*******************************************************************************
                          Constructors / Destructors
@@ -2143,7 +2232,7 @@ class vect_scalar {
      * Constructor for a given value for the vector.
      * \test PASSED
      */
-    explicit vect_scalar(const_reference aFill = value_type()) : q(aFill) { };
+    explicit vect_scalar(const_reference aFill = value_type()) BOOST_NOEXCEPT : q(aFill) { };
 
 /*******************************************************************************
                          Accessors and Methods
@@ -2153,7 +2242,7 @@ class vect_scalar {
      * Array indexing operator, accessor for read only.
      * \test PASSED
      */
-    const_reference operator [](size_type i) const {
+    const_reference operator [](size_type i) const BOOST_NOEXCEPT {
       return q;
     };
     
@@ -2161,7 +2250,7 @@ class vect_scalar {
      * Sub-vector operator, accessor for read only.
      * \test PASSED
      */
-    vect_const_ref_view<self> operator[](const std::pair<size_type,size_type>& r) const {
+    vect_const_ref_view<self> operator[](const std::pair<size_type,size_type>& r) const BOOST_NOEXCEPT {
       return sub(*this)[r];
     };
     
@@ -2169,15 +2258,10 @@ class vect_scalar {
      * Array indexing operator, accessor for read only.
      * \test PASSED
      */
-    const_reference operator ()(size_type i) const {
+    const_reference operator ()(size_type i) const BOOST_NOEXCEPT {
       return q;
     };
     
-    /**
-     * Returns the allocator object of the underlying container.
-     */
-    allocator_type get_allocator() const { };
-
 };
 
 
@@ -2231,7 +2315,7 @@ class vect_scalar<T,0> {
     typedef const T& const_reference;
     typedef T* pointer;
     typedef const T* const_pointer;
-    typedef void allocator_type;
+    typedef std::allocator<T> allocator_type;
   
     typedef void iterator;
     typedef vect_index_const_iter<self> const_iterator;
@@ -2249,36 +2333,36 @@ class vect_scalar<T,0> {
     /**
      * Returns the size of the vector.
      */
-    size_type size() const { return count; };
+    size_type size() const BOOST_NOEXCEPT { return count; };
     /**
      * Returns the max-size of the vector.
      */
-    size_type max_size() const { return std::numeric_limits<size_type>::max(); };
+    size_type max_size() const BOOST_NOEXCEPT { return std::numeric_limits<size_type>::max(); };
     /**
      * Returns the capacity of the vector.
      */
-    size_type capacity() const { return std::numeric_limits<size_type>::max(); };
+    size_type capacity() const BOOST_NOEXCEPT { return std::numeric_limits<size_type>::max(); };
     /**
      * Resizes the vector.
      */
-    void resize(size_type sz, T c = T()) { count = sz; q = c; };
+    void resize(size_type sz, T c = T()) BOOST_NOEXCEPT { count = sz; q = c; };
     /**
      * Checks if the vector is empty.
      */
-    bool empty() const { return (count == 0); };
+    bool empty() const BOOST_NOEXCEPT { return (count == 0); };
     /**
      * Reserve a capacity for the vector.
      */
-    void reserve(size_type sz) const { };
+    void reserve(size_type sz) const BOOST_NOEXCEPT { };
     
     /**
      * Returns a const-iterator to the first element of the vector.
      */
-    const_iterator begin() const { return const_iterator(*this,0); };
+    const_iterator begin() const BOOST_NOEXCEPT { return const_iterator(*this,0); };
     /**
      * Returns a const-iterator to the one-past-last element of the vector.
      */
-    const_iterator end() const { return const_iterator(*this,count); };
+    const_iterator end() const BOOST_NOEXCEPT { return const_iterator(*this,count); };
 
 /*******************************************************************************
                          Constructors / Destructors
@@ -2287,13 +2371,13 @@ class vect_scalar<T,0> {
      * Default constructor.
      * \test PASSED
      */
-    vect_scalar() : q(), count(0) { };
+    vect_scalar() BOOST_NOEXCEPT : q(), count(0) { };
 
     /**
      * Constructor for a given size or dimension of vector.
      * \test PASSED
      */
-    explicit vect_scalar(size_type aSize, const_reference aFill = value_type()) : q(aFill), count(aSize) { };
+    explicit vect_scalar(size_type aSize, const_reference aFill = value_type()) BOOST_NOEXCEPT : q(aFill), count(aSize) { };
 
 /*******************************************************************************
                          Accessors and Methods
@@ -2303,7 +2387,7 @@ class vect_scalar<T,0> {
      * Array indexing operator, accessor for read only.
      * \test PASSED
      */
-    const_reference operator [](size_type i) const {
+    const_reference operator [](size_type i) const BOOST_NOEXCEPT {
       return q;
     };
     
@@ -2311,7 +2395,7 @@ class vect_scalar<T,0> {
      * Sub-vector operator, accessor for read only.
      * \test PASSED
      */
-    vect_const_ref_view<self> operator[](const std::pair<size_type,size_type>& r) const {
+    vect_const_ref_view<self> operator[](const std::pair<size_type,size_type>& r) const BOOST_NOEXCEPT {
       return sub(*this)[r];
     };
     
@@ -2319,15 +2403,10 @@ class vect_scalar<T,0> {
      * Array indexing operator, accessor for read only.
      * \test PASSED
      */
-    const_reference operator ()(size_type i) const {
+    const_reference operator ()(size_type i) const BOOST_NOEXCEPT {
       return q;
     };
     
-    /**
-     * Returns the allocator object of the underlying container.
-     */
-    allocator_type get_allocator() const { };
-
 };
 
 
@@ -2348,7 +2427,7 @@ class vect_scalar<T,0> {
 template <typename Vector>
 typename boost::enable_if<
   is_readable_vector<Vector>,
-vect_traits<Vector> >::type::value_type norm_2_sqr(const Vector& v) {
+vect_traits<Vector> >::type::value_type norm_2_sqr(const Vector& v) BOOST_NOEXCEPT {
   typedef typename vect_traits<Vector>::value_type ValueType;
   typedef typename vect_traits<Vector>::size_type SizeType;
   ValueType sum(0.0);
@@ -2364,7 +2443,7 @@ vect_traits<Vector> >::type::value_type norm_2_sqr(const Vector& v) {
 template <typename Vector>
 typename boost::enable_if<
   is_readable_vector<Vector>,
-vect_traits<Vector> >::type::value_type norm_2(const Vector& v) {
+vect_traits<Vector> >::type::value_type norm_2(const Vector& v) BOOST_NOEXCEPT {
   using std::sqrt;
   return sqrt( norm_2_sqr(v) );
 };
@@ -2376,7 +2455,7 @@ vect_traits<Vector> >::type::value_type norm_2(const Vector& v) {
 template <typename Vector>
 typename boost::enable_if<
   is_readable_vector<Vector>,
-vect_traits<Vector> >::type::value_type norm_inf(const Vector& v) {
+vect_traits<Vector> >::type::value_type norm_inf(const Vector& v) BOOST_NOEXCEPT {
   typedef typename vect_traits<Vector>::value_type ValueType;
   typedef typename vect_traits<Vector>::size_type SizeType;
   using std::fabs;
@@ -2394,7 +2473,7 @@ vect_traits<Vector> >::type::value_type norm_inf(const Vector& v) {
 template <typename Vector>
 typename boost::enable_if<
   is_readable_vector<Vector>,
-vect_traits<Vector> >::type::value_type norm_1(const Vector& v) {
+vect_traits<Vector> >::type::value_type norm_1(const Vector& v) BOOST_NOEXCEPT {
   typedef typename vect_traits<Vector>::value_type ValueType;
   typedef typename vect_traits<Vector>::size_type SizeType;
   using std::fabs;
@@ -2423,7 +2502,7 @@ vect_copy<Vector> >::type::type unit(const Vector& v) {
  * \test PASSED
  */
 template <typename Vector1, typename Vector2>
-bool colinear(const Vector1& v1, const Vector2& v2) {
+bool colinear(const Vector1& v1, const Vector2& v2) BOOST_NOEXCEPT {
   typedef typename vect_traits<Vector1>::value_type ValueType;
   using std::fabs;
   ValueType tmp_mag2 = norm_2(v2);
@@ -2491,7 +2570,7 @@ typename boost::enable_if<
     is_writable_vector<Vector>,
     boost::mpl::not_< is_readable_vector<T> >
   >,
-Vector& >::type operator *=(Vector& v, const T& S) {
+Vector& >::type operator *=(Vector& v, const T& S) BOOST_NOEXCEPT {
   typedef typename vect_traits<Vector>::size_type SizeType;
   for(SizeType i = 0; i < v.size(); ++i)
     v[i] = v[i] * S;
@@ -2508,7 +2587,7 @@ typename boost::enable_if<
     is_writable_vector<Vector>,
     boost::mpl::not_< is_readable_vector<T> >
   >,
-Vector& >::type operator /=(Vector& v, const T& S) {
+Vector& >::type operator /=(Vector& v, const T& S) BOOST_NOEXCEPT {
   typedef typename vect_traits<Vector>::size_type SizeType;
   for(SizeType i = 0; i < v.size(); ++i)
     v[i] = v[i] / S;
@@ -2702,7 +2781,7 @@ typename boost::enable_if<
     is_readable_vector<Vector1>,
     is_readable_vector<Vector2>
   >,
-bool >::type operator ==(const Vector1& v1, const Vector2& v2) {
+bool >::type operator ==(const Vector1& v1, const Vector2& v2) BOOST_NOEXCEPT {
   typedef typename vect_traits<Vector1>::size_type SizeType;
   if(v1.size() != v2.size())
     return false;
@@ -2722,7 +2801,7 @@ typename boost::enable_if<
     is_readable_vector<Vector1>,
     is_readable_vector<Vector2>
   >,
-bool >::type operator !=(const Vector1& v1, const Vector2& v2) {
+bool >::type operator !=(const Vector1& v1, const Vector2& v2) BOOST_NOEXCEPT {
   typedef typename vect_traits<Vector1>::size_type SizeType;
   if(v1.size() != v2.size())
     return true;
@@ -2742,7 +2821,7 @@ typename boost::enable_if<
     is_readable_vector<Vector1>,
     is_readable_vector<Vector2>
   >,
-bool >::type operator >(const Vector1& v1, const Vector2& v2) {
+bool >::type operator >(const Vector1& v1, const Vector2& v2) BOOST_NOEXCEPT {
   return (norm_2_sqr(v1) > norm_2_sqr(v2));
 };
 
@@ -2756,7 +2835,7 @@ typename boost::enable_if<
     is_readable_vector<Vector1>,
     is_readable_vector<Vector2>
   >,
-bool >::type operator <(const Vector1& v1, const Vector2& v2) {
+bool >::type operator <(const Vector1& v1, const Vector2& v2) BOOST_NOEXCEPT {
   return (norm_2_sqr(v1) < norm_2_sqr(v2));
 };
 
@@ -2770,7 +2849,7 @@ typename boost::enable_if<
     is_readable_vector<Vector1>,
     is_readable_vector<Vector2>
   >,
-bool >::type operator >=(const Vector1& v1, const Vector2& v2) {
+bool >::type operator >=(const Vector1& v1, const Vector2& v2) BOOST_NOEXCEPT {
   return (norm_2_sqr(v1) >= norm_2_sqr(v2));
 };
 
@@ -2784,7 +2863,7 @@ typename boost::enable_if<
     is_readable_vector<Vector1>,
     is_readable_vector<Vector2>
   >,
-bool >::type operator <=(const Vector1& v1, const Vector2& v2) {
+bool >::type operator <=(const Vector1& v1, const Vector2& v2) BOOST_NOEXCEPT {
   return (norm_2_sqr(v1) <= norm_2_sqr(v2));
 };
 
@@ -2846,8 +2925,8 @@ std::istream& operator >>(std::istream& in_stream, vect<T,Size>& V) {
 
 
 
-
-#ifndef BOOST_NO_CXX11_EXTERN_TEMPLATE
+#if 0
+// #ifndef BOOST_NO_CXX11_EXTERN_TEMPLATE
 
 extern template class vect<double,2>;
 extern template class vect<double,3>;
@@ -2862,126 +2941,126 @@ extern template class vect<float,6>;
 extern template class vect_n<float>;
 
 
-extern template vect<double,2> diff(const vect<double,2>& v1, const vect<double,2>& v2);
-extern template vect<double,3> diff(const vect<double,3>& v1, const vect<double,3>& v2);
-extern template vect<double,4> diff(const vect<double,4>& v1, const vect<double,4>& v2);
-extern template vect<double,6> diff(const vect<double,6>& v1, const vect<double,6>& v2);
+extern template vect<double,2> diff(const vect<double,2>& v1, const vect<double,2>& v2) BOOST_NOEXCEPT;
+extern template vect<double,3> diff(const vect<double,3>& v1, const vect<double,3>& v2) BOOST_NOEXCEPT;
+extern template vect<double,4> diff(const vect<double,4>& v1, const vect<double,4>& v2) BOOST_NOEXCEPT;
+extern template vect<double,6> diff(const vect<double,6>& v1, const vect<double,6>& v2) BOOST_NOEXCEPT;
 extern template vect_n<double> diff(const vect_n<double>& v1, const vect_n<double>& v2);
 
-extern template vect<double,2> add(const vect<double,2>& v1, const vect<double,2>& v2);
-extern template vect<double,3> add(const vect<double,3>& v1, const vect<double,3>& v2);
-extern template vect<double,4> add(const vect<double,4>& v1, const vect<double,4>& v2);
-extern template vect<double,6> add(const vect<double,6>& v1, const vect<double,6>& v2);
+extern template vect<double,2> add(const vect<double,2>& v1, const vect<double,2>& v2) BOOST_NOEXCEPT;
+extern template vect<double,3> add(const vect<double,3>& v1, const vect<double,3>& v2) BOOST_NOEXCEPT;
+extern template vect<double,4> add(const vect<double,4>& v1, const vect<double,4>& v2) BOOST_NOEXCEPT;
+extern template vect<double,6> add(const vect<double,6>& v1, const vect<double,6>& v2) BOOST_NOEXCEPT;
 extern template vect_n<double> add(const vect_n<double>& v1, const vect_n<double>& v2);
 
-extern template double operator %(const vect<double,2>& V1,const vect<double,2>& V2);
-extern template vect<double,2> operator %(const double& S, const vect<double,2>& V);
-extern template vect<double,2> operator %(const vect<double,2>& V,const double& S);
-extern template vect<double,3> operator %(const vect<double,3>& V1 , const vect<double,3>& V2);
+extern template double operator %(const vect<double,2>& V1,const vect<double,2>& V2) BOOST_NOEXCEPT;
+extern template vect<double,2> operator %(const double& S, const vect<double,2>& V) BOOST_NOEXCEPT;
+extern template vect<double,2> operator %(const vect<double,2>& V,const double& S) BOOST_NOEXCEPT;
+extern template vect<double,3> operator %(const vect<double,3>& V1 , const vect<double,3>& V2) BOOST_NOEXCEPT;
 
 
-extern template vect<double,2>& operator +=(vect<double,2>& v1, const vect<double,2>& v2);
-extern template vect<double,3>& operator +=(vect<double,3>& v1, const vect<double,3>& v2);
-extern template vect<double,4>& operator +=(vect<double,4>& v1, const vect<double,4>& v2);
-extern template vect<double,6>& operator +=(vect<double,6>& v1, const vect<double,6>& v2);
+extern template vect<double,2>& operator +=(vect<double,2>& v1, const vect<double,2>& v2) BOOST_NOEXCEPT;
+extern template vect<double,3>& operator +=(vect<double,3>& v1, const vect<double,3>& v2) BOOST_NOEXCEPT;
+extern template vect<double,4>& operator +=(vect<double,4>& v1, const vect<double,4>& v2) BOOST_NOEXCEPT;
+extern template vect<double,6>& operator +=(vect<double,6>& v1, const vect<double,6>& v2) BOOST_NOEXCEPT;
 extern template vect_n<double>& operator +=(vect_n<double>& v1, const vect_n<double>& v2);
 
-extern template vect<double,2>& operator -=(vect<double,2>& v1, const vect<double,2>& v2);
-extern template vect<double,3>& operator -=(vect<double,3>& v1, const vect<double,3>& v2);
-extern template vect<double,4>& operator -=(vect<double,4>& v1, const vect<double,4>& v2);
-extern template vect<double,6>& operator -=(vect<double,6>& v1, const vect<double,6>& v2);
+extern template vect<double,2>& operator -=(vect<double,2>& v1, const vect<double,2>& v2) BOOST_NOEXCEPT;
+extern template vect<double,3>& operator -=(vect<double,3>& v1, const vect<double,3>& v2) BOOST_NOEXCEPT;
+extern template vect<double,4>& operator -=(vect<double,4>& v1, const vect<double,4>& v2) BOOST_NOEXCEPT;
+extern template vect<double,6>& operator -=(vect<double,6>& v1, const vect<double,6>& v2) BOOST_NOEXCEPT;
 extern template vect_n<double>& operator -=(vect_n<double>& v1, const vect_n<double>& v2);
 
-extern template vect<double,2>& operator *=(vect<double,2>& v1, const double& v2);
-extern template vect<double,3>& operator *=(vect<double,3>& v1, const double& v2);
-extern template vect<double,4>& operator *=(vect<double,4>& v1, const double& v2);
-extern template vect<double,6>& operator *=(vect<double,6>& v1, const double& v2);
-extern template vect_n<double>& operator *=(vect_n<double>& v1, const double& v2);
+extern template vect<double,2>& operator *=(vect<double,2>& v1, const double& v2) BOOST_NOEXCEPT;
+extern template vect<double,3>& operator *=(vect<double,3>& v1, const double& v2) BOOST_NOEXCEPT;
+extern template vect<double,4>& operator *=(vect<double,4>& v1, const double& v2) BOOST_NOEXCEPT;
+extern template vect<double,6>& operator *=(vect<double,6>& v1, const double& v2) BOOST_NOEXCEPT;
+extern template vect_n<double>& operator *=(vect_n<double>& v1, const double& v2) BOOST_NOEXCEPT;
 
-extern template vect<double,2>& operator /=(vect<double,2>& v1, const double& v2);
-extern template vect<double,3>& operator /=(vect<double,3>& v1, const double& v2);
-extern template vect<double,4>& operator /=(vect<double,4>& v1, const double& v2);
-extern template vect<double,6>& operator /=(vect<double,6>& v1, const double& v2);
-extern template vect_n<double>& operator /=(vect_n<double>& v1, const double& v2);
+extern template vect<double,2>& operator /=(vect<double,2>& v1, const double& v2) BOOST_NOEXCEPT;
+extern template vect<double,3>& operator /=(vect<double,3>& v1, const double& v2) BOOST_NOEXCEPT;
+extern template vect<double,4>& operator /=(vect<double,4>& v1, const double& v2) BOOST_NOEXCEPT;
+extern template vect<double,6>& operator /=(vect<double,6>& v1, const double& v2) BOOST_NOEXCEPT;
+extern template vect_n<double>& operator /=(vect_n<double>& v1, const double& v2) BOOST_NOEXCEPT;
 
-extern template vect<double,2> operator +(const vect<double,2>& v1, const vect<double,2>& v2);
-extern template vect<double,3> operator +(const vect<double,3>& v1, const vect<double,3>& v2);
-extern template vect<double,4> operator +(const vect<double,4>& v1, const vect<double,4>& v2);
-extern template vect<double,6> operator +(const vect<double,6>& v1, const vect<double,6>& v2);
+extern template vect<double,2> operator +(const vect<double,2>& v1, const vect<double,2>& v2) BOOST_NOEXCEPT;
+extern template vect<double,3> operator +(const vect<double,3>& v1, const vect<double,3>& v2) BOOST_NOEXCEPT;
+extern template vect<double,4> operator +(const vect<double,4>& v1, const vect<double,4>& v2) BOOST_NOEXCEPT;
+extern template vect<double,6> operator +(const vect<double,6>& v1, const vect<double,6>& v2) BOOST_NOEXCEPT;
 extern template vect_n<double> operator +(const vect_n<double>& v1, const vect_n<double>& v2);
 
-extern template vect<double,2> operator -(const vect<double,2>& v1);
-extern template vect<double,3> operator -(const vect<double,3>& v1);
-extern template vect<double,4> operator -(const vect<double,4>& v1);
-extern template vect<double,6> operator -(const vect<double,6>& v1);
+extern template vect<double,2> operator -(const vect<double,2>& v1) BOOST_NOEXCEPT;
+extern template vect<double,3> operator -(const vect<double,3>& v1) BOOST_NOEXCEPT;
+extern template vect<double,4> operator -(const vect<double,4>& v1) BOOST_NOEXCEPT;
+extern template vect<double,6> operator -(const vect<double,6>& v1) BOOST_NOEXCEPT;
 extern template vect_n<double> operator -(const vect_n<double>& v1);
 
-extern template vect<double,2> operator -(const vect<double,2>& v1, const vect<double,2>& v2);
-extern template vect<double,3> operator -(const vect<double,3>& v1, const vect<double,3>& v2);
-extern template vect<double,4> operator -(const vect<double,4>& v1, const vect<double,4>& v2);
-extern template vect<double,6> operator -(const vect<double,6>& v1, const vect<double,6>& v2);
+extern template vect<double,2> operator -(const vect<double,2>& v1, const vect<double,2>& v2) BOOST_NOEXCEPT;
+extern template vect<double,3> operator -(const vect<double,3>& v1, const vect<double,3>& v2) BOOST_NOEXCEPT;
+extern template vect<double,4> operator -(const vect<double,4>& v1, const vect<double,4>& v2) BOOST_NOEXCEPT;
+extern template vect<double,6> operator -(const vect<double,6>& v1, const vect<double,6>& v2) BOOST_NOEXCEPT;
 extern template vect_n<double> operator -(const vect_n<double>& v1, const vect_n<double>& v2);
 
-extern template double operator *(const vect<double,2>& v1, const vect<double,2>& v2);
-extern template double operator *(const vect<double,3>& v1, const vect<double,3>& v2);
-extern template double operator *(const vect<double,4>& v1, const vect<double,4>& v2);
-extern template double operator *(const vect<double,6>& v1, const vect<double,6>& v2);
+extern template double operator *(const vect<double,2>& v1, const vect<double,2>& v2) BOOST_NOEXCEPT;
+extern template double operator *(const vect<double,3>& v1, const vect<double,3>& v2) BOOST_NOEXCEPT;
+extern template double operator *(const vect<double,4>& v1, const vect<double,4>& v2) BOOST_NOEXCEPT;
+extern template double operator *(const vect<double,6>& v1, const vect<double,6>& v2) BOOST_NOEXCEPT;
 extern template double operator *(const vect_n<double>& v1, const vect_n<double>& v2);
 
-extern template vect<double,2> operator *(const vect<double,2>& v1, const double& v2);
-extern template vect<double,3> operator *(const vect<double,3>& v1, const double& v2);
-extern template vect<double,4> operator *(const vect<double,4>& v1, const double& v2);
-extern template vect<double,6> operator *(const vect<double,6>& v1, const double& v2);
+extern template vect<double,2> operator *(const vect<double,2>& v1, const double& v2) BOOST_NOEXCEPT;
+extern template vect<double,3> operator *(const vect<double,3>& v1, const double& v2) BOOST_NOEXCEPT;
+extern template vect<double,4> operator *(const vect<double,4>& v1, const double& v2) BOOST_NOEXCEPT;
+extern template vect<double,6> operator *(const vect<double,6>& v1, const double& v2) BOOST_NOEXCEPT;
 extern template vect_n<double> operator *(const vect_n<double>& v1, const double& v2);
 
-extern template vect<double,2> operator *(const double& v1, const vect<double,2>& v2);
-extern template vect<double,3> operator *(const double& v1, const vect<double,3>& v2);
-extern template vect<double,4> operator *(const double& v1, const vect<double,4>& v2);
-extern template vect<double,6> operator *(const double& v1, const vect<double,6>& v2);
+extern template vect<double,2> operator *(const double& v1, const vect<double,2>& v2) BOOST_NOEXCEPT;
+extern template vect<double,3> operator *(const double& v1, const vect<double,3>& v2) BOOST_NOEXCEPT;
+extern template vect<double,4> operator *(const double& v1, const vect<double,4>& v2) BOOST_NOEXCEPT;
+extern template vect<double,6> operator *(const double& v1, const vect<double,6>& v2) BOOST_NOEXCEPT;
 extern template vect_n<double> operator *(const double& v1, const vect_n<double>& v2);
 
-extern template vect<double,2> operator /(const vect<double,2>& v1, const double& v2);
-extern template vect<double,3> operator /(const vect<double,3>& v1, const double& v2);
-extern template vect<double,4> operator /(const vect<double,4>& v1, const double& v2);
-extern template vect<double,6> operator /(const vect<double,6>& v1, const double& v2);
+extern template vect<double,2> operator /(const vect<double,2>& v1, const double& v2) BOOST_NOEXCEPT;
+extern template vect<double,3> operator /(const vect<double,3>& v1, const double& v2) BOOST_NOEXCEPT;
+extern template vect<double,4> operator /(const vect<double,4>& v1, const double& v2) BOOST_NOEXCEPT;
+extern template vect<double,6> operator /(const vect<double,6>& v1, const double& v2) BOOST_NOEXCEPT;
 extern template vect_n<double> operator /(const vect_n<double>& v1, const double& v2);
 
 
-extern template bool operator ==(const vect<double,2>& v1, const vect<double,2>& v2);
-extern template bool operator ==(const vect<double,3>& v1, const vect<double,3>& v2);
-extern template bool operator ==(const vect<double,4>& v1, const vect<double,4>& v2);
-extern template bool operator ==(const vect<double,6>& v1, const vect<double,6>& v2);
-extern template bool operator ==(const vect_n<double>& v1, const vect_n<double>& v2);
+extern template bool operator ==(const vect<double,2>& v1, const vect<double,2>& v2) BOOST_NOEXCEPT;
+extern template bool operator ==(const vect<double,3>& v1, const vect<double,3>& v2) BOOST_NOEXCEPT;
+extern template bool operator ==(const vect<double,4>& v1, const vect<double,4>& v2) BOOST_NOEXCEPT;
+extern template bool operator ==(const vect<double,6>& v1, const vect<double,6>& v2) BOOST_NOEXCEPT;
+extern template bool operator ==(const vect_n<double>& v1, const vect_n<double>& v2) BOOST_NOEXCEPT;
 
-extern template bool operator !=(const vect<double,2>& v1, const vect<double,2>& v2);
-extern template bool operator !=(const vect<double,3>& v1, const vect<double,3>& v2);
-extern template bool operator !=(const vect<double,4>& v1, const vect<double,4>& v2);
-extern template bool operator !=(const vect<double,6>& v1, const vect<double,6>& v2);
-extern template bool operator !=(const vect_n<double>& v1, const vect_n<double>& v2);
+extern template bool operator !=(const vect<double,2>& v1, const vect<double,2>& v2) BOOST_NOEXCEPT;
+extern template bool operator !=(const vect<double,3>& v1, const vect<double,3>& v2) BOOST_NOEXCEPT;
+extern template bool operator !=(const vect<double,4>& v1, const vect<double,4>& v2) BOOST_NOEXCEPT;
+extern template bool operator !=(const vect<double,6>& v1, const vect<double,6>& v2) BOOST_NOEXCEPT;
+extern template bool operator !=(const vect_n<double>& v1, const vect_n<double>& v2) BOOST_NOEXCEPT;
 
-extern template bool operator <=(const vect<double,2>& v1, const vect<double,2>& v2);
-extern template bool operator <=(const vect<double,3>& v1, const vect<double,3>& v2);
-extern template bool operator <=(const vect<double,4>& v1, const vect<double,4>& v2);
-extern template bool operator <=(const vect<double,6>& v1, const vect<double,6>& v2);
-extern template bool operator <=(const vect_n<double>& v1, const vect_n<double>& v2);
+extern template bool operator <=(const vect<double,2>& v1, const vect<double,2>& v2) BOOST_NOEXCEPT;
+extern template bool operator <=(const vect<double,3>& v1, const vect<double,3>& v2) BOOST_NOEXCEPT;
+extern template bool operator <=(const vect<double,4>& v1, const vect<double,4>& v2) BOOST_NOEXCEPT;
+extern template bool operator <=(const vect<double,6>& v1, const vect<double,6>& v2) BOOST_NOEXCEPT;
+extern template bool operator <=(const vect_n<double>& v1, const vect_n<double>& v2) BOOST_NOEXCEPT;
 
-extern template bool operator >=(const vect<double,2>& v1, const vect<double,2>& v2);
-extern template bool operator >=(const vect<double,3>& v1, const vect<double,3>& v2);
-extern template bool operator >=(const vect<double,4>& v1, const vect<double,4>& v2);
-extern template bool operator >=(const vect<double,6>& v1, const vect<double,6>& v2);
-extern template bool operator >=(const vect_n<double>& v1, const vect_n<double>& v2);
+extern template bool operator >=(const vect<double,2>& v1, const vect<double,2>& v2) BOOST_NOEXCEPT;
+extern template bool operator >=(const vect<double,3>& v1, const vect<double,3>& v2) BOOST_NOEXCEPT;
+extern template bool operator >=(const vect<double,4>& v1, const vect<double,4>& v2) BOOST_NOEXCEPT;
+extern template bool operator >=(const vect<double,6>& v1, const vect<double,6>& v2) BOOST_NOEXCEPT;
+extern template bool operator >=(const vect_n<double>& v1, const vect_n<double>& v2) BOOST_NOEXCEPT;
 
-extern template bool operator <(const vect<double,2>& v1, const vect<double,2>& v2);
-extern template bool operator <(const vect<double,3>& v1, const vect<double,3>& v2);
-extern template bool operator <(const vect<double,4>& v1, const vect<double,4>& v2);
-extern template bool operator <(const vect<double,6>& v1, const vect<double,6>& v2);
-extern template bool operator <(const vect_n<double>& v1, const vect_n<double>& v2);
+extern template bool operator <(const vect<double,2>& v1, const vect<double,2>& v2) BOOST_NOEXCEPT;
+extern template bool operator <(const vect<double,3>& v1, const vect<double,3>& v2) BOOST_NOEXCEPT;
+extern template bool operator <(const vect<double,4>& v1, const vect<double,4>& v2) BOOST_NOEXCEPT;
+extern template bool operator <(const vect<double,6>& v1, const vect<double,6>& v2) BOOST_NOEXCEPT;
+extern template bool operator <(const vect_n<double>& v1, const vect_n<double>& v2) BOOST_NOEXCEPT;
 
-extern template bool operator >(const vect<double,2>& v1, const vect<double,2>& v2);
-extern template bool operator >(const vect<double,3>& v1, const vect<double,3>& v2);
-extern template bool operator >(const vect<double,4>& v1, const vect<double,4>& v2);
-extern template bool operator >(const vect<double,6>& v1, const vect<double,6>& v2);
-extern template bool operator >(const vect_n<double>& v1, const vect_n<double>& v2);
+extern template bool operator >(const vect<double,2>& v1, const vect<double,2>& v2) BOOST_NOEXCEPT;
+extern template bool operator >(const vect<double,3>& v1, const vect<double,3>& v2) BOOST_NOEXCEPT;
+extern template bool operator >(const vect<double,4>& v1, const vect<double,4>& v2) BOOST_NOEXCEPT;
+extern template bool operator >(const vect<double,6>& v1, const vect<double,6>& v2) BOOST_NOEXCEPT;
+extern template bool operator >(const vect_n<double>& v1, const vect_n<double>& v2) BOOST_NOEXCEPT;
 
 
 extern template std::ostream& operator <<(std::ostream& out_stream, const vect<double,2>& V);
@@ -2992,126 +3071,126 @@ extern template std::ostream& operator <<(std::ostream& out_stream, const vect_n
 
 
 
-extern template vect<float,2> diff(const vect<float,2>& v1, const vect<float,2>& v2);
-extern template vect<float,3> diff(const vect<float,3>& v1, const vect<float,3>& v2);
-extern template vect<float,4> diff(const vect<float,4>& v1, const vect<float,4>& v2);
-extern template vect<float,6> diff(const vect<float,6>& v1, const vect<float,6>& v2);
+extern template vect<float,2> diff(const vect<float,2>& v1, const vect<float,2>& v2) BOOST_NOEXCEPT;
+extern template vect<float,3> diff(const vect<float,3>& v1, const vect<float,3>& v2) BOOST_NOEXCEPT;
+extern template vect<float,4> diff(const vect<float,4>& v1, const vect<float,4>& v2) BOOST_NOEXCEPT;
+extern template vect<float,6> diff(const vect<float,6>& v1, const vect<float,6>& v2) BOOST_NOEXCEPT;
 extern template vect_n<float> diff(const vect_n<float>& v1, const vect_n<float>& v2);
 
-extern template vect<float,2> add(const vect<float,2>& v1, const vect<float,2>& v2);
-extern template vect<float,3> add(const vect<float,3>& v1, const vect<float,3>& v2);
-extern template vect<float,4> add(const vect<float,4>& v1, const vect<float,4>& v2);
-extern template vect<float,6> add(const vect<float,6>& v1, const vect<float,6>& v2);
+extern template vect<float,2> add(const vect<float,2>& v1, const vect<float,2>& v2) BOOST_NOEXCEPT;
+extern template vect<float,3> add(const vect<float,3>& v1, const vect<float,3>& v2) BOOST_NOEXCEPT;
+extern template vect<float,4> add(const vect<float,4>& v1, const vect<float,4>& v2) BOOST_NOEXCEPT;
+extern template vect<float,6> add(const vect<float,6>& v1, const vect<float,6>& v2) BOOST_NOEXCEPT;
 extern template vect_n<float> add(const vect_n<float>& v1, const vect_n<float>& v2);
 
-extern template float operator %(const vect<float,2>& V1,const vect<float,2>& V2);
-extern template vect<float,2> operator %(const float& S, const vect<float,2>& V);
-extern template vect<float,2> operator %(const vect<float,2>& V,const float& S);
-extern template vect<float,3> operator %(const vect<float,3>& V1 , const vect<float,3>& V2);
+extern template float operator %(const vect<float,2>& V1,const vect<float,2>& V2) BOOST_NOEXCEPT;
+extern template vect<float,2> operator %(const float& S, const vect<float,2>& V) BOOST_NOEXCEPT;
+extern template vect<float,2> operator %(const vect<float,2>& V,const float& S) BOOST_NOEXCEPT;
+extern template vect<float,3> operator %(const vect<float,3>& V1 , const vect<float,3>& V2) BOOST_NOEXCEPT;
 
 
-extern template vect<float,2>& operator +=(vect<float,2>& v1, const vect<float,2>& v2);
-extern template vect<float,3>& operator +=(vect<float,3>& v1, const vect<float,3>& v2);
-extern template vect<float,4>& operator +=(vect<float,4>& v1, const vect<float,4>& v2);
-extern template vect<float,6>& operator +=(vect<float,6>& v1, const vect<float,6>& v2);
+extern template vect<float,2>& operator +=(vect<float,2>& v1, const vect<float,2>& v2) BOOST_NOEXCEPT;
+extern template vect<float,3>& operator +=(vect<float,3>& v1, const vect<float,3>& v2) BOOST_NOEXCEPT;
+extern template vect<float,4>& operator +=(vect<float,4>& v1, const vect<float,4>& v2) BOOST_NOEXCEPT;
+extern template vect<float,6>& operator +=(vect<float,6>& v1, const vect<float,6>& v2) BOOST_NOEXCEPT;
 extern template vect_n<float>& operator +=(vect_n<float>& v1, const vect_n<float>& v2);
 
-extern template vect<float,2>& operator -=(vect<float,2>& v1, const vect<float,2>& v2);
-extern template vect<float,3>& operator -=(vect<float,3>& v1, const vect<float,3>& v2);
-extern template vect<float,4>& operator -=(vect<float,4>& v1, const vect<float,4>& v2);
-extern template vect<float,6>& operator -=(vect<float,6>& v1, const vect<float,6>& v2);
+extern template vect<float,2>& operator -=(vect<float,2>& v1, const vect<float,2>& v2) BOOST_NOEXCEPT;
+extern template vect<float,3>& operator -=(vect<float,3>& v1, const vect<float,3>& v2) BOOST_NOEXCEPT;
+extern template vect<float,4>& operator -=(vect<float,4>& v1, const vect<float,4>& v2) BOOST_NOEXCEPT;
+extern template vect<float,6>& operator -=(vect<float,6>& v1, const vect<float,6>& v2) BOOST_NOEXCEPT;
 extern template vect_n<float>& operator -=(vect_n<float>& v1, const vect_n<float>& v2);
 
-extern template vect<float,2>& operator *=(vect<float,2>& v1, const float& v2);
-extern template vect<float,3>& operator *=(vect<float,3>& v1, const float& v2);
-extern template vect<float,4>& operator *=(vect<float,4>& v1, const float& v2);
-extern template vect<float,6>& operator *=(vect<float,6>& v1, const float& v2);
-extern template vect_n<float>& operator *=(vect_n<float>& v1, const float& v2);
+extern template vect<float,2>& operator *=(vect<float,2>& v1, const float& v2) BOOST_NOEXCEPT;
+extern template vect<float,3>& operator *=(vect<float,3>& v1, const float& v2) BOOST_NOEXCEPT;
+extern template vect<float,4>& operator *=(vect<float,4>& v1, const float& v2) BOOST_NOEXCEPT;
+extern template vect<float,6>& operator *=(vect<float,6>& v1, const float& v2) BOOST_NOEXCEPT;
+extern template vect_n<float>& operator *=(vect_n<float>& v1, const float& v2) BOOST_NOEXCEPT;
 
-extern template vect<float,2>& operator /=(vect<float,2>& v1, const float& v2);
-extern template vect<float,3>& operator /=(vect<float,3>& v1, const float& v2);
-extern template vect<float,4>& operator /=(vect<float,4>& v1, const float& v2);
-extern template vect<float,6>& operator /=(vect<float,6>& v1, const float& v2);
-extern template vect_n<float>& operator /=(vect_n<float>& v1, const float& v2);
+extern template vect<float,2>& operator /=(vect<float,2>& v1, const float& v2) BOOST_NOEXCEPT;
+extern template vect<float,3>& operator /=(vect<float,3>& v1, const float& v2) BOOST_NOEXCEPT;
+extern template vect<float,4>& operator /=(vect<float,4>& v1, const float& v2) BOOST_NOEXCEPT;
+extern template vect<float,6>& operator /=(vect<float,6>& v1, const float& v2) BOOST_NOEXCEPT;
+extern template vect_n<float>& operator /=(vect_n<float>& v1, const float& v2) BOOST_NOEXCEPT;
 
-extern template vect<float,2> operator +(const vect<float,2>& v1, const vect<float,2>& v2);
-extern template vect<float,3> operator +(const vect<float,3>& v1, const vect<float,3>& v2);
-extern template vect<float,4> operator +(const vect<float,4>& v1, const vect<float,4>& v2);
-extern template vect<float,6> operator +(const vect<float,6>& v1, const vect<float,6>& v2);
+extern template vect<float,2> operator +(const vect<float,2>& v1, const vect<float,2>& v2) BOOST_NOEXCEPT;
+extern template vect<float,3> operator +(const vect<float,3>& v1, const vect<float,3>& v2) BOOST_NOEXCEPT;
+extern template vect<float,4> operator +(const vect<float,4>& v1, const vect<float,4>& v2) BOOST_NOEXCEPT;
+extern template vect<float,6> operator +(const vect<float,6>& v1, const vect<float,6>& v2) BOOST_NOEXCEPT;
 extern template vect_n<float> operator +(const vect_n<float>& v1, const vect_n<float>& v2);
 
-extern template vect<float,2> operator -(const vect<float,2>& v1);
-extern template vect<float,3> operator -(const vect<float,3>& v1);
-extern template vect<float,4> operator -(const vect<float,4>& v1);
-extern template vect<float,6> operator -(const vect<float,6>& v1);
+extern template vect<float,2> operator -(const vect<float,2>& v1) BOOST_NOEXCEPT;
+extern template vect<float,3> operator -(const vect<float,3>& v1) BOOST_NOEXCEPT;
+extern template vect<float,4> operator -(const vect<float,4>& v1) BOOST_NOEXCEPT;
+extern template vect<float,6> operator -(const vect<float,6>& v1) BOOST_NOEXCEPT;
 extern template vect_n<float> operator -(const vect_n<float>& v1);
 
-extern template vect<float,2> operator -(const vect<float,2>& v1, const vect<float,2>& v2);
-extern template vect<float,3> operator -(const vect<float,3>& v1, const vect<float,3>& v2);
-extern template vect<float,4> operator -(const vect<float,4>& v1, const vect<float,4>& v2);
-extern template vect<float,6> operator -(const vect<float,6>& v1, const vect<float,6>& v2);
+extern template vect<float,2> operator -(const vect<float,2>& v1, const vect<float,2>& v2) BOOST_NOEXCEPT;
+extern template vect<float,3> operator -(const vect<float,3>& v1, const vect<float,3>& v2) BOOST_NOEXCEPT;
+extern template vect<float,4> operator -(const vect<float,4>& v1, const vect<float,4>& v2) BOOST_NOEXCEPT;
+extern template vect<float,6> operator -(const vect<float,6>& v1, const vect<float,6>& v2) BOOST_NOEXCEPT;
 extern template vect_n<float> operator -(const vect_n<float>& v1, const vect_n<float>& v2);
 
-extern template float operator *(const vect<float,2>& v1, const vect<float,2>& v2);
-extern template float operator *(const vect<float,3>& v1, const vect<float,3>& v2);
-extern template float operator *(const vect<float,4>& v1, const vect<float,4>& v2);
-extern template float operator *(const vect<float,6>& v1, const vect<float,6>& v2);
+extern template float operator *(const vect<float,2>& v1, const vect<float,2>& v2) BOOST_NOEXCEPT;
+extern template float operator *(const vect<float,3>& v1, const vect<float,3>& v2) BOOST_NOEXCEPT;
+extern template float operator *(const vect<float,4>& v1, const vect<float,4>& v2) BOOST_NOEXCEPT;
+extern template float operator *(const vect<float,6>& v1, const vect<float,6>& v2) BOOST_NOEXCEPT;
 extern template float operator *(const vect_n<float>& v1, const vect_n<float>& v2);
 
-extern template vect<float,2> operator *(const vect<float,2>& v1, const float& v2);
-extern template vect<float,3> operator *(const vect<float,3>& v1, const float& v2);
-extern template vect<float,4> operator *(const vect<float,4>& v1, const float& v2);
-extern template vect<float,6> operator *(const vect<float,6>& v1, const float& v2);
+extern template vect<float,2> operator *(const vect<float,2>& v1, const float& v2) BOOST_NOEXCEPT;
+extern template vect<float,3> operator *(const vect<float,3>& v1, const float& v2) BOOST_NOEXCEPT;
+extern template vect<float,4> operator *(const vect<float,4>& v1, const float& v2) BOOST_NOEXCEPT;
+extern template vect<float,6> operator *(const vect<float,6>& v1, const float& v2) BOOST_NOEXCEPT;
 extern template vect_n<float> operator *(const vect_n<float>& v1, const float& v2);
 
-extern template vect<float,2> operator *(const float& v1, const vect<float,2>& v2);
-extern template vect<float,3> operator *(const float& v1, const vect<float,3>& v2);
-extern template vect<float,4> operator *(const float& v1, const vect<float,4>& v2);
-extern template vect<float,6> operator *(const float& v1, const vect<float,6>& v2);
+extern template vect<float,2> operator *(const float& v1, const vect<float,2>& v2) BOOST_NOEXCEPT;
+extern template vect<float,3> operator *(const float& v1, const vect<float,3>& v2) BOOST_NOEXCEPT;
+extern template vect<float,4> operator *(const float& v1, const vect<float,4>& v2) BOOST_NOEXCEPT;
+extern template vect<float,6> operator *(const float& v1, const vect<float,6>& v2) BOOST_NOEXCEPT;
 extern template vect_n<float> operator *(const float& v1, const vect_n<float>& v2);
 
-extern template vect<float,2> operator /(const vect<float,2>& v1, const float& v2);
-extern template vect<float,3> operator /(const vect<float,3>& v1, const float& v2);
-extern template vect<float,4> operator /(const vect<float,4>& v1, const float& v2);
-extern template vect<float,6> operator /(const vect<float,6>& v1, const float& v2);
+extern template vect<float,2> operator /(const vect<float,2>& v1, const float& v2) BOOST_NOEXCEPT;
+extern template vect<float,3> operator /(const vect<float,3>& v1, const float& v2) BOOST_NOEXCEPT;
+extern template vect<float,4> operator /(const vect<float,4>& v1, const float& v2) BOOST_NOEXCEPT;
+extern template vect<float,6> operator /(const vect<float,6>& v1, const float& v2) BOOST_NOEXCEPT;
 extern template vect_n<float> operator /(const vect_n<float>& v1, const float& v2);
 
 
-extern template bool operator ==(const vect<float,2>& v1, const vect<float,2>& v2);
-extern template bool operator ==(const vect<float,3>& v1, const vect<float,3>& v2);
-extern template bool operator ==(const vect<float,4>& v1, const vect<float,4>& v2);
-extern template bool operator ==(const vect<float,6>& v1, const vect<float,6>& v2);
-extern template bool operator ==(const vect_n<float>& v1, const vect_n<float>& v2);
+extern template bool operator ==(const vect<float,2>& v1, const vect<float,2>& v2) BOOST_NOEXCEPT;
+extern template bool operator ==(const vect<float,3>& v1, const vect<float,3>& v2) BOOST_NOEXCEPT;
+extern template bool operator ==(const vect<float,4>& v1, const vect<float,4>& v2) BOOST_NOEXCEPT;
+extern template bool operator ==(const vect<float,6>& v1, const vect<float,6>& v2) BOOST_NOEXCEPT;
+extern template bool operator ==(const vect_n<float>& v1, const vect_n<float>& v2) BOOST_NOEXCEPT;
 
-extern template bool operator !=(const vect<float,2>& v1, const vect<float,2>& v2);
-extern template bool operator !=(const vect<float,3>& v1, const vect<float,3>& v2);
-extern template bool operator !=(const vect<float,4>& v1, const vect<float,4>& v2);
-extern template bool operator !=(const vect<float,6>& v1, const vect<float,6>& v2);
-extern template bool operator !=(const vect_n<float>& v1, const vect_n<float>& v2);
+extern template bool operator !=(const vect<float,2>& v1, const vect<float,2>& v2) BOOST_NOEXCEPT;
+extern template bool operator !=(const vect<float,3>& v1, const vect<float,3>& v2) BOOST_NOEXCEPT;
+extern template bool operator !=(const vect<float,4>& v1, const vect<float,4>& v2) BOOST_NOEXCEPT;
+extern template bool operator !=(const vect<float,6>& v1, const vect<float,6>& v2) BOOST_NOEXCEPT;
+extern template bool operator !=(const vect_n<float>& v1, const vect_n<float>& v2) BOOST_NOEXCEPT;
 
-extern template bool operator <=(const vect<float,2>& v1, const vect<float,2>& v2);
-extern template bool operator <=(const vect<float,3>& v1, const vect<float,3>& v2);
-extern template bool operator <=(const vect<float,4>& v1, const vect<float,4>& v2);
-extern template bool operator <=(const vect<float,6>& v1, const vect<float,6>& v2);
-extern template bool operator <=(const vect_n<float>& v1, const vect_n<float>& v2);
+extern template bool operator <=(const vect<float,2>& v1, const vect<float,2>& v2) BOOST_NOEXCEPT;
+extern template bool operator <=(const vect<float,3>& v1, const vect<float,3>& v2) BOOST_NOEXCEPT;
+extern template bool operator <=(const vect<float,4>& v1, const vect<float,4>& v2) BOOST_NOEXCEPT;
+extern template bool operator <=(const vect<float,6>& v1, const vect<float,6>& v2) BOOST_NOEXCEPT;
+extern template bool operator <=(const vect_n<float>& v1, const vect_n<float>& v2) BOOST_NOEXCEPT;
 
-extern template bool operator >=(const vect<float,2>& v1, const vect<float,2>& v2);
-extern template bool operator >=(const vect<float,3>& v1, const vect<float,3>& v2);
-extern template bool operator >=(const vect<float,4>& v1, const vect<float,4>& v2);
-extern template bool operator >=(const vect<float,6>& v1, const vect<float,6>& v2);
-extern template bool operator >=(const vect_n<float>& v1, const vect_n<float>& v2);
+extern template bool operator >=(const vect<float,2>& v1, const vect<float,2>& v2) BOOST_NOEXCEPT;
+extern template bool operator >=(const vect<float,3>& v1, const vect<float,3>& v2) BOOST_NOEXCEPT;
+extern template bool operator >=(const vect<float,4>& v1, const vect<float,4>& v2) BOOST_NOEXCEPT;
+extern template bool operator >=(const vect<float,6>& v1, const vect<float,6>& v2) BOOST_NOEXCEPT;
+extern template bool operator >=(const vect_n<float>& v1, const vect_n<float>& v2) BOOST_NOEXCEPT;
 
-extern template bool operator <(const vect<float,2>& v1, const vect<float,2>& v2);
-extern template bool operator <(const vect<float,3>& v1, const vect<float,3>& v2);
-extern template bool operator <(const vect<float,4>& v1, const vect<float,4>& v2);
-extern template bool operator <(const vect<float,6>& v1, const vect<float,6>& v2);
-extern template bool operator <(const vect_n<float>& v1, const vect_n<float>& v2);
+extern template bool operator <(const vect<float,2>& v1, const vect<float,2>& v2) BOOST_NOEXCEPT;
+extern template bool operator <(const vect<float,3>& v1, const vect<float,3>& v2) BOOST_NOEXCEPT;
+extern template bool operator <(const vect<float,4>& v1, const vect<float,4>& v2) BOOST_NOEXCEPT;
+extern template bool operator <(const vect<float,6>& v1, const vect<float,6>& v2) BOOST_NOEXCEPT;
+extern template bool operator <(const vect_n<float>& v1, const vect_n<float>& v2) BOOST_NOEXCEPT;
 
-extern template bool operator >(const vect<float,2>& v1, const vect<float,2>& v2);
-extern template bool operator >(const vect<float,3>& v1, const vect<float,3>& v2);
-extern template bool operator >(const vect<float,4>& v1, const vect<float,4>& v2);
-extern template bool operator >(const vect<float,6>& v1, const vect<float,6>& v2);
-extern template bool operator >(const vect_n<float>& v1, const vect_n<float>& v2);
+extern template bool operator >(const vect<float,2>& v1, const vect<float,2>& v2) BOOST_NOEXCEPT;
+extern template bool operator >(const vect<float,3>& v1, const vect<float,3>& v2) BOOST_NOEXCEPT;
+extern template bool operator >(const vect<float,4>& v1, const vect<float,4>& v2) BOOST_NOEXCEPT;
+extern template bool operator >(const vect<float,6>& v1, const vect<float,6>& v2) BOOST_NOEXCEPT;
+extern template bool operator >(const vect_n<float>& v1, const vect_n<float>& v2) BOOST_NOEXCEPT;
 
 
 extern template std::ostream& operator <<(std::ostream& out_stream, const vect<float,2>& V);

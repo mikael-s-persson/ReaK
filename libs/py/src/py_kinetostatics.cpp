@@ -52,74 +52,74 @@
 
 namespace ReaK {
   
-rot_mat_2D<double> transpose(const rot_mat_2D<double>&);
-rot_mat_2D<double> invert(const rot_mat_2D<double>&);
-double trace(const rot_mat_2D<double>&);
-double determinant(const rot_mat_2D<double>&);
+rot_mat_2D<double> transpose(const rot_mat_2D<double>&) BOOST_NOEXCEPT;
+rot_mat_2D<double> invert(const rot_mat_2D<double>&) BOOST_NOEXCEPT;
+double trace(const rot_mat_2D<double>&) BOOST_NOEXCEPT;
+double determinant(const rot_mat_2D<double>&) BOOST_NOEXCEPT;
 
-trans_mat_2D<double> invert(const trans_mat_2D<double>&);
-double trace(const trans_mat_2D<double>&);
-double determinant(const trans_mat_2D<double>&);
+trans_mat_2D<double> invert(const trans_mat_2D<double>&) BOOST_NOEXCEPT;
+double trace(const trans_mat_2D<double>&) BOOST_NOEXCEPT;
+double determinant(const trans_mat_2D<double>&) BOOST_NOEXCEPT;
 
-rot_mat_3D<double> transpose(const rot_mat_3D<double>&);
-rot_mat_3D<double> invert(const rot_mat_3D<double>&);
-double trace(const rot_mat_3D<double>&);
-double determinant(const rot_mat_3D<double>&);
+rot_mat_3D<double> transpose(const rot_mat_3D<double>&) BOOST_NOEXCEPT;
+rot_mat_3D<double> invert(const rot_mat_3D<double>&) BOOST_NOEXCEPT;
+double trace(const rot_mat_3D<double>&) BOOST_NOEXCEPT;
+double determinant(const rot_mat_3D<double>&) BOOST_NOEXCEPT;
 
-quaternion<double> transpose(const quaternion<double>&);
-quaternion<double> invert(const quaternion<double>&);
-double trace(const quaternion<double>&);
-double determinant(const quaternion<double>&);
+quaternion<double> transpose(const quaternion<double>&) BOOST_NOEXCEPT;
+quaternion<double> invert(const quaternion<double>&) BOOST_NOEXCEPT;
+double trace(const quaternion<double>&) BOOST_NOEXCEPT;
+double determinant(const quaternion<double>&) BOOST_NOEXCEPT;
 
-euler_angles_TB<double> transpose(const euler_angles_TB<double>&);
-euler_angles_TB<double> invert(const euler_angles_TB<double>&);
-double trace(const euler_angles_TB<double>&);
-double determinant(const euler_angles_TB<double>&);
+euler_angles_TB<double> transpose(const euler_angles_TB<double>&) BOOST_NOEXCEPT;
+euler_angles_TB<double> invert(const euler_angles_TB<double>&) BOOST_NOEXCEPT;
+double trace(const euler_angles_TB<double>&) BOOST_NOEXCEPT;
+double determinant(const euler_angles_TB<double>&) BOOST_NOEXCEPT;
 
-axis_angle<double> transpose(const axis_angle<double>&);
-axis_angle<double> invert(const axis_angle<double>&);
-double trace(const axis_angle<double>&);
-double determinant(const axis_angle<double>&);
+axis_angle<double> transpose(const axis_angle<double>&) BOOST_NOEXCEPT;
+axis_angle<double> invert(const axis_angle<double>&) BOOST_NOEXCEPT;
+double trace(const axis_angle<double>&) BOOST_NOEXCEPT;
+double determinant(const axis_angle<double>&) BOOST_NOEXCEPT;
 
-trans_mat_3D<double> invert(const trans_mat_3D<double>&);
-double trace(const trans_mat_3D<double>&);
-double determinant(const trans_mat_3D<double>&);
+trans_mat_3D<double> invert(const trans_mat_3D<double>&) BOOST_NOEXCEPT;
+double trace(const trans_mat_3D<double>&) BOOST_NOEXCEPT;
+double determinant(const trans_mat_3D<double>&) BOOST_NOEXCEPT;
 
 
-quat<double> conj(const quat<double>& x);
-double norm_2_sqr(const quat<double>& v);
-double norm_2(const quat<double>& v);
-quat<double> unit(const quat<double>& v);
-bool colinear(const quat<double>& v1, const quat<double>& v2);
-quat<double> exp(const quat<double>& x);
-quat<double> log(const quat<double>& x);
-quat<double> pow(const quat<double>& base, const quat<double>& exponent);
-quat<double> sqrt(const quat<double>& x);
-quat<double> invert(const quat<double>& x);
-quat<double> ceil(const quat<double>& x);
-double fabs(const quat<double>& x);
-quat<double> floor(const quat<double>& x);
-quat<double> cos(const quat<double>& x);
-quat<double> sin(const quat<double>& x);
-quat<double> tan(const quat<double>& x);
-quat<double> acos(const quat<double>& x);
-quat<double> asin(const quat<double>& x);
-quat<double> atan(const quat<double>& x);
-quat<double> atan2(const quat<double>& y, const quat<double>& x);
-quat<double> cosh(const quat<double>& x);
-quat<double> sinh(const quat<double>& x);
-quat<double> tanh(const quat<double>& x);
+quat<double> conj(const quat<double>& x) BOOST_NOEXCEPT;
+double norm_2_sqr(const quat<double>& v) BOOST_NOEXCEPT;
+double norm_2(const quat<double>& v) BOOST_NOEXCEPT;
+quat<double> unit(const quat<double>& v) BOOST_NOEXCEPT;
+bool colinear(const quat<double>& v1, const quat<double>& v2) BOOST_NOEXCEPT;
+quat<double> exp(const quat<double>& x) BOOST_NOEXCEPT;
+quat<double> log(const quat<double>& x) BOOST_NOEXCEPT;
+quat<double> pow(const quat<double>& base, const quat<double>& exponent) BOOST_NOEXCEPT;
+quat<double> sqrt(const quat<double>& x) BOOST_NOEXCEPT;
+quat<double> invert(const quat<double>& x) BOOST_NOEXCEPT;
+quat<double> ceil(const quat<double>& x) BOOST_NOEXCEPT;
+double fabs(const quat<double>& x) BOOST_NOEXCEPT;
+quat<double> floor(const quat<double>& x) BOOST_NOEXCEPT;
+quat<double> cos(const quat<double>& x) BOOST_NOEXCEPT;
+quat<double> sin(const quat<double>& x) BOOST_NOEXCEPT;
+quat<double> tan(const quat<double>& x) BOOST_NOEXCEPT;
+quat<double> acos(const quat<double>& x) BOOST_NOEXCEPT;
+quat<double> asin(const quat<double>& x) BOOST_NOEXCEPT;
+quat<double> atan(const quat<double>& x) BOOST_NOEXCEPT;
+quat<double> atan2(const quat<double>& y, const quat<double>& x) BOOST_NOEXCEPT;
+quat<double> cosh(const quat<double>& x) BOOST_NOEXCEPT;
+quat<double> sinh(const quat<double>& x) BOOST_NOEXCEPT;
+quat<double> tanh(const quat<double>& x) BOOST_NOEXCEPT;
 
-unit_quat<double> conj(const unit_quat<double>& x);
-double norm_2_sqr(const unit_quat<double>& v);
-double norm_2(const quat<double>& v);
-unit_quat<double> unit(const unit_quat<double>& v);
-unit_quat<double> exp(const vect<double,3>& x);
-vect<double,3> log(const unit_quat<double>& x);
-unit_quat<double> pow(const unit_quat<double>& base, const double& exponent);
-unit_quat<double> sqrt(const unit_quat<double>& x);
-unit_quat<double> invert(const unit_quat<double>& x);
-double fabs(const unit_quat<double>& x);
+unit_quat<double> conj(const unit_quat<double>& x) BOOST_NOEXCEPT;
+double norm_2_sqr(const unit_quat<double>& v) BOOST_NOEXCEPT;
+double norm_2(const quat<double>& v) BOOST_NOEXCEPT;
+unit_quat<double> unit(const unit_quat<double>& v) BOOST_NOEXCEPT;
+unit_quat<double> exp(const vect<double,3>& x) BOOST_NOEXCEPT;
+vect<double,3> log(const unit_quat<double>& x) BOOST_NOEXCEPT;
+unit_quat<double> pow(const unit_quat<double>& base, const double& exponent) BOOST_NOEXCEPT;
+unit_quat<double> sqrt(const unit_quat<double>& x) BOOST_NOEXCEPT;
+unit_quat<double> invert(const unit_quat<double>& x) BOOST_NOEXCEPT;
+double fabs(const unit_quat<double>& x) BOOST_NOEXCEPT;
   
   
 };
@@ -128,12 +128,12 @@ double fabs(const unit_quat<double>& x);
 namespace PyReaK {
 
 template <typename Vector>
-double vect_getitem(const Vector& v, std::size_t i) {
+double vect_getitem(const Vector& v, std::size_t i) BOOST_NOEXCEPT {
   return v[i]; 
 };
 
 template <typename Vector>
-void vect_setitem(Vector& v, std::size_t i, double d) {
+void vect_setitem(Vector& v, std::size_t i, double d) BOOST_NOEXCEPT {
   v[i] = d;
 };
 
@@ -144,17 +144,17 @@ std::string obj_to_string(const T& a) {
   return ss.str();
 };
 
-double ea_get_yaw(const ReaK::euler_angles_TB<double>& e) { return e.yaw(); };
-void ea_set_yaw(ReaK::euler_angles_TB<double>& e, double y) { e.yaw() = y; };
-double ea_get_pitch(const ReaK::euler_angles_TB<double>& e) { return e.pitch(); };
-void ea_set_pitch(ReaK::euler_angles_TB<double>& e, double y) { e.pitch() = y; };
-double ea_get_roll(const ReaK::euler_angles_TB<double>& e) { return e.roll(); };
-void ea_set_roll(ReaK::euler_angles_TB<double>& e, double y) { e.roll() = y; };
+double ea_get_yaw(const ReaK::euler_angles_TB<double>& e) BOOST_NOEXCEPT { return e.yaw(); };
+void ea_set_yaw(ReaK::euler_angles_TB<double>& e, double y) BOOST_NOEXCEPT { e.yaw() = y; };
+double ea_get_pitch(const ReaK::euler_angles_TB<double>& e) BOOST_NOEXCEPT { return e.pitch(); };
+void ea_set_pitch(ReaK::euler_angles_TB<double>& e, double y) BOOST_NOEXCEPT { e.pitch() = y; };
+double ea_get_roll(const ReaK::euler_angles_TB<double>& e) BOOST_NOEXCEPT { return e.roll(); };
+void ea_set_roll(ReaK::euler_angles_TB<double>& e, double y) BOOST_NOEXCEPT { e.roll() = y; };
 
-ReaK::vect<double,3> aa_get_axis(const ReaK::axis_angle<double>& a) { return a.axis(); };
-void aa_set_axis(ReaK::axis_angle<double>& a, const ReaK::vect<double,3>& y) { a.axis() = y; };
-double aa_get_angle(const ReaK::axis_angle<double>& a) { return a.angle(); };
-void aa_set_angle(ReaK::axis_angle<double>& a, double y) { a.angle() = y; };
+ReaK::vect<double,3> aa_get_axis(const ReaK::axis_angle<double>& a) BOOST_NOEXCEPT { return a.axis(); };
+void aa_set_axis(ReaK::axis_angle<double>& a, const ReaK::vect<double,3>& y) BOOST_NOEXCEPT { a.axis() = y; };
+double aa_get_angle(const ReaK::axis_angle<double>& a) BOOST_NOEXCEPT { return a.angle(); };
+void aa_set_angle(ReaK::axis_angle<double>& a, double y) BOOST_NOEXCEPT { a.angle() = y; };
 
 
 void export_kinetostatics() {
@@ -201,9 +201,7 @@ void export_kinetostatics() {
    * *****************************************************************************/
   
   
-  class_< ReaK::rot_mat_2D<double>,
-          bases< ReaK::serializable >
-        >("Rotation2D")
+  class_< ReaK::rot_mat_2D<double> >("Rotation2D")
     .def(init<double>())
     .def(init< ReaK::vect<double,2> >())
     .add_property("angle",&ReaK::rot_mat_2D<double>::getAngle,&ReaK::rot_mat_2D<double>::setAngle)
@@ -219,9 +217,7 @@ void export_kinetostatics() {
     .def("__str__",obj_to_string< ReaK::rot_mat_2D<double> >);
     
   
-  class_< ReaK::trans_mat_2D<double>,
-          bases< ReaK::serializable >
-        >("Transform2D")
+  class_< ReaK::trans_mat_2D<double> >("Transform2D")
     .def(init< double, ReaK::vect<double,2> >())
     .def(init< const ReaK::rot_mat_2D<double>&, ReaK::vect<double,2> >())
     .add_property("rot_mat",&ReaK::trans_mat_2D<double>::getRotMat,&ReaK::trans_mat_2D<double>::setRotMat)
@@ -329,9 +325,7 @@ void export_kinetostatics() {
    * *****************************************************************************/
   
   
-  class_< ReaK::rot_mat_3D<double>,
-          bases< ReaK::serializable >
-        >("Rotation3D")
+  class_< ReaK::rot_mat_3D<double> >("Rotation3D")
     .def("__call__",&ReaK::rot_mat_3D<double>::operator())
     .def(self * self)
     .def(self *= self)
@@ -344,9 +338,7 @@ void export_kinetostatics() {
     .def("__str__",obj_to_string< ReaK::rot_mat_3D<double> >);
   
   
-  class_< ReaK::quaternion<double>,
-          bases< ReaK::serializable >
-        >("QuaternionRot")
+  class_< ReaK::quaternion<double> >("QuaternionRot")
     .def(init< ReaK::vect<double,4> >())
     .def(init< ReaK::rot_mat_3D<double> >())
     .def("__getitem__",&ReaK::quaternion<double>::operator[],return_value_policy<copy_const_reference>())
@@ -366,9 +358,7 @@ void export_kinetostatics() {
     .def("__str__",obj_to_string< ReaK::quaternion<double> >);
   
   
-  class_< ReaK::euler_angles_TB<double>,
-          bases< ReaK::serializable >
-        >("EulerAngles")
+  class_< ReaK::euler_angles_TB<double> >("EulerAngles")
     .def(init< double, double, double >())
     .def(init< ReaK::rot_mat_3D<double> >())
     .def(init< ReaK::quaternion<double> >())
@@ -394,9 +384,7 @@ void export_kinetostatics() {
     .def("__str__",obj_to_string< ReaK::euler_angles_TB<double> >);
   
   
-  class_< ReaK::axis_angle<double>,
-          bases< ReaK::serializable >
-        >("AxisAngle")
+  class_< ReaK::axis_angle<double> >("AxisAngle")
     .def(init< double, ReaK::vect<double,3> >())
     .def(init< ReaK::rot_mat_3D<double> >())
     .def(init< ReaK::quaternion<double> >())
@@ -425,9 +413,7 @@ void export_kinetostatics() {
     .def("__str__",obj_to_string< ReaK::axis_angle<double> >);
   
   
-  class_< ReaK::trans_mat_3D<double>,
-          bases< ReaK::serializable >
-        >("Transform3D")
+  class_< ReaK::trans_mat_3D<double> >("Transform3D")
     .def(init< ReaK::quaternion<double>, ReaK::vect<double,3> >())
     .def(init< ReaK::rot_mat_3D<double>, ReaK::vect<double,3> >())
     .def(init< ReaK::euler_angles_TB<double>, ReaK::vect<double,3> >())

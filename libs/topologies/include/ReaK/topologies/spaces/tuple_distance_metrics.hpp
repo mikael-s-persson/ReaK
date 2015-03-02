@@ -45,162 +45,102 @@ namespace ReaK {
 namespace pp {
   
 
-namespace detail {
-
-  template <std::size_t Idx, typename SpaceTuple> 
-  struct manhattan_tuple_distance_impl {
-    template <typename PointType>
-    static double distance(const SpaceTuple& s, const PointType& p1, const PointType& p2) {
-      double result = manhattan_tuple_distance_impl<Idx-1,SpaceTuple>::distance(s,p1,p2);
+namespace detail { namespace {
+  
+  struct manhattan_tuple_distance_accum {
+    double* p_result;
+    manhattan_tuple_distance_accum(double& result) : p_result(&result) {};
+    template <typename Space, typename Pt>
+    void operator()(const Space& s, const Pt& p1, const Pt& p2) const {
       using std::fabs;
-      result += fabs(get(distance_metric,get<Idx>(s))(get<Idx>(p1), get<Idx>(p2), get<Idx>(s)));
-      return result;
-    };
-      
-    template <typename PointDiff>
-    static double norm(const SpaceTuple& s, const PointDiff& dp) {
-      double result = manhattan_tuple_distance_impl<Idx-1,SpaceTuple>::norm(s,dp);
-      using std::fabs;
-      result += fabs(get(distance_metric,get<Idx>(s))(get<Idx>(dp), get<Idx>(s)));
-      return result;
+      (*p_result) += fabs(get(distance_metric,s)(p1, p2, s));
     };
   };
   
-  template <typename SpaceTuple> 
-  struct manhattan_tuple_distance_impl<0,SpaceTuple> {
-    template <typename PointType>
-    static double distance(const SpaceTuple& s, const PointType& p1, const PointType& p2) {
+  struct manhattan_tuple_norm_accum {
+    double* p_result;
+    manhattan_tuple_norm_accum(double& result) : p_result(&result) {};
+    template <typename Space, typename Dp>
+    void operator()(const Space& s, const Dp& dp) const {
       using std::fabs;
-      return fabs(get(distance_metric,get<0>(s))(get<0>(p1), get<0>(p2), get<0>(s)));
-    };
-      
-    template <typename PointDiff>
-    static double norm(const SpaceTuple& s, const PointDiff& dp) {
-      using std::fabs;
-      return fabs(get(distance_metric,get<0>(s))(get<0>(dp), get<0>(s)));
+      (*p_result) += fabs(get(distance_metric,s)(dp, s));
     };
   };
   
   
-  template <std::size_t Idx, typename SpaceTuple> 
-  struct euclidean_tuple_distance_impl {
-    template <typename PointType>
-    static double distance(const SpaceTuple& s, const PointType& p1, const PointType& p2) {
-      double result = euclidean_tuple_distance_impl<Idx-1,SpaceTuple>::distance(s,p1,p2);
-      double r = get(distance_metric,get<Idx>(s))(get<Idx>(p1), get<Idx>(p2), get<Idx>(s));
-      result += r * r;
-      return result;
-    };
-      
-    template <typename PointDiff>
-    static double norm(const SpaceTuple& s, const PointDiff& dp) {
-      double result = euclidean_tuple_distance_impl<Idx-1,SpaceTuple>::norm(s,dp);
-      double r = get(distance_metric,get<Idx>(s))(get<Idx>(dp), get<Idx>(s));
-      result += r * r;
-      return result;
+  struct euclidean_tuple_distance_accum {
+    double* p_result;
+    euclidean_tuple_distance_accum(double& result) : p_result(&result) {};
+    template <typename Space, typename Pt>
+    void operator()(const Space& s, const Pt& p1, const Pt& p2) const {
+      double r = get(distance_metric,s)(p1, p2, s);
+      (*p_result) += r * r;
     };
   };
   
-  template <typename SpaceTuple> 
-  struct euclidean_tuple_distance_impl<0,SpaceTuple> {
-    template <typename PointType>
-    static double distance(const SpaceTuple& s, const PointType& p1, const PointType& p2) {
-      double r = get(distance_metric,get<0>(s))(get<0>(p1), get<0>(p2), get<0>(s));
-      return r * r;
-    };
-      
-    template <typename PointDiff>
-    static double norm(const SpaceTuple& s, const PointDiff& dp) {
-      double r = get(distance_metric,get<0>(s))(get<0>(dp), get<0>(s));
-      return r * r;
+  struct euclidean_tuple_norm_accum {
+    double* p_result;
+    euclidean_tuple_norm_accum(double& result) : p_result(&result) {};
+    template <typename Space, typename Dp>
+    void operator()(const Space& s, const Dp& dp) const {
+      double r = get(distance_metric,s)(dp, s);
+      (*p_result) += r * r;
     };
   };
   
   
-  template <std::size_t Idx, typename SpaceTuple> 
-  struct p_norm_tuple_distance_impl {
-    template <typename PointType>
-    static double distance(const SpaceTuple& s, const PointType& p1, const PointType& p2, int p_value) {
-      double result = p_norm_tuple_distance_impl<Idx-1,SpaceTuple>::distance(s,p1,p2,p_value);
-      double r = get(distance_metric,get<Idx>(s))(get<Idx>(p1), get<Idx>(p2), get<Idx>(s));
+  struct p_norm_tuple_distance_accum {
+    int p;
+    double* p_result;
+    p_norm_tuple_distance_accum(int p_value, double& result) : p(p_value), p_result(&result) {};
+    template <typename Space, typename Pt>
+    void operator()(const Space& s, const Pt& p1, const Pt& p2) const {
       using std::pow;
-      result += pow(r,p_value);
-      return result;
+      using std::fabs;
+      double r = fabs(get(distance_metric,s)(p1, p2, s));
+      (*p_result) += pow(r,p);
     };
-      
-    template <typename PointDiff>
-    static double norm(const SpaceTuple& s, const PointDiff& dp, int p_value) {
-      double result = p_norm_tuple_distance_impl<Idx-1,SpaceTuple>::norm(s,dp,p_value);
-      double r = get(distance_metric,get<Idx>(s))(get<Idx>(dp), get<Idx>(s));
+  };
+  
+  struct p_norm_tuple_norm_accum {
+    int p;
+    double* p_result;
+    p_norm_tuple_norm_accum(int p_value, double& result) : p(p_value), p_result(&result) {};
+    template <typename Space, typename Dp>
+    void operator()(const Space& s, const Dp& dp) const {
       using std::pow;
-      result += pow(r,p_value);
-      return result;
-    };
-  };
-  
-  template <typename SpaceTuple> 
-  struct p_norm_tuple_distance_impl<0,SpaceTuple> {
-    template <typename PointType>
-    static double distance(const SpaceTuple& s, const PointType& p1, const PointType& p2, int p_value) {
-      double r = get(distance_metric,get<0>(s))(get<0>(p1), get<0>(p2), get<0>(s));
-      using std::pow;
-      return pow(r,p_value);
-    };
-      
-    template <typename PointDiff>
-    static double norm(const SpaceTuple& s, const PointDiff& dp, int p_value) {
-      double r = get(distance_metric,get<0>(s))(get<0>(dp), get<0>(s));
-      using std::pow;
-      return pow(r,p_value);
+      using std::fabs;
+      double r = fabs(get(distance_metric,s)(dp, s));
+      (*p_result) += pow(r,p);
     };
   };
   
   
-  template <std::size_t Idx, typename SpaceTuple> 
-  struct inf_norm_tuple_distance_impl {
-    template <typename PointType>
-    static double distance(const SpaceTuple& s, const PointType& p1, const PointType& p2) {
-      double result = inf_norm_tuple_distance_impl<Idx-1,SpaceTuple>::distance(s,p1,p2);
+  struct inf_norm_tuple_distance_accum {
+    double* p_result;
+    inf_norm_tuple_distance_accum(double& result) : p_result(&result) {};
+    template <typename Space, typename Pt>
+    void operator()(const Space& s, const Pt& p1, const Pt& p2) const {
       using std::fabs;
-      double r = fabs(get(distance_metric,get<Idx>(s))(get<Idx>(p1), get<Idx>(p2), get<Idx>(s)));
-      if(result < r)
-        return r;
-      else
-        return result;
-    };
-      
-    template <typename PointDiff>
-    static double norm(const SpaceTuple& s, const PointDiff& dp) {
-      double result = inf_norm_tuple_distance_impl<Idx-1,SpaceTuple>::norm(s,dp);
-      using std::fabs;
-      double r = fabs(get(distance_metric,get<Idx>(s))(get<Idx>(dp), get<Idx>(s)));
-      if(result < r)
-        return r;
-      else
-        return result;
+      double r = fabs(get(distance_metric,s)(p1, p2, s));
+      if((*p_result) < r)
+        (*p_result) = r;
     };
   };
   
-  template <typename SpaceTuple> 
-  struct inf_norm_tuple_distance_impl<0,SpaceTuple> {
-    template <typename PointType>
-    static double distance(const SpaceTuple& s, const PointType& p1, const PointType& p2) {
+  struct inf_norm_tuple_norm_accum {
+    double* p_result;
+    inf_norm_tuple_norm_accum(double& result) : p_result(&result) {};
+    template <typename Space, typename Dp>
+    void operator()(const Space& s, const Dp& dp) const {
       using std::fabs;
-      double r = fabs(get(distance_metric,get<0>(s))(get<0>(p1), get<0>(p2), get<0>(s)));
-      return r;
-    };
-      
-    template <typename PointDiff>
-    static double norm(const SpaceTuple& s, const PointDiff& dp) {
-      using std::fabs;
-      double r = fabs(get(distance_metric,get<0>(s))(get<0>(dp), get<0>(s)));
-      return r;
+      double r = fabs(get(distance_metric,s)(dp, s));
+      if((*p_result) < r)
+        (*p_result) = r;
     };
   };
   
-
-
-};
+}; };
 
 
 /**
@@ -225,7 +165,9 @@ struct manhattan_tuple_distance : public serializable {
    */
   template <typename PointDiff, typename Topology>
   double operator()(const PointDiff& a, const Topology& s) const {
-    return detail::manhattan_tuple_distance_impl< arithmetic_tuple_size<Topology>::type::value - 1, Topology >::norm(s,a);
+    double result = 0.0;
+    tuple_for_each(s, a, detail::manhattan_tuple_norm_accum(result));
+    return result;
   };
   
   /** 
@@ -239,7 +181,9 @@ struct manhattan_tuple_distance : public serializable {
    */
   template <typename Point, typename Topology>
   double operator()(const Point& a, const Point& b, const Topology& s) const {
-    return detail::manhattan_tuple_distance_impl< arithmetic_tuple_size<Topology>::type::value - 1, Topology >::distance(s,a,b);
+    double result = 0.0;
+    tuple_for_each(s, a, b, detail::manhattan_tuple_distance_accum(result));
+    return result;
   };
       
 /*******************************************************************************
@@ -278,7 +222,9 @@ struct euclidean_tuple_distance : public serializable {
   template <typename PointDiff, typename Topology>
   double operator()(const PointDiff& a, const Topology& s) const {
     using std::sqrt;
-    return sqrt(detail::euclidean_tuple_distance_impl< arithmetic_tuple_size<Topology>::type::value - 1, Topology >::norm(s,a));
+    double result = 0.0;
+    tuple_for_each(s, a, detail::euclidean_tuple_norm_accum(result));
+    return sqrt(result);
   };
   
   /** 
@@ -293,7 +239,9 @@ struct euclidean_tuple_distance : public serializable {
   template <typename Point, typename Topology>
   double operator()(const Point& a, const Point& b, const Topology& s) const {
     using std::sqrt;
-    return sqrt(detail::euclidean_tuple_distance_impl< arithmetic_tuple_size<Topology>::type::value - 1, Topology >::distance(s,a,b));
+    double result = 0.0;
+    tuple_for_each(s, a, b, detail::euclidean_tuple_distance_accum(result));
+    return sqrt(result);
   };
       
 /*******************************************************************************
@@ -332,7 +280,9 @@ struct inf_norm_tuple_distance : public serializable {
    */
   template <typename PointDiff, typename Topology>
   double operator()(const PointDiff& a, const Topology& s) const {
-    return detail::inf_norm_tuple_distance_impl< arithmetic_tuple_size<Topology>::type::value - 1, Topology >::norm(s,a);
+    double result = 0.0;
+    tuple_for_each(s, a, detail::inf_norm_tuple_norm_accum(result));
+    return result;
   };
   
   /** 
@@ -346,7 +296,9 @@ struct inf_norm_tuple_distance : public serializable {
    */
   template <typename Point, typename Topology>
   double operator()(const Point& a, const Point& b, const Topology& s) const {
-    return detail::inf_norm_tuple_distance_impl< arithmetic_tuple_size<Topology>::type::value - 1, Topology >::distance(s,a,b);
+    double result = 0.0;
+    tuple_for_each(s, a, b, detail::inf_norm_tuple_distance_accum(result));
+    return result;
   };
       
 /*******************************************************************************
@@ -387,7 +339,9 @@ struct p_norm_tuple_distance : public serializable {
   template <typename PointDiff, typename Topology>
   double operator()(const PointDiff& a, const Topology& s) const {
     using std::pow;
-    return pow(detail::euclidean_tuple_distance_impl< arithmetic_tuple_size<Topology>::type::value - 1, Topology >::norm(s,a,p_value), 1.0 / p_value);
+    double result = 0.0;
+    tuple_for_each(s, a, detail::p_norm_tuple_norm_accum(p_value,result));
+    return pow(result, 1.0 / p_value);
   };
   
   /** 
@@ -402,7 +356,9 @@ struct p_norm_tuple_distance : public serializable {
   template <typename Point, typename Topology>
   double operator()(const Point& a, const Point& b, const Topology& s) const {
     using std::pow;
-    return pow(detail::euclidean_tuple_distance_impl< arithmetic_tuple_size<Topology>::type::value - 1, Topology >::distance(s,a,b,p_value), 1.0 / p_value);
+    double result = 0.0;
+    tuple_for_each(s, a, b, detail::p_norm_tuple_distance_accum(p_value,result));
+    return pow(result, 1.0 / p_value);
   };
       
 /*******************************************************************************

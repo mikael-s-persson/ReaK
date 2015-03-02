@@ -39,6 +39,10 @@
 #include <string>
 #include <array>
 
+#ifndef BOOST_NO_CXX11_VARIADIC_TEMPLATES
+#include "index_sequence.hpp"
+#endif
+
 /** Main namespace for ReaK */
 namespace ReaK {
 
@@ -92,22 +96,11 @@ struct cnst_string {
 
 namespace detail { namespace {
 
-template <std::size_t...>
-struct index_seq { };
-
-template <std::size_t N, std::size_t... S>
-struct gen_index_seq : gen_index_seq<N-1, N-1, S...> { };
-
-template <std::size_t... S>
-struct gen_index_seq<0, S...> {
-  typedef index_seq<S...> type;
-};
-
 template <std::size_t N, std::size_t... NIds, 
           std::size_t M, std::size_t... MIds>
 BOOST_CONSTEXPR cnst_string<N+M-1> concat_char_arrays_impl(
-  const std::array<char, N>& lhs, detail::index_seq<NIds...>,
-  const std::array<char, M>& rhs, detail::index_seq<MIds...>) {
+  const std::array<char, N>& lhs, index_sequence<NIds...>,
+  const std::array<char, M>& rhs, index_sequence<MIds...>) {
   return cnst_string<N+M-1>{std::array<char,N+M-1>{{lhs[NIds]..., rhs[MIds]..., '\0'}}};
 };
 
@@ -115,8 +108,8 @@ BOOST_CONSTEXPR cnst_string<N+M-1> concat_char_arrays_impl(
 
 template <std::size_t N, std::size_t M>
 BOOST_CONSTEXPR cnst_string<N+M-1> operator+(const cnst_string<N>& lhs, const cnst_string<M>& rhs) {
-  typedef typename detail::gen_index_seq<N-1>::type LIndices;
-  typedef typename detail::gen_index_seq<M-1>::type RIndices;
+  typedef typename make_index_sequence<N-1>::type LIndices;
+  typedef typename make_index_sequence<M-1>::type RIndices;
   return detail::concat_char_arrays_impl(lhs.data, LIndices(), rhs.data, RIndices());
 };
 

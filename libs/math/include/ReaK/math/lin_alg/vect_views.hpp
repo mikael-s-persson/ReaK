@@ -39,6 +39,7 @@
 #include "vect_concepts.hpp"
 #include "vect_traits.hpp"
 #include <boost/static_assert.hpp>
+#include <boost/utility/enable_if.hpp>
 
 #include <stdexcept>
 
@@ -102,7 +103,7 @@ class vect_const_ref_view {
      * Constructs the sub-vector which represents the entire vector.
      * \param aV The vector from which the sub-part is taken.
      */
-    explicit vect_const_ref_view(const Vector& aV) : v(&aV), offset(0), count(aV.size()) { };
+    explicit vect_const_ref_view(const Vector& aV) BOOST_NOEXCEPT : v(&aV), offset(0), count(aV.size()) { };
     
     /**
      * Constructs the sub-vector which represents part of the vector.
@@ -112,7 +113,7 @@ class vect_const_ref_view {
      */
     vect_const_ref_view(const Vector& aV, 
                         size_type aCount, 
-                        size_type aOffset = 0) : v(&aV), offset(aOffset), count(aCount) { };
+                        size_type aOffset = 0) BOOST_NOEXCEPT : v(&aV), offset(aOffset), count(aCount) { };
     
     
 /*******************************************************************************
@@ -125,7 +126,7 @@ class vect_const_ref_view {
      * \return the element at the given position.
      * TEST PASSED
      */
-    value_type operator[](size_type i) const { 
+    value_type operator[](size_type i) const BOOST_NOEXCEPT { 
       return (*v)[offset + i]; 
     };
 
@@ -133,7 +134,7 @@ class vect_const_ref_view {
      * Sub-vector operator, accessor for read only.
      * \test PASSED
      */
-    vect_const_ref_view<self> operator[](const std::pair<size_type,size_type>& r) const {
+    vect_const_ref_view<self> operator[](const std::pair<size_type,size_type>& r) const BOOST_NOEXCEPT {
       return vect_const_ref_view<self>(*this,r.second - r.first,r.first);
     };
 
@@ -141,7 +142,7 @@ class vect_const_ref_view {
      * Vector indexing operator, accessor for read only.
      * TEST PASSED
      */
-    value_type operator ()(size_type i) const {
+    value_type operator ()(size_type i) const BOOST_NOEXCEPT {
       return (*v)[offset + i];
     };
 
@@ -150,28 +151,28 @@ class vect_const_ref_view {
      * \return number of elements of the vector.
      * TEST PASSED
      */
-    size_type size() const throw() { return count; };
+    size_type size() const BOOST_NOEXCEPT { return count; };
     /**
      * Returns the max-size of the vector.
      */
-    size_type max_size() const { return count; };
+    size_type max_size() const BOOST_NOEXCEPT { return count; };
     /**
      * Returns the capacity of the vector.
      */
-    size_type capacity() const { return count; };
+    size_type capacity() const BOOST_NOEXCEPT { return count; };
     /**
      * Checks if the vector is empty.
      */
-    bool empty() const { return (count == 0); };
+    bool empty() const BOOST_NOEXCEPT { return (count == 0); };
     
     /**
      * Returns a const-iterator to the first element of the vector.
      */
-    const_iterator begin() const { return v->begin() + offset; };
+    const_iterator begin() const BOOST_NOEXCEPT { return v->begin() + offset; };
     /**
      * Returns a const-iterator to the one-past-last element of the vector.
      */
-    const_iterator end() const { return v->begin() + offset + count; };
+    const_iterator end() const BOOST_NOEXCEPT { return v->begin() + offset + count; };
     
     /**
      * Returns the allocator object of the underlying container.
@@ -249,7 +250,7 @@ class vect_ref_view {
      * Constructs the sub-vector which represents the entire vector.
      * \param aV The vector from which the sub-part is taken.
      */
-    explicit vect_ref_view(Vector& aV) : v(&aV), offset(0), count(aV.size()) { };
+    explicit vect_ref_view(Vector& aV) BOOST_NOEXCEPT : v(&aV), offset(0), count(aV.size()) { };
     
     /**
      * Constructs the sub-vector which represents part of the vector.
@@ -259,7 +260,7 @@ class vect_ref_view {
      */
     vect_ref_view(Vector& aV, 
                   size_type aCount,
-                  size_type aOffset = 0) : v(&aV), offset(aOffset), count(aCount) { };
+                  size_type aOffset = 0) BOOST_NOEXCEPT : v(&aV), offset(aOffset), count(aCount) { };
         
     /**
      * Standard assignment operator.
@@ -304,7 +305,7 @@ class vect_ref_view {
      * Standard assignment operator.
      */
     template <typename Scalar>
-    self& operator*=(const Scalar& rhs) {
+    self& operator*=(const Scalar& rhs) BOOST_NOEXCEPT {
       for(size_type i = 0; i < count; ++i)
         (*v)[offset + i] *= rhs;
       return *this;
@@ -320,7 +321,7 @@ class vect_ref_view {
      * \return the element at the given position.
      * TEST PASSED
      */
-    reference operator[](size_type i) { 
+    reference operator[](size_type i) BOOST_NOEXCEPT { 
       return (*v)[offset + i];
     };
     /**
@@ -329,7 +330,7 @@ class vect_ref_view {
      * \return the element at the given position.
      * TEST PASSED
      */
-    value_type operator[](size_type i) const { 
+    value_type operator[](size_type i) const BOOST_NOEXCEPT { 
       return (*v)[offset + i]; 
     };
 
@@ -337,7 +338,7 @@ class vect_ref_view {
      * Sub-vector operator, accessor for read only.
      * \test PASSED
      */
-    vect_ref_view<self> operator[](const std::pair<size_type,size_type>& r) {
+    vect_ref_view<self> operator[](const std::pair<size_type,size_type>& r) BOOST_NOEXCEPT {
       return vect_ref_view<self>(*this,r.second - r.first,r.first);
     };
 
@@ -345,7 +346,7 @@ class vect_ref_view {
      * Sub-vector operator, accessor for read only.
      * \test PASSED
      */
-    vect_const_ref_view<self> operator[](const std::pair<size_type,size_type>& r) const {
+    vect_const_ref_view<self> operator[](const std::pair<size_type,size_type>& r) const BOOST_NOEXCEPT {
       return vect_const_ref_view<self>(*this,r.second - r.first,r.first);
     };
 
@@ -353,7 +354,7 @@ class vect_ref_view {
      * Vector indexing operator, accessor for read/write.
      * TEST PASSED
      */
-    reference operator ()(size_type i) {
+    reference operator ()(size_type i) BOOST_NOEXCEPT {
       return (*v)[offset + i];
     };
 
@@ -361,7 +362,7 @@ class vect_ref_view {
      * Vector indexing operator, accessor for read only.
      * TEST PASSED
      */
-    value_type operator ()(size_type i) const {
+    value_type operator ()(size_type i) const BOOST_NOEXCEPT {
       return (*v)[offset + i];
     };
 
@@ -370,44 +371,44 @@ class vect_ref_view {
      * \return number of elements of the vector.
      * TEST PASSED
      */
-    size_type size() const throw() { return count; };
+    size_type size() const BOOST_NOEXCEPT { return count; };
     /**
      * Returns the max-size of the vector.
      */
-    size_type max_size() const { return count; };
+    size_type max_size() const BOOST_NOEXCEPT { return count; };
     /**
      * Returns the capacity of the vector.
      */
-    size_type capacity() const { return count; };
+    size_type capacity() const BOOST_NOEXCEPT { return count; };
     /**
      * Resizes the vector.
      */
-    void resize(size_type sz, value_type c = value_type()) const { };
+    void resize(size_type sz, value_type c = value_type()) const BOOST_NOEXCEPT { };
     /**
      * Checks if the vector is empty.
      */
-    bool empty() const { return (count == 0); };
+    bool empty() const BOOST_NOEXCEPT { return (count == 0); };
     /**
      * Reserve a capacity for the vector.
      */
-    void reserve(size_type sz) const { };
+    void reserve(size_type sz) const BOOST_NOEXCEPT { };
     
     /**
      * Returns an iterator to the first element of the vector.
      */
-    iterator begin() { return v->begin() + offset; };
+    iterator begin() BOOST_NOEXCEPT { return v->begin() + offset; };
     /**
      * Returns a const-iterator to the first element of the vector.
      */
-    const_iterator begin() const { return v->begin() + offset; };
+    const_iterator begin() const BOOST_NOEXCEPT { return v->begin() + offset; };
     /**
      * Returns an iterator to the one-past-last element of the vector.
      */
-    iterator end() { return v->begin() + offset + count; };
+    iterator end() BOOST_NOEXCEPT { return v->begin() + offset + count; };
     /**
      * Returns a const-iterator to the one-past-last element of the vector.
      */
-    const_iterator end() const { return v->begin() + offset + count; };
+    const_iterator end() const BOOST_NOEXCEPT { return v->begin() + offset + count; };
     
     /**
      * Returns the allocator object of the underlying container.
@@ -521,7 +522,7 @@ class vect_copy_view {
     /**
      * Standard swap function.
      */
-    friend void swap(self& lhs, self& rhs) throw() {
+    friend void swap(self& lhs, self& rhs) BOOST_NOEXCEPT {
       using std::swap;
       swap(lhs.v,rhs.v);
       swap(lhs.offset,rhs.offset);
@@ -532,7 +533,7 @@ class vect_copy_view {
     /**
      * Standard assignment operator.
      */
-    self& operator=(self rhs) {
+    self& operator=(self rhs) BOOST_NOEXCEPT {
       swap(*this,rhs);
       return *this;
     };
@@ -581,7 +582,7 @@ class vect_copy_view {
      * Standard assignment operator.
      */
     template <typename Scalar>
-    self& operator*=(const Scalar& rhs) {
+    self& operator*=(const Scalar& rhs) BOOST_NOEXCEPT {
       for(size_type i=0; i < count; ++i)
         v[offset + i] *= rhs;
       return *this;
@@ -597,7 +598,7 @@ class vect_copy_view {
      * \return the element at the given position.
      * TEST PASSED
      */
-    reference operator[](size_type i) { 
+    reference operator[](size_type i) BOOST_NOEXCEPT { 
       return v[offset + i];
     };
     /**
@@ -606,7 +607,7 @@ class vect_copy_view {
      * \return the element at the given position.
      * TEST PASSED
      */
-    value_type operator[](size_type i) const { 
+    value_type operator[](size_type i) const BOOST_NOEXCEPT { 
       return v[offset + i]; 
     };
 
@@ -614,7 +615,7 @@ class vect_copy_view {
      * Sub-vector operator, accessor for read only.
      * \test PASSED
      */
-    vect_ref_view<self> operator[](const std::pair<size_type,size_type>& r) {
+    vect_ref_view<self> operator[](const std::pair<size_type,size_type>& r) BOOST_NOEXCEPT {
       return vect_ref_view<self>(*this,r.second - r.first,r.first);
     };
 
@@ -622,7 +623,7 @@ class vect_copy_view {
      * Sub-vector operator, accessor for read only.
      * \test PASSED
      */
-    vect_const_ref_view<self> operator[](const std::pair<size_type,size_type>& r) const {
+    vect_const_ref_view<self> operator[](const std::pair<size_type,size_type>& r) const BOOST_NOEXCEPT {
       return vect_const_ref_view<self>(*this,r.second - r.first,r.first);
     };
 
@@ -630,7 +631,7 @@ class vect_copy_view {
      * Vector indexing operator, accessor for read/write.
      * TEST PASSED
      */
-    reference operator ()(size_type i) {
+    reference operator ()(size_type i) BOOST_NOEXCEPT {
       return v[offset + i];
     };
 
@@ -638,7 +639,7 @@ class vect_copy_view {
      * Vector indexing operator, accessor for read only.
      * TEST PASSED
      */
-    value_type operator ()(size_type i) const {
+    value_type operator ()(size_type i) const BOOST_NOEXCEPT {
       return v[offset + i];
     };
 
@@ -647,44 +648,44 @@ class vect_copy_view {
      * \return number of elements of the vector.
      * TEST PASSED
      */
-    size_type size() const throw() { return count; };
+    size_type size() const BOOST_NOEXCEPT { return count; };
     /**
      * Returns the max-size of the vector.
      */
-    size_type max_size() const { return count; };
+    size_type max_size() const BOOST_NOEXCEPT { return count; };
     /**
      * Returns the capacity of the vector.
      */
-    size_type capacity() const { return count; };
+    size_type capacity() const BOOST_NOEXCEPT { return count; };
     /**
      * Resizes the vector.
      */
-    void resize(size_type sz, value_type c = value_type()) const { };
+    void resize(size_type sz, value_type c = value_type()) const BOOST_NOEXCEPT { };
     /**
      * Checks if the vector is empty.
      */
-    bool empty() const { return (count == 0); };
+    bool empty() const BOOST_NOEXCEPT { return (count == 0); };
     /**
      * Reserve a capacity for the vector.
      */
-    void reserve(size_type sz) const { };
+    void reserve(size_type sz) const BOOST_NOEXCEPT { };
     
     /**
      * Returns an iterator to the first element of the vector.
      */
-    iterator begin() { return v.begin() + offset; };
+    iterator begin() BOOST_NOEXCEPT { return v.begin() + offset; };
     /**
      * Returns a const-iterator to the first element of the vector.
      */
-    const_iterator begin() const { return v.begin() + offset; };
+    const_iterator begin() const BOOST_NOEXCEPT { return v.begin() + offset; };
     /**
      * Returns an iterator to the one-past-last element of the vector.
      */
-    iterator end() { return v.begin() + offset + count; };
+    iterator end() BOOST_NOEXCEPT { return v.begin() + offset + count; };
     /**
      * Returns a const-iterator to the one-past-last element of the vector.
      */
-    const_iterator end() const { return v.begin() + offset + count; };
+    const_iterator end() const BOOST_NOEXCEPT { return v.begin() + offset + count; };
     
     /**
      * Returns the allocator object of the underlying container.
@@ -748,8 +749,8 @@ struct vect_ref_view_factory {
   typedef typename vect_traits<Vector>::size_type size_type;
   
   Vector& v;
-  vect_ref_view_factory(Vector& aV) : v(aV) { };
-  vect_ref_view<Vector> operator[](const std::pair<size_type,size_type>& indices) {
+  vect_ref_view_factory(Vector& aV) BOOST_NOEXCEPT : v(aV) { };
+  vect_ref_view<Vector> operator[](const std::pair<size_type,size_type>& indices) BOOST_NOEXCEPT {
     return vect_ref_view<Vector>(v,indices.second - indices.first,indices.first);
   };
 };
@@ -759,8 +760,8 @@ struct vect_const_ref_view_factory {
   typedef typename vect_traits<Vector>::size_type size_type;
   
   const Vector& v;
-  vect_const_ref_view_factory(const Vector& aV) : v(aV) { };
-  vect_const_ref_view<Vector> operator[](const std::pair<size_type,size_type>& indices) {
+  vect_const_ref_view_factory(const Vector& aV) BOOST_NOEXCEPT : v(aV) { };
+  vect_const_ref_view<Vector> operator[](const std::pair<size_type,size_type>& indices) BOOST_NOEXCEPT {
     return vect_const_ref_view<Vector>(v,indices.second - indices.first,indices.first);
   };
 };
@@ -768,11 +769,11 @@ struct vect_const_ref_view_factory {
 
 template <typename Vector>
 typename boost::enable_if< is_readable_vector<Vector>,
-vect_ref_view_factory<Vector> >::type sub(Vector& V) { return vect_ref_view_factory<Vector>(V); };
+vect_ref_view_factory<Vector> >::type sub(Vector& V) BOOST_NOEXCEPT { return vect_ref_view_factory<Vector>(V); };
 
 template <typename Vector>
 typename boost::enable_if< is_readable_vector<Vector>,
-vect_const_ref_view_factory<Vector> >::type sub(const Vector& V) { return vect_const_ref_view_factory<Vector>(V); };
+vect_const_ref_view_factory<Vector> >::type sub(const Vector& V) BOOST_NOEXCEPT { return vect_const_ref_view_factory<Vector>(V); };
 
 template <typename Vector>
 typename boost::enable_if< is_readable_vector<Vector>,

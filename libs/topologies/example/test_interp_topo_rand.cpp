@@ -219,7 +219,7 @@ void perform_mc_tests(const po::variables_map& vm, std::size_t dyn_sp_dim) {
   Vector sb = Config::default_vect(dyn_sp_dim);
   Vector ab = Config::default_vect(dyn_sp_dim);
   Vector jb = Config::default_vect(dyn_sp_dim);
-  for(std::size_t i = 0; i < dyn_sp_dim; ++i) {
+  for(std::size_t i = 0; i < lb.size(); ++i) {
     lb[i] = -1.0;
     ub[i] =  1.0;
     sb[i] =  1.0;

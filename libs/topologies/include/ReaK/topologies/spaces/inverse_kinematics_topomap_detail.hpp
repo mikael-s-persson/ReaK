@@ -34,19 +34,19 @@
 #ifndef REAK_INVERSE_KINEMATICS_TOPOMAP_DETAIL_HPP
 #define REAK_INVERSE_KINEMATICS_TOPOMAP_DETAIL_HPP
 
+#include <ReaK/math/lin_alg/arithmetic_tuple.hpp>
 
-#include <boost/mpl/less.hpp>
-#include <boost/mpl/greater.hpp>
-
+#include "joint_space_topologies.hpp"
+#include "joint_space_limits.hpp"
+#include "se3_topologies.hpp"
+#include "se2_topologies.hpp"
+#include "Ndof_spaces.hpp"
 
 namespace ReaK {
 
 namespace pp {
 
-
-namespace detail {
-  
-  
+namespace detail { namespace {
   
   
   template <typename PointType, typename InSpace>
@@ -91,30 +91,6 @@ namespace detail {
   };
   
   
-  //declaration only.
-  template <typename Idx, typename PointType, typename InSpaceTuple>
-  typename boost::disable_if< 
-    boost::mpl::less< 
-      Idx, 
-      boost::mpl::size_t<1> 
-    >,
-  void >::type read_joint_coordinates_impl( PointType& pt,
-                                            const InSpaceTuple& space_in,
-                                            std::size_t& gen_i, std::size_t& f2d_i, std::size_t& f3d_i,
-                                            const shared_ptr< kte::direct_kinematics_model >& model);
-  
-  //declaration only.
-  template <typename Idx, typename PointType, typename InSpaceTuple>
-  typename boost::enable_if< 
-    boost::mpl::less< 
-      Idx, 
-      boost::mpl::size_t<1> 
-    >,
-  void >::type read_joint_coordinates_impl( PointType& pt,
-                                            const InSpaceTuple& space_in,
-                                            std::size_t& gen_i, std::size_t& f2d_i, std::size_t& f3d_i,
-                                            const shared_ptr< kte::direct_kinematics_model >& model);
-  
   template <typename PointType, typename InSpace>
   typename boost::disable_if< 
     boost::mpl::or_<
@@ -126,37 +102,20 @@ namespace detail {
   void >::type read_one_joint_coord_impl( PointType& pt,
                                           const InSpace& space_in,
                                           std::size_t& gen_i, std::size_t& f2d_i, std::size_t& f3d_i,
-                                          const shared_ptr< kte::direct_kinematics_model >& model) {
-    read_joint_coordinates_impl< typename boost::mpl::prior< arithmetic_tuple_size<InSpace> >::type >(pt, space_in, gen_i, f2d_i, f3d_i, model);
-  };
+                                          const shared_ptr< kte::direct_kinematics_model >& model);
   
-  
-  template <typename Idx, typename PointType, typename InSpaceTuple>
-  typename boost::disable_if< 
-    boost::mpl::less< 
-      Idx, 
-      boost::mpl::size_t<1> 
-    >,
-  void >::type read_joint_coordinates_impl( PointType& pt,
-                                            const InSpaceTuple& space_in,
-                                            std::size_t& gen_i, std::size_t& f2d_i, std::size_t& f3d_i,
-                                            const shared_ptr< kte::direct_kinematics_model >& model) {
-    read_joint_coordinates_impl< typename boost::mpl::prior<Idx>::type >(pt,space_in,gen_i,f2d_i,f3d_i,model);
-    
-    read_one_joint_coord_impl(get<Idx::type::value>(pt),get<Idx::type::value>(space_in),gen_i,f2d_i,f3d_i,model);
-  };
-  
-  template <typename Idx, typename PointType, typename InSpaceTuple>
-  typename boost::enable_if< 
-    boost::mpl::less< 
-      Idx, 
-      boost::mpl::size_t<1> 
-    >,
-  void >::type read_joint_coordinates_impl( PointType& pt,
-                                            const InSpaceTuple& space_in,
-                                            std::size_t& gen_i, std::size_t& f2d_i, std::size_t& f3d_i,
-                                            const shared_ptr< kte::direct_kinematics_model >& model) {
-    read_one_joint_coord_impl(get<0>(pt),get<0>(space_in),gen_i,f2d_i,f3d_i,model);
+  struct joint_coordinates_reader_impl {
+    shared_ptr< kte::direct_kinematics_model > p_model;
+    std::size_t* p_gen_i;
+    std::size_t* p_f2d_i;
+    std::size_t* p_f3d_i;
+    joint_coordinates_reader_impl(const shared_ptr< kte::direct_kinematics_model >& model, 
+                                  std::size_t& gen_i, std::size_t& f2d_i, std::size_t& f3d_i) :
+                                  p_model(model), p_gen_i(&gen_i), p_f2d_i(&f2d_i), p_f3d_i(&f3d_i) {};
+    template <typename Point, typename Space>
+    void operator()(Point& pt, const Space& space) const {
+      read_one_joint_coord_impl(pt, space, *p_gen_i, *p_f2d_i, *p_f3d_i, p_model);
+    };
   };
   
   template <typename PointType, typename InSpaceTuple>
@@ -168,12 +127,12 @@ namespace detail {
       is_Ndof_space<InSpaceTuple>
     >,  
   void >::type read_joint_coordinates_impl( PointType& pt,
-                                    const InSpaceTuple& space_in,
-                                    const shared_ptr< kte::direct_kinematics_model >& model) {
+                                            const InSpaceTuple& space_in,
+                                            const shared_ptr< kte::direct_kinematics_model >& model) {
     std::size_t gen_i = 0;
     std::size_t f2d_i = 0;
     std::size_t f3d_i = 0;
-    read_joint_coordinates_impl< typename boost::mpl::prior< arithmetic_tuple_size< InSpaceTuple > >::type >(pt,space_in,gen_i,f2d_i,f3d_i,model);
+    tuple_for_each(pt, space_in, joint_coordinates_reader_impl(model, gen_i, f2d_i, f3d_i));
   };
   
   template <typename PointType, typename InSpaceTuple>
@@ -191,6 +150,21 @@ namespace detail {
     std::size_t f2d_i = 0;
     std::size_t f3d_i = 0;
     read_one_joint_coord_impl(pt,space_in,gen_i,f2d_i,f3d_i,model);
+  };
+  
+  template <typename PointType, typename InSpace>
+  typename boost::disable_if< 
+    boost::mpl::or_<
+      is_normal_joint_space<InSpace>,
+      is_se2_space<InSpace>,
+      is_se3_space<InSpace>,
+      is_Ndof_space<InSpace>
+    >,  
+  void >::type read_one_joint_coord_impl( PointType& pt,
+                                          const InSpace& space_in,
+                                          std::size_t& gen_i, std::size_t& f2d_i, std::size_t& f3d_i,
+                                          const shared_ptr< kte::direct_kinematics_model >& model) {
+    tuple_for_each(pt, space_in, joint_coordinates_reader_impl(model, gen_i, f2d_i, f3d_i));
   };
   
   
@@ -241,30 +215,6 @@ namespace detail {
   };
   
   
-  //declaration only.
-  template <typename Idx, typename PointType, typename InSpaceTuple>
-  typename boost::disable_if< 
-    boost::mpl::less< 
-      Idx, 
-      boost::mpl::size_t<1> 
-    >,
-  void >::type write_dependent_coordinates_impl( const PointType& pt,
-                                                 const InSpaceTuple& space_in,
-                                                 std::size_t& gen_i, std::size_t& f2d_i, std::size_t& f3d_i,
-                                                 const shared_ptr< kte::direct_kinematics_model >& model);
-  
-  //declaration only.
-  template <typename Idx, typename PointType, typename InSpaceTuple>
-  typename boost::enable_if< 
-    boost::mpl::less< 
-      Idx, 
-      boost::mpl::size_t<1> 
-    >,
-  void >::type write_dependent_coordinates_impl( const PointType& pt,
-                                                 const InSpaceTuple& space_in,
-                                                 std::size_t& gen_i, std::size_t& f2d_i, std::size_t& f3d_i,
-                                                 const shared_ptr< kte::direct_kinematics_model >& model);
-  
   
   template <typename PointType, typename InSpace>
   typename boost::disable_if< 
@@ -277,37 +227,20 @@ namespace detail {
   void >::type write_one_dependent_coord_impl( const PointType& pt,
                                                const InSpace& space_in,
                                                std::size_t& gen_i, std::size_t& f2d_i, std::size_t& f3d_i,
-                                               const shared_ptr< kte::direct_kinematics_model >& model) {
-    write_dependent_coordinates_impl< typename boost::mpl::prior< arithmetic_tuple_size<InSpace> >::type >(pt, space_in, gen_i, f2d_i, f3d_i, model);
-  };
+                                               const shared_ptr< kte::direct_kinematics_model >& model);
   
-  
-  template <typename Idx, typename PointType, typename InSpaceTuple>
-  typename boost::disable_if< 
-    boost::mpl::less< 
-      Idx, 
-      boost::mpl::size_t<1> 
-    >,
-  void >::type write_dependent_coordinates_impl( const PointType& pt,
-                                                 const InSpaceTuple& space_in,
-                                                 std::size_t& gen_i, std::size_t& f2d_i, std::size_t& f3d_i,
-                                                 const shared_ptr< kte::direct_kinematics_model >& model) {
-    write_dependent_coordinates_impl< typename boost::mpl::prior<Idx>::type >(pt,space_in,gen_i,f2d_i,f3d_i,model);
-    
-    write_one_dependent_coord_impl(get<Idx::type::value>(pt),get<Idx::type::value>(space_in),gen_i,f2d_i,f3d_i,model);
-  };
-  
-  template <typename Idx, typename PointType, typename InSpaceTuple>
-  typename boost::enable_if< 
-    boost::mpl::less< 
-      Idx, 
-      boost::mpl::size_t<1> 
-    >,
-  void >::type write_dependent_coordinates_impl( const PointType& pt,
-                                                 const InSpaceTuple& space_in,
-                                                 std::size_t& gen_i, std::size_t& f2d_i, std::size_t& f3d_i,
-                                                 const shared_ptr< kte::direct_kinematics_model >& model) {
-    write_one_dependent_coord_impl(get<0>(pt),get<0>(space_in),gen_i,f2d_i,f3d_i,model);
+  struct dep_coordinates_writer_impl {
+    shared_ptr< kte::direct_kinematics_model > p_model;
+    std::size_t* p_gen_i;
+    std::size_t* p_f2d_i;
+    std::size_t* p_f3d_i;
+    dep_coordinates_writer_impl(const shared_ptr< kte::direct_kinematics_model >& model, 
+                                std::size_t& gen_i, std::size_t& f2d_i, std::size_t& f3d_i) :
+                                p_model(model), p_gen_i(&gen_i), p_f2d_i(&f2d_i), p_f3d_i(&f3d_i) {};
+    template <typename Point, typename Space>
+    void operator()(const Point& pt, const Space& space) const {
+      write_one_dependent_coord_impl(pt, space, *p_gen_i, *p_f2d_i, *p_f3d_i, p_model);
+    };
   };
   
   template <typename PointType, typename InSpaceTuple>
@@ -324,7 +257,7 @@ namespace detail {
     std::size_t gen_i = 0;
     std::size_t f2d_i = 0;
     std::size_t f3d_i = 0;
-    write_dependent_coordinates_impl< typename boost::mpl::prior< arithmetic_tuple_size< InSpaceTuple > >::type >(pt,space_in,gen_i,f2d_i,f3d_i,model);
+    tuple_for_each(pt, space_in, dep_coordinates_writer_impl(model, gen_i, f2d_i, f3d_i));
   };
   
   template <typename PointType, typename InSpaceTuple>
@@ -344,10 +277,24 @@ namespace detail {
     write_one_dependent_coord_impl(pt,space_in,gen_i,f2d_i,f3d_i,model);
   };
   
+  template <typename PointType, typename InSpace>
+  typename boost::disable_if< 
+    boost::mpl::or_<
+      is_normal_joint_space<InSpace>,
+      is_se2_space<InSpace>,
+      is_se3_space<InSpace>,
+      is_Ndof_space<InSpace>
+    >,  
+  void >::type write_one_dependent_coord_impl( const PointType& pt,
+                                               const InSpace& space_in,
+                                               std::size_t& gen_i, std::size_t& f2d_i, std::size_t& f3d_i,
+                                               const shared_ptr< kte::direct_kinematics_model >& model) {
+    tuple_for_each(pt, space_in, dep_coordinates_writer_impl(model, gen_i, f2d_i, f3d_i));
+  };
   
   
   
-};
+}; };
 
 };
 

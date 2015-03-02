@@ -455,8 +455,8 @@ void airship3D_imdt_em_sys::get_state_transition_blocks(
 #endif
 #endif
   
-  vect<double,3> l_net_1 = J_bar * w_1 - (0.5 * mDt) * tau - mass_real * (r % off_force_1);
 #ifdef USE_HOT_DEL_Q_TERMS
+  vect<double,3> l_net_1 = J_bar * w_1 - (0.5 * mDt) * tau - mass_real * (r % off_force_1);
   set_block(A_1_ss, R_1 * (mat<double,mat_structure::skew_symmetric>(-l_net_1) 
                            - mass_real * r_cross * mat<double,mat_structure::skew_symmetric>(off_force_1)), 9, 6);
 #endif
@@ -562,8 +562,8 @@ void airship3D_imdt_em_sys::get_state_transition_blocks(
   vect<double,3> off_force_0(0.0,0.0,0.0);
 #endif
 #endif
-  vect<double,3> l_net_0 = J_bar * w_0 + (0.5 * mDt) * tau + mass_real * (r % off_force_0);
 #ifdef USE_HOT_DEL_Q_TERMS
+  vect<double,3> l_net_0 = J_bar * w_0 + (0.5 * mDt) * tau + mass_real * (r % off_force_0);
   set_block(A_0_s, R_0 * (mat<double,mat_structure::skew_symmetric>(-l_net_0) 
                            + mass_real * r_cross * mat<double,mat_structure::skew_symmetric>(off_force_0)), 9, 6);
 #endif
@@ -1093,12 +1093,12 @@ void airship3D_imdt_emd_sys::get_state_transition_blocks(
   double w_1_mag = norm_2(w_1);
 #endif
   
+#ifdef USE_HOT_DEL_Q_TERMS
   vect<double,3> l_net_1 = J_bar * w_1 - (0.5 * mDt) * tau 
 #ifdef USE_TRAPEZOIDAL_DRAG_TERM
                            + (0.5 * mDt * get<4>(p_1) * w_1_mag) * w_1
 #endif
                            - mass_real * (r % off_force_1);
-#ifdef USE_HOT_DEL_Q_TERMS
   set_block(A_1_ss, R_1 * (mat<double,mat_structure::skew_symmetric>(-l_net_1) 
                            - mass_real * r_cross * mat<double,mat_structure::skew_symmetric>(off_force_1)), 9, 6);
 #endif
@@ -1237,6 +1237,7 @@ void airship3D_imdt_emd_sys::get_state_transition_blocks(
   vect<double,3> off_force_0(0.0,0.0,0.0);
 #endif
 #endif
+#ifdef USE_HOT_DEL_Q_TERMS
   vect<double,3> l_net_0 = J_bar * w_0 + (0.5 * mDt) * tau 
 #ifdef USE_TRAPEZOIDAL_DRAG_TERM
                            - (0.5 * mDt * get<4>(p_0) * w_0_mag) * w_0 
@@ -1244,7 +1245,6 @@ void airship3D_imdt_emd_sys::get_state_transition_blocks(
                            - (mDt * get<4>(p_0) * w_0_mag) * w_0 
 #endif
                            + mass_real * (r % off_force_0);
-#ifdef USE_HOT_DEL_Q_TERMS
   set_block(A_0_s, R_0 * (mat<double,mat_structure::skew_symmetric>(-l_net_0) 
                            + mass_real * r_cross * mat<double,mat_structure::skew_symmetric>(off_force_0)), 9, 6);
 #endif
@@ -1874,12 +1874,12 @@ void airship3D_imdt_emdJ_sys::get_state_transition_blocks(
   double w_1_mag = norm_2(w_1);
 #endif
   
+#ifdef USE_HOT_DEL_Q_TERMS
   vect<double,3> l_net_1 = J_bar * w_1 - (0.5 * mDt) * tau 
 #ifdef USE_TRAPEZOIDAL_DRAG_TERM
                            + (0.5 * mDt * get<4>(p_1) * w_1_mag) * w_1
 #endif
                            - mass_real * (r % off_force_1);
-#ifdef USE_HOT_DEL_Q_TERMS
   set_block(A_1_ss, R_1 * (mat<double,mat_structure::skew_symmetric>(-l_net_1) 
                            - mass_real * r_cross * mat<double,mat_structure::skew_symmetric>(off_force_1)), 9, 6);
 #endif
@@ -2027,6 +2027,7 @@ void airship3D_imdt_emdJ_sys::get_state_transition_blocks(
   vect<double,3> off_force_0(0.0,0.0,0.0);
 #endif
 #endif
+#ifdef USE_HOT_DEL_Q_TERMS
   vect<double,3> l_net_0 = J_bar * w_0 + (0.5 * mDt) * tau 
 #ifdef USE_TRAPEZOIDAL_DRAG_TERM
                            - (0.5 * mDt * get<4>(p_0) * w_0_mag) * w_0 
@@ -2034,7 +2035,6 @@ void airship3D_imdt_emdJ_sys::get_state_transition_blocks(
                            - (mDt * get<4>(p_0) * w_0_mag) * w_0 
 #endif
                            + mass_real * (r % off_force_0);
-#ifdef USE_HOT_DEL_Q_TERMS
   set_block(A_0_s, R_0 * (mat<double,mat_structure::skew_symmetric>(-l_net_0) 
                            + mass_real * r_cross * mat<double,mat_structure::skew_symmetric>(off_force_0)), 9, 6);
 #endif

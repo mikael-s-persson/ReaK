@@ -56,15 +56,15 @@ class complex {
   /**
    * Explicit cast from a real number to a complex class.
    */
-  explicit complex(T aRe) : Re(aRe), Im(0.0) { };
+  explicit complex(T aRe) BOOST_NOEXCEPT : Re(aRe), Im(0.0) { };
   /**
    * Constructor from cartesian complex values, real and imaginary parts.
    */
-  complex(T aRe,T aIm) : Re(aRe), Im(aIm) { };
+  complex(T aRe,T aIm) BOOST_NOEXCEPT : Re(aRe), Im(aIm) { };
   /**
    * Default constructor, zero-valued.
    */
-  complex() : Re(0.0), Im(0.0) { };
+  complex() BOOST_NOEXCEPT : Re(0.0), Im(0.0) { };
   
   //Copy-constructor is default.
   //Assignment operator is default.
@@ -76,40 +76,40 @@ class complex {
   /**
    * Assignment operator.
    */
-  complex<T>& operator =(const T& R) {
+  complex<T>& operator =(const T& R) BOOST_NOEXCEPT {
     Re = R;
     Im = 0.0;
     return *this; 
   };
   
   /** Addition-assignment operator. */
-  complex<T>& operator +=(const complex<T>& C) {
+  complex<T>& operator +=(const complex<T>& C) BOOST_NOEXCEPT {
     Re += C.Re;
     Im += C.Im;
     return *this;
   };
   
   /** Addition-assignment operator with a real value. */
-  complex<T>& operator +=(const T& R) {
+  complex<T>& operator +=(const T& R) BOOST_NOEXCEPT {
     Re += R;
     return *this;
   };
 
   /** Substraction-assignment operator. */
-  complex<T>& operator -=(const complex<T>& C) {
+  complex<T>& operator -=(const complex<T>& C) BOOST_NOEXCEPT {
     Re -= C.Re;
     Im -= C.Im;
     return *this;
   };
   
   /** Substraction-assignment operator with a real value. */
-  complex<T>& operator -=(const T& R) {
+  complex<T>& operator -=(const T& R) BOOST_NOEXCEPT {
     Re -= R;
     return *this;
   };
 
   /** Multiplication-assignment operator. */
-  complex<T>& operator *=(const complex<T>& C) {
+  complex<T>& operator *=(const complex<T>& C) BOOST_NOEXCEPT {
     T Re_tmp = Re * C.Re - Im * C.Im;
     Im = Re * C.Im + Im * C.Re;
     Re = Re_tmp;
@@ -117,14 +117,14 @@ class complex {
   };
 
   /** Multiplication-assignment operator with a real value. */
-  complex<T>& operator *=(const T& R) {
+  complex<T>& operator *=(const T& R) BOOST_NOEXCEPT {
     Re *= R;
     Im *= R;
     return *this;
   };
   
   /** Division-assignment operator. */
-  complex<T>& operator /=(const complex<T>& C) {
+  complex<T>& operator /=(const complex<T>& C) BOOST_NOEXCEPT {
     T sqr_mag_inv = 1.0 / (C.Re * C.Re + C.Im * C.Im);
     T Re_tmp = Re * C.Re + Im * C.Im;
     Im = sqr_mag_inv * (Im * C.Re - Re * C.Im);
@@ -133,7 +133,7 @@ class complex {
   };
   
   /** Division-assignment operator with a real value. */
-  complex<T>& operator /=(const T& R) {
+  complex<T>& operator /=(const T& R) BOOST_NOEXCEPT {
     Re /= R;
     Im /= R;
     return *this;
@@ -144,63 +144,63 @@ class complex {
 *******************************************************************************/
   
   /** Addition operator. */
-  friend complex<T> operator +(const complex<T>& C1, const complex<T>& C2) {
+  friend complex<T> operator +(const complex<T>& C1, const complex<T>& C2) BOOST_NOEXCEPT {
     return complex<T>(C1.Re + C2.Re, C1.Im + C2.Im);
   };
 
   /** Addition operator with a real value. */
-  friend complex<T> operator +(const complex<T>& C, const T& R) {
+  friend complex<T> operator +(const complex<T>& C, const T& R) BOOST_NOEXCEPT {
     return complex<T>(C.Re + R, C.Im);
   };
   
   /** Addition operator with a real value. */
-  friend complex<T> operator +(const T& R, const complex<T>& C) {
+  friend complex<T> operator +(const T& R, const complex<T>& C) BOOST_NOEXCEPT {
     return complex<T>(C.Re + R, C.Im);
   };
   
   /** Negation operator. */
-  complex<T> operator -() const {
+  complex<T> operator -() const BOOST_NOEXCEPT {
     return complex<T>(-Re,-Im);
   };
   
   /** Substraction operator. */
-  friend complex<T> operator -(const complex<T>& C1, const complex<T>& C2) {
+  friend complex<T> operator -(const complex<T>& C1, const complex<T>& C2) BOOST_NOEXCEPT {
     return complex<T>(C1.Re - C2.Re, C1.Im - C2.Im);
   };
   
   /** Substraction operator with a real value. */
-  friend complex<T> operator -(const complex<T>& C, const T& R) {
+  friend complex<T> operator -(const complex<T>& C, const T& R) BOOST_NOEXCEPT {
     return complex<T>(C.Re - R,C.Im);
   };
   
   /** Substraction operator with a real value. */
-  friend complex<T> operator -(const T& R, const complex<T>& C) {
+  friend complex<T> operator -(const T& R, const complex<T>& C) BOOST_NOEXCEPT {
     return complex<T>(R - C.Re,-C.Im);
   };
   
   /** Multiplication operator. */
-  friend complex<T> operator *(const complex<T>& C1, const complex<T>& C2) {
+  friend complex<T> operator *(const complex<T>& C1, const complex<T>& C2) BOOST_NOEXCEPT {
     return complex<T>(C1.Re * C2.Re - C1.Im * C2.Im, C1.Re * C2.Im + C1.Im * C2.Re);
   };
   
   /** Multiplication operator with a real value. */
-  friend complex<T> operator *(const complex<T>& C, const T& R) {
+  friend complex<T> operator *(const complex<T>& C, const T& R) BOOST_NOEXCEPT {
     return complex<T>(C.Re * R,C.Im * R);
   };
   
   /** Division operator. */
-  friend complex<T> operator /(const complex<T>& C1, const complex<T>& C2) {
+  friend complex<T> operator /(const complex<T>& C1, const complex<T>& C2) BOOST_NOEXCEPT {
     T sqr_mag_inv = 1.0 / (C2.Re * C2.Re + C2.Im * C2.Im);
     return complex<T>(sqr_mag_inv * (C1.Re * C2.Re + C1.Im * C2.Im), sqr_mag_inv * (C1.Im * C2.Re - C1.Re * C2.Im));
   };
   
   /** Division operator with a real value. */
-  friend complex<T> operator /(const complex<T>& C, const T& R) {
+  friend complex<T> operator /(const complex<T>& C, const T& R) BOOST_NOEXCEPT {
     return complex<T>(C.Re / R, C.Im / R);
   };
   
   /** Division operator for a real and complex. */
-  friend complex<T> operator /(const double& R, const complex<T>& C) {
+  friend complex<T> operator /(const double& R, const complex<T>& C) BOOST_NOEXCEPT {
     T sqr_mag_inv = R / (C.Re * C.Re + C.Im * C.Im);
     return complex<T>(sqr_mag_inv * C.Re, -sqr_mag_inv * C.Im);
   };
@@ -209,92 +209,92 @@ class complex {
                            Comparison Operators
 *******************************************************************************/
   /** Equality-comparison operator. */
-  friend bool operator ==(const complex<T>& C1, const complex<T>& C2) {
+  friend bool operator ==(const complex<T>& C1, const complex<T>& C2) BOOST_NOEXCEPT {
     return ((C1.Re == C2.Re) && (C1.Im == C2.Im));
   };
   
   /** Equality-comparison operator with a real value. */
-  friend bool operator ==(const complex<T>& C, const T& R) {
+  friend bool operator ==(const complex<T>& C, const T& R) BOOST_NOEXCEPT {
     return ((C.Re == R) && (C.Im == 0.0));
   };
   
   /** Equality-comparison operator with a real value. */
-  friend bool operator ==(const T& R, const complex<T>& C) {
+  friend bool operator ==(const T& R, const complex<T>& C) BOOST_NOEXCEPT {
     return ((C.Re == R) && (C.Im == 0.0));
   };
   
   /** Inequality-comparison operator. */
-  friend bool operator !=(const complex<T>& C1, const complex<T>& C2) {
+  friend bool operator !=(const complex<T>& C1, const complex<T>& C2) BOOST_NOEXCEPT {
     return ((C1.Re != C2.Re) || (C1.Im != C2.Im));
   };
   
   /** Inequality-comparison operator with a real value. */
-  friend bool operator !=(const complex<T>& C, const T& R) {
+  friend bool operator !=(const complex<T>& C, const T& R) BOOST_NOEXCEPT {
     return ((C.Re != R) || (C.Im != 0.0));
   };
     
   /** Inequality-comparison operator with a real value. */
-  friend bool operator !=(const T& R, const complex<T>& C) {
+  friend bool operator !=(const T& R, const complex<T>& C) BOOST_NOEXCEPT {
     return ((C.Re != R) || (C.Im != 0.0));
   };
   
   /** Less-than-comparison operator, magnitude-wise. */
-  friend bool operator <(const complex<T>& C1, const complex<T>& C2) {
+  friend bool operator <(const complex<T>& C1, const complex<T>& C2) BOOST_NOEXCEPT {
     return ((C1.Re * C1.Re + C1.Im * C1.Im) < (C2.Re * C2.Re + C2.Im * C2.Im));
   };
   
   /** Less-than-comparison operator, magnitude-wise, with a real value. */
-  friend bool operator <(const complex<T>& C, const T& R) {
+  friend bool operator <(const complex<T>& C, const T& R) BOOST_NOEXCEPT {
     return ((C.Re * C.Re + C.Im * C.Im) < R*R);
   };
   
   /** Less-than-comparison operator, magnitude-wise, with a real value. */
-  friend bool operator <(const T& R, const complex<T>& C) {
+  friend bool operator <(const T& R, const complex<T>& C) BOOST_NOEXCEPT {
     return (R*R < (C.Re * C.Re + C.Im * C.Im));
   };
   
   /** Less-or-equal-comparison operator, magnitude-wise. */
-  friend bool operator <=(const complex<T>& C1, const complex<T>& C2) {
+  friend bool operator <=(const complex<T>& C1, const complex<T>& C2) BOOST_NOEXCEPT {
     return ((C1.Re * C1.Re + C1.Im * C1.Im) <= (C2.Re * C2.Re + C2.Im * C2.Im));
   };
   
   /** Less-or-equal-comparison operator, magnitude-wise, with a real value. */
-  friend bool operator <=(const complex<T>& C, const T& R) {
+  friend bool operator <=(const complex<T>& C, const T& R) BOOST_NOEXCEPT {
     return ((C.Re * C.Re + C.Im * C.Im) <= R*R);
   };
   
   /** Less-or-equal-comparison operator, magnitude-wise, with a real value. */
-  friend bool operator <=(const T& R, const complex<T>& C) {
+  friend bool operator <=(const T& R, const complex<T>& C) BOOST_NOEXCEPT {
     return (R*R <= (C.Re * C.Re + C.Im * C.Im));
   };
   
   /** Greater-than-comparison operator, magnitude-wise. */
-  friend bool operator >(const complex<T>& C1, const complex<T>& C2) {
+  friend bool operator >(const complex<T>& C1, const complex<T>& C2) BOOST_NOEXCEPT {
     return ((C1.Re * C1.Re + C1.Im * C1.Im) > (C2.Re * C2.Re + C2.Im * C2.Im));
   };
   
   /** Greater-than-comparison operator, magnitude-wise, with a real value. */
-  friend bool operator >(const complex<T>& C, const T& R) {
+  friend bool operator >(const complex<T>& C, const T& R) BOOST_NOEXCEPT {
     return ((C.Re * C.Re + C.Im * C.Im) > R*R);
   };
   
   /** Greater-than-comparison operator, magnitude-wise, with a real value. */
-  friend bool operator >(const T& R, const complex<T>& C) {
+  friend bool operator >(const T& R, const complex<T>& C) BOOST_NOEXCEPT {
     return (R*R > (C.Re * C.Re + C.Im * C.Im));
   };
   
   /** Greater-or-equal-comparison operator, magnitude-wise. */
-  friend bool operator >=(const complex<T>& C1, const complex<T>& C2) {
+  friend bool operator >=(const complex<T>& C1, const complex<T>& C2) BOOST_NOEXCEPT {
     return ((C1.Re * C1.Re + C1.Im * C1.Im) >= (C2.Re * C2.Re + C2.Im * C2.Im));
   };
   
   /** Greater-or-equal-comparison operator, magnitude-wise, with a real value. */
-  friend bool operator >=(const complex<T>& C, const T& R) {
+  friend bool operator >=(const complex<T>& C, const T& R) BOOST_NOEXCEPT {
     return ((C.Re * C.Re + C.Im * C.Im) >= R*R);
   };
   
   /** Greater-or-equal-comparison operator, magnitude-wise, with a real value. */
-  friend bool operator >=(const T& R, const complex<T>& C) {
+  friend bool operator >=(const T& R, const complex<T>& C) BOOST_NOEXCEPT {
     return (R*R >= (C.Re * C.Re + C.Im * C.Im));
   };
   
@@ -302,12 +302,12 @@ class complex {
   
   
   /** Complex conjugate for a complex value. */
-  friend complex<T> conj(const complex<T>& x) {
+  friend complex<T> conj(const complex<T>& x) BOOST_NOEXCEPT {
     return complex<T>(x.Re,-x.Im);
   };
   
   /** Complex square magnitude for a complex value. */
-  friend T sqr_mag(const complex<T>& x) {
+  friend T sqr_mag(const complex<T>& x) BOOST_NOEXCEPT {
     return x.Re*x.Re + x.Im*x.Im;
   };
   
@@ -319,7 +319,7 @@ class complex {
 //Exponential and logarithmic functions:
 
   /** Compute exponential function (function), for a complex value. */
-  friend complex<T> exp(const complex<T>& x) {
+  friend complex<T> exp(const complex<T>& x) BOOST_NOEXCEPT {
     if(x.Re == 0.0)
       return complex<T>(cos(x.Im),sin(x.Im));
     else 
@@ -327,67 +327,67 @@ class complex {
   };  
 
   /** Compute natural logarithm (function), for a complex value. */
-  friend complex<T> log(const complex<T>& x) {
+  friend complex<T> log(const complex<T>& x) BOOST_NOEXCEPT {
     return complex<T>(log(sqrt(x.Re * x.Re + x.Im * x.Im)),atan2(x.Im,x.Re));
   };  
 
   /** Compute common logarithm (function), for a complex value. */
-  friend complex<T> log10(const complex<T>& x) {
+  friend complex<T> log10(const complex<T>& x) BOOST_NOEXCEPT {
     return log(x) / log(T(10.0));
   };
 
 //Trigonometric functions:
 
   /** Compute cosine (function), for a complex value.*/
-  friend complex<T> cos(const complex<T>& x) {
+  friend complex<T> cos(const complex<T>& x) BOOST_NOEXCEPT {
     return complex<T>(cos(x.Re) * cosh(x.Im),-sin(x.Re) * sinh(x.Im)); 
   }; 
 
   /** Compute sine (function), for a complex value.*/
-  friend complex<T> sin(const complex<T>& x) {
+  friend complex<T> sin(const complex<T>& x) BOOST_NOEXCEPT {
     return complex<T>(sin(x.Re) * cosh(x.Im),cos(x.Re) * sinh(x.Im));
   };  
 
   /** Compute tangent (function), for a complex value.*/
-  friend complex<T> tan(const complex<T>& x) {
+  friend complex<T> tan(const complex<T>& x) BOOST_NOEXCEPT {
   T tmp = 1.0/(cos(2.0 * x.Re) + cosh(2.0 * x.Im));
     return complex<T>(sin(2.0*x.Re) * tmp, sinh(2.0*x.Im) * tmp); 
   };  
 
   /** Compute arc cosine (function), for a complex value.*/
-  friend complex<T> acos(const complex<T>& x) {
+  friend complex<T> acos(const complex<T>& x) BOOST_NOEXCEPT {
     return  complex<T>(0.0,-1.0) * log(x + sqrt(x * x - 1.0));
   };  
 
   /** Compute arc sine (function), for a complex value.*/
-  friend complex<T> asin(const complex<T>& x) {
+  friend complex<T> asin(const complex<T>& x) BOOST_NOEXCEPT {
     return complex<T>(0.0,-1.0) * log(complex<T>(-x.Im,x.Re) + sqrt(1.0 - x * x));
   };  
 
   /** Compute arc tangent (function), for a complex value.*/
-  friend complex<T> atan(const complex<T>& x) {
+  friend complex<T> atan(const complex<T>& x) BOOST_NOEXCEPT {
     return complex<T>(0.0,0.5) * log(complex<T>(x.Im + 1.0,-x.Re)/complex<T>(1.0-x.Im,x.Re));
   };  
 
   /** Compute arc tangent with two parameters (function), for a complex value.*/
-  friend complex<T> atan2(const complex<T>& y, const complex<T>& x) {
+  friend complex<T> atan2(const complex<T>& y, const complex<T>& x) BOOST_NOEXCEPT {
     return atan(y / x);
   };  
 
 //Hyperbolic functions:
 
   /** Compute hyperbolic cosine (function), for a complex value.*/
-  friend complex<T> cosh(const complex<T>& x) {
+  friend complex<T> cosh(const complex<T>& x) BOOST_NOEXCEPT {
     return complex<T>(cosh(x.Re) * cos(x.Im),sinh(x.Re) * sin(x.Im));
   };  
 
   /** Compute hyperbolic sine (function), for a complex value.*/
-  friend complex<T> sinh(const complex<T>& x) {
+  friend complex<T> sinh(const complex<T>& x) BOOST_NOEXCEPT {
     return complex<T>(cos(x.Im) * sinh(x.Re),sin(x.Im) * cosh(x.Re)); 
   };  
 
   /** Compute hyperbolic tangent (function), for a complex value.*/
-  friend complex<T> tanh(const complex<T>& x) {
+  friend complex<T> tanh(const complex<T>& x) BOOST_NOEXCEPT {
     T tmp = 1.0/(cosh(2.0 * x.Re) + cos(2.0 * x.Im));
     return complex<T>(sinh(2.0*x.Re) * tmp, sin(2.0*x.Im) * tmp);
   };  
@@ -396,12 +396,12 @@ class complex {
 //Power functions
 
   /** Raise to power (function), for a complex value.*/
-  friend complex<T> pow(const complex<T>& base, const complex<T>& exponent) {
+  friend complex<T> pow(const complex<T>& base, const complex<T>& exponent) BOOST_NOEXCEPT {
     return exp(exponent * log(base));
   };  
 
   /** Compute square root (function), for a complex value.*/
-  friend complex<T> sqrt(const complex<T>& x) {
+  friend complex<T> sqrt(const complex<T>& x) BOOST_NOEXCEPT {
     T angle = atan2(x.Im,x.Re);
     return pow(x.Re * x.Re + x.Im * x.Im,0.25) * complex<T>(cos(0.5 * angle),sin(0.5 * angle));
   };  
@@ -410,17 +410,17 @@ class complex {
 //Rounding, absolute value and remainder functions:
 
   /** Round up value (function), for a complex value. */
-  friend complex<T> ceil(const complex<T>& x) {
+  friend complex<T> ceil(const complex<T>& x) BOOST_NOEXCEPT {
     return complex<T>(ceil(x.Re),ceil(x.Im));
   };  
 
   /** Compute absolute value (function), for a complex value. */
-  friend T fabs(const complex<T>& x) {
+  friend T fabs(const complex<T>& x) BOOST_NOEXCEPT {
     return sqrt(x.Re * x.Re + x.Im * x.Im);
   };  
 
   /** Round down value (function), for a complex value.*/
-  friend complex<T> floor(const complex<T>& x) {
+  friend complex<T> floor(const complex<T>& x) BOOST_NOEXCEPT {
     return complex<T>(floor(x.Re),floor(x.Im));
   };  
   
@@ -475,14 +475,14 @@ struct get_type_id< complex<T> > {
 
 
 /** Complex conjugate for a real value. */
-inline float conj(float x) { return x; };
+inline float conj(float x) BOOST_NOEXCEPT { return x; };
 /** Complex conjugate for a real value. */
-inline double conj(double x) { return x; };
+inline double conj(double x) BOOST_NOEXCEPT { return x; };
   
 /** Complex square magnitude for a real value. */
-inline float sqr_mag(float x) { return x*x; };
+inline float sqr_mag(float x) BOOST_NOEXCEPT { return x*x; };
 /** Complex square magnitude for a real value. */
-inline double sqr_mag(double x) { return x*x; };
+inline double sqr_mag(double x) BOOST_NOEXCEPT { return x*x; };
 
   
 };
