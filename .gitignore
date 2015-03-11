@@ -2,7 +2,7 @@
 .fuse_*
 build
 build_msvc
-.kdev4
+*.kdev4
 build_clang
 build_iwyuclang
 build_dbg

@@ -1,0 +1,61 @@
+
+
+
+Notes on BIT* algorithm:
+
+Vertices can basically be in three states:
+  - Survivors of the last pruning pass (called "V_old" in paper)
+  - Newly incorporated vertices, recently (since last pruning) made part of motion-graph (called V - V_old in paper)
+  - Candidates for improving the solution, all disconnected (or not) vertices with sufficient small heuristic key value (called "X_samples" in paper)
+  - Removed from the motion-tree, because their heuristic key value is too high
+
+Qv contains only vertices from the "survivors" + "newcomers" group, which are part of the motion-graph
+  - ordered as a min-heap based on key(v) = g(v) + h-h(v)
+
+Qe contains only potential edges between "survivors" + "newcomers" and "candidates" + "newcomers"
+  - ordered as a min-heap based on est-key(e) = g(v) + h-cost(v,x) + h-h(x)
+
+
+Possible ways to index the vertices and edges to be able to deal with kNN and pruning operations:
+
+Q_worst contains all vertices from the "survivors" + "newcomers" group, 
+  - ordered as a max-heap (worst) based on key(v) = g(v) + h-h(v)
+  - a pruning pass would involve going through all nodes v above g(goal):
+    - if h-g(v) + h-h(v) < g(goal) then
+      - put v into "candidates" set
+    - else 
+      - remove v completely
+  - any addition to "newcomers" would have to be registered with Q_worst
+
+Q_hopeless contains all vertices from the "candidates" group,
+  - ordered as max-heap (worst) based on est-key(v) = h-g(v) + h-h(v)
+
+NOTE: Q_worst and Q_hopeless could be merged into one, with the following ordering:
+    est-f(u) = ( g(u) != infinity ? (g(u) + h-h(u)) : (h-g(u) + h-h(u)) )
+  and in bidirectional form:
+    est-g(u) = ( g(u) != infinity ? g(u) : h-g(u) )
+    est-h(u) = ( h(u) != infinity ? h(u) : h-h(u) )
+    est-f(u) = ( est-g(u) + est-h(u) )
+
+NOTE: Qv could use the same est-f(u) values for ordering, using this function (Rust-style):
+    best-Qv = { while( g(Qv.top()) == infinity && h(Qv.top()) == infinity ) Qv.pop(); Qv.top() }
+
+NOTE: Qv and Q_worst could be merged as a double-ended priority queue (min-max-heap)
+
+KNN-tree that spans the entire graph ("survivors" + "newcomers" + "candidates")
+  - this would be required if one were to implement the algorithm exactly as described in paper
+  - maybe this could involve the addition of a "predicated" call for kNN, which would produce only "candidates" or only "in V" nodes.
+
+is_survivors(v) = ( color(v) == black )
+is_newcomer(v)  = ( color(v) == gray )
+is_candidate(v) = ( color(v) == white )
+
+lines 21-22: "X_samples <-(-)- x; V <-(+)- x"   would become  "color(x) = gray;"
+line 22:     "Qv <-(+)- x"                      would become  "Qv.push_or_update(x); Q_worst.push_or_update(x);"
+
+
+
+
+
+
+
