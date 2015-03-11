@@ -1,7 +1,6 @@
 
 
-
-add_library(reak_core STATIC 
+set(REAK_CORE_SOURCES 
   "archiver_factory.cpp"
   "ascii_recorder.cpp"
   "bin_archiver.cpp"
@@ -17,6 +16,19 @@ add_library(reak_core STATIC
   "vector_recorder.cpp"
   "xml_archiver.cpp"
 )
+
+if(_COMPILER_SUPPORTS_CXX11)
+set(REAK_CORE_SOURCES ${REAK_CORE_SOURCES} 
+  "disc_headers.cpp"
+  "remote_function.cpp"
+  "rpc_exceptions.cpp"
+  "rpc_headers.cpp"
+  "rpc_server.cpp"
+  "rpc_version.cpp"
+)
+endif()
+
+add_library(reak_core STATIC ${REAK_CORE_SOURCES})
 ReaK_setup_static_library(reak_core)
 target_link_libraries(reak_core ${Boost_LIBRARIES} ${EXTRA_SYSTEM_LIBS})
 
