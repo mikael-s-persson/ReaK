@@ -85,7 +85,7 @@ namespace ReaK {
 namespace graph {
 
   
-namespace detail {
+namespace detail { namespace {
   
   
   template <typename Graph, typename RRGVisitor, typename PositionMap, 
@@ -268,7 +268,7 @@ namespace detail {
     
   };
   
-};
+}; }; // detail
 
 
 
@@ -716,8 +716,10 @@ void generate_bnb_rrt_star(Graph& g,
   detail::rrt_conn_visitor<Graph, RRGVisitor, PositionMap, WeightMap, DistanceMap, PredecessorMap> 
     conn_vis(vis, position, weight, distance, pred);
   
+  bnb_ordering_data<Graph> bnb_data(g, start_vertex, goal_vertex);
+  
   detail::generate_rrt_star_loop(g, super_space, conn_vis,
-    branch_and_bound_connector<Graph>(g, start_vertex, goal_vertex), position,
+    bnb_connector<Graph>(bnb_data), position,
     rrg_node_generator<Topology, RandomSampler, NcSelector>(&super_space, get_sample, select_neighborhood),
     select_neighborhood);
   
@@ -807,8 +809,10 @@ void generate_bnb_rrt_star_bidir( Graph& g,
                            DistanceMap, PredecessorMap, FwdDistanceMap, SuccessorMap> 
     conn_vis(vis, position, weight, distance, pred, fwd_distance, succ);
   
+  bnb_ordering_data<Graph> bnb_data(g, start_vertex, goal_vertex);
+  
   detail::generate_rrt_star_bidir_loop(g, super_space, conn_vis,
-    branch_and_bound_connector<Graph>(g, start_vertex, goal_vertex), position,
+    bnb_connector<Graph>(bnb_data), position,
     rrg_bidir_generator<Topology, RandomSampler, NcSelector, PredecessorMap, SuccessorMap>(&super_space, get_sample, select_neighborhood, pred, succ),
     select_neighborhood);
   

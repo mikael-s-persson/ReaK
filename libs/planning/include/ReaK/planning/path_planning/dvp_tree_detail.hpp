@@ -158,7 +158,7 @@ class random_vp_chooser {
 };
 
 
-namespace detail {
+namespace detail { namespace {
   
   struct dvp_tree_key_hasher {
     std::size_t operator()(std::size_t d) const {
@@ -173,7 +173,7 @@ namespace detail {
     };
   };
   
-};
+}; };
 
 
 

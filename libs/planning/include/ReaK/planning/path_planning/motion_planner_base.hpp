@@ -157,7 +157,7 @@ class planner_base : public named_object {
 
 
 
-namespace detail {
+namespace detail { namespace {
   
   template <typename Topology, typename Graph, typename Reporter>
   typename boost::enable_if< is_steerable_space< Topology >,
@@ -171,8 +171,7 @@ namespace detail {
     reporter.draw_motion_graph(space, g, get(&mg_vertex_data<Topology>::position,g));
   };
   
-  
-};
+}; }; // detail
 
 
 

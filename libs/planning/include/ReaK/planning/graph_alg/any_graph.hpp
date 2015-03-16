@@ -337,7 +337,7 @@ inline void remove_edge(any_graph::edge_iterator e_iter, any_graph& g) {
 
 
 
-namespace detail {
+namespace detail { namespace {
   
   
   
@@ -676,7 +676,7 @@ namespace detail {
 #endif
   
   
-};
+}; }; // detail
 
 
 

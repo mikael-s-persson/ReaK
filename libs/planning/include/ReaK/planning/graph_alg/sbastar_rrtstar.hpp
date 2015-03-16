@@ -144,7 +144,7 @@ struct sbarrtstar_bidir_visitor_archetype :
 
 
 
-namespace detail {
+namespace detail { namespace {
   
   template <typename Graph, typename Topology, typename SBARRTStarVisitor, 
             typename MotionGraphConnector, typename SBANodeGenerator, typename RRTNodeGenerator,
@@ -390,9 +390,7 @@ namespace detail {
   };
   
   
-  
-  
-}; //end of detail namespace.
+}; }; // detail
 
 
 /**
@@ -612,10 +610,10 @@ void generate_lazy_bnb_sbarrtstar_no_init(const SBAStarBundle& bdl,
       bdl.m_density, bdl.m_constriction, bdl.m_distance, bdl.m_predecessor, 
       bdl.m_fwd_distance, get_sample, bdl.m_select_neighborhood, SA_init_temperature);
   } else {
+    bnb_ordering_data<typename SBAStarBundle::graph_type> bnb_data(*(bdl.m_g), bdl.m_start_vertex, bdl.m_goal_vertex);
     detail::generate_sbarrtstar_no_init_impl(
       *(bdl.m_g), bdl.m_start_vertex, *(bdl.m_super_space), bdl.m_vis, 
-      branch_and_bound_connector<typename SBAStarBundle::graph_type>(
-        *(bdl.m_g), bdl.m_start_vertex, bdl.m_goal_vertex), 
+      bnb_connector<typename SBAStarBundle::graph_type>(bnb_data), 
       bdl.m_key, bdl.m_position, bdl.m_weight, 
       bdl.m_density, bdl.m_constriction, bdl.m_distance, bdl.m_predecessor, 
       bdl.m_fwd_distance, get_sample, bdl.m_select_neighborhood, SA_init_temperature);
@@ -668,10 +666,10 @@ void generate_lazy_bnb_sbarrtstar_bidir_no_init(const SBAStarBundle& bdl,
       bdl.m_density, bdl.m_constriction, bdl.m_distance, bdl.m_predecessor, 
       bdl.m_fwd_distance, bdl.m_successor, get_sample, bdl.m_select_neighborhood, SA_init_temperature);
   } else {
+    bnb_ordering_data<typename SBAStarBundle::graph_type> bnb_data(*(bdl.m_g), bdl.m_start_vertex, bdl.m_goal_vertex);
     detail::generate_sbarrtstar_bidir_no_init_impl(
       *(bdl.m_g), bdl.m_start_vertex, bdl.m_goal_vertex, *(bdl.m_super_space), bdl.m_vis, 
-      branch_and_bound_connector<typename SBAStarBundle::graph_type>(
-        *(bdl.m_g), bdl.m_start_vertex, bdl.m_goal_vertex), 
+      bnb_connector<typename SBAStarBundle::graph_type>(bnb_data), 
       bdl.m_key, bdl.m_position, bdl.m_weight, 
       bdl.m_density, bdl.m_constriction, bdl.m_distance, bdl.m_predecessor, 
       bdl.m_fwd_distance, bdl.m_successor, get_sample, bdl.m_select_neighborhood, SA_init_temperature);

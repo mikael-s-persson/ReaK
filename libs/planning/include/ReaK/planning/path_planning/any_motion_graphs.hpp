@@ -46,7 +46,7 @@ namespace ReaK {
 namespace pp {
 
 
-namespace detail {
+namespace detail { namespace {
   
   template <typename Topology, typename Graph>
   typename boost::enable_if< is_steerable_space<Topology>,
@@ -80,7 +80,7 @@ namespace detail {
   };
   
   
-};
+}; }; // detail
 
 
 

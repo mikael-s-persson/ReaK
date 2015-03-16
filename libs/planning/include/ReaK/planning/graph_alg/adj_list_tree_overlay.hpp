@@ -71,7 +71,7 @@ template <typename AdjListOnTreeType>
 class alt_graph_view;  // forward-declaration.
 
 
-namespace detail {
+namespace detail { namespace {
 
 
 template <typename TreeVertexProperty, typename AdjVertexProperty>
@@ -165,7 +165,7 @@ class adj_list_on_tree {
 
 };
 
-};
+}; }; // detail
 
 
 

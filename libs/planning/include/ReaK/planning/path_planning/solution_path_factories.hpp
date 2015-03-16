@@ -50,7 +50,7 @@ namespace pp {
 
 
 
-namespace detail {
+namespace detail { namespace {
   
   template <typename SolutionWrapperType, typename FreeSpaceType, typename SolutionRecPtr>
   typename boost::enable_if< is_steerable_space< FreeSpaceType >,
@@ -559,7 +559,7 @@ namespace detail {
   
   
   
-};
+}; }; // detail
 
 
 

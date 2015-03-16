@@ -127,7 +127,7 @@ class any_sbmp_reporter : public shared_object {
 
 
 
-namespace detail {
+namespace detail { namespace {
   
   template <bool IsSteerable, typename FreeSpaceType>
   struct get_sbmp_reporter_any_property_type {
@@ -141,7 +141,7 @@ namespace detail {
     static std::string name() { return "edge_steer_rec"; };
   };
   
-};
+}; };
 
 
 

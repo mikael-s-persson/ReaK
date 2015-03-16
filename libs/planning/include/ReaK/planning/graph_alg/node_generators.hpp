@@ -49,7 +49,7 @@ namespace ReaK {
   
 namespace graph {
 
-namespace detail {
+namespace detail { namespace {
   
   template <typename Graph>
   struct rrg_node_puller {
@@ -112,7 +112,7 @@ namespace detail {
     
   };
   
-};
+}; }; // detail
   
 /**
  * This node generator that can be used in RRT-like algorithms. 

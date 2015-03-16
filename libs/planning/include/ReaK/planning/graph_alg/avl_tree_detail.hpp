@@ -58,7 +58,7 @@ namespace ReaK {
 
 namespace graph {
   
-namespace detail {
+namespace detail { namespace {
   
   enum avl_container_style {
     avl_set_style,
@@ -245,7 +245,7 @@ namespace detail {
   };
   
   
-};
+}; }; // detail
 
 
 /**

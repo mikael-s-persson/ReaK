@@ -62,7 +62,7 @@ namespace ReaK {
 namespace graph {
 
 
-namespace detail {
+namespace detail { namespace {
   
   template <typename Graph>
   struct null_vertex_prop_map { };
@@ -85,7 +85,7 @@ namespace detail {
   template <typename T>
   void put(infinite_double_value_prop_map, const T&, double) { };
   
-};
+}; };
 
   
   

@@ -71,7 +71,7 @@ namespace ReaK {
 namespace graph {
 
 
-namespace detail {
+namespace detail { namespace {
   
   
   
@@ -252,14 +252,8 @@ namespace detail {
   };
   
   
-  
-  
-  
-  
-  
-}; //end of detail namespace
-  
-  
+}; }; // detail
+
 
 /**
  * This function is the basic PRM algorithm (as of "Geraerts and Overmars, 2002"). Note that 

@@ -76,7 +76,7 @@ namespace ReaK {
 namespace graph {
 
 
-namespace detail {
+namespace detail { namespace {
 
   template <typename Graph,
             typename Topology,
@@ -140,7 +140,7 @@ namespace detail {
     };
   };
   
-}; //namespace detail
+}; }; //namespace detail
 
 
 

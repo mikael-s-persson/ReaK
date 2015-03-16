@@ -159,8 +159,8 @@ struct sbastar_bidir_visitor_archetype :
   node_back_pushing_visitor_archetype<Topology> { };
 
 
-namespace detail {
-                  
+namespace detail { namespace {
+  
   template <typename Graph, typename UniformCostVisitor,
             typename UpdatableQueue, typename IndexInHeapMap,
             typename KeyMap, typename PositionMap, typename WeightMap,
@@ -594,7 +594,7 @@ namespace detail {
     };
   };
   
-}; //end of detail namespace.
+}; }; // detail
 
 
 
@@ -1002,10 +1002,10 @@ void generate_lazy_bnb_sbastar_no_init(const SBAStarBundle& bdl) {
       bdl.m_density, bdl.m_constriction, bdl.m_distance, bdl.m_predecessor, 
       bdl.m_fwd_distance, bdl.m_select_neighborhood);
   } else {
+    bnb_ordering_data<typename SBAStarBundle::graph_type> bnb_data(*(bdl.m_g), bdl.m_start_vertex, bdl.m_goal_vertex);
     detail::generate_sbastar_no_init_impl(
       *(bdl.m_g), bdl.m_start_vertex, *(bdl.m_super_space), bdl.m_vis, 
-      branch_and_bound_connector<typename SBAStarBundle::graph_type>(
-        *(bdl.m_g), bdl.m_start_vertex, bdl.m_goal_vertex), 
+      bnb_connector<typename SBAStarBundle::graph_type>(bnb_data), 
       bdl.m_key, bdl.m_position, bdl.m_weight, 
       bdl.m_density, bdl.m_constriction, bdl.m_distance, bdl.m_predecessor, 
       bdl.m_fwd_distance, bdl.m_select_neighborhood);
@@ -1036,10 +1036,10 @@ void generate_lazy_bnb_sbastar(const SBAStarBundle& bdl) {
  */
 template <typename SBAStarBundle>
 void generate_lazy_bnb_sbastar_bidir_no_init(const SBAStarBundle& bdl) {
+  bnb_ordering_data<typename SBAStarBundle::graph_type> bnb_data(*(bdl.m_g), bdl.m_start_vertex, bdl.m_goal_vertex);
   detail::generate_sbastar_bidir_no_init_impl(
     *(bdl.m_g), bdl.m_start_vertex, bdl.m_goal_vertex, *(bdl.m_super_space), bdl.m_vis, 
-    branch_and_bound_connector<typename SBAStarBundle::graph_type>(
-      *(bdl.m_g), bdl.m_start_vertex, bdl.m_goal_vertex), 
+    bnb_connector<typename SBAStarBundle::graph_type>(bnb_data), 
     bdl.m_key, bdl.m_position, bdl.m_weight, 
     bdl.m_density, bdl.m_constriction, bdl.m_distance, bdl.m_predecessor, 
     bdl.m_fwd_distance, bdl.m_successor, bdl.m_select_neighborhood);
