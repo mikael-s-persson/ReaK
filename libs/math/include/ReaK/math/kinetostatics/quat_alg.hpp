@@ -321,6 +321,15 @@ class quat {
     };
   
     /**
+     * Division by a scalar.
+     * \test PASSED
+     */
+    friend
+    self operator /(const self& Q1, const scalar_type& Q2) BOOST_NOEXCEPT {
+      return self(Q1.q[0] / Q2, Q1.q[1] / Q2, Q1.q[2] / Q2, Q1.q[3] / Q2);
+    };
+  
+    /**
      * Multiplication by a quaternion.
      * \test PASSED
      */
