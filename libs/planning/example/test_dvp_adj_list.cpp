@@ -17,7 +17,7 @@
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with ReaK (as LICENSE in the root folder).  
+ *    along with ReaK (as LICENSE in the root folder).
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
@@ -36,88 +36,72 @@
 #include <ReaK/core/base/chrono_incl.hpp>
 
 
-typedef ReaK::pp::hyperbox_topology< ReaK::vect<double,6> > TopologyType;
-  
+typedef ReaK::pp::hyperbox_topology< ReaK::vect< double, 6 > > TopologyType;
+
 typedef TopologyType::point_type PointType;
 
 struct WorldGridVertexProperties {
   PointType pos;
-  
-  WorldGridVertexProperties(PointType aPos = PointType()) : pos(aPos) { };
+
+  WorldGridVertexProperties( PointType aPos = PointType() ) : pos( aPos ){};
 };
 
-struct WorldGridEdgeProperties { };
+struct WorldGridEdgeProperties {};
 
 
 int main() {
-  
+
   using namespace ReaKaux::chrono;
-  
+
   typedef boost::data_member_property_map< PointType, WorldGridVertexProperties > PositionMap;
-  
-  typedef ReaK::pp::dvp_adjacency_list< 
-    WorldGridVertexProperties,
-    WorldGridEdgeProperties,
-    TopologyType, PositionMap,
-    2, ReaK::pp::random_vp_chooser,
-    boost::bfl_d_ary_tree_storage<2>,
-    boost::vecBC, boost::undirectedS, boost::vecBC > WorldPartition2BF;
-  
+
+  typedef ReaK::pp::dvp_adjacency_list< WorldGridVertexProperties, WorldGridEdgeProperties, TopologyType, PositionMap,
+                                        2, ReaK::pp::random_vp_chooser, boost::bfl_d_ary_tree_storage< 2 >,
+                                        boost::vecBC, boost::undirectedS, boost::vecBC > WorldPartition2BF;
+
   typedef WorldPartition2BF::adj_list_type WorldGrid2BF;
-  
-  const unsigned int grid_sizes[] = {100, 200, 300, 400, 500, 800, 1000, 1100, 1300, 1500, 1700, 
-                                     1900, 2000, 2200, 2500, 3000, 3500, 4000, 4500, 5000, 6000,
-                                     7000, 8000, 9000, 10000, 12000, 15000, 20000, 25000, 30000};
-                                     
-//  const unsigned int grid_sizes[] = {50000, 100000, 200000, 500000, 1000000,
-//                                     2000000, 5000000, 10000000, 20000000};
-  
-  std::ofstream outFile("test_vp_results/dvp_adj_list.dat");
+
+  const unsigned int grid_sizes[]
+    = {100,  200,  300,  400,  500,  800,  1000, 1100, 1300, 1500,  1700,  1900,  2000,  2200,  2500,
+       3000, 3500, 4000, 4500, 5000, 6000, 7000, 8000, 9000, 10000, 12000, 15000, 20000, 25000, 30000};
+
+  //  const unsigned int grid_sizes[] = {50000, 100000, 200000, 500000, 1000000,
+  //                                     2000000, 5000000, 10000000, 20000000};
+
+  std::ofstream outFile( "test_vp_results/dvp_adj_list.dat" );
   outFile << "N\tVP2\t (all times in micro-seconds per query per vertex)" << std::endl;
-  
-  for(int i=0;i<30;++i) {
-    ReaK::shared_ptr<TopologyType> m_space = ReaK::shared_ptr<TopologyType>(new TopologyType("",ReaK::vect<double,6>(0.0,0.0,0.0,0.0,0.0,0.0),ReaK::vect<double,6>(1.0,1.0,1.0,1.0,1.0,1.0)));
-    
-    WorldPartition2BF dvp2(m_space, PositionMap(&WorldGridVertexProperties::pos));
+
+  for( int i = 0; i < 30; ++i ) {
+    ReaK::shared_ptr< TopologyType > m_space
+      = ReaK::shared_ptr< TopologyType >( new TopologyType( "", ReaK::vect< double, 6 >( 0.0, 0.0, 0.0, 0.0, 0.0, 0.0 ),
+                                                            ReaK::vect< double, 6 >( 1.0, 1.0, 1.0, 1.0, 1.0, 1.0 ) ) );
+
+    WorldPartition2BF dvp2( m_space, PositionMap( &WorldGridVertexProperties::pos ) );
     WorldGrid2BF g2 = dvp2.get_adjacency_list();
-    
+
     typedef ReaK::pp::point_distribution_traits< TopologyType >::random_sampler_type RandSampler;
-    RandSampler get_sample = get(ReaK::pp::random_sampler, *m_space);
-    
-    for(unsigned int j=0;j < grid_sizes[i];++j) {
-      WorldGridVertexProperties vp = WorldGridVertexProperties(get_sample(*m_space));
-      add_vertex(vp,g2);
+    RandSampler get_sample = get( ReaK::pp::random_sampler, *m_space );
+
+    for( unsigned int j = 0; j < grid_sizes[i]; ++j ) {
+      WorldGridVertexProperties vp = WorldGridVertexProperties( get_sample( *m_space ) );
+      add_vertex( vp, g2 );
     };
-    
+
     outFile << grid_sizes[i];
     std::cout << "N = " << grid_sizes[i] << std::endl;
-    
+
     {
-    ReaK::pp::multi_dvp_tree_search<WorldGrid2BF, WorldPartition2BF> nn_finder2;
-    nn_finder2.graph_tree_map[&g2] = &dvp2;
-    high_resolution_clock::time_point t_start = high_resolution_clock::now();
-    for(unsigned int j=0;j<1000;++j) {
-      nn_finder2(get_sample(*m_space),g2,*m_space,get(&WorldGridVertexProperties::pos,g2));
+      ReaK::pp::multi_dvp_tree_search< WorldGrid2BF, WorldPartition2BF > nn_finder2;
+      nn_finder2.graph_tree_map[&g2] = &dvp2;
+      high_resolution_clock::time_point t_start = high_resolution_clock::now();
+      for( unsigned int j = 0; j < 1000; ++j ) {
+        nn_finder2( get_sample( *m_space ), g2, *m_space, get( &WorldGridVertexProperties::pos, g2 ) );
+      };
+      high_resolution_clock::duration dt = high_resolution_clock::now() - t_start;
+      outFile << "\t" << duration_cast< microseconds >( dt ).count() * 0.001 / double( grid_sizes[i] );
+      std::cout << "VP2-fresh" << std::endl;
     };
-    high_resolution_clock::duration dt = high_resolution_clock::now() - t_start;
-    outFile << "\t" << duration_cast<microseconds>(dt).count() * 0.001 / double(grid_sizes[i]);
-    std::cout << "VP2-fresh" << std::endl;
-    };
-    
+
     outFile << std::endl;
   };
-
 };
-
-
-
-
-
-
-
-
-
-
-
-
-

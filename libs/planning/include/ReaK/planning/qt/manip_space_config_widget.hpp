@@ -1,7 +1,7 @@
 /**
- * 
- * 
- * 
+ *
+ *
+ *
  */
 
 /*
@@ -22,7 +22,7 @@
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with ReaK (as LICENSE in the root folder).  
+ *    along with ReaK (as LICENSE in the root folder).
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
@@ -33,61 +33,44 @@
 #include <string>
 
 namespace Ui {
-  class ManipSpaceConfig;
+class ManipSpaceConfig;
 };
 
 namespace ReaK {
-  
+
 namespace qt {
 
 class ManipSpaceConfigWidget : public QDockWidget {
-    Q_OBJECT
-  private:
-    Ui::ManipSpaceConfig* ui;
-  public:
-    ManipSpaceConfigWidget(QWidget * parent = NULL, Qt::WindowFlags flags = 0);
-    virtual ~ManipSpaceConfigWidget();
-    
-  private slots:
-    
-    void updateInternalValues();
-    void updateExternalValues();
-    
-    void saveSpaceConfig();
-    void loadSpaceConfig();
-    
-  public:
-    
-    int space_order;
-    int interp_id;
-    double min_travel;
-    double max_travel;
-    bool is_temporal;
-    bool is_rate_limited;
-    
-    int output_space_order;
-    
-    void saveSpaceConfiguration(const std::string& aFilename);
-    void loadSpaceConfiguration(const std::string& aFilename);
-    
-};
+  Q_OBJECT
+private:
+  Ui::ManipSpaceConfig* ui;
 
-};
+public:
+  ManipSpaceConfigWidget( QWidget* parent = NULL, Qt::WindowFlags flags = 0 );
+  virtual ~ManipSpaceConfigWidget();
 
+private slots:
+
+  void updateInternalValues();
+  void updateExternalValues();
+
+  void saveSpaceConfig();
+  void loadSpaceConfig();
+
+public:
+  int space_order;
+  int interp_id;
+  double min_travel;
+  double max_travel;
+  bool is_temporal;
+  bool is_rate_limited;
+
+  int output_space_order;
+
+  void saveSpaceConfiguration( const std::string& aFilename );
+  void loadSpaceConfiguration( const std::string& aFilename );
+};
+};
 };
 
 #endif
-
-
-
-
-
-
-
-
-
-
-
-
-
-

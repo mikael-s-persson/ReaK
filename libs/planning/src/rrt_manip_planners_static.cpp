@@ -17,7 +17,7 @@
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with ReaK (as LICENSE in the root folder).  
+ *    along with ReaK (as LICENSE in the root folder).
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
@@ -35,16 +35,13 @@ namespace ReaK {
 namespace pp {
 
 
-#define RK_RRT_MANIP_PLANNERS_MAKE_STATIC_MANIP_EXTERN_INSTANCES(NDOF) \
-template class rrt_planner< \
-  manip_quasi_static_env< typename Ndof_rl_space<double, NDOF, 0>::type > >; \
-template class rrt_planner< \
-  manip_quasi_static_env< typename Ndof_rl_space<double, NDOF, 1>::type > >; \
-template class rrt_planner< \
-  manip_quasi_static_env< typename Ndof_rl_space<double, NDOF, 2>::type > >;
+#define RK_RRT_MANIP_PLANNERS_MAKE_STATIC_MANIP_EXTERN_INSTANCES( NDOF )                                   \
+  template class rrt_planner< manip_quasi_static_env< typename Ndof_rl_space< double, NDOF, 0 >::type > >; \
+  template class rrt_planner< manip_quasi_static_env< typename Ndof_rl_space< double, NDOF, 1 >::type > >; \
+  template class rrt_planner< manip_quasi_static_env< typename Ndof_rl_space< double, NDOF, 2 >::type > >;
 
 
-RK_RRT_MANIP_PLANNERS_MAKE_STATIC_MANIP_EXTERN_INSTANCES(RK_PLANNERS_DIM)
+RK_RRT_MANIP_PLANNERS_MAKE_STATIC_MANIP_EXTERN_INSTANCES( RK_PLANNERS_DIM )
 
 // RK_RRT_MANIP_PLANNERS_MAKE_STATIC_MANIP_EXTERN_INSTANCES(0)
 // RK_RRT_MANIP_PLANNERS_MAKE_STATIC_MANIP_EXTERN_INSTANCES(1)
@@ -57,10 +54,7 @@ RK_RRT_MANIP_PLANNERS_MAKE_STATIC_MANIP_EXTERN_INSTANCES(RK_PLANNERS_DIM)
 // RK_RRT_MANIP_PLANNERS_MAKE_STATIC_MANIP_EXTERN_INSTANCES(8)
 // RK_RRT_MANIP_PLANNERS_MAKE_STATIC_MANIP_EXTERN_INSTANCES(9)
 // RK_RRT_MANIP_PLANNERS_MAKE_STATIC_MANIP_EXTERN_INSTANCES(10)
-
-
 };
-
 };
 
 #else
@@ -69,14 +63,10 @@ namespace ReaK {
 
 namespace pp {
 
-#define CONCAT_NAMES(X,Y) X##Y
+#define CONCAT_NAMES( X, Y ) X##Y
 
-void CONCAT_NAMES(dummy_rrt_manip_planners_static_externs_symbol_, RK_PLANNERS_DIM)() { };
-
+void CONCAT_NAMES( dummy_rrt_manip_planners_static_externs_symbol_, RK_PLANNERS_DIM )(){};
 };
-
 };
 
 #endif
-
-

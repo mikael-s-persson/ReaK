@@ -17,7 +17,7 @@
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with ReaK (as LICENSE in the root folder).  
+ *    along with ReaK (as LICENSE in the root folder).
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
@@ -36,15 +36,15 @@ class SoQtExaminerViewer;
 
 
 class Planner3DWindow : public QMainWindow, private Ui::Planner3DView {
-    Q_OBJECT
-  
-  public:
-    Planner3DWindow( QWidget * parent = 0, Qt::WindowFlags flags = 0 );
-    ~Planner3DWindow();
-    
-  private slots:
-    
-    void executePlanner();
+  Q_OBJECT
+
+public:
+  Planner3DWindow( QWidget* parent = 0, Qt::WindowFlags flags = 0 );
+  ~Planner3DWindow();
+
+private slots:
+
+  void executePlanner();
 #if 0
     void startRobot();
     void onJointChange();
@@ -58,44 +58,26 @@ class Planner3DWindow : public QMainWindow, private Ui::Planner3DView {
     void onMGVisible();
     void onSolutionsVisible();
 #endif
-    
-    void onLoadTopology();
-    void onLoadRobotModel();
-    
-  private:
-    
-    void refreshTopoData();
-    
-    void onProxyChange();
-    
-    Ui::PlannerSpaceConfig space_configs;
-    QDockWidget* space_configs_dock;
-    QWidget* space_configs_widget;
-    Ui::PlannerAlgConfig alg_configs;
-    QDockWidget* alg_configs_dock;
-    QWidget* alg_configs_widget;
-    
-    
-    SoQtExaminerViewer* eviewer;
-    SoSeparator* sg_root;
-    
-  
+
+  void onLoadTopology();
+  void onLoadRobotModel();
+
+private:
+  void refreshTopoData();
+
+  void onProxyChange();
+
+  Ui::PlannerSpaceConfig space_configs;
+  QDockWidget* space_configs_dock;
+  QWidget* space_configs_widget;
+  Ui::PlannerAlgConfig alg_configs;
+  QDockWidget* alg_configs_dock;
+  QWidget* alg_configs_widget;
+
+
+  SoQtExaminerViewer* eviewer;
+  SoSeparator* sg_root;
 };
 
 
-
 #endif
-
-
-
-
-
-
-
-
-
-
-
-
-
-

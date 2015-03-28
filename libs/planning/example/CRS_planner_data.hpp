@@ -17,7 +17,7 @@
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with ReaK (as LICENSE in the root folder).  
+ *    along with ReaK (as LICENSE in the root folder).
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
@@ -31,27 +31,24 @@
 class SoTimerSensor;
 
 
-template <typename Topology>
+template < typename Topology >
 struct coin_animation_data {
-  typedef ReaK::pp::temporal_space<Topology, ReaK::pp::time_poisson_topology, ReaK::pp::time_distance_only> temporal_space_type;
+  typedef ReaK::pp::temporal_space< Topology, ReaK::pp::time_poisson_topology, ReaK::pp::time_distance_only >
+    temporal_space_type;
   typedef ReaK::pp::trajectory_base< temporal_space_type > trajectory_type;
-  
+
   ReaK::shared_ptr< trajectory_type > trajectory;
   SoTimerSensor* animation_timer;
-  ReaKaux::atomic<bool> enabled;
+  ReaKaux::atomic< bool > enabled;
 };
 
 
-typedef ReaK::pp::hyperbox_topology< ReaK::vect<double,7> > manip_cspace_type;
-typedef coin_animation_data<manip_cspace_type> CRS_sol_anim_data;
+typedef ReaK::pp::hyperbox_topology< ReaK::vect< double, 7 > > manip_cspace_type;
+typedef coin_animation_data< manip_cspace_type > CRS_sol_anim_data;
 
 
-typedef ReaK::pp::se3_1st_order_topology<double>::type sat_state_space_type;
-typedef coin_animation_data<sat_state_space_type> CRS_target_anim_data;
-
-
-
+typedef ReaK::pp::se3_1st_order_topology< double >::type sat_state_space_type;
+typedef coin_animation_data< sat_state_space_type > CRS_target_anim_data;
 
 
 #endif
-

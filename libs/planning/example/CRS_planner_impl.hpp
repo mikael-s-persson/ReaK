@@ -17,7 +17,7 @@
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with ReaK (as LICENSE in the root folder).  
+ *    along with ReaK (as LICENSE in the root folder).
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
@@ -49,111 +49,91 @@
 class SoSensor;
 
 
-
 class CRSPlannerGUI : public QMainWindow, private Ui::CRSPlannerWindow {
-    Q_OBJECT
-  
-  public:
-    CRSPlannerGUI( QWidget * parent = 0, Qt::WindowFlags flags = 0 );
-    ~CRSPlannerGUI();
-    
-  private slots:
-    
-    void runPlanner();
-    
-    void executePlanner();
-    void executeDynamicPlanner();
-    
-    void startSolutionAnimation();
-    void startTargetAnimation();
-    
-    void stopSolutionAnimation();
-    void stopTargetAnimation();
-    
-    void loadTargetTrajectory(QString);
-    
-    
-    void onShowRunDialog();
-    
-    void onStartPlanning(int mode);
-    void onStopPlanning();
-    
-    void onLaunch(int mode);
-    
-    void onAbort();
-    
-    
-    friend void CRSPlannerGUI_animate_bestsol_trajectory(void*, SoSensor*);
-    friend void CRSPlannerGUI_animate_target_trajectory(void*, SoSensor*);
-    
-  signals:
-    
-    void notifyCaptureReached();
-    
-    void notifyConsoleMessage(QString);
-    
-    void notifyReset();
-    
-    void notifyInitializationDone();
-    
-    void notifyPlanningDone();
-    
-    void notifyLaunchOpportunity();
-    
-  private:
-    
-    void startCompleteAnimation();
-    void stopCompleteAnimation();
-    
-    // non-copyable:
-    CRSPlannerGUI( const CRSPlannerGUI& );
-    CRSPlannerGUI& operator=( const CRSPlannerGUI& );
-    
-  public:
-    
-    CRS_sol_anim_data    sol_anim;
-    CRS_target_anim_data target_anim;
-    ReaKaux::atomic<double> current_target_anim_time;
-    
-    ReaK::qt::View3DMenu view3d_menu;
-    
-    ReaK::qt::ChaserTargetConfigWidget   ct_config;
-    ReaK::qt::ChaserTargetInteractWidget ct_interact;
-    ReaK::qt::ManipSpaceConfigWidget     space_config;
-    ReaK::qt::PlannerAlgConfigWidget     plan_alg_config;
-    ReaK::qt::TargetPredConfigWidget     target_pred_config;
-    
-    ReaK::qt::CRSRunDialogWidget run_dialog;
-    
-    ReaKaux::function<void()> stop_planner;
-    void threadedPlanningFunction(int mode);
-    
-    ReaKaux::thread planning_thr;
-    
-    void executeSolutionTrajectory();
-    
-    ReaKaux::atomic<bool> exec_robot_enabled;
-    ReaKaux::thread exec_robot_thr;
-    ReaK::recorder::data_stream_options jtctrl_log_opt;
-    ReaK::recorder::data_stream_options jtctrl_network_opt;
-    
-    
+  Q_OBJECT
+
+public:
+  CRSPlannerGUI( QWidget* parent = 0, Qt::WindowFlags flags = 0 );
+  ~CRSPlannerGUI();
+
+private slots:
+
+  void runPlanner();
+
+  void executePlanner();
+  void executeDynamicPlanner();
+
+  void startSolutionAnimation();
+  void startTargetAnimation();
+
+  void stopSolutionAnimation();
+  void stopTargetAnimation();
+
+  void loadTargetTrajectory( QString );
+
+
+  void onShowRunDialog();
+
+  void onStartPlanning( int mode );
+  void onStopPlanning();
+
+  void onLaunch( int mode );
+
+  void onAbort();
+
+
+  friend void CRSPlannerGUI_animate_bestsol_trajectory( void*, SoSensor* );
+  friend void CRSPlannerGUI_animate_target_trajectory( void*, SoSensor* );
+
+signals:
+
+  void notifyCaptureReached();
+
+  void notifyConsoleMessage( QString );
+
+  void notifyReset();
+
+  void notifyInitializationDone();
+
+  void notifyPlanningDone();
+
+  void notifyLaunchOpportunity();
+
+private:
+  void startCompleteAnimation();
+  void stopCompleteAnimation();
+
+  // non-copyable:
+  CRSPlannerGUI( const CRSPlannerGUI& );
+  CRSPlannerGUI& operator=( const CRSPlannerGUI& );
+
+public:
+  CRS_sol_anim_data sol_anim;
+  CRS_target_anim_data target_anim;
+  ReaKaux::atomic< double > current_target_anim_time;
+
+  ReaK::qt::View3DMenu view3d_menu;
+
+  ReaK::qt::ChaserTargetConfigWidget ct_config;
+  ReaK::qt::ChaserTargetInteractWidget ct_interact;
+  ReaK::qt::ManipSpaceConfigWidget space_config;
+  ReaK::qt::PlannerAlgConfigWidget plan_alg_config;
+  ReaK::qt::TargetPredConfigWidget target_pred_config;
+
+  ReaK::qt::CRSRunDialogWidget run_dialog;
+
+  ReaKaux::function< void() > stop_planner;
+  void threadedPlanningFunction( int mode );
+
+  ReaKaux::thread planning_thr;
+
+  void executeSolutionTrajectory();
+
+  ReaKaux::atomic< bool > exec_robot_enabled;
+  ReaKaux::thread exec_robot_thr;
+  ReaK::recorder::data_stream_options jtctrl_log_opt;
+  ReaK::recorder::data_stream_options jtctrl_network_opt;
 };
 
 
-
 #endif
-
-
-
-
-
-
-
-
-
-
-
-
-
-

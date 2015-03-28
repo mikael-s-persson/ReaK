@@ -1,13 +1,13 @@
 /**
  * \file motion_graph_structures.hpp
- * 
- * This library defines a class to solve path planning problems using the 
- * Rapidly-exploring Random Tree Star (RRT*) algorithm (or one of its variants). 
- * Given a C_free (configuration space restricted to non-colliding points) and a 
- * result reporting policy, this class will probabilistically construct a motion-graph 
- * that will connect a starting point and a goal point with a path through C-free 
+ *
+ * This library defines a class to solve path planning problems using the
+ * Rapidly-exploring Random Tree Star (RRT*) algorithm (or one of its variants).
+ * Given a C_free (configuration space restricted to non-colliding points) and a
+ * result reporting policy, this class will probabilistically construct a motion-graph
+ * that will connect a starting point and a goal point with a path through C-free
  * that is as close as possible to the optimal path in terms of distance.
- * 
+ *
  * \author Sven Mikael Persson <mikael.s.persson@gmail.com>
  * \date August 2012
  */
@@ -30,7 +30,7 @@
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with ReaK (as LICENSE in the root folder).  
+ *    along with ReaK (as LICENSE in the root folder).
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
@@ -57,29 +57,22 @@
 #endif
 
 
-
 #include <ReaK/topologies/spaces/metric_space_concept.hpp>
 
 #include <boost/mpl/if.hpp>
 
 
 namespace ReaK {
-  
+
 namespace pp {
 
-template <typename FreeSpaceType>
+template < typename FreeSpaceType >
 struct motion_segment_directionality {
-  typedef typename boost::mpl::if_<
-    is_metric_symmetric< FreeSpaceType >,
-    boost::undirectedS,
-    boost::bidirectionalS >::type type;
+  typedef typename boost::mpl::if_< is_metric_symmetric< FreeSpaceType >, boost::undirectedS,
+                                    boost::bidirectionalS >::type type;
 };
-
 };
-
 };
-
 
 
 #endif
-

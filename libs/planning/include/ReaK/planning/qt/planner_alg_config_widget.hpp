@@ -1,7 +1,7 @@
 /**
- * 
- * 
- * 
+ *
+ *
+ *
  */
 
 /*
@@ -22,7 +22,7 @@
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with ReaK (as LICENSE in the root folder).  
+ *    along with ReaK (as LICENSE in the root folder).
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
@@ -34,61 +34,44 @@
 #include <QDockWidget>
 
 namespace Ui {
-  class PlannerAlgConfig;
+class PlannerAlgConfig;
 };
 
 namespace ReaK {
-  
+
 namespace qt {
 
 class PlannerAlgConfigWidget : public QDockWidget {
-    Q_OBJECT
-  private:
-    Ui::PlannerAlgConfig* ui;
-  public:
-    PlannerAlgConfigWidget(QWidget * parent = NULL, Qt::WindowFlags flags = 0);
-    virtual ~PlannerAlgConfigWidget();
-    
-  private slots:
-    
-    void onUpdateAvailableOptions(int);
-    
-    void onConfigsChanged();
-    void updateConfigs();
-    
-    void savePlannerConfig();
-    void loadPlannerConfig();
-    
-  public:
-    
-    pp::planning_option_collection planOptions;
-    
-    bool outputTiming() const;
-    bool outputNodeCounter() const;
-    bool outputMotionGraph() const;
-    bool outputSolution() const;
-    
-    void savePlannerConfiguration(const std::string& aFilename);
-    void loadPlannerConfiguration(const std::string& aFilename);
-    
-};
+  Q_OBJECT
+private:
+  Ui::PlannerAlgConfig* ui;
 
-};
+public:
+  PlannerAlgConfigWidget( QWidget* parent = NULL, Qt::WindowFlags flags = 0 );
+  virtual ~PlannerAlgConfigWidget();
 
+private slots:
+
+  void onUpdateAvailableOptions( int );
+
+  void onConfigsChanged();
+  void updateConfigs();
+
+  void savePlannerConfig();
+  void loadPlannerConfig();
+
+public:
+  pp::planning_option_collection planOptions;
+
+  bool outputTiming() const;
+  bool outputNodeCounter() const;
+  bool outputMotionGraph() const;
+  bool outputSolution() const;
+
+  void savePlannerConfiguration( const std::string& aFilename );
+  void loadPlannerConfiguration( const std::string& aFilename );
+};
+};
 };
 
 #endif
-
-
-
-
-
-
-
-
-
-
-
-
-
-

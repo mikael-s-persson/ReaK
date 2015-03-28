@@ -1,7 +1,7 @@
 /**
- * 
- * 
- * 
+ *
+ *
+ *
  */
 
 /*
@@ -22,7 +22,7 @@
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with ReaK (as LICENSE in the root folder).  
+ *    along with ReaK (as LICENSE in the root folder).
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
@@ -34,67 +34,59 @@
 #include <QString>
 
 namespace Ui {
-  class CRSRunDialog;
+class CRSRunDialog;
 };
 
 namespace ReaK {
-  
+
 namespace qt {
 
 
 class CRSRunDialogWidget : public QDialog {
-    Q_OBJECT
-  private:
-    Ui::CRSRunDialog* ui;
-  public:
-    CRSRunDialogWidget(QWidget * parent = NULL, Qt::WindowFlags flags = 0);
-    virtual ~CRSRunDialogWidget();
-    
-  private slots:
-    
-    void onStartPressed();
-    void onStopPressed();
-    void onLaunchPressed();
-    void onAbortPressed();
-    
-    void flipLaunchButtonColor();
-    
-  public slots:
-    
-    void onInitializationDone();
-    void onPlanningDone();
-    
-    void onLaunchOpportunity();
-    
-    void onLaunchStarted();
-    void onCaptureReached();
-    
-    void onReset();
-    
-    void publishConsoleMessage(QString aMessage);
-    
-  signals:
-    
-    void triggeredStartPlanning(int mode);
-    void triggeredStopPlanning();
-    
-    void triggeredLaunch(int mode);
-    
-    void triggeredAbort();
-    
-  private:
-    
-    QTimer flashing_button_timer;
-    
-    
-};
+  Q_OBJECT
+private:
+  Ui::CRSRunDialog* ui;
 
-};
+public:
+  CRSRunDialogWidget( QWidget* parent = NULL, Qt::WindowFlags flags = 0 );
+  virtual ~CRSRunDialogWidget();
 
+private slots:
+
+  void onStartPressed();
+  void onStopPressed();
+  void onLaunchPressed();
+  void onAbortPressed();
+
+  void flipLaunchButtonColor();
+
+public slots:
+
+  void onInitializationDone();
+  void onPlanningDone();
+
+  void onLaunchOpportunity();
+
+  void onLaunchStarted();
+  void onCaptureReached();
+
+  void onReset();
+
+  void publishConsoleMessage( QString aMessage );
+
+signals:
+
+  void triggeredStartPlanning( int mode );
+  void triggeredStopPlanning();
+
+  void triggeredLaunch( int mode );
+
+  void triggeredAbort();
+
+private:
+  QTimer flashing_button_timer;
+};
+};
 };
 
 #endif
-
-
-
-

@@ -1,8 +1,8 @@
 /**
  * \file rrtstar_manip_planners.hpp
- * 
+ *
  * This library defines extern template declarations for rrtstar planner instantiations.
- * 
+ *
  * \author Sven Mikael Persson <mikael.s.persson@gmail.com>
  * \date October 2013
  */
@@ -25,7 +25,7 @@
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with ReaK (as LICENSE in the root folder).  
+ *    along with ReaK (as LICENSE in the root folder).
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
@@ -48,57 +48,46 @@ namespace ReaK {
 
 namespace pp {
 
-//extern template class rrtstar_planner<WORKSPACE>;
+// extern template class rrtstar_planner<WORKSPACE>;
 
 
-#define RK_RRTSTAR_MANIP_PLANNERS_MAKE_STATIC_MANIP_EXTERN_DECL(NDOF) \
-extern template class rrtstar_planner< \
-  manip_quasi_static_env< typename Ndof_rl_space<double, NDOF, 0>::type > >; \
-extern template class rrtstar_planner< \
-  manip_quasi_static_env< typename Ndof_rl_space<double, NDOF, 1>::type > >; \
-extern template class rrtstar_planner< \
-  manip_quasi_static_env< typename Ndof_rl_space<double, NDOF, 2>::type > >;
+#define RK_RRTSTAR_MANIP_PLANNERS_MAKE_STATIC_MANIP_EXTERN_DECL( NDOF )                                               \
+  extern template class rrtstar_planner< manip_quasi_static_env< typename Ndof_rl_space< double, NDOF, 0 >::type > >; \
+  extern template class rrtstar_planner< manip_quasi_static_env< typename Ndof_rl_space< double, NDOF, 1 >::type > >; \
+  extern template class rrtstar_planner< manip_quasi_static_env< typename Ndof_rl_space< double, NDOF, 2 >::type > >;
 
 
-RK_RRTSTAR_MANIP_PLANNERS_MAKE_STATIC_MANIP_EXTERN_DECL(0)
-RK_RRTSTAR_MANIP_PLANNERS_MAKE_STATIC_MANIP_EXTERN_DECL(1)
-RK_RRTSTAR_MANIP_PLANNERS_MAKE_STATIC_MANIP_EXTERN_DECL(2)
-RK_RRTSTAR_MANIP_PLANNERS_MAKE_STATIC_MANIP_EXTERN_DECL(3)
-RK_RRTSTAR_MANIP_PLANNERS_MAKE_STATIC_MANIP_EXTERN_DECL(4)
-RK_RRTSTAR_MANIP_PLANNERS_MAKE_STATIC_MANIP_EXTERN_DECL(5)
-RK_RRTSTAR_MANIP_PLANNERS_MAKE_STATIC_MANIP_EXTERN_DECL(6)
-RK_RRTSTAR_MANIP_PLANNERS_MAKE_STATIC_MANIP_EXTERN_DECL(7)
-RK_RRTSTAR_MANIP_PLANNERS_MAKE_STATIC_MANIP_EXTERN_DECL(8)
-RK_RRTSTAR_MANIP_PLANNERS_MAKE_STATIC_MANIP_EXTERN_DECL(9)
-RK_RRTSTAR_MANIP_PLANNERS_MAKE_STATIC_MANIP_EXTERN_DECL(10)
+RK_RRTSTAR_MANIP_PLANNERS_MAKE_STATIC_MANIP_EXTERN_DECL( 0 )
+RK_RRTSTAR_MANIP_PLANNERS_MAKE_STATIC_MANIP_EXTERN_DECL( 1 )
+RK_RRTSTAR_MANIP_PLANNERS_MAKE_STATIC_MANIP_EXTERN_DECL( 2 )
+RK_RRTSTAR_MANIP_PLANNERS_MAKE_STATIC_MANIP_EXTERN_DECL( 3 )
+RK_RRTSTAR_MANIP_PLANNERS_MAKE_STATIC_MANIP_EXTERN_DECL( 4 )
+RK_RRTSTAR_MANIP_PLANNERS_MAKE_STATIC_MANIP_EXTERN_DECL( 5 )
+RK_RRTSTAR_MANIP_PLANNERS_MAKE_STATIC_MANIP_EXTERN_DECL( 6 )
+RK_RRTSTAR_MANIP_PLANNERS_MAKE_STATIC_MANIP_EXTERN_DECL( 7 )
+RK_RRTSTAR_MANIP_PLANNERS_MAKE_STATIC_MANIP_EXTERN_DECL( 8 )
+RK_RRTSTAR_MANIP_PLANNERS_MAKE_STATIC_MANIP_EXTERN_DECL( 9 )
+RK_RRTSTAR_MANIP_PLANNERS_MAKE_STATIC_MANIP_EXTERN_DECL( 10 )
 
 
-
-#define RK_RRTSTAR_MANIP_PLANNERS_MAKE_DYNAMIC_MANIP_EXTERN_DECL(NDOF) \
-extern template class rrtstar_planner< \
-  manip_dynamic_env< typename Ndof_rl_space<double, NDOF, 0>::type > >; \
-extern template class rrtstar_planner< \
-  manip_dynamic_env< typename Ndof_rl_space<double, NDOF, 1>::type > >; \
-extern template class rrtstar_planner< \
-  manip_dynamic_env< typename Ndof_rl_space<double, NDOF, 2>::type > >;
+#define RK_RRTSTAR_MANIP_PLANNERS_MAKE_DYNAMIC_MANIP_EXTERN_DECL( NDOF )                                         \
+  extern template class rrtstar_planner< manip_dynamic_env< typename Ndof_rl_space< double, NDOF, 0 >::type > >; \
+  extern template class rrtstar_planner< manip_dynamic_env< typename Ndof_rl_space< double, NDOF, 1 >::type > >; \
+  extern template class rrtstar_planner< manip_dynamic_env< typename Ndof_rl_space< double, NDOF, 2 >::type > >;
 
 
-RK_RRTSTAR_MANIP_PLANNERS_MAKE_DYNAMIC_MANIP_EXTERN_DECL(0)
-RK_RRTSTAR_MANIP_PLANNERS_MAKE_DYNAMIC_MANIP_EXTERN_DECL(1)
-RK_RRTSTAR_MANIP_PLANNERS_MAKE_DYNAMIC_MANIP_EXTERN_DECL(2)
-RK_RRTSTAR_MANIP_PLANNERS_MAKE_DYNAMIC_MANIP_EXTERN_DECL(3)
-RK_RRTSTAR_MANIP_PLANNERS_MAKE_DYNAMIC_MANIP_EXTERN_DECL(4)
-RK_RRTSTAR_MANIP_PLANNERS_MAKE_DYNAMIC_MANIP_EXTERN_DECL(5)
-RK_RRTSTAR_MANIP_PLANNERS_MAKE_DYNAMIC_MANIP_EXTERN_DECL(6)
-RK_RRTSTAR_MANIP_PLANNERS_MAKE_DYNAMIC_MANIP_EXTERN_DECL(7)
-RK_RRTSTAR_MANIP_PLANNERS_MAKE_DYNAMIC_MANIP_EXTERN_DECL(8)
-RK_RRTSTAR_MANIP_PLANNERS_MAKE_DYNAMIC_MANIP_EXTERN_DECL(9)
-RK_RRTSTAR_MANIP_PLANNERS_MAKE_DYNAMIC_MANIP_EXTERN_DECL(10)
-
-
-
+RK_RRTSTAR_MANIP_PLANNERS_MAKE_DYNAMIC_MANIP_EXTERN_DECL( 0 )
+RK_RRTSTAR_MANIP_PLANNERS_MAKE_DYNAMIC_MANIP_EXTERN_DECL( 1 )
+RK_RRTSTAR_MANIP_PLANNERS_MAKE_DYNAMIC_MANIP_EXTERN_DECL( 2 )
+RK_RRTSTAR_MANIP_PLANNERS_MAKE_DYNAMIC_MANIP_EXTERN_DECL( 3 )
+RK_RRTSTAR_MANIP_PLANNERS_MAKE_DYNAMIC_MANIP_EXTERN_DECL( 4 )
+RK_RRTSTAR_MANIP_PLANNERS_MAKE_DYNAMIC_MANIP_EXTERN_DECL( 5 )
+RK_RRTSTAR_MANIP_PLANNERS_MAKE_DYNAMIC_MANIP_EXTERN_DECL( 6 )
+RK_RRTSTAR_MANIP_PLANNERS_MAKE_DYNAMIC_MANIP_EXTERN_DECL( 7 )
+RK_RRTSTAR_MANIP_PLANNERS_MAKE_DYNAMIC_MANIP_EXTERN_DECL( 8 )
+RK_RRTSTAR_MANIP_PLANNERS_MAKE_DYNAMIC_MANIP_EXTERN_DECL( 9 )
+RK_RRTSTAR_MANIP_PLANNERS_MAKE_DYNAMIC_MANIP_EXTERN_DECL( 10 )
 };
-
 };
 
 #else
@@ -109,4 +98,3 @@ RK_RRTSTAR_MANIP_PLANNERS_MAKE_DYNAMIC_MANIP_EXTERN_DECL(10)
 
 
 #endif
-
