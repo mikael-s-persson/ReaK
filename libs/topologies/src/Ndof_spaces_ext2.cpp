@@ -17,7 +17,7 @@
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with ReaK (as LICENSE in the root folder).  
+ *    along with ReaK (as LICENSE in the root folder).
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
@@ -32,52 +32,46 @@ namespace ReaK {
 namespace pp {
 
 
-#define RK_NDOF_SPACES_MAKE_RATELIMITED_EXTERN_DEFS(NDOF) \
-template class differentiable_space<time_topology, \
-                        arithmetic_tuple< \
-                          hyperbox_topology< vect<double,NDOF>, inf_norm_distance_metric > \
-                        > >;\
-template class differentiable_space<time_topology, \
-                        arithmetic_tuple< \
-                          hyperbox_topology< vect<double,NDOF>, inf_norm_distance_metric >, \
-                          hyperbox_topology< vect<double,NDOF>, inf_norm_distance_metric > \
-                        > >;\
-template class differentiable_space<time_topology, \
-                        arithmetic_tuple< \
-                          hyperbox_topology< vect<double,NDOF>, inf_norm_distance_metric >, \
-                          hyperbox_topology< vect<double,NDOF>, inf_norm_distance_metric >, \
-                          hyperbox_topology< vect<double,NDOF>, inf_norm_distance_metric > \
-                        > >;
+#define RK_NDOF_SPACES_MAKE_RATELIMITED_EXTERN_DEFS( NDOF )                                                 \
+  template class differentiable_space< time_topology,                                                       \
+                                       arithmetic_tuple< hyperbox_topology< vect< double, NDOF >,           \
+                                                                            inf_norm_distance_metric > > >; \
+  template class differentiable_space< time_topology,                                                       \
+                                       arithmetic_tuple< hyperbox_topology< vect< double, NDOF >,           \
+                                                                            inf_norm_distance_metric >,     \
+                                                         hyperbox_topology< vect< double, NDOF >,           \
+                                                                            inf_norm_distance_metric > > >; \
+  template class differentiable_space< time_topology,                                                       \
+                                       arithmetic_tuple< hyperbox_topology< vect< double, NDOF >,           \
+                                                                            inf_norm_distance_metric >,     \
+                                                         hyperbox_topology< vect< double, NDOF >,           \
+                                                                            inf_norm_distance_metric >,     \
+                                                         hyperbox_topology< vect< double, NDOF >,           \
+                                                                            inf_norm_distance_metric > > >;
 
-RK_NDOF_SPACES_MAKE_RATELIMITED_EXTERN_DEFS(1)
-RK_NDOF_SPACES_MAKE_RATELIMITED_EXTERN_DEFS(2)
-RK_NDOF_SPACES_MAKE_RATELIMITED_EXTERN_DEFS(3)
-RK_NDOF_SPACES_MAKE_RATELIMITED_EXTERN_DEFS(4)
-RK_NDOF_SPACES_MAKE_RATELIMITED_EXTERN_DEFS(5)
-RK_NDOF_SPACES_MAKE_RATELIMITED_EXTERN_DEFS(6)
-RK_NDOF_SPACES_MAKE_RATELIMITED_EXTERN_DEFS(7)
-RK_NDOF_SPACES_MAKE_RATELIMITED_EXTERN_DEFS(8)
-RK_NDOF_SPACES_MAKE_RATELIMITED_EXTERN_DEFS(9)
-RK_NDOF_SPACES_MAKE_RATELIMITED_EXTERN_DEFS(10)
+RK_NDOF_SPACES_MAKE_RATELIMITED_EXTERN_DEFS( 1 )
+RK_NDOF_SPACES_MAKE_RATELIMITED_EXTERN_DEFS( 2 )
+RK_NDOF_SPACES_MAKE_RATELIMITED_EXTERN_DEFS( 3 )
+RK_NDOF_SPACES_MAKE_RATELIMITED_EXTERN_DEFS( 4 )
+RK_NDOF_SPACES_MAKE_RATELIMITED_EXTERN_DEFS( 5 )
+RK_NDOF_SPACES_MAKE_RATELIMITED_EXTERN_DEFS( 6 )
+RK_NDOF_SPACES_MAKE_RATELIMITED_EXTERN_DEFS( 7 )
+RK_NDOF_SPACES_MAKE_RATELIMITED_EXTERN_DEFS( 8 )
+RK_NDOF_SPACES_MAKE_RATELIMITED_EXTERN_DEFS( 9 )
+RK_NDOF_SPACES_MAKE_RATELIMITED_EXTERN_DEFS( 10 )
 
-template class differentiable_space<time_topology, 
-                        arithmetic_tuple< 
-                          hyperbox_topology< vect_n<double>, inf_norm_distance_metric > 
-                        > >;
-template class differentiable_space<time_topology, 
-                        arithmetic_tuple< 
-                          hyperbox_topology< vect_n<double>, inf_norm_distance_metric >, 
-                          hyperbox_topology< vect_n<double>, inf_norm_distance_metric > 
-                        > >;
-template class differentiable_space<time_topology, 
-                        arithmetic_tuple< 
-                          hyperbox_topology< vect_n<double>, inf_norm_distance_metric >, 
-                          hyperbox_topology< vect_n<double>, inf_norm_distance_metric >, 
-                          hyperbox_topology< vect_n<double>, inf_norm_distance_metric > 
-                        > >;
-
+template class differentiable_space< time_topology, arithmetic_tuple< hyperbox_topology< vect_n< double >,
+                                                                                         inf_norm_distance_metric > > >;
+template class differentiable_space< time_topology,
+                                     arithmetic_tuple< hyperbox_topology< vect_n< double >, inf_norm_distance_metric >,
+                                                       hyperbox_topology< vect_n< double >,
+                                                                          inf_norm_distance_metric > > >;
+template class differentiable_space< time_topology,
+                                     arithmetic_tuple< hyperbox_topology< vect_n< double >, inf_norm_distance_metric >,
+                                                       hyperbox_topology< vect_n< double >, inf_norm_distance_metric >,
+                                                       hyperbox_topology< vect_n< double >,
+                                                                          inf_norm_distance_metric > > >;
 };
-
 };
 
 #else
@@ -86,24 +80,8 @@ namespace ReaK {
 
 namespace pp {
 
-void dummy_Ndof_spaces_externs_2_symbol() { };
-
+void dummy_Ndof_spaces_externs_2_symbol(){};
 };
-
 };
 
 #endif
-
-
-
-
-
-
-
-
-
-
-
-
-
-

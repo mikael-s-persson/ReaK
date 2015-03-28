@@ -1,9 +1,9 @@
 /**
  * \file se3_random_samplers.hpp
- * 
+ *
  * This library defines SE(3) random-sampler classes that work on points of an SE(3) topology.
  * All the classes satisfy the RandomSamplerConcept.
- * 
+ *
  * \author Sven Mikael Persson <mikael.s.persson@gmail.com>
  * \date February 2013
  */
@@ -26,7 +26,7 @@
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with ReaK (as LICENSE in the root folder).  
+ *    along with ReaK (as LICENSE in the root folder).
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
@@ -42,49 +42,43 @@
 namespace ReaK {
 
 namespace pp {
-  
+
 /**
  */
 struct position_only_sampler : public serializable {
-  
-  position_only_sampler() { };
-  
-  template <typename Topology>
-  position_only_sampler(const Topology&) { };
-  
-  /** 
+
+  position_only_sampler(){};
+
+  template < typename Topology >
+  position_only_sampler( const Topology& ){};
+
+  /**
    * This function returns a random sample point on a topology.
    * \tparam SE3Topology The SE(3) topology.
    * \param s The topology or space on which the points lie.
    * \return A random sample point on the given topology.
    */
-  template <typename SE3Topology>
-  typename topology_traits< SE3Topology >::point_type operator()(const SE3Topology& s) const {
+  template < typename SE3Topology >
+  typename topology_traits< SE3Topology >::point_type operator()( const SE3Topology& s ) const {
     typedef typename topology_traits< SE3Topology >::point_type point_type;
     point_type result = s.origin();
     point_type rnd = s.random_point();
-    set_position(result, get_position(rnd));
+    set_position( result, get_position( rnd ) );
     return result;
   };
-      
-/*******************************************************************************
-                   ReaK's RTTI and Serialization interfaces
-*******************************************************************************/
-    
-    virtual void RK_CALL save(serialization::oarchive& A, unsigned int) const {
-    };
 
-    virtual void RK_CALL load(serialization::iarchive& A, unsigned int) {
-    };
+  /*******************************************************************************
+                     ReaK's RTTI and Serialization interfaces
+  *******************************************************************************/
 
-    RK_RTTI_MAKE_ABSTRACT_1BASE(position_only_sampler,0xC2450006,1,"position_only_sampler",serializable)
+  virtual void RK_CALL save( serialization::oarchive& A, unsigned int ) const {};
+
+  virtual void RK_CALL load( serialization::iarchive& A, unsigned int ){};
+
+  RK_RTTI_MAKE_ABSTRACT_1BASE( position_only_sampler, 0xC2450006, 1, "position_only_sampler", serializable )
 };
-
 };
-
 };
 
 
 #endif
-
-

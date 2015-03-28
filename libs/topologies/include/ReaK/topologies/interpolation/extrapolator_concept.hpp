@@ -1,16 +1,16 @@
 /**
  * \file extrapolator_concept.hpp
- * 
- * This library defines the traits and concepts related to an extrapolator and extrapolator 
+ *
+ * This library defines the traits and concepts related to an extrapolator and extrapolator
  * factories. An extrapolator is simply an object that can generate a trajectory
- * segment from a starting point. The basic scheme used in ReaK is to have one extrapolator 
- * factory object that serves to generate fresh extrapolators for a given trajectory segment. 
- * In other words, from a user's perspective, the factory can be used to store certain data 
- * that all extrapolators will need (e.g. starting point or general parameters of the extrapolation 
- * scheme). The intended use from within the library is to store one extrapolator factory 
- * object (set by the user) and use that factory object to create extrapolators for each 
+ * segment from a starting point. The basic scheme used in ReaK is to have one extrapolator
+ * factory object that serves to generate fresh extrapolators for a given trajectory segment.
+ * In other words, from a user's perspective, the factory can be used to store certain data
+ * that all extrapolators will need (e.g. starting point or general parameters of the extrapolation
+ * scheme). The intended use from within the library is to store one extrapolator factory
+ * object (set by the user) and use that factory object to create extrapolators for each
  * segment of a trajectory.
- * 
+ *
  * \author Sven Mikael Persson <mikael.s.persson@gmail.com>
  * \date August 2012
  */
@@ -33,7 +33,7 @@
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with ReaK (as LICENSE in the root folder).  
+ *    along with ReaK (as LICENSE in the root folder).
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
@@ -50,17 +50,17 @@ namespace ReaK {
 
 namespace pp {
 
-  
+
 /**
  * This traits class defines the traits that characterize an extrapolator factory
  * class.
  * \tparam ExtrapolatorFactory The trajectory for which the traits are sought.
  */
-template <typename ExtrapolatorFactory>
+template < typename ExtrapolatorFactory >
 struct extrapolator_factory_traits {
   /** This type describes a point in the temporal space or topology. */
   typedef typename ExtrapolatorFactory::point_type point_type;
-  
+
   /** This type is the extrapolator type that is generated from the factory. */
   typedef typename ExtrapolatorFactory::extrapolator_type extrapolator_type;
 };
@@ -68,106 +68,90 @@ struct extrapolator_factory_traits {
 
 /**
  * This concept class defines the requirements for a class to model an extrapolator
- * concept as used in ReaK::pp. An extrapolator is simply an object that stores some 
+ * concept as used in ReaK::pp. An extrapolator is simply an object that stores some
  * representation of an extrapolated segment from a starting point.
- * 
+ *
  * Required concepts:
- * 
+ *
  * The topology should model the TemporalSpaceConcept.
- * 
+ *
  * Valid expressions:
- * 
- * extrap.set_start_point(&pt);  The start point of the extrapolated segment can be set (as a const pointers to a point).
- * 
- * const point_type* ppt = extrap.get_start_point();  The starting point of the extrapolated segment can be obtained as a const pointer.
- * 
- * pt = extrap.get_point_at_time(t);  The point, along the extrapolated segment (extrap), at a given time (t) can be obtained.
- * 
+ *
+ * extrap.set_start_point(&pt);  The start point of the extrapolated segment can be set (as a const pointers to a
+ *point).
+ *
+ * const point_type* ppt = extrap.get_start_point();  The starting point of the extrapolated segment can be obtained as
+ *a const pointer.
+ *
+ * pt = extrap.get_point_at_time(t);  The point, along the extrapolated segment (extrap), at a given time (t) can be
+ *obtained.
+ *
  * \tparam Extrapolator The trajectory type for which this concept is checked.
  * \tparam Topology The temporal-topology type on which the trajectory should be able to exist.
  */
-template <typename Extrapolator, typename Topology>
+template < typename Extrapolator, typename Topology >
 struct ExtrapolatorConcept {
-  BOOST_CONCEPT_ASSERT((TemporalSpaceConcept<Topology>));
-  
-  Extrapolator extrap;
-  typename topology_traits<Topology>::point_type pt;
-  const typename topology_traits<Topology>::point_type* ppt;
-  typedef typename temporal_space_traits<Topology>::time_topology time_topology;
-  typename topology_traits<time_topology>::point_type t;
-  
-  BOOST_CONCEPT_USAGE(ExtrapolatorConcept)
-  {
-    extrap.set_start_point(&pt);
-    ppt = extrap.get_start_point();
-    pt = extrap.get_point_at_time(t);
-  };
-  
-};
+  BOOST_CONCEPT_ASSERT( ( TemporalSpaceConcept< Topology > ) );
 
+  Extrapolator extrap;
+  typename topology_traits< Topology >::point_type pt;
+  const typename topology_traits< Topology >::point_type* ppt;
+  typedef typename temporal_space_traits< Topology >::time_topology time_topology;
+  typename topology_traits< time_topology >::point_type t;
+
+  BOOST_CONCEPT_USAGE( ExtrapolatorConcept ) {
+    extrap.set_start_point( &pt );
+    ppt = extrap.get_start_point();
+    pt = extrap.get_point_at_time( t );
+  };
+};
 
 
 /**
  * This concept class defines the requirements for a class to model an extrapolator factory
- * concept as used in ReaK::pp. An extrapolator is simply an object that stores some 
- * representation of an extrapolated segment from a start point. The basic scheme used 
- * in ReaK is to have one extrapolator factory object that serves to generate fresh extrapolators 
- * for a given trajectory segment. In other words, from a user's perspective, the factory can 
- * be used to store certain data that all extrapolators will need (e.g. information about motion 
- * limits or general parameters of the extrapolation scheme). The intended use from within the 
- * library is to store one extrapolator factory object (set by the user) and use that factory 
+ * concept as used in ReaK::pp. An extrapolator is simply an object that stores some
+ * representation of an extrapolated segment from a start point. The basic scheme used
+ * in ReaK is to have one extrapolator factory object that serves to generate fresh extrapolators
+ * for a given trajectory segment. In other words, from a user's perspective, the factory can
+ * be used to store certain data that all extrapolators will need (e.g. information about motion
+ * limits or general parameters of the extrapolation scheme). The intended use from within the
+ * library is to store one extrapolator factory object (set by the user) and use that factory
  * object to create extrapolators for each segment of a trajectory.
- * 
+ *
  * Required concepts:
- * 
+ *
  * The topology should model the TemporalSpaceConcept.
- * 
+ *
  * The extrapolator type should model the ExtrapolatorConcept on the given topology.
- * 
+ *
  * Valid expressions:
- * 
- * extrap = extrap_fact.create_extrapolator(&pt);  An extrapolator object (extrap) can be created from the factory object (extrap_fact) given a start point as pointers (&pt).
- * 
- * extrap_fact.set_temporal_space(pspace);  The temporal space object used by the extrapolators can be set as a const shared-pointer to a topology.
- * 
+ *
+ * extrap = extrap_fact.create_extrapolator(&pt);  An extrapolator object (extrap) can be created from the factory
+ *object (extrap_fact) given a start point as pointers (&pt).
+ *
+ * extrap_fact.set_temporal_space(pspace);  The temporal space object used by the extrapolators can be set as a const
+ *shared-pointer to a topology.
+ *
  * \tparam ExtrapolatorFactory The extrapolator factory type for which this concept is checked.
  * \tparam Topology The temporal-topology type on which the extrapolated segments should exist.
  */
-template <typename ExtrapolatorFactory, typename Topology>
+template < typename ExtrapolatorFactory, typename Topology >
 struct ExtrapolatorFactoryConcept {
-  BOOST_CONCEPT_ASSERT((TemporalSpaceConcept<Topology>));
-  BOOST_CONCEPT_ASSERT((ExtrapolatorConcept< typename extrapolator_factory_traits<ExtrapolatorFactory>::extrapolator_type, Topology>));
-  
+  BOOST_CONCEPT_ASSERT( ( TemporalSpaceConcept< Topology > ) );
+  BOOST_CONCEPT_ASSERT( (
+    ExtrapolatorConcept< typename extrapolator_factory_traits< ExtrapolatorFactory >::extrapolator_type, Topology > ) );
+
   ExtrapolatorFactory extrap_fact;
-  typename extrapolator_factory_traits<ExtrapolatorFactory>::extrapolator_type extrap;
-  typename extrapolator_factory_traits<ExtrapolatorFactory>::point_type pt;
-  shared_ptr<Topology> pspace;
-  
-  BOOST_CONCEPT_USAGE(ExtrapolatorFactoryConcept)
-  {
-    extrap = extrap_fact.create_extrapolator(&pt);
-    extrap_fact.set_temporal_space(pspace);
+  typename extrapolator_factory_traits< ExtrapolatorFactory >::extrapolator_type extrap;
+  typename extrapolator_factory_traits< ExtrapolatorFactory >::point_type pt;
+  shared_ptr< Topology > pspace;
+
+  BOOST_CONCEPT_USAGE( ExtrapolatorFactoryConcept ) {
+    extrap = extrap_fact.create_extrapolator( &pt );
+    extrap_fact.set_temporal_space( pspace );
   };
-  
 };
-
-
 };
-
 };
 
 #endif
-
-
-
-
-
-
-
-
-
-
-
-
-
-

@@ -1,14 +1,14 @@
 /**
  * \file subspace_concept.hpp
- * 
- * This library defines the traits and concepts that pertain to what can be considered 
- * a sub-space, as used in ReaK::pp. Sub-spaces are topologies which are embedded in a 
+ *
+ * This library defines the traits and concepts that pertain to what can be considered
+ * a sub-space, as used in ReaK::pp. Sub-spaces are topologies which are embedded in a
  * larger topology (or super-space). A typical example is the free configuration space (e.g. C-free)
  * embedded in the overall configuration space. It is useful to be able to relate a sub-space
- * to its super-space, for example, if a motion planner plans a trajectory through C-free, it 
+ * to its super-space, for example, if a motion planner plans a trajectory through C-free, it
  * is useful to cast that trajectory onto the configuration space such that collision detections
  * are avoided when executing the trajectory.
- * 
+ *
  * \author Sven Mikael Persson <mikael.s.persson@gmail.com>
  * \date July 2012
  */
@@ -31,7 +31,7 @@
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with ReaK (as LICENSE in the root folder).  
+ *    along with ReaK (as LICENSE in the root folder).
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
@@ -49,81 +49,72 @@ namespace ReaK {
 
 /** Main namespace for ReaK.Path-Planning */
 namespace pp {
-  
-  
-  
+
+
 /**
  * This traits class defines the types and constants associated to a sub-space.
  * \tparam Topology The topology type for which the topology traits are sought.
  */
-template <typename Topology>
+template < typename Topology >
 struct subspace_traits {
   /** The type of the super-space in which this sub-space is embedded. */
   typedef typename Topology::super_space_type super_space_type;
-  
 };
 
 
 /**
- * This concept defines the requirements to fulfill in order to model a sub-space 
+ * This concept defines the requirements to fulfill in order to model a sub-space
  * as used in ReaK::pp.
- * 
+ *
  * Valid expressions:
- * 
+ *
  * super_space = space.get_super_space();  The super-space can be obtained (at least, by const-reference).
- * 
+ *
  * \tparam Topology The topology type to be checked for this concept.
  */
-template <typename Topology>
+template < typename Topology >
 struct SubSpaceConcept {
   Topology space;
-  
-  BOOST_CONCEPT_USAGE(SubSpaceConcept) 
-  {
-    const typename subspace_traits<Topology>::super_space_type& super_space = space.get_super_space(); RK_UNUSED(super_space);
-  };
-  
-};
 
+  BOOST_CONCEPT_USAGE( SubSpaceConcept ) {
+    const typename subspace_traits< Topology >::super_space_type& super_space = space.get_super_space();
+    RK_UNUSED( super_space );
+  };
+};
 
 
 struct subspace_map : public shared_object {
   typedef subspace_map self;
-  
-  subspace_map() { };
-  
-  template <typename PointType, typename SpaceIn>
-  PointType map_to_space(const PointType& p_in, const SpaceIn&, const typename subspace_traits<SpaceIn>::super_space_type&) const {
+
+  subspace_map(){};
+
+  template < typename PointType, typename SpaceIn >
+  PointType map_to_space( const PointType& p_in, const SpaceIn&,
+                          const typename subspace_traits< SpaceIn >::super_space_type& ) const {
     return p_in;
   };
-  
-  template <typename PointType, typename SpaceOut>
-  PointType map_to_space(const PointType& p_in, const typename subspace_traits<SpaceOut>::super_space_type&, const SpaceOut&) const {
+
+  template < typename PointType, typename SpaceOut >
+  PointType map_to_space( const PointType& p_in, const typename subspace_traits< SpaceOut >::super_space_type&,
+                          const SpaceOut& ) const {
     return p_in;
   };
-  
-/*******************************************************************************
-                   ReaK's RTTI and Serialization interfaces
-*******************************************************************************/
 
-  virtual void RK_CALL save(ReaK::serialization::oarchive& A, unsigned int) const {
-    shared_object::save(A,shared_object::getStaticObjectType()->TypeVersion());
+  /*******************************************************************************
+                     ReaK's RTTI and Serialization interfaces
+  *******************************************************************************/
+
+  virtual void RK_CALL save( ReaK::serialization::oarchive& A, unsigned int ) const {
+    shared_object::save( A, shared_object::getStaticObjectType()->TypeVersion() );
   };
-  virtual void RK_CALL load(ReaK::serialization::iarchive& A, unsigned int) {
-    shared_object::load(A,shared_object::getStaticObjectType()->TypeVersion());
+  virtual void RK_CALL load( ReaK::serialization::iarchive& A, unsigned int ) {
+    shared_object::load( A, shared_object::getStaticObjectType()->TypeVersion() );
   };
 
-  RK_RTTI_MAKE_CONCRETE_1BASE(self,0xC240002C,1,"subspace_map",shared_object)
-    
+  RK_RTTI_MAKE_CONCRETE_1BASE( self, 0xC240002C, 1, "subspace_map", shared_object )
 };
-
-
-
 };
-
 };
 
 
 #endif
-
-

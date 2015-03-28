@@ -17,7 +17,7 @@
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with ReaK (as LICENSE in the root folder).  
+ *    along with ReaK (as LICENSE in the root folder).
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
@@ -36,51 +36,95 @@ template class rate_limited_quat_space< double >;
 template class ang_velocity_3D_topology< double >;
 template class ang_accel_3D_topology< double >;
 
-template class temporal_space< quaternion_topology< double >, time_poisson_topology, spatial_distance_only>;
-template class temporal_space< rate_limited_quat_space< double >, time_poisson_topology, spatial_distance_only>;
-template class temporal_space< rate_limited_quat_space< double >, time_poisson_topology, reach_plus_time_metric>;
-template class temporal_space< ang_velocity_3D_topology< double >, time_poisson_topology, spatial_distance_only>;
-template class temporal_space< ang_accel_3D_topology< double >, time_poisson_topology, spatial_distance_only>;
+template class temporal_space< quaternion_topology< double >, time_poisson_topology, spatial_distance_only >;
+template class temporal_space< rate_limited_quat_space< double >, time_poisson_topology, spatial_distance_only >;
+template class temporal_space< rate_limited_quat_space< double >, time_poisson_topology, reach_plus_time_metric >;
+template class temporal_space< ang_velocity_3D_topology< double >, time_poisson_topology, spatial_distance_only >;
+template class temporal_space< ang_accel_3D_topology< double >, time_poisson_topology, spatial_distance_only >;
 
 // so3_0th_order_topology
-template class differentiable_space< time_topology, arithmetic_tuple< quaternion_topology<double> >, euclidean_tuple_distance >;
+template class differentiable_space< time_topology, arithmetic_tuple< quaternion_topology< double > >,
+                                     euclidean_tuple_distance >;
 // so3_1st_order_topology
-template class differentiable_space< time_topology, arithmetic_tuple< quaternion_topology<double>, ang_velocity_3D_topology<double> >, euclidean_tuple_distance >;
+template class differentiable_space< time_topology, arithmetic_tuple< quaternion_topology< double >,
+                                                                      ang_velocity_3D_topology< double > >,
+                                     euclidean_tuple_distance >;
 // so3_2nd_order_topology
-template class differentiable_space< time_topology, arithmetic_tuple< quaternion_topology<double>, ang_velocity_3D_topology<double>, ang_accel_3D_topology<double> >, euclidean_tuple_distance >;
+template class differentiable_space< time_topology, arithmetic_tuple< quaternion_topology< double >,
+                                                                      ang_velocity_3D_topology< double >,
+                                                                      ang_accel_3D_topology< double > >,
+                                     euclidean_tuple_distance >;
 
 // so3_0th_order_topology
-template class temporal_space< differentiable_space< time_topology, arithmetic_tuple< quaternion_topology<double> >, euclidean_tuple_distance >, time_poisson_topology, spatial_distance_only>;
+template class temporal_space< differentiable_space< time_topology, arithmetic_tuple< quaternion_topology< double > >,
+                                                     euclidean_tuple_distance >,
+                               time_poisson_topology, spatial_distance_only >;
 // so3_1st_order_topology
-template class temporal_space< differentiable_space< time_topology, arithmetic_tuple< quaternion_topology<double>, ang_velocity_3D_topology<double> >, euclidean_tuple_distance >, time_poisson_topology, spatial_distance_only>;
+template class temporal_space< differentiable_space< time_topology,
+                                                     arithmetic_tuple< quaternion_topology< double >,
+                                                                       ang_velocity_3D_topology< double > >,
+                                                     euclidean_tuple_distance >,
+                               time_poisson_topology, spatial_distance_only >;
 // so3_2nd_order_topology
-template class temporal_space< differentiable_space< time_topology, arithmetic_tuple< quaternion_topology<double>, ang_velocity_3D_topology<double>, ang_accel_3D_topology<double> >, euclidean_tuple_distance >, time_poisson_topology, spatial_distance_only>;
+template class temporal_space< differentiable_space< time_topology,
+                                                     arithmetic_tuple< quaternion_topology< double >,
+                                                                       ang_velocity_3D_topology< double >,
+                                                                       ang_accel_3D_topology< double > >,
+                                                     euclidean_tuple_distance >,
+                               time_poisson_topology, spatial_distance_only >;
 
 
 // so3_0th_order_rl_topology
-template class reach_time_diff_space< time_topology, arithmetic_tuple< rate_limited_quat_space<double> >, euclidean_tuple_distance >;
+template class reach_time_diff_space< time_topology, arithmetic_tuple< rate_limited_quat_space< double > >,
+                                      euclidean_tuple_distance >;
 // so3_1st_order_rl_topology
-template class reach_time_diff_space< time_topology, arithmetic_tuple< rate_limited_quat_space<double>, ang_velocity_3D_topology<double> >, euclidean_tuple_distance >;
+template class reach_time_diff_space< time_topology, arithmetic_tuple< rate_limited_quat_space< double >,
+                                                                       ang_velocity_3D_topology< double > >,
+                                      euclidean_tuple_distance >;
 // so3_2nd_order_rl_topology
-template class reach_time_diff_space< time_topology, arithmetic_tuple< rate_limited_quat_space<double>, ang_velocity_3D_topology<double>, ang_accel_3D_topology<double> >, euclidean_tuple_distance >;
+template class reach_time_diff_space< time_topology, arithmetic_tuple< rate_limited_quat_space< double >,
+                                                                       ang_velocity_3D_topology< double >,
+                                                                       ang_accel_3D_topology< double > >,
+                                      euclidean_tuple_distance >;
 
 // so3_0th_order_rl_topology
-template class temporal_space< reach_time_diff_space< time_topology, arithmetic_tuple< rate_limited_quat_space<double> >, euclidean_tuple_distance >, time_poisson_topology, spatial_distance_only>;
+template class temporal_space< reach_time_diff_space< time_topology,
+                                                      arithmetic_tuple< rate_limited_quat_space< double > >,
+                                                      euclidean_tuple_distance >,
+                               time_poisson_topology, spatial_distance_only >;
 // so3_1st_order_rl_topology
-template class temporal_space< reach_time_diff_space< time_topology, arithmetic_tuple< rate_limited_quat_space<double>, ang_velocity_3D_topology<double> >, euclidean_tuple_distance >, time_poisson_topology, spatial_distance_only>;
+template class temporal_space< reach_time_diff_space< time_topology,
+                                                      arithmetic_tuple< rate_limited_quat_space< double >,
+                                                                        ang_velocity_3D_topology< double > >,
+                                                      euclidean_tuple_distance >,
+                               time_poisson_topology, spatial_distance_only >;
 // so3_2nd_order_rl_topology
-template class temporal_space< reach_time_diff_space< time_topology, arithmetic_tuple< rate_limited_quat_space<double>, ang_velocity_3D_topology<double>, ang_accel_3D_topology<double> >, euclidean_tuple_distance >, time_poisson_topology, spatial_distance_only>;
+template class temporal_space< reach_time_diff_space< time_topology,
+                                                      arithmetic_tuple< rate_limited_quat_space< double >,
+                                                                        ang_velocity_3D_topology< double >,
+                                                                        ang_accel_3D_topology< double > >,
+                                                      euclidean_tuple_distance >,
+                               time_poisson_topology, spatial_distance_only >;
 
 // so3_0th_order_rl_topology
-template class temporal_space< reach_time_diff_space< time_topology, arithmetic_tuple< rate_limited_quat_space<double> >, euclidean_tuple_distance >, time_poisson_topology, reach_plus_time_metric>;
+template class temporal_space< reach_time_diff_space< time_topology,
+                                                      arithmetic_tuple< rate_limited_quat_space< double > >,
+                                                      euclidean_tuple_distance >,
+                               time_poisson_topology, reach_plus_time_metric >;
 // so3_1st_order_rl_topology
-template class temporal_space< reach_time_diff_space< time_topology, arithmetic_tuple< rate_limited_quat_space<double>, ang_velocity_3D_topology<double> >, euclidean_tuple_distance >, time_poisson_topology, reach_plus_time_metric>;
+template class temporal_space< reach_time_diff_space< time_topology,
+                                                      arithmetic_tuple< rate_limited_quat_space< double >,
+                                                                        ang_velocity_3D_topology< double > >,
+                                                      euclidean_tuple_distance >,
+                               time_poisson_topology, reach_plus_time_metric >;
 // so3_2nd_order_rl_topology
-template class temporal_space< reach_time_diff_space< time_topology, arithmetic_tuple< rate_limited_quat_space<double>, ang_velocity_3D_topology<double>, ang_accel_3D_topology<double> >, euclidean_tuple_distance >, time_poisson_topology, reach_plus_time_metric>;
-
-
+template class temporal_space< reach_time_diff_space< time_topology,
+                                                      arithmetic_tuple< rate_limited_quat_space< double >,
+                                                                        ang_velocity_3D_topology< double >,
+                                                                        ang_accel_3D_topology< double > >,
+                                                      euclidean_tuple_distance >,
+                               time_poisson_topology, reach_plus_time_metric >;
 };
-
 };
 
 #else
@@ -89,24 +133,8 @@ namespace ReaK {
 
 namespace pp {
 
-void dummy_so3_topologies_externs_1_symbol() { };
-
+void dummy_so3_topologies_externs_1_symbol(){};
 };
-
 };
 
 #endif
-
-
-
-
-
-
-
-
-
-
-
-
-
-

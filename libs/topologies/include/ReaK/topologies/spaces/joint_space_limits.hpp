@@ -48,7 +48,6 @@ namespace ReaK {
 namespace pp {
 
 
-
 /**
  * This class template stores a set of vectors to represent the rate-limits on the joints
  * of a manipulator. Basically, this class is just a POD class, but it also provides functions
@@ -56,23 +55,24 @@ namespace pp {
  * it can act as a mapping between rate-limited joint coordinates and normal joint coordinates.
  * \tparam T The value type of the underlying joint-space.
  */
-template <typename T>
+template < typename T >
 struct joint_limits_mapping : public named_object {
   /** Holds the all limits. */
-  shared_ptr< kte::joint_limits_collection<T> > limits;
-  
+  shared_ptr< kte::joint_limits_collection< T > > limits;
+
   typedef T value_type;
-  typedef joint_limits_mapping<T> self;
+  typedef joint_limits_mapping< T > self;
 
   /**
    * Default constructor.
    */
-  joint_limits_mapping(const shared_ptr< kte::joint_limits_collection<T> >& aLimits = shared_ptr< kte::joint_limits_collection<T> >()) : 
-                       named_object(), limits(aLimits) {
+  joint_limits_mapping( const shared_ptr< kte::joint_limits_collection< T > >& aLimits
+                        = shared_ptr< kte::joint_limits_collection< T > >() )
+      : named_object(), limits( aLimits ) {
     if( limits )
-      this->setName(limits->getName() + "_mapping");
+      this->setName( limits->getName() + "_mapping" );
     else
-      this->setName("joint_limits_mapping");
+      this->setName( "joint_limits_mapping" );
   };
 
   /**
@@ -81,8 +81,8 @@ struct joint_limits_mapping : public named_object {
    * \param j_space The normal joint-space.
    * \return A rate-limited joint-space corresponding to given joint-space and the stored limit values.
    */
-  template <typename NormalSpaceType>
-  typename get_rate_limited_space< NormalSpaceType >::type make_rl_joint_space(const NormalSpaceType& j_space) const;
+  template < typename NormalSpaceType >
+  typename get_rate_limited_space< NormalSpaceType >::type make_rl_joint_space( const NormalSpaceType& j_space ) const;
 
   /**
    * This function constructs a normal joint-space out of the given rate-limited joint-space.
@@ -90,8 +90,9 @@ struct joint_limits_mapping : public named_object {
    * \param j_space The rate-limited joint-space.
    * \return A normal joint-space corresponding to given rate-limited joint-space and the stored limit values.
    */
-  template <typename RateLimitedSpaceType>
-  typename get_rate_illimited_space< RateLimitedSpaceType >::type make_normal_joint_space(const RateLimitedSpaceType& j_space) const;
+  template < typename RateLimitedSpaceType >
+  typename get_rate_illimited_space< RateLimitedSpaceType >::type
+    make_normal_joint_space( const RateLimitedSpaceType& j_space ) const;
 
   /**
    * This function maps a set of normal joint coordinates into a set of rate-limited joint coordinates.
@@ -99,12 +100,13 @@ struct joint_limits_mapping : public named_object {
    * \param pt A point in the normal joint-space.
    * \param j_space The normal joint-space.
    * \param rl_j_space The rate-limited joint-space (in which the output lies).
-   * \return A set of rate-limited joint coordinates corresponding to given normal joint coordinates and the stored limit values.
+   * \return A set of rate-limited joint coordinates corresponding to given normal joint coordinates and the stored
+   * limit values.
    */
-  template <typename NormalSpaceType>
-  typename topology_traits< typename get_rate_limited_space< NormalSpaceType >::type >::point_type map_to_space(
-      const typename topology_traits< NormalSpaceType >::point_type& pt,
-      const NormalSpaceType& , const typename get_rate_limited_space< NormalSpaceType >::type& ) const;
+  template < typename NormalSpaceType >
+  typename topology_traits< typename get_rate_limited_space< NormalSpaceType >::type >::point_type
+    map_to_space( const typename topology_traits< NormalSpaceType >::point_type& pt, const NormalSpaceType&,
+                  const typename get_rate_limited_space< NormalSpaceType >::type& ) const;
 
 
   /**
@@ -113,44 +115,32 @@ struct joint_limits_mapping : public named_object {
    * \param pt A point in the rate-limited joint-space.
    * \param j_space The rate-limited joint-space.
    * \param rl_j_space The normal joint-space (in which the output lies).
-   * \return A set of normal joint coordinates corresponding to given rate-limited joint coordinates and the stored limit values.
+   * \return A set of normal joint coordinates corresponding to given rate-limited joint coordinates and the stored
+   * limit values.
    */
-  template <typename RateLimitedSpaceType>
-  typename topology_traits< typename get_rate_illimited_space< RateLimitedSpaceType >::type >::point_type map_to_space(
-      const typename topology_traits< RateLimitedSpaceType >::point_type& pt,
-      const RateLimitedSpaceType& , const typename get_rate_illimited_space< RateLimitedSpaceType >::type& ) const;
+  template < typename RateLimitedSpaceType >
+  typename topology_traits< typename get_rate_illimited_space< RateLimitedSpaceType >::type >::point_type
+    map_to_space( const typename topology_traits< RateLimitedSpaceType >::point_type& pt, const RateLimitedSpaceType&,
+                  const typename get_rate_illimited_space< RateLimitedSpaceType >::type& ) const;
 
 
+  /*******************************************************************************
+                     ReaK's RTTI and Serialization interfaces
+  *******************************************************************************/
 
-/*******************************************************************************
-                   ReaK's RTTI and Serialization interfaces
-*******************************************************************************/
+  virtual void RK_CALL save( ReaK::serialization::oarchive& A, unsigned int ) const {
+    named_object::save( A, named_object::getStaticObjectType()->TypeVersion() );
+    A& RK_SERIAL_SAVE_WITH_NAME( limits );
+  };
+  virtual void RK_CALL load( ReaK::serialization::iarchive& A, unsigned int ) {
+    named_object::load( A, named_object::getStaticObjectType()->TypeVersion() );
+    A& RK_SERIAL_LOAD_WITH_NAME( limits );
+  };
 
-    virtual void RK_CALL save(ReaK::serialization::oarchive& A, unsigned int) const {
-      named_object::save(A,named_object::getStaticObjectType()->TypeVersion());
-      A & RK_SERIAL_SAVE_WITH_NAME(limits);
-    };
-    virtual void RK_CALL load(ReaK::serialization::iarchive& A, unsigned int) {
-      named_object::load(A,named_object::getStaticObjectType()->TypeVersion());
-      A & RK_SERIAL_LOAD_WITH_NAME(limits);
-    };
-
-    RK_RTTI_MAKE_CONCRETE_1BASE(self,0xC240002F,1,"joint_limits_mapping",named_object)
-
+  RK_RTTI_MAKE_CONCRETE_1BASE( self, 0xC240002F, 1, "joint_limits_mapping", named_object )
 };
-
-
 };
-
 };
 
 
 #endif
-
-
-
-
-
-
-
-

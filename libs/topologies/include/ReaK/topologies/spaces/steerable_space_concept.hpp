@@ -1,13 +1,13 @@
 /**
  * \file steerable_space_concept.hpp
- * 
- * This library defines the traits and concepts that pertain to what can be considered 
- * a steerable-space, as used in ReaK::pp. Steerable-spaces are based on the Topology concept 
- * from the Boost.Graph library, but with additional requirements which are needed 
- * in algorithms tailored for path-planning (mostly). Basically, the concept of a 
- * steerable-space corresponds to spaces in which non-trivial (steer) motions can 
+ *
+ * This library defines the traits and concepts that pertain to what can be considered
+ * a steerable-space, as used in ReaK::pp. Steerable-spaces are based on the Topology concept
+ * from the Boost.Graph library, but with additional requirements which are needed
+ * in algorithms tailored for path-planning (mostly). Basically, the concept of a
+ * steerable-space corresponds to spaces in which non-trivial (steer) motions can
  * be done and their trace be recorded in a steering path or trajectory.
- * 
+ *
  * \author Sven Mikael Persson <mikael.s.persson@gmail.com>
  * \date March 2013
  */
@@ -30,7 +30,7 @@
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with ReaK (as LICENSE in the root folder).  
+ *    along with ReaK (as LICENSE in the root folder).
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
@@ -56,7 +56,7 @@ namespace pp {
  * This traits class defines the types and constants associated to a steerable-space.
  * \tparam SteerableSpace The topology type for which the steerable-space traits are sought.
  */
-template <typename SteerableSpace>
+template < typename SteerableSpace >
 struct steerable_space_traits {
   /** The type that describes the distance-metric type for the space. */
   typedef typename SteerableSpace::steer_record_type steer_record_type;
@@ -64,42 +64,34 @@ struct steerable_space_traits {
 
 
 /**
- * This concept defines the requirements to fulfill in order to model a steerable-space 
- * as used in ReaK::pp. A steerable-space is a special kind of topology in which 
+ * This concept defines the requirements to fulfill in order to model a steerable-space
+ * as used in ReaK::pp. A steerable-space is a special kind of topology in which
  * non-trivial (steered) motions can be done and their trace be recorded in a steering path or trajectory.
- * 
+ *
  * Valid expressions:
- * 
- * tie(p2, st_rec) = space.steer_position_toward(p1, d, p3);  A point (p2) and a steer-record (st_rec) can be obtained from attempting to steer a fraction (d) away from one point (p1) to another (p3).
- *  
+ *
+ * tie(p2, st_rec) = space.steer_position_toward(p1, d, p3);  A point (p2) and a steer-record (st_rec) can be obtained
+ *from attempting to steer a fraction (d) away from one point (p1) to another (p3).
+ *
  * \tparam SteerableSpace The topology type to be checked for this concept.
  */
-template <typename SteerableSpace>
+template < typename SteerableSpace >
 struct SteerableSpaceConcept {
-  typename topology_traits<SteerableSpace>::point_type p1, p2;
-  typename steerable_space_traits<SteerableSpace>::steer_record_type st_rec;
+  typename topology_traits< SteerableSpace >::point_type p1, p2;
+  typename steerable_space_traits< SteerableSpace >::steer_record_type st_rec;
   SteerableSpace space;
   double d;
-  
-  BOOST_CONCEPT_ASSERT((TopologyConcept<SteerableSpace>));
-  
-  BOOST_CONCEPT_USAGE(SteerableSpaceConcept) 
-  {
-    boost::tie(p1, st_rec) = space.steer_position_toward(p1,d,p2);
-  };
-  
+
+  BOOST_CONCEPT_ASSERT( ( TopologyConcept< SteerableSpace > ) );
+
+  BOOST_CONCEPT_USAGE( SteerableSpaceConcept ) { boost::tie( p1, st_rec ) = space.steer_position_toward( p1, d, p2 ); };
 };
 
 
-template <typename SteerableSpace>
-struct is_steerable_space : boost::mpl::false_ { };
-
-
+template < typename SteerableSpace >
+struct is_steerable_space : boost::mpl::false_ {};
 };
-
 };
 
 
 #endif
-
-

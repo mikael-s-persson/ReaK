@@ -1,10 +1,10 @@
 ﻿/**
  * \file predicted_trajectory_concept.hpp
- * 
- * This library defines the concept that represents a predicted trajectory. This concept 
- * supplements the SpatialTrajectoryConcept with a few additional requirements which 
+ *
+ * This library defines the concept that represents a predicted trajectory. This concept
+ * supplements the SpatialTrajectoryConcept with a few additional requirements which
  * characterize a predicted trajectory (see PredictedTrajectoryConcept).
- * 
+ *
  * \author Sven Mikael Persson <mikael.s.persson@gmail.com>
  * \date July 2011
  */
@@ -27,7 +27,7 @@
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with ReaK (as LICENSE in the root folder).  
+ *    along with ReaK (as LICENSE in the root folder).
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
@@ -48,52 +48,38 @@ namespace pp {
 
 
 /**
- * This concept represents a predicted trajectory, as used in ReaK::pp. This concept 
- * supplements the SpatialTrajectoryConcept with a few additional requirements which 
+ * This concept represents a predicted trajectory, as used in ReaK::pp. This concept
+ * supplements the SpatialTrajectoryConcept with a few additional requirements which
  * characterize a predicted trajectory (see PredictedTrajectoryConcept).
- * 
+ *
  * Required concepts:
- * 
+ *
  * The PredictedTrajectory should model the SpatialTrajectoryConcept on the given Topology.
- * 
+ *
  * The Topology should model the TemporalSpaceConcept.
- * 
+ *
  * Valid expressions:
- * 
- * std::pair< const_waypoint_descriptor, point_type> w_p;  A waypoint is a pair of a const-waypoint descriptor and a point on the topology.
- * 
+ *
+ * std::pair< const_waypoint_descriptor, point_type> w_p;  A waypoint is a pair of a const-waypoint descriptor and a
+ *point on the topology.
+ *
  * p.set_initial_point(pt);  The initial temporal point (pt) can be set to seed the predicted trajectory (p).
- * 
+ *
  * p.set_initial_point(w_p);  The initial temporal waypoint (w_p) can be set to seed the predicted trajectory (p).
- * 
+ *
  * \tparam PredictedTrajectory The trajectory type to be checked for compliance to this concept.
  * \tparam Topology The temporal-topology type that can contain the trajectory.
  */
-template <typename PredictedTrajectory, typename Topology>
-struct PredictedTrajectoryConcept : public SpatialTrajectoryConcept<PredictedTrajectory,Topology> {
-  
-  BOOST_CONCEPT_USAGE(PredictedTrajectoryConcept)
-  {
-    this->p.set_initial_point(this->pt);
-    this->p.set_initial_point(this->w_p);
+template < typename PredictedTrajectory, typename Topology >
+struct PredictedTrajectoryConcept : public SpatialTrajectoryConcept< PredictedTrajectory, Topology > {
+
+  BOOST_CONCEPT_USAGE( PredictedTrajectoryConcept ) {
+    this->p.set_initial_point( this->pt );
+    this->p.set_initial_point( this->w_p );
   };
-  
 };
-
-
-
-
 };
-
-}; 
-
+};
 
 
 #endif
-
-
-
-
-
-
-

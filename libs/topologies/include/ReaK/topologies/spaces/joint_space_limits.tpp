@@ -42,60 +42,48 @@ namespace ReaK {
 namespace pp {
 
 
-template <typename T>
-template <typename NormalSpaceType>
-typename get_rate_limited_space< NormalSpaceType >::type 
-  joint_limits_mapping<T>::make_rl_joint_space(const NormalSpaceType& j_space) const {
+template < typename T >
+template < typename NormalSpaceType >
+typename get_rate_limited_space< NormalSpaceType >::type
+  joint_limits_mapping< T >::make_rl_joint_space( const NormalSpaceType& j_space ) const {
   typename get_rate_limited_space< NormalSpaceType >::type result;
-  detail::create_rl_joint_spaces_impl(result, j_space, *this->limits);
+  detail::create_rl_joint_spaces_impl( result, j_space, *this->limits );
   return result;
 };
 
-template <typename T>
-template <typename RateLimitedSpaceType>
-typename get_rate_illimited_space< RateLimitedSpaceType >::type 
-  joint_limits_mapping<T>::make_normal_joint_space(const RateLimitedSpaceType& j_space) const {
+template < typename T >
+template < typename RateLimitedSpaceType >
+typename get_rate_illimited_space< RateLimitedSpaceType >::type
+  joint_limits_mapping< T >::make_normal_joint_space( const RateLimitedSpaceType& j_space ) const {
   typename get_rate_illimited_space< RateLimitedSpaceType >::type result;
-  detail::create_normal_joint_spaces_impl(result, j_space, *this->limits);
+  detail::create_normal_joint_spaces_impl( result, j_space, *this->limits );
   return result;
 };
 
-template <typename T>
-template <typename NormalSpaceType>
-typename topology_traits< typename get_rate_limited_space< NormalSpaceType >::type >::point_type 
-  joint_limits_mapping<T>::map_to_space(
-    const typename topology_traits< NormalSpaceType >::point_type& pt,
-    const NormalSpaceType& , const typename get_rate_limited_space< NormalSpaceType >::type& ) const {
+template < typename T >
+template < typename NormalSpaceType >
+typename topology_traits< typename get_rate_limited_space< NormalSpaceType >::type >::point_type
+  joint_limits_mapping< T >::map_to_space( const typename topology_traits< NormalSpaceType >::point_type& pt,
+                                           const NormalSpaceType&,
+                                           const typename get_rate_limited_space< NormalSpaceType >::type& ) const {
   typename topology_traits< typename get_rate_limited_space< NormalSpaceType >::type >::point_type result;
-  detail::create_rl_joint_vectors_impl(result, pt, *this->limits);
+  detail::create_rl_joint_vectors_impl( result, pt, *this->limits );
   return result;
 };
 
 
-template <typename T>
-template <typename RateLimitedSpaceType>
-typename topology_traits< typename get_rate_illimited_space< RateLimitedSpaceType >::type >::point_type 
-  joint_limits_mapping<T>::map_to_space(
-    const typename topology_traits< RateLimitedSpaceType >::point_type& pt,
-    const RateLimitedSpaceType& , const typename get_rate_illimited_space< RateLimitedSpaceType >::type& ) const {
+template < typename T >
+template < typename RateLimitedSpaceType >
+typename topology_traits< typename get_rate_illimited_space< RateLimitedSpaceType >::type >::point_type
+  joint_limits_mapping< T >::map_to_space(
+    const typename topology_traits< RateLimitedSpaceType >::point_type& pt, const RateLimitedSpaceType&,
+    const typename get_rate_illimited_space< RateLimitedSpaceType >::type& ) const {
   typename topology_traits< typename get_rate_illimited_space< RateLimitedSpaceType >::type >::point_type result;
-  detail::create_normal_joint_vectors_impl(result, pt, *this->limits);
+  detail::create_normal_joint_vectors_impl( result, pt, *this->limits );
   return result;
 };
-
-
-
 };
-
 };
 
 
 #endif
-
-
-
-
-
-
-
-

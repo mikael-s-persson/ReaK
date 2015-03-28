@@ -1,8 +1,8 @@
 /**
  * \file manip_free_workspace_ext.hpp
- * 
- * 
- * 
+ *
+ *
+ *
  * \author Sven Mikael Persson <mikael.s.persson@gmail.com>
  * \date November 2012
  */
@@ -25,10 +25,9 @@
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with ReaK (as LICENSE in the root folder).  
+ *    along with ReaK (as LICENSE in the root folder).
  *    If not, see <http://www.gnu.org/licenses/>.
  */
-
 
 
 #ifndef REAK_MANIP_FREE_WORKSPACE_EXT_HPP
@@ -60,63 +59,66 @@ namespace pp {
 
 #if 0
 
-#define RK_MANIP_FREE_WORKSPACE_MAKE_QSTAT_ENV_FOR_JOINTS(NDOF) \
-extern template class manip_quasi_static_env< Ndof_0th_order_rl_space<double, NDOF, euclidean_tuple_distance>::type >;\
-extern template class manip_quasi_static_env< Ndof_1st_order_rl_space<double, NDOF, euclidean_tuple_distance>::type >;\
-extern template class manip_quasi_static_env< Ndof_2nd_order_rl_space<double, NDOF, euclidean_tuple_distance>::type >;\
-\
-\
-extern template class manip_quasi_static_env< Ndof_0th_order_rl_space<double, NDOF, inf_norm_tuple_distance>::type >;\
-extern template class manip_quasi_static_env< Ndof_1st_order_rl_space<double, NDOF, inf_norm_tuple_distance>::type >;\
-extern template class manip_quasi_static_env< Ndof_2nd_order_rl_space<double, NDOF, inf_norm_tuple_distance>::type >;\
-\
-\
-extern template class manip_quasi_static_env< Ndof_rl_space<double, NDOF, 0>::type >;\
-extern template class manip_quasi_static_env< Ndof_rl_space<double, NDOF, 1>::type >;\
-extern template class manip_quasi_static_env< Ndof_rl_space<double, NDOF, 2>::type >;
+#define RK_MANIP_FREE_WORKSPACE_MAKE_QSTAT_ENV_FOR_JOINTS( NDOF )                                            \
+  extern template class manip_quasi_static_env< Ndof_0th_order_rl_space< double, NDOF,                       \
+                                                                         euclidean_tuple_distance >::type >; \
+  extern template class manip_quasi_static_env< Ndof_1st_order_rl_space< double, NDOF,                       \
+                                                                         euclidean_tuple_distance >::type >; \
+  extern template class manip_quasi_static_env< Ndof_2nd_order_rl_space< double, NDOF,                       \
+                                                                         euclidean_tuple_distance >::type >; \
+                                                                                                             \
+                                                                                                             \
+  extern template class manip_quasi_static_env< Ndof_0th_order_rl_space< double, NDOF,                       \
+                                                                         inf_norm_tuple_distance >::type >;  \
+  extern template class manip_quasi_static_env< Ndof_1st_order_rl_space< double, NDOF,                       \
+                                                                         inf_norm_tuple_distance >::type >;  \
+  extern template class manip_quasi_static_env< Ndof_2nd_order_rl_space< double, NDOF,                       \
+                                                                         inf_norm_tuple_distance >::type >;  \
+                                                                                                             \
+                                                                                                             \
+  extern template class manip_quasi_static_env< Ndof_rl_space< double, NDOF, 0 >::type >;                    \
+  extern template class manip_quasi_static_env< Ndof_rl_space< double, NDOF, 1 >::type >;                    \
+  extern template class manip_quasi_static_env< Ndof_rl_space< double, NDOF, 2 >::type >;
 
 #else
 
-#define RK_MANIP_FREE_WORKSPACE_MAKE_QSTAT_ENV_FOR_JOINTS(NDOF) \
-extern template class manip_quasi_static_env< Ndof_rl_space<double, NDOF, 0>::type >;\
-extern template class manip_quasi_static_env< Ndof_rl_space<double, NDOF, 1>::type >;\
-extern template class manip_quasi_static_env< Ndof_rl_space<double, NDOF, 2>::type >;
+#define RK_MANIP_FREE_WORKSPACE_MAKE_QSTAT_ENV_FOR_JOINTS( NDOF )                         \
+  extern template class manip_quasi_static_env< Ndof_rl_space< double, NDOF, 0 >::type >; \
+  extern template class manip_quasi_static_env< Ndof_rl_space< double, NDOF, 1 >::type >; \
+  extern template class manip_quasi_static_env< Ndof_rl_space< double, NDOF, 2 >::type >;
 
 #endif
 
 
-
-RK_MANIP_FREE_WORKSPACE_MAKE_QSTAT_ENV_FOR_JOINTS(1)
-RK_MANIP_FREE_WORKSPACE_MAKE_QSTAT_ENV_FOR_JOINTS(2)
-RK_MANIP_FREE_WORKSPACE_MAKE_QSTAT_ENV_FOR_JOINTS(3)
-RK_MANIP_FREE_WORKSPACE_MAKE_QSTAT_ENV_FOR_JOINTS(4)
-RK_MANIP_FREE_WORKSPACE_MAKE_QSTAT_ENV_FOR_JOINTS(5)
-RK_MANIP_FREE_WORKSPACE_MAKE_QSTAT_ENV_FOR_JOINTS(6)
-RK_MANIP_FREE_WORKSPACE_MAKE_QSTAT_ENV_FOR_JOINTS(7)
-RK_MANIP_FREE_WORKSPACE_MAKE_QSTAT_ENV_FOR_JOINTS(8)
-RK_MANIP_FREE_WORKSPACE_MAKE_QSTAT_ENV_FOR_JOINTS(9)
-RK_MANIP_FREE_WORKSPACE_MAKE_QSTAT_ENV_FOR_JOINTS(10)
-
-
-extern template class manip_quasi_static_env< metric_space_array< se2_0th_order_rl_topology<double>::type, 1>::type >;
-extern template class manip_quasi_static_env< metric_space_array< se2_1st_order_rl_topology<double>::type, 1>::type >;
-extern template class manip_quasi_static_env< metric_space_array< se2_2nd_order_rl_topology<double>::type, 1>::type >;
-
-extern template class manip_quasi_static_env< metric_space_array< se3_0th_order_rl_topology<double>::type, 1>::type >;
-extern template class manip_quasi_static_env< metric_space_array< se3_1st_order_rl_topology<double>::type, 1>::type >;
-extern template class manip_quasi_static_env< metric_space_array< se3_2nd_order_rl_topology<double>::type, 1>::type >;
+RK_MANIP_FREE_WORKSPACE_MAKE_QSTAT_ENV_FOR_JOINTS( 1 )
+RK_MANIP_FREE_WORKSPACE_MAKE_QSTAT_ENV_FOR_JOINTS( 2 )
+RK_MANIP_FREE_WORKSPACE_MAKE_QSTAT_ENV_FOR_JOINTS( 3 )
+RK_MANIP_FREE_WORKSPACE_MAKE_QSTAT_ENV_FOR_JOINTS( 4 )
+RK_MANIP_FREE_WORKSPACE_MAKE_QSTAT_ENV_FOR_JOINTS( 5 )
+RK_MANIP_FREE_WORKSPACE_MAKE_QSTAT_ENV_FOR_JOINTS( 6 )
+RK_MANIP_FREE_WORKSPACE_MAKE_QSTAT_ENV_FOR_JOINTS( 7 )
+RK_MANIP_FREE_WORKSPACE_MAKE_QSTAT_ENV_FOR_JOINTS( 8 )
+RK_MANIP_FREE_WORKSPACE_MAKE_QSTAT_ENV_FOR_JOINTS( 9 )
+RK_MANIP_FREE_WORKSPACE_MAKE_QSTAT_ENV_FOR_JOINTS( 10 )
 
 
+extern template class manip_quasi_static_env< metric_space_array< se2_0th_order_rl_topology< double >::type,
+                                                                  1 >::type >;
+extern template class manip_quasi_static_env< metric_space_array< se2_1st_order_rl_topology< double >::type,
+                                                                  1 >::type >;
+extern template class manip_quasi_static_env< metric_space_array< se2_2nd_order_rl_topology< double >::type,
+                                                                  1 >::type >;
+
+extern template class manip_quasi_static_env< metric_space_array< se3_0th_order_rl_topology< double >::type,
+                                                                  1 >::type >;
+extern template class manip_quasi_static_env< metric_space_array< se3_1st_order_rl_topology< double >::type,
+                                                                  1 >::type >;
+extern template class manip_quasi_static_env< metric_space_array< se3_2nd_order_rl_topology< double >::type,
+                                                                  1 >::type >;
+};
 };
 
-};
-
-
-
-
 
 #endif
 
 #endif
-
-

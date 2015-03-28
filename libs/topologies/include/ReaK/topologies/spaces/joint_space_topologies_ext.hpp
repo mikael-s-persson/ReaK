@@ -1,8 +1,8 @@
 /**
  * \file joint_space_topologies_ext.hpp
- * 
+ *
  * This library provides extern template declarations for classes defined in the joint_space_topologies.hpp header file.
- * 
+ *
  * \author Sven Mikael Persson <mikael.s.persson@gmail.com>
  * \date November 2012
  */
@@ -25,7 +25,7 @@
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with ReaK (as LICENSE in the root folder).  
+ *    along with ReaK (as LICENSE in the root folder).
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
@@ -44,12 +44,11 @@
 #include "joint_space_limits.hpp"
 
 
-
 namespace ReaK {
 
 namespace pp {
-  
-  
+
+
 #if 0
   
 
@@ -912,51 +911,47 @@ extern template class temporal_space< Ndof_2nd_order_rl_space<double, 9>::type, 
 extern template class temporal_space< Ndof_2nd_order_rl_space<double,10>::type, time_poisson_topology, reach_plus_time_metric>;
 
 
-
-
-
-
-#define RK_JOINT_SPACE_LIMITS_EXT_MAKE_MEMBER_FUNC(NDOF) \
-\
-extern template Ndof_0th_order_rl_space<double,NDOF>::type joint_limits_mapping<double>::make_rl_joint_space(const Ndof_0th_order_space<double,NDOF>::type&) const;\
-extern template Ndof_1st_order_rl_space<double,NDOF>::type joint_limits_mapping<double>::make_rl_joint_space(const Ndof_1st_order_space<double,NDOF>::type&) const;\
-extern template Ndof_2nd_order_rl_space<double,NDOF>::type joint_limits_mapping<double>::make_rl_joint_space(const Ndof_2nd_order_space<double,NDOF>::type&) const;\
-\
-extern template Ndof_0th_order_space<double,NDOF>::type joint_limits_mapping<double>::make_normal_joint_space(const Ndof_0th_order_rl_space<double,NDOF>::type&) const;\
-extern template Ndof_1st_order_space<double,NDOF>::type joint_limits_mapping<double>::make_normal_joint_space(const Ndof_1st_order_rl_space<double,NDOF>::type&) const;\
-extern template Ndof_2nd_order_space<double,NDOF>::type joint_limits_mapping<double>::make_normal_joint_space(const Ndof_2nd_order_rl_space<double,NDOF>::type&) const;\
-\
-extern template \
-topology_traits< Ndof_0th_order_rl_space<double,NDOF>::type >::point_type \
-  joint_limits_mapping<double>::map_to_space(const topology_traits< Ndof_0th_order_space<double,NDOF>::type >::point_type& pt,\
-                                                const Ndof_0th_order_space<double,NDOF>::type& , \
-                                                const Ndof_0th_order_rl_space<double,NDOF>::type& ) const;\
-extern template \
-topology_traits< Ndof_1st_order_rl_space<double,NDOF>::type >::point_type \
-  joint_limits_mapping<double>::map_to_space(const topology_traits< Ndof_1st_order_space<double,NDOF>::type >::point_type& pt,\
-                                                const Ndof_1st_order_space<double,NDOF>::type& , \
-                                                const Ndof_1st_order_rl_space<double,NDOF>::type& ) const;\
-extern template \
-topology_traits< Ndof_2nd_order_rl_space<double,NDOF>::type >::point_type \
-  joint_limits_mapping<double>::map_to_space(const topology_traits< Ndof_2nd_order_space<double,NDOF>::type >::point_type& pt,\
-                                                const Ndof_2nd_order_space<double,NDOF>::type& , \
-                                                const Ndof_2nd_order_rl_space<double,NDOF>::type& ) const;\
-\
-extern template \
-topology_traits< Ndof_0th_order_space<double,NDOF>::type >::point_type \
-  joint_limits_mapping<double>::map_to_space(const topology_traits< Ndof_0th_order_rl_space<double,NDOF>::type >::point_type& pt,\
-                                                const Ndof_0th_order_rl_space<double,NDOF>::type& , \
-                                                const Ndof_0th_order_space<double,NDOF>::type& ) const;\
-extern template \
-topology_traits< Ndof_1st_order_space<double,NDOF>::type >::point_type \
-  joint_limits_mapping<double>::map_to_space(const topology_traits< Ndof_1st_order_rl_space<double,NDOF>::type >::point_type& pt,\
-                                                const Ndof_1st_order_rl_space<double,NDOF>::type& , \
-                                                const Ndof_1st_order_space<double,NDOF>::type& ) const;\
-extern template \
-topology_traits< Ndof_2nd_order_space<double,NDOF>::type >::point_type \
-  joint_limits_mapping<double>::map_to_space(const topology_traits< Ndof_2nd_order_rl_space<double,NDOF>::type >::point_type& pt,\
-                                                const Ndof_2nd_order_rl_space<double,NDOF>::type& , \
-                                                const Ndof_2nd_order_space<double,NDOF>::type& ) const;
+#define RK_JOINT_SPACE_LIMITS_EXT_MAKE_MEMBER_FUNC( NDOF )                                                             \
+                                                                                                                       \
+  extern template Ndof_0th_order_rl_space< double, NDOF >::type joint_limits_mapping< double >::make_rl_joint_space(   \
+    const Ndof_0th_order_space< double, NDOF >::type& ) const;                                                         \
+  extern template Ndof_1st_order_rl_space< double, NDOF >::type joint_limits_mapping< double >::make_rl_joint_space(   \
+    const Ndof_1st_order_space< double, NDOF >::type& ) const;                                                         \
+  extern template Ndof_2nd_order_rl_space< double, NDOF >::type joint_limits_mapping< double >::make_rl_joint_space(   \
+    const Ndof_2nd_order_space< double, NDOF >::type& ) const;                                                         \
+                                                                                                                       \
+  extern template Ndof_0th_order_space< double, NDOF >::type joint_limits_mapping< double >::make_normal_joint_space(  \
+    const Ndof_0th_order_rl_space< double, NDOF >::type& ) const;                                                      \
+  extern template Ndof_1st_order_space< double, NDOF >::type joint_limits_mapping< double >::make_normal_joint_space(  \
+    const Ndof_1st_order_rl_space< double, NDOF >::type& ) const;                                                      \
+  extern template Ndof_2nd_order_space< double, NDOF >::type joint_limits_mapping< double >::make_normal_joint_space(  \
+    const Ndof_2nd_order_rl_space< double, NDOF >::type& ) const;                                                      \
+                                                                                                                       \
+  extern template topology_traits< Ndof_0th_order_rl_space< double, NDOF >::type >::point_type                         \
+    joint_limits_mapping< double >::map_to_space(                                                                      \
+      const topology_traits< Ndof_0th_order_space< double, NDOF >::type >::point_type& pt,                             \
+      const Ndof_0th_order_space< double, NDOF >::type&, const Ndof_0th_order_rl_space< double, NDOF >::type& ) const; \
+  extern template topology_traits< Ndof_1st_order_rl_space< double, NDOF >::type >::point_type                         \
+    joint_limits_mapping< double >::map_to_space(                                                                      \
+      const topology_traits< Ndof_1st_order_space< double, NDOF >::type >::point_type& pt,                             \
+      const Ndof_1st_order_space< double, NDOF >::type&, const Ndof_1st_order_rl_space< double, NDOF >::type& ) const; \
+  extern template topology_traits< Ndof_2nd_order_rl_space< double, NDOF >::type >::point_type                         \
+    joint_limits_mapping< double >::map_to_space(                                                                      \
+      const topology_traits< Ndof_2nd_order_space< double, NDOF >::type >::point_type& pt,                             \
+      const Ndof_2nd_order_space< double, NDOF >::type&, const Ndof_2nd_order_rl_space< double, NDOF >::type& ) const; \
+                                                                                                                       \
+  extern template topology_traits< Ndof_0th_order_space< double, NDOF >::type >::point_type                            \
+    joint_limits_mapping< double >::map_to_space(                                                                      \
+      const topology_traits< Ndof_0th_order_rl_space< double, NDOF >::type >::point_type& pt,                          \
+      const Ndof_0th_order_rl_space< double, NDOF >::type&, const Ndof_0th_order_space< double, NDOF >::type& ) const; \
+  extern template topology_traits< Ndof_1st_order_space< double, NDOF >::type >::point_type                            \
+    joint_limits_mapping< double >::map_to_space(                                                                      \
+      const topology_traits< Ndof_1st_order_rl_space< double, NDOF >::type >::point_type& pt,                          \
+      const Ndof_1st_order_rl_space< double, NDOF >::type&, const Ndof_1st_order_space< double, NDOF >::type& ) const; \
+  extern template topology_traits< Ndof_2nd_order_space< double, NDOF >::type >::point_type                            \
+    joint_limits_mapping< double >::map_to_space(                                                                      \
+      const topology_traits< Ndof_2nd_order_rl_space< double, NDOF >::type >::point_type& pt,                          \
+      const Ndof_2nd_order_rl_space< double, NDOF >::type&, const Ndof_2nd_order_space< double, NDOF >::type& ) const;
 
 RK_JOINT_SPACE_LIMITS_EXT_MAKE_MEMBER_FUNC(1)
 RK_JOINT_SPACE_LIMITS_EXT_MAKE_MEMBER_FUNC(2)
@@ -971,24 +966,10 @@ RK_JOINT_SPACE_LIMITS_EXT_MAKE_MEMBER_FUNC(10)
 
 
 #endif
-
-
-  
-  
-
 };
-
 };
 
 #endif
 
 
 #endif
-
-
-
-
-
-
-
-

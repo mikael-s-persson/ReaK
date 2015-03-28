@@ -17,7 +17,7 @@
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with ReaK (as LICENSE in the root folder).  
+ *    along with ReaK (as LICENSE in the root folder).
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
@@ -31,21 +31,19 @@ namespace ReaK {
 
 namespace pp {
 
-template struct Ndof_limits<double>;
+template struct Ndof_limits< double >;
 
-template struct Ndof_limits<double,1>;
-template struct Ndof_limits<double,2>;
-template struct Ndof_limits<double,3>;
-template struct Ndof_limits<double,4>;
-template struct Ndof_limits<double,5>;
-template struct Ndof_limits<double,6>;
-template struct Ndof_limits<double,7>;
-template struct Ndof_limits<double,8>;
-template struct Ndof_limits<double,9>;
-template struct Ndof_limits<double,10>;
-
+template struct Ndof_limits< double, 1 >;
+template struct Ndof_limits< double, 2 >;
+template struct Ndof_limits< double, 3 >;
+template struct Ndof_limits< double, 4 >;
+template struct Ndof_limits< double, 5 >;
+template struct Ndof_limits< double, 6 >;
+template struct Ndof_limits< double, 7 >;
+template struct Ndof_limits< double, 8 >;
+template struct Ndof_limits< double, 9 >;
+template struct Ndof_limits< double, 10 >;
 };
-
 };
 
 #else
@@ -54,24 +52,8 @@ namespace ReaK {
 
 namespace pp {
 
-void dummy_Ndof_limits_externs_1_symbol() { };
-
+void dummy_Ndof_limits_externs_1_symbol(){};
 };
-
 };
 
 #endif
-
-
-
-
-
-
-
-
-
-
-
-
-
-

@@ -1,10 +1,10 @@
 /**
  * \file bounded_space_concept.hpp
- * 
- * This library defines the concepts that pertain to what can be considered 
- * a bounded metric-space, as used in ReaK::pp. A bounded metric space can be 
- * bounded 
- * 
+ *
+ * This library defines the concepts that pertain to what can be considered
+ * a bounded metric-space, as used in ReaK::pp. A bounded metric space can be
+ * bounded
+ *
  * \author Sven Mikael Persson <mikael.s.persson@gmail.com>
  * \date October 2011
  */
@@ -27,7 +27,7 @@
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with ReaK (as LICENSE in the root folder).  
+ *    along with ReaK (as LICENSE in the root folder).
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
@@ -41,65 +41,63 @@
 namespace ReaK {
 
 namespace pp {
-  
+
 
 /**
- * This concept defines the requirements to fulfill in order to model a bounded metric-space 
+ * This concept defines the requirements to fulfill in order to model a bounded metric-space
  * as used in ReaK::pp.
- * 
+ *
  * Required Models:
- * 
+ *
  * The topology should model the TopologyConcept.
- * 
+ *
  * Valid expressions:
- * 
- * pd = space.get_diff_to_boundary(p);  The difference (pd) between a point (p) and the closest boundary-point of the metric-space can be obtained.
- * 
+ *
+ * pd = space.get_diff_to_boundary(p);  The difference (pd) between a point (p) and the closest boundary-point of the
+ *metric-space can be obtained.
+ *
  * bool b = space.is_in_bounds(p);  A point can be checked for being with the bounds of the space.
- * 
+ *
  * space.bring_point_in_bounds(p);  A point (non-const ref) can be brought within bounds.
- * 
+ *
  * \tparam BoundedSpace The topology type to be checked for this concept.
  */
-template <typename BoundedSpace>
+template < typename BoundedSpace >
 struct BoundedSpaceConcept {
-  typename topology_traits<BoundedSpace>::point_type p;
-  typename topology_traits<BoundedSpace>::point_difference_type pd;
+  typename topology_traits< BoundedSpace >::point_type p;
+  typename topology_traits< BoundedSpace >::point_difference_type pd;
   BoundedSpace space;
-  
-  BOOST_CONCEPT_ASSERT((TopologyConcept<BoundedSpace>));
-  
-  BOOST_CONCEPT_USAGE(BoundedSpaceConcept) 
-  {
-    pd = space.get_diff_to_boundary(p);
-    bool b = space.is_in_bounds(p); RK_UNUSED(b);
-    space.bring_point_in_bounds(p);
+
+  BOOST_CONCEPT_ASSERT( ( TopologyConcept< BoundedSpace > ) );
+
+  BOOST_CONCEPT_USAGE( BoundedSpaceConcept ) {
+    pd = space.get_diff_to_boundary( p );
+    bool b = space.is_in_bounds( p );
+    RK_UNUSED( b );
+    space.bring_point_in_bounds( p );
   };
-  
 };
 
 
-
 /**
- * This concept defines the requirements to fulfill in order to model a box-bounded metric-space 
+ * This concept defines the requirements to fulfill in order to model a box-bounded metric-space
  * as used in ReaK::pp.
- * 
+ *
  * Required Models:
- * 
+ *
  * The topology should model the BoundedSpaceConcept.
- * 
+ *
  * Valid expressions:
- * 
+ *
  * p = space.get_upper_corner(p);  The point (p) at the upper boundary of the metric-space can be obtained.
- * 
+ *
  * p = space.get_lower_corner(p);  The point (p) at the lower boundary of the metric-space can be obtained.
- * 
+ *
  * \tparam BoundedSpace The topology type to be checked for this concept.
  */
-template <typename BoundedSpace>
-struct BoxBoundedSpaceConcept : BoundedSpaceConcept<BoundedSpace> {
-  BOOST_CONCEPT_USAGE(BoxBoundedSpaceConcept) 
-  {
+template < typename BoundedSpace >
+struct BoxBoundedSpaceConcept : BoundedSpaceConcept< BoundedSpace > {
+  BOOST_CONCEPT_USAGE( BoxBoundedSpaceConcept ) {
     this->p = this->space.get_upper_corner();
     this->p = this->space.get_lower_corner();
   };
@@ -107,39 +105,31 @@ struct BoxBoundedSpaceConcept : BoundedSpaceConcept<BoundedSpace> {
 
 
 /**
- * This concept defines the requirements to fulfill in order to model a sphere-bounded metric-space 
+ * This concept defines the requirements to fulfill in order to model a sphere-bounded metric-space
  * as used in ReaK::pp.
- * 
+ *
  * Required Models:
- * 
+ *
  * The topology should model the BoundedSpaceConcept.
- * 
+ *
  * Valid expressions:
- * 
- * d = space.get_radius();  The radius (d) can be obtained (maximum distance between a point and the origin of the metric-space).
- * 
+ *
+ * d = space.get_radius();  The radius (d) can be obtained (maximum distance between a point and the origin of the
+ *metric-space).
+ *
  * \tparam BoundedSpace The topology type to be checked for this concept.
  */
-template <typename BoundedSpace>
-struct SphereBoundedSpaceConcept : BoundedSpaceConcept<BoundedSpace> {
+template < typename BoundedSpace >
+struct SphereBoundedSpaceConcept : BoundedSpaceConcept< BoundedSpace > {
   double d;
-  
-  BOOST_CONCEPT_USAGE(SphereBoundedSpaceConcept) 
-  {
-    d = this->space.get_radius(); RK_UNUSED(d);
+
+  BOOST_CONCEPT_USAGE( SphereBoundedSpaceConcept ) {
+    d = this->space.get_radius();
+    RK_UNUSED( d );
   };
-  
 };
-
-
-
-
 };
-
 };
 
 
 #endif
-
-
-

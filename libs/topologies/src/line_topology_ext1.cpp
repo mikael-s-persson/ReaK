@@ -17,7 +17,7 @@
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with ReaK (as LICENSE in the root folder).  
+ *    along with ReaK (as LICENSE in the root folder).
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
@@ -33,9 +33,7 @@ namespace pp {
 
 template class line_topology< double >;
 template class line_segment_topology< double >;
-
 };
-
 };
 
 #else
@@ -44,24 +42,8 @@ namespace ReaK {
 
 namespace pp {
 
-void dummy_line_topology_externs_1_symbol() { };
-
+void dummy_line_topology_externs_1_symbol(){};
 };
-
 };
 
 #endif
-
-
-
-
-
-
-
-
-
-
-
-
-
-

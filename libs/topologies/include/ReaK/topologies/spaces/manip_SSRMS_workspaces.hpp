@@ -1,8 +1,8 @@
 /**
  * \file manip_SSRMS_workspaces.hpp
- * 
+ *
  * This library defines a class
- * 
+ *
  * \author Sven Mikael Persson <mikael.s.persson@gmail.com>
  * \date July 2013
  */
@@ -25,7 +25,7 @@
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with ReaK (as LICENSE in the root folder).  
+ *    along with ReaK (as LICENSE in the root folder).
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
@@ -41,22 +41,17 @@
 namespace ReaK {
 
 namespace pp {
-  
 
 
-template <int Order>
+template < int Order >
 struct manip_pp_traits< kte::manip_SSRMS_kinematics, Order > {
-  BOOST_STATIC_CONSTANT(std::size_t, degrees_of_freedom = 7);
-  
-  typedef typename Ndof_rl_space<double, 7, Order>::type rl_jt_space_type;
-  typedef typename Ndof_space<double, 7, Order>::type jt_space_type;
-  typedef typename se3_topology<double, Order>::type ee_space_type;
+  BOOST_STATIC_CONSTANT( std::size_t, degrees_of_freedom = 7 );
+
+  typedef typename Ndof_rl_space< double, 7, Order >::type rl_jt_space_type;
+  typedef typename Ndof_space< double, 7, Order >::type jt_space_type;
+  typedef typename se3_topology< double, Order >::type ee_space_type;
 };
-
-
 };
-
 };
 
 #endif
-

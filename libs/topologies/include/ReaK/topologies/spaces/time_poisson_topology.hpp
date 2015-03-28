@@ -1,11 +1,11 @@
 /**
  * \file time_poisson_topology.hpp
- * 
- * This library provides class that define a time-topology with a Poisson distribution. 
- * A time-topology is a simple metric-space where the points are real values (doubles). 
- * However, because time is unlimited, this topology uses a Poisson distribution to 
+ *
+ * This library provides class that define a time-topology with a Poisson distribution.
+ * A time-topology is a simple metric-space where the points are real values (doubles).
+ * However, because time is unlimited, this topology uses a Poisson distribution to
  * generate random-points at discrete intervals.
- * 
+ *
  * \author Sven Mikael Persson <mikael.s.persson@gmail.com>
  * \date October 2011
  */
@@ -28,7 +28,7 @@
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with ReaK (as LICENSE in the root folder).  
+ *    along with ReaK (as LICENSE in the root folder).
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
@@ -51,92 +51,74 @@ namespace ReaK {
 namespace pp {
 
 /**
- * This class implements a time-topology with a Poisson distribution. A time-topology is a 
- * simple metric-space where the points are real values (doubles). 
- * However, because time is unlimited, this topology uses a Poisson distribution to 
+ * This class implements a time-topology with a Poisson distribution. A time-topology is a
+ * simple metric-space where the points are real values (doubles).
+ * However, because time is unlimited, this topology uses a Poisson distribution to
  * generate random-points at discrete intervals. This class models the MetricSpaceConcept.
  */
-class time_poisson_topology : public time_topology
-{
-  public:
-    typedef double point_type;
-    typedef double point_difference_type;
-    
-    typedef default_distance_metric distance_metric_type;
-    typedef default_random_sampler random_sampler_type;
-    
-    BOOST_STATIC_CONSTANT(std::size_t, dimensions = 1);
-    
-    double time_step;
-    double mean_discrete_time; 
-    double time_delay;
-    
-    explicit time_poisson_topology(const std::string& aName = "time_poisson_topology",
-                                   double aTimeStep = 1.0,
-                                   double aMeanDiscreteTime = 10.0,
-                                   double aTimeDelay = 0.0) : 
-                                   time_topology(aName),
-                                   time_step(aTimeStep),
-                                   mean_discrete_time(aMeanDiscreteTime),
-                                   time_delay(aTimeDelay) { };
-    
-    /**
-     * Generates a random point in the space, uniformly distributed.
-     * \note This function actually returns the origin of the space.
-     */
-    point_type random_point() const {
-      boost::variate_generator< global_rng_type&, boost::random::lognormal_distribution< double > > var_gen(get_global_rng(),boost::random::lognormal_distribution< double >(0.0, 1.0));
-      //boost::variate_generator< global_rng_type&, boost::poisson_distribution< int, double > > var_gen(get_global_rng(),boost::poisson_distribution< int, double >(mean_discrete_time));
-      return time_step * int(0.5 * mean_discrete_time / time_step * point_type(var_gen()) + time_delay / time_step);
-    };
-    
-/*******************************************************************************
-                   ReaK's RTTI and Serialization interfaces
-*******************************************************************************/
-    
-    virtual void RK_CALL save(serialization::oarchive& A, unsigned int aVersion) const {
-      ReaK::named_object::save(A,named_object::getStaticObjectType()->TypeVersion());
-      A & RK_SERIAL_SAVE_WITH_NAME(time_step)
-        & RK_SERIAL_SAVE_WITH_NAME(mean_discrete_time);
-      if(aVersion > 1)
-        A & RK_SERIAL_SAVE_WITH_NAME(time_delay);
-    };
+class time_poisson_topology : public time_topology {
+public:
+  typedef double point_type;
+  typedef double point_difference_type;
 
-    virtual void RK_CALL load(serialization::iarchive& A, unsigned int aVersion) {
-      ReaK::named_object::load(A,named_object::getStaticObjectType()->TypeVersion());
-      A & RK_SERIAL_LOAD_WITH_NAME(time_step)
-        & RK_SERIAL_LOAD_WITH_NAME(mean_discrete_time);
-      if(aVersion > 1)
-        A & RK_SERIAL_LOAD_WITH_NAME(time_delay);
-      else
-        time_delay = 0.0;
-    };
+  typedef default_distance_metric distance_metric_type;
+  typedef default_random_sampler random_sampler_type;
 
-    RK_RTTI_MAKE_CONCRETE_1BASE(time_poisson_topology,0xC240000B,2,"time_poisson_topology",time_topology)
+  BOOST_STATIC_CONSTANT( std::size_t, dimensions = 1 );
 
+  double time_step;
+  double mean_discrete_time;
+  double time_delay;
+
+  explicit time_poisson_topology( const std::string& aName = "time_poisson_topology", double aTimeStep = 1.0,
+                                  double aMeanDiscreteTime = 10.0, double aTimeDelay = 0.0 )
+      : time_topology( aName ), time_step( aTimeStep ), mean_discrete_time( aMeanDiscreteTime ),
+        time_delay( aTimeDelay ){};
+
+  /**
+   * Generates a random point in the space, uniformly distributed.
+   * \note This function actually returns the origin of the space.
+   */
+  point_type random_point() const {
+    boost::variate_generator< global_rng_type&, boost::random::lognormal_distribution< double > > var_gen(
+      get_global_rng(), boost::random::lognormal_distribution< double >( 0.0, 1.0 ) );
+    // boost::variate_generator< global_rng_type&, boost::poisson_distribution< int, double > >
+    // var_gen(get_global_rng(),boost::poisson_distribution< int, double >(mean_discrete_time));
+    return time_step * int( 0.5 * mean_discrete_time / time_step * point_type( var_gen() ) + time_delay / time_step );
+  };
+
+  /*******************************************************************************
+                     ReaK's RTTI and Serialization interfaces
+  *******************************************************************************/
+
+  virtual void RK_CALL save( serialization::oarchive& A, unsigned int aVersion ) const {
+    ReaK::named_object::save( A, named_object::getStaticObjectType()->TypeVersion() );
+    A& RK_SERIAL_SAVE_WITH_NAME( time_step ) & RK_SERIAL_SAVE_WITH_NAME( mean_discrete_time );
+    if( aVersion > 1 )
+      A& RK_SERIAL_SAVE_WITH_NAME( time_delay );
+  };
+
+  virtual void RK_CALL load( serialization::iarchive& A, unsigned int aVersion ) {
+    ReaK::named_object::load( A, named_object::getStaticObjectType()->TypeVersion() );
+    A& RK_SERIAL_LOAD_WITH_NAME( time_step ) & RK_SERIAL_LOAD_WITH_NAME( mean_discrete_time );
+    if( aVersion > 1 )
+      A& RK_SERIAL_LOAD_WITH_NAME( time_delay );
+    else
+      time_delay = 0.0;
+  };
+
+  RK_RTTI_MAKE_CONCRETE_1BASE( time_poisson_topology, 0xC240000B, 2, "time_poisson_topology", time_topology )
 };
 
 template <>
-struct is_metric_space< time_poisson_topology > : boost::mpl::true_ { };
+struct is_metric_space< time_poisson_topology > : boost::mpl::true_ {};
 
 template <>
-struct is_reversible_space< time_poisson_topology > : boost::mpl::true_ { };
+struct is_reversible_space< time_poisson_topology > : boost::mpl::true_ {};
 
 template <>
-struct is_point_distribution< time_poisson_topology > : boost::mpl::true_ { };
-
-
-
+struct is_point_distribution< time_poisson_topology > : boost::mpl::true_ {};
 };
-
 };
 
 #endif
-
-
-
-
-
-
-
-

@@ -17,7 +17,7 @@
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with ReaK (as LICENSE in the root folder).  
+ *    along with ReaK (as LICENSE in the root folder).
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
@@ -32,44 +32,86 @@ namespace ReaK {
 namespace pp {
 
 // joint_space_0th_order
-template class differentiable_space< time_topology, arithmetic_tuple< line_segment_topology<double> >, euclidean_tuple_distance >;
+template class differentiable_space< time_topology, arithmetic_tuple< line_segment_topology< double > >,
+                                     euclidean_tuple_distance >;
 // joint_space_1st_order
-template class differentiable_space< time_topology, arithmetic_tuple< line_segment_topology<double>, line_segment_topology<double> >, euclidean_tuple_distance >;
+template class differentiable_space< time_topology, arithmetic_tuple< line_segment_topology< double >,
+                                                                      line_segment_topology< double > >,
+                                     euclidean_tuple_distance >;
 // joint_space_2nd_order
-template class differentiable_space< time_topology, arithmetic_tuple< line_segment_topology<double>, line_segment_topology<double>, line_segment_topology<double> >, euclidean_tuple_distance >;
+template class differentiable_space< time_topology,
+                                     arithmetic_tuple< line_segment_topology< double >, line_segment_topology< double >,
+                                                       line_segment_topology< double > >,
+                                     euclidean_tuple_distance >;
 
 // joint_space_0th_order
-template class temporal_space< differentiable_space< time_topology, arithmetic_tuple< line_segment_topology<double> >, euclidean_tuple_distance >, time_poisson_topology, spatial_distance_only>;
+template class temporal_space< differentiable_space< time_topology, arithmetic_tuple< line_segment_topology< double > >,
+                                                     euclidean_tuple_distance >,
+                               time_poisson_topology, spatial_distance_only >;
 // joint_space_1st_order
-template class temporal_space< differentiable_space< time_topology, arithmetic_tuple< line_segment_topology<double>, line_segment_topology<double> >, euclidean_tuple_distance >, time_poisson_topology, spatial_distance_only>;
+template class temporal_space< differentiable_space< time_topology, arithmetic_tuple< line_segment_topology< double >,
+                                                                                      line_segment_topology< double > >,
+                                                     euclidean_tuple_distance >,
+                               time_poisson_topology, spatial_distance_only >;
 // joint_space_2nd_order
-template class temporal_space< differentiable_space< time_topology, arithmetic_tuple< line_segment_topology<double>, line_segment_topology<double>, line_segment_topology<double> >, euclidean_tuple_distance >, time_poisson_topology, spatial_distance_only>;
+template class temporal_space< differentiable_space< time_topology, arithmetic_tuple< line_segment_topology< double >,
+                                                                                      line_segment_topology< double >,
+                                                                                      line_segment_topology< double > >,
+                                                     euclidean_tuple_distance >,
+                               time_poisson_topology, spatial_distance_only >;
 
 
 // rl_joint_space_0th_order
-template class reach_time_diff_space< time_topology, arithmetic_tuple< line_segment_topology<double> >, euclidean_tuple_distance >;
+template class reach_time_diff_space< time_topology, arithmetic_tuple< line_segment_topology< double > >,
+                                      euclidean_tuple_distance >;
 // rl_joint_space_1st_order
-template class reach_time_diff_space< time_topology, arithmetic_tuple< line_segment_topology<double>, line_segment_topology<double> >, euclidean_tuple_distance >;
+template class reach_time_diff_space< time_topology, arithmetic_tuple< line_segment_topology< double >,
+                                                                       line_segment_topology< double > >,
+                                      euclidean_tuple_distance >;
 // rl_joint_space_2nd_order
-template class reach_time_diff_space< time_topology, arithmetic_tuple< line_segment_topology<double>, line_segment_topology<double>, line_segment_topology<double> >, euclidean_tuple_distance >;
+template class reach_time_diff_space< time_topology, arithmetic_tuple< line_segment_topology< double >,
+                                                                       line_segment_topology< double >,
+                                                                       line_segment_topology< double > >,
+                                      euclidean_tuple_distance >;
 
 // rl_joint_space_0th_order
-template class temporal_space< reach_time_diff_space< time_topology, arithmetic_tuple< line_segment_topology<double> >, euclidean_tuple_distance >, time_poisson_topology, spatial_distance_only>;
+template class temporal_space< reach_time_diff_space< time_topology,
+                                                      arithmetic_tuple< line_segment_topology< double > >,
+                                                      euclidean_tuple_distance >,
+                               time_poisson_topology, spatial_distance_only >;
 // rl_joint_space_1st_order
-template class temporal_space< reach_time_diff_space< time_topology, arithmetic_tuple< line_segment_topology<double>, line_segment_topology<double> >, euclidean_tuple_distance >, time_poisson_topology, spatial_distance_only>;
+template class temporal_space< reach_time_diff_space< time_topology,
+                                                      arithmetic_tuple< line_segment_topology< double >,
+                                                                        line_segment_topology< double > >,
+                                                      euclidean_tuple_distance >,
+                               time_poisson_topology, spatial_distance_only >;
 // rl_joint_space_2nd_order
-template class temporal_space< reach_time_diff_space< time_topology, arithmetic_tuple< line_segment_topology<double>, line_segment_topology<double>, line_segment_topology<double> >, euclidean_tuple_distance >, time_poisson_topology, spatial_distance_only>;
+template class temporal_space< reach_time_diff_space< time_topology,
+                                                      arithmetic_tuple< line_segment_topology< double >,
+                                                                        line_segment_topology< double >,
+                                                                        line_segment_topology< double > >,
+                                                      euclidean_tuple_distance >,
+                               time_poisson_topology, spatial_distance_only >;
 
 // rl_joint_space_0th_order
-template class temporal_space< reach_time_diff_space< time_topology, arithmetic_tuple< line_segment_topology<double> >, euclidean_tuple_distance >, time_poisson_topology, reach_plus_time_metric>;
+template class temporal_space< reach_time_diff_space< time_topology,
+                                                      arithmetic_tuple< line_segment_topology< double > >,
+                                                      euclidean_tuple_distance >,
+                               time_poisson_topology, reach_plus_time_metric >;
 // rl_joint_space_1st_order
-template class temporal_space< reach_time_diff_space< time_topology, arithmetic_tuple< line_segment_topology<double>, line_segment_topology<double> >, euclidean_tuple_distance >, time_poisson_topology, reach_plus_time_metric>;
+template class temporal_space< reach_time_diff_space< time_topology,
+                                                      arithmetic_tuple< line_segment_topology< double >,
+                                                                        line_segment_topology< double > >,
+                                                      euclidean_tuple_distance >,
+                               time_poisson_topology, reach_plus_time_metric >;
 // rl_joint_space_2nd_order
-template class temporal_space< reach_time_diff_space< time_topology, arithmetic_tuple< line_segment_topology<double>, line_segment_topology<double>, line_segment_topology<double> >, euclidean_tuple_distance >, time_poisson_topology, reach_plus_time_metric>;
-
-
+template class temporal_space< reach_time_diff_space< time_topology,
+                                                      arithmetic_tuple< line_segment_topology< double >,
+                                                                        line_segment_topology< double >,
+                                                                        line_segment_topology< double > >,
+                                                      euclidean_tuple_distance >,
+                               time_poisson_topology, reach_plus_time_metric >;
 };
-
 };
 
 #else
@@ -78,24 +120,8 @@ namespace ReaK {
 
 namespace pp {
 
-void dummy_joint_space_topologies_externs_1_symbol() { };
-
+void dummy_joint_space_topologies_externs_1_symbol(){};
 };
-
 };
 
 #endif
-
-
-
-
-
-
-
-
-
-
-
-
-
-

@@ -1,8 +1,8 @@
 /**
  * \file rate_limited_space_metamaps.hpp
- * 
+ *
  * This library provides classes that define meta-maps between rate-limited and normal spaces.
- * 
+ *
  * \author Sven Mikael Persson <mikael.s.persson@gmail.com>
  * \date October 2013
  */
@@ -25,7 +25,7 @@
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with ReaK (as LICENSE in the root folder).  
+ *    along with ReaK (as LICENSE in the root folder).
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
@@ -39,30 +39,17 @@ namespace ReaK {
 namespace pp {
 
 
-
-template <typename RateLimitedSpace>
-struct get_rate_illimited_space { 
+template < typename RateLimitedSpace >
+struct get_rate_illimited_space {
   typedef RateLimitedSpace type;
 };
 
-template <typename NormalSpace>
-struct get_rate_limited_space {  
+template < typename NormalSpace >
+struct get_rate_limited_space {
   typedef NormalSpace type;
 };
-
-
-
 };
-
 };
 
 
 #endif
-
-
-
-
-
-
-
-
