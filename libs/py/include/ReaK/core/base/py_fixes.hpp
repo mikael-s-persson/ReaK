@@ -2,7 +2,7 @@
  *\file py_fixes.hpp
  *
  * This header file declares a few fixes required to make Boost.Python work in ReaK.
- * 
+ *
  * \author Mikael Persson (mikael.s.persson@gmail.com)
  * \date June 2012
  */
@@ -25,7 +25,7 @@
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with ReaK (as LICENSE in the root folder).  
+ *    along with ReaK (as LICENSE in the root folder).
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
@@ -41,15 +41,14 @@
 
 #ifndef BOOST_NO_CXX11_SMART_PTR
 
-#if (BOOST_VERSION < 105300)
+#if( BOOST_VERSION < 105300 )
 
 namespace std {
-  
-  template <typename T>
-  T* get_pointer(const std::shared_ptr<T>& s) {
-    return s.get();
-  };
-  
+
+template < typename T >
+T* get_pointer( const std::shared_ptr< T >& s ) {
+  return s.get();
+};
 };
 
 #endif
@@ -58,5 +57,3 @@ namespace std {
 
 
 #endif
-
-

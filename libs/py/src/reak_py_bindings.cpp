@@ -2,7 +2,7 @@
  *\file reak_py_bindings.cpp
  *
  * This source file defines the list of exports for the python bindings on the ReaK platform.
- * 
+ *
  * \author Mikael Persson (mikael.s.persson@gmail.com)
  * \date June 2012
  */
@@ -25,7 +25,7 @@
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with ReaK (as LICENSE in the root folder).  
+ *    along with ReaK (as LICENSE in the root folder).
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
@@ -39,37 +39,18 @@ void export_vect_alg();
 void export_kinetostatics();
 void export_mbd_kte();
 void export_kte_models();
-
 };
 
 using namespace boost::python;
 
 
-BOOST_PYTHON_MODULE(libreak_py) {
-  
+BOOST_PYTHON_MODULE( libreak_py ) {
+
   using namespace PyReaK;
-  
+
   export_base();
   export_vect_alg();
   export_kinetostatics();
   export_mbd_kte();
   export_kte_models();
-  
 };
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

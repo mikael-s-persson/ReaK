@@ -1,9 +1,9 @@
 /**
  *\file py_vect_alg.cpp
  *
- * This source file defines export functions for the python bindings on vect_alg classes 
+ * This source file defines export functions for the python bindings on vect_alg classes
  * of the ReaK platform.
- * 
+ *
  * \author Mikael Persson (mikael.s.persson@gmail.com)
  * \date June 2012
  */
@@ -26,10 +26,9 @@
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with ReaK (as LICENSE in the root folder).  
+ *    along with ReaK (as LICENSE in the root folder).
  *    If not, see <http://www.gnu.org/licenses/>.
  */
-
 
 
 #include <ReaK/core/base/defs.hpp>
@@ -44,22 +43,21 @@
 #include <sstream>
 
 
-
 namespace PyReaK {
-  
- 
-template <typename Vector>
-double vect_getitem(const Vector& v, std::size_t i) {
-  return v[i]; 
+
+
+template < typename Vector >
+double vect_getitem( const Vector& v, std::size_t i ) {
+  return v[i];
 };
 
-template <typename Vector>
-void vect_setitem(Vector& v, std::size_t i, double d) {
+template < typename Vector >
+void vect_setitem( Vector& v, std::size_t i, double d ) {
   v[i] = d;
 };
 
-template <typename Vector>
-std::string vect_to_string(const Vector& v) {
+template < typename Vector >
+std::string vect_to_string( const Vector& v ) {
   std::stringstream ss;
   ss << v;
   return ss.str();
@@ -69,143 +67,125 @@ std::string vect_to_string(const Vector& v) {
 void export_vect_alg() {
 
   using namespace boost::python;
-  
-  class_< ReaK::vect<double,2> >("Vector2D")
-    .def(init<double,double>())
-    .def(self + self)
-    .def(self - self)
-    .def(-self)
-    .def(self * self)
-    .def(self % self)
-    .def(self += self)
-    .def(self -= self)
-    .def(self * double())
-    .def(double() * self)
-    .def(self / double())
-    .def(self *= double())
-    .def(self /= double())
-    .def("__str__",vect_to_string< ReaK::vect<double,2> >)
-    .def("__len__",&ReaK::vect<double,2>::size)
-    .def("__getitem__",vect_getitem< ReaK::vect<double,2> >)
-    .def("__setitem__",vect_setitem< ReaK::vect<double,2> >);
-  
-  def("norm_2_sqr",static_cast< double(*)(const ReaK::vect<double,2>&) >(&ReaK::norm_2_sqr));
-  def("norm_2",static_cast< double(*)(const ReaK::vect<double,2>&) >(&ReaK::norm_2));
-  def("norm_inf",static_cast< double(*)(const ReaK::vect<double,2>&) >(&ReaK::norm_inf));
-  def("norm_1",static_cast< double(*)(const ReaK::vect<double,2>&) >(&ReaK::norm_1));
-  def("unit",static_cast< ReaK::vect<double,2>(*)(const ReaK::vect<double,2>&) >(&ReaK::unit));
-  def("colinear",static_cast< bool(*)(const ReaK::vect<double,2>&, const ReaK::vect<double,2>&) >(&ReaK::colinear));
-  
-  class_< ReaK::vect<double,3> >("Vector3D")
-    .def(init<double,double,double>())
-    .def(self + self)
-    .def(self - self)
-    .def(-self)
-    .def(self * self)
-    .def(self % self)
-    .def(self += self)
-    .def(self -= self)
-    .def(self * double())
-    .def(double() * self)
-    .def(self / double())
-    .def(self *= double())
-    .def(self /= double())
-    .def("__str__",vect_to_string< ReaK::vect<double,3> >)
-    .def("__len__",&ReaK::vect<double,3>::size)
-    .def("__getitem__",vect_getitem< ReaK::vect<double,3> >)
-    .def("__setitem__",vect_setitem< ReaK::vect<double,3> >);
-  
-  def("norm_2_sqr",static_cast< double(*)(const ReaK::vect<double,3>&) >(&ReaK::norm_2_sqr));
-  def("norm_2",static_cast< double(*)(const ReaK::vect<double,3>&) >(&ReaK::norm_2));
-  def("norm_inf",static_cast< double(*)(const ReaK::vect<double,3>&) >(&ReaK::norm_inf));
-  def("norm_1",static_cast< double(*)(const ReaK::vect<double,3>&) >(&ReaK::norm_1));
-  def("unit",static_cast< ReaK::vect<double,3>(*)(const ReaK::vect<double,3>&) >(&ReaK::unit));
-  def("colinear",static_cast< bool(*)(const ReaK::vect<double,3>&, const ReaK::vect<double,3>&) >(&ReaK::colinear));
-  
-  class_< ReaK::vect<double,4> >("Vector4D")
-    .def(init<double,double,double,double>())
-    .def(self + self)
-    .def(self - self)
-    .def(-self)
-    .def(self * self)
-    .def(self += self)
-    .def(self -= self)
-    .def(self * double())
-    .def(double() * self)
-    .def(self / double())
-    .def(self *= double())
-    .def(self /= double())
-    .def("__str__",vect_to_string< ReaK::vect<double,4> >)
-    .def("__len__",&ReaK::vect<double,4>::size)
-    .def("__getitem__",vect_getitem< ReaK::vect<double,4> >)
-    .def("__setitem__",vect_setitem< ReaK::vect<double,4> >);
-  
-  def("norm_2_sqr",static_cast< double(*)(const ReaK::vect<double,4>&) >(&ReaK::norm_2_sqr));
-  def("norm_2",static_cast< double(*)(const ReaK::vect<double,4>&) >(&ReaK::norm_2));
-  def("norm_inf",static_cast< double(*)(const ReaK::vect<double,4>&) >(&ReaK::norm_inf));
-  def("norm_1",static_cast< double(*)(const ReaK::vect<double,4>&) >(&ReaK::norm_1));
-  def("unit",static_cast< ReaK::vect<double,4>(*)(const ReaK::vect<double,4>&) >(&ReaK::unit));
-  def("colinear",static_cast< bool(*)(const ReaK::vect<double,4>&, const ReaK::vect<double,4>&) >(&ReaK::colinear));
-  
-  class_< ReaK::vect_n<double, std::allocator<double> > >("VectorND")
-    .def(init<double,double,double>())
-    .def(init<double,double,double,double>())
-    .def(init<double,double,double,double,double>())
-    .def(init<double,double,double,double,double,double>())
-    .def(init<double,double,double,double,double,double,double>())
-    .def(init<double,double,double,double,double,double,double,double>())
-    .def(init<double,double,double,double,double,double,double,double,double>())
-    .def(init<double,double,double,double,double,double,double,double,double,double>())
-    .def(init<double,double,double,double,double,double,double,double,double,double,
-              double>())
-    .def(init<double,double,double,double,double,double,double,double,double,double,
-              double,double>())
-    .def(init<double,double,double,double,double,double,double,double,double,double,
-              double,double,double>())
-    .def(init<double,double,double,double,double,double,double,double,double,double,
-              double,double,double,double>())
-    .def(self + self)
-    .def(self - self)
-    .def(-self)
-    .def(self * self)
-    .def(self += self)
-    .def(self -= self)
-    .def(self * double())
-    .def(double() * self)
-    .def(self / double())
-    .def(self *= double())
-    .def(self /= double())
-    .def("__str__",vect_to_string< ReaK::vect_n<double, std::allocator<double> > >)
-    .def("__len__",&ReaK::vect_n<double, std::allocator<double> >::size)
-    .def("__getitem__",vect_getitem< ReaK::vect_n<double, std::allocator<double> > >)
-    .def("__setitem__",vect_setitem< ReaK::vect_n<double, std::allocator<double> > >)
-    .def("resize", &ReaK::vect_n<double, std::allocator<double> >::resize);
-  
-  def("norm_2_sqr",static_cast< double(*)(const ReaK::vect_n<double>&) >(&ReaK::norm_2_sqr));
-  def("norm_2",static_cast< double(*)(const ReaK::vect_n<double>&) >(&ReaK::norm_2));
-  def("norm_inf",static_cast< double(*)(const ReaK::vect_n<double>&) >(&ReaK::norm_inf));
-  def("norm_1",static_cast< double(*)(const ReaK::vect_n<double>&) >(&ReaK::norm_1));
-  def("unit",static_cast< ReaK::vect_n<double>(*)(const ReaK::vect_n<double>&) >(&ReaK::unit));
-  def("colinear",static_cast< bool(*)(const ReaK::vect_n<double>&, const ReaK::vect_n<double>&) >(&ReaK::colinear));
-  
-  
+
+  class_< ReaK::vect< double, 2 > >( "Vector2D" )
+    .def( init< double, double >() )
+    .def( self + self )
+    .def( self - self )
+    .def( -self )
+    .def( self * self )
+    .def( self % self )
+    .def( self += self )
+    .def( self -= self )
+    .def( self * double() )
+    .def( double() * self )
+    .def( self / double() )
+    .def( self *= double() )
+    .def( self /= double() )
+    .def("__str__", vect_to_string< ReaK::vect< double, 2 > >)
+    .def( "__len__", &ReaK::vect< double, 2 >::size )
+    .def("__getitem__", vect_getitem< ReaK::vect< double, 2 > >)
+    .def( "__setitem__", vect_setitem< ReaK::vect< double, 2 > > );
+
+  def( "norm_2_sqr", static_cast< double (*)( const ReaK::vect< double, 2 >& ) >( &ReaK::norm_2_sqr ) );
+  def( "norm_2", static_cast< double (*)( const ReaK::vect< double, 2 >& ) >( &ReaK::norm_2 ) );
+  def( "norm_inf", static_cast< double (*)( const ReaK::vect< double, 2 >& ) >( &ReaK::norm_inf ) );
+  def( "norm_1", static_cast< double (*)( const ReaK::vect< double, 2 >& ) >( &ReaK::norm_1 ) );
+  def( "unit", static_cast< ReaK::vect< double, 2 >(*)( const ReaK::vect< double, 2 >& ) >( &ReaK::unit ) );
+  def( "colinear",
+       static_cast< bool (*)( const ReaK::vect< double, 2 >&, const ReaK::vect< double, 2 >& ) >( &ReaK::colinear ) );
+
+  class_< ReaK::vect< double, 3 > >( "Vector3D" )
+    .def( init< double, double, double >() )
+    .def( self + self )
+    .def( self - self )
+    .def( -self )
+    .def( self * self )
+    .def( self % self )
+    .def( self += self )
+    .def( self -= self )
+    .def( self * double() )
+    .def( double() * self )
+    .def( self / double() )
+    .def( self *= double() )
+    .def( self /= double() )
+    .def("__str__", vect_to_string< ReaK::vect< double, 3 > >)
+    .def( "__len__", &ReaK::vect< double, 3 >::size )
+    .def("__getitem__", vect_getitem< ReaK::vect< double, 3 > >)
+    .def( "__setitem__", vect_setitem< ReaK::vect< double, 3 > > );
+
+  def( "norm_2_sqr", static_cast< double (*)( const ReaK::vect< double, 3 >& ) >( &ReaK::norm_2_sqr ) );
+  def( "norm_2", static_cast< double (*)( const ReaK::vect< double, 3 >& ) >( &ReaK::norm_2 ) );
+  def( "norm_inf", static_cast< double (*)( const ReaK::vect< double, 3 >& ) >( &ReaK::norm_inf ) );
+  def( "norm_1", static_cast< double (*)( const ReaK::vect< double, 3 >& ) >( &ReaK::norm_1 ) );
+  def( "unit", static_cast< ReaK::vect< double, 3 >(*)( const ReaK::vect< double, 3 >& ) >( &ReaK::unit ) );
+  def( "colinear",
+       static_cast< bool (*)( const ReaK::vect< double, 3 >&, const ReaK::vect< double, 3 >& ) >( &ReaK::colinear ) );
+
+  class_< ReaK::vect< double, 4 > >( "Vector4D" )
+    .def( init< double, double, double, double >() )
+    .def( self + self )
+    .def( self - self )
+    .def( -self )
+    .def( self * self )
+    .def( self += self )
+    .def( self -= self )
+    .def( self * double() )
+    .def( double() * self )
+    .def( self / double() )
+    .def( self *= double() )
+    .def( self /= double() )
+    .def("__str__", vect_to_string< ReaK::vect< double, 4 > >)
+    .def( "__len__", &ReaK::vect< double, 4 >::size )
+    .def("__getitem__", vect_getitem< ReaK::vect< double, 4 > >)
+    .def( "__setitem__", vect_setitem< ReaK::vect< double, 4 > > );
+
+  def( "norm_2_sqr", static_cast< double (*)( const ReaK::vect< double, 4 >& ) >( &ReaK::norm_2_sqr ) );
+  def( "norm_2", static_cast< double (*)( const ReaK::vect< double, 4 >& ) >( &ReaK::norm_2 ) );
+  def( "norm_inf", static_cast< double (*)( const ReaK::vect< double, 4 >& ) >( &ReaK::norm_inf ) );
+  def( "norm_1", static_cast< double (*)( const ReaK::vect< double, 4 >& ) >( &ReaK::norm_1 ) );
+  def( "unit", static_cast< ReaK::vect< double, 4 >(*)( const ReaK::vect< double, 4 >& ) >( &ReaK::unit ) );
+  def( "colinear",
+       static_cast< bool (*)( const ReaK::vect< double, 4 >&, const ReaK::vect< double, 4 >& ) >( &ReaK::colinear ) );
+
+  class_< ReaK::vect_n< double, std::allocator< double > > >( "VectorND" )
+    .def( init< double, double, double >() )
+    .def( init< double, double, double, double >() )
+    .def( init< double, double, double, double, double >() )
+    .def( init< double, double, double, double, double, double >() )
+    .def( init< double, double, double, double, double, double, double >() )
+    .def( init< double, double, double, double, double, double, double, double >() )
+    .def( init< double, double, double, double, double, double, double, double, double >() )
+    .def( init< double, double, double, double, double, double, double, double, double, double >() )
+    .def( init< double, double, double, double, double, double, double, double, double, double, double >() )
+    .def( init< double, double, double, double, double, double, double, double, double, double, double, double >() )
+    .def( init< double, double, double, double, double, double, double, double, double, double, double, double,
+                double >() )
+    .def( init< double, double, double, double, double, double, double, double, double, double, double, double, double,
+                double >() )
+    .def( self + self )
+    .def( self - self )
+    .def( -self )
+    .def( self * self )
+    .def( self += self )
+    .def( self -= self )
+    .def( self * double() )
+    .def( double() * self )
+    .def( self / double() )
+    .def( self *= double() )
+    .def( self /= double() )
+    .def("__str__", vect_to_string< ReaK::vect_n< double, std::allocator< double > > >)
+    .def( "__len__", &ReaK::vect_n< double, std::allocator< double > >::size )
+    .def("__getitem__", vect_getitem< ReaK::vect_n< double, std::allocator< double > > >)
+    .def("__setitem__", vect_setitem< ReaK::vect_n< double, std::allocator< double > > >)
+    .def( "resize", &ReaK::vect_n< double, std::allocator< double > >::resize );
+
+  def( "norm_2_sqr", static_cast< double (*)( const ReaK::vect_n< double >& ) >( &ReaK::norm_2_sqr ) );
+  def( "norm_2", static_cast< double (*)( const ReaK::vect_n< double >& ) >( &ReaK::norm_2 ) );
+  def( "norm_inf", static_cast< double (*)( const ReaK::vect_n< double >& ) >( &ReaK::norm_inf ) );
+  def( "norm_1", static_cast< double (*)( const ReaK::vect_n< double >& ) >( &ReaK::norm_1 ) );
+  def( "unit", static_cast< ReaK::vect_n< double >(*)( const ReaK::vect_n< double >& ) >( &ReaK::unit ) );
+  def( "colinear",
+       static_cast< bool (*)( const ReaK::vect_n< double >&, const ReaK::vect_n< double >& ) >( &ReaK::colinear ) );
 };
-
-
 };
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

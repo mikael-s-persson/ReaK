@@ -1,9 +1,9 @@
 /**
  *\file py_base.cpp
  *
- * This source file defines export functions for the python bindings on base classes 
+ * This source file defines export functions for the python bindings on base classes
  * of the ReaK platform.
- * 
+ *
  * \author Mikael Persson (mikael.s.persson@gmail.com)
  * \date June 2012
  */
@@ -26,10 +26,9 @@
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with ReaK (as LICENSE in the root folder).  
+ *    along with ReaK (as LICENSE in the root folder).
  *    If not, see <http://www.gnu.org/licenses/>.
  */
-
 
 
 #include <ReaK/core/base/defs.hpp>
@@ -47,74 +46,33 @@ namespace PyReaK {
 void export_base() {
 
   using namespace boost::python;
-  
-  class_< ReaK::typed_object,
-          ReaK::shared_ptr< ReaK::typed_object >, 
-          boost::noncopyable
-        >("TypedObj",no_init);
-  
-  class_< ReaK::serializable,
-          bases< ReaK::typed_object >,
-          ReaK::shared_ptr< ReaK::serializable >, 
-          boost::noncopyable
-        >("SerializableObj",no_init);
-  
-  class_< ReaK::shared_object_base, 
-          ReaK::shared_ptr< ReaK::shared_object_base >, 
-          boost::noncopyable
-        >("SharedObjBase",no_init);
-  
-  class_< ReaK::shared_object, 
-          bases< ReaK::shared_object_base, 
-                 ReaK::serializable >,
-          ReaK::shared_ptr< ReaK::shared_object >, 
-          boost::noncopyable
-        >("SharedObj",no_init);
-  
-  class_< ReaK::named_interface,
-          ReaK::shared_ptr< ReaK::named_interface >, 
-          boost::noncopyable
-        >("NamedInterface",no_init)
-    .def("get_name", pure_virtual(&ReaK::named_interface::getName), return_value_policy<copy_const_reference>())
-    .def("set_name", pure_virtual(&ReaK::named_interface::setName));
-    
-  class_< ReaK::named_object,
-          bases< ReaK::shared_object,
-                 ReaK::named_interface >,
-          ReaK::shared_ptr< ReaK::named_object > 
-        >("NamedObj");
-  def("create_named_obj", ReaK::rk_create<ReaK::named_object>);
-  
+
+  class_< ReaK::typed_object, ReaK::shared_ptr< ReaK::typed_object >, boost::noncopyable >( "TypedObj", no_init );
+
+  class_< ReaK::serializable, bases< ReaK::typed_object >, ReaK::shared_ptr< ReaK::serializable >, boost::noncopyable >(
+    "SerializableObj", no_init );
+
+  class_< ReaK::shared_object_base, ReaK::shared_ptr< ReaK::shared_object_base >, boost::noncopyable >( "SharedObjBase",
+                                                                                                        no_init );
+
+  class_< ReaK::shared_object, bases< ReaK::shared_object_base, ReaK::serializable >,
+          ReaK::shared_ptr< ReaK::shared_object >, boost::noncopyable >( "SharedObj", no_init );
+
+  class_< ReaK::named_interface, ReaK::shared_ptr< ReaK::named_interface >, boost::noncopyable >( "NamedInterface",
+                                                                                                  no_init )
+    .def( "get_name", pure_virtual( &ReaK::named_interface::getName ), return_value_policy< copy_const_reference >() )
+    .def( "set_name", pure_virtual( &ReaK::named_interface::setName ) );
+
+  class_< ReaK::named_object, bases< ReaK::shared_object, ReaK::named_interface >,
+          ReaK::shared_ptr< ReaK::named_object > >( "NamedObj" );
+  def( "create_named_obj", ReaK::rk_create< ReaK::named_object > );
+
 #ifndef BOOST_NO_CXX11_SMART_PTR
-  implicitly_convertible< std::shared_ptr< ReaK::named_object >, 
-                          std::shared_ptr< ReaK::shared_object > >();
-  implicitly_convertible< std::shared_ptr< ReaK::named_object >, 
-                          std::shared_ptr< ReaK::named_interface > >();
-  implicitly_convertible< std::shared_ptr< ReaK::shared_object >, 
-                          std::shared_ptr< ReaK::shared_object_base > >();
-  implicitly_convertible< std::shared_ptr< ReaK::shared_object >, 
-                          std::shared_ptr< ReaK::serializable > >();
-  implicitly_convertible< std::shared_ptr< ReaK::serializable >, 
-                          std::shared_ptr< ReaK::typed_object > >();
+  implicitly_convertible< std::shared_ptr< ReaK::named_object >, std::shared_ptr< ReaK::shared_object > >();
+  implicitly_convertible< std::shared_ptr< ReaK::named_object >, std::shared_ptr< ReaK::named_interface > >();
+  implicitly_convertible< std::shared_ptr< ReaK::shared_object >, std::shared_ptr< ReaK::shared_object_base > >();
+  implicitly_convertible< std::shared_ptr< ReaK::shared_object >, std::shared_ptr< ReaK::serializable > >();
+  implicitly_convertible< std::shared_ptr< ReaK::serializable >, std::shared_ptr< ReaK::typed_object > >();
 #endif
-  
 };
-
-
 };
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
