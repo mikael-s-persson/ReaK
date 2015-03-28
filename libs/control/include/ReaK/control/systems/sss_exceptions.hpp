@@ -1,8 +1,8 @@
 /**
  * \file sss_exceptions.hpp
- * 
+ *
  * This library defines a number of exceptions related to the definition of state-space systems.
- * 
+ *
  * \author Sven Mikael Persson <mikael.s.persson@gmail.com>
  * \date June 2011
  */
@@ -25,7 +25,7 @@
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with ReaK (as LICENSE in the root folder).  
+ *    along with ReaK (as LICENSE in the root folder).
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
@@ -37,47 +37,35 @@
 
 namespace ReaK {
 
-namespace ctrl { 
+namespace ctrl {
 
 /**
- * This exception is thrown whenever there is an incoherency in the definition of a 
+ * This exception is thrown whenever there is an incoherency in the definition of a
  * state-space system, such as mismatching dimensions of system matrices or singular
  * matrix definitions (singular mass-matrix for example).
  */
 class system_incoherency : public std::exception {
-  public:
-    std::string message; ///< Message string that identifies the singular matrix.
+public:
+  std::string message; ///< Message string that identifies the singular matrix.
 
-    /**
-     * Default constructor.
-     * \param aMessage the message corresponding to the incoherency.
-     */
-    system_incoherency(const std::string& aMessage) : message(std::string("State space system is incoherent, with message '") + aMessage + "'") { };
-    /**
-     * Destructor.
-     */
-    ~system_incoherency() throw() {};
+  /**
+   * Default constructor.
+   * \param aMessage the message corresponding to the incoherency.
+   */
+  system_incoherency( const std::string& aMessage )
+      : message( std::string( "State space system is incoherent, with message '" ) + aMessage + "'" ){};
+  /**
+   * Destructor.
+   */
+  ~system_incoherency() throw(){};
 
-    /**
-     * Gets the error message.
-     * \return c_string of the error message.
-     */
-    const char* what() const throw() {
-      return message.c_str();
-    };
-    
+  /**
+   * Gets the error message.
+   * \return c_string of the error message.
+   */
+  const char* what() const throw() { return message.c_str(); };
 };
-  
-  
-  
-
 };
-
 };
 
 #endif
-
-
-
-
-

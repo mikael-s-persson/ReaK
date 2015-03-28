@@ -1,9 +1,9 @@
 /**
  * \file state_to_output_mapping.hpp
- * 
- * This library provides a class template which can map state-vectors to elements 
+ *
+ * This library provides a class template which can map state-vectors to elements
  * of an output topology.
- * 
+ *
  * \author Sven Mikael Persson <mikael.s.persson@gmail.com>
  * \date December 2013
  */
@@ -26,7 +26,7 @@
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with ReaK (as LICENSE in the root folder).  
+ *    along with ReaK (as LICENSE in the root folder).
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
@@ -47,97 +47,85 @@ namespace ReaK {
 namespace ctrl {
 
 
-
 /**
- * This class is a bijection mapping from a belief-space to a state-space (topology) 
+ * This class is a bijection mapping from a belief-space to a state-space (topology)
  * by making the assumption of maximum likelihood. In other words, this mapping reduces
  * belief-states into their most likely value only.
- * 
+ *
  * Models: BijectionConcept between a state-space topology and a compatible output topology.
  */
-template <typename StateSpaceSystem>
+template < typename StateSpaceSystem >
 struct state_to_output_map : public named_object {
-  
-  typedef state_to_output_map<StateSpaceSystem> self;
-  
+
+  typedef state_to_output_map< StateSpaceSystem > self;
+
   typedef typename pp::topology_traits< BeliefSpace >::point_type belief_state_type;
   typedef typename belief_state_traits< belief_state_type >::state_type state_type;
-  
-  explicit state_to_output_map(const shared_ptr<StateSpaceSystem>& aSys = shared_ptr<StateSpaceSystem>()) : 
-                               named_object(), ss_system(aSys) { setName("state_to_output_map"); };
-  
-  shared_ptr<StateSpaceSystem> ss_system;
-  
+
+  explicit state_to_output_map( const shared_ptr< StateSpaceSystem >& aSys = shared_ptr< StateSpaceSystem >() )
+      : named_object(), ss_system( aSys ) {
+    setName( "state_to_output_map" );
+  };
+
+  shared_ptr< StateSpaceSystem > ss_system;
+
   /**
    * This function computes the output corresponding to a given state-point.
-   * \tparam StateSpace A state-space topology whose point-types are compatible with the state type of the state-space system used by this object.
-   * \tparam OutputSpace A topology whose point-types are compatible with the output-type of the state-space system used by this object.
+   * \tparam StateSpace A state-space topology whose point-types are compatible with the state type of the state-space
+   * system used by this object.
+   * \tparam OutputSpace A topology whose point-types are compatible with the output-type of the state-space system used
+   * by this object.
    * \param p The state-point for which the output is sought.
    * \param ss_space The state-space topology object.
    * \return The output corresponding to the given state-point.
    * \note This specialization is used for temporal state-spaces.
    */
-  template <typename StateSpace, typename OutputSpace>
-  typename boost::enable_if<
-    pp::is_temporal_space<StateSpace>,
-  pp::topology_traits<OutputSpace> >::type::point_type 
-      map_to_space(const typename pp::topology_traits<StateSpace>::point_type& p, const StateSpace& ss_space, const OutputSpace&) const {
-    typedef typename ss_system_traits<StateSpaceSystem>::input_type Input;
-    typedef typename pp::topology_traits<OutputSpace>::point_type OutputTopoPoint;
-    return OutputTopoPoint(p.time, ss_system->get_output(ss_space.get_space_topology(), p.pt, Input(), p.time));
+  template < typename StateSpace, typename OutputSpace >
+  typename boost::enable_if< pp::is_temporal_space< StateSpace >, pp::topology_traits< OutputSpace > >::type::point_type
+    map_to_space( const typename pp::topology_traits< StateSpace >::point_type& p, const StateSpace& ss_space,
+                  const OutputSpace& ) const {
+    typedef typename ss_system_traits< StateSpaceSystem >::input_type Input;
+    typedef typename pp::topology_traits< OutputSpace >::point_type OutputTopoPoint;
+    return OutputTopoPoint( p.time, ss_system->get_output( ss_space.get_space_topology(), p.pt, Input(), p.time ) );
   };
-  
+
   /**
    * This function computes the output corresponding to a given state-point.
-   * \tparam StateSpace A state-space topology whose point-types are compatible with the state type of the state-space system used by this object.
-   * \tparam OutputSpace A topology whose point-types are compatible with the output-type of the state-space system used by this object.
+   * \tparam StateSpace A state-space topology whose point-types are compatible with the state type of the state-space
+   * system used by this object.
+   * \tparam OutputSpace A topology whose point-types are compatible with the output-type of the state-space system used
+   * by this object.
    * \param p The state-point for which the output is sought.
    * \param ss_space The state-space topology object.
    * \return The output corresponding to the given state-point.
    * \note This specialization is used for non-temporal state-spaces.
    */
-  template <typename StateSpace, typename OutputSpace>
-  typename boost::disable_if<
-    pp::is_temporal_space<StateSpace>,
-  pp::topology_traits<OutputSpace> >::type::point_type 
-      map_to_space(const typename pp::topology_traits<StateSpace>::point_type& p, const StateSpace& ss_space, const OutputSpace&) const {
-    typedef typename ss_system_traits<StateSpaceSystem>::input_type Input;
-    typedef typename pp::topology_traits<OutputSpace>::point_type OutputTopoPoint;
-    return OutputTopoPoint(ss_system->get_output(ss_space, p, Input(), 0.0));
+  template < typename StateSpace, typename OutputSpace >
+  typename boost::disable_if< pp::is_temporal_space< StateSpace >,
+                              pp::topology_traits< OutputSpace > >::type::point_type
+    map_to_space( const typename pp::topology_traits< StateSpace >::point_type& p, const StateSpace& ss_space,
+                  const OutputSpace& ) const {
+    typedef typename ss_system_traits< StateSpaceSystem >::input_type Input;
+    typedef typename pp::topology_traits< OutputSpace >::point_type OutputTopoPoint;
+    return OutputTopoPoint( ss_system->get_output( ss_space, p, Input(), 0.0 ) );
   };
-  
-/*******************************************************************************
-                   ReaK's RTTI and Serialization interfaces
-*******************************************************************************/
 
-    virtual void RK_CALL save(ReaK::serialization::oarchive& A, unsigned int) const {
-      named_object::save(A, named_object::getStaticObjectType()->TypeVersion());
-      A & RK_SERIAL_SAVE_WITH_NAME(ss_system);
-    };
-    virtual void RK_CALL load(ReaK::serialization::iarchive& A, unsigned int) {
-      named_object::load(A, named_object::getStaticObjectType()->TypeVersion());
-      A & RK_SERIAL_LOAD_WITH_NAME(ss_system);
-    };
+  /*******************************************************************************
+                     ReaK's RTTI and Serialization interfaces
+  *******************************************************************************/
 
-    RK_RTTI_MAKE_CONCRETE_1BASE(self,0xC2300016,1,"state_to_output_map",named_object)
-    
+  virtual void RK_CALL save( ReaK::serialization::oarchive& A, unsigned int ) const {
+    named_object::save( A, named_object::getStaticObjectType()->TypeVersion() );
+    A& RK_SERIAL_SAVE_WITH_NAME( ss_system );
+  };
+  virtual void RK_CALL load( ReaK::serialization::iarchive& A, unsigned int ) {
+    named_object::load( A, named_object::getStaticObjectType()->TypeVersion() );
+    A& RK_SERIAL_LOAD_WITH_NAME( ss_system );
+  };
+
+  RK_RTTI_MAKE_CONCRETE_1BASE( self, 0xC2300016, 1, "state_to_output_map", named_object )
 };
-
-
-
 };
-
 };
 
 #endif
-
-
-
-
-
-
-
-
-
-
-

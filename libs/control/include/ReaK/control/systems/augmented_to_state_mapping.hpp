@@ -1,9 +1,9 @@
 /**
  * \file augmented_to_state_mapping.hpp
- * 
- * This library provides a class template which can map augmented-state points into state-points of a 
- * compatibly state-space topology. 
- * 
+ *
+ * This library provides a class template which can map augmented-state points into state-points of a
+ * compatibly state-space topology.
+ *
  * \author Sven Mikael Persson <mikael.s.persson@gmail.com>
  * \date April 2014
  */
@@ -26,7 +26,7 @@
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with ReaK (as LICENSE in the root folder).  
+ *    along with ReaK (as LICENSE in the root folder).
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
@@ -47,82 +47,69 @@ namespace ReaK {
 namespace ctrl {
 
 
-
 /**
- * This class is a bijection mapping from a belief-space to a state-space (topology) 
+ * This class is a bijection mapping from a belief-space to a state-space (topology)
  * by making the assumption of maximum likelihood. In other words, this mapping reduces
  * belief-states into their most likely value only.
- * 
+ *
  * Models: BijectionConcept between a belief-state topology and a compatible state topology.
  */
 struct augmented_to_state_map : public named_object {
-  
+
   typedef augmented_to_state_map self;
-  
-  augmented_to_state_map() : named_object() { setName("augmented_to_state_map"); };
-  
+
+  augmented_to_state_map() : named_object() { setName( "augmented_to_state_map" ); };
+
   /**
    * This function extracts the state from a augmented-state.
-   * \tparam AugStateSpace A augmented-state topoloogy whose state-space is compatible with the given state-space topology.
-   * \tparam StateSpaceOut A state-space topology whose point-types are compatible with the state type that the augmented-state type would produce.
+   * \tparam AugStateSpace A augmented-state topoloogy whose state-space is compatible with the given state-space
+   * topology.
+   * \tparam StateSpaceOut A state-space topology whose point-types are compatible with the state type that the
+   * augmented-state type would produce.
    * \param b The augmented-state from which the state is sought.
    * \return The state of the augmented-state.
    */
-  template <typename AugStateSpace, typename StateSpaceOut>
-  typename boost::enable_if<
-    pp::is_temporal_space<AugStateSpace>,
-    pp::topology_traits<StateSpaceOut> >::type::point_type
-      map_to_space(const typename pp::topology_traits<AugStateSpace>::point_type& b, const AugStateSpace&, const StateSpaceOut&) const {
-    typedef typename pp::topology_traits<StateSpaceOut>::point_type OutPointType;
-    return OutPointType(b.time, get<0>(b.pt));
+  template < typename AugStateSpace, typename StateSpaceOut >
+  typename boost::enable_if< pp::is_temporal_space< AugStateSpace >,
+                             pp::topology_traits< StateSpaceOut > >::type::point_type
+    map_to_space( const typename pp::topology_traits< AugStateSpace >::point_type& b, const AugStateSpace&,
+                  const StateSpaceOut& ) const {
+    typedef typename pp::topology_traits< StateSpaceOut >::point_type OutPointType;
+    return OutPointType( b.time, get< 0 >( b.pt ) );
   };
-  
+
   /**
    * This function extracts the state from a augmented-state.
-   * \tparam AugStateSpace A augmented-state topoloogy whose state-space is compatible with the given state-space topology.
-   * \tparam StateSpaceOut A state-space topology whose point-types are compatible with the state type that the augmented-state type would produce.
+   * \tparam AugStateSpace A augmented-state topoloogy whose state-space is compatible with the given state-space
+   * topology.
+   * \tparam StateSpaceOut A state-space topology whose point-types are compatible with the state type that the
+   * augmented-state type would produce.
    * \param b The augmented-state from which the state is sought.
    * \return The state of the augmented-state.
    */
-  template <typename AugStateSpace, typename StateSpaceOut>
-  typename boost::disable_if<
-    pp::is_temporal_space<AugStateSpace>,
-    pp::topology_traits<StateSpaceOut> >::type::point_type
-      map_to_space(const typename pp::topology_traits<AugStateSpace>::point_type& b, const AugStateSpace&, const StateSpaceOut&) const {
-    typedef typename pp::topology_traits<StateSpaceOut>::point_type OutPointType;
-    return OutPointType(get<0>(b));
+  template < typename AugStateSpace, typename StateSpaceOut >
+  typename boost::disable_if< pp::is_temporal_space< AugStateSpace >,
+                              pp::topology_traits< StateSpaceOut > >::type::point_type
+    map_to_space( const typename pp::topology_traits< AugStateSpace >::point_type& b, const AugStateSpace&,
+                  const StateSpaceOut& ) const {
+    typedef typename pp::topology_traits< StateSpaceOut >::point_type OutPointType;
+    return OutPointType( get< 0 >( b ) );
   };
-  
-/*******************************************************************************
-                   ReaK's RTTI and Serialization interfaces
-*******************************************************************************/
 
-    virtual void RK_CALL save(ReaK::serialization::oarchive& A, unsigned int) const {
-      named_object::save(A, named_object::getStaticObjectType()->TypeVersion());
-    };
-    virtual void RK_CALL load(ReaK::serialization::iarchive& A, unsigned int) {
-      named_object::load(A, named_object::getStaticObjectType()->TypeVersion());
-    };
+  /*******************************************************************************
+                     ReaK's RTTI and Serialization interfaces
+  *******************************************************************************/
 
-    RK_RTTI_MAKE_CONCRETE_1BASE(self,0xC2300017,1,"augmented_to_state_map",named_object)
-    
+  virtual void RK_CALL save( ReaK::serialization::oarchive& A, unsigned int ) const {
+    named_object::save( A, named_object::getStaticObjectType()->TypeVersion() );
+  };
+  virtual void RK_CALL load( ReaK::serialization::iarchive& A, unsigned int ) {
+    named_object::load( A, named_object::getStaticObjectType()->TypeVersion() );
+  };
+
+  RK_RTTI_MAKE_CONCRETE_1BASE( self, 0xC2300017, 1, "augmented_to_state_map", named_object )
 };
-
-
-
 };
-
 };
 
 #endif
-
-
-
-
-
-
-
-
-
-
-

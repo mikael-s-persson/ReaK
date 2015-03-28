@@ -17,7 +17,7 @@
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with ReaK (as LICENSE in the root folder).  
+ *    along with ReaK (as LICENSE in the root folder).
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
@@ -31,228 +31,128 @@ namespace ReaK {
 
 namespace ctrl {
 
-template class state_space_system_tuple<
-  airship_parameter_pack, 
-  arithmetic_tuple<satellite_state_model>, 
-  arithmetic_tuple<airship3D_6dof_thrusters>, 
-  arithmetic_tuple<
-    sat_position_output_model, 
-    sat_quaternion_output_model> 
-  >;
+template class state_space_system_tuple< airship_parameter_pack, arithmetic_tuple< satellite_state_model >,
+                                         arithmetic_tuple< airship3D_6dof_thrusters >,
+                                         arithmetic_tuple< sat_position_output_model, sat_quaternion_output_model > >;
 
-template class state_space_system_tuple<
-  airship_parameter_pack, 
-  arithmetic_tuple<satellite_state_model>, 
-  arithmetic_tuple<airship3D_6dof_thrusters>, 
-  arithmetic_tuple<
-    sat_position_output_model, 
-    sat_quaternion_output_model, 
-    sat_gyros_output_model> 
-  >;
+template class state_space_system_tuple< airship_parameter_pack, arithmetic_tuple< satellite_state_model >,
+                                         arithmetic_tuple< airship3D_6dof_thrusters >,
+                                         arithmetic_tuple< sat_position_output_model, sat_quaternion_output_model,
+                                                           sat_gyros_output_model > >;
 
-template class state_space_system_tuple<
-  airship_parameter_pack, 
-  arithmetic_tuple<
-    satellite_state_model, 
-    gyros_bias_state_model>, 
-  arithmetic_tuple<airship3D_6dof_thrusters>, 
-  arithmetic_tuple<
-    sat_position_output_model, 
-    sat_quaternion_output_model, 
-    sat_gyros_output_model> 
-  >;
+template class state_space_system_tuple< airship_parameter_pack,
+                                         arithmetic_tuple< satellite_state_model, gyros_bias_state_model >,
+                                         arithmetic_tuple< airship3D_6dof_thrusters >,
+                                         arithmetic_tuple< sat_position_output_model, sat_quaternion_output_model,
+                                                           sat_gyros_output_model > >;
 
-template class state_space_system_tuple<
-  airship_parameter_pack, 
-  arithmetic_tuple<
-    satellite_state_model, 
-    near_buoyancy_state_model, 
-    eccentricity_state_model, 
-    gyros_bias_state_model>, 
-  arithmetic_tuple<airship3D_6dof_thrusters>, 
-  arithmetic_tuple<
-    sat_position_output_model, 
-    sat_quaternion_output_model, 
-    sat_gyros_output_model> 
-  >;
+template class state_space_system_tuple< airship_parameter_pack,
+                                         arithmetic_tuple< satellite_state_model, near_buoyancy_state_model,
+                                                           eccentricity_state_model, gyros_bias_state_model >,
+                                         arithmetic_tuple< airship3D_6dof_thrusters >,
+                                         arithmetic_tuple< sat_position_output_model, sat_quaternion_output_model,
+                                                           sat_gyros_output_model > >;
 
-template class state_space_system_tuple<
-  airship_parameter_pack, 
-  arithmetic_tuple<
-    satellite_state_model, 
-    near_buoyancy_state_model, 
-    eccentricity_state_model,
-    linear_drag_state_model,
-    torsional_drag_state_model>, 
-  arithmetic_tuple<airship3D_6dof_thrusters>, 
-  arithmetic_tuple<
-    sat_position_output_model, 
-    sat_quaternion_output_model, 
-    sat_gyros_output_model> 
-  >;
+template class state_space_system_tuple< airship_parameter_pack,
+                                         arithmetic_tuple< satellite_state_model, near_buoyancy_state_model,
+                                                           eccentricity_state_model, linear_drag_state_model,
+                                                           torsional_drag_state_model >,
+                                         arithmetic_tuple< airship3D_6dof_thrusters >,
+                                         arithmetic_tuple< sat_position_output_model, sat_quaternion_output_model,
+                                                           sat_gyros_output_model > >;
 
-template class state_space_system_tuple<
-  airship_parameter_pack, 
-  arithmetic_tuple<
-    satellite_state_model, 
-    near_buoyancy_state_model, 
-    eccentricity_state_model,
-    linear_drag_state_model,
-    torsional_drag_state_model>, 
-  arithmetic_tuple<airship3D_6dof_thrusters>, 
-  arithmetic_tuple<
-    sat_position_output_model, 
-    sat_quaternion_output_model, 
-    sat_gyros_output_model,
-    sat_accelerometer_output_model,
-    sat_magnetometer_output_model> 
-  >;
+template class state_space_system_tuple< airship_parameter_pack,
+                                         arithmetic_tuple< satellite_state_model, near_buoyancy_state_model,
+                                                           eccentricity_state_model, linear_drag_state_model,
+                                                           torsional_drag_state_model >,
+                                         arithmetic_tuple< airship3D_6dof_thrusters >,
+                                         arithmetic_tuple< sat_position_output_model, sat_quaternion_output_model,
+                                                           sat_gyros_output_model, sat_accelerometer_output_model,
+                                                           sat_magnetometer_output_model > >;
 
-template class state_space_system_tuple<
-  airship_parameter_pack, 
-  arithmetic_tuple<
-    satellite_state_model, 
-    near_buoyancy_state_model, 
-    eccentricity_state_model,
-    gyros_bias_state_model,
-    accelerometer_bias_state_model,
-    magnetometer_bias_state_model>, 
-  arithmetic_tuple<airship3D_6dof_thrusters>, 
-  arithmetic_tuple<
-    sat_position_output_model, 
-    sat_quaternion_output_model, 
-    sat_gyros_output_model,
-    sat_accelerometer_output_model,
-    sat_magnetometer_output_model> 
-  >;
+template class state_space_system_tuple< airship_parameter_pack,
+                                         arithmetic_tuple< satellite_state_model, near_buoyancy_state_model,
+                                                           eccentricity_state_model, gyros_bias_state_model,
+                                                           accelerometer_bias_state_model,
+                                                           magnetometer_bias_state_model >,
+                                         arithmetic_tuple< airship3D_6dof_thrusters >,
+                                         arithmetic_tuple< sat_position_output_model, sat_quaternion_output_model,
+                                                           sat_gyros_output_model, sat_accelerometer_output_model,
+                                                           sat_magnetometer_output_model > >;
 
-template class state_space_system_tuple<
-  airship_parameter_pack, 
-  arithmetic_tuple<
-    satellite_state_model, 
-    near_buoyancy_state_model, 
-    eccentricity_state_model,
-    linear_drag_state_model,
-    torsional_drag_state_model,
-    gyros_bias_state_model,
-    accelerometer_bias_state_model,
-    magnetometer_bias_state_model>, 
-  arithmetic_tuple<airship3D_6dof_thrusters>, 
-  arithmetic_tuple<
-    sat_position_output_model, 
-    sat_quaternion_output_model, 
-    sat_gyros_output_model,
-    sat_accelerometer_output_model,
-    sat_magnetometer_output_model> 
-  >;
+template class state_space_system_tuple< airship_parameter_pack,
+                                         arithmetic_tuple< satellite_state_model, near_buoyancy_state_model,
+                                                           eccentricity_state_model, linear_drag_state_model,
+                                                           torsional_drag_state_model, gyros_bias_state_model,
+                                                           accelerometer_bias_state_model,
+                                                           magnetometer_bias_state_model >,
+                                         arithmetic_tuple< airship3D_6dof_thrusters >,
+                                         arithmetic_tuple< sat_position_output_model, sat_quaternion_output_model,
+                                                           sat_gyros_output_model, sat_accelerometer_output_model,
+                                                           sat_magnetometer_output_model > >;
 
 
-template class state_space_system_tuple<
-  airship_parameter_pack, 
-  arithmetic_tuple<
-    satellite_state_model, 
-    near_buoyancy_state_model, 
-    eccentricity_state_model>, 
-  arithmetic_tuple<tryphon_n_thrusters>, 
-  arithmetic_tuple< 
-    sonars_in_room_output_model,
-    sat_gyros_output_model,
-    sat_accelerometer_output_model,
-    sat_magnetometer_output_model> 
-  >;
+template class state_space_system_tuple< airship_parameter_pack,
+                                         arithmetic_tuple< satellite_state_model, near_buoyancy_state_model,
+                                                           eccentricity_state_model >,
+                                         arithmetic_tuple< tryphon_n_thrusters >,
+                                         arithmetic_tuple< sonars_in_room_output_model, sat_gyros_output_model,
+                                                           sat_accelerometer_output_model,
+                                                           sat_magnetometer_output_model > >;
 
-template class state_space_system_tuple<
-  airship_parameter_pack, 
-  arithmetic_tuple<
-    satellite_state_model, 
-    near_buoyancy_state_model, 
-    eccentricity_state_model,
-    linear_drag_state_model,
-    torsional_drag_state_model>, 
-  arithmetic_tuple<tryphon_n_thrusters>, 
-  arithmetic_tuple< 
-    sonars_in_room_output_model,
-    sat_gyros_output_model,
-    sat_accelerometer_output_model,
-    sat_magnetometer_output_model> 
-  >;
+template class state_space_system_tuple< airship_parameter_pack,
+                                         arithmetic_tuple< satellite_state_model, near_buoyancy_state_model,
+                                                           eccentricity_state_model, linear_drag_state_model,
+                                                           torsional_drag_state_model >,
+                                         arithmetic_tuple< tryphon_n_thrusters >,
+                                         arithmetic_tuple< sonars_in_room_output_model, sat_gyros_output_model,
+                                                           sat_accelerometer_output_model,
+                                                           sat_magnetometer_output_model > >;
 
-template class state_space_system_tuple<
-  airship_parameter_pack, 
-  arithmetic_tuple<
-    satellite_state_model, 
-    near_buoyancy_state_model, 
-    eccentricity_state_model,
-    gyros_bias_state_model,
-    accelerometer_bias_state_model,
-    magnetometer_bias_state_model>, 
-  arithmetic_tuple<tryphon_n_thrusters>, 
-  arithmetic_tuple< 
-    sonars_in_room_output_model,
-    sat_gyros_output_model,
-    sat_accelerometer_output_model,
-    sat_magnetometer_output_model> 
-  >;
+template class state_space_system_tuple< airship_parameter_pack,
+                                         arithmetic_tuple< satellite_state_model, near_buoyancy_state_model,
+                                                           eccentricity_state_model, gyros_bias_state_model,
+                                                           accelerometer_bias_state_model,
+                                                           magnetometer_bias_state_model >,
+                                         arithmetic_tuple< tryphon_n_thrusters >,
+                                         arithmetic_tuple< sonars_in_room_output_model, sat_gyros_output_model,
+                                                           sat_accelerometer_output_model,
+                                                           sat_magnetometer_output_model > >;
 
-template class state_space_system_tuple<
-  airship_parameter_pack, 
-  arithmetic_tuple<
-    satellite_state_model, 
-    near_buoyancy_state_model, 
-    eccentricity_state_model,
-    linear_drag_state_model,
-    torsional_drag_state_model,
-    gyros_bias_state_model,
-    accelerometer_bias_state_model,
-    magnetometer_bias_state_model>, 
-  arithmetic_tuple<tryphon_n_thrusters>, 
-  arithmetic_tuple< 
-    sonars_in_room_output_model,
-    sat_gyros_output_model,
-    sat_accelerometer_output_model,
-    sat_magnetometer_output_model> 
-  >;
+template class state_space_system_tuple< airship_parameter_pack,
+                                         arithmetic_tuple< satellite_state_model, near_buoyancy_state_model,
+                                                           eccentricity_state_model, linear_drag_state_model,
+                                                           torsional_drag_state_model, gyros_bias_state_model,
+                                                           accelerometer_bias_state_model,
+                                                           magnetometer_bias_state_model >,
+                                         arithmetic_tuple< tryphon_n_thrusters >,
+                                         arithmetic_tuple< sonars_in_room_output_model, sat_gyros_output_model,
+                                                           sat_accelerometer_output_model,
+                                                           sat_magnetometer_output_model > >;
 
-template class state_space_system_tuple<
-  airship_parameter_pack, 
-  arithmetic_tuple<
-    satellite_state_model, 
-    near_buoyancy_state_model, 
-    eccentricity_state_model,
-    gyros_bias_state_model,
-    accelerometer_bias_state_model,
-    magnetometer_bias_state_model,
-    room_orientation_state_model>, 
-  arithmetic_tuple<tryphon_n_thrusters>, 
-  arithmetic_tuple< 
-    sonars_in_room_output_model,
-    sat_gyros_output_model,
-    sat_accelerometer_output_model,
-    sat_magnetometer_output_model> 
-  >;
+template class state_space_system_tuple< airship_parameter_pack,
+                                         arithmetic_tuple< satellite_state_model, near_buoyancy_state_model,
+                                                           eccentricity_state_model, gyros_bias_state_model,
+                                                           accelerometer_bias_state_model,
+                                                           magnetometer_bias_state_model,
+                                                           room_orientation_state_model >,
+                                         arithmetic_tuple< tryphon_n_thrusters >,
+                                         arithmetic_tuple< sonars_in_room_output_model, sat_gyros_output_model,
+                                                           sat_accelerometer_output_model,
+                                                           sat_magnetometer_output_model > >;
 
-template class state_space_system_tuple<
-  airship_parameter_pack, 
-  arithmetic_tuple<
-    satellite_state_model, 
-    near_buoyancy_state_model, 
-    eccentricity_state_model,
-    linear_drag_state_model,
-    torsional_drag_state_model,
-    gyros_bias_state_model,
-    accelerometer_bias_state_model,
-    magnetometer_bias_state_model,
-    room_orientation_state_model>, 
-  arithmetic_tuple<tryphon_n_thrusters>, 
-  arithmetic_tuple< 
-    sonars_in_room_output_model,
-    sat_gyros_output_model,
-    sat_accelerometer_output_model,
-    sat_magnetometer_output_model> 
-  >;
-
+template class state_space_system_tuple< airship_parameter_pack,
+                                         arithmetic_tuple< satellite_state_model, near_buoyancy_state_model,
+                                                           eccentricity_state_model, linear_drag_state_model,
+                                                           torsional_drag_state_model, gyros_bias_state_model,
+                                                           accelerometer_bias_state_model,
+                                                           magnetometer_bias_state_model,
+                                                           room_orientation_state_model >,
+                                         arithmetic_tuple< tryphon_n_thrusters >,
+                                         arithmetic_tuple< sonars_in_room_output_model, sat_gyros_output_model,
+                                                           sat_accelerometer_output_model,
+                                                           sat_magnetometer_output_model > >;
 };
-
 };
 
 #else
@@ -261,12 +161,8 @@ namespace ReaK {
 
 namespace ctrl {
 
-void dummy_airship_assembled_models_externs_1_symbol() { };
-
+void dummy_airship_assembled_models_externs_1_symbol(){};
 };
-
 };
 
 #endif
-
-

@@ -17,7 +17,7 @@
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with ReaK (as LICENSE in the root folder).  
+ *    along with ReaK (as LICENSE in the root folder).
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
@@ -32,70 +32,37 @@ namespace ReaK {
 
 namespace ctrl {
 
-template <typename StateEstimator>
+template < typename StateEstimator >
 struct state_estimator_traits {
   typedef typename StateEstimator::belief_type belief_type;
   typedef typename StateEstimator::system_type system_type;
-  typedef typename belief_state_traits<belief_type>::state_type state_type;
-  
-  BOOST_STATIC_CONSTANT(std::size_t, dimensions = ss_system_traits<system_type>::dimensions);
-  
+  typedef typename belief_state_traits< belief_type >::state_type state_type;
+
+  BOOST_STATIC_CONSTANT( std::size_t, dimensions = ss_system_traits< system_type >::dimensions );
 };
 
 
-template <typename StateEstimator>
+template < typename StateEstimator >
 struct StateEstimatorConcept {
   StateEstimator e;
-  
-  typename state_estimator_traits<StateEstimator>::belief_type b;
-  typedef typename state_estimator_traits<StateEstimator>::system_type system_type;
+
+  typename state_estimator_traits< StateEstimator >::belief_type b;
+  typedef typename state_estimator_traits< StateEstimator >::system_type system_type;
   system_type sys;
-  typename discrete_sss_traits<system_type>::input_type u;
-  typename discrete_sss_traits<system_type>::output_type y;
-  typename discrete_sss_traits<system_type>::time_type t;
-  
-  BOOST_CONCEPT_ASSERT((BeliefStateConcept< typename state_estimator_traits<StateEstimator>::belief_type >));
-  BOOST_CONCEPT_ASSERT((DiscreteSSSConcept< typename state_estimator_traits<StateEstimator>::system_type >));
-  
+  typename discrete_sss_traits< system_type >::input_type u;
+  typename discrete_sss_traits< system_type >::output_type y;
+  typename discrete_sss_traits< system_type >::time_type t;
+
+  BOOST_CONCEPT_ASSERT( ( BeliefStateConcept< typename state_estimator_traits< StateEstimator >::belief_type > ) );
+  BOOST_CONCEPT_ASSERT( ( DiscreteSSSConcept< typename state_estimator_traits< StateEstimator >::system_type > ) );
+
   void constraints() {
-    b = e.predict_next_belief(b,u,t);
-    b = e.update_belief(b,u,y,t);
+    b = e.predict_next_belief( b, u, t );
+    b = e.update_belief( b, u, y, t );
   };
-  
 };
-
-
-
-
 };
-
 };
 
 
 #endif
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
