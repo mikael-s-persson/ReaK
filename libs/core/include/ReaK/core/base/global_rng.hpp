@@ -1,8 +1,8 @@
 /**
  * \file global_rng.hpp
- * 
+ *
  * This library provides defines the global random-number generator object.
- * 
+ *
  * \author Sven Mikael Persson <mikael.s.persson@gmail.com>
  * \date October 2011
  */
@@ -25,7 +25,7 @@
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with ReaK (as LICENSE in the root folder).  
+ *    along with ReaK (as LICENSE in the root folder).
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
@@ -49,19 +49,9 @@ typedef boost::random::mt19937 global_rng_type;
  */
 inline global_rng_type& get_global_rng() {
   static boost::random::random_device rd;
-  static global_rng_type instance = global_rng_type(rd());
+  static global_rng_type instance = global_rng_type( rd() );
   return instance;
 };
-
-
 };
 
 #endif
-
-
-
-
-
-
-
-

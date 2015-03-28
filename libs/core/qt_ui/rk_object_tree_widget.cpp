@@ -17,7 +17,7 @@
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with ReaK (as LICENSE in the root folder).  
+ *    along with ReaK (as LICENSE in the root folder).
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
@@ -29,40 +29,28 @@
 #include <QTreeView>
 
 namespace ReaK {
-  
+
 namespace qt {
 
 
-ObjectTreeWidget::ObjectTreeWidget(const shared_ptr< serialization::object_graph >& aObjGraph, 
-                                   serialization::object_node_desc aRoot, QWidget * parent, Qt::WindowFlags flags) :
-                                   QDockWidget(parent, flags),
-                                   ui(new Ui::RKObjectTreeWidget()),
-                                   mdl(aObjGraph,aRoot)
-{
-  ui->setupUi(this);
-  ui->treeView->setModel(&mdl);
-  ui->treeView->setRootIndex(QModelIndex());
-  
-  connect(ui->treeView, SIGNAL(clicked(QModelIndex)), &mdl, SLOT(itemSelected(QModelIndex)));
-  connect(&mdl, SIGNAL(aboutToResetModel()), this, SLOT(recordPreviousSelection()));
-  connect(&mdl, SIGNAL(justAfterModelReset()), this, SLOT(restorePreviousSelection()));
+ObjectTreeWidget::ObjectTreeWidget( const shared_ptr< serialization::object_graph >& aObjGraph,
+                                    serialization::object_node_desc aRoot, QWidget* parent, Qt::WindowFlags flags )
+    : QDockWidget( parent, flags ), ui( new Ui::RKObjectTreeWidget() ), mdl( aObjGraph, aRoot ) {
+  ui->setupUi( this );
+  ui->treeView->setModel( &mdl );
+  ui->treeView->setRootIndex( QModelIndex() );
+
+  connect( ui->treeView, SIGNAL( clicked( QModelIndex ) ), &mdl, SLOT( itemSelected( QModelIndex ) ) );
+  connect( &mdl, SIGNAL( aboutToResetModel() ), this, SLOT( recordPreviousSelection() ) );
+  connect( &mdl, SIGNAL( justAfterModelReset() ), this, SLOT( restorePreviousSelection() ) );
 };
 
-ObjectTreeWidget::~ObjectTreeWidget() {
-  delete ui;
-};
+ObjectTreeWidget::~ObjectTreeWidget() { delete ui; };
 
 void ObjectTreeWidget::recordPreviousSelection() {
-  prev_selection = mdl.data(ui->treeView->currentIndex(), Qt::DisplayRole).toString();
+  prev_selection = mdl.data( ui->treeView->currentIndex(), Qt::DisplayRole ).toString();
 };
 
-void ObjectTreeWidget::restorePreviousSelection() {
-  ui->treeView->keyboardSearch(prev_selection);
+void ObjectTreeWidget::restorePreviousSelection() { ui->treeView->keyboardSearch( prev_selection ); };
 };
-
-
 };
-
-};
-
-

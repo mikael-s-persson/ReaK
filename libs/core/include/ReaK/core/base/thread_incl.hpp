@@ -43,7 +43,7 @@
 //  NOTE: This does not include futures and the notify-all-at-exit, because they are not fully supported.
 // #if __GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 7) || !defined(__GXX_EXPERIMENTAL_CXX0X__)
 
-#if !defined(BOOST_NO_CXX11_HDR_THREAD)
+#if !defined( BOOST_NO_CXX11_HDR_THREAD )
 
 // This is a bit nasty...
 #if __GNUC__
@@ -55,7 +55,8 @@
 #endif
 #endif
 
-// must use standard thread library because most supported versions of boost, up to 1.48 are broken for C++11 under GCC 4.7 or higher.
+// must use standard thread library because most supported versions of boost, up to 1.48 are broken for C++11 under GCC
+// 4.7 or higher.
 #include <thread>
 #include <mutex>
 #include <condition_variable>
@@ -65,57 +66,55 @@
 
 namespace ReaKaux {
 
-  // thread:
+// thread:
 
-  using ::std::thread;
-  //using ::std::swap;
+using ::std::thread;
+// using ::std::swap;
 
-  namespace this_thread {
+namespace this_thread {
 
-    using ::std::this_thread::get_id;
-    using ::std::this_thread::yield;
-    using ::std::this_thread::sleep_until;
-    using ::std::this_thread::sleep_for;
+using ::std::this_thread::get_id;
+using ::std::this_thread::yield;
+using ::std::this_thread::sleep_until;
+using ::std::this_thread::sleep_for;
+};
 
-  };
+// mutex:
 
-  // mutex:
+using ::std::mutex;
+using ::std::recursive_mutex;
+using ::std::timed_mutex;
+using ::std::recursive_timed_mutex;
 
-  using ::std::mutex;
-  using ::std::recursive_mutex;
-  using ::std::timed_mutex;
-  using ::std::recursive_timed_mutex;
+using ::std::defer_lock_t;
+using ::std::try_to_lock_t;
+using ::std::adopt_lock_t;
 
-  using ::std::defer_lock_t;
-  using ::std::try_to_lock_t;
-  using ::std::adopt_lock_t;
+using ::std::defer_lock;
+using ::std::try_to_lock;
+using ::std::adopt_lock;
 
-  using ::std::defer_lock;
-  using ::std::try_to_lock;
-  using ::std::adopt_lock;
+using ::std::lock_guard;
+using ::std::unique_lock;
 
-  using ::std::lock_guard;
-  using ::std::unique_lock;
-
-  //using ::std::swap;
+// using ::std::swap;
 
 //   using ::std::try_lock;
 //   using ::std::lock;
 
-  using ::std::once_flag;
+using ::std::once_flag;
 
-  using ::std::call_once;
+using ::std::call_once;
 
-  // condition_variable:
+// condition_variable:
 
-  using ::std::condition_variable;
-  using ::std::condition_variable_any;
+using ::std::condition_variable;
+using ::std::condition_variable_any;
 
-  //using ::std::notify_all_at_thread_exit;
-  
-  using ::std::exception_ptr;
-  using ::std::make_exception_ptr;
-  
+// using ::std::notify_all_at_thread_exit;
+
+using ::std::exception_ptr;
+using ::std::make_exception_ptr;
 };
 
 #else
@@ -133,62 +132,62 @@ namespace ReaKaux {
 
 namespace ReaKaux {
 
-  // thread:
+// thread:
 
-  using ::boost::thread;
-  //using std::swap;
+using ::boost::thread;
+// using std::swap;
 
-  namespace this_thread {
+namespace this_thread {
 
-    using ::boost::this_thread::get_id;
-    using ::boost::this_thread::yield;
-#if (BOOST_VERSION >= 105000)
-    using ::boost::this_thread::sleep_until;
-    using ::boost::this_thread::sleep_for;
+using ::boost::this_thread::get_id;
+using ::boost::this_thread::yield;
+#if( BOOST_VERSION >= 105000 )
+using ::boost::this_thread::sleep_until;
+using ::boost::this_thread::sleep_for;
 #endif
+};
 
-  };
+// mutex:
 
-  // mutex:
+using ::boost::mutex;
+using ::boost::recursive_mutex;
+using ::boost::timed_mutex;
+using ::boost::recursive_timed_mutex;
 
-  using ::boost::mutex;
-  using ::boost::recursive_mutex;
-  using ::boost::timed_mutex;
-  using ::boost::recursive_timed_mutex;
+using ::boost::defer_lock_t;
+using ::boost::try_to_lock_t;
+using ::boost::adopt_lock_t;
 
-  using ::boost::defer_lock_t;
-  using ::boost::try_to_lock_t;
-  using ::boost::adopt_lock_t;
+using ::boost::defer_lock;
+using ::boost::try_to_lock;
+using ::boost::adopt_lock;
 
-  using ::boost::defer_lock;
-  using ::boost::try_to_lock;
-  using ::boost::adopt_lock;
+using ::boost::lock_guard;
+using ::boost::unique_lock;
 
-  using ::boost::lock_guard;
-  using ::boost::unique_lock;
-
-  //using ::std::swap;
+// using ::std::swap;
 
 //   using ::boost::try_lock;
 //   using ::boost::lock;
 
-  using ::boost::once_flag;
+using ::boost::once_flag;
 
-  using ::boost::call_once;
+using ::boost::call_once;
 
-  // condition_variable:
+// condition_variable:
 
-  using ::boost::condition_variable;
-  using ::boost::condition_variable_any;
+using ::boost::condition_variable;
+using ::boost::condition_variable_any;
 
-  //using ::boost::notify_all_at_thread_exit;
-  
-  using ::boost::exception_ptr;
-  
+// using ::boost::notify_all_at_thread_exit;
+
+using ::boost::exception_ptr;
+
 //   using ::boost::make_exception_ptr;
-  template <class T>
-  exception_ptr make_exception_ptr( T const & e ) { return ::boost::copy_exception(e); };
-  
+template < class T >
+exception_ptr make_exception_ptr( T const& e ) {
+  return ::boost::copy_exception( e );
+};
 };
 
 #endif
@@ -196,15 +195,15 @@ namespace ReaKaux {
 
 #ifndef BOOST_NO_CXX11_HDR_FUTURE
 
-// must use standard thread library because most supported versions of boost, up to 1.48 are broken for C++11 under GCC 4.7 or higher.
+// must use standard thread library because most supported versions of boost, up to 1.48 are broken for C++11 under GCC
+// 4.7 or higher.
 #include <future>
 
 namespace ReaKaux {
-  
-  using ::std::future;
-  using ::std::future_error;
-  using ::std::promise;
-  
+
+using ::std::future;
+using ::std::future_error;
+using ::std::promise;
 };
 
 #else
@@ -215,21 +214,13 @@ namespace ReaKaux {
 #include <boost/thread/future.hpp>
 
 namespace ReaKaux {
-  
-  using ::boost::future;
-  using ::boost::future_error;
-  using ::boost::promise;
-  
+
+using ::boost::future;
+using ::boost::future_error;
+using ::boost::promise;
 };
 
 #endif
 
 
-
-
 #endif
-
-
-
-
-

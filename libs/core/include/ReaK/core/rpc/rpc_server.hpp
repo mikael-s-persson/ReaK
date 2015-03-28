@@ -1,8 +1,8 @@
 /**
  * \file rpc_server.hpp
  *
- * This library declares a singleton class to act as the server to publish and subscribe to 
- * remote procedure call (rpc) functions. 
+ * This library declares a singleton class to act as the server to publish and subscribe to
+ * remote procedure call (rpc) functions.
  *
  * \author Mikael Persson, <mikael.s.persson@gmail.com>
  * \date June 2014
@@ -26,7 +26,7 @@
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with ReaK (as LICENSE in the root folder).  
+ *    along with ReaK (as LICENSE in the root folder).
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
@@ -45,38 +45,30 @@ namespace rpc {
 
 // Singleton
 class server {
-  private:
-    server();
-    ~server();
-    
-    struct impl;
-    impl* pimpl;
-    
-  public:
-    static server& instance();
-    
-    static void set_name(const std::string& aName);
-    
-    friend class detail::remote_function;
-    
-  private:
-    
-    void publish_function(detail::remote_function* aFunc);
-    void unpublish_function(detail::remote_function* aFunc);
-    
-    detail::call_preparations prepare_call(detail::remote_function* aPFunc) const;
-    ReaKaux::future< detail::call_results > make_remote_call(detail::remote_function* aPFunc, detail::call_preparations&& pre_data) const;
-    
+private:
+  server();
+  ~server();
+
+  struct impl;
+  impl* pimpl;
+
+public:
+  static server& instance();
+
+  static void set_name( const std::string& aName );
+
+  friend class detail::remote_function;
+
+private:
+  void publish_function( detail::remote_function* aFunc );
+  void unpublish_function( detail::remote_function* aFunc );
+
+  detail::call_preparations prepare_call( detail::remote_function* aPFunc ) const;
+  ReaKaux::future< detail::call_results > make_remote_call( detail::remote_function* aPFunc,
+                                                            detail::call_preparations&& pre_data ) const;
 };
-
-
-
 };
-
 };
 
 
 #endif
-
-
-

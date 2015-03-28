@@ -1,7 +1,7 @@
 /**
  * \file atomic_incl.hpp
  *
- * This library contains imports of inclusions of atomics classes and operations depending on 
+ * This library contains imports of inclusions of atomics classes and operations depending on
  * whether the standard library supports it or not (fallback is Boost).
  * This library should be included instead of either Boost.Atomics libraries or C++11 standard
  * atomic libraries. This header takes care of figuring out which atomic library is appropriate
@@ -38,7 +38,8 @@
 
 #include "defs.hpp"
 
-//  NOTE: Currently, there is no definite and simple test for whether the <atomic> header exists (what's up with that Boost devs!!!)
+//  NOTE: Currently, there is no definite and simple test for whether the <atomic> header exists (what's up with that
+//  Boost devs!!!)
 #if 0
 
 #include <atomic>
@@ -92,11 +93,11 @@ namespace ReaKaux {
 
 
 namespace ReaKaux {
-  
-  // atomics:
-  
-  using ::boost::atomic;
-  
+
+// atomics:
+
+using ::boost::atomic;
+
 //   using ::boost::atomic_is_lock_free;
 //   using ::boost::atomic_store;
 //   using ::boost::atomic_store_explicit;
@@ -118,30 +119,22 @@ namespace ReaKaux {
 //   using ::boost::atomic_fetch_or_explicit;
 //   using ::boost::atomic_fetch_xor;
 //   using ::boost::atomic_fetch_xor_explicit;
-  
-  using ::boost::atomic_flag;
+
+using ::boost::atomic_flag;
 //   using ::boost::atomic_flag_test_and_set;
 //   using ::boost::atomic_flag_test_and_set_explicit;
 //   using ::boost::atomic_flag_clear;
 //   using ::boost::atomic_flag_clear_explicit;
-  
+
 //   using ::boost::atomic_init;
-  
-  using ::boost::memory_order;
+
+using ::boost::memory_order;
 //   using ::boost::kill_dependency;
-  using ::boost::atomic_thread_fence;
-  using ::boost::atomic_signal_fence;
-  
+using ::boost::atomic_thread_fence;
+using ::boost::atomic_signal_fence;
 };
 
 #endif
 
 
-
-
 #endif
-
-
-
-
-

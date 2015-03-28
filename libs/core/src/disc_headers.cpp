@@ -17,7 +17,7 @@
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with ReaK (as LICENSE in the root folder).  
+ *    along with ReaK (as LICENSE in the root folder).
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
@@ -35,62 +35,55 @@ namespace rpc {
 
 namespace detail {
 
-const char* disc_header_type_to_str[] = {
-  "NEWPORT",
-  "GIVEPORT",
-  "ADVERTISE",
-  "UNADVERTISE",
-  "ECHO"
-};
+const char* disc_header_type_to_str[] = {"NEWPORT", "GIVEPORT", "ADVERTISE", "UNADVERTISE", "ECHO"};
 
-std::string generate_disc_header(disc_header_type h, msg_format fmt, std::size_t msg_size) {
+std::string generate_disc_header( disc_header_type h, msg_format fmt, std::size_t msg_size ) {
   std::stringstream ss;
-  ss  << "REAK.DISC " << std::setprecision(2) << rpc_protocol_version 
-      << " " << disc_header_type_to_str[h] 
-      << " " << msg_format_to_str[fmt] 
-      << " " << msg_size << "\r\n" << std::flush;
+  ss << "REAK.DISC " << std::setprecision( 2 ) << rpc_protocol_version << " " << disc_header_type_to_str[h] << " "
+     << msg_format_to_str[fmt] << " " << msg_size << "\r\n" << std::flush;
   return ss.str();
 };
 
-std::tuple<disc_header_type, msg_format, std::size_t> parse_disc_header(std::istream& hdr_in) {
-  
+std::tuple< disc_header_type, msg_format, std::size_t > parse_disc_header( std::istream& hdr_in ) {
+
   std::string hdr_lead;
-  if(!(hdr_in >> hdr_lead) || (hdr_lead != "REAK.DISC"))
-    throw communication_error("The header received does not start with 'REAK.DISC!'");
-  
+  if( !( hdr_in >> hdr_lead ) || ( hdr_lead != "REAK.DISC" ) )
+    throw communication_error( "The header received does not start with 'REAK.DISC!'" );
+
   double hdr_ver;
-  if(!(hdr_in >> hdr_ver) || (hdr_ver > rpc_protocol_version + 0.001))
-    throw communication_error("The header received demands a version of ReaK.RPC which is not supported by this implementation!");
-  
-  std::tuple<disc_header_type, msg_format, std::size_t> result;
-  
+  if( !( hdr_in >> hdr_ver ) || ( hdr_ver > rpc_protocol_version + 0.001 ) )
+    throw communication_error(
+      "The header received demands a version of ReaK.RPC which is not supported by this implementation!" );
+
+  std::tuple< disc_header_type, msg_format, std::size_t > result;
+
   std::string hdr_type;
-  if(!(hdr_in >> hdr_type))
-    throw communication_error("The header received does not have a valid type identifier!");
-  if(hdr_type == disc_header_type_to_str[disc_newport])
-    std::get<0>(result) = disc_newport;
-  else if(hdr_type == disc_header_type_to_str[disc_giveport])
-    std::get<0>(result) = disc_giveport;
-  else if(hdr_type == disc_header_type_to_str[disc_advertise])
-    std::get<0>(result) = disc_advertise;
-  else if(hdr_type == disc_header_type_to_str[disc_unadvertise])
-    std::get<0>(result) = disc_unadvertise;
-  else if(hdr_type == disc_header_type_to_str[disc_echo])
-    std::get<0>(result) = disc_echo;
-  
+  if( !( hdr_in >> hdr_type ) )
+    throw communication_error( "The header received does not have a valid type identifier!" );
+  if( hdr_type == disc_header_type_to_str[disc_newport] )
+    std::get< 0 >( result ) = disc_newport;
+  else if( hdr_type == disc_header_type_to_str[disc_giveport] )
+    std::get< 0 >( result ) = disc_giveport;
+  else if( hdr_type == disc_header_type_to_str[disc_advertise] )
+    std::get< 0 >( result ) = disc_advertise;
+  else if( hdr_type == disc_header_type_to_str[disc_unadvertise] )
+    std::get< 0 >( result ) = disc_unadvertise;
+  else if( hdr_type == disc_header_type_to_str[disc_echo] )
+    std::get< 0 >( result ) = disc_echo;
+
   std::string hdr_format;
-  if(!(hdr_in >> hdr_format))
-    throw communication_error("The header received does not have a valid format identifier!");
-  if(hdr_format == msg_format_to_str[binary_format])
-    std::get<1>(result) = binary_format;
-  else if(hdr_format == msg_format_to_str[xml_format])
-    std::get<1>(result) = xml_format;
-  else if(hdr_format == msg_format_to_str[protobuf_format])
-    std::get<1>(result) = protobuf_format;
-  
-  if(!(hdr_in >> std::get<2>(result)))
-    throw communication_error("The header received does not have a valid format identifier!");
-  
+  if( !( hdr_in >> hdr_format ) )
+    throw communication_error( "The header received does not have a valid format identifier!" );
+  if( hdr_format == msg_format_to_str[binary_format] )
+    std::get< 1 >( result ) = binary_format;
+  else if( hdr_format == msg_format_to_str[xml_format] )
+    std::get< 1 >( result ) = xml_format;
+  else if( hdr_format == msg_format_to_str[protobuf_format] )
+    std::get< 1 >( result ) = protobuf_format;
+
+  if( !( hdr_in >> std::get< 2 >( result ) ) )
+    throw communication_error( "The header received does not have a valid format identifier!" );
+
   while( true ) {
     int p = hdr_in.peek();
     if( ( p == '\r' ) || ( p == '\n' ) ) {
@@ -100,16 +93,9 @@ std::tuple<disc_header_type, msg_format, std::size_t> parse_disc_header(std::ist
       break;
     };
   };
-  
+
   return result;
 };
-
-
 };
-
 };
-
 };
-
-
-

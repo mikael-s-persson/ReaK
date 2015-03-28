@@ -25,7 +25,7 @@
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with ReaK (as LICENSE in the root folder).  
+ *    along with ReaK (as LICENSE in the root folder).
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
@@ -50,37 +50,38 @@ namespace ReaK {
  * branch for examples).
  */
 class serializable : public typed_object {
-  public:
+public:
+  virtual ~serializable(){};
 
-    virtual ~serializable() { };
+  /**
+   * This method saves the content of the object to a serial archive of any type.
+   *
+   * \pre any valid object state.
+   * \post the object state has been saved to the archive such that it can be completely reconstructed at load-time.
+   * \param A any type of output archive.
+   * \param Version the version of this object that is to be saved (always the latest version).
+   */
+  virtual void RK_CALL save( serialization::oarchive& A, unsigned int Version ) const {
+    RK_UNUSED( A );
+    RK_UNUSED( Version );
+  };
 
-    /**
-     * This method saves the content of the object to a serial archive of any type.
-     *
-     * \pre any valid object state.
-     * \post the object state has been saved to the archive such that it can be completely reconstructed at load-time.
-     * \param A any type of output archive.
-     * \param Version the version of this object that is to be saved (always the latest version).
-     */
-    virtual void RK_CALL save(serialization::oarchive& A, unsigned int Version) const { RK_UNUSED(A); RK_UNUSED(Version); };
+  /**
+   * This method loads the content of the object from a serial archive of any type.
+   *
+   * \pre any object state.
+   * \post the object state has been loaded from the archive such that it is completely reconstructed and valid.
+   * \param A any type of input archive.
+   * \param Version the version of this object that was saved (it is the user's responsability to maintain backward
+   *compatibility as much as desired).
+   */
+  virtual void RK_CALL load( serialization::iarchive& A, unsigned int Version ) {
+    RK_UNUSED( A );
+    RK_UNUSED( Version );
+  };
 
-    /**
-     * This method loads the content of the object from a serial archive of any type.
-     *
-     * \pre any object state.
-     * \post the object state has been loaded from the archive such that it is completely reconstructed and valid.
-     * \param A any type of input archive.
-     * \param Version the version of this object that was saved (it is the user's responsability to maintain backward compatibility as much as desired).
-     */
-    virtual void RK_CALL load(serialization::iarchive& A, unsigned int Version) { RK_UNUSED(A); RK_UNUSED(Version); };
-
-    RK_RTTI_MAKE_ABSTRACT_1BASE(serializable, 0x80000000, 1, "serializable", typed_object)
-
+  RK_RTTI_MAKE_ABSTRACT_1BASE( serializable, 0x80000000, 1, "serializable", typed_object )
 };
-
-
 };
 
 #endif
-
-

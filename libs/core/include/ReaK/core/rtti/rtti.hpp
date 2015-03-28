@@ -1,8 +1,8 @@
 /**
  * \file rtti.hpp
- * 
+ *
  * This library includes all the headers for the ReaK::rtti system.
- * 
+ *
  * \author Mikael Persson, <mikael.s.persson@gmail.com>
  * \date July 2014
  */
@@ -25,7 +25,7 @@
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with ReaK (as LICENSE in the root folder).  
+ *    along with ReaK (as LICENSE in the root folder).
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
@@ -42,6 +42,3 @@
 #include "typed_containers.hpp"
 
 #endif
-
-
-

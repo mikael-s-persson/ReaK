@@ -1,8 +1,8 @@
 /**
  * \file so_register_type.hpp
- * 
+ *
  * This library declares the object which, when instantiated, registers a type to the ReaK::rtti system.
- * 
+ *
  * \author Mikael Persson <mikael.s.persson@gmail.com>
  * \date april 2011
  */
@@ -25,7 +25,7 @@
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with ReaK (as LICENSE in the root folder).  
+ *    along with ReaK (as LICENSE in the root folder).
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
@@ -43,53 +43,37 @@ namespace rtti {
 
 namespace {
 
-template <typename T>
+template < typename T >
 struct register_type {
-  
+
   struct register_type_impl {
-    register_type_impl(int) {
-      so_type_repo::getInstance().addType(T::getStaticObjectType());
-    };
+    register_type_impl( int ) { so_type_repo::getInstance().addType( T::getStaticObjectType() ); };
   };
   static const register_type_impl impl;
-  
+
   /*
    * Explanation of registration scheme:
-   * The register_type template is instantiated for every class that has a RK_RTTI_REGISTER 
+   * The register_type template is instantiated for every class that has a RK_RTTI_REGISTER
    * MACRO in its declaration. That MACRO inserts an invocation of the "impl" static member
    * within a virtual function (the getObjectType() function), which has the effect of forcing
-   * this static member to be considered as "used somewhere", which means the compiler must 
-   * generate its static initialization code, i.e., the constructor of register_type_impl 
+   * this static member to be considered as "used somewhere", which means the compiler must
+   * generate its static initialization code, i.e., the constructor of register_type_impl
    * must get executed before entering main, and in that constructor, the type is registered
-   * to the global repository of types. This sequence is the key to making this work because 
+   * to the global repository of types. This sequence is the key to making this work because
    * the presence of "impl" invocation somewhere within the body of a virtual function makes it
-   * so that even when the class being registered is a template, it must be created, because 
-   * only virtual functions are guaranteed to be instantiated (even if never used) in a class 
+   * so that even when the class being registered is a template, it must be created, because
+   * only virtual functions are guaranteed to be instantiated (even if never used) in a class
    * template instantiation.
-   * 
-   * The use of get_ptr() is there to avoid a static initialization order fiasco between a class 
+   *
+   * The use of get_ptr() is there to avoid a static initialization order fiasco between a class
    * and its base-classes, which might not have been initialized yet.
    */
-  
 };
 
-template <typename T>
-const typename register_type<T>::register_type_impl register_type<T>::impl(0);
-
+template < typename T >
+const typename register_type< T >::register_type_impl register_type< T >::impl( 0 );
 };
-
 };
-
 };
 
 #endif
-
-
-
-
-
-
-
-
-
-

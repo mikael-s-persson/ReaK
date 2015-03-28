@@ -1,8 +1,8 @@
 /**
  * \file bubble_sort.hpp
- * 
+ *
  * This library provides a generic bubble-sort function.
- * 
+ *
  * \author Sven Mikael Persson <mikael.s.persson@gmail.com>
  * \date July 2012
  */
@@ -25,7 +25,7 @@
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with ReaK (as LICENSE in the root folder).  
+ *    along with ReaK (as LICENSE in the root folder).
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
@@ -40,14 +40,13 @@
 #include <functional>
 
 namespace ReaK {
-  
+
 /** This is the namespace for all ReaK sorting algorithms implementations. */
 namespace sorting {
 
 
-
 /**
- * This function performs a bubble sort on a given range of elements, and with the 
+ * This function performs a bubble sort on a given range of elements, and with the
  * given comparison functor.
  * \tparam ForwardIter A foward iterator type (input and output iterator).
  * \tparam Compare A comparison functor type that can produce a bool value to order two elements.
@@ -55,13 +54,13 @@ namespace sorting {
  * \param last One element past the end of the range to be sorted.
  * \param comp The comparison functor to use to determine the order of elements.
  */
-template <typename ForwardIter, typename Compare>
-void bubble_sort(ForwardIter first, ForwardIter last, Compare comp) {
+template < typename ForwardIter, typename Compare >
+void bubble_sort( ForwardIter first, ForwardIter last, Compare comp ) {
   ForwardIter current_next;
-  for(bool swapped = true; (swapped && (!(swapped = false))); --last) 
-    for(ForwardIter current = first; (current_next = std::next(current)) != last; ++current) 
-      if ( comp(*current_next, *current) && ( swapped = true ) ) 
-        std::iter_swap(current, current_next); 
+  for( bool swapped = true; ( swapped && ( !( swapped = false ) ) ); --last )
+    for( ForwardIter current = first; ( current_next = std::next( current ) ) != last; ++current )
+      if( comp( *current_next, *current ) && ( swapped = true ) )
+        std::iter_swap( current, current_next );
 };
 
 /**
@@ -71,19 +70,11 @@ void bubble_sort(ForwardIter first, ForwardIter last, Compare comp) {
  * \param first The start of the range to be sorted.
  * \param last One element past the end of the range to be sorted.
  */
-template <typename ForwardIter>
-inline
-void bubble_sort(ForwardIter first, ForwardIter last) {
-  bubble_sort(first, last, std::less< typename std::iterator_traits<ForwardIter>::value_type >());
+template < typename ForwardIter >
+inline void bubble_sort( ForwardIter first, ForwardIter last ) {
+  bubble_sort( first, last, std::less< typename std::iterator_traits< ForwardIter >::value_type >() );
 };
-
-
-
 };
-
 };
 
 #endif
-
-
-

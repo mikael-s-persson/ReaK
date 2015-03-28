@@ -30,7 +30,7 @@
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with ReaK (as LICENSE in the root folder).  
+ *    along with ReaK (as LICENSE in the root folder).
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
@@ -54,37 +54,36 @@ namespace ReaK {
  * adds a name to the objects (and it is the next descendant after ReaK::shared_object).
  */
 class shared_object : public serializable, public shared_object_base {
-  protected:
-    virtual void RK_CALL destroy() { delete this; };
-  public:
-    
-    virtual ~shared_object() { };
-    
-    RK_RTTI_MAKE_ABSTRACT_1BASE(shared_object,0x80000001,1,"shared_object",serializable)
-    
+protected:
+  virtual void RK_CALL destroy() { delete this; };
+
+public:
+  virtual ~shared_object(){};
+
+  RK_RTTI_MAKE_ABSTRACT_1BASE( shared_object, 0x80000001, 1, "shared_object", serializable )
 };
 
-class empty_base_object { };
+class empty_base_object {};
 
 #ifdef BOOST_NO_CXX11_VARIADIC_TEMPLATES
 
-template <typename T>
-ReaK::shared_ptr<T> rk_create() {
-  return ReaK::shared_ptr<T>(new T(), ReaK::scoped_deleter());
+template < typename T >
+ReaK::shared_ptr< T > rk_create() {
+  return ReaK::shared_ptr< T >( new T(), ReaK::scoped_deleter() );
 };
 
 #else
 
-template <typename T, typename... Args>
-ReaK::shared_ptr<T> rk_create(Args&&... args) {
-  return ReaK::shared_ptr<T>(new T(std::forward<Args>(args)...), ReaK::scoped_deleter());
+template < typename T, typename... Args >
+ReaK::shared_ptr< T > rk_create( Args&&... args ) {
+  return ReaK::shared_ptr< T >( new T( std::forward< Args >( args )... ), ReaK::scoped_deleter() );
 };
 
 #endif
 
-template <typename T>
-ReaK::shared_ptr<T> rk_share(T& t) {
-  return ReaK::shared_ptr<T>(&t, ReaK::null_deleter());
+template < typename T >
+ReaK::shared_ptr< T > rk_share( T& t ) {
+  return ReaK::shared_ptr< T >( &t, ReaK::null_deleter() );
 };
 
 
@@ -92,27 +91,27 @@ namespace rtti {
 
 #ifdef BOOST_NO_CXX11_SMART_PTR
 
-template <typename Y>
-ReaK::shared_ptr<Y> rk_static_ptr_cast(const ReaK::shared_ptr<ReaK::shared_object_base>& p) {
-  return boost::static_pointer_cast<Y>(p);
+template < typename Y >
+ReaK::shared_ptr< Y > rk_static_ptr_cast( const ReaK::shared_ptr< ReaK::shared_object_base >& p ) {
+  return boost::static_pointer_cast< Y >( p );
 };
 
-#else 
+#else
 
-template <typename Y>
-ReaK::shared_ptr<Y> rk_static_ptr_cast(const ReaK::shared_ptr<ReaK::shared_object_base>& p) {
-  return std::static_pointer_cast<Y>(p);
+template < typename Y >
+ReaK::shared_ptr< Y > rk_static_ptr_cast( const ReaK::shared_ptr< ReaK::shared_object_base >& p ) {
+  return std::static_pointer_cast< Y >( p );
 };
 
-template <typename Y, typename Deleter>
-ReaK::unique_ptr<Y,Deleter> rk_dynamic_ptr_cast(ReaK::unique_ptr<ReaK::shared_object_base,Deleter>&& p) {
-  void* tmp = static_cast<ReaK::shared_object*>(p.get())->castTo(Y::getStaticObjectType());
-  if(tmp) {
-    ReaK::unique_ptr<Y,Deleter> r(tmp, p.get_deleter());
+template < typename Y, typename Deleter >
+ReaK::unique_ptr< Y, Deleter > rk_dynamic_ptr_cast( ReaK::unique_ptr< ReaK::shared_object_base, Deleter >&& p ) {
+  void* tmp = static_cast< ReaK::shared_object* >( p.get() )->castTo( Y::getStaticObjectType() );
+  if( tmp ) {
+    ReaK::unique_ptr< Y, Deleter > r( tmp, p.get_deleter() );
     p.release();
-    return std::move(r);
+    return std::move( r );
   } else
-    return ReaK::unique_ptr<Y,Deleter>();
+    return ReaK::unique_ptr< Y, Deleter >();
 };
 
 #endif
@@ -126,31 +125,12 @@ ReaK::unique_ptr<Y,Deleter> rk_dynamic_ptr_cast(ReaK::unique_ptr<ReaK::shared_ob
  * \note this function is a special overload for the shared_object_base class pointers, the general version is
  *       found in the "typed_object.hpp" library, as part of the ReaK::rtti system.
  */
-template <typename Y>
-shared_ptr<Y> rk_dynamic_ptr_cast(const shared_ptr<shared_object_base>& p) {
-  return shared_ptr<Y>(p,reinterpret_cast<Y*>(rk_static_ptr_cast<shared_object>(p)->castTo(Y::getStaticObjectType())));
+template < typename Y >
+shared_ptr< Y > rk_dynamic_ptr_cast( const shared_ptr< shared_object_base >& p ) {
+  return shared_ptr< Y >(
+    p, reinterpret_cast< Y* >( rk_static_ptr_cast< shared_object >( p )->castTo( Y::getStaticObjectType() ) ) );
 };
-
-
 };
-
-
 };
 
 #endif
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

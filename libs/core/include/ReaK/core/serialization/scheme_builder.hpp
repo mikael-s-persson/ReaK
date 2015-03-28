@@ -1,7 +1,7 @@
 /**
  * \file scheme_builder.hpp
  *
- * This library declares the class for a creating type schemes that represent the fields contained in the 
+ * This library declares the class for a creating type schemes that represent the fields contained in the
  * serialization of a given type.
  *
  * \author Mikael Persson, <mikael.s.persson@gmail.com>
@@ -26,7 +26,7 @@
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with ReaK (as LICENSE in the root folder).  
+ *    along with ReaK (as LICENSE in the root folder).
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
@@ -53,89 +53,86 @@ std::map< std::string, shared_ptr< type_scheme > >& get_global_schemes();
  * Protobuf scheme constructor.
  */
 class scheme_builder : public oarchive {
-  private:
-    std::stack< shared_ptr< serializable_obj_scheme > > field_stack;
-    std::stack< std::pair< std::string, std::string > > value_name_stack;
-    
-  protected:
-    
-    template <typename T>
-    void save_primitive(const std::string& aName);
-    
-    virtual oarchive& RK_CALL saveToNewArchive_impl(const serializable_shared_pointer& Item, const std::string& FileName);
-    
-    virtual oarchive& RK_CALL saveToNewArchiveNamed_impl(const std::pair<std::string, const serializable_shared_pointer& >& Item, const std::string& FileName);
-    
-    virtual oarchive& RK_CALL save_serializable_ptr(const serializable_shared_pointer& Item);
-    
-    virtual oarchive& RK_CALL save_serializable_ptr(const std::pair<std::string, const serializable_shared_pointer& >& Item);
-    
-    virtual oarchive& RK_CALL save_serializable(const serializable& Item);
-    
-    virtual oarchive& RK_CALL save_serializable(const std::pair<std::string, const serializable& >& Item);
-    
-    virtual oarchive& RK_CALL save_char(char i);
-    
-    virtual oarchive& RK_CALL save_char(const std::pair<std::string, char >& i);
-    
-    virtual oarchive& RK_CALL save_unsigned_char(unsigned char u);
-    
-    virtual oarchive& RK_CALL save_unsigned_char(const std::pair<std::string, unsigned char >& u);
-    
-    virtual oarchive& RK_CALL save_int(int i);
-    
-    virtual oarchive& RK_CALL save_int(const std::pair<std::string, int >& i);
-    
-    virtual oarchive& RK_CALL save_unsigned_int(unsigned int u);
-    
-    virtual oarchive& RK_CALL save_unsigned_int(const std::pair<std::string, unsigned int >& u);
-    
-    virtual oarchive& RK_CALL save_float(float f);
-    
-    virtual oarchive& RK_CALL save_float(const std::pair<std::string, float >& f);
-    
-    virtual oarchive& RK_CALL save_double(double d);
-    
-    virtual oarchive& RK_CALL save_double(const std::pair<std::string, double >& d);
-    
-    virtual oarchive& RK_CALL save_bool(bool b);
-    
-    virtual oarchive& RK_CALL save_bool(const std::pair<std::string, bool >& b);
-    
-    virtual oarchive& RK_CALL save_string(const std::string& s);
-    
-    virtual oarchive& RK_CALL save_string(const std::pair<std::string, const std::string& >& s);
-    
-    virtual void RK_CALL signal_polymorphic_field(const std::string& aBaseTypeName, const unsigned int* aTypeID, const std::string& aFieldName);
-    
-    virtual void RK_CALL start_repeated_field(const std::string& aTypeName);
-    
-    virtual void RK_CALL start_repeated_field(const std::string& aTypeName, const std::string& s);
-    
-    virtual void RK_CALL finish_repeated_field();
-    
-    virtual void RK_CALL start_repeated_pair(const std::string& aTypeName1, const std::string& aTypeName2);
-    
-    virtual void RK_CALL start_repeated_pair(const std::string& aTypeName1, const std::string& aTypeName2, const std::string& s);
-    
-    virtual void RK_CALL finish_repeated_pair();
-    
-  public:
-    
-    scheme_builder();
-    virtual ~scheme_builder();
-    
+private:
+  std::stack< shared_ptr< serializable_obj_scheme > > field_stack;
+  std::stack< std::pair< std::string, std::string > > value_name_stack;
+
+protected:
+  template < typename T >
+  void save_primitive( const std::string& aName );
+
+  virtual oarchive& RK_CALL
+    saveToNewArchive_impl( const serializable_shared_pointer& Item, const std::string& FileName );
+
+  virtual oarchive& RK_CALL
+    saveToNewArchiveNamed_impl( const std::pair< std::string, const serializable_shared_pointer& >& Item,
+                                const std::string& FileName );
+
+  virtual oarchive& RK_CALL save_serializable_ptr( const serializable_shared_pointer& Item );
+
+  virtual oarchive& RK_CALL
+    save_serializable_ptr( const std::pair< std::string, const serializable_shared_pointer& >& Item );
+
+  virtual oarchive& RK_CALL save_serializable( const serializable& Item );
+
+  virtual oarchive& RK_CALL save_serializable( const std::pair< std::string, const serializable& >& Item );
+
+  virtual oarchive& RK_CALL save_char( char i );
+
+  virtual oarchive& RK_CALL save_char( const std::pair< std::string, char >& i );
+
+  virtual oarchive& RK_CALL save_unsigned_char( unsigned char u );
+
+  virtual oarchive& RK_CALL save_unsigned_char( const std::pair< std::string, unsigned char >& u );
+
+  virtual oarchive& RK_CALL save_int( int i );
+
+  virtual oarchive& RK_CALL save_int( const std::pair< std::string, int >& i );
+
+  virtual oarchive& RK_CALL save_unsigned_int( unsigned int u );
+
+  virtual oarchive& RK_CALL save_unsigned_int( const std::pair< std::string, unsigned int >& u );
+
+  virtual oarchive& RK_CALL save_float( float f );
+
+  virtual oarchive& RK_CALL save_float( const std::pair< std::string, float >& f );
+
+  virtual oarchive& RK_CALL save_double( double d );
+
+  virtual oarchive& RK_CALL save_double( const std::pair< std::string, double >& d );
+
+  virtual oarchive& RK_CALL save_bool( bool b );
+
+  virtual oarchive& RK_CALL save_bool( const std::pair< std::string, bool >& b );
+
+  virtual oarchive& RK_CALL save_string( const std::string& s );
+
+  virtual oarchive& RK_CALL save_string( const std::pair< std::string, const std::string& >& s );
+
+  virtual void RK_CALL signal_polymorphic_field( const std::string& aBaseTypeName, const unsigned int* aTypeID,
+                                                 const std::string& aFieldName );
+
+  virtual void RK_CALL start_repeated_field( const std::string& aTypeName );
+
+  virtual void RK_CALL start_repeated_field( const std::string& aTypeName, const std::string& s );
+
+  virtual void RK_CALL finish_repeated_field();
+
+  virtual void RK_CALL start_repeated_pair( const std::string& aTypeName1, const std::string& aTypeName2 );
+
+  virtual void RK_CALL
+    start_repeated_pair( const std::string& aTypeName1, const std::string& aTypeName2, const std::string& s );
+
+  virtual void RK_CALL finish_repeated_pair();
+
+public:
+  scheme_builder();
+  virtual ~scheme_builder();
 };
 
 
-}; //serialization
+}; // serialization
 
-}; //ReaK
+}; // ReaK
 
 #endif
-
-
-
-
-
-

@@ -17,7 +17,7 @@
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with ReaK (as LICENSE in the root folder).  
+ *    along with ReaK (as LICENSE in the root folder).
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
@@ -33,32 +33,29 @@ namespace ReaK {
 
 namespace rpc {
 
-publishing_mismatch::publishing_mismatch(const std::string& aAction, detail::remote_function* aGiven, detail::remote_function* aExisting) {
+publishing_mismatch::publishing_mismatch( const std::string& aAction, detail::remote_function* aGiven,
+                                          detail::remote_function* aExisting ) {
   std::stringstream ss;
-  ss << "Could not " << aAction << " function because of a mismatch with existing RPC function! Tried to " << aAction 
-     << " function '" << aGiven->name << ":" << aGiven->get_params_hash() << "' at address 0x" << std::hex << aGiven 
-     << ", but already had function '" << aExisting->name << ":" << aExisting->get_params_hash() << "' at address 0x" << std::hex << aExisting 
-     << "!" << std::flush;
+  ss << "Could not " << aAction << " function because of a mismatch with existing RPC function! Tried to " << aAction
+     << " function '" << aGiven->name << ":" << aGiven->get_params_hash() << "' at address 0x" << std::hex << aGiven
+     << ", but already had function '" << aExisting->name << ":" << aExisting->get_params_hash() << "' at address 0x"
+     << std::hex << aExisting << "!" << std::flush;
   msg = ss.str();
 };
 
-unrecognized_function::unrecognized_function(detail::remote_function* aPFunc) : communication_error() { 
+unrecognized_function::unrecognized_function( detail::remote_function* aPFunc ) : communication_error() {
   std::stringstream ss;
-  ss << "Unrecognized function '" << aPFunc->name << ":" << aPFunc->get_params_hash() << "' from host '" + aPFunc->get_host() + "'.";
-  set_message(ss.str());
+  ss << "Unrecognized function '" << aPFunc->name << ":" << aPFunc->get_params_hash()
+     << "' from host '" + aPFunc->get_host() + "'.";
+  set_message( ss.str() );
 };
 
-marshalling_error::marshalling_error(detail::remote_function* aPFunc, const std::string& aSerialExceptMsg) : communication_error() { 
+marshalling_error::marshalling_error( detail::remote_function* aPFunc, const std::string& aSerialExceptMsg )
+    : communication_error() {
   std::stringstream ss;
-  ss << "Mashalling error with function '" << aPFunc->name << ":" << aPFunc->get_params_hash() 
+  ss << "Mashalling error with function '" << aPFunc->name << ":" << aPFunc->get_params_hash()
      << "' with marshalling error message: '" << aSerialExceptMsg << "'.";
-  set_message(ss.str());
+  set_message( ss.str() );
 };
-    
-
 };
-
 };
-
-
-

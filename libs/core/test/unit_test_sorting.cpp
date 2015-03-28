@@ -17,7 +17,7 @@
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with ReaK (as LICENSE in the root folder).  
+ *    along with ReaK (as LICENSE in the root folder).
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
@@ -32,7 +32,6 @@
 #include <ReaK/core/sorting/intro_sort.hpp>
 
 
-
 #include <ctime>
 #include <cmath>
 
@@ -45,63 +44,61 @@
 #include <boost/mpl/list.hpp>
 
 
-
-BOOST_AUTO_TEST_CASE( sorting_tests )
-{
+BOOST_AUTO_TEST_CASE( sorting_tests ) {
   using namespace ReaK;
   using namespace sorting;
-  
-  std::vector< int > orig_values(100);
-  for(std::size_t i = 0; i < 100; ++i)
+
+  std::vector< int > orig_values( 100 );
+  for( std::size_t i = 0; i < 100; ++i )
     orig_values[i] = std::rand() % 10000;
-  
+
   std::vector< int > ref_values = orig_values;
-  std::sort(ref_values.begin(), ref_values.end());
-  
+  std::sort( ref_values.begin(), ref_values.end() );
+
   std::vector< int > test_values = orig_values;
-  BOOST_CHECK_NO_THROW( selection_sort(test_values.begin(), test_values.end()) );
+  BOOST_CHECK_NO_THROW( selection_sort( test_values.begin(), test_values.end() ) );
   bool is_correct = true;
-  for(std::size_t i = 0; i < 100; ++i) {
-    if(test_values[i] != ref_values[i]) {
+  for( std::size_t i = 0; i < 100; ++i ) {
+    if( test_values[i] != ref_values[i] ) {
       is_correct = false;
       break;
     };
   };
-  BOOST_CHECK_MESSAGE( is_correct, "selection_sort algorithm");
-  
+  BOOST_CHECK_MESSAGE( is_correct, "selection_sort algorithm" );
+
   test_values = orig_values;
-  BOOST_CHECK_NO_THROW( insertion_sort(test_values.begin(), test_values.end()) );
+  BOOST_CHECK_NO_THROW( insertion_sort( test_values.begin(), test_values.end() ) );
   is_correct = true;
-  for(std::size_t i = 0; i < 100; ++i) {
-    if(test_values[i] != ref_values[i]) {
+  for( std::size_t i = 0; i < 100; ++i ) {
+    if( test_values[i] != ref_values[i] ) {
       is_correct = false;
       break;
     };
   };
-  BOOST_CHECK_MESSAGE( is_correct, "insertion_sort algorithm");
-  
+  BOOST_CHECK_MESSAGE( is_correct, "insertion_sort algorithm" );
+
   test_values = orig_values;
-  BOOST_CHECK_NO_THROW( bubble_sort(test_values.begin(), test_values.end()) );
+  BOOST_CHECK_NO_THROW( bubble_sort( test_values.begin(), test_values.end() ) );
   is_correct = true;
-  for(std::size_t i = 0; i < 100; ++i) {
-    if(test_values[i] != ref_values[i]) {
+  for( std::size_t i = 0; i < 100; ++i ) {
+    if( test_values[i] != ref_values[i] ) {
       is_correct = false;
       break;
     };
   };
-  BOOST_CHECK_MESSAGE( is_correct, "bubble_sort algorithm");
-  
+  BOOST_CHECK_MESSAGE( is_correct, "bubble_sort algorithm" );
+
   test_values = orig_values;
-  BOOST_CHECK_NO_THROW( merge_sort(test_values.begin(), test_values.end()) );
+  BOOST_CHECK_NO_THROW( merge_sort( test_values.begin(), test_values.end() ) );
   is_correct = true;
-  for(std::size_t i = 0; i < 100; ++i) {
-    if(test_values[i] != ref_values[i]) {
+  for( std::size_t i = 0; i < 100; ++i ) {
+    if( test_values[i] != ref_values[i] ) {
       is_correct = false;
       break;
     };
   };
-  BOOST_CHECK_MESSAGE( is_correct, "merge_sort algorithm");
-  
+  BOOST_CHECK_MESSAGE( is_correct, "merge_sort algorithm" );
+
 #if 0
   test_values = orig_values;
   BOOST_CHECK_NO_THROW( shell_sort(test_values.begin(), test_values.end()) );
@@ -114,112 +111,103 @@ BOOST_AUTO_TEST_CASE( sorting_tests )
   };
   BOOST_CHECK_MESSAGE( is_correct, "shell_sort algorithm");
 #endif
-  
+
   test_values = orig_values;
-  BOOST_CHECK_NO_THROW( comb_sort(test_values.begin(), test_values.end()) );
+  BOOST_CHECK_NO_THROW( comb_sort( test_values.begin(), test_values.end() ) );
   is_correct = true;
-  for(std::size_t i = 0; i < 100; ++i) {
-    if(test_values[i] != ref_values[i]) {
+  for( std::size_t i = 0; i < 100; ++i ) {
+    if( test_values[i] != ref_values[i] ) {
       is_correct = false;
       break;
     };
   };
-  BOOST_CHECK_MESSAGE( is_correct, "comb_sort algorithm");
-  
+  BOOST_CHECK_MESSAGE( is_correct, "comb_sort algorithm" );
+
   test_values = orig_values;
-  BOOST_CHECK_NO_THROW( heap_sort(test_values.begin(), test_values.end()) );
+  BOOST_CHECK_NO_THROW( heap_sort( test_values.begin(), test_values.end() ) );
   is_correct = true;
-  for(std::size_t i = 0; i < 100; ++i) {
-    if(test_values[i] != ref_values[i]) {
+  for( std::size_t i = 0; i < 100; ++i ) {
+    if( test_values[i] != ref_values[i] ) {
       is_correct = false;
       break;
     };
   };
-  BOOST_CHECK_MESSAGE( is_correct, "heap_sort algorithm");
-  
+  BOOST_CHECK_MESSAGE( is_correct, "heap_sort algorithm" );
+
   test_values = orig_values;
-  BOOST_CHECK_NO_THROW( quick_sort(test_values.begin(), test_values.end()) );
+  BOOST_CHECK_NO_THROW( quick_sort( test_values.begin(), test_values.end() ) );
   is_correct = true;
-  for(std::size_t i = 0; i < 100; ++i) {
-    if(test_values[i] != ref_values[i]) {
+  for( std::size_t i = 0; i < 100; ++i ) {
+    if( test_values[i] != ref_values[i] ) {
       is_correct = false;
       break;
     };
   };
-  BOOST_CHECK_MESSAGE( is_correct, "quick_sort algorithm");
-  
+  BOOST_CHECK_MESSAGE( is_correct, "quick_sort algorithm" );
+
   test_values = orig_values;
-  BOOST_CHECK_NO_THROW( quick_sort(test_values.begin(), test_values.end(), std::less<int>(), random_pivot()) );
+  BOOST_CHECK_NO_THROW( quick_sort( test_values.begin(), test_values.end(), std::less< int >(), random_pivot() ) );
   is_correct = true;
-  for(std::size_t i = 0; i < 100; ++i) {
-    if(test_values[i] != ref_values[i]) {
+  for( std::size_t i = 0; i < 100; ++i ) {
+    if( test_values[i] != ref_values[i] ) {
       is_correct = false;
       break;
     };
   };
-  BOOST_CHECK_MESSAGE( is_correct, "quick_sort random_pivot algorithm");
-  
+  BOOST_CHECK_MESSAGE( is_correct, "quick_sort random_pivot algorithm" );
+
   test_values = orig_values;
-  BOOST_CHECK_NO_THROW( quick_sort(test_values.begin(), test_values.end(), std::less<int>(), first_pivot()) );
+  BOOST_CHECK_NO_THROW( quick_sort( test_values.begin(), test_values.end(), std::less< int >(), first_pivot() ) );
   is_correct = true;
-  for(std::size_t i = 0; i < 100; ++i) {
-    if(test_values[i] != ref_values[i]) {
+  for( std::size_t i = 0; i < 100; ++i ) {
+    if( test_values[i] != ref_values[i] ) {
       is_correct = false;
       break;
     };
   };
-  BOOST_CHECK_MESSAGE( is_correct, "quick_sort first_pivot algorithm");
-  
+  BOOST_CHECK_MESSAGE( is_correct, "quick_sort first_pivot algorithm" );
+
   test_values = orig_values;
-  BOOST_CHECK_NO_THROW( quickselect_sort(test_values.begin(), test_values.end()) );
+  BOOST_CHECK_NO_THROW( quickselect_sort( test_values.begin(), test_values.end() ) );
   is_correct = true;
-  for(std::size_t i = 0; i < 100; ++i) {
-    if(test_values[i] != ref_values[i]) {
+  for( std::size_t i = 0; i < 100; ++i ) {
+    if( test_values[i] != ref_values[i] ) {
       is_correct = false;
       break;
     };
   };
-  BOOST_CHECK_MESSAGE( is_correct, "quickselect_sort algorithm");
-  
+  BOOST_CHECK_MESSAGE( is_correct, "quickselect_sort algorithm" );
+
   test_values = orig_values;
-  BOOST_CHECK_NO_THROW( intro_sort(test_values.begin(), test_values.end()) );
+  BOOST_CHECK_NO_THROW( intro_sort( test_values.begin(), test_values.end() ) );
   is_correct = true;
-  for(std::size_t i = 0; i < 100; ++i) {
-    if(test_values[i] != ref_values[i]) {
+  for( std::size_t i = 0; i < 100; ++i ) {
+    if( test_values[i] != ref_values[i] ) {
       is_correct = false;
       break;
     };
   };
-  BOOST_CHECK_MESSAGE( is_correct, "intro_sort algorithm");
-  
+  BOOST_CHECK_MESSAGE( is_correct, "intro_sort algorithm" );
+
   test_values = orig_values;
-  BOOST_CHECK_NO_THROW( intro_sort(test_values.begin(), test_values.end(), std::less<int>(), random_pivot()) );
+  BOOST_CHECK_NO_THROW( intro_sort( test_values.begin(), test_values.end(), std::less< int >(), random_pivot() ) );
   is_correct = true;
-  for(std::size_t i = 0; i < 100; ++i) {
-    if(test_values[i] != ref_values[i]) {
+  for( std::size_t i = 0; i < 100; ++i ) {
+    if( test_values[i] != ref_values[i] ) {
       is_correct = false;
       break;
     };
   };
-  BOOST_CHECK_MESSAGE( is_correct, "intro_sort random_pivot algorithm");
-  
+  BOOST_CHECK_MESSAGE( is_correct, "intro_sort random_pivot algorithm" );
+
   test_values = orig_values;
-  BOOST_CHECK_NO_THROW( intro_sort(test_values.begin(), test_values.end(), std::less<int>(), first_pivot()) );
+  BOOST_CHECK_NO_THROW( intro_sort( test_values.begin(), test_values.end(), std::less< int >(), first_pivot() ) );
   is_correct = true;
-  for(std::size_t i = 0; i < 100; ++i) {
-    if(test_values[i] != ref_values[i]) {
+  for( std::size_t i = 0; i < 100; ++i ) {
+    if( test_values[i] != ref_values[i] ) {
       is_correct = false;
       break;
     };
   };
-  BOOST_CHECK_MESSAGE( is_correct, "intro_sort first_pivot algorithm");
-  
+  BOOST_CHECK_MESSAGE( is_correct, "intro_sort first_pivot algorithm" );
 };
-
-
-
-
-
-
-
-

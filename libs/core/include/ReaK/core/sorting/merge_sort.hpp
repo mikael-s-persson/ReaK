@@ -1,8 +1,8 @@
 /**
  * \file merge_sort.hpp
- * 
+ *
  * This library provides a generic merge-sort function.
- * 
+ *
  * \author Sven Mikael Persson <mikael.s.persson@gmail.com>
  * \date July 2012
  */
@@ -25,7 +25,7 @@
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with ReaK (as LICENSE in the root folder).  
+ *    along with ReaK (as LICENSE in the root folder).
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
@@ -40,13 +40,13 @@
 #include <functional>
 
 namespace ReaK {
-  
+
 /** This is the namespace for all ReaK sorting algorithms implementations. */
 namespace sorting {
 
 
 /**
- * This function performs a merge sort on a given range of elements, and with the 
+ * This function performs a merge sort on a given range of elements, and with the
  * given comparison functor.
  * \tparam BidirIter A bidirectional iterator type (input and output iterator).
  * \tparam Compare A comparison functor type that can produce a bool value to order two elements.
@@ -54,14 +54,14 @@ namespace sorting {
  * \param last One element past the end of the range to be sorted.
  * \param comp The comparison functor to use to determine the order of elements.
  */
-template <typename BidirIter, typename Compare>
-void merge_sort(BidirIter first, BidirIter last, Compare comp) {
-  auto dist = std::distance(first, last) / 2;
-  if(dist) {
-    BidirIter middle = std::next(first, dist);
-    merge_sort(first, middle, comp);
-    merge_sort(middle, last, comp);
-    std::inplace_merge(first, middle, last, comp);
+template < typename BidirIter, typename Compare >
+void merge_sort( BidirIter first, BidirIter last, Compare comp ) {
+  auto dist = std::distance( first, last ) / 2;
+  if( dist ) {
+    BidirIter middle = std::next( first, dist );
+    merge_sort( first, middle, comp );
+    merge_sort( middle, last, comp );
+    std::inplace_merge( first, middle, last, comp );
   };
 };
 
@@ -72,20 +72,11 @@ void merge_sort(BidirIter first, BidirIter last, Compare comp) {
  * \param first The start of the range to be sorted.
  * \param last One element past the end of the range to be sorted.
  */
-template <typename BidirIter>
-inline
-void merge_sort(BidirIter first, BidirIter last) {
-  merge_sort(first, last, std::less< typename std::iterator_traits<BidirIter>::value_type >());
+template < typename BidirIter >
+inline void merge_sort( BidirIter first, BidirIter last ) {
+  merge_sort( first, last, std::less< typename std::iterator_traits< BidirIter >::value_type >() );
 };
-
-
-
-
 };
-
 };
 
 #endif
-
-
-

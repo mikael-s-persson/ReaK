@@ -1,8 +1,8 @@
 /**
  * \file intro_sort.hpp
- * 
+ *
  * This library provides a generic intro-sort function.
- * 
+ *
  * \author Sven Mikael Persson <mikael.s.persson@gmail.com>
  * \date July 2012
  */
@@ -25,7 +25,7 @@
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with ReaK (as LICENSE in the root folder).  
+ *    along with ReaK (as LICENSE in the root folder).
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
@@ -43,56 +43,54 @@
 #include "insertion_sort.hpp"
 #include "heap_sort.hpp"
 
-#if ((defined(BOOST_NO_CXX11_LAMBDAS)) || (defined(BOOST_NO_CXX11_DECLTYPE)))
+#if( ( defined( BOOST_NO_CXX11_LAMBDAS ) ) || ( defined( BOOST_NO_CXX11_DECLTYPE ) ) )
 #include <boost/bind.hpp>
 #endif
 
 namespace ReaK {
-  
+
 /** This is the namespace for all ReaK sorting algorithms implementations. */
 namespace sorting {
 
 
 namespace detail {
 
-template <typename RandomAccessIter, typename Compare, typename PivotChooser>
-void intro_sort_impl(RandomAccessIter first, RandomAccessIter last, Compare comp, PivotChooser choose_pivot) {
-  int depth_count = 2 * std::log2(last - first);
-  while(first != last) {
+template < typename RandomAccessIter, typename Compare, typename PivotChooser >
+void intro_sort_impl( RandomAccessIter first, RandomAccessIter last, Compare comp, PivotChooser choose_pivot ) {
+  int depth_count = 2 * std::log2( last - first );
+  while( first != last ) {
     std::size_t dist = last - first;
-    if(dist < 2)
+    if( dist < 2 )
       return;
-    if(dist < 50)
-      return insertion_sort(first,last,comp);
-    choose_pivot(first, last, comp);
+    if( dist < 50 )
+      return insertion_sort( first, last, comp );
+    choose_pivot( first, last, comp );
     RandomAccessIter before_last = last - 1;
-#if ((!defined(BOOST_NO_CXX11_LAMBDAS)) && (!defined(BOOST_NO_CXX11_DECLTYPE)))
-    RandomAccessIter pivot = std::partition(first, before_last, [&](decltype(*first) x) -> bool { return comp(x, *before_last); });
+#if( ( !defined( BOOST_NO_CXX11_LAMBDAS ) ) && ( !defined( BOOST_NO_CXX11_DECLTYPE ) ) )
+    RandomAccessIter pivot
+      = std::partition( first, before_last, [&]( decltype( *first ) x ) -> bool { return comp( x, *before_last ); } );
 #else
-    RandomAccessIter pivot = std::partition(first, before_last, boost::bind(comp, _1, *before_last));
+    RandomAccessIter pivot = std::partition( first, before_last, boost::bind( comp, _1, *before_last ) );
 #endif
-    std::iter_swap(pivot, before_last);
+    std::iter_swap( pivot, before_last );
     if( pivot - first < last - pivot ) {
-      intro_sort_impl(first, pivot, comp, choose_pivot);
+      intro_sort_impl( first, pivot, comp, choose_pivot );
       first = pivot + 1;
     } else {
-      intro_sort_impl(pivot + 1, last, comp, choose_pivot);
+      intro_sort_impl( pivot + 1, last, comp, choose_pivot );
       last = pivot;
     };
-    if(--depth_count < 0)
-      return heap_sort(first,last,comp);
+    if( --depth_count < 0 )
+      return heap_sort( first, last, comp );
   };
 };
 
 }; // detail
 
 
-
-
-
 /**
- * This function performs an intro sort on a given range of elements, and with the 
- * given comparison functor and the given pivot chooser (e.g., random_pivot, 
+ * This function performs an intro sort on a given range of elements, and with the
+ * given comparison functor and the given pivot chooser (e.g., random_pivot,
  * median_of_3_pivots, median_of_3_random_pivots, or first_pivot).
  * \tparam RandomAccessIter A random-access iterator type (input and output iterator).
  * \tparam Compare A comparison functor type that can produce a bool value to order two elements.
@@ -100,14 +98,13 @@ void intro_sort_impl(RandomAccessIter first, RandomAccessIter last, Compare comp
  * \param last One element past the end of the range to be sorted.
  * \param comp The comparison functor to use to determine the order of elements.
  */
-template <typename Iter, typename Compare, typename PivotChooser>
-inline
-void intro_sort(Iter first, Iter last, Compare comp, PivotChooser choose_pivot) {
-  detail::intro_sort_impl(first,last,comp,choose_pivot);
+template < typename Iter, typename Compare, typename PivotChooser >
+inline void intro_sort( Iter first, Iter last, Compare comp, PivotChooser choose_pivot ) {
+  detail::intro_sort_impl( first, last, comp, choose_pivot );
 };
 
 /**
- * This function performs an intro sort on a given range of elements, and with the 
+ * This function performs an intro sort on a given range of elements, and with the
  * given comparison functor.
  * \tparam RandomAccessIter A random-access iterator type (input and output iterator).
  * \tparam Compare A comparison functor type that can produce a bool value to order two elements.
@@ -115,10 +112,9 @@ void intro_sort(Iter first, Iter last, Compare comp, PivotChooser choose_pivot) 
  * \param last One element past the end of the range to be sorted.
  * \param comp The comparison functor to use to determine the order of elements.
  */
-template <typename Iter, typename Compare>
-inline
-void intro_sort(Iter first, Iter last, Compare comp) {
-  detail::intro_sort_impl(first,last,comp,median_of_3_pivots());
+template < typename Iter, typename Compare >
+inline void intro_sort( Iter first, Iter last, Compare comp ) {
+  detail::intro_sort_impl( first, last, comp, median_of_3_pivots() );
 };
 
 /**
@@ -128,18 +124,11 @@ void intro_sort(Iter first, Iter last, Compare comp) {
  * \param first The start of the range to be sorted.
  * \param last One element past the end of the range to be sorted.
  */
-template <typename RandomAccessIter>
-inline
-void intro_sort(RandomAccessIter first, RandomAccessIter last) {
-  intro_sort(first, last, std::less< typename std::iterator_traits<RandomAccessIter>::value_type >());
+template < typename RandomAccessIter >
+inline void intro_sort( RandomAccessIter first, RandomAccessIter last ) {
+  intro_sort( first, last, std::less< typename std::iterator_traits< RandomAccessIter >::value_type >() );
 };
-
-
 };
-
 };
 
 #endif
-
-
-

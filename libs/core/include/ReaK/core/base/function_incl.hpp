@@ -45,23 +45,22 @@
 #include <functional>
 
 namespace ReaKaux {
-  
-  using ::std::bind;
-  using ::std::mem_fn;
-  using ::std::is_bind_expression;
-  using ::std::is_placeholder;
-  
-  namespace placeholders = ::std::placeholders;
-  
-  using ::std::function;
-  using ::std::bad_function_call;
-  
-  using ::std::reference_wrapper;
-  using ::std::cref;
-  using ::std::ref;
-  
-  using ::std::hash;
-  
+
+using ::std::bind;
+using ::std::mem_fn;
+using ::std::is_bind_expression;
+using ::std::is_placeholder;
+
+namespace placeholders = ::std::placeholders;
+
+using ::std::function;
+using ::std::bad_function_call;
+
+using ::std::reference_wrapper;
+using ::std::cref;
+using ::std::ref;
+
+using ::std::hash;
 };
 
 #else
@@ -75,43 +74,35 @@ namespace ReaKaux {
 #include <boost/functional/hash.hpp>
 
 namespace ReaKaux {
-  
-  using ::boost::bind;
-  using ::boost::mem_fn;
-  using ::boost::is_bind_expression;
-  using ::boost::is_placeholder;
-  
-  namespace placeholders {
-    using ::_1;
-    using ::_2;
-    using ::_3;
-    using ::_4;
-    using ::_5;
-    using ::_6;
-    using ::_7;
-    using ::_8;
-    using ::_9;
-  };
-  
-  using ::boost::function;
-  using ::boost::bad_function_call;
-  
-  using ::boost::reference_wrapper;
-  using ::boost::cref;
-  using ::boost::ref;
-  
-  using ::boost::hash;
-  
+
+using ::boost::bind;
+using ::boost::mem_fn;
+using ::boost::is_bind_expression;
+using ::boost::is_placeholder;
+
+namespace placeholders {
+using ::_1;
+using ::_2;
+using ::_3;
+using ::_4;
+using ::_5;
+using ::_6;
+using ::_7;
+using ::_8;
+using ::_9;
+};
+
+using ::boost::function;
+using ::boost::bad_function_call;
+
+using ::boost::reference_wrapper;
+using ::boost::cref;
+using ::boost::ref;
+
+using ::boost::hash;
 };
 
 #endif
 
 
-
-
 #endif
-
-
-
-
-

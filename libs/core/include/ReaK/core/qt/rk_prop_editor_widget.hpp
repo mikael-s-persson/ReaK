@@ -1,7 +1,7 @@
 /**
- * 
- * 
- * 
+ *
+ *
+ *
  */
 
 /*
@@ -22,7 +22,7 @@
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with ReaK (as LICENSE in the root folder).  
+ *    along with ReaK (as LICENSE in the root folder).
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
@@ -35,58 +35,40 @@
 #include <QDockWidget>
 
 namespace Ui {
-  class RKPropEditorWidget;
+class RKPropEditorWidget;
 };
 
 namespace ReaK {
-  
+
 namespace qt {
 
 class PropEditorWidget : public QDockWidget {
-    Q_OBJECT
-  
-  public:
-    PropEditorWidget(ObjTreeQtModel* aObjTreeMdl,
-                     QWidget * parent = NULL, Qt::WindowFlags flags = 0);
-    virtual ~PropEditorWidget();
-    
-  private slots:
-    
-    void xmlSrcChanged();
-    void onTextChanged();
-    void applyButtonClick();
-    void cancelButtonClick();
-    void objNameChanged(const std::string& newName);
-    
-  signals:
-    
-    void editedXMLSrc(const std::string& newSrc);
-    
-  private:
-    Ui::RKPropEditorWidget* ui;
-  public:
-    
-    ObjPropertiesQtModel mdl;
-    ObjPropertiesQtDelegate delegate;
-    
-};
+  Q_OBJECT
 
-};
+public:
+  PropEditorWidget( ObjTreeQtModel* aObjTreeMdl, QWidget* parent = NULL, Qt::WindowFlags flags = 0 );
+  virtual ~PropEditorWidget();
 
+private slots:
+
+  void xmlSrcChanged();
+  void onTextChanged();
+  void applyButtonClick();
+  void cancelButtonClick();
+  void objNameChanged( const std::string& newName );
+
+signals:
+
+  void editedXMLSrc( const std::string& newSrc );
+
+private:
+  Ui::RKPropEditorWidget* ui;
+
+public:
+  ObjPropertiesQtModel mdl;
+  ObjPropertiesQtDelegate delegate;
+};
+};
 };
 
 #endif
-
-
-
-
-
-
-
-
-
-
-
-
-
-

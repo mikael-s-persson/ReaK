@@ -1,7 +1,7 @@
 /**
- * 
- * 
- * 
+ *
+ *
+ *
  */
 
 /*
@@ -22,7 +22,7 @@
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with ReaK (as LICENSE in the root folder).  
+ *    along with ReaK (as LICENSE in the root folder).
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
@@ -34,40 +34,34 @@
 #include <QDockWidget>
 
 namespace Ui {
-  class RKObjectTreeWidget;
+class RKObjectTreeWidget;
 };
 
 namespace ReaK {
-  
+
 namespace qt {
 
 class ObjectTreeWidget : public QDockWidget {
-    Q_OBJECT
-  
-  public:
-    ObjectTreeWidget(const shared_ptr< serialization::object_graph >& aObjGraph, 
-                     serialization::object_node_desc aRoot = 0,
-                     QWidget * parent = NULL, Qt::WindowFlags flags = 0);
-    virtual ~ObjectTreeWidget();
-    
-  private slots:
-    
-    void recordPreviousSelection();
-    void restorePreviousSelection();
-    
-  private:
-    Ui::RKObjectTreeWidget* ui;
-  public:
-    
-    ObjTreeQtModel mdl;
-    QString prev_selection;
-    
-};
+  Q_OBJECT
 
-};
+public:
+  ObjectTreeWidget( const shared_ptr< serialization::object_graph >& aObjGraph,
+                    serialization::object_node_desc aRoot = 0, QWidget* parent = NULL, Qt::WindowFlags flags = 0 );
+  virtual ~ObjectTreeWidget();
 
+private slots:
+
+  void recordPreviousSelection();
+  void restorePreviousSelection();
+
+private:
+  Ui::RKObjectTreeWidget* ui;
+
+public:
+  ObjTreeQtModel mdl;
+  QString prev_selection;
+};
+};
 };
 
 #endif
-
-

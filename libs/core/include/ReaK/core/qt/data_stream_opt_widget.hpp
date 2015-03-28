@@ -1,7 +1,7 @@
 /**
- * 
- * 
- * 
+ *
+ *
+ *
  */
 
 /*
@@ -22,7 +22,7 @@
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with ReaK (as LICENSE in the root folder).  
+ *    along with ReaK (as LICENSE in the root folder).
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
@@ -36,71 +36,48 @@
 #include <QMainWindow>
 
 namespace Ui {
-  class DataStreamOpt;
+class DataStreamOpt;
 };
 
 namespace ReaK {
-  
+
 namespace qt {
-  
+
 
 class DataStreamOptWidget : public QDockWidget {
-    Q_OBJECT
-  
-  public:
-    DataStreamOptWidget(recorder::data_stream_options aDataOpt = recorder::data_stream_options(), 
-                        QWidget * parent = NULL, Qt::WindowFlags flags = 0);
-    virtual ~DataStreamOptWidget();
-    
-  private slots:
-    
-    void onUpdateURIAndDataOpt();
-    void onUpdateFieldsAndDataOpt();
-    void onUpdateDataOptNames();
-    
-  private:
-    
-    Ui::DataStreamOpt* ui;
-    
-  public:
-    
-    recorder::data_stream_options data_opt;
-    
-    void setEnabledNameEdits(bool aEnabled);
-    void setEnabledFreqSetting(bool aEnabled);
-    void setEnabledBufferSetting(bool aEnabled);
-    void setEnabledTimeSyncSetting(bool aEnabled);
-    
-    enum stream_types {
-      allow_all,
-      file_only,
-      network_only
-    } mode;
-    
-    void setMode(stream_types aMode) { 
-      mode = aMode;
-      onUpdateFieldsAndDataOpt();
-      onUpdateDataOptNames();
-    };
-    
-};
+  Q_OBJECT
 
-};
+public:
+  DataStreamOptWidget( recorder::data_stream_options aDataOpt = recorder::data_stream_options(), QWidget* parent = NULL,
+                       Qt::WindowFlags flags = 0 );
+  virtual ~DataStreamOptWidget();
 
+private slots:
+
+  void onUpdateURIAndDataOpt();
+  void onUpdateFieldsAndDataOpt();
+  void onUpdateDataOptNames();
+
+private:
+  Ui::DataStreamOpt* ui;
+
+public:
+  recorder::data_stream_options data_opt;
+
+  void setEnabledNameEdits( bool aEnabled );
+  void setEnabledFreqSetting( bool aEnabled );
+  void setEnabledBufferSetting( bool aEnabled );
+  void setEnabledTimeSyncSetting( bool aEnabled );
+
+  enum stream_types { allow_all, file_only, network_only } mode;
+
+  void setMode( stream_types aMode ) {
+    mode = aMode;
+    onUpdateFieldsAndDataOpt();
+    onUpdateDataOptNames();
+  };
+};
+};
 };
 
 #endif
-
-
-
-
-
-
-
-
-
-
-
-
-
-

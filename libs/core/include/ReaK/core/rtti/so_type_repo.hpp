@@ -26,7 +26,7 @@
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with ReaK (as LICENSE in the root folder).  
+ *    along with ReaK (as LICENSE in the root folder).
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
@@ -47,52 +47,40 @@ namespace rtti {
  */
 class so_type_repo {
 private:
-  so_type_repo(const so_type_repo&);
-  so_type_repo& operator=(const so_type_repo&);
-  
+  so_type_repo( const so_type_repo& );
+  so_type_repo& operator=( const so_type_repo& );
+
   so_type* mTypeMap;
 
-  so_type_repo(so_type* aTypeMap);
-  
+  so_type_repo( so_type* aTypeMap );
+
   so_type_repo* next;
   so_type_repo* prev;
-  
+
 protected:
-  
-  bool isInRing(so_type_repo* aRepo);
-  
+  bool isInRing( so_type_repo* aRepo );
+
 public:
-  
   ~so_type_repo();
-  
-  ///This function merges a repo with this.
+
+  /// This function merges a repo with this.
   void merge( so_type_repo* aRepo );
-  
-  ///This function finds a TypeID in the descendants (recusively) of this.
-  so_type* findType(const unsigned int* aTypeID) const;
-  
-  ///This function finds a TypeID in the descendants (recusively) of this.
-  so_type* findType(so_type* aTypeID) const;
-  
-  ///This function adds a type to the repo.
-  so_type* addType(so_type* aTypeID);
-  
+
+  /// This function finds a TypeID in the descendants (recusively) of this.
+  so_type* findType( const unsigned int* aTypeID ) const;
+
+  /// This function finds a TypeID in the descendants (recusively) of this.
+  so_type* findType( so_type* aTypeID ) const;
+
+  /// This function adds a type to the repo.
+  so_type* addType( so_type* aTypeID );
+
   static so_type_repo& getInstance();
 };
 
 /// Global function to access the shared-object repository.
 so_type_repo& getRKSharedObjTypeRepo();
-
-
 };
-
 };
 
 #endif
-
-
-
-
-
-
-

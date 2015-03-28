@@ -1,7 +1,7 @@
 /**
  * \file archiver_factory.hpp
  *
- * This library declares abstract factory functions that can be used to create the correct 
+ * This library declares abstract factory functions that can be used to create the correct
  * archive object depending on the file-extension of the file-name provided.
  *
  * \author Mikael Persson, <mikael.s.persson@gmail.com>
@@ -26,7 +26,7 @@
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with ReaK (as LICENSE in the root folder).  
+ *    along with ReaK (as LICENSE in the root folder).
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
@@ -45,7 +45,7 @@ namespace serialization {
  * \param aFileName The complete file name of the file to open for read operations (iarchive).
  * \return A pointer to an archive object that will be capable of correctly reading from the specified file.
  */
-shared_ptr< iarchive > open_iarchive(const std::string& aFileName);
+shared_ptr< iarchive > open_iarchive( const std::string& aFileName );
 
 /**
  * This function creates a file-archive from a given file-name by recognizing its file-extension
@@ -53,16 +53,8 @@ shared_ptr< iarchive > open_iarchive(const std::string& aFileName);
  * \param aFileName The complete file name of the file to open for write operations (oarchive).
  * \return A pointer to an archive object that will be capable of correctly writing to the specified file.
  */
-shared_ptr< oarchive > open_oarchive(const std::string& aFileName);
-
-
+shared_ptr< oarchive > open_oarchive( const std::string& aFileName );
 };
-
 };
 
 #endif
-
-
-
-
-

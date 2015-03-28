@@ -26,7 +26,7 @@
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with ReaK (as LICENSE in the root folder).  
+ *    along with ReaK (as LICENSE in the root folder).
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
@@ -45,93 +45,74 @@ namespace recorder {
  * This class handles file IO operations for a binary data record.
  */
 class bin_recorder : public data_recorder {
-  protected:
-    virtual void writeRow();
-    virtual void writeNames();
-    virtual void setStreamImpl(const shared_ptr<std::ostream>& aStreamPtr);
-  public:
+protected:
+  virtual void writeRow();
+  virtual void writeNames();
+  virtual void setStreamImpl( const shared_ptr< std::ostream >& aStreamPtr );
 
-    /**
-     * Default constructor.
-     */
-    bin_recorder() : data_recorder() { };
+public:
+  /**
+   * Default constructor.
+   */
+  bin_recorder() : data_recorder(){};
 
-    /**
-     * Constructor that opens a file with name aFileName.
-     */
-    bin_recorder(const std::string& aFileName) : data_recorder() {
-      setFileName(aFileName);
-    };
+  /**
+   * Constructor that opens a file with name aFileName.
+   */
+  bin_recorder( const std::string& aFileName ) : data_recorder() { setFileName( aFileName ); };
 
-    /**
-     * Destructor, closes the file.
-     */
-    virtual ~bin_recorder() { };
+  /**
+   * Destructor, closes the file.
+   */
+  virtual ~bin_recorder(){};
 
-    virtual void RK_CALL save(serialization::oarchive& A, unsigned int) const {
-      data_recorder::save(A,data_recorder::getStaticObjectType()->TypeVersion());
-    };
-    virtual void RK_CALL load(serialization::iarchive& A, unsigned int) {
-      data_recorder::load(A,data_recorder::getStaticObjectType()->TypeVersion());
-    };
+  virtual void RK_CALL save( serialization::oarchive& A, unsigned int ) const {
+    data_recorder::save( A, data_recorder::getStaticObjectType()->TypeVersion() );
+  };
+  virtual void RK_CALL load( serialization::iarchive& A, unsigned int ) {
+    data_recorder::load( A, data_recorder::getStaticObjectType()->TypeVersion() );
+  };
 
-    RK_RTTI_MAKE_CONCRETE_1BASE(bin_recorder,0x81100004,1,"bin_recorder",data_recorder)
+  RK_RTTI_MAKE_CONCRETE_1BASE( bin_recorder, 0x81100004, 1, "bin_recorder", data_recorder )
 };
-
 
 
 /**
  * This class handles file IO operations for a binary data extractor.
  */
 class bin_extractor : public data_extractor {
-  protected:
-    virtual bool readRow();
-    virtual bool readNames();
-    virtual void setStreamImpl(const shared_ptr<std::istream>& aStreamPtr);
-  public:
-    
-    /**
-     * Default constructor.
-     */
-    bin_extractor() : data_extractor() { };
-    
-    /**
-     * Constructor that opens a file with name aFileName.
-     */
-    bin_extractor(const std::string& aFileName) : data_extractor() {
-      setFileName(aFileName);
-    };
-    
-    /**
-     * Destructor, closes the file.
-     */
-    virtual ~bin_extractor() {};
-    
-    virtual void RK_CALL save(serialization::oarchive& A, unsigned int) const {
-      data_extractor::save(A,data_extractor::getStaticObjectType()->TypeVersion());
-    };
-    virtual void RK_CALL load(serialization::iarchive& A, unsigned int) {
-      data_extractor::load(A,data_extractor::getStaticObjectType()->TypeVersion());
-    };
+protected:
+  virtual bool readRow();
+  virtual bool readNames();
+  virtual void setStreamImpl( const shared_ptr< std::istream >& aStreamPtr );
 
-    RK_RTTI_MAKE_CONCRETE_1BASE(bin_extractor,0x81200004,1,"bin_extractor",data_extractor)
+public:
+  /**
+   * Default constructor.
+   */
+  bin_extractor() : data_extractor(){};
+
+  /**
+   * Constructor that opens a file with name aFileName.
+   */
+  bin_extractor( const std::string& aFileName ) : data_extractor() { setFileName( aFileName ); };
+
+  /**
+   * Destructor, closes the file.
+   */
+  virtual ~bin_extractor(){};
+
+  virtual void RK_CALL save( serialization::oarchive& A, unsigned int ) const {
+    data_extractor::save( A, data_extractor::getStaticObjectType()->TypeVersion() );
+  };
+  virtual void RK_CALL load( serialization::iarchive& A, unsigned int ) {
+    data_extractor::load( A, data_extractor::getStaticObjectType()->TypeVersion() );
+  };
+
+  RK_RTTI_MAKE_CONCRETE_1BASE( bin_extractor, 0x81200004, 1, "bin_extractor", data_extractor )
 };
-
-
-
 };
-
-
 };
 
 
 #endif
-
-
-
-
-
-
-
-
-

@@ -17,7 +17,7 @@
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with ReaK (as LICENSE in the root folder).  
+ *    along with ReaK (as LICENSE in the root folder).
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
@@ -36,42 +36,32 @@ namespace ReaK {
 namespace serialization {
 
 
-shared_ptr< iarchive > open_iarchive(const std::string& aFileName) {
-  
-  std::string fileExt = aFileName.substr(aFileName.find_last_of('.') + 1);
-  
-  if( (fileExt == "rkx") || (fileExt == "xml") )
-    return shared_ptr< iarchive >(new xml_iarchive(aFileName));
-  else if( (fileExt == "rkb") || (fileExt == "bin") )
-    return shared_ptr< iarchive >(new bin_iarchive(aFileName));
+shared_ptr< iarchive > open_iarchive( const std::string& aFileName ) {
+
+  std::string fileExt = aFileName.substr( aFileName.find_last_of( '.' ) + 1 );
+
+  if( ( fileExt == "rkx" ) || ( fileExt == "xml" ) )
+    return shared_ptr< iarchive >( new xml_iarchive( aFileName ) );
+  else if( ( fileExt == "rkb" ) || ( fileExt == "bin" ) )
+    return shared_ptr< iarchive >( new bin_iarchive( aFileName ) );
   else if( fileExt == "pbuf" )
-    return shared_ptr< iarchive >(new protobuf_iarchive(aFileName));
+    return shared_ptr< iarchive >( new protobuf_iarchive( aFileName ) );
   else
-    throw std::ios_base::failure("Sorry, this file-type is not supported!");
-  
+    throw std::ios_base::failure( "Sorry, this file-type is not supported!" );
 };
 
-shared_ptr< oarchive > open_oarchive(const std::string& aFileName) {
-  
-  std::string fileExt = aFileName.substr(aFileName.find_last_of('.') + 1);
-  
-  if( (fileExt == "rkx") || (fileExt == "xml") )
-    return shared_ptr< oarchive >(new xml_oarchive(aFileName));
-  else if( (fileExt == "rkb") || (fileExt == "bin") )
-    return shared_ptr< oarchive >(new bin_oarchive(aFileName));
+shared_ptr< oarchive > open_oarchive( const std::string& aFileName ) {
+
+  std::string fileExt = aFileName.substr( aFileName.find_last_of( '.' ) + 1 );
+
+  if( ( fileExt == "rkx" ) || ( fileExt == "xml" ) )
+    return shared_ptr< oarchive >( new xml_oarchive( aFileName ) );
+  else if( ( fileExt == "rkb" ) || ( fileExt == "bin" ) )
+    return shared_ptr< oarchive >( new bin_oarchive( aFileName ) );
   else if( fileExt == "pbuf" )
-    return shared_ptr< oarchive >(new protobuf_oarchive(aFileName));
+    return shared_ptr< oarchive >( new protobuf_oarchive( aFileName ) );
   else
-    throw std::ios_base::failure("Sorry, this file-type is not supported!");
-  
+    throw std::ios_base::failure( "Sorry, this file-type is not supported!" );
 };
-
-
 };
-
 };
-
-
-
-
-
