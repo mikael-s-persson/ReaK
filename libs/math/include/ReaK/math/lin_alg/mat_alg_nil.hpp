@@ -1,12 +1,12 @@
 /**
  * \file mat_alg_nil.hpp
- * 
+ *
  * This library declares matrix specializations for representing and manipulating nil matrices.
- * This library implements many overloaded operators that turn out to be more efficiently implemented 
+ * This library implements many overloaded operators that turn out to be more efficiently implemented
  * if specialized for the nil matrix case. All those overloads are automatically selected through
- * Sfinae switches, and the nil matrix class is simply a partial specialization of the "ReaK::mat" 
+ * Sfinae switches, and the nil matrix class is simply a partial specialization of the "ReaK::mat"
  * class template, so, the burden on the user is minimal.
- * 
+ *
  * \author Mikael Persson <mikael.s.persson@gmail.com>
  * \date april 2011
  */
@@ -29,7 +29,7 @@
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with ReaK (as LICENSE in the root folder).  
+ *    along with ReaK (as LICENSE in the root folder).
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
@@ -42,263 +42,255 @@
 namespace ReaK {
 
 
-
-
-  
-
 /**
  * This class implements a place-holder or interface-implementation to represent
  * a nil matrix (all entries zero). This is useful to build for example a
  * block-matrix with some zero-matrix blocks, and, of course, the storage is minimal.
- * 
+ *
  * Models: ReadableMatrixConcept and ResizableMatrixConcept.
- * 
+ *
  * \tparam T Arithmetic type of the elements of the matrix.
- * \tparam Alignment Enum which defines the memory alignment of the matrix. Either mat_alignment::row_major or mat_alignment::column_major (default).
+ * \tparam Alignment Enum which defines the memory alignment of the matrix. Either mat_alignment::row_major or
+ *mat_alignment::column_major (default).
  * \tparam Allocator Standard allocator class (as in the STL), the default is std::allocator<T>.
  */
-template <typename T, mat_alignment::tag Alignment, typename Allocator>
-class mat<T,mat_structure::nil,Alignment,Allocator> : public serializable {
-  public:    
-    
-    typedef mat<T,mat_structure::nil,Alignment,Allocator> self;
-    typedef void allocator_type;
-    
-    typedef T value_type;
-    typedef void container_type;
-    
-    typedef void reference;
-    typedef T const_reference;
-    typedef void pointer;
-    typedef void const_pointer;
-  
-    typedef void row_iterator;
-    typedef void const_row_iterator;
-    typedef void col_iterator;
-    typedef void const_col_iterator;
-  
-    typedef std::size_t size_type;
-    typedef std::ptrdiff_t difference_type;
-  
-    BOOST_STATIC_CONSTANT(std::size_t, static_row_count = 0);
-    BOOST_STATIC_CONSTANT(std::size_t, static_col_count = 0);
-    BOOST_STATIC_CONSTANT(mat_alignment::tag, alignment = Alignment);
-    BOOST_STATIC_CONSTANT(mat_structure::tag, structure = mat_structure::nil);
-    
-  private:
-    size_type rowCount; ///< Row Count.
-    size_type colCount; ///< Column Count.
-  public:
-    /**
-     * Default constructor. Sets dimensions to zero.
-     */
-    mat() : rowCount(0), colCount(0) { };
-    /**
-     * Constructs a null matrix to the given dimensions.
-     */
-    mat(size_type aRowCount,size_type aColCount) : rowCount(aRowCount), colCount(aColCount) { };
-    
-    mat(const self& rhs) : rowCount(rhs.rowCount), colCount(rhs.colCount) { };
-    /**
-     * Default destructor.
-     */
-    ~mat() { };
-    
-    friend void swap(self& lhs,self& rhs) throw() {
-      using std::swap;
-      swap(lhs.rowCount,rhs.rowCount);
-      swap(lhs.colCount,rhs.colCount);
-    };
+template < typename T, mat_alignment::tag Alignment, typename Allocator >
+class mat< T, mat_structure::nil, Alignment, Allocator > : public serializable {
+public:
+  typedef mat< T, mat_structure::nil, Alignment, Allocator > self;
+  typedef void allocator_type;
 
-/*******************************************************************************
-                         Accessors and Methods
-*******************************************************************************/
+  typedef T value_type;
+  typedef void container_type;
 
-    /**
-     * Matrix indexing accessor for read-only access.
-     * \param i Row index.
-     * \param j Column index.
-     * \return the element at the given position.
-     * \test PASSED
-     */
-    const_reference operator()(size_type i,size_type j) const { return T(0.0); };
-    
-    /**
-     * Sub-matrix operator, accessor for read only.
-     * \test PASSED
-     */
-    mat_const_sub_block<self> operator()(const std::pair<size_type,size_type>& r, const std::pair<size_type,size_type>& c) const {
-      return sub(*this)(r,c);
-    };
-    
-    /**
-     * Sub-matrix operator, accessor for read only.
-     * \test PASSED
-     */
-    mat_const_col_slice<self> operator()(size_type r, const std::pair<size_type,size_type>& c) const {
-      return slice(*this)(r,c);
-    };
-    
-    /**
-     * Sub-matrix operator, accessor for read only.
-     * \test PASSED
-     */
-    mat_const_row_slice<self> operator()(const std::pair<size_type,size_type>& r, size_type c) const {
-      return slice(*this)(r,c);
-    };
-    
-    /**
-     * Gets the row-count (number of rows) of the matrix.
-     * \return number of rows of the matrix.
-     * \test PASSED
-     */
-    size_type get_row_count() const { return rowCount; };
+  typedef void reference;
+  typedef T const_reference;
+  typedef void pointer;
+  typedef void const_pointer;
 
-    /**
-     * Sets the row-count (number of rows) of the matrix.
-     * \param aRowCount new number of rows for the matrix.
-     * \param aPreserveData If true, the resizing will preserve all the data it can.
-     * \test PASSED
-     */
-    void set_row_count(size_type aRowCount,bool aPreserveData = false) { RK_UNUSED(aPreserveData);
-      rowCount = aRowCount;
-    };
+  typedef void row_iterator;
+  typedef void const_row_iterator;
+  typedef void col_iterator;
+  typedef void const_col_iterator;
 
-    /**
-     * Gets the column-count (number of columns) of the matrix.
-     * \return number of columns of the matrix.
-     * \test PASSED
-     */
-    size_type get_col_count() const { return colCount; };
+  typedef std::size_t size_type;
+  typedef std::ptrdiff_t difference_type;
 
-    /**
-     * Sets the column-count (number of columns) of the matrix.
-     * \param aColCount new number of columns for the matrix.
-     * \param aPreserveData If true, the resizing will preserve all the data it can.
-     * \test PASSED
-     */
-    void set_col_count(size_type aColCount,bool aPreserveData = false) { RK_UNUSED(aPreserveData);
-      colCount = aColCount;
-    };
-    
-    
-    /**
-     * Negate the matrix, has no effect of course.
-     * \return This matrix, by constant reference.
-     * \test PASSED
-     */
-    const self& operator -() const {
-      return *this;
-    };
-    
-    /**
-     * Transposes the matrix M.
-     * \param rhs The nil matrix to be transposed.
-     * \return The transpose of rhs.
-     */
-    friend self transpose(self rhs) {
-      using std::swap;
-      swap(rhs.colCount,rhs.rowCount);
-      return rhs;
-    };
-    
-    /**
-     * Transposes the matrix M.
-     * \param rhs The nil matrix to be transposed.
-     * \return The transpose of rhs.
-     */
-    friend self transpose_move(self& rhs) {
-      self result(rhs.colCount,rhs.rowCount);
-      return result;
-    };
-    
-    /**
-     * Returns the trace of the matrix.
-     * \return the trace of the matrix.
-     */
-    friend value_type trace(const self&) {
-      return value_type(0);
-    };
-    
-    /**
-     * Appends the matrix 'rhs' to the end of the matrix 'lhs', which are both nil matrices.
-     * \param lhs The nil matrix to which to append the other.
-     * \param rhs The nil matrix to be appended to 'lhs'.
-     */
-    friend void append_block_diag(self& lhs, const self& rhs) {
-      lhs.colCount += rhs.colCount;
-      lhs.rowCount += rhs.rowCount;
-    };
-    
-    
-/*******************************************************************************
-                   ReaK's RTTI and Serialization interfaces
-*******************************************************************************/
+  BOOST_STATIC_CONSTANT( std::size_t, static_row_count = 0 );
+  BOOST_STATIC_CONSTANT( std::size_t, static_col_count = 0 );
+  BOOST_STATIC_CONSTANT( mat_alignment::tag, alignment = Alignment );
+  BOOST_STATIC_CONSTANT( mat_structure::tag, structure = mat_structure::nil );
 
-    virtual void RK_CALL save(serialization::oarchive& A, unsigned int) const {
-      A & RK_SERIAL_SAVE_WITH_NAME(rowCount)
-        & RK_SERIAL_SAVE_WITH_NAME(colCount);
-    };
-    virtual void RK_CALL load(serialization::iarchive& A, unsigned int) {
-      A & RK_SERIAL_LOAD_WITH_NAME(rowCount)
-        & RK_SERIAL_LOAD_WITH_NAME(colCount);
-    };
-    
-    RK_RTTI_REGISTER_CLASS_1BASE(self,1,serializable)
-    
+private:
+  size_type rowCount; ///< Row Count.
+  size_type colCount; ///< Column Count.
+public:
+  /**
+   * Default constructor. Sets dimensions to zero.
+   */
+  mat() : rowCount( 0 ), colCount( 0 ){};
+  /**
+   * Constructs a null matrix to the given dimensions.
+   */
+  mat( size_type aRowCount, size_type aColCount ) : rowCount( aRowCount ), colCount( aColCount ){};
+
+  mat( const self& rhs ) : rowCount( rhs.rowCount ), colCount( rhs.colCount ){};
+  /**
+   * Default destructor.
+   */
+  ~mat(){};
+
+  friend void swap( self& lhs, self& rhs ) throw() {
+    using std::swap;
+    swap( lhs.rowCount, rhs.rowCount );
+    swap( lhs.colCount, rhs.colCount );
+  };
+
+  /*******************************************************************************
+                           Accessors and Methods
+  *******************************************************************************/
+
+  /**
+   * Matrix indexing accessor for read-only access.
+   * \param i Row index.
+   * \param j Column index.
+   * \return the element at the given position.
+   * \test PASSED
+   */
+  const_reference operator()( size_type i, size_type j ) const { return T( 0.0 ); };
+
+  /**
+   * Sub-matrix operator, accessor for read only.
+   * \test PASSED
+   */
+  mat_const_sub_block< self > operator()( const std::pair< size_type, size_type >& r,
+                                          const std::pair< size_type, size_type >& c ) const {
+    return sub ( *this )( r, c );
+  };
+
+  /**
+   * Sub-matrix operator, accessor for read only.
+   * \test PASSED
+   */
+  mat_const_col_slice< self > operator()( size_type r, const std::pair< size_type, size_type >& c ) const {
+    return slice ( *this )( r, c );
+  };
+
+  /**
+   * Sub-matrix operator, accessor for read only.
+   * \test PASSED
+   */
+  mat_const_row_slice< self > operator()( const std::pair< size_type, size_type >& r, size_type c ) const {
+    return slice ( *this )( r, c );
+  };
+
+  /**
+   * Gets the row-count (number of rows) of the matrix.
+   * \return number of rows of the matrix.
+   * \test PASSED
+   */
+  size_type get_row_count() const { return rowCount; };
+
+  /**
+   * Sets the row-count (number of rows) of the matrix.
+   * \param aRowCount new number of rows for the matrix.
+   * \param aPreserveData If true, the resizing will preserve all the data it can.
+   * \test PASSED
+   */
+  void set_row_count( size_type aRowCount, bool aPreserveData = false ) {
+    RK_UNUSED( aPreserveData );
+    rowCount = aRowCount;
+  };
+
+  /**
+   * Gets the column-count (number of columns) of the matrix.
+   * \return number of columns of the matrix.
+   * \test PASSED
+   */
+  size_type get_col_count() const { return colCount; };
+
+  /**
+   * Sets the column-count (number of columns) of the matrix.
+   * \param aColCount new number of columns for the matrix.
+   * \param aPreserveData If true, the resizing will preserve all the data it can.
+   * \test PASSED
+   */
+  void set_col_count( size_type aColCount, bool aPreserveData = false ) {
+    RK_UNUSED( aPreserveData );
+    colCount = aColCount;
+  };
+
+
+  /**
+   * Negate the matrix, has no effect of course.
+   * \return This matrix, by constant reference.
+   * \test PASSED
+   */
+  const self& operator-() const { return *this; };
+
+  /**
+   * Transposes the matrix M.
+   * \param rhs The nil matrix to be transposed.
+   * \return The transpose of rhs.
+   */
+  friend self transpose( self rhs ) {
+    using std::swap;
+    swap( rhs.colCount, rhs.rowCount );
+    return rhs;
+  };
+
+  /**
+   * Transposes the matrix M.
+   * \param rhs The nil matrix to be transposed.
+   * \return The transpose of rhs.
+   */
+  friend self transpose_move( self& rhs ) {
+    self result( rhs.colCount, rhs.rowCount );
+    return result;
+  };
+
+  /**
+   * Returns the trace of the matrix.
+   * \return the trace of the matrix.
+   */
+  friend value_type trace( const self& ) { return value_type( 0 ); };
+
+  /**
+   * Appends the matrix 'rhs' to the end of the matrix 'lhs', which are both nil matrices.
+   * \param lhs The nil matrix to which to append the other.
+   * \param rhs The nil matrix to be appended to 'lhs'.
+   */
+  friend void append_block_diag( self& lhs, const self& rhs ) {
+    lhs.colCount += rhs.colCount;
+    lhs.rowCount += rhs.rowCount;
+  };
+
+
+  /*******************************************************************************
+                     ReaK's RTTI and Serialization interfaces
+  *******************************************************************************/
+
+  virtual void RK_CALL save( serialization::oarchive& A, unsigned int ) const {
+    A& RK_SERIAL_SAVE_WITH_NAME( rowCount ) & RK_SERIAL_SAVE_WITH_NAME( colCount );
+  };
+  virtual void RK_CALL load( serialization::iarchive& A, unsigned int ) {
+    A& RK_SERIAL_LOAD_WITH_NAME( rowCount ) & RK_SERIAL_LOAD_WITH_NAME( colCount );
+  };
+
+  RK_RTTI_REGISTER_CLASS_1BASE( self, 1, serializable )
 };
 
-template <typename T>
+template < typename T >
 struct mat_null {
-  typedef mat<T,mat_structure::nil> type;
+  typedef mat< T, mat_structure::nil > type;
 };
 
 
-template <typename T>
-mat<T,mat_structure::nil> mat_nil(typename mat<T,mat_structure::nil>::size_type aRowCount,
-                                  typename mat<T,mat_structure::nil>::size_type aColCount) {
-  return mat<T,mat_structure::nil>(aRowCount,aColCount);
+template < typename T >
+mat< T, mat_structure::nil > mat_nil( typename mat< T, mat_structure::nil >::size_type aRowCount,
+                                      typename mat< T, mat_structure::nil >::size_type aColCount ) {
+  return mat< T, mat_structure::nil >( aRowCount, aColCount );
 };
 
 
-template <typename T, mat_alignment::tag Alignment, typename Allocator>
-struct is_readable_matrix< mat<T,mat_structure::nil, Alignment, Allocator> > {
+template < typename T, mat_alignment::tag Alignment, typename Allocator >
+struct is_readable_matrix< mat< T, mat_structure::nil, Alignment, Allocator > > {
   typedef boost::mpl::integral_c_tag tag;
   typedef bool value_type;
   BOOST_STATIC_CONSTANT( bool, value = true );
-  typedef is_readable_matrix< mat<T,mat_structure::nil, Alignment, Allocator> > type;
+  typedef is_readable_matrix< mat< T, mat_structure::nil, Alignment, Allocator > > type;
 };
 
-template <typename T, mat_alignment::tag Alignment, typename Allocator>
-struct is_writable_matrix< mat<T,mat_structure::nil, Alignment, Allocator> > {
+template < typename T, mat_alignment::tag Alignment, typename Allocator >
+struct is_writable_matrix< mat< T, mat_structure::nil, Alignment, Allocator > > {
   typedef boost::mpl::integral_c_tag tag;
   typedef bool value_type;
   BOOST_STATIC_CONSTANT( bool, value = false );
-  typedef is_writable_matrix< mat<T,mat_structure::nil, Alignment, Allocator> > type;
+  typedef is_writable_matrix< mat< T, mat_structure::nil, Alignment, Allocator > > type;
 };
 
-template <typename T, mat_alignment::tag Alignment, typename Allocator>
-struct is_fully_writable_matrix< mat<T,mat_structure::nil, Alignment, Allocator> > {
+template < typename T, mat_alignment::tag Alignment, typename Allocator >
+struct is_fully_writable_matrix< mat< T, mat_structure::nil, Alignment, Allocator > > {
   typedef boost::mpl::integral_c_tag tag;
   typedef bool value_type;
   BOOST_STATIC_CONSTANT( bool, value = false );
-  typedef is_writable_matrix< mat<T,mat_structure::nil, Alignment, Allocator> > type;
+  typedef is_writable_matrix< mat< T, mat_structure::nil, Alignment, Allocator > > type;
 };
 
-template <typename T, mat_alignment::tag Alignment, typename Allocator>
-struct is_resizable_matrix< mat<T,mat_structure::nil, Alignment, Allocator> > {
+template < typename T, mat_alignment::tag Alignment, typename Allocator >
+struct is_resizable_matrix< mat< T, mat_structure::nil, Alignment, Allocator > > {
   typedef boost::mpl::integral_c_tag tag;
   typedef bool value_type;
   BOOST_STATIC_CONSTANT( bool, value = true );
-  typedef is_resizable_matrix< mat<T,mat_structure::nil, Alignment, Allocator> > type;
+  typedef is_resizable_matrix< mat< T, mat_structure::nil, Alignment, Allocator > > type;
 };
 
-template <typename T, mat_alignment::tag Alignment, typename Allocator>
-struct has_allocator_matrix< mat<T,mat_structure::nil, Alignment, Allocator> > {
+template < typename T, mat_alignment::tag Alignment, typename Allocator >
+struct has_allocator_matrix< mat< T, mat_structure::nil, Alignment, Allocator > > {
   typedef boost::mpl::integral_c_tag tag;
   typedef bool value_type;
   BOOST_STATIC_CONSTANT( bool, value = false );
-  typedef has_allocator_matrix< mat<T,mat_structure::nil, Alignment, Allocator> > type;
+  typedef has_allocator_matrix< mat< T, mat_structure::nil, Alignment, Allocator > > type;
 };
 
 
@@ -309,15 +301,14 @@ struct has_allocator_matrix< mat<T,mat_structure::nil, Alignment, Allocator> > {
  * \return A null vector, by value.
  * \throw std::range_error if matrix and vector dimensions are not proper for multiplication.
  */
-template <typename T, typename Vector, mat_alignment::tag Alignment, typename Allocator>
-typename boost::enable_if_c< is_readable_vector<Vector>::value, 
- vect_n< T, Allocator > >::type
-  operator *(const mat<T,mat_structure::nil,Alignment,Allocator>& M, const Vector& V) {
-    if(V.size() != M.get_col_count())
-      throw std::range_error("Matrix dimension mismatch.");
-    return vect_n< T, Allocator >(M.get_row_count());
-  };
-    
+template < typename T, typename Vector, mat_alignment::tag Alignment, typename Allocator >
+typename boost::enable_if_c< is_readable_vector< Vector >::value, vect_n< T, Allocator > >::type
+  operator*( const mat< T, mat_structure::nil, Alignment, Allocator >& M, const Vector& V ) {
+  if( V.size() != M.get_col_count() )
+    throw std::range_error( "Matrix dimension mismatch." );
+  return vect_n< T, Allocator >( M.get_row_count() );
+};
+
 /**
  * Row-vector multiplication with null matrix, always results in a null vector.
  * \param V some row-vector.
@@ -325,15 +316,14 @@ typename boost::enable_if_c< is_readable_vector<Vector>::value,
  * \return A null vector, by value.
  * \throw std::range_error if matrix and vector dimensions are not proper for multiplication.
  */
-template <typename T, typename Vector, mat_alignment::tag Alignment, typename Allocator>
-typename boost::enable_if_c< is_readable_vector<Vector>::value, 
- vect_n< T, Allocator > >::type 
-  operator *(const Vector& V,const mat<T,mat_structure::nil,Alignment,Allocator>& M) {
-    if(V.size() != M.get_row_count())
-      throw std::range_error("Matrix dimension mismatch.");
-    return vect_n< T, Allocator >(M.get_col_count());
-  };
-  
+template < typename T, typename Vector, mat_alignment::tag Alignment, typename Allocator >
+typename boost::enable_if_c< is_readable_vector< Vector >::value, vect_n< T, Allocator > >::type
+  operator*( const Vector& V, const mat< T, mat_structure::nil, Alignment, Allocator >& M ) {
+  if( V.size() != M.get_row_count() )
+    throw std::range_error( "Matrix dimension mismatch." );
+  return vect_n< T, Allocator >( M.get_col_count() );
+};
+
 /**
  * Multiplication by a column-vector (fixed-size).
  * \param M the matrix (square)
@@ -341,11 +331,11 @@ typename boost::enable_if_c< is_readable_vector<Vector>::value,
  * \return column-vector equal to M * V.
  * \throw std::range_error if this matrix and the vector dimensions don't match.
  */
-template <typename T, unsigned int Size, mat_alignment::tag Alignment, typename Allocator>
-vect<T,Size> operator *(const mat<T,mat_structure::nil,Alignment,Allocator>& M,const vect<T,Size>& V) {
-  if((Size != M.get_col_count()) || (Size != M.get_row_count()))
-    throw std::range_error("Matrix dimension mismatch.");
-  return vect<T,Size>();
+template < typename T, unsigned int Size, mat_alignment::tag Alignment, typename Allocator >
+vect< T, Size > operator*( const mat< T, mat_structure::nil, Alignment, Allocator >& M, const vect< T, Size >& V ) {
+  if( ( Size != M.get_col_count() ) || ( Size != M.get_row_count() ) )
+    throw std::range_error( "Matrix dimension mismatch." );
+  return vect< T, Size >();
 };
 
 
@@ -356,11 +346,11 @@ vect<T,Size> operator *(const mat<T,mat_structure::nil,Alignment,Allocator>& M,c
  * \return row-vector equal to V * M.
  * \throw std::range_error if this matrix and the vector dimensions don't match.
  */
-template <typename T, unsigned int Size, mat_alignment::tag Alignment, typename Allocator>
-vect<T,Size> operator *(const vect<T,Size>& V,const mat<T,mat_structure::nil,Alignment,Allocator>& M) {
-  if((Size != M.get_col_count()) || (Size != M.get_row_count()))
-    throw std::range_error("Matrix dimension mismatch.");
-  return vect<T,Size>();
+template < typename T, unsigned int Size, mat_alignment::tag Alignment, typename Allocator >
+vect< T, Size > operator*( const vect< T, Size >& V, const mat< T, mat_structure::nil, Alignment, Allocator >& M ) {
+  if( ( Size != M.get_col_count() ) || ( Size != M.get_row_count() ) )
+    throw std::range_error( "Matrix dimension mismatch." );
+  return vect< T, Size >();
 };
 
 #if 0
@@ -462,59 +452,48 @@ typename boost::enable_if_c< is_readable_matrix<Matrix>::value, const Matrix& >:
       throw std::range_error("Matrix dimension mismatch.");
     return M2;
   };
-  
+
 
 #endif
-
 
 
 #ifndef BOOST_NO_CXX11_EXTERN_TEMPLATE
 
-extern template class mat<double, mat_structure::nil>;
-extern template class mat<float, mat_structure::nil>;
+extern template class mat< double, mat_structure::nil >;
+extern template class mat< float, mat_structure::nil >;
 
-extern template mat<double,mat_structure::nil> mat_nil<double>(mat<double,mat_structure::nil>::size_type aRowCount, mat<double,mat_structure::nil>::size_type aColCount);
-extern template mat<float,mat_structure::nil> mat_nil<float>(mat<float,mat_structure::nil>::size_type aRowCount, mat<float,mat_structure::nil>::size_type aColCount);
+extern template mat< double, mat_structure::nil >
+  mat_nil< double >( mat< double, mat_structure::nil >::size_type aRowCount,
+                     mat< double, mat_structure::nil >::size_type aColCount );
+extern template mat< float, mat_structure::nil >
+  mat_nil< float >( mat< float, mat_structure::nil >::size_type aRowCount,
+                    mat< float, mat_structure::nil >::size_type aColCount );
 
-extern template vect<double,2> operator *(const mat<double,mat_structure::nil>& M,const vect<double,2>& V);
-extern template vect<double,3> operator *(const mat<double,mat_structure::nil>& M,const vect<double,3>& V);
-extern template vect<double,4> operator *(const mat<double,mat_structure::nil>& M,const vect<double,4>& V);
-extern template vect<double,6> operator *(const mat<double,mat_structure::nil>& M,const vect<double,6>& V);
-extern template vect_n<double> operator *(const mat<double,mat_structure::nil>& M, const vect_n<double>& V);
+extern template vect< double, 2 > operator*( const mat< double, mat_structure::nil >& M, const vect< double, 2 >& V );
+extern template vect< double, 3 > operator*( const mat< double, mat_structure::nil >& M, const vect< double, 3 >& V );
+extern template vect< double, 4 > operator*( const mat< double, mat_structure::nil >& M, const vect< double, 4 >& V );
+extern template vect< double, 6 > operator*( const mat< double, mat_structure::nil >& M, const vect< double, 6 >& V );
+extern template vect_n< double > operator*( const mat< double, mat_structure::nil >& M, const vect_n< double >& V );
 
-extern template vect<double,2> operator *(const vect<double,2>& V,const mat<double,mat_structure::nil>& M);
-extern template vect<double,3> operator *(const vect<double,3>& V,const mat<double,mat_structure::nil>& M);
-extern template vect<double,4> operator *(const vect<double,4>& V,const mat<double,mat_structure::nil>& M);
-extern template vect<double,6> operator *(const vect<double,6>& V,const mat<double,mat_structure::nil>& M);
-extern template vect_n<double> operator *(const vect_n<double>& V,const mat<double,mat_structure::nil>& M);
+extern template vect< double, 2 > operator*( const vect< double, 2 >& V, const mat< double, mat_structure::nil >& M );
+extern template vect< double, 3 > operator*( const vect< double, 3 >& V, const mat< double, mat_structure::nil >& M );
+extern template vect< double, 4 > operator*( const vect< double, 4 >& V, const mat< double, mat_structure::nil >& M );
+extern template vect< double, 6 > operator*( const vect< double, 6 >& V, const mat< double, mat_structure::nil >& M );
+extern template vect_n< double > operator*( const vect_n< double >& V, const mat< double, mat_structure::nil >& M );
 
-extern template vect<float,2> operator *(const mat<float,mat_structure::nil>& M,const vect<float,2>& V);
-extern template vect<float,3> operator *(const mat<float,mat_structure::nil>& M,const vect<float,3>& V);
-extern template vect<float,4> operator *(const mat<float,mat_structure::nil>& M,const vect<float,4>& V);
-extern template vect<float,6> operator *(const mat<float,mat_structure::nil>& M,const vect<float,6>& V);
-extern template vect_n<float> operator *(const mat<float,mat_structure::nil>& M, const vect_n<float>& V);
+extern template vect< float, 2 > operator*( const mat< float, mat_structure::nil >& M, const vect< float, 2 >& V );
+extern template vect< float, 3 > operator*( const mat< float, mat_structure::nil >& M, const vect< float, 3 >& V );
+extern template vect< float, 4 > operator*( const mat< float, mat_structure::nil >& M, const vect< float, 4 >& V );
+extern template vect< float, 6 > operator*( const mat< float, mat_structure::nil >& M, const vect< float, 6 >& V );
+extern template vect_n< float > operator*( const mat< float, mat_structure::nil >& M, const vect_n< float >& V );
 
-extern template vect<float,2> operator *(const vect<float,2>& V,const mat<float,mat_structure::nil>& M);
-extern template vect<float,3> operator *(const vect<float,3>& V,const mat<float,mat_structure::nil>& M);
-extern template vect<float,4> operator *(const vect<float,4>& V,const mat<float,mat_structure::nil>& M);
-extern template vect<float,6> operator *(const vect<float,6>& V,const mat<float,mat_structure::nil>& M);
-extern template vect_n<float> operator *(const vect_n<float>& V,const mat<float,mat_structure::nil>& M);
+extern template vect< float, 2 > operator*( const vect< float, 2 >& V, const mat< float, mat_structure::nil >& M );
+extern template vect< float, 3 > operator*( const vect< float, 3 >& V, const mat< float, mat_structure::nil >& M );
+extern template vect< float, 4 > operator*( const vect< float, 4 >& V, const mat< float, mat_structure::nil >& M );
+extern template vect< float, 6 > operator*( const vect< float, 6 >& V, const mat< float, mat_structure::nil >& M );
+extern template vect_n< float > operator*( const vect_n< float >& V, const mat< float, mat_structure::nil >& M );
 
 #endif
-
-
-
 };
 
 #endif
-
-
-
-
-
-
-
-
-
-
-

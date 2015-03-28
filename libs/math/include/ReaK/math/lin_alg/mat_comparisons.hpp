@@ -1,8 +1,8 @@
 /**
  * \file mat_comparisons.hpp
- * 
+ *
  * This library provides several functions to compute the various matrix comparisons.
- * 
+ *
  * \author Sven Mikael Persson <mikael.s.persson@gmail.com>
  * \date September 2011
  */
@@ -25,7 +25,7 @@
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with ReaK (as LICENSE in the root folder).  
+ *    along with ReaK (as LICENSE in the root folder).
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
@@ -49,26 +49,23 @@ namespace ReaK {
  * \param NumTol The numerical tolerance to consider a value to be zero.
  * \return true iff both matrices are the same, within the given tolerance.
  */
-template <typename Matrix1, typename Matrix2>
-typename boost::enable_if_c< is_readable_matrix<Matrix1>::value &&
-                             is_readable_matrix<Matrix2>::value,
-bool >::type is_equal_mat(const Matrix1& M1, const Matrix2& M2, typename mat_traits<Matrix1>::value_type NumTol = typename mat_traits<Matrix1>::value_type(1E-8) ) {
-  if( ( M1.get_row_count() != M2.get_row_count() ) ||
-      ( M1.get_col_count() != M2.get_col_count() ) )
+template < typename Matrix1, typename Matrix2 >
+typename boost::enable_if_c< is_readable_matrix< Matrix1 >::value && is_readable_matrix< Matrix2 >::value, bool >::type
+  is_equal_mat( const Matrix1& M1, const Matrix2& M2, typename mat_traits< Matrix1 >::value_type NumTol
+                                                      = typename mat_traits< Matrix1 >::value_type( 1E-8 ) ) {
+  if( ( M1.get_row_count() != M2.get_row_count() ) || ( M1.get_col_count() != M2.get_col_count() ) )
     return false;
-  
-  typedef typename mat_traits<Matrix1>::size_type SizeType;
+
+  typedef typename mat_traits< Matrix1 >::size_type SizeType;
   using std::fabs;
-  
-  for(SizeType i = 0; i < M1.get_row_count(); ++i)
-    for(SizeType j = 0; j < M1.get_col_count(); ++j)
-      if( fabs(M1(i,j) - M2(i,j)) > NumTol )
+
+  for( SizeType i = 0; i < M1.get_row_count(); ++i )
+    for( SizeType j = 0; j < M1.get_col_count(); ++j )
+      if( fabs( M1( i, j ) - M2( i, j ) ) > NumTol )
         return false;
-  
+
   return true;
 };
-
-
 
 
 /**
@@ -78,20 +75,21 @@ bool >::type is_equal_mat(const Matrix1& M1, const Matrix2& M2, typename mat_tra
  * \param NumTol The numerical tolerance to consider a value to be zero.
  * \return true iff the matrix is diagonal, within the given tolerance.
  */
-template <class Matrix>
-typename boost::enable_if_c< is_readable_matrix<Matrix>::value, 
- bool >::type is_diagonal(const Matrix& A, typename mat_traits<Matrix>::value_type NumTol = typename mat_traits<Matrix>::value_type(1E-8) ) {
-  if(A.get_row_count() != A.get_col_count())
+template < class Matrix >
+typename boost::enable_if_c< is_readable_matrix< Matrix >::value, bool >::type
+  is_diagonal( const Matrix& A,
+               typename mat_traits< Matrix >::value_type NumTol = typename mat_traits< Matrix >::value_type( 1E-8 ) ) {
+  if( A.get_row_count() != A.get_col_count() )
     return false;
-  
+
   typedef typename mat_traits< Matrix >::size_type SizeType;
   using std::fabs;
-  
-  for(SizeType i=0;i<A.get_row_count();i++)
-    for(SizeType j=0;j<i;j++)
-      if((fabs(A(j,i)) > NumTol) || (fabs(A(i,j)) > NumTol))
+
+  for( SizeType i = 0; i < A.get_row_count(); i++ )
+    for( SizeType j = 0; j < i; j++ )
+      if( ( fabs( A( j, i ) ) > NumTol ) || ( fabs( A( i, j ) ) > NumTol ) )
         return false;
-  
+
   return true;
 };
 
@@ -102,20 +100,21 @@ typename boost::enable_if_c< is_readable_matrix<Matrix>::value,
  * \param NumTol The numerical tolerance to consider a value to be zero.
  * \return true iff the matrix is symmetric, within the given tolerance.
  */
-template <class Matrix>
-typename boost::enable_if_c< is_readable_matrix<Matrix>::value,
-bool >::type is_symmetric(const Matrix& A, typename mat_traits<Matrix>::value_type NumTol = typename mat_traits<Matrix>::value_type(1E-8) ) {
-  if(A.get_row_count() != A.get_col_count())
+template < class Matrix >
+typename boost::enable_if_c< is_readable_matrix< Matrix >::value, bool >::type
+  is_symmetric( const Matrix& A,
+                typename mat_traits< Matrix >::value_type NumTol = typename mat_traits< Matrix >::value_type( 1E-8 ) ) {
+  if( A.get_row_count() != A.get_col_count() )
     return false;
-  
+
   typedef typename mat_traits< Matrix >::size_type SizeType;
   using std::fabs;
-  
-  for(SizeType i=0;i<A.get_row_count();i++)
-    for(SizeType j=0;j<i;j++)
-      if(fabs(A(j,i) - A(i,j)) > NumTol)
+
+  for( SizeType i = 0; i < A.get_row_count(); i++ )
+    for( SizeType j = 0; j < i; j++ )
+      if( fabs( A( j, i ) - A( i, j ) ) > NumTol )
         return false;
-      
+
   return true;
 };
 
@@ -126,25 +125,26 @@ bool >::type is_symmetric(const Matrix& A, typename mat_traits<Matrix>::value_ty
  * \param NumTol The numerical tolerance to consider a value to be zero.
  * \return true iff the matrix is the identity, within the given tolerance.
  */
-template <class Matrix>
-typename boost::enable_if_c< is_readable_matrix<Matrix>::value, 
- bool >::type is_identity_mat(const Matrix& A, typename mat_traits<Matrix>::value_type NumTol = typename mat_traits<Matrix>::value_type(1E-8) ) {
-  if(A.get_row_count() != A.get_col_count())
+template < class Matrix >
+typename boost::enable_if_c< is_readable_matrix< Matrix >::value, bool >::type
+  is_identity_mat( const Matrix& A, typename mat_traits< Matrix >::value_type NumTol
+                                    = typename mat_traits< Matrix >::value_type( 1E-8 ) ) {
+  if( A.get_row_count() != A.get_col_count() )
     return false;
-  
+
   typedef typename mat_traits< Matrix >::value_type ValueType;
   typedef typename mat_traits< Matrix >::size_type SizeType;
   using std::fabs;
-  
-  for(SizeType i=0;i<A.get_row_count();i++)
-    for(SizeType j=0;j<i;j++)
-      if((fabs(A(j,i)) > NumTol) || (fabs(A(i,j)) > NumTol))
+
+  for( SizeType i = 0; i < A.get_row_count(); i++ )
+    for( SizeType j = 0; j < i; j++ )
+      if( ( fabs( A( j, i ) ) > NumTol ) || ( fabs( A( i, j ) ) > NumTol ) )
         return false;
-      
-  for(SizeType i=0;i<A.get_row_count();i++)
-    if(fabs(A(i,i) - ValueType(1.0)) > NumTol)
+
+  for( SizeType i = 0; i < A.get_row_count(); i++ )
+    if( fabs( A( i, i ) - ValueType( 1.0 ) ) > NumTol )
       return false;
-  
+
   return true;
 };
 
@@ -155,17 +155,18 @@ typename boost::enable_if_c< is_readable_matrix<Matrix>::value,
  * \param NumTol The numerical tolerance to consider a value to be zero.
  * \return true iff the matrix is null, within the given tolerance.
  */
-template <class Matrix>
-typename boost::enable_if_c< is_readable_matrix<Matrix>::value, 
- bool >::type is_null_mat(const Matrix& A, typename mat_traits<Matrix>::value_type NumTol = typename mat_traits<Matrix>::value_type(1E-8) ) {
+template < class Matrix >
+typename boost::enable_if_c< is_readable_matrix< Matrix >::value, bool >::type
+  is_null_mat( const Matrix& A,
+               typename mat_traits< Matrix >::value_type NumTol = typename mat_traits< Matrix >::value_type( 1E-8 ) ) {
   typedef typename mat_traits< Matrix >::size_type SizeType;
   using std::fabs;
-  
-  for(SizeType i = 0; i < A.get_row_count(); ++i)
-    for(SizeType j = 0; j < A.get_col_count(); ++j)
-      if(fabs(A(i,j)) > NumTol)
+
+  for( SizeType i = 0; i < A.get_row_count(); ++i )
+    for( SizeType j = 0; j < A.get_col_count(); ++j )
+      if( fabs( A( i, j ) ) > NumTol )
         return false;
-  
+
   return true;
 };
 
@@ -177,21 +178,22 @@ typename boost::enable_if_c< is_readable_matrix<Matrix>::value,
  * \param NumTol The numerical tolerance to consider a value to be zero.
  * \return true iff the matrix is upper-triangular, within the given tolerance.
  */
-template <class Matrix>
-typename boost::enable_if_c< is_readable_matrix<Matrix>::value,
-bool >::type is_upper_triangular(const Matrix& A, typename mat_traits<Matrix>::value_type NumTol = typename mat_traits<Matrix>::value_type(1E-8) ) {
-  
+template < class Matrix >
+typename boost::enable_if_c< is_readable_matrix< Matrix >::value, bool >::type
+  is_upper_triangular( const Matrix& A, typename mat_traits< Matrix >::value_type NumTol
+                                        = typename mat_traits< Matrix >::value_type( 1E-8 ) ) {
+
   typedef typename mat_traits< Matrix >::size_type SizeType;
   using std::fabs;
   SizeType N = A.get_row_count();
-  if(N > A.get_col_count())
+  if( N > A.get_col_count() )
     N = A.get_col_count();
-  
-  for(SizeType i = 0; i+1 < N; i++)
-    for(SizeType j = i+1; j < A.get_row_count(); j++)
-      if(fabs(A(j,i)) > NumTol)
+
+  for( SizeType i = 0; i + 1 < N; i++ )
+    for( SizeType j = i + 1; j < A.get_row_count(); j++ )
+      if( fabs( A( j, i ) ) > NumTol )
         return false;
-  
+
   return true;
 };
 
@@ -202,18 +204,19 @@ bool >::type is_upper_triangular(const Matrix& A, typename mat_traits<Matrix>::v
  * \param NumTol The numerical tolerance to consider a value to be zero.
  * \return true iff the matrix is lower-triangular, within the given tolerance.
  */
-template <class Matrix>
-typename boost::enable_if_c< is_readable_matrix<Matrix>::value,
-bool >::type is_lower_triangular(const Matrix& A, typename mat_traits<Matrix>::value_type NumTol = typename mat_traits<Matrix>::value_type(1E-8) ) {
-  
+template < class Matrix >
+typename boost::enable_if_c< is_readable_matrix< Matrix >::value, bool >::type
+  is_lower_triangular( const Matrix& A, typename mat_traits< Matrix >::value_type NumTol
+                                        = typename mat_traits< Matrix >::value_type( 1E-8 ) ) {
+
   typedef typename mat_traits< Matrix >::size_type SizeType;
   using std::fabs;
-  
-  for(SizeType i = 1; i < A.get_col_count(); i++)
-    for(SizeType j = 0; (j < i) && (j < A.get_row_count()); j++)
-      if(fabs(A(j,i)) > NumTol)
+
+  for( SizeType i = 1; i < A.get_col_count(); i++ )
+    for( SizeType j = 0; ( j < i ) && ( j < A.get_row_count() ); j++ )
+      if( fabs( A( j, i ) ) > NumTol )
         return false;
-  
+
   return true;
 };
 
@@ -225,21 +228,22 @@ bool >::type is_lower_triangular(const Matrix& A, typename mat_traits<Matrix>::v
  * \param NumTol The numerical tolerance to consider a value to be zero.
  * \return true iff the matrix is upper-hessenberg, within the given tolerance.
  */
-template <class Matrix>
-typename boost::enable_if_c< is_readable_matrix<Matrix>::value,
-bool >::type is_upper_hessenberg(const Matrix& A, typename mat_traits<Matrix>::value_type NumTol = typename mat_traits<Matrix>::value_type(1E-8) ) {
-  
+template < class Matrix >
+typename boost::enable_if_c< is_readable_matrix< Matrix >::value, bool >::type
+  is_upper_hessenberg( const Matrix& A, typename mat_traits< Matrix >::value_type NumTol
+                                        = typename mat_traits< Matrix >::value_type( 1E-8 ) ) {
+
   typedef typename mat_traits< Matrix >::size_type SizeType;
   using std::fabs;
   SizeType N = A.get_row_count();
-  if(N > A.get_col_count())
+  if( N > A.get_col_count() )
     N = A.get_col_count();
-  
-  for(SizeType i = 0; i+2 < N; i++)
-    for(SizeType j = i+2; j < A.get_row_count(); j++)
-      if(fabs(A(j,i)) > NumTol)
+
+  for( SizeType i = 0; i + 2 < N; i++ )
+    for( SizeType j = i + 2; j < A.get_row_count(); j++ )
+      if( fabs( A( j, i ) ) > NumTol )
         return false;
-  
+
   return true;
 };
 
@@ -250,18 +254,19 @@ bool >::type is_upper_hessenberg(const Matrix& A, typename mat_traits<Matrix>::v
  * \param NumTol The numerical tolerance to consider a value to be zero.
  * \return true iff the matrix is lower-hessenberg, within the given tolerance.
  */
-template <class Matrix>
-typename boost::enable_if_c< is_readable_matrix<Matrix>::value,
-bool >::type is_lower_hessenberg(const Matrix& A, typename mat_traits<Matrix>::value_type NumTol = typename mat_traits<Matrix>::value_type(1E-8) ) {
-  
+template < class Matrix >
+typename boost::enable_if_c< is_readable_matrix< Matrix >::value, bool >::type
+  is_lower_hessenberg( const Matrix& A, typename mat_traits< Matrix >::value_type NumTol
+                                        = typename mat_traits< Matrix >::value_type( 1E-8 ) ) {
+
   typedef typename mat_traits< Matrix >::size_type SizeType;
   using std::fabs;
-  
-  for(SizeType i = 2; i < A.get_col_count(); i++)
-    for(SizeType j = 0; (j+1 < i) && (j < A.get_row_count()); j++)
-      if(fabs(A(j,i)) > NumTol)
+
+  for( SizeType i = 2; i < A.get_col_count(); i++ )
+    for( SizeType j = 0; ( j + 1 < i ) && ( j < A.get_row_count() ); j++ )
+      if( fabs( A( j, i ) ) > NumTol )
         return false;
-  
+
   return true;
 };
 
@@ -273,31 +278,23 @@ bool >::type is_lower_hessenberg(const Matrix& A, typename mat_traits<Matrix>::v
  * \param NumTol The numerical tolerance to consider a value to be zero.
  * \return true iff the matrix is tri-diagonal, within the given tolerance.
  */
-template <class Matrix>
-typename boost::enable_if_c< is_readable_matrix<Matrix>::value,
-bool >::type is_tri_diagonal(const Matrix& A, typename mat_traits<Matrix>::value_type NumTol = typename mat_traits<Matrix>::value_type(1E-8) ) {
-  if(A.get_row_count() != A.get_col_count())
+template < class Matrix >
+typename boost::enable_if_c< is_readable_matrix< Matrix >::value, bool >::type
+  is_tri_diagonal( const Matrix& A, typename mat_traits< Matrix >::value_type NumTol
+                                    = typename mat_traits< Matrix >::value_type( 1E-8 ) ) {
+  if( A.get_row_count() != A.get_col_count() )
     return false;
-  
+
   typedef typename mat_traits< Matrix >::size_type SizeType;
   using std::fabs;
-  
-  for(SizeType i = 2; i < A.get_col_count(); i++)
-    for(SizeType j = 0; (j+1 < i); j++)
-      if((fabs(A(j,i)) > NumTol) || (fabs(A(i,j)) > NumTol))
+
+  for( SizeType i = 2; i < A.get_col_count(); i++ )
+    for( SizeType j = 0; ( j + 1 < i ); j++ )
+      if( ( fabs( A( j, i ) ) > NumTol ) || ( fabs( A( i, j ) ) > NumTol ) )
         return false;
-  
+
   return true;
 };
-
-
 };
 
 #endif
-
-
-
-
-
-
-

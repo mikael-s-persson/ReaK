@@ -1,12 +1,12 @@
 /**
  * \file mat_alg_lower_triangular.hpp
- * 
- * This library contains old code which is specific to handing, storing and operating 
+ *
+ * This library contains old code which is specific to handing, storing and operating
  * with lower-triangular matrices. It stores only the lower-triangular part and operate
  * more efficiently than if it was a dense matrix.
- * 
+ *
  * \todo Port all this code to the newer framework for matrices.
- * 
+ *
  */
 
 /*
@@ -27,7 +27,7 @@
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with ReaK (as LICENSE in the root folder).  
+ *    along with ReaK (as LICENSE in the root folder).
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
@@ -38,7 +38,6 @@
 
 
 namespace ReaK {
-
 
 
 #if 0
@@ -529,23 +528,8 @@ class mat_lo_tri : public mat<T> {
 };
 
 
-
-
 #endif
-
-
 };
 
 
 #endif
-
-
-
-
-
-
-
-
-
-
-

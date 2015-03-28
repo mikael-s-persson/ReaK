@@ -1,9 +1,9 @@
 /**
  * \file mat_num_exceptions.hpp
- * 
- * This library defines a number of exception classes to represent the typical 
+ *
+ * This library defines a number of exception classes to represent the typical
  * exceptions that could be thrown during matrix numerical methods.
- * 
+ *
  * \author Sven Mikael Persson <mikael.s.persson@gmail.com>
  * \date April 2011
  */
@@ -26,7 +26,7 @@
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with ReaK (as LICENSE in the root folder).  
+ *    along with ReaK (as LICENSE in the root folder).
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
@@ -43,26 +43,25 @@ namespace ReaK {
  * in the operation that threw this exception.
  */
 class singularity_error : public std::exception {
-  public:
-    std::string message; ///< Message string that identifies the singular matrix.
+public:
+  std::string message; ///< Message string that identifies the singular matrix.
 
-    /**
-     * Default constructor.
-     * \param aMatrixName the name of the matrix which is singular.
-     */
-    singularity_error(const std::string& aMatrixName) : message(std::string("Singularity detected! For matrix ") + aMatrixName) { };
-    /**
-     * Destructor.
-     */
-    ~singularity_error() throw() {};
+  /**
+   * Default constructor.
+   * \param aMatrixName the name of the matrix which is singular.
+   */
+  singularity_error( const std::string& aMatrixName )
+      : message( std::string( "Singularity detected! For matrix " ) + aMatrixName ){};
+  /**
+   * Destructor.
+   */
+  ~singularity_error() throw(){};
 
-    /**
-     * Gets the error message.
-     * \return c_string of the error message.
-     */
-    const char* what() const throw() {
-      return message.c_str();
-    };
+  /**
+   * Gets the error message.
+   * \return c_string of the error message.
+   */
+  const char* what() const throw() { return message.c_str(); };
 };
 
 /**
@@ -70,49 +69,30 @@ class singularity_error : public std::exception {
  * iteration before having reached any "successful" terminal condition.
  */
 class maximum_iteration : public std::exception {
-  public:
-    std::string message; ///< Error message string.
+public:
+  std::string message; ///< Error message string.
 
-    /**
-     * Default constructor.
-     * \param aMaxIter the iteration limit reached.
-     */
-    maximum_iteration(unsigned int aMaxIter) {
-      std::stringstream ss;
-      ss << "Maximum iteration reached at " << aMaxIter;
-      message = ss.str();
-    };
-    /**
-     * Destructor.
-     */
-    ~maximum_iteration() throw() {};
+  /**
+   * Default constructor.
+   * \param aMaxIter the iteration limit reached.
+   */
+  maximum_iteration( unsigned int aMaxIter ) {
+    std::stringstream ss;
+    ss << "Maximum iteration reached at " << aMaxIter;
+    message = ss.str();
+  };
+  /**
+   * Destructor.
+   */
+  ~maximum_iteration() throw(){};
 
-    /**
-     * Gets the error message.
-     * \return c_string of the error message.
-     */
-    const char* what() const throw() {
-      return message.c_str();
-    };
+  /**
+   * Gets the error message.
+   * \return c_string of the error message.
+   */
+  const char* what() const throw() { return message.c_str(); };
 };
-
 };
-
 
 
 #endif
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

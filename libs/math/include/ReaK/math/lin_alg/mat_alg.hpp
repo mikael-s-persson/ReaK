@@ -1,15 +1,15 @@
 /**
  * \file mat_alg.hpp
- * 
- * This library declares (mostly by inclusions) all types of matrices currently available 
+ *
+ * This library declares (mostly by inclusions) all types of matrices currently available
  * in the ReaK platform. These are all STL-vector based storage matrices or special matrices
  * such as nil or identity, or matrix adaptors, views, compositions and slices.
- * 
+ *
  * \todo Implement a suite of statically-sized matrix classes.
  * \todo Port the code related to the upper-triangular and lower-triangular matrices.
  * \todo Implement expression templates to optimize compound matrix expressions.
  * \todo Implement additional matrix views, for example, transposed view.
- * 
+ *
  * \author Mikael Persson <mikael.s.persson@gmail.com>
  * \date april 2011
  */
@@ -32,7 +32,7 @@
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with ReaK (as LICENSE in the root folder).  
+ *    along with ReaK (as LICENSE in the root folder).
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
@@ -64,7 +64,6 @@
 
 /** Main namespace for ReaK */
 namespace ReaK {
-  
 
 
 /****************************************************************************
@@ -77,11 +76,11 @@ namespace ReaK {
  * \param M2 second matrix (lower-right diagonal block).
  * \return General block diagonal matrix.
  */
-template <typename Matrix1, typename Matrix2>
-typename boost::enable_if_c< is_writable_matrix<Matrix1>::value &&
-                             is_readable_matrix<Matrix2>::value,
-Matrix1 >::type block_diag_mat(Matrix1 M1,const Matrix2& M2) {
-  append_block_diag(M1,M2);
+template < typename Matrix1, typename Matrix2 >
+typename boost::enable_if_c< is_writable_matrix< Matrix1 >::value && is_readable_matrix< Matrix2 >::value,
+                             Matrix1 >::type
+  block_diag_mat( Matrix1 M1, const Matrix2& M2 ) {
+  append_block_diag( M1, M2 );
   return M1;
 };
 
@@ -91,13 +90,13 @@ Matrix1 >::type block_diag_mat(Matrix1 M1,const Matrix2& M2) {
  * \param M2 second matrix (lower-right diagonal block).
  * \return General block diagonal matrix.
  */
-template <typename Matrix1, typename Matrix2, typename Matrix3>
-typename boost::enable_if_c< is_writable_matrix<Matrix1>::value &&
-                             is_readable_matrix<Matrix2>::value &&
-                             is_readable_matrix<Matrix3>::value,
-Matrix1 >::type block_diag_mat(Matrix1 M1,const Matrix2& M2,const Matrix3& M3) {
-  append_block_diag(M1,M2);
-  append_block_diag(M1,M3);
+template < typename Matrix1, typename Matrix2, typename Matrix3 >
+typename boost::enable_if_c< is_writable_matrix< Matrix1 >::value && is_readable_matrix< Matrix2 >::value
+                             && is_readable_matrix< Matrix3 >::value,
+                             Matrix1 >::type
+  block_diag_mat( Matrix1 M1, const Matrix2& M2, const Matrix3& M3 ) {
+  append_block_diag( M1, M2 );
+  append_block_diag( M1, M3 );
   return M1;
 };
 
@@ -107,15 +106,14 @@ Matrix1 >::type block_diag_mat(Matrix1 M1,const Matrix2& M2,const Matrix3& M3) {
  * \param M2 second matrix (lower-right diagonal block).
  * \return General block diagonal matrix.
  */
-template <typename Matrix1, typename Matrix2, typename Matrix3, typename Matrix4>
-typename boost::enable_if_c< is_writable_matrix<Matrix1>::value &&
-                             is_readable_matrix<Matrix2>::value &&
-                             is_readable_matrix<Matrix3>::value &&
-                             is_readable_matrix<Matrix4>::value,
-Matrix1 >::type block_diag_mat(Matrix1 M1,const Matrix2& M2,const Matrix3& M3,const Matrix4& M4) {
-  append_block_diag(M1,M2);
-  append_block_diag(M1,M3);
-  append_block_diag(M1,M4);
+template < typename Matrix1, typename Matrix2, typename Matrix3, typename Matrix4 >
+typename boost::enable_if_c< is_writable_matrix< Matrix1 >::value && is_readable_matrix< Matrix2 >::value
+                             && is_readable_matrix< Matrix3 >::value && is_readable_matrix< Matrix4 >::value,
+                             Matrix1 >::type
+  block_diag_mat( Matrix1 M1, const Matrix2& M2, const Matrix3& M3, const Matrix4& M4 ) {
+  append_block_diag( M1, M2 );
+  append_block_diag( M1, M3 );
+  append_block_diag( M1, M4 );
   return M1;
 };
 
@@ -125,20 +123,18 @@ Matrix1 >::type block_diag_mat(Matrix1 M1,const Matrix2& M2,const Matrix3& M3,co
  * \param M2 second matrix (lower-right diagonal block).
  * \return General block diagonal matrix.
  */
-template <typename Matrix1, typename Matrix2, typename Matrix3, typename Matrix4, typename Matrix5>
-typename boost::enable_if_c< is_writable_matrix<Matrix1>::value &&
-                             is_readable_matrix<Matrix2>::value &&
-                             is_readable_matrix<Matrix3>::value &&
-                             is_readable_matrix<Matrix4>::value &&
-                             is_readable_matrix<Matrix5>::value,
-Matrix1 >::type block_diag_mat(Matrix1 M1,const Matrix2& M2,const Matrix3& M3,const Matrix3& M4,const Matrix3& M5) {
-  append_block_diag(M1,M2);
-  append_block_diag(M1,M3);
-  append_block_diag(M1,M4);
-  append_block_diag(M1,M5);
+template < typename Matrix1, typename Matrix2, typename Matrix3, typename Matrix4, typename Matrix5 >
+typename boost::enable_if_c< is_writable_matrix< Matrix1 >::value && is_readable_matrix< Matrix2 >::value
+                             && is_readable_matrix< Matrix3 >::value && is_readable_matrix< Matrix4 >::value
+                             && is_readable_matrix< Matrix5 >::value,
+                             Matrix1 >::type
+  block_diag_mat( Matrix1 M1, const Matrix2& M2, const Matrix3& M3, const Matrix3& M4, const Matrix3& M5 ) {
+  append_block_diag( M1, M2 );
+  append_block_diag( M1, M3 );
+  append_block_diag( M1, M4 );
+  append_block_diag( M1, M5 );
   return M1;
 };
-
 
 
 /**
@@ -150,45 +146,27 @@ Matrix1 >::type block_diag_mat(Matrix1 M1,const Matrix2& M2,const Matrix3& M3,co
  * \return Compound four-block matrix.
  * \throw std::range_error if the dimensions of the four blocks don't allow proper juxtaposition.
  */
-template <typename Matrix1, typename Matrix2, typename Matrix3, typename Matrix4>
-typename boost::enable_if_c< is_fully_writable_matrix<Matrix1>::value &&
-                             is_readable_matrix<Matrix2>::value &&
-                             is_readable_matrix<Matrix3>::value &&
-                             is_readable_matrix<Matrix4>::value,
-Matrix1 >::type block_mat(Matrix1 MUL,const Matrix2& MUR,const Matrix3& MLL,const Matrix4& MLR) {
-  if((MUL.get_row_count() != MUR.get_row_count()) || (MUL.get_col_count() != MLL.get_col_count()) || (MLL.get_row_count() != MLR.get_row_count()) || (MUR.get_col_count() != MLR.get_col_count()))
-    throw std::range_error("Matrix dimension mismatch.");
-  typedef typename mat_traits<Matrix1>::size_type SizeType;
+template < typename Matrix1, typename Matrix2, typename Matrix3, typename Matrix4 >
+typename boost::enable_if_c< is_fully_writable_matrix< Matrix1 >::value && is_readable_matrix< Matrix2 >::value
+                             && is_readable_matrix< Matrix3 >::value && is_readable_matrix< Matrix4 >::value,
+                             Matrix1 >::type
+  block_mat( Matrix1 MUL, const Matrix2& MUR, const Matrix3& MLL, const Matrix4& MLR ) {
+  if( ( MUL.get_row_count() != MUR.get_row_count() ) || ( MUL.get_col_count() != MLL.get_col_count() )
+      || ( MLL.get_row_count() != MLR.get_row_count() ) || ( MUR.get_col_count() != MLR.get_col_count() ) )
+    throw std::range_error( "Matrix dimension mismatch." );
+  typedef typename mat_traits< Matrix1 >::size_type SizeType;
   SizeType oldColCount = MUL.get_col_count();
   SizeType oldRowCount = MUL.get_row_count();
-  append_block_diag(MUL,MLR);
-  for(SizeType i = 0; i < MUR.get_row_count(); ++i)
-    for(SizeType j = 0; j < MUR.get_col_count(); ++j)
-      MUL(i,j + oldColCount) = MUR(i,j);
-  for(SizeType i = 0; i < MLL.get_row_count(); ++i)
-    for(SizeType j = 0; j < MLL.get_col_count(); ++j)
-      MUL(i + oldRowCount,j) = MLL(i,j);
+  append_block_diag( MUL, MLR );
+  for( SizeType i = 0; i < MUR.get_row_count(); ++i )
+    for( SizeType j = 0; j < MUR.get_col_count(); ++j )
+      MUL( i, j + oldColCount ) = MUR( i, j );
+  for( SizeType i = 0; i < MLL.get_row_count(); ++i )
+    for( SizeType j = 0; j < MLL.get_col_count(); ++j )
+      MUL( i + oldRowCount, j ) = MLL( i, j );
   return MUL;
 };
-
-
-
-
-
-
-
-
 };
-
 
 
 #endif
-
-
-
-
-
-
-
-
-

@@ -1,8 +1,8 @@
 /**
  * \file vect_traits.hpp
- * 
+ *
  * This library declares the vector traits that are used throughout the ReaK library.
- * 
+ *
  * \author Sven Mikael Persson <mikael.s.persson@gmail.com>
  * \date April 2011
  */
@@ -25,7 +25,7 @@
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with ReaK (as LICENSE in the root folder).  
+ *    along with ReaK (as LICENSE in the root folder).
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
@@ -40,10 +40,10 @@ namespace ReaK {
  * This trait class defines all the traits of a vector in the ReaK library.
  * \tparam Vector A vector type.
  */
-template <typename Vector>
+template < typename Vector >
 struct vect_traits {
   /** The type of the elements of the vector. */
-  typedef typename Vector::value_type value_type; 
+  typedef typename Vector::value_type value_type;
   /** The type of a reference to an element of the vector. */
   typedef typename Vector::reference reference;
   /** The type of a const-reference to an element of the vector. */
@@ -54,45 +54,32 @@ struct vect_traits {
   typedef typename Vector::const_pointer const_pointer;
   /** The type of the allocator used by the vector (void if none). */
   typedef typename Vector::allocator_type allocator_type;
-  
+
   /** The type of a iterator through the vector. */
   typedef typename Vector::iterator iterator;
   /** The type of a const-iterator through the vector. */
   typedef typename Vector::const_iterator const_iterator;
-  
+
   /** The type to describe the size of the vector or an index to it. */
   typedef typename Vector::size_type size_type;
   /** The type to describe the difference between two indices. */
   typedef typename Vector::difference_type difference_type;
-  
+
   /** The dimension of the vector (0 if not known at compile-time). */
-  BOOST_STATIC_CONSTANT(std::size_t, dimensions = Vector::dimensions);
-    
+  BOOST_STATIC_CONSTANT( std::size_t, dimensions = Vector::dimensions );
 };
 
 /**
- * This meta-function provides the vector type needed as a destination type for a 
+ * This meta-function provides the vector type needed as a destination type for a
  * copy (deep-copy) of a given vector type.
  * \tparam Vector A vector type.
  */
-template <typename Vector>
+template < typename Vector >
 struct vect_copy {
   /** The type of a copy of the given vector type. */
   typedef Vector type;
 };
-
-
-
 };
 
 
 #endif
-
-
-
-
-
-
-
-
-

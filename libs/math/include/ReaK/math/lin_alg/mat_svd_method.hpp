@@ -1,20 +1,20 @@
 /**
  * \file mat_svd_method.hpp
- * 
+ *
  * This library provides a number of functions related to performing a Singular Value Decomposition (SVD)
- * on a matrix, e.g., to invert a matrix, to pseudo-invert a matrix, to solve a linear system with 
- * least-square error and to find the eigen-values of a symmetric matrix. SVD is not very efficient but 
- * very powerful. The SVD implementation used here is based on the implementation from CLARAty, 
+ * on a matrix, e.g., to invert a matrix, to pseudo-invert a matrix, to solve a linear system with
+ * least-square error and to find the eigen-values of a symmetric matrix. SVD is not very efficient but
+ * very powerful. The SVD implementation used here is based on the implementation from CLARAty,
  * developed by the Jet Propulsion Laboratory.
- * 
+ *
  * According to performance tests, PLU methods are as good as Cholesky methods in terms of speed.
  * And they are both the best for well-conditioned matrices. For ill-conditioned matrices, QR-decomposition
  * methods are only a little slower then PLU (about 20% slower, same time-complexity) but provide better
- * numerical stability. The Jacobi methods are significantly slower, but this implementation is in need 
- * of a revision for performance enhancement. And, of course, SVD is also very slow (slightly faster than 
- * Jacobi) but it is based on a LAPACK implementation that is very poorly written, and it has not been 
+ * numerical stability. The Jacobi methods are significantly slower, but this implementation is in need
+ * of a revision for performance enhancement. And, of course, SVD is also very slow (slightly faster than
+ * Jacobi) but it is based on a LAPACK implementation that is very poorly written, and it has not been
  * updated since.
- * 
+ *
  * \author Sven Mikael Persson <mikael.s.persson@gmail.com>
  * \date April 2011
  */
@@ -37,7 +37,7 @@
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with ReaK (as LICENSE in the root folder).  
+ *    along with ReaK (as LICENSE in the root folder).
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
@@ -49,9 +49,6 @@
 
 
 namespace ReaK {
-
-
-
 
 
 /*************************************************************************
@@ -93,233 +90,237 @@ namespace ReaK {
  *
  * \author NIST
  */
-template <typename Matrix1, typename Matrix2, typename Matrix3, typename Matrix4>
-typename boost::enable_if_c< is_readable_matrix<Matrix1>::value &&
-                             is_fully_writable_matrix<Matrix2>::value &&
-                             is_writable_matrix<Matrix3>::value &&
-                             (mat_traits<Matrix3>::structure == mat_structure::diagonal) &&
-                             is_fully_writable_matrix<Matrix4>::value, 
-void >::type decompose_SVD(const Matrix1& A, Matrix2& U, Matrix3& E, Matrix4& V, typename mat_traits<Matrix1>::value_type NumTol = 1E-15) {
-  typedef typename mat_traits<Matrix1>::value_type ValueType;
-  typedef typename mat_traits<Matrix1>::size_type SizeType;
+template < typename Matrix1, typename Matrix2, typename Matrix3, typename Matrix4 >
+typename boost::enable_if_c< is_readable_matrix< Matrix1 >::value && is_fully_writable_matrix< Matrix2 >::value
+                             && is_writable_matrix< Matrix3 >::value&&( mat_traits< Matrix3 >::structure
+                                                                        == mat_structure::diagonal )
+                             && is_fully_writable_matrix< Matrix4 >::value,
+                             void >::type
+  decompose_SVD( const Matrix1& A, Matrix2& U, Matrix3& E, Matrix4& V,
+                 typename mat_traits< Matrix1 >::value_type NumTol = 1E-15 ) {
+  typedef typename mat_traits< Matrix1 >::value_type ValueType;
+  typedef typename mat_traits< Matrix1 >::size_type SizeType;
   using std::swap;
-  using std::fabs; 
+  using std::fabs;
   using std::sqrt;
 
-  mat<ValueType,mat_structure::rectangular> At, Ut, Vt;
-  if(A.get_row_count() < A.get_col_count())
-    At = transpose_view(A);
+  mat< ValueType, mat_structure::rectangular > At, Ut, Vt;
+  if( A.get_row_count() < A.get_col_count() )
+    At = transpose_view( A );
   else
     At = A;
-  
-  
+
+
   SizeType N = At.get_row_count();
   SizeType M = At.get_col_count();
   SizeType nu = M;
-  if(nu > N) nu = N;
-  if((N == 0) || (M == 0))
-    throw std::range_error("SVD-Decomp: Matrix A has 0 rows or columns!");
-  SizeType nct,nrt;
-  //SizeType nct = min(N-1,M);
-  //SizeType nrt = max(0,min(int(M-2),int(N)));
-  if(N >= M+1)
+  if( nu > N )
+    nu = N;
+  if( ( N == 0 ) || ( M == 0 ) )
+    throw std::range_error( "SVD-Decomp: Matrix A has 0 rows or columns!" );
+  SizeType nct, nrt;
+  // SizeType nct = min(N-1,M);
+  // SizeType nrt = max(0,min(int(M-2),int(N)));
+  if( N >= M + 1 )
     nct = M;
   else
-    nct = N-1;
-  if(M >= N+2)
+    nct = N - 1;
+  if( M >= N + 2 )
     nrt = N;
   else {
-    if(M >= 2)
-      nrt = M-2;
+    if( M >= 2 )
+      nrt = M - 2;
     else
       nrt = 0;
   };
   SizeType max_iter = nct;
-  if(max_iter < nrt) max_iter = nrt;
+  if( max_iter < nrt )
+    max_iter = nrt;
 
-  if((Ut.get_row_count() != N) || (Ut.get_col_count() != nu)) {
-    Ut.set_row_count(N);
-    Ut.set_col_count(nu);
-    for(SizeType i = 0; i < N; ++i) {
-      for(SizeType j = 0; j < M; ++j) {
-        if(i == j)
-          Ut(i,i) = 1;
+  if( ( Ut.get_row_count() != N ) || ( Ut.get_col_count() != nu ) ) {
+    Ut.set_row_count( N );
+    Ut.set_col_count( nu );
+    for( SizeType i = 0; i < N; ++i ) {
+      for( SizeType j = 0; j < M; ++j ) {
+        if( i == j )
+          Ut( i, i ) = 1;
         else
-          Ut(i,j) = 0;
+          Ut( i, j ) = 0;
       };
     };
   };
-  if((Vt.get_row_count() != M) || (Vt.get_col_count() != nu)) {
-    Vt.set_row_count(M);
-    Vt.set_col_count(nu);
-    for(SizeType i = 0; i < M; ++i) {
-      for(SizeType j = 0; j < nu; ++j) {
-        if(i == j)
-          Vt(i,i) = 1;
+  if( ( Vt.get_row_count() != M ) || ( Vt.get_col_count() != nu ) ) {
+    Vt.set_row_count( M );
+    Vt.set_col_count( nu );
+    for( SizeType i = 0; i < M; ++i ) {
+      for( SizeType j = 0; j < nu; ++j ) {
+        if( i == j )
+          Vt( i, i ) = 1;
         else
-          Vt(i,j) = 0;
+          Vt( i, j ) = 0;
       };
     };
   };
-  if((E.get_row_count() != nu) || (E.get_col_count() != nu))
-    E = mat<ValueType,mat_structure::identity>(nu);
-  vect_n<ValueType> e(M);
-  vect_n<ValueType> work(N);
+  if( ( E.get_row_count() != nu ) || ( E.get_col_count() != nu ) )
+    E = mat< ValueType, mat_structure::identity >( nu );
+  vect_n< ValueType > e( M );
+  vect_n< ValueType > work( N );
 
 
   // Reduce A to bidiagonal form, storing the diagonal elements
   // in E and the super-diagonal elements in e.
-  for (SizeType k=0;k < max_iter;++k) {
+  for( SizeType k = 0; k < max_iter; ++k ) {
 
-    if (k < nct) {
+    if( k < nct ) {
 
       // Compute the transformation for the k-th column and
       // place the k-th diagonal in E(k).
       // Compute 2-norm of k-th column without under/overflow.
-      E(k,k) = 0;
-      for (SizeType i=k;i < N;++i)
-        E(k,k) = sqrt(E(k,k)*E(k,k) + At(i,k)*At(i,k));
+      E( k, k ) = 0;
+      for( SizeType i = k; i < N; ++i )
+        E( k, k ) = sqrt( E( k, k ) * E( k, k ) + At( i, k ) * At( i, k ) );
 
-      if (fabs(E(k,k)) > NumTol) {
-        if (At(k,k) < 0.0)
-          E(k,k) = -E(k,k);
-        for (SizeType i=k;i < N;++i)
-          At(i,k) /= E(k,k);
-        At(k,k) += 1.0;
+      if( fabs( E( k, k ) ) > NumTol ) {
+        if( At( k, k ) < 0.0 )
+          E( k, k ) = -E( k, k );
+        for( SizeType i = k; i < N; ++i )
+          At( i, k ) /= E( k, k );
+        At( k, k ) += 1.0;
       };
-      E(k,k) = -E(k,k);
+      E( k, k ) = -E( k, k );
     };
-    for (SizeType j=k+1;j < M;++j) {
-      if ((k < nct) && (fabs(E(k,k)) > NumTol))  {
+    for( SizeType j = k + 1; j < M; ++j ) {
+      if( ( k < nct ) && ( fabs( E( k, k ) ) > NumTol ) ) {
 
         // Apply the transformation.
-        ValueType t(0.0);
-        for (SizeType i=k;i < N;++i)
-          t += At(i,k)*At(i,j);
+        ValueType t( 0.0 );
+        for( SizeType i = k; i < N; ++i )
+          t += At( i, k ) * At( i, j );
 
-        t = -t/At(k,k);
+        t = -t / At( k, k );
 
-        for (SizeType i=k;i < N;++i)
-          At(i,j) += t*At(i,k);
+        for( SizeType i = k; i < N; ++i )
+          At( i, j ) += t * At( i, k );
       };
 
       // Place the k-th row of A into e for the
       // subsequent calculation of the row transformation.
-      e[j] = At(k,j);
+      e[j] = At( k, j );
     };
-    if (k < nct) {
+    if( k < nct ) {
       // Place the transformation in U for subsequent back
       // multiplication.
-      for (SizeType i = k; i < N; ++i)
-        Ut(i,k) = At(i,k);
+      for( SizeType i = k; i < N; ++i )
+        Ut( i, k ) = At( i, k );
     };
-    if (k < nrt) {
+    if( k < nrt ) {
 
       // Compute the k-th row transformation and place the
       // k-th super-diagonal in e(k).
       // Compute 2-norm without under/overflow.
       e[k] = 0;
-      for (SizeType i=k+1;i < M;++i)
-        e[k] = sqrt(e[k]*e[k] + e[i]*e[i]);
-      if (fabs(e[k]) > NumTol) {
-        if (e[k+1] < 0.0)
+      for( SizeType i = k + 1; i < M; ++i )
+        e[k] = sqrt( e[k] * e[k] + e[i] * e[i] );
+      if( fabs( e[k] ) > NumTol ) {
+        if( e[k + 1] < 0.0 )
           e[k] = -e[k];
-        for (SizeType i=k+1;i < M;++i)
+        for( SizeType i = k + 1; i < M; ++i )
           e[i] /= e[k];
-        e[k+1] += 1.0;
+        e[k + 1] += 1.0;
       };
       e[k] = -e[k];
-      if ((k+1 < N) & (fabs(e[k]) > NumTol)) {
+      if( ( k + 1 < N ) & ( fabs( e[k] ) > NumTol ) ) {
 
         // Apply the transformation.
 
-        for (SizeType i=k+1;i < N;++i)
+        for( SizeType i = k + 1; i < N; ++i )
           work[i] = 0.0;
-        for (SizeType j=k+1;j < M;++j)
-          for (SizeType i=k+1;i < N;++i)
-            work[i] += e[j]*At(i,j);
-        for (SizeType j=k+1;j < M;++j) {
-          ValueType t = -e[j]/e[k+1];
-          for (SizeType i=k+1;i < N;++i)
-            At(i,j) += t*work[i];
+        for( SizeType j = k + 1; j < M; ++j )
+          for( SizeType i = k + 1; i < N; ++i )
+            work[i] += e[j] * At( i, j );
+        for( SizeType j = k + 1; j < M; ++j ) {
+          ValueType t = -e[j] / e[k + 1];
+          for( SizeType i = k + 1; i < N; ++i )
+            At( i, j ) += t * work[i];
         };
       };
 
-        // Place the transformation in _V for subsequent
-        // back multiplication.
+      // Place the transformation in _V for subsequent
+      // back multiplication.
 
-      for (SizeType i = k+1; i < M; ++i)
-        Vt(i,k) = e[i];
+      for( SizeType i = k + 1; i < M; ++i )
+        Vt( i, k ) = e[i];
     };
   };
 
   // Set up the final bidiagonal matrix or order p.
 
   SizeType p = M;
-  if(p > N+1) p = N+1;
-  if (nct < M)
-    E(nct,nct) = At(nct,nct);
-  if (N < p)
-    E(p-1,p-1) = 0.0;
-  if (nrt+1 < p)
-    e[nrt] = At(nrt,p-1);
+  if( p > N + 1 )
+    p = N + 1;
+  if( nct < M )
+    E( nct, nct ) = At( nct, nct );
+  if( N < p )
+    E( p - 1, p - 1 ) = 0.0;
+  if( nrt + 1 < p )
+    e[nrt] = At( nrt, p - 1 );
 
-  e[p-1] = 0.0;
+  e[p - 1] = 0.0;
 
   // Generate U.
 
-  for (SizeType j = nct; j < nu; ++j) {
-    for (SizeType i = 0; i < N; ++i)
-      Ut(i,j) = 0.0;
-    Ut(j,j) = 1.0;
+  for( SizeType j = nct; j < nu; ++j ) {
+    for( SizeType i = 0; i < N; ++i )
+      Ut( i, j ) = 0.0;
+    Ut( j, j ) = 1.0;
   };
 
-  for (int k = nct-1; k >= 0;--k) {
-    if (fabs(E(k,k)) > NumTol) {
-      for (SizeType j = k+1; j < nu; ++j) {
+  for( int k = nct - 1; k >= 0; --k ) {
+    if( fabs( E( k, k ) ) > NumTol ) {
+      for( SizeType j = k + 1; j < nu; ++j ) {
         ValueType t = 0;
-        for (SizeType i = k; i < N; ++i)
-          t += Ut(i,k)*Ut(i,j);
-        t = -t/Ut(k,k);
-        for (SizeType i = k; i < N; ++i)
-          Ut(i,j) += t*Ut(i,k);
+        for( SizeType i = k; i < N; ++i )
+          t += Ut( i, k ) * Ut( i, j );
+        t = -t / Ut( k, k );
+        for( SizeType i = k; i < N; ++i )
+          Ut( i, j ) += t * Ut( i, k );
       };
-      for (SizeType i = k; i < N; ++i)
-        Ut(i,k) = -Ut(i,k);
-      Ut(k,k) = 1.0 + Ut(k,k);
-      for (SizeType i=0;int(i) < k-1;++i)
-        Ut(i,k) = 0.0;
+      for( SizeType i = k; i < N; ++i )
+        Ut( i, k ) = -Ut( i, k );
+      Ut( k, k ) = 1.0 + Ut( k, k );
+      for( SizeType i = 0; int( i ) < k - 1; ++i )
+        Ut( i, k ) = 0.0;
     } else {
-      for (SizeType i = 0; i < N; ++i)
-        Ut(i,k) = 0.0;
-      Ut(k,k) = 1.0;
+      for( SizeType i = 0; i < N; ++i )
+        Ut( i, k ) = 0.0;
+      Ut( k, k ) = 1.0;
     };
   };
 
   // Generate V.
 
-  for (int k = nu-1; k >= 0; --k) {
-    if ((SizeType(k) < nrt) & (fabs(e[k]) > NumTol)) {
-      for (SizeType j=k+1;j < nu;++j) {
+  for( int k = nu - 1; k >= 0; --k ) {
+    if( ( SizeType( k ) < nrt ) & ( fabs( e[k] ) > NumTol ) ) {
+      for( SizeType j = k + 1; j < nu; ++j ) {
         ValueType t = 0;
-        for (SizeType i = k+1; i < M; ++i)
-          t += Vt(i,k)*Vt(i,j);
-        t = -t/Vt(k+1,k);
-        for (SizeType i = k+1; i < M; ++i)
-          Vt(i,j) += t*Vt(i,k);
+        for( SizeType i = k + 1; i < M; ++i )
+          t += Vt( i, k ) * Vt( i, j );
+        t = -t / Vt( k + 1, k );
+        for( SizeType i = k + 1; i < M; ++i )
+          Vt( i, j ) += t * Vt( i, k );
       };
     };
-    for (SizeType i = 0; i < M; ++i)
-      Vt(i,k) = 0.0;
-    Vt(k,k) = 1.0;
+    for( SizeType i = 0; i < M; ++i )
+      Vt( i, k ) = 0.0;
+    Vt( k, k ) = 1.0;
   };
 
   // Main iteration loop for the singular values.
-  int pp = p-1;
+  int pp = p - 1;
   int iter = 0;
-  while (p > 0) {
-    int k=0;
-    int kase=0;
+  while( p > 0 ) {
+    int k = 0;
+    int kase = 0;
 
     // Here is where a test for too many iterations would go.
 
@@ -334,31 +335,31 @@ void >::type decompose_SVD(const Matrix1& A, Matrix2& U, Matrix3& E, Matrix4& V,
     //              are not negligible (qr step).
     // kase = 4     if e(p-1) is negligible (convergence).
 
-    for (k=p-2;k >= -1;--k) {
-      if (k == -1)
+    for( k = p - 2; k >= -1; --k ) {
+      if( k == -1 )
         break;
-      if (fabs(e[k]) <= NumTol*(fabs(E(k,k)) + fabs(E(k+1,k+1)))) {
+      if( fabs( e[k] ) <= NumTol * ( fabs( E( k, k ) ) + fabs( E( k + 1, k + 1 ) ) ) ) {
         e[k] = 0.0;
         break;
       };
     };
-    if (k == int(p-2)) {
+    if( k == int( p - 2 ) ) {
       kase = 4;
     } else {
       int ks;
-      for (ks = p-1;ks >= k;--ks) {
-        if (ks == k) {
+      for( ks = p - 1; ks >= k; --ks ) {
+        if( ks == k ) {
           break;
         };
-        ValueType t = (ks != int(p) ? fabs(e[ks]) : 0.0) + (ks != k+1 ? fabs(e[ks-1]) : 0.0);
-        if (fabs(E(ks,ks)) <= NumTol*t)  {
-          E(ks,ks) = 0.0;
+        ValueType t = ( ks != int( p ) ? fabs( e[ks] ) : 0.0 ) + ( ks != k + 1 ? fabs( e[ks - 1] ) : 0.0 );
+        if( fabs( E( ks, ks ) ) <= NumTol * t ) {
+          E( ks, ks ) = 0.0;
           break;
         };
       };
-      if (ks == k) {
+      if( ks == k ) {
         kase = 3;
-      } else if (ks == int(p-1)) {
+      } else if( ks == int( p - 1 ) ) {
         kase = 1;
       } else {
         kase = 2;
@@ -369,155 +370,155 @@ void >::type decompose_SVD(const Matrix1& A, Matrix2& U, Matrix3& E, Matrix4& V,
 
     // Perform the task indicated by kase.
 
-    switch (kase) {
+    switch( kase ) {
 
       // Deflate negligible E(p).
-    case 1: {
-      ValueType f = e[p-2];
-      e[p-2] = 0.0;
-      for (int j = p-2;j >= k;--j) {
-        ValueType t = sqrt(E(j,j)*E(j,j) + f*f);
-        ValueType cs = E(j,j)/t;
-        ValueType sn = f/t;
-        E(j,j) = t;
-        if (j != k) {
-          f = -sn*e[j-1];
-          e[j-1] = cs*e[j-1];
+      case 1: {
+        ValueType f = e[p - 2];
+        e[p - 2] = 0.0;
+        for( int j = p - 2; j >= k; --j ) {
+          ValueType t = sqrt( E( j, j ) * E( j, j ) + f * f );
+          ValueType cs = E( j, j ) / t;
+          ValueType sn = f / t;
+          E( j, j ) = t;
+          if( j != k ) {
+            f = -sn * e[j - 1];
+            e[j - 1] = cs * e[j - 1];
+          };
+          for( SizeType i = 0; i < M; ++i ) {
+            t = cs * Vt( i, j ) + sn * Vt( i, p - 1 );
+            Vt( i, p - 1 ) = -sn * Vt( i, j ) + cs * Vt( i, p - 1 );
+            Vt( i, j ) = t;
+          };
         };
-        for (SizeType i=0;i < M;++i) {
-          t = cs*Vt(i,j) + sn*Vt(i,p-1);
-          Vt(i,p-1) = -sn*Vt(i,j) + cs*Vt(i,p-1);
-          Vt(i,j) = t;
-        };
-      };
-    };
-    break;
+      }; break;
 
       // Split at negligible E(k).
 
-    case 2: {
-      ValueType f = e[k-1];
-      e[k-1] = 0.0;
-      for (SizeType j=k;j < p;++j) {
-        ValueType t = sqrt(E(j,j)*E(j,j) + f*f);
-        ValueType cs = E(j,j)/t;
-        ValueType sn = f/t;
-        E(j,j) = t;
-        f = -sn*e[j];
-        e[j] = cs*e[j];
+      case 2: {
+        ValueType f = e[k - 1];
+        e[k - 1] = 0.0;
+        for( SizeType j = k; j < p; ++j ) {
+          ValueType t = sqrt( E( j, j ) * E( j, j ) + f * f );
+          ValueType cs = E( j, j ) / t;
+          ValueType sn = f / t;
+          E( j, j ) = t;
+          f = -sn * e[j];
+          e[j] = cs * e[j];
 
-        for (SizeType i = 0; i < N; ++i) {
-          t = cs*Ut(i,j) + sn*Ut(i,k-1);
-          Ut(i,k-1) = -sn*Ut(i,j) + cs*Ut(i,k-1);
-          Ut(i,j) = t;
+          for( SizeType i = 0; i < N; ++i ) {
+            t = cs * Ut( i, j ) + sn * Ut( i, k - 1 );
+            Ut( i, k - 1 ) = -sn * Ut( i, j ) + cs * Ut( i, k - 1 );
+            Ut( i, j ) = t;
+          };
         };
-      };
-    };
-    break;
+      }; break;
 
       // Perform one qr step.
 
-    case 3: {
+      case 3: {
 
-      // Calculate the shift.
+        // Calculate the shift.
 
-      //ValueType scale = MAX(MAX(MAX(MAX(fabs(E_a[p-1]),fabs(E_a[p-2])),fabs(e[p-2])),fabs(E_a[k])),fabs(e[k]));
-      ValueType scale = fabs(E(p-1,p-1));
-      if(scale < fabs(E(p-2,p-2))) scale = fabs(E(p-2,p-2));
-      if(scale < fabs(E(k,k))) scale = fabs(E(k,k));
-      if(scale < fabs(e[p-2])) scale = fabs(e[p-2]);
-      if(scale < fabs(e[k])) scale = fabs(e[k]);
-      ValueType sp = E(p-1,p-1)/scale;
-      ValueType spm1 = E(p-2,p-2)/scale;
-      ValueType epm1 = e[p-2]/scale;
-      ValueType sk = E(k,k)/scale;
-      ValueType ek = e[k]/scale;
-      ValueType b = ((spm1 + sp)*(spm1 - sp) + epm1*epm1)/2.0;
-      ValueType c = (sp*epm1)*(sp*epm1);
-      ValueType shift = 0.0;
-      if ((b != 0.0) | (c != 0.0)) {
-        shift = sqrt(b*b + c);
-        if (b < 0.0)
-          shift = -shift;
-        shift = c/(b + shift);
-      };
-      ValueType f = (sk + sp)*(sk - sp) + shift;
-      ValueType g = sk*ek;
-
-      // Chase zeros.
-
-      for (SizeType j=k;j < p-1;++j) {
-        ValueType t = sqrt(f*f + g*g);
-        ValueType cs = f/t;
-        ValueType sn = g/t;
-        if (j != SizeType(k))
-          e[j-1] = t;
-        f = cs*E(j,j) + sn*e[j];
-        e[j] = cs*e[j] - sn*E(j,j);
-        g = sn*E(j+1,j+1);
-        E(j+1,j+1) = cs*E(j+1,j+1);
-
-        for (SizeType i=0;i < M;++i) {
-          t = cs*Vt(i,j) + sn*Vt(i,j+1);
-          Vt(i,j+1) = -sn*Vt(i,j) + cs*Vt(i,j+1);
-          Vt(i,j) = t;
+        // ValueType scale = MAX(MAX(MAX(MAX(fabs(E_a[p-1]),fabs(E_a[p-2])),fabs(e[p-2])),fabs(E_a[k])),fabs(e[k]));
+        ValueType scale = fabs( E( p - 1, p - 1 ) );
+        if( scale < fabs( E( p - 2, p - 2 ) ) )
+          scale = fabs( E( p - 2, p - 2 ) );
+        if( scale < fabs( E( k, k ) ) )
+          scale = fabs( E( k, k ) );
+        if( scale < fabs( e[p - 2] ) )
+          scale = fabs( e[p - 2] );
+        if( scale < fabs( e[k] ) )
+          scale = fabs( e[k] );
+        ValueType sp = E( p - 1, p - 1 ) / scale;
+        ValueType spm1 = E( p - 2, p - 2 ) / scale;
+        ValueType epm1 = e[p - 2] / scale;
+        ValueType sk = E( k, k ) / scale;
+        ValueType ek = e[k] / scale;
+        ValueType b = ( ( spm1 + sp ) * ( spm1 - sp ) + epm1 * epm1 ) / 2.0;
+        ValueType c = ( sp * epm1 ) * ( sp * epm1 );
+        ValueType shift = 0.0;
+        if( ( b != 0.0 ) | ( c != 0.0 ) ) {
+          shift = sqrt( b * b + c );
+          if( b < 0.0 )
+            shift = -shift;
+          shift = c / ( b + shift );
         };
-        t = sqrt(f*f + g*g);
-        cs = f/t;
-        sn = g/t;
-        E(j,j) = t;
-        f = cs*e[j] + sn*E(j+1,j+1);
-        E(j+1,j+1) = -sn*e[j] + cs*E(j+1,j+1);
-        g = sn*e[j+1];
-        e[j+1] = cs*e[j+1];
-        if (j < N-1) {
-          for (SizeType i = 0; i < N; ++i) {
-            t = cs*Ut(i,j) + sn*Ut(i,j+1);
-            Ut(i,j+1) = -sn*Ut(i,j) + cs*Ut(i,j+1);
-            Ut(i,j) = t;
+        ValueType f = ( sk + sp ) * ( sk - sp ) + shift;
+        ValueType g = sk * ek;
+
+        // Chase zeros.
+
+        for( SizeType j = k; j < p - 1; ++j ) {
+          ValueType t = sqrt( f * f + g * g );
+          ValueType cs = f / t;
+          ValueType sn = g / t;
+          if( j != SizeType( k ) )
+            e[j - 1] = t;
+          f = cs * E( j, j ) + sn * e[j];
+          e[j] = cs * e[j] - sn * E( j, j );
+          g = sn * E( j + 1, j + 1 );
+          E( j + 1, j + 1 ) = cs * E( j + 1, j + 1 );
+
+          for( SizeType i = 0; i < M; ++i ) {
+            t = cs * Vt( i, j ) + sn * Vt( i, j + 1 );
+            Vt( i, j + 1 ) = -sn * Vt( i, j ) + cs * Vt( i, j + 1 );
+            Vt( i, j ) = t;
+          };
+          t = sqrt( f * f + g * g );
+          cs = f / t;
+          sn = g / t;
+          E( j, j ) = t;
+          f = cs * e[j] + sn * E( j + 1, j + 1 );
+          E( j + 1, j + 1 ) = -sn * e[j] + cs * E( j + 1, j + 1 );
+          g = sn * e[j + 1];
+          e[j + 1] = cs * e[j + 1];
+          if( j < N - 1 ) {
+            for( SizeType i = 0; i < N; ++i ) {
+              t = cs * Ut( i, j ) + sn * Ut( i, j + 1 );
+              Ut( i, j + 1 ) = -sn * Ut( i, j ) + cs * Ut( i, j + 1 );
+              Ut( i, j ) = t;
+            };
           };
         };
-      };
-      e[p-2] = f;
-      iter = iter + 1;
-    };
-      break;
+        e[p - 2] = f;
+        iter = iter + 1;
+      }; break;
 
       // Convergence.
 
-    case 4: {
+      case 4: {
 
-      // Make the singular values positive.
+        // Make the singular values positive.
 
-      if (E(k,k) <= 0.0) {
-        E(k,k) = (E(k,k) < 0.0 ? -E(k,k) : 0.0);
-        for (SizeType i=0;i <= SizeType(pp);++i)
-          Vt(i,k) = -Vt(i,k);
-      };
+        if( E( k, k ) <= 0.0 ) {
+          E( k, k ) = ( E( k, k ) < 0.0 ? -E( k, k ) : 0.0 );
+          for( SizeType i = 0; i <= SizeType( pp ); ++i )
+            Vt( i, k ) = -Vt( i, k );
+        };
 
-      // Order the singular values.
+        // Order the singular values.
 
-      while (k < pp) {
-        if (E(k,k) >= E(k+1,k+1))
-          break;
-        swap(E(k,k),E(k+1,k+1));
-        if (k < int(M-1))
-          for (SizeType i = 0;i < M;++i)
-            swap(Vt(i,k),Vt(i,k+1));
-        if (k < int(N-1))
-          for (SizeType i = 0; i < N; ++i)
-            swap(Ut(i,k),Ut(i,k+1));
-        k++;
-      };
-      iter = 0;
-      p--;
-    };
-      break;
+        while( k < pp ) {
+          if( E( k, k ) >= E( k + 1, k + 1 ) )
+            break;
+          swap( E( k, k ), E( k + 1, k + 1 ) );
+          if( k < int( M - 1 ) )
+            for( SizeType i = 0; i < M; ++i )
+              swap( Vt( i, k ), Vt( i, k + 1 ) );
+          if( k < int( N - 1 ) )
+            for( SizeType i = 0; i < N; ++i )
+              swap( Ut( i, k ), Ut( i, k + 1 ) );
+          k++;
+        };
+        iter = 0;
+        p--;
+      }; break;
     };
   };
-  
-  
-  if(A.get_row_count() < A.get_col_count()) {
+
+
+  if( A.get_row_count() < A.get_col_count() ) {
     U = Vt;
     V = Ut;
   } else {
@@ -563,23 +564,22 @@ void >::type decompose_SVD(const Matrix1& A, Matrix2& U, Matrix3& E, Matrix4& V,
  *
  * \author NIST
  */
-template <typename Matrix1, typename Matrix2, typename Matrix3, typename Matrix4>
-typename boost::enable_if_c< is_readable_matrix<Matrix1>::value &&
-                             is_writable_matrix<Matrix2>::value &&
-                             is_writable_matrix<Matrix3>::value &&
-                             (mat_traits<Matrix3>::structure == mat_structure::diagonal) &&
-                             is_writable_matrix<Matrix4>::value &&
-                             (!is_fully_writable_matrix<Matrix2>::value ||
-                              !is_fully_writable_matrix<Matrix4>::value), 
-void >::type decompose_SVD(const Matrix1& A, Matrix2& U, Matrix3& E, Matrix4& V, typename mat_traits<Matrix1>::value_type NumTol = 1E-15) {
-  mat<typename mat_traits<Matrix2>::value_type, mat_structure::rectangular> U_tmp(U);
-  mat<typename mat_traits<Matrix4>::value_type, mat_structure::rectangular> V_tmp(V);
-  decompose_SVD(A,U_tmp,E,V_tmp,NumTol);
+template < typename Matrix1, typename Matrix2, typename Matrix3, typename Matrix4 >
+typename boost::
+  enable_if_c< is_readable_matrix< Matrix1 >::value && is_writable_matrix< Matrix2 >::value
+               && is_writable_matrix< Matrix3 >::value&&( mat_traits< Matrix3 >::structure == mat_structure::diagonal )
+               && is_writable_matrix< Matrix4 >::value&&( !is_fully_writable_matrix< Matrix2 >::value
+                                                          || !is_fully_writable_matrix< Matrix4 >::value ),
+               void >::type
+  decompose_SVD( const Matrix1& A, Matrix2& U, Matrix3& E, Matrix4& V,
+                 typename mat_traits< Matrix1 >::value_type NumTol = 1E-15 ) {
+  mat< typename mat_traits< Matrix2 >::value_type, mat_structure::rectangular > U_tmp( U );
+  mat< typename mat_traits< Matrix4 >::value_type, mat_structure::rectangular > V_tmp( V );
+  decompose_SVD( A, U_tmp, E, V_tmp, NumTol );
   U = U_tmp;
   V = V_tmp;
 };
-  
-  
+
 
 /**
  * This function returns the two norm of a singular value decomposition, i.e. the
@@ -592,36 +592,36 @@ void >::type decompose_SVD(const Matrix1& A, Matrix2& U, Matrix3& E, Matrix4& V,
  *
  * \author Mikael Persson
  */
-template <typename Matrix>
-typename boost::enable_if_c< is_readable_matrix<Matrix>::value,
-typename mat_traits<Matrix>::value_type >::type two_norm_SVD(const Matrix& E) {
-  if(E.get_row_count() == 0)
-    throw std::range_error("No singular values available for 2-norm evaluation!");
-  return E(0,0);
+template < typename Matrix >
+typename boost::enable_if_c< is_readable_matrix< Matrix >::value, typename mat_traits< Matrix >::value_type >::type
+  two_norm_SVD( const Matrix& E ) {
+  if( E.get_row_count() == 0 )
+    throw std::range_error( "No singular values available for 2-norm evaluation!" );
+  return E( 0, 0 );
 };
 
 /**
- * This function returns the two norm (induced norm) of a matrix via the computation of 
+ * This function returns the two norm (induced norm) of a matrix via the computation of
  * its singular value decomposition.
- * 
+ *
  * \param M rectangular matrix (RowCount x ColCount).
  * \param NumTol tolerance for considering a value to be zero in avoiding divisions
  *               by zero and singularities.
  * \return the two-norm.
  */
-template <typename Matrix>
-typename boost::enable_if_c< is_readable_matrix<Matrix>::value,
-typename Matrix::value_type >::type norm_2(const Matrix& A, typename Matrix::value_type NumTol = 1E-15) {
-  typedef typename mat_traits<Matrix>::value_type ValueType;
-  
-  int nu = (A.get_row_count() > A.get_col_count() ? A.get_col_count() : A.get_row_count());
-  mat<ValueType,mat_structure::rectangular> U(A.get_row_count(),nu);
-  mat<ValueType,mat_structure::diagonal> E(nu);
-  mat<ValueType,mat_structure::rectangular> V(A.get_col_count(),nu);
+template < typename Matrix >
+typename boost::enable_if_c< is_readable_matrix< Matrix >::value, typename Matrix::value_type >::type
+  norm_2( const Matrix& A, typename Matrix::value_type NumTol = 1E-15 ) {
+  typedef typename mat_traits< Matrix >::value_type ValueType;
 
-  decompose_SVD(A,U,E,V,NumTol);
-  
-  return E(0,0); 
+  int nu = ( A.get_row_count() > A.get_col_count() ? A.get_col_count() : A.get_row_count() );
+  mat< ValueType, mat_structure::rectangular > U( A.get_row_count(), nu );
+  mat< ValueType, mat_structure::diagonal > E( nu );
+  mat< ValueType, mat_structure::rectangular > V( A.get_col_count(), nu );
+
+  decompose_SVD( A, U, E, V, NumTol );
+
+  return E( 0, 0 );
 };
 
 /**
@@ -635,12 +635,12 @@ typename Matrix::value_type >::type norm_2(const Matrix& A, typename Matrix::val
  *
  * \author Mikael Persson
  */
-template <typename Matrix>
-typename boost::enable_if_c< is_readable_matrix<Matrix>::value,
-typename mat_traits<Matrix>::value_type >::type condition_number_SVD(const Matrix& E) {
-  if(E.get_row_count() == 0)
-    throw std::range_error("No singular values available for condition number evaluation!");
-  return E(0,0) / E(E.get_row_count()-1,E.get_row_count()-1);
+template < typename Matrix >
+typename boost::enable_if_c< is_readable_matrix< Matrix >::value, typename mat_traits< Matrix >::value_type >::type
+  condition_number_SVD( const Matrix& E ) {
+  if( E.get_row_count() == 0 )
+    throw std::range_error( "No singular values available for condition number evaluation!" );
+  return E( 0, 0 ) / E( E.get_row_count() - 1, E.get_row_count() - 1 );
 };
 
 /**
@@ -654,13 +654,13 @@ typename mat_traits<Matrix>::value_type >::type condition_number_SVD(const Matri
  *
  * \author Mikael Persson
  */
-template <typename Matrix>
-typename boost::enable_if_c< is_readable_matrix<Matrix>::value,
-typename mat_traits<Matrix>::size_type >::type numrank_SVD(const Matrix& E, typename mat_traits<Matrix>::value_type NumTol = 1E-8) {
+template < typename Matrix >
+typename boost::enable_if_c< is_readable_matrix< Matrix >::value, typename mat_traits< Matrix >::size_type >::type
+  numrank_SVD( const Matrix& E, typename mat_traits< Matrix >::value_type NumTol = 1E-8 ) {
   using std::fabs;
-  typename mat_traits<Matrix>::size_type r = 0;
-  for (typename mat_traits<Matrix>::size_type i=0;i<E.get_row_count();++i) {
-    if (fabs(E(i,i)) > fabs(E(0,0))*NumTol)
+  typename mat_traits< Matrix >::size_type r = 0;
+  for( typename mat_traits< Matrix >::size_type i = 0; i < E.get_row_count(); ++i ) {
+    if( fabs( E( i, i ) ) > fabs( E( 0, 0 ) ) * NumTol )
       ++r;
   };
   return r;
@@ -680,25 +680,25 @@ typename mat_traits<Matrix>::size_type >::type numrank_SVD(const Matrix& E, type
  *
  * \author Mikael Persson
  */
-template <typename Matrix1, typename Matrix2, typename Matrix3, typename Matrix4>
-typename boost::enable_if_c< is_readable_matrix<Matrix1>::value &&
-                             is_readable_matrix<Matrix2>::value &&
-                             is_readable_matrix<Matrix3>::value &&
-                             is_fully_writable_matrix<Matrix4>::value,
-void >::type pseudoinvert_SVD(const Matrix1& U, const Matrix2& E, const Matrix3& V, Matrix4& A_pinv, typename mat_traits<Matrix2>::value_type NumTol = 1E-15) {
-  if((U.get_col_count() != E.get_row_count()) || (E.get_row_count() > V.get_row_count()))
-    throw std::range_error("Dimensions of the U E V matrices don't match a singular value decomposition!");
-  typedef typename mat_traits<Matrix1>::size_type SizeType;
+template < typename Matrix1, typename Matrix2, typename Matrix3, typename Matrix4 >
+typename boost::enable_if_c< is_readable_matrix< Matrix1 >::value && is_readable_matrix< Matrix2 >::value
+                             && is_readable_matrix< Matrix3 >::value && is_fully_writable_matrix< Matrix4 >::value,
+                             void >::type
+  pseudoinvert_SVD( const Matrix1& U, const Matrix2& E, const Matrix3& V, Matrix4& A_pinv,
+                    typename mat_traits< Matrix2 >::value_type NumTol = 1E-15 ) {
+  if( ( U.get_col_count() != E.get_row_count() ) || ( E.get_row_count() > V.get_row_count() ) )
+    throw std::range_error( "Dimensions of the U E V matrices don't match a singular value decomposition!" );
+  typedef typename mat_traits< Matrix1 >::size_type SizeType;
   using std::fabs;
-  
-  A_pinv.set_row_count(V.get_row_count());
-  A_pinv.set_col_count(U.get_row_count());
-  for(SizeType i=0;i<V.get_row_count();++i) {
-    for(SizeType j=0;j<U.get_row_count();++j) {
-      A_pinv(i,j) = 0.0;
-      for(SizeType k=0;k<E.get_row_count();++k) {
-        if(fabs(E(k,k)) > fabs(E(0,0)) * NumTol)
-          A_pinv(i,j) += V(i,k) * U(j,k) / E(k,k);
+
+  A_pinv.set_row_count( V.get_row_count() );
+  A_pinv.set_col_count( U.get_row_count() );
+  for( SizeType i = 0; i < V.get_row_count(); ++i ) {
+    for( SizeType j = 0; j < U.get_row_count(); ++j ) {
+      A_pinv( i, j ) = 0.0;
+      for( SizeType k = 0; k < E.get_row_count(); ++k ) {
+        if( fabs( E( k, k ) ) > fabs( E( 0, 0 ) ) * NumTol )
+          A_pinv( i, j ) += V( i, k ) * U( j, k ) / E( k, k );
       };
     };
   };
@@ -718,18 +718,18 @@ void >::type pseudoinvert_SVD(const Matrix1& U, const Matrix2& E, const Matrix3&
  *
  * \author Mikael Persson
  */
-template <typename Matrix1, typename Matrix2, typename Matrix3, typename Matrix4>
-typename boost::enable_if_c< is_readable_matrix<Matrix1>::value &&
-                             is_readable_matrix<Matrix2>::value &&
-                             is_readable_matrix<Matrix3>::value &&
-                             is_writable_matrix<Matrix4>::value &&
-                             !is_fully_writable_matrix<Matrix4>::value,
-void >::type pseudoinvert_SVD(const Matrix1& U, const Matrix2& E, const Matrix3& V, Matrix4& A_pinv, typename mat_traits<Matrix2>::value_type NumTol = 1E-15) {
-  mat<typename mat_traits<Matrix1>::value_type, mat_structure::rectangular> A_pinv_tmp(V.get_col_count(),U.get_row_count());
-  pseudoinvert_SVD(U,E,V,A_pinv_tmp,NumTol);
+template < typename Matrix1, typename Matrix2, typename Matrix3, typename Matrix4 >
+typename boost::enable_if_c< is_readable_matrix< Matrix1 >::value && is_readable_matrix< Matrix2 >::value
+                             && is_readable_matrix< Matrix3 >::value && is_writable_matrix< Matrix4 >::value
+                             && !is_fully_writable_matrix< Matrix4 >::value,
+                             void >::type
+  pseudoinvert_SVD( const Matrix1& U, const Matrix2& E, const Matrix3& V, Matrix4& A_pinv,
+                    typename mat_traits< Matrix2 >::value_type NumTol = 1E-15 ) {
+  mat< typename mat_traits< Matrix1 >::value_type, mat_structure::rectangular > A_pinv_tmp( V.get_col_count(),
+                                                                                            U.get_row_count() );
+  pseudoinvert_SVD( U, E, V, A_pinv_tmp, NumTol );
   A_pinv = A_pinv_tmp;
 };
-
 
 
 /**
@@ -742,30 +742,30 @@ void >::type pseudoinvert_SVD(const Matrix1& U, const Matrix2& E, const Matrix3&
  *
  * \author Mikael Persson
  */
-template <typename Matrix1, typename Matrix2>
-typename boost::enable_if_c< is_readable_matrix<Matrix1>::value &&
-                             is_fully_writable_matrix<Matrix2>::value, 
-void >::type pseudoinvert_SVD(const Matrix1& A, Matrix2& A_pinv, typename mat_traits<Matrix1>::value_type NumTol = 1E-15) {
-  typedef typename mat_traits<Matrix1>::value_type ValueType;
-  typedef typename mat_traits<Matrix1>::size_type SizeType;
+template < typename Matrix1, typename Matrix2 >
+typename boost::enable_if_c< is_readable_matrix< Matrix1 >::value && is_fully_writable_matrix< Matrix2 >::value,
+                             void >::type
+  pseudoinvert_SVD( const Matrix1& A, Matrix2& A_pinv, typename mat_traits< Matrix1 >::value_type NumTol = 1E-15 ) {
+  typedef typename mat_traits< Matrix1 >::value_type ValueType;
+  typedef typename mat_traits< Matrix1 >::size_type SizeType;
   using std::fabs;
-  
-  int nu = (A.get_row_count() > A.get_col_count() ? A.get_col_count() : A.get_row_count());
-  mat<ValueType,mat_structure::rectangular> U(A.get_row_count(),nu);
-  mat<ValueType,mat_structure::diagonal> E(nu);
-  mat<ValueType,mat_structure::rectangular> V(A.get_col_count(),nu);
 
-  decompose_SVD(A,U,E,V,NumTol);
+  int nu = ( A.get_row_count() > A.get_col_count() ? A.get_col_count() : A.get_row_count() );
+  mat< ValueType, mat_structure::rectangular > U( A.get_row_count(), nu );
+  mat< ValueType, mat_structure::diagonal > E( nu );
+  mat< ValueType, mat_structure::rectangular > V( A.get_col_count(), nu );
 
-  A_pinv.set_row_count(V.get_row_count());
-  A_pinv.set_col_count(U.get_row_count());
+  decompose_SVD( A, U, E, V, NumTol );
 
-  for(SizeType i=0;i<V.get_row_count();++i) {
-    for(SizeType j=0;j<U.get_row_count();++j) {
-      A_pinv(i,j) = 0.0;
-      for(SizeType k=0;k<E.get_row_count();++k) {
-        if(fabs(E(k,k)) > fabs(E(0,0)) * NumTol)
-          A_pinv(i,j) += V(i,k) * U(j,k) / E(k,k);
+  A_pinv.set_row_count( V.get_row_count() );
+  A_pinv.set_col_count( U.get_row_count() );
+
+  for( SizeType i = 0; i < V.get_row_count(); ++i ) {
+    for( SizeType j = 0; j < U.get_row_count(); ++j ) {
+      A_pinv( i, j ) = 0.0;
+      for( SizeType k = 0; k < E.get_row_count(); ++k ) {
+        if( fabs( E( k, k ) ) > fabs( E( 0, 0 ) ) * NumTol )
+          A_pinv( i, j ) += V( i, k ) * U( j, k ) / E( k, k );
       };
     };
   };
@@ -781,82 +781,122 @@ void >::type pseudoinvert_SVD(const Matrix1& A, Matrix2& A_pinv, typename mat_tr
  *
  * \author Mikael Persson
  */
-template <typename Matrix1, typename Matrix2>
-typename boost::enable_if_c< is_readable_matrix<Matrix1>::value &&
-                             is_writable_matrix<Matrix2>::value &&
-                             !is_fully_writable_matrix<Matrix2>::value, 
-void >::type pseudoinvert_SVD(const Matrix1& A, Matrix2& A_pinv, typename mat_traits<Matrix1>::value_type NumTol = 1E-15) {
-  mat<typename mat_traits<Matrix1>::value_type, mat_structure::rectangular> A_pinv_tmp(A.get_col_count(),A.get_row_count());
-  pseudoinvert_SVD(A,A_pinv_tmp,NumTol);
+template < typename Matrix1, typename Matrix2 >
+typename boost::enable_if_c< is_readable_matrix< Matrix1 >::value && is_writable_matrix< Matrix2 >::value
+                             && !is_fully_writable_matrix< Matrix2 >::value,
+                             void >::type
+  pseudoinvert_SVD( const Matrix1& A, Matrix2& A_pinv, typename mat_traits< Matrix1 >::value_type NumTol = 1E-15 ) {
+  mat< typename mat_traits< Matrix1 >::value_type, mat_structure::rectangular > A_pinv_tmp( A.get_col_count(),
+                                                                                            A.get_row_count() );
+  pseudoinvert_SVD( A, A_pinv_tmp, NumTol );
   A_pinv = A_pinv_tmp;
 };
-  
-  
+
+
 /**
  * Functor to wrap a call to a SVD-based linear-least-square solver.
  */
 struct SVD_linlsqsolver {
-  template <typename Matrix1, typename Matrix2, typename Matrix3>
-  void operator()(const Matrix1& A, Matrix2& X, const Matrix3& B, typename mat_traits<Matrix1>::value_type NumTol = 1E-8) {
-    mat<typename mat_traits<Matrix1>::value_type, mat_structure::rectangular> A_pinv(A.get_col_count(),A.get_row_count());
-    pseudoinvert_SVD(A,A_pinv,NumTol);
+  template < typename Matrix1, typename Matrix2, typename Matrix3 >
+  void operator()( const Matrix1& A, Matrix2& X, const Matrix3& B,
+                   typename mat_traits< Matrix1 >::value_type NumTol = 1E-8 ) {
+    mat< typename mat_traits< Matrix1 >::value_type, mat_structure::rectangular > A_pinv( A.get_col_count(),
+                                                                                          A.get_row_count() );
+    pseudoinvert_SVD( A, A_pinv, NumTol );
     X = A_pinv * B;
   };
 };
 
-  
-
-
-
 
 #ifndef BOOST_NO_CXX11_EXTERN_TEMPLATE
 
-extern template void decompose_SVD(const mat<double,mat_structure::rectangular>& A, mat<double,mat_structure::rectangular>& U, mat<double,mat_structure::diagonal>& E, mat<double,mat_structure::rectangular>& V, double NumTol);
-extern template void decompose_SVD(const mat<double,mat_structure::rectangular>& A, mat<double,mat_structure::rectangular>& U, mat<double,mat_structure::diagonal>& E, mat<double,mat_structure::square>& V, double NumTol);
-extern template void decompose_SVD(const mat<double,mat_structure::square>& A, mat<double,mat_structure::rectangular>& U, mat<double,mat_structure::diagonal>& E, mat<double,mat_structure::square>& V, double NumTol);
-extern template void decompose_SVD(const mat<double,mat_structure::square>& A, mat<double,mat_structure::square>& U, mat<double,mat_structure::diagonal>& E, mat<double,mat_structure::square>& V, double NumTol);
+extern template void decompose_SVD( const mat< double, mat_structure::rectangular >& A,
+                                    mat< double, mat_structure::rectangular >& U,
+                                    mat< double, mat_structure::diagonal >& E,
+                                    mat< double, mat_structure::rectangular >& V, double NumTol );
+extern template void decompose_SVD( const mat< double, mat_structure::rectangular >& A,
+                                    mat< double, mat_structure::rectangular >& U,
+                                    mat< double, mat_structure::diagonal >& E, mat< double, mat_structure::square >& V,
+                                    double NumTol );
+extern template void decompose_SVD( const mat< double, mat_structure::square >& A,
+                                    mat< double, mat_structure::rectangular >& U,
+                                    mat< double, mat_structure::diagonal >& E, mat< double, mat_structure::square >& V,
+                                    double NumTol );
+extern template void decompose_SVD( const mat< double, mat_structure::square >& A,
+                                    mat< double, mat_structure::square >& U, mat< double, mat_structure::diagonal >& E,
+                                    mat< double, mat_structure::square >& V, double NumTol );
 
-extern template void pseudoinvert_SVD(const mat<double,mat_structure::rectangular>& U, const mat<double,mat_structure::diagonal>& E, const mat<double,mat_structure::rectangular>& V, mat<double,mat_structure::rectangular>& A_pinv, double NumTol);
-extern template void pseudoinvert_SVD(const mat<double,mat_structure::rectangular>& U, const mat<double,mat_structure::diagonal>& E, const mat<double,mat_structure::square>& V, mat<double,mat_structure::rectangular>& A_pinv, double NumTol);
-extern template void pseudoinvert_SVD(const mat<double,mat_structure::square>& U, const mat<double,mat_structure::diagonal>& E, const mat<double,mat_structure::square>& V, mat<double,mat_structure::rectangular>& A_pinv, double NumTol);
-extern template void pseudoinvert_SVD(const mat<double,mat_structure::square>& U, const mat<double,mat_structure::diagonal>& E, const mat<double,mat_structure::square>& V, mat<double,mat_structure::square>& A_pinv, double NumTol);
+extern template void pseudoinvert_SVD( const mat< double, mat_structure::rectangular >& U,
+                                       const mat< double, mat_structure::diagonal >& E,
+                                       const mat< double, mat_structure::rectangular >& V,
+                                       mat< double, mat_structure::rectangular >& A_pinv, double NumTol );
+extern template void pseudoinvert_SVD( const mat< double, mat_structure::rectangular >& U,
+                                       const mat< double, mat_structure::diagonal >& E,
+                                       const mat< double, mat_structure::square >& V,
+                                       mat< double, mat_structure::rectangular >& A_pinv, double NumTol );
+extern template void pseudoinvert_SVD( const mat< double, mat_structure::square >& U,
+                                       const mat< double, mat_structure::diagonal >& E,
+                                       const mat< double, mat_structure::square >& V,
+                                       mat< double, mat_structure::rectangular >& A_pinv, double NumTol );
+extern template void pseudoinvert_SVD( const mat< double, mat_structure::square >& U,
+                                       const mat< double, mat_structure::diagonal >& E,
+                                       const mat< double, mat_structure::square >& V,
+                                       mat< double, mat_structure::square >& A_pinv, double NumTol );
 
-extern template void pseudoinvert_SVD(const mat<double,mat_structure::rectangular>& A, mat<double,mat_structure::rectangular>& A_pinv, double NumTol);
-extern template void pseudoinvert_SVD(const mat<double,mat_structure::rectangular>& A, mat<double,mat_structure::square>& A_pinv, double NumTol);
-extern template void pseudoinvert_SVD(const mat<double,mat_structure::square>& A, mat<double,mat_structure::rectangular>& A_pinv, double NumTol);
-extern template void pseudoinvert_SVD(const mat<double,mat_structure::square>& A, mat<double,mat_structure::square>& A_pinv, double NumTol);
+extern template void pseudoinvert_SVD( const mat< double, mat_structure::rectangular >& A,
+                                       mat< double, mat_structure::rectangular >& A_pinv, double NumTol );
+extern template void pseudoinvert_SVD( const mat< double, mat_structure::rectangular >& A,
+                                       mat< double, mat_structure::square >& A_pinv, double NumTol );
+extern template void pseudoinvert_SVD( const mat< double, mat_structure::square >& A,
+                                       mat< double, mat_structure::rectangular >& A_pinv, double NumTol );
+extern template void pseudoinvert_SVD( const mat< double, mat_structure::square >& A,
+                                       mat< double, mat_structure::square >& A_pinv, double NumTol );
 
 
-extern template void decompose_SVD(const mat<float,mat_structure::rectangular>& A, mat<float,mat_structure::rectangular>& U, mat<float,mat_structure::diagonal>& E, mat<float,mat_structure::rectangular>& V, float NumTol);
-extern template void decompose_SVD(const mat<float,mat_structure::rectangular>& A, mat<float,mat_structure::rectangular>& U, mat<float,mat_structure::diagonal>& E, mat<float,mat_structure::square>& V, float NumTol);
-extern template void decompose_SVD(const mat<float,mat_structure::square>& A, mat<float,mat_structure::rectangular>& U, mat<float,mat_structure::diagonal>& E, mat<float,mat_structure::square>& V, float NumTol);
-extern template void decompose_SVD(const mat<float,mat_structure::square>& A, mat<float,mat_structure::square>& U, mat<float,mat_structure::diagonal>& E, mat<float,mat_structure::square>& V, float NumTol);
+extern template void decompose_SVD( const mat< float, mat_structure::rectangular >& A,
+                                    mat< float, mat_structure::rectangular >& U,
+                                    mat< float, mat_structure::diagonal >& E,
+                                    mat< float, mat_structure::rectangular >& V, float NumTol );
+extern template void decompose_SVD( const mat< float, mat_structure::rectangular >& A,
+                                    mat< float, mat_structure::rectangular >& U,
+                                    mat< float, mat_structure::diagonal >& E, mat< float, mat_structure::square >& V,
+                                    float NumTol );
+extern template void decompose_SVD( const mat< float, mat_structure::square >& A,
+                                    mat< float, mat_structure::rectangular >& U,
+                                    mat< float, mat_structure::diagonal >& E, mat< float, mat_structure::square >& V,
+                                    float NumTol );
+extern template void decompose_SVD( const mat< float, mat_structure::square >& A,
+                                    mat< float, mat_structure::square >& U, mat< float, mat_structure::diagonal >& E,
+                                    mat< float, mat_structure::square >& V, float NumTol );
 
-extern template void pseudoinvert_SVD(const mat<float,mat_structure::rectangular>& U, const mat<float,mat_structure::diagonal>& E, const mat<float,mat_structure::rectangular>& V, mat<float,mat_structure::rectangular>& A_pinv, float NumTol);
-extern template void pseudoinvert_SVD(const mat<float,mat_structure::rectangular>& U, const mat<float,mat_structure::diagonal>& E, const mat<float,mat_structure::square>& V, mat<float,mat_structure::rectangular>& A_pinv, float NumTol);
-extern template void pseudoinvert_SVD(const mat<float,mat_structure::square>& U, const mat<float,mat_structure::diagonal>& E, const mat<float,mat_structure::square>& V, mat<float,mat_structure::rectangular>& A_pinv, float NumTol);
-extern template void pseudoinvert_SVD(const mat<float,mat_structure::square>& U, const mat<float,mat_structure::diagonal>& E, const mat<float,mat_structure::square>& V, mat<float,mat_structure::square>& A_pinv, float NumTol);
+extern template void pseudoinvert_SVD( const mat< float, mat_structure::rectangular >& U,
+                                       const mat< float, mat_structure::diagonal >& E,
+                                       const mat< float, mat_structure::rectangular >& V,
+                                       mat< float, mat_structure::rectangular >& A_pinv, float NumTol );
+extern template void pseudoinvert_SVD( const mat< float, mat_structure::rectangular >& U,
+                                       const mat< float, mat_structure::diagonal >& E,
+                                       const mat< float, mat_structure::square >& V,
+                                       mat< float, mat_structure::rectangular >& A_pinv, float NumTol );
+extern template void pseudoinvert_SVD( const mat< float, mat_structure::square >& U,
+                                       const mat< float, mat_structure::diagonal >& E,
+                                       const mat< float, mat_structure::square >& V,
+                                       mat< float, mat_structure::rectangular >& A_pinv, float NumTol );
+extern template void pseudoinvert_SVD( const mat< float, mat_structure::square >& U,
+                                       const mat< float, mat_structure::diagonal >& E,
+                                       const mat< float, mat_structure::square >& V,
+                                       mat< float, mat_structure::square >& A_pinv, float NumTol );
 
-extern template void pseudoinvert_SVD(const mat<float,mat_structure::rectangular>& A, mat<float,mat_structure::rectangular>& A_pinv, float NumTol);
-extern template void pseudoinvert_SVD(const mat<float,mat_structure::rectangular>& A, mat<float,mat_structure::square>& A_pinv, float NumTol);
-extern template void pseudoinvert_SVD(const mat<float,mat_structure::square>& A, mat<float,mat_structure::rectangular>& A_pinv, float NumTol);
-extern template void pseudoinvert_SVD(const mat<float,mat_structure::square>& A, mat<float,mat_structure::square>& A_pinv, float NumTol);
- 
+extern template void pseudoinvert_SVD( const mat< float, mat_structure::rectangular >& A,
+                                       mat< float, mat_structure::rectangular >& A_pinv, float NumTol );
+extern template void pseudoinvert_SVD( const mat< float, mat_structure::rectangular >& A,
+                                       mat< float, mat_structure::square >& A_pinv, float NumTol );
+extern template void pseudoinvert_SVD( const mat< float, mat_structure::square >& A,
+                                       mat< float, mat_structure::rectangular >& A_pinv, float NumTol );
+extern template void pseudoinvert_SVD( const mat< float, mat_structure::square >& A,
+                                       mat< float, mat_structure::square >& A_pinv, float NumTol );
 
 
 #endif
-
-
-
-
-
-  
-
 };
 
 #endif
-
-
-
-
-

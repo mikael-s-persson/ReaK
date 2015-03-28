@@ -1,14 +1,14 @@
 /**
  * \file mat_traits.hpp
- * 
- * This header declares a number of standard matrix type traits. These include 
- * matrix alignment tags (column-major and row-major), matrix structure tags 
+ *
+ * This header declares a number of standard matrix type traits. These include
+ * matrix alignment tags (column-major and row-major), matrix structure tags
  * (rectangular, square, symmetric, diagonal, skew-symmetric, etc.), some ReaK::rtti
  * template specializations for these tags, the main mat_traits<> template which
  * defines the nested typedefs related to a matrix class (and required by an implementation
  * of a matrix class), and, finally, a series of meta-functions to compute the product-priority
- * additive-priority of matrix classes based on their structural tags. 
- * 
+ * additive-priority of matrix classes based on their structural tags.
+ *
  * \author Mikael Persson <mikael.s.persson@gmail.com>
  * \date april 2011
  */
@@ -31,7 +31,7 @@
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with ReaK (as LICENSE in the root folder).  
+ *    along with ReaK (as LICENSE in the root folder).
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
@@ -45,61 +45,58 @@
 #include <boost/type_traits.hpp>
 
 namespace ReaK {
-  
-  
+
+
 namespace mat_alignment {
-  
-  /**
-   * These tags are used to mark a matrix as having a column-major or row-major alignment
-   * in memory (note that array-of-array is not an option, due to the obvious performance problems 
-   * with such a memory model for matrix representations).
-   */
-  enum tag {
-    column_major = 1,
-    row_major = 2
-  };
+
+/**
+ * These tags are used to mark a matrix as having a column-major or row-major alignment
+ * in memory (note that array-of-array is not an option, due to the obvious performance problems
+ * with such a memory model for matrix representations).
+ */
+enum tag { column_major = 1, row_major = 2 };
 };
 
 namespace mat_structure {
-  
-  /**
-   * These tags are used to identify a matrix class by its underlying structure. The most 
-   * general structure is, of course, the rectangular matrix (any size, any shape, and densely 
-   * populated). Then, the frequently used tags are square, symmetric, skew_symmetric, and 
-   * diagonal. Additionally, the nil and identity tags signify that a matrix type is constraint
-   * to never be anything other than nil or identity (obviously, these types will be read-only
-   * and do not require storage other than the size information).
-   */
-  enum tag {
-    rectangular = 1,
-    square = 2,
-    symmetric = 3,
-    skew_symmetric = 4,
-    diagonal = 5,
-    upper_triangular = 6,
-    lower_triangular = 7,
-    orthogonal = 8,
-    tridiagonal = 9,
-    nil = 10,
-    identity = 11,
-    scalar = 12,
-    permutation = 13
-  };
+
+/**
+ * These tags are used to identify a matrix class by its underlying structure. The most
+ * general structure is, of course, the rectangular matrix (any size, any shape, and densely
+ * populated). Then, the frequently used tags are square, symmetric, skew_symmetric, and
+ * diagonal. Additionally, the nil and identity tags signify that a matrix type is constraint
+ * to never be anything other than nil or identity (obviously, these types will be read-only
+ * and do not require storage other than the size information).
+ */
+enum tag {
+  rectangular = 1,
+  square = 2,
+  symmetric = 3,
+  skew_symmetric = 4,
+  diagonal = 5,
+  upper_triangular = 6,
+  lower_triangular = 7,
+  orthogonal = 8,
+  tridiagonal = 9,
+  nil = 10,
+  identity = 11,
+  scalar = 12,
+  permutation = 13
 };
-  
+};
+
 /*
- * The following are ReaK::rtti class templates which are used to associate 
+ * The following are ReaK::rtti class templates which are used to associate
  * type information to the matrix tags (mat_alignment::tag and mat_structure::tag).
- * 
+ *
  * Please ignore, unless interested in the inner-workings of the ReaK::rtti system.
  */
 namespace rtti {
-  
+
 template <>
-struct get_type_id< boost::mpl::integral_c<mat_alignment::tag, mat_alignment::column_major > > {
-  BOOST_STATIC_CONSTANT(unsigned int, ID = 1);
+struct get_type_id< boost::mpl::integral_c< mat_alignment::tag, mat_alignment::column_major > > {
+  BOOST_STATIC_CONSTANT( unsigned int, ID = 1 );
 #ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
-  BOOST_STATIC_CONSTEXPR auto type_name = RK_LSA("column_major");
+  BOOST_STATIC_CONSTEXPR auto type_name = RK_LSA( "column_major" );
 #else
   static const char* type_name() BOOST_NOEXCEPT { return "column_major"; };
 #endif
@@ -107,36 +104,37 @@ struct get_type_id< boost::mpl::integral_c<mat_alignment::tag, mat_alignment::co
 };
 
 template <>
-struct get_type_id< boost::mpl::integral_c<mat_alignment::tag, mat_alignment::row_major > > {
-  BOOST_STATIC_CONSTANT(unsigned int, ID = 2);
+struct get_type_id< boost::mpl::integral_c< mat_alignment::tag, mat_alignment::row_major > > {
+  BOOST_STATIC_CONSTANT( unsigned int, ID = 2 );
 #ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
-  BOOST_STATIC_CONSTEXPR auto type_name = RK_LSA("row_major");
+  BOOST_STATIC_CONSTEXPR auto type_name = RK_LSA( "row_major" );
 #else
   static const char* type_name() BOOST_NOEXCEPT { return "row_major"; };
 #endif
   static construct_ptr CreatePtr() BOOST_NOEXCEPT { return NULL; };
 };
 
-template <mat_alignment::tag U, typename Tail>
-struct get_type_info< boost::mpl::integral_c<mat_alignment::tag, U >, Tail > {
-  typedef type_id<boost::mpl::integral_c<mat_alignment::tag, U >, typename Tail::type> type;
+template < mat_alignment::tag U, typename Tail >
+struct get_type_info< boost::mpl::integral_c< mat_alignment::tag, U >, Tail > {
+  typedef type_id< boost::mpl::integral_c< mat_alignment::tag, U >, typename Tail::type > type;
 #ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
-  BOOST_STATIC_CONSTEXPR auto type_name = get_type_id< boost::mpl::integral_c<mat_alignment::tag, U > >::type_name + get_type_name_tail<Tail>::value;
+  BOOST_STATIC_CONSTEXPR auto type_name = get_type_id< boost::mpl::integral_c< mat_alignment::tag, U > >::type_name
+                                          + get_type_name_tail< Tail >::value;
 #else
-  static std::string type_name() { 
-    std::string result = get_type_id< boost::mpl::integral_c<mat_alignment::tag, U > >::type_name();
-    result += get_type_name_tail<Tail>::value(); 
-    return result; //NRVO
+  static std::string type_name() {
+    std::string result = get_type_id< boost::mpl::integral_c< mat_alignment::tag, U > >::type_name();
+    result += get_type_name_tail< Tail >::value();
+    return result; // NRVO
   };
 #endif
 };
 
-  
+
 template <>
-struct get_type_id< boost::mpl::integral_c<mat_structure::tag, mat_structure::rectangular > > {
-  BOOST_STATIC_CONSTANT(unsigned int, ID = 1);
+struct get_type_id< boost::mpl::integral_c< mat_structure::tag, mat_structure::rectangular > > {
+  BOOST_STATIC_CONSTANT( unsigned int, ID = 1 );
 #ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
-  BOOST_STATIC_CONSTEXPR auto type_name = RK_LSA("rectangular");
+  BOOST_STATIC_CONSTEXPR auto type_name = RK_LSA( "rectangular" );
 #else
   static const char* type_name() BOOST_NOEXCEPT { return "rectangular"; };
 #endif
@@ -144,10 +142,10 @@ struct get_type_id< boost::mpl::integral_c<mat_structure::tag, mat_structure::re
 };
 
 template <>
-struct get_type_id< boost::mpl::integral_c<mat_structure::tag, mat_structure::square > > {
-  BOOST_STATIC_CONSTANT(unsigned int, ID = 2);
+struct get_type_id< boost::mpl::integral_c< mat_structure::tag, mat_structure::square > > {
+  BOOST_STATIC_CONSTANT( unsigned int, ID = 2 );
 #ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
-  BOOST_STATIC_CONSTEXPR auto type_name = RK_LSA("square");
+  BOOST_STATIC_CONSTEXPR auto type_name = RK_LSA( "square" );
 #else
   static const char* type_name() BOOST_NOEXCEPT { return "square"; };
 #endif
@@ -155,10 +153,10 @@ struct get_type_id< boost::mpl::integral_c<mat_structure::tag, mat_structure::sq
 };
 
 template <>
-struct get_type_id< boost::mpl::integral_c<mat_structure::tag, mat_structure::symmetric > > {
-  BOOST_STATIC_CONSTANT(unsigned int, ID = 3);
+struct get_type_id< boost::mpl::integral_c< mat_structure::tag, mat_structure::symmetric > > {
+  BOOST_STATIC_CONSTANT( unsigned int, ID = 3 );
 #ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
-  BOOST_STATIC_CONSTEXPR auto type_name = RK_LSA("symmetric");
+  BOOST_STATIC_CONSTEXPR auto type_name = RK_LSA( "symmetric" );
 #else
   static const char* type_name() BOOST_NOEXCEPT { return "symmetric"; };
 #endif
@@ -166,10 +164,10 @@ struct get_type_id< boost::mpl::integral_c<mat_structure::tag, mat_structure::sy
 };
 
 template <>
-struct get_type_id< boost::mpl::integral_c<mat_structure::tag, mat_structure::skew_symmetric > > {
-  BOOST_STATIC_CONSTANT(unsigned int, ID = 4);
+struct get_type_id< boost::mpl::integral_c< mat_structure::tag, mat_structure::skew_symmetric > > {
+  BOOST_STATIC_CONSTANT( unsigned int, ID = 4 );
 #ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
-  BOOST_STATIC_CONSTEXPR auto type_name = RK_LSA("skew_symmetric");
+  BOOST_STATIC_CONSTEXPR auto type_name = RK_LSA( "skew_symmetric" );
 #else
   static const char* type_name() BOOST_NOEXCEPT { return "skew_symmetric"; };
 #endif
@@ -177,10 +175,10 @@ struct get_type_id< boost::mpl::integral_c<mat_structure::tag, mat_structure::sk
 };
 
 template <>
-struct get_type_id< boost::mpl::integral_c<mat_structure::tag, mat_structure::diagonal > > {
-  BOOST_STATIC_CONSTANT(unsigned int, ID = 5);
+struct get_type_id< boost::mpl::integral_c< mat_structure::tag, mat_structure::diagonal > > {
+  BOOST_STATIC_CONSTANT( unsigned int, ID = 5 );
 #ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
-  BOOST_STATIC_CONSTEXPR auto type_name = RK_LSA("diagonal");
+  BOOST_STATIC_CONSTEXPR auto type_name = RK_LSA( "diagonal" );
 #else
   static const char* type_name() BOOST_NOEXCEPT { return "diagonal"; };
 #endif
@@ -188,10 +186,10 @@ struct get_type_id< boost::mpl::integral_c<mat_structure::tag, mat_structure::di
 };
 
 template <>
-struct get_type_id< boost::mpl::integral_c<mat_structure::tag, mat_structure::upper_triangular > > {
-  BOOST_STATIC_CONSTANT(unsigned int, ID = 6);
+struct get_type_id< boost::mpl::integral_c< mat_structure::tag, mat_structure::upper_triangular > > {
+  BOOST_STATIC_CONSTANT( unsigned int, ID = 6 );
 #ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
-  BOOST_STATIC_CONSTEXPR auto type_name = RK_LSA("upper_triangular");
+  BOOST_STATIC_CONSTEXPR auto type_name = RK_LSA( "upper_triangular" );
 #else
   static const char* type_name() BOOST_NOEXCEPT { return "upper_triangular"; };
 #endif
@@ -199,10 +197,10 @@ struct get_type_id< boost::mpl::integral_c<mat_structure::tag, mat_structure::up
 };
 
 template <>
-struct get_type_id< boost::mpl::integral_c<mat_structure::tag, mat_structure::lower_triangular > > {
-  BOOST_STATIC_CONSTANT(unsigned int, ID = 7);
+struct get_type_id< boost::mpl::integral_c< mat_structure::tag, mat_structure::lower_triangular > > {
+  BOOST_STATIC_CONSTANT( unsigned int, ID = 7 );
 #ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
-  BOOST_STATIC_CONSTEXPR auto type_name = RK_LSA("lower_triangular");
+  BOOST_STATIC_CONSTEXPR auto type_name = RK_LSA( "lower_triangular" );
 #else
   static const char* type_name() { return "lower_triangular"; };
 #endif
@@ -210,10 +208,10 @@ struct get_type_id< boost::mpl::integral_c<mat_structure::tag, mat_structure::lo
 };
 
 template <>
-struct get_type_id< boost::mpl::integral_c<mat_structure::tag, mat_structure::orthogonal > > {
-  BOOST_STATIC_CONSTANT(unsigned int, ID = 8);
+struct get_type_id< boost::mpl::integral_c< mat_structure::tag, mat_structure::orthogonal > > {
+  BOOST_STATIC_CONSTANT( unsigned int, ID = 8 );
 #ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
-  BOOST_STATIC_CONSTEXPR auto type_name = RK_LSA("orthogonal");
+  BOOST_STATIC_CONSTEXPR auto type_name = RK_LSA( "orthogonal" );
 #else
   static const char* type_name() BOOST_NOEXCEPT { return "orthogonal"; };
 #endif
@@ -221,10 +219,10 @@ struct get_type_id< boost::mpl::integral_c<mat_structure::tag, mat_structure::or
 };
 
 template <>
-struct get_type_id< boost::mpl::integral_c<mat_structure::tag, mat_structure::tridiagonal > > {
-  BOOST_STATIC_CONSTANT(unsigned int, ID = 9);
+struct get_type_id< boost::mpl::integral_c< mat_structure::tag, mat_structure::tridiagonal > > {
+  BOOST_STATIC_CONSTANT( unsigned int, ID = 9 );
 #ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
-  BOOST_STATIC_CONSTEXPR auto type_name = RK_LSA("tridiagonal");
+  BOOST_STATIC_CONSTEXPR auto type_name = RK_LSA( "tridiagonal" );
 #else
   static const char* type_name() BOOST_NOEXCEPT { return "tridiagonal"; };
 #endif
@@ -232,10 +230,10 @@ struct get_type_id< boost::mpl::integral_c<mat_structure::tag, mat_structure::tr
 };
 
 template <>
-struct get_type_id< boost::mpl::integral_c<mat_structure::tag, mat_structure::nil > > {
-  BOOST_STATIC_CONSTANT(unsigned int, ID = 10);
+struct get_type_id< boost::mpl::integral_c< mat_structure::tag, mat_structure::nil > > {
+  BOOST_STATIC_CONSTANT( unsigned int, ID = 10 );
 #ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
-  BOOST_STATIC_CONSTEXPR auto type_name = RK_LSA("nil");
+  BOOST_STATIC_CONSTEXPR auto type_name = RK_LSA( "nil" );
 #else
   static const char* type_name() BOOST_NOEXCEPT { return "nil"; };
 #endif
@@ -243,10 +241,10 @@ struct get_type_id< boost::mpl::integral_c<mat_structure::tag, mat_structure::ni
 };
 
 template <>
-struct get_type_id< boost::mpl::integral_c<mat_structure::tag, mat_structure::identity > > {
-  BOOST_STATIC_CONSTANT(unsigned int, ID = 11);
+struct get_type_id< boost::mpl::integral_c< mat_structure::tag, mat_structure::identity > > {
+  BOOST_STATIC_CONSTANT( unsigned int, ID = 11 );
 #ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
-  BOOST_STATIC_CONSTEXPR auto type_name = RK_LSA("identity");
+  BOOST_STATIC_CONSTEXPR auto type_name = RK_LSA( "identity" );
 #else
   static const char* type_name() BOOST_NOEXCEPT { return "identity"; };
 #endif
@@ -254,10 +252,10 @@ struct get_type_id< boost::mpl::integral_c<mat_structure::tag, mat_structure::id
 };
 
 template <>
-struct get_type_id< boost::mpl::integral_c<mat_structure::tag, mat_structure::scalar > > {
-  BOOST_STATIC_CONSTANT(unsigned int, ID = 12);
+struct get_type_id< boost::mpl::integral_c< mat_structure::tag, mat_structure::scalar > > {
+  BOOST_STATIC_CONSTANT( unsigned int, ID = 12 );
 #ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
-  BOOST_STATIC_CONSTEXPR auto type_name = RK_LSA("scalar");
+  BOOST_STATIC_CONSTEXPR auto type_name = RK_LSA( "scalar" );
 #else
   static const char* type_name() BOOST_NOEXCEPT { return "scalar"; };
 #endif
@@ -265,10 +263,10 @@ struct get_type_id< boost::mpl::integral_c<mat_structure::tag, mat_structure::sc
 };
 
 template <>
-struct get_type_id< boost::mpl::integral_c<mat_structure::tag, mat_structure::permutation > > {
-  BOOST_STATIC_CONSTANT(unsigned int, ID = 13);
+struct get_type_id< boost::mpl::integral_c< mat_structure::tag, mat_structure::permutation > > {
+  BOOST_STATIC_CONSTANT( unsigned int, ID = 13 );
 #ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
-  BOOST_STATIC_CONSTEXPR auto type_name = RK_LSA("permutation");
+  BOOST_STATIC_CONSTEXPR auto type_name = RK_LSA( "permutation" );
 #else
   static const char* type_name() BOOST_NOEXCEPT { return "permutation"; };
 #endif
@@ -276,34 +274,33 @@ struct get_type_id< boost::mpl::integral_c<mat_structure::tag, mat_structure::pe
 };
 
 
-template <mat_structure::tag U, typename Tail>
-struct get_type_info< boost::mpl::integral_c<mat_structure::tag, U >, Tail > {
-  typedef type_id<boost::mpl::integral_c<mat_structure::tag, U >, typename Tail::type> type;
+template < mat_structure::tag U, typename Tail >
+struct get_type_info< boost::mpl::integral_c< mat_structure::tag, U >, Tail > {
+  typedef type_id< boost::mpl::integral_c< mat_structure::tag, U >, typename Tail::type > type;
 #ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
-  BOOST_STATIC_CONSTEXPR auto type_name = get_type_id< boost::mpl::integral_c<mat_structure::tag, U > >::type_name + get_type_name_tail<Tail>::value;
+  BOOST_STATIC_CONSTEXPR auto type_name = get_type_id< boost::mpl::integral_c< mat_structure::tag, U > >::type_name
+                                          + get_type_name_tail< Tail >::value;
 #else
   static std::string type_name() {
-    std::string result = get_type_id< boost::mpl::integral_c<mat_structure::tag, U > >::type_name();
-    result += get_type_name_tail<Tail>::value();
-    return result; //NRVO
+    std::string result = get_type_id< boost::mpl::integral_c< mat_structure::tag, U > >::type_name();
+    result += get_type_name_tail< Tail >::value();
+    return result; // NRVO
   };
 #endif
 };
-
-  
 };
 
 
 /**
- * This type-traits definition describes the nested typedefs that are expected 
- * from an implementation of a matrix class. They are mostly inspired from 
- * STL-containers' traits. The simplest why to implement a new matrix class 
- * that conforms with these mat_traits requirements is to provide all those 
+ * This type-traits definition describes the nested typedefs that are expected
+ * from an implementation of a matrix class. They are mostly inspired from
+ * STL-containers' traits. The simplest why to implement a new matrix class
+ * that conforms with these mat_traits requirements is to provide all those
  * nested typedefs and static constants. The other alternative, which is non-intrusive,
  * is to define a specialization for mat_traits for the new matrix class, providing
  * all the public members as seen in this general trait template.
  */
-template <typename Matrix>
+template < typename Matrix >
 struct mat_traits {
   /// The type of the elements of the matrix.
   typedef typename Matrix::value_type value_type;
@@ -317,314 +314,295 @@ struct mat_traits {
   typedef typename Matrix::const_pointer const_pointer;
   /// The type of the allocator for the matrix (can be void if the matrix does not have an allocator).
   typedef typename Matrix::allocator_type allocator_type;
-  
+
   /// The type of the row-iterator for the matrix (a row-iterator goes from one row to another (on the same column)).
   typedef typename Matrix::row_iterator row_iterator;
-  /// The type of the const row-iterator for the matrix (a row-iterator goes from one row to another (on the same column)).
+  /// The type of the const row-iterator for the matrix (a row-iterator goes from one row to another (on the same
+  /// column)).
   typedef typename Matrix::const_row_iterator const_row_iterator;
-  /// The type of the column-iterator for the matrix (a column-iterator goes from one column to another (on the same row)).
+  /// The type of the column-iterator for the matrix (a column-iterator goes from one column to another (on the same
+  /// row)).
   typedef typename Matrix::col_iterator col_iterator;
-  /// The type of the const column-iterator for the matrix (a column-iterator goes from one column to another (on the same row)).
+  /// The type of the const column-iterator for the matrix (a column-iterator goes from one column to another (on the
+  /// same row)).
   typedef typename Matrix::const_col_iterator const_col_iterator;
-  
+
   /// The type of the size descriptors (or index descriptors) of the matrix class.
   typedef typename Matrix::size_type size_type;
   /// The type of the difference between two size (or index) descriptors of the matrix class.
   typedef typename Matrix::difference_type difference_type;
-  
-  /// The static row count. Should be 0 if the row count is dynamic.
-  BOOST_STATIC_CONSTANT(std::size_t, static_row_count = Matrix::static_row_count);
-  /// The static column count. Should be 0 if the column count is dynamic.
-  BOOST_STATIC_CONSTANT(std::size_t, static_col_count = Matrix::static_col_count);
-  /// The alignment tag.
-  BOOST_STATIC_CONSTANT(mat_alignment::tag, alignment = Matrix::alignment);
-  /// The structure tag.
-  BOOST_STATIC_CONSTANT(mat_structure::tag, structure = Matrix::structure);
-  
-};
 
+  /// The static row count. Should be 0 if the row count is dynamic.
+  BOOST_STATIC_CONSTANT( std::size_t, static_row_count = Matrix::static_row_count );
+  /// The static column count. Should be 0 if the column count is dynamic.
+  BOOST_STATIC_CONSTANT( std::size_t, static_col_count = Matrix::static_col_count );
+  /// The alignment tag.
+  BOOST_STATIC_CONSTANT( mat_alignment::tag, alignment = Matrix::alignment );
+  /// The structure tag.
+  BOOST_STATIC_CONSTANT( mat_structure::tag, structure = Matrix::structure );
+};
 
 
 /*
- * This detail section includes several template specializations which are used 
- * to define the priority of certain matrix structures when it comes to doing 
- * additions (or subtractions) and multiplications. These meta-functions are 
- * used to perform Sfinae-based switching between overloaded versions of operators 
- * and functions based on the types. For example, when multiplying a symmetric 
+ * This detail section includes several template specializations which are used
+ * to define the priority of certain matrix structures when it comes to doing
+ * additions (or subtractions) and multiplications. These meta-functions are
+ * used to perform Sfinae-based switching between overloaded versions of operators
+ * and functions based on the types. For example, when multiplying a symmetric
  * matrix with a diagonal matrix, surely, the general matrix multiplication operator
- * should be turned off by sfinae, additionally, the diagonal matrix multiplication 
+ * should be turned off by sfinae, additionally, the diagonal matrix multiplication
  * operator should be selected over the symmetric matrix multiplication operator. These
- * meta-functions allow this kind of situations to be detected and the correct overload 
+ * meta-functions allow this kind of situations to be detected and the correct overload
  * to be activated (by turning off the others (via Sfinae) which have lower priority).
  *
- * Please ignore this section unless interested in the inner-workings of Sfinae-based 
- * switching of operator overload selection for the matrix classes. 
+ * Please ignore this section unless interested in the inner-workings of Sfinae-based
+ * switching of operator overload selection for the matrix classes.
  */
 namespace detail {
-  
-  template <mat_structure::tag Structure>
-  struct product_priority {
-    typedef boost::mpl::integral_c_tag tag;
-    typedef std::size_t value_type;
-    BOOST_STATIC_CONSTANT(std::size_t, value = 0);
-    typedef product_priority<Structure> type;
-  };
-  
-  template <>
-  struct product_priority<mat_structure::rectangular> {
-    typedef boost::mpl::integral_c_tag tag;
-    typedef std::size_t value_type;
-    BOOST_STATIC_CONSTANT(std::size_t, value = 1);
-    typedef product_priority<mat_structure::rectangular> type;
-  };
-  
-  template <>
-  struct product_priority<mat_structure::square> {
-    typedef boost::mpl::integral_c_tag tag;
-    typedef std::size_t value_type;
-    BOOST_STATIC_CONSTANT(std::size_t, value = 2);
-    typedef product_priority<mat_structure::square> type;
-  };
-  
-  template <>
-  struct product_priority<mat_structure::symmetric> {
-    typedef boost::mpl::integral_c_tag tag;
-    typedef std::size_t value_type;
-    BOOST_STATIC_CONSTANT(std::size_t, value = 10);
-    typedef product_priority<mat_structure::symmetric> type;
-  };
-  
-  template <>
-  struct product_priority<mat_structure::skew_symmetric> {
-    typedef boost::mpl::integral_c_tag tag;
-    typedef std::size_t value_type;
-    BOOST_STATIC_CONSTANT(std::size_t, value = 11);
-    typedef product_priority<mat_structure::skew_symmetric> type;
-  };
-  
-  template <>
-  struct product_priority<mat_structure::diagonal> {
-    typedef boost::mpl::integral_c_tag tag;
-    typedef std::size_t value_type;
-    BOOST_STATIC_CONSTANT(std::size_t, value = 40);
-    typedef product_priority<mat_structure::diagonal> type;
-  };
-  
-  template <>
-  struct product_priority<mat_structure::scalar> {
-    typedef boost::mpl::integral_c_tag tag;
-    typedef std::size_t value_type;
-    BOOST_STATIC_CONSTANT(std::size_t, value = 41);
-    typedef product_priority<mat_structure::scalar> type;
-  };
-  
-  template <>
-  struct product_priority<mat_structure::upper_triangular> {
-    typedef boost::mpl::integral_c_tag tag;
-    typedef std::size_t value_type;
-    BOOST_STATIC_CONSTANT(std::size_t, value = 20);
-    typedef product_priority<mat_structure::upper_triangular> type;
-  };
-  
-  template <>
-  struct product_priority<mat_structure::lower_triangular> {
-    typedef boost::mpl::integral_c_tag tag;
-    typedef std::size_t value_type;
-    BOOST_STATIC_CONSTANT(std::size_t, value = 21);
-    typedef product_priority<mat_structure::lower_triangular> type;
-  };
-  
-  template <>
-  struct product_priority<mat_structure::orthogonal> {
-    typedef boost::mpl::integral_c_tag tag;
-    typedef std::size_t value_type;
-    BOOST_STATIC_CONSTANT(std::size_t, value = 3);
-    typedef product_priority<mat_structure::orthogonal> type;
-  };
-  
-  template <>
-  struct product_priority<mat_structure::tridiagonal> {
-    typedef boost::mpl::integral_c_tag tag;
-    typedef std::size_t value_type;
-    BOOST_STATIC_CONSTANT(std::size_t, value = 30);
-    typedef product_priority<mat_structure::tridiagonal> type;
-  };
-  
-  template <>
-  struct product_priority<mat_structure::nil> {
-    typedef boost::mpl::integral_c_tag tag;
-    typedef std::size_t value_type;
-    BOOST_STATIC_CONSTANT(std::size_t, value = 50);
-    typedef product_priority<mat_structure::nil> type;
-  };
-  
-  template <>
-  struct product_priority<mat_structure::identity> {
-    typedef boost::mpl::integral_c_tag tag;
-    typedef std::size_t value_type;
-    BOOST_STATIC_CONSTANT(std::size_t, value = 49);
-    typedef product_priority<mat_structure::identity> type;
-  };
-  
-  template <>
-  struct product_priority<mat_structure::permutation> {
-    typedef boost::mpl::integral_c_tag tag;
-    typedef std::size_t value_type;
-    BOOST_STATIC_CONSTANT(std::size_t, value = 48);
-    typedef product_priority<mat_structure::permutation> type;
-  };
-  
-  
-  
-  
-  template <mat_structure::tag Structure>
-  struct addition_priority {
-    typedef boost::mpl::integral_c_tag tag;
-    typedef std::size_t value_type;
-    BOOST_STATIC_CONSTANT(std::size_t, value = 0);
-    typedef addition_priority<Structure> type;
-  };
-  
-  template <>
-  struct addition_priority<mat_structure::rectangular> {
-    typedef boost::mpl::integral_c_tag tag;
-    typedef std::size_t value_type;
-    BOOST_STATIC_CONSTANT(std::size_t, value = 1);
-    typedef addition_priority<mat_structure::rectangular> type;
-  };
-  
-  template <>
-  struct addition_priority<mat_structure::square> {
-    typedef boost::mpl::integral_c_tag tag;
-    typedef std::size_t value_type;
-    BOOST_STATIC_CONSTANT(std::size_t, value = 2);
-    typedef addition_priority<mat_structure::square> type;
-  };
-  
-  template <>
-  struct addition_priority<mat_structure::symmetric> {
-    typedef boost::mpl::integral_c_tag tag;
-    typedef std::size_t value_type;
-    BOOST_STATIC_CONSTANT(std::size_t, value = 10);
-    typedef addition_priority<mat_structure::symmetric> type;
-  };
-  
-  template <>
-  struct addition_priority<mat_structure::skew_symmetric> {
-    typedef boost::mpl::integral_c_tag tag;
-    typedef std::size_t value_type;
-    BOOST_STATIC_CONSTANT(std::size_t, value = 11);
-    typedef addition_priority<mat_structure::skew_symmetric> type;
-  };
-  
-  template <>
-  struct addition_priority<mat_structure::diagonal> {
-    typedef boost::mpl::integral_c_tag tag;
-    typedef std::size_t value_type;
-    BOOST_STATIC_CONSTANT(std::size_t, value = 40);
-    typedef addition_priority<mat_structure::diagonal> type;
-  };
-  
-  template <>
-  struct addition_priority<mat_structure::scalar> {
-    typedef boost::mpl::integral_c_tag tag;
-    typedef std::size_t value_type;
-    BOOST_STATIC_CONSTANT(std::size_t, value = 40);
-    typedef addition_priority<mat_structure::scalar> type;
-  };
-  
-  template <>
-  struct addition_priority<mat_structure::identity> {
-    typedef boost::mpl::integral_c_tag tag;
-    typedef std::size_t value_type;
-    BOOST_STATIC_CONSTANT(std::size_t, value = 40);
-    typedef addition_priority<mat_structure::identity> type;
-  };
-  
-  template <>
-  struct addition_priority<mat_structure::permutation> {
-    typedef boost::mpl::integral_c_tag tag;
-    typedef std::size_t value_type;
-    BOOST_STATIC_CONSTANT(std::size_t, value = 3);
-    typedef addition_priority<mat_structure::permutation> type;
-  };
-  
-  template <>
-  struct addition_priority<mat_structure::upper_triangular> {
-    typedef boost::mpl::integral_c_tag tag;
-    typedef std::size_t value_type;
-    BOOST_STATIC_CONSTANT(std::size_t, value = 20);
-    typedef addition_priority<mat_structure::upper_triangular> type;
-  };
-  
-  template <>
-  struct addition_priority<mat_structure::lower_triangular> {
-    typedef boost::mpl::integral_c_tag tag;
-    typedef std::size_t value_type;
-    BOOST_STATIC_CONSTANT(std::size_t, value = 21);
-    typedef addition_priority<mat_structure::lower_triangular> type;
-  };
-  
-  template <>
-  struct addition_priority<mat_structure::orthogonal> {
-    typedef boost::mpl::integral_c_tag tag;
-    typedef std::size_t value_type;
-    BOOST_STATIC_CONSTANT(std::size_t, value = 3);
-    typedef addition_priority<mat_structure::orthogonal> type;
-  };
-  
-  template <>
-  struct addition_priority<mat_structure::tridiagonal> {
-    typedef boost::mpl::integral_c_tag tag;
-    typedef std::size_t value_type;
-    BOOST_STATIC_CONSTANT(std::size_t, value = 30);
-    typedef addition_priority<mat_structure::tridiagonal> type;
-  };
-  
-  template <>
-  struct addition_priority<mat_structure::nil> {
-    typedef boost::mpl::integral_c_tag tag;
-    typedef std::size_t value_type;
-    BOOST_STATIC_CONSTANT(std::size_t, value = 50);
-    typedef addition_priority<mat_structure::nil> type;
-  };
-  
+
+template < mat_structure::tag Structure >
+struct product_priority {
+  typedef boost::mpl::integral_c_tag tag;
+  typedef std::size_t value_type;
+  BOOST_STATIC_CONSTANT( std::size_t, value = 0 );
+  typedef product_priority< Structure > type;
+};
+
+template <>
+struct product_priority< mat_structure::rectangular > {
+  typedef boost::mpl::integral_c_tag tag;
+  typedef std::size_t value_type;
+  BOOST_STATIC_CONSTANT( std::size_t, value = 1 );
+  typedef product_priority< mat_structure::rectangular > type;
+};
+
+template <>
+struct product_priority< mat_structure::square > {
+  typedef boost::mpl::integral_c_tag tag;
+  typedef std::size_t value_type;
+  BOOST_STATIC_CONSTANT( std::size_t, value = 2 );
+  typedef product_priority< mat_structure::square > type;
+};
+
+template <>
+struct product_priority< mat_structure::symmetric > {
+  typedef boost::mpl::integral_c_tag tag;
+  typedef std::size_t value_type;
+  BOOST_STATIC_CONSTANT( std::size_t, value = 10 );
+  typedef product_priority< mat_structure::symmetric > type;
+};
+
+template <>
+struct product_priority< mat_structure::skew_symmetric > {
+  typedef boost::mpl::integral_c_tag tag;
+  typedef std::size_t value_type;
+  BOOST_STATIC_CONSTANT( std::size_t, value = 11 );
+  typedef product_priority< mat_structure::skew_symmetric > type;
+};
+
+template <>
+struct product_priority< mat_structure::diagonal > {
+  typedef boost::mpl::integral_c_tag tag;
+  typedef std::size_t value_type;
+  BOOST_STATIC_CONSTANT( std::size_t, value = 40 );
+  typedef product_priority< mat_structure::diagonal > type;
+};
+
+template <>
+struct product_priority< mat_structure::scalar > {
+  typedef boost::mpl::integral_c_tag tag;
+  typedef std::size_t value_type;
+  BOOST_STATIC_CONSTANT( std::size_t, value = 41 );
+  typedef product_priority< mat_structure::scalar > type;
+};
+
+template <>
+struct product_priority< mat_structure::upper_triangular > {
+  typedef boost::mpl::integral_c_tag tag;
+  typedef std::size_t value_type;
+  BOOST_STATIC_CONSTANT( std::size_t, value = 20 );
+  typedef product_priority< mat_structure::upper_triangular > type;
+};
+
+template <>
+struct product_priority< mat_structure::lower_triangular > {
+  typedef boost::mpl::integral_c_tag tag;
+  typedef std::size_t value_type;
+  BOOST_STATIC_CONSTANT( std::size_t, value = 21 );
+  typedef product_priority< mat_structure::lower_triangular > type;
+};
+
+template <>
+struct product_priority< mat_structure::orthogonal > {
+  typedef boost::mpl::integral_c_tag tag;
+  typedef std::size_t value_type;
+  BOOST_STATIC_CONSTANT( std::size_t, value = 3 );
+  typedef product_priority< mat_structure::orthogonal > type;
+};
+
+template <>
+struct product_priority< mat_structure::tridiagonal > {
+  typedef boost::mpl::integral_c_tag tag;
+  typedef std::size_t value_type;
+  BOOST_STATIC_CONSTANT( std::size_t, value = 30 );
+  typedef product_priority< mat_structure::tridiagonal > type;
+};
+
+template <>
+struct product_priority< mat_structure::nil > {
+  typedef boost::mpl::integral_c_tag tag;
+  typedef std::size_t value_type;
+  BOOST_STATIC_CONSTANT( std::size_t, value = 50 );
+  typedef product_priority< mat_structure::nil > type;
+};
+
+template <>
+struct product_priority< mat_structure::identity > {
+  typedef boost::mpl::integral_c_tag tag;
+  typedef std::size_t value_type;
+  BOOST_STATIC_CONSTANT( std::size_t, value = 49 );
+  typedef product_priority< mat_structure::identity > type;
+};
+
+template <>
+struct product_priority< mat_structure::permutation > {
+  typedef boost::mpl::integral_c_tag tag;
+  typedef std::size_t value_type;
+  BOOST_STATIC_CONSTANT( std::size_t, value = 48 );
+  typedef product_priority< mat_structure::permutation > type;
 };
 
 
-template <typename Matrix>
+template < mat_structure::tag Structure >
+struct addition_priority {
+  typedef boost::mpl::integral_c_tag tag;
+  typedef std::size_t value_type;
+  BOOST_STATIC_CONSTANT( std::size_t, value = 0 );
+  typedef addition_priority< Structure > type;
+};
+
+template <>
+struct addition_priority< mat_structure::rectangular > {
+  typedef boost::mpl::integral_c_tag tag;
+  typedef std::size_t value_type;
+  BOOST_STATIC_CONSTANT( std::size_t, value = 1 );
+  typedef addition_priority< mat_structure::rectangular > type;
+};
+
+template <>
+struct addition_priority< mat_structure::square > {
+  typedef boost::mpl::integral_c_tag tag;
+  typedef std::size_t value_type;
+  BOOST_STATIC_CONSTANT( std::size_t, value = 2 );
+  typedef addition_priority< mat_structure::square > type;
+};
+
+template <>
+struct addition_priority< mat_structure::symmetric > {
+  typedef boost::mpl::integral_c_tag tag;
+  typedef std::size_t value_type;
+  BOOST_STATIC_CONSTANT( std::size_t, value = 10 );
+  typedef addition_priority< mat_structure::symmetric > type;
+};
+
+template <>
+struct addition_priority< mat_structure::skew_symmetric > {
+  typedef boost::mpl::integral_c_tag tag;
+  typedef std::size_t value_type;
+  BOOST_STATIC_CONSTANT( std::size_t, value = 11 );
+  typedef addition_priority< mat_structure::skew_symmetric > type;
+};
+
+template <>
+struct addition_priority< mat_structure::diagonal > {
+  typedef boost::mpl::integral_c_tag tag;
+  typedef std::size_t value_type;
+  BOOST_STATIC_CONSTANT( std::size_t, value = 40 );
+  typedef addition_priority< mat_structure::diagonal > type;
+};
+
+template <>
+struct addition_priority< mat_structure::scalar > {
+  typedef boost::mpl::integral_c_tag tag;
+  typedef std::size_t value_type;
+  BOOST_STATIC_CONSTANT( std::size_t, value = 40 );
+  typedef addition_priority< mat_structure::scalar > type;
+};
+
+template <>
+struct addition_priority< mat_structure::identity > {
+  typedef boost::mpl::integral_c_tag tag;
+  typedef std::size_t value_type;
+  BOOST_STATIC_CONSTANT( std::size_t, value = 40 );
+  typedef addition_priority< mat_structure::identity > type;
+};
+
+template <>
+struct addition_priority< mat_structure::permutation > {
+  typedef boost::mpl::integral_c_tag tag;
+  typedef std::size_t value_type;
+  BOOST_STATIC_CONSTANT( std::size_t, value = 3 );
+  typedef addition_priority< mat_structure::permutation > type;
+};
+
+template <>
+struct addition_priority< mat_structure::upper_triangular > {
+  typedef boost::mpl::integral_c_tag tag;
+  typedef std::size_t value_type;
+  BOOST_STATIC_CONSTANT( std::size_t, value = 20 );
+  typedef addition_priority< mat_structure::upper_triangular > type;
+};
+
+template <>
+struct addition_priority< mat_structure::lower_triangular > {
+  typedef boost::mpl::integral_c_tag tag;
+  typedef std::size_t value_type;
+  BOOST_STATIC_CONSTANT( std::size_t, value = 21 );
+  typedef addition_priority< mat_structure::lower_triangular > type;
+};
+
+template <>
+struct addition_priority< mat_structure::orthogonal > {
+  typedef boost::mpl::integral_c_tag tag;
+  typedef std::size_t value_type;
+  BOOST_STATIC_CONSTANT( std::size_t, value = 3 );
+  typedef addition_priority< mat_structure::orthogonal > type;
+};
+
+template <>
+struct addition_priority< mat_structure::tridiagonal > {
+  typedef boost::mpl::integral_c_tag tag;
+  typedef std::size_t value_type;
+  BOOST_STATIC_CONSTANT( std::size_t, value = 30 );
+  typedef addition_priority< mat_structure::tridiagonal > type;
+};
+
+template <>
+struct addition_priority< mat_structure::nil > {
+  typedef boost::mpl::integral_c_tag tag;
+  typedef std::size_t value_type;
+  BOOST_STATIC_CONSTANT( std::size_t, value = 50 );
+  typedef addition_priority< mat_structure::nil > type;
+};
+};
+
+
+template < typename Matrix >
 struct mat_product_priority {
   typedef boost::mpl::integral_c_tag tag;
   typedef std::size_t value_type;
-  BOOST_STATIC_CONSTANT(std::size_t, value = 0);
-  typedef mat_product_priority<Matrix> type;
+  BOOST_STATIC_CONSTANT( std::size_t, value = 0 );
+  typedef mat_product_priority< Matrix > type;
 };
 
-template <typename Matrix>
+template < typename Matrix >
 struct mat_addition_priority {
   typedef boost::mpl::integral_c_tag tag;
   typedef std::size_t value_type;
-  BOOST_STATIC_CONSTANT(std::size_t, value = 0);
-  typedef mat_addition_priority<Matrix> type;
+  BOOST_STATIC_CONSTANT( std::size_t, value = 0 );
+  typedef mat_addition_priority< Matrix > type;
 };
-
-
-
-
-
-
 };
-
-
 
 
 #endif
-
-
-
-
-
-
-
-
-

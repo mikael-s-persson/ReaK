@@ -17,7 +17,7 @@
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with ReaK (as LICENSE in the root folder).  
+ *    along with ReaK (as LICENSE in the root folder).
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
@@ -36,78 +36,80 @@
 #include <boost/mpl/list.hpp>
 
 
-double func1(double x) {
-  return 4.0 * std::cos(x) - std::exp(x);
-};
+double func1( double x ) { return 4.0 * std::cos( x ) - std::exp( x ); };
 
-double func2(double x) {
+double func2( double x ) {
   double result = 0.0;
-  for(int i = 1; i < 11; ++i) {
+  for( int i = 1; i < 11; ++i ) {
     double t = 0.1 * i;
-    result += std::exp(x * t) - std::exp(5.0 * t);
+    result += std::exp( x * t ) - std::exp( 5.0 * t );
   };
   return result;
 };
 
-double func3(double x) {
-  return 2.0 * x * std::exp(-20.0) + 1.0 - 2.0 * std::exp(-20.0 * x);
-};
+double func3( double x ) { return 2.0 * x * std::exp( -20.0 ) + 1.0 - 2.0 * std::exp( -20.0 * x ); };
 
-double func4(double x) {
-  return std::exp(1.0 / x - 25.0) - 1.0;
-};
+double func4( double x ) { return std::exp( 1.0 / x - 25.0 ) - 1.0; };
 
 
-BOOST_AUTO_TEST_CASE( root_finding_tests )
-{
+BOOST_AUTO_TEST_CASE( root_finding_tests ) {
   using namespace ReaK;
-  
-  typedef double (*func_ptr)(double);
-  
-  std::vector<func_ptr> funcs;
-  std::vector<double> lows;
-  std::vector<double> his;
-  std::vector<double> sols;
-  
-  funcs.push_back(func1); lows.push_back(0.0);  his.push_back(1.5);  sols.push_back(0.904788);
-  funcs.push_back(func2); lows.push_back(4.0);  his.push_back(6.5);  sols.push_back(5.0);
-  funcs.push_back(func3); lows.push_back(0.0);  his.push_back(1.0);  sols.push_back(0.03465736);
-  funcs.push_back(func4); lows.push_back(0.03); his.push_back(0.09); sols.push_back(0.04);
-  
-  for(unsigned int i = 0; i < funcs.size(); ++i) {
-    double rel_tol = 1e-10 / (his[i] - lows[i]);
-    
-    double l = lows[i]; double h = his[i];
-    BOOST_CHECK_NO_THROW( bisection_method(l, h, funcs[i], rel_tol) );
+
+  typedef double ( *func_ptr )( double );
+
+  std::vector< func_ptr > funcs;
+  std::vector< double > lows;
+  std::vector< double > his;
+  std::vector< double > sols;
+
+  funcs.push_back( func1 );
+  lows.push_back( 0.0 );
+  his.push_back( 1.5 );
+  sols.push_back( 0.904788 );
+  funcs.push_back( func2 );
+  lows.push_back( 4.0 );
+  his.push_back( 6.5 );
+  sols.push_back( 5.0 );
+  funcs.push_back( func3 );
+  lows.push_back( 0.0 );
+  his.push_back( 1.0 );
+  sols.push_back( 0.03465736 );
+  funcs.push_back( func4 );
+  lows.push_back( 0.03 );
+  his.push_back( 0.09 );
+  sols.push_back( 0.04 );
+
+  for( unsigned int i = 0; i < funcs.size(); ++i ) {
+    double rel_tol = 1e-10 / ( his[i] - lows[i] );
+
+    double l = lows[i];
+    double h = his[i];
+    BOOST_CHECK_NO_THROW( bisection_method( l, h, funcs[i], rel_tol ) );
     BOOST_CHECK_CLOSE( l, sols[i], 5e-5 );
-    
-    l = lows[i]; h = his[i];
-    BOOST_CHECK_NO_THROW( l = secant_method(l, h, funcs[i], rel_tol) );
+
+    l = lows[i];
+    h = his[i];
+    BOOST_CHECK_NO_THROW( l = secant_method( l, h, funcs[i], rel_tol ) );
     BOOST_CHECK_CLOSE( l, sols[i], 5e-5 );
-    
-    l = lows[i]; h = his[i];
-    BOOST_CHECK_NO_THROW( illinois_method(l, h, funcs[i], rel_tol) );
+
+    l = lows[i];
+    h = his[i];
+    BOOST_CHECK_NO_THROW( illinois_method( l, h, funcs[i], rel_tol ) );
     BOOST_CHECK_CLOSE( l, sols[i], 5e-5 );
-    
-    l = lows[i]; h = his[i];
-    BOOST_CHECK_NO_THROW( ford3_method(l, h, funcs[i], rel_tol) );
+
+    l = lows[i];
+    h = his[i];
+    BOOST_CHECK_NO_THROW( ford3_method( l, h, funcs[i], rel_tol ) );
     BOOST_CHECK_CLOSE( l, sols[i], 5e-5 );
-    
-    l = lows[i]; h = his[i];
-    BOOST_CHECK_NO_THROW( brent_method(l, h, funcs[i], rel_tol) );
+
+    l = lows[i];
+    h = his[i];
+    BOOST_CHECK_NO_THROW( brent_method( l, h, funcs[i], rel_tol ) );
     BOOST_CHECK_CLOSE( l, sols[i], 5e-5 );
-    
-    l = lows[i]; h = his[i];
-    BOOST_CHECK_NO_THROW( ridders_method(l, h, funcs[i], rel_tol) );
+
+    l = lows[i];
+    h = his[i];
+    BOOST_CHECK_NO_THROW( ridders_method( l, h, funcs[i], rel_tol ) );
     BOOST_CHECK_CLOSE( l, sols[i], 5e-5 );
   };
-
 };
-
-
-
-
-
-
-
-

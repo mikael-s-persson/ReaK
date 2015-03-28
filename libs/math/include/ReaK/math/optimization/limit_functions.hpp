@@ -25,7 +25,7 @@
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with ReaK (as LICENSE in the root folder).  
+ *    along with ReaK (as LICENSE in the root folder).
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
@@ -38,8 +38,8 @@
 
 
 namespace ReaK {
-  
-  
+
+
 namespace optim {
 
 
@@ -51,13 +51,13 @@ struct no_limit_functor {
   /**
    * This function imposes no limits on the step proposed over the given vector.
    */
-  template <typename Vector>
-  void operator()(const Vector&, Vector&) const { };
+  template < typename Vector >
+  void operator()( const Vector&, Vector& ) const {};
 };
 
 
 /**
- * This function limits a proposed step size such that the resulting vector is within 
+ * This function limits a proposed step size such that the resulting vector is within
  * the bounds of a hyperbox defined by lower and upper bound vectors.
  * TEST PASSED
  * \tparam Vector A vector type.
@@ -66,24 +66,19 @@ struct no_limit_functor {
  * \param l The lower bound vector.
  * \param u The upper bound vector.
  */
-template <typename Vector>
-typename boost::enable_if<
-  is_writable_vector<Vector>,
-void >::type box_limit_function(const Vector& x, Vector& dx, const Vector& l, const Vector& u) {
-  typedef typename vect_traits<Vector>::size_type SizeType;
-  for(SizeType i = 0; i < x.size(); ++i) {
+template < typename Vector >
+typename boost::enable_if< is_writable_vector< Vector >, void >::type
+  box_limit_function( const Vector& x, Vector& dx, const Vector& l, const Vector& u ) {
+  typedef typename vect_traits< Vector >::size_type SizeType;
+  for( SizeType i = 0; i < x.size(); ++i ) {
     if( x[i] + dx[i] < l[i] )
       dx[i] = l[i] - x[i];
     if( x[i] + dx[i] > u[i] )
       dx[i] = u[i] - x[i];
   };
 };
-
-
 };
-
 };
 
 
 #endif
-

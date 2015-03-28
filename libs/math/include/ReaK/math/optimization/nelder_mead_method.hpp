@@ -1,10 +1,10 @@
 /**
  * \file nelder_mead_method.hpp
  *
- * The following library provides an implementation of the Nelder-Mead algorithm. The 
- * Nelder-Mead algorithm is a gradient-less non-linear optimization method based on 
- * maintaining a simplex (simplest polytope) and is thus sometimes referred to as the 
- * simplex method (not to be confused with the simplex method in linear programming, 
+ * The following library provides an implementation of the Nelder-Mead algorithm. The
+ * Nelder-Mead algorithm is a gradient-less non-linear optimization method based on
+ * maintaining a simplex (simplest polytope) and is thus sometimes referred to as the
+ * simplex method (not to be confused with the simplex method in linear programming,
  * see simplex_method.hpp).
  *
  * \author Mikael Persson <mikael.s.persson@gmail.com>
@@ -29,7 +29,7 @@
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with ReaK (as LICENSE in the root folder).  
+ *    along with ReaK (as LICENSE in the root folder).
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
@@ -44,94 +44,92 @@
 #include <boost/random/variate_generator.hpp>
 
 namespace ReaK {
-  
-  
+
+
 namespace optim {
 
 
 namespace detail {
 
-template <typename T, typename Vector>
-void nelder_mead_compute_center_of_gravity(const std::multimap<T, Vector>& pts, Vector& c) {
-  typedef typename std::multimap<T, Vector>::const_iterator IterType;
-  typedef typename vect_traits<Vector>::value_type ValueType;
-  ValueType factor = ValueType(1.0) / ValueType(pts.size());
+template < typename T, typename Vector >
+void nelder_mead_compute_center_of_gravity( const std::multimap< T, Vector >& pts, Vector& c ) {
+  typedef typename std::multimap< T, Vector >::const_iterator IterType;
+  typedef typename vect_traits< Vector >::value_type ValueType;
+  ValueType factor = ValueType( 1.0 ) / ValueType( pts.size() );
   c -= c;
-  for(IterType it = pts.begin(); it != pts.end(); ++it)
+  for( IterType it = pts.begin(); it != pts.end(); ++it )
     c += factor * it->second;
 };
 
-template <typename T, typename Vector>
-T nelder_mead_compute_std_dev(const std::multimap<T, Vector>& pts, const Vector& c) {
-  typedef typename std::multimap<T, Vector>::const_iterator IterType;
-  typedef typename vect_traits<Vector>::value_type ValueType;
+template < typename T, typename Vector >
+T nelder_mead_compute_std_dev( const std::multimap< T, Vector >& pts, const Vector& c ) {
+  typedef typename std::multimap< T, Vector >::const_iterator IterType;
+  typedef typename vect_traits< Vector >::value_type ValueType;
   using std::sqrt;
-  
-  ValueType result = ValueType(0.0);
-  for(IterType it = pts.begin(); it != pts.end(); ++it)
-    result += norm_2_sqr(it->second - c);
-  return sqrt(result / ValueType(pts.size()));
+
+  ValueType result = ValueType( 0.0 );
+  for( IterType it = pts.begin(); it != pts.end(); ++it )
+    result += norm_2_sqr( it->second - c );
+  return sqrt( result / ValueType( pts.size() ) );
 };
 
-template <typename Function, typename Vector, typename T>
-void nelder_mead_method_impl(Function f, std::multimap<T, Vector>& pts, Vector& c, T tol, 
-                             T alpha = T(1.0), T gamma = T(2.0), T rho = T(0.5), T sigma = T(0.5)) {
-  typedef typename std::multimap<T, Vector>::iterator IterType;
-  
-  nelder_mead_compute_center_of_gravity(pts,c);
-  T abs_tol = nelder_mead_compute_std_dev(pts,c) * tol;
+template < typename Function, typename Vector, typename T >
+void nelder_mead_method_impl( Function f, std::multimap< T, Vector >& pts, Vector& c, T tol, T alpha = T( 1.0 ),
+                              T gamma = T( 2.0 ), T rho = T( 0.5 ), T sigma = T( 0.5 ) ) {
+  typedef typename std::multimap< T, Vector >::iterator IterType;
+
+  nelder_mead_compute_center_of_gravity( pts, c );
+  T abs_tol = nelder_mead_compute_std_dev( pts, c ) * tol;
   do {
-    Vector x_r = c + alpha * (c - pts.rbegin()->second);
-    T x_r_value = f(x_r);
-    IterType it_r = pts.lower_bound(x_r_value);
-    if(it_r == pts.begin()) {
+    Vector x_r = c + alpha * ( c - pts.rbegin()->second );
+    T x_r_value = f( x_r );
+    IterType it_r = pts.lower_bound( x_r_value );
+    if( it_r == pts.begin() ) {
       // do expansion.
-      Vector x_e = c + gamma * (pts.rbegin()->second - c);
-      T x_e_value = f(x_e);
+      Vector x_e = c + gamma * ( pts.rbegin()->second - c );
+      T x_e_value = f( x_e );
       if( x_e_value < x_r_value )
-        pts.insert(it_r, std::pair<T,Vector>(x_e_value,x_e));
+        pts.insert( it_r, std::pair< T, Vector >( x_e_value, x_e ) );
       else
-        pts.insert(it_r, std::pair<T,Vector>(x_r_value,x_r));
-    } else if((it_r == (++pts.rbegin()).base()) 
-           || (it_r == pts.end())) {
+        pts.insert( it_r, std::pair< T, Vector >( x_r_value, x_r ) );
+    } else if( ( it_r == ( ++pts.rbegin() ).base() ) || ( it_r == pts.end() ) ) {
       // do contraction (and possibly reduction after).
-      Vector x_c = pts.rbegin()->second + rho * (c - pts.rbegin()->second);
-      T x_c_value = f(x_c);
+      Vector x_c = pts.rbegin()->second + rho * ( c - pts.rbegin()->second );
+      T x_c_value = f( x_c );
       if( x_c_value < pts.rbegin()->first )
-        pts.insert(it_r, std::pair<T,Vector>(x_c_value,x_c));
+        pts.insert( it_r, std::pair< T, Vector >( x_c_value, x_c ) );
       else {
-        //do reduction.
-        std::multimap<T,Vector> tmp;
-        tmp.swap(pts);
-        IterType it = tmp.begin(); ++it;
-        IterType it2 = pts.insert(*tmp.begin());
-        for(; it != pts.end(); ++it) {
-          Vector x_t = tmp.begin()->second + sigma * (it->second - tmp.begin()->second);
-          pts.insert(it2, std::pair<T,Vector>(f(x_t), x_t)); ++it2;
+        // do reduction.
+        std::multimap< T, Vector > tmp;
+        tmp.swap( pts );
+        IterType it = tmp.begin();
+        ++it;
+        IterType it2 = pts.insert( *tmp.begin() );
+        for( ; it != pts.end(); ++it ) {
+          Vector x_t = tmp.begin()->second + sigma * ( it->second - tmp.begin()->second );
+          pts.insert( it2, std::pair< T, Vector >( f( x_t ), x_t ) );
+          ++it2;
         };
       };
     } else {
       // do reflection.
-      pts.insert(it_r, std::pair<T,Vector>(x_r_value,x_r));
+      pts.insert( it_r, std::pair< T, Vector >( x_r_value, x_r ) );
     };
-    
-    while(pts.size() > c.size() + 1)
-      pts.erase((++pts.rbegin()).base());
-    
-    nelder_mead_compute_center_of_gravity(pts,c);
-  } while( nelder_mead_compute_std_dev(pts,c) > abs_tol );
-  
+
+    while( pts.size() > c.size() + 1 )
+      pts.erase( ( ++pts.rbegin() ).base() );
+
+    nelder_mead_compute_center_of_gravity( pts, c );
+  } while( nelder_mead_compute_std_dev( pts, c ) > abs_tol );
 };
-
-
 };
 
 
 /**
  * This function performs a Nelder-Mead method to find the minimum of a non-linear multi-dimensional
- * function. The Nelder-Mead algorithm is a gradient-less non-linear optimization method based on 
- * maintaining a simplex (simplest polytope) and is thus sometimes referred to as the 
- * simplex method (not to be confused with the simplex method in linear programming, 
+ * function. The Nelder-Mead algorithm is a gradient-less non-linear optimization method based on
+ * maintaining a simplex (simplest polytope) and is thus sometimes referred to as the
+ * simplex method (not to be confused with the simplex method in linear programming,
  * see simplex_method.hpp). This overload version takes a simplex that is already provided by the
  * caller through an iterator range.
  * TEST PASSED but bad convergence (expected).
@@ -149,23 +147,22 @@ void nelder_mead_method_impl(Function f, std::multimap<T, Vector>& pts, Vector& 
  * \param rho The contraction coefficient (default 0.5).
  * \param sigma The shrink coefficient (default 0.5).
  */
-template <typename Function, typename Vector, typename T, typename ForwardIter>
-typename boost::enable_if<
-  is_writable_vector<Vector>,
-void >::type nelder_mead_method(ForwardIter first, ForwardIter last, Function f, Vector& c, T tol = T(1e-6), 
-                                T alpha = T(1.0), T gamma = T(2.0), T rho = T(0.5), T sigma = T(0.5)) {
-  std::multimap<T, Vector> pts;
-  for(; first != last; ++first) 
-    pts.insert(std::pair<T,Vector>(f(*first),*first));
-  detail::nelder_mead_method_impl(f,pts,c,tol,alpha,gamma,rho,sigma);
+template < typename Function, typename Vector, typename T, typename ForwardIter >
+typename boost::enable_if< is_writable_vector< Vector >, void >::type
+  nelder_mead_method( ForwardIter first, ForwardIter last, Function f, Vector& c, T tol = T( 1e-6 ), T alpha = T( 1.0 ),
+                      T gamma = T( 2.0 ), T rho = T( 0.5 ), T sigma = T( 0.5 ) ) {
+  std::multimap< T, Vector > pts;
+  for( ; first != last; ++first )
+    pts.insert( std::pair< T, Vector >( f( *first ), *first ) );
+  detail::nelder_mead_method_impl( f, pts, c, tol, alpha, gamma, rho, sigma );
 };
 
 
 /**
  * This function performs a Nelder-Mead method to find the minimum of a non-linear multi-dimensional
- * function. The Nelder-Mead algorithm is a gradient-less non-linear optimization method based on 
- * maintaining a simplex (simplest polytope) and is thus sometimes referred to as the 
- * simplex method (not to be confused with the simplex method in linear programming, 
+ * function. The Nelder-Mead algorithm is a gradient-less non-linear optimization method based on
+ * maintaining a simplex (simplest polytope) and is thus sometimes referred to as the
+ * simplex method (not to be confused with the simplex method in linear programming,
  * see simplex_method.hpp). This overload version takes a random-number generator (see Boost.Random)
  * and uses it to generate the initial simplex around the initial guess with a given initial spread (std-dev).
  * TEST PASSED but bad convergence (expected).
@@ -183,35 +180,28 @@ void >::type nelder_mead_method(ForwardIter first, ForwardIter last, Function f,
  * \param rho The contraction coefficient (default 0.5).
  * \param sigma The shrink coefficient (default 0.5).
  */
-template <typename Function, typename Vector, typename T, typename RandomNumberGen>
-typename boost::enable_if<
-  is_writable_vector<Vector>,
-void >::type nelder_mead_method(Function f, Vector& c, T init_spread, RandomNumberGen& rng, T tol = T(1e-6), 
-                                T alpha = T(1.0), T gamma = T(2.0), T rho = T(0.5), T sigma = T(0.5)) {
-  typedef typename vect_traits<Vector>::size_type SizeType;
-  typedef typename vect_traits<Vector>::value_type ValueType;
-  
-  std::multimap<T, Vector> pts;
-  boost::variate_generator< RandomNumberGen&, boost::normal_distribution<ValueType> > var_rnd(rng, boost::normal_distribution<ValueType>());
-  
-  for(SizeType i = 0; i <= c.size(); ++i) {
+template < typename Function, typename Vector, typename T, typename RandomNumberGen >
+typename boost::enable_if< is_writable_vector< Vector >, void >::type
+  nelder_mead_method( Function f, Vector& c, T init_spread, RandomNumberGen& rng, T tol = T( 1e-6 ), T alpha = T( 1.0 ),
+                      T gamma = T( 2.0 ), T rho = T( 0.5 ), T sigma = T( 0.5 ) ) {
+  typedef typename vect_traits< Vector >::size_type SizeType;
+  typedef typename vect_traits< Vector >::value_type ValueType;
+
+  std::multimap< T, Vector > pts;
+  boost::variate_generator< RandomNumberGen&, boost::normal_distribution< ValueType > > var_rnd(
+    rng, boost::normal_distribution< ValueType >() );
+
+  for( SizeType i = 0; i <= c.size(); ++i ) {
     Vector z = c;
-    for(SizeType j = 0; j < z.size(); ++j)
+    for( SizeType j = 0; j < z.size(); ++j )
       z[j] = var_rnd() * init_spread;
-    pts.insert(std::pair<T,Vector>(f(z),z));
+    pts.insert( std::pair< T, Vector >( f( z ), z ) );
   };
-  
-  detail::nelder_mead_method_impl(f,pts,c,tol,alpha,gamma,rho,sigma);
+
+  detail::nelder_mead_method_impl( f, pts, c, tol, alpha, gamma, rho, sigma );
 };
-
-
-
-
-
 };
-
 };
 
 
 #endif
-

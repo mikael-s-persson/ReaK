@@ -17,7 +17,7 @@
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with ReaK (as LICENSE in the root folder).  
+ *    along with ReaK (as LICENSE in the root folder).
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
@@ -47,72 +47,64 @@
 #include <boost/mpl/list.hpp>
 
 
-typedef std::vector< std::pair< double, ReaK::vect_n<double> > > SolutionTrace;
-typedef ReaK::shared_ptr< ReaK::iv_problem<double> > ProblemPtr;
+typedef std::vector< std::pair< double, ReaK::vect_n< double > > > SolutionTrace;
+typedef ReaK::shared_ptr< ReaK::iv_problem< double > > ProblemPtr;
 typedef std::pair< ProblemPtr, SolutionTrace > RefProblemPair;
 typedef std::vector< RefProblemPair > RefProblemSet;
 
 
-void computeReferenceSolution(const ProblemPtr& prob, SolutionTrace& sol_trace) {
+void computeReferenceSolution( const ProblemPtr& prob, SolutionTrace& sol_trace ) {
   sol_trace.clear();
-  sol_trace.push_back(std::pair<double, ReaK::vect_n<double> >(prob->getInitialTime(), prob->getInitialValue()));
-  double rec_step = (prob->getFinalTime() - prob->getInitialTime()) * 1e-3;
-  ReaK::dormand_prince45_integrator<double> integ(
-    "reference_integrator_ode45",
-    sol_trace.back().second,
-    sol_trace.back().first,
-    rec_step * 1e-3,
-    prob,
-    rec_step,
-    rec_step * 1e-6,
-    1e-6);
-  
-  std::cout << "Generating reference solution for problem: " << prob->getObjectType()->TypeName() << " with t in [" << prob->getInitialTime() << "," << prob->getFinalTime() << "]" << std::endl;
-  
-  for(double next_time = prob->getInitialTime() + rec_step; next_time < prob->getFinalTime() + 0.5 * rec_step; next_time += rec_step) {
-    
-    integ.integrate(next_time);
-    
-    sol_trace.push_back(std::pair<double, ReaK::vect_n<double> >(
-      integ.getTime(), 
-      ReaK::vect_n<double>(integ.getStateBegin(), integ.getStateEnd())
-    ));
-    
-    std::cout << "\r" << std::setw(10) << next_time;
-    for(std::size_t k = 0; k < sol_trace.back().second.size(); ++k)
-      std::cout << std::setw(10) << sol_trace.back().second[k];
+  sol_trace.push_back( std::pair< double, ReaK::vect_n< double > >( prob->getInitialTime(), prob->getInitialValue() ) );
+  double rec_step = ( prob->getFinalTime() - prob->getInitialTime() ) * 1e-3;
+  ReaK::dormand_prince45_integrator< double > integ( "reference_integrator_ode45", sol_trace.back().second,
+                                                     sol_trace.back().first, rec_step * 1e-3, prob, rec_step,
+                                                     rec_step * 1e-6, 1e-6 );
+
+  std::cout << "Generating reference solution for problem: " << prob->getObjectType()->TypeName() << " with t in ["
+            << prob->getInitialTime() << "," << prob->getFinalTime() << "]" << std::endl;
+
+  for( double next_time = prob->getInitialTime() + rec_step; next_time < prob->getFinalTime() + 0.5 * rec_step;
+       next_time += rec_step ) {
+
+    integ.integrate( next_time );
+
+    sol_trace.push_back( std::pair< double, ReaK::vect_n< double > >(
+      integ.getTime(), ReaK::vect_n< double >( integ.getStateBegin(), integ.getStateEnd() ) ) );
+
+    std::cout << "\r" << std::setw( 10 ) << next_time;
+    for( std::size_t k = 0; k < sol_trace.back().second.size(); ++k )
+      std::cout << std::setw( 10 ) << sol_trace.back().second[k];
     std::cout << std::flush;
-    
   };
   std::cout << std::endl << "Done!" << std::endl;
-  
 };
 
 
 const RefProblemSet& getRefProblemSet() {
   using namespace ReaK;
-  
+
   static bool first_pass = true;
   static RefProblemSet prob_set;
-  if(first_pass) {
-    
+  if( first_pass ) {
+
     {
-      std::ifstream file_in("integ_records/hires.pbuf");
-      if(file_in.is_open()) {
-        serialization::protobuf_iarchive ar_in(file_in);
+      std::ifstream file_in( "integ_records/hires.pbuf" );
+      if( file_in.is_open() ) {
+        serialization::protobuf_iarchive ar_in( file_in );
         RefProblemPair tmp;
         ar_in >> tmp;
-        prob_set.push_back(tmp);
+        prob_set.push_back( tmp );
       } else {
-        prob_set.push_back( RefProblemPair(ProblemPtr(new HIRES_iv_problem<double>()), SolutionTrace()) );
-        computeReferenceSolution(prob_set.back().first, prob_set.back().second);
-        
-        std::ofstream file_out("integ_records/hires.pbuf");
-        serialization::protobuf_oarchive ar_out(file_out);
+        prob_set.push_back( RefProblemPair( ProblemPtr( new HIRES_iv_problem< double >() ), SolutionTrace() ) );
+        computeReferenceSolution( prob_set.back().first, prob_set.back().second );
+
+        std::ofstream file_out( "integ_records/hires.pbuf" );
+        serialization::protobuf_oarchive ar_out( file_out );
         ar_out << prob_set.back();
       };
     };
-    
+
 #if 0
     {
       std::ifstream file_in("integ_records/pollution.pbuf");
@@ -131,75 +123,75 @@ const RefProblemSet& getRefProblemSet() {
       };
     };
 #endif
-    
+
     {
-      std::ifstream file_in("integ_records/ringmod.pbuf");
-      if(file_in.is_open()) {
-        serialization::protobuf_iarchive ar_in(file_in);
+      std::ifstream file_in( "integ_records/ringmod.pbuf" );
+      if( file_in.is_open() ) {
+        serialization::protobuf_iarchive ar_in( file_in );
         RefProblemPair tmp;
         ar_in >> tmp;
-        prob_set.push_back(tmp);
+        prob_set.push_back( tmp );
       } else {
-        prob_set.push_back( RefProblemPair(ProblemPtr(new RingModulator_iv_problem<double>()), SolutionTrace()) );
-        computeReferenceSolution(prob_set.back().first, prob_set.back().second);
-        
-        std::ofstream file_out("integ_records/ringmod.pbuf");
-        serialization::protobuf_oarchive ar_out(file_out);
+        prob_set.push_back( RefProblemPair( ProblemPtr( new RingModulator_iv_problem< double >() ), SolutionTrace() ) );
+        computeReferenceSolution( prob_set.back().first, prob_set.back().second );
+
+        std::ofstream file_out( "integ_records/ringmod.pbuf" );
+        serialization::protobuf_oarchive ar_out( file_out );
         ar_out << prob_set.back();
       };
     };
-    
+
     {
-      std::ifstream file_in("integ_records/vanderpol.pbuf");
-      if(file_in.is_open()) {
-        serialization::protobuf_iarchive ar_in(file_in);
+      std::ifstream file_in( "integ_records/vanderpol.pbuf" );
+      if( file_in.is_open() ) {
+        serialization::protobuf_iarchive ar_in( file_in );
         RefProblemPair tmp;
         ar_in >> tmp;
-        prob_set.push_back(tmp);
+        prob_set.push_back( tmp );
       } else {
-        prob_set.push_back( RefProblemPair(ProblemPtr(new VanDerPol_iv_problem<double>()), SolutionTrace()) );
-        computeReferenceSolution(prob_set.back().first, prob_set.back().second);
-        
-        std::ofstream file_out("integ_records/vanderpol.pbuf");
-        serialization::protobuf_oarchive ar_out(file_out);
+        prob_set.push_back( RefProblemPair( ProblemPtr( new VanDerPol_iv_problem< double >() ), SolutionTrace() ) );
+        computeReferenceSolution( prob_set.back().first, prob_set.back().second );
+
+        std::ofstream file_out( "integ_records/vanderpol.pbuf" );
+        serialization::protobuf_oarchive ar_out( file_out );
         ar_out << prob_set.back();
       };
     };
-    
+
     {
-      std::ifstream file_in("integ_records/vanderpolmod.pbuf");
-      if(file_in.is_open()) {
-        serialization::protobuf_iarchive ar_in(file_in);
+      std::ifstream file_in( "integ_records/vanderpolmod.pbuf" );
+      if( file_in.is_open() ) {
+        serialization::protobuf_iarchive ar_in( file_in );
         RefProblemPair tmp;
         ar_in >> tmp;
-        prob_set.push_back(tmp);
+        prob_set.push_back( tmp );
       } else {
-        prob_set.push_back( RefProblemPair(ProblemPtr(new VanDerPolMod_iv_problem<double>()), SolutionTrace()) );
-        computeReferenceSolution(prob_set.back().first, prob_set.back().second);
-        
-        std::ofstream file_out("integ_records/vanderpolmod.pbuf");
-        serialization::protobuf_oarchive ar_out(file_out);
+        prob_set.push_back( RefProblemPair( ProblemPtr( new VanDerPolMod_iv_problem< double >() ), SolutionTrace() ) );
+        computeReferenceSolution( prob_set.back().first, prob_set.back().second );
+
+        std::ofstream file_out( "integ_records/vanderpolmod.pbuf" );
+        serialization::protobuf_oarchive ar_out( file_out );
         ar_out << prob_set.back();
       };
     };
-    
+
     {
-      std::ifstream file_in("integ_records/orego.pbuf");
-      if(file_in.is_open()) {
-        serialization::protobuf_iarchive ar_in(file_in);
+      std::ifstream file_in( "integ_records/orego.pbuf" );
+      if( file_in.is_open() ) {
+        serialization::protobuf_iarchive ar_in( file_in );
         RefProblemPair tmp;
         ar_in >> tmp;
-        prob_set.push_back(tmp);
+        prob_set.push_back( tmp );
       } else {
-        prob_set.push_back( RefProblemPair(ProblemPtr(new Orego_iv_problem<double>()), SolutionTrace()) );
-        computeReferenceSolution(prob_set.back().first, prob_set.back().second);
-        
-        std::ofstream file_out("integ_records/orego.pbuf");
-        serialization::protobuf_oarchive ar_out(file_out);
+        prob_set.push_back( RefProblemPair( ProblemPtr( new Orego_iv_problem< double >() ), SolutionTrace() ) );
+        computeReferenceSolution( prob_set.back().first, prob_set.back().second );
+
+        std::ofstream file_out( "integ_records/orego.pbuf" );
+        serialization::protobuf_oarchive ar_out( file_out );
         ar_out << prob_set.back();
       };
     };
-    
+
 #if 0
     {
       std::ifstream file_in("integ_records/rober.pbuf");
@@ -218,7 +210,7 @@ const RefProblemSet& getRefProblemSet() {
       };
     };
 #endif
-    
+
 #if 0
     {
       std::ifstream file_in("integ_records/e5.pbuf");
@@ -237,55 +229,32 @@ const RefProblemSet& getRefProblemSet() {
       };
     };
 #endif
-    
+
     first_pass = false;
   };
-  
+
   return prob_set;
 };
 
 
-
-
-
-BOOST_AUTO_TEST_CASE( fixed_step_integrators_tests )
-{
+BOOST_AUTO_TEST_CASE( fixed_step_integrators_tests ) {
 
   using namespace ReaK;
-  
+
   const RefProblemSet& ref_set = getRefProblemSet();
-  
-  for(std::size_t i = 0; i < ref_set.size(); ++i) {
+
+  for( std::size_t i = 0; i < ref_set.size(); ++i ) {
     std::cout << "Reference solution is:" << std::endl;
-    for(std::size_t j = 0; j < ref_set[i].second.size(); ++j) {
-      std::cout << "\r" << std::setw(10) << ref_set[i].second[j].first;
-      for(std::size_t k = 0; k < ref_set[i].second[j].second.size(); ++k)
-        std::cout << std::setw(10) << ref_set[i].second[j].second[k];
+    for( std::size_t j = 0; j < ref_set[i].second.size(); ++j ) {
+      std::cout << "\r" << std::setw( 10 ) << ref_set[i].second[j].first;
+      for( std::size_t k = 0; k < ref_set[i].second[j].second.size(); ++k )
+        std::cout << std::setw( 10 ) << ref_set[i].second[j].second[k];
       std::cout << std::flush;
     };
     std::cout << std::endl << "Done!" << std::endl;
   };
-  
 };
 
-BOOST_AUTO_TEST_CASE( variable_step_integrators_tests )
-{
+BOOST_AUTO_TEST_CASE( variable_step_integrators_tests ) { using namespace ReaK; };
 
-  using namespace ReaK;
-  
-  
-};
-
-BOOST_AUTO_TEST_CASE( pred_corr_integrators_tests )
-{
-
-  using namespace ReaK;
-  
-  
-};
-
-
-
-
-
-
+BOOST_AUTO_TEST_CASE( pred_corr_integrators_tests ) { using namespace ReaK; };

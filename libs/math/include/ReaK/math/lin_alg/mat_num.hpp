@@ -32,7 +32,7 @@
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with ReaK (as LICENSE in the root folder).  
+ *    along with ReaK (as LICENSE in the root folder).
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
@@ -87,5 +87,3 @@ bool IntersectLinearSpaces(T *A1, unsigned int c1, T *p1, T *A2, unsigned int c2
 
 
 #endif
-
-

@@ -25,7 +25,7 @@
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with ReaK (as LICENSE in the root folder).  
+ *    along with ReaK (as LICENSE in the root folder).
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
@@ -37,103 +37,88 @@
 #include <exception>
 
 namespace ReaK {
-  
-  
-/** This namespace contains optimization methods (linear, quadratic and non-linear, mostly dense-matrix implementations). */
+
+
+/** This namespace contains optimization methods (linear, quadratic and non-linear, mostly dense-matrix
+ * implementations). */
 namespace optim {
 
 
-
 /**
- * This exception signifies that the constraints imposed on the search domain render 
+ * This exception signifies that the constraints imposed on the search domain render
  * the optimization infeasible (i.e. the search domain is empty).
  */
 class infeasible_problem : public std::exception {
-  public:
-    std::string message; ///< Message string.
+public:
+  std::string message; ///< Message string.
 
-    /**
-     * Default constructor.
-     * \param aMessage The error message.
-     */
-    infeasible_problem(const std::string& aMessage) : message(aMessage) { };
-    /**
-     * Destructor.
-     */
-    ~infeasible_problem() throw() {};
+  /**
+   * Default constructor.
+   * \param aMessage The error message.
+   */
+  infeasible_problem( const std::string& aMessage ) : message( aMessage ){};
+  /**
+   * Destructor.
+   */
+  ~infeasible_problem() throw(){};
 
-    /**
-     * Gets the error message.
-     * \return c_string of the error message.
-     */
-    const char* what() const throw() {
-      return message.c_str();
-    };
+  /**
+   * Gets the error message.
+   * \return c_string of the error message.
+   */
+  const char* what() const throw() { return message.c_str(); };
 };
 
 /**
- * This exception signifies that the constraints imposed on the search domain are 
+ * This exception signifies that the constraints imposed on the search domain are
  * not sufficient to make it a bounded domain (may be thrown by methods that expect a closed domain).
  */
 class unbounded_problem : public std::exception {
-  public:
-    std::string message; ///< Message string.
+public:
+  std::string message; ///< Message string.
 
-    /**
-     * Default constructor.
-     * \param aMessage The error message.
-     */
-    unbounded_problem(const std::string& aMessage) : message(aMessage) { };
-    /**
-     * Destructor.
-     */
-    ~unbounded_problem() throw() {};
+  /**
+   * Default constructor.
+   * \param aMessage The error message.
+   */
+  unbounded_problem( const std::string& aMessage ) : message( aMessage ){};
+  /**
+   * Destructor.
+   */
+  ~unbounded_problem() throw(){};
 
-    /**
-     * Gets the error message.
-     * \return c_string of the error message.
-     */
-    const char* what() const throw() {
-      return message.c_str();
-    };
+  /**
+   * Gets the error message.
+   * \return c_string of the error message.
+   */
+  const char* what() const throw() { return message.c_str(); };
 };
 
 /**
- * This exception signifies that the optimization problem is not proper (i.e. some 
+ * This exception signifies that the optimization problem is not proper (i.e. some
  * predicate of the problem definition is violated).
  */
 class improper_problem : public std::exception {
-  public:
-    std::string message; ///< Message string.
+public:
+  std::string message; ///< Message string.
 
-    /**
-     * Default constructor.
-     * \param aMessage The error message.
-     */
-    improper_problem(const std::string& aMessage) : message(aMessage) { };
-    /**
-     * Destructor.
-     */
-    ~improper_problem() throw() {};
+  /**
+   * Default constructor.
+   * \param aMessage The error message.
+   */
+  improper_problem( const std::string& aMessage ) : message( aMessage ){};
+  /**
+   * Destructor.
+   */
+  ~improper_problem() throw(){};
 
-    /**
-     * Gets the error message.
-     * \return c_string of the error message.
-     */
-    const char* what() const throw() {
-      return message.c_str();
-    };
+  /**
+   * Gets the error message.
+   * \return c_string of the error message.
+   */
+  const char* what() const throw() { return message.c_str(); };
 };
-
-
 };
-
 };
 
 #endif
-
-
-
-
-
-

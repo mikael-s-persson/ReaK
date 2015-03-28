@@ -1,8 +1,8 @@
 /**
  * \file newton_raphson_method.hpp
- * 
+ *
  * This library provides a root-finder function that uses the Newton-Raphson method.
- * 
+ *
  * \author Sven Mikael Persson <mikael.s.persson@gmail.com>
  * \date November 2011
  */
@@ -25,7 +25,7 @@
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with ReaK (as LICENSE in the root folder).  
+ *    along with ReaK (as LICENSE in the root folder).
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
@@ -46,7 +46,7 @@ namespace ReaK {
 
 
 /**
- * This function template performs a Newton-Raphson search for the root of a function. This assumes 
+ * This function template performs a Newton-Raphson search for the root of a function. This assumes
  * that the function is monotonic and has a unique root between the two given bounds.
  * \tparam T A scalar value type of the independent and dependent value of the function.
  * \tparam RootedFunction A unary functor type.
@@ -59,39 +59,32 @@ namespace ReaK {
  * \throw maximum_iteration If the maximum number of iterations is reached before convergence.
  * \throw singularity_error If a stationary point is reached.
  */
-template <typename T, typename RootedFunction, typename DerivativeFunction>
-void newton_raphson_method(T& x, RootedFunction f, DerivativeFunction df, const T& tol = std::numeric_limits<T>::epsilon(), std::size_t max_iter = 50) 
-{
+template < typename T, typename RootedFunction, typename DerivativeFunction >
+void newton_raphson_method( T& x, RootedFunction f, DerivativeFunction df,
+                            const T& tol = std::numeric_limits< T >::epsilon(), std::size_t max_iter = 50 ) {
   using std::fabs;
-  
-  T y_value = f(x);
-  T yp_value = df(x);
+
+  T y_value = f( x );
+  T yp_value = df( x );
   std::size_t i = 0;
-  
-  while(fabs(yp_value) > tol) {
-    
+
+  while( fabs( yp_value ) > tol ) {
+
     x = x - y_value / yp_value;
-    
-    y_value = f(x);
-    
-    if( fabs(y_value) < tol ) 
+
+    y_value = f( x );
+
+    if( fabs( y_value ) < tol )
       return;
-    
-    yp_value = df(x);
-    
+
+    yp_value = df( x );
+
     if( ++i > max_iter )
-      throw maximum_iteration(max_iter);
-    
+      throw maximum_iteration( max_iter );
   };
-  
-  throw singularity_error("Newton-Raphson method failed due to a stationary point!");
+
+  throw singularity_error( "Newton-Raphson method failed due to a stationary point!" );
 };
-
-
-
 };
 
 #endif
-
-
-

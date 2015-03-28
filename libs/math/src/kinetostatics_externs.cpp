@@ -17,7 +17,7 @@
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with ReaK (as LICENSE in the root folder).  
+ *    along with ReaK (as LICENSE in the root folder).
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
@@ -169,91 +169,68 @@ template bool operator !=(const axis_angle<float>& A, const euler_angles_TB<floa
 #endif
 
 
+template class quat< double >;
+template class unit_quat< double >;
+
+template class quat< float >;
+template class unit_quat< float >;
 
 
-template class quat<double>;
-template class unit_quat<double>;
+template class gen_coord< double >;
+template std::ostream& operator<<( std::ostream& out, const gen_coord< double >& g );
 
-template class quat<float>;
-template class unit_quat<float>;
-
-
-
-template class gen_coord<double>;
-template std::ostream& operator <<(std::ostream& out, const gen_coord<double>& g);
-
-template class gen_coord<float>;
-template std::ostream& operator <<(std::ostream& out, const gen_coord<float>& g);
+template class gen_coord< float >;
+template std::ostream& operator<<( std::ostream& out, const gen_coord< float >& g );
 
 
-template class pose_2D<double>;
-template std::ostream& operator <<(std::ostream& out, const pose_2D<double>& g);
+template class pose_2D< double >;
+template std::ostream& operator<<( std::ostream& out, const pose_2D< double >& g );
 
-template class pose_2D<float>;
-template std::ostream& operator <<(std::ostream& out, const pose_2D<float>& g);
-
-
-template class pose_3D<double>;
-template std::ostream& operator <<(std::ostream& out, const pose_3D<double>& g);
-
-template class pose_3D<float>;
-template std::ostream& operator <<(std::ostream& out, const pose_3D<float>& g);
+template class pose_2D< float >;
+template std::ostream& operator<<( std::ostream& out, const pose_2D< float >& g );
 
 
-template class frame_2D<double>;
-template std::ostream& operator <<(std::ostream& out, const frame_2D<double>& g);
+template class pose_3D< double >;
+template std::ostream& operator<<( std::ostream& out, const pose_3D< double >& g );
 
-template class frame_2D<float>;
-template std::ostream& operator <<(std::ostream& out, const frame_2D<float>& g);
-
-
-template class frame_3D<double>;
-template std::ostream& operator <<(std::ostream& out, const frame_3D<double>& g);
-
-template class frame_3D<float>;
-template std::ostream& operator <<(std::ostream& out, const frame_3D<float>& g);
+template class pose_3D< float >;
+template std::ostream& operator<<( std::ostream& out, const pose_3D< float >& g );
 
 
+template class frame_2D< double >;
+template std::ostream& operator<<( std::ostream& out, const frame_2D< double >& g );
+
+template class frame_2D< float >;
+template std::ostream& operator<<( std::ostream& out, const frame_2D< float >& g );
 
 
+template class frame_3D< double >;
+template std::ostream& operator<<( std::ostream& out, const frame_3D< double >& g );
 
-template class jacobian_gen_gen<double>;
-template class jacobian_gen_2D<double>;
-template class jacobian_gen_3D<double>;
-template class jacobian_2D_gen<double>;
-template class jacobian_2D_2D<double>;
-template class jacobian_2D_3D<double>;
-template class jacobian_3D_gen<double>;
-template class jacobian_3D_2D<double>;
-template class jacobian_3D_3D<double>;
-
-template class jacobian_gen_gen<float>;
-template class jacobian_gen_2D<float>;
-template class jacobian_gen_3D<float>;
-template class jacobian_2D_gen<float>;
-template class jacobian_2D_2D<float>;
-template class jacobian_2D_3D<float>;
-template class jacobian_3D_gen<float>;
-template class jacobian_3D_2D<float>;
-template class jacobian_3D_3D<float>;
+template class frame_3D< float >;
+template std::ostream& operator<<( std::ostream& out, const frame_3D< float >& g );
 
 
+template class jacobian_gen_gen< double >;
+template class jacobian_gen_2D< double >;
+template class jacobian_gen_3D< double >;
+template class jacobian_2D_gen< double >;
+template class jacobian_2D_2D< double >;
+template class jacobian_2D_3D< double >;
+template class jacobian_3D_gen< double >;
+template class jacobian_3D_2D< double >;
+template class jacobian_3D_3D< double >;
 
+template class jacobian_gen_gen< float >;
+template class jacobian_gen_2D< float >;
+template class jacobian_gen_3D< float >;
+template class jacobian_2D_gen< float >;
+template class jacobian_2D_2D< float >;
+template class jacobian_2D_3D< float >;
+template class jacobian_3D_gen< float >;
+template class jacobian_3D_2D< float >;
+template class jacobian_3D_3D< float >;
 };
 
 
 #endif
-
-
-
-
-
-
-
-
-
-
-
-
-
-

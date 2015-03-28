@@ -1,8 +1,8 @@
 /**
  * \file mat_alg_orthogonal.hpp
- * 
+ *
  * This library is not done yet. Not sure if there is any point in making it.
- * 
+ *
  */
 
 /*
@@ -23,7 +23,7 @@
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with ReaK (as LICENSE in the root folder).  
+ *    along with ReaK (as LICENSE in the root folder).
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
@@ -37,40 +37,20 @@ namespace ReaK {
 
 
 template <>
-struct mat_indexer<mat_structure::orthogonal, mat_alignment::column_major> {
+struct mat_indexer< mat_structure::orthogonal, mat_alignment::column_major > {
   std::size_t rowCount;
-  mat_indexer<mat_structure::orthogonal, mat_alignment::column_major>(std::size_t aRowCount) : rowCount(aRowCount) { };
-  std::size_t operator()(std::size_t i, std::size_t j) const { return j * rowCount + i; };
+  mat_indexer< mat_structure::orthogonal, mat_alignment::column_major >( std::size_t aRowCount )
+      : rowCount( aRowCount ){};
+  std::size_t operator()( std::size_t i, std::size_t j ) const { return j * rowCount + i; };
 };
 
 template <>
-struct mat_indexer<mat_structure::orthogonal, mat_alignment::row_major> {
+struct mat_indexer< mat_structure::orthogonal, mat_alignment::row_major > {
   std::size_t rowCount;
-  mat_indexer<mat_structure::orthogonal, mat_alignment::row_major>(std::size_t aRowCount) : rowCount(aRowCount) { };
-  std::size_t operator()(std::size_t i, std::size_t j) const { return i * rowCount + j; };
+  mat_indexer< mat_structure::orthogonal, mat_alignment::row_major >( std::size_t aRowCount ) : rowCount( aRowCount ){};
+  std::size_t operator()( std::size_t i, std::size_t j ) const { return i * rowCount + j; };
 };
-
-
-
-
-
-
-
-
-
-
-
-
 };
 
 
 #endif
-
-
-
-
-
-
-
-
-

@@ -17,7 +17,7 @@
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with ReaK (as LICENSE in the root folder).  
+ *    along with ReaK (as LICENSE in the root folder).
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
@@ -31,102 +31,81 @@
 namespace ReaK {
 
 
-
 /**
  * Exception thrown whenever the parameters of the integration were invalid.
  */
 class impossible_integration : public std::exception {
-  public:
-    double mTime;
-    double mEndTime;
-    double mTimeStep;
-    std::string message;
+public:
+  double mTime;
+  double mEndTime;
+  double mTimeStep;
+  std::string message;
 
-    /**
-     * Constructor.
-     * \param aTime integration time at which the exception occurred.
-     * \param aEndTime integration time at which the integration was supposed to end.
-     * \param aTimeStep integration time step at the time of the exception.
-     */
-    impossible_integration(double aTime,
-                           double aEndTime,
-                           double aTimeStep) :
-                           mTime(aTime),
-                           mEndTime(aEndTime),
-                           mTimeStep(aTimeStep),
-                           message() {
-      std::stringstream sstr;
-      sstr << "Integration is impossible! Error occurred at time " << mTime
-           << " towards end time of " << mEndTime
-           << " with time step " << mTimeStep << ".";
-      message = sstr.str();
-    };
-    /**
-     * Destructor.
-     */
-    ~impossible_integration() throw() { };
+  /**
+   * Constructor.
+   * \param aTime integration time at which the exception occurred.
+   * \param aEndTime integration time at which the integration was supposed to end.
+   * \param aTimeStep integration time step at the time of the exception.
+   */
+  impossible_integration( double aTime, double aEndTime, double aTimeStep )
+      : mTime( aTime ), mEndTime( aEndTime ), mTimeStep( aTimeStep ), message() {
+    std::stringstream sstr;
+    sstr << "Integration is impossible! Error occurred at time " << mTime << " towards end time of " << mEndTime
+         << " with time step " << mTimeStep << ".";
+    message = sstr.str();
+  };
+  /**
+   * Destructor.
+   */
+  ~impossible_integration() throw(){};
 
-    /**
-     * Gets the error message.
-     * \return c_string of the error message.
-     */
-    const char* what() const throw() {
-      return message.c_str();
-    };
-
+  /**
+   * Gets the error message.
+   * \return c_string of the error message.
+   */
+  const char* what() const throw() { return message.c_str(); };
 };
 
 /**
- * Exception thrown whenever the integration reached the tolerance without being able to improve the results (reaching a minimum time step).
+ * Exception thrown whenever the integration reached the tolerance without being able to improve the results (reaching a
+ * minimum time step).
  */
 class untolerable_integration : public std::exception {
-  public:
-    double mTolerance;
-    double mErrorEstimate;
-    int mDOF;
-    double mTimeStep;
-    double mTime;
-    std::string message;
+public:
+  double mTolerance;
+  double mErrorEstimate;
+  int mDOF;
+  double mTimeStep;
+  double mTime;
+  std::string message;
 
-    /**
-     * Constructor.
-     * \param aTolerance tolerance that was not reachable by the integrator.
-     * \param eErrorEstimate estimated error at the time of the exception.
-     * \param aDOF degree-of-freedom at which the maximum and untolerable estimated error occurred.
-     * \param aTimeStep integration time step at the time of the exception.
-     * \param aTime integration time at which the exception occurred.
-     */
-    untolerable_integration(double aTolerance,
-                            double aErrorEstimate,
-                            int aDOF,
-                            double aTimeStep,
-                            double aTime) :
-                            mTolerance(aTolerance),
-                            mErrorEstimate(aErrorEstimate),
-                            mDOF(aDOF),
-                            mTimeStep(aTimeStep),
-                            mTime(aTime),
-                            message() {
-      std::stringstream sstr;
-      sstr << "Integration was deemed untolerable! Error occurred at time " << mTime
-           << " with current time step of " << mTimeStep
-           << " in violation of a tolerance of " << mTolerance
-           << " by an estimated error of " << mErrorEstimate
-           << " at state element " << mDOF << ".";
-      message = sstr.str();
-    };
-    /**
-     * Destructor.
-     */
-    ~untolerable_integration() throw() { };
+  /**
+   * Constructor.
+   * \param aTolerance tolerance that was not reachable by the integrator.
+   * \param eErrorEstimate estimated error at the time of the exception.
+   * \param aDOF degree-of-freedom at which the maximum and untolerable estimated error occurred.
+   * \param aTimeStep integration time step at the time of the exception.
+   * \param aTime integration time at which the exception occurred.
+   */
+  untolerable_integration( double aTolerance, double aErrorEstimate, int aDOF, double aTimeStep, double aTime )
+      : mTolerance( aTolerance ), mErrorEstimate( aErrorEstimate ), mDOF( aDOF ), mTimeStep( aTimeStep ),
+        mTime( aTime ), message() {
+    std::stringstream sstr;
+    sstr << "Integration was deemed untolerable! Error occurred at time " << mTime << " with current time step of "
+         << mTimeStep << " in violation of a tolerance of " << mTolerance << " by an estimated error of "
+         << mErrorEstimate << " at state element " << mDOF << ".";
+    message = sstr.str();
+  };
+  /**
+   * Destructor.
+   */
+  ~untolerable_integration() throw(){};
 
-    /**
-     * Gets the error message.
-     * \return c_string of the error message.
-     */
-    const char* what() const throw() {
-      return message.c_str();
-    };
+  /**
+   * Gets the error message.
+   * \return c_string of the error message.
+   */
+  const char* what() const throw() { return message.c_str(); };
 };
 
 
@@ -134,48 +113,33 @@ class untolerable_integration : public std::exception {
  * Exception thrown whenever the integration reached an invalid state such as not-a-number (NaN).
  */
 class invalid_state_derivative : public std::exception {
-  public:
-    int mDOF;
-    double mTime;
-    std::string message;
+public:
+  int mDOF;
+  double mTime;
+  std::string message;
 
-    /**
-     * Constructor.
-     * \param aDOF degree-of-freedom that went invalid.
-     * \param aTime integration time at which the exception occurred.
-     */
-    invalid_state_derivative(int aDOF,
-                            double aTime) :
-                            mDOF(aDOF),
-                            mTime(aTime),
-                            message() {
-      std::stringstream sstr;
-      sstr << "Integration has reached an invalid state derivative! Error occurred at time " << mTime
-           << " with state element " << mDOF << ".";
-      message = sstr.str();
-    };
-    /**
-     * Destructor.
-     */
-    ~invalid_state_derivative() throw() { };
+  /**
+   * Constructor.
+   * \param aDOF degree-of-freedom that went invalid.
+   * \param aTime integration time at which the exception occurred.
+   */
+  invalid_state_derivative( int aDOF, double aTime ) : mDOF( aDOF ), mTime( aTime ), message() {
+    std::stringstream sstr;
+    sstr << "Integration has reached an invalid state derivative! Error occurred at time " << mTime
+         << " with state element " << mDOF << ".";
+    message = sstr.str();
+  };
+  /**
+   * Destructor.
+   */
+  ~invalid_state_derivative() throw(){};
 
-    /**
-     * Gets the error message.
-     * \return c_string of the error message.
-     */
-    const char* what() const throw() {
-      return message.c_str();
-    };
+  /**
+   * Gets the error message.
+   * \return c_string of the error message.
+   */
+  const char* what() const throw() { return message.c_str(); };
 };
-
-
-
 };
 
 #endif
-
-
-
-
-
-

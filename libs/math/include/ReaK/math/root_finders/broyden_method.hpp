@@ -1,10 +1,10 @@
 /**
  * \file broyden_method.hpp
- * 
- * This library provides a root-finder function that uses the Broyden's method (good or fast) 
+ *
+ * This library provides a root-finder function that uses the Broyden's method (good or fast)
  * for solving a system of simultaneous non-linear equations (i.e. finding the root of a N-dimensional
  * function).
- * 
+ *
  * \author Sven Mikael Persson <mikael.s.persson@gmail.com>
  * \date November 2011
  */
@@ -27,7 +27,7 @@
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with ReaK (as LICENSE in the root folder).  
+ *    along with ReaK (as LICENSE in the root folder).
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
@@ -50,7 +50,7 @@ namespace ReaK {
 
 
 /**
- * This function template performs Broyden's good method for the root of a function. This assumes 
+ * This function template performs Broyden's good method for the root of a function. This assumes
  * that the function is monotonic and has a unique root near the given bounds.
  * \tparam Vector A vector type of the independent and dependent value of the function.
  * \tparam RootedFunction A unary functor type.
@@ -62,61 +62,59 @@ namespace ReaK {
  * \throw maximum_iteration If the maximum number of iterations is reached before convergence.
  * \throw singularity_error If a stationary point is reached.
  */
-template <typename Vector, typename RootedFunction>
-void broyden_good_method(const Vector& x_prev, Vector& x0, RootedFunction f, const T& tol = std::numeric_limits<T>::epsilon(), std::size_t max_iter = 50) 
-{
+template < typename Vector, typename RootedFunction >
+void broyden_good_method( const Vector& x_prev, Vector& x0, RootedFunction f,
+                          const T& tol = std::numeric_limits< T >::epsilon(), std::size_t max_iter = 50 ) {
   using std::fabs;
-  typedef typename vect_traits<Vector>::value_type ValueType;
-  typedef typename vect_traits<Vector>::size_type SizeType;
-  
+  typedef typename vect_traits< Vector >::value_type ValueType;
+  typedef typename vect_traits< Vector >::size_type SizeType;
+
   Vector dx = x0 - x_prev;
-  Vector y0 = f(x0);
-  Vector dy = y0 - f(x_prev);
+  Vector y0 = f( x0 );
+  Vector dy = y0 - f( x_prev );
   std::size_t iter = 0;
-  
-  mat<ValueType, mat_structure::square> J_inv = mat<ValueType, mat_structure::identity>(dx.size());
+
+  mat< ValueType, mat_structure::square > J_inv = mat< ValueType, mat_structure::identity >( dx.size() );
   Vector Jdy = dy;
   ValueType denom = dx * dy;
-  if( fabs(denom) < tol )
-    throw singularity_error("Broyden's good method failed due to a stationary point!");
+  if( fabs( denom ) < tol )
+    throw singularity_error( "Broyden's good method failed due to a stationary point!" );
   Vector dxJ = dx;
-  for(SizeType i = 0; i < dx.size(); ++i)
-    for(SizeType j = 0; j < dx.size(); ++j)
-      J_inv(i,j) += (dx[i] - dy[i]) * dx[j] / denom;
-  
-  while(true) {
-    
+  for( SizeType i = 0; i < dx.size(); ++i )
+    for( SizeType j = 0; j < dx.size(); ++j )
+      J_inv( i, j ) += ( dx[i] - dy[i] ) * dx[j] / denom;
+
+  while( true ) {
+
     dx = -J_inv * y0;
     x0 += dx;
-    
-    if(norm_2(dx) < tol)
+
+    if( norm_2( dx ) < tol )
       return;
-  
-    if( ++iter > max_iter ) 
-      throw maximum_iteration("Broyden's good method diverged, as detected by reaching the maximum iteration limit!");
-  
-    dy = f(x0) - y0;
+
+    if( ++iter > max_iter )
+      throw maximum_iteration( "Broyden's good method diverged, as detected by reaching the maximum iteration limit!" );
+
+    dy = f( x0 ) - y0;
     y0 += dy;
-    
+
     Jdy = J_inv * dy;
     denom = dx * Jdy;
-    if( fabs(denom) < tol )
-      throw singularity_error("Broyden's good method failed due to a stationary point!");
+    if( fabs( denom ) < tol )
+      throw singularity_error( "Broyden's good method failed due to a stationary point!" );
     dxJ = dx * J_inv;
-    
-    for(SizeType i = 0; i < dx.size(); ++i)
-      for(SizeType j = 0; j < dx.size(); ++j)
-        J_inv(i,j) += (dx[i] - Jdy[i]) * dxJ[j] / denom;
-    
+
+    for( SizeType i = 0; i < dx.size(); ++i )
+      for( SizeType j = 0; j < dx.size(); ++j )
+        J_inv( i, j ) += ( dx[i] - Jdy[i] ) * dxJ[j] / denom;
   };
-  
+
   return x0;
 };
-
 
 
 /**
- * This function template performs Broyden's fast method for the root of a function. This assumes 
+ * This function template performs Broyden's fast method for the root of a function. This assumes
  * that the function is monotonic and has a unique root near the given bounds.
  * \tparam Vector A vector type of the independent and dependent value of the function.
  * \tparam RootedFunction A unary functor type.
@@ -128,59 +126,52 @@ void broyden_good_method(const Vector& x_prev, Vector& x0, RootedFunction f, con
  * \throw maximum_iteration If the maximum number of iterations is reached before convergence.
  * \throw singularity_error If a stationary point is reached.
  */
-template <typename Vector, typename RootedFunction>
-void broyden_fast_method(const Vector& x_prev, Vector& x0, RootedFunction f, const T& tol = std::numeric_limits<T>::epsilon(), std::size_t max_iter = 50) 
-{
+template < typename Vector, typename RootedFunction >
+void broyden_fast_method( const Vector& x_prev, Vector& x0, RootedFunction f,
+                          const T& tol = std::numeric_limits< T >::epsilon(), std::size_t max_iter = 50 ) {
   using std::fabs;
-  typedef typename vect_traits<Vector>::value_type ValueType;
-  typedef typename vect_traits<Vector>::size_type SizeType;
-  
+  typedef typename vect_traits< Vector >::value_type ValueType;
+  typedef typename vect_traits< Vector >::size_type SizeType;
+
   Vector dx = x0 - x_prev;
-  Vector y0 = f(x0);
-  Vector dy = y0 - f(x_prev);
+  Vector y0 = f( x0 );
+  Vector dy = y0 - f( x_prev );
   std::size_t iter = 0;
-  
-  mat<ValueType, mat_structure::square> J_inv = mat<ValueType, mat_structure::identity>(dx.size());
+
+  mat< ValueType, mat_structure::square > J_inv = mat< ValueType, mat_structure::identity >( dx.size() );
   Vector Jdy = dy;
   ValueType denom = dy * dy;
-  if( fabs(denom) < tol )
-    throw singularity_error("Broyden's fast method failed due to a stationary point!");
-  for(SizeType i = 0; i < dx.size(); ++i)
-    for(SizeType j = 0; j < dx.size(); ++j)
-      J_inv(i,j) += (dx[i] - dy[i]) * dy[j] / denom;
-  
-  while(true) {
-    
+  if( fabs( denom ) < tol )
+    throw singularity_error( "Broyden's fast method failed due to a stationary point!" );
+  for( SizeType i = 0; i < dx.size(); ++i )
+    for( SizeType j = 0; j < dx.size(); ++j )
+      J_inv( i, j ) += ( dx[i] - dy[i] ) * dy[j] / denom;
+
+  while( true ) {
+
     dx = -J_inv * y0;
     x0 += dx;
-    
-    if(norm_2(dx) < tol)
+
+    if( norm_2( dx ) < tol )
       return;
-  
-    if( ++iter > max_iter ) 
-      throw maximum_iteration("Broyden's fast method diverged, as detected by reaching the maximum iteration limit!");
-  
-    dy = f(x0) - y0;
+
+    if( ++iter > max_iter )
+      throw maximum_iteration( "Broyden's fast method diverged, as detected by reaching the maximum iteration limit!" );
+
+    dy = f( x0 ) - y0;
     y0 += dy;
-    
+
     denom = dy * dy;
-    if( fabs(denom) < tol )
-      throw singularity_error("Broyden's fast method failed due to a stationary point!");
+    if( fabs( denom ) < tol )
+      throw singularity_error( "Broyden's fast method failed due to a stationary point!" );
     Jdy = J_inv * dy;
-    for(SizeType i = 0; i < dx.size(); ++i)
-      for(SizeType j = 0; j < dx.size(); ++j)
-        J_inv(i,j) += (dx[i] - Jdy[i]) * dy[j] / denom;
-    
+    for( SizeType i = 0; i < dx.size(); ++i )
+      for( SizeType j = 0; j < dx.size(); ++j )
+        J_inv( i, j ) += ( dx[i] - Jdy[i] ) * dy[j] / denom;
   };
-  
+
   return x0;
 };
-
-
-
 };
 
 #endif
-
-
-

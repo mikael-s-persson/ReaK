@@ -1,8 +1,8 @@
 /**
  * \file bisection_method.hpp
- * 
+ *
  * This library provides a root-finder function that uses a bisection method.
- * 
+ *
  * \author Sven Mikael Persson <mikael.s.persson@gmail.com>
  * \date November 2011
  */
@@ -25,7 +25,7 @@
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with ReaK (as LICENSE in the root folder).  
+ *    along with ReaK (as LICENSE in the root folder).
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
@@ -39,54 +39,47 @@ namespace ReaK {
 
 
 /*************************************************************************
-                        Bisection Method Root Finding 
+                        Bisection Method Root Finding
 *************************************************************************/
 
 
 /**
- * This function template performs a bisection method search for the root of a function. This assumes 
+ * This function template performs a bisection method search for the root of a function. This assumes
  * that the function is monotonic and has a unique root between the two given bounds. The function
  * ends up narrowing down the bounds to an interval of a span of the given tolerance value.
  * \tparam T A scalar value type of the independent and dependent value of the function.
  * \tparam RootedFunction A unary functor type.
- * \param low The first bound of the search for the root, will also store the independent value at which the root was found.
- * \param hi The second bound of the search for the root, will also store the independent value at which the root was found.
+ * \param low The first bound of the search for the root, will also store the independent value at which the root was
+ * found.
+ * \param hi The second bound of the search for the root, will also store the independent value at which the root was
+ * found.
  * \param f The functor of which the root is sought.
  * \param tol The tolerance, i.e., the size of the resulting interval containing the root.
  */
-template <typename T, typename RootedFunction>
-void bisection_method(T& low, T& hi, RootedFunction f, const T& tol = std::numeric_limits<T>::epsilon()) 
-{
+template < typename T, typename RootedFunction >
+void bisection_method( T& low, T& hi, RootedFunction f, const T& tol = std::numeric_limits< T >::epsilon() ) {
   using std::fabs;
-  
-  T low_value = f(low);
-  T hi_value = f(hi);
-  
+
+  T low_value = f( low );
+  T hi_value = f( hi );
+
   if( low_value * hi_value > 0.0 )
     return;
-  
-  while(fabs(hi - low) > tol) {
-    
-    T mid = 0.5 * (hi + low);
-    T mid_value = f(mid);
-    
-    if(mid_value * hi_value > 0.0) {
+
+  while( fabs( hi - low ) > tol ) {
+
+    T mid = 0.5 * ( hi + low );
+    T mid_value = f( mid );
+
+    if( mid_value * hi_value > 0.0 ) {
       hi = mid;
       hi_value = mid_value;
     } else {
       low = mid;
       low_value = mid_value;
     };
-    
   };
-  
 };
-
-
-
 };
 
 #endif
-
-
-
