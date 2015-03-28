@@ -1,7 +1,7 @@
 /**
  * \file .hpp
  *
- * This library declares 
+ * This library declares
  *
  * \author Mikael Persson, <mikael.s.persson@gmail.com>
  * \date April 2012
@@ -25,7 +25,7 @@
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with ReaK (as LICENSE in the root folder).  
+ *    along with ReaK (as LICENSE in the root folder).
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
@@ -45,43 +45,34 @@ namespace ReaK {
 namespace geom {
 
 
-proximity_record_3D compute_proximity(const box& aBox1, const shape_3D_precompute_pack& aPack1,
-                                      const box& aBox2, const shape_3D_precompute_pack& aPack2);
+proximity_record_3D compute_proximity( const box& aBox1, const shape_3D_precompute_pack& aPack1, const box& aBox2,
+                                       const shape_3D_precompute_pack& aPack2 );
 
 
 /**
  * This class is for proximity queries between a box and a box.
  */
 class prox_box_box : public proximity_finder_3D {
-  protected:
-    
-    const box* mBox1;
-    const box* mBox2;
-    
-  public:
-    
-    /** This function performs the proximity query on its associated shapes. */
-    virtual proximity_record_3D computeProximity(const shape_3D_precompute_pack& aPack1, 
-                                                 const shape_3D_precompute_pack& aPack2);
-    
-    /** 
-     * Default constructor. 
-     * \param aBox1 The first box involved in the proximity query.
-     * \param aBox2 The second box involved in the proximity query.
-     */
-    prox_box_box(const box* aBox1 = NULL, const box* aBox2 = NULL);
-    
-    /** Destructor. */
-    virtual ~prox_box_box() { };
-    
+protected:
+  const box* mBox1;
+  const box* mBox2;
+
+public:
+  /** This function performs the proximity query on its associated shapes. */
+  virtual proximity_record_3D computeProximity( const shape_3D_precompute_pack& aPack1,
+                                                const shape_3D_precompute_pack& aPack2 );
+
+  /**
+   * Default constructor.
+   * \param aBox1 The first box involved in the proximity query.
+   * \param aBox2 The second box involved in the proximity query.
+   */
+  prox_box_box( const box* aBox1 = NULL, const box* aBox2 = NULL );
+
+  /** Destructor. */
+  virtual ~prox_box_box(){};
 };
-
-
-
 };
-
 };
 
 #endif
-
-

@@ -17,7 +17,7 @@
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with ReaK (as LICENSE in the root folder).  
+ *    along with ReaK (as LICENSE in the root folder).
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
@@ -28,36 +28,19 @@ namespace ReaK {
 namespace geom {
 
 
+line_seg_3D::line_seg_3D( const std::string& aName, const shared_ptr< pose_3D< double > >& aAnchor,
+                          const pose_3D< double >& aPose, const vect< double, 3 >& aStart,
+                          const vect< double, 3 >& aEnd )
+    : geometry_3D( aName, aAnchor, aPose ), mStart( aStart ), mEnd( aEnd ){};
 
-line_seg_3D::line_seg_3D(const std::string& aName,
-                         const shared_ptr< pose_3D<double> >& aAnchor,
-                         const pose_3D<double>& aPose,
-                         const vect<double,3>& aStart,
-                         const vect<double,3>& aEnd) :
-                         geometry_3D(aName,aAnchor,aPose),
-                         mStart(aStart),
-                         mEnd(aEnd) { };
-    
-void RK_CALL line_seg_3D::save(ReaK::serialization::oarchive& A, unsigned int) const {
-  geometry_3D::save(A,geometry_3D::getStaticObjectType()->TypeVersion());
-  A & RK_SERIAL_SAVE_WITH_NAME(mStart)
-    & RK_SERIAL_SAVE_WITH_NAME(mEnd);
+void RK_CALL line_seg_3D::save( ReaK::serialization::oarchive& A, unsigned int ) const {
+  geometry_3D::save( A, geometry_3D::getStaticObjectType()->TypeVersion() );
+  A& RK_SERIAL_SAVE_WITH_NAME( mStart ) & RK_SERIAL_SAVE_WITH_NAME( mEnd );
 };
 
-void RK_CALL line_seg_3D::load(ReaK::serialization::iarchive& A, unsigned int) {
-  geometry_3D::load(A,geometry_3D::getStaticObjectType()->TypeVersion());
-  A & RK_SERIAL_LOAD_WITH_NAME(mStart)
-    & RK_SERIAL_LOAD_WITH_NAME(mEnd);
+void RK_CALL line_seg_3D::load( ReaK::serialization::iarchive& A, unsigned int ) {
+  geometry_3D::load( A, geometry_3D::getStaticObjectType()->TypeVersion() );
+  A& RK_SERIAL_LOAD_WITH_NAME( mStart ) & RK_SERIAL_LOAD_WITH_NAME( mEnd );
 };
-
-
-
 };
-
-
 };
-
-
-
-
-

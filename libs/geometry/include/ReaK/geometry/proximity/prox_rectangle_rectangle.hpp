@@ -25,7 +25,7 @@
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with ReaK (as LICENSE in the root folder).  
+ *    along with ReaK (as LICENSE in the root folder).
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
@@ -43,50 +43,37 @@ namespace ReaK {
 namespace geom {
 
 
-void compute_proximity_of_point(const rectangle& aRectangle, 
-                                const pose_2D<double>& aRecGblPose,
-                                const vect<double,2>& aPoint, 
-                                vect<double,2>& aPointRec, 
-                                double& aDistance);
+void compute_proximity_of_point( const rectangle& aRectangle, const pose_2D< double >& aRecGblPose,
+                                 const vect< double, 2 >& aPoint, vect< double, 2 >& aPointRec, double& aDistance );
 
-proximity_record_2D compute_proximity(const rectangle& aRectangle1, 
-                                      const shape_2D_precompute_pack& aPack1,
-                                      const rectangle& aRectangle2, 
-                                      const shape_2D_precompute_pack& aPack2);
+proximity_record_2D compute_proximity( const rectangle& aRectangle1, const shape_2D_precompute_pack& aPack1,
+                                       const rectangle& aRectangle2, const shape_2D_precompute_pack& aPack2 );
 
 
 /**
  * This class is for proximity queries between two rectangles.
  */
 class prox_rectangle_rectangle : public proximity_finder_2D {
-  protected:
-    
-    const rectangle* mRectangle1;
-    const rectangle* mRectangle2;
-    
-  public:
-    
-    /** This function performs the proximity query on its associated shapes. */
-    virtual proximity_record_2D computeProximity(const shape_2D_precompute_pack& aPack1, 
-                                                 const shape_2D_precompute_pack& aPack2);
-    
-    /** 
-     * Default constructor.
-     * \param aRectangle1 The first rectangle involved in the proximity query.
-     * \param aRectangle2 The second rectangle involved in the proximity query.
-     */
-    prox_rectangle_rectangle(const rectangle* aRectangle1 = NULL,
-                             const rectangle* aRectangle2 = NULL);
-    
-    /** Destructor. */
-    virtual ~prox_rectangle_rectangle() { };
-    
+protected:
+  const rectangle* mRectangle1;
+  const rectangle* mRectangle2;
+
+public:
+  /** This function performs the proximity query on its associated shapes. */
+  virtual proximity_record_2D computeProximity( const shape_2D_precompute_pack& aPack1,
+                                                const shape_2D_precompute_pack& aPack2 );
+
+  /**
+   * Default constructor.
+   * \param aRectangle1 The first rectangle involved in the proximity query.
+   * \param aRectangle2 The second rectangle involved in the proximity query.
+   */
+  prox_rectangle_rectangle( const rectangle* aRectangle1 = NULL, const rectangle* aRectangle2 = NULL );
+
+  /** Destructor. */
+  virtual ~prox_rectangle_rectangle(){};
 };
-
-
 };
-
 };
 
 #endif
-

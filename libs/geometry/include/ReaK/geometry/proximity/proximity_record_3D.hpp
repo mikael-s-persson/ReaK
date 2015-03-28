@@ -25,7 +25,7 @@
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with ReaK (as LICENSE in the root folder).  
+ *    along with ReaK (as LICENSE in the root folder).
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
@@ -47,40 +47,33 @@ namespace geom {
  * This class stores the data which results from a proximity query with 3D shapes.
  */
 class proximity_record_3D : public shared_object {
-  public:
-    
-    /** Holds the closest point (in global coordinates) on the first shape involved in the proximity query. */
-    vect<double,3> mPoint1;
-    /** Holds the closest point (in global coordinates) on the second shape involved in the proximity query. */
-    vect<double,3> mPoint2;
-    
-    /** Holds the distance between the shapes, a negative value denotes penetration. */
-    double mDistance;
-    
-    /** Default constructor. */
-    proximity_record_3D() : mPoint1(), mPoint2(), mDistance(std::numeric_limits<double>::infinity()) { };
-    
-    /** Destructor. */
-    virtual ~proximity_record_3D() { };
-    
-    
-/*******************************************************************************
-                   ReaK's RTTI and Serialization interfaces
-*******************************************************************************/
-    
-    virtual void RK_CALL save(ReaK::serialization::oarchive& A, unsigned int) const;
+public:
+  /** Holds the closest point (in global coordinates) on the first shape involved in the proximity query. */
+  vect< double, 3 > mPoint1;
+  /** Holds the closest point (in global coordinates) on the second shape involved in the proximity query. */
+  vect< double, 3 > mPoint2;
 
-    virtual void RK_CALL load(ReaK::serialization::iarchive& A, unsigned int);
+  /** Holds the distance between the shapes, a negative value denotes penetration. */
+  double mDistance;
 
-    RK_RTTI_MAKE_CONCRETE_1BASE(proximity_record_3D,0xC3200002,1,"proximity_record_3D",shared_object)
+  /** Default constructor. */
+  proximity_record_3D() : mPoint1(), mPoint2(), mDistance( std::numeric_limits< double >::infinity() ){};
 
+  /** Destructor. */
+  virtual ~proximity_record_3D(){};
+
+
+  /*******************************************************************************
+                     ReaK's RTTI and Serialization interfaces
+  *******************************************************************************/
+
+  virtual void RK_CALL save( ReaK::serialization::oarchive& A, unsigned int ) const;
+
+  virtual void RK_CALL load( ReaK::serialization::iarchive& A, unsigned int );
+
+  RK_RTTI_MAKE_CONCRETE_1BASE( proximity_record_3D, 0xC3200002, 1, "proximity_record_3D", shared_object )
 };
-
-
-
 };
-
 };
 
 #endif
-

@@ -17,7 +17,7 @@
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with ReaK (as LICENSE in the root folder).  
+ *    along with ReaK (as LICENSE in the root folder).
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
@@ -30,10 +30,6 @@ namespace ReaK {
 /** Main namespace for ReaK.Geometry */
 namespace geom {
 
-void some_dummy_function_prox_fundamentals_2D_CPP() { };
-
-
+void some_dummy_function_prox_fundamentals_2D_CPP(){};
 };
-
 };
-

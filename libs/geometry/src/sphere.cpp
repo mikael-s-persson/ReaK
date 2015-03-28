@@ -17,7 +17,7 @@
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with ReaK (as LICENSE in the root folder).  
+ *    along with ReaK (as LICENSE in the root folder).
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
@@ -28,36 +28,21 @@ namespace ReaK {
 namespace geom {
 
 
-double sphere::getBoundingRadius() const {
-  return mRadius;
+double sphere::getBoundingRadius() const { return mRadius; };
+
+
+sphere::sphere( const std::string& aName, const shared_ptr< pose_3D< double > >& aAnchor,
+                const pose_3D< double >& aPose, double aRadius )
+    : shape_3D( aName, aAnchor, aPose ), mRadius( aRadius ){};
+
+void RK_CALL sphere::save( ReaK::serialization::oarchive& A, unsigned int ) const {
+  shape_3D::save( A, shape_3D::getStaticObjectType()->TypeVersion() );
+  A& RK_SERIAL_SAVE_WITH_NAME( mRadius );
 };
 
-
-sphere::sphere(const std::string& aName,
-               const shared_ptr< pose_3D<double> >& aAnchor,
-               const pose_3D<double>& aPose,
-               double aRadius) :
-               shape_3D(aName,aAnchor,aPose),
-               mRadius(aRadius) { };
-    
-void RK_CALL sphere::save(ReaK::serialization::oarchive& A, unsigned int) const {
-  shape_3D::save(A,shape_3D::getStaticObjectType()->TypeVersion());
-  A & RK_SERIAL_SAVE_WITH_NAME(mRadius);
+void RK_CALL sphere::load( ReaK::serialization::iarchive& A, unsigned int ) {
+  shape_3D::load( A, shape_3D::getStaticObjectType()->TypeVersion() );
+  A& RK_SERIAL_LOAD_WITH_NAME( mRadius );
 };
-
-void RK_CALL sphere::load(ReaK::serialization::iarchive& A, unsigned int) {
-  shape_3D::load(A,shape_3D::getStaticObjectType()->TypeVersion());
-  A & RK_SERIAL_LOAD_WITH_NAME(mRadius);
 };
-
-
-
 };
-
-
-};
-
-
-
-
-

@@ -17,7 +17,7 @@
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with ReaK (as LICENSE in the root folder).  
+ *    along with ReaK (as LICENSE in the root folder).
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
@@ -28,31 +28,19 @@ namespace ReaK {
 namespace geom {
 
 
-double composite_shape_3D::getBoundingRadius() const {
-  return 0.0;
+double composite_shape_3D::getBoundingRadius() const { return 0.0; };
+
+
+composite_shape_3D::composite_shape_3D( const std::string& aName ) : shape_3D( aName ), mShapes(){};
+
+void RK_CALL composite_shape_3D::save( ReaK::serialization::oarchive& A, unsigned int ) const {
+  shape_3D::save( A, shape_3D::getStaticObjectType()->TypeVersion() );
+  A& RK_SERIAL_SAVE_WITH_NAME( mShapes );
 };
 
-
-composite_shape_3D::composite_shape_3D(const std::string& aName) : shape_3D(aName), mShapes() { };
-
-void RK_CALL composite_shape_3D::save(ReaK::serialization::oarchive& A, unsigned int) const {
-  shape_3D::save(A,shape_3D::getStaticObjectType()->TypeVersion());
-  A & RK_SERIAL_SAVE_WITH_NAME(mShapes);
+void RK_CALL composite_shape_3D::load( ReaK::serialization::iarchive& A, unsigned int ) {
+  shape_3D::load( A, shape_3D::getStaticObjectType()->TypeVersion() );
+  A& RK_SERIAL_LOAD_WITH_NAME( mShapes );
 };
-
-void RK_CALL composite_shape_3D::load(ReaK::serialization::iarchive& A, unsigned int) {
-  shape_3D::load(A,shape_3D::getStaticObjectType()->TypeVersion());
-  A & RK_SERIAL_LOAD_WITH_NAME(mShapes);
 };
-
-
-
 };
-
-
-};
-
-
-
-
-

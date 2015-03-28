@@ -25,7 +25,7 @@
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with ReaK (as LICENSE in the root folder).  
+ *    along with ReaK (as LICENSE in the root folder).
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
@@ -43,65 +43,49 @@ namespace geom {
 
 /** This class defines a class to render 3D coordinate arrows. */
 class coord_arrows_3D : public geometry_3D {
-  protected:
-    double mArrowLength;
-    
-  public:
-    
-    /** 
-     * This function returns the length of the arrows representing the coordinate axes.
-     * \return The length of the arrows representing the coordinate axes.
-     */
-    double getArrowLength() const { return mArrowLength; };
-    /** 
-     * This function sets the new length of the arrows representing the coordinate axes.
-     * \param aArrowLength The new length of the arrows representing the coordinate axes.
-     */
-    void setArrowLength(double aArrowLength) { mArrowLength = aArrowLength; };
-    
-    /**
-     * Default constructor.
-     * \param aName The name of the object.
-     * \param aAnchor The anchor object for the geometry.
-     * \param aPose The pose of the geometry (relative to the anchor).
-     * \param aArrowLength The length of the arrows representing the coordinate axes.
-     */
-    coord_arrows_3D(const std::string& aName = "",
-                    const shared_ptr< pose_3D<double> >& aAnchor = shared_ptr< pose_3D<double> >(),
-                    const pose_3D<double>& aPose = pose_3D<double>(),
-                    double aArrowLength = 1.0);
-    
-    /**
-     * Default destructor.
-     */
-    virtual ~coord_arrows_3D() { };
-    
-    
-/*******************************************************************************
-                   ReaK's RTTI and Serialization interfaces
-*******************************************************************************/
-    
-    virtual void RK_CALL save(ReaK::serialization::oarchive& A, unsigned int) const;
+protected:
+  double mArrowLength;
 
-    virtual void RK_CALL load(ReaK::serialization::iarchive& A, unsigned int);
+public:
+  /**
+   * This function returns the length of the arrows representing the coordinate axes.
+   * \return The length of the arrows representing the coordinate axes.
+   */
+  double getArrowLength() const { return mArrowLength; };
+  /**
+   * This function sets the new length of the arrows representing the coordinate axes.
+   * \param aArrowLength The new length of the arrows representing the coordinate axes.
+   */
+  void setArrowLength( double aArrowLength ) { mArrowLength = aArrowLength; };
 
-    RK_RTTI_MAKE_CONCRETE_1BASE(coord_arrows_3D,0xC3100003,1,"coord_arrows_3D",geometry_3D)
+  /**
+   * Default constructor.
+   * \param aName The name of the object.
+   * \param aAnchor The anchor object for the geometry.
+   * \param aPose The pose of the geometry (relative to the anchor).
+   * \param aArrowLength The length of the arrows representing the coordinate axes.
+   */
+  coord_arrows_3D( const std::string& aName = "",
+                   const shared_ptr< pose_3D< double > >& aAnchor = shared_ptr< pose_3D< double > >(),
+                   const pose_3D< double >& aPose = pose_3D< double >(), double aArrowLength = 1.0 );
 
+  /**
+   * Default destructor.
+   */
+  virtual ~coord_arrows_3D(){};
+
+
+  /*******************************************************************************
+                     ReaK's RTTI and Serialization interfaces
+  *******************************************************************************/
+
+  virtual void RK_CALL save( ReaK::serialization::oarchive& A, unsigned int ) const;
+
+  virtual void RK_CALL load( ReaK::serialization::iarchive& A, unsigned int );
+
+  RK_RTTI_MAKE_CONCRETE_1BASE( coord_arrows_3D, 0xC3100003, 1, "coord_arrows_3D", geometry_3D )
 };
-
-
 };
-
 };
 
 #endif
-
-
-
-
-
-
-
-
-
-

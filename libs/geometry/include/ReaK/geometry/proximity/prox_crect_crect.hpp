@@ -25,7 +25,7 @@
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with ReaK (as LICENSE in the root folder).  
+ *    along with ReaK (as LICENSE in the root folder).
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
@@ -43,43 +43,33 @@ namespace ReaK {
 namespace geom {
 
 
-proximity_record_2D compute_proximity(const capped_rectangle& aCRect1, 
-                                      const shape_2D_precompute_pack& aPack1,
-                                      const capped_rectangle& aCRect2, 
-                                      const shape_2D_precompute_pack& aPack2);
+proximity_record_2D compute_proximity( const capped_rectangle& aCRect1, const shape_2D_precompute_pack& aPack1,
+                                       const capped_rectangle& aCRect2, const shape_2D_precompute_pack& aPack2 );
 
 /**
  * This class is for proximity queries between two capped rectangles.
  */
 class prox_crect_crect : public proximity_finder_2D {
-  protected:
-    
-    const capped_rectangle* mCRect1;
-    const capped_rectangle* mCRect2;
-    
-  public:
-    
-    /** This function performs the proximity query on its associated shapes. */
-    virtual proximity_record_2D computeProximity(const shape_2D_precompute_pack& aPack1, 
-                                                 const shape_2D_precompute_pack& aPack2);
-    
-    /** 
-     * Default constructor.
-     * \param aCRect1 The first capped rectangle involved in the proximity query.
-     * \param aCRect2 The second capped rectangle involved in the proximity query.
-     */
-    prox_crect_crect(const capped_rectangle* aCRect1 = NULL,
-                     const capped_rectangle* aCRect2 = NULL);
-    
-    /** Destructor. */
-    virtual ~prox_crect_crect() { };
-    
+protected:
+  const capped_rectangle* mCRect1;
+  const capped_rectangle* mCRect2;
+
+public:
+  /** This function performs the proximity query on its associated shapes. */
+  virtual proximity_record_2D computeProximity( const shape_2D_precompute_pack& aPack1,
+                                                const shape_2D_precompute_pack& aPack2 );
+
+  /**
+   * Default constructor.
+   * \param aCRect1 The first capped rectangle involved in the proximity query.
+   * \param aCRect2 The second capped rectangle involved in the proximity query.
+   */
+  prox_crect_crect( const capped_rectangle* aCRect1 = NULL, const capped_rectangle* aCRect2 = NULL );
+
+  /** Destructor. */
+  virtual ~prox_crect_crect(){};
 };
-
-
 };
-
 };
 
 #endif
-

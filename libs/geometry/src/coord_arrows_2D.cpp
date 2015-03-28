@@ -17,7 +17,7 @@
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with ReaK (as LICENSE in the root folder).  
+ *    along with ReaK (as LICENSE in the root folder).
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
@@ -28,32 +28,18 @@ namespace ReaK {
 namespace geom {
 
 
+coord_arrows_2D::coord_arrows_2D( const std::string& aName, const shared_ptr< pose_2D< double > >& aAnchor,
+                                  const pose_2D< double >& aPose, double aArrowLength )
+    : geometry_2D( aName, aAnchor, aPose ), mArrowLength( aArrowLength ){};
 
-coord_arrows_2D::coord_arrows_2D(const std::string& aName,
-                                 const shared_ptr< pose_2D<double> >& aAnchor,
-                                 const pose_2D<double>& aPose,
-                                 double aArrowLength) :
-                                 geometry_2D(aName,aAnchor,aPose),
-                                 mArrowLength(aArrowLength) { };
-    
-void RK_CALL coord_arrows_2D::save(ReaK::serialization::oarchive& A, unsigned int) const {
-  geometry_2D::save(A,geometry_2D::getStaticObjectType()->TypeVersion());
-  A & RK_SERIAL_SAVE_WITH_NAME(mArrowLength);
+void RK_CALL coord_arrows_2D::save( ReaK::serialization::oarchive& A, unsigned int ) const {
+  geometry_2D::save( A, geometry_2D::getStaticObjectType()->TypeVersion() );
+  A& RK_SERIAL_SAVE_WITH_NAME( mArrowLength );
 };
 
-void RK_CALL coord_arrows_2D::load(ReaK::serialization::iarchive& A, unsigned int) {
-  geometry_2D::load(A,geometry_2D::getStaticObjectType()->TypeVersion());
-  A & RK_SERIAL_LOAD_WITH_NAME(mArrowLength);
+void RK_CALL coord_arrows_2D::load( ReaK::serialization::iarchive& A, unsigned int ) {
+  geometry_2D::load( A, geometry_2D::getStaticObjectType()->TypeVersion() );
+  A& RK_SERIAL_LOAD_WITH_NAME( mArrowLength );
 };
-
-
-
 };
-
-
 };
-
-
-
-
-

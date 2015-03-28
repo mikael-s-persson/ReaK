@@ -25,7 +25,7 @@
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with ReaK (as LICENSE in the root folder).  
+ *    along with ReaK (as LICENSE in the root folder).
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
@@ -43,52 +43,33 @@ namespace ReaK {
 namespace geom {
 
 
-proximity_record_3D compute_proximity(const capped_cylinder& aCCylinder1, 
-                                      const shape_3D_precompute_pack& aPack1,
-                                      const capped_cylinder& aCCylinder2, 
-                                      const shape_3D_precompute_pack& aPack2);
+proximity_record_3D compute_proximity( const capped_cylinder& aCCylinder1, const shape_3D_precompute_pack& aPack1,
+                                       const capped_cylinder& aCCylinder2, const shape_3D_precompute_pack& aPack2 );
 
 /**
  * This class is for proximity queries between a capped cylinder and a capped cylinder.
  */
 class prox_ccylinder_ccylinder : public proximity_finder_3D {
-  protected:
-    
-    const capped_cylinder* mCCylinder1;
-    const capped_cylinder* mCCylinder2;
-    
-  public:
-    
-    /** This function performs the proximity query on its associated shapes. */
-    virtual proximity_record_3D computeProximity(const shape_3D_precompute_pack& aPack1, 
-                                                 const shape_3D_precompute_pack& aPack2);
-    
-    /** 
-     * Default constructor. 
-     * \param aCCylinder1 The capped cylinder involved in the proximity query.
-     * \param aCCylinder2 The capped cylinder involved in the proximity query.
-     */
-    prox_ccylinder_ccylinder(const capped_cylinder* aCCylinder1 = NULL,
-                             const capped_cylinder* aCCylinder2 = NULL);
-    
-    /** Destructor. */
-    virtual ~prox_ccylinder_ccylinder() { };
-    
+protected:
+  const capped_cylinder* mCCylinder1;
+  const capped_cylinder* mCCylinder2;
+
+public:
+  /** This function performs the proximity query on its associated shapes. */
+  virtual proximity_record_3D computeProximity( const shape_3D_precompute_pack& aPack1,
+                                                const shape_3D_precompute_pack& aPack2 );
+
+  /**
+   * Default constructor.
+   * \param aCCylinder1 The capped cylinder involved in the proximity query.
+   * \param aCCylinder2 The capped cylinder involved in the proximity query.
+   */
+  prox_ccylinder_ccylinder( const capped_cylinder* aCCylinder1 = NULL, const capped_cylinder* aCCylinder2 = NULL );
+
+  /** Destructor. */
+  virtual ~prox_ccylinder_ccylinder(){};
 };
-
-
 };
-
 };
 
 #endif
-
-
-
-
-
-
-
-
-
-

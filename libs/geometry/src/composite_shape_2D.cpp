@@ -17,7 +17,7 @@
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with ReaK (as LICENSE in the root folder).  
+ *    along with ReaK (as LICENSE in the root folder).
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
@@ -28,31 +28,19 @@ namespace ReaK {
 namespace geom {
 
 
-double composite_shape_2D::getBoundingRadius() const {
-  return 0.0;
+double composite_shape_2D::getBoundingRadius() const { return 0.0; };
+
+
+composite_shape_2D::composite_shape_2D( const std::string& aName ) : shape_2D( aName ), mShapes(){};
+
+void RK_CALL composite_shape_2D::save( ReaK::serialization::oarchive& A, unsigned int ) const {
+  shape_2D::save( A, shape_2D::getStaticObjectType()->TypeVersion() );
+  A& RK_SERIAL_SAVE_WITH_NAME( mShapes );
 };
 
-
-composite_shape_2D::composite_shape_2D(const std::string& aName) : shape_2D(aName), mShapes() { };
-
-void RK_CALL composite_shape_2D::save(ReaK::serialization::oarchive& A, unsigned int) const {
-  shape_2D::save(A,shape_2D::getStaticObjectType()->TypeVersion());
-  A & RK_SERIAL_SAVE_WITH_NAME(mShapes);
+void RK_CALL composite_shape_2D::load( ReaK::serialization::iarchive& A, unsigned int ) {
+  shape_2D::load( A, shape_2D::getStaticObjectType()->TypeVersion() );
+  A& RK_SERIAL_LOAD_WITH_NAME( mShapes );
 };
-
-void RK_CALL composite_shape_2D::load(ReaK::serialization::iarchive& A, unsigned int) {
-  shape_2D::load(A,shape_2D::getStaticObjectType()->TypeVersion());
-  A & RK_SERIAL_LOAD_WITH_NAME(mShapes);
 };
-
-
-
 };
-
-
-};
-
-
-
-
-

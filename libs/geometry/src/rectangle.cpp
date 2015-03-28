@@ -17,7 +17,7 @@
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with ReaK (as LICENSE in the root folder).  
+ *    along with ReaK (as LICENSE in the root folder).
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
@@ -28,38 +28,22 @@ namespace ReaK {
 namespace geom {
 
 
-double rectangle::getBoundingRadius() const {
-  return norm_2(mDimensions) * 0.5;
+double rectangle::getBoundingRadius() const { return norm_2( mDimensions ) * 0.5; };
+
+
+rectangle::rectangle( const std::string& aName, const shared_ptr< pose_2D< double > >& aAnchor,
+                      const pose_2D< double >& aPose, const vect< double, 2 >& aDimensions )
+    : shape_2D( aName, aAnchor, aPose ), mDimensions( aDimensions ){};
+
+
+void RK_CALL rectangle::save( ReaK::serialization::oarchive& A, unsigned int ) const {
+  shape_2D::save( A, shape_2D::getStaticObjectType()->TypeVersion() );
+  A& RK_SERIAL_SAVE_WITH_NAME( mDimensions );
 };
 
-
-rectangle::rectangle(const std::string& aName,
-                     const shared_ptr< pose_2D<double> >& aAnchor,
-                     const pose_2D<double>& aPose,
-                     const vect<double,2>& aDimensions) :
-                     shape_2D(aName,aAnchor,aPose),
-                     mDimensions(aDimensions) { };
-    
-    
-void RK_CALL rectangle::save(ReaK::serialization::oarchive& A, unsigned int) const {
-  shape_2D::save(A,shape_2D::getStaticObjectType()->TypeVersion());
-  A & RK_SERIAL_SAVE_WITH_NAME(mDimensions);
+void RK_CALL rectangle::load( ReaK::serialization::iarchive& A, unsigned int ) {
+  shape_2D::load( A, shape_2D::getStaticObjectType()->TypeVersion() );
+  A& RK_SERIAL_LOAD_WITH_NAME( mDimensions );
 };
-
-void RK_CALL rectangle::load(ReaK::serialization::iarchive& A, unsigned int) {
-  shape_2D::load(A,shape_2D::getStaticObjectType()->TypeVersion());
-  A & RK_SERIAL_LOAD_WITH_NAME(mDimensions);
 };
-
-
-
-
 };
-
-
-};
-
-
-
-
-

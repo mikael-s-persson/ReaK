@@ -17,7 +17,7 @@
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with ReaK (as LICENSE in the root folder).  
+ *    along with ReaK (as LICENSE in the root folder).
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
@@ -30,32 +30,14 @@ namespace ReaK {
 namespace geom {
 
 
-void RK_CALL proximity_record_3D::save(ReaK::serialization::oarchive& A, unsigned int) const {
-  shared_object::save(A,shared_object::getStaticObjectType()->TypeVersion());
-  A & RK_SERIAL_SAVE_WITH_NAME(mPoint1)
-    & RK_SERIAL_SAVE_WITH_NAME(mPoint2)
-    & RK_SERIAL_SAVE_WITH_NAME(mDistance);
+void RK_CALL proximity_record_3D::save( ReaK::serialization::oarchive& A, unsigned int ) const {
+  shared_object::save( A, shared_object::getStaticObjectType()->TypeVersion() );
+  A& RK_SERIAL_SAVE_WITH_NAME( mPoint1 ) & RK_SERIAL_SAVE_WITH_NAME( mPoint2 ) & RK_SERIAL_SAVE_WITH_NAME( mDistance );
 };
 
-void RK_CALL proximity_record_3D::load(ReaK::serialization::iarchive& A, unsigned int) {
-  shared_object::load(A,shared_object::getStaticObjectType()->TypeVersion());
-  A & RK_SERIAL_LOAD_WITH_NAME(mPoint1)
-    & RK_SERIAL_LOAD_WITH_NAME(mPoint2)
-    & RK_SERIAL_LOAD_WITH_NAME(mDistance);
+void RK_CALL proximity_record_3D::load( ReaK::serialization::iarchive& A, unsigned int ) {
+  shared_object::load( A, shared_object::getStaticObjectType()->TypeVersion() );
+  A& RK_SERIAL_LOAD_WITH_NAME( mPoint1 ) & RK_SERIAL_LOAD_WITH_NAME( mPoint2 ) & RK_SERIAL_LOAD_WITH_NAME( mDistance );
 };
-
-
-
 };
-
 };
-
-
-
-
-
-
-
-
-
-

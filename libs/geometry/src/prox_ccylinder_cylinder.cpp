@@ -17,7 +17,7 @@
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with ReaK (as LICENSE in the root folder).  
+ *    along with ReaK (as LICENSE in the root folder).
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
@@ -34,46 +34,34 @@ namespace ReaK {
 namespace geom {
 
 
-proximity_record_3D compute_proximity(const capped_cylinder& aCCylinder, 
-                                      const shape_3D_precompute_pack& aPack1,
-                                      const cylinder& aCylinder, 
-                                      const shape_3D_precompute_pack& aPack2) {
-  
-  return findProximityByGJKEPA(
-    ccylinder_support_func(aCCylinder, aPack1.global_pose), 
-    cylinder_support_func(aCylinder, aPack2.global_pose));
-  
+proximity_record_3D compute_proximity( const capped_cylinder& aCCylinder, const shape_3D_precompute_pack& aPack1,
+                                       const cylinder& aCylinder, const shape_3D_precompute_pack& aPack2 ) {
+
+  return findProximityByGJKEPA( ccylinder_support_func( aCCylinder, aPack1.global_pose ),
+                                cylinder_support_func( aCylinder, aPack2.global_pose ) );
 };
 
-proximity_record_3D compute_proximity(const cylinder& aCylinder, 
-                                      const shape_3D_precompute_pack& aPack1,
-                                      const capped_cylinder& aCCylinder, 
-                                      const shape_3D_precompute_pack& aPack2) {
+proximity_record_3D compute_proximity( const cylinder& aCylinder, const shape_3D_precompute_pack& aPack1,
+                                       const capped_cylinder& aCCylinder, const shape_3D_precompute_pack& aPack2 ) {
   using std::swap;
-  proximity_record_3D result = compute_proximity(aCCylinder, aPack2, aCylinder, aPack1);
-  swap(result.mPoint1,result.mPoint2);
+  proximity_record_3D result = compute_proximity( aCCylinder, aPack2, aCylinder, aPack1 );
+  swap( result.mPoint1, result.mPoint2 );
   return result;
 };
 
-proximity_record_3D prox_ccylinder_cylinder::computeProximity(const shape_3D_precompute_pack& aPack1, 
-                                                              const shape_3D_precompute_pack& aPack2) {
-  if((!mCCylinder) || (!mCylinder))
+proximity_record_3D prox_ccylinder_cylinder::computeProximity( const shape_3D_precompute_pack& aPack1,
+                                                               const shape_3D_precompute_pack& aPack2 ) {
+  if( ( !mCCylinder ) || ( !mCylinder ) )
     return proximity_record_3D();
-  
-  if(aPack1.parent == mCCylinder)
-    return compute_proximity(*mCCylinder,aPack1,*mCylinder,aPack2);
+
+  if( aPack1.parent == mCCylinder )
+    return compute_proximity( *mCCylinder, aPack1, *mCylinder, aPack2 );
   else
-    return compute_proximity(*mCylinder,aPack1,*mCCylinder,aPack2);
+    return compute_proximity( *mCylinder, aPack1, *mCCylinder, aPack2 );
 };
 
 
-prox_ccylinder_cylinder::prox_ccylinder_cylinder(const capped_cylinder* aCCylinder,
-                                                 const cylinder* aCylinder) :
-                                                 proximity_finder_3D(),
-                                                 mCCylinder(aCCylinder),
-                                                 mCylinder(aCylinder) { };
-
-
+prox_ccylinder_cylinder::prox_ccylinder_cylinder( const capped_cylinder* aCCylinder, const cylinder* aCylinder )
+    : proximity_finder_3D(), mCCylinder( aCCylinder ), mCylinder( aCylinder ){};
 };
-
 };

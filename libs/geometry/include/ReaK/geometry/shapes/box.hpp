@@ -25,7 +25,7 @@
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with ReaK (as LICENSE in the root folder).  
+ *    along with ReaK (as LICENSE in the root folder).
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
@@ -43,72 +43,56 @@ namespace geom {
 
 /** This class represents a box aligned along its center pose. */
 class box : public shape_3D {
-  protected:
-    
-    vect<double,3> mDimensions;
-    
-  public:
-    
-    /**
-     * This function returns the maximum radius of the shape (radius of the sphere that bounds the shape).
-     * \return The maximum radius of the shape.
-     */
-    virtual double getBoundingRadius() const;
-    
-    /**
-     * This function returns the dimensions of the box.
-     * \return The dimensions of the box.
-     */
-    const vect<double,3>& getDimensions() const { return mDimensions; };
-    /**
-     * This function sets the dimensions of the box.
-     * \param aDimensions The new dimensions of the box.
-     */
-    void setDimensions(const vect<double,3>& aDimensions) { mDimensions = aDimensions; };
-    
-    /**
-     * Default constructor.
-     * \param aName The name of the object.
-     * \param aAnchor The anchor object for the geometry.
-     * \param aPose The pose of the geometry (relative to the anchor).
-     * \param aDimensions The dimensions of the box.
-     */
-    box(const std::string& aName = "",
-        const shared_ptr< pose_3D<double> >& aAnchor = shared_ptr< pose_3D<double> >(),
-        const pose_3D<double>& aPose = pose_3D<double>(),
-        const vect<double,3>& aDimensions = (vect<double,3>(1.0,1.0,1.0)));
-    
-    /**
-     * Default destructor.
-     */
-    virtual ~box() { };
-    
-    
-/*******************************************************************************
-                   ReaK's RTTI and Serialization interfaces
-*******************************************************************************/
-    
-    virtual void RK_CALL save(ReaK::serialization::oarchive& A, unsigned int) const;
+protected:
+  vect< double, 3 > mDimensions;
 
-    virtual void RK_CALL load(ReaK::serialization::iarchive& A, unsigned int);
+public:
+  /**
+   * This function returns the maximum radius of the shape (radius of the sphere that bounds the shape).
+   * \return The maximum radius of the shape.
+   */
+  virtual double getBoundingRadius() const;
 
-    RK_RTTI_MAKE_CONCRETE_1BASE(box,0xC3100013,1,"box",shape_3D)
+  /**
+   * This function returns the dimensions of the box.
+   * \return The dimensions of the box.
+   */
+  const vect< double, 3 >& getDimensions() const { return mDimensions; };
+  /**
+   * This function sets the dimensions of the box.
+   * \param aDimensions The new dimensions of the box.
+   */
+  void setDimensions( const vect< double, 3 >& aDimensions ) { mDimensions = aDimensions; };
 
+  /**
+   * Default constructor.
+   * \param aName The name of the object.
+   * \param aAnchor The anchor object for the geometry.
+   * \param aPose The pose of the geometry (relative to the anchor).
+   * \param aDimensions The dimensions of the box.
+   */
+  box( const std::string& aName = "",
+       const shared_ptr< pose_3D< double > >& aAnchor = shared_ptr< pose_3D< double > >(),
+       const pose_3D< double >& aPose = pose_3D< double >(),
+       const vect< double, 3 >& aDimensions = ( vect< double, 3 >( 1.0, 1.0, 1.0 ) ) );
+
+  /**
+   * Default destructor.
+   */
+  virtual ~box(){};
+
+
+  /*******************************************************************************
+                     ReaK's RTTI and Serialization interfaces
+  *******************************************************************************/
+
+  virtual void RK_CALL save( ReaK::serialization::oarchive& A, unsigned int ) const;
+
+  virtual void RK_CALL load( ReaK::serialization::iarchive& A, unsigned int );
+
+  RK_RTTI_MAKE_CONCRETE_1BASE( box, 0xC3100013, 1, "box", shape_3D )
 };
-
-
 };
-
 };
 
 #endif
-
-
-
-
-
-
-
-
-
-

@@ -25,7 +25,7 @@
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with ReaK (as LICENSE in the root folder).  
+ *    along with ReaK (as LICENSE in the root folder).
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
@@ -43,72 +43,56 @@ namespace geom {
 
 /** This class represents a rectangle in 2D (aligned about its center pose). */
 class rectangle : public shape_2D {
-  protected:
-    
-    vect<double,2> mDimensions;
-    
-  public:
-    
-    /**
-     * This function returns the maximum radius of the shape (radius of the circle that bounds the shape).
-     * \return The maximum radius of the shape.
-     */
-    virtual double getBoundingRadius() const;
-    
-    /** 
-     * This function returns the dimensions of the rectangle.
-     * \return The dimensions of the rectangle.
-     */
-    const vect<double,2>& getDimensions() const { return mDimensions; };
-    /** 
-     * This function sets the new dimensions of the rectangle.
-     * \param aDimensions The new dimensions of the rectangle.
-     */
-    void setDimensions(const vect<double,2>& aDimensions) { mDimensions = aDimensions; };
-    
-    /**
-     * Default constructor.
-     * \param aName The name of the object.
-     * \param aAnchor The anchor object for the geometry.
-     * \param aPose The pose of the geometry (relative to the anchor).
-     * \param aDimensions The dimensions.
-     */
-    rectangle(const std::string& aName = "",
-              const shared_ptr< pose_2D<double> >& aAnchor = shared_ptr< pose_2D<double> >(),
-              const pose_2D<double>& aPose = pose_2D<double>(),
-              const vect<double,2>& aDimensions = (vect<double,2>()));
-    
-    /**
-     * Default destructor.
-     */
-    virtual ~rectangle() { };
-    
-    
-/*******************************************************************************
-                   ReaK's RTTI and Serialization interfaces
-*******************************************************************************/
-    
-    virtual void RK_CALL save(ReaK::serialization::oarchive& A, unsigned int) const;
+protected:
+  vect< double, 2 > mDimensions;
 
-    virtual void RK_CALL load(ReaK::serialization::iarchive& A, unsigned int);
+public:
+  /**
+   * This function returns the maximum radius of the shape (radius of the circle that bounds the shape).
+   * \return The maximum radius of the shape.
+   */
+  virtual double getBoundingRadius() const;
 
-    RK_RTTI_MAKE_CONCRETE_1BASE(rectangle,0xC310000E,1,"rectangle",shape_2D)
-    
+  /**
+   * This function returns the dimensions of the rectangle.
+   * \return The dimensions of the rectangle.
+   */
+  const vect< double, 2 >& getDimensions() const { return mDimensions; };
+  /**
+   * This function sets the new dimensions of the rectangle.
+   * \param aDimensions The new dimensions of the rectangle.
+   */
+  void setDimensions( const vect< double, 2 >& aDimensions ) { mDimensions = aDimensions; };
+
+  /**
+   * Default constructor.
+   * \param aName The name of the object.
+   * \param aAnchor The anchor object for the geometry.
+   * \param aPose The pose of the geometry (relative to the anchor).
+   * \param aDimensions The dimensions.
+   */
+  rectangle( const std::string& aName = "",
+             const shared_ptr< pose_2D< double > >& aAnchor = shared_ptr< pose_2D< double > >(),
+             const pose_2D< double >& aPose = pose_2D< double >(),
+             const vect< double, 2 >& aDimensions = ( vect< double, 2 >() ) );
+
+  /**
+   * Default destructor.
+   */
+  virtual ~rectangle(){};
+
+
+  /*******************************************************************************
+                     ReaK's RTTI and Serialization interfaces
+  *******************************************************************************/
+
+  virtual void RK_CALL save( ReaK::serialization::oarchive& A, unsigned int ) const;
+
+  virtual void RK_CALL load( ReaK::serialization::iarchive& A, unsigned int );
+
+  RK_RTTI_MAKE_CONCRETE_1BASE( rectangle, 0xC310000E, 1, "rectangle", shape_2D )
 };
-
-
 };
-
 };
 
 #endif
-
-
-
-
-
-
-
-
-
-

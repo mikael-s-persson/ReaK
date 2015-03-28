@@ -25,7 +25,7 @@
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with ReaK (as LICENSE in the root folder).  
+ *    along with ReaK (as LICENSE in the root folder).
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
@@ -43,80 +43,64 @@ namespace geom {
 
 /** This class is a class for a 3D grid to be rendered. */
 class grid_3D : public geometry_3D {
-  protected:
-    
-    vect<double,3> mDimensions;
-    vect<std::size_t,3> mSquareCounts;
-    
-  public:
-    
-    /** 
-     * This function returns the dimensions of the grid.
-     * \return The dimensions.
-     */
-    const vect<double,3>& getDimensions() const { return mDimensions; };
-    /** 
-     * This function sets the new dimensions of the grid.
-     * \param aDimensions The new dimensions.
-     */
-    void setDimensions(const vect<double,3>& aDimensions) { mDimensions = aDimensions; };
-    
-    /** 
-     * This function returns the square-counts of the grid.
-     * \return The square-counts.
-     */
-    const vect<std::size_t,3>& getSquareCounts() const { return mSquareCounts; };
-    /** 
-     * This function sets the square-counts of the grid.
-     * \param mSquareCounts The new square-counts.
-     */
-    void setSquareCounts(const vect<std::size_t,3>& aSquareCounts) { mSquareCounts = aSquareCounts; };
-    
-    /**
-     * Default constructor.
-     * \param aName The name of the object.
-     * \param aAnchor The anchor object for the geometry.
-     * \param aPose The pose of the geometry (relative to the anchor).
-     * \param aDimensions The dimensions.
-     * \param aSquareCounts The square-counts.
-     */
-    grid_3D(const std::string& aName = "",
-            const shared_ptr< pose_3D<double> >& aAnchor = shared_ptr< pose_3D<double> >(),
-            const pose_3D<double>& aPose = pose_3D<double>(),
-            const vect<double,3>& aDimensions = (vect<double,3>(1.0,1.0,1.0)),
-            const vect<std::size_t,3>& aSquareCounts = (vect<std::size_t,3>(10,10,10)));
-    
-    /**
-     * Default destructor.
-     */
-    virtual ~grid_3D() { };
-    
-    
-/*******************************************************************************
-                   ReaK's RTTI and Serialization interfaces
-*******************************************************************************/
-    
-    virtual void RK_CALL save(ReaK::serialization::oarchive& A, unsigned int) const;
+protected:
+  vect< double, 3 > mDimensions;
+  vect< std::size_t, 3 > mSquareCounts;
 
-    virtual void RK_CALL load(ReaK::serialization::iarchive& A, unsigned int);
+public:
+  /**
+   * This function returns the dimensions of the grid.
+   * \return The dimensions.
+   */
+  const vect< double, 3 >& getDimensions() const { return mDimensions; };
+  /**
+   * This function sets the new dimensions of the grid.
+   * \param aDimensions The new dimensions.
+   */
+  void setDimensions( const vect< double, 3 >& aDimensions ) { mDimensions = aDimensions; };
 
-    RK_RTTI_MAKE_CONCRETE_1BASE(grid_3D,0xC3100007,1,"grid_3D",geometry_3D)
+  /**
+   * This function returns the square-counts of the grid.
+   * \return The square-counts.
+   */
+  const vect< std::size_t, 3 >& getSquareCounts() const { return mSquareCounts; };
+  /**
+   * This function sets the square-counts of the grid.
+   * \param mSquareCounts The new square-counts.
+   */
+  void setSquareCounts( const vect< std::size_t, 3 >& aSquareCounts ) { mSquareCounts = aSquareCounts; };
 
+  /**
+   * Default constructor.
+   * \param aName The name of the object.
+   * \param aAnchor The anchor object for the geometry.
+   * \param aPose The pose of the geometry (relative to the anchor).
+   * \param aDimensions The dimensions.
+   * \param aSquareCounts The square-counts.
+   */
+  grid_3D( const std::string& aName = "",
+           const shared_ptr< pose_3D< double > >& aAnchor = shared_ptr< pose_3D< double > >(),
+           const pose_3D< double >& aPose = pose_3D< double >(),
+           const vect< double, 3 >& aDimensions = ( vect< double, 3 >( 1.0, 1.0, 1.0 ) ),
+           const vect< std::size_t, 3 >& aSquareCounts = ( vect< std::size_t, 3 >( 10, 10, 10 ) ) );
+
+  /**
+   * Default destructor.
+   */
+  virtual ~grid_3D(){};
+
+
+  /*******************************************************************************
+                     ReaK's RTTI and Serialization interfaces
+  *******************************************************************************/
+
+  virtual void RK_CALL save( ReaK::serialization::oarchive& A, unsigned int ) const;
+
+  virtual void RK_CALL load( ReaK::serialization::iarchive& A, unsigned int );
+
+  RK_RTTI_MAKE_CONCRETE_1BASE( grid_3D, 0xC3100007, 1, "grid_3D", geometry_3D )
 };
-
-
 };
-
 };
 
 #endif
-
-
-
-
-
-
-
-
-
-

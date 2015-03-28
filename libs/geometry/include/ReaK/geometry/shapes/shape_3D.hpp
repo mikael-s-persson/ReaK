@@ -25,7 +25,7 @@
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with ReaK (as LICENSE in the root folder).  
+ *    along with ReaK (as LICENSE in the root folder).
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
@@ -44,70 +44,53 @@ namespace geom {
 class shape_3D; // forward-decl
 
 class shape_3D_precompute_pack {
-  public:
-    const shape_3D* parent;
-    pose_3D<double> global_pose;
-    
-    shape_3D_precompute_pack() : parent(), global_pose() { };
-    
+public:
+  const shape_3D* parent;
+  pose_3D< double > global_pose;
+
+  shape_3D_precompute_pack() : parent(), global_pose(){};
 };
 
 
 /** This class is a base-class for all 3D shapes (collidable primitives). */
 class shape_3D : public geometry_3D {
-  protected:
-    
-  public:
-    
-    /**
-     * This function returns the maximum radius of the shape (radius of the sphere that bounds the shape).
-     * \return The maximum radius of the shape.
-     */
-    virtual double getBoundingRadius() const = 0;
-    
-    virtual shape_3D_precompute_pack createPrecomputePack() const;
-    
-    /**
-     * Default constructor.
-     * \param aName The name of the object.
-     * \param aAnchor The anchor object for the geometry.
-     * \param aPose The pose of the geometry (relative to the anchor).
-     */
-    shape_3D(const std::string& aName = "",
-             const shared_ptr< pose_3D<double> >& aAnchor = shared_ptr< pose_3D<double> >(),
-             const pose_3D<double>& aPose = pose_3D<double>());
-    
-    /**
-     * Default destructor.
-     */
-    virtual ~shape_3D() { };
-    
-    
-/*******************************************************************************
-                   ReaK's RTTI and Serialization interfaces
-*******************************************************************************/
-    
-    virtual void RK_CALL save(ReaK::serialization::oarchive& A, unsigned int) const;
+protected:
+public:
+  /**
+   * This function returns the maximum radius of the shape (radius of the sphere that bounds the shape).
+   * \return The maximum radius of the shape.
+   */
+  virtual double getBoundingRadius() const = 0;
 
-    virtual void RK_CALL load(ReaK::serialization::iarchive& A, unsigned int);
+  virtual shape_3D_precompute_pack createPrecomputePack() const;
 
-    RK_RTTI_MAKE_ABSTRACT_1BASE(shape_3D,0xC3100009,1,"shape_3D",geometry_3D)
+  /**
+   * Default constructor.
+   * \param aName The name of the object.
+   * \param aAnchor The anchor object for the geometry.
+   * \param aPose The pose of the geometry (relative to the anchor).
+   */
+  shape_3D( const std::string& aName = "",
+            const shared_ptr< pose_3D< double > >& aAnchor = shared_ptr< pose_3D< double > >(),
+            const pose_3D< double >& aPose = pose_3D< double >() );
 
+  /**
+   * Default destructor.
+   */
+  virtual ~shape_3D(){};
+
+
+  /*******************************************************************************
+                     ReaK's RTTI and Serialization interfaces
+  *******************************************************************************/
+
+  virtual void RK_CALL save( ReaK::serialization::oarchive& A, unsigned int ) const;
+
+  virtual void RK_CALL load( ReaK::serialization::iarchive& A, unsigned int );
+
+  RK_RTTI_MAKE_ABSTRACT_1BASE( shape_3D, 0xC3100009, 1, "shape_3D", geometry_3D )
 };
-
-
 };
-
 };
 
 #endif
-
-
-
-
-
-
-
-
-
-

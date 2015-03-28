@@ -25,7 +25,7 @@
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with ReaK (as LICENSE in the root folder).  
+ *    along with ReaK (as LICENSE in the root folder).
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
@@ -44,50 +44,36 @@ namespace ReaK {
 namespace geom {
 
 
-proximity_record_2D compute_proximity(const circle& aCircle, 
-                                      const shape_2D_precompute_pack& aPack1,
-                                      const capped_rectangle& aCRect, 
-                                      const shape_2D_precompute_pack& aPack2);
+proximity_record_2D compute_proximity( const circle& aCircle, const shape_2D_precompute_pack& aPack1,
+                                       const capped_rectangle& aCRect, const shape_2D_precompute_pack& aPack2 );
 
-proximity_record_2D compute_proximity(const capped_rectangle& aCRect, 
-                                      const shape_2D_precompute_pack& aPack1,
-                                      const circle& aCircle, 
-                                      const shape_2D_precompute_pack& aPack2);
+proximity_record_2D compute_proximity( const capped_rectangle& aCRect, const shape_2D_precompute_pack& aPack1,
+                                       const circle& aCircle, const shape_2D_precompute_pack& aPack2 );
 
 /**
  * This class is for proximity queries between a circle and a capped rectangle.
  */
 class prox_circle_crect : public proximity_finder_2D {
-  protected:
-    
-    const circle* mCircle;
-    const capped_rectangle* mCRect;
-    
-  public:
-    
-    /** This function performs the proximity query on its associated shapes. */
-    virtual proximity_record_2D computeProximity(const shape_2D_precompute_pack& aPack1, 
-                                                 const shape_2D_precompute_pack& aPack2);
-    
-    /** 
-     * Default constructor.
-     * \param aCircle The circle involved in the proximity query.
-     * \param aCRect The capped rectangle involved in the proximity query.
-     */
-    prox_circle_crect(const circle* aCircle = NULL,
-                      const capped_rectangle* aCRect = NULL);
-    
-    /** Destructor. */
-    virtual ~prox_circle_crect() { };
-    
+protected:
+  const circle* mCircle;
+  const capped_rectangle* mCRect;
+
+public:
+  /** This function performs the proximity query on its associated shapes. */
+  virtual proximity_record_2D computeProximity( const shape_2D_precompute_pack& aPack1,
+                                                const shape_2D_precompute_pack& aPack2 );
+
+  /**
+   * Default constructor.
+   * \param aCircle The circle involved in the proximity query.
+   * \param aCRect The capped rectangle involved in the proximity query.
+   */
+  prox_circle_crect( const circle* aCircle = NULL, const capped_rectangle* aCRect = NULL );
+
+  /** Destructor. */
+  virtual ~prox_circle_crect(){};
 };
-
-
 };
-
 };
 
 #endif
-
-
-

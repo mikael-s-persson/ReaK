@@ -17,7 +17,7 @@
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with ReaK (as LICENSE in the root folder).  
+ *    along with ReaK (as LICENSE in the root folder).
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
@@ -28,35 +28,20 @@ namespace ReaK {
 namespace geom {
 
 
-double circle::getBoundingRadius() const {
-  return mRadius;
+double circle::getBoundingRadius() const { return mRadius; };
+
+circle::circle( const std::string& aName, const shared_ptr< pose_2D< double > >& aAnchor,
+                const pose_2D< double >& aPose, double aRadius )
+    : shape_2D( aName, aAnchor, aPose ), mRadius( aRadius ){};
+
+void RK_CALL circle::save( ReaK::serialization::oarchive& A, unsigned int ) const {
+  shape_2D::save( A, shape_2D::getStaticObjectType()->TypeVersion() );
+  A& RK_SERIAL_SAVE_WITH_NAME( mRadius );
 };
 
-circle::circle(const std::string& aName,
-               const shared_ptr< pose_2D<double> >& aAnchor,
-               const pose_2D<double>& aPose,
-               double aRadius) :
-               shape_2D(aName, aAnchor, aPose),
-               mRadius(aRadius) { };
-    
-void RK_CALL circle::save(ReaK::serialization::oarchive& A, unsigned int) const {
-  shape_2D::save(A,shape_2D::getStaticObjectType()->TypeVersion());
-  A & RK_SERIAL_SAVE_WITH_NAME(mRadius);
+void RK_CALL circle::load( ReaK::serialization::iarchive& A, unsigned int ) {
+  shape_2D::load( A, shape_2D::getStaticObjectType()->TypeVersion() );
+  A& RK_SERIAL_LOAD_WITH_NAME( mRadius );
 };
-
-void RK_CALL circle::load(ReaK::serialization::iarchive& A, unsigned int) {
-  shape_2D::load(A,shape_2D::getStaticObjectType()->TypeVersion());
-  A & RK_SERIAL_LOAD_WITH_NAME(mRadius);
 };
-
-
-
 };
-
-
-};
-
-
-
-
-

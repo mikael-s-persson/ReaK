@@ -17,7 +17,7 @@
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with ReaK (as LICENSE in the root folder).  
+ *    along with ReaK (as LICENSE in the root folder).
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
@@ -33,33 +33,26 @@ namespace ReaK {
 namespace geom {
 
 
-proximity_record_3D compute_proximity(const box& aBox1, const shape_3D_precompute_pack& aPack1,
-                                      const box& aBox2, const shape_3D_precompute_pack& aPack2) {
-  return findProximityByGJKEPA(
-    box_support_func(aBox1, aPack1.global_pose), 
-    box_support_func(aBox2, aPack2.global_pose));
+proximity_record_3D compute_proximity( const box& aBox1, const shape_3D_precompute_pack& aPack1, const box& aBox2,
+                                       const shape_3D_precompute_pack& aPack2 ) {
+  return findProximityByGJKEPA( box_support_func( aBox1, aPack1.global_pose ),
+                                box_support_func( aBox2, aPack2.global_pose ) );
 };
 
 
-proximity_record_3D prox_box_box::computeProximity(const shape_3D_precompute_pack& aPack1, 
-                                                   const shape_3D_precompute_pack& aPack2) {
-  if((!mBox1) || (!mBox2))
+proximity_record_3D prox_box_box::computeProximity( const shape_3D_precompute_pack& aPack1,
+                                                    const shape_3D_precompute_pack& aPack2 ) {
+  if( ( !mBox1 ) || ( !mBox2 ) )
     return proximity_record_3D();
-  
+
   if( aPack1.parent == mBox1 )
-    return compute_proximity(*mBox1, aPack1, *mBox2, aPack2);
+    return compute_proximity( *mBox1, aPack1, *mBox2, aPack2 );
   else // note, respect the order of packs.
-    return compute_proximity(*mBox2, aPack1, *mBox1, aPack2);
+    return compute_proximity( *mBox2, aPack1, *mBox1, aPack2 );
 };
 
 
-prox_box_box::prox_box_box(const box* aBox1, const box* aBox2) :
-                           proximity_finder_3D(),
-                           mBox1(aBox1),
-                           mBox2(aBox2) { };
-
-
+prox_box_box::prox_box_box( const box* aBox1, const box* aBox2 )
+    : proximity_finder_3D(), mBox1( aBox1 ), mBox2( aBox2 ){};
 };
-
 };
-

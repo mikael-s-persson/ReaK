@@ -25,7 +25,7 @@
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with ReaK (as LICENSE in the root folder).  
+ *    along with ReaK (as LICENSE in the root folder).
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
@@ -43,86 +43,68 @@ namespace geom {
 
 /** This class represents a cylinder aligned along the z-axis of its center pose. */
 class capped_cylinder : public shape_3D {
-  protected:
-    
-    double mLength;
-    double mRadius;
-    
-  public:
-    
-    /**
-     * This function returns the maximum radius of the shape (radius of the sphere that bounds the shape).
-     * \return The maximum radius of the shape.
-     */
-    virtual double getBoundingRadius() const;
-    
-    /**
-     * This function returns the length of the cylinder.
-     * \return The length of the cylinder.
-     */
-    double getLength() const { return mLength; };
-    /**
-     * This function sets the length of the cylinder.
-     * \param aLength The new length of the cylinder.
-     */
-    void setLength(double aLength) { mLength = aLength; };
-    
-    /**
-     * This function returns the radius of the cylinder.
-     * \return The radius of the cylinder.
-     */
-    double getRadius() const { return mRadius; };
-    /**
-     * This function sets the radius of the cylinder.
-     * \param aRadius The new radius of the cylinder.
-     */
-    void setRadius(double aRadius) { mRadius = aRadius; };
-    
-    /**
-     * Default constructor.
-     * \param aName The name of the object.
-     * \param aAnchor The anchor object for the geometry.
-     * \param aPose The pose of the geometry (relative to the anchor).
-     * \param aLength The length of the cylinder.
-     * \param aRadius The radius of the cylinder.
-     */
-    capped_cylinder(const std::string& aName = "",
-                    const shared_ptr< pose_3D<double> >& aAnchor = shared_ptr< pose_3D<double> >(),
-                    const pose_3D<double>& aPose = pose_3D<double>(),
-                    double aLength = 1.0,
-                    double aRadius = 1.0);
-    
-    /**
-     * Default destructor.
-     */
-    virtual ~capped_cylinder() { };
-    
-    
-/*******************************************************************************
-                   ReaK's RTTI and Serialization interfaces
-*******************************************************************************/
-    
-    virtual void RK_CALL save(ReaK::serialization::oarchive& A, unsigned int) const;
+protected:
+  double mLength;
+  double mRadius;
 
-    virtual void RK_CALL load(ReaK::serialization::iarchive& A, unsigned int);
+public:
+  /**
+   * This function returns the maximum radius of the shape (radius of the sphere that bounds the shape).
+   * \return The maximum radius of the shape.
+   */
+  virtual double getBoundingRadius() const;
 
-    RK_RTTI_MAKE_CONCRETE_1BASE(capped_cylinder,0xC3100011,1,"capped_cylinder",shape_3D)
+  /**
+   * This function returns the length of the cylinder.
+   * \return The length of the cylinder.
+   */
+  double getLength() const { return mLength; };
+  /**
+   * This function sets the length of the cylinder.
+   * \param aLength The new length of the cylinder.
+   */
+  void setLength( double aLength ) { mLength = aLength; };
 
+  /**
+   * This function returns the radius of the cylinder.
+   * \return The radius of the cylinder.
+   */
+  double getRadius() const { return mRadius; };
+  /**
+   * This function sets the radius of the cylinder.
+   * \param aRadius The new radius of the cylinder.
+   */
+  void setRadius( double aRadius ) { mRadius = aRadius; };
+
+  /**
+   * Default constructor.
+   * \param aName The name of the object.
+   * \param aAnchor The anchor object for the geometry.
+   * \param aPose The pose of the geometry (relative to the anchor).
+   * \param aLength The length of the cylinder.
+   * \param aRadius The radius of the cylinder.
+   */
+  capped_cylinder( const std::string& aName = "",
+                   const shared_ptr< pose_3D< double > >& aAnchor = shared_ptr< pose_3D< double > >(),
+                   const pose_3D< double >& aPose = pose_3D< double >(), double aLength = 1.0, double aRadius = 1.0 );
+
+  /**
+   * Default destructor.
+   */
+  virtual ~capped_cylinder(){};
+
+
+  /*******************************************************************************
+                     ReaK's RTTI and Serialization interfaces
+  *******************************************************************************/
+
+  virtual void RK_CALL save( ReaK::serialization::oarchive& A, unsigned int ) const;
+
+  virtual void RK_CALL load( ReaK::serialization::iarchive& A, unsigned int );
+
+  RK_RTTI_MAKE_CONCRETE_1BASE( capped_cylinder, 0xC3100011, 1, "capped_cylinder", shape_3D )
 };
-
-
 };
-
 };
 
 #endif
-
-
-
-
-
-
-
-
-
-
