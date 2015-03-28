@@ -1,7 +1,7 @@
 /**
- * 
- * 
- * 
+ *
+ *
+ *
  */
 
 /*
@@ -22,7 +22,7 @@
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with ReaK (as LICENSE in the root folder).  
+ *    along with ReaK (as LICENSE in the root folder).
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
@@ -36,75 +36,57 @@
 #include <QDockWidget>
 
 namespace Ui {
-  class ChaserTargetMdlConfig;
+class ChaserTargetMdlConfig;
 };
 
 namespace ReaK {
-  
+
 namespace qt {
 
 class ChaserTargetConfigWidget : public QDockWidget {
-    Q_OBJECT
-    
-  private:
-    Ui::ChaserTargetMdlConfig* ui;
-  public:
-    ChaserTargetConfigWidget(View3DMenu* aView3dMenu = NULL, QWidget * parent = NULL, Qt::WindowFlags flags = 0);
-    virtual ~ChaserTargetConfigWidget();
-    
-  private slots:
-    
-    void loadChaserMdl();
-    void editChaserMdl();
-    void saveChaserMdl();
-    
-    void loadTargetMdl();
-    void editTargetMdl();
-    void saveTargetMdl();
-    
-    void addEnvMdl();
-    void editEnvMdl();
-    void clearEnvMdls();
-    void saveEnvMdl();
-    
-    void loadCompleteMdl();
-    void editCompleteMdl();
-    void saveCompleteMdl();
-    
-  public:
-    
-  signals:
-    
-    void onTargetLoaded();
-    void onChaserLoaded();
-    
-  public:
-    
-    View3DMenu* view3d_menu;
-    
-    kte::chaser_target_data sceneData;
-    
-    void loadCompleteModel(const std::string& aFilename);
-    void saveCompleteModel(const std::string& aFilename);
-    
-};
+  Q_OBJECT
 
-};
+private:
+  Ui::ChaserTargetMdlConfig* ui;
 
+public:
+  ChaserTargetConfigWidget( View3DMenu* aView3dMenu = NULL, QWidget* parent = NULL, Qt::WindowFlags flags = 0 );
+  virtual ~ChaserTargetConfigWidget();
+
+private slots:
+
+  void loadChaserMdl();
+  void editChaserMdl();
+  void saveChaserMdl();
+
+  void loadTargetMdl();
+  void editTargetMdl();
+  void saveTargetMdl();
+
+  void addEnvMdl();
+  void editEnvMdl();
+  void clearEnvMdls();
+  void saveEnvMdl();
+
+  void loadCompleteMdl();
+  void editCompleteMdl();
+  void saveCompleteMdl();
+
+public:
+signals:
+
+  void onTargetLoaded();
+  void onChaserLoaded();
+
+public:
+  View3DMenu* view3d_menu;
+
+  kte::chaser_target_data sceneData;
+
+  void loadCompleteModel( const std::string& aFilename );
+  void saveCompleteModel( const std::string& aFilename );
+};
+};
 };
 
 #endif
-
-
-
-
-
-
-
-
-
-
-
-
-
-

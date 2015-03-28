@@ -29,7 +29,7 @@
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with ReaK (as LICENSE in the root folder).  
+ *    along with ReaK (as LICENSE in the root folder).
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
@@ -49,295 +49,260 @@ namespace kte {
 
 /** This class defines a damper acting between two generalized coordinates. */
 class damper_gen : public kte_map {
-  private:
-    shared_ptr< gen_coord<double> > mAnchor1; ///< Holds the first generalized coordinate.
-    shared_ptr< gen_coord<double> > mAnchor2; ///< Holds the second generalized coordinate.
-    double mDamping; ///< The damping coefficient (in Ns/m or Nms/rad).
+private:
+  shared_ptr< gen_coord< double > > mAnchor1; ///< Holds the first generalized coordinate.
+  shared_ptr< gen_coord< double > > mAnchor2; ///< Holds the second generalized coordinate.
+  double mDamping;                            ///< The damping coefficient (in Ns/m or Nms/rad).
 
-  public:
-    
-    /**
-     * Sets the first anchor frame of the damper.
-     * \param aPtr A pointer to the new first anchor frame of the damper.
-     */
-    void setAnchor1(const shared_ptr< gen_coord<double> >& aPtr) { mAnchor1 = aPtr; };
-    /**
-     * Returns a const-reference to the first anchor frame of the damper.
-     * \return A const-reference to the first anchor frame of the damper.
-     */
-    shared_ptr< gen_coord<double> > Anchor1() const { return mAnchor1; };
-    
-    /**
-     * Sets the first anchor frame of the damper.
-     * \param aPtr A pointer to the new first anchor frame of the damper.
-     */
-    void setAnchor2(const shared_ptr< gen_coord<double> >& aPtr) { mAnchor2 = aPtr; };
-    /**
-     * Returns a const-reference to the second anchor frame of the damper.
-     * \return A const-reference to the second anchor frame of the damper.
-     */
-    shared_ptr< gen_coord<double> > Anchor2() const { return mAnchor2; };
-    
-    /**
-     * Sets the damping factor of the damper.
-     * \param aValue The new damping factor of the damper.
-     */
-    void setDamping(double aValue) { mDamping = aValue; };
-    /**
-     * Returns the damping factor of the damper.
-     * \return The damping factor of the damper.
-     */
-    double Damping() const { return mDamping; };
-    
-    /**
-     * Default constructor.
-     */
-    damper_gen(const std::string& aName = "") : kte_map(aName), mAnchor1(), mAnchor2(), mDamping(0.0) { };
+public:
+  /**
+   * Sets the first anchor frame of the damper.
+   * \param aPtr A pointer to the new first anchor frame of the damper.
+   */
+  void setAnchor1( const shared_ptr< gen_coord< double > >& aPtr ) { mAnchor1 = aPtr; };
+  /**
+   * Returns a const-reference to the first anchor frame of the damper.
+   * \return A const-reference to the first anchor frame of the damper.
+   */
+  shared_ptr< gen_coord< double > > Anchor1() const { return mAnchor1; };
 
-    /**
-     * Parametrized constructor.
-     * \param aName name of the KTE model.
-     * \param aAnchor1 first attach point of the damper.
-     * \param aAnchor2 second attach point of the damper.
-     * \param aDamping damping coefficient (in Ns/m for a linear generalized coord. or Nms/rad for an angular generalized coord.).
-     */
-    damper_gen(const std::string& aName,
-               const shared_ptr< gen_coord<double> >& aAnchor1,
-               const shared_ptr< gen_coord<double> >& aAnchor2,
-               double aDamping) :
-               kte_map(aName),
-               mAnchor1(aAnchor1),
-               mAnchor2(aAnchor2),
-               mDamping(aDamping) { };
+  /**
+   * Sets the first anchor frame of the damper.
+   * \param aPtr A pointer to the new first anchor frame of the damper.
+   */
+  void setAnchor2( const shared_ptr< gen_coord< double > >& aPtr ) { mAnchor2 = aPtr; };
+  /**
+   * Returns a const-reference to the second anchor frame of the damper.
+   * \return A const-reference to the second anchor frame of the damper.
+   */
+  shared_ptr< gen_coord< double > > Anchor2() const { return mAnchor2; };
 
-    /**
-     * Default destructor.
-     */
-    virtual ~damper_gen() { };
+  /**
+   * Sets the damping factor of the damper.
+   * \param aValue The new damping factor of the damper.
+   */
+  void setDamping( double aValue ) { mDamping = aValue; };
+  /**
+   * Returns the damping factor of the damper.
+   * \return The damping factor of the damper.
+   */
+  double Damping() const { return mDamping; };
 
-    virtual void doMotion(kte_pass_flag aFlag = nothing, const shared_ptr<frame_storage>& aStorage = shared_ptr<frame_storage>());
+  /**
+   * Default constructor.
+   */
+  damper_gen( const std::string& aName = "" ) : kte_map( aName ), mAnchor1(), mAnchor2(), mDamping( 0.0 ){};
 
-    virtual void doForce(kte_pass_flag aFlag = nothing, const shared_ptr<frame_storage>& aStorage = shared_ptr<frame_storage>());
+  /**
+   * Parametrized constructor.
+   * \param aName name of the KTE model.
+   * \param aAnchor1 first attach point of the damper.
+   * \param aAnchor2 second attach point of the damper.
+   * \param aDamping damping coefficient (in Ns/m for a linear generalized coord. or Nms/rad for an angular generalized
+   * coord.).
+   */
+  damper_gen( const std::string& aName, const shared_ptr< gen_coord< double > >& aAnchor1,
+              const shared_ptr< gen_coord< double > >& aAnchor2, double aDamping )
+      : kte_map( aName ), mAnchor1( aAnchor1 ), mAnchor2( aAnchor2 ), mDamping( aDamping ){};
 
-    virtual void clearForce();
+  /**
+   * Default destructor.
+   */
+  virtual ~damper_gen(){};
 
-    virtual void RK_CALL save(ReaK::serialization::oarchive& A, unsigned int) const {
-      kte_map::save(A,kte_map::getStaticObjectType()->TypeVersion());
-      A & RK_SERIAL_SAVE_WITH_NAME(mAnchor1)
-        & RK_SERIAL_SAVE_WITH_NAME(mAnchor2)
-        & RK_SERIAL_SAVE_WITH_NAME(mDamping);
-    };
+  virtual void doMotion( kte_pass_flag aFlag = nothing,
+                         const shared_ptr< frame_storage >& aStorage = shared_ptr< frame_storage >() );
 
-    virtual void RK_CALL load(ReaK::serialization::iarchive& A, unsigned int) {
-      kte_map::load(A,kte_map::getStaticObjectType()->TypeVersion());
-      A & RK_SERIAL_LOAD_WITH_NAME(mAnchor1)
-        & RK_SERIAL_LOAD_WITH_NAME(mAnchor2)
-        & RK_SERIAL_LOAD_WITH_NAME(mDamping);
+  virtual void doForce( kte_pass_flag aFlag = nothing,
+                        const shared_ptr< frame_storage >& aStorage = shared_ptr< frame_storage >() );
 
-    };
+  virtual void clearForce();
 
-    RK_RTTI_MAKE_CONCRETE_1BASE(damper_gen,0xC2100010,1,"damper_gen",kte_map)
+  virtual void RK_CALL save( ReaK::serialization::oarchive& A, unsigned int ) const {
+    kte_map::save( A, kte_map::getStaticObjectType()->TypeVersion() );
+    A& RK_SERIAL_SAVE_WITH_NAME( mAnchor1 ) & RK_SERIAL_SAVE_WITH_NAME( mAnchor2 )
+      & RK_SERIAL_SAVE_WITH_NAME( mDamping );
+  };
 
+  virtual void RK_CALL load( ReaK::serialization::iarchive& A, unsigned int ) {
+    kte_map::load( A, kte_map::getStaticObjectType()->TypeVersion() );
+    A& RK_SERIAL_LOAD_WITH_NAME( mAnchor1 ) & RK_SERIAL_LOAD_WITH_NAME( mAnchor2 )
+      & RK_SERIAL_LOAD_WITH_NAME( mDamping );
+  };
+
+  RK_RTTI_MAKE_CONCRETE_1BASE( damper_gen, 0xC2100010, 1, "damper_gen", kte_map )
 };
 
 /** This class defines a damper acting between two 2D frames. */
 class damper_2D : public kte_map {
-  private:
-    shared_ptr< frame_2D<double> > mAnchor1; ///< Holds the first 2D frame.
-    shared_ptr< frame_2D<double> > mAnchor2; ///< Holds the second 2D frame.
-    double mDamping; ///< The damping coefficient (in Ns/m).
+private:
+  shared_ptr< frame_2D< double > > mAnchor1; ///< Holds the first 2D frame.
+  shared_ptr< frame_2D< double > > mAnchor2; ///< Holds the second 2D frame.
+  double mDamping;                           ///< The damping coefficient (in Ns/m).
 
-  public:
-    
-    /**
-     * Sets the first anchor frame of the damper.
-     * \param aPtr A pointer to the new first anchor frame of the damper.
-     */
-    void setAnchor1(const shared_ptr< frame_2D<double> >& aPtr) { mAnchor1 = aPtr; };
-    /**
-     * Returns a const-reference to the first anchor frame of the damper.
-     * \return A const-reference to the first anchor frame of the damper.
-     */
-    shared_ptr< frame_2D<double> > Anchor1() const { return mAnchor1; };
-    
-    /**
-     * Sets the first anchor frame of the damper.
-     * \param aPtr A pointer to the new first anchor frame of the damper.
-     */
-    void setAnchor2(const shared_ptr< frame_2D<double> >& aPtr) { mAnchor2 = aPtr; };
-    /**
-     * Returns a const-reference to the second anchor frame of the damper.
-     * \return A const-reference to the second anchor frame of the damper.
-     */
-    shared_ptr< frame_2D<double> > Anchor2() const { return mAnchor2; };
-    
-    /**
-     * Sets the damping factor of the damper.
-     * \param aValue The new damping factor of the damper.
-     */
-    void setDamping(double aValue) { mDamping = aValue; };
-    /**
-     * Returns the damping factor of the damper.
-     * \return The damping factor of the damper.
-     */
-    double Damping() const { return mDamping; };
-    
-    /**
-     * Default constructor.
-     */
-    damper_2D(const std::string& aName = "") : kte_map(aName), mAnchor1(), mAnchor2(), mDamping(0.0) { };
+public:
+  /**
+   * Sets the first anchor frame of the damper.
+   * \param aPtr A pointer to the new first anchor frame of the damper.
+   */
+  void setAnchor1( const shared_ptr< frame_2D< double > >& aPtr ) { mAnchor1 = aPtr; };
+  /**
+   * Returns a const-reference to the first anchor frame of the damper.
+   * \return A const-reference to the first anchor frame of the damper.
+   */
+  shared_ptr< frame_2D< double > > Anchor1() const { return mAnchor1; };
 
-    /**
-     * Parametrized constructor.
-     * \param aName name of the KTE model.
-     * \param aAnchor1 first attach point of the damper.
-     * \param aAnchor2 second attach point of the damper.
-     * \param aDamping damping coefficient (in Ns/m).
-     */
-    damper_2D(const std::string& aName,
-              const shared_ptr< frame_2D<double> >& aAnchor1,
-              const shared_ptr< frame_2D<double> >& aAnchor2,
-              double aDamping) :
-              kte_map(aName),
-              mAnchor1(aAnchor1),
-              mAnchor2(aAnchor2),
-              mDamping(aDamping) { };
+  /**
+   * Sets the first anchor frame of the damper.
+   * \param aPtr A pointer to the new first anchor frame of the damper.
+   */
+  void setAnchor2( const shared_ptr< frame_2D< double > >& aPtr ) { mAnchor2 = aPtr; };
+  /**
+   * Returns a const-reference to the second anchor frame of the damper.
+   * \return A const-reference to the second anchor frame of the damper.
+   */
+  shared_ptr< frame_2D< double > > Anchor2() const { return mAnchor2; };
 
-    /**
-     * Default destructor.
-     */
-    virtual ~damper_2D() { };
+  /**
+   * Sets the damping factor of the damper.
+   * \param aValue The new damping factor of the damper.
+   */
+  void setDamping( double aValue ) { mDamping = aValue; };
+  /**
+   * Returns the damping factor of the damper.
+   * \return The damping factor of the damper.
+   */
+  double Damping() const { return mDamping; };
 
-    virtual void doMotion(kte_pass_flag aFlag = nothing, const shared_ptr<frame_storage>& aStorage = shared_ptr<frame_storage>());
+  /**
+   * Default constructor.
+   */
+  damper_2D( const std::string& aName = "" ) : kte_map( aName ), mAnchor1(), mAnchor2(), mDamping( 0.0 ){};
 
-    virtual void doForce(kte_pass_flag aFlag = nothing, const shared_ptr<frame_storage>& aStorage = shared_ptr<frame_storage>());
+  /**
+   * Parametrized constructor.
+   * \param aName name of the KTE model.
+   * \param aAnchor1 first attach point of the damper.
+   * \param aAnchor2 second attach point of the damper.
+   * \param aDamping damping coefficient (in Ns/m).
+   */
+  damper_2D( const std::string& aName, const shared_ptr< frame_2D< double > >& aAnchor1,
+             const shared_ptr< frame_2D< double > >& aAnchor2, double aDamping )
+      : kte_map( aName ), mAnchor1( aAnchor1 ), mAnchor2( aAnchor2 ), mDamping( aDamping ){};
 
-    virtual void clearForce();
+  /**
+   * Default destructor.
+   */
+  virtual ~damper_2D(){};
 
-    virtual void RK_CALL save(ReaK::serialization::oarchive& A, unsigned int) const {
-      kte_map::save(A,kte_map::getStaticObjectType()->TypeVersion());
-      A & RK_SERIAL_SAVE_WITH_NAME(mAnchor1)
-        & RK_SERIAL_SAVE_WITH_NAME(mAnchor2)
-        & RK_SERIAL_SAVE_WITH_NAME(mDamping);
-    };
+  virtual void doMotion( kte_pass_flag aFlag = nothing,
+                         const shared_ptr< frame_storage >& aStorage = shared_ptr< frame_storage >() );
 
-    virtual void RK_CALL load(ReaK::serialization::iarchive& A, unsigned int) {
-      kte_map::load(A,kte_map::getStaticObjectType()->TypeVersion());
-      A & RK_SERIAL_LOAD_WITH_NAME(mAnchor1)
-        & RK_SERIAL_LOAD_WITH_NAME(mAnchor2)
-        & RK_SERIAL_LOAD_WITH_NAME(mDamping);
+  virtual void doForce( kte_pass_flag aFlag = nothing,
+                        const shared_ptr< frame_storage >& aStorage = shared_ptr< frame_storage >() );
 
-    };
+  virtual void clearForce();
 
-    RK_RTTI_MAKE_CONCRETE_1BASE(damper_2D,0xC2100011,1,"damper_2D",kte_map)
+  virtual void RK_CALL save( ReaK::serialization::oarchive& A, unsigned int ) const {
+    kte_map::save( A, kte_map::getStaticObjectType()->TypeVersion() );
+    A& RK_SERIAL_SAVE_WITH_NAME( mAnchor1 ) & RK_SERIAL_SAVE_WITH_NAME( mAnchor2 )
+      & RK_SERIAL_SAVE_WITH_NAME( mDamping );
+  };
 
+  virtual void RK_CALL load( ReaK::serialization::iarchive& A, unsigned int ) {
+    kte_map::load( A, kte_map::getStaticObjectType()->TypeVersion() );
+    A& RK_SERIAL_LOAD_WITH_NAME( mAnchor1 ) & RK_SERIAL_LOAD_WITH_NAME( mAnchor2 )
+      & RK_SERIAL_LOAD_WITH_NAME( mDamping );
+  };
+
+  RK_RTTI_MAKE_CONCRETE_1BASE( damper_2D, 0xC2100011, 1, "damper_2D", kte_map )
 };
 
 /** This class defines a damper acting between two 3D frames. */
 class damper_3D : public kte_map {
-  private:
-    shared_ptr< frame_3D<double> > mAnchor1; ///< Holds the first 3D frame.
-    shared_ptr< frame_3D<double> > mAnchor2; ///< Holds the second 3D frame.
-    double mDamping; ///< The damping coefficient (in Ns/m).
+private:
+  shared_ptr< frame_3D< double > > mAnchor1; ///< Holds the first 3D frame.
+  shared_ptr< frame_3D< double > > mAnchor2; ///< Holds the second 3D frame.
+  double mDamping;                           ///< The damping coefficient (in Ns/m).
 
-  public:
-    
-    /**
-     * Sets the first anchor frame of the damper.
-     * \param aPtr A pointer to the new first anchor frame of the damper.
-     */
-    void setAnchor1(const shared_ptr< frame_3D<double> >& aPtr) { mAnchor1 = aPtr; };
-    /**
-     * Returns a const-reference to the first anchor frame of the damper.
-     * \return A const-reference to the first anchor frame of the damper.
-     */
-    shared_ptr< frame_3D<double> > Anchor1() const { return mAnchor1; };
-    
-    /**
-     * Sets the first anchor frame of the damper.
-     * \param aPtr A pointer to the new first anchor frame of the damper.
-     */
-    void setAnchor2(const shared_ptr< frame_3D<double> >& aPtr) { mAnchor2 = aPtr; };
-    /**
-     * Returns a const-reference to the second anchor frame of the damper.
-     * \return A const-reference to the second anchor frame of the damper.
-     */
-    shared_ptr< frame_3D<double> > Anchor2() const { return mAnchor2; };
-    
-    /**
-     * Sets the damping factor of the damper.
-     * \param aValue The new damping factor of the damper.
-     */
-    void setDamping(double aValue) { mDamping = aValue; };
-    /**
-     * Returns the damping factor of the damper.
-     * \return The damping factor of the damper.
-     */
-    double Damping() const { return mDamping; };
-    
-    /**
-     * Default constructor.
-     */
-    damper_3D(const std::string& aName = "") : kte_map(aName), mAnchor1(), mAnchor2(), mDamping(0.0) { };
+public:
+  /**
+   * Sets the first anchor frame of the damper.
+   * \param aPtr A pointer to the new first anchor frame of the damper.
+   */
+  void setAnchor1( const shared_ptr< frame_3D< double > >& aPtr ) { mAnchor1 = aPtr; };
+  /**
+   * Returns a const-reference to the first anchor frame of the damper.
+   * \return A const-reference to the first anchor frame of the damper.
+   */
+  shared_ptr< frame_3D< double > > Anchor1() const { return mAnchor1; };
 
-    /**
-     * Parametrized constructor.
-     * \param aName name of the KTE model.
-     * \param aAnchor1 first attach point of the damper.
-     * \param aAnchor2 second attach point of the damper.
-     * \param aDamping damping coefficient (in Ns/m).
-     */
-    damper_3D(const std::string& aName,
-              const shared_ptr< frame_3D<double> >& aAnchor1,
-              const shared_ptr< frame_3D<double> >& aAnchor2,
-              double aDamping) :
-              kte_map(aName),
-              mAnchor1(aAnchor1),
-              mAnchor2(aAnchor2),
-              mDamping(aDamping) { };
+  /**
+   * Sets the first anchor frame of the damper.
+   * \param aPtr A pointer to the new first anchor frame of the damper.
+   */
+  void setAnchor2( const shared_ptr< frame_3D< double > >& aPtr ) { mAnchor2 = aPtr; };
+  /**
+   * Returns a const-reference to the second anchor frame of the damper.
+   * \return A const-reference to the second anchor frame of the damper.
+   */
+  shared_ptr< frame_3D< double > > Anchor2() const { return mAnchor2; };
 
-    /**
-     * Default destructor.
-     */
-    virtual ~damper_3D() { };
+  /**
+   * Sets the damping factor of the damper.
+   * \param aValue The new damping factor of the damper.
+   */
+  void setDamping( double aValue ) { mDamping = aValue; };
+  /**
+   * Returns the damping factor of the damper.
+   * \return The damping factor of the damper.
+   */
+  double Damping() const { return mDamping; };
 
-    virtual void doMotion(kte_pass_flag aFlag = nothing, const shared_ptr<frame_storage>& aStorage = shared_ptr<frame_storage>());
+  /**
+   * Default constructor.
+   */
+  damper_3D( const std::string& aName = "" ) : kte_map( aName ), mAnchor1(), mAnchor2(), mDamping( 0.0 ){};
 
-    virtual void doForce(kte_pass_flag aFlag = nothing, const shared_ptr<frame_storage>& aStorage = shared_ptr<frame_storage>());
+  /**
+   * Parametrized constructor.
+   * \param aName name of the KTE model.
+   * \param aAnchor1 first attach point of the damper.
+   * \param aAnchor2 second attach point of the damper.
+   * \param aDamping damping coefficient (in Ns/m).
+   */
+  damper_3D( const std::string& aName, const shared_ptr< frame_3D< double > >& aAnchor1,
+             const shared_ptr< frame_3D< double > >& aAnchor2, double aDamping )
+      : kte_map( aName ), mAnchor1( aAnchor1 ), mAnchor2( aAnchor2 ), mDamping( aDamping ){};
 
-    virtual void clearForce();
+  /**
+   * Default destructor.
+   */
+  virtual ~damper_3D(){};
 
-    virtual void RK_CALL save(ReaK::serialization::oarchive& A, unsigned int) const {
-      kte_map::save(A,kte_map::getStaticObjectType()->TypeVersion());
-      A & RK_SERIAL_SAVE_WITH_NAME(mAnchor1)
-        & RK_SERIAL_SAVE_WITH_NAME(mAnchor2)
-        & RK_SERIAL_SAVE_WITH_NAME(mDamping);
-    };
+  virtual void doMotion( kte_pass_flag aFlag = nothing,
+                         const shared_ptr< frame_storage >& aStorage = shared_ptr< frame_storage >() );
 
-    virtual void RK_CALL load(ReaK::serialization::iarchive& A, unsigned int) {
-      kte_map::load(A,kte_map::getStaticObjectType()->TypeVersion());
-      A & RK_SERIAL_LOAD_WITH_NAME(mAnchor1)
-        & RK_SERIAL_LOAD_WITH_NAME(mAnchor2)
-        & RK_SERIAL_LOAD_WITH_NAME(mDamping);
-    };
+  virtual void doForce( kte_pass_flag aFlag = nothing,
+                        const shared_ptr< frame_storage >& aStorage = shared_ptr< frame_storage >() );
 
-    RK_RTTI_MAKE_CONCRETE_1BASE(damper_3D,0xC2100012,1,"damper_3D",kte_map)
+  virtual void clearForce();
 
+  virtual void RK_CALL save( ReaK::serialization::oarchive& A, unsigned int ) const {
+    kte_map::save( A, kte_map::getStaticObjectType()->TypeVersion() );
+    A& RK_SERIAL_SAVE_WITH_NAME( mAnchor1 ) & RK_SERIAL_SAVE_WITH_NAME( mAnchor2 )
+      & RK_SERIAL_SAVE_WITH_NAME( mDamping );
+  };
+
+  virtual void RK_CALL load( ReaK::serialization::iarchive& A, unsigned int ) {
+    kte_map::load( A, kte_map::getStaticObjectType()->TypeVersion() );
+    A& RK_SERIAL_LOAD_WITH_NAME( mAnchor1 ) & RK_SERIAL_LOAD_WITH_NAME( mAnchor2 )
+      & RK_SERIAL_LOAD_WITH_NAME( mDamping );
+  };
+
+  RK_RTTI_MAKE_CONCRETE_1BASE( damper_3D, 0xC2100012, 1, "damper_3D", kte_map )
 };
-
-
 };
-
 };
 
 #endif
-
-
-
-
-
-
-
-
-
-

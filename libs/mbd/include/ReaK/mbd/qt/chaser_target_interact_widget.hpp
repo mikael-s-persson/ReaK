@@ -1,7 +1,7 @@
 /**
- * 
- * 
- * 
+ *
+ *
+ *
  */
 
 /*
@@ -22,7 +22,7 @@
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with ReaK (as LICENSE in the root folder).  
+ *    along with ReaK (as LICENSE in the root folder).
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
@@ -34,68 +34,51 @@
 #include <QDockWidget>
 
 namespace Ui {
-  class ChaserTargetInteract;
+class ChaserTargetInteract;
 };
 
 namespace ReaK {
-  
+
 namespace qt {
 
 class ChaserTargetInteractWidget : public QDockWidget {
-    Q_OBJECT
-    
-  private:
-    Ui::ChaserTargetInteract* ui;
-  public:
-    ChaserTargetInteractWidget(kte::chaser_target_data* aPSceneData, QWidget * parent = NULL, Qt::WindowFlags flags = 0);
-    virtual ~ChaserTargetInteractWidget();
-    
-  public slots:
-    
-    void savePositions();
-    void loadPositions();
-    
-    void onJointChange();
-    void onTargetChange();
-    
-    void loadTargetTrajectory();
-    
-  public slots:
-    
-    void loadJointPosFromModel();
-    void loadTargetPosFromModel();
-    
-  signals:
-    
-    void onLoadTargetTrajectory(QString);
-    
-  public:
-    
-    kte::chaser_target_data* pSceneData;
-    
-    bool isIKEnabled() const;
-    
-    void saveChaserTargetPositions(const std::string& aFilename);
-    void loadChaserTargetPositions(const std::string& aFilename);
-    
-};
+  Q_OBJECT
 
-};
+private:
+  Ui::ChaserTargetInteract* ui;
 
+public:
+  ChaserTargetInteractWidget( kte::chaser_target_data* aPSceneData, QWidget* parent = NULL, Qt::WindowFlags flags = 0 );
+  virtual ~ChaserTargetInteractWidget();
+
+public slots:
+
+  void savePositions();
+  void loadPositions();
+
+  void onJointChange();
+  void onTargetChange();
+
+  void loadTargetTrajectory();
+
+public slots:
+
+  void loadJointPosFromModel();
+  void loadTargetPosFromModel();
+
+signals:
+
+  void onLoadTargetTrajectory( QString );
+
+public:
+  kte::chaser_target_data* pSceneData;
+
+  bool isIKEnabled() const;
+
+  void saveChaserTargetPositions( const std::string& aFilename );
+  void loadChaserTargetPositions( const std::string& aFilename );
+};
+};
 };
 
 #endif
-
-
-
-
-
-
-
-
-
-
-
-
-
-

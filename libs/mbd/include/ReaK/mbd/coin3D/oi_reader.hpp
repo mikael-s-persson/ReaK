@@ -1,9 +1,9 @@
 /**
  * \file oi_reader.hpp
  *
- * This library declares a class that can act as an intermediate between 
- * an OpenInventor scene-graph (via Coin3D) and a collection of geometric entities for ReaK. 
- * 
+ * This library declares a class that can act as an intermediate between
+ * an OpenInventor scene-graph (via Coin3D) and a collection of geometric entities for ReaK.
+ *
  * \author Mikael Persson, <mikael.s.persson@gmail.com>
  * \date March 2013
  */
@@ -26,7 +26,7 @@
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with ReaK (as LICENSE in the root folder).  
+ *    along with ReaK (as LICENSE in the root folder).
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
@@ -48,9 +48,11 @@ class SoSeparator;
 
 /** Main namespace for ReaK */
 namespace ReaK {
-  
-template <typename T> class pose_2D;
-template <typename T> class pose_3D;
+
+template < typename T >
+class pose_2D;
+template < typename T >
+class pose_3D;
 
 /** Main namespace for ReaK.Geometry */
 namespace geom {
@@ -58,83 +60,81 @@ namespace geom {
 class geometry_2D;
 class geometry_3D;
 
-/** 
- * This class acts as an intermediate between an OpenInventor scene-graph (via Coin3D) and a 
- * collection of geometric entities for ReaK. 
+/**
+ * This class acts as an intermediate between an OpenInventor scene-graph (via Coin3D) and a
+ * collection of geometric entities for ReaK.
  */
 class oi_reader {
-  protected:
-    SoSeparator* mRoot;
-    
-  public:
-    
-    SoSeparator* getSceneGraph() const { return mRoot; };
-    
-    /**
-     * This function computes the characteristic length used to scale the illustrative components (e.g., coordinate axes, 
-     * KTE representations, etc.) to a size that is proportionate to the geometries by using the bounding box computed
-     * from the geometries currently present in the scene-graph.
-     * \return The value obtained for the characteristic length, which will also be set internally as the current characteristic-length for the scene-graph.
-     */
-    double computeCharacteristicLength();
-    
-    /**
-     * Default constructor.
-     */
-    oi_reader();
-    
-    /**
-     * Default constructor from a file-name.
-     */
-    oi_reader(const std::string& aFileName);
-    
-    /**
-     * Default constructor from an input stream.
-     */
-    oi_reader(std::istream& aStream);
-    
-    
-    oi_reader(const oi_reader&);
-    oi_reader& operator=(const oi_reader&);
-    
+protected:
+  SoSeparator* mRoot;
+
+public:
+  SoSeparator* getSceneGraph() const { return mRoot; };
+
+  /**
+   * This function computes the characteristic length used to scale the illustrative components (e.g., coordinate axes,
+   * KTE representations, etc.) to a size that is proportionate to the geometries by using the bounding box computed
+   * from the geometries currently present in the scene-graph.
+   * \return The value obtained for the characteristic length, which will also be set internally as the current
+   * characteristic-length for the scene-graph.
+   */
+  double computeCharacteristicLength();
+
+  /**
+   * Default constructor.
+   */
+  oi_reader();
+
+  /**
+   * Default constructor from a file-name.
+   */
+  oi_reader( const std::string& aFileName );
+
+  /**
+   * Default constructor from an input stream.
+   */
+  oi_reader( std::istream& aStream );
+
+
+  oi_reader( const oi_reader& );
+  oi_reader& operator=( const oi_reader& );
+
 #ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
-    oi_reader(oi_reader&&);
-    oi_reader& operator=(oi_reader&&);
+  oi_reader( oi_reader&& );
+  oi_reader& operator=( oi_reader&& );
 #endif
-    
-    /**
-     * Default destructor.
-     */
-    virtual ~oi_reader();
-    
-    /**
-     * Open a given file.
-     */
-    oi_reader& read_file(const std::string& aFileName);
-    
-    /**
-     * Read scene-graph from a given stream.
-     */
-    oi_reader& read_stream(std::istream& aStream);
-    
-    /**
-     * Check if the.
-     */
-    operator bool() const { return (mRoot != NULL); };
-    
-    
-    friend
-    oi_reader& operator>>(oi_reader& aSG, colored_model_3D& aModel);
-    
-    friend
-    oi_reader& operator>>(oi_reader& aSG, proxy_query_model_3D& aProxy);
-    
-    oi_reader& translate_into(colored_model_3D& aModel, proxy_query_model_3D& aProxy);
-    
+
+  /**
+   * Default destructor.
+   */
+  virtual ~oi_reader();
+
+  /**
+   * Open a given file.
+   */
+  oi_reader& read_file( const std::string& aFileName );
+
+  /**
+   * Read scene-graph from a given stream.
+   */
+  oi_reader& read_stream( std::istream& aStream );
+
+  /**
+   * Check if the.
+   */
+  operator bool() const { return ( mRoot != NULL ); };
+
+
+  friend oi_reader& operator>>( oi_reader& aSG, colored_model_3D& aModel );
+
+  friend oi_reader& operator>>( oi_reader& aSG, proxy_query_model_3D& aProxy );
+
+  oi_reader& translate_into( colored_model_3D& aModel, proxy_query_model_3D& aProxy );
 };
 
 
-// Re-declaration down in the geom namespace directly as some compilers give trouble with friend functions only declared in the class.
+// Re-declaration down in the geom namespace directly as some compilers give trouble with friend functions only declared
+// in the class.
 
 /**
  * This operator creates a 3D colored geometric model from an Open-Inventor scene-graph.
@@ -142,7 +142,7 @@ class oi_reader {
  * \param aModel The 3D colored geometric model constructed by the scene-graph reader.
  * \return The Open-Inventor scene-graph reader given as the first parameter, by reference.
  */
-oi_reader& operator>>(oi_reader& aSG, colored_model_3D& aModel);
+oi_reader& operator>>( oi_reader& aSG, colored_model_3D& aModel );
 
 /**
  * This operator creates a 3D proximity-query model from an Open-Inventor scene-graph.
@@ -150,20 +150,8 @@ oi_reader& operator>>(oi_reader& aSG, colored_model_3D& aModel);
  * \param aProxy The 3D proximity-query model constructed by the scene-graph reader.
  * \return The Open-Inventor scene-graph reader given as the first parameter, by reference.
  */
-oi_reader& operator>>(oi_reader& aSG, proxy_query_model_3D& aProxy);
-
+oi_reader& operator>>( oi_reader& aSG, proxy_query_model_3D& aProxy );
 };
-
 };
 
 #endif
-
-
-
-
-
-
-
-
-
-

@@ -27,7 +27,7 @@
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with ReaK (as LICENSE in the root folder).  
+ *    along with ReaK (as LICENSE in the root folder).
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
@@ -42,87 +42,78 @@ namespace ReaK {
 namespace kte {
 
 
-
 /**
  * This class is a container of linearly chained kinetostatic transmission elements (KTEs).
  */
 class kte_map_chain : public kte_map {
-  private:
-    std::vector< shared_ptr<kte_map> > mKTEs; ///< Stores the list of KTEs
+private:
+  std::vector< shared_ptr< kte_map > > mKTEs; ///< Stores the list of KTEs
 
-  public:
-    
-    /**
-     * This function returns the vector of KTEs contained in this chain.
-     * \return A const-reference to the vector of KTEs contained in this chain.
-     */
-    const std::vector< shared_ptr<kte_map> >& getKTEs() const { return mKTEs; };
-    
-    /**
-     * Default constructor.
-     */
-    kte_map_chain(const std::string& aName = "") : kte_map(aName), mKTEs() { };
+public:
+  /**
+   * This function returns the vector of KTEs contained in this chain.
+   * \return A const-reference to the vector of KTEs contained in this chain.
+   */
+  const std::vector< shared_ptr< kte_map > >& getKTEs() const { return mKTEs; };
 
-    /**
-     * Default destructor.
-     */
-    virtual ~kte_map_chain() { };
+  /**
+   * Default constructor.
+   */
+  kte_map_chain( const std::string& aName = "" ) : kte_map( aName ), mKTEs(){};
 
-    virtual void doMotion(kte_pass_flag aFlag = nothing, const shared_ptr<frame_storage>& aStorage = shared_ptr<frame_storage>()) {
-      std::vector< shared_ptr<kte_map> >::iterator it = mKTEs.begin();
-      for(;it != mKTEs.end();++it) {
-        (*it)->doMotion(aFlag,aStorage);
-      };
+  /**
+   * Default destructor.
+   */
+  virtual ~kte_map_chain(){};
+
+  virtual void doMotion( kte_pass_flag aFlag = nothing,
+                         const shared_ptr< frame_storage >& aStorage = shared_ptr< frame_storage >() ) {
+    std::vector< shared_ptr< kte_map > >::iterator it = mKTEs.begin();
+    for( ; it != mKTEs.end(); ++it ) {
+      ( *it )->doMotion( aFlag, aStorage );
     };
+  };
 
-    virtual void doForce(kte_pass_flag aFlag = nothing, const shared_ptr<frame_storage>& aStorage = shared_ptr<frame_storage>()) {
-      std::vector< shared_ptr<kte_map> >::reverse_iterator rit = mKTEs.rbegin();
-      for(;rit != mKTEs.rend();++rit) {
-        (*rit)->doForce(aFlag,aStorage);
-      };
+  virtual void doForce( kte_pass_flag aFlag = nothing,
+                        const shared_ptr< frame_storage >& aStorage = shared_ptr< frame_storage >() ) {
+    std::vector< shared_ptr< kte_map > >::reverse_iterator rit = mKTEs.rbegin();
+    for( ; rit != mKTEs.rend(); ++rit ) {
+      ( *rit )->doForce( aFlag, aStorage );
     };
+  };
 
-    virtual void clearForce() {
-      std::vector< shared_ptr<kte_map> >::iterator it = mKTEs.begin();
-      for(;it != mKTEs.end();++it)
-        (*it)->clearForce();
-    };
+  virtual void clearForce() {
+    std::vector< shared_ptr< kte_map > >::iterator it = mKTEs.begin();
+    for( ; it != mKTEs.end(); ++it )
+      ( *it )->clearForce();
+  };
 
-    /**
-     * This method appends a KTE model to the linear chain of models.
-     * \pre Any state.
-     * \post The chain will contain an additional KTE.
-     * \param aKTE The KTE model to add to this chain.
-     * \return reference to this chain (to chain the << operators).
-     */
-    kte_map_chain& operator <<(const shared_ptr<kte_map>& aKTE) {
-      if(aKTE)
-        mKTEs.push_back(aKTE);
-      return *this;
-    };
+  /**
+   * This method appends a KTE model to the linear chain of models.
+   * \pre Any state.
+   * \post The chain will contain an additional KTE.
+   * \param aKTE The KTE model to add to this chain.
+   * \return reference to this chain (to chain the << operators).
+   */
+  kte_map_chain& operator<<( const shared_ptr< kte_map >& aKTE ) {
+    if( aKTE )
+      mKTEs.push_back( aKTE );
+    return *this;
+  };
 
-    virtual void RK_CALL save(serialization::oarchive& A, unsigned int) const {
-      ReaK::named_object::save(A,named_object::getStaticObjectType()->TypeVersion());
-      A & RK_SERIAL_SAVE_WITH_NAME(mKTEs);
-    };
+  virtual void RK_CALL save( serialization::oarchive& A, unsigned int ) const {
+    ReaK::named_object::save( A, named_object::getStaticObjectType()->TypeVersion() );
+    A& RK_SERIAL_SAVE_WITH_NAME( mKTEs );
+  };
 
-    virtual void RK_CALL load(serialization::iarchive& A, unsigned int) {
-      ReaK::named_object::load(A,named_object::getStaticObjectType()->TypeVersion());
-      A & RK_SERIAL_LOAD_WITH_NAME(mKTEs);
-    };
+  virtual void RK_CALL load( serialization::iarchive& A, unsigned int ) {
+    ReaK::named_object::load( A, named_object::getStaticObjectType()->TypeVersion() );
+    A& RK_SERIAL_LOAD_WITH_NAME( mKTEs );
+  };
 
-    RK_RTTI_MAKE_CONCRETE_1BASE(kte_map_chain,0xC2100002,1,"kte_map_chain",kte_map)
-
+  RK_RTTI_MAKE_CONCRETE_1BASE( kte_map_chain, 0xC2100002, 1, "kte_map_chain", kte_map )
 };
-
-
 };
-
 };
 
 #endif
-
-
-
-
-

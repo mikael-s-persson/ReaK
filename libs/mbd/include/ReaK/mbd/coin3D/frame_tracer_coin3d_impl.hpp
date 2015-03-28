@@ -1,9 +1,9 @@
 /**
  * \file frame_tracer_coin3d_impl.hpp
- * 
- * This library defines a sampling-based motion/path planning reporter for tracing out the path of a frame 
- * linked to a DK kinematic model. 
- * 
+ *
+ * This library defines a sampling-based motion/path planning reporter for tracing out the path of a frame
+ * linked to a DK kinematic model.
+ *
  * \author Sven Mikael Persson <mikael.s.persson@gmail.com>
  * \date October 2012
  */
@@ -26,7 +26,7 @@
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with ReaK (as LICENSE in the root folder).  
+ *    along with ReaK (as LICENSE in the root folder).
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
@@ -38,7 +38,7 @@
 #include <ReaK/math/lin_alg/vect_alg.hpp>
 
 
-class SoSeparator;   // forward-declare
+class SoSeparator; // forward-declare
 
 
 /** Main namespace for ReaK */
@@ -54,29 +54,24 @@ struct tracer_coin3d_impl_pimpl; // forward-declare
  * This class can be used
  */
 struct tracer_coin3d_impl {
-  
+
   tracer_coin3d_impl_pimpl* path_impl;
-  
+
   SoSeparator* get_separator() const;
-  
-  explicit tracer_coin3d_impl(bool aIsSolution = false);
-  tracer_coin3d_impl(const tracer_coin3d_impl& rhs);
-  tracer_coin3d_impl& operator=(const tracer_coin3d_impl& rhs);
+
+  explicit tracer_coin3d_impl( bool aIsSolution = false );
+  tracer_coin3d_impl( const tracer_coin3d_impl& rhs );
+  tracer_coin3d_impl& operator=( const tracer_coin3d_impl& rhs );
   ~tracer_coin3d_impl();
-  
-  void begin_edge(const vect<double,3>& start_point) const;
-  
-  void add_point(const vect<double,3>& new_point) const;
-  
+
+  void begin_edge( const vect< double, 3 >& start_point ) const;
+
+  void add_point( const vect< double, 3 >& new_point ) const;
+
   void end_edge() const;
-  
 };
-
-
 };
-
 };
 
 
 #endif
-

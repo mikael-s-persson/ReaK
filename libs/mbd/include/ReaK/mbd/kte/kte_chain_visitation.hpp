@@ -26,7 +26,7 @@
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with ReaK (as LICENSE in the root folder).  
+ *    along with ReaK (as LICENSE in the root folder).
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
@@ -41,72 +41,48 @@
 namespace ReaK {
 
 namespace kte {
-  
+
 namespace detail {
-  
-  template <typename Tuple, typename Idx, typename Visitor>
-  typename boost::disable_if< 
-    boost::mpl::greater< 
-      Idx, 
-      boost::mpl::size_t<0> 
-    >,
-  void >::type try_visit_kte(Visitor&, kte_map&) { };
-  
-  template <typename Tuple, typename Idx, typename Visitor>
-  typename boost::enable_if< 
-    boost::mpl::greater< 
-      Idx, 
-      boost::mpl::size_t<0> 
-    >,
-  void >::type try_visit_kte(Visitor& vis, kte_map& aModel) {
-    typedef typename boost::mpl::prior<Idx>::type IdxPrior;
-    
-    try_visit_kte< Tuple, IdxPrior, Visitor>(vis, aModel);
-    
-    typedef typename boost::tuples::element< IdxPrior::value, Tuple >::type TestType;
-    if(aModel.castTo(TestType::getStaticObjectType()))
-      vis(static_cast<TestType&>(aModel));
-  };
-  
-  
-  
-  
+
+template < typename Tuple, typename Idx, typename Visitor >
+typename boost::disable_if< boost::mpl::greater< Idx, boost::mpl::size_t< 0 > >, void >::type
+  try_visit_kte( Visitor&, kte_map& ){};
+
+template < typename Tuple, typename Idx, typename Visitor >
+typename boost::enable_if< boost::mpl::greater< Idx, boost::mpl::size_t< 0 > >, void >::type
+  try_visit_kte( Visitor& vis, kte_map& aModel ) {
+  typedef typename boost::mpl::prior< Idx >::type IdxPrior;
+
+  try_visit_kte< Tuple, IdxPrior, Visitor >( vis, aModel );
+
+  typedef typename boost::tuples::element< IdxPrior::value, Tuple >::type TestType;
+  if( aModel.castTo( TestType::getStaticObjectType() ) )
+    vis( static_cast< TestType& >( aModel ) );
+};
 };
 
-template <typename Tuple, typename Visitor>
-void visit_kte_chain(Visitor& vis, const kte_map_chain& aChain);
+template < typename Tuple, typename Visitor >
+void visit_kte_chain( Visitor& vis, const kte_map_chain& aChain );
 
-template <typename Tuple, typename Visitor>
-void visit_kte(Visitor& vis, kte_map& aModel) {
-  
-  detail::try_visit_kte< Tuple, boost::mpl::size_t< boost::tuples::length< Tuple >::value >, Visitor >(vis, aModel);
-  
-  if(aModel.castTo(kte_map_chain::getStaticObjectType())) {
-    visit_kte_chain<Tuple,Visitor>(vis, static_cast<kte_map_chain&>(aModel));
+template < typename Tuple, typename Visitor >
+void visit_kte( Visitor& vis, kte_map& aModel ) {
+
+  detail::try_visit_kte< Tuple, boost::mpl::size_t< boost::tuples::length< Tuple >::value >, Visitor >( vis, aModel );
+
+  if( aModel.castTo( kte_map_chain::getStaticObjectType() ) ) {
+    visit_kte_chain< Tuple, Visitor >( vis, static_cast< kte_map_chain& >( aModel ) );
   };
-  
 };
 
 
-template <typename Tuple, typename Visitor>
-void visit_kte_chain(Visitor& vis, const kte_map_chain& aChain) {
-  
+template < typename Tuple, typename Visitor >
+void visit_kte_chain( Visitor& vis, const kte_map_chain& aChain ) {
+
   const std::vector< shared_ptr< kte_map > >& mdl_list = aChain.getKTEs();
-  for(std::size_t i = 0; i < mdl_list.size(); ++i)
-    visit_kte<Tuple,Visitor>(vis, *(mdl_list[i]));
-  
+  for( std::size_t i = 0; i < mdl_list.size(); ++i )
+    visit_kte< Tuple, Visitor >( vis, *( mdl_list[i] ) );
 };
-
-
-
-
 };
-
 };
 
 #endif
-
-
-
-
-

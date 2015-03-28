@@ -27,7 +27,7 @@
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with ReaK (as LICENSE in the root folder).  
+ *    along with ReaK (as LICENSE in the root folder).
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
@@ -50,153 +50,134 @@ namespace kte {
  * on the object-frame is rigidly transmitted and evenly split to the anchors, in addition to the restitution forces.
  */
 class flexible_beam_2D : public kte_map {
-  private:
-    shared_ptr< frame_2D<double> > mAnchor1; ///< Holds the first end of the beam.
-    shared_ptr< frame_2D<double> > mAnchor2; ///< Holds the second end of the beam.
-    shared_ptr< frame_2D<double> > mObjectFrame; ///< Holds the center frame of the beam (i.e. its bulk).
-    double mRestLength; ///< The undeformed length of the beam.
-    double mStiffness; ///< The linear stiffness of the beam, stress-strain relation, iso-tropically.
-    double mTorsionStiffness; ///< The angular or torsion stiffness of the beam, iso-tropically.
+private:
+  shared_ptr< frame_2D< double > > mAnchor1;     ///< Holds the first end of the beam.
+  shared_ptr< frame_2D< double > > mAnchor2;     ///< Holds the second end of the beam.
+  shared_ptr< frame_2D< double > > mObjectFrame; ///< Holds the center frame of the beam (i.e. its bulk).
+  double mRestLength;                            ///< The undeformed length of the beam.
+  double mStiffness;        ///< The linear stiffness of the beam, stress-strain relation, iso-tropically.
+  double mTorsionStiffness; ///< The angular or torsion stiffness of the beam, iso-tropically.
 
-  public:
-    
-    /**
-     * Sets the first anchor frame of the beam.
-     * \param aPtr A pointer to the new first anchor frame of the beam.
-     */
-    void setAnchor1(const shared_ptr< frame_2D<double> >& aPtr) { mAnchor1 = aPtr; };
-    /**
-     * Returns a const-reference to the first anchor frame of the beam.
-     * \return A const-reference to the first anchor frame of the beam.
-     */
-    shared_ptr< frame_2D<double> > Anchor1() const { return mAnchor1; };
-    
-    /**
-     * Sets the first anchor frame of the beam.
-     * \param aPtr A pointer to the new first anchor frame of the beam.
-     */
-    void setAnchor2(const shared_ptr< frame_2D<double> >& aPtr) { mAnchor2 = aPtr; };
-    /**
-     * Returns a const-reference to the second anchor frame of the beam.
-     * \return A const-reference to the second anchor frame of the beam.
-     */
-    shared_ptr< frame_2D<double> > Anchor2() const { return mAnchor2; };
-    
-    /**
-     * Sets the center frame of the beam (i.e. its bulk).
-     * \param aPtr A pointer to the new center frame of the beam (i.e. its bulk).
-     */
-    void setCenterFrame(const shared_ptr< frame_2D<double> >& aPtr) { mObjectFrame = aPtr; };
-    /**
-     * Returns the center frame of the beam (i.e. its bulk).
-     * \return The center frame of the beam (i.e. its bulk).
-     */
-    shared_ptr< frame_2D<double> > CenterFrame() const { return mObjectFrame; };
-    
-    /**
-     * Sets the rest-length of the beam.
-     * \param aValue The new rest-length of the beam.
-     */
-    void setRestLength(double aValue) { mRestLength = aValue; };
-    /**
-     * Returns the rest-length of the beam.
-     * \return The rest-length of the beam.
-     */
-    double RestLength() const { return mRestLength; };
-    
-    /**
-     * Sets the stiffness value of the beam.
-     * \param aValue The new stiffness value of the beam.
-     */
-    void setStiffness(double aValue) { mStiffness = aValue; };
-    /**
-     * Returns the stiffness value of the beam.
-     * \return The stiffness value of the beam.
-     */
-    double Stiffness() const { return mStiffness; };
-    
-    /**
-     * Sets the torsion stiffness value of the beam.
-     * \param aValue The new torsion stiffness value of the beam.
-     */
-    void setTorsionStiffness(double aValue) { mTorsionStiffness = aValue; };
-    /**
-     * Returns the torsion stiffness value of the beam.
-     * \return The torsion stiffness value of the beam.
-     */
-    double TorsionStiffness() const { return mTorsionStiffness; };
-    
+public:
+  /**
+   * Sets the first anchor frame of the beam.
+   * \param aPtr A pointer to the new first anchor frame of the beam.
+   */
+  void setAnchor1( const shared_ptr< frame_2D< double > >& aPtr ) { mAnchor1 = aPtr; };
+  /**
+   * Returns a const-reference to the first anchor frame of the beam.
+   * \return A const-reference to the first anchor frame of the beam.
+   */
+  shared_ptr< frame_2D< double > > Anchor1() const { return mAnchor1; };
 
-    /**
-     * Default constructor.
-     */
-    flexible_beam_2D(const std::string& aName = "") : kte_map(aName),
-                                                      mAnchor1(),
-                                                      mAnchor2(),
-                                                      mObjectFrame(),
-                                                      mRestLength(0.0),
-                                                      mStiffness(0.0),
-                                                      mTorsionStiffness(0.0){ };
+  /**
+   * Sets the first anchor frame of the beam.
+   * \param aPtr A pointer to the new first anchor frame of the beam.
+   */
+  void setAnchor2( const shared_ptr< frame_2D< double > >& aPtr ) { mAnchor2 = aPtr; };
+  /**
+   * Returns a const-reference to the second anchor frame of the beam.
+   * \return A const-reference to the second anchor frame of the beam.
+   */
+  shared_ptr< frame_2D< double > > Anchor2() const { return mAnchor2; };
 
-    /**
-     * Parametrized constructor.
-     * \param aName the name of the KTE model.
-     * \param aAnchor1 the first end of the beam (kinematic input).
-     * \param aAnchor2 the second end of the beam (kinematic input).
-     * \param aObjectFrame the center frame of the beam (i.e. its bulk).
-     * \param aRestLength the undeformed length of the beam.
-     * \param aStiffness the linear stiffness of the beam, stress-strain relation, iso-tropically.
-     * \param aTorsionStiffness the angular or torsion stiffness of the beam, iso-tropically.
-     */
-    flexible_beam_2D(const std::string& aName,
-                     const shared_ptr< frame_2D<double> >& aAnchor1,
-                     const shared_ptr< frame_2D<double> >& aAnchor2,
-                     const shared_ptr< frame_2D<double> >& aObjectFrame,
-                     double aRestLength,
-                     double aStiffness,
-                     double aTorsionStiffness) :
-                     kte_map(aName),
-                     mAnchor1(aAnchor1),
-                     mAnchor2(aAnchor2),
-                     mObjectFrame(aObjectFrame),
-                     mRestLength(aRestLength),
-                     mStiffness(aStiffness),
-                     mTorsionStiffness(aTorsionStiffness){ };
+  /**
+   * Sets the center frame of the beam (i.e. its bulk).
+   * \param aPtr A pointer to the new center frame of the beam (i.e. its bulk).
+   */
+  void setCenterFrame( const shared_ptr< frame_2D< double > >& aPtr ) { mObjectFrame = aPtr; };
+  /**
+   * Returns the center frame of the beam (i.e. its bulk).
+   * \return The center frame of the beam (i.e. its bulk).
+   */
+  shared_ptr< frame_2D< double > > CenterFrame() const { return mObjectFrame; };
 
-    /**
-     * Default destructor.
-     */
-    virtual ~flexible_beam_2D() { };
+  /**
+   * Sets the rest-length of the beam.
+   * \param aValue The new rest-length of the beam.
+   */
+  void setRestLength( double aValue ) { mRestLength = aValue; };
+  /**
+   * Returns the rest-length of the beam.
+   * \return The rest-length of the beam.
+   */
+  double RestLength() const { return mRestLength; };
 
-    virtual void doMotion(kte_pass_flag aFlag = nothing, const shared_ptr<frame_storage>& aStorage = shared_ptr<frame_storage>());
+  /**
+   * Sets the stiffness value of the beam.
+   * \param aValue The new stiffness value of the beam.
+   */
+  void setStiffness( double aValue ) { mStiffness = aValue; };
+  /**
+   * Returns the stiffness value of the beam.
+   * \return The stiffness value of the beam.
+   */
+  double Stiffness() const { return mStiffness; };
 
-    virtual void doForce(kte_pass_flag aFlag = nothing, const shared_ptr<frame_storage>& aStorage = shared_ptr<frame_storage>());
+  /**
+   * Sets the torsion stiffness value of the beam.
+   * \param aValue The new torsion stiffness value of the beam.
+   */
+  void setTorsionStiffness( double aValue ) { mTorsionStiffness = aValue; };
+  /**
+   * Returns the torsion stiffness value of the beam.
+   * \return The torsion stiffness value of the beam.
+   */
+  double TorsionStiffness() const { return mTorsionStiffness; };
 
-    virtual void clearForce();
 
-    virtual void RK_CALL save(serialization::oarchive& A, unsigned int) const {
-      kte_map::save(A,kte_map::getStaticObjectType()->TypeVersion());
-      A & RK_SERIAL_SAVE_WITH_NAME(mAnchor1)
-        & RK_SERIAL_SAVE_WITH_NAME(mAnchor2)
-        & RK_SERIAL_SAVE_WITH_NAME(mObjectFrame)
-        & RK_SERIAL_SAVE_WITH_NAME(mRestLength)
-        & RK_SERIAL_SAVE_WITH_NAME(mStiffness)
-        & RK_SERIAL_SAVE_WITH_NAME(mTorsionStiffness);
-    };
+  /**
+   * Default constructor.
+   */
+  flexible_beam_2D( const std::string& aName = "" )
+      : kte_map( aName ), mAnchor1(), mAnchor2(), mObjectFrame(), mRestLength( 0.0 ), mStiffness( 0.0 ),
+        mTorsionStiffness( 0.0 ){};
 
-    virtual void RK_CALL load(serialization::iarchive& A, unsigned int) {
-      kte_map::load(A,kte_map::getStaticObjectType()->TypeVersion());
-      A & RK_SERIAL_LOAD_WITH_NAME(mAnchor1)
-        & RK_SERIAL_LOAD_WITH_NAME(mAnchor2)
-        & RK_SERIAL_LOAD_WITH_NAME(mObjectFrame)
-        & RK_SERIAL_LOAD_WITH_NAME(mRestLength)
-        & RK_SERIAL_LOAD_WITH_NAME(mStiffness)
-        & RK_SERIAL_LOAD_WITH_NAME(mTorsionStiffness);
+  /**
+   * Parametrized constructor.
+   * \param aName the name of the KTE model.
+   * \param aAnchor1 the first end of the beam (kinematic input).
+   * \param aAnchor2 the second end of the beam (kinematic input).
+   * \param aObjectFrame the center frame of the beam (i.e. its bulk).
+   * \param aRestLength the undeformed length of the beam.
+   * \param aStiffness the linear stiffness of the beam, stress-strain relation, iso-tropically.
+   * \param aTorsionStiffness the angular or torsion stiffness of the beam, iso-tropically.
+   */
+  flexible_beam_2D( const std::string& aName, const shared_ptr< frame_2D< double > >& aAnchor1,
+                    const shared_ptr< frame_2D< double > >& aAnchor2,
+                    const shared_ptr< frame_2D< double > >& aObjectFrame, double aRestLength, double aStiffness,
+                    double aTorsionStiffness )
+      : kte_map( aName ), mAnchor1( aAnchor1 ), mAnchor2( aAnchor2 ), mObjectFrame( aObjectFrame ),
+        mRestLength( aRestLength ), mStiffness( aStiffness ), mTorsionStiffness( aTorsionStiffness ){};
 
-    };
+  /**
+   * Default destructor.
+   */
+  virtual ~flexible_beam_2D(){};
 
-    RK_RTTI_MAKE_CONCRETE_1BASE(flexible_beam_2D,0xC210001D,1,"flexible_beam_2D",kte_map)
+  virtual void doMotion( kte_pass_flag aFlag = nothing,
+                         const shared_ptr< frame_storage >& aStorage = shared_ptr< frame_storage >() );
 
+  virtual void doForce( kte_pass_flag aFlag = nothing,
+                        const shared_ptr< frame_storage >& aStorage = shared_ptr< frame_storage >() );
+
+  virtual void clearForce();
+
+  virtual void RK_CALL save( serialization::oarchive& A, unsigned int ) const {
+    kte_map::save( A, kte_map::getStaticObjectType()->TypeVersion() );
+    A& RK_SERIAL_SAVE_WITH_NAME( mAnchor1 ) & RK_SERIAL_SAVE_WITH_NAME( mAnchor2 )
+      & RK_SERIAL_SAVE_WITH_NAME( mObjectFrame ) & RK_SERIAL_SAVE_WITH_NAME( mRestLength )
+      & RK_SERIAL_SAVE_WITH_NAME( mStiffness ) & RK_SERIAL_SAVE_WITH_NAME( mTorsionStiffness );
+  };
+
+  virtual void RK_CALL load( serialization::iarchive& A, unsigned int ) {
+    kte_map::load( A, kte_map::getStaticObjectType()->TypeVersion() );
+    A& RK_SERIAL_LOAD_WITH_NAME( mAnchor1 ) & RK_SERIAL_LOAD_WITH_NAME( mAnchor2 )
+      & RK_SERIAL_LOAD_WITH_NAME( mObjectFrame ) & RK_SERIAL_LOAD_WITH_NAME( mRestLength )
+      & RK_SERIAL_LOAD_WITH_NAME( mStiffness ) & RK_SERIAL_LOAD_WITH_NAME( mTorsionStiffness );
+  };
+
+  RK_RTTI_MAKE_CONCRETE_1BASE( flexible_beam_2D, 0xC210001D, 1, "flexible_beam_2D", kte_map )
 };
 
 /**
@@ -207,166 +188,136 @@ class flexible_beam_2D : public kte_map {
  * on the object-frame is rigidly transmitted and evenly split to the anchors, in addition to the restitution forces.
  */
 class flexible_beam_3D : public kte_map {
-  private:
-    shared_ptr< frame_3D<double> > mAnchor1; ///< Holds the first end of the beam.
-    shared_ptr< frame_3D<double> > mAnchor2; ///< Holds the second end of the beam.
-    shared_ptr< frame_3D<double> > mObjectFrame; ///< Holds the center frame of the beam (i.e. its bulk).
-    double mRestLength; ///< The undeformed length of the beam.
-    double mStiffness; ///< The linear stiffness of the beam, stress-strain relation, iso-tropically.
-    double mTorsionStiffness; ///< The angular or torsion stiffness of the beam, iso-tropically.
+private:
+  shared_ptr< frame_3D< double > > mAnchor1;     ///< Holds the first end of the beam.
+  shared_ptr< frame_3D< double > > mAnchor2;     ///< Holds the second end of the beam.
+  shared_ptr< frame_3D< double > > mObjectFrame; ///< Holds the center frame of the beam (i.e. its bulk).
+  double mRestLength;                            ///< The undeformed length of the beam.
+  double mStiffness;        ///< The linear stiffness of the beam, stress-strain relation, iso-tropically.
+  double mTorsionStiffness; ///< The angular or torsion stiffness of the beam, iso-tropically.
 
-  public:
-    
-    /**
-     * Sets the first anchor frame of the beam.
-     * \param aPtr A pointer to the new first anchor frame of the beam.
-     */
-    void setAnchor1(const shared_ptr< frame_3D<double> >& aPtr) { mAnchor1 = aPtr; };
-    /**
-     * Returns a const-reference to the first anchor frame of the beam.
-     * \return A const-reference to the first anchor frame of the beam.
-     */
-    shared_ptr< frame_3D<double> > Anchor1() const { return mAnchor1; };
-    
-    /**
-     * Sets the first anchor frame of the beam.
-     * \param aPtr A pointer to the new first anchor frame of the beam.
-     */
-    void setAnchor2(const shared_ptr< frame_3D<double> >& aPtr) { mAnchor2 = aPtr; };
-    /**
-     * Returns a const-reference to the second anchor frame of the beam.
-     * \return A const-reference to the second anchor frame of the beam.
-     */
-    shared_ptr< frame_3D<double> > Anchor2() const { return mAnchor2; };
-    
-    /**
-     * Sets the center frame of the beam (i.e. its bulk).
-     * \param aPtr A pointer to the new center frame of the beam (i.e. its bulk).
-     */
-    void setCenterFrame(const shared_ptr< frame_3D<double> >& aPtr) { mObjectFrame = aPtr; };
-    /**
-     * Returns the center frame of the beam (i.e. its bulk).
-     * \return The center frame of the beam (i.e. its bulk).
-     */
-    shared_ptr< frame_3D<double> > CenterFrame() const { return mObjectFrame; };
-    
-    /**
-     * Sets the rest-length of the beam.
-     * \param aValue The new rest-length of the beam.
-     */
-    void setRestLength(double aValue) { mRestLength = aValue; };
-    /**
-     * Returns the rest-length of the beam.
-     * \return The rest-length of the beam.
-     */
-    double RestLength() const { return mRestLength; };
-    
-    /**
-     * Sets the stiffness value of the beam.
-     * \param aValue The new stiffness value of the beam.
-     */
-    void setStiffness(double aValue) { mStiffness = aValue; };
-    /**
-     * Returns the stiffness value of the beam.
-     * \return The stiffness value of the beam.
-     */
-    double Stiffness() const { return mStiffness; };
-    
-    /**
-     * Sets the torsion stiffness value of the beam.
-     * \param aValue The new torsion stiffness value of the beam.
-     */
-    void setTorsionStiffness(double aValue) { mTorsionStiffness = aValue; };
-    /**
-     * Returns the torsion stiffness value of the beam.
-     * \return The torsion stiffness value of the beam.
-     */
-    double TorsionStiffness() const { return mTorsionStiffness; };
-    
-    /**
-     * Default constructor.
-     */
-    flexible_beam_3D(const std::string& aName = "") : kte_map(aName),
-                                                      mAnchor1(),
-                                                      mAnchor2(),
-                                                      mObjectFrame(),
-                                                      mRestLength(0.0),
-                                                      mStiffness(0.0),
-                                                      mTorsionStiffness(0.0){ };
+public:
+  /**
+   * Sets the first anchor frame of the beam.
+   * \param aPtr A pointer to the new first anchor frame of the beam.
+   */
+  void setAnchor1( const shared_ptr< frame_3D< double > >& aPtr ) { mAnchor1 = aPtr; };
+  /**
+   * Returns a const-reference to the first anchor frame of the beam.
+   * \return A const-reference to the first anchor frame of the beam.
+   */
+  shared_ptr< frame_3D< double > > Anchor1() const { return mAnchor1; };
 
-    /**
-     * Parametrized constructor.
-     * \param aName the name of the KTE model.
-     * \param aAnchor1 the first end of the beam (kinematic input).
-     * \param aAnchor2 the second end of the beam (kinematic input).
-     * \param aObjectFrame the center frame of the beam (i.e. its bulk).
-     * \param aRestLength the undeformed length of the beam.
-     * \param aStiffness the linear stiffness of the beam, stress-strain relation, iso-tropically.
-     * \param aTorsionStiffness the angular or torsion stiffness of the beam, iso-tropically.
-     */
-    flexible_beam_3D(const std::string& aName,
-                     const shared_ptr< frame_3D<double> >& aAnchor1,
-                     const shared_ptr< frame_3D<double> >& aAnchor2,
-                     const shared_ptr< frame_3D<double> >& aObjectFrame,
-                     double aRestLength,
-                     double aStiffness,
-                     double aTorsionStiffness) :
-                     kte_map(aName),
-                     mAnchor1(aAnchor1),
-                     mAnchor2(aAnchor2),
-                     mObjectFrame(aObjectFrame),
-                     mRestLength(aRestLength),
-                     mStiffness(aStiffness),
-                     mTorsionStiffness(aTorsionStiffness){ };
+  /**
+   * Sets the first anchor frame of the beam.
+   * \param aPtr A pointer to the new first anchor frame of the beam.
+   */
+  void setAnchor2( const shared_ptr< frame_3D< double > >& aPtr ) { mAnchor2 = aPtr; };
+  /**
+   * Returns a const-reference to the second anchor frame of the beam.
+   * \return A const-reference to the second anchor frame of the beam.
+   */
+  shared_ptr< frame_3D< double > > Anchor2() const { return mAnchor2; };
 
-    /**
-     * Default destructor.
-     */
-    virtual ~flexible_beam_3D() { };
+  /**
+   * Sets the center frame of the beam (i.e. its bulk).
+   * \param aPtr A pointer to the new center frame of the beam (i.e. its bulk).
+   */
+  void setCenterFrame( const shared_ptr< frame_3D< double > >& aPtr ) { mObjectFrame = aPtr; };
+  /**
+   * Returns the center frame of the beam (i.e. its bulk).
+   * \return The center frame of the beam (i.e. its bulk).
+   */
+  shared_ptr< frame_3D< double > > CenterFrame() const { return mObjectFrame; };
 
-    virtual void doMotion(kte_pass_flag aFlag = nothing, const shared_ptr<frame_storage>& aStorage = shared_ptr<frame_storage>());
+  /**
+   * Sets the rest-length of the beam.
+   * \param aValue The new rest-length of the beam.
+   */
+  void setRestLength( double aValue ) { mRestLength = aValue; };
+  /**
+   * Returns the rest-length of the beam.
+   * \return The rest-length of the beam.
+   */
+  double RestLength() const { return mRestLength; };
 
-    virtual void doForce(kte_pass_flag aFlag = nothing, const shared_ptr<frame_storage>& aStorage = shared_ptr<frame_storage>());
+  /**
+   * Sets the stiffness value of the beam.
+   * \param aValue The new stiffness value of the beam.
+   */
+  void setStiffness( double aValue ) { mStiffness = aValue; };
+  /**
+   * Returns the stiffness value of the beam.
+   * \return The stiffness value of the beam.
+   */
+  double Stiffness() const { return mStiffness; };
 
-    virtual void clearForce();
+  /**
+   * Sets the torsion stiffness value of the beam.
+   * \param aValue The new torsion stiffness value of the beam.
+   */
+  void setTorsionStiffness( double aValue ) { mTorsionStiffness = aValue; };
+  /**
+   * Returns the torsion stiffness value of the beam.
+   * \return The torsion stiffness value of the beam.
+   */
+  double TorsionStiffness() const { return mTorsionStiffness; };
 
-    virtual void RK_CALL save(serialization::oarchive& A, unsigned int) const {
-      kte_map::save(A,kte_map::getStaticObjectType()->TypeVersion());
-      A & RK_SERIAL_SAVE_WITH_NAME(mAnchor1)
-        & RK_SERIAL_SAVE_WITH_NAME(mAnchor2)
-        & RK_SERIAL_SAVE_WITH_NAME(mObjectFrame)
-        & RK_SERIAL_SAVE_WITH_NAME(mRestLength)
-        & RK_SERIAL_SAVE_WITH_NAME(mStiffness)
-        & RK_SERIAL_SAVE_WITH_NAME(mTorsionStiffness);
-    };
+  /**
+   * Default constructor.
+   */
+  flexible_beam_3D( const std::string& aName = "" )
+      : kte_map( aName ), mAnchor1(), mAnchor2(), mObjectFrame(), mRestLength( 0.0 ), mStiffness( 0.0 ),
+        mTorsionStiffness( 0.0 ){};
 
-    virtual void RK_CALL load(serialization::iarchive& A, unsigned int) {
-      kte_map::load(A,kte_map::getStaticObjectType()->TypeVersion());
-      A & RK_SERIAL_LOAD_WITH_NAME(mAnchor1)
-        & RK_SERIAL_LOAD_WITH_NAME(mAnchor2)
-        & RK_SERIAL_LOAD_WITH_NAME(mObjectFrame)
-        & RK_SERIAL_LOAD_WITH_NAME(mRestLength)
-        & RK_SERIAL_LOAD_WITH_NAME(mStiffness)
-        & RK_SERIAL_LOAD_WITH_NAME(mTorsionStiffness);
+  /**
+   * Parametrized constructor.
+   * \param aName the name of the KTE model.
+   * \param aAnchor1 the first end of the beam (kinematic input).
+   * \param aAnchor2 the second end of the beam (kinematic input).
+   * \param aObjectFrame the center frame of the beam (i.e. its bulk).
+   * \param aRestLength the undeformed length of the beam.
+   * \param aStiffness the linear stiffness of the beam, stress-strain relation, iso-tropically.
+   * \param aTorsionStiffness the angular or torsion stiffness of the beam, iso-tropically.
+   */
+  flexible_beam_3D( const std::string& aName, const shared_ptr< frame_3D< double > >& aAnchor1,
+                    const shared_ptr< frame_3D< double > >& aAnchor2,
+                    const shared_ptr< frame_3D< double > >& aObjectFrame, double aRestLength, double aStiffness,
+                    double aTorsionStiffness )
+      : kte_map( aName ), mAnchor1( aAnchor1 ), mAnchor2( aAnchor2 ), mObjectFrame( aObjectFrame ),
+        mRestLength( aRestLength ), mStiffness( aStiffness ), mTorsionStiffness( aTorsionStiffness ){};
 
-    };
+  /**
+   * Default destructor.
+   */
+  virtual ~flexible_beam_3D(){};
 
-    RK_RTTI_MAKE_CONCRETE_1BASE(flexible_beam_3D,0xC210001D,1,"flexible_beam_3D",kte_map)
+  virtual void doMotion( kte_pass_flag aFlag = nothing,
+                         const shared_ptr< frame_storage >& aStorage = shared_ptr< frame_storage >() );
+
+  virtual void doForce( kte_pass_flag aFlag = nothing,
+                        const shared_ptr< frame_storage >& aStorage = shared_ptr< frame_storage >() );
+
+  virtual void clearForce();
+
+  virtual void RK_CALL save( serialization::oarchive& A, unsigned int ) const {
+    kte_map::save( A, kte_map::getStaticObjectType()->TypeVersion() );
+    A& RK_SERIAL_SAVE_WITH_NAME( mAnchor1 ) & RK_SERIAL_SAVE_WITH_NAME( mAnchor2 )
+      & RK_SERIAL_SAVE_WITH_NAME( mObjectFrame ) & RK_SERIAL_SAVE_WITH_NAME( mRestLength )
+      & RK_SERIAL_SAVE_WITH_NAME( mStiffness ) & RK_SERIAL_SAVE_WITH_NAME( mTorsionStiffness );
+  };
+
+  virtual void RK_CALL load( serialization::iarchive& A, unsigned int ) {
+    kte_map::load( A, kte_map::getStaticObjectType()->TypeVersion() );
+    A& RK_SERIAL_LOAD_WITH_NAME( mAnchor1 ) & RK_SERIAL_LOAD_WITH_NAME( mAnchor2 )
+      & RK_SERIAL_LOAD_WITH_NAME( mObjectFrame ) & RK_SERIAL_LOAD_WITH_NAME( mRestLength )
+      & RK_SERIAL_LOAD_WITH_NAME( mStiffness ) & RK_SERIAL_LOAD_WITH_NAME( mTorsionStiffness );
+  };
+
+  RK_RTTI_MAKE_CONCRETE_1BASE( flexible_beam_3D, 0xC210001D, 1, "flexible_beam_3D", kte_map )
 };
-
-
 };
-
 };
-
 
 
 #endif
-
-
-
-
-
-
-
-

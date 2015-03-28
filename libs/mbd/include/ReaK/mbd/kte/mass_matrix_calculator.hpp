@@ -29,7 +29,7 @@
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with ReaK (as LICENSE in the root folder).  
+ *    along with ReaK (as LICENSE in the root folder).
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
@@ -48,143 +48,122 @@ namespace kte {
 /**
  * This class is a mass matrix calculator for a system. It holds lists of all
  * inertial elements (which contain up-stream joint Jacobians) as well as a list of coordinates
- * which it uses to compute the mass matrix and its time-derivative using the twist-shaping 
+ * which it uses to compute the mass matrix and its time-derivative using the twist-shaping
  * matrix formulation.
  */
 class mass_matrix_calc : public named_object {
-  private:
-    std::vector< shared_ptr< inertia_gen > > mGenInertias; ///< Holds the list of generalized coordinate inertial elements.
-    std::vector< shared_ptr< inertia_2D > > m2DInertias; ///< Holds the list of 2D inertial elements.
-    std::vector< shared_ptr< inertia_3D > > m3DInertias; ///< Holds the list of 3D inertial elements.
+private:
+  std::vector< shared_ptr< inertia_gen > >
+    mGenInertias;                                      ///< Holds the list of generalized coordinate inertial elements.
+  std::vector< shared_ptr< inertia_2D > > m2DInertias; ///< Holds the list of 2D inertial elements.
+  std::vector< shared_ptr< inertia_3D > > m3DInertias; ///< Holds the list of 3D inertial elements.
 
-    std::vector< shared_ptr< gen_coord<double> > > mCoords; ///< Holds the list of generalized coordinates in the system.
-    std::vector< shared_ptr< frame_2D<double> > > mFrames2D; ///< Holds the list of 2D coordinates frame in the system.
-    std::vector< shared_ptr< frame_3D<double> > > mFrames3D; ///< Holds the list of 3D coordinates frame in the system.
+  std::vector< shared_ptr< gen_coord< double > > >
+    mCoords; ///< Holds the list of generalized coordinates in the system.
+  std::vector< shared_ptr< frame_2D< double > > > mFrames2D; ///< Holds the list of 2D coordinates frame in the system.
+  std::vector< shared_ptr< frame_3D< double > > > mFrames3D; ///< Holds the list of 3D coordinates frame in the system.
 
-  public:
+public:
+  /**
+   * Default constructor.
+   */
+  mass_matrix_calc( const std::string& aName = "" )
+      : named_object(), mGenInertias(), m2DInertias(), m3DInertias(), mCoords(), mFrames2D(), mFrames3D() {
+    this->setName( aName );
+  };
 
-    /**
-     * Default constructor.
-     */
-    mass_matrix_calc(const std::string& aName = "") : named_object(),
-                                                      mGenInertias(),
-                                                      m2DInertias(),
-                                                      m3DInertias(),
-                                                      mCoords(),
-                                                      mFrames2D(),
-                                                      mFrames3D() {
-      this->setName(aName);
-    };
+  /**
+   * Add a generalized coordinate inertial element to the mass matrix calculation.
+   * \param aGenInertia a generalized coordinate inertial element to add.
+   * \return reference to this.
+   */
+  mass_matrix_calc& operator<<( const shared_ptr< inertia_gen >& aGenInertia );
 
-    /**
-     * Add a generalized coordinate inertial element to the mass matrix calculation.
-     * \param aGenInertia a generalized coordinate inertial element to add.
-     * \return reference to this.
-     */
-    mass_matrix_calc& operator <<(const shared_ptr< inertia_gen >& aGenInertia);
+  /**
+   * Add a 2D inertial element to the mass matrix calculation.
+   * \param a2DInertia a 2D inertial element to add.
+   * \return reference to this.
+   */
+  mass_matrix_calc& operator<<( const shared_ptr< inertia_2D >& a2DInertia );
 
-    /**
-     * Add a 2D inertial element to the mass matrix calculation.
-     * \param a2DInertia a 2D inertial element to add.
-     * \return reference to this.
-     */
-    mass_matrix_calc& operator <<(const shared_ptr< inertia_2D >& a2DInertia);
+  /**
+   * Add a 3D inertial element to the mass matrix calculation.
+   * \param a3DInertia a 3D inertial element to add.
+   * \return reference to this.
+   */
+  mass_matrix_calc& operator<<( const shared_ptr< inertia_3D >& a3DInertia );
 
-    /**
-     * Add a 3D inertial element to the mass matrix calculation.
-     * \param a3DInertia a 3D inertial element to add.
-     * \return reference to this.
-     */
-    mass_matrix_calc& operator <<(const shared_ptr< inertia_3D >& a3DInertia);
+  /**
+   * Add a system generalized coordinate to the mass matrix calculation.
+   * \param aCoord a system generalized coordinate to add.
+   * \return reference to this.
+   */
+  mass_matrix_calc& operator<<( const shared_ptr< gen_coord< double > >& aCoord );
 
-    /**
-     * Add a system generalized coordinate to the mass matrix calculation.
-     * \param aCoord a system generalized coordinate to add.
-     * \return reference to this.
-     */
-    mass_matrix_calc& operator <<(const shared_ptr< gen_coord<double> >& aCoord);
+  /**
+   * Add a system generalized coordinate to the mass matrix calculation.
+   * \param aFrame2D a system 2D frame to add.
+   * \return reference to this.
+   */
+  mass_matrix_calc& operator<<( const shared_ptr< frame_2D< double > >& aFrame2D );
 
-    /**
-     * Add a system generalized coordinate to the mass matrix calculation.
-     * \param aFrame2D a system 2D frame to add.
-     * \return reference to this.
-     */
-    mass_matrix_calc& operator <<(const shared_ptr< frame_2D<double> >& aFrame2D);
+  /**
+   * Add a system generalized coordinate to the mass matrix calculation.
+   * \param aFrame3D a system 3D frame to add.
+   * \return reference to this.
+   */
+  mass_matrix_calc& operator<<( const shared_ptr< frame_3D< double > >& aFrame3D );
 
-    /**
-     * Add a system generalized coordinate to the mass matrix calculation.
-     * \param aFrame3D a system 3D frame to add.
-     * \return reference to this.
-     */
-    mass_matrix_calc& operator <<(const shared_ptr< frame_3D<double> >& aFrame3D);
+  /** Get read-only access to the list of generalized coordinates. */
+  const std::vector< shared_ptr< gen_coord< double > > >& Coords() const { return mCoords; };
 
-    /** Get read-only access to the list of generalized coordinates. */
-    const std::vector< shared_ptr< gen_coord<double> > >& Coords() const { return mCoords; };
+  /** Get read-only access to the list of 2D coordinate frames. */
+  const std::vector< shared_ptr< frame_2D< double > > >& Frames2D() const { return mFrames2D; };
 
-    /** Get read-only access to the list of 2D coordinate frames. */
-    const std::vector< shared_ptr< frame_2D<double> > >& Frames2D() const { return mFrames2D; };
+  /** Get read-only access to the list of 3D coordinate frames. */
+  const std::vector< shared_ptr< frame_3D< double > > >& Frames3D() const { return mFrames3D; };
 
-    /** Get read-only access to the list of 3D coordinate frames. */
-    const std::vector< shared_ptr< frame_3D<double> > >& Frames3D() const { return mFrames3D; };
+  /**
+   * Get the mass matrix for the system.
+   * \param M stores, as output, the calculated system's mass-matrix.
+   */
+  void getMassMatrix( mat< double, mat_structure::symmetric >& M );
 
-    /**
-     * Get the mass matrix for the system.
-     * \param M stores, as output, the calculated system's mass-matrix.
-     */
-    void getMassMatrix(mat<double,mat_structure::symmetric>& M);
+  /**
+   * Get the mass matrix for the system and its time-derivative.
+   * \param M stores, as output, the calculated system's mass-matrix.
+   * \param M_dot stores, as output, the calculated time-derivative of the system's mass matrix.
+   */
+  void getMassMatrixAndDerivative( mat< double, mat_structure::symmetric >& M,
+                                   mat< double, mat_structure::square >& M_dot );
 
-    /**
-     * Get the mass matrix for the system and its time-derivative.
-     * \param M stores, as output, the calculated system's mass-matrix.
-     * \param M_dot stores, as output, the calculated time-derivative of the system's mass matrix.
-     */
-    void getMassMatrixAndDerivative(mat<double,mat_structure::symmetric>& M, mat<double,mat_structure::square>& M_dot);
+  /**
+   * Get the twist-shaping matrix, the block-diagonal, link mass-matrix, and the time-derivative of the twist-shaping
+   * matrix.
+   * \param Tcm stores, as output, the calculated system's twist-shaping matrix.
+   * \param Mcm stores, as output, the calculated block-diagonal, link mass matrix.
+   * \param Tcm_dot storse, as output, the calculated time-derivative of the system's twist-shaping matrix.
+   */
+  void get_TMT_TdMT( mat< double, mat_structure::rectangular >& Tcm, mat< double, mat_structure::symmetric >& Mcm,
+                     mat< double, mat_structure::rectangular >& Tcm_dot );
 
-    /**
-     * Get the twist-shaping matrix, the block-diagonal, link mass-matrix, and the time-derivative of the twist-shaping matrix.
-     * \param Tcm stores, as output, the calculated system's twist-shaping matrix.
-     * \param Mcm stores, as output, the calculated block-diagonal, link mass matrix.
-     * \param Tcm_dot storse, as output, the calculated time-derivative of the system's twist-shaping matrix.
-     */
-    void get_TMT_TdMT(mat<double,mat_structure::rectangular>& Tcm, mat<double,mat_structure::symmetric>& Mcm, mat<double,mat_structure::rectangular>& Tcm_dot);
+  virtual void RK_CALL save( serialization::oarchive& A, unsigned int ) const {
+    named_object::save( A, named_object::getStaticObjectType()->TypeVersion() );
+    A& RK_SERIAL_SAVE_WITH_NAME( mGenInertias ) & RK_SERIAL_SAVE_WITH_NAME( m2DInertias )
+      & RK_SERIAL_SAVE_WITH_NAME( m3DInertias ) & RK_SERIAL_SAVE_WITH_NAME( mCoords )
+      & RK_SERIAL_SAVE_WITH_NAME( mFrames2D ) & RK_SERIAL_SAVE_WITH_NAME( mFrames3D );
+  };
 
-    virtual void RK_CALL save(serialization::oarchive& A, unsigned int) const {
-      named_object::save(A,named_object::getStaticObjectType()->TypeVersion());
-      A & RK_SERIAL_SAVE_WITH_NAME(mGenInertias)
-        & RK_SERIAL_SAVE_WITH_NAME(m2DInertias)
-        & RK_SERIAL_SAVE_WITH_NAME(m3DInertias)
-        & RK_SERIAL_SAVE_WITH_NAME(mCoords)
-        & RK_SERIAL_SAVE_WITH_NAME(mFrames2D)
-        & RK_SERIAL_SAVE_WITH_NAME(mFrames3D);
-    };
+  virtual void RK_CALL load( serialization::iarchive& A, unsigned int ) {
+    named_object::load( A, named_object::getStaticObjectType()->TypeVersion() );
+    A& RK_SERIAL_LOAD_WITH_NAME( mGenInertias ) & RK_SERIAL_LOAD_WITH_NAME( m2DInertias )
+      & RK_SERIAL_LOAD_WITH_NAME( m3DInertias ) & RK_SERIAL_LOAD_WITH_NAME( mCoords )
+      & RK_SERIAL_LOAD_WITH_NAME( mFrames2D ) & RK_SERIAL_LOAD_WITH_NAME( mFrames3D );
+  };
 
-    virtual void RK_CALL load(serialization::iarchive& A, unsigned int) {
-      named_object::load(A,named_object::getStaticObjectType()->TypeVersion());
-      A & RK_SERIAL_LOAD_WITH_NAME(mGenInertias)
-        & RK_SERIAL_LOAD_WITH_NAME(m2DInertias)
-        & RK_SERIAL_LOAD_WITH_NAME(m3DInertias)
-        & RK_SERIAL_LOAD_WITH_NAME(mCoords)
-        & RK_SERIAL_LOAD_WITH_NAME(mFrames2D)
-        & RK_SERIAL_LOAD_WITH_NAME(mFrames3D);
-    };
-
-    RK_RTTI_MAKE_CONCRETE_1BASE(mass_matrix_calc,0xC2000001,1,"mass_matrix_calc",named_object)
-
+  RK_RTTI_MAKE_CONCRETE_1BASE( mass_matrix_calc, 0xC2000001, 1, "mass_matrix_calc", named_object )
 };
-
 };
-
 };
 
 #endif
-
-
-
-
-
-
-
-
-
-
-

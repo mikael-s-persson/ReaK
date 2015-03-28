@@ -27,7 +27,7 @@
  *    GNU General Public License for more details.
  *
  *    You should have received a copy of the GNU General Public License
- *    along with ReaK (as LICENSE in the root folder).  
+ *    along with ReaK (as LICENSE in the root folder).
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
@@ -48,96 +48,85 @@ namespace kte {
  * It maps the base frame to an end frame via a constant offset value.
  */
 class rigid_link_gen : public kte_map {
-  private:
-    shared_ptr< gen_coord<double> > mBase; ///< Holds the base frame of the rigid-link.
-    shared_ptr< gen_coord<double> > mEnd; ///< Holds the end frame of the rigid-link.
-    double mOffset; ///< Holds the offset of the rigid-link (or length of the link).
+private:
+  shared_ptr< gen_coord< double > > mBase; ///< Holds the base frame of the rigid-link.
+  shared_ptr< gen_coord< double > > mEnd;  ///< Holds the end frame of the rigid-link.
+  double mOffset;                          ///< Holds the offset of the rigid-link (or length of the link).
 
-  public:
-    
-    /**
-     * Sets the link's base frame.
-     * \param aPtr The new link's base frame.
-     */
-    void setBaseFrame(const shared_ptr< gen_coord<double> >& aPtr) { mBase = aPtr; };
-    /**
-     * Returns the link's base frame.
-     * \return The link's base frame.
-     */
-    shared_ptr< gen_coord<double> > BaseFrame() const { return mBase; };
-    
-    /**
-     * Sets the link's output frame.
-     * \param aPtr The new link's output frame.
-     */
-    void setEndFrame(const shared_ptr< gen_coord<double> >& aPtr) { mEnd = aPtr; };
-    /**
-     * Returns the link's output frame.
-     * \return The link's output frame.
-     */
-    shared_ptr< gen_coord<double> > EndFrame() const { return mEnd; };
-    
-    /**
-     * Sets the link's offset.
-     * \param aValue The link's new offset.
-     */
-    void setOffset(double aValue) { mOffset = aValue; };
-    /**
-     * Returns the link's offset.
-     * \return The link's offset.
-     */
-    double Offset() const { return mOffset; };
-    
-    /**
-     * Default constructor.
-     */
-    rigid_link_gen(const std::string& aName = "") : kte_map(aName), mBase(), mEnd(), mOffset(0.0) { };
+public:
+  /**
+   * Sets the link's base frame.
+   * \param aPtr The new link's base frame.
+   */
+  void setBaseFrame( const shared_ptr< gen_coord< double > >& aPtr ) { mBase = aPtr; };
+  /**
+   * Returns the link's base frame.
+   * \return The link's base frame.
+   */
+  shared_ptr< gen_coord< double > > BaseFrame() const { return mBase; };
 
-    /**
-     * Parametrized constructor.
-     * \param aName the name of the KTE model.
-     * \param aBase the base frame of the rigid-link.
-     * \param aEnd the end frame of the rigid-link.
-     * \param aOffset the offset of the rigid-link (or length of the link).
-     */
-    rigid_link_gen(const std::string& aName,
-                   const shared_ptr< gen_coord<double> >& aBase,
-                   const shared_ptr< gen_coord<double> >& aEnd,
-                   double aOffset) :
-                   kte_map(aName),
-                   mBase(aBase),
-                   mEnd(aEnd),
-                   mOffset(aOffset) { };
+  /**
+   * Sets the link's output frame.
+   * \param aPtr The new link's output frame.
+   */
+  void setEndFrame( const shared_ptr< gen_coord< double > >& aPtr ) { mEnd = aPtr; };
+  /**
+   * Returns the link's output frame.
+   * \return The link's output frame.
+   */
+  shared_ptr< gen_coord< double > > EndFrame() const { return mEnd; };
 
-    /**
-     * Default destructor.
-     */
-    virtual ~rigid_link_gen() { };
+  /**
+   * Sets the link's offset.
+   * \param aValue The link's new offset.
+   */
+  void setOffset( double aValue ) { mOffset = aValue; };
+  /**
+   * Returns the link's offset.
+   * \return The link's offset.
+   */
+  double Offset() const { return mOffset; };
 
-    virtual void doMotion(kte_pass_flag aFlag = nothing, const shared_ptr<frame_storage>& aStorage = shared_ptr<frame_storage>());
+  /**
+   * Default constructor.
+   */
+  rigid_link_gen( const std::string& aName = "" ) : kte_map( aName ), mBase(), mEnd(), mOffset( 0.0 ){};
 
-    virtual void doForce(kte_pass_flag aFlag = nothing, const shared_ptr<frame_storage>& aStorage = shared_ptr<frame_storage>());
+  /**
+   * Parametrized constructor.
+   * \param aName the name of the KTE model.
+   * \param aBase the base frame of the rigid-link.
+   * \param aEnd the end frame of the rigid-link.
+   * \param aOffset the offset of the rigid-link (or length of the link).
+   */
+  rigid_link_gen( const std::string& aName, const shared_ptr< gen_coord< double > >& aBase,
+                  const shared_ptr< gen_coord< double > >& aEnd, double aOffset )
+      : kte_map( aName ), mBase( aBase ), mEnd( aEnd ), mOffset( aOffset ){};
 
-    virtual void clearForce();
+  /**
+   * Default destructor.
+   */
+  virtual ~rigid_link_gen(){};
 
-    virtual void RK_CALL save(serialization::oarchive& A, unsigned int) const {
-      kte_map::save(A,kte_map::getStaticObjectType()->TypeVersion());
-      A & RK_SERIAL_SAVE_WITH_NAME(mBase)
-        & RK_SERIAL_SAVE_WITH_NAME(mEnd)
-        & RK_SERIAL_SAVE_WITH_NAME(mOffset);
-    };
+  virtual void doMotion( kte_pass_flag aFlag = nothing,
+                         const shared_ptr< frame_storage >& aStorage = shared_ptr< frame_storage >() );
 
-    virtual void RK_CALL load(serialization::iarchive& A, unsigned int) {
-      kte_map::load(A,kte_map::getStaticObjectType()->TypeVersion());
-      A & RK_SERIAL_LOAD_WITH_NAME(mBase)
-        & RK_SERIAL_LOAD_WITH_NAME(mEnd)
-        & RK_SERIAL_LOAD_WITH_NAME(mOffset);
+  virtual void doForce( kte_pass_flag aFlag = nothing,
+                        const shared_ptr< frame_storage >& aStorage = shared_ptr< frame_storage >() );
 
-    };
+  virtual void clearForce();
 
-    RK_RTTI_MAKE_CONCRETE_1BASE(rigid_link_gen,0xC2100007,1,"rigid_link_gen",kte_map)
+  virtual void RK_CALL save( serialization::oarchive& A, unsigned int ) const {
+    kte_map::save( A, kte_map::getStaticObjectType()->TypeVersion() );
+    A& RK_SERIAL_SAVE_WITH_NAME( mBase ) & RK_SERIAL_SAVE_WITH_NAME( mEnd ) & RK_SERIAL_SAVE_WITH_NAME( mOffset );
+  };
 
+  virtual void RK_CALL load( serialization::iarchive& A, unsigned int ) {
+    kte_map::load( A, kte_map::getStaticObjectType()->TypeVersion() );
+    A& RK_SERIAL_LOAD_WITH_NAME( mBase ) & RK_SERIAL_LOAD_WITH_NAME( mEnd ) & RK_SERIAL_LOAD_WITH_NAME( mOffset );
+  };
 
+  RK_RTTI_MAKE_CONCRETE_1BASE( rigid_link_gen, 0xC2100007, 1, "rigid_link_gen", kte_map )
 };
 
 /**
@@ -145,95 +134,85 @@ class rigid_link_gen : public kte_map {
  * It maps the base frame to an end frame via a constant offset value (translation and rotation).
  */
 class rigid_link_2D : public kte_map {
-  private:
-    shared_ptr< frame_2D<double> > mBase; ///< Holds the base frame of the rigid-link.
-    shared_ptr< frame_2D<double> > mEnd; ///< Holds the end frame of the rigid-link.
-    pose_2D<double> mPoseOffset; ///< Holds the pose offset of the rigid-link (length and twist of the link).
+private:
+  shared_ptr< frame_2D< double > > mBase; ///< Holds the base frame of the rigid-link.
+  shared_ptr< frame_2D< double > > mEnd;  ///< Holds the end frame of the rigid-link.
+  pose_2D< double > mPoseOffset;          ///< Holds the pose offset of the rigid-link (length and twist of the link).
 
-  public:
-    
-    /**
-     * Sets the link's base frame.
-     * \param aPtr The new link's base frame.
-     */
-    void setBaseFrame(const shared_ptr< frame_2D<double> >& aPtr) { mBase = aPtr; };
-    /**
-     * Returns the link's base frame.
-     * \return The link's base frame.
-     */
-    shared_ptr< frame_2D<double> > BaseFrame() const { return mBase; };
-    
-    /**
-     * Sets the link's output frame.
-     * \param aPtr The new link's output frame.
-     */
-    void setEndFrame(const shared_ptr< frame_2D<double> >& aPtr) { mEnd = aPtr; };
-    /**
-     * Returns the link's output frame.
-     * \return The link's output frame.
-     */
-    shared_ptr< frame_2D<double> > EndFrame() const { return mEnd; };
-    
-    /**
-     * Sets the link's pose offset (position vector and rotation).
-     * \param aValue The link's new pose offset (position vector and rotation).
-     */
-    void setPoseOffset(const pose_2D<double>& aValue) { mPoseOffset = aValue; };
-    /**
-     * Returns the link's pose offset (position vector and rotation).
-     * \return The link's pose offset (position vector and rotation).
-     */
-    pose_2D<double> PoseOffset() const { return mPoseOffset; };
-    
-    /**
-     * Default constructor.
-     */
-    rigid_link_2D(const std::string& aName = "") : kte_map(aName), mBase(), mEnd(), mPoseOffset() { };
+public:
+  /**
+   * Sets the link's base frame.
+   * \param aPtr The new link's base frame.
+   */
+  void setBaseFrame( const shared_ptr< frame_2D< double > >& aPtr ) { mBase = aPtr; };
+  /**
+   * Returns the link's base frame.
+   * \return The link's base frame.
+   */
+  shared_ptr< frame_2D< double > > BaseFrame() const { return mBase; };
 
-    /**
-     * Parametrized constructor.
-     * \param aName the name of the KTE model.
-     * \param aBase the base frame of the rigid-link.
-     * \param aEnd the end frame of the rigid-link.
-     * \param aPoseOffset the pose offset of the rigid-link (length and twist of the link).
-     */
-    rigid_link_2D(const std::string& aName,
-                  const shared_ptr< frame_2D<double> >& aBase,
-                  const shared_ptr< frame_2D<double> >& aEnd,
-                  const pose_2D<double>& aPoseOffset) :
-                  kte_map(aName),
-                  mBase(aBase),
-                  mEnd(aEnd),
-                  mPoseOffset(aPoseOffset) { };
+  /**
+   * Sets the link's output frame.
+   * \param aPtr The new link's output frame.
+   */
+  void setEndFrame( const shared_ptr< frame_2D< double > >& aPtr ) { mEnd = aPtr; };
+  /**
+   * Returns the link's output frame.
+   * \return The link's output frame.
+   */
+  shared_ptr< frame_2D< double > > EndFrame() const { return mEnd; };
 
-    /**
-     * Default destructor.
-     */
-    virtual ~rigid_link_2D() { };
+  /**
+   * Sets the link's pose offset (position vector and rotation).
+   * \param aValue The link's new pose offset (position vector and rotation).
+   */
+  void setPoseOffset( const pose_2D< double >& aValue ) { mPoseOffset = aValue; };
+  /**
+   * Returns the link's pose offset (position vector and rotation).
+   * \return The link's pose offset (position vector and rotation).
+   */
+  pose_2D< double > PoseOffset() const { return mPoseOffset; };
 
-    virtual void doMotion(kte_pass_flag aFlag = nothing, const shared_ptr<frame_storage>& aStorage = shared_ptr<frame_storage>());
+  /**
+   * Default constructor.
+   */
+  rigid_link_2D( const std::string& aName = "" ) : kte_map( aName ), mBase(), mEnd(), mPoseOffset(){};
 
-    virtual void doForce(kte_pass_flag aFlag = nothing, const shared_ptr<frame_storage>& aStorage = shared_ptr<frame_storage>());
+  /**
+   * Parametrized constructor.
+   * \param aName the name of the KTE model.
+   * \param aBase the base frame of the rigid-link.
+   * \param aEnd the end frame of the rigid-link.
+   * \param aPoseOffset the pose offset of the rigid-link (length and twist of the link).
+   */
+  rigid_link_2D( const std::string& aName, const shared_ptr< frame_2D< double > >& aBase,
+                 const shared_ptr< frame_2D< double > >& aEnd, const pose_2D< double >& aPoseOffset )
+      : kte_map( aName ), mBase( aBase ), mEnd( aEnd ), mPoseOffset( aPoseOffset ){};
 
-    virtual void clearForce();
+  /**
+   * Default destructor.
+   */
+  virtual ~rigid_link_2D(){};
 
-    virtual void RK_CALL save(serialization::oarchive& A, unsigned int) const {
-      kte_map::save(A,kte_map::getStaticObjectType()->TypeVersion());
-      A & RK_SERIAL_SAVE_WITH_NAME(mBase)
-        & RK_SERIAL_SAVE_WITH_NAME(mEnd)
-        & RK_SERIAL_SAVE_WITH_NAME(mPoseOffset);
-    };
+  virtual void doMotion( kte_pass_flag aFlag = nothing,
+                         const shared_ptr< frame_storage >& aStorage = shared_ptr< frame_storage >() );
 
-    virtual void RK_CALL load(serialization::iarchive& A, unsigned int) {
-      kte_map::load(A,kte_map::getStaticObjectType()->TypeVersion());
-      A & RK_SERIAL_LOAD_WITH_NAME(mBase)
-        & RK_SERIAL_LOAD_WITH_NAME(mEnd)
-        & RK_SERIAL_LOAD_WITH_NAME(mPoseOffset);
+  virtual void doForce( kte_pass_flag aFlag = nothing,
+                        const shared_ptr< frame_storage >& aStorage = shared_ptr< frame_storage >() );
 
-    };
+  virtual void clearForce();
 
-    RK_RTTI_MAKE_CONCRETE_1BASE(rigid_link_2D,0xC2100008,1,"rigid_link_2D",kte_map)
+  virtual void RK_CALL save( serialization::oarchive& A, unsigned int ) const {
+    kte_map::save( A, kte_map::getStaticObjectType()->TypeVersion() );
+    A& RK_SERIAL_SAVE_WITH_NAME( mBase ) & RK_SERIAL_SAVE_WITH_NAME( mEnd ) & RK_SERIAL_SAVE_WITH_NAME( mPoseOffset );
+  };
 
+  virtual void RK_CALL load( serialization::iarchive& A, unsigned int ) {
+    kte_map::load( A, kte_map::getStaticObjectType()->TypeVersion() );
+    A& RK_SERIAL_LOAD_WITH_NAME( mBase ) & RK_SERIAL_LOAD_WITH_NAME( mEnd ) & RK_SERIAL_LOAD_WITH_NAME( mPoseOffset );
+  };
+
+  RK_RTTI_MAKE_CONCRETE_1BASE( rigid_link_2D, 0xC2100008, 1, "rigid_link_2D", kte_map )
 };
 
 /**
@@ -241,105 +220,88 @@ class rigid_link_2D : public kte_map {
  * It maps the base frame to an end frame via a constant offset value (translation and rotation).
  */
 class rigid_link_3D : public kte_map {
-  private:
-    shared_ptr< frame_3D<double> > mBase; ///< Holds the base frame of the rigid-link.
-    shared_ptr< frame_3D<double> > mEnd; ///< Holds the end frame of the rigid-link.
-    pose_3D<double> mPoseOffset; ///< Holds the pose offset of the rigid-link (length and twist of the link).
+private:
+  shared_ptr< frame_3D< double > > mBase; ///< Holds the base frame of the rigid-link.
+  shared_ptr< frame_3D< double > > mEnd;  ///< Holds the end frame of the rigid-link.
+  pose_3D< double > mPoseOffset;          ///< Holds the pose offset of the rigid-link (length and twist of the link).
 
-  public:
-    
-    /**
-     * Sets the link's base frame.
-     * \param aPtr The new link's base frame.
-     */
-    void setBaseFrame(const shared_ptr< frame_3D<double> >& aPtr) { mBase = aPtr; };
-    /**
-     * Returns the link's base frame.
-     * \return The link's base frame.
-     */
-    shared_ptr< frame_3D<double> > BaseFrame() const { return mBase; };
-    
-    /**
-     * Sets the link's output frame.
-     * \param aPtr The new link's output frame.
-     */
-    void setEndFrame(const shared_ptr< frame_3D<double> >& aPtr) { mEnd = aPtr; };
-    /**
-     * Returns the link's output frame.
-     * \return The link's output frame.
-     */
-    shared_ptr< frame_3D<double> > EndFrame() const { return mEnd; };
-    
-    /**
-     * Sets the link's pose offset (position vector and rotation).
-     * \param aValue The link's new pose offset (position vector and rotation).
-     */
-    void setPoseOffset(const pose_3D<double>& aValue) { mPoseOffset = aValue; };
-    /**
-     * Returns the link's pose offset (position vector and rotation).
-     * \return The link's pose offset (position vector and rotation).
-     */
-    pose_3D<double> PoseOffset() const { return mPoseOffset; };
-    
-    /**
-     * Default constructor.
-     */
-    rigid_link_3D(const std::string& aName = "") : kte_map(aName), mBase(), mEnd(), mPoseOffset() { };
+public:
+  /**
+   * Sets the link's base frame.
+   * \param aPtr The new link's base frame.
+   */
+  void setBaseFrame( const shared_ptr< frame_3D< double > >& aPtr ) { mBase = aPtr; };
+  /**
+   * Returns the link's base frame.
+   * \return The link's base frame.
+   */
+  shared_ptr< frame_3D< double > > BaseFrame() const { return mBase; };
 
-    /**
-     * Parametrized constructor.
-     * \param aName the name of the KTE model.
-     * \param aBase the base frame of the rigid-link.
-     * \param aEnd the end frame of the rigid-link.
-     * \param aPoseOffset the pose offset of the rigid-link (length and twist of the link).
-     */
-    rigid_link_3D(const std::string& aName,
-                  const shared_ptr< frame_3D<double> >& aBase,
-                  const shared_ptr< frame_3D<double> >& aEnd,
-                  const pose_3D<double>& aPoseOffset) :
-                  kte_map(aName),
-                  mBase(aBase),
-                  mEnd(aEnd),
-                  mPoseOffset(aPoseOffset) { };
+  /**
+   * Sets the link's output frame.
+   * \param aPtr The new link's output frame.
+   */
+  void setEndFrame( const shared_ptr< frame_3D< double > >& aPtr ) { mEnd = aPtr; };
+  /**
+   * Returns the link's output frame.
+   * \return The link's output frame.
+   */
+  shared_ptr< frame_3D< double > > EndFrame() const { return mEnd; };
 
-    /**
-     * Default destructor.
-     */
-    virtual ~rigid_link_3D() { };
+  /**
+   * Sets the link's pose offset (position vector and rotation).
+   * \param aValue The link's new pose offset (position vector and rotation).
+   */
+  void setPoseOffset( const pose_3D< double >& aValue ) { mPoseOffset = aValue; };
+  /**
+   * Returns the link's pose offset (position vector and rotation).
+   * \return The link's pose offset (position vector and rotation).
+   */
+  pose_3D< double > PoseOffset() const { return mPoseOffset; };
 
-    virtual void doMotion(kte_pass_flag aFlag = nothing, const shared_ptr<frame_storage>& aStorage = shared_ptr<frame_storage>());
+  /**
+   * Default constructor.
+   */
+  rigid_link_3D( const std::string& aName = "" ) : kte_map( aName ), mBase(), mEnd(), mPoseOffset(){};
 
-    virtual void doForce(kte_pass_flag aFlag = nothing, const shared_ptr<frame_storage>& aStorage = shared_ptr<frame_storage>());
+  /**
+   * Parametrized constructor.
+   * \param aName the name of the KTE model.
+   * \param aBase the base frame of the rigid-link.
+   * \param aEnd the end frame of the rigid-link.
+   * \param aPoseOffset the pose offset of the rigid-link (length and twist of the link).
+   */
+  rigid_link_3D( const std::string& aName, const shared_ptr< frame_3D< double > >& aBase,
+                 const shared_ptr< frame_3D< double > >& aEnd, const pose_3D< double >& aPoseOffset )
+      : kte_map( aName ), mBase( aBase ), mEnd( aEnd ), mPoseOffset( aPoseOffset ){};
 
-    virtual void clearForce();
+  /**
+   * Default destructor.
+   */
+  virtual ~rigid_link_3D(){};
 
-    virtual void RK_CALL save(serialization::oarchive& A, unsigned int) const {
-      kte_map::save(A,kte_map::getStaticObjectType()->TypeVersion());
-      A & RK_SERIAL_SAVE_WITH_NAME(mBase)
-        & RK_SERIAL_SAVE_WITH_NAME(mEnd)
-        & RK_SERIAL_SAVE_WITH_NAME(mPoseOffset);
-    };
+  virtual void doMotion( kte_pass_flag aFlag = nothing,
+                         const shared_ptr< frame_storage >& aStorage = shared_ptr< frame_storage >() );
 
-    virtual void RK_CALL load(serialization::iarchive& A, unsigned int) {
-      kte_map::load(A,kte_map::getStaticObjectType()->TypeVersion());
-      A & RK_SERIAL_LOAD_WITH_NAME(mBase)
-        & RK_SERIAL_LOAD_WITH_NAME(mEnd)
-        & RK_SERIAL_LOAD_WITH_NAME(mPoseOffset);
+  virtual void doForce( kte_pass_flag aFlag = nothing,
+                        const shared_ptr< frame_storage >& aStorage = shared_ptr< frame_storage >() );
 
-    };
+  virtual void clearForce();
 
-    RK_RTTI_MAKE_CONCRETE_1BASE(rigid_link_3D,0xC2100009,1,"rigid_link_3D",kte_map)
+  virtual void RK_CALL save( serialization::oarchive& A, unsigned int ) const {
+    kte_map::save( A, kte_map::getStaticObjectType()->TypeVersion() );
+    A& RK_SERIAL_SAVE_WITH_NAME( mBase ) & RK_SERIAL_SAVE_WITH_NAME( mEnd ) & RK_SERIAL_SAVE_WITH_NAME( mPoseOffset );
+  };
 
+  virtual void RK_CALL load( serialization::iarchive& A, unsigned int ) {
+    kte_map::load( A, kte_map::getStaticObjectType()->TypeVersion() );
+    A& RK_SERIAL_LOAD_WITH_NAME( mBase ) & RK_SERIAL_LOAD_WITH_NAME( mEnd ) & RK_SERIAL_LOAD_WITH_NAME( mPoseOffset );
+  };
 
+  RK_RTTI_MAKE_CONCRETE_1BASE( rigid_link_3D, 0xC2100009, 1, "rigid_link_3D", kte_map )
 };
-
 };
-
 };
 
 
 #endif
-
-
-
-
