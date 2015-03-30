@@ -61,23 +61,11 @@ void shell_sort( RandomAccessIter first, RandomAccessIter last, Compare comp ) {
     ;
   for( ; gap > 0; gap = ( gap + 1 ) / 3 ) {
     for( RandomAccessIter current = first + gap; current < last; ++current ) {
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
       ValueType tmp = std::move( *current );
-#else
-      ValueType tmp = *current;
-#endif
       RandomAccessIter it = current;
       for( RandomAccessIter it_prev; ( ( it > first + gap ) && ( comp( tmp, *( it_prev = it - gap ) ) ) ); it -= gap )
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
         *it = std::move( *it_prev );
-#else
-        *it = *it_prev;
-#endif
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
       *it = std::move( tmp );
-#else
-      *it = tmp;
-#endif
     };
   };
 };

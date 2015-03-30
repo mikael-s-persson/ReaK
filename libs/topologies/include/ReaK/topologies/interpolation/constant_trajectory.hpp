@@ -75,9 +75,7 @@ public:
 
     explicit point_time_iterator( const point_type& aCurrentPt ) : current_pt( aCurrentPt ){};
 
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
     explicit point_time_iterator( point_type&& aCurrentPt ) : current_pt( std::move( aCurrentPt ) ){};
-#endif
 
     friend point_time_iterator operator+( const point_time_iterator& lhs, double ) { return lhs; };
     friend point_time_iterator operator+( double, const point_time_iterator& rhs ) { return rhs; };

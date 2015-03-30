@@ -126,7 +126,6 @@ public:
    */
   mat_horiz_cat( const self& aObj ) : ml( aObj.ml ), mr( aObj.mr ){};
 
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
   /**
    * Parametrized move-constructor.
    * \param aML Matrix to fill and be moved into the left part of the matrix.
@@ -142,7 +141,6 @@ public:
    * \param aObj Right-hand-side of the move.
    */
   mat_horiz_cat( self&& aObj ) : ml( std::move( aObj.ml ) ), mr( std::move( aObj.mr ) ){};
-#endif
 
   /**
    * Standard swap function.
@@ -391,12 +389,10 @@ public:
    */
   mat_ref_horiz_cat( const self& aObj ) : ml( aObj.ml ), mr( aObj.mr ){};
 
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
   /**
    * Move-constructor (shallow-move).
    */
   mat_ref_horiz_cat( self&& aObj ) : ml( aObj.ml ), mr( aObj.mr ){};
-#endif
 
   /**
    * Standard swap function (shallow).
@@ -617,9 +613,8 @@ private:
   const RightMatrix* mr;
 
   self& operator=( const self& );
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
   mat_const_ref_horiz_cat( LeftMatrix&&, RightMatrix&& );
-#endif
+
 public:
   /**
    * Parametrized constructor.
@@ -637,13 +632,11 @@ public:
    */
   mat_const_ref_horiz_cat( const self& aObj ) : ml( aObj.ml ), mr( aObj.mr ){};
 
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
   /**
    * Standard move-constructor.
    * \param aObj Right-hand-side of the move.
    */
   mat_const_ref_horiz_cat( self&& aObj ) : ml( aObj.ml ), mr( aObj.mr ){};
-#endif
 
   /*******************************************************************************
                            Accessors and Methods
@@ -772,28 +765,6 @@ typename boost::enable_if_c< is_readable_matrix< LeftMatrix >::value && is_reada
   hcat( const LeftMatrix& ML, const RightMatrix& MR ) {
   return mat_const_ref_horiz_cat< LeftMatrix, RightMatrix >( ML, MR );
 };
-
-#ifdef BOOST_NO_CXX11_RVALUE_REFERENCES
-
-/**
- * This operator template will horizontally concatenate two non-const matrices, by copying them into a
- * composite matrix. Making a copy is the only safe option in C++03 because it is not safe to assume
- * that a const-reference is anything but an rvalue (unless explicitly implied by the use of the named
- * function templates (vcat)).
- * \tparam LeftMatrix Matrix type for the left part of the composite matrix.
- * \tparam RightMatrix Matrix type for the right part of the composite matrix.
- * \param MU The value of the left part of the composite matrix.
- * \param ML The value of the right part of the composite matrix.
- * \return The composite matrix that horizontally concatenates the two given matrices, by copy.
- */
-template < typename LeftMatrix, typename RightMatrix >
-typename boost::enable_if_c< is_readable_matrix< LeftMatrix >::value && is_readable_matrix< RightMatrix >::value,
-                             mat_horiz_cat< LeftMatrix, RightMatrix > >::type
-  operator&( const LeftMatrix& ML, const RightMatrix& MR ) {
-  return mat_horiz_cat< LeftMatrix, RightMatrix >( ML, MR );
-};
-
-#else
 
 /**
  * This function template will horizontally concatenate two rvalue matrices, by moving them into a
@@ -1019,8 +990,6 @@ typename boost::enable_if_c< is_readable_matrix< LeftMatrix >::value && is_reada
   return mat_const_ref_horiz_cat< LeftMatrix, RightMatrix >( ML, MR );
 };
 
-#endif
-
 
 /**
  * This class template forms the vertical concatenation of two matrices, which it stores by value.
@@ -1083,7 +1052,6 @@ public:
    */
   mat_vert_cat( const self& aObj ) : mu( aObj.mu ), ml( aObj.ml ){};
 
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
   /**
    * Parametrized Move-constructor.
    * \param aMU Matrix to fill the upper part of the matrix.
@@ -1098,7 +1066,6 @@ public:
    * Move-constructor.
    */
   mat_vert_cat( self&& aObj ) : mu( std::move( aObj.mu ) ), ml( std::move( aObj.ml ) ){};
-#endif
 
   /**
    * Standard swap function.
@@ -1342,12 +1309,10 @@ public:
    */
   mat_ref_vert_cat( const self& aObj ) : mu( aObj.mu ), ml( aObj.ml ){};
 
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
   /**
    * Standard move-constructor (shallow-move).
    */
   mat_ref_vert_cat( self&& aObj ) : mu( aObj.mu ), ml( aObj.ml ){};
-#endif
 
   /**
    * Templated assignment operator to assign the content of the matrix with the content
@@ -1558,9 +1523,8 @@ private:
   const LowerMatrix* ml;
 
   self& operator=( const self& );
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
   mat_const_ref_vert_cat( UpperMatrix&&, LowerMatrix&& );
-#endif
+
 public:
   /**
    * Parametrized constructor.
@@ -1577,12 +1541,10 @@ public:
    */
   mat_const_ref_vert_cat( const self& aObj ) : mu( aObj.mu ), ml( aObj.ml ){};
 
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
   /**
    * Standard move-constructor (shallow-move).
    */
   mat_const_ref_vert_cat( self&& aObj ) : mu( aObj.mu ), ml( aObj.ml ){};
-#endif
 
   /*******************************************************************************
                            Accessors and Methods
@@ -1711,28 +1673,6 @@ typename boost::enable_if_c< is_readable_matrix< UpperMatrix >::value && is_read
   vcat( const UpperMatrix& MU, const LowerMatrix& ML ) {
   return mat_const_ref_vert_cat< UpperMatrix, LowerMatrix >( MU, ML );
 };
-
-#ifdef BOOST_NO_CXX11_RVALUE_REFERENCES
-
-/**
- * This operator template will vertically concatenate two non-const matrices, by copying them into a
- * composite matrix. Making a copy is the only safe option in C++03 because it is not safe to assume
- * that a const-reference is anything but an rvalue (unless explicitly implied by the use of the named
- * function templates (vcat)).
- * \tparam UpperMatrix Matrix type for the upper part of the composite matrix.
- * \tparam LowerMatrix Matrix type for the lower part of the composite matrix.
- * \param MU The value of the upper part of the composite matrix.
- * \param ML The value of the lower part of the composite matrix.
- * \return The composite matrix that vertically concatenates the two given matrices, by copy.
- */
-template < typename UpperMatrix, typename LowerMatrix >
-typename boost::enable_if_c< is_readable_matrix< UpperMatrix >::value && is_readable_matrix< LowerMatrix >::value,
-                             mat_vert_cat< UpperMatrix, LowerMatrix > >::type
-  operator|( const UpperMatrix& MU, const LowerMatrix& ML ) {
-  return mat_vert_cat< UpperMatrix, LowerMatrix >( MU, ML );
-};
-
-#else
 
 /**
  * This function template will vertically concatenate two rvalue matrices, by moving them into a
@@ -1957,8 +1897,6 @@ typename boost::enable_if_c< is_readable_matrix< UpperMatrix >::value && is_read
   operator|( const UpperMatrix& MU, const LowerMatrix& ML ) {
   return mat_const_ref_vert_cat< UpperMatrix, LowerMatrix >( MU, ML );
 };
-
-#endif
 };
 
 #endif

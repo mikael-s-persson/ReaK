@@ -101,9 +101,7 @@ public:
   mutable shared_ptr< IHAQR_payload > IHAQR_data;
 
   explicit IHAQR_point_type( const state_type& aX = state_type() ) : x( aX ){};
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
   explicit IHAQR_point_type( state_type&& aX ) : x( std::move( aX ) ){};
-#endif
 
   virtual ~IHAQR_point_type(){};
 
@@ -200,9 +198,7 @@ public:
     state_difference_type dx;
 
     explicit point_difference_type( const state_difference_type& aDX = state_difference_type() ) : dx( aDX ){};
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
     explicit point_difference_type( state_difference_type&& aDX ) : dx( std::move( aDX ) ){};
-#endif
   };
 
   typedef default_distance_metric distance_metric_type;

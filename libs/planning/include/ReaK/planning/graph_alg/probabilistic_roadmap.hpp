@@ -94,11 +94,7 @@ struct prm_conn_visitor {
 
     VertexProp up;
     put( m_position, up, p );
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
     Vertex u = add_vertex( std::move( up ), g );
-#else
-    Vertex u = add_vertex( up, g );
-#endif
     put( m_cc_root, u, u );
     m_cc_set.insert( u );
     m_vis.vertex_added( u, g );
@@ -311,11 +307,7 @@ inline void generate_prm( Graph& g, const Topology& super_space, PRMVisitor vis,
       p = get_sample( super_space );
     VertexProp up;
     put( position, up, p );
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
     Vertex u = add_vertex( std::move( up ), g );
-#else
-    Vertex u = add_vertex( up, g );
-#endif
     put( cc_root, u, u );
     vis.vertex_added( u, g );
     cc_set.insert( u );

@@ -99,11 +99,7 @@ inline std::pair< typename boost::graph_traits< Graph >::vertex_descriptor, bool
     put( position, vp, p_v );
     Vertex v;
     Edge e;
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
     boost::tie( v, e ) = add_child_vertex( u, std::move( vp ), std::move( ep ), g );
-#else
-    boost::tie( v, e ) = add_child_vertex( u, vp, ep, g );
-#endif
     vis.vertex_added( v, g );
     vis.edge_added( e, g );
     u = v;
@@ -127,11 +123,7 @@ typename boost::graph_traits< Graph >::vertex_descriptor
       p = get_sample( space );
     VertexProp up;
     put( position, up, p );
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
     Vertex u = create_root( std::move( up ), g );
-#else
-    Vertex u = create_root( up, g );
-#endif
     vis.vertex_added( u, g );
     return u;
   } else {

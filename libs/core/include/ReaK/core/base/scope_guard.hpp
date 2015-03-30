@@ -36,7 +36,7 @@
 
 #include "defs.hpp"
 
-#if( !defined( BOOST_NO_CXX11_RVALUE_REFERENCES ) && !defined( BOOST_NO_CXX11_DELETED_FUNCTIONS ) )
+#if( !defined( BOOST_NO_CXX11_DELETED_FUNCTIONS ) )
 
 namespace ReaK {
 

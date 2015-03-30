@@ -265,7 +265,6 @@ public:
     return *this;
   };
 
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
   dvp_tree( self&& rhs ) BOOST_NOEXCEPT : m_tree( std::move( rhs.m_tree ) ),
                                           m_position( std::move( rhs.m_position ) ),
                                           m_vp_key( std::move( rhs.m_vp_key ) ),
@@ -280,7 +279,6 @@ public:
     m_impl.reassign_moved( m_tree, std::move( rhs.m_impl ) );
     return *this;
   };
-#endif
 
   /**
    * Checks if the DVP-tree is empty.
@@ -317,11 +315,7 @@ public:
     vertex_raw_property_type vp;
     put( m_vp_key, vp, u );
     put( m_vp_pos, vp, get( m_position, u ) );
-#ifdef BOOST_NO_CXX11_RVALUE_REFERENCES
-    m_impl.insert( vp );
-#else
     m_impl.insert( std::move( vp ) );
-#endif
   };
 
   /**

@@ -110,8 +110,6 @@ oi_reader& oi_reader::operator=( const oi_reader& rhs ) {
   return *this;
 };
 
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
-
 oi_reader::oi_reader( oi_reader&& rhs ) : mRoot( rhs.mRoot ) { rhs.mRoot = nullptr; };
 
 oi_reader& oi_reader::operator=( oi_reader&& rhs ) {
@@ -121,8 +119,6 @@ oi_reader& oi_reader::operator=( oi_reader&& rhs ) {
   rhs.mRoot = nullptr;
   return *this;
 };
-
-#endif
 
 
 oi_reader::~oi_reader() {

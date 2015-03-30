@@ -162,15 +162,10 @@ public:
     // H_dot     = H * tril(G);
     ReaK::detail::inplace_lower_multiply_with_fill_impl( H, G );
 
-    return point_derivative_type(
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
-      std::move( F ), // L_dot
-      std::move( G ), // H_dot
-#else
-      F, G,
-#endif
-      transpose_view( lin_data->A ) * eta - T_rhs, // eta_dot
-      lin_data->A * zir + stat_drift );            // zir_dot
+    return point_derivative_type( std::move( F ),                              // L_dot
+                                  std::move( G ),                              // H_dot
+                                  transpose_view( lin_data->A ) * eta - T_rhs, // eta_dot
+                                  lin_data->A * zir + stat_drift );            // zir_dot
   };
 
   output_type get_output( const state_space_type&, const point_type&, input_type, double ) const {
@@ -216,7 +211,6 @@ public:
     return *this;
   };
 
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
   MEAQR_point_type( base_type&& rhs ) : base_type( std::move( rhs ) ){};
   explicit MEAQR_point_type( state_type&& aX ) : base_type( std::move( aX ) ){};
 
@@ -227,7 +221,6 @@ public:
     this->MEAQR_data = shared_ptr< MEAQR_payload >();
     return *this;
   };
-#endif
 
 
   virtual ~MEAQR_point_type(){};
@@ -339,8 +332,8 @@ protected:
   /// MEAQR, and is thus stored internally in the MEAQR instead of
   /// repeating all that code.
   double m_idle_to_cost_ratio; ///< The ratio of the idle-power cost to the feedback input cost, e.g., a value of 0.1
-  /// would mean that the input-bias cost (idle or hover cost) is penalized ten times less
-  /// than the feedback term.
+                               /// would mean that the input-bias cost (idle or hover cost) is penalized ten times less
+                               /// than the feedback term.
 
   /**
    * This function fills the vector of MEAQR data points (P,M,eta,D) for a given point p and up to the maximum

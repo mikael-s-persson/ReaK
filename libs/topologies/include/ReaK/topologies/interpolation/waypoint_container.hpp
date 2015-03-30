@@ -80,9 +80,7 @@ protected:
   typedef typename container_type::value_type waypoint_value;
 
   static const point_type& make_value( const point_type& p ) { return p; };
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
   static point_type&& make_value( point_type&& p ) { return std::move( p ); };
-#endif
   static const point_type& extract_point( const point_type& v ) { return v; };
   static point_type& extract_point( point_type& v ) { return v; };
 
@@ -293,9 +291,7 @@ protected:
   typedef typename container_type::value_type waypoint_value;
 
   static waypoint_value make_value( const point_type& p ) { return waypoint_value( p.time, p ); };
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
   static waypoint_value make_value( point_type&& p ) { return waypoint_value( p.time, std::move( p ) ); };
-#endif
   static const point_type& extract_point( const waypoint_value& v ) { return v.second; };
   static point_type& extract_point( waypoint_value& v ) { return v.second; };
 
@@ -333,10 +329,8 @@ public:
     point_time_iterator( const self* aParent, const const_waypoint_bounds& aWPB )
         : parent( aParent ), current_wpb( aWPB ), current_pt( current_wpb.first->second ){};
 
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
     point_time_iterator( const self* aParent, const_waypoint_bounds&& aWPB )
         : parent( aParent ), current_wpb( std::move( aWPB ) ), current_pt( current_wpb.first->second ){};
-#endif
 
     point_time_iterator& operator+=( double rhs ) {
       current_pt = parent->move_time_diff_from_impl( current_pt, current_wpb, rhs ).second;
@@ -380,10 +374,8 @@ public:
     point_fraction_iterator( const self* aParent, const const_waypoint_bounds& aWPB )
         : parent( aParent ), current_wpb( aWPB ), current_pt( current_wpb.first->second ){};
 
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
     point_fraction_iterator( const self* aParent, const_waypoint_bounds&& aWPB )
         : parent( aParent ), current_wpb( std::move( aWPB ) ), current_pt( current_wpb.first->second ){};
-#endif
 
     point_fraction_iterator& operator+=( double rhs ) {
       double dt_total = ( current_wpb.second->first - current_wpb.first->first );

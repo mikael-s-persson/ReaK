@@ -89,11 +89,8 @@ private:
   size_type count;
 
   self& operator=( const self& );
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
   explicit vect_const_ref_view( Vector&& );
-
   vect_const_ref_view( Vector&&, size_type, size_type aOffset = 0 );
-#endif
 
 public:
   /**
@@ -474,7 +471,6 @@ public:
   vect_copy_view( const Vector& aV, size_type aCount, size_type aOffset = 0 )
       : v( aV ), offset( aOffset ), count( aCount ){};
 
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
   /**
    * Constructs the sub-matrix which represents the entire matrix.
    */
@@ -488,7 +484,6 @@ public:
    */
   vect_copy_view( Vector&& aV, size_type aCount, size_type aOffset = 0 )
       : v( std::move( aV ) ), offset( aOffset ), count( aCount ){};
-#endif
 
   /**
    * Standard swap function.
@@ -687,16 +682,10 @@ struct vect_copy_view_factory {
 
   Vector v;
   vect_copy_view_factory( const Vector& aV ) : v( aV ){};
-#ifdef BOOST_NO_CXX11_RVALUE_REFERENCES
-  vect_copy_view< Vector > operator[]( const std::pair< size_type, size_type >& indices ) {
-    return vect_copy_view< Vector >( v, indices.second - indices.first, indices.first );
-  };
-#else
   vect_copy_view_factory( Vector&& aV ) : v( std::move( aV ) ){};
   vect_copy_view< Vector > operator[]( const std::pair< size_type, size_type >& indices ) {
     return vect_copy_view< Vector >( std::move( v ), indices.second - indices.first, indices.first );
   };
-#endif
 };
 
 template < typename Vector >
@@ -740,12 +729,10 @@ typename boost::enable_if< is_readable_vector< Vector >, vect_copy_view_factory<
   return vect_copy_view_factory< Vector >( V );
 };
 
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
 template < typename Vector >
 typename boost::enable_if< is_readable_vector< Vector >, vect_copy_view_factory< Vector > >::type sub( Vector&& V ) {
   return vect_copy_view_factory< Vector >( std::move( V ) );
 };
-#endif
 };
 
 #endif

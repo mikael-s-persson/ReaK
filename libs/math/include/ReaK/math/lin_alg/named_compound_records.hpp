@@ -112,13 +112,12 @@ public:
       data = rhs.data;
       return *this;
     };
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
+
     compound_vect( compound_vect&& rhs ) : data( std::move( rhs.data ) ){};
     compound_vect& operator=( compound_vect&& rhs ) {
       data = std::move( rhs.data );
       return *this;
     };
-#endif
 
     /**
      * This function converts the internally-recorded value of the compound to the

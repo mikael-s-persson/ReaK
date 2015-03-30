@@ -309,12 +309,8 @@ struct MEAQR_sbastar_visitor
       g[u].position.x, steer_result.first.x, this->m_query->space->get_state_space() );
 
     if( actual_dist > this->m_planner->get_steer_progress_tolerance() * best_case_dist ) {
-//       std::cout << "Steered successfully!" << std::endl;
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
+      //       std::cout << "Steered successfully!" << std::endl;
       return ResultType( steer_result.first, true, EdgeProp( 0.8 * total_dist, std::move( steer_result.second ) ) );
-#else
-      return ResultType( steer_result.first, true, EdgeProp( 0.8 * total_dist, steer_result.second ) );
-#endif
     } else {
       return ResultType( steer_result.first, false, EdgeProp() );
     };
@@ -338,12 +334,7 @@ struct MEAQR_sbastar_visitor
       //       std::cout << "Connected successfully!" << std::endl;
       return ResultType( true, EdgeProp( get( distance_metric, this->m_query->space->get_super_space() )(
                                            g[u].position, g[v].position, this->m_query->space->get_super_space() ),
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
-                                         std::move( steer_result.second )
-#else
-                                         steer_result.second
-#endif
-                                         ) );
+                                         std::move( steer_result.second ) ) );
     } else {
       return ResultType( false, EdgeProp() );
     };
@@ -409,8 +400,6 @@ void MEAQR_sbastar_planner< StateSpace, StateSpaceSystem, StateSpaceSampler >::s
   MotionGraphType motion_graph;
 
 
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
-
 #define RK_MEAQR_SBASTAR_PLANNER_INIT_START_AND_GOAL_NODE                                                       \
   VertexProp vp_start;                                                                                          \
   vp_start.position = aQuery.get_start_position();                                                              \
@@ -436,36 +425,6 @@ void MEAQR_sbastar_planner< StateSpace, StateSpaceSystem, StateSpaceSampler >::s
     motion_graph[goal_node].predecessor = goal_node;                                                            \
     vis.m_goal_node = boost::any( goal_node );                                                                  \
   };
-
-#else
-
-#define RK_MEAQR_SBASTAR_PLANNER_INIT_START_AND_GOAL_NODE                                                       \
-  VertexProp vp_start;                                                                                          \
-  vp_start.position = aQuery.get_start_position();                                                              \
-  Vertex start_node = add_vertex( vp_start, motion_graph );                                                     \
-  motion_graph[start_node].constriction = 0.0;                                                                  \
-  motion_graph[start_node].collision_count = 0;                                                                 \
-  motion_graph[start_node].density = 0.0;                                                                       \
-  motion_graph[start_node].expansion_trials = 0;                                                                \
-  motion_graph[start_node].heuristic_value = aQuery.get_heuristic_to_goal( motion_graph[start_node].position ); \
-  motion_graph[start_node].distance_accum = 0.0;                                                                \
-  motion_graph[start_node].predecessor = start_node;                                                            \
-  vis.m_start_node = boost::any( start_node );                                                                  \
-  if( p2p_query_ptr ) {                                                                                         \
-    VertexProp vp_goal;                                                                                         \
-    vp_goal.position = p2p_query_ptr->goal_pos;                                                                 \
-    Vertex goal_node = add_vertex( vp_goal, motion_graph );                                                     \
-    motion_graph[goal_node].constriction = 0.0;                                                                 \
-    motion_graph[goal_node].collision_count = 0;                                                                \
-    motion_graph[goal_node].density = 0.0;                                                                      \
-    motion_graph[goal_node].expansion_trials = 0;                                                               \
-    motion_graph[goal_node].heuristic_value = 0.0;                                                              \
-    motion_graph[goal_node].distance_accum = std::numeric_limits< double >::infinity();                         \
-    motion_graph[goal_node].predecessor = goal_node;                                                            \
-    vis.m_goal_node = boost::any( goal_node );                                                                  \
-  };
-
-#endif
 
 
 #define RK_MEAQR_SBASTAR_PLANNER_SETUP_DVP_TREE_SYNCHRO( ARITY, TREE_STORAGE )                                  \

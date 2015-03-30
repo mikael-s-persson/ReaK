@@ -186,11 +186,7 @@ struct fadprm_bfs_visitor {
 
     VertexProp up;
     put( m_position, up, p );
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
     Vertex u = add_vertex( std::move( up ), g );
-#else
-    Vertex u = add_vertex( up, g );
-#endif
     m_vis.vertex_added( u, g );
     put( m_color, u, Color::white() );
     put( m_index_in_heap, u, static_cast< std::size_t >( -1 ) );
@@ -470,7 +466,7 @@ inline void generate_fadprm_no_init( Graph& g, Vertex start_vertex, const Topolo
 
   typedef boost::d_ary_heap_indirect< Vertex, 4, IndexInHeapMap, KeyValueMap, KeyCompareType > MutableQueue;
   MutableQueue Q( key_map, index_in_heap, KeyCompareType() ); // priority queue holding the OPEN set.
-  std::vector< Vertex > I; // list holding the INCONS set (inconsistent nodes).
+  std::vector< Vertex > I;                                    // list holding the INCONS set (inconsistent nodes).
 
   detail::fadprm_bfs_visitor< Topology, AStarHeuristicMap, FADPRMVisitor, MutableQueue, std::vector< Vertex >,
                               IndexInHeapMap, PredecessorMap, KeyValueMap, DistanceMap, RHSMap, WeightMap, DensityMap,
@@ -550,15 +546,15 @@ inline void generate_fadprm_no_init( Graph& g, Vertex start_vertex, const Topolo
 template < typename Graph, // this is the actual graph, should comply to BidirectionalMutableGraphConcept.
            typename Vertex, typename Topology,
            typename AStarHeuristicMap, // this the map of heuristic function value for each vertex.
-           typename FADPRMVisitor, // this is a visitor class that can perform special operations at event points.
-           typename PredecessorMap, // this is the map that stores the preceeding edge for each vertex.
-           typename DistanceMap, // this is the map of distance values associated with each vertex.
+           typename FADPRMVisitor,     // this is a visitor class that can perform special operations at event points.
+           typename PredecessorMap,    // this is the map that stores the preceeding edge for each vertex.
+           typename DistanceMap,       // this is the map of distance values associated with each vertex.
            typename RHSMap,
            typename WeightMap, // this is the map of edge weight (or cost) associated to each edge of the graph.
            typename DensityMap, typename PositionMap, typename NcSelector,
            typename ColorMap > // this is a color map for each vertex, i.e. white=not visited, gray=discovered,
-                               // black=expanded.
-                               inline void
+// black=expanded.
+inline void
   generate_fadprm( Graph& g, Vertex start_vertex, const Topology& free_space, AStarHeuristicMap hval, FADPRMVisitor vis,
                    PredecessorMap predecessor, DistanceMap distance, RHSMap rhs, WeightMap weight, DensityMap density,
                    PositionMap position, NcSelector select_neighborhood, ColorMap color, double epsilon ) {
@@ -578,11 +574,7 @@ template < typename Graph, // this is the actual graph, should comply to Bidirec
     VertexProp up;
     PositionValue p = get( ReaK::pp::random_sampler, free_space )( free_space );
     put( position, up, p );
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
     Vertex u = add_vertex( std::move( up ), g );
-#else
-    Vertex u = add_vertex( up, g );
-#endif
     vis.vertex_added( u, g );
     start_vertex = u;
   };

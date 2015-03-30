@@ -72,9 +72,7 @@ struct TreeOrganizerVisitorConcept {
   BOOST_CONCEPT_USAGE( TreeOrganizerVisitorConcept ) {
     vis.remove_vertex( v, tree );
     vis.add_vertex( vp, tree );
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
     vis.add_vertex( std::move( vp ), tree );
-#endif
   };
 };
 };

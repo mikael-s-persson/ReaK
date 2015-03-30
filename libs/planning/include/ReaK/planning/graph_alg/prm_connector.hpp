@@ -73,11 +73,7 @@ struct prm_node_connector {
 
     conn_vis.travel_explored( x_near, v, g );
     conn_vis.travel_succeeded( x_near, v, g );
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
     std::pair< Edge, bool > e_new = add_edge( x_near, v, std::move( eprop ), g );
-#else
-    std::pair< Edge, bool > e_new = add_edge( x_near, v, eprop, g );
-#endif
     if( e_new.second ) {
       conn_vis.edge_added( e_new.first, g );
       conn_vis.affected_vertex( x_near, g );
@@ -148,11 +144,7 @@ struct prm_node_connector {
       conn_vis.travel_explored( *it, v, g );
       if( can_connect ) {
         conn_vis.travel_succeeded( *it, v, g );
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
         std::pair< Edge, bool > e_new = add_edge( *it, v, std::move( eprop2 ), g );
-#else
-        std::pair< Edge, bool > e_new = add_edge( *it, v, eprop2, g );
-#endif
         if( e_new.second )
           conn_vis.edge_added( e_new.first, g );
       } else {
@@ -228,11 +220,7 @@ struct prm_node_connector {
       conn_vis.travel_explored( *it, v, g );
       if( can_connect ) {
         conn_vis.travel_succeeded( *it, v, g );
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
         std::pair< Edge, bool > e_new = add_edge( *it, v, std::move( eprop2 ), g );
-#else
-        std::pair< Edge, bool > e_new = add_edge( *it, v, eprop2, g );
-#endif
         if( e_new.second )
           conn_vis.edge_added( e_new.first, g );
       } else {
@@ -248,11 +236,7 @@ struct prm_node_connector {
       conn_vis.travel_explored( v, *it, g );
       if( can_connect ) {
         conn_vis.travel_succeeded( v, *it, g );
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
         std::pair< Edge, bool > e_new = add_edge( v, *it, std::move( eprop2 ), g );
-#else
-        std::pair< Edge, bool > e_new = add_edge( v, *it, eprop2, g );
-#endif
         if( e_new.second )
           conn_vis.edge_added( e_new.first, g );
       } else {

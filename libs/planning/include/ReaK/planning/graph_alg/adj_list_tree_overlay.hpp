@@ -334,7 +334,6 @@ public:
     return remove_branch( v, it_out, m_alt->m_tree );
   };
 
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
   vertex_descriptor create_root_impl( vertex_property_type&& vp ) {
     vertex_descriptor v_root = create_root( std::move( vp ), m_alt->m_tree );
     m_alt->m_adj_list[m_alt->m_tree[v_root].partner_node].tree_vertex = v_root;
@@ -355,7 +354,6 @@ public:
     m_alt->m_adj_list[m_alt->m_tree[result.first].partner_node].tree_vertex = result.first;
     return result;
   };
-#endif
 };
 
 }; // end namespace graph
@@ -520,9 +518,7 @@ private:
 
     virtual void remove_vertex( tree_vertex_desc, alt_tree_view< AdjListOnTreeType >& ) const = 0;
     virtual void add_vertex( const tree_vertex_prop&, alt_tree_view< AdjListOnTreeType >& ) const = 0;
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
     virtual void add_vertex( tree_vertex_prop&&, alt_tree_view< AdjListOnTreeType >& ) const = 0;
-#endif
   };
 
   template < typename GraphMutationVisitor >
@@ -540,11 +536,9 @@ private:
     virtual void add_vertex( const tree_vertex_prop& tvp, alt_tree_view< AdjListOnTreeType >& t ) const {
       m_vis.add_vertex( tvp, t );
     };
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
     virtual void add_vertex( tree_vertex_prop&& tvp, alt_tree_view< AdjListOnTreeType >& t ) const {
       m_vis.add_vertex( std::move( tvp ), t );
     };
-#endif
   };
 
   shared_ptr< AdjListOnTreeType > m_alt;
@@ -659,11 +653,7 @@ public:
     tree_vp.partner_node = v;
     tree_vp.user_data = vp;
     alt_tree_view< AdjListOnTreeType > tree_view( *this );
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
     m_vis->add_vertex( std::move( tree_vp ), tree_view );
-#else
-    m_vis->add_vertex( tree_vp, tree_view );
-#endif
     return v;
   };
 
@@ -687,7 +677,6 @@ public:
     remove_edge( e_iter, ep, m_alt->m_adj_list );
   };
 
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
   vertex_descriptor add_vertex_impl( vertex_property_type&& vp ) {
     vertex_descriptor v = add_vertex( m_alt->m_adj_list );
     typename tree_type::vertex_property_type tree_vp;
@@ -702,21 +691,14 @@ public:
                                                     edge_property_type&& ep ) {
     return add_edge( u, v, std::move( ep ), m_alt->m_adj_list );
   };
-#endif
 
   // Other useful / unclassified functions:
 
   void update_vertex( vertex_descriptor v ) {
     alt_tree_view< AdjListOnTreeType > tree_view( *this );
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
     typename tree_type::vertex_property_type tree_vp = std::move( m_alt->m_tree[m_alt->m_adj_list[v].tree_vertex] );
     m_vis->remove_vertex( m_alt->m_adj_list[v].tree_vertex, tree_view );
     m_vis->add_vertex( std::move( tree_vp ), tree_view );
-#else
-    typename tree_type::vertex_property_type tree_vp = m_alt->m_tree[m_alt->m_adj_list[v].tree_vertex];
-    m_vis->remove_vertex( m_alt->m_adj_list[v].tree_vertex, tree_view );
-    m_vis->add_vertex( tree_vp, tree_view );
-#endif
   };
 
 
@@ -1010,7 +992,6 @@ OutputIter remove_branch( typename boost::graph_traits< alt_tree_view< AdjListOn
   return g.remove_branch_impl( v, it_out );
 };
 
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
 template < typename AdjListOnTreeType >
 typename boost::graph_traits< alt_tree_view< AdjListOnTreeType > >::vertex_descriptor
   create_root( typename alt_tree_view< AdjListOnTreeType >::vertex_property_type&& vp,
@@ -1036,7 +1017,6 @@ std::pair< typename boost::graph_traits< alt_tree_view< AdjListOnTreeType > >::v
                     alt_tree_view< AdjListOnTreeType >& g ) {
   return g.add_child_vertex_impl( v, std::move( vp ), std::move( ep ) );
 };
-#endif
 
 
 /******************************************************************************************
@@ -1267,7 +1247,6 @@ void remove_edge( typename boost::graph_traits< alt_graph_view< AdjListOnTreeTyp
   g.remove_edge_impl( e_iter, ep );
 };
 
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
 template < typename AdjListOnTreeType >
 typename boost::graph_traits< alt_graph_view< AdjListOnTreeType > >::vertex_descriptor
   add_vertex( typename alt_graph_view< AdjListOnTreeType >::vertex_property_type&& vp,
@@ -1283,7 +1262,6 @@ std::pair< typename boost::graph_traits< alt_graph_view< AdjListOnTreeType > >::
             alt_graph_view< AdjListOnTreeType >& g ) {
   return g.add_edge_impl( u, v, std::move( ep ) );
 };
-#endif
 };
 };
 

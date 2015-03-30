@@ -85,12 +85,10 @@ struct avl_tree_helper {
   static const mapped_type& value_to_mapped( const value_type& rhs ) { return rhs; };
   static mapped_type& value_to_mapped( value_type& rhs ) { return rhs; };
 
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
   template < typename U, typename V >
   static value_type keymap_to_value( U&& k, V&& ) {
     return value_type( std::forward< U >( k ) );
   };
-#endif
   static value_type keymap_to_value( const key_type& k, const mapped_type& ) { return value_type( k ); };
 };
 
@@ -116,12 +114,10 @@ struct avl_tree_helper< TreeType, Compare, avl_multiset_style > {
   static const mapped_type& value_to_mapped( const value_type& rhs ) { return rhs; };
   static mapped_type& value_to_mapped( value_type& rhs ) { return rhs; };
 
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
   template < typename U, typename V >
   static value_type keymap_to_value( U&& k, V&& ) {
     return value_type( std::forward< U >( k ) );
   };
-#endif
   static value_type keymap_to_value( const key_type& k, const mapped_type& ) { return value_type( k ); };
 };
 
@@ -156,12 +152,10 @@ struct avl_tree_helper< TreeType, Compare, avl_map_style > {
   static const mapped_type& value_to_mapped( const value_type& rhs ) { return rhs.second; };
   static mapped_type& value_to_mapped( value_type& rhs ) { return rhs.second; };
 
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
   template < typename U, typename V >
   static value_type keymap_to_value( U&& k, V&& m ) {
     return value_type( std::forward< U >( k ), std::forward< V >( m ) );
   };
-#endif
   static value_type keymap_to_value( const key_type& k, const mapped_type& m ) { return value_type( k, m ); };
 };
 
@@ -196,12 +190,10 @@ struct avl_tree_helper< TreeType, Compare, avl_multimap_style > {
   static const mapped_type& value_to_mapped( const value_type& rhs ) { return rhs.second; };
   static mapped_type& value_to_mapped( value_type& rhs ) { return rhs.second; };
 
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
   template < typename U, typename V >
   static value_type keymap_to_value( U&& k, V&& m ) {
     return value_type( std::forward< U >( k ), std::forward< V >( m ) );
   };
-#endif
   static value_type keymap_to_value( const key_type& k, const mapped_type& m ) { return value_type( k, m ); };
 };
 };
@@ -347,11 +339,7 @@ private:
       PropIter cur_task_median = cur_task.first + std::distance( cur_task.first, cur_task.last ) / 2;
       std::nth_element( cur_task.first, cur_task_median, cur_task.last, m_compare );
 
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
       m_tree[cur_task.node] = std::move( *cur_task_median );
-#else
-      m_tree[cur_task.node] = *cur_task_median;
-#endif
 
       // first take care of the [first, median) range.
       if( cur_task.first == cur_task_median )
@@ -445,11 +433,7 @@ private:
     while( !tasks.empty() ) {
       vertex_type cur_task = tasks.front();
       tasks.pop();
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
       aList.push_back( std::move( m_tree[cur_task] ) );
-#else
-      aList.push_back( m_tree[cur_task] );
-#endif
       if( !has_left_child( cur_task ) )
         continue;
       tasks.push( get_left_child( cur_task ) );
@@ -471,19 +455,11 @@ private:
     construct_node( aRootNode, collected_nodes.begin(), collected_nodes.end() );
   };
 
-// re-balance the sub-tree rooted at the given node. Uses a "collect and re-construct" approach.
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
+  // re-balance the sub-tree rooted at the given node. Uses a "collect and re-construct" approach.
   void rebalance_and_insert_subtree( vertex_type aRootNode, vertex_property&& aAdded ) {
-#else
-  void rebalance_and_insert_subtree( vertex_type aRootNode, const vertex_property& aAdded ) {
-#endif
     // collect and remove.
     std::vector< vertex_property > collected_nodes;
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
     collected_nodes.push_back( std::move( aAdded ) );
-#else
-    collected_nodes.push_back( aAdded );
-#endif
     collect_nodes( aRootNode, collected_nodes );
     // re-construct:
     construct_node( aRootNode, collected_nodes.begin(), collected_nodes.end() );
@@ -537,18 +513,10 @@ private:
   };
 
 
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
   std::pair< iterator, bool > insert_after_terminal_impl( vertex_type aBefore, vertex_property&& aValue ) {
-#else
-  std::pair< iterator, bool > insert_after_terminal_impl( vertex_type aBefore, const vertex_property& aValue ) {
-#endif
     using std::swap;
     if( out_degree( aBefore, m_tree ) ) { // then the before node is terminal but not a leaf, safe to insert:
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
       std::pair< vertex_type, edge_type > new_child = add_child_vertex( aBefore, std::move( aValue ), m_tree );
-#else
-      std::pair< vertex_type, edge_type > new_child = add_child_vertex( aBefore, aValue, m_tree );
-#endif
       return std::pair< iterator, bool >( iterator( &m_tree, new_child.first ), true );
     };
     // otherwise, a new child will be needed below the 'aBefore' node.
@@ -557,38 +525,22 @@ private:
     if( imbal_u.second ) {
       // must re-balance and insert at sub-tree from imbal_u.first:
       key_type tmp_k = helper_type::value_to_key( aValue );
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
       rebalance_and_insert_subtree( imbal_u.first, std::move( aValue ) );
-#else
-      rebalance_and_insert_subtree( imbal_u.first, aValue );
-#endif
       return std::pair< iterator, bool >( iterator( &m_tree, find_lower_bound( tmp_k, imbal_u.first ) ), true );
     } else {
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
       std::pair< vertex_type, edge_type > new_child = add_child_vertex( aBefore, std::move( aValue ), m_tree );
-#else
-      std::pair< vertex_type, edge_type > new_child = add_child_vertex( aBefore, aValue, m_tree );
-#endif
       swap( m_tree[new_child.first], m_tree[aBefore] );
       return std::pair< iterator, bool >( iterator( &m_tree, aBefore ), true );
     };
   };
 
 
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
   vertex_type insert_in_range_impl( iterator tvi, iterator tvi_end, vertex_property&& aValue ) {
-#else
-  vertex_type insert_in_range_impl( iterator tvi, iterator tvi_end, const vertex_property& aValue ) {
-#endif
     // lets try to find a sweet spot (balance-wise) to place the new node:
     vertex_type tmp_u = tvi.base();
     for( ; tvi != tvi_end; ++tvi ) {
       if( out_degree( tvi.base(), m_tree ) == 1 ) { // then, this is definitely a good spot:
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
         std::pair< vertex_type, edge_type > new_child = add_child_vertex( tvi.base(), std::move( aValue ), m_tree );
-#else
-        std::pair< vertex_type, edge_type > new_child = add_child_vertex( tvi.base(), aValue, m_tree );
-#endif
         return new_child.first;
       };
     };
@@ -600,18 +552,10 @@ private:
       if( imbal_u.second ) {
         // must re-balance and insert at sub-tree from imbal_u.first:
         key_type tmp_k = helper_type::value_to_key( aValue );
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
         rebalance_and_insert_subtree( imbal_u.first, std::move( aValue ) );
-#else
-        rebalance_and_insert_subtree( imbal_u.first, aValue );
-#endif
         return find_lower_bound( tmp_k, imbal_u.first );
       } else {
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
         rebalance_and_insert_subtree( tmp_u, std::move( aValue ) );
-#else
-        rebalance_and_insert_subtree( tmp_u, aValue );
-#endif
         return tmp_u;
       };
     } else
@@ -619,28 +563,21 @@ private:
   };
 
 
-/*
- * The vertex aBefore is the "lower-bound" (either the first equal element or the first greater element if value is not
- * already in the tree).
- * The vertex aAfter is the "upper-bound" (the first greater element).
- * The value is the property of the vertex to be inserted.
- */
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
+  /*
+   * The vertex aBefore is the "lower-bound" (either the first equal element or the first greater element if value is
+   * not
+   * already in the tree).
+   * The vertex aAfter is the "upper-bound" (the first greater element).
+   * The value is the property of the vertex to be inserted.
+   */
   std::pair< iterator, bool > insert_impl( vertex_type aBefore, vertex_type aAfter,
                                            vertex_property aValue ) { // by-value.
-#else
-  std::pair< iterator, bool > insert_impl( vertex_type aBefore, vertex_type aAfter, const vertex_property& aValue ) {
-#endif
     using std::swap;
 
     if( ( aAfter == tree_indexer::null_vertex() ) && ( aBefore != tree_indexer::null_vertex() ) ) {
-// this means that all the vertices remaining after aBefore are all equal to the given value.
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
+      // this means that all the vertices remaining after aBefore are all equal to the given value.
       vertex_type tmp_u
         = insert_in_range_impl( iterator( &m_tree, aBefore ), iterator::end( &m_tree ), std::move( aValue ) );
-#else
-      vertex_type tmp_u = insert_in_range_impl( iterator( &m_tree, aBefore ), iterator::end( &m_tree ), aValue );
-#endif
       if( tmp_u == tree_indexer::null_vertex() )
         aBefore = tmp_u; // this will cause it to be inserted at the end (see below).
       else
@@ -650,11 +587,7 @@ private:
     if( ( aBefore == tree_indexer::null_vertex() ) && ( aAfter == tree_indexer::null_vertex() ) ) {
       // this means that the vertex must be appended to the end. (value is greater than all elements in the tree)
       aBefore = boost::graph::detail::bst_go_down_right( m_tree, m_root );
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
       return insert_after_terminal_impl( aBefore, std::move( aValue ) );
-#else
-      return insert_after_terminal_impl( aBefore, aValue );
-#endif
     };
 
 
@@ -666,29 +599,17 @@ private:
         if( imbal_u.second ) {
           // must re-balance and insert at sub-tree from imbal_u.first:
           key_type tmp_k = helper_type::value_to_key( aValue );
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
           rebalance_and_insert_subtree( imbal_u.first, std::move( aValue ) );
-#else
-          rebalance_and_insert_subtree( imbal_u.first, aValue );
-#endif
           return std::pair< iterator, bool >( iterator( &m_tree, find_lower_bound( tmp_k, imbal_u.first ) ), true );
         } else {
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
           std::pair< vertex_type, edge_type > new_child = add_child_vertex( aAfter, std::move( aValue ), m_tree );
-#else
-          std::pair< vertex_type, edge_type > new_child = add_child_vertex( aAfter, aValue, m_tree );
-#endif
           return std::pair< iterator, bool >( iterator( &m_tree, new_child.first ), true );
         };
       };
 
       if( out_degree( aAfter, m_tree ) == 1 ) {
-// this means that the left-child must be a leaf (otherwise it would be imbalanced), so, we can rotate the tree.
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
+        // this means that the left-child must be a leaf (otherwise it would be imbalanced), so, we can rotate the tree.
         std::pair< vertex_type, edge_type > new_child = add_child_vertex( aAfter, std::move( aValue ), m_tree );
-#else
-        std::pair< vertex_type, edge_type > new_child = add_child_vertex( aAfter, aValue, m_tree );
-#endif
         //           swap(m_tree[new_child.first], m_tree[*(child_vertices(aAfter,m_tree).first)]);
         swap( m_tree[aAfter], m_tree[new_child.first] );
         return std::pair< iterator, bool >( iterator( &m_tree, *( child_vertices( aAfter, m_tree ).first ) ), true );
@@ -696,20 +617,12 @@ private:
 
       // else, aAfter is full, lets try after the previous node (which must be a leaf or non-full node):
       aBefore = boost::graph::detail::bst_go_down_right( m_tree, *( child_vertices( aAfter, m_tree ).first ) );
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
       return insert_after_terminal_impl( aBefore, std::move( aValue ) );
-#else
-      return insert_after_terminal_impl( aBefore, aValue );
-#endif
     };
 
-// then, the general case: the equal range is somewhere in the middle of the set.
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
+    // then, the general case: the equal range is somewhere in the middle of the set.
     vertex_type tmp_u
       = insert_in_range_impl( iterator( &m_tree, aBefore ), iterator( &m_tree, aAfter ), std::move( aValue ) );
-#else
-    vertex_type tmp_u = insert_in_range_impl( iterator( &m_tree, aBefore ), iterator( &m_tree, aAfter ), aValue );
-#endif
     if( tmp_u == tree_indexer::null_vertex() )
       return std::pair< iterator, bool >( iterator::end( &m_tree ), false ); // this case is impossible.
     else
@@ -766,11 +679,7 @@ private:
         it_near = aAfter;
         continue;
       };
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
       collected_nodes.push_back( std::move( m_tree[it_near.base()] ) );
-#else
-      collected_nodes.push_back( m_tree[it_near.base()] );
-#endif
       if( it_near == it_far )
         break;
       ++it_near;
@@ -1055,7 +964,6 @@ public:
     return insert_impl( find_lower_bound( k, m_root ), find_upper_bound( k, m_root ), aValue );
   };
 
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
   /**
    * Attempts to insert an element into the set.
    * \param aValue Element to be inserted.
@@ -1072,7 +980,6 @@ public:
     return insert_impl( find_lower_bound( k, m_root ), find_upper_bound( k, m_root ),
                         value_type( std::forward< P >( aValue ) ) );
   };
-#endif
 
   /**
    * Attempts to insert an element into the set.
@@ -1112,7 +1019,6 @@ public:
     return insert_impl( aPosition.base(), p5.base(), aValue ).first;
   };
 
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
   /**
    * Attempts to insert an element into the set.
    * \param aPosition An iterator that serves as a hint as to where the element should be inserted.
@@ -1151,7 +1057,6 @@ public:
       ++p5;
     return insert_impl( aPosition.base(), p5.base(), value_type( std::forward< P >( aValue ) ) ).first;
   };
-#endif
 
   /**
    * A template function that attempts to insert a range of elements.
@@ -1286,7 +1191,6 @@ public:
     };
   };
 
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
   /**
    * Subscript ( [] ) access to map data. Allows for easy lookup with the subscript ( [] ) operator.
    * Returns data associated with the key specified in subscript. If the key does not exist, a pair
@@ -1309,7 +1213,6 @@ public:
       return helper_type::value_to_mapped( m_tree[it.base()] );
     };
   };
-#endif
 
   /**
    * Access to map data.
@@ -1356,9 +1259,7 @@ public:
 
     void add_vertex( const vertex_property& vp, tree_indexer& ) const { m_parent->insert( vp ); };
 
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
     void add_vertex( vertex_property&& vp, tree_indexer& ) const { m_parent->insert( std::move( vp ) ); };
-#endif
   };
 };
 };

@@ -100,11 +100,7 @@ struct lazy_node_connector {
           conn_vis.travel_succeeded( *it, v, g );
           x_near = *it;
           d_near = d_out;
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
           eprop = std::move( eprop2 );
-#else
-          eprop = eprop2;
-#endif
         } else {
           conn_vis.travel_failed( *it, v, g );
         };
@@ -143,11 +139,7 @@ struct lazy_node_connector {
           conn_vis.travel_succeeded( v, *it, g );
           x_near = *it;
           d_near = d_in;
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
           eprop = std::move( eprop2 );
-#else
-          eprop = eprop2;
-#endif
         } else {
           conn_vis.travel_failed( v, *it, g );
         };
@@ -182,11 +174,7 @@ struct lazy_node_connector {
         conn_vis.travel_explored( *it, v, g );
         if( can_connect ) {
           conn_vis.travel_succeeded( *it, v, g );
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
           std::pair< Edge, bool > e_new = add_edge( *it, v, std::move( eprop2 ), g );
-#else
-          std::pair< Edge, bool > e_new = add_edge( *it, v, eprop2, g );
-#endif
           if( e_new.second ) {
             put( fwd_distance, g[*it], d_in );
             Vertex old_succ = get( successor, g[*it] );
@@ -236,11 +224,7 @@ struct lazy_node_connector {
         conn_vis.travel_explored( v, *it, g );
         if( can_connect ) {
           conn_vis.travel_succeeded( v, *it, g );
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
           std::pair< Edge, bool > e_new = add_edge( v, *it, std::move( eprop2 ), g );
-#else
-          std::pair< Edge, bool > e_new = add_edge( v, *it, eprop2, g );
-#endif
           if( e_new.second ) {
             put( distance, g[*it], d_in );
             Vertex old_pred = get( predecessor, g[*it] );

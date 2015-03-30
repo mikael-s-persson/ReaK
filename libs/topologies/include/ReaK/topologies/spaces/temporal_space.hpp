@@ -77,7 +77,6 @@ struct temporal_point : public serializable {
     return *this;
   };
 
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
   temporal_point( self&& rhs ) : time( std::move( rhs.time ) ), pt( std::move( rhs.pt ) ){};
 
   self& operator=( self&& rhs ) {
@@ -85,7 +84,6 @@ struct temporal_point : public serializable {
     pt = std::move( rhs.pt );
     return *this;
   };
-#endif
 
 
   /*******************************************************************************
@@ -156,7 +154,6 @@ struct temporal_point_difference : public serializable {
     return *this;
   };
 
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
   temporal_point_difference( self&& rhs ) : time( std::move( rhs.time ) ), pt( std::move( rhs.pt ) ){};
 
   self& operator=( self&& rhs ) {
@@ -164,7 +161,6 @@ struct temporal_point_difference : public serializable {
     pt = std::move( rhs.pt );
     return *this;
   };
-#endif
 
   self operator-() const { return self( -time, -pt ); };
 

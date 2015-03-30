@@ -98,9 +98,7 @@ public:
     point_time_iterator( point_time_iterator_impl* aPImpl = nullptr ) : p_impl( aPImpl ){};
 
     point_time_iterator( const point_time_iterator& rhs ) : p_impl( rhs.p_impl->clone() ){};
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
     point_time_iterator( point_time_iterator&& rhs ) : p_impl( rhs.p_impl ) { rhs.p_impl = nullptr; };
-#endif
     friend void swap( point_time_iterator& rhs, point_time_iterator& lhs ) { std::swap( rhs.p_impl, lhs.p_impl ); };
     point_time_iterator& operator=( point_time_iterator rhs ) {
       swap( *this, rhs );
@@ -153,9 +151,7 @@ public:
     point_fraction_iterator( point_fraction_iterator_impl* aPImpl = nullptr ) : p_impl( aPImpl ){};
 
     point_fraction_iterator( const point_fraction_iterator& rhs ) : p_impl( rhs.p_impl->clone() ){};
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
     point_fraction_iterator( point_fraction_iterator&& rhs ) : p_impl( rhs.p_impl ) { rhs.p_impl = nullptr; };
-#endif
     friend void swap( point_fraction_iterator& rhs, point_fraction_iterator& lhs ) {
       std::swap( rhs.p_impl, lhs.p_impl );
     };

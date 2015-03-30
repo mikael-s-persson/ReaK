@@ -124,11 +124,7 @@ struct pruned_node_connector {
           // edge will be useful as an in-edge to v.
           x_near = *it;
           d_near = d_out;
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
           eprop = std::move( eprop2 );
-#else
-          eprop = eprop2;
-#endif
         };
       } else {
         conn_vis.travel_failed( *it, v, g );
@@ -165,11 +161,7 @@ struct pruned_node_connector {
           // edge will be useful as an in-edge to v.
           x_near = *it;
           d_near = d_in;
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
           eprop = std::move( eprop2 );
-#else
-          eprop = eprop2;
-#endif
         };
       } else {
         conn_vis.travel_failed( v, *it, g );
@@ -200,12 +192,8 @@ struct pruned_node_connector {
         conn_vis.travel_succeeded( *it, v, g );
         double d_in = get( weight, eprop2 ) + get( fwd_distance, g[v] );
         if( d_in < get( fwd_distance, g[*it] ) ) {
-// edge is useful as an in-edge to (*it).
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
+          // edge is useful as an in-edge to (*it).
           std::pair< Edge, bool > e_new = add_edge( *it, v, std::move( eprop2 ), g );
-#else
-          std::pair< Edge, bool > e_new = add_edge( *it, v, eprop2, g );
-#endif
           if( e_new.second ) {
             put( fwd_distance, g[*it], d_in );
             Vertex old_succ = get( successor, g[*it] );
@@ -252,12 +240,8 @@ struct pruned_node_connector {
         conn_vis.travel_succeeded( v, *it, g );
         double d_in = get( weight, eprop2 ) + get( distance, g[v] );
         if( d_in < get( distance, g[*it] ) ) {
-// edge is useful as an in-edge to (*it).
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
+          // edge is useful as an in-edge to (*it).
           std::pair< Edge, bool > e_new = add_edge( v, *it, std::move( eprop2 ), g );
-#else
-          std::pair< Edge, bool > e_new = add_edge( v, *it, eprop2, g );
-#endif
           if( e_new.second ) {
             put( distance, g[*it], d_in );
             Vertex old_pred = get( predecessor, g[*it] );
@@ -341,11 +325,7 @@ struct pruned_node_connector {
                                 DistanceMap distance, PredecessorMap predecessor, WeightMap weight ) {
     typedef typename boost::graph_traits< Graph >::edge_descriptor Edge;
     double d_near = get( weight, eprop ) + get( distance, g[x_near] );
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
     std::pair< Edge, bool > e_new = add_edge( x_near, v, std::move( eprop ), g );
-#else
-    std::pair< Edge, bool > e_new = add_edge( x_near, v, eprop, g );
-#endif
     if( e_new.second ) {
       put( distance, g[v], d_near );
       put( predecessor, g[v], x_near );
@@ -359,11 +339,7 @@ struct pruned_node_connector {
                                 FwdDistanceMap fwd_distance, SuccessorMap successor, WeightMap weight ) {
     typedef typename boost::graph_traits< Graph >::edge_descriptor Edge;
     double d_near = get( weight, eprop ) + get( fwd_distance, g[x_near] );
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
     std::pair< Edge, bool > e_new = add_edge( v, x_near, std::move( eprop ), g );
-#else
-    std::pair< Edge, bool > e_new = add_edge( v, x_near, eprop, g );
-#endif
     if( e_new.second ) {
       put( fwd_distance, g[v], d_near );
       put( successor, g[v], x_near );

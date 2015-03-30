@@ -56,23 +56,11 @@ template < typename BidirIter, typename Compare >
 void insertion_sort( BidirIter first, BidirIter last, Compare comp ) {
   typedef typename std::iterator_traits< BidirIter >::value_type ValueType;
   for( BidirIter current = std::next( first ); current != last; ++current ) {
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
     ValueType tmp = std::move( *current );
-#else
-    ValueType tmp = *current;
-#endif
     BidirIter it = current;
     for( BidirIter it_prev; ( ( it != first ) && ( comp( tmp, *( it_prev = std::prev( it ) ) ) ) ); --it )
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
       *it = std::move( *it_prev );
-#else
-      *it = *it_prev;
-#endif
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
     *it = std::move( tmp );
-#else
-    *it = tmp;
-#endif
   };
 };
 

@@ -75,9 +75,7 @@ struct mg_edge_data_base< Topology, true > {
 
   mg_edge_data_base() : steer_record(){};
   mg_edge_data_base( const steer_record_type& aRec ) : steer_record( aRec ){};
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
   mg_edge_data_base( steer_record_type&& aRec ) : steer_record( std::move( aRec ) ){};
-#endif
 };
 };
 }; // detail
@@ -106,11 +104,10 @@ struct mg_edge_data : detail::mg_edge_data_base< Topology, is_steerable_space< T
   template < typename SteerRec >
   mg_edge_data( const SteerRec& aRec )
       : base_type( aRec ){};
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
+
   template < typename SteerRec >
   mg_edge_data( SteerRec&& aRec )
       : base_type( std::move( aRec ) ){};
-#endif
 };
 
 template < typename Topology >
@@ -190,11 +187,10 @@ struct optimal_mg_edge : mg_edge_data< Topology > {
   template < typename SteerRec >
   optimal_mg_edge( double aWeight, const SteerRec& aRec )
       : mg_edge_data< Topology >( aRec ), weight( aWeight ){};
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
+
   template < typename SteerRec >
   optimal_mg_edge( double aWeight, SteerRec&& aRec )
       : mg_edge_data< Topology >( std::move( aRec ) ), weight( aWeight ){};
-#endif
 };
 
 template < typename Topology >

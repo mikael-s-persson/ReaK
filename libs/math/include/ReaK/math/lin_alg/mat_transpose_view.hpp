@@ -68,9 +68,7 @@ private:
   const Matrix* m;
 
   self& operator=( const self& );
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
   explicit mat_const_transpose_view( Matrix&& );
-#endif
 
 public:
   /**
@@ -457,13 +455,11 @@ typename boost::enable_if_c< is_readable_matrix< Matrix >::value, mat_const_tran
   return mat_const_transpose_view< Matrix >( M );
 };
 
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
 template < typename Matrix >
 typename boost::enable_if_c< is_readable_matrix< Matrix >::value, mat_const_transpose_view< Matrix > >::type
   transpose_view( Matrix&& M ) {
   return mat_const_transpose_view< Matrix >( std::move( M ) );
 };
-#endif
 };
 
 

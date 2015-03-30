@@ -98,9 +98,7 @@ public:
     point_distance_iterator( point_distance_iterator_impl* aPImpl = nullptr ) : p_impl( aPImpl ){};
 
     point_distance_iterator( const point_distance_iterator& rhs ) : p_impl( rhs.p_impl->clone() ){};
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
     point_distance_iterator( point_distance_iterator&& rhs ) : p_impl( rhs.p_impl ) { rhs.p_impl = nullptr; };
-#endif
     friend void swap( point_distance_iterator& rhs, point_distance_iterator& lhs ) {
       std::swap( rhs.p_impl, lhs.p_impl );
     };
@@ -155,9 +153,7 @@ public:
     point_fraction_iterator( point_fraction_iterator_impl* aPImpl = nullptr ) : p_impl( aPImpl ){};
 
     point_fraction_iterator( const point_fraction_iterator& rhs ) : p_impl( rhs.p_impl->clone() ){};
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
     point_fraction_iterator( point_fraction_iterator&& rhs ) : p_impl( rhs.p_impl ) { rhs.p_impl = nullptr; };
-#endif
     friend void swap( point_fraction_iterator& rhs, point_fraction_iterator& lhs ) {
       std::swap( rhs.p_impl, lhs.p_impl );
     };

@@ -199,12 +199,8 @@ struct MEAQR_rrtstar_visitor
       g[u].position.x, steer_result.first.x, this->m_query->space->get_state_space() );
 
     if( actual_dist > this->m_planner->get_steer_progress_tolerance() * best_case_dist ) {
-//       std::cout << "Steered successfully!" << std::endl;
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
+      //       std::cout << "Steered successfully!" << std::endl;
       return ResultType( steer_result.first, true, EdgeProp( 0.8 * total_dist, std::move( steer_result.second ) ) );
-#else
-      return ResultType( steer_result.first, true, EdgeProp( 0.8 * total_dist, steer_result.second ) );
-#endif
     } else {
       return ResultType( steer_result.first, false, EdgeProp() );
     };
@@ -228,12 +224,7 @@ struct MEAQR_rrtstar_visitor
       //       std::cout << "Connected successfully!" << std::endl;
       return ResultType( true, EdgeProp( get( distance_metric, this->m_query->space->get_super_space() )(
                                            g[u].position, g[v].position, this->m_query->space->get_super_space() ),
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
-                                         std::move( steer_result.second )
-#else
-                                         steer_result.second
-#endif
-                                         ) );
+                                         std::move( steer_result.second ) ) );
     } else {
       return ResultType( false, EdgeProp() );
     };

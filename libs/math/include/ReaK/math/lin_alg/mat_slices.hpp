@@ -318,10 +318,9 @@ private:
 
   self& operator=( const self& ); // non-assignable.
 
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
   mat_const_row_slice( Matrix&& );
   mat_const_row_slice( Matrix&&, size_type, size_type, size_type );
-#endif
+
 public:
   /**
    * Constructs the row-slice from a matrix M, taking the entire first column.
@@ -730,10 +729,9 @@ private:
 
   self& operator=( const self& ); // non-assignable.
 
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
   mat_const_col_slice( Matrix&& );
   mat_const_col_slice( Matrix&&, size_type, size_type, size_type );
-#endif
+
 public:
   /**
    * Constructs the column-slice from a matrix M, taking the entire first row.

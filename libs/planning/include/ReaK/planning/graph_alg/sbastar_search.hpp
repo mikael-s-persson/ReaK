@@ -185,11 +185,7 @@ struct sbastar_bfs_visitor {
     put( m_predecessor, up, boost::graph_traits< Graph >::null_vertex() );
     put( m_fwd_distance, up, std::numeric_limits< double >::infinity() );
     put( m_successor, up, boost::graph_traits< Graph >::null_vertex() );
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
     Vertex u = add_vertex( std::move( up ), g );
-#else
-    Vertex u = add_vertex( up, g );
-#endif
     m_vis.vertex_added( u, g );
     put( m_index_in_heap, u, static_cast< std::size_t >( -1 ) );
     put( m_key, u, 0.0 );

@@ -107,12 +107,10 @@ public:
    */
   mat( const self& M ) : q( M.q ), rowCount( M.rowCount ){};
 
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
   /**
    * Standard Move Constructor with standard semantics.
    */
   mat( self&& M ) : q( std::move( M.q ) ), rowCount( std::move( M.rowCount ) ){};
-#endif
 
   /**
    * Constructor from a general matrix, conserving only the trace value.
@@ -394,14 +392,13 @@ public:
     swap( result, M );
     return result;
   };
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
+
   /**
    * Transposes the matrix M in a potentially destructive way (move-semantics, C++0x).
    * \param M The scalar matrix to be transposed and moved.
    * \return The transpose of M.
    */
   friend self transpose( self&& M ) { return self( std::move( M ) ); };
-#endif
 
   /**
    * Returns the trace of matrix M.

@@ -89,18 +89,10 @@ inline typename boost::enable_if< boost::is_undirected_graph< Graph > >::type
 
     VertexProp xp_new;
     put( position, xp_new, p_new );
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
     Vertex x_new = add_vertex( std::move( xp_new ), g );
-#else
-    Vertex x_new = add_vertex( xp_new, g );
-#endif
     vis.vertex_added( x_new, g );
 
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
     std::pair< Edge, bool > ep = add_edge( x_near, x_new, std::move( eprop ), g );
-#else
-    std::pair< Edge, bool > ep = add_edge( x_near, x_new, eprop, g );
-#endif
     if( ep.second )
       vis.edge_added( ep.first, g );
 
@@ -114,11 +106,7 @@ inline typename boost::enable_if< boost::is_undirected_graph< Graph > >::type
       if( !can_connect )
         continue;
 
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
       ep = add_edge( *it, x_new, std::move( eprop2 ), g );
-#else
-      ep = add_edge( *it, x_new, eprop2, g );
-#endif
       if( ep.second )
         vis.edge_added( ep.first, g );
     };
@@ -153,18 +141,10 @@ inline typename boost::enable_if< boost::is_directed_graph< Graph > >::type
 
     VertexProp xp_new;
     put( position, xp_new, p_new );
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
     Vertex x_new = add_vertex( std::move( xp_new ), g );
-#else
-    Vertex x_new = add_vertex( xp_new, g );
-#endif
     vis.vertex_added( x_new, g );
 
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
     std::pair< Edge, bool > ep = add_edge( x_near, x_new, std::move( eprop ), g );
-#else
-    std::pair< Edge, bool > ep = add_edge( x_near, x_new, eprop, g );
-#endif
     if( ep.second )
       vis.edge_added( ep.first, g );
 
@@ -178,11 +158,7 @@ inline typename boost::enable_if< boost::is_directed_graph< Graph > >::type
       if( !can_connect )
         continue;
 
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
       ep = add_edge( *it, x_new, std::move( eprop2 ), g );
-#else
-      ep = add_edge( *it, x_new, eprop2, g );
-#endif
       if( ep.second )
         vis.edge_added( ep.first, g );
     };
@@ -194,11 +170,7 @@ inline typename boost::enable_if< boost::is_directed_graph< Graph > >::type
       if( !can_connect )
         continue;
 
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
       ep = add_edge( x_new, *it, std::move( eprop2 ), g );
-#else
-      ep = add_edge( x_new, *it, eprop2, g );
-#endif
       if( ep.second )
         vis.edge_added( ep.first, g );
     };
@@ -256,11 +228,7 @@ inline void generate_rrg( Graph& g, const Topology& space, RRGVisitor vis, Posit
 
     VertexProp up;
     put( position, up, p );
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
     Vertex u = add_vertex( std::move( up ), g );
-#else
-    Vertex u = add_vertex( up, g );
-#endif
     vis.vertex_added( u, g );
   };
 

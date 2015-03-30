@@ -193,8 +193,6 @@ public:
     updated_end = last_valid;
   };
 
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
-
   /**
    * Move-constructor with standard semantics. Iterators are not invalidated (iterators of rhs become those of this
    * object).
@@ -215,8 +213,6 @@ public:
       // NOTE: This move-constructor leave the rhs object in a destructible but crippled state (not even a default-ctor
       // state).
     };
-
-#endif
 
     /**
      * Copy- or Move-and-swap assignment operator.

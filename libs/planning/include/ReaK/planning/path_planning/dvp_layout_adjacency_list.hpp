@@ -167,8 +167,6 @@ public:
                              get_raw_edge_to_bundle_map( m_tree ) ),
           m_vp_pos, aVPChooser ){};
 
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
-
   /**
    * Move constructor.
    * \note This invalidates the adjacency-list obtained from the moved-from object.
@@ -191,7 +189,6 @@ public:
     m_impl.reassign_moved( m_tree, std::move( rhs.m_impl ) );
     return *this;
   };
-#endif
 
   /**
    * Returns a graph object associated to, stored as and synchronized with this DVP tree layout.

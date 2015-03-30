@@ -7,7 +7,6 @@
 using namespace ReaK;
 
 int main() {
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
 
   mat< double, mat_structure::rectangular > M1( 4, 4 );
 
@@ -46,6 +45,5 @@ int main() {
   std::cout << "V1 as 4x3 row-major = " << make_mat( V1 )( 4, range( 0, 3 ) ) << std::endl;
 
 
-#endif
   return 0;
 };

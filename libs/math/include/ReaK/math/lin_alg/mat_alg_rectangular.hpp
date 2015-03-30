@@ -134,13 +134,11 @@ public:
    */
   mat( const self& M ) : q( M.q ), rowCount( M.rowCount ), colCount( M.colCount ){};
 
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
   /**
    * Standard Copy Constructor with standard semantics.
    * \test PASSED
    */
   mat( self&& M ) : q( std::move( M.q ) ), rowCount( std::move( M.rowCount ) ), colCount( std::move( M.colCount ) ){};
-#endif
 
   /**
    * Explicit constructor from a any type of matrix.
@@ -564,7 +562,6 @@ public:
     return result;
   };
 
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
   /**
    * Transposes the matrix M by simply moving the data of M into a matrix of different alignment.
    * \param M The matrix to be transposed.
@@ -576,7 +573,6 @@ public:
     swap( result, M.q, M.colCount, M.rowCount );
     return result;
   };
-#endif
 
 
   /*******************************************************************************
@@ -730,13 +726,11 @@ public:
    */
   mat( const self& M ) : q( M.q ), rowCount( M.rowCount ), colCount( M.colCount ){};
 
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
   /**
    * Standard Copy Constructor with standard semantics.
    * \test PASSED
    */
   mat( self&& M ) : q( std::move( M.q ) ), rowCount( std::move( M.rowCount ) ), colCount( std::move( M.colCount ) ){};
-#endif
 
   /**
    * Explicit constructor from a any type of matrix.
@@ -1162,7 +1156,6 @@ public:
     return result;
   };
 
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
   /**
    * Transposes the matrix M by simply moving the data of M into a matrix of different alignment.
    * \param M The matrix to be transposed.
@@ -1174,7 +1167,6 @@ public:
     swap( result, M.q, M.colCount, M.rowCount );
     return result;
   };
-#endif
 
 
   /*******************************************************************************

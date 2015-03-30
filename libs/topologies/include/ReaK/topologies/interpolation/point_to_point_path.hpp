@@ -173,7 +173,6 @@ public:
       current_distance = 0.0;
     };
 
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
     point_distance_iterator( const point_to_point_path* aParent, const_waypoint_bounds&& aWPB, point_type&& aCurrentPt )
         : parent( aParent ), current_wpbound( std::move( aWPB ) ), current_pt( std::move( aCurrentPt ) ) {
       if( current_wpbound.first == current_wpbound.second ) {
@@ -196,7 +195,6 @@ public:
         = parent->get_dist()( *( current_wpbound.first ), *( current_wpbound.second ), parent->get_space() );
       current_distance = 0.0;
     };
-#endif
 
     point_distance_iterator& operator+=( double rhs ) {
       if( current_wpbound.first == current_wpbound.second ) {
@@ -318,7 +316,6 @@ public:
     point_fraction_iterator( const point_to_point_path* aParent, const const_waypoint_bounds& aWPB )
         : parent( aParent ), current_wpbound( aWPB ), current_pt( *( aWPB.first ) ), current_fraction( 0.0 ){};
 
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
     point_fraction_iterator( const point_to_point_path* aParent, const_waypoint_bounds&& aWPB, point_type&& aCurrentPt )
         : parent( aParent ), current_wpbound( std::move( aWPB ) ), current_pt( std::move( aCurrentPt ) ) {
       if( current_wpbound.first == current_wpbound.second ) {
@@ -340,7 +337,6 @@ public:
     point_fraction_iterator( const point_to_point_path* aParent, const_waypoint_bounds&& aWPB )
         : parent( aParent ), current_wpbound( std::move( aWPB ) ), current_pt( *( current_wpbound.first ) ),
           current_fraction( 0.0 ){};
-#endif
 
     point_fraction_iterator& operator+=( double rhs ) {
       if( current_wpbound.first == current_wpbound.second ) {

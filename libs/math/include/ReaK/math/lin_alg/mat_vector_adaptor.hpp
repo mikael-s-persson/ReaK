@@ -619,10 +619,9 @@ private:
 
   self& operator=( const self& ); // non-assignable.
 
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
   mat_const_vect_adaptor( Vector&& );
   mat_const_vect_adaptor( Vector&&, size_type, size_type, size_type aOffset = 0 );
-#endif
+
 public:
   /**
    * Constructs the adaptor with a given vector, taking the entire vector as the unique
@@ -751,10 +750,9 @@ private:
   self& operator=( const self& ); // non-assignable.
 
 
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
   mat_const_vect_adaptor( Vector&& );
   mat_const_vect_adaptor( Vector&&, size_type, size_type, size_type aOffset = 0 );
-#endif
+
 public:
   /**
    * Constructs the adaptor with a given vector, taking the entire vector as the unique

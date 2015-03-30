@@ -135,13 +135,11 @@ public:
    */
   mat( const self& M ) : q( M.q ), rowCount( M.rowCount ){};
 
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
   /**
    * Standard Copy Constructor with standard semantics.
    * \test PASSED
    */
   mat( self&& M ) : q( std::move( M.q ) ), rowCount( std::move( M.rowCount ) ){};
-#endif
 
   /**
    * The standard swap function (works with ADL).

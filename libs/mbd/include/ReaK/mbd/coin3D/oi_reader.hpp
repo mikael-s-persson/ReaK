@@ -99,10 +99,8 @@ public:
   oi_reader( const oi_reader& );
   oi_reader& operator=( const oi_reader& );
 
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
   oi_reader( oi_reader&& );
   oi_reader& operator=( oi_reader&& );
-#endif
 
   /**
    * Default destructor.

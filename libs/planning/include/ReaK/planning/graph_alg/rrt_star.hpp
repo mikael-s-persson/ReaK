@@ -113,11 +113,7 @@ struct rrt_conn_visitor {
     put( m_predecessor, up, boost::graph_traits< Graph >::null_vertex() );
     put( m_fwd_distance, up, std::numeric_limits< double >::infinity() );
     put( m_successor, up, boost::graph_traits< Graph >::null_vertex() );
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
     Vertex u = add_vertex( std::move( up ), g );
-#else
-    Vertex u = add_vertex( up, g );
-#endif
     m_vis.vertex_added( u, g );
 
     return u;

@@ -380,12 +380,8 @@ private:
         rearrange_with_chosen_vp( temp, cur_task.first );
         dist_map.erase( get( m_key, *temp ) );
         vertex_type new_vp_node;
-        boost::tie( new_vp_node, boost::tuples::ignore ) =
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
-          add_child_vertex( cur_task.node, std::move( *temp ), std::move( ep ), *m_tree );
-#else
-          add_child_vertex( cur_task.node, *temp, ep, *m_tree );
-#endif
+        boost::tie( new_vp_node, boost::tuples::ignore )
+          = add_child_vertex( cur_task.node, std::move( *temp ), std::move( ep ), *m_tree );
         ++temp;
         if( temp != cur_task.first )
           tasks.push( construction_task( new_vp_node, temp, cur_task.first ) );
@@ -783,21 +779,13 @@ public:
       vertex_property vp;
       put( m_key, vp, *vi );
       put( m_position, vp, get( aGraphPosition, *vi ) );
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
       v_bin.push_back( std::move( vp ) );
-#else
-      v_bin.push_back( vp );
-#endif
     };
 
     prop_vector_iter v_first = v_bin.begin();
     prop_vector_iter v_last = v_bin.end();
     rearrange_with_chosen_vp( v_first, v_last );
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
     m_root = create_root( std::move( *v_first ), *m_tree );
-#else
-    m_root = create_root( *v_first, *m_tree );
-#endif
     construct_node( m_root, ++v_first, v_last );
   };
 
@@ -832,21 +820,13 @@ public:
       vertex_property vp;
       put( m_key, vp, *aBegin );
       put( m_position, vp, get( aElemPosition, *aBegin ) );
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
       v_bin.push_back( std::move( vp ) );
-#else
-      v_bin.push_back( vp );
-#endif
     };
 
     prop_vector_iter v_first = v_bin.begin();
     prop_vector_iter v_last = v_bin.end();
     rearrange_with_chosen_vp( v_first, v_last );
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
     m_root = create_root( std::move( *v_first ), *m_tree );
-#else
-    m_root = create_root( *v_first, *m_tree );
-#endif
     construct_node( m_root, ++v_first, v_last );
   };
 
@@ -880,7 +860,6 @@ public:
     m_vp_chooser = rhs.m_vp_chooser;
   };
 
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
   // sort-of movable:
   dvp_tree_impl( tree_indexer& aTree, self&& rhs ) BOOST_NOEXCEPT : m_tree( &aTree ),
                                                                     m_root( get_root_vertex( aTree ) ),
@@ -903,7 +882,6 @@ public:
     m_distance = std::move( rhs.m_distance );
     m_vp_chooser = std::move( rhs.m_vp_chooser );
   };
-#endif
 
   /**
    * Checks if the DVP-tree is empty.
@@ -946,21 +924,13 @@ public:
       return std::numeric_limits< double >::infinity();
   };
 
-/**
- * Inserts a vertex into the tree.
- * \param up The vertex-property to be added to the DVP-tree.
- */
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
+  /**
+   * Inserts a vertex into the tree.
+   * \param up The vertex-property to be added to the DVP-tree.
+   */
   void insert( vertex_property up ) {
-#else
-  void insert( const vertex_property& up ) {
-#endif
     if( num_vertices( *m_tree ) == 0 ) {
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
       m_root = create_root( std::move( up ), *m_tree );
-#else
-      m_root = create_root( up, *m_tree );
-#endif
       return;
     };
 
@@ -1002,11 +972,7 @@ public:
 
     update_mu_upwards( u_pt, u_subroot );
     std::vector< vertex_property > prop_list;
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
     prop_list.push_back( std::move( up ) );
-#else
-    prop_list.push_back( up );
-#endif
     while( out_degree( u_subroot, *m_tree ) > 0 ) {
       edge_type e = *( out_edges( u_subroot, *m_tree ).first );
       remove_branch( target( e, *m_tree ), back_inserter( prop_list ), *m_tree );
@@ -1069,11 +1035,7 @@ public:
       prop_vector_iter v_first = prop_list.begin();
       prop_vector_iter v_last = prop_list.end();
       rearrange_with_chosen_vp( v_first, v_last );
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
       m_root = create_root( std::move( *v_first ), *m_tree );
-#else
-      m_root = create_root( *v_first, *m_tree );
-#endif
       construct_node( m_root, ++v_first, v_last );
     };
   };
@@ -1179,11 +1141,7 @@ public:
       prop_vector_iter v_first = prop_list.begin();
       prop_vector_iter v_last = prop_list.end();
       rearrange_with_chosen_vp( v_first, v_last );
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
       m_root = create_root( std::move( *v_first ), *m_tree );
-#else
-      m_root = create_root( *v_first, *m_tree );
-#endif
       construct_node( m_root, ++v_first, v_last );
       return;
     };
@@ -1370,9 +1328,7 @@ public:
 
     void add_vertex( const vertex_property& vp, tree_indexer& ) const { m_parent->insert( vp ); };
 
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
     void add_vertex( vertex_property&& vp, tree_indexer& ) const { m_parent->insert( std::move( vp ) ); };
-#endif
   };
 };
 };

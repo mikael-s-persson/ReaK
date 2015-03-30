@@ -108,7 +108,6 @@ public:
                       size_type aColOffset = 0 )
       : m( aM ), rowOffset( aRowOffset ), colOffset( aColOffset ), rowCount( aRowCount ), colCount( aColCount ){};
 
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
   /**
    * Constructs the sub-matrix which represents the entire matrix.
    */
@@ -130,7 +129,6 @@ public:
                       size_type aColOffset = 0 )
       : m( std::move( aM ) ), rowOffset( aRowOffset ), colOffset( aColOffset ), rowCount( aRowCount ),
         colCount( aColCount ){};
-#endif
 
   /**
    * Standard copy-constructor.
@@ -139,14 +137,12 @@ public:
       : m( aObj.m ), rowOffset( aObj.rowOffset ), colOffset( aObj.colOffset ), rowCount( aObj.rowCount ),
         colCount( aObj.colCount ){};
 
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
   /**
    * Standard move-constructor.
    */
   mat_copy_sub_block( self&& aObj )
       : m( std::move( aObj.m ) ), rowOffset( aObj.rowOffset ), colOffset( aObj.colOffset ), rowCount( aObj.rowCount ),
         colCount( aObj.colCount ){};
-#endif
 
   /**
    * Standard swap function.
@@ -377,16 +373,12 @@ public:
       : m( aObj.m ), rowOffset( aObj.rowOffset ), colOffset( aObj.colOffset ), rowCount( aObj.rowCount ),
         colCount( aObj.colCount ){};
 
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
-
   /**
    * Standard move-constructor.
    */
   mat_sub_block( self&& aObj )
       : m( aObj.m ), rowOffset( aObj.rowOffset ), colOffset( aObj.colOffset ), rowCount( aObj.rowCount ),
         colCount( aObj.colCount ){};
-
-#endif
 
   /**
    * Standard swap function (shallow).
@@ -594,11 +586,8 @@ private:
   size_type colCount;
 
   self& operator=( const self& );
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
   explicit mat_const_sub_block( Matrix&& );
-
   mat_const_sub_block( Matrix&&, size_type, size_type, size_type aRowOffset = 0, size_type aColOffset = 0 );
-#endif
 
 public:
   /**
@@ -626,14 +615,12 @@ public:
       : m( aObj.m ), rowOffset( aObj.rowOffset ), colOffset( aObj.colOffset ), rowCount( aObj.rowCount ),
         colCount( aObj.colCount ){};
 
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
   /**
    * Standard move-constructor.
    */
   mat_const_sub_block( self&& aObj )
       : m( aObj.m ), rowOffset( aObj.rowOffset ), colOffset( aObj.colOffset ), rowCount( aObj.rowCount ),
         colCount( aObj.colCount ){};
-#endif
 
   /**
    * Standard swap function (shallow).
@@ -724,15 +711,6 @@ template < typename Matrix >
 struct mat_copy_sub_block_factory {
   typedef typename mat_traits< Matrix >::size_type size_type;
 
-#ifdef BOOST_NO_CXX11_RVALUE_REFERENCES
-  Matrix m;
-  mat_copy_sub_block_factory( const Matrix& aM ) : m( aM ){};
-  mat_copy_sub_block< Matrix > operator()( const std::pair< size_type, size_type >& rows,
-                                           const std::pair< size_type, size_type >& cols ) {
-    return mat_copy_sub_block< Matrix >( m, rows.second - rows.first, cols.second - cols.first, rows.first,
-                                         cols.first );
-  };
-#else
   Matrix m;
   mat_copy_sub_block_factory( Matrix&& aM ) : m( std::move( aM ) ){};
   mat_copy_sub_block< Matrix > operator()( const std::pair< size_type, size_type >& rows,
@@ -740,7 +718,6 @@ struct mat_copy_sub_block_factory {
     return mat_copy_sub_block< Matrix >( std::move( m ), rows.second - rows.first, cols.second - cols.first, rows.first,
                                          cols.first );
   };
-#endif
 };
 
 template < typename Matrix >
@@ -787,13 +764,11 @@ typename boost::enable_if_c< is_readable_matrix< Matrix >::value, mat_copy_sub_b
   return mat_copy_sub_block_factory< Matrix >( M );
 };
 
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
 template < typename Matrix >
 typename boost::enable_if_c< is_readable_matrix< Matrix >::value, mat_copy_sub_block_factory< Matrix > >::type
   sub( Matrix&& M ) {
   return mat_copy_sub_block_factory< Matrix >( std::move( M ) );
 };
-#endif
 
 
 template < typename Matrix, mat_structure::tag Structure = mat_traits< Matrix >::structure >
@@ -868,7 +843,6 @@ public:
    */
   mat_copy_sub_sym_block( const self& aObj ) : m( aObj.m ), offset( aObj.offset ), rowCount( aObj.rowCount ){};
 
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
   /**
    * Constructs the sub-matrix which represents the entire matrix.
    */
@@ -889,8 +863,6 @@ public:
    * Standard move-constructor.
    */
   mat_copy_sub_sym_block( self&& aObj ) : m( std::move( aObj.m ) ), offset( aObj.offset ), rowCount( aObj.rowCount ){};
-
-#endif
 
   /**
    * Standard swap function.
@@ -1040,14 +1012,12 @@ public:
    */
   friend const self& transpose_move( const self& M ) { return M; };
 
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
   /**
    * Transposes the matrix M.
    * \param M The matrix to be transposed.
    * \return The transpose of M.
    */
   friend self&& transpose( self&& M ) { return std::move( M ); };
-#endif
 
   /**
    * Returns the trace of matrix M.
@@ -1113,14 +1083,10 @@ public:
    */
   mat_sub_sym_block( const self& aObj ) : m( aObj.m ), offset( aObj.offset ), rowCount( aObj.rowCount ){};
 
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
-
   /**
    * Standard move-constructor.
    */
   mat_sub_sym_block( self&& aObj ) : m( aObj.m ), offset( aObj.offset ), rowCount( aObj.rowCount ){};
-
-#endif
 
   /**
    * Standard swap function (shallow).
@@ -1320,11 +1286,9 @@ private:
 
   self& operator=( const self& );
 
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
   mat_const_sub_sym_block( Matrix&& );
-
   mat_const_sub_sym_block( Matrix&&, size_type, size_type aOffset = 0 );
-#endif
+
 public:
   /**
    * Constructs the sub-matrix which represents the entire matrix.
@@ -1345,13 +1309,10 @@ public:
    */
   mat_const_sub_sym_block( const self& aObj ) : m( aObj.m ), offset( aObj.offset ), rowCount( aObj.rowCount ){};
 
-
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
   /**
    * Standard move-constructor.
    */
   mat_const_sub_sym_block( self&& aObj ) : m( aObj.m ), offset( aObj.offset ), rowCount( aObj.rowCount ){};
-#endif
 
   /**
    * Standard swap function (shallow).
@@ -1417,14 +1378,12 @@ public:
    */
   friend const self& transpose_move( const self& M ) { return M; };
 
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
   /**
    * Transposes the matrix M.
    * \param M The matrix to be transposed.
    * \return The transpose of M.
    */
   friend self&& transpose( self&& M ) { return std::move( M ); };
-#endif
 
   /**
    * Returns the trace of matrix M.
@@ -1496,7 +1455,6 @@ public:
    */
   mat_copy_sub_sym_block( const self& aObj ) : m( aObj.m ), offset( aObj.offset ), rowCount( aObj.rowCount ){};
 
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
   /**
    * Constructs the sub-matrix which represents the entire matrix.
    */
@@ -1517,8 +1475,6 @@ public:
    * Standard move-constructor.
    */
   mat_copy_sub_sym_block( self&& aObj ) : m( std::move( aObj.m ) ), offset( aObj.offset ), rowCount( aObj.rowCount ){};
-
-#endif
 
   /**
    * Standard swap function.
@@ -1719,12 +1675,10 @@ public:
    */
   mat_sub_sym_block( const self& aObj ) : m( aObj.m ), offset( aObj.offset ), rowCount( aObj.rowCount ){};
 
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
   /**
    * Standard move-constructor.
    */
   mat_sub_sym_block( self&& aObj ) : m( aObj.m ), offset( aObj.offset ), rowCount( aObj.rowCount ){};
-#endif
 
   /**
    * Standard swap function (shallow).
@@ -1905,11 +1859,9 @@ private:
 
   self& operator=( const self& );
 
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
   mat_const_sub_sym_block( Matrix&& aM );
-
   mat_const_sub_sym_block( Matrix&& aM, size_type aSize, size_type aOffset = 0 );
-#endif
+
 public:
   /**
    * Constructs the sub-matrix which represents the entire matrix.
@@ -1930,12 +1882,10 @@ public:
    */
   mat_const_sub_sym_block( const self& aObj ) : m( aObj.m ), offset( aObj.offset ), rowCount( aObj.rowCount ){};
 
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
   /**
    * Standard move-constructor.
    */
   mat_const_sub_sym_block( self&& aObj ) : m( aObj.m ), offset( aObj.offset ), rowCount( aObj.rowCount ){};
-#endif
 
   /**
    * Standard swap function (shallow).
@@ -2052,7 +2002,6 @@ public:
    */
   mat_copy_sub_sym_block( const self& aObj ) : m( aObj.m ), offset( aObj.offset ), rowCount( aObj.rowCount ){};
 
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
   /**
    * Constructs the sub-matrix which represents the entire matrix.
    */
@@ -2073,7 +2022,6 @@ public:
    * Standard move-constructor.
    */
   mat_copy_sub_sym_block( self&& aObj ) : m( std::move( aObj.m ) ), offset( aObj.offset ), rowCount( aObj.rowCount ){};
-#endif
 
   /**
    * Standard swap function.
@@ -2218,9 +2166,7 @@ public:
    */
   friend const self& transpose_move( const self& M ) { return M; };
 
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
   friend self&& transpose( self&& M ) { return std::move( M ); };
-#endif
 
   /**
    * Returns the trace of matrix M.
@@ -2286,12 +2232,10 @@ public:
    */
   mat_sub_sym_block( const self& aObj ) : m( aObj.m ), offset( aObj.offset ), rowCount( aObj.rowCount ){};
 
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
   /**
    * Standard move-constructor.
    */
   mat_sub_sym_block( self&& aObj ) : m( aObj.m ), offset( aObj.offset ), rowCount( aObj.rowCount ){};
-#endif
 
   /**
    * Standard swap function (shallow).
@@ -2439,14 +2383,12 @@ public:
    */
   friend const self& transpose_move( const self& M ) { return M; };
 
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
   /**
    * Transposes the matrix M.
    * \param M The matrix to be transposed.
    * \return The transpose of M.
    */
   friend self&& transpose( self&& M ) { return std::move( M ); };
-#endif
 
   /**
    * Returns the trace of matrix M.
@@ -2495,10 +2437,9 @@ private:
 
   self& operator=( const self& );
 
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
   mat_const_sub_sym_block( Matrix&& );
   mat_const_sub_sym_block( Matrix&&, size_type, size_type aOffset = 0 );
-#endif
+
 public:
   /**
    * Constructs the sub-matrix which represents the entire matrix.
@@ -2519,13 +2460,10 @@ public:
    */
   mat_const_sub_sym_block( const self& aObj ) : m( aObj.m ), offset( aObj.offset ), rowCount( aObj.rowCount ){};
 
-
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
   /**
    * Standard move-constructor.
    */
   mat_const_sub_sym_block( self&& aObj ) : m( aObj.m ), offset( aObj.offset ), rowCount( aObj.rowCount ){};
-#endif
 
   /**
    * Standard swap function (shallow).
@@ -2591,14 +2529,12 @@ public:
    */
   friend const self& transpose_move( const self& M ) { return M; };
 
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
   /**
    * Transposes the matrix M.
    * \param M The matrix to be transposed.
    * \return The transpose of M.
    */
   friend self&& transpose( self&& M ) { return std::move( M ); };
-#endif
 
   /**
    * Returns the trace of matrix M.
@@ -2711,19 +2647,11 @@ template < typename Matrix >
 struct mat_copy_sub_sym_block_factory {
   typedef typename mat_traits< Matrix >::size_type size_type;
 
-#ifdef BOOST_NO_CXX11_RVALUE_REFERENCES
-  Matrix m;
-  mat_copy_sub_sym_block_factory( const Matrix& aM ) : m( aM ){};
-  mat_copy_sub_sym_block< Matrix > operator()( const std::pair< size_type, size_type >& rows ) {
-    return mat_copy_sub_sym_block< Matrix >( m, rows.second - rows.first, rows.first );
-  };
-#else
   Matrix m;
   mat_copy_sub_sym_block_factory( Matrix&& aM ) : m( std::move( aM ) ){};
   mat_copy_sub_sym_block< Matrix > operator()( const std::pair< size_type, size_type >& rows ) {
     return mat_copy_sub_sym_block< Matrix >( std::move( m ), rows.second - rows.first, rows.first );
   };
-#endif
 };
 
 template < typename Matrix >
@@ -2767,13 +2695,11 @@ typename boost::enable_if_c< is_readable_matrix< Matrix >::value, mat_copy_sub_s
   return mat_copy_sub_sym_block_factory< Matrix >( M );
 };
 
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
 template < typename Matrix >
 typename boost::enable_if_c< is_readable_matrix< Matrix >::value, mat_copy_sub_sym_block_factory< Matrix > >::type
   sub_sym( Matrix&& M ) {
   return mat_copy_sub_sym_block_factory< Matrix >( std::move( M ) );
 };
-#endif
 };
 
 #endif

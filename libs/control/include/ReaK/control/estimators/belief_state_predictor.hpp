@@ -123,7 +123,7 @@ public:
   enum assumption {
     no_measurements, ///< This assumes that there are no measurements beyond the starting point of the predictions.
     most_likely_measurements ///< This assumes that the most-likely measurements are done at every point after the
-                             ///starting point of the predictions.
+    /// starting point of the predictions.
   };
 
   typedef std::map< const point_type*, predictor_type > predictor_map_type;
@@ -241,8 +241,6 @@ public:
     updated_end = last_valid;
   };
 
-#ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
-
   /**
    * Move-constructor with standard semantics. Iterators are not invalidated (iterators of rhs become those of this
    * object).
@@ -269,8 +267,6 @@ public:
     // NOTE: This move-constructor leave the rhs object in a destructible but crippled state (not even a default-ctor
     // state).
   };
-
-#endif
 
   /**
    * Copy- or Move-and-swap assignment operator.
