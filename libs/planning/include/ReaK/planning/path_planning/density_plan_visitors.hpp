@@ -60,9 +60,10 @@ struct density_plan_visitor
   double m_density_cutoff;
   DensityCalc m_density_calc;
 
-  density_plan_visitor( planner_base_type* aPlanner, query_type* aQuery = NULL, any_knn_synchro* aNNSynchro = NULL,
-                        boost::any aStartNode = boost::any(), boost::any aGoalNode = boost::any(),
-                        double aDensityCutoff = 0.0, DensityCalc aDensityCalc = DensityCalc() )
+  density_plan_visitor( planner_base_type* aPlanner, query_type* aQuery = nullptr,
+                        any_knn_synchro* aNNSynchro = nullptr, boost::any aStartNode = boost::any(),
+                        boost::any aGoalNode = boost::any(), double aDensityCutoff = 0.0,
+                        DensityCalc aDensityCalc = DensityCalc() )
       : base_type( aPlanner, aQuery, aNNSynchro, aStartNode, aGoalNode ), m_density_cutoff( aDensityCutoff ),
         m_density_calc( aDensityCalc ){};
 

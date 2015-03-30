@@ -68,7 +68,7 @@ public:
    * \param aPlane The plane involved in the proximity query.
    * \param aBox The box involved in the proximity query.
    */
-  prox_plane_box( const plane* aPlane = NULL, const box* aBox = NULL );
+  prox_plane_box( const plane* aPlane = nullptr, const box* aBox = nullptr );
 
   /** Destructor. */
   virtual ~prox_plane_box(){};

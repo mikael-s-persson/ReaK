@@ -129,7 +129,7 @@ public:
       & RK_SERIAL_LOAD_WITH_ALIAS( "TypeVersion", m_type_version );
     rtti::so_type* tmp_wptr = rtti::getRKSharedObjTypeRepo().findType( &ID_vect[0] );
     if( !tmp_wptr )
-      m_type_ID_ptr = NULL;
+      m_type_ID_ptr = nullptr;
     else
       m_type_ID_ptr = tmp_wptr->TypeID_begin();
   };
@@ -145,7 +145,7 @@ class primitive_scheme : public type_scheme {
 public:
   typedef primitive_scheme< T > self;
 
-  primitive_scheme() : type_scheme( "", NULL ) {
+  primitive_scheme() : type_scheme( "", nullptr ) {
 #ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
     constexpr auto tname = rtti::get_type_id< T >::type_name;
     m_type_name = tname.to_string();
@@ -190,7 +190,7 @@ protected:
 public:
   vector_type_scheme( const std::string& aTypeName = "",
                       const shared_ptr< type_scheme >& aValueType = shared_ptr< type_scheme >() )
-      : type_scheme( aTypeName, NULL ), m_value_type( aValueType ){};
+      : type_scheme( aTypeName, nullptr ), m_value_type( aValueType ){};
 
   virtual bool is_single_field() const { return false; };
 
@@ -233,7 +233,7 @@ public:
   map_type_scheme( const std::string& aTypeName = "",
                    const shared_ptr< type_scheme >& aKeyType = shared_ptr< type_scheme >(),
                    const shared_ptr< type_scheme >& aValueType = shared_ptr< type_scheme >() )
-      : type_scheme( aTypeName, NULL ), m_key_type( aKeyType ), m_value_type( aValueType ){};
+      : type_scheme( aTypeName, nullptr ), m_key_type( aKeyType ), m_value_type( aValueType ){};
 
   virtual bool is_single_field() const { return false; };
 
@@ -275,7 +275,7 @@ protected:
   std::vector< std::pair< std::string, shared_ptr< type_scheme > > > m_fields;
 
 public:
-  serializable_obj_scheme( const std::string& aTypeName = "", const unsigned int* aTypeIDPtr = NULL,
+  serializable_obj_scheme( const std::string& aTypeName = "", const unsigned int* aTypeIDPtr = nullptr,
                            unsigned int aTypeVersion = 1 )
       : type_scheme( aTypeName, aTypeIDPtr, aTypeVersion ), m_fields(){};
 
@@ -327,7 +327,7 @@ protected:
   shared_ptr< type_scheme > m_object_ID_scheme;
 
 public:
-  serializable_ptr_scheme( const std::string& aTypeName = "", const unsigned int* aTypeIDPtr = NULL,
+  serializable_ptr_scheme( const std::string& aTypeName = "", const unsigned int* aTypeIDPtr = nullptr,
                            unsigned int aTypeVersion = 1,
                            const shared_ptr< type_scheme >& aObjectIDScheme = shared_ptr< type_scheme >() )
       : type_scheme( aTypeName, aTypeIDPtr, aTypeVersion ), m_object_ID_scheme( aObjectIDScheme ){};

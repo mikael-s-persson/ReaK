@@ -138,7 +138,7 @@ double oi_scene_graph::computeCharacteristicLength() {
 
 
 oi_scene_graph::oi_scene_graph()
-    : mRoot( NULL ), mTimer( NULL ), mCharacteristicLength( 1.0 ), mAnchorUpdatingMutex(), mAnchor2DMap(),
+    : mRoot( nullptr ), mTimer( nullptr ), mCharacteristicLength( 1.0 ), mAnchorUpdatingMutex(), mAnchor2DMap(),
       mAnchor3DMap() {
   mRoot = new SoSeparator;
   mRoot->ref();

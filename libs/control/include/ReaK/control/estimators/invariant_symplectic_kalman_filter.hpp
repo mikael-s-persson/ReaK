@@ -429,7 +429,7 @@ struct ISKF_belief_transfer {
   mat< double, mat_structure::square > Tm; ///< Holds the updating invariant covariance transformation matrix.
   mat< double, mat_structure::square > Wu; ///< Holds the updating invariant frame transformation.
 
-  ISKF_belief_transfer() : factory( NULL ){};
+  ISKF_belief_transfer() : factory(){};
 
   /**
    * Parametrized constructor.
@@ -598,7 +598,7 @@ private:
   matrix_type Q;              ///< Holds the system's input noise covariance matrix.
   matrix_type R;              ///< Holds the system's output measurement's covariance matrix.
   double reupdate_threshold;  ///< The threshold at which the state change is considered too high and the state
-                              ///transition matrices are recomputed.
+  /// transition matrices are recomputed.
 
 public:
   /**

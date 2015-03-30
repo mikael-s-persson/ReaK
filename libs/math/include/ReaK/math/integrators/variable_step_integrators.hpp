@@ -467,7 +467,7 @@ Read CADAMSBMVAR Buffer!",false);
 
     __fastcall CAdamsBMVar() : IVarStepIntegrator<T>() { Corrections = 1; Order = 3; return; };
     virtual __fastcall ~CAdamsBMVar() {
-      if (RKRoot != NULL) RKRoot->MsgQueue->Push(new IMessage(MSGID_WARNING | MSGID_W_NOTIFY,"$DEL: Adams-BM
+      if (RKRoot != nullptr) RKRoot->MsgQueue->Push(new IMessage(MSGID_WARNING | MSGID_W_NOTIFY,"$DEL: Adams-BM
 Variable-Step Integrator Deleted",1,this,RKRoot->MCB_ObjectDeleted));
       return;
     };
@@ -507,7 +507,7 @@ Read CBDFVAR Buffer!",false);
 
     __fastcall CBDFVar() : IVarStepIntegrator<T>() { NewtonTolerance = T(0.0001); Order = 3; return; };
     virtual __fastcall ~CBDFVar() {
-      if (RKRoot != NULL) RKRoot->MsgQueue->Push(new IMessage(MSGID_WARNING | MSGID_W_NOTIFY,"$DEL: BDF Variable-Step
+      if (RKRoot != nullptr) RKRoot->MsgQueue->Push(new IMessage(MSGID_WARNING | MSGID_W_NOTIFY,"$DEL: BDF Variable-Step
 Integrator Deleted",1,this,RKRoot->MCB_ObjectDeleted));
       return;
     };

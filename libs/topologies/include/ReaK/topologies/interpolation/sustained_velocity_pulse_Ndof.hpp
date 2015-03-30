@@ -106,7 +106,7 @@ PointType svp_Ndof_interpolate( const PointType& a, const PointType& b, double t
   double delta_time = b.time - a.time;
 
   double slack = detail::svp_compute_Ndof_interpolation_data_impl(
-    a.pt, b.pt, peak_velocity, space.get_space_topology(), space.get_time_topology(), delta_time, NULL );
+    a.pt, b.pt, peak_velocity, space.get_space_topology(), space.get_time_topology(), delta_time, nullptr );
 
   if( slack < 0.0 )
     delta_time -= slack;
@@ -417,7 +417,7 @@ struct get_type_id< pp::svp_Ndof_interpolation_tag > {
 #else
   static const char* type_name() BOOST_NOEXCEPT { return "svp_Ndof_interpolation_tag"; };
 #endif
-  static construct_ptr CreatePtr() BOOST_NOEXCEPT { return NULL; };
+  static construct_ptr CreatePtr() BOOST_NOEXCEPT { return nullptr; };
 };
 };
 };

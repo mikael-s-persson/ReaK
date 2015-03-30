@@ -53,7 +53,7 @@ struct fixed_topology_random_sampler : public serializable {
 
   const Topology* m_space;
 
-  fixed_topology_random_sampler( const Topology* pSpace = NULL ) : m_space( pSpace ){};
+  fixed_topology_random_sampler( const Topology* pSpace = nullptr ) : m_space( pSpace ){};
 
   template < typename Topology2 >
   PointType operator()( const Topology2& s ) const {

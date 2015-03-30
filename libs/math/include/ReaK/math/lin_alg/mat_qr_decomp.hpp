@@ -413,7 +413,7 @@ typename mat_traits< Matrix1 >::size_type decompose_StrongRRQR_impl(
           decompose_QR_impl( subA2, &subQ2, NumTol );
         } else {
           mat_sub_block< Matrix1 > subA2( A, i - r_i + 1, M - r_i, r_i, r_i );
-          decompose_QR_impl( subA2, static_cast< Matrix2* >( NULL ), NumTol );
+          decompose_QR_impl( subA2, static_cast< Matrix2* >( nullptr ), NumTol );
         };
       };
 
@@ -614,7 +614,7 @@ typename boost::enable_if_c< is_readable_matrix< Matrix >::value, typename mat_t
   typedef typename mat_traits< Matrix >::size_type SizeType;
 
   mat< ValueType, mat_structure::square > R( A );
-  detail::decompose_QR_impl( R, static_cast< mat< ValueType, mat_structure::square >* >( NULL ), NumTol );
+  detail::decompose_QR_impl( R, static_cast< mat< ValueType, mat_structure::square >* >( nullptr ), NumTol );
 
   ValueType result( 1.0 );
   for( SizeType i = 0; i < R.get_row_count(); ++i )

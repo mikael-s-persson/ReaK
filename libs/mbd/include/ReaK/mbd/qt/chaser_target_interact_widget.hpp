@@ -48,7 +48,8 @@ private:
   Ui::ChaserTargetInteract* ui;
 
 public:
-  ChaserTargetInteractWidget( kte::chaser_target_data* aPSceneData, QWidget* parent = NULL, Qt::WindowFlags flags = 0 );
+  ChaserTargetInteractWidget( kte::chaser_target_data* aPSceneData, QWidget* parent = nullptr,
+                              Qt::WindowFlags flags = 0 );
   virtual ~ChaserTargetInteractWidget();
 
 public slots:

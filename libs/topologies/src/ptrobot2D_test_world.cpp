@@ -303,7 +303,7 @@ void ptrobot2D_test_world::set_goal_pos( const ptrobot2D_test_world::point_type&
 
 
 ptrobot2D_test_world::ptrobot2D_test_world()
-    : pimpl( NULL ), world_map_file_name( "" ), robot_radius( 0.0 ), max_edge_length( 0.0 ),
+    : pimpl( nullptr ), world_map_file_name( "" ), robot_radius( 0.0 ), max_edge_length( 0.0 ),
       m_space( "ptrobot2D_space", ptrobot2D_test_world::point_type( 0, 0 ), ptrobot2D_test_world::point_type( 0, 0 ) ),
       m_distance( get( distance_metric, m_space ) ), m_rand_sampler( get( random_sampler, m_space ) ) {
   setName( "ptrobot2D_space_with_obstacles" );

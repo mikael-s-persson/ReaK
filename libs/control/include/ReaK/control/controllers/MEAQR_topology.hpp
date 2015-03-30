@@ -111,7 +111,7 @@ public:
 
   std::size_t get_output_dimensions() const { return 0; };
 
-  MEAQR_ZIR_system( lin_payload* aLinData = NULL,
+  MEAQR_ZIR_system( lin_payload* aLinData = nullptr,
                     const mat< double, mat_structure::diagonal >& aR = ( mat< double, mat_structure::diagonal >() ) )
       : lin_data( aLinData ) {
     if( !lin_data )
@@ -335,12 +335,12 @@ public:
 
 protected:
   shared_ptr< IHAQR_space_type > m_IHAQR_space; ///< Holds the IHAQR_topology for the same system. The IHAQR topology
-                                                ///has many of the same parameters and necessary functions for the
-                                                ///MEAQR, and is thus stored internally in the MEAQR instead of
-                                                ///repeating all that code.
+  /// has many of the same parameters and necessary functions for the
+  /// MEAQR, and is thus stored internally in the MEAQR instead of
+  /// repeating all that code.
   double m_idle_to_cost_ratio; ///< The ratio of the idle-power cost to the feedback input cost, e.g., a value of 0.1
-                               ///would mean that the input-bias cost (idle or hover cost) is penalized ten times less
-                               ///than the feedback term.
+  /// would mean that the input-bias cost (idle or hover cost) is penalized ten times less
+  /// than the feedback term.
 
   /**
    * This function fills the vector of MEAQR data points (P,M,eta,D) for a given point p and up to the maximum
@@ -476,14 +476,14 @@ protected:
    * \param time_limit The time limit after which to stop this steering segment.
    * \param with_collision_check A flag to tell if collision should be checked or not (through the virtual
    * is_free_impl() function).
-   * \param st_rec A pointer to a steer-record object. If NULL, then the steering doesn't get recorded.
+   * \param st_rec A pointer to a steer-record object. If nullptr, then the steering doesn't get recorded.
    * \return False if a collision occurred.
    */
   bool steer_with_constant_control( const mat< double, mat_structure::square >& H,
                                     const mat< double, mat_structure::rectangular >& K, const vect_n< double >& eta,
                                     const system_input_type& u0, system_input_type& u_prev, state_type& x_current,
                                     const state_type& x_goal, double& current_time, double time_limit,
-                                    bool with_collision_check, steer_record_type* st_rec = NULL ) const {
+                                    bool with_collision_check, steer_record_type* st_rec = nullptr ) const {
     bool was_collision_free = true;
     state_type x_next = x_current;
     // while not reached (fly-by) the goal yet:
@@ -537,11 +537,11 @@ protected:
    * \param b The end point of the travel.
    * \param with_collision_check A flag to tell if collision should be checked or not (through the virtual
    * is_free_impl() function).
-   * \param st_rec A pointer to a steer-record object. If NULL, then the steering doesn't get recorded.
+   * \param st_rec A pointer to a steer-record object. If nullptr, then the steering doesn't get recorded.
    * \return The resulting point after the steering.
    */
   point_type move_position_toward_impl( const point_type& a, double fraction, const point_type& b,
-                                        bool with_collision_check, steer_record_type* st_rec = NULL ) const {
+                                        bool with_collision_check, steer_record_type* st_rec = nullptr ) const {
     if( !a.lin_data )
       m_IHAQR_space->compute_linearization_data( a );
     if( !b.lin_data )

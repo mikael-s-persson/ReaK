@@ -64,7 +64,7 @@ public:
    * \param aCRect1 The first capped rectangle involved in the proximity query.
    * \param aCRect2 The second capped rectangle involved in the proximity query.
    */
-  prox_crect_crect( const capped_rectangle* aCRect1 = NULL, const capped_rectangle* aCRect2 = NULL );
+  prox_crect_crect( const capped_rectangle* aCRect1 = nullptr, const capped_rectangle* aCRect2 = nullptr );
 
   /** Destructor. */
   virtual ~prox_crect_crect(){};

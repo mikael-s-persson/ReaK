@@ -399,7 +399,7 @@ double sap_compute_interpolation_data_impl(
     peak_velocity,
   const DiffSpace& space, const TimeSpace& t_space, double delta_time = 0.0,
   typename topology_traits< typename derived_N_order_space< DiffSpace, TimeSpace, 1 >::type >::point_type
-  * best_peak_velocity = NULL,
+  * best_peak_velocity = nullptr,
   double num_tol = 1e-6, unsigned int max_iter = 20 ) {
 
   delta_first_order = get_space< 0 >( space, t_space ).difference( get< 0 >( end_point ), get< 0 >( start_point ) );

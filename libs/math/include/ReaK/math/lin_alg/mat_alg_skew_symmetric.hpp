@@ -123,7 +123,7 @@ public:
   explicit mat(
     const Matrix& M, const allocator_type& aAlloc = allocator_type(),
     typename boost::enable_if_c< is_readable_matrix< Matrix >::value && !( boost::is_same< Matrix, self >::value ),
-                                 void* >::type dummy = NULL )
+                                 void* >::type dummy = nullptr )
       : q( mat_triangular_size( ( M.get_row_count() > M.get_col_count() ? M.get_row_count() : M.get_col_count() ) - 1 ),
            value_type( 0 ), aAlloc ),
         rowCount( ( M.get_row_count() > M.get_col_count() ? M.get_row_count() : M.get_col_count() ) ) {

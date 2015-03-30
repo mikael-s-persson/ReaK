@@ -46,7 +46,7 @@ class ObjectTreeWidget : public QDockWidget {
 
 public:
   ObjectTreeWidget( const shared_ptr< serialization::object_graph >& aObjGraph,
-                    serialization::object_node_desc aRoot = 0, QWidget* parent = NULL, Qt::WindowFlags flags = 0 );
+                    serialization::object_node_desc aRoot = 0, QWidget* parent = nullptr, Qt::WindowFlags flags = 0 );
   virtual ~ObjectTreeWidget();
 
 private slots:

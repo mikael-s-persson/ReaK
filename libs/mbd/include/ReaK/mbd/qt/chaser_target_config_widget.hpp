@@ -50,7 +50,7 @@ private:
   Ui::ChaserTargetMdlConfig* ui;
 
 public:
-  ChaserTargetConfigWidget( View3DMenu* aView3dMenu = NULL, QWidget* parent = NULL, Qt::WindowFlags flags = 0 );
+  ChaserTargetConfigWidget( View3DMenu* aView3dMenu = nullptr, QWidget* parent = nullptr, Qt::WindowFlags flags = 0 );
   virtual ~ChaserTargetConfigWidget();
 
 private slots:

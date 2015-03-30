@@ -228,9 +228,9 @@ struct MEAQR_sbastar_visitor
   typedef typename base_type::planner_base_type planner_base_type;
   typedef typename base_type::query_type query_type;
 
-  MEAQR_sbastar_visitor( planner_base_type* aPlanner, query_type* aQuery = NULL, any_knn_synchro* aNNSynchro = NULL,
-                         boost::any aStartNode = boost::any(), boost::any aGoalNode = boost::any(),
-                         double aDensityCutoff = 0.0,
+  MEAQR_sbastar_visitor( planner_base_type* aPlanner, query_type* aQuery = nullptr,
+                         any_knn_synchro* aNNSynchro = nullptr, boost::any aStartNode = boost::any(),
+                         boost::any aGoalNode = boost::any(), double aDensityCutoff = 0.0,
                          sbastar_density_calculator aDensityCalc = sbastar_density_calculator() )
       : base_type( aPlanner, aQuery, aNNSynchro, aStartNode, aGoalNode, aDensityCutoff, aDensityCalc ){};
 
@@ -395,7 +395,7 @@ void MEAQR_sbastar_planner< StateSpace, StateSpaceSystem, StateSpaceSampler >::s
   shared_ptr< const SuperSpace > sup_space_ptr( &( this->m_space->get_super_space() ), null_deleter() );
 
   MEAQR_sbastar_visitor< StateSpace, StateSpaceSystem, StateSpaceSampler > vis(
-    this, &aQuery, NULL, boost::any(), boost::any(), this->m_init_dens_threshold );
+    this, &aQuery, nullptr, boost::any(), boost::any(), this->m_init_dens_threshold );
 
   path_planning_p2p_query< FreeSpaceType >* p2p_query_ptr
     = reinterpret_cast< path_planning_p2p_query< FreeSpaceType >* >(

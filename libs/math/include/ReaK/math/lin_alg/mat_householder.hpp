@@ -181,7 +181,7 @@ public:
   template < typename Vector2 >
   explicit householder_matrix( const Vector2& aE, const value_type& NumTol = value_type( 1E-8 ),
                                typename boost::enable_if_c< is_readable_vector< Vector2 >::value, void* >::type dummy
-                               = NULL )
+                               = nullptr )
       : beta( 0.0 ), v( aE ) {
     calculate_hhv( NumTol );
   };

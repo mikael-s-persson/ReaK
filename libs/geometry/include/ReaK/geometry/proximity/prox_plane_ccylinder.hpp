@@ -68,7 +68,7 @@ public:
    * \param aPlane The plane involved in the proximity query.
    * \param aCCylinder The capped cylinder involved in the proximity query.
    */
-  prox_plane_ccylinder( const plane* aPlane = NULL, const capped_cylinder* aCCylinder = NULL );
+  prox_plane_ccylinder( const plane* aPlane = nullptr, const capped_cylinder* aCCylinder = nullptr );
 
   /** Destructor. */
   virtual ~prox_plane_ccylinder(){};

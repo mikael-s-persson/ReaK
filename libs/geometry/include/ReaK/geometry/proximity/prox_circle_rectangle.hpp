@@ -68,7 +68,7 @@ public:
    * \param aCircle The circle involved in the proximity query.
    * \param aRectangle The rectangle involved in the proximity query.
    */
-  prox_circle_rectangle( const circle* aCircle = NULL, const rectangle* aRectangle = NULL );
+  prox_circle_rectangle( const circle* aCircle = nullptr, const rectangle* aRectangle = nullptr );
 
   /** Destructor. */
   virtual ~prox_circle_rectangle(){};

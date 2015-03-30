@@ -48,7 +48,7 @@ private:
   Ui::CRSRunDialog* ui;
 
 public:
-  CRSRunDialogWidget( QWidget* parent = NULL, Qt::WindowFlags flags = 0 );
+  CRSRunDialogWidget( QWidget* parent = nullptr, Qt::WindowFlags flags = 0 );
   virtual ~CRSRunDialogWidget();
 
 private slots:

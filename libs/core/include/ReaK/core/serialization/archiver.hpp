@@ -117,11 +117,11 @@ struct archive_object_header {
   unsigned int* type_ID;     ///< A unique number sequence identifying the object's type.
   unsigned int type_version; ///< The version number of the object's type.
   unsigned int object_ID; ///< A unique number identifying the object instance, uniqueness is guaranteed to within the
-                          ///life-span of the archive.
-  bool is_external;       ///< Flag that identifies whether the object is serialized in an external archive.
+  /// life-span of the archive.
+  bool is_external;  ///< Flag that identifies whether the object is serialized in an external archive.
   unsigned int size; ///< Size of the object's data, relevant to a binary archive (to know the space to skip if object
-                     ///is unknown, unsupported).
-  archive_object_header() : type_ID( NULL ), type_version( 0 ), object_ID( 0 ), is_external( false ), size( 0 ){};
+  /// is unknown, unsupported).
+  archive_object_header() : type_ID(), type_version( 0 ), object_ID( 0 ), is_external( false ), size( 0 ){};
 };
 
 /**

@@ -414,7 +414,7 @@ public:
    */
   template < typename Matrix1 >
   void getJacobianMatrix( Matrix1& Jac ) const {
-    getJacobianMatrixAndDerivativeImpl( Jac, static_cast< mat< double, mat_structure::rectangular >* >( NULL ) );
+    getJacobianMatrixAndDerivativeImpl( Jac, static_cast< mat< double, mat_structure::rectangular >* >( nullptr ) );
   };
 
   /**
@@ -983,8 +983,8 @@ public:
                          double aEta = 1e-3, double aTau = 0.99 )
       : model( aModel ), cost_eval( aCostEvaluator ),
         optimizer( optim::oop_cost_function( aCostEvaluator ), optim::oop_cost_grad( aCostEvaluator ),
-                   optim::oop_cost_hess( aCostEvaluator ), aMaxRadius, aMu, aMaxIter, eq_function( NULL ),
-                   eq_jac_filler( NULL ), ineq_function( NULL ), ineq_jac_filler( NULL ), aTol, aEta, aTau ) {
+                   optim::oop_cost_hess( aCostEvaluator ), aMaxRadius, aMu, aMaxIter, eq_function( nullptr ),
+                   eq_jac_filler( nullptr ), ineq_function( nullptr ), ineq_jac_filler( nullptr ), aTol, aEta, aTau ) {
     if( !model )
       throw optim::improper_problem( "CLIK error: The model pointer cannot be null!" );
 

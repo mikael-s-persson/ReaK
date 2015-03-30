@@ -132,7 +132,7 @@ void CRS_execute_static_planner_impl( const ReaK::kte::chaser_target_data& scene
 
   frame_reporter_type temp_reporter( make_any_model_applicator< rl_jt_space_type >( rlDK_map_type(
                                        chaser_concrete_model, scene_data.chaser_jt_limits, normal_jt_space ) ),
-                                     0.5 * min_travel, ( sw_motion_graph != NULL ) );
+                                     0.5 * min_travel, ( sw_motion_graph != nullptr ) );
 
   if( ( sw_motion_graph ) || ( sw_solutions ) ) {
     temp_reporter.add_traced_frame( EE_frame );
@@ -276,7 +276,7 @@ void CRS_execute_static_planner_impl( const ReaK::kte::chaser_target_data& scene
   };
 
   if( sw_solutions ) {
-    SoSeparator* sol_sep = NULL;
+    SoSeparator* sol_sep = nullptr;
     if( temp_reporter.get_solution_count() ) {
       sol_sep = temp_reporter.get_solution_tracer( EE_frame, 0 ).get_separator();
       if( sol_sep )
@@ -317,11 +317,11 @@ void CRSPlannerGUI::executePlanner() {
   vect_n< double > jt_start = ct_config.sceneData.chaser_kin_model->getJointPositions();
 
 
-  SoSwitch* sw_motion_graph = NULL;
+  SoSwitch* sw_motion_graph = nullptr;
   if( plan_alg_config.outputMotionGraph() )
     sw_motion_graph = view3d_menu.getDisplayGroup( "Motion-Graph", true );
 
-  SoSwitch* sw_solutions = NULL;
+  SoSwitch* sw_solutions = nullptr;
   if( plan_alg_config.outputSolution() )
     sw_solutions = view3d_menu.getDisplayGroup( "Solution(s)", true );
 

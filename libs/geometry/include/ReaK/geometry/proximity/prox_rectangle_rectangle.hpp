@@ -68,7 +68,7 @@ public:
    * \param aRectangle1 The first rectangle involved in the proximity query.
    * \param aRectangle2 The second rectangle involved in the proximity query.
    */
-  prox_rectangle_rectangle( const rectangle* aRectangle1 = NULL, const rectangle* aRectangle2 = NULL );
+  prox_rectangle_rectangle( const rectangle* aRectangle1 = nullptr, const rectangle* aRectangle2 = nullptr );
 
   /** Destructor. */
   virtual ~prox_rectangle_rectangle(){};

@@ -150,7 +150,7 @@ public:
   explicit mat( const Matrix& M,
                 typename boost::enable_if_c< is_readable_matrix< Matrix >::value
                                              && boost::mpl::not_< boost::is_same< Matrix, self > >::value,
-                                             void* >::type dummy = NULL )
+                                             void* >::type dummy = nullptr )
       : q( M.get_row_count() * M.get_col_count(), T( 0.0 ) ), rowCount( M.get_row_count() ),
         colCount( M.get_col_count() ) {
     typename container_type::iterator it = q.begin();
@@ -746,7 +746,7 @@ public:
   explicit mat( const Matrix& M,
                 typename boost::enable_if_c< is_readable_matrix< Matrix >::value
                                              && boost::mpl::not_< boost::is_same< Matrix, self > >::value,
-                                             void* >::type dummy = NULL )
+                                             void* >::type dummy = nullptr )
       : q( M.get_row_count() * M.get_col_count(), T( 0.0 ) ), rowCount( M.get_row_count() ),
         colCount( M.get_col_count() ) {
     typename container_type::iterator it = q.begin();

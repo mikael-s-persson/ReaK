@@ -680,7 +680,7 @@ CRSPlannerGUI::~CRSPlannerGUI() {
   view3d_menu.removeDisplayGroup( "Motion-Graph" );
   view3d_menu.removeDisplayGroup( "Solution(s)" );
 
-  view3d_menu.setViewer( NULL );
+  view3d_menu.setViewer( nullptr );
 
   SoQt::done();
 };

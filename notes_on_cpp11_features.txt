@@ -1,0 +1,41 @@
+
+C++11 features to use (supported by all relevant compilers):
+
+atomic operations
+auto
+decltype
+extern templates
+lambdas
+trailing returns
+nullptr
+right-angle brackets
+rvalue-references (v2.1)
+static_assert
+type-traits
+range-based for-loops
+
+C++11 features that could be used under switches (good for gcc 4.8 and msvc 12):
+
+default / delete functions
+initializer lists
+template aliases
+variadic templates
+override / final
+
+
+C++11 features that can't really be used yet (not supported by MSVC 12):
+
+alignas / alignof
+constexpr
+inherit constructors
+user-def literals
+ref-qualifiers
+data-member initializers
+magic statics
+noexcept (use through BOOST_.. macros)
+
+
+
+
+
+

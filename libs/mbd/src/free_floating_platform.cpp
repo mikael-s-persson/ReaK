@@ -135,7 +135,7 @@ void free_floater_2D_kinematics::doInverseMotion() {
 };
 
 void free_floater_2D_kinematics::getJacobianMatrix( mat< double, mat_structure::rectangular >& Jac ) const {
-  getJacobianMatrixAndDerivativeImpl( Jac, NULL );
+  getJacobianMatrixAndDerivativeImpl( Jac, nullptr );
 };
 
 void free_floater_2D_kinematics::getJacobianMatrixAndDerivative(
@@ -407,7 +407,7 @@ void free_floater_3D_kinematics::doInverseMotion() {
 };
 
 void free_floater_3D_kinematics::getJacobianMatrix( mat< double, mat_structure::rectangular >& Jac ) const {
-  getJacobianMatrixAndDerivativeImpl( Jac, NULL );
+  getJacobianMatrixAndDerivativeImpl( Jac, nullptr );
 };
 
 void free_floater_3D_kinematics::getJacobianMatrixAndDerivative(

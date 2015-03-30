@@ -226,7 +226,7 @@ shared_ptr< data_recorder > data_stream_options::create_recorder() const {
     if( ( d != std::string::npos ) || ( t != std::string::npos ) ) {
 
       // Record the current date and time:
-      std::time_t t_ctime = std::time( NULL );
+      std::time_t t_ctime = std::time( nullptr );
       char cdate_as_str[16];
       if( std::strftime( cdate_as_str, sizeof( cdate_as_str ), "%Y%m%d", std::localtime( &t_ctime ) ) == 0 )
         cdate_as_str[0] = '\0';

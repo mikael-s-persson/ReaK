@@ -67,7 +67,7 @@ public:
    * \param aBox1 The first box involved in the proximity query.
    * \param aBox2 The second box involved in the proximity query.
    */
-  prox_box_box( const box* aBox1 = NULL, const box* aBox2 = NULL );
+  prox_box_box( const box* aBox1 = nullptr, const box* aBox2 = nullptr );
 
   /** Destructor. */
   virtual ~prox_box_box(){};

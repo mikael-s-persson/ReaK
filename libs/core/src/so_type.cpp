@@ -96,10 +96,10 @@ public:
       return this;
 
     if( mDescendants.empty() )
-      return NULL;
+      return nullptr;
 
     unsigned int* d_typeID = create_dummy_so_type_id( aTypeID );
-    so_type_impl d( 0, d_typeID, "Root", NULL );
+    so_type_impl d( 0, d_typeID, "Root", nullptr );
     iter it = mDescendants.lower_bound( &d );
 
     if( ( it != mDescendants.end() ) && ( compare_equal( ( *it )->mTypeID, aTypeID ) ) )
@@ -111,7 +111,7 @@ public:
         return p;
     };
 
-    return NULL;
+    return nullptr;
   };
 
   /// This function gets the number of direct descendants of this.
@@ -120,7 +120,7 @@ public:
   /// This function gets a Type record by index in the direct descendants of this.
   so_type_impl* getDescendant_impl( unsigned int aIndex ) {
     if( aIndex >= mDescendants.size() )
-      return NULL;
+      return nullptr;
 
     iter it = mDescendants.begin();
     std::advance( it, aIndex );
@@ -133,10 +133,10 @@ public:
       return this;
 
     if( mAncestors.empty() )
-      return NULL;
+      return nullptr;
 
     unsigned int* d_typeID = create_dummy_so_type_id( aTypeID );
-    so_type_impl d( 0, d_typeID, "Root", NULL );
+    so_type_impl d( 0, d_typeID, "Root", nullptr );
     iter it = mAncestors.lower_bound( &d );
 
     if( ( it != mAncestors.end() ) && ( *it ) && ( compare_equal( ( *it )->mTypeID, aTypeID ) ) )
@@ -150,7 +150,7 @@ public:
       };
     };
 
-    return NULL;
+    return nullptr;
   };
 
   so_type_impl* addDescendant_impl( so_type_impl* aObj ) {
@@ -229,7 +229,7 @@ so_type_ptr create_dummy_so_type( const unsigned int* aTypeID ) {
   for( SizeType i = 0; i < TypeIDLength - 1; ++i )
     typeID[i] = aTypeID[i];
   typeID[TypeIDLength - 1] = 0;
-  return so_type_ptr( new so_type_impl( 0, typeID, "Root", NULL ) );
+  return so_type_ptr( new so_type_impl( 0, typeID, "Root", nullptr ) );
 };
 
 

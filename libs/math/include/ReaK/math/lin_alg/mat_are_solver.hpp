@@ -1259,15 +1259,15 @@ void partition_schur_pencil_impl( Matrix1& A, Matrix2& B, Matrix3* Q, Matrix4* Z
               mat_sub_block< Matrix4 > subZ( *Z, Z->get_row_count(), 4, 0, p - 2 );
               swap_schur_blocks22_impl( subA, subB, &subQ, &subZ, 0, p - 2, absNumTol );
             } else {
-              swap_schur_blocks22_impl( subA, subB, &subQ, static_cast< Matrix4* >( NULL ), 0, p - 2, absNumTol );
+              swap_schur_blocks22_impl( subA, subB, &subQ, static_cast< Matrix4* >( nullptr ), 0, p - 2, absNumTol );
             };
           } else {
             if( Z ) {
               mat_sub_block< Matrix4 > subZ( *Z, Z->get_row_count(), 4, 0, p - 2 );
-              swap_schur_blocks22_impl( subA, subB, static_cast< Matrix3* >( NULL ), &subZ, 0, p - 2, absNumTol );
+              swap_schur_blocks22_impl( subA, subB, static_cast< Matrix3* >( nullptr ), &subZ, 0, p - 2, absNumTol );
             } else {
-              swap_schur_blocks22_impl( subA, subB, static_cast< Matrix3* >( NULL ), static_cast< Matrix4* >( NULL ), 0,
-                                        p - 2, absNumTol );
+              swap_schur_blocks22_impl( subA, subB, static_cast< Matrix3* >( nullptr ),
+                                        static_cast< Matrix4* >( nullptr ), 0, p - 2, absNumTol );
             };
           };
           p -= 2;
@@ -1286,15 +1286,15 @@ void partition_schur_pencil_impl( Matrix1& A, Matrix2& B, Matrix3* Q, Matrix4* Z
               mat_sub_block< Matrix4 > subZ( *Z, Z->get_row_count(), 3, 0, p - 1 );
               swap_schur_blocks12_impl( subA, subB, &subQ, &subZ, 0, p - 1 );
             } else {
-              swap_schur_blocks12_impl( subA, subB, &subQ, static_cast< Matrix4* >( NULL ), 0, p - 1 );
+              swap_schur_blocks12_impl( subA, subB, &subQ, static_cast< Matrix4* >( nullptr ), 0, p - 1 );
             };
           } else {
             if( Z ) {
               mat_sub_block< Matrix4 > subZ( *Z, Z->get_row_count(), 3, 0, p - 1 );
-              swap_schur_blocks12_impl( subA, subB, static_cast< Matrix3* >( NULL ), &subZ, 0, p - 1 );
+              swap_schur_blocks12_impl( subA, subB, static_cast< Matrix3* >( nullptr ), &subZ, 0, p - 1 );
             } else {
-              swap_schur_blocks12_impl( subA, subB, static_cast< Matrix3* >( NULL ), static_cast< Matrix4* >( NULL ), 0,
-                                        p - 1 );
+              swap_schur_blocks12_impl( subA, subB, static_cast< Matrix3* >( nullptr ),
+                                        static_cast< Matrix4* >( nullptr ), 0, p - 1 );
             };
           };
           --p;
@@ -1313,15 +1313,15 @@ void partition_schur_pencil_impl( Matrix1& A, Matrix2& B, Matrix3* Q, Matrix4* Z
               mat_sub_block< Matrix4 > subZ( *Z, Z->get_row_count(), 3, 0, p - 2 );
               swap_schur_blocks21_impl( subA, subB, &subQ, &subZ, 0, p - 2 );
             } else {
-              swap_schur_blocks21_impl( subA, subB, &subQ, static_cast< Matrix4* >( NULL ), 0, p - 2 );
+              swap_schur_blocks21_impl( subA, subB, &subQ, static_cast< Matrix4* >( nullptr ), 0, p - 2 );
             };
           } else {
             if( Z ) {
               mat_sub_block< Matrix4 > subZ( *Z, Z->get_row_count(), 3, 0, p - 2 );
-              swap_schur_blocks21_impl( subA, subB, static_cast< Matrix3* >( NULL ), &subZ, 0, p - 2 );
+              swap_schur_blocks21_impl( subA, subB, static_cast< Matrix3* >( nullptr ), &subZ, 0, p - 2 );
             } else {
-              swap_schur_blocks21_impl( subA, subB, static_cast< Matrix3* >( NULL ), static_cast< Matrix4* >( NULL ), 0,
-                                        p - 2 );
+              swap_schur_blocks21_impl( subA, subB, static_cast< Matrix3* >( nullptr ),
+                                        static_cast< Matrix4* >( nullptr ), 0, p - 2 );
             };
           };
           p -= 2;
@@ -1340,15 +1340,15 @@ void partition_schur_pencil_impl( Matrix1& A, Matrix2& B, Matrix3* Q, Matrix4* Z
               mat_sub_block< Matrix4 > subZ( *Z, Z->get_row_count(), 2, 0, p - 1 );
               swap_schur_blocks11_impl( subA, subB, &subQ, &subZ, 0, p - 1 );
             } else {
-              swap_schur_blocks11_impl( subA, subB, &subQ, static_cast< Matrix4* >( NULL ), 0, p - 1 );
+              swap_schur_blocks11_impl( subA, subB, &subQ, static_cast< Matrix4* >( nullptr ), 0, p - 1 );
             };
           } else {
             if( Z ) {
               mat_sub_block< Matrix4 > subZ( *Z, Z->get_row_count(), 2, 0, p - 1 );
-              swap_schur_blocks11_impl( subA, subB, static_cast< Matrix3* >( NULL ), &subZ, 0, p - 1 );
+              swap_schur_blocks11_impl( subA, subB, static_cast< Matrix3* >( nullptr ), &subZ, 0, p - 1 );
             } else {
-              swap_schur_blocks11_impl( subA, subB, static_cast< Matrix3* >( NULL ), static_cast< Matrix4* >( NULL ), 0,
-                                        p - 1 );
+              swap_schur_blocks11_impl( subA, subB, static_cast< Matrix3* >( nullptr ),
+                                        static_cast< Matrix4* >( nullptr ), 0, p - 1 );
             };
           };
           --p;

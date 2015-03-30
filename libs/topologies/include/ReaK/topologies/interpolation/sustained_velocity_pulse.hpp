@@ -108,7 +108,7 @@ PointType svp_interpolate( const PointType& a, const PointType& b, double t, con
 
   double slack = detail::svp_compute_interpolation_data_impl( a.pt, b.pt, delta_first_order, peak_velocity,
                                                               space.get_space_topology(), space.get_time_topology(),
-                                                              delta_time, NULL, tolerance, maximum_iterations );
+                                                              delta_time, nullptr, tolerance, maximum_iterations );
 
   if( slack < 0.0 )
     delta_time -= slack;
@@ -417,7 +417,7 @@ struct get_type_id< pp::svp_interpolation_tag > {
 #else
   static const char* type_name() BOOST_NOEXCEPT { return "svp_interpolation_tag"; };
 #endif
-  static construct_ptr CreatePtr() BOOST_NOEXCEPT { return NULL; };
+  static construct_ptr CreatePtr() BOOST_NOEXCEPT { return nullptr; };
 };
 };
 };

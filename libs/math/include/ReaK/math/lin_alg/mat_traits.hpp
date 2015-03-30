@@ -100,7 +100,7 @@ struct get_type_id< boost::mpl::integral_c< mat_alignment::tag, mat_alignment::c
 #else
   static const char* type_name() BOOST_NOEXCEPT { return "column_major"; };
 #endif
-  static construct_ptr CreatePtr() BOOST_NOEXCEPT { return NULL; };
+  static construct_ptr CreatePtr() BOOST_NOEXCEPT { return nullptr; };
 };
 
 template <>
@@ -111,7 +111,7 @@ struct get_type_id< boost::mpl::integral_c< mat_alignment::tag, mat_alignment::r
 #else
   static const char* type_name() BOOST_NOEXCEPT { return "row_major"; };
 #endif
-  static construct_ptr CreatePtr() BOOST_NOEXCEPT { return NULL; };
+  static construct_ptr CreatePtr() BOOST_NOEXCEPT { return nullptr; };
 };
 
 template < mat_alignment::tag U, typename Tail >
@@ -138,7 +138,7 @@ struct get_type_id< boost::mpl::integral_c< mat_structure::tag, mat_structure::r
 #else
   static const char* type_name() BOOST_NOEXCEPT { return "rectangular"; };
 #endif
-  static construct_ptr CreatePtr() BOOST_NOEXCEPT { return NULL; };
+  static construct_ptr CreatePtr() BOOST_NOEXCEPT { return nullptr; };
 };
 
 template <>
@@ -149,7 +149,7 @@ struct get_type_id< boost::mpl::integral_c< mat_structure::tag, mat_structure::s
 #else
   static const char* type_name() BOOST_NOEXCEPT { return "square"; };
 #endif
-  static construct_ptr CreatePtr() BOOST_NOEXCEPT { return NULL; };
+  static construct_ptr CreatePtr() BOOST_NOEXCEPT { return nullptr; };
 };
 
 template <>
@@ -160,7 +160,7 @@ struct get_type_id< boost::mpl::integral_c< mat_structure::tag, mat_structure::s
 #else
   static const char* type_name() BOOST_NOEXCEPT { return "symmetric"; };
 #endif
-  static construct_ptr CreatePtr() BOOST_NOEXCEPT { return NULL; };
+  static construct_ptr CreatePtr() BOOST_NOEXCEPT { return nullptr; };
 };
 
 template <>
@@ -171,7 +171,7 @@ struct get_type_id< boost::mpl::integral_c< mat_structure::tag, mat_structure::s
 #else
   static const char* type_name() BOOST_NOEXCEPT { return "skew_symmetric"; };
 #endif
-  static construct_ptr CreatePtr() BOOST_NOEXCEPT { return NULL; };
+  static construct_ptr CreatePtr() BOOST_NOEXCEPT { return nullptr; };
 };
 
 template <>
@@ -182,7 +182,7 @@ struct get_type_id< boost::mpl::integral_c< mat_structure::tag, mat_structure::d
 #else
   static const char* type_name() BOOST_NOEXCEPT { return "diagonal"; };
 #endif
-  static construct_ptr CreatePtr() BOOST_NOEXCEPT { return NULL; };
+  static construct_ptr CreatePtr() BOOST_NOEXCEPT { return nullptr; };
 };
 
 template <>
@@ -193,7 +193,7 @@ struct get_type_id< boost::mpl::integral_c< mat_structure::tag, mat_structure::u
 #else
   static const char* type_name() BOOST_NOEXCEPT { return "upper_triangular"; };
 #endif
-  static construct_ptr CreatePtr() BOOST_NOEXCEPT { return NULL; };
+  static construct_ptr CreatePtr() BOOST_NOEXCEPT { return nullptr; };
 };
 
 template <>
@@ -204,7 +204,7 @@ struct get_type_id< boost::mpl::integral_c< mat_structure::tag, mat_structure::l
 #else
   static const char* type_name() { return "lower_triangular"; };
 #endif
-  static construct_ptr CreatePtr() { return NULL; };
+  static construct_ptr CreatePtr() { return nullptr; };
 };
 
 template <>
@@ -215,7 +215,7 @@ struct get_type_id< boost::mpl::integral_c< mat_structure::tag, mat_structure::o
 #else
   static const char* type_name() BOOST_NOEXCEPT { return "orthogonal"; };
 #endif
-  static construct_ptr CreatePtr() BOOST_NOEXCEPT { return NULL; };
+  static construct_ptr CreatePtr() BOOST_NOEXCEPT { return nullptr; };
 };
 
 template <>
@@ -226,7 +226,7 @@ struct get_type_id< boost::mpl::integral_c< mat_structure::tag, mat_structure::t
 #else
   static const char* type_name() BOOST_NOEXCEPT { return "tridiagonal"; };
 #endif
-  static construct_ptr CreatePtr() BOOST_NOEXCEPT { return NULL; };
+  static construct_ptr CreatePtr() BOOST_NOEXCEPT { return nullptr; };
 };
 
 template <>
@@ -237,7 +237,7 @@ struct get_type_id< boost::mpl::integral_c< mat_structure::tag, mat_structure::n
 #else
   static const char* type_name() BOOST_NOEXCEPT { return "nil"; };
 #endif
-  static construct_ptr CreatePtr() BOOST_NOEXCEPT { return NULL; };
+  static construct_ptr CreatePtr() BOOST_NOEXCEPT { return nullptr; };
 };
 
 template <>
@@ -248,7 +248,7 @@ struct get_type_id< boost::mpl::integral_c< mat_structure::tag, mat_structure::i
 #else
   static const char* type_name() BOOST_NOEXCEPT { return "identity"; };
 #endif
-  static construct_ptr CreatePtr() BOOST_NOEXCEPT { return NULL; };
+  static construct_ptr CreatePtr() BOOST_NOEXCEPT { return nullptr; };
 };
 
 template <>
@@ -259,7 +259,7 @@ struct get_type_id< boost::mpl::integral_c< mat_structure::tag, mat_structure::s
 #else
   static const char* type_name() BOOST_NOEXCEPT { return "scalar"; };
 #endif
-  static construct_ptr CreatePtr() BOOST_NOEXCEPT { return NULL; };
+  static construct_ptr CreatePtr() BOOST_NOEXCEPT { return nullptr; };
 };
 
 template <>
@@ -270,7 +270,7 @@ struct get_type_id< boost::mpl::integral_c< mat_structure::tag, mat_structure::p
 #else
   static const char* type_name() BOOST_NOEXCEPT { return "permutation"; };
 #endif
-  static construct_ptr CreatePtr() BOOST_NOEXCEPT { return NULL; };
+  static construct_ptr CreatePtr() BOOST_NOEXCEPT { return nullptr; };
 };
 
 

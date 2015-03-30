@@ -64,7 +64,7 @@ public:
    * \param aSphere1 The first sphere involved in the proximity query.
    * \param aSphere2 The second sphere involved in the proximity query.
    */
-  prox_sphere_sphere( const sphere* aSphere1 = NULL, const sphere* aSphere2 = NULL );
+  prox_sphere_sphere( const sphere* aSphere1 = nullptr, const sphere* aSphere2 = nullptr );
 
   /** Destructor. */
   virtual ~prox_sphere_sphere(){};

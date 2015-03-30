@@ -68,7 +68,7 @@ public:
    * \param aCircle The circle involved in the proximity query.
    * \param aCRect The capped rectangle involved in the proximity query.
    */
-  prox_circle_crect( const circle* aCircle = NULL, const capped_rectangle* aCRect = NULL );
+  prox_circle_crect( const circle* aCircle = nullptr, const capped_rectangle* aCRect = nullptr );
 
   /** Destructor. */
   virtual ~prox_circle_crect(){};

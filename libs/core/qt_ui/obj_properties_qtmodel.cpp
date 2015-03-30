@@ -171,7 +171,7 @@ void ObjPropertiesQtModel::sourceDataEdited( const std::string& newSrc ) {
 
 
 ObjPropertiesQtDelegate::ObjPropertiesQtDelegate( ObjPropertiesQtModel* aParentModel )
-    : QStyledItemDelegate( NULL ), parentModel( aParentModel ){};
+    : QStyledItemDelegate(), parentModel( aParentModel ){};
 
 ObjPropertiesQtDelegate::~ObjPropertiesQtDelegate(){};
 

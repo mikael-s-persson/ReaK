@@ -410,7 +410,7 @@ private:
         std::push_heap( Neighbors.begin(), Neighbors.end(), priority_compare_type() );
         if( Neighbors.size() > K ) { // are there too many nearest neighbors? Yes...
           std::pop_heap( Neighbors.begin(), Neighbors.end(), priority_compare_type() );
-          Neighbors.pop_back(); // delete last element to keep Neighbors with K elements
+          Neighbors.pop_back();             // delete last element to keep Neighbors with K elements
           Radius = Neighbors.front().first; // distance of the last element is now the search bound Radius.
         };
       };
@@ -442,7 +442,7 @@ private:
           std::push_heap( Pred.begin(), Pred.end(), priority_compare_type() );
           if( Pred.size() > K ) { // are there too many nearest neighbors? Yes...
             std::pop_heap( Pred.begin(), Pred.end(), priority_compare_type() );
-            Pred.pop_back(); // delete last element to keep aList with K elements
+            Pred.pop_back();                 // delete last element to keep aList with K elements
             sigma_pred = Pred.front().first; // distance of the last element is now the search bound sigma_pred.
           };
         };
@@ -458,7 +458,7 @@ private:
           std::push_heap( Succ.begin(), Succ.end(), priority_compare_type() );
           if( Succ.size() > K ) { // are there too many nearest neighbors? Yes...
             std::pop_heap( Succ.begin(), Succ.end(), priority_compare_type() );
-            Succ.pop_back(); // delete last element to keep aList with K elements
+            Succ.pop_back();                 // delete last element to keep aList with K elements
             sigma_succ = Succ.front().first; // distance of the last element is now the search bound sigma_succ.
           };
         };
@@ -889,13 +889,13 @@ public:
                                                                     m_position( std::move( rhs.m_position ) ),
                                                                     m_distance( std::move( rhs.m_distance ) ),
                                                                     m_vp_chooser( std::move( rhs.m_vp_chooser ) ) {
-    rhs.m_tree = NULL;
+    rhs.m_tree = nullptr;
     rhs.m_root = boost::graph_traits< tree_indexer >::null_vertex();
   };
   void reassign_moved( tree_indexer& aTree, self&& rhs ) BOOST_NOEXCEPT {
     m_tree = &aTree;
     m_root = get_root_vertex( aTree );
-    rhs.m_tree = NULL;
+    rhs.m_tree = nullptr;
     rhs.m_root = boost::graph_traits< tree_indexer >::null_vertex();
     m_key = std::move( rhs.m_key );
     m_mu = std::move( rhs.m_mu );

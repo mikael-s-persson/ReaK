@@ -49,7 +49,7 @@ struct get_type_id< std::vector< T > > {
 #else
   static const char* type_name() BOOST_NOEXCEPT { return "std::vector"; };
 #endif
-  static construct_ptr CreatePtr() BOOST_NOEXCEPT { return NULL; };
+  static construct_ptr CreatePtr() BOOST_NOEXCEPT { return nullptr; };
 
   typedef const std::vector< T >& save_type;
   typedef std::vector< T >& load_type;
@@ -90,7 +90,7 @@ struct get_type_id< std::list< T > > {
 #else
   static const char* type_name() BOOST_NOEXCEPT { return "std::list"; };
 #endif
-  static construct_ptr CreatePtr() BOOST_NOEXCEPT { return NULL; };
+  static construct_ptr CreatePtr() BOOST_NOEXCEPT { return nullptr; };
 
   typedef const std::list< T >& save_type;
   typedef std::list< T >& load_type;
@@ -131,7 +131,7 @@ struct get_type_id< std::map< Key, T > > {
 #else
   static const char* type_name() BOOST_NOEXCEPT { return "std::map"; };
 #endif
-  static construct_ptr CreatePtr() BOOST_NOEXCEPT { return NULL; };
+  static construct_ptr CreatePtr() BOOST_NOEXCEPT { return nullptr; };
 
   typedef const std::map< Key, T >& save_type;
   typedef std::map< Key, T >& load_type;
@@ -167,7 +167,7 @@ struct get_type_id< std::multimap< Key, T > > {
 #else
   static const char* type_name() BOOST_NOEXCEPT { return "std::multimap"; };
 #endif
-  static construct_ptr CreatePtr() BOOST_NOEXCEPT { return NULL; };
+  static construct_ptr CreatePtr() BOOST_NOEXCEPT { return nullptr; };
 
   typedef const std::multimap< Key, T >& save_type;
   typedef std::multimap< Key, T >& load_type;
@@ -210,7 +210,7 @@ struct get_type_id< std::set< T > > {
 #else
   static const char* type_name() BOOST_NOEXCEPT { return "std::set"; };
 #endif
-  static construct_ptr CreatePtr() BOOST_NOEXCEPT { return NULL; };
+  static construct_ptr CreatePtr() BOOST_NOEXCEPT { return nullptr; };
 
   typedef const std::set< T >& save_type;
   typedef std::set< T >& load_type;
@@ -244,7 +244,7 @@ struct get_type_id< std::multiset< T > > {
 #else
   static const char* type_name() BOOST_NOEXCEPT { return "std::multiset"; };
 #endif
-  static construct_ptr CreatePtr() BOOST_NOEXCEPT { return NULL; };
+  static construct_ptr CreatePtr() BOOST_NOEXCEPT { return nullptr; };
 
   typedef const std::multiset< T >& save_type;
   typedef std::multiset< T >& load_type;
@@ -285,7 +285,7 @@ struct get_type_id< std::pair< T1, T2 > > {
 #else
   static const char* type_name() BOOST_NOEXCEPT { return "std::pair"; };
 #endif
-  static construct_ptr CreatePtr() BOOST_NOEXCEPT { return NULL; };
+  static construct_ptr CreatePtr() BOOST_NOEXCEPT { return nullptr; };
 
   typedef const std::pair< T1, T2 >& save_type;
   typedef std::pair< T1, T2 >& load_type;
@@ -330,7 +330,7 @@ struct get_type_id< std::forward_list< T > > {
 #else
   static const char* type_name() BOOST_NOEXCEPT { return "std::forward_list"; };
 #endif
-  static construct_ptr CreatePtr() BOOST_NOEXCEPT { return NULL; };
+  static construct_ptr CreatePtr() BOOST_NOEXCEPT { return nullptr; };
 
   typedef const std::forward_list< T >& save_type;
   typedef std::forward_list< T >& load_type;
@@ -374,7 +374,7 @@ struct get_type_id< std::array< T, N > > {
 #else
   static const char* type_name() BOOST_NOEXCEPT { return "std::array"; };
 #endif
-  static construct_ptr CreatePtr() BOOST_NOEXCEPT { return NULL; };
+  static construct_ptr CreatePtr() BOOST_NOEXCEPT { return nullptr; };
 
   typedef const std::array< T, N >& save_type;
   typedef std::array< T, N >& load_type;
@@ -423,7 +423,7 @@ struct get_type_id< std::tuple< T... > > {
 #else
   static const char* type_name() BOOST_NOEXCEPT { return "std::tuple"; };
 #endif
-  static construct_ptr CreatePtr() BOOST_NOEXCEPT { return NULL; };
+  static construct_ptr CreatePtr() BOOST_NOEXCEPT { return nullptr; };
 
   typedef const std::tuple< T... >& save_type;
   typedef std::tuple< T... >& load_type;
@@ -469,7 +469,7 @@ struct get_type_id< std::unordered_map< Key, T > > {
 #else
   static const char* type_name() BOOST_NOEXCEPT { return "std::unordered_map"; };
 #endif
-  static construct_ptr CreatePtr() BOOST_NOEXCEPT { return NULL; };
+  static construct_ptr CreatePtr() BOOST_NOEXCEPT { return nullptr; };
 
   typedef const std::unordered_map< Key, T >& save_type;
   typedef std::unordered_map< Key, T >& load_type;
@@ -505,7 +505,7 @@ struct get_type_id< std::unordered_multimap< Key, T > > {
 #else
   static const char* type_name() BOOST_NOEXCEPT { return "std::unordered_multimap"; };
 #endif
-  static construct_ptr CreatePtr() BOOST_NOEXCEPT { return NULL; };
+  static construct_ptr CreatePtr() BOOST_NOEXCEPT { return nullptr; };
 
   typedef const std::unordered_multimap< Key, T >& save_type;
   typedef std::unordered_multimap< Key, T >& load_type;
@@ -552,7 +552,7 @@ struct get_type_id< std::unordered_set< T > > {
 #else
   static const char* type_name() BOOST_NOEXCEPT { return "std::unordered_set"; };
 #endif
-  static construct_ptr CreatePtr() BOOST_NOEXCEPT { return NULL; };
+  static construct_ptr CreatePtr() BOOST_NOEXCEPT { return nullptr; };
 
   typedef const std::unordered_set< T >& save_type;
   typedef std::unordered_set< T >& load_type;
@@ -586,7 +586,7 @@ struct get_type_id< std::unordered_multiset< T > > {
 #else
   static const char* type_name() BOOST_NOEXCEPT { return "std::unordered_multiset"; };
 #endif
-  static construct_ptr CreatePtr() BOOST_NOEXCEPT { return NULL; };
+  static construct_ptr CreatePtr() BOOST_NOEXCEPT { return nullptr; };
 
   typedef const std::unordered_multiset< T >& save_type;
   typedef std::unordered_multiset< T >& load_type;

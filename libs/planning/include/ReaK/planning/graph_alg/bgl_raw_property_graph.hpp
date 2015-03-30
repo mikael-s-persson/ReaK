@@ -289,7 +289,7 @@ public:
   typedef typename graph_traits< Graph >::vertex_descriptor key_type;
   typedef typename mpl::if_< is_const< T >, readable_property_map_tag, lvalue_property_map_tag >::type category;
 
-  raw_vertex_propgraph_map( Graph* aPG = NULL ) : pg( aPG ){};
+  raw_vertex_propgraph_map( Graph* aPG = nullptr ) : pg( aPG ){};
   reference operator[]( key_type k ) const { return get_raw_vertex_property( *pg, k ); };
 };
 
@@ -313,7 +313,7 @@ public:
   typedef typename graph_traits< Graph >::edge_descriptor key_type;
   typedef typename mpl::if_< is_const< T >, readable_property_map_tag, lvalue_property_map_tag >::type category;
 
-  raw_edge_propgraph_map( Graph* aPG = NULL ) : pg( aPG ){};
+  raw_edge_propgraph_map( Graph* aPG = nullptr ) : pg( aPG ){};
   reference operator[]( key_type k ) const { return get_raw_edge_property( *pg, k ); };
 };
 };

@@ -139,7 +139,7 @@ void symmetric_QRalg_impl( Matrix1& T, Matrix2* Z, typename mat_traits< Matrix1 
       symmetric_QR_step( subT, &subZ, absNumTol );
     } else {
       mat_sub_block< Matrix1 > subT( T, q - p + 1, q - p + 1, p, p );
-      symmetric_QR_step( subT, static_cast< Matrix2* >( NULL ), absNumTol );
+      symmetric_QR_step( subT, static_cast< Matrix2* >( nullptr ), absNumTol );
     };
   };
 };
@@ -260,7 +260,7 @@ void schur_decomp_impl( Matrix1& T, Matrix2* Q, typename mat_traits< Matrix1 >::
       francis_QR_step( subT, &subQ, p, absNumTol );
     } else {
       mat_sub_block< Matrix1 > subT( T, q, N - p, 0, p );
-      francis_QR_step( subT, static_cast< Matrix2* >( NULL ), p, absNumTol );
+      francis_QR_step( subT, static_cast< Matrix2* >( nullptr ), p, absNumTol );
     };
   };
 };
@@ -372,17 +372,17 @@ bool deflate_hess_all_down_impl( Matrix1& A, Matrix2& B, Matrix3* Q, Matrix4* Z,
             mat_sub_block< Matrix4 > subZ( *Z, Z->get_row_count(), N - j, 0, 0 );
             deflate_hess_elem_down_impl( subA, subB, &subQ, &subZ, i - 1, row_offset + i - 1 );
           } else {
-            deflate_hess_elem_down_impl( subA, subB, &subQ, static_cast< Matrix4* >( NULL ), i - 1,
+            deflate_hess_elem_down_impl( subA, subB, &subQ, static_cast< Matrix4* >( nullptr ), i - 1,
                                          row_offset + i - 1 );
           };
         } else {
           if( Z ) {
             mat_sub_block< Matrix4 > subZ( *Z, Z->get_row_count(), N - j, 0, 0 );
-            deflate_hess_elem_down_impl( subA, subB, static_cast< Matrix3* >( NULL ), &subZ, i - 1,
+            deflate_hess_elem_down_impl( subA, subB, static_cast< Matrix3* >( nullptr ), &subZ, i - 1,
                                          row_offset + i - 1 );
           } else {
-            deflate_hess_elem_down_impl( subA, subB, static_cast< Matrix3* >( NULL ), static_cast< Matrix4* >( NULL ),
-                                         i - 1, row_offset + i - 1 );
+            deflate_hess_elem_down_impl( subA, subB, static_cast< Matrix3* >( nullptr ),
+                                         static_cast< Matrix4* >( nullptr ), i - 1, row_offset + i - 1 );
           };
         };
         deflated_prev_time = true;
@@ -495,15 +495,15 @@ bool deflate_hess_all_up_impl( Matrix1& A, Matrix2& B, Matrix3* Q, Matrix4* Z,
             mat_sub_block< Matrix4 > subZ( *Z, Z->get_row_count(), N - j, 0, j );
             deflate_hess_elem_up_impl( subA, subB, &subQ, &subZ, i - j, row_offset + i );
           } else {
-            deflate_hess_elem_up_impl( subA, subB, &subQ, static_cast< Matrix4* >( NULL ), i - j, row_offset + i );
+            deflate_hess_elem_up_impl( subA, subB, &subQ, static_cast< Matrix4* >( nullptr ), i - j, row_offset + i );
           };
         } else {
           if( Z ) {
             mat_sub_block< Matrix4 > subZ( *Z, Z->get_row_count(), N - j, 0, 0 );
-            deflate_hess_elem_up_impl( subA, subB, static_cast< Matrix3* >( NULL ), &subZ, i - j, row_offset + i );
+            deflate_hess_elem_up_impl( subA, subB, static_cast< Matrix3* >( nullptr ), &subZ, i - j, row_offset + i );
           } else {
-            deflate_hess_elem_up_impl( subA, subB, static_cast< Matrix3* >( NULL ), static_cast< Matrix4* >( NULL ),
-                                       i - j, row_offset + i );
+            deflate_hess_elem_up_impl( subA, subB, static_cast< Matrix3* >( nullptr ),
+                                       static_cast< Matrix4* >( nullptr ), i - j, row_offset + i );
           };
         };
         deflated_prev_time = true;
@@ -745,18 +745,19 @@ void gen_schur_decomp_impl( Matrix1& A, Matrix2& B, Matrix3* Q, Matrix4* Z,
         if( !deflate_hess_all_up_impl( subA, subB, &subQ, &subZ, p, absNumTol ) )
           francis_QZ_step( subA, subB, &subQ, &subZ, p, absNumTol );
       } else {
-        if( !deflate_hess_all_up_impl( subA, subB, &subQ, static_cast< Matrix4* >( NULL ), p, absNumTol ) )
-          francis_QZ_step( subA, subB, &subQ, static_cast< Matrix4* >( NULL ), p, absNumTol );
+        if( !deflate_hess_all_up_impl( subA, subB, &subQ, static_cast< Matrix4* >( nullptr ), p, absNumTol ) )
+          francis_QZ_step( subA, subB, &subQ, static_cast< Matrix4* >( nullptr ), p, absNumTol );
       };
     } else {
       if( Z ) {
         mat_sub_block< Matrix3 > subZ( *Z, Z->get_row_count(), Z->get_col_count() - p, 0, p );
-        if( !deflate_hess_all_up_impl( subA, subB, static_cast< Matrix3* >( NULL ), &subZ, p, absNumTol ) )
-          francis_QZ_step( subA, subB, static_cast< Matrix3* >( NULL ), &subZ, p, absNumTol );
+        if( !deflate_hess_all_up_impl( subA, subB, static_cast< Matrix3* >( nullptr ), &subZ, p, absNumTol ) )
+          francis_QZ_step( subA, subB, static_cast< Matrix3* >( nullptr ), &subZ, p, absNumTol );
       } else {
-        if( !deflate_hess_all_up_impl( subA, subB, static_cast< Matrix3* >( NULL ), static_cast< Matrix4* >( NULL ), p,
-                                       absNumTol ) )
-          francis_QZ_step( subA, subB, static_cast< Matrix3* >( NULL ), static_cast< Matrix4* >( NULL ), p, absNumTol );
+        if( !deflate_hess_all_up_impl( subA, subB, static_cast< Matrix3* >( nullptr ),
+                                       static_cast< Matrix4* >( nullptr ), p, absNumTol ) )
+          francis_QZ_step( subA, subB, static_cast< Matrix3* >( nullptr ), static_cast< Matrix4* >( nullptr ), p,
+                           absNumTol );
       };
     };
 
@@ -886,7 +887,8 @@ typename boost::enable_if_c< is_readable_matrix< Matrix1 >::value && is_writable
 
   mat< typename mat_traits< Matrix1 >::value_type, mat_structure::square > D_tmp( A );
   detail::symmetric_QRalg_impl(
-    D_tmp, static_cast< mat< typename mat_traits< Matrix1 >::value_type, mat_structure::square >* >( NULL ), NumTol );
+    D_tmp, static_cast< mat< typename mat_traits< Matrix1 >::value_type, mat_structure::square >* >( nullptr ),
+    NumTol );
   D = D_tmp;
 };
 
@@ -1009,7 +1011,8 @@ typename boost::enable_if_c< is_readable_matrix< Matrix1 >::value, mat_traits< M
 
   mat< typename mat_traits< Matrix1 >::value_type, mat_structure::square > D_tmp( A );
   detail::symmetric_QRalg_impl(
-    D_tmp, static_cast< mat< typename mat_traits< Matrix1 >::value_type, mat_structure::square >* >( NULL ), NumTol );
+    D_tmp, static_cast< mat< typename mat_traits< Matrix1 >::value_type, mat_structure::square >* >( nullptr ),
+    NumTol );
   ValueType l_max( 0.0 );
   ValueType l_min( std::numeric_limits< ValueType >::infinity() );
   for( SizeType i = 0; i < A.get_col_count(); ++i ) {
@@ -1078,7 +1081,7 @@ typename boost::enable_if_c< is_readable_matrix< Matrix1 >::value && is_fully_wr
     throw std::range_error( "Real Schur decomposition is only possible on a square matrix!" );
 
   T = A;
-  detail::schur_decomp_impl( T, static_cast< Matrix2* >( NULL ), NumTol );
+  detail::schur_decomp_impl( T, static_cast< Matrix2* >( nullptr ), NumTol );
 };
 
 
@@ -1153,7 +1156,7 @@ typename boost::enable_if_c< is_readable_matrix< Matrix1 >::value && is_readable
 
   T = A;
   R = B;
-  detail::gen_schur_decomp_impl( T, R, static_cast< Matrix3* >( NULL ), static_cast< Matrix4* >( NULL ), NumTol );
+  detail::gen_schur_decomp_impl( T, R, static_cast< Matrix3* >( nullptr ), static_cast< Matrix4* >( nullptr ), NumTol );
 };
 
 

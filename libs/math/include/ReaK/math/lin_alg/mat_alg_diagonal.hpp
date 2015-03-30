@@ -129,7 +129,7 @@ public:
   explicit mat(
     const Vector& V, const allocator_type& aAlloc = allocator_type(),
     typename boost::enable_if_c< is_readable_vector< Vector >::value && !( boost::is_same< Vector, self >::value ),
-                                 void* >::type dummy = NULL )
+                                 void* >::type dummy = nullptr )
       : q( V.begin(), V.end(), aAlloc ), rowCount( V.size() ){};
 
   /**
@@ -139,7 +139,7 @@ public:
   explicit mat(
     const Matrix& M, const allocator_type& aAlloc = allocator_type(),
     typename boost::enable_if_c< is_readable_matrix< Matrix >::value && !( boost::is_same< Matrix, self >::value ),
-                                 void* >::type dummy = NULL )
+                                 void* >::type dummy = nullptr )
       : q( ( M.get_row_count() < M.get_col_count() ? M.get_row_count() : M.get_col_count() ), T( 0.0 ), aAlloc ),
         rowCount( ( M.get_row_count() < M.get_col_count() ? M.get_row_count() : M.get_col_count() ) ) {
     for( size_type i = 0; i < rowCount; ++i )

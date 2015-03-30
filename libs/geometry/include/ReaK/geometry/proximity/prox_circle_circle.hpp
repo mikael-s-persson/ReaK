@@ -64,7 +64,7 @@ public:
    * \param aCircle1 The first circle involved in the proximity query.
    * \param aCircle2 The second circle involved in the proximity query.
    */
-  prox_circle_circle( const circle* aCircle1 = NULL, const circle* aCircle2 = NULL );
+  prox_circle_circle( const circle* aCircle1 = nullptr, const circle* aCircle2 = nullptr );
 
   /** Destructor. */
   virtual ~prox_circle_circle(){};

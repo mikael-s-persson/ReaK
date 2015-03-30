@@ -288,7 +288,7 @@ typename boost::enable_if_c< is_readable_matrix< Matrix1 >::value && is_fully_wr
     throw std::range_error( "Upper-Hessenberg decomposition is only possible on a square matrix!" );
 
   H = A;
-  detail::decompose_Hess_impl( H, static_cast< Matrix2* >( NULL ), NumTol );
+  detail::decompose_Hess_impl( H, static_cast< Matrix2* >( nullptr ), NumTol );
 };
 
 
@@ -315,7 +315,7 @@ typename boost::enable_if_c< is_readable_matrix< Matrix1 >::value && is_writable
     throw std::range_error( "Upper-Hessenberg decomposition is only possible on a square matrix!" );
 
   mat< typename mat_traits< Matrix2 >::value_type, mat_structure::square > Htmp( A );
-  detail::decompose_Hess_impl( Htmp, static_cast< Matrix2* >( NULL ), NumTol );
+  detail::decompose_Hess_impl( Htmp, static_cast< Matrix2* >( nullptr ), NumTol );
   H = Htmp;
 };
 
@@ -450,7 +450,7 @@ typename boost::enable_if_c< is_readable_matrix< Matrix1 >::value && is_readable
 
   H = A;
   R = B;
-  detail::reduce_HessTri_offset_impl( H, R, static_cast< Matrix3* >( NULL ), static_cast< Matrix4* >( NULL ), 0,
+  detail::reduce_HessTri_offset_impl( H, R, static_cast< Matrix3* >( nullptr ), static_cast< Matrix4* >( nullptr ), 0,
                                       NumTol );
 };
 
@@ -489,8 +489,8 @@ typename boost::enable_if_c< is_readable_matrix< Matrix1 >::value && is_readable
 
   mat< typename mat_traits< Matrix3 >::value_type, mat_structure::square > Htmp( A );
   mat< typename mat_traits< Matrix4 >::value_type, mat_structure::square > Rtmp( B );
-  detail::reduce_HessTri_offset_impl( Htmp, Rtmp, static_cast< Matrix3* >( NULL ), static_cast< Matrix4* >( NULL ), 0,
-                                      NumTol );
+  detail::reduce_HessTri_offset_impl( Htmp, Rtmp, static_cast< Matrix3* >( nullptr ),
+                                      static_cast< Matrix4* >( nullptr ), 0, NumTol );
   H = Htmp;
   R = Rtmp;
 };

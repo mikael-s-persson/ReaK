@@ -67,7 +67,7 @@ public:
    * \param aPlane1 The first plane involved in the proximity query.
    * \param aPlane2 The second plane involved in the proximity query.
    */
-  prox_plane_plane( const plane* aPlane1 = NULL, const plane* aPlane2 = NULL );
+  prox_plane_plane( const plane* aPlane1 = nullptr, const plane* aPlane2 = nullptr );
 
   /** Destructor. */
   virtual ~prox_plane_plane(){};

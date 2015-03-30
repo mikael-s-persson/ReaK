@@ -427,7 +427,7 @@ struct get_type_id< pp::cubic_hermite_interpolation_tag > {
 #else
   static const char* type_name() BOOST_NOEXCEPT { return "cubic_hermite_interpolation_tag"; };
 #endif
-  static construct_ptr CreatePtr() BOOST_NOEXCEPT { return NULL; };
+  static construct_ptr CreatePtr() BOOST_NOEXCEPT { return nullptr; };
 };
 };
 };

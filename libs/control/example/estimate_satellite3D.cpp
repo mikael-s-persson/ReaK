@@ -107,7 +107,7 @@ struct sat3D_meas_true_from_vectors {
     if( ground_truth && ground_truth->size() )
       return &( cur_true->second );
     else
-      return NULL;
+      return nullptr;
   };
 
   bool step_once() {
@@ -122,7 +122,7 @@ struct sat3D_meas_true_from_vectors {
   };
 
   sat3D_meas_true_from_vectors( const std::vector< std::pair< double, sat3D_measurement_point > >* aMeasurements,
-                                const std::vector< std::pair< double, sat3D_state_type > >* aGroundTruth = NULL,
+                                const std::vector< std::pair< double, sat3D_state_type > >* aGroundTruth = nullptr,
                                 std::size_t aSkips = 1 )
       : measurements( aMeasurements ), ground_truth( aGroundTruth ), skips( aSkips ) {
     cur_meas = measurements->begin();
@@ -149,7 +149,7 @@ struct sat3D_meas_true_from_extractor {
     if( has_ground_truth )
       return &gnd_pt;
     else
-      return NULL;
+      return nullptr;
   };
 
   bool step_once() {
@@ -284,7 +284,7 @@ struct sat3D_estimate_result_to_recorder {
 
   template < typename BeliefStateType, typename InputBeliefType, typename OutputBeliefType >
   void add_record( const BeliefStateType& b, const InputBeliefType& b_u, const OutputBeliefType& b_z, double time,
-                   const sat3D_state_type* true_state = NULL ) {
+                   const sat3D_state_type* true_state = nullptr ) {
     using namespace ReaK;
     using ReaK::to_vect;
 
@@ -344,7 +344,7 @@ struct sat3D_collect_stddevs {
 
   template < typename BeliefStateType, typename InputBeliefType, typename OutputBeliefType >
   void add_record( const BeliefStateType& b, const InputBeliefType& b_u, const OutputBeliefType& b_z, double time,
-                   const sat3D_state_type* true_state = NULL ) {
+                   const sat3D_state_type* true_state = nullptr ) {
     using namespace ReaK;
 
     const sat3D_state_type& x_mean = get_sat3D_state( b.get_mean_state() );
@@ -417,7 +417,7 @@ struct sat3D_collect_prediction_stats {
 
   template < typename BeliefStateType, typename InputBeliefType, typename OutputBeliefType >
   void add_record( const BeliefStateType& b, const InputBeliefType& b_u, const OutputBeliefType& b_z, double time,
-                   const sat3D_state_type* true_state = NULL ) {
+                   const sat3D_state_type* true_state = nullptr ) {
     using namespace ReaK;
 
     if( start_time > time )

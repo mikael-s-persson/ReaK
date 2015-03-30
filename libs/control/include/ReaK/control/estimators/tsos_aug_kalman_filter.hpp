@@ -433,7 +433,7 @@ struct TSOSAKF_belief_transfer {
    * Parametrized constructor.
    * \param aFactory A pointer to the factory object that is creating this object.
    */
-  explicit TSOSAKF_belief_transfer( const TSOSAKFTransferFactory* aFactory = NULL ) : factory( aFactory ){};
+  explicit TSOSAKF_belief_transfer( const TSOSAKFTransferFactory* aFactory = nullptr ) : factory( aFactory ){};
 
   /**
    * Returns the time-step of the predictor.

@@ -48,8 +48,8 @@ class DataStreamOptWidget : public QDockWidget {
   Q_OBJECT
 
 public:
-  DataStreamOptWidget( recorder::data_stream_options aDataOpt = recorder::data_stream_options(), QWidget* parent = NULL,
-                       Qt::WindowFlags flags = 0 );
+  DataStreamOptWidget( recorder::data_stream_options aDataOpt = recorder::data_stream_options(),
+                       QWidget* parent = nullptr, Qt::WindowFlags flags = 0 );
   virtual ~DataStreamOptWidget();
 
 private slots:

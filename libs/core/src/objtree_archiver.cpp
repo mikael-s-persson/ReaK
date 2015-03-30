@@ -561,19 +561,19 @@ archive_object_header objtree_iarchive::readHeader( const std::string& obj_name,
       std::string numstr;
       for( ; ( ( i < IDstr.size() ) && ( IDstr[i] != '.' ) ); ++i )
         numstr += IDstr[i];
-      outTypeID.push_back( strtoul( numstr.c_str(), NULL, 0 ) );
+      outTypeID.push_back( strtoul( numstr.c_str(), nullptr, 0 ) );
     };
   };
 
   if( values["version"].empty() )
     result.type_version = 0;
   else
-    result.type_version = strtoul( values["version"].c_str(), NULL, 0 );
+    result.type_version = strtoul( values["version"].c_str(), nullptr, 0 );
 
   if( values["object_ID"].empty() )
     result.object_ID = 0;
   else
-    result.object_ID = strtoul( values["object_ID"].c_str(), NULL, 0 );
+    result.object_ID = strtoul( values["object_ID"].c_str(), nullptr, 0 );
 
   result.is_external = false;
 
@@ -642,7 +642,7 @@ iarchive& RK_CALL objtree_iarchive::load_serializable( const std::pair< std::str
 
   std::vector< unsigned int > typeID;
   hdr = readHeader( Item.first, typeID );
-  if( ( hdr.type_ID == NULL ) || ( hdr.type_version == 0 ) ) {
+  if( ( hdr.type_ID == nullptr ) || ( hdr.type_version == 0 ) ) {
     skipToEndToken( Item.first );
     return *this;
   };

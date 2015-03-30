@@ -161,8 +161,9 @@ struct MEAQR_rrtstar_visitor
   typedef typename base_type::planner_base_type planner_base_type;
   typedef typename base_type::query_type query_type;
 
-  MEAQR_rrtstar_visitor( planner_base_type* aPlanner, query_type* aQuery = NULL, any_knn_synchro* aNNSynchro = NULL,
-                         boost::any aStartNode = boost::any(), boost::any aGoalNode = boost::any() )
+  MEAQR_rrtstar_visitor( planner_base_type* aPlanner, query_type* aQuery = nullptr,
+                         any_knn_synchro* aNNSynchro = nullptr, boost::any aStartNode = boost::any(),
+                         boost::any aGoalNode = boost::any() )
       : base_type( aPlanner, aQuery, aNNSynchro, aStartNode, aGoalNode ){};
 
   typedef typename topology_traits< space_type >::point_type point_type;

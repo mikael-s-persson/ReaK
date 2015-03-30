@@ -106,7 +106,7 @@ struct get_type_id< boost::mpl::integral_c< unsigned int, U > > {
   };
 #endif
 
-  static construct_ptr CreatePtr() BOOST_NOEXCEPT { return NULL; };
+  static construct_ptr CreatePtr() BOOST_NOEXCEPT { return nullptr; };
 };
 
 template <>
@@ -117,7 +117,7 @@ struct get_type_id< boost::mpl::true_ > {
 #else
   static const char* type_name() BOOST_NOEXCEPT { return "true"; };
 #endif
-  static construct_ptr CreatePtr() BOOST_NOEXCEPT { return NULL; };
+  static construct_ptr CreatePtr() BOOST_NOEXCEPT { return nullptr; };
 };
 
 template <>
@@ -128,7 +128,7 @@ struct get_type_id< boost::mpl::false_ > {
 #else
   static const char* type_name() BOOST_NOEXCEPT { return "false"; };
 #endif
-  static construct_ptr CreatePtr() BOOST_NOEXCEPT { return NULL; };
+  static construct_ptr CreatePtr() BOOST_NOEXCEPT { return nullptr; };
 };
 
 template < int I >
@@ -145,7 +145,7 @@ struct get_type_id< boost::mpl::int_< I > > {
   };
 #endif
 
-  static construct_ptr CreatePtr() BOOST_NOEXCEPT { return NULL; };
+  static construct_ptr CreatePtr() BOOST_NOEXCEPT { return nullptr; };
 };
 
 
@@ -170,7 +170,7 @@ struct get_type_id< null_type_info > {
 #else
   static const char* type_name() BOOST_NOEXCEPT { return ""; };
 #endif
-  static construct_ptr CreatePtr() BOOST_NOEXCEPT { return NULL; };
+  static construct_ptr CreatePtr() BOOST_NOEXCEPT { return nullptr; };
 };
 
 

@@ -997,7 +997,7 @@ struct get_type_id< quat< T > > {
 #else
   static const char* type_name() BOOST_NOEXCEPT { return "ReaK::quat"; };
 #endif
-  static construct_ptr CreatePtr() BOOST_NOEXCEPT { return NULL; };
+  static construct_ptr CreatePtr() BOOST_NOEXCEPT { return nullptr; };
 
   typedef const quat< T >& save_type;
   typedef quat< T >& load_type;
@@ -1011,7 +1011,7 @@ struct get_type_id< unit_quat< T > > {
 #else
   static const char* type_name() BOOST_NOEXCEPT { return "ReaK::unit_quat"; };
 #endif
-  static construct_ptr CreatePtr() BOOST_NOEXCEPT { return NULL; };
+  static construct_ptr CreatePtr() BOOST_NOEXCEPT { return nullptr; };
 
   typedef const quat< T >& save_type;
   typedef quat< T >& load_type;

@@ -122,7 +122,7 @@ void keyboard_press_hdl( void* userData, SoEventCallback* eventCB ) {
 
   if( PP_enabled ) {
 
-    SoSeparator* mg_sep = NULL;
+    SoSeparator* mg_sep = nullptr;
     std::vector< SoSeparator* > sol_seps;
 
     try {

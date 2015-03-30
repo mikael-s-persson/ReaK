@@ -503,7 +503,7 @@ oarchive& RK_CALL
 
   archive_object_header hdr;
   bool already_saved( false );
-  const unsigned int* type_ID = NULL;
+  const unsigned int* type_ID = nullptr;
 
   if( Item ) {
     std::map< serializable_shared_pointer, unsigned int >::const_iterator it = mObjRegMap.find( Item );
@@ -590,7 +590,7 @@ oarchive& RK_CALL protobuf_oarchive::save_serializable_ptr( const serializable_s
 
   archive_object_header hdr;
   bool already_saved( false );
-  const unsigned int* type_ID = NULL;
+  const unsigned int* type_ID = nullptr;
 
   if( Item ) {
     std::map< serializable_shared_pointer, unsigned int >::const_iterator it = mObjRegMap.find( Item );

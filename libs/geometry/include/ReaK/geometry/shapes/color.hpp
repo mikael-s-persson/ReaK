@@ -93,7 +93,7 @@ struct get_type_id< geom::color > {
 #else
   static const char* type_name() BOOST_NOEXCEPT { return "color"; };
 #endif
-  static construct_ptr CreatePtr() BOOST_NOEXCEPT { return NULL; };
+  static construct_ptr CreatePtr() BOOST_NOEXCEPT { return nullptr; };
 
   typedef const serializable& save_type;
   typedef serializable& load_type;

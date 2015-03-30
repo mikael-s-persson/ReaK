@@ -909,7 +909,7 @@ struct get_type_id< vect< T, Size > > {
 #else
   static const char* type_name() BOOST_NOEXCEPT { return "vect"; };
 #endif
-  static construct_ptr CreatePtr() BOOST_NOEXCEPT { return NULL; };
+  static construct_ptr CreatePtr() BOOST_NOEXCEPT { return nullptr; };
 
   typedef const vect< T, Size >& save_type;
   typedef vect< T, Size >& load_type;
@@ -1978,7 +1978,7 @@ struct get_type_id< vect_n< T, Allocator > > {
 #else
   static const char* type_name() BOOST_NOEXCEPT { return "vect_n"; };
 #endif
-  static construct_ptr CreatePtr() BOOST_NOEXCEPT { return NULL; };
+  static construct_ptr CreatePtr() BOOST_NOEXCEPT { return nullptr; };
 
   typedef const vect_n< T, Allocator >& save_type;
   typedef vect_n< T, Allocator >& load_type;

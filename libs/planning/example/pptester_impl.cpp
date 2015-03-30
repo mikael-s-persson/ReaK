@@ -37,8 +37,8 @@
 
 
 PPTestWindow::PPTestWindow( QWidget* parent, Qt::WindowFlags flags )
-    : QMainWindow( parent, flags ), world_map_pixmap( NULL ), world_map_scene( NULL ), rrt_prop_diag( this ),
-      robot_running( false ), robot_exec_thread( NULL ) {
+    : QMainWindow( parent, flags ), world_map_pixmap( nullptr ), world_map_scene( nullptr ), rrt_prop_diag( this ),
+      robot_running( false ), robot_exec_thread( nullptr ) {
   setupUi( this );
 
   connect( actionRun, SIGNAL( triggered() ), this, SLOT( startPlanner() ) );
@@ -157,7 +157,7 @@ void PPTestWindow::startRobot() {
     if( robot_exec_thread->joinable() )
       robot_exec_thread->join();
     delete robot_exec_thread;
-    robot_exec_thread = NULL;
+    robot_exec_thread = nullptr;
   };
   robot_exec_thread = new ReaKaux::thread( boost::bind( &PPTestWindow::executePath, this ) );
 };
@@ -168,7 +168,7 @@ void PPTestWindow::stopRobot() {
     if( robot_exec_thread->joinable() )
       robot_exec_thread->join();
     delete robot_exec_thread;
-    robot_exec_thread = NULL;
+    robot_exec_thread = nullptr;
   };
 };
 
@@ -228,7 +228,7 @@ void PPTestWindow::closeTestScenario() {
   };
 
   world_map_scene->clear();
-  world_map_pixmap = NULL;
+  world_map_pixmap = nullptr;
 
   best_path.clear();
 

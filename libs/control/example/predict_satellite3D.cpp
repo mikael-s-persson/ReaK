@@ -21,6 +21,7 @@
  *    If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <ReaK/core/base/global_rng.hpp>
 
 #include <ReaK/control/systems/satellite_invar_models.hpp>
 
@@ -49,9 +50,9 @@ namespace po = boost::program_options;
 namespace fs = boost::filesystem;
 
 
-boost::variate_generator< boost::minstd_rand, boost::normal_distribution< double > > var_rnd
-  = boost::variate_generator< boost::minstd_rand, boost::normal_distribution< double > >(
-    boost::minstd_rand(), boost::normal_distribution< double >() );
+boost::variate_generator< ReaK::global_rng_type, boost::normal_distribution< double > > var_rnd
+  = boost::variate_generator< ReaK::global_rng_type, boost::normal_distribution< double > >(
+    ReaK::get_global_rng(), boost::normal_distribution< double >() );
 
 
 struct sat3D_measurement_point {
@@ -514,8 +515,6 @@ int main( int argc, char** argv ) {
   po::variables_map vm;
   po::store( po::parse_command_line( argc, argv, cmdline_options ), vm );
   po::notify( vm );
-
-  var_rnd.engine().seed( static_cast< unsigned int >( std::time( NULL ) ) );
 
 
   std::string output_path_name = strip_quotes( vm["output"].as< std::string >() );

@@ -1764,7 +1764,7 @@ struct get_type_id< arithmetic_tuple< T... > > {
 #else
   static const char* type_name() BOOST_NOEXCEPT { return "arithmetic_tuple"; };
 #endif
-  static construct_ptr CreatePtr() BOOST_NOEXCEPT { return NULL; };
+  static construct_ptr CreatePtr() BOOST_NOEXCEPT { return nullptr; };
 
   typedef const arithmetic_tuple< T... >& save_type;
   typedef arithmetic_tuple< T... >& load_type;
@@ -1801,7 +1801,7 @@ struct get_type_id< arithmetic_tuple< T1, T2, T3, T4, T5, T6, T7, T8, T9, T10 > 
 #else
   static const char* type_name() BOOST_NOEXCEPT { return "arithmetic_tuple"; };
 #endif
-  static construct_ptr CreatePtr() BOOST_NOEXCEPT { return NULL; };
+  static construct_ptr CreatePtr() BOOST_NOEXCEPT { return nullptr; };
 
   typedef const arithmetic_tuple< T1, T2, T3, T4, T5, T6, T7, T8, T9, T10 >& save_type;
   typedef arithmetic_tuple< T1, T2, T3, T4, T5, T6, T7, T8, T9, T10 >& load_type;

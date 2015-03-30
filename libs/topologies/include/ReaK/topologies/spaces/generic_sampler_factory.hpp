@@ -126,7 +126,7 @@ public:
   /**
    * Default constructor.
    */
-  generic_sampler( Sampler aSampler = Sampler(), const Factory* aParent = NULL )
+  generic_sampler( Sampler aSampler = Sampler(), const Factory* aParent = nullptr )
       : parent( aParent ), sampler( aSampler ){};
 
   template < typename OtherFactory >

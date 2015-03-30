@@ -388,7 +388,7 @@ struct AKF_belief_transfer {
   hamiltonian_mat< double >::type Sc; ///< Holds the prediction scattering matrix.
   hamiltonian_mat< double >::type Sm; ///< Holds the updating scattering matrix.
 
-  AKF_belief_transfer() : factory( NULL ){};
+  AKF_belief_transfer() : factory(){};
 
   /**
    * Parametrized constructor.
@@ -552,7 +552,7 @@ private:
   matrix_type Q;              ///< Holds the system's input noise covariance matrix.
   matrix_type R;              ///< Holds the system's output measurement's covariance matrix.
   double reupdate_threshold;  ///< The threshold at which the state change is considered too high and the state
-                              ///transition matrices are recomputed.
+  /// transition matrices are recomputed.
 
 public:
   /**

@@ -251,16 +251,18 @@ void perform_mc_tests( const po::variables_map& vm, std::size_t dyn_sp_dim ) {
   std::size_t mc_runs = vm["mc-runs"].as< std::size_t >();
   double interp_steps = vm["interp-steps"].as< double >();
 
+  global_rng_type& gbl_rng = get_global_rng();
+
   for( std::size_t i = 0; i < mc_runs; ++i ) {
 
     std::vector< TempPointType > pts;
-    double curve_freq = double( std::rand() % 1000 ) * ( max_rad_freq / 1000.0 );
+    double curve_freq = double( gbl_rng() % 1000 ) * ( max_rad_freq / 1000.0 );
 
     Vector curve_ampl = Config::default_vect( dyn_sp_dim );
     Vector curve_phase = Config::default_vect( dyn_sp_dim );
     for( std::size_t j = 0; j < curve_ampl.size(); ++j ) {
-      curve_ampl[j] = double( std::rand() % 1000 ) * 0.001;
-      curve_phase[j] = double( std::rand() % 1000 ) * ( M_PI / 500.0 );
+      curve_ampl[j] = double( gbl_rng() % 1000 ) * 0.001;
+      curve_phase[j] = double( gbl_rng() % 1000 ) * ( M_PI / 500.0 );
     };
 
     for( double t = 0.0; t < 1.0 + 0.5 * interp_steps; t += interp_steps ) {
@@ -372,8 +374,6 @@ void perform_mc_tests( const po::variables_map& vm, std::size_t dyn_sp_dim ) {
 
 
 int main( int argc, char** argv ) {
-
-  std::srand( static_cast< unsigned int >( std::time( NULL ) ) );
 
   using namespace ReaK;
 

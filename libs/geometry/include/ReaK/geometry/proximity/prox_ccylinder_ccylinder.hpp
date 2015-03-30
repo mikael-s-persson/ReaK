@@ -64,7 +64,8 @@ public:
    * \param aCCylinder1 The capped cylinder involved in the proximity query.
    * \param aCCylinder2 The capped cylinder involved in the proximity query.
    */
-  prox_ccylinder_ccylinder( const capped_cylinder* aCCylinder1 = NULL, const capped_cylinder* aCCylinder2 = NULL );
+  prox_ccylinder_ccylinder( const capped_cylinder* aCCylinder1 = nullptr,
+                            const capped_cylinder* aCCylinder2 = nullptr );
 
   /** Destructor. */
   virtual ~prox_ccylinder_ccylinder(){};

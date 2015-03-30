@@ -161,7 +161,7 @@ public:
                 typename boost::enable_if< boost::mpl::and_< is_readable_matrix< Matrix >,
                                                              boost::mpl::not_< is_symmetric_matrix< Matrix > >,
                                                              boost::mpl::not_< boost::is_same< Matrix, self > > >,
-                                           void* >::type dummy = NULL )
+                                           void* >::type dummy = nullptr )
       : q( mat_triangular_size( ( M.get_row_count() > M.get_col_count() ? M.get_row_count() : M.get_col_count() ) ),
            T( 0.0 ) ),
         rowCount( ( M.get_row_count() > M.get_col_count() ? M.get_row_count() : M.get_col_count() ) ) {
@@ -196,7 +196,7 @@ public:
     const Matrix& M,
     typename boost::enable_if< boost::mpl::and_< is_readable_matrix< Matrix >, is_symmetric_matrix< Matrix >,
                                                  boost::mpl::not_< boost::is_same< Matrix, self > > >,
-                               void* >::type dummy = NULL )
+                               void* >::type dummy = nullptr )
       : q( mat_triangular_size( M.get_row_count() ), T( 0.0 ) ), rowCount( M.get_row_count() ) {
     size_type k = 0;
     size_type i = 0;

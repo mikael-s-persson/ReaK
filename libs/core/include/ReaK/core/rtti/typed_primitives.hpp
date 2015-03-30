@@ -49,7 +49,7 @@ struct get_type_id< int > {
 #else
   static const char* type_name() BOOST_NOEXCEPT { return "int"; };
 #endif
-  static construct_ptr CreatePtr() BOOST_NOEXCEPT { return NULL; };
+  static construct_ptr CreatePtr() BOOST_NOEXCEPT { return nullptr; };
 
   typedef int save_type;
   typedef int& load_type;
@@ -63,7 +63,7 @@ struct get_type_id< unsigned int > {
 #else
   static const char* type_name() BOOST_NOEXCEPT { return "unsigned int"; };
 #endif
-  static construct_ptr CreatePtr() BOOST_NOEXCEPT { return NULL; };
+  static construct_ptr CreatePtr() BOOST_NOEXCEPT { return nullptr; };
 
   typedef unsigned int save_type;
   typedef unsigned int& load_type;
@@ -77,7 +77,7 @@ struct get_type_id< long unsigned int > {
 #else
   static const char* type_name() BOOST_NOEXCEPT { return "long unsigned int"; };
 #endif
-  static construct_ptr CreatePtr() BOOST_NOEXCEPT { return NULL; };
+  static construct_ptr CreatePtr() BOOST_NOEXCEPT { return nullptr; };
 
   typedef const long unsigned int& save_type;
   typedef long unsigned int& load_type;
@@ -91,7 +91,7 @@ struct get_type_id< char > {
 #else
   static const char* type_name() BOOST_NOEXCEPT { return "char"; };
 #endif
-  static construct_ptr CreatePtr() BOOST_NOEXCEPT { return NULL; };
+  static construct_ptr CreatePtr() BOOST_NOEXCEPT { return nullptr; };
 
   typedef char save_type;
   typedef char& load_type;
@@ -105,7 +105,7 @@ struct get_type_id< unsigned char > {
 #else
   static const char* type_name() BOOST_NOEXCEPT { return "unsigned char"; };
 #endif
-  static construct_ptr CreatePtr() BOOST_NOEXCEPT { return NULL; };
+  static construct_ptr CreatePtr() BOOST_NOEXCEPT { return nullptr; };
 
   typedef unsigned char save_type;
   typedef unsigned char& load_type;
@@ -119,7 +119,7 @@ struct get_type_id< float > {
 #else
   static const char* type_name() BOOST_NOEXCEPT { return "float"; };
 #endif
-  static construct_ptr CreatePtr() BOOST_NOEXCEPT { return NULL; };
+  static construct_ptr CreatePtr() BOOST_NOEXCEPT { return nullptr; };
 
   typedef float save_type;
   typedef float& load_type;
@@ -133,7 +133,7 @@ struct get_type_id< double > {
 #else
   static const char* type_name() BOOST_NOEXCEPT { return "double"; };
 #endif
-  static construct_ptr CreatePtr() BOOST_NOEXCEPT { return NULL; };
+  static construct_ptr CreatePtr() BOOST_NOEXCEPT { return nullptr; };
 
   typedef double save_type;
   typedef double& load_type;
@@ -147,7 +147,7 @@ struct get_type_id< bool > {
 #else
   static const char* type_name() BOOST_NOEXCEPT { return "bool"; };
 #endif
-  static construct_ptr CreatePtr() BOOST_NOEXCEPT { return NULL; };
+  static construct_ptr CreatePtr() BOOST_NOEXCEPT { return nullptr; };
 
   typedef bool save_type;
   typedef bool& load_type;
@@ -161,7 +161,7 @@ struct get_type_id< std::string > {
 #else
   static const char* type_name() BOOST_NOEXCEPT { return "string"; };
 #endif
-  static construct_ptr CreatePtr() BOOST_NOEXCEPT { return NULL; };
+  static construct_ptr CreatePtr() BOOST_NOEXCEPT { return nullptr; };
 
   typedef const std::string& save_type;
   typedef std::string& load_type;
@@ -190,7 +190,7 @@ struct get_type_id< shared_ptr< T > > {
 #else
   static const char* type_name() BOOST_NOEXCEPT { return "shared_ptr"; };
 #endif
-  static construct_ptr CreatePtr() BOOST_NOEXCEPT { return NULL; };
+  static construct_ptr CreatePtr() BOOST_NOEXCEPT { return nullptr; };
 
   typedef const shared_ptr< T >& save_type;
   typedef shared_ptr< T >& load_type;
@@ -204,7 +204,7 @@ struct get_type_id< weak_ptr< T > > {
 #else
   static const char* type_name() BOOST_NOEXCEPT { return "weak_ptr"; };
 #endif
-  static construct_ptr CreatePtr() BOOST_NOEXCEPT { return NULL; };
+  static construct_ptr CreatePtr() BOOST_NOEXCEPT { return nullptr; };
 
   typedef const weak_ptr< T >& save_type;
   typedef weak_ptr< T >& load_type;
@@ -221,7 +221,7 @@ struct get_type_id< unique_ptr< T > > {
 #else
   static const char* type_name() BOOST_NOEXCEPT { return "unique_ptr"; };
 #endif
-  static construct_ptr CreatePtr() BOOST_NOEXCEPT { return NULL; };
+  static construct_ptr CreatePtr() BOOST_NOEXCEPT { return nullptr; };
 
   typedef const unique_ptr< T >& save_type;
   typedef unique_ptr< T >& load_type;

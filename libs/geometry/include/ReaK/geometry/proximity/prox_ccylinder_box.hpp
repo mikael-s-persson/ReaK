@@ -69,7 +69,7 @@ public:
    * \param aCCylinder The capped cylinder involved in the proximity query.
    * \param aBox The box involved in the proximity query.
    */
-  prox_ccylinder_box( const capped_cylinder* aCCylinder = NULL, const box* aBox = NULL );
+  prox_ccylinder_box( const capped_cylinder* aCCylinder = nullptr, const box* aBox = nullptr );
 
   /** Destructor. */
   virtual ~prox_ccylinder_box(){};

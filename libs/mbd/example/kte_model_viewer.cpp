@@ -104,11 +104,11 @@ KTEModelViewerEditor::KTEModelViewerEditor( QWidget* parent, Qt::WindowFlags fla
   connect( ui->actionSave, SIGNAL( triggered() ), this, SLOT( onSave() ) );
   connect( ui->actionClose_all, SIGNAL( triggered() ), this, SLOT( onCloseAll() ) );
 
-  ui->actionLoad->setIcon( style()->standardIcon( QStyle::SP_DialogOpenButton, NULL, ui->actionLoad->menu() ) );
-  ui->actionSave->setIcon( style()->standardIcon( QStyle::SP_DialogSaveButton, NULL, ui->actionSave->menu() ) );
+  ui->actionLoad->setIcon( style()->standardIcon( QStyle::SP_DialogOpenButton, nullptr, ui->actionLoad->menu() ) );
+  ui->actionSave->setIcon( style()->standardIcon( QStyle::SP_DialogSaveButton, nullptr, ui->actionSave->menu() ) );
   ui->actionClose_all->setIcon(
-    style()->standardIcon( QStyle::SP_DialogCloseButton, NULL, ui->actionClose_all->menu() ) );
-  ui->actionQuit->setIcon( style()->standardIcon( QStyle::SP_DialogCloseButton, NULL, ui->actionQuit->menu() ) );
+    style()->standardIcon( QStyle::SP_DialogCloseButton, nullptr, ui->actionClose_all->menu() ) );
+  ui->actionQuit->setIcon( style()->standardIcon( QStyle::SP_DialogCloseButton, nullptr, ui->actionQuit->menu() ) );
 
 
   connect( &propedit.mdl, SIGNAL( sourceDataChanged() ), this, SLOT( onRefreshView() ) );
@@ -130,7 +130,7 @@ KTEModelViewerEditor::~KTEModelViewerEditor() {
   view3d_menu.removeGeometryGroup( "Geometric Models" );
   view3d_menu.removeGeometryGroup( "Proximity Models" );
 
-  view3d_menu.setViewer( NULL );
+  view3d_menu.setViewer( nullptr );
 
   SoQt::done();
 

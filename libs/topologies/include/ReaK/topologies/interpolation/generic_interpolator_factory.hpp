@@ -301,7 +301,8 @@ public:
   /**
    * Default constructor.
    */
-  generic_interpolator( const Factory* aParent = NULL, const point_type* aStart = NULL, const point_type* aEnd = NULL )
+  generic_interpolator( const Factory* aParent = nullptr, const point_type* aStart = nullptr,
+                        const point_type* aEnd = nullptr )
       : parent( aParent ), start_point( aStart ), end_point( aEnd ) {
     update_delta_value();
   };

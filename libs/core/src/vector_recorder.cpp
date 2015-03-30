@@ -28,7 +28,7 @@ namespace ReaK {
 namespace recorder {
 
 
-vector_recorder::vector_recorder() : data_recorder(), vec_data( NULL ){};
+vector_recorder::vector_recorder() : data_recorder(), vec_data(){};
 
 vector_recorder::vector_recorder( std::vector< std::vector< double > >* aVecData )
     : data_recorder(), vec_data( aVecData ) {
@@ -59,7 +59,7 @@ void vector_recorder::setFileName( const std::string& aFileName ){};
 void vector_recorder::setVecData( std::vector< std::vector< double > >* aVecData ) { vec_data = aVecData; };
 
 
-vector_extractor::vector_extractor() : data_extractor(), vec_data( NULL ), cur_vec_index( 0 ){};
+vector_extractor::vector_extractor() : data_extractor(), vec_data(), cur_vec_index( 0 ){};
 
 vector_extractor::vector_extractor( const std::vector< std::vector< double > >* aVecData )
     : data_extractor(), vec_data( aVecData ), cur_vec_index( 0 ){

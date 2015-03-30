@@ -75,7 +75,7 @@ public:
   typedef pp::trajectory_base< temporal_space_type > trajectory_type;
 
   TargetPredConfigWidget( shared_ptr< trajectory_type >* aTargetAnimTraj,
-                          ReaKaux::atomic< double >* aCurrentTargetAnimTime, QWidget* parent = NULL,
+                          ReaKaux::atomic< double >* aCurrentTargetAnimTime, QWidget* parent = nullptr,
                           Qt::WindowFlags flags = 0 );
   virtual ~TargetPredConfigWidget();
 

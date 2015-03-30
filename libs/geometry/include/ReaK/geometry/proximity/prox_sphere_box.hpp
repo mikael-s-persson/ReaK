@@ -68,7 +68,7 @@ public:
    * \param aSphere The sphere involved in the proximity query.
    * \param aBox The box involved in the proximity query.
    */
-  prox_sphere_box( const sphere* aSphere = NULL, const box* aBox = NULL );
+  prox_sphere_box( const sphere* aSphere = nullptr, const box* aBox = nullptr );
 
   /** Destructor. */
   virtual ~prox_sphere_box(){};

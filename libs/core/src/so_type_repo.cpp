@@ -65,7 +65,7 @@ bool so_type_repo::isInRing( so_type_repo* aRepo ) {
 
 /// This function merges a repo with this.
 void so_type_repo::merge( so_type_repo* aRepo ) {
-  if( aRepo == NULL )
+  if( aRepo == nullptr )
     return;
   if( isInRing( aRepo ) )
     return;
@@ -89,7 +89,7 @@ void so_type_repo::merge( so_type_repo* aRepo ) {
       pn->next->prev = p;
       pn->next = pn;
       pn->prev = pn; // this takes pn out of the ring.
-      merge( pn ); // now merge this single instance into 'this's ring.
+      merge( pn );   // now merge this single instance into 'this's ring.
     };
     // at this point, all that remains is aRepo as a unique instance.
     aRepo->prev = prev;

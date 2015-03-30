@@ -134,7 +134,7 @@ public:
   explicit rot_mat_2D(
     const Matrix& R,
     typename boost::enable_if_c< is_readable_matrix< Matrix >::value && !boost::is_same< self, Matrix >::value,
-                                 void* >::type dummy = NULL ) {
+                                 void* >::type dummy = nullptr ) {
     if( ( R.get_col_count() != 2 ) || ( R.get_row_count() != 2 ) )
       throw std::range_error( "Right-hand-side of 2D rotation matrix assignment is not a 2x2 matrix!" );
     vect< value_type, 2 > v = unit( vect< value_type, 2 >( R( 0, 0 ), R( 1, 0 ) ) );
@@ -444,7 +444,7 @@ struct get_type_id< rot_mat_2D< T > > {
 #else
   static const char* type_name() BOOST_NOEXCEPT { return "ReaK::rot_mat_2D"; };
 #endif
-  static construct_ptr CreatePtr() BOOST_NOEXCEPT { return NULL; };
+  static construct_ptr CreatePtr() BOOST_NOEXCEPT { return nullptr; };
 
   typedef const rot_mat_2D< T >& save_type;
   typedef rot_mat_2D< T >& load_type;
@@ -569,7 +569,7 @@ public:
   explicit trans_mat_2D(
     const Matrix& M,
     typename boost::enable_if_c< is_readable_matrix< Matrix >::value && !boost::is_same< self, Matrix >::value,
-                                 void* >::type dummy = NULL ) {
+                                 void* >::type dummy = nullptr ) {
     if( ( M.get_col_count() != 3 ) || ( M.get_row_count() != 3 ) )
       throw std::range_error( "Right-hand-side of 2D transformation matrix assignment is not a 3x3 matrix!" );
     translation_type v = unit( translation_type( M( 0, 0 ), M( 1, 0 ) ) );
@@ -937,7 +937,7 @@ struct get_type_id< trans_mat_2D< T > > {
 #else
   static const char* type_name() BOOST_NOEXCEPT { return "ReaK::trans_mat_2D"; };
 #endif
-  static construct_ptr CreatePtr() BOOST_NOEXCEPT { return NULL; };
+  static construct_ptr CreatePtr() BOOST_NOEXCEPT { return nullptr; };
 
   typedef const trans_mat_2D< T >& save_type;
   typedef trans_mat_2D< T >& load_type;

@@ -60,7 +60,7 @@ public:
   /**
    * Default constructor.
    */
-  stride_iterator() : pos( NULL ){};
+  stride_iterator() : pos(){};
   /**
    * Copy-constructor.
    */
@@ -201,7 +201,7 @@ public:
   /**
    * Default constructor.
    */
-  stride_iterator< RAIter, 0 >() : pos( NULL ), stride( 0 ){};
+  stride_iterator< RAIter, 0 >() : pos(), stride( 0 ){};
   /**
    * Copy-constructor.
    */

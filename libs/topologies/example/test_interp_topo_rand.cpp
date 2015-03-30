@@ -373,8 +373,6 @@ void perform_mc_tests( const po::variables_map& vm, std::size_t dyn_sp_dim ) {
 
 int main( int argc, char** argv ) {
 
-  std::srand( static_cast< unsigned int >( std::time( NULL ) ) );
-
   using namespace ReaK;
 
 

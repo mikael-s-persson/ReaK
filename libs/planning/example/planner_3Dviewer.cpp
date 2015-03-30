@@ -173,7 +173,7 @@ Planner3DWindow::Planner3DWindow( QWidget* parent, Qt::WindowFlags flags )
 
 #if 0
   r_info.animation_progress = 0;
-  r_info.animation_timer = new SoTimerSensor(CRSPlannerGUI_animate_bestsol_trajectory, NULL);
+  r_info.animation_timer = new SoTimerSensor(CRSPlannerGUI_animate_bestsol_trajectory, nullptr);
   
   //r_info.builder.create_geom_from_preset();
   r_info.builder.load_kte_and_geom("models/CRS_A465_with_geom.xml");
@@ -570,7 +570,7 @@ void Planner3DWindow::executePlanner() {
       break;
   };
   
-  SoSeparator* mg_sep = NULL;
+  SoSeparator* mg_sep = nullptr;
   std::vector< SoSeparator* > sol_seps;
   
   

@@ -49,7 +49,7 @@ class View3DMenu : public QMenu {
   Q_OBJECT
 
 public:
-  View3DMenu( QWidget* parent = 0, SoQtExaminerViewer* aViewer = NULL );
+  View3DMenu( QWidget* parent = 0, SoQtExaminerViewer* aViewer = nullptr );
   ~View3DMenu();
 
 private slots:
@@ -73,7 +73,7 @@ private:
     QAction* selector;
     SoSwitch* display_switch;
 
-    display_group( QAction* aSelector = NULL, SoSwitch* aDisplaySwitch = NULL )
+    display_group( QAction* aSelector = nullptr, SoSwitch* aDisplaySwitch = nullptr )
         : selector( aSelector ), display_switch( aDisplaySwitch ){};
   };
 
@@ -81,7 +81,7 @@ private:
     QAction* selector;
     shared_ptr< geom::oi_scene_graph > geom_scene;
 
-    geometry_group( QAction* aSelector = NULL,
+    geometry_group( QAction* aSelector = nullptr,
                     const shared_ptr< geom::oi_scene_graph >& aGeomScene = shared_ptr< geom::oi_scene_graph >() )
         : selector( aSelector ), geom_scene( aGeomScene ){};
   };

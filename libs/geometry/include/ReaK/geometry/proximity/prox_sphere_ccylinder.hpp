@@ -68,7 +68,7 @@ public:
    * \param aSphere The sphere involved in the proximity query.
    * \param aCCylinder The capped cylinder involved in the proximity query.
    */
-  prox_sphere_ccylinder( const sphere* aSphere = NULL, const capped_cylinder* aCCylinder = NULL );
+  prox_sphere_ccylinder( const sphere* aSphere = nullptr, const capped_cylinder* aCCylinder = nullptr );
 
   /** Destructor. */
   virtual ~prox_sphere_ccylinder(){};

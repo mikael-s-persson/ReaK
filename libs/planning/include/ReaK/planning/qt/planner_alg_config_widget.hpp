@@ -47,7 +47,7 @@ private:
   Ui::PlannerAlgConfig* ui;
 
 public:
-  PlannerAlgConfigWidget( QWidget* parent = NULL, Qt::WindowFlags flags = 0 );
+  PlannerAlgConfigWidget( QWidget* parent = nullptr, Qt::WindowFlags flags = 0 );
   virtual ~PlannerAlgConfigWidget();
 
 private slots:

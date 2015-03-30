@@ -79,7 +79,7 @@ void null_space_QP_method( const Matrix1& A, const Vector1& b, const Matrix2& G,
                            = std::numeric_limits< typename vect_traits< Vector1 >::value_type >::epsilon(),
                            typename vect_traits< Vector1 >::value_type max_norm
                            = std::numeric_limits< typename vect_traits< Vector1 >::value_type >::infinity(),
-                           Vector1 * lambda = NULL ) {
+                           Vector1 * lambda = nullptr ) {
   typedef typename vect_traits< Vector1 >::value_type ValueType;
   typedef typename vect_traits< Vector1 >::size_type SizeType;
   using std::swap;
@@ -192,7 +192,7 @@ void null_space_RRQP_method( const Matrix1& A, const Vector1& b, const Matrix2& 
                              = std::numeric_limits< typename vect_traits< Vector1 >::value_type >::epsilon(),
                              typename vect_traits< Vector1 >::value_type max_norm
                              = std::numeric_limits< typename vect_traits< Vector1 >::value_type >::infinity(),
-                             Vector1 * lambda = NULL ) {
+                             Vector1 * lambda = nullptr ) {
   typedef typename vect_traits< Vector1 >::value_type ValueType;
   typedef typename vect_traits< Vector1 >::size_type SizeType;
   using std::swap;
@@ -321,7 +321,7 @@ void projected_CG_method( const Matrix1& A, const Vector1& b, const Matrix2& G, 
                           unsigned int max_iter = 20,
                           typename vect_traits< Vector1 >::value_type abs_tol
                           = std::numeric_limits< typename vect_traits< Vector1 >::value_type >::epsilon(),
-                          Vector1 * lambda = NULL ) {
+                          Vector1 * lambda = nullptr ) {
   typedef typename vect_traits< Vector1 >::value_type ValueType;
   typedef typename vect_traits< Vector1 >::size_type SizeType;
   using std::swap;

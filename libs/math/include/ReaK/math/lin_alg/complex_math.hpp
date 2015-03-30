@@ -444,7 +444,7 @@ struct get_type_id< complex< T > > {
 #else
   static const char* type_name() BOOST_NOEXCEPT { return "ReaK::complex"; };
 #endif
-  static construct_ptr CreatePtr() BOOST_NOEXCEPT { return NULL; };
+  static construct_ptr CreatePtr() BOOST_NOEXCEPT { return nullptr; };
 
   typedef const complex< T >& save_type;
   typedef complex< T >& load_type;

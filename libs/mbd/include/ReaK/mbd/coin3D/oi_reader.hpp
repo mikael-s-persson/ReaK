@@ -122,7 +122,7 @@ public:
   /**
    * Check if the.
    */
-  operator bool() const { return ( mRoot != NULL ); };
+  operator bool() const { return ( mRoot != nullptr ); };
 
 
   friend oi_reader& operator>>( oi_reader& aSG, colored_model_3D& aModel );

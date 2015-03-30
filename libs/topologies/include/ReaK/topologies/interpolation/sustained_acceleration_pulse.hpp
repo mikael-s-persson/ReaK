@@ -112,7 +112,7 @@ PointType sap_interpolate( const PointType& a, const PointType& b, double t, con
 
   double min_delta_time = detail::sap_compute_interpolation_data_impl(
     a.pt, b.pt, delta_first_order, peak_velocity, space.get_space_topology(), space.get_time_topology(), delta_time,
-    NULL, 1e-6, 60 );
+    nullptr, 1e-6, 60 );
 
   if( min_delta_time > delta_time )
     delta_time = min_delta_time;
@@ -472,7 +472,7 @@ struct get_type_id< pp::sap_interpolation_tag > {
 #else
   static const char* type_name() BOOST_NOEXCEPT { return "sap_interpolation_tag"; };
 #endif
-  static construct_ptr CreatePtr() BOOST_NOEXCEPT { return NULL; };
+  static construct_ptr CreatePtr() BOOST_NOEXCEPT { return nullptr; };
 };
 };
 };

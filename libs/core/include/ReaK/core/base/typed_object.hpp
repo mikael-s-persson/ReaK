@@ -56,7 +56,7 @@ public:
     if( *( aTypeID->TypeID_begin() ) == 0 )
       return reinterpret_cast< void* >( this );
     else
-      return NULL;
+      return nullptr;
   };
 
   /**
@@ -66,7 +66,7 @@ public:
     if( *( aTypeID->TypeID_begin() ) == 0 )
       return reinterpret_cast< const void* >( this );
     else
-      return NULL;
+      return nullptr;
   };
 
   virtual ~typed_object(){};
@@ -74,10 +74,10 @@ public:
 
   /** This method fetches the object type structure from the ReaK::rtti system or creates it if it has not been
    * registered yet. */
-  virtual rtti::so_type* RK_CALL getObjectType() const { return NULL; };
+  virtual rtti::so_type* RK_CALL getObjectType() const { return nullptr; };
   /** This method fetches the object type structure from the ReaK::rtti system or creates it if it has not been
    * registered yet. */
-  static rtti::so_type* RK_CALL getStaticObjectType() { return NULL; };
+  static rtti::so_type* RK_CALL getStaticObjectType() { return nullptr; };
 };
 
 
@@ -85,17 +85,17 @@ namespace rtti {
 
 template < typename T >
 bool rk_is_of_type( const typed_object& obj ) {
-  return ( obj.castTo( T::getStaticObjectType() ) != NULL );
+  return ( obj.castTo( T::getStaticObjectType() ) != nullptr );
 };
 
 template < typename T >
 bool rk_is_of_type( const typed_object* obj ) {
-  return ( obj->castTo( T::getStaticObjectType() ) != NULL );
+  return ( obj->castTo( T::getStaticObjectType() ) != nullptr );
 };
 
 template < typename T >
 bool rk_is_of_type( const shared_ptr< const typed_object >& obj ) {
-  return ( obj->castTo( T::getStaticObjectType() ) != NULL );
+  return ( obj->castTo( T::getStaticObjectType() ) != nullptr );
 };
 
 
@@ -165,7 +165,7 @@ std::unique_ptr< Y, Deleter > rk_dynamic_ptr_cast( std::unique_ptr< U, Deleter >
 
 template < typename T, typename Deleter >
 bool rk_is_of_type( const std::unique_ptr< const typed_object, Deleter >& obj ) {
-  return ( obj->castTo( T::getStaticObjectType() ) != NULL );
+  return ( obj->castTo( T::getStaticObjectType() ) != nullptr );
 };
 
 #endif
@@ -210,13 +210,13 @@ bool rk_is_of_type( const std::unique_ptr< const typed_object, Deleter >& obj ) 
     if( *aTypeID == *( CLASS_NAME::getStaticObjectType() ) )                                               \
       return reinterpret_cast< void* >( this );                                                            \
     else                                                                                                   \
-      return NULL;                                                                                         \
+      return nullptr;                                                                                      \
   };                                                                                                       \
   virtual const void* RK_CALL castTo( ReaK::rtti::so_type* aTypeID ) const {                               \
     if( *aTypeID == *( CLASS_NAME::getStaticObjectType() ) )                                               \
       return reinterpret_cast< const void* >( this );                                                      \
     else                                                                                                   \
-      return NULL;                                                                                         \
+      return nullptr;                                                                                      \
   };
 
 /// This MACRO creates the static elements for the current class to be added to the global type registry (it is

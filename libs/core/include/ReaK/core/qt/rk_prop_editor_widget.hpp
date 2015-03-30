@@ -46,7 +46,7 @@ class PropEditorWidget : public QDockWidget {
   Q_OBJECT
 
 public:
-  PropEditorWidget( ObjTreeQtModel* aObjTreeMdl, QWidget* parent = NULL, Qt::WindowFlags flags = 0 );
+  PropEditorWidget( ObjTreeQtModel* aObjTreeMdl, QWidget* parent = nullptr, Qt::WindowFlags flags = 0 );
   virtual ~PropEditorWidget();
 
 private slots:

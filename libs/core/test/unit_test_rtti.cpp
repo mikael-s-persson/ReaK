@@ -177,7 +177,7 @@ BOOST_AUTO_TEST_CASE( rtti_test ) {
 
   {
     rtti::so_type* p_tp = dummy_rtti_test::getStaticObjectType();
-    BOOST_REQUIRE( p_tp != NULL );
+    BOOST_REQUIRE( p_tp != nullptr );
     BOOST_CHECK_EQUAL( p_tp->TypeName(), "dummy_rtti_test" );
     BOOST_CHECK_EQUAL( p_tp->TypeVersion(), 1 );
     BOOST_CHECK( p_tp->isConcrete() );
@@ -230,7 +230,7 @@ BOOST_AUTO_TEST_CASE( rtti_test ) {
 
   {
     rtti::so_type* p_tp = dummy_rtti_template< 10, dummy_rtti_test >::getStaticObjectType();
-    BOOST_REQUIRE( p_tp != NULL );
+    BOOST_REQUIRE( p_tp != nullptr );
     BOOST_CHECK_EQUAL( p_tp->TypeName(), "dummy_rtti_template<10,dummy_rtti_test>" );
     BOOST_CHECK_EQUAL( p_tp->TypeVersion(), 1 );
     BOOST_CHECK( p_tp->isConcrete() );
@@ -288,7 +288,7 @@ BOOST_AUTO_TEST_CASE( rtti_test ) {
 
   {
     rtti::so_type* p_tp = dummy_rtti_template2< int, dummy_rtti_test >::getStaticObjectType();
-    BOOST_REQUIRE( p_tp != NULL );
+    BOOST_REQUIRE( p_tp != nullptr );
     BOOST_CHECK_EQUAL( p_tp->TypeName(), "dummy_rtti_template2<int,dummy_rtti_test>" );
     BOOST_CHECK_EQUAL( p_tp->TypeVersion(), 1 );
     BOOST_CHECK( p_tp->isConcrete() );
@@ -345,7 +345,7 @@ BOOST_AUTO_TEST_CASE( rtti_test ) {
 
   {
     rtti::so_type* p_tp = dummy_rtti_multi_inherit::getStaticObjectType();
-    BOOST_REQUIRE( p_tp != NULL );
+    BOOST_REQUIRE( p_tp != nullptr );
     BOOST_CHECK_EQUAL( p_tp->TypeName(), "dummy_rtti_multi_inherit" );
     BOOST_CHECK_EQUAL( p_tp->TypeVersion(), 1 );
     BOOST_CHECK( p_tp->isConcrete() );

@@ -46,7 +46,7 @@ private:
   Ui::ManipSpaceConfig* ui;
 
 public:
-  ManipSpaceConfigWidget( QWidget* parent = NULL, Qt::WindowFlags flags = 0 );
+  ManipSpaceConfigWidget( QWidget* parent = nullptr, Qt::WindowFlags flags = 0 );
   virtual ~ManipSpaceConfigWidget();
 
 private slots:

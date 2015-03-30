@@ -275,7 +275,7 @@ struct KF_belief_transfer {
    * Parametrized constructor.
    * \param aFactory A pointer to the factory object that is creating this object.
    */
-  explicit KF_belief_transfer( const KFTransferFactory* aFactory = NULL ) : factory( aFactory ){};
+  explicit KF_belief_transfer( const KFTransferFactory* aFactory = nullptr ) : factory( aFactory ){};
 
   /**
    * Returns the time-step of the predictor.

@@ -99,7 +99,7 @@ public:
    * \param Jac stores, as output, the calculated system's Jacobian matrix.
    */
   void getJacobianMatrix( mat< double, mat_structure::rectangular >& Jac ) const {
-    getJacobianMatrixAndDerivativeImpl( Jac, static_cast< mat< double, mat_structure::rectangular >* >( NULL ) );
+    getJacobianMatrixAndDerivativeImpl( Jac, static_cast< mat< double, mat_structure::rectangular >* >( nullptr ) );
   };
 
   /**

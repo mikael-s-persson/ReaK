@@ -117,7 +117,7 @@ public:
     const std::string& aName = "",
     typename boost::enable_if_c< is_readable_matrix< MatrixA >::value && is_readable_matrix< MatrixB >::value
                                  && is_readable_matrix< MatrixC >::value && is_readable_matrix< MatrixD >::value,
-                                 void* >::type dummy = NULL )
+                                 void* >::type dummy = nullptr )
       : A( aA ), B( aB ), C( aC ), D( aD ), dt( aDt ) {
     setName( aName );
   };

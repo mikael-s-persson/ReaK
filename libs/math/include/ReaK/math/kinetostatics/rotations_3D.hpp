@@ -172,7 +172,7 @@ public:
   explicit rot_mat_3D(
     const Matrix& M,
     typename boost::enable_if_c< is_readable_matrix< Matrix >::value && !boost::is_same< Matrix, self >::value,
-                                 void* >::type dummy = NULL ) {
+                                 void* >::type dummy = nullptr ) {
     if( ( M.get_col_count() != 3 ) || ( M.get_row_count() != 3 ) )
       throw std::range_error( "Right-hand-side of assignment to a 3D rotation matrix is not of dimension 3x3!" );
     vect< value_type, 3 > v1( M( 0, 0 ), M( 1, 0 ), M( 2, 0 ) );
@@ -489,7 +489,7 @@ struct get_type_id< rot_mat_3D< T > > {
 #else
   static const char* type_name() BOOST_NOEXCEPT { return "ReaK::rot_mat_3D"; };
 #endif
-  static construct_ptr CreatePtr() BOOST_NOEXCEPT { return NULL; };
+  static construct_ptr CreatePtr() BOOST_NOEXCEPT { return nullptr; };
 
   typedef const rot_mat_3D< T >& save_type;
   typedef rot_mat_3D< T >& load_type;
@@ -846,7 +846,7 @@ public:
   template < typename Vector >
   explicit quaternion( const Vector& aV,
                        typename boost::enable_if_c< is_readable_vector< Vector >::value, void* >::type dummy
-                       = NULL ) BOOST_NOEXCEPT {
+                       = nullptr ) BOOST_NOEXCEPT {
     RK_UNUSED( dummy );
     vect< value_type, 4 > v = unit( vect< value_type, 4 >( aV[0], aV[1], aV[2], aV[3] ) );
     q[0] = v[0];
@@ -1267,7 +1267,7 @@ struct get_type_id< quaternion< T > > {
 #else
   static const char* type_name() BOOST_NOEXCEPT { return "ReaK::quaternion"; };
 #endif
-  static construct_ptr CreatePtr() BOOST_NOEXCEPT { return NULL; };
+  static construct_ptr CreatePtr() BOOST_NOEXCEPT { return nullptr; };
 
   typedef const quaternion< T >& save_type;
   typedef quaternion< T >& load_type;
@@ -1827,7 +1827,7 @@ struct get_type_id< euler_angles_TB< T > > {
 #else
   static const char* type_name() BOOST_NOEXCEPT { return "ReaK::euler_angles_TB"; };
 #endif
-  static construct_ptr CreatePtr() BOOST_NOEXCEPT { return NULL; };
+  static construct_ptr CreatePtr() BOOST_NOEXCEPT { return nullptr; };
 
   typedef const euler_angles_TB< T >& save_type;
   typedef euler_angles_TB< T >& load_type;
@@ -2365,7 +2365,7 @@ struct get_type_id< axis_angle< T > > {
 #else
   static const char* type_name() BOOST_NOEXCEPT { return "ReaK::axis_angle"; };
 #endif
-  static construct_ptr CreatePtr() BOOST_NOEXCEPT { return NULL; };
+  static construct_ptr CreatePtr() BOOST_NOEXCEPT { return nullptr; };
 
   typedef const axis_angle< T >& save_type;
   typedef axis_angle< T >& load_type;
@@ -2494,7 +2494,7 @@ public:
     const Matrix& M,
     typename boost::enable_if_c< is_readable_matrix< Matrix >::value && !boost::is_same< Matrix, self >::value
                                  && !boost::is_same< Matrix, rot_mat_3D< value_type > >::value,
-                                 void* >::type dummy = NULL ) {
+                                 void* >::type dummy = nullptr ) {
     if( ( M.get_row_count() != 4 ) || ( M.get_col_count() != 4 ) )
       throw std::range_error( "Matrix for creating the 3D transformation matrix is not of correct dimensions!" );
     vect< value_type, 3 > v1 = unit( vect< value_type, 3 >( M( 0, 0 ), M( 1, 0 ), M( 2, 0 ) ) );
@@ -3144,7 +3144,7 @@ struct get_type_id< trans_mat_3D< T > > {
 #else
   static const char* type_name() BOOST_NOEXCEPT { return "ReaK::trans_mat_3D"; };
 #endif
-  static construct_ptr CreatePtr() BOOST_NOEXCEPT { return NULL; };
+  static construct_ptr CreatePtr() BOOST_NOEXCEPT { return nullptr; };
 
   typedef const trans_mat_3D< T >& save_type;
   typedef trans_mat_3D< T >& load_type;

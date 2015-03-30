@@ -76,7 +76,7 @@ namespace geom {
 
 
 double oi_reader::computeCharacteristicLength() {
-  if( mRoot == NULL )
+  if( mRoot == nullptr )
     return 0.0;
   using std::sqrt;
   SbViewportRegion dummy_viewport;
@@ -88,12 +88,12 @@ double oi_reader::computeCharacteristicLength() {
 };
 
 
-oi_reader::oi_reader() : mRoot( NULL ){};
+oi_reader::oi_reader() : mRoot( nullptr ){};
 
 
-oi_reader::oi_reader( const std::string& aFileName ) : mRoot( NULL ) { read_file( aFileName ); };
+oi_reader::oi_reader( const std::string& aFileName ) : mRoot( nullptr ) { read_file( aFileName ); };
 
-oi_reader::oi_reader( std::istream& aStream ) : mRoot( NULL ) { read_stream( aStream ); };
+oi_reader::oi_reader( std::istream& aStream ) : mRoot( nullptr ) { read_stream( aStream ); };
 
 
 oi_reader::oi_reader( const oi_reader& rhs ) : mRoot( rhs.mRoot ) {
@@ -112,13 +112,13 @@ oi_reader& oi_reader::operator=( const oi_reader& rhs ) {
 
 #ifndef BOOST_NO_CXX11_RVALUE_REFERENCES
 
-oi_reader::oi_reader( oi_reader&& rhs ) : mRoot( rhs.mRoot ) { rhs.mRoot = NULL; };
+oi_reader::oi_reader( oi_reader&& rhs ) : mRoot( rhs.mRoot ) { rhs.mRoot = nullptr; };
 
 oi_reader& oi_reader::operator=( oi_reader&& rhs ) {
   if( mRoot )
     mRoot->unref();
   mRoot = rhs.mRoot;
-  rhs.mRoot = NULL;
+  rhs.mRoot = nullptr;
   return *this;
 };
 
@@ -136,7 +136,7 @@ oi_reader& oi_reader::read_file( const std::string& aFileName ) {
     return *this;
   };
 
-  if( mRoot != NULL )
+  if( mRoot != nullptr )
     mRoot->unref();
 
   mRoot = SoDB::readAll( &file_in );
@@ -162,7 +162,7 @@ oi_reader& oi_reader::read_stream( std::istream& aStream ) {
   SoInput file_in;
   file_in.setBuffer( buffer, length );
 
-  if( mRoot != NULL )
+  if( mRoot != nullptr )
     mRoot->unref();
 
   mRoot = SoDB::readAll( &file_in );
@@ -447,26 +447,26 @@ static void read_sg_into_models( SoSeparator* aRoot, colored_model_3D* aModel, p
 
 
 oi_reader& operator>>( oi_reader& aSG, colored_model_3D& aModel ) {
-  if( aSG.mRoot == NULL )
+  if( aSG.mRoot == nullptr )
     return aSG;
 
-  read_sg_into_models( aSG.mRoot, &aModel, NULL );
+  read_sg_into_models( aSG.mRoot, &aModel, nullptr );
 
   return aSG;
 };
 
 oi_reader& operator>>( oi_reader& aSG, proxy_query_model_3D& aProxy ) {
-  if( aSG.mRoot == NULL )
+  if( aSG.mRoot == nullptr )
     return aSG;
 
-  read_sg_into_models( aSG.mRoot, NULL, &aProxy );
+  read_sg_into_models( aSG.mRoot, nullptr, &aProxy );
 
   return aSG;
 };
 
 
 oi_reader& oi_reader::translate_into( colored_model_3D& aModel, proxy_query_model_3D& aProxy ) {
-  if( mRoot == NULL )
+  if( mRoot == nullptr )
     return *this;
 
   read_sg_into_models( mRoot, &aModel, &aProxy );

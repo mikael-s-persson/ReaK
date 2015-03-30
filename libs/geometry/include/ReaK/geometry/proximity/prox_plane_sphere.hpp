@@ -68,7 +68,7 @@ public:
    * \param aPlane The plane involved in the proximity query.
    * \param aSphere The sphere involved in the proximity query.
    */
-  prox_plane_sphere( const plane* aPlane = NULL, const sphere* aSphere = NULL );
+  prox_plane_sphere( const plane* aPlane = nullptr, const sphere* aSphere = nullptr );
 
   /** Destructor. */
   virtual ~prox_plane_sphere(){};

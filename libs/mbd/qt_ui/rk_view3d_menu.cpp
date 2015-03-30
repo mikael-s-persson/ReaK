@@ -36,7 +36,7 @@ namespace ReaK {
 namespace qt {
 
 View3DMenu::View3DMenu( QWidget* parent, SoQtExaminerViewer* aViewer )
-    : QMenu( tr( "View" ), parent ), qtviewer( aViewer ), root_sep( NULL ) {
+    : QMenu( tr( "View" ), parent ), qtviewer( aViewer ), root_sep( nullptr ) {
   // addAction("Some General Option");
   addSeparator();
 
@@ -74,7 +74,7 @@ void View3DMenu::toggleDisplayGroup( bool isChecked ) {
 
 
 void View3DMenu::setViewer( SoQtExaminerViewer* aViewer ) {
-  SoSeparator* newRoot = NULL;
+  SoSeparator* newRoot = nullptr;
   if( aViewer ) {
     newRoot = new SoSeparator;
     newRoot->ref();
@@ -106,7 +106,7 @@ SoSwitch* View3DMenu::getDisplayGroup( const std::string& aGroupName, bool initC
   if( it != display_items.end() )
     return it->second.display_switch;
   if( !root_sep )
-    return NULL;
+    return nullptr;
 
   display_group& dg = display_items[aGroupName];
   dg.display_switch = new SoSwitch;
@@ -138,7 +138,7 @@ shared_ptr< geom::oi_scene_graph > View3DMenu::getGeometryGroup( const std::stri
   if( it != geometry_items.end() )
     return it->second.geom_scene;
   if( !root_sep )
-    return NULL;
+    return nullptr;
 
   geometry_group& gg = geometry_items[aGroupName];
   gg.geom_scene = shared_ptr< geom::oi_scene_graph >( new geom::oi_scene_graph );

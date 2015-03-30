@@ -339,7 +339,7 @@ struct IKF_belief_transfer {
    * Parametrized constructor.
    * \param aFactory A pointer to the factory object that is creating this object.
    */
-  explicit IKF_belief_transfer( const IKFTransferFactory* aFactory = NULL ) : factory( aFactory ){};
+  explicit IKF_belief_transfer( const IKFTransferFactory* aFactory = nullptr ) : factory( aFactory ){};
 
   /**
    * Returns the time-step of the predictor.

@@ -374,7 +374,7 @@ public:
   /**
    * Default constructor.
    */
-  mat_ref_horiz_cat() : ml( NULL ), mr( NULL ){};
+  mat_ref_horiz_cat() : ml(), mr(){};
 
   /**
    * Parametrized constructor.

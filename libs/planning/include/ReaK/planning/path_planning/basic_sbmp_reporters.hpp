@@ -489,7 +489,7 @@ struct least_cost_sbmp_report : public shared_object {
   mutable double current_best;
   mutable std::size_t last_node_count;
 
-  explicit least_cost_sbmp_report( std::ostream& aOutStream = std::cout, std::ostream* aPSolutionOutput = NULL,
+  explicit least_cost_sbmp_report( std::ostream& aOutStream = std::cout, std::ostream* aPSolutionOutput = nullptr,
                                    NextReporter aNextReporter = NextReporter() )
       : next_reporter( aNextReporter ), p_out( &aOutStream ), p_sol( aPSolutionOutput ), current_best( 1e10 ),
         last_node_count( 0 ){};

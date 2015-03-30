@@ -80,8 +80,9 @@ struct planning_visitor_base {
   boost::any m_start_node;
   boost::any m_goal_node;
 
-  planning_visitor_base( planner_base_type* aPlanner, query_type* aQuery = NULL, any_knn_synchro* aNNSynchro = NULL,
-                         boost::any aStartNode = boost::any(), boost::any aGoalNode = boost::any() )
+  planning_visitor_base( planner_base_type* aPlanner, query_type* aQuery = nullptr,
+                         any_knn_synchro* aNNSynchro = nullptr, boost::any aStartNode = boost::any(),
+                         boost::any aGoalNode = boost::any() )
       : m_planner( aPlanner ), m_query( aQuery ), m_nn_synchro( aNNSynchro ), m_start_node( aStartNode ),
         m_goal_node( aGoalNode ){};
 
@@ -469,7 +470,7 @@ struct planning_visitor : planning_visitor_base< planning_visitor< FreeSpaceType
   typedef typename base_type::planner_base_type planner_base_type;
   typedef typename base_type::query_type query_type;
 
-  planning_visitor( planner_base_type* aPlanner, query_type* aQuery = NULL, any_knn_synchro* aNNSynchro = NULL,
+  planning_visitor( planner_base_type* aPlanner, query_type* aQuery = nullptr, any_knn_synchro* aNNSynchro = nullptr,
                     boost::any aStartNode = boost::any(), boost::any aGoalNode = boost::any() )
       : base_type( aPlanner, aQuery, aNNSynchro, aStartNode, aGoalNode ){};
 
@@ -523,8 +524,9 @@ struct heuristic_plan_visitor : planning_visitor_base< heuristic_plan_visitor< F
   typedef typename base_type::query_type query_type;
   typedef typename base_type::space_type space_type;
 
-  heuristic_plan_visitor( planner_base_type* aPlanner, query_type* aQuery = NULL, any_knn_synchro* aNNSynchro = NULL,
-                          boost::any aStartNode = boost::any(), boost::any aGoalNode = boost::any() )
+  heuristic_plan_visitor( planner_base_type* aPlanner, query_type* aQuery = nullptr,
+                          any_knn_synchro* aNNSynchro = nullptr, boost::any aStartNode = boost::any(),
+                          boost::any aGoalNode = boost::any() )
       : base_type( aPlanner, aQuery, aNNSynchro, aStartNode, aGoalNode ){};
 
   /***************************************************

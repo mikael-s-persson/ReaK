@@ -121,7 +121,7 @@ public:
   explicit mat(
     const Matrix& M, const Allocator& aAlloc = Allocator(),
     typename boost::enable_if_c< is_readable_matrix< Matrix >::value && !( boost::is_same< Matrix, self >::value ),
-                                 void* >::type dummy = NULL )
+                                 void* >::type dummy = nullptr )
       : q( 0.0 ), rowCount( ( M.get_row_count() < M.get_col_count() ? M.get_row_count() : M.get_col_count() ) ) {
     q = trace( M ) / value_type( rowCount );
   };

@@ -44,7 +44,7 @@ std::map< std::string, shared_ptr< type_scheme > >& get_global_schemes() {
 
 
 scheme_builder::scheme_builder() {
-  field_stack.push( shared_ptr< serializable_obj_scheme >( new serializable_obj_scheme( "RootScheme", NULL, 0 ) ) );
+  field_stack.push( shared_ptr< serializable_obj_scheme >( new serializable_obj_scheme( "RootScheme", nullptr, 0 ) ) );
 };
 
 scheme_builder::~scheme_builder() {
@@ -122,7 +122,7 @@ oarchive& RK_CALL
 
   // Create a dummy field stack entry, and then save the pointee object (to make sure the type-scheme for the pointee
   // type is registered).
-  field_stack.push( shared_ptr< serializable_obj_scheme >( new serializable_obj_scheme( "DummyType", NULL, 0 ) ) );
+  field_stack.push( shared_ptr< serializable_obj_scheme >( new serializable_obj_scheme( "DummyType", nullptr, 0 ) ) );
 
   save_serializable( std::pair< std::string, const serializable& >( "Dummy", *( Item.second ) ) );
 
@@ -305,7 +305,8 @@ void RK_CALL scheme_builder::signal_polymorphic_field( const std::string& aBaseT
       sch_ptr = ser_sch_ptr;
 
       // create a dummy type-scheme to accumulate the "fields" of all the descendants.
-      field_stack.push( shared_ptr< serializable_obj_scheme >( new serializable_obj_scheme( "DummyType", NULL, 0 ) ) );
+      field_stack.push(
+        shared_ptr< serializable_obj_scheme >( new serializable_obj_scheme( "DummyType", nullptr, 0 ) ) );
 
       for( unsigned int i = 0; i < so_type_sptr->getDirectDescendantCount(); ++i ) {
         rtti::so_type* tmp = so_type_sptr->getDirectDescendant( i );
@@ -327,13 +328,13 @@ void RK_CALL scheme_builder::signal_polymorphic_field( const std::string& aBaseT
 void RK_CALL scheme_builder::start_repeated_field( const std::string& aTypeName ) {
   field_stack.top()->pop_last_field(); // pop the count field.
   value_name_stack.push( std::pair< std::string, std::string >( "values", aTypeName ) );
-  field_stack.push( shared_ptr< serializable_obj_scheme >( new serializable_obj_scheme( "DummyType", NULL, 0 ) ) );
+  field_stack.push( shared_ptr< serializable_obj_scheme >( new serializable_obj_scheme( "DummyType", nullptr, 0 ) ) );
 };
 
 void RK_CALL scheme_builder::start_repeated_field( const std::string& aTypeName, const std::string& aName ) {
   field_stack.top()->pop_last_field(); // pop the count field.
   value_name_stack.push( std::pair< std::string, std::string >( aName, aTypeName ) );
-  field_stack.push( shared_ptr< serializable_obj_scheme >( new serializable_obj_scheme( "DummyType", NULL, 0 ) ) );
+  field_stack.push( shared_ptr< serializable_obj_scheme >( new serializable_obj_scheme( "DummyType", nullptr, 0 ) ) );
 };
 
 void RK_CALL scheme_builder::finish_repeated_field() {
@@ -361,7 +362,7 @@ void RK_CALL scheme_builder::start_repeated_pair( const std::string& aTypeName1,
   field_stack.top()->pop_last_field(); // pop the count field.
   value_name_stack.push( std::pair< std::string, std::string >( "map", aTypeName1 ) );
   value_name_stack.push( std::pair< std::string, std::string >( "map", aTypeName2 ) );
-  field_stack.push( shared_ptr< serializable_obj_scheme >( new serializable_obj_scheme( "DummyType", NULL, 0 ) ) );
+  field_stack.push( shared_ptr< serializable_obj_scheme >( new serializable_obj_scheme( "DummyType", nullptr, 0 ) ) );
 };
 
 void RK_CALL scheme_builder::start_repeated_pair( const std::string& aTypeName1, const std::string& aTypeName2,
@@ -369,7 +370,7 @@ void RK_CALL scheme_builder::start_repeated_pair( const std::string& aTypeName1,
   field_stack.top()->pop_last_field(); // pop the count field.
   value_name_stack.push( std::pair< std::string, std::string >( aName, aTypeName1 ) );
   value_name_stack.push( std::pair< std::string, std::string >( aName, aTypeName2 ) );
-  field_stack.push( shared_ptr< serializable_obj_scheme >( new serializable_obj_scheme( "DummyType", NULL, 0 ) ) );
+  field_stack.push( shared_ptr< serializable_obj_scheme >( new serializable_obj_scheme( "DummyType", nullptr, 0 ) ) );
 };
 
 void RK_CALL scheme_builder::finish_repeated_pair() {
