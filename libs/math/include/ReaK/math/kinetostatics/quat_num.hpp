@@ -76,6 +76,24 @@ unit_quat< T > oplus( const unit_quat< T >& a, const vect< T, 3 >& b ) {
 
 
 template < typename T >
+T otransport( const T&, const T& v, const T& ) {
+  return v;
+};
+
+template < typename T >
+quat< T > otransport( const quat< T >& a, const quat< T >& v, const quat< T >& b ) {
+  quat< T > ab = invert( b ) * a;
+  return ab * v * invert( ab );
+};
+
+template < typename T >
+vect< T, 3 > otransport( const unit_quat< T >& a, const vect< T, 3 >& v, const unit_quat< T >& b ) {
+  unit_quat< T > ab = invert( b ) * a;
+  return ab * v * invert( ab );
+};
+
+
+template < typename T >
 struct is_commutative : boost::mpl::true_ {};
 
 template < typename T >
@@ -120,26 +138,109 @@ T catmull_rom( std::vector< T > qb, const Scalar& eta, const Scalar& alpha = Sca
   return qb[0];
 };
 
-template < typename T >
-T average( const std::vector< T >& qb ) {
-  assert( qb.size() > 0 );
-  T result = qb[0];
-  for( std::size_t i = 1; i < qb.size(); ++i )
-    result = slerp( result, Scalar( 1 ) / ( i + 1 ), qb[i] );
+template < typename FIter >
+auto average( FIter qit_first, FIter qit_last ) -> decltype( *qit_first ) {
+  assert( std::distance( qit_first, qit_last ) > 0 );
+  auto result = *qit_first;
+  ++qit_first;
+  for( std::size_t i = 1; qit_first != qit_last; ++i, ++qit_first )
+    result = slerp( result, 1.0 / ( i + 1 ), *qit_first );
   return result;
 };
 
-template < typename T, typename Scalar >
-T weighted_avg( const std::vector< T >& qb, const std::vector< Scalar >& w ) {
-  assert( qb.size() > 0 );
-  assert( qb.size() == w.size() );
-  T result = qb[0];
-  Scalar w_sum = w[0];
-  for( std::size_t i = 1; i < qb.size(); ++i ) {
-    w_sum += w[i];
-    result = slerp( result, w[i] / w_sum, qb[i] );
+template < typename FIter, typename WFIter >
+auto weighted_avg( FIter qit_first, FIter qit_last, WFIter wit_first, WFIter wit_last ) -> decltype( *qit_first ) {
+  assert( std::distance( qit_first, qit_last ) > 0 );
+  assert( std::distance( qit_first, qit_last ) == std::distance( wit_first, wit_last ) );
+  auto result = *qit_first;
+  ++qit_first;
+  auto w_sum = *wit_first;
+  ++wit_first;
+  for( ; qit_first != qit_last; ++qit_first, ++wit_first ) {
+    w_sum += *wit_first;
+    result = slerp( result, ( *wit_first ) / w_sum, *qit_first );
   };
   return result;
+};
+
+template < typename T, typename Func, typename Scalar >
+T forward_euler( T q, Func f, const Scalar& t_start, const Scalar& t_end, Scalar dt ) {
+  assert( t_end > t_start );
+  Scalar t = t_start;
+  while( t < t_end ) {
+    if( t + dt > t_end )
+      dt = t_end - t;
+    q = oplus( q, dt * f( t, q ) );
+    t += dt;
+  };
+  return q;
+};
+
+template < typename T, typename Func, typename Scalar >
+T backward_euler( T q, Func f, const Scalar& t_start, const Scalar& t_end, Scalar dt, const Scalar& tol ) {
+  assert( t_end > t_start );
+  Scalar t = t_start;
+  while( t < t_end ) {
+    if( t + dt > t_end )
+      dt = t_end - t;
+    T q0 = q;
+    q = oplus( q0, dt * f( t, q0 ) );
+    while( true ) {
+      T q0_back = oplus( q, ( -dt ) * f( t + dt, q ) );
+      auto q0_err = ominus( q0, q0_back );
+      if( norm_2( q0_err ) < tol )
+        break;
+      q = oplus( q, otransport( q0_back, q0_err, q ) );
+    };
+    t += dt;
+  };
+  return q;
+};
+
+template < typename T, typename Func, typename Scalar >
+T trapezoidal_rule( T q, Func f, const Scalar& t_start, const Scalar& t_end, Scalar dt, const Scalar& tol ) {
+  assert( t_end > t_start );
+  Scalar t = t_start;
+  while( t < t_end ) {
+    if( t + dt > t_end )
+      dt = t_end - t;
+    auto q0 = q;
+    auto w0 = f( t, q0 );
+    auto q0_mid = oplus( q0, ( 0.5 * dt ) * w0 );
+    q = oplus( q0, dt * w0 );
+    while( true ) {
+      auto q1_mid = oplus( q, ( -0.5 * dt ) * f( t + dt, q ) );
+      auto q_err = ominus( q0_mid, q1_mid );
+      if( norm_2( q_err ) < tol )
+        break;
+      q = oplus( q, otransport( q1_mid, q_err, q ) );
+    };
+    t += dt;
+  };
+  return q;
+};
+
+template < typename T, typename Func, typename Scalar >
+T runge_kutta_4( T q, Func f, const Scalar& t_start, const Scalar& t_end, Scalar dt, const Scalar& tol ) {
+  assert( t_end > t_start );
+  static const double w_vals[] = {1.0 / 6.0, 1.0 / 3.0, 1.0 / 3.0, 1.0 / 6.0};
+  Scalar t = t_start;
+  while( t < t_end ) {
+    if( t + dt > t_end )
+      dt = t_end - t;
+    auto p0 = q;
+    auto k0 = f( t, p0 );
+    auto p1 = oplus( p0, ( 0.5 * dt ) * k0 );
+    auto k1 = otransport( p1, f( t + 0.5 * dt, p1 ), p0 );
+    auto p2 = oplus( p0, ( 0.5 * dt ) * k1 );
+    auto k2 = otransport( p2, f( t + 0.5 * dt, p2 ), p0 );
+    auto p3 = oplus( p0, dt * k2 );
+    auto k3 = f( t + 0.5 * dt, p3 );
+    auto p_vals[] = {oplus( p0, dt * k0 ), oplus( p0, dt * k1 ), p3, oplus( p0, dt * k3 )};
+    q = weighted_avg( p_vals, p_vals + 4, w_vals, w_vals + 4 );
+    t += dt;
+  };
+  return q;
 };
 };
 };
