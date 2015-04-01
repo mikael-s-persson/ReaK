@@ -108,8 +108,10 @@ T slerp( const T& q0, const Scalar& eta, const T& q1 ) {
   return oplus( q0, eta * ominus( q1, q0 ) );
 };
 
-template < typename T, typename Scalar >
-T bezier( std::vector< T > qb, const Scalar& eta ) {
+template < typename FIter, typename Scalar >
+typename std::iterator_traits< FIter >::value_type bezier( FIter qit_first, FIter qit_last, const Scalar& eta ) {
+  typedef typename std::iterator_traits< FIter >::value_type Value;
+  std::vector< Value > qb( qit_first, qit_last );
   std::size_t M = qb.size();
   assert( M > 0 );
   for( std::size_t i = 1; i < M; ++i )
@@ -118,9 +120,12 @@ T bezier( std::vector< T > qb, const Scalar& eta ) {
   return qb[0];
 };
 
-template < typename T, typename Scalar >
-T catmull_rom( std::vector< T > qb, const Scalar& eta, const Scalar& alpha = Scalar( 1.0 ) ) {
+template < typename FIter, typename Scalar >
+typename std::iterator_traits< FIter >::value_type catmull_rom( FIter qit_first, FIter qit_last, const Scalar& eta,
+                                                                const Scalar& alpha = Scalar( 1.0 ) ) {
   using std::pow;
+  typedef typename std::iterator_traits< FIter >::value_type Value;
+  std::vector< Value > qb( qit_first, qit_last );
   std::size_t M = qb.size();
   assert( M > 0 );
   if( M == 1 )
@@ -139,7 +144,7 @@ T catmull_rom( std::vector< T > qb, const Scalar& eta, const Scalar& alpha = Sca
 };
 
 template < typename FIter >
-auto average( FIter qit_first, FIter qit_last ) -> decltype( *qit_first ) {
+typename std::iterator_traits< FIter >::value_type average( FIter qit_first, FIter qit_last ) {
   assert( std::distance( qit_first, qit_last ) > 0 );
   auto result = *qit_first;
   ++qit_first;
@@ -149,7 +154,8 @@ auto average( FIter qit_first, FIter qit_last ) -> decltype( *qit_first ) {
 };
 
 template < typename FIter, typename WFIter >
-auto weighted_avg( FIter qit_first, FIter qit_last, WFIter wit_first, WFIter wit_last ) -> decltype( *qit_first ) {
+typename std::iterator_traits< FIter >::value_type weighted_avg( FIter qit_first, FIter qit_last, WFIter wit_first,
+                                                                 WFIter wit_last ) {
   assert( std::distance( qit_first, qit_last ) > 0 );
   assert( std::distance( qit_first, qit_last ) == std::distance( wit_first, wit_last ) );
   auto result = *qit_first;
