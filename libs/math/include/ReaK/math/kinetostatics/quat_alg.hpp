@@ -115,7 +115,7 @@ public:
   };
 
   /**
-   * Convstructs a quaternion from 4 components.
+   * Constructs a quaternion from 4 components.
    */
   quat( const_reference q0, const_reference q1, const_reference q2, const_reference q3 ) BOOST_NOEXCEPT {
     q[0] = q0;
@@ -307,61 +307,6 @@ public:
   /** Substraction operator. */
   friend self operator-( const vector_type& C1, const self& C2 ) BOOST_NOEXCEPT {
     return self( -C2.q[0], C1[0] - C2.q[1], C1[1] - C2.q[2], C1[2] - C2.q[3] );
-  };
-
-  /**
-   * Multiplication by a quaternion.
-   * \test PASSED
-   */
-  friend self operator*(const self& Q1, const self& Q2)BOOST_NOEXCEPT {
-    return self( Q2.q[0] * Q1.q[0] - Q2.q[1] * Q1.q[1] - Q2.q[2] * Q1.q[2] - Q2.q[3] * Q1.q[3],
-                 Q2.q[0] * Q1.q[1] + Q2.q[3] * Q1.q[2] - Q2.q[2] * Q1.q[3] + Q2.q[1] * Q1.q[0],
-                 Q2.q[0] * Q1.q[2] - Q2.q[3] * Q1.q[1] + Q2.q[1] * Q1.q[3] + Q2.q[2] * Q1.q[0],
-                 Q2.q[0] * Q1.q[3] + Q2.q[2] * Q1.q[1] - Q2.q[1] * Q1.q[2] + Q2.q[3] * Q1.q[0] );
-  };
-
-  /**
-   * Multiplication by a scalar.
-   * \test PASSED
-   */
-  friend self operator*(const self& Q1, const scalar_type& Q2)BOOST_NOEXCEPT {
-    return self( Q2 * Q1.q[0], Q2 * Q1.q[1], Q2 * Q1.q[2], Q2 * Q1.q[3] );
-  };
-
-  /**
-   * Multiplication by a scalar.
-   * \test PASSED
-   */
-  friend self operator*(const scalar_type& Q1, const self& Q2)BOOST_NOEXCEPT {
-    return self( Q1 * Q2.q[0], Q1 * Q2.q[1], Q1 * Q2.q[2], Q1 * Q2.q[3] );
-  };
-
-  /**
-   * Division by a scalar.
-   * \test PASSED
-   */
-  friend self operator/( const self& Q1, const scalar_type& Q2 ) BOOST_NOEXCEPT {
-    return self( Q1.q[0] / Q2, Q1.q[1] / Q2, Q1.q[2] / Q2, Q1.q[3] / Q2 );
-  };
-
-  /**
-   * Multiplication by a quaternion.
-   * \test PASSED
-   */
-  friend self operator*(const self& Q1, const vector_type& Q2)BOOST_NOEXCEPT {
-    return self(
-      -Q2[0] * Q1.q[1] - Q2[1] * Q1.q[2] - Q2[2] * Q1.q[3], Q2[2] * Q1.q[2] - Q2[1] * Q1.q[3] + Q2[0] * Q1.q[0],
-      -Q2[2] * Q1.q[1] + Q2[0] * Q1.q[3] + Q2[1] * Q1.q[0], Q2[1] * Q1.q[1] - Q2[0] * Q1.q[2] + Q2[2] * Q1.q[0] );
-  };
-
-  /**
-   * Multiplication by a quaternion.
-   * \test PASSED
-   */
-  friend self operator*(const vector_type& Q1, const self& Q2)BOOST_NOEXCEPT {
-    return self(
-      -Q2.q[1] * Q1[0] - Q2.q[2] * Q1[1] - Q2.q[3] * Q1[2], Q2.q[0] * Q1[0] + Q2.q[3] * Q1[1] - Q2.q[2] * Q1[2],
-      Q2.q[0] * Q1[1] - Q2.q[3] * Q1[0] + Q2.q[1] * Q1[2], Q2.q[0] * Q1[2] + Q2.q[2] * Q1[0] - Q2.q[1] * Q1[1] );
   };
 
   /*******************************************************************************
@@ -712,6 +657,52 @@ public:
 };
 
 
+/** Multiplication by a quaternion. */
+template < typename T >
+quat< T > operator*(const quat< T >& Q1, const quat< T >& Q2)BOOST_NOEXCEPT {
+  return quat< T >( Q2[0] * Q1[0] - Q2[1] * Q1[1] - Q2[2] * Q1[2] - Q2[3] * Q1[3],
+                    Q2[0] * Q1[1] + Q2[3] * Q1[2] - Q2[2] * Q1[3] + Q2[1] * Q1[0],
+                    Q2[0] * Q1[2] - Q2[3] * Q1[1] + Q2[1] * Q1[3] + Q2[2] * Q1[0],
+                    Q2[0] * Q1[3] + Q2[2] * Q1[1] - Q2[1] * Q1[2] + Q2[3] * Q1[0] );
+};
+
+/** Multiplication by a scalar. */
+template < typename T >
+quat< T > operator*(const quat< T >& Q1, const T& Q2)BOOST_NOEXCEPT {
+  return quat< T >( Q2 * Q1[0], Q2 * Q1[1], Q2 * Q1[2], Q2 * Q1[3] );
+};
+
+/** Multiplication by a scalar. */
+template < typename T >
+quat< T > operator*(const T& Q1, const quat< T >& Q2)BOOST_NOEXCEPT {
+  return quat< T >( Q1 * Q2[0], Q1 * Q2[1], Q1 * Q2[2], Q1 * Q2[3] );
+};
+
+/** Division by a scalar. */
+template < typename T >
+quat< T > operator/( const quat< T >& Q1, const T& Q2 ) BOOST_NOEXCEPT {
+  return quat< T >( Q1[0] / Q2, Q1[1] / Q2, Q1[2] / Q2, Q1[3] / Q2 );
+};
+
+/**
+ * Multiplication by a quaternion.
+ */
+template < typename T >
+quat< T > operator*(const quat< T >& Q1, const vect< T, 3 >& Q2)BOOST_NOEXCEPT {
+  return quat< T >( -Q2[0] * Q1[1] - Q2[1] * Q1[2] - Q2[2] * Q1[3], Q2[2] * Q1[2] - Q2[1] * Q1[3] + Q2[0] * Q1[0],
+                    -Q2[2] * Q1[1] + Q2[0] * Q1[3] + Q2[1] * Q1[0], Q2[1] * Q1[1] - Q2[0] * Q1[2] + Q2[2] * Q1[0] );
+};
+
+/**
+ * Multiplication by a quaternion.
+ */
+template < typename T >
+quat< T > operator*(const vect< T, 3 >& Q1, const quat< T >& Q2)BOOST_NOEXCEPT {
+  return quat< T >( -Q2[1] * Q1[0] - Q2[2] * Q1[1] - Q2[3] * Q1[2], Q2[0] * Q1[0] + Q2[3] * Q1[1] - Q2[2] * Q1[2],
+                    Q2[0] * Q1[1] - Q2[3] * Q1[0] + Q2[1] * Q1[2], Q2[0] * Q1[2] + Q2[2] * Q1[0] - Q2[1] * Q1[1] );
+};
+
+
 /**
  * This template class defines a quaternion-valued variable (not a unit-quaternion for representing rotations).
  */
@@ -778,7 +769,7 @@ public:
   };
 
   /**
-   * Convstructs a quaternion from 4 components.
+   * Constructs a quaternion from 4 components.
    */
   unit_quat( const_reference q0, const_reference q1, const_reference q2, const_reference q3 ) BOOST_NOEXCEPT
     : quat< T >( scalar_type( 1.0 ) ) {
@@ -825,6 +816,27 @@ public:
     return quaternion< value_type >( this->q[0], this->q[1], this->q[2], this->q[3] );
   };
 
+  /**
+   * Multiplication by a column vector.
+   * \test PASSED
+   */
+  vector_type rotate( const vector_type& V ) BOOST_NOEXCEPT {
+    value_type t[9];
+    t[0] = this->q[0] * this->q[1];
+    t[1] = this->q[0] * this->q[2];
+    t[2] = this->q[0] * this->q[3];
+    t[3] = -this->q[1] * this->q[1];
+    t[4] = this->q[1] * this->q[2];
+    t[5] = this->q[1] * this->q[3];
+    t[6] = -this->q[2] * this->q[2];
+    t[7] = this->q[2] * this->q[3];
+    t[8] = -this->q[3] * this->q[3];
+    return vector_type(
+      value_type( 2.0 ) * ( ( t[6] + t[8] ) * V[0] + ( t[4] - t[2] ) * V[1] + ( t[1] + t[5] ) * V[2] ) + V[0],
+      value_type( 2.0 ) * ( ( t[2] + t[4] ) * V[0] + ( t[3] + t[8] ) * V[1] + ( t[7] - t[0] ) * V[2] ) + V[1],
+      value_type( 2.0 ) * ( ( t[5] - t[1] ) * V[0] + ( t[0] + t[7] ) * V[1] + ( t[3] + t[6] ) * V[2] ) + V[2] );
+  };
+
   /*******************************************************************************
                            Assignment Operators
   *******************************************************************************/
@@ -854,17 +866,6 @@ public:
     Q.q[2] = -Q.q[2];
     Q.q[3] = -Q.q[3];
     return Q;
-  };
-
-  /**
-   * Multiplication by a quaternion.
-   * \test PASSED
-   */
-  friend self operator*(const self& Q1, const self& Q2)BOOST_NOEXCEPT {
-    return self( Q2.q[0] * Q1.q[0] - Q2.q[1] * Q1.q[1] - Q2.q[2] * Q1.q[2] - Q2.q[3] * Q1.q[3],
-                 Q2.q[0] * Q1.q[1] + Q2.q[3] * Q1.q[2] - Q2.q[2] * Q1.q[3] + Q2.q[1] * Q1.q[0],
-                 Q2.q[0] * Q1.q[2] - Q2.q[3] * Q1.q[1] + Q2.q[1] * Q1.q[3] + Q2.q[2] * Q1.q[0],
-                 Q2.q[0] * Q1.q[3] + Q2.q[2] * Q1.q[1] - Q2.q[1] * Q1.q[2] + Q2.q[3] * Q1.q[0] );
   };
 
 
@@ -938,6 +939,56 @@ public:
   friend value_type fabs( const self& x ) BOOST_NOEXCEPT { return 1.0; };
 };
 
+/** Multiplication by a quaternion. */
+template < typename T >
+unit_quat< T > operator*(const unit_quat< T >& Q1, const unit_quat< T >& Q2)BOOST_NOEXCEPT {
+  return unit_quat< T >( Q2[0] * Q1[0] - Q2[1] * Q1[1] - Q2[2] * Q1[2] - Q2[3] * Q1[3],
+                         Q2[0] * Q1[1] + Q2[3] * Q1[2] - Q2[2] * Q1[3] + Q2[1] * Q1[0],
+                         Q2[0] * Q1[2] - Q2[3] * Q1[1] + Q2[1] * Q1[3] + Q2[2] * Q1[0],
+                         Q2[0] * Q1[3] + Q2[2] * Q1[1] - Q2[1] * Q1[2] + Q2[3] * Q1[0] );
+};
+
+/** Multiplication by a quaternion. */
+template < typename T >
+quat< T > operator*(const unit_quat< T >& Q1, const quat< T >& Q2)BOOST_NOEXCEPT {
+  return static_cast< const quat< T >& >( Q1 ) * Q2;
+};
+
+/** Multiplication by a quaternion. */
+template < typename T >
+quat< T > operator*(const quat< T >& Q1, const unit_quat< T >& Q2)BOOST_NOEXCEPT {
+  return Q1 * static_cast< const quat< T >& >( Q2 );
+};
+
+/** Multiplication by a scalar. */
+template < typename T >
+quat< T > operator*(const unit_quat< T >& Q1, const T& Q2)BOOST_NOEXCEPT {
+  return static_cast< const quat< T >& >( Q1 ) * Q2;
+};
+
+/** Multiplication by a scalar. */
+template < typename T >
+quat< T > operator*(const T& Q1, const unit_quat< T >& Q2)BOOST_NOEXCEPT {
+  return Q1 * static_cast< const quat< T >& >( Q2 );
+};
+
+/** Division by a scalar. */
+template < typename T >
+quat< T > operator/( const unit_quat< T >& Q1, const T& Q2 ) BOOST_NOEXCEPT {
+  return quat< T >( Q1[0] / Q2, Q1[1] / Q2, Q1[2] / Q2, Q1[3] / Q2 );
+};
+
+/** Multiplication by a quaternion. */
+template < typename T >
+quat< T > operator*(const unit_quat< T >& Q1, const vect< T, 3 >& Q2)BOOST_NOEXCEPT {
+  return static_cast< const quat< T >& >( Q1 ) * Q2;
+};
+
+/** Multiplication by a quaternion. */
+template < typename T >
+quat< T > operator*(const vect< T, 3 >& Q1, const unit_quat< T >& Q2)BOOST_NOEXCEPT {
+  return Q1 * static_cast< const quat< T >& >( Q2 );
+};
 
 /** Compute exponential function (function), for a quaternion value. */
 template < typename T >

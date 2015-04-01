@@ -54,7 +54,7 @@ quat< T > ominus( const quat< T >& b, const quat< T >& a ) {
 };
 
 template < typename T >
-unit_quat< T > ominus( const unit_quat< T >& b, const unit_quat< T >& a ) {
+vect< T, 3 > ominus( const unit_quat< T >& b, const unit_quat< T >& a ) {
   return T( 2 ) * log( invert( a ) * b );
 };
 
@@ -89,7 +89,7 @@ quat< T > otransport( const quat< T >& a, const quat< T >& v, const quat< T >& b
 template < typename T >
 vect< T, 3 > otransport( const unit_quat< T >& a, const vect< T, 3 >& v, const unit_quat< T >& b ) {
   unit_quat< T > ab = invert( b ) * a;
-  return ab * v * invert( ab );
+  return ab.rotate( v );
 };
 
 
@@ -133,7 +133,7 @@ typename std::iterator_traits< FIter >::value_type catmull_rom( FIter qit_first,
   // first, compute the t-intervals:
   std::vector< Scalar > tv( M, 0.0 );
   for( std::size_t i = 1; i < M; ++i )
-    tv[i] = tv[i - 1] + pow( norm_2( ominus( q[i], q[i - 1] ) ), alpha );
+    tv[i] = tv[i - 1] + pow( norm_2( ominus( qb[i], qb[i - 1] ) ), alpha );
   // then, compute t from eta [0..1]
   Scalar t = eta * ( tv[tv.size() - 1] - tv[0] );
   // and finally, do the catmull-rom folding:
@@ -227,7 +227,7 @@ T trapezoidal_rule( T q, Func f, const Scalar& t_start, const Scalar& t_end, Sca
 };
 
 template < typename T, typename Func, typename Scalar >
-T runge_kutta_4( T q, Func f, const Scalar& t_start, const Scalar& t_end, Scalar dt, const Scalar& tol ) {
+T runge_kutta_4( T q, Func f, const Scalar& t_start, const Scalar& t_end, Scalar dt ) {
   assert( t_end > t_start );
   static const double w_vals[] = {1.0 / 6.0, 1.0 / 3.0, 1.0 / 3.0, 1.0 / 6.0};
   Scalar t = t_start;

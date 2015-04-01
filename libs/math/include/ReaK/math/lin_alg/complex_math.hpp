@@ -514,7 +514,7 @@ public:
   /**
    * Default constructor, zero-valued.
    */
-  unit_complex() BOOST_NOEXCEPT : Re( 1.0 ), Im( 0.0 ){};
+  unit_complex() BOOST_NOEXCEPT : base_type( 1.0, 0.0 ){};
 
   // Copy-constructor is default.
   // Assignment operator is default.
@@ -591,8 +591,8 @@ public:
   // Power functions
 
   /** Raise to power (function), for a complex value.*/
-  friend self pow( const self& base, const self& exponent ) BOOST_NOEXCEPT {
-    scalar_type angle = atan2( x.Im, x.Re );
+  friend self pow( const self& base, const scalar_type& exponent ) BOOST_NOEXCEPT {
+    scalar_type angle = atan2( base.Im, base.Re );
     return self( cos( exponent * angle ), sin( exponent * angle ) );
     //     return exp( exponent * log( base ) );
   };

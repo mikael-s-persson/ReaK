@@ -43,4 +43,8 @@ add_executable(build_airship3D_transforms "build_airship3D_transforms.cpp")
 ReaK_setup_target(build_airship3D_transforms)
 target_link_libraries(build_airship3D_transforms reak_math)
 
+add_executable(test_lie_grp_num "test_lie_grp_num.cpp")
+ReaK_setup_target(test_lie_grp_num)
+target_link_libraries(test_lie_grp_num reak_math)
+
 
