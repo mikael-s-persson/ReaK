@@ -65,6 +65,15 @@ struct topology_traits {
   BOOST_STATIC_CONSTANT( std::size_t, dimensions = Topology::dimensions );
 };
 
+template < typename Topology >
+struct topology_point_type {
+  typedef typename topology_traits< Topology >::point_type type;
+};
+
+template < typename Topology >
+struct topology_point_difference_type {
+  typedef typename topology_traits< Topology >::point_difference_type type;
+};
 
 /**
  * This concept defines the requirements to fulfill in order to model a topology
@@ -185,6 +194,10 @@ struct metric_space_traits {
   typedef typename MetricSpace::distance_metric_type distance_metric_type;
 };
 
+template < typename MetricSpace >
+struct metric_space_distance_metric {
+  typedef typename metric_space_traits< MetricSpace >::distance_metric_type type;
+};
 
 /**
  * This concept defines the requirements to fulfill in order to model a metric-space
@@ -277,8 +290,8 @@ struct default_distance_metric : public serializable {
 
 
 template < typename MetricSpace >
-typename boost::enable_if< is_metric_space< MetricSpace >,
-                           metric_space_traits< MetricSpace > >::type::distance_metric_type
+typename boost::lazy_enable_if< is_metric_space< MetricSpace >,
+                                metric_space_distance_metric< MetricSpace > >::type
   get( distance_metric_t, const MetricSpace& s ) {
   typedef typename metric_space_traits< MetricSpace >::distance_metric_type result_type;
   return result_type( s );

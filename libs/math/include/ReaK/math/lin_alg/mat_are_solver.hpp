@@ -1656,7 +1656,7 @@ typename boost::enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >, is_r
                              is_readable_matrix< Matrix3 >, is_readable_matrix< Matrix4 >,
                              boost::mpl::and_< is_fully_writable_matrix< Matrix5 >, is_fully_writable_matrix< Matrix6 >,
                              is_fully_writable_matrix< Matrix7 > > >,
-                             mat_traits< Matrix1 > >::type::size_type
+                             std::size_t >::type
   solve_IHCT_LQR_with_reduction( const Matrix1& A, const Matrix2& B, const Matrix3& Q, const Matrix4& R, Matrix5& K,
                                  Matrix6& P, Matrix7& Qr, typename mat_traits< Matrix1 >::value_type NumTol = 1E-8,
                                  bool UseBalancing = false ) {
@@ -1751,7 +1751,7 @@ typename boost::enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >, is_r
                              is_readable_matrix< Matrix3 >, is_readable_matrix< Matrix4 >,
                              boost::mpl::and_< is_fully_writable_matrix< Matrix5 >,
                              is_fully_writable_matrix< Matrix6 > > >,
-                             mat_traits< Matrix1 > >::type::size_type
+                             std::size_t >::type
   solve_IHCT_LQR_with_reduction( const Matrix1& A, const Matrix2& B, const Matrix3& Q, const Matrix4& R, Matrix5& K,
                                  Matrix6& P, typename mat_traits< Matrix1 >::value_type NumTol = 1E-8,
                                  bool UseBalancing = false ) {
@@ -1804,7 +1804,7 @@ template < typename Matrix1, typename Matrix2, typename Matrix3, typename Matrix
 typename boost::enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >, is_readable_matrix< Matrix2 >,
                              is_readable_matrix< Matrix3 >, is_readable_matrix< Matrix4 >,
                              is_fully_writable_matrix< Matrix5 > >,
-                             mat_traits< Matrix1 > >::type::size_type
+                             std::size_t >::type
   solve_IHCT_LQR_with_reduction( const Matrix1& A, const Matrix2& B, const Matrix3& Q, const Matrix4& R, Matrix5& K,
                                  typename mat_traits< Matrix1 >::value_type NumTol = 1E-8, bool UseBalancing = false ) {
   typedef typename mat_traits< Matrix1 >::value_type ValueType;
@@ -1927,7 +1927,7 @@ typename boost::enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >, is_r
                              is_readable_vector< Vector1 >, is_readable_matrix< Matrix3 >,
                              boost::mpl::and_< is_readable_matrix< Matrix4 >, is_fully_writable_matrix< Matrix5 >,
                              is_fully_writable_matrix< Matrix6 >, is_writable_vector< Vector2 > > >,
-                             mat_traits< Matrix1 > >::type::size_type
+                             std::size_t >::type
   solve_IHCT_AQR_with_reduction( const Matrix1& A, const Matrix2& B, const Vector1& c, const Matrix3& Q,
                                  const Matrix4& R, Matrix5& K, Matrix6& P, Vector2& u_bias,
                                  typename mat_traits< Matrix1 >::value_type NumTol = 1E-8, bool UseBalancing = false ) {

@@ -101,22 +101,22 @@ void mass_matrix_calc::getMassMatrixAndDerivative( mat< double, mat_structure::s
 void mass_matrix_calc::get_TMT_TdMT( mat< double, mat_structure::rectangular >& Tcm,
                                      mat< double, mat_structure::symmetric >& Mcm,
                                      mat< double, mat_structure::rectangular >& Tcm_dot ) {
-  unsigned int m = 6 * m3DInertias.size() + 3 * m2DInertias.size() + mGenInertias.size();
-  unsigned int n = mCoords.size() + 3 * mFrames2D.size() + 6 * mFrames3D.size();
+  std::size_t m = 6 * m3DInertias.size() + 3 * m2DInertias.size() + mGenInertias.size();
+  std::size_t n = mCoords.size() + 3 * mFrames2D.size() + 6 * mFrames3D.size();
   Mcm = mat< double, mat_structure::symmetric >( m, 0.0 );
   Tcm_dot = Tcm = mat< double, mat_structure::nil >( m, n );
 
-  unsigned int RowInd = 0;
+  std::size_t RowInd = 0;
 
   /****************************************************************************************
    *                             Gen Coords
    * *************************************************************************************/
 
 
-  for( unsigned int i = 0; i < mCoords.size(); ++i ) {
+  for (std::size_t i = 0; i < mCoords.size(); ++i) {
     RowInd = 0;
 
-    for( unsigned int j = 0; j < mGenInertias.size(); ++j ) {
+    for (std::size_t j = 0; j < mGenInertias.size(); ++j) {
       if( mGenInertias[j]->CenterOfMass()->mUpStreamJoints.find( mCoords[i] )
           != mGenInertias[j]->CenterOfMass()->mUpStreamJoints.end() ) {
 
@@ -127,7 +127,7 @@ void mass_matrix_calc::get_TMT_TdMT( mat< double, mat_structure::rectangular >& 
       RowInd++;
     };
 
-    for( unsigned int j = 0; j < m2DInertias.size(); ++j ) {
+    for (std::size_t j = 0; j < m2DInertias.size(); ++j) {
       if( m2DInertias[j]->CenterOfMass()->mUpStreamJoints.find( mCoords[i] )
           != m2DInertias[j]->CenterOfMass()->mUpStreamJoints.end() ) {
 
@@ -142,7 +142,7 @@ void mass_matrix_calc::get_TMT_TdMT( mat< double, mat_structure::rectangular >& 
       RowInd += 3;
     };
 
-    for( unsigned int j = 0; j < m3DInertias.size(); ++j ) {
+    for (std::size_t j = 0; j < m3DInertias.size(); ++j) {
       if( m3DInertias[j]->CenterOfMass()->mUpStreamJoints.find( mCoords[i] )
           != m3DInertias[j]->CenterOfMass()->mUpStreamJoints.end() ) {
 
@@ -163,11 +163,11 @@ void mass_matrix_calc::get_TMT_TdMT( mat< double, mat_structure::rectangular >& 
    *                             2D Frames
    * *************************************************************************************/
 
-  unsigned int base_i = mCoords.size();
-  for( unsigned int i = 0; i < mFrames2D.size(); ++i ) {
+  std::size_t base_i = mCoords.size();
+  for (std::size_t i = 0; i < mFrames2D.size(); ++i) {
     RowInd = 0;
 
-    for( unsigned int j = 0; j < mGenInertias.size(); ++j ) {
+    for (std::size_t j = 0; j < mGenInertias.size(); ++j) {
       if( mGenInertias[j]->CenterOfMass()->mUpStream2DJoints.find( mFrames2D[i] )
           != mGenInertias[j]->CenterOfMass()->mUpStream2DJoints.end() ) {
 
@@ -178,7 +178,7 @@ void mass_matrix_calc::get_TMT_TdMT( mat< double, mat_structure::rectangular >& 
       RowInd++;
     };
 
-    for( unsigned int j = 0; j < m2DInertias.size(); ++j ) {
+    for (std::size_t j = 0; j < m2DInertias.size(); ++j) {
       if( m2DInertias[j]->CenterOfMass()->mUpStream2DJoints.find( mFrames2D[i] )
           != m2DInertias[j]->CenterOfMass()->mUpStream2DJoints.end() ) {
 
@@ -193,7 +193,7 @@ void mass_matrix_calc::get_TMT_TdMT( mat< double, mat_structure::rectangular >& 
       RowInd += 3;
     };
 
-    for( unsigned int j = 0; j < m3DInertias.size(); ++j ) {
+    for (std::size_t j = 0; j < m3DInertias.size(); ++j) {
       if( m3DInertias[j]->CenterOfMass()->mUpStream2DJoints.find( mFrames2D[i] )
           != m3DInertias[j]->CenterOfMass()->mUpStream2DJoints.end() ) {
 
@@ -215,10 +215,10 @@ void mass_matrix_calc::get_TMT_TdMT( mat< double, mat_structure::rectangular >& 
    * *************************************************************************************/
 
   base_i = mCoords.size() + 3 * mFrames2D.size();
-  for( unsigned int i = 0; i < mFrames3D.size(); ++i ) {
+  for (std::size_t i = 0; i < mFrames3D.size(); ++i) {
     RowInd = 0;
 
-    for( unsigned int j = 0; j < mGenInertias.size(); ++j ) {
+    for (std::size_t j = 0; j < mGenInertias.size(); ++j) {
       if( mGenInertias[j]->CenterOfMass()->mUpStreamJoints.find( mCoords[i] )
           != mGenInertias[j]->CenterOfMass()->mUpStreamJoints.end() ) {
 
@@ -229,7 +229,7 @@ void mass_matrix_calc::get_TMT_TdMT( mat< double, mat_structure::rectangular >& 
       RowInd++;
     };
 
-    for( unsigned int j = 0; j < m2DInertias.size(); ++j ) {
+    for (std::size_t j = 0; j < m2DInertias.size(); ++j) {
       if( m2DInertias[j]->CenterOfMass()->mUpStream3DJoints.find( mFrames3D[i] )
           != m2DInertias[j]->CenterOfMass()->mUpStream3DJoints.end() ) {
 
@@ -244,7 +244,7 @@ void mass_matrix_calc::get_TMT_TdMT( mat< double, mat_structure::rectangular >& 
       RowInd += 3;
     };
 
-    for( unsigned int j = 0; j < m3DInertias.size(); ++j ) {
+    for (std::size_t j = 0; j < m3DInertias.size(); ++j) {
       if( m3DInertias[j]->CenterOfMass()->mUpStream3DJoints.find( mFrames3D[i] )
           != m3DInertias[j]->CenterOfMass()->mUpStream3DJoints.end() ) {
 
@@ -262,11 +262,11 @@ void mass_matrix_calc::get_TMT_TdMT( mat< double, mat_structure::rectangular >& 
 
 
   RowInd = 0;
-  for( unsigned int j = 0; j < mGenInertias.size(); ++j ) {
+  for (std::size_t j = 0; j < mGenInertias.size(); ++j) {
     Mcm( RowInd, RowInd ) = mGenInertias[j]->Mass();
     RowInd++;
   };
-  for( unsigned int j = 0; j < m2DInertias.size(); ++j ) {
+  for (std::size_t j = 0; j < m2DInertias.size(); ++j) {
     Mcm( RowInd, RowInd ) = m2DInertias[j]->Mass();
     RowInd++;
     Mcm( RowInd, RowInd ) = m2DInertias[j]->Mass();
@@ -274,7 +274,7 @@ void mass_matrix_calc::get_TMT_TdMT( mat< double, mat_structure::rectangular >& 
     Mcm( RowInd, RowInd ) = m2DInertias[j]->MomentOfInertia();
     RowInd++;
   };
-  for( unsigned int j = 0; j < m3DInertias.size(); ++j ) {
+  for (std::size_t j = 0; j < m3DInertias.size(); ++j) {
     Mcm( RowInd, RowInd ) = m3DInertias[j]->Mass();
     RowInd++;
     Mcm( RowInd, RowInd ) = m3DInertias[j]->Mass();

@@ -49,7 +49,7 @@ namespace geom {
 /** This class defines a proximity-query model for 2D shapes. */
 class proxy_query_model_2D : public named_object {
 private:
-  class variant_shape_cache; // forward-decl
+  struct variant_shape_cache; // forward-decl
   variant_shape_cache* mShapeCache;
   std::vector< shape_2D_precompute_pack > mPreComputePacks;
 
@@ -142,7 +142,7 @@ public:
 /** This class defines a colored model for 3D geometries. */
 class proxy_query_model_3D : public named_object {
 private:
-  class variant_shape_cache; // forward-decl
+  struct variant_shape_cache; // forward-decl
   variant_shape_cache* mShapeCache;
   std::vector< shape_3D_precompute_pack > mPreComputePacks;
 

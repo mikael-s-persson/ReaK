@@ -62,6 +62,11 @@ struct steerable_space_traits {
   typedef typename SteerableSpace::steer_record_type steer_record_type;
 };
 
+template < typename SteerableSpace >
+struct steerable_space_steer_record {
+  typedef typename steerable_space_traits< SteerableSpace >::steer_record_type type;
+};
+
 
 /**
  * This concept defines the requirements to fulfill in order to model a steerable-space

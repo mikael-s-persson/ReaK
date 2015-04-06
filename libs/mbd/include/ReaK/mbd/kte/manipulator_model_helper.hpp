@@ -67,7 +67,7 @@ private:
 public:
   template < typename Vector >
   void getJointPositions( Vector& result ) const {
-    unsigned int j = 0;
+    std::size_t j = 0;
 
     for( std::vector< shared_ptr< gen_coord< double > > >::const_iterator it = model->mCoords.begin();
          it < model->mCoords.end(); ++it, ++j )
@@ -106,7 +106,7 @@ public:
 
   template < typename Vector >
   void setJointPositions( const Vector& aJointPositions ) {
-    unsigned int j = 0;
+    std::size_t j = 0;
 
     for( std::vector< shared_ptr< gen_coord< double > > >::const_iterator it = model->mCoords.begin();
          it < model->mCoords.end(); ++it, ++j )
@@ -138,7 +138,7 @@ public:
 
   template < typename Vector >
   void getJointVelocities( Vector& result ) const {
-    unsigned int j = 0;
+    std::size_t j = 0;
 
     for( std::vector< shared_ptr< gen_coord< double > > >::const_iterator it = model->mCoords.begin();
          it < model->mCoords.end(); ++it, ++j )
@@ -173,7 +173,7 @@ public:
 
   template < typename Vector >
   void setJointVelocities( const Vector& aJointVelocities ) {
-    unsigned int j = 0;
+    std::size_t j = 0;
 
     for( std::vector< shared_ptr< gen_coord< double > > >::const_iterator it = model->mCoords.begin();
          it < model->mCoords.end(); ++it, ++j )
@@ -208,7 +208,7 @@ public:
 
   template < typename Vector >
   void getJointAccelerations( Vector& result ) const {
-    unsigned int j = 0;
+    std::size_t j = 0;
 
     for( std::vector< shared_ptr< gen_coord< double > > >::const_iterator it = model->mCoords.begin();
          it < model->mCoords.end(); ++it, ++j )
@@ -243,7 +243,7 @@ public:
 
   template < typename Vector >
   void setJointAccelerations( const Vector& aJointAccelerations ) {
-    unsigned int j = 0;
+    std::size_t j = 0;
 
     for( std::vector< shared_ptr< gen_coord< double > > >::const_iterator it = model->mCoords.begin();
          it < model->mCoords.end(); ++it, ++j )
@@ -278,7 +278,7 @@ public:
 
   template < typename Vector >
   void getDependentPositions( Vector& result ) const {
-    unsigned int j = 0;
+    std::size_t j = 0;
 
     for( std::vector< shared_ptr< joint_dependent_gen_coord > >::const_iterator it = model->mDependentGenCoords.begin();
          it < model->mDependentGenCoords.end(); ++it, ++j )
@@ -317,7 +317,7 @@ public:
 
   template < typename Vector >
   void getDependentVelocities( Vector& result ) const {
-    unsigned int j = 0;
+    std::size_t j = 0;
 
     for( std::vector< shared_ptr< joint_dependent_gen_coord > >::const_iterator it = model->mDependentGenCoords.begin();
          it < model->mDependentGenCoords.end(); ++it, ++j )
@@ -352,7 +352,7 @@ public:
 
   template < typename Vector >
   void getDependentAccelerations( Vector& result ) const {
-    unsigned int j = 0;
+    std::size_t j = 0;
 
     for( std::vector< shared_ptr< joint_dependent_gen_coord > >::const_iterator it = model->mDependentGenCoords.begin();
          it < model->mDependentGenCoords.end(); ++it, ++j )
@@ -436,23 +436,23 @@ private:
 
   template < typename Matrix1, typename Matrix2 >
   void getJacobianMatrixAndDerivativeImpl( Matrix1& Jac, Matrix2* JacDot ) const {
-    unsigned int m = model->getDependentVelocitiesCount();
-    unsigned int n = model->getJointVelocitiesCount();
+    std::size_t m = model->getDependentVelocitiesCount();
+    std::size_t n = model->getJointVelocitiesCount();
     Jac = mat< double, mat_structure::nil >( m, n );
     if( JacDot )
       *JacDot = mat< double, mat_structure::nil >( m, n );
 
-    unsigned int RowInd = 0;
+    std::size_t RowInd = 0;
 
     /****************************************************************************************
      *                             Gen Coords
      * *************************************************************************************/
 
 
-    for( unsigned int i = 0; i < model->mCoords.size(); ++i ) {
+    for (std::size_t i = 0; i < model->mCoords.size(); ++i) {
       RowInd = 0;
 
-      for( unsigned int j = 0; j < model->mDependentGenCoords.size(); ++j ) {
+      for (std::size_t j = 0; j < model->mDependentGenCoords.size(); ++j) {
         if( model->mDependentGenCoords[j]->mUpStreamJoints.find( model->mCoords[i] )
             != model->mDependentGenCoords[j]->mUpStreamJoints.end() ) {
           mat_sub_block< Matrix1 > subJac = sub( Jac )( range( RowInd, RowInd + 1 ), range( i, i + 1 ) );
@@ -466,7 +466,7 @@ private:
         RowInd++;
       };
 
-      for( unsigned int j = 0; j < model->mDependent2DFrames.size(); ++j ) {
+      for (std::size_t j = 0; j < model->mDependent2DFrames.size(); ++j) {
         if( model->mDependent2DFrames[j]->mUpStreamJoints.find( model->mCoords[i] )
             != model->mDependent2DFrames[j]->mUpStreamJoints.end() ) {
           mat_sub_block< Matrix1 > subJac = sub( Jac )( range( RowInd, RowInd + 3 ), range( i, i + 1 ) );
@@ -486,7 +486,7 @@ private:
         RowInd += 3;
       };
 
-      for( unsigned int j = 0; j < model->mDependent3DFrames.size(); ++j ) {
+      for (std::size_t j = 0; j < model->mDependent3DFrames.size(); ++j) {
         if( model->mDependent3DFrames[j]->mUpStreamJoints.find( model->mCoords[i] )
             != model->mDependent3DFrames[j]->mUpStreamJoints.end() ) {
           mat_sub_block< Matrix1 > subJac = sub( Jac )( range( RowInd, RowInd + 6 ), range( i, i + 1 ) );
@@ -512,11 +512,11 @@ private:
      *                             2D Frames
      * *************************************************************************************/
 
-    unsigned int base_i = model->mCoords.size();
-    for( unsigned int i = 0; i < model->mFrames2D.size(); ++i ) {
+    std::size_t base_i = model->mCoords.size();
+    for (std::size_t i = 0; i < model->mFrames2D.size(); ++i) {
       RowInd = 0;
 
-      for( unsigned int j = 0; j < model->mDependentGenCoords.size(); ++j ) {
+      for (std::size_t j = 0; j < model->mDependentGenCoords.size(); ++j) {
         if( model->mDependentGenCoords[j]->mUpStream2DJoints.find( model->mFrames2D[i] )
             != model->mDependentGenCoords[j]->mUpStream2DJoints.end() ) {
           mat_sub_block< Matrix1 > subJac
@@ -533,7 +533,7 @@ private:
         RowInd++;
       };
 
-      for( unsigned int j = 0; j < model->mDependent2DFrames.size(); ++j ) {
+      for (std::size_t j = 0; j < model->mDependent2DFrames.size(); ++j) {
         if( model->mDependent2DFrames[j]->mUpStream2DJoints.find( model->mFrames2D[i] )
             != model->mDependent2DFrames[j]->mUpStream2DJoints.end() ) {
           mat_sub_block< Matrix1 > subJac
@@ -555,7 +555,7 @@ private:
         RowInd += 3;
       };
 
-      for( unsigned int j = 0; j < model->mDependent3DFrames.size(); ++j ) {
+      for (std::size_t j = 0; j < model->mDependent3DFrames.size(); ++j) {
         if( model->mDependent3DFrames[j]->mUpStream2DJoints.find( model->mFrames2D[i] )
             != model->mDependent3DFrames[j]->mUpStream2DJoints.end() ) {
           mat_sub_block< Matrix1 > subJac
@@ -584,10 +584,10 @@ private:
      * *************************************************************************************/
 
     base_i = model->mCoords.size() + 3 * model->mFrames2D.size();
-    for( unsigned int i = 0; i < model->mFrames3D.size(); ++i ) {
+    for (std::size_t i = 0; i < model->mFrames3D.size(); ++i) {
       RowInd = 0;
 
-      for( unsigned int j = 0; j < model->mDependentGenCoords.size(); ++j ) {
+      for (std::size_t j = 0; j < model->mDependentGenCoords.size(); ++j) {
         if( model->mDependentGenCoords[j]->mUpStreamJoints.find( model->mCoords[i] )
             != model->mDependentGenCoords[j]->mUpStreamJoints.end() ) {
           mat_sub_block< Matrix1 > subJac
@@ -604,7 +604,7 @@ private:
         RowInd++;
       };
 
-      for( unsigned int j = 0; j < model->mDependent2DFrames.size(); ++j ) {
+      for (std::size_t j = 0; j < model->mDependent2DFrames.size(); ++j) {
         if( model->mDependent2DFrames[j]->mUpStream3DJoints.find( model->mFrames3D[i] )
             != model->mDependent2DFrames[j]->mUpStream3DJoints.end() ) {
           mat_sub_block< Matrix1 > subJac
@@ -626,7 +626,7 @@ private:
         RowInd += 3;
       };
 
-      for( unsigned int j = 0; j < model->mDependent3DFrames.size(); ++j ) {
+      for (std::size_t j = 0; j < model->mDependent3DFrames.size(); ++j) {
         if( model->mDependent3DFrames[j]->mUpStream3DJoints.find( model->mFrames3D[i] )
             != model->mDependent3DFrames[j]->mUpStream3DJoints.end() ) {
           mat_sub_block< Matrix1 > subJac
@@ -979,7 +979,7 @@ public:
   manip_clik_calculator( manipulator_kinematics_model* aModel,
                          const shared_ptr< const optim::cost_evaluator >& aCostEvaluator
                          = shared_ptr< const optim::cost_evaluator >(),
-                         double aMaxRadius = 1.0, double aMu = 0.1, unsigned int aMaxIter = 300, double aTol = 1e-6,
+                         double aMaxRadius = 1.0, double aMu = 0.1, std::size_t aMaxIter = 300, double aTol = 1e-6,
                          double aEta = 1e-3, double aTau = 0.99 )
       : model( aModel ), cost_eval( aCostEvaluator ),
         optimizer( optim::oop_cost_function( aCostEvaluator ), optim::oop_cost_grad( aCostEvaluator ),

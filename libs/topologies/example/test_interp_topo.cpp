@@ -156,8 +156,7 @@ void try_interpolation( const std::string& aMethodName, const std::string& aTest
 
       ++succ_count;
 
-    } catch( std::exception& e ) {
-    };
+    } catch (std::exception& e) {RK_UNUSED(e); };
   };
 };
 
@@ -409,13 +408,13 @@ void perform_mc_tests( const po::variables_map& vm, std::size_t dyn_sp_dim ) {
                  << "\t Graceful Failures: " << svp_Ndof_graceful_fails << "\n"
                  << "\t Total num. of trials: " << total_segments << "\n"
                  << "\t Success-rate: " << ( 100.0 * double( svp_Ndof_succ_count ) / double( total_segments ) )
-                 << "\%\n"
+                 << "%\n"
                  << "\t Graceful-fail-rate: "
-                 << ( 100.0 * double( svp_Ndof_graceful_fails ) / double( total_segments ) ) << "\%\n"
+                 << ( 100.0 * double( svp_Ndof_graceful_fails ) / double( total_segments ) ) << "%\n"
                  << "\t Hard-fail-rate: "
                  << ( 100.0
                       * ( 1.0 - double( svp_Ndof_succ_count + svp_Ndof_graceful_fails ) / double( total_segments ) ) )
-                 << "\%." << std::endl;
+                 << "%." << std::endl;
 #endif
 #ifdef RK_ENABLE_TEST_SAP_NDOF_INTERPOLATOR
   if( vm.count( "all-interpolators" ) || vm.count( "sap-Ndof" ) )
@@ -425,13 +424,13 @@ void perform_mc_tests( const po::variables_map& vm, std::size_t dyn_sp_dim ) {
                  << "\t Graceful Failures: " << sap_Ndof_graceful_fails << "\n"
                  << "\t Total num. of trials: " << total_segments << "\n"
                  << "\t Success-rate: " << ( 100.0 * double( sap_Ndof_succ_count ) / double( total_segments ) )
-                 << "\%\n"
+                 << "%\n"
                  << "\t Graceful-fail-rate: "
-                 << ( 100.0 * double( sap_Ndof_graceful_fails ) / double( total_segments ) ) << "\%\n"
+                 << ( 100.0 * double( sap_Ndof_graceful_fails ) / double( total_segments ) ) << "%\n"
                  << "\t Hard-fail-rate: "
                  << ( 100.0
                       * ( 1.0 - double( sap_Ndof_succ_count + sap_Ndof_graceful_fails ) / double( total_segments ) ) )
-                 << "\%." << std::endl;
+                 << "%." << std::endl;
 #endif
 
   succ_reports.close();

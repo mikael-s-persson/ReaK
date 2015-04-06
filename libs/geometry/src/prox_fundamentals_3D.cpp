@@ -551,7 +551,7 @@ int EPA_add_face( std::vector< EPA_face_info >& epa_faces, std::vector< int >& g
   int result;
   if( graveyard.empty() ) {
     // create a new face:
-    result = epa_faces.size();
+    result = static_cast<int>(epa_faces.size());
     epa_faces.push_back( EPA_face_info( result, epa_pts, epa_edges, e1, e2, e3 ) );
   } else {
     // resurrect a face from the graveyard:
@@ -912,12 +912,12 @@ proximity_record_3D findProximityByGJKEPA( const support_func_base& aSFunc1, con
     //               << epa_pts.back().s2 << " cso = " << epa_pts.back().cso << std::endl;
 
     // Add edges to the new support point:
-    int e1 = epa_edges.size();
-    epa_edges.push_back( EPA_edge_info( epa_pts, epa_faces[f_sol].v[0], epa_pts.size() - 1 ) );
+    int e1 = static_cast<int>(epa_edges.size());
+    epa_edges.push_back( EPA_edge_info( epa_pts, epa_faces[f_sol].v[0], static_cast<int>(epa_pts.size() - 1) ) );
     int e2 = e1 + 1;
-    epa_edges.push_back( EPA_edge_info( epa_pts, epa_faces[f_sol].v[1], epa_pts.size() - 1 ) );
+    epa_edges.push_back(EPA_edge_info(epa_pts, epa_faces[f_sol].v[1], static_cast<int>(epa_pts.size() - 1)));
     int e3 = e2 + 1;
-    epa_edges.push_back( EPA_edge_info( epa_pts, epa_faces[f_sol].v[2], epa_pts.size() - 1 ) );
+    epa_edges.push_back(EPA_edge_info(epa_pts, epa_faces[f_sol].v[2], static_cast<int>(epa_pts.size() - 1)));
 
     double best_new_dist = std::numeric_limits< double >::infinity();
 

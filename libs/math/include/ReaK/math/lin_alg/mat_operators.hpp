@@ -787,7 +787,7 @@ typename boost::lazy_enable_if< boost::mpl::and_< is_readable_matrix< Matrix >, 
     throw std::range_error( "Matrix dimension mismatch." );
   typedef typename mat_traits< Matrix >::value_type ValueType;
   typedef typename mat_traits< Matrix >::size_type SizeType;
-  result_type result( M.get_row_count() );
+  result_type result; result.resize(M.get_row_count());
   for( SizeType i = 0; i < M.get_row_count(); ++i ) {
     result[i] = ValueType( 0.0 );
     for( SizeType j = 0; j < M.get_col_count(); ++j )

@@ -69,6 +69,11 @@ struct vect_traits {
   BOOST_STATIC_CONSTANT( std::size_t, dimensions = Vector::dimensions );
 };
 
+template < typename Vector >
+struct vect_value_type {
+  typedef typename vect_traits< Vector >::value_type type;
+};
+
 /**
  * This meta-function provides the vector type needed as a destination type for a
  * copy (deep-copy) of a given vector type.

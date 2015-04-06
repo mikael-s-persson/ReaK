@@ -112,14 +112,12 @@ public:
   typedef arithmetic_tuple< T... > self;
 
 public:
-  constexpr arithmetic_tuple() : arithmetic_tuple_base_class(){};
-
-  explicit arithmetic_tuple( const T&... t ) : arithmetic_tuple_base_class( t... ){};
-
+  
   template < typename... U >
   explicit arithmetic_tuple( U&&... u )
       : arithmetic_tuple_base_class( std::forward< U >( u )... ){};
 
+#if 0
 #ifndef BOOST_NO_CXX11_DEFAULTED_FUNCTIONS
 
   arithmetic_tuple( const self& ) = default;
@@ -128,6 +126,7 @@ public:
   self& operator=( const self& ) = default;
   self& operator=( self&& ) = default;
 
+#endif
 #endif
 
   // TODO: missing other standard-specified constructors (with other tuple types, and std::pair).
@@ -171,7 +170,7 @@ public:
   typedef boost::tuples::tuple< T... > arithmetic_tuple_base_class;
 
 public:
-  constexpr arithmetic_tuple() : arithmetic_tuple_base_class(){};
+  arithmetic_tuple() : arithmetic_tuple_base_class(){};
 
   explicit arithmetic_tuple( const T&... t ) : arithmetic_tuple_base_class( t... ){};
 

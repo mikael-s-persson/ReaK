@@ -114,7 +114,7 @@ struct ProperMetricSpaceConcept {
 
 
 template < typename MetricSpace >
-typename boost::enable_if< is_metric_space< MetricSpace >, get_proper_metric< MetricSpace > >::type::type
+typename boost::lazy_enable_if< is_metric_space< MetricSpace >, get_proper_metric< MetricSpace > >::type
   get( proper_metric_t, const MetricSpace& space ) {
   typedef typename get_proper_metric< MetricSpace >::type ResultType;
   return ResultType( get( distance_metric, space ) );

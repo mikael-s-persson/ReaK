@@ -81,7 +81,7 @@ struct state_to_output_map : public named_object {
    * \note This specialization is used for temporal state-spaces.
    */
   template < typename StateSpace, typename OutputSpace >
-  typename boost::enable_if< pp::is_temporal_space< StateSpace >, pp::topology_traits< OutputSpace > >::type::point_type
+  typename boost::lazy_enable_if< pp::is_temporal_space< StateSpace >, pp::topology_point_type< OutputSpace > >::type
     map_to_space( const typename pp::topology_traits< StateSpace >::point_type& p, const StateSpace& ss_space,
                   const OutputSpace& ) const {
     typedef typename ss_system_traits< StateSpaceSystem >::input_type Input;
@@ -101,8 +101,8 @@ struct state_to_output_map : public named_object {
    * \note This specialization is used for non-temporal state-spaces.
    */
   template < typename StateSpace, typename OutputSpace >
-  typename boost::disable_if< pp::is_temporal_space< StateSpace >,
-                              pp::topology_traits< OutputSpace > >::type::point_type
+  typename boost::lazy_disable_if< pp::is_temporal_space< StateSpace >,
+                              pp::topology_point_type< OutputSpace > >::type
     map_to_space( const typename pp::topology_traits< StateSpace >::point_type& p, const StateSpace& ss_space,
                   const OutputSpace& ) const {
     typedef typename ss_system_traits< StateSpaceSystem >::input_type Input;

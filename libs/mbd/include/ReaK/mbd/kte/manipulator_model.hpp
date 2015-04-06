@@ -154,19 +154,19 @@ public:
    * Get the total number of position values for all the joint frames concatenated.
    * \return The total number of position values for all the joint frames concatenated.
    */
-  unsigned int getJointPositionsCount() const { return mCoords.size() + 4 * mFrames2D.size() + 7 * mFrames3D.size(); };
+  std::size_t getJointPositionsCount() const { return mCoords.size() + 4 * mFrames2D.size() + 7 * mFrames3D.size(); };
 
   /**
    * Get the total number of velocity values for all the joint frames concatenated.
    * \return The total number of velocity values for all the joint frames concatenated.
    */
-  unsigned int getJointVelocitiesCount() const { return mCoords.size() + 3 * mFrames2D.size() + 6 * mFrames3D.size(); };
+  std::size_t getJointVelocitiesCount() const { return mCoords.size() + 3 * mFrames2D.size() + 6 * mFrames3D.size(); };
 
   /**
    * Get the total number of acceleration values for all the joint frames concatenated.
    * \return The total number of acceleration values for all the joint frames concatenated.
    */
-  unsigned int getJointAccelerationsCount() const {
+  std::size_t getJointAccelerationsCount() const {
     return mCoords.size() + 3 * mFrames2D.size() + 6 * mFrames3D.size();
   };
 
@@ -174,7 +174,7 @@ public:
    * Get the total number of position values for all the dependent frames concatenated.
    * \return The total number of position values for all the dependent frames concatenated.
    */
-  unsigned int getDependentPositionsCount() const {
+  std::size_t getDependentPositionsCount() const {
     return mDependentGenCoords.size() + 4 * mDependent2DFrames.size() + 7 * mDependent3DFrames.size();
   };
 
@@ -182,7 +182,7 @@ public:
    * Get the total number of velocity values for all the dependent frames concatenated.
    * \return The total number of velocity values for all the dependent frames concatenated.
    */
-  unsigned int getDependentVelocitiesCount() const {
+  std::size_t getDependentVelocitiesCount() const {
     return mDependentGenCoords.size() + 3 * mDependent2DFrames.size() + 6 * mDependent3DFrames.size();
   };
 
@@ -190,7 +190,7 @@ public:
    * Get the total number of acceleration values for all the dependent frames concatenated.
    * \return The total number of acceleration values for all the dependent frames concatenated.
    */
-  unsigned int getDependentAccelerationsCount() const {
+  std::size_t getDependentAccelerationsCount() const {
     return mDependentGenCoords.size() + 3 * mDependent2DFrames.size() + 6 * mDependent3DFrames.size();
   };
 
@@ -491,20 +491,20 @@ public:
    * Get the total number of state values for all the joint frames concatenated.
    * \return The total number of state values for all the joint frames concatenated.
    */
-  unsigned int getJointStatesCount() const { return getJointPositionsCount() + getJointVelocitiesCount(); };
+  std::size_t getJointStatesCount() const { return getJointPositionsCount() + getJointVelocitiesCount(); };
 
   /**
    * Get the total number of state values for all the dependent frames concatenated.
    * \return The total number of state values for all the dependent frames concatenated.
    */
-  unsigned int getDependentStatesCount() const { return getDependentPositionsCount() + getDependentVelocitiesCount(); };
+  std::size_t getDependentStatesCount() const { return getDependentPositionsCount() + getDependentVelocitiesCount(); };
 
   /**
    * Get the total number of KTE system inputs, if all concatenated in one vector.
    * \return The total number of KTE system inputs, if all concatenated in one vector.
    */
-  unsigned int getInputsCount() const {
-    unsigned int result = 0;
+  std::size_t getInputsCount() const {
+    std::size_t result = 0;
     for( std::vector< shared_ptr< system_input > >::const_iterator it = mInputs.begin(); it != mInputs.end(); ++it )
       result += ( *it )->getInputCount();
     return result;
@@ -514,8 +514,8 @@ public:
    * Get the total number of KTE system outputs, if all concatenated in one vector.
    * \return The total number of KTE system outputs, if all concatenated in one vector.
    */
-  unsigned int getOutputsCount() const {
-    unsigned int result = 0;
+  std::size_t getOutputsCount() const {
+    std::size_t result = 0;
     for( std::vector< shared_ptr< system_output > >::const_iterator it = mOutputs.begin(); it != mOutputs.end(); ++it )
       result += ( *it )->getOutputCount();
     return result;

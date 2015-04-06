@@ -92,7 +92,7 @@ struct fletcher_reeves_beta {
    * \return The FR-beta value.
    */
   template < typename Vector >
-  typename boost::enable_if< is_readable_vector< Vector >, vect_traits< Vector > >::type::value_type
+  typename boost::lazy_enable_if< is_readable_vector< Vector >, vect_value_type< Vector > >::type
     operator()( const Vector& dx, const Vector& dx_prev, const Vector& p ) const {
     return detail::fletcher_reeves_beta_impl< typename vect_traits< Vector >::value_type >( dx, dx_prev, p );
   };
@@ -130,7 +130,7 @@ struct polak_ribiere_beta {
    * \return The PR-beta value.
    */
   template < typename Vector >
-  typename boost::enable_if< is_readable_vector< Vector >, vect_traits< Vector > >::type::value_type
+  typename boost::lazy_enable_if< is_readable_vector< Vector >, vect_value_type< Vector > >::type
     operator()( const Vector& dx, const Vector& dx_prev, const Vector& p ) const {
     return detail::polak_ribiere_beta_impl< typename vect_traits< Vector >::value_type >( dx, dx_prev, p );
   };
@@ -205,7 +205,7 @@ struct dai_yuan_beta {
    * \return The DY-beta value.
    */
   template < typename Vector >
-  typename boost::enable_if< is_readable_vector< Vector >, vect_traits< Vector > >::type::value_type
+  typename boost::lazy_enable_if< is_readable_vector< Vector >, vect_value_type< Vector > >::type
     operator()( const Vector& dx, const Vector& dx_prev, const Vector& p ) const {
     return detail::dai_yuan_beta_impl< typename vect_traits< Vector >::value_type >( dx, dx_prev, p );
   };
@@ -244,7 +244,7 @@ struct hager_zhang_beta {
    * \return The HZ-beta value.
    */
   template < typename Vector >
-  typename boost::enable_if< is_readable_vector< Vector >, vect_traits< Vector > >::type::value_type
+  typename boost::lazy_enable_if< is_readable_vector< Vector >, vect_value_type< Vector > >::type
     operator()( const Vector& dx, const Vector& dx_prev, const Vector& p ) const {
     return detail::hager_zhang_beta_impl< typename vect_traits< Vector >::value_type >( dx, dx_prev, p );
   };

@@ -24,7 +24,7 @@ add_library(reak_mbd STATIC
   "manip_P3R3R_arm.cpp"
   "manip_SCARA_arm.cpp"
   "manip_SSRMS_arm.cpp"
-  "manipulator_model.cpp"
+#  "manipulator_model.cpp"
   "mass_matrix_calculator.cpp"
   "navigation_model_data.cpp"
   "plane_point_mindist.cpp"

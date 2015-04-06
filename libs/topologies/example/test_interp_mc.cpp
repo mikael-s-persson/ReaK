@@ -154,8 +154,7 @@ void try_interpolation( const std::string& aMethodName, std::size_t& succ_count,
 
     ++succ_count;
 
-  } catch( std::exception& e ) {
-  };
+  } catch (std::exception& e) { RK_UNUSED(e); };
 };
 
 
@@ -346,27 +345,27 @@ void perform_mc_tests( const po::variables_map& vm, std::size_t dyn_sp_dim ) {
 #ifdef RK_ENABLE_TEST_LINEAR_INTERPOLATOR
   if( vm.count( "all-interpolators" ) || vm.count( "linear" ) )
     succ_reports << "Linear interp succeeded " << linear_succ_count << " out of " << mc_runs << " which is "
-                 << ( 100.0 * double( linear_succ_count ) / double( mc_runs ) ) << "\% success-rate." << std::endl;
+                 << ( 100.0 * double( linear_succ_count ) / double( mc_runs ) ) << "% success-rate." << std::endl;
 #endif
 #ifdef RK_ENABLE_TEST_CUBIC_INTERPOLATOR
   if( vm.count( "all-interpolators" ) || vm.count( "cubic" ) )
     succ_reports << "Cubic interp succeeded " << cubic_succ_count << " out of " << mc_runs << " which is "
-                 << ( 100.0 * double( cubic_succ_count ) / double( mc_runs ) ) << "\% success-rate." << std::endl;
+                 << ( 100.0 * double( cubic_succ_count ) / double( mc_runs ) ) << "% success-rate." << std::endl;
 #endif
 #ifdef RK_ENABLE_TEST_QUINTIC_INTERPOLATOR
   if( vm.count( "all-interpolators" ) || vm.count( "quintic" ) )
     succ_reports << "Quintic interp succeeded " << quintic_succ_count << " out of " << mc_runs << " which is "
-                 << ( 100.0 * double( quintic_succ_count ) / double( mc_runs ) ) << "\% success-rate." << std::endl;
+                 << ( 100.0 * double( quintic_succ_count ) / double( mc_runs ) ) << "% success-rate." << std::endl;
 #endif
 #ifdef RK_ENABLE_TEST_SVP_NDOF_INTERPOLATOR
   if( vm.count( "all-interpolators" ) || vm.count( "svp-Ndof" ) )
     succ_reports << "SVP_Ndof interp succeeded " << svp_Ndof_succ_count << " out of " << mc_runs << " which is "
-                 << ( 100.0 * double( svp_Ndof_succ_count ) / double( mc_runs ) ) << "\% success-rate." << std::endl;
+                 << ( 100.0 * double( svp_Ndof_succ_count ) / double( mc_runs ) ) << "% success-rate." << std::endl;
 #endif
 #ifdef RK_ENABLE_TEST_SAP_NDOF_INTERPOLATOR
   if( vm.count( "all-interpolators" ) || vm.count( "sap-Ndof" ) )
     succ_reports << "SAP_Ndof interp succeeded " << sap_Ndof_succ_count << " out of " << mc_runs << " which is "
-                 << ( 100.0 * double( sap_Ndof_succ_count ) / double( mc_runs ) ) << "\% success-rate." << std::endl;
+                 << ( 100.0 * double( sap_Ndof_succ_count ) / double( mc_runs ) ) << "% success-rate." << std::endl;
 #endif
 
   succ_reports.close();

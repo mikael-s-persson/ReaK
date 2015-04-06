@@ -342,6 +342,10 @@ struct mat_traits {
   BOOST_STATIC_CONSTANT( mat_structure::tag, structure = Matrix::structure );
 };
 
+template < typename Matrix >
+struct mat_value_type {
+  typedef typename mat_traits< Matrix >::value_type type;
+};
 
 /*
  * This detail section includes several template specializations which are used

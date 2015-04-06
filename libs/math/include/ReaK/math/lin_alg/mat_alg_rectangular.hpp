@@ -1227,13 +1227,13 @@ typename boost::
                                                                                       mat_structure::square > > >,
                        is_readable_matrix< Matrix > >,
                void >::type
-  set_block( mat< T, Structure, Alignment, Allocator >& M, const Matrix& subM, unsigned int aRowOffset,
-             unsigned int aColOffset ) {
+    set_block(mat< T, Structure, Alignment, Allocator >& M, const Matrix& subM, std::size_t aRowOffset,
+             std::size_t aColOffset ) {
   if( ( aRowOffset + subM.get_row_count() > M.get_row_count() )
       || ( aColOffset + subM.get_col_count() > M.get_col_count() ) )
     throw std::range_error( "Matrix dimension mismatch." );
-  for( unsigned int i = 0; i < subM.get_row_count(); ++i )
-    for( unsigned int j = 0; j < subM.get_col_count(); ++j )
+  for (std::size_t i = 0; i < subM.get_row_count(); ++i)
+    for (std::size_t j = 0; j < subM.get_col_count(); ++j)
       M( i + aRowOffset, j + aColOffset ) = subM( i, j );
 };
 

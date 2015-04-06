@@ -70,8 +70,8 @@ struct augmented_to_state_map : public named_object {
    * \return The state of the augmented-state.
    */
   template < typename AugStateSpace, typename StateSpaceOut >
-  typename boost::enable_if< pp::is_temporal_space< AugStateSpace >,
-                             pp::topology_traits< StateSpaceOut > >::type::point_type
+  typename boost::lazy_enable_if< pp::is_temporal_space< AugStateSpace >,
+                             pp::topology_point_type< StateSpaceOut > >::type
     map_to_space( const typename pp::topology_traits< AugStateSpace >::point_type& b, const AugStateSpace&,
                   const StateSpaceOut& ) const {
     typedef typename pp::topology_traits< StateSpaceOut >::point_type OutPointType;
@@ -88,8 +88,8 @@ struct augmented_to_state_map : public named_object {
    * \return The state of the augmented-state.
    */
   template < typename AugStateSpace, typename StateSpaceOut >
-  typename boost::disable_if< pp::is_temporal_space< AugStateSpace >,
-                              pp::topology_traits< StateSpaceOut > >::type::point_type
+  typename boost::lazy_disable_if< pp::is_temporal_space< AugStateSpace >,
+                              pp::topology_point_type< StateSpaceOut > >::type
     map_to_space( const typename pp::topology_traits< AugStateSpace >::point_type& b, const AugStateSpace&,
                   const StateSpaceOut& ) const {
     typedef typename pp::topology_traits< StateSpaceOut >::point_type OutPointType;

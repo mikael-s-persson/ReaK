@@ -92,6 +92,11 @@ struct point_distribution_traits {
   typedef typename PointDistribution::random_sampler_type random_sampler_type;
 };
 
+template < typename PointDistribution >
+struct point_distribution_random_sampler {
+  typedef typename point_distribution_traits< PointDistribution >::random_sampler_type type;
+};
+
 /**
  * This concept defines the requirements to fulfill in order to model a point distribution
  * as used in ReaK::pp. A point distribution is a special kind of topology which has a

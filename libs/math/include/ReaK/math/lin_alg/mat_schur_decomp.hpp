@@ -1001,7 +1001,7 @@ struct SymQR_linsolver {
  * \author Mikael Persson
  */
 template < typename Matrix1 >
-typename boost::enable_if< is_readable_matrix< Matrix1 >, mat_traits< Matrix1 > >::type::value_type
+typename boost::lazy_enable_if< is_readable_matrix< Matrix1 >, mat_value_type< Matrix1 > >::type
   condition_number_SymQR( const Matrix1& A, typename mat_traits< Matrix1 >::value_type NumTol = 1E-8 ) {
   typedef typename mat_traits< Matrix1 >::value_type ValueType;
   typedef typename mat_traits< Matrix1 >::size_type SizeType;

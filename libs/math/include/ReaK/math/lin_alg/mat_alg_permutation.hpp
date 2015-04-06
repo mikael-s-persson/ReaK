@@ -370,7 +370,7 @@ struct is_square_matrix< mat< T, mat_structure::permutation, Alignment, Allocato
  * \throw std::range_error if matrix and vector dimensions are not proper for multiplication.
  */
 template < typename T, typename Vector, mat_alignment::tag Alignment, typename Allocator >
-typename boost::enable_if< is_readable_vector< Vector >, vect_copy< Vector > >::type::type
+typename boost::lazy_enable_if< is_readable_vector< Vector >, vect_copy< Vector > >::type
   operator*( const mat< T, mat_structure::permutation, Alignment, Allocator >& M, const Vector& V ) {
   if( V.size() != M.get_col_count() )
     throw std::range_error( "Matrix dimension mismatch." );
@@ -391,7 +391,7 @@ typename boost::enable_if< is_readable_vector< Vector >, vect_copy< Vector > >::
  * \throw std::range_error if matrix and vector dimensions are not proper for multiplication.
  */
 template < typename T, typename Vector, mat_alignment::tag Alignment, typename Allocator >
-typename boost::enable_if< is_readable_vector< Vector >, vect_copy< Vector > >::type::type
+typename boost::lazy_enable_if< is_readable_vector< Vector >, vect_copy< Vector > >::type
   operator*( const Vector& V, const mat< T, mat_structure::permutation, Alignment, Allocator >& M ) {
   if( V.size() != M.get_row_count() )
     throw std::range_error( "Matrix dimension mismatch." );

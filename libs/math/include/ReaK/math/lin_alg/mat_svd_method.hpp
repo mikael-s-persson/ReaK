@@ -614,7 +614,7 @@ typename boost::enable_if< is_readable_matrix< Matrix >, typename Matrix::value_
   norm_2( const Matrix& A, typename Matrix::value_type NumTol = 1E-15 ) {
   typedef typename mat_traits< Matrix >::value_type ValueType;
 
-  int nu = ( A.get_row_count() > A.get_col_count() ? A.get_col_count() : A.get_row_count() );
+  std::size_t nu = ( A.get_row_count() > A.get_col_count() ? A.get_col_count() : A.get_row_count() );
   mat< ValueType, mat_structure::rectangular > U( A.get_row_count(), nu );
   mat< ValueType, mat_structure::diagonal > E( nu );
   mat< ValueType, mat_structure::rectangular > V( A.get_col_count(), nu );
