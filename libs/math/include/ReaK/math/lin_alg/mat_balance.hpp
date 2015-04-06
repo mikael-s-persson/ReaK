@@ -62,7 +62,7 @@ typename boost::enable_if< is_fully_writable_matrix< Matrix1 >, void >::type bal
 
   using std::fabs;
   typedef typename mat_traits< Matrix1 >::value_type ValueType;
-  typedef typename mat_traits< Matrix1 >::value_type SizeType;
+  typedef typename mat_traits< Matrix1 >::size_type SizeType;
   using std::frexp;
   using std::ldexp;
 
@@ -139,8 +139,8 @@ typename boost::enable_if< is_fully_writable_matrix< Matrix1 >, void >::type bal
  * Taken from Lemonnier and Van Dooren 2006.
  */
 template < typename Matrix1, typename Matrix2, typename Matrix3, typename Matrix4 >
-typename boost::enable_if_c< is_fully_writable_matrix< Matrix1 >::value && is_fully_writable_matrix< Matrix2 >::value
-                             && is_writable_matrix< Matrix3 >::value && is_writable_matrix< Matrix4 >::value,
+typename boost::enable_if< boost::mpl::and_< is_fully_writable_matrix< Matrix1 >, is_fully_writable_matrix< Matrix2 >,
+                             is_writable_matrix< Matrix3 >, is_writable_matrix< Matrix4 > >,
                              void >::type
   balance_pencil( Matrix1& A, Matrix2& B, Matrix3& Dl, Matrix4& Dr ) {
   if( ( A.get_row_count() != A.get_col_count() ) || ( B.get_row_count() != A.get_row_count() )
@@ -227,7 +227,7 @@ typename boost::enable_if_c< is_fully_writable_matrix< Matrix1 >::value && is_fu
  * Taken from Lemonnier and Van Dooren 2006.
  */
 template < typename Matrix1, typename Matrix2 >
-typename boost::enable_if_c< is_fully_writable_matrix< Matrix1 >::value && is_fully_writable_matrix< Matrix2 >::value,
+typename boost::enable_if< boost::mpl::and_< is_fully_writable_matrix< Matrix1 >, is_fully_writable_matrix< Matrix2 > >,
                              void >::type
   balance_pencil( Matrix1& A, Matrix2& B, vect_n< int >& Dl, vect_n< int >& Dr ) {
   if( ( A.get_row_count() != A.get_col_count() ) || ( B.get_row_count() != A.get_row_count() )
@@ -312,7 +312,7 @@ typename boost::enable_if_c< is_fully_writable_matrix< Matrix1 >::value && is_fu
  * Taken from Lemonnier and Van Dooren 2006.
  */
 template < typename Matrix1, typename Matrix2 >
-typename boost::enable_if_c< is_fully_writable_matrix< Matrix1 >::value && is_fully_writable_matrix< Matrix2 >::value,
+typename boost::enable_if< boost::mpl::and_< is_fully_writable_matrix< Matrix1 >, is_fully_writable_matrix< Matrix2 > >,
                              void >::type
   balance_pencil( Matrix1& A, Matrix2& B ) {
   vect_n< int > Dl( A.get_row_count() );

@@ -91,10 +91,10 @@ namespace ReaK {
  * \author NIST
  */
 template < typename Matrix1, typename Matrix2, typename Matrix3, typename Matrix4 >
-typename boost::enable_if_c< is_readable_matrix< Matrix1 >::value && is_fully_writable_matrix< Matrix2 >::value
-                             && is_writable_matrix< Matrix3 >::value&&( mat_traits< Matrix3 >::structure
-                                                                        == mat_structure::diagonal )
-                             && is_fully_writable_matrix< Matrix4 >::value,
+typename boost::enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >, is_fully_writable_matrix< Matrix2 >,
+                             is_writable_matrix< Matrix3 >, 
+                             boost::mpl::bool_< ( mat_traits< Matrix3 >::structure == mat_structure::diagonal ) >,
+                             is_fully_writable_matrix< Matrix4 > >,
                              void >::type
   decompose_SVD( const Matrix1& A, Matrix2& U, Matrix3& E, Matrix4& V,
                  typename mat_traits< Matrix1 >::value_type NumTol = 1E-15 ) {
@@ -275,7 +275,7 @@ typename boost::enable_if_c< is_readable_matrix< Matrix1 >::value && is_fully_wr
     Ut( j, j ) = 1.0;
   };
 
-  for( int k = nct - 1; k >= 0; --k ) {
+  for( int k = static_cast<int>(nct - 1); k >= 0; --k ) {
     if( fabs( E( k, k ) ) > NumTol ) {
       for( SizeType j = k + 1; j < nu; ++j ) {
         ValueType t = 0;
@@ -299,7 +299,7 @@ typename boost::enable_if_c< is_readable_matrix< Matrix1 >::value && is_fully_wr
 
   // Generate V.
 
-  for( int k = nu - 1; k >= 0; --k ) {
+  for( int k = static_cast<int>(nu - 1); k >= 0; --k ) {
     if( ( SizeType( k ) < nrt ) & ( fabs( e[k] ) > NumTol ) ) {
       for( SizeType j = k + 1; j < nu; ++j ) {
         ValueType t = 0;
@@ -316,7 +316,7 @@ typename boost::enable_if_c< is_readable_matrix< Matrix1 >::value && is_fully_wr
   };
 
   // Main iteration loop for the singular values.
-  int pp = p - 1;
+  int pp = static_cast<int>(p - 1);
   int iter = 0;
   while( p > 0 ) {
     int k = 0;
@@ -335,7 +335,7 @@ typename boost::enable_if_c< is_readable_matrix< Matrix1 >::value && is_fully_wr
     //              are not negligible (qr step).
     // kase = 4     if e(p-1) is negligible (convergence).
 
-    for( k = p - 2; k >= -1; --k ) {
+    for( k = static_cast<int>(p - 2); k >= -1; --k ) {
       if( k == -1 )
         break;
       if( fabs( e[k] ) <= NumTol * ( fabs( E( k, k ) ) + fabs( E( k + 1, k + 1 ) ) ) ) {
@@ -347,7 +347,7 @@ typename boost::enable_if_c< is_readable_matrix< Matrix1 >::value && is_fully_wr
       kase = 4;
     } else {
       int ks;
-      for( ks = p - 1; ks >= k; --ks ) {
+      for( ks = static_cast<int>(p - 1); ks >= k; --ks ) {
         if( ks == k ) {
           break;
         };
@@ -376,7 +376,7 @@ typename boost::enable_if_c< is_readable_matrix< Matrix1 >::value && is_fully_wr
       case 1: {
         ValueType f = e[p - 2];
         e[p - 2] = 0.0;
-        for( int j = p - 2; j >= k; --j ) {
+        for( int j = static_cast<int>(p - 2); j >= k; --j ) {
           ValueType t = sqrt( E( j, j ) * E( j, j ) + f * f );
           ValueType cs = E( j, j ) / t;
           ValueType sn = f / t;
@@ -566,10 +566,10 @@ typename boost::enable_if_c< is_readable_matrix< Matrix1 >::value && is_fully_wr
  */
 template < typename Matrix1, typename Matrix2, typename Matrix3, typename Matrix4 >
 typename boost::
-  enable_if_c< is_readable_matrix< Matrix1 >::value && is_writable_matrix< Matrix2 >::value
-               && is_writable_matrix< Matrix3 >::value&&( mat_traits< Matrix3 >::structure == mat_structure::diagonal )
-               && is_writable_matrix< Matrix4 >::value&&( !is_fully_writable_matrix< Matrix2 >::value
-                                                          || !is_fully_writable_matrix< Matrix4 >::value ),
+  enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >, is_writable_matrix< Matrix2 >,
+               boost::mpl::and_< is_writable_matrix< Matrix3 >, boost::mpl::bool_< (mat_traits< Matrix3 >::structure == mat_structure::diagonal) > >,
+               boost::mpl::and_< is_writable_matrix< Matrix4 >, boost::mpl::or_< boost::mpl::not_< is_fully_writable_matrix< Matrix2 > >,
+                                                          boost::mpl::not_< is_fully_writable_matrix< Matrix4 > > > > >,
                void >::type
   decompose_SVD( const Matrix1& A, Matrix2& U, Matrix3& E, Matrix4& V,
                  typename mat_traits< Matrix1 >::value_type NumTol = 1E-15 ) {
@@ -593,7 +593,7 @@ typename boost::
  * \author Mikael Persson
  */
 template < typename Matrix >
-typename boost::enable_if_c< is_readable_matrix< Matrix >::value, typename mat_traits< Matrix >::value_type >::type
+typename boost::enable_if< is_readable_matrix< Matrix >, typename mat_traits< Matrix >::value_type >::type
   two_norm_SVD( const Matrix& E ) {
   if( E.get_row_count() == 0 )
     throw std::range_error( "No singular values available for 2-norm evaluation!" );
@@ -610,7 +610,7 @@ typename boost::enable_if_c< is_readable_matrix< Matrix >::value, typename mat_t
  * \return the two-norm.
  */
 template < typename Matrix >
-typename boost::enable_if_c< is_readable_matrix< Matrix >::value, typename Matrix::value_type >::type
+typename boost::enable_if< is_readable_matrix< Matrix >, typename Matrix::value_type >::type
   norm_2( const Matrix& A, typename Matrix::value_type NumTol = 1E-15 ) {
   typedef typename mat_traits< Matrix >::value_type ValueType;
 
@@ -636,7 +636,7 @@ typename boost::enable_if_c< is_readable_matrix< Matrix >::value, typename Matri
  * \author Mikael Persson
  */
 template < typename Matrix >
-typename boost::enable_if_c< is_readable_matrix< Matrix >::value, typename mat_traits< Matrix >::value_type >::type
+typename boost::enable_if< is_readable_matrix< Matrix >, typename mat_traits< Matrix >::value_type >::type
   condition_number_SVD( const Matrix& E ) {
   if( E.get_row_count() == 0 )
     throw std::range_error( "No singular values available for condition number evaluation!" );
@@ -655,7 +655,7 @@ typename boost::enable_if_c< is_readable_matrix< Matrix >::value, typename mat_t
  * \author Mikael Persson
  */
 template < typename Matrix >
-typename boost::enable_if_c< is_readable_matrix< Matrix >::value, typename mat_traits< Matrix >::size_type >::type
+typename boost::enable_if< is_readable_matrix< Matrix >, typename mat_traits< Matrix >::size_type >::type
   numrank_SVD( const Matrix& E, typename mat_traits< Matrix >::value_type NumTol = 1E-8 ) {
   using std::fabs;
   typename mat_traits< Matrix >::size_type r = 0;
@@ -681,8 +681,8 @@ typename boost::enable_if_c< is_readable_matrix< Matrix >::value, typename mat_t
  * \author Mikael Persson
  */
 template < typename Matrix1, typename Matrix2, typename Matrix3, typename Matrix4 >
-typename boost::enable_if_c< is_readable_matrix< Matrix1 >::value && is_readable_matrix< Matrix2 >::value
-                             && is_readable_matrix< Matrix3 >::value && is_fully_writable_matrix< Matrix4 >::value,
+typename boost::enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >, is_readable_matrix< Matrix2 >,
+                             is_readable_matrix< Matrix3 >, is_fully_writable_matrix< Matrix4 > >,
                              void >::type
   pseudoinvert_SVD( const Matrix1& U, const Matrix2& E, const Matrix3& V, Matrix4& A_pinv,
                     typename mat_traits< Matrix2 >::value_type NumTol = 1E-15 ) {
@@ -719,9 +719,9 @@ typename boost::enable_if_c< is_readable_matrix< Matrix1 >::value && is_readable
  * \author Mikael Persson
  */
 template < typename Matrix1, typename Matrix2, typename Matrix3, typename Matrix4 >
-typename boost::enable_if_c< is_readable_matrix< Matrix1 >::value && is_readable_matrix< Matrix2 >::value
-                             && is_readable_matrix< Matrix3 >::value && is_writable_matrix< Matrix4 >::value
-                             && !is_fully_writable_matrix< Matrix4 >::value,
+typename boost::enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >, is_readable_matrix< Matrix2 >,
+                             is_readable_matrix< Matrix3 >, is_writable_matrix< Matrix4 >,
+                             boost::mpl::not_< is_fully_writable_matrix< Matrix4 > > >,
                              void >::type
   pseudoinvert_SVD( const Matrix1& U, const Matrix2& E, const Matrix3& V, Matrix4& A_pinv,
                     typename mat_traits< Matrix2 >::value_type NumTol = 1E-15 ) {
@@ -743,14 +743,14 @@ typename boost::enable_if_c< is_readable_matrix< Matrix1 >::value && is_readable
  * \author Mikael Persson
  */
 template < typename Matrix1, typename Matrix2 >
-typename boost::enable_if_c< is_readable_matrix< Matrix1 >::value && is_fully_writable_matrix< Matrix2 >::value,
+typename boost::enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >, is_fully_writable_matrix< Matrix2 > >,
                              void >::type
   pseudoinvert_SVD( const Matrix1& A, Matrix2& A_pinv, typename mat_traits< Matrix1 >::value_type NumTol = 1E-15 ) {
   typedef typename mat_traits< Matrix1 >::value_type ValueType;
   typedef typename mat_traits< Matrix1 >::size_type SizeType;
   using std::fabs;
 
-  int nu = ( A.get_row_count() > A.get_col_count() ? A.get_col_count() : A.get_row_count() );
+  SizeType nu = ( A.get_row_count() > A.get_col_count() ? A.get_col_count() : A.get_row_count() );
   mat< ValueType, mat_structure::rectangular > U( A.get_row_count(), nu );
   mat< ValueType, mat_structure::diagonal > E( nu );
   mat< ValueType, mat_structure::rectangular > V( A.get_col_count(), nu );
@@ -782,8 +782,8 @@ typename boost::enable_if_c< is_readable_matrix< Matrix1 >::value && is_fully_wr
  * \author Mikael Persson
  */
 template < typename Matrix1, typename Matrix2 >
-typename boost::enable_if_c< is_readable_matrix< Matrix1 >::value && is_writable_matrix< Matrix2 >::value
-                             && !is_fully_writable_matrix< Matrix2 >::value,
+typename boost::enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >, is_writable_matrix< Matrix2 >,
+                             boost::mpl::not_< is_fully_writable_matrix< Matrix2 > > >,
                              void >::type
   pseudoinvert_SVD( const Matrix1& A, Matrix2& A_pinv, typename mat_traits< Matrix1 >::value_type NumTol = 1E-15 ) {
   mat< typename mat_traits< Matrix1 >::value_type, mat_structure::rectangular > A_pinv_tmp( A.get_col_count(),

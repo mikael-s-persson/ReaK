@@ -1404,9 +1404,9 @@ void partition_schur_pencil_impl( Matrix1& A, Matrix2& B, Matrix3* Q, Matrix4* Z
  * \author Mikael Persson
  */
 template < typename Matrix1, typename Matrix2, typename Matrix3, typename Matrix4, typename Matrix5 >
-typename boost::enable_if_c< is_readable_matrix< Matrix1 >::value && is_readable_matrix< Matrix2 >::value
-                             && is_readable_matrix< Matrix3 >::value && is_readable_matrix< Matrix4 >::value
-                             && is_fully_writable_matrix< Matrix5 >::value,
+typename boost::enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >, is_readable_matrix< Matrix2 >,
+                             is_readable_matrix< Matrix3 >, is_readable_matrix< Matrix4 >,
+                             is_fully_writable_matrix< Matrix5 > >,
                              void >::type
   solve_care_problem( const Matrix1& A, const Matrix2& B, const Matrix3& Q, const Matrix4& R, Matrix5& P,
                       typename mat_traits< Matrix1 >::value_type NumTol = 1E-8, bool UseBalancing = false ) {
@@ -1502,7 +1502,7 @@ typename boost::enable_if_c< is_readable_matrix< Matrix1 >::value && is_readable
   mat_sub_block< mat< ValueType, mat_structure::square > > subZ21( Z_aug, N, N, N, 0 );
   try {
     linlsq_QR( transpose_view( subZ11 ), P, transpose_view( subZ21 ), NumTol );
-  } catch( singularity_error& e ) {
+  } catch (singularity_error& e) { RK_UNUSED(e);
     throw singularity_error( "The Continuous-time Algebraic Riccati Equation (CARE) cannot be solved! Usually "
                              "indicates that the system is not stabilizable." );
   };
@@ -1549,10 +1549,9 @@ typename boost::enable_if_c< is_readable_matrix< Matrix1 >::value && is_readable
  * \author Mikael Persson
  */
 template < typename Matrix1, typename Matrix2, typename Matrix3, typename Matrix4, typename Matrix5, typename Matrix6 >
-typename boost::enable_if_c< is_readable_matrix< Matrix1 >::value && is_readable_matrix< Matrix2 >::value
-                             && is_readable_matrix< Matrix3 >::value && is_readable_matrix< Matrix4 >::value
-                             && is_fully_writable_matrix< Matrix5 >::value
-                             && is_fully_writable_matrix< Matrix6 >::value,
+typename boost::enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >, is_readable_matrix< Matrix2 >,
+                             is_readable_matrix< Matrix3 >, is_readable_matrix< Matrix4 >,
+                             boost::mpl::and_< is_fully_writable_matrix< Matrix5 >, is_fully_writable_matrix< Matrix6 > > >,
                              void >::type
   solve_IHCT_LQR( const Matrix1& A, const Matrix2& B, const Matrix3& Q, const Matrix4& R, Matrix5& K, Matrix6& P,
                   typename mat_traits< Matrix1 >::value_type NumTol = 1E-8, bool UseBalancing = false ) {
@@ -1594,9 +1593,9 @@ typename boost::enable_if_c< is_readable_matrix< Matrix1 >::value && is_readable
  * \author Mikael Persson
  */
 template < typename Matrix1, typename Matrix2, typename Matrix3, typename Matrix4, typename Matrix5 >
-typename boost::enable_if_c< is_readable_matrix< Matrix1 >::value && is_readable_matrix< Matrix2 >::value
-                             && is_readable_matrix< Matrix3 >::value && is_readable_matrix< Matrix4 >::value
-                             && is_fully_writable_matrix< Matrix5 >::value,
+typename boost::enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >, is_readable_matrix< Matrix2 >,
+                             is_readable_matrix< Matrix3 >, is_readable_matrix< Matrix4 >,
+                             is_fully_writable_matrix< Matrix5 > >,
                              void >::type
   solve_IHCT_LQR( const Matrix1& A, const Matrix2& B, const Matrix3& Q, const Matrix4& R, Matrix5& K,
                   typename mat_traits< Matrix1 >::value_type NumTol = 1E-8, bool UseBalancing = false ) {
@@ -1653,10 +1652,10 @@ typename boost::enable_if_c< is_readable_matrix< Matrix1 >::value && is_readable
  */
 template < typename Matrix1, typename Matrix2, typename Matrix3, typename Matrix4, typename Matrix5, typename Matrix6,
            typename Matrix7 >
-typename boost::enable_if_c< is_readable_matrix< Matrix1 >::value && is_readable_matrix< Matrix2 >::value
-                             && is_readable_matrix< Matrix3 >::value && is_readable_matrix< Matrix4 >::value
-                             && is_fully_writable_matrix< Matrix5 >::value && is_fully_writable_matrix< Matrix6 >::value
-                             && is_fully_writable_matrix< Matrix7 >::value,
+typename boost::enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >, is_readable_matrix< Matrix2 >,
+                             is_readable_matrix< Matrix3 >, is_readable_matrix< Matrix4 >,
+                             boost::mpl::and_< is_fully_writable_matrix< Matrix5 >, is_fully_writable_matrix< Matrix6 >,
+                             is_fully_writable_matrix< Matrix7 > > >,
                              mat_traits< Matrix1 > >::type::size_type
   solve_IHCT_LQR_with_reduction( const Matrix1& A, const Matrix2& B, const Matrix3& Q, const Matrix4& R, Matrix5& K,
                                  Matrix6& P, Matrix7& Qr, typename mat_traits< Matrix1 >::value_type NumTol = 1E-8,
@@ -1748,10 +1747,10 @@ typename boost::enable_if_c< is_readable_matrix< Matrix1 >::value && is_readable
  * \author Mikael Persson
  */
 template < typename Matrix1, typename Matrix2, typename Matrix3, typename Matrix4, typename Matrix5, typename Matrix6 >
-typename boost::enable_if_c< is_readable_matrix< Matrix1 >::value && is_readable_matrix< Matrix2 >::value
-                             && is_readable_matrix< Matrix3 >::value && is_readable_matrix< Matrix4 >::value
-                             && is_fully_writable_matrix< Matrix5 >::value
-                             && is_fully_writable_matrix< Matrix6 >::value,
+typename boost::enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >, is_readable_matrix< Matrix2 >,
+                             is_readable_matrix< Matrix3 >, is_readable_matrix< Matrix4 >,
+                             boost::mpl::and_< is_fully_writable_matrix< Matrix5 >,
+                             is_fully_writable_matrix< Matrix6 > > >,
                              mat_traits< Matrix1 > >::type::size_type
   solve_IHCT_LQR_with_reduction( const Matrix1& A, const Matrix2& B, const Matrix3& Q, const Matrix4& R, Matrix5& K,
                                  Matrix6& P, typename mat_traits< Matrix1 >::value_type NumTol = 1E-8,
@@ -1802,9 +1801,9 @@ typename boost::enable_if_c< is_readable_matrix< Matrix1 >::value && is_readable
  * \author Mikael Persson
  */
 template < typename Matrix1, typename Matrix2, typename Matrix3, typename Matrix4, typename Matrix5 >
-typename boost::enable_if_c< is_readable_matrix< Matrix1 >::value && is_readable_matrix< Matrix2 >::value
-                             && is_readable_matrix< Matrix3 >::value && is_readable_matrix< Matrix4 >::value
-                             && is_fully_writable_matrix< Matrix5 >::value,
+typename boost::enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >, is_readable_matrix< Matrix2 >,
+                             is_readable_matrix< Matrix3 >, is_readable_matrix< Matrix4 >,
+                             is_fully_writable_matrix< Matrix5 > >,
                              mat_traits< Matrix1 > >::type::size_type
   solve_IHCT_LQR_with_reduction( const Matrix1& A, const Matrix2& B, const Matrix3& Q, const Matrix4& R, Matrix5& K,
                                  typename mat_traits< Matrix1 >::value_type NumTol = 1E-8, bool UseBalancing = false ) {
@@ -1852,10 +1851,10 @@ typename boost::enable_if_c< is_readable_matrix< Matrix1 >::value && is_readable
  */
 template < typename Matrix1, typename Matrix2, typename Vector1, typename Matrix3, typename Matrix4, typename Matrix5,
            typename Matrix6, typename Vector2 >
-typename boost::enable_if_c< is_readable_matrix< Matrix1 >::value && is_readable_matrix< Matrix2 >::value
-                             && is_readable_vector< Vector1 >::value && is_readable_matrix< Matrix3 >::value
-                             && is_readable_matrix< Matrix4 >::value && is_fully_writable_matrix< Matrix5 >::value
-                             && is_fully_writable_matrix< Matrix6 >::value && is_writable_vector< Vector2 >::value,
+typename boost::enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >, is_readable_matrix< Matrix2 >,
+                             is_readable_vector< Vector1 >, is_readable_matrix< Matrix3 >,
+                             boost::mpl::and_< is_readable_matrix< Matrix4 >, is_fully_writable_matrix< Matrix5 >,
+                             is_fully_writable_matrix< Matrix6 >, is_writable_vector< Vector2 > > >,
                              void >::type
   solve_IHCT_AQR( const Matrix1& A, const Matrix2& B, const Vector1& c, const Matrix3& Q, const Matrix4& R, Matrix5& K,
                   Matrix6& P, Vector2& u_bias, typename mat_traits< Matrix1 >::value_type NumTol = 1E-8,
@@ -1924,10 +1923,10 @@ typename boost::enable_if_c< is_readable_matrix< Matrix1 >::value && is_readable
  */
 template < typename Matrix1, typename Matrix2, typename Vector1, typename Matrix3, typename Matrix4, typename Matrix5,
            typename Matrix6, typename Vector2 >
-typename boost::enable_if_c< is_readable_matrix< Matrix1 >::value && is_readable_matrix< Matrix2 >::value
-                             && is_readable_vector< Vector1 >::value && is_readable_matrix< Matrix3 >::value
-                             && is_readable_matrix< Matrix4 >::value && is_fully_writable_matrix< Matrix5 >::value
-                             && is_fully_writable_matrix< Matrix6 >::value && is_writable_vector< Vector2 >::value,
+typename boost::enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >, is_readable_matrix< Matrix2 >,
+                             is_readable_vector< Vector1 >, is_readable_matrix< Matrix3 >,
+                             boost::mpl::and_< is_readable_matrix< Matrix4 >, is_fully_writable_matrix< Matrix5 >,
+                             is_fully_writable_matrix< Matrix6 >, is_writable_vector< Vector2 > > >,
                              mat_traits< Matrix1 > >::type::size_type
   solve_IHCT_AQR_with_reduction( const Matrix1& A, const Matrix2& B, const Vector1& c, const Matrix3& Q,
                                  const Matrix4& R, Matrix5& K, Matrix6& P, Vector2& u_bias,
@@ -2029,13 +2028,13 @@ typename boost::enable_if_c< is_readable_matrix< Matrix1 >::value && is_readable
  */
 template < typename Matrix1, typename Matrix2, typename Matrix3, typename Matrix4, typename Matrix5, typename Matrix6,
            typename Matrix7, typename Matrix8, typename Matrix9, typename Matrix10, typename Matrix11 >
-typename boost::enable_if_c< is_readable_matrix< Matrix1 >::value && is_readable_matrix< Matrix2 >::value
-                             && is_readable_matrix< Matrix3 >::value && is_readable_matrix< Matrix4 >::value
-                             && is_readable_matrix< Matrix5 >::value && is_readable_matrix< Matrix6 >::value
-                             && is_readable_matrix< Matrix7 >::value && is_fully_writable_matrix< Matrix8 >::value
-                             && is_fully_writable_matrix< Matrix9 >::value
-                             && is_fully_writable_matrix< Matrix10 >::value
-                             && is_fully_writable_matrix< Matrix11 >::value,
+typename boost::enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >, is_readable_matrix< Matrix2 >,
+boost::mpl::and_< is_readable_matrix< Matrix3 >, is_readable_matrix< Matrix4 >,
+                             is_readable_matrix< Matrix5 >, is_readable_matrix< Matrix6 > >,
+                             boost::mpl::and_< is_readable_matrix< Matrix7 >, is_fully_writable_matrix< Matrix8 >,
+                             is_fully_writable_matrix< Matrix9 >,
+                             is_fully_writable_matrix< Matrix10 >,
+                             is_fully_writable_matrix< Matrix11 > > >,
                              void >::type
   solve_IHCT_LQG( const Matrix1& A, const Matrix2& B, const Matrix3& C, const Matrix4& V, const Matrix5& W,
                   const Matrix6& Q, const Matrix7& R, Matrix8& K, Matrix9& P, Matrix10& L, Matrix11& S,
@@ -2095,11 +2094,11 @@ typename boost::enable_if_c< is_readable_matrix< Matrix1 >::value && is_readable
  */
 template < typename Matrix1, typename Matrix2, typename Matrix3, typename Matrix4, typename Matrix5, typename Matrix6,
            typename Matrix7, typename Matrix8, typename Matrix9 >
-typename boost::enable_if_c< is_readable_matrix< Matrix1 >::value && is_readable_matrix< Matrix2 >::value
-                             && is_readable_matrix< Matrix3 >::value && is_readable_matrix< Matrix4 >::value
-                             && is_readable_matrix< Matrix5 >::value && is_readable_matrix< Matrix6 >::value
-                             && is_readable_matrix< Matrix7 >::value && is_fully_writable_matrix< Matrix8 >::value
-                             && is_fully_writable_matrix< Matrix9 >::value,
+typename boost::enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >, is_readable_matrix< Matrix2 >,
+                             is_readable_matrix< Matrix3 >, is_readable_matrix< Matrix4 >,
+                             boost::mpl::and_< is_readable_matrix< Matrix5 >, is_readable_matrix< Matrix6 >,
+                             is_readable_matrix< Matrix7 >, is_fully_writable_matrix< Matrix8 >,
+                             is_fully_writable_matrix< Matrix9 > > >,
                              void >::type
   solve_IHCT_LQG( const Matrix1& A, const Matrix2& B, const Matrix3& C, const Matrix4& V, const Matrix5& W,
                   const Matrix6& Q, const Matrix7& R, Matrix8& K, Matrix9& L,
@@ -2151,9 +2150,9 @@ typename boost::enable_if_c< is_readable_matrix< Matrix1 >::value && is_readable
  * \author Mikael Persson
  */
 template < typename Matrix1, typename Matrix2, typename Matrix3, typename Matrix4, typename Matrix5 >
-typename boost::enable_if_c< is_readable_matrix< Matrix1 >::value && is_readable_matrix< Matrix2 >::value
-                             && is_readable_matrix< Matrix3 >::value && is_readable_matrix< Matrix4 >::value
-                             && is_fully_writable_matrix< Matrix5 >::value,
+typename boost::enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >, is_readable_matrix< Matrix2 >,
+                             is_readable_matrix< Matrix3 >, is_readable_matrix< Matrix4 >,
+                             is_fully_writable_matrix< Matrix5 > >,
                              void >::type
   solve_dare_problem( const Matrix1& F, const Matrix2& G, const Matrix3& Q, const Matrix4& R, Matrix5& P,
                       typename mat_traits< Matrix1 >::value_type NumTol = 1E-8, bool UseBalancing = false ) {
@@ -2252,7 +2251,7 @@ typename boost::enable_if_c< is_readable_matrix< Matrix1 >::value && is_readable
 
   try {
     linlsq_QR( transpose_view( subZ11 ), P, transpose_view( subZ21 ), NumTol );
-  } catch( singularity_error& e ) {
+  } catch (singularity_error& e) { RK_UNUSED(e);
     throw singularity_error( "The Discrete-time Algebraic Riccati Equation (DARE) cannot be solved! Usually indicates "
                              "that the system is not stabilizable." );
   };
@@ -2298,10 +2297,10 @@ typename boost::enable_if_c< is_readable_matrix< Matrix1 >::value && is_readable
  * \author Mikael Persson
  */
 template < typename Matrix1, typename Matrix2, typename Matrix3, typename Matrix4, typename Matrix5, typename Matrix6 >
-typename boost::enable_if_c< is_readable_matrix< Matrix1 >::value && is_readable_matrix< Matrix2 >::value
-                             && is_readable_matrix< Matrix3 >::value && is_readable_matrix< Matrix4 >::value
-                             && is_fully_writable_matrix< Matrix5 >::value
-                             && is_fully_writable_matrix< Matrix6 >::value,
+typename boost::enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >, is_readable_matrix< Matrix2 >,
+                             is_readable_matrix< Matrix3 >, is_readable_matrix< Matrix4 >,
+                             boost::mpl::and_< is_fully_writable_matrix< Matrix5 >,
+                             is_fully_writable_matrix< Matrix6 > > >,
                              void >::type
   solve_IHDT_LQR( const Matrix1& F, const Matrix2& G, const Matrix3& Q, const Matrix4& R, Matrix5& K, Matrix6& P,
                   typename mat_traits< Matrix1 >::value_type NumTol = 1E-8, bool UseBalancing = false ) {
@@ -2343,9 +2342,9 @@ typename boost::enable_if_c< is_readable_matrix< Matrix1 >::value && is_readable
  * \author Mikael Persson
  */
 template < typename Matrix1, typename Matrix2, typename Matrix3, typename Matrix4, typename Matrix5 >
-typename boost::enable_if_c< is_readable_matrix< Matrix1 >::value && is_readable_matrix< Matrix2 >::value
-                             && is_readable_matrix< Matrix3 >::value && is_readable_matrix< Matrix4 >::value
-                             && is_fully_writable_matrix< Matrix5 >::value,
+typename boost::enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >, is_readable_matrix< Matrix2 >,
+                             is_readable_matrix< Matrix3 >, is_readable_matrix< Matrix4 >,
+                             is_fully_writable_matrix< Matrix5 > >,
                              void >::type
   solve_IHDT_LQR( const Matrix1& F, const Matrix2& G, const Matrix3& Q, const Matrix4& R, Matrix5& K,
                   typename mat_traits< Matrix1 >::value_type NumTol = 1E-8, bool UseBalancing = false ) {
@@ -2399,13 +2398,13 @@ typename boost::enable_if_c< is_readable_matrix< Matrix1 >::value && is_readable
  */
 template < typename Matrix1, typename Matrix2, typename Matrix3, typename Matrix4, typename Matrix5, typename Matrix6,
            typename Matrix7, typename Matrix8, typename Matrix9, typename Matrix10, typename Matrix11 >
-typename boost::enable_if_c< is_readable_matrix< Matrix1 >::value && is_readable_matrix< Matrix2 >::value
-                             && is_readable_matrix< Matrix3 >::value && is_readable_matrix< Matrix4 >::value
-                             && is_readable_matrix< Matrix5 >::value && is_readable_matrix< Matrix6 >::value
-                             && is_readable_matrix< Matrix7 >::value && is_fully_writable_matrix< Matrix8 >::value
-                             && is_fully_writable_matrix< Matrix9 >::value
-                             && is_fully_writable_matrix< Matrix10 >::value
-                             && is_fully_writable_matrix< Matrix11 >::value,
+typename boost::enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >, is_readable_matrix< Matrix2 >,
+boost::mpl::and_< is_readable_matrix< Matrix3 >, is_readable_matrix< Matrix4 >,
+                             is_readable_matrix< Matrix5 >, is_readable_matrix< Matrix6 > >,
+                             boost::mpl::and_< is_readable_matrix< Matrix7 >, is_fully_writable_matrix< Matrix8 >,
+                             is_fully_writable_matrix< Matrix9 >,
+                             is_fully_writable_matrix< Matrix10 >,
+                             is_fully_writable_matrix< Matrix11 > > >,
                              void >::type
   solve_IHDT_LQG( const Matrix1& F, const Matrix2& G, const Matrix3& H, const Matrix4& V, const Matrix5& W,
                   const Matrix6& Q, const Matrix7& R, Matrix8& K, Matrix9& P, Matrix10& L, Matrix11& S,
@@ -2468,11 +2467,11 @@ typename boost::enable_if_c< is_readable_matrix< Matrix1 >::value && is_readable
  */
 template < typename Matrix1, typename Matrix2, typename Matrix3, typename Matrix4, typename Matrix5, typename Matrix6,
            typename Matrix7, typename Matrix8, typename Matrix9 >
-typename boost::enable_if_c< is_readable_matrix< Matrix1 >::value && is_readable_matrix< Matrix2 >::value
-                             && is_readable_matrix< Matrix3 >::value && is_readable_matrix< Matrix4 >::value
-                             && is_readable_matrix< Matrix5 >::value && is_readable_matrix< Matrix6 >::value
-                             && is_readable_matrix< Matrix7 >::value && is_fully_writable_matrix< Matrix8 >::value
-                             && is_fully_writable_matrix< Matrix9 >::value,
+typename boost::enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >, is_readable_matrix< Matrix2 >,
+                             is_readable_matrix< Matrix3 >, is_readable_matrix< Matrix4 >,
+                             boost::mpl::and_< is_readable_matrix< Matrix5 >, is_readable_matrix< Matrix6 >,
+                             is_readable_matrix< Matrix7 >, is_fully_writable_matrix< Matrix8 >,
+                             is_fully_writable_matrix< Matrix9 > > >,
                              void >::type
   solve_IHDT_LQG( const Matrix1& F, const Matrix2& G, const Matrix3& H, const Matrix4& V, const Matrix5& W,
                   const Matrix6& Q, const Matrix7& R, Matrix8& K, Matrix9& L,
@@ -2523,9 +2522,9 @@ typename boost::enable_if_c< is_readable_matrix< Matrix1 >::value && is_readable
  * \author Mikael Persson
  */
 template < typename Matrix1, typename Matrix2, typename Matrix3, typename Matrix4, typename Matrix5 >
-typename boost::enable_if_c< is_readable_matrix< Matrix1 >::value && is_readable_matrix< Matrix2 >::value
-                             && is_readable_matrix< Matrix3 >::value && is_readable_matrix< Matrix4 >::value
-                             && is_fully_writable_matrix< Matrix5 >::value,
+typename boost::enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >, is_readable_matrix< Matrix2 >,
+                             is_readable_matrix< Matrix3 >, is_readable_matrix< Matrix4 >,
+                             is_fully_writable_matrix< Matrix5 > >,
                              void >::type
   solve_ctsf_problem( const Matrix1& A, const Matrix2& B, const Matrix3& C, const Matrix4& D, Matrix5& P,
                       typename mat_traits< Matrix1 >::value_type NumTol = 1E-8, bool UseBalancing = false ) {
@@ -2648,9 +2647,9 @@ typename boost::enable_if_c< is_readable_matrix< Matrix1 >::value && is_readable
  * \author Mikael Persson
  */
 template < typename Matrix1, typename Matrix2, typename Matrix3, typename Matrix4, typename Matrix5 >
-typename boost::enable_if_c< is_readable_matrix< Matrix1 >::value && is_readable_matrix< Matrix2 >::value
-                             && is_readable_matrix< Matrix3 >::value && is_readable_matrix< Matrix4 >::value
-                             && is_fully_writable_matrix< Matrix5 >::value,
+typename boost::enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >, is_readable_matrix< Matrix2 >,
+                             is_readable_matrix< Matrix3 >, is_readable_matrix< Matrix4 >,
+                             is_fully_writable_matrix< Matrix5 > >,
                              void >::type
   solve_dtsf_problem( const Matrix1& F, const Matrix2& G, const Matrix3& H, const Matrix4& J, Matrix5& P,
                       typename mat_traits< Matrix1 >::value_type NumTol = 1E-8, bool UseBalancing = false ) {

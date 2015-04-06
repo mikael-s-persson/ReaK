@@ -82,7 +82,7 @@ namespace detail {}; // detail
 template < typename Matrix1, typename Matrix2, typename Matrix3, typename Matrix4 >
 typename boost::enable_if< boost::mpl::and_< is_fully_writable_matrix< Matrix1 >, is_fully_writable_matrix< Matrix2 >,
                                              is_fully_writable_matrix< Matrix3 >, is_fully_writable_matrix< Matrix4 > >,
-                           mat_traits< Matrix1 > >::type::size_type
+                           std::size_t >::type
   ctrl_reduction( Matrix1& A, Matrix2& B, Matrix3& Q, Matrix4& Z,
                   typename mat_traits< Matrix1 >::value_type NumTol = 1E-8 ) {
   if( ( A.get_row_count() != A.get_col_count() ) || ( B.get_row_count() != A.get_row_count() ) )

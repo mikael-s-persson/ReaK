@@ -133,7 +133,7 @@ public:
   template < typename Matrix >
   explicit rot_mat_2D(
     const Matrix& R,
-    typename boost::enable_if_c< is_readable_matrix< Matrix >::value && !boost::is_same< self, Matrix >::value,
+    typename boost::enable_if< boost::mpl::and_< is_readable_matrix< Matrix >, boost::mpl::not_< boost::is_same< self, Matrix > > >,
                                  void* >::type dummy = nullptr ) {
     if( ( R.get_col_count() != 2 ) || ( R.get_row_count() != 2 ) )
       throw std::range_error( "Right-hand-side of 2D rotation matrix assignment is not a 2x2 matrix!" );
@@ -240,7 +240,7 @@ public:
 #endif
 
   template < typename Matrix >
-  typename boost::enable_if_c< is_readable_matrix< Matrix >::value && !boost::is_same< self, Matrix >::value,
+  typename boost::enable_if< boost::mpl::and_< is_readable_matrix< Matrix >, boost::mpl::not_< boost::is_same< self, Matrix > > >,
                                self& >::type
     operator=( const Matrix& R ) {
     if( ( R.get_col_count() != 2 ) || ( R.get_row_count() != 2 ) )
@@ -263,7 +263,7 @@ public:
   };
 
   template < typename Matrix >
-  typename boost::enable_if_c< is_readable_matrix< Matrix >::value && !boost::is_same< self, Matrix >::value,
+  typename boost::enable_if< boost::mpl::and_< is_readable_matrix< Matrix >, boost::mpl::not_< boost::is_same< self, Matrix > > >,
                                self& >::type
     operator*=( const Matrix& R ) {
     if( ( R.get_col_count() != 2 ) || ( R.get_row_count() != 2 ) )
@@ -292,7 +292,7 @@ public:
    * \test PASSED
    */
   template < typename Matrix >
-  friend typename boost::enable_if_c< is_fully_writable_matrix< Matrix >::value, Matrix >::type
+  friend typename boost::enable_if< is_fully_writable_matrix< Matrix >, Matrix >::type
     operator*( const self& R, const Matrix& M ) {
     if( M.get_row_count() != 2 )
       throw std::range_error( "Matrix M's row count is not 2, cannot perform 2D rotation!" );
@@ -325,7 +325,7 @@ public:
    * \test PASSED
    */
   template < typename Matrix >
-  friend typename boost::enable_if_c< is_fully_writable_matrix< Matrix >::value, Matrix >::type
+  friend typename boost::enable_if< is_fully_writable_matrix< Matrix >, Matrix >::type
     operator*( const Matrix& M, const self& R ) {
     if( M.get_col_count() != 2 )
       throw std::range_error( "Matrix M's column count is not 2, cannot perform 2D rotation!" );
@@ -568,7 +568,7 @@ public:
   template < typename Matrix >
   explicit trans_mat_2D(
     const Matrix& M,
-    typename boost::enable_if_c< is_readable_matrix< Matrix >::value && !boost::is_same< self, Matrix >::value,
+    typename boost::enable_if< boost::mpl::and_< is_readable_matrix< Matrix >, boost::mpl::not_< boost::is_same< self, Matrix > > >,
                                  void* >::type dummy = nullptr ) {
     if( ( M.get_col_count() != 3 ) || ( M.get_row_count() != 3 ) )
       throw std::range_error( "Right-hand-side of 2D transformation matrix assignment is not a 3x3 matrix!" );
@@ -695,7 +695,7 @@ public:
 #endif
 
   template < typename Matrix >
-  typename boost::enable_if_c< is_readable_matrix< Matrix >::value && !boost::is_same< Matrix, self >::value,
+  typename boost::enable_if< boost::mpl::and_< is_readable_matrix< Matrix >, boost::mpl::not_< boost::is_same< Matrix, self > > >,
                                self& >::type
     operator=( const Matrix& M ) {
     if( ( M.get_col_count() != 3 ) || ( M.get_row_count() != 3 ) )
@@ -719,7 +719,7 @@ public:
   self& operator*=( const self& M ) BOOST_NOEXCEPT { return ( *this = ( *this ) * M ); };
 
   template < typename Matrix >
-  typename boost::enable_if_c< is_readable_matrix< Matrix >::value && !boost::is_same< Matrix, self >::value,
+  typename boost::enable_if< boost::mpl::and_< is_readable_matrix< Matrix >, boost::mpl::not_< boost::is_same< Matrix, self > > >,
                                self& >::type
     operator*=( const Matrix& M ) {
     return ( *this = ( *this ) * M );
@@ -755,7 +755,7 @@ public:
    * \test PASSED
    */
   template < typename Matrix >
-  friend typename boost::enable_if_c< is_fully_writable_matrix< Matrix >::value, Matrix >::type
+  friend typename boost::enable_if< is_fully_writable_matrix< Matrix >, Matrix >::type
     operator*( const self& M1, const Matrix& M2 ) {
     if( M2.get_row_count() != 3 )
       throw std::range_error( "Matrix M's row count is not 3, 2D transformation impossible!" );
@@ -774,7 +774,7 @@ public:
    * \test PASSED
    */
   template < typename Matrix >
-  friend typename boost::enable_if_c< is_fully_writable_matrix< Matrix >::value, Matrix >::type
+  friend typename boost::enable_if< is_fully_writable_matrix< Matrix >, Matrix >::type
     operator*( const Matrix& M1, const self& M2 ) {
     if( M1.get_col_count() != 3 )
       throw std::range_error( "Matrix M1's column count is not 3, 2D transformation impossible!" );

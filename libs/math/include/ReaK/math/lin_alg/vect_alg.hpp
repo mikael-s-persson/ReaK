@@ -838,7 +838,7 @@ public:
    * \test PASSED
    */
   template < typename Vector >
-  typename boost::enable_if_c< is_readable_vector< Vector >::value && !boost::is_same< Vector, self >::value,
+  typename boost::enable_if< boost::mpl::and_< is_readable_vector< Vector >, boost::mpl::not_< boost::is_same< Vector, self > > >,
                                self& >::type
     operator=( const Vector& V ) {
     if( Size != V.size() )
@@ -1958,7 +1958,7 @@ public:
    * \test PASSED
    */
   template < typename Vector >
-  typename boost::enable_if_c< is_readable_vector< Vector >::value && !boost::is_same< Vector, self >::value,
+  typename boost::enable_if< boost::mpl::and_< is_readable_vector< Vector >, boost::mpl::not_< boost::is_same< Vector, self > > >,
                                self& >::type
     operator=( const Vector& V ) {
     q.resize( V.size() );

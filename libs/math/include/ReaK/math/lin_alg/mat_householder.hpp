@@ -145,7 +145,7 @@ public:
    * \param NumTol The numerical tolerance used to assume a value to be zero (avoid division by zero).
    */
   template < typename Vector2 >
-  typename boost::enable_if_c< is_readable_vector< Vector2 >::value, void >::type
+  typename boost::enable_if< is_readable_vector< Vector2 >, void >::type
     set( const Vector2& aE, const value_type& NumTol = value_type( 1E-8 ) ) {
     beta = value_type( 0.0 );
     v = aE;
@@ -160,7 +160,7 @@ public:
    * \param NumTol The numerical tolerance used to assume a value to be zero (avoid division by zero).
    */
   template < typename Vector2 >
-  typename boost::enable_if_c< is_readable_vector< Vector2 >::value, void >::type
+  typename boost::enable_if< is_readable_vector< Vector2 >, void >::type
     set_inv( const Vector2& aE, const value_type& NumTol = value_type( 1E-8 ) ) {
     beta = value_type( 0.0 );
     v = aE;
@@ -180,7 +180,7 @@ public:
    */
   template < typename Vector2 >
   explicit householder_matrix( const Vector2& aE, const value_type& NumTol = value_type( 1E-8 ),
-                               typename boost::enable_if_c< is_readable_vector< Vector2 >::value, void* >::type dummy
+                               typename boost::enable_if< is_readable_vector< Vector2 >, void* >::type dummy
                                = nullptr )
       : beta( 0.0 ), v( aE ) {
     calculate_hhv( NumTol );
@@ -334,7 +334,7 @@ struct is_diagonal_matrix< householder_matrix< Vector > > {
  * \param P The Householder reflection which will post-multiply A.
  */
 template < typename Matrix, typename Vector >
-typename boost::enable_if_c< is_fully_writable_matrix< Matrix >::value, void >::type
+typename boost::enable_if< is_fully_writable_matrix< Matrix >, void >::type
   householder_prod( Matrix& A, const householder_matrix< Vector >& P ) {
   typedef typename mat_traits< Matrix >::value_type ValueType;
   typedef typename mat_traits< Matrix >::size_type SizeType;
@@ -363,7 +363,7 @@ typename boost::enable_if_c< is_fully_writable_matrix< Matrix >::value, void >::
  * \param P The Householder reflection which will pre-multiply A.
  */
 template < typename Matrix, typename Vector >
-typename boost::enable_if_c< is_fully_writable_matrix< Matrix >::value, void >::type
+typename boost::enable_if< is_fully_writable_matrix< Matrix >, void >::type
   householder_prod( const householder_matrix< Vector >& P, Matrix& A ) {
   typedef typename mat_traits< Matrix >::value_type ValueType;
   typedef typename mat_traits< Matrix >::size_type SizeType;
@@ -384,7 +384,7 @@ typename boost::enable_if_c< is_fully_writable_matrix< Matrix >::value, void >::
 
 
 template < typename Matrix, typename Vector >
-typename boost::enable_if_c< is_fully_writable_matrix< Matrix >::value, Matrix >::type
+typename boost::enable_if< is_fully_writable_matrix< Matrix >, Matrix >::type
   operator*( const Matrix& A, const householder_matrix< Vector >& P ) {
   Matrix result( A );
   householder_prod( result, P );
@@ -392,7 +392,7 @@ typename boost::enable_if_c< is_fully_writable_matrix< Matrix >::value, Matrix >
 };
 
 template < typename Matrix, typename Vector >
-typename boost::enable_if_c< is_fully_writable_matrix< Matrix >::value, Matrix >::type
+typename boost::enable_if< is_fully_writable_matrix< Matrix >, Matrix >::type
   operator*( const householder_matrix< Vector >& P, const Matrix& A ) {
   Matrix result( A );
   householder_prod( P, result );

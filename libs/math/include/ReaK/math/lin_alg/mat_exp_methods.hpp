@@ -68,8 +68,8 @@ namespace ReaK {
  *
  */
 template < typename Matrix1, typename Matrix2, typename LinearEqSolver >
-typename boost::enable_if_c< is_readable_matrix< Matrix1 >::value && is_square_matrix< Matrix1 >::value
-                             && is_fully_writable_matrix< Matrix2 >::value,
+typename boost::enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >, is_square_matrix< Matrix1 >,
+                             is_fully_writable_matrix< Matrix2 > >,
                              void >::type
   exp_PadeSAS( const Matrix1& A, Matrix2& X, LinearEqSolver linsolve,
                typename mat_traits< Matrix1 >::value_type NumTol = 1E-8 ) {

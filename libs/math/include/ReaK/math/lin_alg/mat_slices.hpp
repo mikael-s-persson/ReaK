@@ -119,7 +119,7 @@ public:
    * \tparam Vector A readable vector type.
    */
   template < typename Vector >
-  typename boost::enable_if_c< is_readable_vector< Vector >::value, self& >::type operator=( const Vector& v ) {
+  typename boost::enable_if< is_readable_vector< Vector >, self& >::type operator=( const Vector& v ) {
     if( v.size() != count )
       throw std::range_error( "Vector dimensions mismatch." );
     for( size_type i = 0; i < count; ++i )
@@ -132,7 +132,7 @@ public:
    * \tparam Vector A readable vector type.
    */
   template < typename Vector >
-  typename boost::enable_if_c< is_readable_vector< Vector >::value, self& >::type operator+=( const Vector& v ) {
+  typename boost::enable_if< is_readable_vector< Vector >, self& >::type operator+=( const Vector& v ) {
     if( v.size() != count )
       throw std::range_error( "Vector dimensions mismatch." );
     for( size_type i = 0; i < count; ++i )
@@ -145,7 +145,7 @@ public:
    * \tparam Vector A readable vector type.
    */
   template < typename Vector >
-  typename boost::enable_if_c< is_readable_vector< Vector >::value, self& >::type operator-=( const Vector& v ) {
+  typename boost::enable_if< is_readable_vector< Vector >, self& >::type operator-=( const Vector& v ) {
     if( v.size() != count )
       throw std::range_error( "Vector dimensions mismatch." );
     for( size_type i = 0; i < count; ++i )
@@ -532,7 +532,7 @@ public:
    * \tparam Vector A readable vector type.
    */
   template < typename Vector >
-  typename boost::enable_if_c< is_readable_vector< Vector >::value, self& >::type operator=( const Vector& v ) {
+  typename boost::enable_if< is_readable_vector< Vector >, self& >::type operator=( const Vector& v ) {
     if( v.size() != count )
       throw std::range_error( "Vector dimensions mismatch." );
     for( size_type i = 0; i < count; ++i )
@@ -545,7 +545,7 @@ public:
    * \tparam Vector A readable vector type.
    */
   template < typename Vector >
-  typename boost::enable_if_c< is_readable_vector< Vector >::value, self& >::type operator+=( const Vector& v ) {
+  typename boost::enable_if< is_readable_vector< Vector >, self& >::type operator+=( const Vector& v ) {
     if( v.size() != count )
       throw std::range_error( "Vector dimensions mismatch." );
     for( size_type i = 0; i < count; ++i )
@@ -558,7 +558,7 @@ public:
    * \tparam Vector A readable vector type.
    */
   template < typename Vector >
-  typename boost::enable_if_c< is_readable_vector< Vector >::value, self& >::type operator-=( const Vector& v ) {
+  typename boost::enable_if< is_readable_vector< Vector >, self& >::type operator-=( const Vector& v ) {
     if( v.size() != count )
       throw std::range_error( "Vector dimensions mismatch." );
     for( size_type i = 0; i < count; ++i )
@@ -909,7 +909,7 @@ struct mat_const_slice_factory {
  * \return A factory class to create a slice from a row or column range and a row or column index.
  */
 template < typename Matrix >
-typename boost::enable_if_c< is_readable_matrix< Matrix >::value, mat_slice_factory< Matrix > >::type
+typename boost::enable_if< is_readable_matrix< Matrix >, mat_slice_factory< Matrix > >::type
   slice( Matrix& M ) {
   return mat_slice_factory< Matrix >( M );
 };
@@ -925,7 +925,7 @@ typename boost::enable_if_c< is_readable_matrix< Matrix >::value, mat_slice_fact
  * \return A factory class to create a slice from a row or column range and a row or column index.
  */
 template < typename Matrix >
-typename boost::enable_if_c< is_readable_matrix< Matrix >::value, mat_const_slice_factory< Matrix > >::type
+typename boost::enable_if< is_readable_matrix< Matrix >, mat_const_slice_factory< Matrix > >::type
   slice( const Matrix& M ) {
   return mat_const_slice_factory< Matrix >( M );
 };

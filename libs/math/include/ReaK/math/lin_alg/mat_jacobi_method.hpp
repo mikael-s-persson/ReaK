@@ -169,12 +169,12 @@ void eigensolve_Jacobi_impl( Matrix1& A, Matrix2& E, Matrix3* Q, typename mat_tr
  * \author Mikael Persson
  */
 template < typename Matrix1, typename Matrix2, typename Matrix3 >
-typename boost::enable_if_c< is_readable_matrix< Matrix1 >::value&&(
-                               ( mat_traits< Matrix1 >::structure == mat_structure::symmetric )
-                               || ( mat_traits< Matrix1 >::structure == mat_structure::tridiagonal ) )
-                             && is_writable_matrix< Matrix2 >::value&&( mat_traits< Matrix2 >::structure
-                                                                        == mat_structure::diagonal )
-                             && is_fully_writable_matrix< Matrix3 >::value,
+typename boost::enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >,
+                             boost::mpl::or_< boost::mpl::bool_< ( mat_traits< Matrix1 >::structure == mat_structure::symmetric ) >,
+                               boost::mpl::bool_< ( mat_traits< Matrix1 >::structure == mat_structure::tridiagonal ) > >,
+                             is_writable_matrix< Matrix2 >, boost::mpl::bool_< ( mat_traits< Matrix2 >::structure
+                                                                        == mat_structure::diagonal ) >,
+                             is_fully_writable_matrix< Matrix3 > >,
                              void >::type
   eigensolve_Jacobi( const Matrix1& A, Matrix2& E, Matrix3& Q,
                      typename mat_traits< Matrix1 >::value_type NumTol = 1E-8 ) {
@@ -196,17 +196,15 @@ typename boost::enable_if_c< is_readable_matrix< Matrix1 >::value&&(
  * \author Mikael Persson
  */
 template < typename Matrix1, typename Matrix2, typename Matrix3 >
-typename boost::enable_if_c< is_readable_matrix< Matrix1 >::value&&(
-                               ( mat_traits< Matrix1 >::structure == mat_structure::symmetric )
-                               || ( mat_traits< Matrix1 >::structure == mat_structure::tridiagonal ) )
-                             && is_writable_matrix< Matrix2 >::value&&(
-                                  ( mat_traits< Matrix2 >::structure == mat_structure::rectangular )
-                                  || ( mat_traits< Matrix2 >::structure == mat_structure::square )
-                                  || ( mat_traits< Matrix2 >::structure == mat_structure::tridiagonal )
-                                  || ( mat_traits< Matrix2 >::structure == mat_structure::upper_triangular )
-                                  || ( mat_traits< Matrix2 >::structure == mat_structure::lower_triangular )
-                                  || ( mat_traits< Matrix2 >::structure == mat_structure::symmetric ) )
-                             && is_fully_writable_matrix< Matrix3 >::value,
+typename boost::enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >,
+                             boost::mpl::or_< boost::mpl::bool_< ( mat_traits< Matrix1 >::structure == mat_structure::symmetric ) >,
+                               boost::mpl::bool_< ( mat_traits< Matrix1 >::structure == mat_structure::tridiagonal ) > >,
+                             is_writable_matrix< Matrix2 >,
+                             boost::mpl::or_< boost::mpl::bool_< ( mat_traits< Matrix2 >::structure == mat_structure::rectangular ) >,
+                               boost::mpl::bool_< ( mat_traits< Matrix2 >::structure == mat_structure::square ) >,
+                               boost::mpl::bool_< (mat_traits< Matrix2 >::structure == mat_structure::tridiagonal) >,
+                               boost::mpl::bool_< (mat_traits< Matrix2 >::structure == mat_structure::symmetric) > >,
+                             is_fully_writable_matrix< Matrix3 > >,
                              void >::type
   eigensolve_Jacobi( const Matrix1& A, Matrix2& E, Matrix3& Q,
                      typename mat_traits< Matrix1 >::value_type NumTol = 1E-8 ) {
@@ -232,10 +230,10 @@ typename boost::enable_if_c< is_readable_matrix< Matrix1 >::value&&(
  * \author Mikael Persson
  */
 template < typename Matrix1, typename Matrix2, typename Matrix3 >
-typename boost::enable_if_c< is_readable_matrix< Matrix1 >::value&&(
-                               ( mat_traits< Matrix1 >::structure == mat_structure::symmetric )
-                               || ( mat_traits< Matrix1 >::structure == mat_structure::tridiagonal ) )
-                             && is_writable_matrix< Matrix2 >::value && is_readable_matrix< Matrix3 >::value,
+typename boost::enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >,
+                             boost::mpl::or_< boost::mpl::bool_< ( mat_traits< Matrix1 >::structure == mat_structure::symmetric ) >,
+                               boost::mpl::bool_< ( mat_traits< Matrix1 >::structure == mat_structure::tridiagonal ) > >,
+                             is_writable_matrix< Matrix2 >, is_readable_matrix< Matrix3 > >,
                              void >::type
   linlsq_Jacobi( const Matrix1& A, Matrix2& x, const Matrix3& b,
                  typename mat_traits< Matrix1 >::value_type NumTol = 1E-8 ) {
@@ -281,10 +279,10 @@ struct Jacobi_linlsqsolver {
  * \author Mikael Persson
  */
 template < typename Matrix1, typename Matrix2 >
-typename boost::enable_if_c< is_readable_matrix< Matrix1 >::value&&(
-                               ( mat_traits< Matrix1 >::structure == mat_structure::symmetric )
-                               || ( mat_traits< Matrix1 >::structure == mat_structure::tridiagonal ) )
-                             && is_writable_matrix< Matrix2 >::value,
+typename boost::enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >,
+                             boost::mpl::or_< boost::mpl::bool_< ( mat_traits< Matrix1 >::structure == mat_structure::symmetric ) >,
+                               boost::mpl::bool_< ( mat_traits< Matrix1 >::structure == mat_structure::tridiagonal ) > >,
+                             is_writable_matrix< Matrix2 > >,
                              void >::type
   pseudoinvert_Jacobi( const Matrix1& A, Matrix2& A_inv, typename mat_traits< Matrix1 >::value_type NumTol = 1E-8 ) {
   typedef typename mat_traits< Matrix1 >::value_type ValueType;
@@ -311,9 +309,9 @@ typename boost::enable_if_c< is_readable_matrix< Matrix1 >::value&&(
  * \author Mikael Persson
  */
 template < typename Matrix >
-typename boost::enable_if_c< is_readable_matrix< Matrix >::value&&(
-                               ( mat_traits< Matrix >::structure == mat_structure::symmetric )
-                               || ( mat_traits< Matrix >::structure == mat_structure::tridiagonal ) ),
+typename boost::enable_if< boost::mpl::and_< is_readable_matrix< Matrix >,
+                             boost::mpl::or_< boost::mpl::bool_< ( mat_traits< Matrix >::structure == mat_structure::symmetric ) >,
+                               boost::mpl::bool_< ( mat_traits< Matrix >::structure == mat_structure::tridiagonal ) > > >,
                              typename mat_traits< Matrix >::value_type >::type
   determinant_Jacobi( const Matrix& A, typename mat_traits< Matrix >::value_type NumTol = 1E-8 ) {
   typedef typename mat_traits< Matrix >::value_type ValueType;

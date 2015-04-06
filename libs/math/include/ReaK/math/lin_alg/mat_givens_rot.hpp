@@ -273,7 +273,7 @@ struct is_diagonal_matrix< givens_rot_matrix< T > > {
  * \param k The second column of A affector by the rotation (default 1).
  */
 template < typename Matrix, typename T >
-typename boost::enable_if_c< is_fully_writable_matrix< Matrix >::value, void >::type
+typename boost::enable_if< is_fully_writable_matrix< Matrix >, void >::type
   givens_rot_prod( Matrix& A, const givens_rot_matrix< T >& G, typename mat_traits< Matrix >::size_type j = 0,
                    typename mat_traits< Matrix >::size_type k = 1 ) {
   typedef typename mat_traits< Matrix >::value_type ValueType;
@@ -303,7 +303,7 @@ typename boost::enable_if_c< is_fully_writable_matrix< Matrix >::value, void >::
  * \param k The second row of A affector by the rotation (default 1).
  */
 template < typename Matrix, typename T >
-typename boost::enable_if_c< is_fully_writable_matrix< Matrix >::value, void >::type
+typename boost::enable_if< is_fully_writable_matrix< Matrix >, void >::type
   givens_rot_prod( const givens_rot_matrix< T >& G, Matrix& A, typename mat_traits< Matrix >::size_type j = 0,
                    typename mat_traits< Matrix >::size_type k = 1 ) {
   typedef typename mat_traits< Matrix >::value_type ValueType;
@@ -324,7 +324,7 @@ typename boost::enable_if_c< is_fully_writable_matrix< Matrix >::value, void >::
 
 
 template < typename Matrix, typename Vector >
-typename boost::enable_if_c< is_fully_writable_matrix< Matrix >::value, Matrix >::type
+typename boost::enable_if< is_fully_writable_matrix< Matrix >, Matrix >::type
   operator*( const Matrix& A, const givens_rot_matrix< Vector >& G ) {
   Matrix result( A );
   givens_rot_prod( result, G );
@@ -332,7 +332,7 @@ typename boost::enable_if_c< is_fully_writable_matrix< Matrix >::value, Matrix >
 };
 
 template < typename Matrix, typename Vector >
-typename boost::enable_if_c< is_fully_writable_matrix< Matrix >::value, Matrix >::type
+typename boost::enable_if< is_fully_writable_matrix< Matrix >, Matrix >::type
   operator*( const givens_rot_matrix< Vector >& G, const Matrix& A ) {
   Matrix result( A );
   givens_rot_prod( G, result );

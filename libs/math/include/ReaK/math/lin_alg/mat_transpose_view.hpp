@@ -245,7 +245,7 @@ public:
    * Standard assignment operator.
    */
   template < typename Matrix2 >
-  typename boost::enable_if_c< is_readable_matrix< Matrix2 >::value, self& >::type operator=( const Matrix2& rhs ) {
+  typename boost::enable_if< is_readable_matrix< Matrix2 >, self& >::type operator=( const Matrix2& rhs ) {
     *m = mat_const_transpose_view< Matrix2 >( rhs );
     return *this;
   };
@@ -348,7 +348,7 @@ public:
    * \test PASSED
    */
   template < typename Matrix2 >
-  typename boost::enable_if_c< is_readable_matrix< Matrix2 >::value, self& >::type operator*=( const Matrix2& M ) {
+  typename boost::enable_if< is_readable_matrix< Matrix2 >, self& >::type operator*=( const Matrix2& M ) {
     *this = *this * M;
     return *this;
   };
@@ -444,19 +444,19 @@ struct is_diagonal_matrix< mat_transpose_view< Matrix > > {
 
 
 template < typename Matrix >
-typename boost::enable_if_c< is_readable_matrix< Matrix >::value, mat_transpose_view< Matrix > >::type
+typename boost::enable_if< is_readable_matrix< Matrix >, mat_transpose_view< Matrix > >::type
   transpose_view( Matrix& M ) {
   return mat_transpose_view< Matrix >( M );
 };
 
 template < typename Matrix >
-typename boost::enable_if_c< is_readable_matrix< Matrix >::value, mat_const_transpose_view< Matrix > >::type
+typename boost::enable_if< is_readable_matrix< Matrix >, mat_const_transpose_view< Matrix > >::type
   transpose_view( const Matrix& M ) {
   return mat_const_transpose_view< Matrix >( M );
 };
 
 template < typename Matrix >
-typename boost::enable_if_c< is_readable_matrix< Matrix >::value, mat_const_transpose_view< Matrix > >::type
+typename boost::enable_if< is_readable_matrix< Matrix >, mat_const_transpose_view< Matrix > >::type
   transpose_view( Matrix&& M ) {
   return mat_const_transpose_view< Matrix >( std::move( M ) );
 };

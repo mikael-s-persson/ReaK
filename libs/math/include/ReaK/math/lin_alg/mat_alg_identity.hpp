@@ -298,7 +298,7 @@ struct has_allocator_matrix< mat< T, mat_structure::identity, Alignment, Allocat
  * \throw std::range_error if matrix and vector dimensions are not proper for multiplication.
  */
 template < typename T, typename Vector, mat_alignment::tag Alignment, typename Allocator >
-typename boost::enable_if_c< is_readable_vector< Vector >::value, Vector >::type
+typename boost::enable_if< is_readable_vector< Vector >, Vector >::type
   operator*( const mat< T, mat_structure::identity, Alignment, Allocator >& M, const Vector& V ) {
   if( V.size() != M.get_col_count() )
     throw std::range_error( "Matrix dimension mismatch." );
@@ -313,7 +313,7 @@ typename boost::enable_if_c< is_readable_vector< Vector >::value, Vector >::type
  * \throw std::range_error if matrix and vector dimensions are not proper for multiplication.
  */
 template < typename T, typename Vector, mat_alignment::tag Alignment, typename Allocator >
-typename boost::enable_if_c< is_readable_vector< Vector >::value, Vector >::type
+typename boost::enable_if< is_readable_vector< Vector >, Vector >::type
   operator*( const Vector& V, const mat< T, mat_structure::identity, Alignment, Allocator >& M ) {
   if( V.size() != M.get_row_count() )
     throw std::range_error( "Matrix dimension mismatch." );
@@ -328,7 +328,7 @@ typename boost::enable_if_c< is_readable_vector< Vector >::value, Vector >::type
  * \throw std::range_error if matrix and vector dimensions are not proper for multiplication.
  */
 template < typename T, mat_alignment::tag Alignment, typename Allocator >
-typename boost::enable_if_c< !is_readable_vector< T >::value && !is_readable_matrix< T >::value,
+typename boost::enable_if< boost::mpl::and_< boost::mpl::not_< is_readable_vector< T > >, boost::mpl::not_< is_readable_matrix< T > > >,
                              mat< T, mat_structure::scalar, Alignment, Allocator > >::type
   operator*( const mat< T, mat_structure::identity, Alignment, Allocator >& M, const T& S ) {
   return mat< T, mat_structure::scalar, Alignment, Allocator >( M.get_row_count(), S );
@@ -342,7 +342,7 @@ typename boost::enable_if_c< !is_readable_vector< T >::value && !is_readable_mat
  * \throw std::range_error if matrix and vector dimensions are not proper for multiplication.
  */
 template < typename T, mat_alignment::tag Alignment, typename Allocator >
-typename boost::enable_if_c< !is_readable_vector< T >::value && !is_readable_matrix< T >::value,
+typename boost::enable_if< boost::mpl::and_< boost::mpl::not_< is_readable_vector< T > >, boost::mpl::not_< is_readable_matrix< T > > >,
                              mat< T, mat_structure::scalar, Alignment, Allocator > >::type
   operator*( const T& S, const mat< T, mat_structure::identity, Alignment, Allocator >& M ) {
   return mat< T, mat_structure::scalar, Alignment, Allocator >( M.get_row_count(), S );
@@ -358,7 +358,7 @@ typename boost::enable_if_c< !is_readable_vector< T >::value && !is_readable_mat
  * \throw std::range_error if matrices' dimensions are not proper for multiplication.
  */
 template <typename T, mat_structure::tag Structure, mat_alignment::tag Alignment, typename Allocator, mat_alignment::tag Alignment2, typename Allocator2>
-typename boost::enable_if_c< mat_product_priority< mat<T,Structure,Alignment,Allocator> >::value <= mat_product_priority< mat<T,mat_structure::identity,Alignment2,Allocator2> >::value,
+typename boost::enable_if< boost::mpl::bool_< (mat_product_priority< mat<T,Structure,Alignment,Allocator> >::value <= mat_product_priority< mat<T,mat_structure::identity,Alignment2,Allocator2> >::value ) >,
  const mat<T,Structure,Alignment,Allocator>& >::type
   operator *(const mat<T,Structure,Alignment,Allocator>& M1, const mat<T,mat_structure::identity,Alignment2,Allocator2>& M2) {
     if(M1.get_col_count() != M2.get_row_count())
@@ -374,7 +374,7 @@ typename boost::enable_if_c< mat_product_priority< mat<T,Structure,Alignment,All
  * \throw std::range_error if matrix dimensions are not proper for multiplication.
  */
 template <typename T, mat_structure::tag Structure, mat_alignment::tag Alignment, typename Allocator, mat_alignment::tag Alignment2, typename Allocator2>
-typename boost::enable_if_c< mat_product_priority< mat<T,Structure,Alignment,Allocator> >::value < mat_product_priority< mat<T,mat_structure::identity,Alignment2,Allocator2> >::value,
+typename boost::enable_if< boost::mpl::bool_< ( mat_product_priority< mat<T,Structure,Alignment,Allocator> >::value < mat_product_priority< mat<T,mat_structure::identity,Alignment2,Allocator2> >::value ) >,
  const mat<T,Structure,Alignment,Allocator>& >::type 
   operator *(const mat<T,mat_structure::identity,Alignment2,Allocator2>& M1, const mat<T,Structure,Alignment,Allocator>& M2) {
     if(M2.get_row_count() != M1.get_col_count())
@@ -394,8 +394,8 @@ typename boost::enable_if_c< mat_product_priority< mat<T,Structure,Alignment,All
  * \test PASSED
  */
 template <typename T, mat_structure::tag Structure, mat_alignment::tag Alignment, typename Allocator, mat_alignment::tag Alignment2, typename Allocator2>
-typename boost::enable_if_c< is_writable_matrix< mat<T,Structure,Alignment,Allocator> >::value &&
-                             (mat_addition_priority< mat<T,Structure,Alignment,Allocator> >::value < mat_addition_priority< mat<T,mat_structure::identity,Alignment2,Allocator2> >::value), 
+typename boost::enable_if< boost::mpl::and_< is_writable_matrix< mat<T,Structure,Alignment,Allocator> >, 
+                           boost::mpl::bool_< (mat_addition_priority< mat<T,Structure,Alignment,Allocator> >::value < mat_addition_priority< mat<T,mat_structure::identity,Alignment2,Allocator2> >::value) > >, 
  mat<T,Structure,Alignment,Allocator> >::type
   operator +(const mat<T,mat_structure::identity,Alignment2,Allocator2>& M1, mat<T,Structure,Alignment,Allocator> M2) {
     if((M2.get_row_count() != M1.get_row_count()) || (M2.get_col_count() != M1.get_col_count()))
@@ -414,8 +414,8 @@ typename boost::enable_if_c< is_writable_matrix< mat<T,Structure,Alignment,Alloc
  * \test PASSED
  */
 template <typename T, mat_structure::tag Structure, mat_alignment::tag Alignment, typename Allocator, mat_alignment::tag Alignment2, typename Allocator2>
-typename boost::enable_if_c< is_writable_matrix< mat<T,Structure,Alignment,Allocator> >::value && 
-                             (mat_addition_priority< mat<T,Structure,Alignment,Allocator> >::value < mat_addition_priority< mat<T,mat_structure::identity,Alignment2,Allocator2> >::value), 
+typename boost::enable_if< boost::mpl::and_< is_writable_matrix< mat<T,Structure,Alignment,Allocator> >, 
+                           boost::mpl::bool_< (mat_addition_priority< mat<T,Structure,Alignment,Allocator> >::value < mat_addition_priority< mat<T,mat_structure::identity,Alignment2,Allocator2> >::value) > >, 
  mat<T,Structure,Alignment,Allocator> >::type
   operator +(mat<T,Structure,Alignment,Allocator> M2, const mat<T,mat_structure::identity,Alignment2,Allocator2>& M1) {
     if((M2.get_row_count() != M1.get_row_count()) || (M2.get_col_count() != M1.get_col_count()))
@@ -450,8 +450,8 @@ mat<T,mat_structure::diagonal,Alignment,Allocator> operator+(const mat<T,mat_str
  * \test PASSED
  */
 template <typename T, mat_structure::tag Structure, mat_alignment::tag Alignment, typename Allocator, mat_alignment::tag Alignment2, typename Allocator2>
-typename boost::enable_if_c< is_writable_matrix< mat<T,Structure,Alignment,Allocator> >::value && 
-                             (mat_addition_priority< mat<T,Structure,Alignment,Allocator> >::value < mat_addition_priority< mat<T,mat_structure::identity,Alignment2,Allocator2> >::value), 
+typename boost::enable_if< boost::mpl::and_< is_writable_matrix< mat<T,Structure,Alignment,Allocator> >::value, 
+                            boost::mpl::bool_< (mat_addition_priority< mat<T,Structure,Alignment,Allocator> >::value < mat_addition_priority< mat<T,mat_structure::identity,Alignment2,Allocator2> >::value) > >, 
  mat<T,Structure,Alignment,Allocator> >::type
   operator -(const mat<T,mat_structure::identity,Alignment2,Allocator2>& M1, const mat<T,Structure,Alignment,Allocator>& M2) {
     if((M2.get_row_count() != M1.get_row_count()) || (M2.get_col_count() != M1.get_col_count()))
@@ -471,8 +471,8 @@ typename boost::enable_if_c< is_writable_matrix< mat<T,Structure,Alignment,Alloc
  * \test PASSED
  */
 template <typename T, mat_structure::tag Structure, mat_alignment::tag Alignment, typename Allocator, mat_alignment::tag Alignment2, typename Allocator2>
-typename boost::enable_if_c< is_writable_matrix< mat<T,Structure,Alignment,Allocator> >::value && 
-                             (mat_addition_priority< mat<T,Structure,Alignment,Allocator> >::value < mat_addition_priority< mat<T,mat_structure::identity,Alignment2,Allocator2> >::value), 
+typename boost::enable_if< boost::mpl::and_< is_writable_matrix< mat<T,Structure,Alignment,Allocator> >,
+                            boost::mpl::bool_< (mat_addition_priority< mat<T,Structure,Alignment,Allocator> >::value < mat_addition_priority< mat<T,mat_structure::identity,Alignment2,Allocator2> >::value) > >, 
  mat<T,Structure,Alignment,Allocator> >::type
   operator -(mat<T,Structure,Alignment,Allocator> M2, const mat<T,mat_structure::identity,Alignment2,Allocator2>& M1) {
     if((M2.get_row_count() != M1.get_row_count()) || (M2.get_col_count() != M1.get_col_count()))

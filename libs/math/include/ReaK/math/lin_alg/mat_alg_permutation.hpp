@@ -61,7 +61,7 @@ public:
   typedef Allocator allocator_type;
 
   typedef T value_type;
-  typedef unsigned int size_type;
+  typedef std::size_t size_type;
   typedef std::ptrdiff_t difference_type;
   typedef std::vector< size_type > container_type;
 

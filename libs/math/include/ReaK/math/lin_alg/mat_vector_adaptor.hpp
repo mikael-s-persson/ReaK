@@ -137,7 +137,7 @@ public:
    * Standard assignment operator.
    */
   template < typename Matrix >
-  typename boost::enable_if_c< is_readable_matrix< Matrix >::value, self& >::type operator=( const Matrix& rhs ) {
+  typename boost::enable_if< is_readable_matrix< Matrix >, self& >::type operator=( const Matrix& rhs ) {
     if( ( rhs.get_row_count() != rowCount ) || ( rhs.get_col_count() != colCount ) )
       throw std::range_error( "Matrix dimensions mismatch." );
     size_type it = offset;
@@ -301,7 +301,7 @@ public:
    * \test PASSED
    */
   template < typename Matrix >
-  typename boost::enable_if_c< is_readable_matrix< Matrix >::value, self& >::type operator*=( const Matrix& M ) {
+  typename boost::enable_if< is_readable_matrix< Matrix >, self& >::type operator*=( const Matrix& M ) {
     if( ( M.get_col_count() != colCount ) || ( M.get_row_count() != colCount ) )
       throw std::range_error( "Matrix Dimension Mismatch." );
     *this = *this * M;
@@ -410,7 +410,7 @@ public:
    * Standard assignment operator.
    */
   template < typename Matrix >
-  typename boost::enable_if_c< is_readable_matrix< Matrix >::value, self& >::type operator=( const Matrix& rhs ) {
+  typename boost::enable_if< is_readable_matrix< Matrix >, self& >::type operator=( const Matrix& rhs ) {
     if( ( rhs.get_row_count() != rowCount ) || ( rhs.get_col_count() != colCount ) )
       throw std::range_error( "Matrix dimensions mismatch." );
     size_type it = offset;
@@ -524,7 +524,7 @@ public:
    * \test PASSED
    */
   template < typename Matrix >
-  typename boost::enable_if_c< is_readable_matrix< Matrix >::value, self& >::type operator*=( const Matrix& M ) {
+  typename boost::enable_if< is_readable_matrix< Matrix >, self& >::type operator*=( const Matrix& M ) {
     if( ( M.get_col_count() != colCount ) || ( M.get_row_count() != colCount ) )
       throw std::range_error( "Matrix Dimension Mismatch." );
     *this = *this * M;
@@ -951,7 +951,7 @@ struct mat_const_vect_adaptor_factory {
  * \tparam Vector A readable vector type.
  */
 template < typename Vector >
-typename boost::enable_if_c< is_readable_vector< Vector >::value, mat_vect_adaptor_factory< Vector > >::type
+typename boost::enable_if< is_readable_vector< Vector >, mat_vect_adaptor_factory< Vector > >::type
   make_mat( Vector& V ) {
   return mat_vect_adaptor_factory< Vector >( V );
 };
@@ -970,7 +970,7 @@ typename boost::enable_if_c< is_readable_vector< Vector >::value, mat_vect_adapt
  * \tparam Vector A readable vector type.
  */
 template < typename Vector >
-typename boost::enable_if_c< is_readable_vector< Vector >::value, mat_const_vect_adaptor_factory< Vector > >::type
+typename boost::enable_if< is_readable_vector< Vector >, mat_const_vect_adaptor_factory< Vector > >::type
   make_mat( const Vector& V ) {
   return mat_const_vect_adaptor_factory< Vector >( V );
 };

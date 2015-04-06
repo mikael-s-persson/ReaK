@@ -72,7 +72,7 @@ struct hamiltonian_mat {
  * \return A hamiltonian matrix which is the star product of M1 and M2.
  */
 template < typename Matrix1, typename Matrix2 >
-typename boost::enable_if_c< is_readable_matrix< Matrix1 >::value && is_readable_matrix< Matrix2 >::value,
+typename boost::enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >, is_readable_matrix< Matrix2 > >,
                              typename hamiltonian_mat< typename mat_traits< Matrix1 >::value_type >::type >::type
   star_product( const Matrix1& M1, const Matrix2& M2 ) {
   typedef typename hamiltonian_mat< ValueType >::type result_type;

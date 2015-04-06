@@ -350,15 +350,15 @@ struct get_type_info< mat_fix< T, Structure, RowCount, ColCount, Alignment >, Ta
 
 /*
 template <typename Matrix1, typename Matrix2>
-typename boost::enable_if_c<
-  is_fully_writable_matrix<Matrix1>::value &&
-  is_resizable_matrix<Matrix1>::value &&
-  is_readable_matrix<Matrix2>::value &&
+typename boost::enable_if< boost::mpl::and_<
+  is_fully_writable_matrix<Matrix1>,
+  is_resizable_matrix<Matrix1>,
+  is_readable_matrix<Matrix2>,
   boost::mpl::or_< boost::mpl::equal_to< boost::mpl::integral_c< mat_structure::tag, mat_traits<Matrix1>::structure>,
                                          boost::mpl::integral_c< mat_structure::tag, mat_structure::square> >,
                    boost::mpl::equal_to< boost::mpl::integral_c< mat_structure::tag, mat_traits<Matrix2>::structure>,
                                          boost::mpl::integral_c< mat_structure::tag, mat_structure::rectangular> >
->::value,
+  > >,
 void >::type append_block_diag(Matrix1& A, const Matrix2& B) {
   typedef typename mat_traits<Matrix1>::size_type SizeType;
   SizeType oldRowCount = A.get_row_count();

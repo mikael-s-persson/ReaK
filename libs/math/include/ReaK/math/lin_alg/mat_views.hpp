@@ -169,7 +169,7 @@ public:
    * Standard assignment operator.
    */
   template < typename Matrix2 >
-  typename boost::enable_if_c< is_readable_matrix< Matrix2 >::value && !boost::is_same< Matrix2, self >::value,
+  typename boost::enable_if< boost::mpl::and_< is_readable_matrix< Matrix2 >, boost::mpl::not_< boost::is_same< Matrix2, self > > >,
                                self& >::type
     operator=( const Matrix2& rhs ) {
     if( ( rhs.get_row_count() != rowCount ) || ( rhs.get_col_count() != colCount ) )
@@ -274,7 +274,7 @@ public:
    * \test PASSED
    */
   template < typename Matrix2 >
-  typename boost::enable_if_c< is_readable_matrix< Matrix2 >::value, self& >::type operator*=( const Matrix2& M ) {
+  typename boost::enable_if< is_readable_matrix< Matrix2 >, self& >::type operator*=( const Matrix2& M ) {
     if( ( M.get_col_count() != colCount ) || ( M.get_row_count() != colCount ) )
       throw std::range_error( "Matrix Dimension Mismatch." );
     *this = *this * M;
@@ -409,7 +409,7 @@ public:
    * Standard assignment operator.
    */
   template < typename Matrix2 >
-  typename boost::enable_if_c< is_readable_matrix< Matrix2 >::value, self& >::type operator=( const Matrix2& rhs ) {
+  typename boost::enable_if< is_readable_matrix< Matrix2 >, self& >::type operator=( const Matrix2& rhs ) {
     if( ( rhs.get_row_count() != rowCount ) || ( rhs.get_col_count() != colCount ) )
       throw std::range_error( "Matrix dimensions mismatch." );
     for( size_type j = 0; j < colCount; ++j )
@@ -512,7 +512,7 @@ public:
    * \test PASSED
    */
   template < typename Matrix2 >
-  typename boost::enable_if_c< is_readable_matrix< Matrix2 >::value, self& >::type operator*=( const Matrix2& M ) {
+  typename boost::enable_if< is_readable_matrix< Matrix2 >, self& >::type operator*=( const Matrix2& M ) {
     if( ( M.get_col_count() != colCount ) || ( M.get_row_count() != colCount ) )
       throw std::range_error( "Matrix Dimension Mismatch." );
     *this = *this * M;
@@ -747,25 +747,25 @@ struct mat_const_sub_block_factory {
 
 
 template < typename Matrix >
-typename boost::enable_if_c< is_readable_matrix< Matrix >::value, mat_sub_block_factory< Matrix > >::type
+typename boost::enable_if< is_readable_matrix< Matrix >, mat_sub_block_factory< Matrix > >::type
   sub( Matrix& M ) {
   return mat_sub_block_factory< Matrix >( M );
 };
 
 template < typename Matrix >
-typename boost::enable_if_c< is_readable_matrix< Matrix >::value, mat_const_sub_block_factory< Matrix > >::type
+typename boost::enable_if< is_readable_matrix< Matrix >, mat_const_sub_block_factory< Matrix > >::type
   sub( const Matrix& M ) {
   return mat_const_sub_block_factory< Matrix >( M );
 };
 
 template < typename Matrix >
-typename boost::enable_if_c< is_readable_matrix< Matrix >::value, mat_copy_sub_block_factory< Matrix > >::type
+typename boost::enable_if< is_readable_matrix< Matrix >, mat_copy_sub_block_factory< Matrix > >::type
   sub_copy( const Matrix& M ) {
   return mat_copy_sub_block_factory< Matrix >( M );
 };
 
 template < typename Matrix >
-typename boost::enable_if_c< is_readable_matrix< Matrix >::value, mat_copy_sub_block_factory< Matrix > >::type
+typename boost::enable_if< is_readable_matrix< Matrix >, mat_copy_sub_block_factory< Matrix > >::type
   sub( Matrix&& M ) {
   return mat_copy_sub_block_factory< Matrix >( std::move( M ) );
 };
@@ -888,7 +888,7 @@ public:
    * Standard assignment operator.
    */
   template < typename Matrix2 >
-  typename boost::enable_if_c< is_readable_matrix< Matrix2 >::value, self& >::type operator=( const Matrix2& rhs ) {
+  typename boost::enable_if< is_readable_matrix< Matrix2 >, self& >::type operator=( const Matrix2& rhs ) {
     if( ( rhs.get_row_count() != rowCount ) || ( rhs.get_col_count() != rowCount ) )
       throw std::range_error( "Matrix dimensions mismatch." );
     for( size_type j = 0; j < rowCount; ++j )
@@ -991,7 +991,7 @@ public:
    * \test PASSED
    */
   template < typename Matrix2 >
-  typename boost::enable_if_c< is_readable_matrix< Matrix2 >::value, self& >::type operator*=( const Matrix2& M ) {
+  typename boost::enable_if< is_readable_matrix< Matrix2 >, self& >::type operator*=( const Matrix2& M ) {
     if( ( M.get_col_count() != rowCount ) || ( M.get_row_count() != rowCount ) )
       throw std::range_error( "Matrix Dimension Mismatch." );
     *this = *this * M;
@@ -1115,7 +1115,7 @@ public:
    * Standard assignment operator.
    */
   template < typename Matrix2 >
-  typename boost::enable_if_c< is_readable_matrix< Matrix2 >::value, self& >::type operator=( const Matrix2& rhs ) {
+  typename boost::enable_if< is_readable_matrix< Matrix2 >, self& >::type operator=( const Matrix2& rhs ) {
     if( ( rhs.get_row_count() != rowCount ) || ( rhs.get_col_count() != rowCount ) )
       throw std::range_error( "Matrix dimensions mismatch." );
     for( size_type j = 0; j < rowCount; ++j )
@@ -1218,7 +1218,7 @@ public:
    * \test PASSED
    */
   template < typename Matrix2 >
-  typename boost::enable_if_c< is_readable_matrix< Matrix2 >::value, self& >::type operator*=( const Matrix2& M ) {
+  typename boost::enable_if< is_readable_matrix< Matrix2 >, self& >::type operator*=( const Matrix2& M ) {
     if( ( M.get_col_count() != rowCount ) || ( M.get_row_count() != rowCount ) )
       throw std::range_error( "Matrix Dimension Mismatch." );
     *this = *this * M;
@@ -1500,7 +1500,7 @@ public:
    * Standard assignment operator.
    */
   template < typename Matrix2 >
-  typename boost::enable_if_c< is_readable_matrix< Matrix2 >::value, self& >::type operator=( const Matrix2& rhs ) {
+  typename boost::enable_if< is_readable_matrix< Matrix2 >, self& >::type operator=( const Matrix2& rhs ) {
     if( ( rhs.get_row_count() != rowCount ) || ( rhs.get_col_count() != rowCount ) )
       throw std::range_error( "Matrix dimensions mismatch." );
     for( size_type j = 0; j < rowCount; ++j )
@@ -1603,7 +1603,7 @@ public:
    * \test PASSED
    */
   template < typename Matrix2 >
-  typename boost::enable_if_c< is_readable_matrix< Matrix2 >::value, self& >::type operator*=( const Matrix2& M ) {
+  typename boost::enable_if< is_readable_matrix< Matrix2 >, self& >::type operator*=( const Matrix2& M ) {
     if( ( M.get_col_count() != rowCount ) || ( M.get_row_count() != rowCount ) )
       throw std::range_error( "Matrix Dimension Mismatch." );
     *this = *this * M;
@@ -1707,7 +1707,7 @@ public:
    * Standard assignment operator.
    */
   template < typename Matrix2 >
-  typename boost::enable_if_c< is_readable_matrix< Matrix2 >::value, self& >::type operator=( const Matrix2& rhs ) {
+  typename boost::enable_if< is_readable_matrix< Matrix2 >, self& >::type operator=( const Matrix2& rhs ) {
     if( ( rhs.get_row_count() != rowCount ) || ( rhs.get_col_count() != rowCount ) )
       throw std::range_error( "Matrix dimensions mismatch." );
     for( size_type j = 1; j < rowCount; ++j )
@@ -1810,7 +1810,7 @@ public:
    * \test PASSED
    */
   template < typename Matrix2 >
-  typename boost::enable_if_c< is_readable_matrix< Matrix2 >::value, self& >::type operator*=( const Matrix2& M ) {
+  typename boost::enable_if< is_readable_matrix< Matrix2 >, self& >::type operator*=( const Matrix2& M ) {
     if( ( M.get_col_count() != rowCount ) || ( M.get_row_count() != rowCount ) )
       throw std::range_error( "Matrix Dimension Mismatch." );
     *this = *this * M;
@@ -2046,7 +2046,7 @@ public:
    * Standard assignment operator.
    */
   template < typename Matrix2 >
-  typename boost::enable_if_c< is_readable_matrix< Matrix2 >::value, self& >::type operator=( const Matrix2& rhs ) {
+  typename boost::enable_if< is_readable_matrix< Matrix2 >, self& >::type operator=( const Matrix2& rhs ) {
     if( ( rhs.get_row_count() != rowCount ) || ( rhs.get_col_count() != rowCount ) )
       throw std::range_error( "Matrix dimensions mismatch." );
     for( size_type i = 0; i < rowCount; ++i )
@@ -2145,7 +2145,7 @@ public:
    * \test PASSED
    */
   template < typename Matrix2 >
-  typename boost::enable_if_c< is_readable_matrix< Matrix2 >::value, self& >::type operator*=( const Matrix2& M ) {
+  typename boost::enable_if< is_readable_matrix< Matrix2 >, self& >::type operator*=( const Matrix2& M ) {
     if( ( M.get_col_count() != rowCount ) || ( M.get_row_count() != rowCount ) )
       throw std::range_error( "Matrix Dimension Mismatch." );
     *this = *this * M;
@@ -2263,7 +2263,7 @@ public:
    * Standard assignment operator.
    */
   template < typename Matrix2 >
-  typename boost::enable_if_c< is_readable_matrix< Matrix2 >::value, self& >::type operator=( const Matrix2& rhs ) {
+  typename boost::enable_if< is_readable_matrix< Matrix2 >, self& >::type operator=( const Matrix2& rhs ) {
     if( ( rhs.get_row_count() != rowCount ) || ( rhs.get_col_count() != rowCount ) )
       throw std::range_error( "Matrix dimensions mismatch." );
     for( size_type i = 0; i < rowCount; ++i )
@@ -2362,7 +2362,7 @@ public:
    * \test PASSED
    */
   template < typename Matrix2 >
-  typename boost::enable_if_c< is_readable_matrix< Matrix2 >::value, self& >::type operator*=( const Matrix2& M ) {
+  typename boost::enable_if< is_readable_matrix< Matrix2 >, self& >::type operator*=( const Matrix2& M ) {
     if( ( M.get_col_count() != rowCount ) || ( M.get_row_count() != rowCount ) )
       throw std::range_error( "Matrix Dimension Mismatch." );
     *this = *this * M;
@@ -2678,25 +2678,25 @@ struct mat_const_sub_sym_block_factory {
 
 
 template < typename Matrix >
-typename boost::enable_if_c< is_readable_matrix< Matrix >::value, mat_sub_sym_block_factory< Matrix > >::type
+typename boost::enable_if< is_readable_matrix< Matrix >, mat_sub_sym_block_factory< Matrix > >::type
   sub_sym( Matrix& M ) {
   return mat_sub_sym_block_factory< Matrix >( M );
 };
 
 template < typename Matrix >
-typename boost::enable_if_c< is_readable_matrix< Matrix >::value, mat_const_sub_sym_block_factory< Matrix > >::type
+typename boost::enable_if< is_readable_matrix< Matrix >, mat_const_sub_sym_block_factory< Matrix > >::type
   sub_sym( const Matrix& M ) {
   return mat_const_sub_sym_block_factory< Matrix >( M );
 };
 
 template < typename Matrix >
-typename boost::enable_if_c< is_readable_matrix< Matrix >::value, mat_copy_sub_sym_block_factory< Matrix > >::type
+typename boost::enable_if< is_readable_matrix< Matrix >, mat_copy_sub_sym_block_factory< Matrix > >::type
   sub_sym_copy( const Matrix& M ) {
   return mat_copy_sub_sym_block_factory< Matrix >( M );
 };
 
 template < typename Matrix >
-typename boost::enable_if_c< is_readable_matrix< Matrix >::value, mat_copy_sub_sym_block_factory< Matrix > >::type
+typename boost::enable_if< is_readable_matrix< Matrix >, mat_copy_sub_sym_block_factory< Matrix > >::type
   sub_sym( Matrix&& M ) {
   return mat_copy_sub_sym_block_factory< Matrix >( std::move( M ) );
 };

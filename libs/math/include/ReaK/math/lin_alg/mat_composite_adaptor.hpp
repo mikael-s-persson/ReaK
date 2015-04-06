@@ -166,7 +166,7 @@ public:
    * \param rhs Right-hand-side of the assignment.
    */
   template < typename Matrix >
-  typename boost::enable_if_c< is_readable_matrix< Matrix >::value && !boost::is_same< Matrix, self >::value,
+  typename boost::enable_if< boost::mpl::and_< is_readable_matrix< Matrix >, boost::mpl::not_< boost::is_same< Matrix, self > > >,
                                self& >::type
     operator=( const Matrix& rhs ) {
     if( ( rhs.get_row_count() != ml.get_row_count() )
@@ -285,7 +285,7 @@ public:
    * \test PASSED
    */
   template < typename Matrix >
-  typename boost::enable_if_c< is_readable_matrix< Matrix >::value, self& >::type operator*=( const Matrix& M ) {
+  typename boost::enable_if< is_readable_matrix< Matrix >, self& >::type operator*=( const Matrix& M ) {
     if( ( M.get_col_count() != get_col_count() ) || ( M.get_row_count() != get_col_count() ) )
       throw std::range_error( "Matrix Dimension Mismatch." );
     *this = *this * M;
@@ -411,7 +411,7 @@ public:
    * \param rhs Right-hand-side of the assignment.
    */
   template < typename Matrix >
-  typename boost::enable_if_c< is_readable_matrix< Matrix >::value, self& >::type operator=( const Matrix& rhs ) {
+  typename boost::enable_if< is_readable_matrix< Matrix >, self& >::type operator=( const Matrix& rhs ) {
     if( ( rhs.get_row_count() != ml->get_row_count() )
         || ( rhs.get_col_count() != ml->get_col_count() + mr->get_col_count() ) )
       throw std::range_error( "Matrix dimensions mismatch." );
@@ -528,7 +528,7 @@ public:
    * \test PASSED
    */
   template < typename Matrix >
-  typename boost::enable_if_c< is_readable_matrix< Matrix >::value, self& >::type operator*=( const Matrix& M ) {
+  typename boost::enable_if< is_readable_matrix< Matrix >, self& >::type operator*=( const Matrix& M ) {
     if( ( M.get_col_count() != get_col_count() ) || ( M.get_row_count() != get_col_count() ) )
       throw std::range_error( "Matrix Dimension Mismatch." );
     *this = *this * M;
@@ -728,7 +728,7 @@ struct has_allocator_matrix< mat_const_ref_horiz_cat< LeftMatrix, RightMatrix > 
  * \return The composite matrix that horizontally concatenates the two given matrices, by copy.
  */
 template < typename LeftMatrix, typename RightMatrix >
-typename boost::enable_if_c< is_readable_matrix< LeftMatrix >::value && is_readable_matrix< RightMatrix >::value,
+typename boost::enable_if< boost::mpl::and_< is_readable_matrix< LeftMatrix >, is_readable_matrix< RightMatrix > >,
                              mat_horiz_cat< LeftMatrix, RightMatrix > >::type
   hcat_copy( const LeftMatrix& ML, const RightMatrix& MR ) {
   return mat_horiz_cat< LeftMatrix, RightMatrix >( ML, MR );
@@ -744,7 +744,7 @@ typename boost::enable_if_c< is_readable_matrix< LeftMatrix >::value && is_reada
  * \return The composite matrix that horizontally concatenates the two given matrices, by reference.
  */
 template < typename LeftMatrix, typename RightMatrix >
-typename boost::enable_if_c< is_readable_matrix< LeftMatrix >::value && is_readable_matrix< RightMatrix >::value,
+typename boost::enable_if< boost::mpl::and_< is_readable_matrix< LeftMatrix >, is_readable_matrix< RightMatrix > >,
                              mat_ref_horiz_cat< LeftMatrix, RightMatrix > >::type
   hcat( LeftMatrix& ML, RightMatrix& MR ) {
   return mat_ref_horiz_cat< LeftMatrix, RightMatrix >( ML, MR );
@@ -760,7 +760,7 @@ typename boost::enable_if_c< is_readable_matrix< LeftMatrix >::value && is_reada
  * \return The composite matrix that horizontally concatenates the two given matrices, by const-reference.
  */
 template < typename LeftMatrix, typename RightMatrix >
-typename boost::enable_if_c< is_readable_matrix< LeftMatrix >::value && is_readable_matrix< RightMatrix >::value,
+typename boost::enable_if< boost::mpl::and_< is_readable_matrix< LeftMatrix >, is_readable_matrix< RightMatrix > >,
                              mat_const_ref_horiz_cat< LeftMatrix, RightMatrix > >::type
   hcat( const LeftMatrix& ML, const RightMatrix& MR ) {
   return mat_const_ref_horiz_cat< LeftMatrix, RightMatrix >( ML, MR );
@@ -777,7 +777,7 @@ typename boost::enable_if_c< is_readable_matrix< LeftMatrix >::value && is_reada
  * \return The composite matrix that horizontally concatenates the two given matrices, by copy.
  */
 template < typename LeftMatrix, typename RightMatrix >
-typename boost::enable_if_c< is_readable_matrix< LeftMatrix >::value && is_readable_matrix< RightMatrix >::value,
+typename boost::enable_if< boost::mpl::and_< is_readable_matrix< LeftMatrix >, is_readable_matrix< RightMatrix > >,
                              mat_horiz_cat< LeftMatrix, RightMatrix > >::type
   hcat( LeftMatrix&& ML, RightMatrix&& MR ) {
   return mat_horiz_cat< LeftMatrix, RightMatrix >( std::move( ML ), std::move( MR ) );
@@ -795,7 +795,7 @@ typename boost::enable_if_c< is_readable_matrix< LeftMatrix >::value && is_reada
  * \return The composite matrix that horizontally concatenates the two given matrices.
  */
 template < typename LeftMatrix, typename RightMatrix >
-typename boost::enable_if_c< is_readable_matrix< LeftMatrix >::value && is_readable_matrix< RightMatrix >::value,
+typename boost::enable_if< boost::mpl::and_< is_readable_matrix< LeftMatrix >, is_readable_matrix< RightMatrix > >,
                              mat_horiz_cat< mat_sub_block< LeftMatrix >, RightMatrix > >::type
   hcat( LeftMatrix& ML, RightMatrix&& MR ) {
   return mat_horiz_cat< mat_sub_block< LeftMatrix >, RightMatrix >( mat_sub_block< LeftMatrix >( ML ),
@@ -814,7 +814,7 @@ typename boost::enable_if_c< is_readable_matrix< LeftMatrix >::value && is_reada
  * \return The composite matrix that horizontally concatenates the two given matrices.
  */
 template < typename LeftMatrix, typename RightMatrix >
-typename boost::enable_if_c< is_readable_matrix< LeftMatrix >::value && is_readable_matrix< RightMatrix >::value,
+typename boost::enable_if< boost::mpl::and_< is_readable_matrix< LeftMatrix >, is_readable_matrix< RightMatrix > >,
                              mat_horiz_cat< LeftMatrix, mat_sub_block< RightMatrix > > >::type
   hcat( LeftMatrix&& ML, RightMatrix& MR ) {
   return mat_horiz_cat< LeftMatrix, mat_sub_block< RightMatrix > >( std::move( ML ),
@@ -833,7 +833,7 @@ typename boost::enable_if_c< is_readable_matrix< LeftMatrix >::value && is_reada
  * \return The composite matrix that horizontally concatenates the two given matrices.
  */
 template < typename LeftMatrix, typename RightMatrix >
-typename boost::enable_if_c< is_readable_matrix< LeftMatrix >::value && is_readable_matrix< RightMatrix >::value,
+typename boost::enable_if< boost::mpl::and_< is_readable_matrix< LeftMatrix >, is_readable_matrix< RightMatrix > >,
                              mat_horiz_cat< mat_const_sub_block< LeftMatrix >, RightMatrix > >::type
   hcat( const LeftMatrix& ML, RightMatrix&& MR ) {
   return mat_horiz_cat< mat_const_sub_block< LeftMatrix >, RightMatrix >( mat_const_sub_block< LeftMatrix >( ML ),
@@ -852,7 +852,7 @@ typename boost::enable_if_c< is_readable_matrix< LeftMatrix >::value && is_reada
  * \return The composite matrix that horizontally concatenates the two given matrices.
  */
 template < typename LeftMatrix, typename RightMatrix >
-typename boost::enable_if_c< is_readable_matrix< LeftMatrix >::value && is_readable_matrix< RightMatrix >::value,
+typename boost::enable_if< boost::mpl::and_< is_readable_matrix< LeftMatrix >, is_readable_matrix< RightMatrix > >,
                              mat_horiz_cat< LeftMatrix, mat_const_sub_block< RightMatrix > > >::type
   hcat( LeftMatrix&& ML, const RightMatrix& MR ) {
   return mat_horiz_cat< LeftMatrix, mat_const_sub_block< RightMatrix > >( std::move( ML ),
@@ -871,7 +871,7 @@ typename boost::enable_if_c< is_readable_matrix< LeftMatrix >::value && is_reada
  * \return The composite matrix that horizontally concatenates the two given matrices, by copy.
  */
 template < typename LeftMatrix, typename RightMatrix >
-typename boost::enable_if_c< is_readable_matrix< LeftMatrix >::value && is_readable_matrix< RightMatrix >::value,
+typename boost::enable_if< boost::mpl::and_< is_readable_matrix< LeftMatrix >, is_readable_matrix< RightMatrix > >,
                              mat_horiz_cat< LeftMatrix, RightMatrix > >::type
   operator&( LeftMatrix&& ML, RightMatrix&& MR ) {
   return mat_horiz_cat< LeftMatrix, RightMatrix >( std::move( ML ), std::move( MR ) );
@@ -889,7 +889,7 @@ typename boost::enable_if_c< is_readable_matrix< LeftMatrix >::value && is_reada
  * \return The composite matrix that horizontally concatenates the two given matrices.
  */
 template < typename LeftMatrix, typename RightMatrix >
-typename boost::enable_if_c< is_readable_matrix< LeftMatrix >::value && is_readable_matrix< RightMatrix >::value,
+typename boost::enable_if< boost::mpl::and_< is_readable_matrix< LeftMatrix >, is_readable_matrix< RightMatrix > >,
                              mat_horiz_cat< mat_sub_block< LeftMatrix >, RightMatrix > >::type
   operator&( LeftMatrix& ML, RightMatrix&& MR ) {
   return mat_horiz_cat< mat_sub_block< LeftMatrix >, RightMatrix >( mat_sub_block< LeftMatrix >( ML ),
@@ -908,7 +908,7 @@ typename boost::enable_if_c< is_readable_matrix< LeftMatrix >::value && is_reada
  * \return The composite matrix that horizontally concatenates the two given matrices.
  */
 template < typename LeftMatrix, typename RightMatrix >
-typename boost::enable_if_c< is_readable_matrix< LeftMatrix >::value && is_readable_matrix< RightMatrix >::value,
+typename boost::enable_if< boost::mpl::and_< is_readable_matrix< LeftMatrix >, is_readable_matrix< RightMatrix > >,
                              mat_horiz_cat< LeftMatrix, mat_sub_block< RightMatrix > > >::type
   operator&( LeftMatrix&& ML, RightMatrix& MR ) {
   return mat_horiz_cat< LeftMatrix, mat_sub_block< RightMatrix > >( std::move( ML ),
@@ -927,7 +927,7 @@ typename boost::enable_if_c< is_readable_matrix< LeftMatrix >::value && is_reada
  * \return The composite matrix that horizontally concatenates the two given matrices.
  */
 template < typename LeftMatrix, typename RightMatrix >
-typename boost::enable_if_c< is_readable_matrix< LeftMatrix >::value && is_readable_matrix< RightMatrix >::value,
+typename boost::enable_if< boost::mpl::and_< is_readable_matrix< LeftMatrix >, is_readable_matrix< RightMatrix > >,
                              mat_horiz_cat< mat_const_sub_block< LeftMatrix >, RightMatrix > >::type
   operator&( const LeftMatrix& ML, RightMatrix&& MR ) {
   return mat_horiz_cat< mat_const_sub_block< LeftMatrix >, RightMatrix >( mat_const_sub_block< LeftMatrix >( ML ),
@@ -946,7 +946,7 @@ typename boost::enable_if_c< is_readable_matrix< LeftMatrix >::value && is_reada
  * \return The composite matrix that horizontally concatenates the two given matrices.
  */
 template < typename LeftMatrix, typename RightMatrix >
-typename boost::enable_if_c< is_readable_matrix< LeftMatrix >::value && is_readable_matrix< RightMatrix >::value,
+typename boost::enable_if< boost::mpl::and_< is_readable_matrix< LeftMatrix >, is_readable_matrix< RightMatrix > >,
                              mat_horiz_cat< LeftMatrix, mat_const_sub_block< RightMatrix > > >::type
   operator&( LeftMatrix&& ML, const RightMatrix& MR ) {
   return mat_horiz_cat< LeftMatrix, mat_const_sub_block< RightMatrix > >( std::move( ML ),
@@ -966,7 +966,7 @@ typename boost::enable_if_c< is_readable_matrix< LeftMatrix >::value && is_reada
  * \return The composite matrix that horizontally concatenates the two given matrices.
  */
 template < typename LeftMatrix, typename RightMatrix >
-typename boost::enable_if_c< is_readable_matrix< LeftMatrix >::value && is_readable_matrix< RightMatrix >::value,
+typename boost::enable_if< boost::mpl::and_< is_readable_matrix< LeftMatrix >, is_readable_matrix< RightMatrix > >,
                              mat_ref_horiz_cat< LeftMatrix, RightMatrix > >::type
   operator&( LeftMatrix& ML, RightMatrix& MR ) {
   return mat_ref_horiz_cat< LeftMatrix, RightMatrix >( ML, MR );
@@ -984,7 +984,7 @@ typename boost::enable_if_c< is_readable_matrix< LeftMatrix >::value && is_reada
  * \return The composite matrix that horizontally concatenates the two given matrices.
  */
 template < typename LeftMatrix, typename RightMatrix >
-typename boost::enable_if_c< is_readable_matrix< LeftMatrix >::value && is_readable_matrix< RightMatrix >::value,
+typename boost::enable_if< boost::mpl::and_< is_readable_matrix< LeftMatrix >, is_readable_matrix< RightMatrix > >,
                              mat_const_ref_horiz_cat< LeftMatrix, RightMatrix > >::type
   operator&( const LeftMatrix& ML, const RightMatrix& MR ) {
   return mat_const_ref_horiz_cat< LeftMatrix, RightMatrix >( ML, MR );
@@ -1091,7 +1091,7 @@ public:
    * \param rhs Right-hand-side of the assignment.
    */
   template < typename Matrix >
-  typename boost::enable_if_c< is_readable_matrix< Matrix >::value && !boost::is_same< Matrix, self >::value,
+  typename boost::enable_if< boost::mpl::and_< is_readable_matrix< Matrix >, boost::mpl::not_< boost::is_same< Matrix, self > > >,
                                self& >::type
     operator=( const Matrix& rhs ) {
     if( ( rhs.get_row_count() != mu.get_row_count() + ml.get_row_count() )
@@ -1210,7 +1210,7 @@ public:
    * \test PASSED
    */
   template < typename Matrix >
-  typename boost::enable_if_c< is_readable_matrix< Matrix >::value, self& >::type operator*=( const Matrix& M ) {
+  typename boost::enable_if< is_readable_matrix< Matrix >, self& >::type operator*=( const Matrix& M ) {
     if( ( M.get_col_count() != get_col_count() ) || ( M.get_row_count() != get_col_count() ) )
       throw std::range_error( "Matrix Dimension Mismatch." );
     *this = *this * M;
@@ -1321,7 +1321,7 @@ public:
    * \param rhs Right-hand-side of the assignment.
    */
   template < typename Matrix >
-  typename boost::enable_if_c< is_readable_matrix< Matrix >::value, self& >::type operator=( const Matrix& rhs ) {
+  typename boost::enable_if< is_readable_matrix< Matrix >, self& >::type operator=( const Matrix& rhs ) {
     if( ( rhs.get_row_count() != mu->get_row_count() + ml->get_row_count() )
         || ( rhs.get_col_count() != mu->get_col_count() ) )
       throw std::range_error( "Matrix dimensions mismatch." );
@@ -1438,7 +1438,7 @@ public:
    * \test PASSED
    */
   template < typename Matrix >
-  typename boost::enable_if_c< is_readable_matrix< Matrix >::value, self& >::type operator*=( const Matrix& M ) {
+  typename boost::enable_if< is_readable_matrix< Matrix >, self& >::type operator*=( const Matrix& M ) {
     if( ( M.get_col_count() != get_col_count() ) || ( M.get_row_count() != get_col_count() ) )
       throw std::range_error( "Matrix Dimension Mismatch." );
     *this = *this * M;
@@ -1636,7 +1636,7 @@ struct has_allocator_matrix< mat_const_ref_vert_cat< UpperMatrix, LowerMatrix > 
  * \return The composite matrix that vertically concatenates the two given matrices, by copy.
  */
 template < typename UpperMatrix, typename LowerMatrix >
-typename boost::enable_if_c< is_readable_matrix< UpperMatrix >::value && is_readable_matrix< LowerMatrix >::value,
+typename boost::enable_if< boost::mpl::and_< is_readable_matrix< UpperMatrix >, is_readable_matrix< LowerMatrix > >,
                              mat_vert_cat< UpperMatrix, LowerMatrix > >::type
   vcat_copy( const UpperMatrix& MU, const LowerMatrix& ML ) {
   return mat_vert_cat< UpperMatrix, LowerMatrix >( MU, ML );
@@ -1652,7 +1652,7 @@ typename boost::enable_if_c< is_readable_matrix< UpperMatrix >::value && is_read
  * \return The composite matrix that vertically concatenates the two given matrices, by reference.
  */
 template < typename UpperMatrix, typename LowerMatrix >
-typename boost::enable_if_c< is_readable_matrix< UpperMatrix >::value && is_readable_matrix< LowerMatrix >::value,
+typename boost::enable_if< boost::mpl::and_< is_readable_matrix< UpperMatrix >, is_readable_matrix< LowerMatrix > >,
                              mat_ref_vert_cat< UpperMatrix, LowerMatrix > >::type
   vcat( UpperMatrix& MU, LowerMatrix& ML ) {
   return mat_ref_vert_cat< UpperMatrix, LowerMatrix >( MU, ML );
@@ -1668,7 +1668,7 @@ typename boost::enable_if_c< is_readable_matrix< UpperMatrix >::value && is_read
  * \return The composite matrix that vertically concatenates the two given matrices, by const-reference.
  */
 template < typename UpperMatrix, typename LowerMatrix >
-typename boost::enable_if_c< is_readable_matrix< UpperMatrix >::value && is_readable_matrix< LowerMatrix >::value,
+typename boost::enable_if< boost::mpl::and_< is_readable_matrix< UpperMatrix >, is_readable_matrix< LowerMatrix > >,
                              mat_const_ref_vert_cat< UpperMatrix, LowerMatrix > >::type
   vcat( const UpperMatrix& MU, const LowerMatrix& ML ) {
   return mat_const_ref_vert_cat< UpperMatrix, LowerMatrix >( MU, ML );
@@ -1685,7 +1685,7 @@ typename boost::enable_if_c< is_readable_matrix< UpperMatrix >::value && is_read
  * \return The composite matrix that vertically concatenates the two given matrices, by copy.
  */
 template < typename UpperMatrix, typename LowerMatrix >
-typename boost::enable_if_c< is_readable_matrix< UpperMatrix >::value && is_readable_matrix< LowerMatrix >::value,
+typename boost::enable_if< boost::mpl::and_< is_readable_matrix< UpperMatrix >, is_readable_matrix< LowerMatrix > >,
                              mat_vert_cat< UpperMatrix, LowerMatrix > >::type
   vcat( UpperMatrix&& MU, LowerMatrix&& ML ) {
   return mat_vert_cat< UpperMatrix, LowerMatrix >( std::move( MU ), std::move( ML ) );
@@ -1703,7 +1703,7 @@ typename boost::enable_if_c< is_readable_matrix< UpperMatrix >::value && is_read
  * \return The composite matrix that vertically concatenates the two given matrices.
  */
 template < typename UpperMatrix, typename LowerMatrix >
-typename boost::enable_if_c< is_readable_matrix< UpperMatrix >::value && is_readable_matrix< LowerMatrix >::value,
+typename boost::enable_if< boost::mpl::and_< is_readable_matrix< UpperMatrix >, is_readable_matrix< LowerMatrix > >,
                              mat_vert_cat< mat_sub_block< UpperMatrix >, LowerMatrix > >::type
   vcat( UpperMatrix& MU, LowerMatrix&& ML ) {
   return mat_vert_cat< mat_sub_block< UpperMatrix >, LowerMatrix >( mat_sub_block< UpperMatrix >( MU ),
@@ -1722,7 +1722,7 @@ typename boost::enable_if_c< is_readable_matrix< UpperMatrix >::value && is_read
  * \return The composite matrix that vertically concatenates the two given matrices.
  */
 template < typename UpperMatrix, typename LowerMatrix >
-typename boost::enable_if_c< is_readable_matrix< UpperMatrix >::value && is_readable_matrix< LowerMatrix >::value,
+typename boost::enable_if< boost::mpl::and_< is_readable_matrix< UpperMatrix >, is_readable_matrix< LowerMatrix > >,
                              mat_vert_cat< UpperMatrix, mat_sub_block< LowerMatrix > > >::type
   vcat( UpperMatrix&& MU, LowerMatrix& ML ) {
   return mat_vert_cat< UpperMatrix, mat_sub_block< LowerMatrix > >( std::move( MU ),
@@ -1741,7 +1741,7 @@ typename boost::enable_if_c< is_readable_matrix< UpperMatrix >::value && is_read
  * \return The composite matrix that vertically concatenates the two given matrices.
  */
 template < typename UpperMatrix, typename LowerMatrix >
-typename boost::enable_if_c< is_readable_matrix< UpperMatrix >::value && is_readable_matrix< LowerMatrix >::value,
+typename boost::enable_if< boost::mpl::and_< is_readable_matrix< UpperMatrix >, is_readable_matrix< LowerMatrix > >,
                              mat_vert_cat< mat_const_sub_block< UpperMatrix >, LowerMatrix > >::type
   vcat( const UpperMatrix& MU, LowerMatrix&& ML ) {
   return mat_vert_cat< mat_const_sub_block< UpperMatrix >, LowerMatrix >( mat_const_sub_block< UpperMatrix >( MU ),
@@ -1760,7 +1760,7 @@ typename boost::enable_if_c< is_readable_matrix< UpperMatrix >::value && is_read
  * \return The composite matrix that vertically concatenates the two given matrices.
  */
 template < typename UpperMatrix, typename LowerMatrix >
-typename boost::enable_if_c< is_readable_matrix< UpperMatrix >::value && is_readable_matrix< LowerMatrix >::value,
+typename boost::enable_if< boost::mpl::and_< is_readable_matrix< UpperMatrix >, is_readable_matrix< LowerMatrix > >,
                              mat_vert_cat< UpperMatrix, mat_const_sub_block< LowerMatrix > > >::type
   vcat( UpperMatrix&& MU, const LowerMatrix& ML ) {
   return mat_vert_cat< UpperMatrix, mat_const_sub_block< LowerMatrix > >( std::move( MU ),
@@ -1779,7 +1779,7 @@ typename boost::enable_if_c< is_readable_matrix< UpperMatrix >::value && is_read
  * \return The composite matrix that vertically concatenates the two given matrices, by copy.
  */
 template < typename UpperMatrix, typename LowerMatrix >
-typename boost::enable_if_c< is_readable_matrix< UpperMatrix >::value && is_readable_matrix< LowerMatrix >::value,
+typename boost::enable_if< boost::mpl::and_< is_readable_matrix< UpperMatrix >, is_readable_matrix< LowerMatrix > >,
                              mat_vert_cat< UpperMatrix, LowerMatrix > >::type
   operator|( UpperMatrix&& MU, LowerMatrix&& ML ) {
   return mat_vert_cat< UpperMatrix, LowerMatrix >( std::move( MU ), std::move( ML ) );
@@ -1797,7 +1797,7 @@ typename boost::enable_if_c< is_readable_matrix< UpperMatrix >::value && is_read
  * \return The composite matrix that vertically concatenates the two given matrices.
  */
 template < typename UpperMatrix, typename LowerMatrix >
-typename boost::enable_if_c< is_readable_matrix< UpperMatrix >::value && is_readable_matrix< LowerMatrix >::value,
+typename boost::enable_if< boost::mpl::and_< is_readable_matrix< UpperMatrix >, is_readable_matrix< LowerMatrix > >,
                              mat_vert_cat< mat_sub_block< UpperMatrix >, LowerMatrix > >::type
   operator|( UpperMatrix& MU, LowerMatrix&& ML ) {
   return mat_vert_cat< mat_sub_block< UpperMatrix >, LowerMatrix >( mat_sub_block< UpperMatrix >( MU ),
@@ -1816,7 +1816,7 @@ typename boost::enable_if_c< is_readable_matrix< UpperMatrix >::value && is_read
  * \return The composite matrix that vertically concatenates the two given matrices.
  */
 template < typename UpperMatrix, typename LowerMatrix >
-typename boost::enable_if_c< is_readable_matrix< UpperMatrix >::value && is_readable_matrix< LowerMatrix >::value,
+typename boost::enable_if< boost::mpl::and_< is_readable_matrix< UpperMatrix >, is_readable_matrix< LowerMatrix > >,
                              mat_vert_cat< UpperMatrix, mat_sub_block< LowerMatrix > > >::type
   operator|( UpperMatrix&& MU, LowerMatrix& ML ) {
   return mat_vert_cat< UpperMatrix, mat_sub_block< LowerMatrix > >( std::move( MU ),
@@ -1835,7 +1835,7 @@ typename boost::enable_if_c< is_readable_matrix< UpperMatrix >::value && is_read
  * \return The composite matrix that vertically concatenates the two given matrices.
  */
 template < typename UpperMatrix, typename LowerMatrix >
-typename boost::enable_if_c< is_readable_matrix< UpperMatrix >::value && is_readable_matrix< LowerMatrix >::value,
+typename boost::enable_if< boost::mpl::and_< is_readable_matrix< UpperMatrix >, is_readable_matrix< LowerMatrix > >,
                              mat_vert_cat< mat_const_sub_block< UpperMatrix >, LowerMatrix > >::type
   operator|( const UpperMatrix& MU, LowerMatrix&& ML ) {
   return mat_vert_cat< mat_const_sub_block< UpperMatrix >, LowerMatrix >( mat_const_sub_block< UpperMatrix >( MU ),
@@ -1854,7 +1854,7 @@ typename boost::enable_if_c< is_readable_matrix< UpperMatrix >::value && is_read
  * \return The composite matrix that vertically concatenates the two given matrices.
  */
 template < typename UpperMatrix, typename LowerMatrix >
-typename boost::enable_if_c< is_readable_matrix< UpperMatrix >::value && is_readable_matrix< LowerMatrix >::value,
+typename boost::enable_if< boost::mpl::and_< is_readable_matrix< UpperMatrix >, is_readable_matrix< LowerMatrix > >,
                              mat_vert_cat< UpperMatrix, mat_const_sub_block< LowerMatrix > > >::type
   operator|( UpperMatrix&& MU, const LowerMatrix& ML ) {
   return mat_vert_cat< UpperMatrix, mat_const_sub_block< LowerMatrix > >( std::move( MU ),
@@ -1874,7 +1874,7 @@ typename boost::enable_if_c< is_readable_matrix< UpperMatrix >::value && is_read
  * \return The composite matrix that vertically concatenates the two given matrices.
  */
 template < typename UpperMatrix, typename LowerMatrix >
-typename boost::enable_if_c< is_readable_matrix< UpperMatrix >::value && is_readable_matrix< LowerMatrix >::value,
+typename boost::enable_if< boost::mpl::and_< is_readable_matrix< UpperMatrix >, is_readable_matrix< LowerMatrix > >,
                              mat_ref_vert_cat< UpperMatrix, LowerMatrix > >::type
   operator|( UpperMatrix& MU, LowerMatrix& ML ) {
   return mat_ref_vert_cat< UpperMatrix, LowerMatrix >( MU, ML );
@@ -1892,7 +1892,7 @@ typename boost::enable_if_c< is_readable_matrix< UpperMatrix >::value && is_read
  * \return The composite matrix that vertically concatenates the two given matrices.
  */
 template < typename UpperMatrix, typename LowerMatrix >
-typename boost::enable_if_c< is_readable_matrix< UpperMatrix >::value && is_readable_matrix< LowerMatrix >::value,
+typename boost::enable_if< boost::mpl::and_< is_readable_matrix< UpperMatrix >, is_readable_matrix< LowerMatrix > >,
                              mat_const_ref_vert_cat< UpperMatrix, LowerMatrix > >::type
   operator|( const UpperMatrix& MU, const LowerMatrix& ML ) {
   return mat_const_ref_vert_cat< UpperMatrix, LowerMatrix >( MU, ML );

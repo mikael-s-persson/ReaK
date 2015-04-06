@@ -146,8 +146,8 @@ public:
    */
   template < typename Matrix >
   explicit mat( const Matrix& M,
-                typename boost::enable_if_c< is_readable_matrix< Matrix >::value
-                                             && boost::mpl::not_< boost::is_same< Matrix, self > >::value,
+                typename boost::enable_if< boost::mpl::and_< is_readable_matrix< Matrix >,
+                                             boost::mpl::not_< boost::is_same< Matrix, self > > >,
                                              void* >::type dummy = nullptr )
       : q( M.get_row_count() * M.get_col_count(), T( 0.0 ) ), rowCount( M.get_row_count() ),
         colCount( M.get_col_count() ) {
@@ -520,7 +520,7 @@ public:
    * \test PASSED
    */
   template < typename Matrix >
-  typename boost::enable_if_c< is_readable_matrix< Matrix >::value, self& >::type operator*=( const Matrix& M ) {
+  typename boost::enable_if< is_readable_matrix< Matrix >, self& >::type operator*=( const Matrix& M ) {
     self result = *this * M;
     swap( *this, result );
     return *this;
@@ -735,8 +735,8 @@ public:
    */
   template < typename Matrix >
   explicit mat( const Matrix& M,
-                typename boost::enable_if_c< is_readable_matrix< Matrix >::value
-                                             && boost::mpl::not_< boost::is_same< Matrix, self > >::value,
+                typename boost::enable_if< boost::mpl::and_< is_readable_matrix< Matrix >,
+                                           boost::mpl::not_< boost::is_same< Matrix, self > > >,
                                              void* >::type dummy = nullptr )
       : q( M.get_row_count() * M.get_col_count(), T( 0.0 ) ), rowCount( M.get_row_count() ),
         colCount( M.get_col_count() ) {
@@ -1111,7 +1111,7 @@ public:
    * \test PASSED
    */
   template < typename Matrix >
-  typename boost::enable_if_c< is_readable_matrix< Matrix >::value, self& >::type operator*=( const Matrix& M ) {
+  typename boost::enable_if< is_readable_matrix< Matrix >, self& >::type operator*=( const Matrix& M ) {
     self result = *this * M;
     swap( *this, result );
     return *this;
@@ -1219,14 +1219,13 @@ mat< T, mat_structure::rectangular, Alignment, Allocator >
  */
 template < typename T, mat_structure::tag Structure, mat_alignment::tag Alignment, typename Allocator, typename Matrix >
 typename boost::
-  enable_if_c< boost::mpl::
-                 and_< boost::mpl::or_< boost::mpl::equal_to< boost::mpl::integral_c< mat_structure::tag, Structure >,
+  enable_if< boost::mpl::and_< boost::mpl::or_< boost::mpl::equal_to< boost::mpl::integral_c< mat_structure::tag, Structure >,
                                                               boost::mpl::integral_c< mat_structure::tag,
                                                                                       mat_structure::rectangular > >,
                                         boost::mpl::equal_to< boost::mpl::integral_c< mat_structure::tag, Structure >,
                                                               boost::mpl::integral_c< mat_structure::tag,
                                                                                       mat_structure::square > > >,
-                       is_readable_matrix< Matrix > >::value,
+                       is_readable_matrix< Matrix > >,
                void >::type
   set_block( mat< T, Structure, Alignment, Allocator >& M, const Matrix& subM, unsigned int aRowOffset,
              unsigned int aColOffset ) {

@@ -118,7 +118,7 @@ public:
   template < typename Matrix >
   explicit mat(
     const Matrix& M, const Allocator& aAlloc = Allocator(),
-    typename boost::enable_if_c< is_readable_matrix< Matrix >::value && !( boost::is_same< Matrix, self >::value ),
+    typename boost::enable_if< boost::mpl::and_< is_readable_matrix< Matrix >, boost::mpl::not_< boost::is_same< Matrix, self > > >,
                                  void* >::type dummy = nullptr )
       : q( 0.0 ), rowCount( ( M.get_row_count() < M.get_col_count() ? M.get_row_count() : M.get_col_count() ) ) {
     q = trace( M ) / value_type( rowCount );
@@ -472,7 +472,7 @@ struct has_allocator_matrix< mat< T, mat_structure::scalar, Alignment, Allocator
  * \throw std::range_error if matrix and vector dimensions are not proper for multiplication.
  */
 template < typename T, typename Vector, mat_alignment::tag Alignment, typename Allocator >
-typename boost::enable_if_c< is_readable_vector< Vector >::value, vect_n< T, Allocator > >::type
+typename boost::enable_if< is_readable_vector< Vector >, vect_n< T, Allocator > >::type
   operator*( const mat< T, mat_structure::scalar, Alignment, Allocator >& M, const Vector& V ) {
   if( V.size() != M.get_col_count() )
     throw std::range_error( "Matrix dimension mismatch." );
@@ -487,7 +487,7 @@ typename boost::enable_if_c< is_readable_vector< Vector >::value, vect_n< T, All
  * \throw std::range_error if matrix and vector dimensions are not proper for multiplication.
  */
 template < typename T, typename Vector, mat_alignment::tag Alignment, typename Allocator >
-typename boost::enable_if_c< is_readable_vector< Vector >::value, vect_n< T, Allocator > >::type
+typename boost::enable_if< is_readable_vector< Vector >, vect_n< T, Allocator > >::type
   operator*( const Vector& V, const mat< T, mat_structure::scalar, Alignment, Allocator >& M ) {
   if( V.size() != M.get_row_count() )
     throw std::range_error( "Matrix dimension mismatch." );

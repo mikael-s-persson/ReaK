@@ -508,7 +508,7 @@ public:
    * Standard assignment operator.
    */
   template < typename Vector2 >
-  typename boost::enable_if_c< is_readable_vector< Vector2 >::value && !boost::is_same< Vector2, self >::value,
+  typename boost::enable_if< boost::mpl::and_< is_readable_vector< Vector2 >, boost::mpl::not_< boost::is_same< Vector2, self > > >,
                                self& >::type
     operator=( const Vector2& rhs ) {
     if( rhs.size() != count )
@@ -522,7 +522,7 @@ public:
    * Standard assignment operator.
    */
   template < typename Vector2 >
-  typename boost::enable_if_c< is_readable_vector< Vector2 >::value, self& >::type operator+=( const Vector2& rhs ) {
+  typename boost::enable_if< is_readable_vector< Vector2 >, self& >::type operator+=( const Vector2& rhs ) {
     if( rhs.size() != count )
       throw std::range_error( "Vector dimensions mismatch." );
     for( size_type i = 0; i < count; ++i )
@@ -534,7 +534,7 @@ public:
    * Standard assignment operator.
    */
   template < typename Vector2 >
-  typename boost::enable_if_c< is_readable_vector< Vector2 >::value, self& >::type operator-=( const Vector2& rhs ) {
+  typename boost::enable_if< is_readable_vector< Vector2 >, self& >::type operator-=( const Vector2& rhs ) {
     if( rhs.size() != count )
       throw std::range_error( "Vector dimensions mismatch." );
     for( size_type i = 0; i < count; ++i )

@@ -219,8 +219,8 @@ void reduce_HessTri_impl( Matrix1& A, Matrix2& B, Matrix3* Q, Matrix4* Z,
  * \author Mikael Persson
  */
 template < typename Matrix1, typename Matrix2, typename Matrix3 >
-typename boost::enable_if_c< is_readable_matrix< Matrix1 >::value && is_fully_writable_matrix< Matrix2 >::value
-                             && is_fully_writable_matrix< Matrix3 >::value,
+typename boost::enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >, is_fully_writable_matrix< Matrix2 >,
+                             is_fully_writable_matrix< Matrix3 > >,
                              void >::type
   decompose_Hess( const Matrix1& A, Matrix2& Q, Matrix3& H, typename mat_traits< Matrix1 >::value_type NumTol = 1E-8 ) {
   if( A.get_row_count() != A.get_col_count() )
@@ -249,9 +249,9 @@ typename boost::enable_if_c< is_readable_matrix< Matrix1 >::value && is_fully_wr
  * \author Mikael Persson
  */
 template < typename Matrix1, typename Matrix2, typename Matrix3 >
-typename boost::enable_if_c< is_readable_matrix< Matrix1 >::value && is_writable_matrix< Matrix2 >::value
-                             && is_writable_matrix< Matrix3 >::value && !is_fully_writable_matrix< Matrix2 >::value
-                             && !is_fully_writable_matrix< Matrix3 >::value,
+typename boost::enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >, is_writable_matrix< Matrix2 >,
+                             is_writable_matrix< Matrix3 >, boost::mpl::not_< is_fully_writable_matrix< Matrix2 > >,
+                             boost::mpl::not_< is_fully_writable_matrix< Matrix3 > > >,
                              void >::type
   decompose_Hess( const Matrix1& A, Matrix2& Q, Matrix3& H, typename mat_traits< Matrix1 >::value_type NumTol = 1E-8 ) {
   if( A.get_row_count() != A.get_col_count() )
@@ -281,7 +281,7 @@ typename boost::enable_if_c< is_readable_matrix< Matrix1 >::value && is_writable
  * \author Mikael Persson
  */
 template < typename Matrix1, typename Matrix2 >
-typename boost::enable_if_c< is_readable_matrix< Matrix1 >::value && is_fully_writable_matrix< Matrix2 >::value,
+typename boost::enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >, is_fully_writable_matrix< Matrix2 > >,
                              void >::type
   decompose_Hess( const Matrix1& A, Matrix2& H, typename mat_traits< Matrix1 >::value_type NumTol = 1E-8 ) {
   if( A.get_row_count() != A.get_col_count() )
@@ -307,8 +307,8 @@ typename boost::enable_if_c< is_readable_matrix< Matrix1 >::value && is_fully_wr
  * \author Mikael Persson
  */
 template < typename Matrix1, typename Matrix2 >
-typename boost::enable_if_c< is_readable_matrix< Matrix1 >::value && is_writable_matrix< Matrix2 >::value
-                             && !is_fully_writable_matrix< Matrix2 >::value,
+typename boost::enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >, is_writable_matrix< Matrix2 >,
+                             boost::mpl::not_< is_fully_writable_matrix< Matrix2 > > >,
                              void >::type
   decompose_Hess( const Matrix1& A, Matrix2& H, typename mat_traits< Matrix1 >::value_type NumTol = 1E-8 ) {
   if( A.get_row_count() != A.get_col_count() )
@@ -346,10 +346,10 @@ typename boost::enable_if_c< is_readable_matrix< Matrix1 >::value && is_writable
  * \author Mikael Persson
  */
 template < typename Matrix1, typename Matrix2, typename Matrix3, typename Matrix4, typename Matrix5, typename Matrix6 >
-typename boost::enable_if_c< is_readable_matrix< Matrix1 >::value && is_readable_matrix< Matrix2 >::value
-                             && is_fully_writable_matrix< Matrix3 >::value && is_fully_writable_matrix< Matrix4 >::value
-                             && is_fully_writable_matrix< Matrix5 >::value
-                             && is_fully_writable_matrix< Matrix6 >::value,
+typename boost::enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >, is_readable_matrix< Matrix2 >,
+  boost::mpl::and_< is_fully_writable_matrix< Matrix3 >, is_fully_writable_matrix< Matrix4 >,
+                             is_fully_writable_matrix< Matrix5 >,
+                             is_fully_writable_matrix< Matrix6 > > >,
                              void >::type
   reduce_HessTri( const Matrix1& A, const Matrix2& B, Matrix3& H, Matrix4& R, Matrix5& Q, Matrix6& Z,
                   typename mat_traits< Matrix1 >::value_type NumTol = 1E-8 ) {
@@ -390,13 +390,13 @@ typename boost::enable_if_c< is_readable_matrix< Matrix1 >::value && is_readable
  * \author Mikael Persson
  */
 template < typename Matrix1, typename Matrix2, typename Matrix3, typename Matrix4, typename Matrix5, typename Matrix6 >
-typename boost::enable_if_c< is_readable_matrix< Matrix1 >::value && is_readable_matrix< Matrix2 >::value
-                             && is_writable_matrix< Matrix3 >::value && is_writable_matrix< Matrix4 >::value
-                             && is_writable_matrix< Matrix5 >::value && is_writable_matrix< Matrix6 >::value
-                             && !is_fully_writable_matrix< Matrix3 >::value
-                             && !is_fully_writable_matrix< Matrix4 >::value
-                             && !is_fully_writable_matrix< Matrix5 >::value
-                             && !is_fully_writable_matrix< Matrix6 >::value,
+typename boost::enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >, is_readable_matrix< Matrix2 >,
+  boost::mpl::and_< is_writable_matrix< Matrix3 >, is_writable_matrix< Matrix4 >,
+                             is_writable_matrix< Matrix5 >, is_writable_matrix< Matrix6 > >,
+                             boost::mpl::and_< boost::mpl::not_< is_fully_writable_matrix< Matrix3 > >,
+                             boost::mpl::not_< is_fully_writable_matrix< Matrix4 > >,
+                             boost::mpl::not_< is_fully_writable_matrix< Matrix5 > >,
+                             boost::mpl::not_< is_fully_writable_matrix< Matrix6 > > > >,
                              void >::type
   reduce_HessTri( const Matrix1& A, const Matrix2& B, Matrix3& H, Matrix4& R, Matrix5& Q, Matrix6& Z,
                   typename mat_traits< Matrix1 >::value_type NumTol = 1E-8 ) {
@@ -439,9 +439,9 @@ typename boost::enable_if_c< is_readable_matrix< Matrix1 >::value && is_readable
  * \author Mikael Persson
  */
 template < typename Matrix1, typename Matrix2, typename Matrix3, typename Matrix4 >
-typename boost::enable_if_c< is_readable_matrix< Matrix1 >::value && is_readable_matrix< Matrix2 >::value
-                             && is_fully_writable_matrix< Matrix3 >::value
-                             && is_fully_writable_matrix< Matrix4 >::value,
+typename boost::enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >, is_readable_matrix< Matrix2 >,
+                             is_fully_writable_matrix< Matrix3 >,
+                             is_fully_writable_matrix< Matrix4 > >,
                              void >::type
   reduce_HessTri( const Matrix1& A, const Matrix2& B, Matrix3& H, Matrix4& R,
                   typename mat_traits< Matrix1 >::value_type NumTol = 1E-8 ) {
@@ -477,10 +477,10 @@ typename boost::enable_if_c< is_readable_matrix< Matrix1 >::value && is_readable
  * \author Mikael Persson
  */
 template < typename Matrix1, typename Matrix2, typename Matrix3, typename Matrix4 >
-typename boost::enable_if_c< is_readable_matrix< Matrix1 >::value && is_readable_matrix< Matrix2 >::value
-                             && is_writable_matrix< Matrix3 >::value && is_writable_matrix< Matrix4 >::value
-                             && !is_fully_writable_matrix< Matrix3 >::value
-                             && !is_fully_writable_matrix< Matrix4 >::value,
+typename boost::enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >, is_readable_matrix< Matrix2 >,
+                             is_writable_matrix< Matrix3 >, is_writable_matrix< Matrix4 >,
+                             boost::mpl::and_< boost::mpl::not_< is_fully_writable_matrix< Matrix3 > >,
+                             boost::mpl::not_< is_fully_writable_matrix< Matrix4 > > > >,
                              void >::type
   reduce_HessTri( const Matrix1& A, const Matrix2& B, Matrix3& H, Matrix4& R,
                   typename mat_traits< Matrix1 >::value_type NumTol = 1E-8 ) {

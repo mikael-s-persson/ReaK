@@ -64,7 +64,7 @@ namespace ReaK {
  * Prints a matrix to a standard output stream (<<) as "((a11; a12); (a21; a22))". \test PASSED
  */
 template < typename Matrix >
-typename boost::enable_if_c< is_readable_matrix< Matrix >::value, std::ostream& >::type
+typename boost::enable_if< is_readable_matrix< Matrix >, std::ostream& >::type
   operator<<( std::ostream& out_stream, const Matrix& M ) {
   out_stream << "(\n";
   if( ( M.get_row_count() != 0 ) && ( M.get_col_count() != 0 ) ) {
@@ -746,11 +746,11 @@ typename boost::lazy_enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >,
  * \test PASSED
  */
 template <typename T, mat_structure::tag Structure, mat_alignment::tag Alignment, typename Allocator, typename Matrix2>
-typename boost::enable_if_c< is_readable_matrix<Matrix2>::value &&
+typename boost::enable_if< boost::mpl::and_< is_readable_matrix<Matrix2>,
                              boost::mpl::less< boost::mpl::integral_c< std::size_t, mat_product_priority< mat<T,Structure,Alignment,Allocator> >::value>,
-                                               boost::mpl::integral_c< std::size_t, detail::product_priority<mat_structure::diagonal>::value> >::value &&
+                                               boost::mpl::integral_c< std::size_t, detail::product_priority<mat_structure::diagonal>::value> >,
                              boost::mpl::less< boost::mpl::integral_c< std::size_t, mat_product_priority<Matrix2>::value>,
-                                               boost::mpl::integral_c< std::size_t, detail::product_priority<mat_structure::diagonal>::value> >::value,
+                                               boost::mpl::integral_c< std::size_t, detail::product_priority<mat_structure::diagonal>::value> > >,
  mat< T, mat_structure::rectangular, Alignment, Allocator > >::type
   operator *(const Matrix2& M1, const mat<T,Structure,Alignment,Allocator>& M2) {
     typedef mat< T, mat_structure::rectangular, Alignment, Allocator > result_type;
@@ -881,7 +881,7 @@ vect<T,Size> operator *(const vect<T,Size>& V,const mat<T,Structure,Alignment,Al
  * \test PASSED
  */
 template < typename Matrix1, typename Matrix2 >
-typename boost::enable_if_c< is_readable_matrix< Matrix1 >::value && is_readable_matrix< Matrix2 >::value, bool >::type
+typename boost::enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >, is_readable_matrix< Matrix2 > >, bool >::type
   operator==( const Matrix1& M1, const Matrix2& M2 ) {
   if( ( M1.get_row_count() != M2.get_row_count() ) || ( M1.get_col_count() != M2.get_col_count() ) )
     return false;
@@ -898,7 +898,7 @@ typename boost::enable_if_c< is_readable_matrix< Matrix1 >::value && is_readable
  * \test PASSED
  */
 template < typename Matrix1, typename Matrix2 >
-typename boost::enable_if_c< is_readable_matrix< Matrix1 >::value && is_readable_matrix< Matrix2 >::value, bool >::type
+typename boost::enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >, is_readable_matrix< Matrix2 > >, bool >::type
   operator!=( const Matrix1& M1, const Matrix2& M2 ) {
   if( ( M1.get_row_count() != M2.get_row_count() ) || ( M1.get_col_count() != M2.get_col_count() ) )
     return true;

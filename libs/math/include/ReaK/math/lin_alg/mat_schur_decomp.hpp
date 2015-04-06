@@ -850,8 +850,8 @@ void gen_schur_decomp_impl( Matrix1& A, Matrix2& B, Matrix3* Q, Matrix4* Z,
  * \author Mikael Persson
  */
 template < typename Matrix1, typename Matrix2, typename Matrix3 >
-typename boost::enable_if_c< is_readable_matrix< Matrix1 >::value && is_fully_writable_matrix< Matrix2 >::value
-                             && is_writable_matrix< Matrix3 >::value,
+typename boost::enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >, is_fully_writable_matrix< Matrix2 >,
+                             is_writable_matrix< Matrix3 > >,
                              void >::type
   eigensolve_SymQR( const Matrix1& A, Matrix2& Q, Matrix3& D,
                     typename mat_traits< Matrix1 >::value_type NumTol = 1E-8 ) {
@@ -880,7 +880,7 @@ typename boost::enable_if_c< is_readable_matrix< Matrix1 >::value && is_fully_wr
  * \author Mikael Persson
  */
 template < typename Matrix1, typename Matrix2 >
-typename boost::enable_if_c< is_readable_matrix< Matrix1 >::value && is_writable_matrix< Matrix2 >::value, void >::type
+typename boost::enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >, is_writable_matrix< Matrix2 > >, void >::type
   eigensolve_SymQR( const Matrix1& A, Matrix2& D, typename mat_traits< Matrix1 >::value_type NumTol = 1E-8 ) {
   if( A.get_row_count() != A.get_col_count() )
     throw std::range_error( "Symmetric QR algorithm is only possible on a square (symmetric) matrix!" );
@@ -909,7 +909,7 @@ typename boost::enable_if_c< is_readable_matrix< Matrix1 >::value && is_writable
  * \author Mikael Persson
  */
 template < typename Matrix1, typename Matrix2 >
-typename boost::enable_if_c< is_readable_matrix< Matrix1 >::value && is_writable_matrix< Matrix2 >::value, void >::type
+typename boost::enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >, is_writable_matrix< Matrix2 > >, void >::type
   pseudoinvert_SymQR( const Matrix1& A, Matrix2& A_inv, typename mat_traits< Matrix1 >::value_type NumTol = 1E-8 ) {
   typedef typename mat_traits< Matrix1 >::value_type ValueType;
   typedef typename mat_traits< Matrix1 >::size_type SizeType;
@@ -949,7 +949,7 @@ typename boost::enable_if_c< is_readable_matrix< Matrix1 >::value && is_writable
  * \author Mikael Persson
  */
 template < typename Matrix1, typename Matrix2 >
-typename boost::enable_if_c< is_readable_matrix< Matrix1 >::value && is_fully_writable_matrix< Matrix2 >::value,
+typename boost::enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >, is_fully_writable_matrix< Matrix2 > >,
                              void >::type
   linsolve_SymQR( const Matrix1& A, Matrix2& B, typename mat_traits< Matrix1 >::value_type NumTol = 1E-8 ) {
   typedef typename mat_traits< Matrix1 >::value_type ValueType;
@@ -1001,7 +1001,7 @@ struct SymQR_linsolver {
  * \author Mikael Persson
  */
 template < typename Matrix1 >
-typename boost::enable_if_c< is_readable_matrix< Matrix1 >::value, mat_traits< Matrix1 > >::type::value_type
+typename boost::enable_if< is_readable_matrix< Matrix1 >, mat_traits< Matrix1 > >::type::value_type
   condition_number_SymQR( const Matrix1& A, typename mat_traits< Matrix1 >::value_type NumTol = 1E-8 ) {
   typedef typename mat_traits< Matrix1 >::value_type ValueType;
   typedef typename mat_traits< Matrix1 >::size_type SizeType;
@@ -1045,8 +1045,8 @@ typename boost::enable_if_c< is_readable_matrix< Matrix1 >::value, mat_traits< M
  * \author Mikael Persson
  */
 template < typename Matrix1, typename Matrix2, typename Matrix3 >
-typename boost::enable_if_c< is_readable_matrix< Matrix1 >::value && is_fully_writable_matrix< Matrix2 >::value
-                             && is_fully_writable_matrix< Matrix3 >::value,
+typename boost::enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >, is_fully_writable_matrix< Matrix2 >,
+                             is_fully_writable_matrix< Matrix3 > >,
                              void >::type
   decompose_RealSchur( const Matrix1& A, Matrix2& Q, Matrix3& T,
                        typename mat_traits< Matrix1 >::value_type NumTol = 1E-8 ) {
@@ -1074,7 +1074,7 @@ typename boost::enable_if_c< is_readable_matrix< Matrix1 >::value && is_fully_wr
  * \author Mikael Persson
  */
 template < typename Matrix1, typename Matrix2 >
-typename boost::enable_if_c< is_readable_matrix< Matrix1 >::value && is_fully_writable_matrix< Matrix2 >::value,
+typename boost::enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >, is_fully_writable_matrix< Matrix2 > >,
                              void >::type
   decompose_RealSchur( const Matrix1& A, Matrix2& T, typename mat_traits< Matrix1 >::value_type NumTol = 1E-8 ) {
   if( A.get_row_count() != A.get_col_count() )
@@ -1108,10 +1108,10 @@ typename boost::enable_if_c< is_readable_matrix< Matrix1 >::value && is_fully_wr
  * \author Mikael Persson
  */
 template < typename Matrix1, typename Matrix2, typename Matrix3, typename Matrix4, typename Matrix5, typename Matrix6 >
-typename boost::enable_if_c< is_readable_matrix< Matrix1 >::value && is_readable_matrix< Matrix2 >::value
-                             && is_fully_writable_matrix< Matrix3 >::value && is_fully_writable_matrix< Matrix4 >::value
-                             && is_fully_writable_matrix< Matrix5 >::value
-                             && is_fully_writable_matrix< Matrix6 >::value,
+typename boost::enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >,  is_readable_matrix< Matrix2 >,
+                             boost::mpl::and_< is_fully_writable_matrix< Matrix3 >, is_fully_writable_matrix< Matrix4 >,
+                             is_fully_writable_matrix< Matrix5 >,
+                             is_fully_writable_matrix< Matrix6 > > >,
                              void >::type
   decompose_GenRealSchur( const Matrix1& A, const Matrix2& B, Matrix3& Q, Matrix4& Z, Matrix5& T, Matrix6& R,
                           typename mat_traits< Matrix1 >::value_type NumTol = 1E-8 ) {
@@ -1145,9 +1145,9 @@ typename boost::enable_if_c< is_readable_matrix< Matrix1 >::value && is_readable
  * \author Mikael Persson
  */
 template < typename Matrix1, typename Matrix2, typename Matrix3, typename Matrix4 >
-typename boost::enable_if_c< is_readable_matrix< Matrix1 >::value && is_readable_matrix< Matrix2 >::value
-                             && is_fully_writable_matrix< Matrix3 >::value
-                             && is_fully_writable_matrix< Matrix4 >::value,
+typename boost::enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >, is_readable_matrix< Matrix2 >,
+                             is_fully_writable_matrix< Matrix3 >,
+                             is_fully_writable_matrix< Matrix4 > >,
                              void >::type
   decompose_GenRealSchur( const Matrix1& A, const Matrix2& B, Matrix3& T, Matrix4& R,
                           typename mat_traits< Matrix1 >::value_type NumTol = 1E-8 ) {

@@ -45,7 +45,7 @@ namespace ReaK {
  * \return the 1-norm of matrix M.
  */
 template < typename Matrix >
-typename boost::enable_if_c< is_readable_matrix< Matrix >::value, typename Matrix::value_type >::type
+typename boost::enable_if< is_readable_matrix< Matrix >, typename Matrix::value_type >::type
   norm_1( const Matrix& M ) {
   typedef typename mat_traits< Matrix >::value_type ValueType;
   typedef typename mat_traits< Matrix >::size_type SizeType;
@@ -70,7 +70,7 @@ typename boost::enable_if_c< is_readable_matrix< Matrix >::value, typename Matri
  * \return the infinity-norm of matrix M.
  */
 template < typename Matrix >
-typename boost::enable_if_c< is_readable_matrix< Matrix >::value, typename Matrix::value_type >::type
+typename boost::enable_if< is_readable_matrix< Matrix >, typename Matrix::value_type >::type
   norm_inf( const Matrix& M ) {
   typedef typename mat_traits< Matrix >::value_type ValueType;
   typedef typename mat_traits< Matrix >::size_type SizeType;
@@ -95,7 +95,7 @@ typename boost::enable_if_c< is_readable_matrix< Matrix >::value, typename Matri
  * \return the element-wise 2-norm of matrix M.
  */
 template < typename Matrix >
-typename boost::enable_if_c< is_readable_matrix< Matrix >::value, typename Matrix::value_type >::type
+typename boost::enable_if< is_readable_matrix< Matrix >, typename Matrix::value_type >::type
   elem_norm_2( const Matrix& M ) {
   typedef typename mat_traits< Matrix >::value_type ValueType;
   typedef typename mat_traits< Matrix >::size_type SizeType;
@@ -128,7 +128,7 @@ typename Matrix::value_type frobenius_norm( const Matrix& M ) {
  * \return the element-wise infinity-norm of matrix M.
  */
 template < typename Matrix >
-typename boost::enable_if_c< is_readable_matrix< Matrix >::value, typename Matrix::value_type >::type
+typename boost::enable_if< is_readable_matrix< Matrix >, typename Matrix::value_type >::type
   elem_norm_max( const Matrix& M ) {
   typedef typename mat_traits< Matrix >::value_type ValueType;
   typedef typename mat_traits< Matrix >::size_type SizeType;
