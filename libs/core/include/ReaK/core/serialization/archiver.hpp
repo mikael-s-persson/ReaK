@@ -41,6 +41,7 @@
 
 #include <boost/preprocessor/stringize.hpp>
 
+#include <cstdint>
 #include <string>
 #include <sstream>
 #include <vector>
@@ -116,10 +117,10 @@ inline std::pair< std::string, typename ReaK::rtti::get_type_id< T >::load_type 
 struct archive_object_header {
   unsigned int* type_ID;     ///< A unique number sequence identifying the object's type.
   unsigned int type_version; ///< The version number of the object's type.
-  unsigned int object_ID; ///< A unique number identifying the object instance, uniqueness is guaranteed to within the
+  std::size_t object_ID; ///< A unique number identifying the object instance, uniqueness is guaranteed to within the
   /// life-span of the archive.
   bool is_external;  ///< Flag that identifies whether the object is serialized in an external archive.
-  unsigned int size; ///< Size of the object's data, relevant to a binary archive (to know the space to skip if object
+  std::size_t size; ///< Size of the object's data, relevant to a binary archive (to know the space to skip if object
   /// is unknown, unsupported).
   archive_object_header() : type_ID(), type_version( 0 ), object_ID( 0 ), is_external( false ), size( 0 ){};
 };
@@ -175,16 +176,16 @@ protected:
   virtual iarchive& RK_CALL load_unsigned_char( const std::pair< std::string, unsigned char& >& u ) = 0;
 
   /// Loading an integer value.
-  virtual iarchive& RK_CALL load_int( int& i ) = 0;
+  virtual iarchive& RK_CALL load_int(std::ptrdiff_t& i) = 0;
 
   /// Loading an integer value with a name.
-  virtual iarchive& RK_CALL load_int( const std::pair< std::string, int& >& i ) = 0;
+  virtual iarchive& RK_CALL load_int(const std::pair< std::string, std::ptrdiff_t& >& i) = 0;
 
   /// Loading an unsigned integer value.
-  virtual iarchive& RK_CALL load_unsigned_int( unsigned int& u ) = 0;
+  virtual iarchive& RK_CALL load_unsigned_int( std::size_t& u ) = 0;
 
   /// Loading an unsigned integer value with a name.
-  virtual iarchive& RK_CALL load_unsigned_int( const std::pair< std::string, unsigned int& >& u ) = 0;
+  virtual iarchive& RK_CALL load_unsigned_int(const std::pair< std::string, std::size_t& >& u) = 0;
 
   /// Loading a float value.
   virtual iarchive& RK_CALL load_float( float& f ) = 0;
@@ -287,35 +288,70 @@ public:
   };
 
   /// Loading an integer value.
-  friend iarchive& RK_CALL operator>>( iarchive& in, int& i ) { return in.load_int( i ); };
+  friend iarchive& RK_CALL operator>>(iarchive& in, std::int32_t& u) {
+    std::ptrdiff_t tmp;
+    in.load_int(tmp);
+    u = static_cast<std::int32_t>(tmp);
+    return in;
+  };
 
   /// Loading an integer value with a name.
-  friend iarchive& RK_CALL operator&( iarchive& in, const std::pair< std::string, int& >& i ) {
-    return in.load_int( i );
+  friend iarchive& RK_CALL operator&(iarchive& in, const std::pair< std::string, std::int32_t& >& u) {
+    std::ptrdiff_t tmp;
+    std::pair< std::string, std::ptrdiff_t& > p(u.first, tmp);
+    in.load_int(p);
+    u.second = static_cast<std::int32_t>(p.second);
+    return in;
+  };
+
+  /// Loading an integer value.
+  friend iarchive& RK_CALL operator>>(iarchive& in, std::int64_t& u) {
+    std::ptrdiff_t tmp;
+    in.load_int(tmp);
+    u = static_cast<std::int64_t>(tmp);
+    return in;
+  };
+
+  /// Loading an integer value with a name.
+  friend iarchive& RK_CALL operator&(iarchive& in, const std::pair< std::string, std::int64_t& >& u) {
+    std::ptrdiff_t tmp;
+    std::pair< std::string, std::ptrdiff_t& > p(u.first, tmp);
+    in.load_int(p);
+    u.second = static_cast<std::int64_t>(p.second);
+    return in;
   };
 
   /// Loading an unsigned integer value.
-  friend iarchive& RK_CALL operator>>( iarchive& in, unsigned int& u ) { return in.load_unsigned_int( u ); };
-
-  /// Loading an unsigned integer value with a name.
-  friend iarchive& RK_CALL operator&( iarchive& in, const std::pair< std::string, unsigned int& >& u ) {
-    return in.load_unsigned_int( u );
-  };
-
-  /// Loading an unsigned integer value.
-  friend iarchive& RK_CALL operator>>( iarchive& in, long unsigned int& u ) {
-    unsigned int tmp;
-    in.load_unsigned_int( tmp );
-    u = tmp;
+  friend iarchive& RK_CALL operator>>( iarchive& in, std::uint32_t& u ) {
+    std::size_t tmp;
+    in.load_unsigned_int(tmp);
+    u = static_cast<std::uint32_t>(tmp);
     return in;
   };
 
   /// Loading an unsigned integer value with a name.
-  friend iarchive& RK_CALL operator&( iarchive& in, const std::pair< std::string, long unsigned int& >& u ) {
-    unsigned int tmp;
-    std::pair< std::string, unsigned int& > p( u.first, tmp );
+  friend iarchive& RK_CALL operator&(iarchive& in, const std::pair< std::string, std::uint32_t& >& u) {
+    std::size_t tmp;
+    std::pair< std::string, std::size_t& > p(u.first, tmp);
+    in.load_unsigned_int(p);
+    u.second = static_cast<std::uint32_t>(p.second);
+    return in;
+  };
+
+  /// Loading an unsigned integer value.
+  friend iarchive& RK_CALL operator>>(iarchive& in, std::uint64_t& u) {
+    std::size_t tmp;
+    in.load_unsigned_int( tmp );
+    u = static_cast<std::uint64_t>(tmp);
+    return in;
+  };
+
+  /// Loading an unsigned integer value with a name.
+  friend iarchive& RK_CALL operator&(iarchive& in, const std::pair< std::string, std::uint64_t& >& u) {
+    std::size_t tmp;
+    std::pair< std::string, std::size_t& > p(u.first, tmp);
     in.load_unsigned_int( p );
-    u.second = p.second;
+    u.second = static_cast<std::uint64_t>(p.second);
     return in;
   };
 
@@ -447,7 +483,7 @@ public:
   /// Loading a STL vector of templated entries.
   template < typename T >
   friend iarchive& operator>>( iarchive& in, std::vector< T >& v ) {
-    unsigned int count;
+    std::size_t count;
     in >> count;
     v.resize( count );
 #ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
@@ -456,7 +492,7 @@ public:
 #else
     in.start_repeated_field( rtti::get_type_info< T >::type_name() );
 #endif
-    for( unsigned int i = 0; i < count; ++i )
+    for (std::size_t i = 0; i < count; ++i)
       in >> v[i];
     in.finish_repeated_field();
     return in;
@@ -465,7 +501,7 @@ public:
   /// Loading a STL vector of templated entries with a name.
   template < typename T >
   friend iarchive& operator&( iarchive& in, const std::pair< std::string, std::vector< T >& >& v ) {
-    unsigned int count;
+    std::size_t count;
     in& RK_SERIAL_LOAD_WITH_ALIAS( v.first + "_count", count );
     v.second.resize( count );
 #ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
@@ -474,7 +510,7 @@ public:
 #else
     in.start_repeated_field( rtti::get_type_info< T >::type_name(), v.first );
 #endif
-    for( unsigned int i = 0; i < count; ++i ) {
+    for (std::size_t i = 0; i < count; ++i) {
       std::stringstream s_stream;
       s_stream << v.first << "_q[" << i << "]";
       in& RK_SERIAL_LOAD_WITH_ALIAS( s_stream.str(), v.second[i] );
@@ -486,7 +522,7 @@ public:
   /// Loading a STL list of templated entries.
   template < typename T >
   friend iarchive& operator>>( iarchive& in, std::list< T >& v ) {
-    unsigned int count;
+    std::size_t count;
     in >> count;
     v.resize( count );
 #ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
@@ -505,7 +541,7 @@ public:
   /// Loading a STL list of templated entries with a name.
   template < typename T >
   friend iarchive& operator&( iarchive& in, const std::pair< std::string, std::list< T >& >& v ) {
-    unsigned int count;
+    std::size_t count;
     in& RK_SERIAL_LOAD_WITH_ALIAS( v.first + "_count", count );
     v.second.resize( count );
 #ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
@@ -515,7 +551,7 @@ public:
     in.start_repeated_field( rtti::get_type_info< T >::type_name(), v.first );
 #endif
     typename std::list< T >::iterator it = v.second.begin();
-    for( unsigned int i = 0; it != v.second.end(); ++it ) {
+    for (std::size_t i = 0; it != v.second.end(); ++it) {
       std::stringstream s_stream;
       s_stream << v.first << "_q[" << i++ << "]";
       in& RK_SERIAL_LOAD_WITH_ALIAS( s_stream.str(), ( *it ) );
@@ -527,7 +563,7 @@ public:
   /// Loading a STL map of templated entries.
   template < typename Key, typename T >
   friend iarchive& operator>>( iarchive& in, std::map< Key, T >& m ) {
-    unsigned int count;
+    std::size_t count;
     in >> count;
     m.clear();
 #ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
@@ -537,7 +573,7 @@ public:
 #else
     in.start_repeated_pair( rtti::get_type_info< Key >::type_name(), rtti::get_type_info< T >::type_name() );
 #endif
-    for( unsigned int i = 0; i < count; ++i ) {
+    for (std::size_t i = 0; i < count; ++i) {
       Key value_key;
       in >> value_key;
       in >> m[value_key];
@@ -549,7 +585,7 @@ public:
   /// Loading a STL map of templated entries with a name.
   template < typename Key, typename T >
   friend iarchive& operator&( iarchive& in, const std::pair< std::string, std::map< Key, T >& >& m ) {
-    unsigned int count;
+    std::size_t count;
     in& RK_SERIAL_LOAD_WITH_ALIAS( m.first + "_count", count );
     m.second.clear();
 #ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
@@ -559,7 +595,7 @@ public:
 #else
     in.start_repeated_pair( rtti::get_type_info< Key >::type_name(), rtti::get_type_info< T >::type_name(), m.first );
 #endif
-    for( unsigned int i = 0; i < count; ++i ) {
+    for (std::size_t i = 0; i < count; ++i) {
       std::stringstream key_s_stream;
       key_s_stream << m.first << "_key[" << i << "]";
       Key value_key;
@@ -575,7 +611,7 @@ public:
   /// Loading a STL multimap of templated entries.
   template < typename Key, typename T >
   friend iarchive& operator>>( iarchive& in, std::multimap< Key, T >& m ) {
-    unsigned int count;
+    std::size_t count;
     in >> count;
     m.clear();
 #ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
@@ -585,7 +621,7 @@ public:
 #else
     in.start_repeated_pair( rtti::get_type_info< Key >::type_name(), rtti::get_type_info< T >::type_name() );
 #endif
-    for( unsigned int i = 0; i < count; ++i ) {
+    for (std::size_t i = 0; i < count; ++i) {
       Key value_key;
       T value_t;
       in >> value_key;
@@ -599,7 +635,7 @@ public:
   /// Loading a STL map of templated entries with a name.
   template < typename Key, typename T >
   friend iarchive& operator&( iarchive& in, const std::pair< std::string, std::multimap< Key, T >& >& m ) {
-    unsigned int count;
+    std::size_t count;
     in& RK_SERIAL_LOAD_WITH_ALIAS( m.first + "_count", count );
     m.second.clear();
 #ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
@@ -609,7 +645,7 @@ public:
 #else
     in.start_repeated_pair( rtti::get_type_info< Key >::type_name(), rtti::get_type_info< T >::type_name(), m.first );
 #endif
-    for( unsigned int i = 0; i < count; ++i ) {
+    for (std::size_t i = 0; i < count; ++i) {
       std::stringstream key_s_stream;
       key_s_stream << m.first << "_key[" << i << "]";
       Key value_key;
@@ -627,7 +663,7 @@ public:
   /// Loading a STL set of templated entries.
   template < typename T >
   friend iarchive& operator>>( iarchive& in, std::set< T >& v ) {
-    unsigned int count;
+    std::size_t count;
     in >> count;
     v.clear();
 #ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
@@ -636,7 +672,7 @@ public:
 #else
     in.start_repeated_field( rtti::get_type_info< T >::type_name() );
 #endif
-    for( unsigned int i = 0; i < count; ++i ) {
+    for (std::size_t i = 0; i < count; ++i) {
       T temp;
       in >> temp;
       v.insert( v.end(), temp );
@@ -648,7 +684,7 @@ public:
   /// Loading a STL set of templated entries with a name.
   template < typename T >
   friend iarchive& operator&( iarchive& in, const std::pair< std::string, std::set< T >& >& v ) {
-    unsigned int count;
+    std::size_t count;
     in& RK_SERIAL_LOAD_WITH_ALIAS( v.first + "_count", count );
     v.second.clear();
 #ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
@@ -657,7 +693,7 @@ public:
 #else
     in.start_repeated_field( rtti::get_type_info< T >::type_name(), v.first );
 #endif
-    for( unsigned int i = 0; i < count; ++i ) {
+    for (std::size_t i = 0; i < count; ++i) {
       std::stringstream s_stream;
       s_stream << v.first << "_q[" << i << "]";
       T temp;
@@ -671,7 +707,7 @@ public:
   /// Loading a STL set of templated entries.
   template < typename T >
   friend iarchive& operator>>( iarchive& in, std::multiset< T >& v ) {
-    unsigned int count;
+    std::size_t count;
     in >> count;
     v.clear();
 #ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
@@ -680,7 +716,7 @@ public:
 #else
     in.start_repeated_field( rtti::get_type_info< T >::type_name() );
 #endif
-    for( unsigned int i = 0; i < count; ++i ) {
+    for (std::size_t i = 0; i < count; ++i) {
       T temp;
       in >> temp;
       v.insert( v.end(), temp );
@@ -692,7 +728,7 @@ public:
   /// Loading a STL set of templated entries with a name.
   template < typename T >
   friend iarchive& operator&( iarchive& in, const std::pair< std::string, std::multiset< T >& >& v ) {
-    unsigned int count;
+    std::size_t count;
     in& RK_SERIAL_LOAD_WITH_ALIAS( v.first + "_count", count );
     v.second.clear();
 #ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
@@ -701,7 +737,7 @@ public:
 #else
     in.start_repeated_field( rtti::get_type_info< T >::type_name(), v.first );
 #endif
-    for( unsigned int i = 0; i < count; ++i ) {
+    for (std::size_t i = 0; i < count; ++i) {
       std::stringstream s_stream;
       s_stream << v.first << "_q[" << i << "]";
       T temp;
@@ -732,7 +768,7 @@ public:
   /// Loading a STL forward-list of templated entries.
   template < typename T >
   friend iarchive& operator>>( iarchive& in, std::forward_list< T >& v ) {
-    unsigned int count;
+    std::size_t count;
     in >> count;
     v.resize( count );
 #ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
@@ -751,7 +787,7 @@ public:
   /// Loading a STL forward-list of templated entries with a name.
   template < typename T >
   friend iarchive& operator&( iarchive& in, const std::pair< std::string, std::forward_list< T >& >& v ) {
-    unsigned int count;
+    std::size_t count;
     in& RK_SERIAL_LOAD_WITH_ALIAS( v.first + "_count", count );
     v.second.resize( count );
 #ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
@@ -761,7 +797,7 @@ public:
     in.start_repeated_field( rtti::get_type_info< T >::type_name(), v.first );
 #endif
     typename std::forward_list< T >::iterator it = v.second.begin();
-    for( unsigned int i = 0; it != v.second.end(); ++it ) {
+    for (std::size_t i = 0; it != v.second.end(); ++it) {
       std::stringstream s_stream;
       s_stream << v.first << "_q[" << i++ << "]";
       in& RK_SERIAL_LOAD_WITH_ALIAS( s_stream.str(), ( *it ) );
@@ -781,7 +817,7 @@ public:
 #else
     in.start_repeated_field( rtti::get_type_info< T >::type_name() );
 #endif
-    for( unsigned int i = 0; i < N; ++i )
+    for (std::size_t i = 0; i < N; ++i)
       in >> v[i];
     in.finish_repeated_field();
     return in;
@@ -796,7 +832,7 @@ public:
 #else
     in.start_repeated_field( rtti::get_type_info< T >::type_name(), v.first );
 #endif
-    for( unsigned int i = 0; i < N; ++i ) {
+    for (std::size_t i = 0; i < N; ++i) {
       std::stringstream s_stream;
       s_stream << v.first << "_q[" << i << "]";
       in& RK_SERIAL_LOAD_WITH_ALIAS( s_stream.str(), v.second[i] );
@@ -814,7 +850,7 @@ public:
   /// Loading a STL unordered-map of templated entries.
   template < typename Key, typename T >
   friend iarchive& operator>>( iarchive& in, std::unordered_map< Key, T >& m ) {
-    unsigned int count;
+    std::size_t count;
     in >> count;
     m.clear();
 #ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
@@ -824,7 +860,7 @@ public:
 #else
     in.start_repeated_pair( rtti::get_type_info< Key >::type_name(), rtti::get_type_info< T >::type_name() );
 #endif
-    for( unsigned int i = 0; i < count; ++i ) {
+    for (std::size_t i = 0; i < count; ++i) {
       Key value_key;
       in >> value_key;
       in >> m[value_key];
@@ -836,7 +872,7 @@ public:
   /// Loading a STL unordered-map of templated entries with a name.
   template < typename Key, typename T >
   friend iarchive& operator&( iarchive& in, const std::pair< std::string, std::unordered_map< Key, T >& >& m ) {
-    unsigned int count;
+    std::size_t count;
     in& RK_SERIAL_LOAD_WITH_ALIAS( m.first + "_count", count );
     m.second.clear();
 #ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
@@ -846,7 +882,7 @@ public:
 #else
     in.start_repeated_pair( rtti::get_type_info< Key >::type_name(), rtti::get_type_info< T >::type_name(), m.first );
 #endif
-    for( unsigned int i = 0; i < count; ++i ) {
+    for (std::size_t i = 0; i < count; ++i) {
       std::stringstream key_s_stream;
       key_s_stream << m.first << "_key[" << i << "]";
       Key value_key;
@@ -862,7 +898,7 @@ public:
   /// Loading a STL unordered-multimap of templated entries.
   template < typename Key, typename T >
   friend iarchive& operator>>( iarchive& in, std::unordered_multimap< Key, T >& m ) {
-    unsigned int count;
+    std::size_t count;
     in >> count;
     m.clear();
 #ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
@@ -872,7 +908,7 @@ public:
 #else
     in.start_repeated_pair( rtti::get_type_info< Key >::type_name(), rtti::get_type_info< T >::type_name() );
 #endif
-    for( unsigned int i = 0; i < count; ++i ) {
+    for (std::size_t i = 0; i < count; ++i) {
       Key value_key;
       T value_t;
       in >> value_key;
@@ -886,7 +922,7 @@ public:
   /// Loading a STL unordered-multimap of templated entries with a name.
   template < typename Key, typename T >
   friend iarchive& operator&( iarchive& in, const std::pair< std::string, std::unordered_multimap< Key, T >& >& m ) {
-    unsigned int count;
+    std::size_t count;
     in& RK_SERIAL_LOAD_WITH_ALIAS( m.first + "_count", count );
     m.second.clear();
 #ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
@@ -896,7 +932,7 @@ public:
 #else
     in.start_repeated_pair( rtti::get_type_info< Key >::type_name(), rtti::get_type_info< T >::type_name(), m.first );
 #endif
-    for( unsigned int i = 0; i < count; ++i ) {
+    for (std::size_t i = 0; i < count; ++i) {
       std::stringstream key_s_stream;
       key_s_stream << m.first << "_key[" << i << "]";
       Key value_key;
@@ -916,7 +952,7 @@ public:
   /// Loading a STL unordered-set of templated entries.
   template < typename T >
   friend iarchive& operator>>( iarchive& in, std::unordered_set< T >& v ) {
-    unsigned int count;
+    std::size_t count;
     in >> count;
     v.clear();
 #ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
@@ -925,7 +961,7 @@ public:
 #else
     in.start_repeated_field( rtti::get_type_info< T >::type_name() );
 #endif
-    for( unsigned int i = 0; i < count; ++i ) {
+    for (std::size_t i = 0; i < count; ++i) {
       T temp;
       in >> temp;
       v.insert( v.end(), temp );
@@ -937,7 +973,7 @@ public:
   /// Loading a STL unordered-set of templated entries with a name.
   template < typename T >
   friend iarchive& operator&( iarchive& in, const std::pair< std::string, std::unordered_set< T >& >& v ) {
-    unsigned int count;
+    std::size_t count;
     in& RK_SERIAL_LOAD_WITH_ALIAS( v.first + "_count", count );
     v.second.clear();
 #ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
@@ -946,7 +982,7 @@ public:
 #else
     in.start_repeated_field( rtti::get_type_info< T >::type_name(), v.first );
 #endif
-    for( unsigned int i = 0; i < count; ++i ) {
+    for (std::size_t i = 0; i < count; ++i) {
       std::stringstream s_stream;
       s_stream << v.first << "_q[" << i << "]";
       T temp;
@@ -960,7 +996,7 @@ public:
   /// Loading a STL unordered-multiset of templated entries.
   template < typename T >
   friend iarchive& operator>>( iarchive& in, std::unordered_multiset< T >& v ) {
-    unsigned int count;
+    std::size_t count;
     in >> count;
     v.clear();
 #ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
@@ -969,7 +1005,7 @@ public:
 #else
     in.start_repeated_field( rtti::get_type_info< T >::type_name() );
 #endif
-    for( unsigned int i = 0; i < count; ++i ) {
+    for (std::size_t i = 0; i < count; ++i) {
       T temp;
       in >> temp;
       v.insert( v.end(), temp );
@@ -981,7 +1017,7 @@ public:
   /// Loading a STL unordered-multiset of templated entries with a name.
   template < typename T >
   friend iarchive& operator&( iarchive& in, const std::pair< std::string, std::unordered_multiset< T >& >& v ) {
-    unsigned int count;
+    std::size_t count;
     in& RK_SERIAL_LOAD_WITH_ALIAS( v.first + "_count", count );
     v.second.clear();
 #ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
@@ -990,7 +1026,7 @@ public:
 #else
     in.start_repeated_field( rtti::get_type_info< T >::type_name(), v.first );
 #endif
-    for( unsigned int i = 0; i < count; ++i ) {
+    for (std::size_t i = 0; i < count; ++i) {
       std::stringstream s_stream;
       s_stream << v.first << "_q[" << i << "]";
       T temp;
@@ -1010,7 +1046,7 @@ public:
  */
 class oarchive : public archive {
 protected:
-  std::map< serializable_shared_pointer, unsigned int >& mObjRegMap;
+  std::map< serializable_shared_pointer, std::size_t >& mObjRegMap;
 
   /// Saving a serializable object to an external archive.
   virtual oarchive& RK_CALL
@@ -1047,16 +1083,16 @@ protected:
   virtual oarchive& RK_CALL save_unsigned_char( const std::pair< std::string, unsigned char >& u ) = 0;
 
   /// Saving an integer value.
-  virtual oarchive& RK_CALL save_int( int i ) = 0;
+  virtual oarchive& RK_CALL save_int(std::ptrdiff_t i) = 0;
 
   /// Saving an integer value with a name.
-  virtual oarchive& RK_CALL save_int( const std::pair< std::string, int >& i ) = 0;
+  virtual oarchive& RK_CALL save_int(const std::pair< std::string, std::ptrdiff_t >& i) = 0;
 
   /// Saving an unsigned integer value.
-  virtual oarchive& RK_CALL save_unsigned_int( unsigned int u ) = 0;
+  virtual oarchive& RK_CALL save_unsigned_int(std::size_t u) = 0;
 
   /// Saving an unsigned integer value with a name.
-  virtual oarchive& RK_CALL save_unsigned_int( const std::pair< std::string, unsigned int >& u ) = 0;
+  virtual oarchive& RK_CALL save_unsigned_int(const std::pair< std::string, std::size_t >& u) = 0;
 
   /// Saving a float value.
   virtual oarchive& RK_CALL save_float( float f ) = 0;
@@ -1121,7 +1157,7 @@ protected:
 
 public:
   /// Default constructor.
-  oarchive() : archive(), mObjRegMap( *( new std::map< serializable_shared_pointer, unsigned int >() ) ) {
+  oarchive() : archive(), mObjRegMap(*(new std::map< serializable_shared_pointer, std::size_t >())) {
     mObjRegMap[serializable_shared_pointer()] = 0;
   };
 
@@ -1176,30 +1212,47 @@ public:
   };
 
   /// Saving an integer value.
-  friend oarchive& RK_CALL operator<<( oarchive& out, int i ) { return out.save_int( i ); };
+  friend oarchive& RK_CALL operator<<( oarchive& out, std::int32_t i ) { 
+    std::ptrdiff_t tmp = i;
+    return out.save_int( tmp );
+  };
 
   /// Saving an integer value with a name.
-  friend oarchive& RK_CALL operator&( oarchive& out, const std::pair< std::string, int >& i ) {
-    return out.save_int( i );
+  friend oarchive& RK_CALL operator&(oarchive& out, const std::pair< std::string, std::int32_t >& i) {
+    return out.save_int(std::pair< std::string, std::ptrdiff_t >(i.first, i.second));
+  };
+
+  /// Saving an integer value.
+  friend oarchive& RK_CALL operator<<(oarchive& out, std::int64_t i) {
+    std::ptrdiff_t tmp = i;
+    return out.save_int(tmp);
+  };
+
+  /// Saving an integer value with a name.
+  friend oarchive& RK_CALL operator&(oarchive& out, const std::pair< std::string, std::int64_t >& i) {
+    return out.save_int(std::pair< std::string, std::ptrdiff_t >(i.first, i.second));
   };
 
   /// Saving an unsigned integer value.
-  friend oarchive& RK_CALL operator<<( oarchive& out, unsigned int u ) { return out.save_unsigned_int( u ); };
+  friend oarchive& RK_CALL operator<<(oarchive& out, std::uint32_t u) {
+    std::size_t tmp = u;
+    return out.save_unsigned_int(tmp);
+  };
 
   /// Saving an unsigned integer value with a name.
-  friend oarchive& RK_CALL operator&( oarchive& out, const std::pair< std::string, unsigned int >& u ) {
-    return out.save_unsigned_int( u );
+  friend oarchive& RK_CALL operator&(oarchive& out, const std::pair< std::string, std::uint32_t >& u) {
+    return out.save_unsigned_int(std::pair< std::string, std::size_t >(u.first, u.second));
   };
 
   /// Saving an unsigned integer value.
-  friend oarchive& RK_CALL operator<<( oarchive& out, const long unsigned int& u ) {
-    unsigned int tmp = u;
+  friend oarchive& RK_CALL operator<<(oarchive& out, const std::uint64_t& u) {
+    std::size_t tmp = u;
     return out.save_unsigned_int( tmp );
   };
 
   /// Saving an unsigned integer value with a name.
-  friend oarchive& RK_CALL operator&( oarchive& out, const std::pair< std::string, const long unsigned int& >& u ) {
-    return out.save_unsigned_int( std::pair< std::string, unsigned int >( u.first, u.second ) );
+  friend oarchive& RK_CALL operator&(oarchive& out, const std::pair< std::string, const std::uint64_t& >& u) {
+    return out.save_unsigned_int(std::pair< std::string, std::size_t >(u.first, u.second));
   };
 
   /// Saving a float value.
@@ -1320,7 +1373,7 @@ public:
   /// Saving a STL vector of templated entries.
   template < typename T >
   friend oarchive& operator<<( oarchive& out, const std::vector< T >& v ) {
-    unsigned int count = v.size();
+    std::size_t count = v.size();
     out << count;
 #ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
     constexpr auto tname = rtti::get_type_info< T >::type_name;
@@ -1328,7 +1381,7 @@ public:
 #else
     out.start_repeated_field( rtti::get_type_info< T >::type_name() );
 #endif
-    for( unsigned int i = 0; i < count; ++i )
+    for (std::size_t i = 0; i < count; ++i)
       out << v[i];
     out.finish_repeated_field();
     return out;
@@ -1337,7 +1390,7 @@ public:
   /// Saving a STL vector of templated entries with a name.
   template < typename T >
   friend oarchive& operator&( oarchive& out, const std::pair< std::string, const std::vector< T >& >& v ) {
-    unsigned int count = v.second.size();
+    std::size_t count = v.second.size();
     out& RK_SERIAL_SAVE_WITH_ALIAS( v.first + "_count", count );
 #ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
     constexpr auto tname = rtti::get_type_info< T >::type_name;
@@ -1345,7 +1398,7 @@ public:
 #else
     out.start_repeated_field( rtti::get_type_info< T >::type_name(), v.first );
 #endif
-    for( unsigned int i = 0; i < count; ++i ) {
+    for (std::size_t i = 0; i < count; ++i) {
       std::stringstream s_stream;
       s_stream << v.first << "_q[" << i << "]";
       out& RK_SERIAL_SAVE_WITH_ALIAS( s_stream.str(), v.second[i] );
@@ -1357,7 +1410,7 @@ public:
   /// Saving a STL list of templated entries.
   template < typename T >
   friend oarchive& operator<<( oarchive& out, const std::list< T >& v ) {
-    unsigned int count = v.size();
+    std::size_t count = v.size();
     out << count;
 #ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
     constexpr auto tname = rtti::get_type_info< T >::type_name;
@@ -1375,7 +1428,7 @@ public:
   /// Saving a STL list of templated entries with a name.
   template < typename T >
   friend oarchive& operator&( oarchive& out, const std::pair< std::string, const std::list< T >& >& v ) {
-    unsigned int count = v.second.size();
+    std::size_t count = v.second.size();
     out& RK_SERIAL_SAVE_WITH_ALIAS( v.first + "_count", count );
 #ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
     constexpr auto tname = rtti::get_type_info< T >::type_name;
@@ -1384,7 +1437,7 @@ public:
     out.start_repeated_field( rtti::get_type_info< T >::type_name(), v.first );
 #endif
     typename std::list< T >::const_iterator it = v.second.begin();
-    for( unsigned int i = 0; it != v.second.end(); ++it ) {
+    for (std::size_t i = 0; it != v.second.end(); ++it) {
       std::stringstream s_stream;
       s_stream << v.first << "_q[" << i++ << "]";
       out& RK_SERIAL_SAVE_WITH_ALIAS( s_stream.str(), ( *it ) );
@@ -1396,7 +1449,7 @@ public:
   /// Saving a STL map of templated entries.
   template < typename Key, typename T >
   friend oarchive& operator<<( oarchive& out, const std::map< Key, T >& m ) {
-    unsigned int count = m.size();
+    std::size_t count = m.size();
     out << count;
 #ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
     constexpr auto kname = rtti::get_type_info< Key >::type_name;
@@ -1415,7 +1468,7 @@ public:
   /// Saving a STL map of templated entries with a name.
   template < typename Key, typename T >
   friend oarchive& operator&( oarchive& out, const std::pair< std::string, const std::map< Key, T >& >& m ) {
-    unsigned int count = m.second.size();
+    std::size_t count = m.second.size();
     out& std::pair< std::string, unsigned int >( m.first + "_count", count );
 #ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
     constexpr auto kname = rtti::get_type_info< Key >::type_name;
@@ -1425,7 +1478,7 @@ public:
     out.start_repeated_pair( rtti::get_type_info< Key >::type_name(), rtti::get_type_info< T >::type_name(), m.first );
 #endif
     typename std::map< Key, T >::const_iterator it = m.second.begin();
-    for( unsigned int i = 0; it != m.second.end(); it++, ++i ) {
+    for (std::size_t i = 0; it != m.second.end(); it++, ++i) {
       std::stringstream key_s_stream;
       key_s_stream << m.first << "_key[" << i << "]";
       out& RK_SERIAL_SAVE_WITH_ALIAS( key_s_stream.str(), it->first );
@@ -1441,7 +1494,7 @@ public:
   /// Saving a STL map of templated entries.
   template < typename Key, typename T >
   friend oarchive& operator<<( oarchive& out, const std::multimap< Key, T >& m ) {
-    unsigned int count = m.size();
+    std::size_t count = m.size();
     out << count;
 #ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
     constexpr auto kname = rtti::get_type_info< Key >::type_name;
@@ -1460,7 +1513,7 @@ public:
   /// Saving a STL map of templated entries with a name.
   template < typename Key, typename T >
   friend oarchive& operator&( oarchive& out, const std::pair< std::string, const std::multimap< Key, T >& >& m ) {
-    unsigned int count = m.second.size();
+    std::size_t count = m.second.size();
     out& std::pair< std::string, unsigned int >( m.first + "_count", count );
 #ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
     constexpr auto kname = rtti::get_type_info< Key >::type_name;
@@ -1470,7 +1523,7 @@ public:
     out.start_repeated_pair( rtti::get_type_info< Key >::type_name(), rtti::get_type_info< T >::type_name(), m.first );
 #endif
     typename std::multimap< Key, T >::const_iterator it = m.second.begin();
-    for( unsigned int i = 0; it != m.second.end(); it++, ++i ) {
+    for (std::size_t i = 0; it != m.second.end(); it++, ++i) {
       std::stringstream key_s_stream;
       key_s_stream << m.first << "_key[" << i << "]";
       out& RK_SERIAL_SAVE_WITH_ALIAS( key_s_stream.str(), it->first );
@@ -1486,7 +1539,7 @@ public:
   /// Saving a STL set of templated entries.
   template < typename T >
   friend oarchive& operator<<( oarchive& out, const std::set< T >& v ) {
-    unsigned int count = v.size();
+    std::size_t count = v.size();
     out << count;
 #ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
     constexpr auto tname = rtti::get_type_info< T >::type_name;
@@ -1504,7 +1557,7 @@ public:
   /// Saving a STL set of templated entries with a name.
   template < typename T >
   friend oarchive& operator&( oarchive& out, const std::pair< std::string, const std::set< T >& >& v ) {
-    unsigned int count = v.second.size();
+    std::size_t count = v.second.size();
     out& RK_SERIAL_SAVE_WITH_ALIAS( v.first + "_count", count );
 #ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
     constexpr auto tname = rtti::get_type_info< T >::type_name;
@@ -1513,7 +1566,7 @@ public:
     out.start_repeated_field( rtti::get_type_info< T >::type_name(), v.first );
 #endif
     typename std::set< T >::const_iterator it = v.second.begin();
-    for( unsigned int i = 0; it != v.second.end(); ++it ) {
+    for (std::size_t i = 0; it != v.second.end(); ++it) {
       std::stringstream s_stream;
       s_stream << v.first << "_q[" << i++ << "]";
       out& RK_SERIAL_SAVE_WITH_ALIAS( s_stream.str(), ( *it ) );
@@ -1525,7 +1578,7 @@ public:
   /// Saving a STL set of templated entries.
   template < typename T >
   friend oarchive& operator<<( oarchive& out, const std::multiset< T >& v ) {
-    unsigned int count = v.size();
+    std::size_t count = v.size();
     out << count;
 #ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
     constexpr auto tname = rtti::get_type_info< T >::type_name;
@@ -1543,7 +1596,7 @@ public:
   /// Saving a STL set of templated entries with a name.
   template < typename T >
   friend oarchive& operator&( oarchive& out, const std::pair< std::string, const std::multiset< T >& >& v ) {
-    unsigned int count = v.second.size();
+    std::size_t count = v.second.size();
     out& RK_SERIAL_SAVE_WITH_ALIAS( v.first + "_count", count );
 #ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
     constexpr auto tname = rtti::get_type_info< T >::type_name;
@@ -1552,7 +1605,7 @@ public:
     out.start_repeated_field( rtti::get_type_info< T >::type_name(), v.first );
 #endif
     typename std::multiset< T >::const_iterator it = v.second.begin();
-    for( unsigned int i = 0; it != v.second.end(); ++it ) {
+    for (std::size_t i = 0; it != v.second.end(); ++it) {
       std::stringstream s_stream;
       s_stream << v.first << "_q[" << i++ << "]";
       out& RK_SERIAL_SAVE_WITH_ALIAS( s_stream.str(), ( *it ) );
@@ -1580,7 +1633,7 @@ public:
   /// Saving a STL forward-list of templated entries.
   template < typename T >
   friend oarchive& operator<<( oarchive& out, const std::forward_list< T >& v ) {
-    unsigned int count = v.size();
+    std::size_t count = v.size();
     out << count;
 #ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
     constexpr auto tname = rtti::get_type_info< T >::type_name;
@@ -1598,7 +1651,7 @@ public:
   /// Saving a STL forward-list of templated entries with a name.
   template < typename T >
   friend oarchive& operator&( oarchive& out, const std::pair< std::string, const std::forward_list< T >& >& v ) {
-    unsigned int count = v.second.size();
+    std::size_t count = v.second.size();
     out& RK_SERIAL_SAVE_WITH_ALIAS( v.first + "_count", count );
 #ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
     constexpr auto tname = rtti::get_type_info< T >::type_name;
@@ -1607,7 +1660,7 @@ public:
     out.start_repeated_field( rtti::get_type_info< T >::type_name(), v.first );
 #endif
     typename std::forward_list< T >::const_iterator it = v.second.begin();
-    for( unsigned int i = 0; it != v.second.end(); ++it ) {
+    for (std::size_t i = 0; it != v.second.end(); ++it) {
       std::stringstream s_stream;
       s_stream << v.first << "_q[" << i++ << "]";
       out& RK_SERIAL_SAVE_WITH_ALIAS( s_stream.str(), ( *it ) );
@@ -1627,7 +1680,7 @@ public:
 #else
     out.start_repeated_field( rtti::get_type_info< T >::type_name() );
 #endif
-    for( unsigned int i = 0; i < N; ++i )
+    for (std::size_t i = 0; i < N; ++i)
       out << v[i];
     out.finish_repeated_field();
     return out;
@@ -1642,7 +1695,7 @@ public:
 #else
     out.start_repeated_field( rtti::get_type_info< T >::type_name(), v.first );
 #endif
-    for( unsigned int i = 0; i < N; ++i ) {
+    for (std::size_t i = 0; i < N; ++i) {
       std::stringstream s_stream;
       s_stream << v.first << "_q[" << i << "]";
       out& RK_SERIAL_SAVE_WITH_ALIAS( s_stream.str(), v.second[i] );
@@ -1660,7 +1713,7 @@ public:
   /// Saving a STL unordered-map of templated entries.
   template < typename Key, typename T >
   friend oarchive& operator<<( oarchive& out, const std::unordered_map< Key, T >& m ) {
-    unsigned int count = m.size();
+    std::size_t count = m.size();
     out << count;
 #ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
     constexpr auto kname = rtti::get_type_info< Key >::type_name;
@@ -1679,7 +1732,7 @@ public:
   /// Saving a STL unordered-map of templated entries with a name.
   template < typename Key, typename T >
   friend oarchive& operator&( oarchive& out, const std::pair< std::string, const std::unordered_map< Key, T >& >& m ) {
-    unsigned int count = m.second.size();
+    std::size_t count = m.second.size();
     out& std::pair< std::string, unsigned int >( m.first + "_count", count );
 #ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
     constexpr auto kname = rtti::get_type_info< Key >::type_name;
@@ -1689,7 +1742,7 @@ public:
     out.start_repeated_pair( rtti::get_type_info< Key >::type_name(), rtti::get_type_info< T >::type_name(), m.first );
 #endif
     typename std::unordered_map< Key, T >::const_iterator it = m.second.begin();
-    for( unsigned int i = 0; it != m.second.end(); it++, ++i ) {
+    for (std::size_t i = 0; it != m.second.end(); it++, ++i) {
       std::stringstream key_s_stream;
       key_s_stream << m.first << "_key[" << i << "]";
       out& RK_SERIAL_SAVE_WITH_ALIAS( key_s_stream.str(), it->first );
@@ -1705,7 +1758,7 @@ public:
   /// Saving a STL unordered-multimap of templated entries.
   template < typename Key, typename T >
   friend oarchive& operator<<( oarchive& out, const std::unordered_multimap< Key, T >& m ) {
-    unsigned int count = m.size();
+    std::size_t count = m.size();
     out << count;
 #ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
     constexpr auto kname = rtti::get_type_info< Key >::type_name;
@@ -1725,7 +1778,7 @@ public:
   template < typename Key, typename T >
   friend oarchive& operator&( oarchive& out,
                               const std::pair< std::string, const std::unordered_multimap< Key, T >& >& m ) {
-    unsigned int count = m.second.size();
+    std::size_t count = m.second.size();
     out& std::pair< std::string, unsigned int >( m.first + "_count", count );
 #ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
     constexpr auto kname = rtti::get_type_info< Key >::type_name;
@@ -1735,7 +1788,7 @@ public:
     out.start_repeated_pair( rtti::get_type_info< Key >::type_name(), rtti::get_type_info< T >::type_name(), m.first );
 #endif
     typename std::unordered_multimap< Key, T >::const_iterator it = m.second.begin();
-    for( unsigned int i = 0; it != m.second.end(); it++, ++i ) {
+    for (std::size_t i = 0; it != m.second.end(); it++, ++i) {
       std::stringstream key_s_stream;
       key_s_stream << m.first << "_key[" << i << "]";
       out& RK_SERIAL_SAVE_WITH_ALIAS( key_s_stream.str(), it->first );
@@ -1753,7 +1806,7 @@ public:
   /// Saving a STL unordered-set of templated entries.
   template < typename T >
   friend oarchive& operator<<( oarchive& out, const std::unordered_set< T >& v ) {
-    unsigned int count = v.size();
+    std::size_t count = v.size();
     out << count;
 #ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
     constexpr auto tname = rtti::get_type_info< T >::type_name;
@@ -1771,7 +1824,7 @@ public:
   /// Saving a STL unordered-set of templated entries with a name.
   template < typename T >
   friend oarchive& operator&( oarchive& out, const std::pair< std::string, const std::unordered_set< T >& >& v ) {
-    unsigned int count = v.second.size();
+    std::size_t count = v.second.size();
     out& RK_SERIAL_SAVE_WITH_ALIAS( v.first + "_count", count );
 #ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
     constexpr auto tname = rtti::get_type_info< T >::type_name;
@@ -1780,7 +1833,7 @@ public:
     out.start_repeated_field( rtti::get_type_info< T >::type_name(), v.first );
 #endif
     typename std::unordered_set< T >::const_iterator it = v.second.begin();
-    for( unsigned int i = 0; it != v.second.end(); ++it ) {
+    for (std::size_t i = 0; it != v.second.end(); ++it) {
       std::stringstream s_stream;
       s_stream << v.first << "_q[" << i++ << "]";
       out& RK_SERIAL_SAVE_WITH_ALIAS( s_stream.str(), ( *it ) );
@@ -1792,7 +1845,7 @@ public:
   /// Saving a STL unordered-multiset of templated entries.
   template < typename T >
   friend oarchive& operator<<( oarchive& out, const std::unordered_multiset< T >& v ) {
-    unsigned int count = v.size();
+    std::size_t count = v.size();
     out << count;
 #ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
     constexpr auto tname = rtti::get_type_info< T >::type_name;
@@ -1810,7 +1863,7 @@ public:
   /// Saving a STL unordered-multiset of templated entries with a name.
   template < typename T >
   friend oarchive& operator&( oarchive& out, const std::pair< std::string, const std::unordered_multiset< T >& >& v ) {
-    unsigned int count = v.second.size();
+    std::size_t count = v.second.size();
     out& RK_SERIAL_SAVE_WITH_ALIAS( v.first + "_count", count );
 #ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
     constexpr auto tname = rtti::get_type_info< T >::type_name;
@@ -1819,7 +1872,7 @@ public:
     out.start_repeated_field( rtti::get_type_info< T >::type_name(), v.first );
 #endif
     typename std::unordered_multiset< T >::const_iterator it = v.second.begin();
-    for( unsigned int i = 0; it != v.second.end(); ++it ) {
+    for (std::size_t i = 0; it != v.second.end(); ++it) {
       std::stringstream s_stream;
       s_stream << v.first << "_q[" << i++ << "]";
       out& RK_SERIAL_SAVE_WITH_ALIAS( s_stream.str(), ( *it ) );

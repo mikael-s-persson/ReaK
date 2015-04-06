@@ -34,7 +34,7 @@
 #define REAK_TYPED_PRIMITIVES_HPP
 
 #include "so_type.hpp"
-
+#include <cstdint>
 
 namespace ReaK {
 
@@ -42,7 +42,7 @@ namespace rtti {
 
 
 template <>
-struct get_type_id< int > {
+struct get_type_id< std::int32_t > {
   BOOST_STATIC_CONSTANT( unsigned int, ID = 0x00000001 );
 #ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
   BOOST_STATIC_CONSTEXPR auto type_name = RK_LSA( "int" );
@@ -51,12 +51,26 @@ struct get_type_id< int > {
 #endif
   static construct_ptr CreatePtr() BOOST_NOEXCEPT { return nullptr; };
 
-  typedef int save_type;
-  typedef int& load_type;
+  typedef std::int32_t save_type;
+  typedef std::int32_t& load_type;
 };
 
 template <>
-struct get_type_id< unsigned int > {
+struct get_type_id< std::int64_t > {
+  BOOST_STATIC_CONSTANT(unsigned int, ID = 0x00000001);
+#ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
+  BOOST_STATIC_CONSTEXPR auto type_name = RK_LSA( "int" );
+#else
+  static const char* type_name() BOOST_NOEXCEPT{ return "int"; };
+#endif
+  static construct_ptr CreatePtr() BOOST_NOEXCEPT{ return nullptr; };
+
+  typedef std::int64_t save_type;
+  typedef std::int64_t& load_type;
+};
+
+template <>
+struct get_type_id< std::uint32_t > {
   BOOST_STATIC_CONSTANT( unsigned int, ID = 0x00000002 );
 #ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
   BOOST_STATIC_CONSTEXPR auto type_name = RK_LSA( "unsigned int" );
@@ -65,22 +79,22 @@ struct get_type_id< unsigned int > {
 #endif
   static construct_ptr CreatePtr() BOOST_NOEXCEPT { return nullptr; };
 
-  typedef unsigned int save_type;
-  typedef unsigned int& load_type;
+  typedef std::uint32_t save_type;
+  typedef std::uint32_t& load_type;
 };
 
 template <>
-struct get_type_id< long unsigned int > {
-  BOOST_STATIC_CONSTANT( unsigned int, ID = 0x00000030 );
+struct get_type_id< std::uint64_t > {
+  BOOST_STATIC_CONSTANT( unsigned int, ID = 0x00000002 );
 #ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
-  BOOST_STATIC_CONSTEXPR auto type_name = RK_LSA( "long unsigned int" );
+  BOOST_STATIC_CONSTEXPR auto type_name = RK_LSA( "unsigned int" );
 #else
-  static const char* type_name() BOOST_NOEXCEPT { return "long unsigned int"; };
+  static const char* type_name() BOOST_NOEXCEPT { return "unsigned int"; };
 #endif
   static construct_ptr CreatePtr() BOOST_NOEXCEPT { return nullptr; };
 
-  typedef const long unsigned int& save_type;
-  typedef long unsigned int& load_type;
+  typedef const std::uint64_t& save_type;
+  typedef std::uint64_t& load_type;
 };
 
 template <>

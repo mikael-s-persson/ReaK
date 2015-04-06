@@ -145,13 +145,13 @@ protected:
 
   virtual iarchive& RK_CALL load_unsigned_char( const std::pair< std::string, unsigned char& >& u );
 
-  virtual iarchive& RK_CALL load_int( int& i );
+  virtual iarchive& RK_CALL load_int(std::ptrdiff_t& i);
 
-  virtual iarchive& RK_CALL load_int( const std::pair< std::string, int& >& i );
+  virtual iarchive& RK_CALL load_int(const std::pair< std::string, std::ptrdiff_t& >& i);
 
-  virtual iarchive& RK_CALL load_unsigned_int( unsigned int& u );
+  virtual iarchive& RK_CALL load_unsigned_int(std::size_t& u);
 
-  virtual iarchive& RK_CALL load_unsigned_int( const std::pair< std::string, unsigned int& >& u );
+  virtual iarchive& RK_CALL load_unsigned_int(const std::pair< std::string, std::size_t& >& u);
 
   virtual iarchive& RK_CALL load_float( float& f );
 
@@ -218,13 +218,13 @@ protected:
 
   virtual oarchive& RK_CALL save_unsigned_char( const std::pair< std::string, unsigned char >& u );
 
-  virtual oarchive& RK_CALL save_int( int i );
+  virtual oarchive& RK_CALL save_int(std::ptrdiff_t i);
 
-  virtual oarchive& RK_CALL save_int( const std::pair< std::string, int >& i );
+  virtual oarchive& RK_CALL save_int(const std::pair< std::string, std::ptrdiff_t >& i);
 
-  virtual oarchive& RK_CALL save_unsigned_int( unsigned int u );
+  virtual oarchive& RK_CALL save_unsigned_int(std::size_t u);
 
-  virtual oarchive& RK_CALL save_unsigned_int( const std::pair< std::string, unsigned int >& u );
+  virtual oarchive& RK_CALL save_unsigned_int(const std::pair< std::string, std::size_t >& u);
 
   virtual oarchive& RK_CALL save_float( float f );
 

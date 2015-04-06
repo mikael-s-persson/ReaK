@@ -330,11 +330,11 @@ iarchive& RK_CALL xml_iarchive::load_unsigned_char( const std::pair< std::string
   return *this;
 };
 
-iarchive& RK_CALL xml_iarchive::load_int( int& i ) {
-  return xml_iarchive::load_int( std::pair< std::string, int& >( "int", i ) );
+iarchive& RK_CALL xml_iarchive::load_int(std::ptrdiff_t& i) {
+  return xml_iarchive::load_int(std::pair< std::string, std::ptrdiff_t& >("int", i));
 };
 
-iarchive& RK_CALL xml_iarchive::load_int( const std::pair< std::string, int& >& i ) {
+iarchive& RK_CALL xml_iarchive::load_int(const std::pair< std::string, std::ptrdiff_t& >& i) {
   std::string value_str;
   if( readNamedValue( i.first, value_str ) ) {
     if( value_str.empty() )
@@ -346,11 +346,11 @@ iarchive& RK_CALL xml_iarchive::load_int( const std::pair< std::string, int& >& 
   return *this;
 };
 
-iarchive& RK_CALL xml_iarchive::load_unsigned_int( unsigned int& u ) {
-  return xml_iarchive::load_unsigned_int( std::pair< std::string, unsigned int& >( "unsigned_int", u ) );
+iarchive& RK_CALL xml_iarchive::load_unsigned_int(std::size_t& u) {
+  return xml_iarchive::load_unsigned_int(std::pair< std::string, std::size_t& >("unsigned_int", u));
 };
 
-iarchive& RK_CALL xml_iarchive::load_unsigned_int( const std::pair< std::string, unsigned int& >& u ) {
+iarchive& RK_CALL xml_iarchive::load_unsigned_int(const std::pair< std::string, std::size_t& >& u) {
   std::string value_str;
   if( readNamedValue( u.first, value_str ) ) {
     if( value_str.empty() )
@@ -465,7 +465,7 @@ oarchive& RK_CALL
   bool already_saved( false );
 
   if( Item.second ) {
-    std::map< serializable_shared_pointer, unsigned int >::const_iterator it = mObjRegMap.find( Item.second );
+    std::map< serializable_shared_pointer, std::size_t >::const_iterator it = mObjRegMap.find( Item.second );
 
     if( it != mObjRegMap.end() ) {
       hdr.object_ID = it->second;
@@ -526,7 +526,7 @@ oarchive& RK_CALL
   bool already_saved( false );
 
   if( Item.second ) {
-    std::map< serializable_shared_pointer, unsigned int >::const_iterator it = mObjRegMap.find( Item.second );
+    std::map< serializable_shared_pointer, std::size_t >::const_iterator it = mObjRegMap.find(Item.second);
 
     if( it != mObjRegMap.end() ) {
       hdr.object_ID = it->second;
@@ -624,23 +624,23 @@ oarchive& RK_CALL xml_oarchive::save_unsigned_char( const std::pair< std::string
   return *this;
 };
 
-oarchive& RK_CALL xml_oarchive::save_int( int i ) {
-  return xml_oarchive::save_int( std::pair< std::string, int >( "int", i ) );
+oarchive& RK_CALL xml_oarchive::save_int(std::ptrdiff_t i) {
+  return xml_oarchive::save_int(std::pair< std::string, std::ptrdiff_t >("int", i));
 };
 
 
-oarchive& RK_CALL xml_oarchive::save_int( const std::pair< std::string, int >& i ) {
+oarchive& RK_CALL xml_oarchive::save_int(const std::pair< std::string, std::ptrdiff_t >& i) {
   addTabulations();
   ( *file_stream ) << "<" << i.first << ">\"" << i.second << "\"</" << i.first << ">" << std::endl;
   return *this;
 };
 
-oarchive& RK_CALL xml_oarchive::save_unsigned_int( unsigned int u ) {
-  return xml_oarchive::save_unsigned_int( std::pair< std::string, unsigned int >( "unsigned_int", u ) );
+oarchive& RK_CALL xml_oarchive::save_unsigned_int(std::size_t u) {
+  return xml_oarchive::save_unsigned_int(std::pair< std::string, std::size_t >("unsigned_int", u));
 };
 
 
-oarchive& RK_CALL xml_oarchive::save_unsigned_int( const std::pair< std::string, unsigned int >& u ) {
+oarchive& RK_CALL xml_oarchive::save_unsigned_int(const std::pair< std::string, std::size_t >& u) {
   addTabulations();
   ( *file_stream ) << "<" << u.first << ">\"" << u.second << "\"</" << u.first << ">" << std::endl;
   return *this;

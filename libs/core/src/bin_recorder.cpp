@@ -56,7 +56,7 @@ void bin_recorder::setStreamImpl( const shared_ptr< std::ostream >& aStreamPtr )
     if( ( aStreamPtr ) && ( *aStreamPtr ) ) {
       ReaKaux::unique_lock< ReaKaux::mutex > lock_here( access_mutex );
       out_stream = aStreamPtr;
-      colCount = names.size();
+      colCount = static_cast<unsigned int>(names.size());
       writeNames();
     };
   } else {

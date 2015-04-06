@@ -60,7 +60,7 @@ public:
     for( std::vector< std::string >::const_iterator it = names.begin(); it != names.end(); ++it )
       ss << " " << *it;
     std::string data_str = ss.str();
-    uint32_t data_len = htonl( data_str.size() );
+    uint32_t data_len = htonl( static_cast<std::uint32_t>(data_str.size()) );
     std::ostream s_tmp( &row_buf );
     s_tmp.write( reinterpret_cast< char* >( &data_len ), sizeof( uint32_t ) );
     writeRowBuffer(); // <-- this was done in original UDP server.
@@ -82,7 +82,7 @@ public:
   virtual bool readRow( std::queue< double >& values_rm, unsigned int colCount ) {
     try {
       std::size_t len = readRowBuffer( colCount * sizeof( double ) );
-      if( len == std::numeric_limits< std::size_t >::max() )
+      if( len == (std::numeric_limits< std::size_t >::max)() )
         return true;
       if( len < colCount * sizeof( double ) )
         return false;
@@ -106,13 +106,13 @@ public:
     names.clear();
     uint32_t data_len = 0;
     {
-      while( readRowBuffer( sizeof( uint32_t ) ) == std::numeric_limits< std::size_t >::max() )
+      while( readRowBuffer( sizeof( uint32_t ) ) == (std::numeric_limits< std::size_t >::max)() )
         ;
       std::istream s_tmp( &row_buf );
       s_tmp.read( reinterpret_cast< char* >( &data_len ), sizeof( uint32_t ) );
       data_len = ntohl( data_len );
     };
-    while( readRowBuffer( data_len ) == std::numeric_limits< std::size_t >::max() )
+    while( readRowBuffer( data_len ) == (std::numeric_limits< std::size_t >::max)() )
       ;
     std::istream s_tmp( &row_buf );
     std::string tmp_name = "";
@@ -130,7 +130,7 @@ public:
   boost::asio::ip::tcp::acceptor acceptor;
   boost::asio::ip::tcp::socket socket;
 
-  tcp_server_impl( std::size_t port_num )
+  tcp_server_impl( unsigned short port_num )
       : io_service(), acceptor( io_service, boost::asio::ip::tcp::endpoint( boost::asio::ip::tcp::v4(), port_num ) ),
         socket( io_service ) {
     acceptor.accept( socket );
@@ -152,7 +152,7 @@ public:
   boost::asio::ip::tcp::endpoint endpoint;
   boost::asio::ip::tcp::socket socket;
 
-  tcp_client_impl( const std::string& ip4_address, std::size_t port_num )
+  tcp_client_impl( const std::string& ip4_address, unsigned short port_num )
       : io_service(), endpoint(), socket( io_service ) {
 
     boost::asio::ip::tcp::resolver addr_resolver( io_service );
@@ -183,7 +183,7 @@ public:
   boost::asio::ip::udp::endpoint endpoint;
   boost::asio::ip::udp::socket socket;
 
-  udp_server_impl( std::size_t port_num )
+  udp_server_impl( unsigned short port_num )
       : io_service(), endpoint( boost::asio::ip::udp::v4(), port_num ), socket( io_service ) {
 
     {
@@ -214,7 +214,7 @@ public:
   boost::asio::ip::udp::endpoint endpoint;
   boost::asio::ip::udp::socket socket;
 
-  udp_client_impl( const std::string& ip4_address, std::size_t port_num )
+  udp_client_impl( const std::string& ip4_address, unsigned short port_num )
       : io_service(), endpoint(), socket( io_service ) {
 
     boost::asio::ip::udp::resolver addr_resolver( io_service );
@@ -241,7 +241,7 @@ public:
 
   std::size_t readRowBuffer( std::size_t data_len ) {
     if( socket.available() < data_len )
-      return std::numeric_limits< std::size_t >::max();
+      return (std::numeric_limits< std::size_t >::max)();
     boost::asio::streambuf::mutable_buffers_type bufs = row_buf.prepare( data_len );
     std::size_t len = socket.receive_from( bufs, endpoint );
     row_buf.commit( len );
@@ -256,7 +256,7 @@ public:
   boost::asio::ip::udp::endpoint endpoint;
   boost::asio::ip::udp::socket socket;
 
-  raw_udp_server_impl( const std::string& ip4_address, std::size_t port_num )
+  raw_udp_server_impl( const std::string& ip4_address, unsigned short port_num )
       : io_service(), endpoint(), socket( io_service ) {
 
     boost::asio::ip::udp::resolver addr_resolver( io_service );
@@ -288,7 +288,7 @@ public:
   boost::asio::ip::udp::endpoint endpoint;
   boost::asio::ip::udp::socket socket;
 
-  raw_udp_client_impl( const std::string& ip4_address, std::size_t port_num )
+  raw_udp_client_impl( const std::string& ip4_address, unsigned short port_num )
       : io_service(), endpoint(), socket( io_service ) {
 
     boost::asio::ip::udp::resolver addr_resolver( io_service );
@@ -308,7 +308,7 @@ public:
 
   std::size_t readRowBuffer( std::size_t data_len ) {
     if( socket.available() < data_len )
-      return std::numeric_limits< std::size_t >::max();
+      return (std::numeric_limits< std::size_t >::max)();
     boost::asio::streambuf::mutable_buffers_type bufs = row_buf.prepare( data_len );
     std::size_t len = socket.receive_from( bufs, endpoint );
     row_buf.commit( len );
@@ -330,7 +330,7 @@ void network_recorder::writeRow() {
   ReaKaux::unique_lock< ReaKaux::mutex > lock_here( access_mutex );
   shared_ptr< network_server_impl > pimpl_tmp = pimpl;
   if( ( pimpl_tmp ) && ( pimpl_tmp->isOpen() ) && ( rowCount > 0 ) && ( colCount > 0 ) ) {
-    pimpl_tmp->writeRow( values_rm, names.size() );
+    pimpl_tmp->writeRow( values_rm, static_cast<unsigned int>(names.size()) );
     --rowCount;
   };
 };
@@ -350,7 +350,7 @@ void network_recorder::setFileName( const std::string& aFileName ) {
 
   std::string proto = "tcp";
   std::string ip4addr = "localhost";
-  std::size_t portnum = 17000;
+  unsigned short portnum = 17000;
   std::stringstream ss( aFileName );
   std::getline( ss, proto, ':' );
   std::getline( ss, ip4addr, ':' );
@@ -363,7 +363,7 @@ void network_recorder::setFileName( const std::string& aFileName ) {
   else if( proto == "raw_udp" )
     pimpl = shared_ptr< detail::raw_udp_server_impl >( new detail::raw_udp_server_impl( ip4addr, portnum ) );
 
-  colCount = names.size();
+  colCount = static_cast<unsigned int>(names.size());
   lock_here.unlock();
   writeNames();
 };
@@ -389,7 +389,7 @@ bool network_extractor::readRow() {
   ReaKaux::unique_lock< ReaKaux::mutex > lock_here( access_mutex );
   shared_ptr< network_client_impl > pimpl_tmp = pimpl;
   if( ( pimpl_tmp ) && ( pimpl_tmp->isOpen() ) && ( colCount > 0 ) )
-    return pimpl_tmp->readRow( values_rm, names.size() );
+    return pimpl_tmp->readRow( values_rm, static_cast<unsigned int>(names.size()) );
   return true;
 };
 
@@ -397,7 +397,7 @@ bool network_extractor::readNames() {
   shared_ptr< network_client_impl > pimpl_tmp = pimpl;
   if( ( pimpl_tmp ) && ( pimpl_tmp->isOpen() ) ) {
     pimpl_tmp->readNames( names );
-    colCount = names.size();
+    colCount = static_cast<unsigned int>(names.size());
   };
   return true;
 };
@@ -413,7 +413,7 @@ void network_extractor::setFileName( const std::string& aFileName ) {
   // Example filename (or URI): "tcp:localhost:17000" or "raw_udp:192.168.0.42:16069"
   std::string proto = "tcp";
   std::string ip4addr = "localhost";
-  std::size_t portnum = 17000;
+  unsigned short portnum = 17000;
   std::stringstream ss( aFileName );
   std::getline( ss, proto, ':' );
   std::getline( ss, ip4addr, ':' );

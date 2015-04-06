@@ -84,11 +84,15 @@ iarchive& RK_CALL bin_iarchive::load_serializable_ptr( serializable_shared_point
   std::vector< unsigned int > typeIDvect;
   unsigned int i;
   do {
-    bin_iarchive::load_unsigned_int( i );
+    std::size_t tmp_i;
+    bin_iarchive::load_unsigned_int(tmp_i);
+    i = static_cast<unsigned int>(tmp_i);
     typeIDvect.push_back( i );
   } while( i != 0 );
 
-  bin_iarchive::load_unsigned_int( hdr.type_version );
+  std::size_t tmp_tv;
+  bin_iarchive::load_unsigned_int(tmp_tv);
+  hdr.type_version = static_cast<unsigned int>(tmp_tv);
   bin_iarchive::load_unsigned_int( hdr.object_ID );
   bin_iarchive::load_bool( hdr.is_external );
   bin_iarchive::load_unsigned_int( hdr.size );
@@ -197,27 +201,27 @@ iarchive& RK_CALL bin_iarchive::load_unsigned_char( const std::pair< std::string
   return bin_iarchive::load_unsigned_char( u.second );
 };
 
-iarchive& RK_CALL bin_iarchive::load_int( int& i ) {
+iarchive& RK_CALL bin_iarchive::load_int(std::ptrdiff_t& i) {
   llong_to_ulong tmp;
   file_stream->read( reinterpret_cast< char* >( &tmp ), sizeof( llong_to_ulong ) );
   ntoh_2ui32( tmp );
-  i = static_cast< int >( tmp.i64 );
+  i = static_cast< std::ptrdiff_t >(tmp.i64);
   return *this;
 };
 
-iarchive& RK_CALL bin_iarchive::load_int( const std::pair< std::string, int& >& i ) {
+iarchive& RK_CALL bin_iarchive::load_int(const std::pair< std::string, std::ptrdiff_t& >& i) {
   return bin_iarchive::load_int( i.second );
 };
 
-iarchive& RK_CALL bin_iarchive::load_unsigned_int( unsigned int& u ) {
+iarchive& RK_CALL bin_iarchive::load_unsigned_int(std::size_t& u) {
   llong_to_ulong tmp;
   file_stream->read( reinterpret_cast< char* >( &tmp ), sizeof( llong_to_ulong ) );
   ntoh_2ui32( tmp );
-  u = static_cast< unsigned int >( tmp.ui64 );
+  u = static_cast< std::size_t >(tmp.ui64);
   return *this;
 };
 
-iarchive& RK_CALL bin_iarchive::load_unsigned_int( const std::pair< std::string, unsigned int& >& u ) {
+iarchive& RK_CALL bin_iarchive::load_unsigned_int(const std::pair< std::string, std::size_t& >& u) {
   return bin_iarchive::load_unsigned_int( u.second );
 };
 
@@ -292,7 +296,7 @@ oarchive& RK_CALL
   bool already_saved( false );
 
   if( Item ) {
-    std::map< serializable_shared_pointer, unsigned int >::const_iterator it = mObjRegMap.find( Item );
+    std::map< serializable_shared_pointer, std::size_t >::const_iterator it = mObjRegMap.find(Item);
 
     if( it != mObjRegMap.end() ) {
       hdr.object_ID = it->second;
@@ -335,8 +339,7 @@ oarchive& RK_CALL
     std::streampos start_pos = file_stream->tellp();
     bin_oarchive::save_string( FileName );
     std::streampos end_pos = file_stream->tellp();
-    typedef unsigned int tmp_uint;
-    hdr.size = tmp_uint( end_pos - start_pos );
+    hdr.size = end_pos - start_pos;
     file_stream->seekp( size_pos );
     bin_oarchive::save_unsigned_int( hdr.size );
     file_stream->seekp( end_pos );
@@ -360,7 +363,7 @@ oarchive& RK_CALL bin_oarchive::save_serializable_ptr( const serializable_shared
   bool already_saved( false );
 
   if( Item ) {
-    std::map< serializable_shared_pointer, unsigned int >::const_iterator it = mObjRegMap.find( Item );
+    std::map< serializable_shared_pointer, std::size_t >::const_iterator it = mObjRegMap.find(Item);
 
     if( it != mObjRegMap.end() ) {
       hdr.object_ID = it->second;
@@ -404,8 +407,7 @@ oarchive& RK_CALL bin_oarchive::save_serializable_ptr( const serializable_shared
     Item->save( *this, hdr.type_version );
     std::streampos end_pos = file_stream->tellp();
 
-    typedef unsigned int tmp_uint;
-    hdr.size = tmp_uint( end_pos - start_pos );
+    hdr.size = end_pos - start_pos;
     file_stream->seekp( size_pos );
     bin_oarchive::save_unsigned_int( hdr.size );
     file_stream->seekp( end_pos );
@@ -444,8 +446,7 @@ oarchive& RK_CALL bin_oarchive::save_serializable( const serializable& Item ) {
   Item.save( *this, hdr.type_version );
   std::streampos end_pos = file_stream->tellp();
 
-  typedef unsigned int tmp_uint;
-  hdr.size = tmp_uint( end_pos - start_pos );
+  hdr.size = end_pos - start_pos;
   file_stream->seekp( size_pos );
   bin_oarchive::save_unsigned_int( hdr.size );
   file_stream->seekp( end_pos );
@@ -475,7 +476,7 @@ oarchive& RK_CALL bin_oarchive::save_unsigned_char( const std::pair< std::string
   return bin_oarchive::save_unsigned_char( u.second );
 };
 
-oarchive& RK_CALL bin_oarchive::save_int( int i ) {
+oarchive& RK_CALL bin_oarchive::save_int(std::ptrdiff_t i) {
   llong_to_ulong tmp;
   tmp.i64 = i;
   hton_2ui32( tmp );
@@ -484,11 +485,11 @@ oarchive& RK_CALL bin_oarchive::save_int( int i ) {
 };
 
 
-oarchive& RK_CALL bin_oarchive::save_int( const std::pair< std::string, int >& i ) {
+oarchive& RK_CALL bin_oarchive::save_int(const std::pair< std::string, std::ptrdiff_t >& i) {
   return bin_oarchive::save_int( i.second );
 };
 
-oarchive& RK_CALL bin_oarchive::save_unsigned_int( unsigned int u ) {
+oarchive& RK_CALL bin_oarchive::save_unsigned_int(std::size_t u) {
   llong_to_ulong tmp;
   tmp.ui64 = u;
   hton_2ui32( tmp );
@@ -497,7 +498,7 @@ oarchive& RK_CALL bin_oarchive::save_unsigned_int( unsigned int u ) {
 };
 
 
-oarchive& RK_CALL bin_oarchive::save_unsigned_int( const std::pair< std::string, unsigned int >& u ) {
+oarchive& RK_CALL bin_oarchive::save_unsigned_int(const std::pair< std::string, std::size_t >& u) {
   return bin_oarchive::save_unsigned_int( u.second );
 };
 

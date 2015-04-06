@@ -63,7 +63,7 @@ std::recursive_mutex log_mtx;
 #endif
 
 
-static volatile bool server_is_alive alignas( void* ) = true;
+static volatile bool server_is_alive = true;
 
 
 static std::unique_ptr< serialization::iarchive > make_iarchiver( std::istream& in, msg_format fmt = xml_format ) {
@@ -158,6 +158,18 @@ struct pending_return {
                   detail::call_preparations&& aPreData )
       : p_func( aPFunc ), pre_data( std::move( aPreData ) ), socket( io_service ){};
 
+  pending_return(pending_return&& rhs) BOOST_NOEXCEPT : p_func(rhs.p_func), out_promise(std::move(rhs.out_promise)),
+    pre_data(std::move(rhs.pre_data)), socket(std::move(rhs.socket)), endpoint(std::move(rhs.endpoint)) {};
+
+  pending_return& operator=(pending_return&& rhs) BOOST_NOEXCEPT{
+    p_func = rhs.p_func;
+    out_promise = std::move(rhs.out_promise);
+    pre_data = std::move(rhs.pre_data);
+    socket = std::move(rhs.socket);
+    endpoint = std::move(rhs.endpoint);
+    return *this;
+  };
+
   void handle_connect( const boost::system::error_code& e ) {
     RK_RPC_LOG( "Handling a connection" );
     if( !e ) {
@@ -209,18 +221,28 @@ struct server::impl {
   std::multimap< std::string, pending_return > pending_connects;
 
   std::mutex pending_calls_mtx;
-  std::map< unsigned int, pending_return > pending_calls;
+  std::map< std::size_t, pending_return > pending_calls;
 
 
   struct call_executer {
     impl* parent;
     msg_format fmt;
-    std::unique_ptr< std::stringstream > ss;
+    std::string payload;
     boost::asio::ip::tcp::endpoint sender_endpt;
 
-    call_executer( impl* aParent, msg_format aFmt, const std::string& aPayload,
+    call_executer( impl* aParent, msg_format aFmt, std::string&& aPayload,
                    boost::asio::ip::tcp::endpoint aSenderEndPt )
-        : parent( aParent ), fmt( aFmt ), ss( new std::stringstream( aPayload ) ), sender_endpt( aSenderEndPt ){};
+        : parent( aParent ), fmt( aFmt ), payload( std::move( aPayload ) ), sender_endpt( aSenderEndPt ){};
+
+    call_executer(call_executer&& rhs) BOOST_NOEXCEPT : parent(rhs.parent), fmt(rhs.fmt), payload(std::move(rhs.payload)), sender_endpt(std::move(rhs.sender_endpt)) {};
+
+    call_executer& operator=(call_executer&& rhs) BOOST_NOEXCEPT {
+      parent = rhs.parent;
+      fmt = rhs.fmt;
+      payload = std::move(rhs.payload);
+      sender_endpt = std::move(rhs.sender_endpt);
+      return *this;
+    };
 
     void operator()() {
 
@@ -228,7 +250,8 @@ struct server::impl {
 
       boost::asio::ip::tcp::socket socket( parent->io_service );
 
-      auto p_ari = make_iarchiver( *ss, fmt );
+      std::stringstream ss(payload);
+      auto p_ari = make_iarchiver( ss, fmt );
       detail::rpc_call_header r_hdr;
       ( *p_ari ) >> r_hdr;
 
@@ -333,7 +356,7 @@ struct server::impl {
 
     connection( impl* aParent ) : parent( aParent ), socket_stream(){};
 
-    bool check_call_seq_match( std::map< unsigned int, pending_return >::iterator it,
+    bool check_call_seq_match( std::map< std::size_t, pending_return >::iterator it,
                                const detail::rpc_basic_header& r_hdr ) {
       if( ( it->second.p_func->name != r_hdr.name ) || ( it->second.p_func->get_params_hash() != r_hdr.params_hash ) ) {
         std::stringstream ss;
@@ -382,7 +405,7 @@ struct server::impl {
               // Defer rpc call to a separate thread:
               std::string payload( msg_size, '\0' );
               socket_stream.read( &payload[0], msg_size );
-              auto f = std::async( std::launch::async, call_executer( parent, fmt, payload, endpoint ) );
+              auto f = std::async( std::launch::async, call_executer( parent, fmt, std::move(payload), endpoint ) );
               if( it == parent->future_pool.end() )
                 parent->future_pool.push_back( std::move( f ) );
               else
@@ -549,7 +572,7 @@ struct server::impl {
               // Send the call packet.
               temp_out_buf.consume( socket.send( temp_out_buf.data() ) );
               break;
-            } catch( std::exception& e ) {
+            } catch (std::exception& e) { RK_UNUSED(e);
               continue;
             };
           }; // UNTIL (TCP packet was sent)
@@ -673,7 +696,7 @@ struct server::impl {
           self_is_port_server.store( true );
         };
 
-      } catch( std::exception& e ) {
+      } catch (std::exception& e) { RK_UNUSED(e);
         // TODO Do something, what? FIXME
         RK_RPC_LOG( "Failed the send the NEWPORT request... exception: " << e.what() );
       };

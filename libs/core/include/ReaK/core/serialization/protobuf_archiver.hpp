@@ -70,15 +70,15 @@ protected:
 
   virtual iarchive& RK_CALL load_unsigned_char( const std::pair< std::string, unsigned char& >& u );
 
-  virtual iarchive& RK_CALL load_int( int& i );
+  virtual iarchive& RK_CALL load_int(std::ptrdiff_t& i);
 
-  virtual iarchive& RK_CALL load_int( const std::pair< std::string, int& >& i );
+  virtual iarchive& RK_CALL load_int(const std::pair< std::string, std::ptrdiff_t& >& i);
 
-  virtual void load_varint( unsigned int& u );
+  virtual void load_varint(std::size_t& u);
 
-  virtual iarchive& RK_CALL load_unsigned_int( unsigned int& u );
+  virtual iarchive& RK_CALL load_unsigned_int(std::size_t& u);
 
-  virtual iarchive& RK_CALL load_unsigned_int( const std::pair< std::string, unsigned int& >& u );
+  virtual iarchive& RK_CALL load_unsigned_int(const std::pair< std::string, std::size_t& >& u);
 
   virtual iarchive& RK_CALL load_float( float& f );
 
@@ -108,8 +108,8 @@ public:
 class protobuf_oarchive : public oarchive {
 private:
   shared_ptr< std::ostream > file_stream;
-  std::stack< unsigned int > field_IDs;
-  std::stack< unsigned int > repeat_state;
+  std::stack< std::size_t > field_IDs;
+  std::stack< std::size_t > repeat_state;
 
 protected:
   virtual oarchive& RK_CALL
@@ -136,15 +136,15 @@ protected:
 
   virtual oarchive& RK_CALL save_unsigned_char( const std::pair< std::string, unsigned char >& u );
 
-  virtual oarchive& RK_CALL save_int( int i );
+  virtual oarchive& RK_CALL save_int(std::ptrdiff_t i);
 
-  virtual oarchive& RK_CALL save_int( const std::pair< std::string, int >& i );
+  virtual oarchive& RK_CALL save_int(const std::pair< std::string, std::ptrdiff_t >& i);
 
-  void save_varint( unsigned int u );
+  void save_varint(std::size_t u);
 
-  virtual oarchive& RK_CALL save_unsigned_int( unsigned int u );
+  virtual oarchive& RK_CALL save_unsigned_int(std::size_t u);
 
-  virtual oarchive& RK_CALL save_unsigned_int( const std::pair< std::string, unsigned int >& u );
+  virtual oarchive& RK_CALL save_unsigned_int(const std::pair< std::string, std::size_t >& u);
 
   virtual oarchive& RK_CALL save_float( float f );
 
@@ -189,14 +189,14 @@ public:
 class protobuf_schemer : public oarchive {
 private:
   shared_ptr< std::ostream > file_stream;
-  std::stack< unsigned int > field_IDs;
-  std::stack< unsigned int > repeat_state;
+  std::stack< std::size_t > field_IDs;
+  std::stack< std::size_t > repeat_state;
 
   std::vector< std::string > schemes;
   std::map< std::string, std::size_t > scheme_map;
 
 protected:
-  unsigned int get_chunk_hdr();
+  std::size_t get_chunk_hdr();
 
   virtual oarchive& RK_CALL
     saveToNewArchive_impl( const serializable_shared_pointer& Item, const std::string& FileName );
@@ -222,13 +222,13 @@ protected:
 
   virtual oarchive& RK_CALL save_unsigned_char( const std::pair< std::string, unsigned char >& u );
 
-  virtual oarchive& RK_CALL save_int( int i );
+  virtual oarchive& RK_CALL save_int(std::ptrdiff_t i);
 
-  virtual oarchive& RK_CALL save_int( const std::pair< std::string, int >& i );
+  virtual oarchive& RK_CALL save_int(const std::pair< std::string, std::ptrdiff_t >& i);
 
-  virtual oarchive& RK_CALL save_unsigned_int( unsigned int u );
+  virtual oarchive& RK_CALL save_unsigned_int(std::size_t u);
 
-  virtual oarchive& RK_CALL save_unsigned_int( const std::pair< std::string, unsigned int >& u );
+  virtual oarchive& RK_CALL save_unsigned_int(const std::pair< std::string, std::size_t >& u);
 
   virtual oarchive& RK_CALL save_float( float f );
 

@@ -77,7 +77,7 @@ oarchive& RK_CALL
   if( !Item.second )
     return *this;
 
-  std::map< serializable_shared_pointer, unsigned int >::const_iterator it = mObjRegMap.find( Item.second );
+  std::map< serializable_shared_pointer, std::size_t >::const_iterator it = mObjRegMap.find( Item.second );
 
   if( it != mObjRegMap.end() )
     return *this; // this object was already processed, in which case we just don't do anything.
@@ -105,7 +105,7 @@ oarchive& RK_CALL
 #endif
     shared_ptr< type_scheme > objID_sch;
     if( objID_itm == scheme_map.end() ) {
-      objID_sch = shared_ptr< type_scheme >( new primitive_scheme< unsigned int >() );
+      objID_sch = shared_ptr< type_scheme >( new primitive_scheme< std::size_t >() );
 #ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
       scheme_map[iname.to_string()] = objID_sch;
 #else
@@ -207,21 +207,21 @@ oarchive& RK_CALL scheme_builder::save_unsigned_char( const std::pair< std::stri
   return *this;
 };
 
-oarchive& RK_CALL scheme_builder::save_int( int i ) {
-  return scheme_builder::save_int( std::pair< std::string, int >( "i", i ) );
+oarchive& RK_CALL scheme_builder::save_int(std::ptrdiff_t i) {
+  return scheme_builder::save_int(std::pair< std::string, std::ptrdiff_t >("i", i));
 };
 
-oarchive& RK_CALL scheme_builder::save_int( const std::pair< std::string, int >& i ) {
-  save_primitive< int >( i.first );
+oarchive& RK_CALL scheme_builder::save_int(const std::pair< std::string, std::ptrdiff_t >& i) {
+  save_primitive< std::ptrdiff_t >(i.first);
   return *this;
 };
 
-oarchive& RK_CALL scheme_builder::save_unsigned_int( unsigned int u ) {
-  return scheme_builder::save_unsigned_int( std::pair< std::string, unsigned int >( "u", u ) );
+oarchive& RK_CALL scheme_builder::save_unsigned_int(std::size_t u) {
+  return scheme_builder::save_unsigned_int(std::pair< std::string, std::size_t >("u", u));
 };
 
-oarchive& RK_CALL scheme_builder::save_unsigned_int( const std::pair< std::string, unsigned int >& u ) {
-  save_primitive< unsigned int >( u.first );
+oarchive& RK_CALL scheme_builder::save_unsigned_int(const std::pair< std::string, std::size_t >& u) {
+  save_primitive< std::size_t >(u.first);
   return *this;
 };
 
@@ -287,7 +287,7 @@ void RK_CALL scheme_builder::signal_polymorphic_field( const std::string& aBaseT
 #endif
     shared_ptr< type_scheme > objID_sch;
     if( objID_itm == scheme_map.end() ) {
-      objID_sch = shared_ptr< type_scheme >( new primitive_scheme< unsigned int >() );
+      objID_sch = shared_ptr< type_scheme >( new primitive_scheme< std::size_t >() );
 #ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
       scheme_map[iname.to_string()] = objID_sch;
 #else

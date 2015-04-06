@@ -683,11 +683,11 @@ iarchive& RK_CALL objtree_iarchive::load_unsigned_char( const std::pair< std::st
   return *this;
 };
 
-iarchive& RK_CALL objtree_iarchive::load_int( int& i ) {
-  return objtree_iarchive::load_int( std::pair< std::string, int& >( "int", i ) );
+iarchive& RK_CALL objtree_iarchive::load_int(std::ptrdiff_t& i) {
+  return objtree_iarchive::load_int(std::pair< std::string, std::ptrdiff_t& >("int", i));
 };
 
-iarchive& RK_CALL objtree_iarchive::load_int( const std::pair< std::string, int& >& i ) {
+iarchive& RK_CALL objtree_iarchive::load_int(const std::pair< std::string, std::ptrdiff_t& >& i) {
   std::string value_str;
   if( readNamedValue( i.first, value_str ) ) {
     if( value_str.empty() )
@@ -699,11 +699,11 @@ iarchive& RK_CALL objtree_iarchive::load_int( const std::pair< std::string, int&
   return *this;
 };
 
-iarchive& RK_CALL objtree_iarchive::load_unsigned_int( unsigned int& u ) {
-  return objtree_iarchive::load_unsigned_int( std::pair< std::string, unsigned int& >( "unsigned_int", u ) );
+iarchive& RK_CALL objtree_iarchive::load_unsigned_int(std::size_t& u) {
+  return objtree_iarchive::load_unsigned_int(std::pair< std::string, std::size_t& >("unsigned_int", u));
 };
 
-iarchive& RK_CALL objtree_iarchive::load_unsigned_int( const std::pair< std::string, unsigned int& >& u ) {
+iarchive& RK_CALL objtree_iarchive::load_unsigned_int(const std::pair< std::string, std::size_t& >& u) {
   std::string value_str;
   if( readNamedValue( u.first, value_str ) ) {
     if( value_str.empty() )
@@ -830,12 +830,12 @@ oarchive& RK_CALL
 
 
   if( Item.second ) {
-    std::map< serializable_shared_pointer, unsigned int >::const_iterator it = mObjRegMap.find( Item.second );
-    unsigned int object_ID = 0;
+    std::map< serializable_shared_pointer, std::size_t >::const_iterator it = mObjRegMap.find( Item.second );
+    std::size_t object_ID = 0;
     if( it != mObjRegMap.end() ) {
       object_ID = it->second;
     } else {
-      object_ID = static_cast< unsigned int >( add_vertex( *obj_graph ) );
+      object_ID = static_cast< std::size_t >( add_vertex( *obj_graph ) );
       ( *obj_graph )[object_ID].p_obj = Item.second;
       mObjRegMap[Item.second] = object_ID;
     };
@@ -922,22 +922,22 @@ oarchive& RK_CALL objtree_oarchive::save_unsigned_char( const std::pair< std::st
   return *this;
 };
 
-oarchive& RK_CALL objtree_oarchive::save_int( int i ) {
-  return objtree_oarchive::save_int( std::pair< std::string, int >( "int", i ) );
+oarchive& RK_CALL objtree_oarchive::save_int(std::ptrdiff_t i) {
+  return objtree_oarchive::save_int(std::pair< std::string, std::ptrdiff_t >("int", i));
 };
 
 
-oarchive& RK_CALL objtree_oarchive::save_int( const std::pair< std::string, int >& i ) {
+oarchive& RK_CALL objtree_oarchive::save_int(const std::pair< std::string, std::ptrdiff_t >& i) {
   ( *current_ss ) << "<" << i.first << ">\"" << i.second << "\"</" << i.first << ">" << std::endl;
   return *this;
 };
 
-oarchive& RK_CALL objtree_oarchive::save_unsigned_int( unsigned int u ) {
-  return objtree_oarchive::save_unsigned_int( std::pair< std::string, unsigned int >( "unsigned_int", u ) );
+oarchive& RK_CALL objtree_oarchive::save_unsigned_int(std::size_t u) {
+  return objtree_oarchive::save_unsigned_int(std::pair< std::string, std::size_t >("unsigned_int", u));
 };
 
 
-oarchive& RK_CALL objtree_oarchive::save_unsigned_int( const std::pair< std::string, unsigned int >& u ) {
+oarchive& RK_CALL objtree_oarchive::save_unsigned_int(const std::pair< std::string, std::size_t >& u) {
   ( *current_ss ) << "<" << u.first << ">\"" << u.second << "\"</" << u.first << ">" << std::endl;
   return *this;
 };

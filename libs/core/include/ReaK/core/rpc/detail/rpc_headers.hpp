@@ -60,10 +60,10 @@ std::tuple< rpc_header_type, msg_format, std::size_t > parse_rpc_header( std::is
 
 struct rpc_basic_header : serializable {
   std::string name;
-  unsigned int params_hash;
-  unsigned int call_seq;
+  std::size_t params_hash;
+  std::size_t call_seq;
 
-  rpc_basic_header( const std::string& aName = "", unsigned int aParamsHash = 0, unsigned int aCallSeq = 0 )
+  rpc_basic_header(const std::string& aName = "", std::size_t aParamsHash = 0, std::size_t aCallSeq = 0)
       : name( aName ), params_hash( aParamsHash ), call_seq( aCallSeq ){};
 
 
@@ -95,7 +95,7 @@ inline bool operator<( const rpc_basic_header& lhs, const rpc_basic_header& rhs 
 struct rpc_call_header : rpc_basic_header {
   unsigned int reply_port;
 
-  rpc_call_header( const std::string& aName = "", unsigned int aParamsHash = 0, unsigned int aCallSeq = 0,
+  rpc_call_header(const std::string& aName = "", std::size_t aParamsHash = 0, std::size_t aCallSeq = 0,
                    unsigned int aReplyPort = 0 )
       : rpc_basic_header( aName, aParamsHash, aCallSeq ), reply_port( aReplyPort ){};
 
@@ -123,7 +123,7 @@ struct rpc_call_header : rpc_basic_header {
 
 struct rpc_return_header : rpc_basic_header {
 
-  rpc_return_header( const std::string& aName = "", unsigned int aParamsHash = 0, unsigned int aCallSeq = 0 )
+  rpc_return_header(const std::string& aName = "", std::size_t aParamsHash = 0, std::size_t aCallSeq = 0)
       : rpc_basic_header( aName, aParamsHash, aCallSeq ){};
 
 
@@ -146,7 +146,7 @@ struct rpc_exception_header : rpc_basic_header {
   std::string except_type;
   std::string except_msg;
 
-  rpc_exception_header( const std::string& aName = "", unsigned int aParamsHash = 0, unsigned int aCallSeq = 0,
+  rpc_exception_header(const std::string& aName = "", std::size_t aParamsHash = 0, std::size_t aCallSeq = 0,
                         const std::string& aExceptType = "", const std::string& aExceptMsg = "" )
       : rpc_basic_header( aName, aParamsHash, aCallSeq ), except_type( aExceptType ), except_msg( aExceptMsg ){};
 
@@ -173,7 +173,7 @@ struct rpc_exception_header : rpc_basic_header {
 
 struct rpc_unrecognized_header : rpc_basic_header {
 
-  rpc_unrecognized_header( const std::string& aName = "", unsigned int aParamsHash = 0, unsigned int aCallSeq = 0 )
+  rpc_unrecognized_header(const std::string& aName = "", std::size_t aParamsHash = 0, std::size_t aCallSeq = 0)
       : rpc_basic_header( aName, aParamsHash, aCallSeq ){};
 
 

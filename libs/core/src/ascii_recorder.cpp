@@ -61,7 +61,7 @@ void ascii_recorder::setStreamImpl( const shared_ptr< std::ostream >& aStreamPtr
       out_stream = aStreamPtr;
       out_stream->setf( std::ios::scientific, std::ios::floatfield );
       out_stream->precision( 11 );
-      colCount = names.size();
+      colCount = static_cast<unsigned int>(names.size());
       lock_here.unlock();
       writeNames();
     };
@@ -132,7 +132,7 @@ bool ascii_extractor::readNames() {
     curr_end = temp.find( delimiter, curr_start );
     temp_name = temp.substr( curr_start, curr_end - curr_start );
   };
-  colCount = names.size();
+  colCount = static_cast<unsigned int>(names.size());
   return true;
 };
 

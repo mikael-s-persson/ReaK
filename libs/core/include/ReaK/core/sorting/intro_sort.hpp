@@ -57,7 +57,7 @@ namespace detail {
 
 template < typename RandomAccessIter, typename Compare, typename PivotChooser >
 void intro_sort_impl( RandomAccessIter first, RandomAccessIter last, Compare comp, PivotChooser choose_pivot ) {
-  int depth_count = 2 * std::log2( last - first );
+  double depth_count = 2 * std::log2( last - first );
   while( first != last ) {
     std::size_t dist = last - first;
     if( dist < 2 )
@@ -80,7 +80,8 @@ void intro_sort_impl( RandomAccessIter first, RandomAccessIter last, Compare com
       intro_sort_impl( pivot + 1, last, comp, choose_pivot );
       last = pivot;
     };
-    if( --depth_count < 0 )
+    depth_count -= 1;
+    if( depth_count < 0 )
       return heap_sort( first, last, comp );
   };
 };

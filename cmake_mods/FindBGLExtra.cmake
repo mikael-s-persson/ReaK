@@ -31,7 +31,14 @@ set(BGLEXTRA_LIBRARY ${BGLEXTRA_LIBRARIES})
 # Currently, only a single version (pending proposal to Boost anyways):
 set(BGLEXTRA_VERSION_STRING "1.0")
 
-find_path(_BGLEXTRA_INCLUDE_DIR adjacency_list_BC.hpp PATH_SUFFIXES "libbgl-extra/boost/graph" "boost/graph")
+if(WIN32)
+  set(_BGLEXTRA_PATH_HINTS "C:/" "C:/Boost/")
+else()
+  # Add hints for unix-like systems.. not really needed.
+  set(_BGLEXTRA_PATH_HINTS "/usr/include" "/usr/local/include")
+endif()
+
+find_path(_BGLEXTRA_INCLUDE_DIR adjacency_list_BC.hpp HINTS ${_BGLEXTRA_PATH_HINTS} PATH_SUFFIXES "libbgl-extra/boost/graph" "boost/graph")
 string(REPLACE "/boost/graph" "" BGLEXTRA_INCLUDE_DIR ${_BGLEXTRA_INCLUDE_DIR})
 set(BGLEXTRA_INCLUDE_DIRS ${BGLEXTRA_INCLUDE_DIR})
 

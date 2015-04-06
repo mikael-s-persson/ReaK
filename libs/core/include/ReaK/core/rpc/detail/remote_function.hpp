@@ -52,12 +52,35 @@ namespace detail {
     msg_format fmt;
     std::unique_ptr<std::stringstream> ss;
     std::unique_ptr<serialization::oarchive> p_aro;
-    unsigned int call_seq;
+    std::size_t call_seq;
+
+    call_preparations() BOOST_NOEXCEPT : fmt(), ss(), p_aro(), call_seq() {};
+
+    call_preparations(call_preparations&& rhs) BOOST_NOEXCEPT : fmt(rhs.fmt), ss(std::move(rhs.ss)), p_aro(std::move(rhs.p_aro)), call_seq(rhs.call_seq) {
+      rhs.call_seq = 0;
+    };
+    call_preparations& operator=(call_preparations&& rhs) BOOST_NOEXCEPT {
+      fmt = rhs.fmt;
+      ss = std::move(rhs.ss);
+      p_aro = std::move(rhs.p_aro);
+      call_seq = rhs.call_seq;
+      rhs.call_seq = 0;
+      return *this;
+    };
   };
   
   struct call_results {
     std::unique_ptr<std::stringstream> ss;
     std::unique_ptr<serialization::iarchive> p_ari;
+
+    call_results() BOOST_NOEXCEPT : ss(), p_ari() {};
+
+    call_results(call_results&& rhs) BOOST_NOEXCEPT : ss(std::move(rhs.ss)), p_ari(std::move(rhs.p_ari)) {};
+    call_results& operator=(call_results&& rhs) BOOST_NOEXCEPT{
+      ss = std::move(rhs.ss);
+      p_ari = std::move(rhs.p_ari);
+      return *this;
+    };
   };
   
   class remote_function {
