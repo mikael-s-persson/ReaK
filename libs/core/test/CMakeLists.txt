@@ -1,8 +1,9 @@
 
-
-add_executable(unit_test_cnst_string "unit_test_cnst_string.cpp")
-ReaK_setup_test_program(unit_test_cnst_string)
-target_link_libraries(unit_test_cnst_string reak_core)
+if(NOT MSVC)
+  add_executable(unit_test_cnst_string "unit_test_cnst_string.cpp")
+  ReaK_setup_test_program(unit_test_cnst_string)
+  target_link_libraries(unit_test_cnst_string reak_core)
+endif()
 
 add_executable(unit_test_endian_conversions "unit_test_endian_conversions.cpp")
 ReaK_setup_test_program(unit_test_endian_conversions)

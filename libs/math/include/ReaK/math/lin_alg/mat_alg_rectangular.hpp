@@ -581,16 +581,13 @@ public:
 
   virtual void RK_CALL save( serialization::oarchive& A, unsigned int ) const {
     A& std::pair< std::string, const std::vector< T >& >( "q", q )
-      & std::pair< std::string, unsigned int >( "rowCount", rowCount )
-      & std::pair< std::string, unsigned int >( "colCount", colCount );
+      & std::pair< std::string, std::size_t >( "rowCount", rowCount )
+      & std::pair< std::string, std::size_t >("colCount", colCount);
   };
   virtual void RK_CALL load( serialization::iarchive& A, unsigned int ) {
-    unsigned int tmp;
     A& std::pair< std::string, std::vector< T >& >( "q", q )
-      & std::pair< std::string, unsigned int& >( "rowCount", tmp );
-    rowCount = tmp;
-    A& std::pair< std::string, unsigned int& >( "colCount", tmp );
-    colCount = tmp;
+      & std::pair< std::string, std::size_t& >("rowCount", rowCount)
+      & std::pair< std::string, std::size_t& >("colCount", colCount);
   };
 
   RK_RTTI_REGISTER_CLASS_1BASE( self, 1, serializable )
@@ -1175,16 +1172,13 @@ public:
 
   virtual void RK_CALL save( serialization::oarchive& A, unsigned int ) const {
     A& std::pair< std::string, const std::vector< T >& >( "q", q )
-      & std::pair< std::string, unsigned int >( "rowCount", rowCount )
-      & std::pair< std::string, unsigned int >( "colCount", colCount );
+      & std::pair< std::string, std::size_t >( "rowCount", rowCount )
+      & std::pair< std::string, std::size_t >("colCount", colCount);
   };
   virtual void RK_CALL load( serialization::iarchive& A, unsigned int ) {
-    unsigned int tmp;
     A& std::pair< std::string, std::vector< T >& >( "q", q )
-      & std::pair< std::string, unsigned int& >( "rowCount", tmp );
-    rowCount = tmp;
-    A& std::pair< std::string, unsigned int& >( "colCount", tmp );
-    colCount = tmp;
+      & std::pair< std::string, std::size_t& >("rowCount", rowCount)
+      & std::pair< std::string, std::size_t& >("colCount", colCount);
   };
 
   RK_RTTI_REGISTER_CLASS_1BASE( self, 1, serializable )

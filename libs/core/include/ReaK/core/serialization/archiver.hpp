@@ -1251,7 +1251,7 @@ public:
   };
 
   /// Saving an unsigned integer value with a name.
-  friend oarchive& RK_CALL operator&(oarchive& out, const std::pair< std::string, const std::uint64_t& >& u) {
+  friend oarchive& RK_CALL operator&(oarchive& out, const std::pair< std::string, std::uint64_t >& u) {
     return out.save_unsigned_int(std::pair< std::string, std::size_t >(u.first, u.second));
   };
 
@@ -1469,7 +1469,7 @@ public:
   template < typename Key, typename T >
   friend oarchive& operator&( oarchive& out, const std::pair< std::string, const std::map< Key, T >& >& m ) {
     std::size_t count = m.second.size();
-    out& std::pair< std::string, unsigned int >( m.first + "_count", count );
+    out& std::pair< std::string, std::size_t >( m.first + "_count", count );
 #ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
     constexpr auto kname = rtti::get_type_info< Key >::type_name;
     constexpr auto tname = rtti::get_type_info< T >::type_name;

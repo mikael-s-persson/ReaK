@@ -223,7 +223,7 @@ public:
    * \return the trace of matrix M.
    * \test PASSED
    */
-  friend value_type trace( const self& M ) { return M.rowCount; };
+  friend value_type trace( const self& M ) { return static_cast<value_type>(M.rowCount); };
 
   /**
    * Appends a matrix to another.

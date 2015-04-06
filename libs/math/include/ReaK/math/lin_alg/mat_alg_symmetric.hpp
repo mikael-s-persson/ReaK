@@ -845,13 +845,11 @@ public:
 
   virtual void RK_CALL save( serialization::oarchive& A, unsigned int ) const {
     A& std::pair< std::string, const std::vector< T >& >( "q", q )
-      & std::pair< std::string, unsigned int >( "rowCount", rowCount );
+      & std::pair< std::string, std::size_t >( "rowCount", rowCount );
   };
   virtual void RK_CALL load( serialization::iarchive& A, unsigned int ) {
-    unsigned int temp;
     A& std::pair< std::string, std::vector< T >& >( "q", q )
-      & std::pair< std::string, unsigned int& >( "rowCount", temp );
-    rowCount = temp;
+      & std::pair< std::string, std::size_t& >("rowCount", rowCount);
   };
 
   RK_RTTI_REGISTER_CLASS_1BASE( self, 1, serializable )

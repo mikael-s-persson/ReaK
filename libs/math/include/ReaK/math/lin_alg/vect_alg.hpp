@@ -746,11 +746,12 @@ public:
 #else
 
 private:
-  static void set_value_impl( pointer& pval, const value_type& a1 ) BOOST_NOEXCEPT { *pval++ = a1; };
+  template < typename Arg1 >
+  static void set_value_impl(pointer& pval, const Arg1& a1) BOOST_NOEXCEPT { *pval++ = value_type(a1); };
 
-  template < typename... Args >
-  static void set_value_impl( pointer& pval, const value_type& a1, const Args&... tail ) BOOST_NOEXCEPT {
-    *pval++ = a1;
+  template < typename Arg1, typename... Args >
+  static void set_value_impl(pointer& pval, const Arg1& a1, const Args&... tail) BOOST_NOEXCEPT{
+    *pval++ = value_type(a1);
     set_value_impl( pval, tail... );
   };
 
@@ -2370,11 +2371,9 @@ public:
 
 /**
  * Square magnitude of the vector.
- * \test PASSED
  */
 template < typename Vector >
-typename boost::enable_if< is_readable_vector< Vector >, vect_traits< Vector > >::type::value_type
-  norm_2_sqr( const Vector& v ) BOOST_NOEXCEPT {
+auto norm_2_sqr( const Vector& v ) BOOST_NOEXCEPT -> typename std::decay< decltype(v[v.size()] * v[v.size()]) >::type {
   typedef typename vect_traits< Vector >::value_type ValueType;
   typedef typename vect_traits< Vector >::size_type SizeType;
   ValueType sum( 0.0 );
@@ -2385,22 +2384,18 @@ typename boost::enable_if< is_readable_vector< Vector >, vect_traits< Vector > >
 
 /**
  * Magnitude of the vector.
- * \test PASSED
  */
 template < typename Vector >
-typename boost::enable_if< is_readable_vector< Vector >, vect_traits< Vector > >::type::value_type
-  norm_2( const Vector& v ) BOOST_NOEXCEPT {
+auto norm_2(const Vector& v) BOOST_NOEXCEPT -> typename std::decay< decltype(v[v.size()]) >::type {
   using std::sqrt;
   return sqrt( norm_2_sqr( v ) );
 };
 
 /**
  * Infinite norm of the vector.
- * \test PASSED
  */
 template < typename Vector >
-typename boost::enable_if< is_readable_vector< Vector >, vect_traits< Vector > >::type::value_type
-  norm_inf( const Vector& v ) BOOST_NOEXCEPT {
+auto norm_inf(const Vector& v) BOOST_NOEXCEPT -> typename std::decay< decltype(v[v.size()]) >::type {
   typedef typename vect_traits< Vector >::value_type ValueType;
   typedef typename vect_traits< Vector >::size_type SizeType;
   using std::fabs;
@@ -2413,11 +2408,9 @@ typename boost::enable_if< is_readable_vector< Vector >, vect_traits< Vector > >
 
 /**
  * Square magnitude of the vector.
- * \test PASSED
  */
 template < typename Vector >
-typename boost::enable_if< is_readable_vector< Vector >, vect_traits< Vector > >::type::value_type
-  norm_1( const Vector& v ) BOOST_NOEXCEPT {
+auto norm_1(const Vector& v) BOOST_NOEXCEPT -> typename std::decay< decltype(v[v.size()]) >::type {
   typedef typename vect_traits< Vector >::value_type ValueType;
   typedef typename vect_traits< Vector >::size_type SizeType;
   using std::fabs;
@@ -2429,11 +2422,10 @@ typename boost::enable_if< is_readable_vector< Vector >, vect_traits< Vector > >
 
 /**
  * Unit vector in the same direction.
- * \test PASSED
  */
 template < typename Vector >
-typename boost::enable_if< is_readable_vector< Vector >, vect_copy< Vector > >::type::type unit( const Vector& v ) {
-  typename vect_copy< Vector >::type result;
+auto unit(const Vector& v) -> typename std::decay< decltype(v / v[v.size()]) >::type  {
+  typename std::decay< decltype(v / v[v.size()]) >::type result;
   result = v;
   result /= norm_2( result );
   return result;
@@ -2504,8 +2496,9 @@ typename boost::enable_if< boost::mpl::and_< is_writable_vector< Vector >,
                            Vector& >::type
   operator*=( Vector& v, const T& S ) BOOST_NOEXCEPT {
   typedef typename vect_traits< Vector >::size_type SizeType;
-  for( SizeType i = 0; i < v.size(); ++i )
-    v[i] = v[i] * S;
+  typedef typename vect_traits< Vector >::value_type ValueType;
+  for (SizeType i = 0; i < v.size(); ++i)
+    v[i] *= ValueType(S);
   return v;
 };
 
@@ -2519,8 +2512,9 @@ typename boost::enable_if< boost::mpl::and_< is_writable_vector< Vector >,
                            Vector& >::type
   operator/=( Vector& v, const T& S ) BOOST_NOEXCEPT {
   typedef typename vect_traits< Vector >::size_type SizeType;
+  typedef typename vect_traits< Vector >::value_type ValueType;
   for( SizeType i = 0; i < v.size(); ++i )
-    v[i] = v[i] / S;
+    v[i] /= ValueType(S);
   return v;
 };
 
@@ -2531,7 +2525,7 @@ typename boost::enable_if< boost::mpl::and_< is_writable_vector< Vector >,
  */
 template < typename Vector1, typename Vector2 >
 typename boost::enable_if< boost::mpl::and_< is_writable_vector< Vector1 >, is_readable_vector< Vector2 > >,
-                           vect_copy< Vector1 > >::type::type
+                           typename vect_copy< Vector1 >::type >::type
   operator+( const Vector1& v1, const Vector2& v2 ) {
   if( v1.size() != v2.size() )
     throw std::range_error( "Vector size mismatch." );
@@ -2546,7 +2540,7 @@ typename boost::enable_if< boost::mpl::and_< is_writable_vector< Vector1 >, is_r
  * \test PASSED
  */
 template < typename Vector >
-typename boost::enable_if< is_readable_vector< Vector >, vect_copy< Vector > >::type::type
+typename boost::enable_if< is_readable_vector< Vector >, typename vect_copy< Vector >::type >::type
   operator-( const Vector& v ) {
   typedef typename vect_traits< Vector >::size_type SizeType;
   typename vect_copy< Vector >::type result;
@@ -2562,7 +2556,7 @@ typename boost::enable_if< is_readable_vector< Vector >, vect_copy< Vector > >::
  */
 template < typename Vector1, typename Vector2 >
 typename boost::enable_if< boost::mpl::and_< is_readable_vector< Vector1 >, is_readable_vector< Vector2 > >,
-                           vect_copy< Vector1 > >::type::type
+                           typename vect_copy< Vector1 >::type >::type
   operator-( const Vector1& v1, const Vector2& v2 ) {
   if( v1.size() != v2.size() )
     throw std::range_error( "Vector size mismatch." );
@@ -2577,9 +2571,9 @@ typename boost::enable_if< boost::mpl::and_< is_readable_vector< Vector1 >, is_r
  * \test PASSED
  */
 template < typename Vector1, typename Vector2 >
-typename boost::enable_if< boost::mpl::and_< is_readable_vector< Vector1 >, is_readable_vector< Vector2 > >,
-                           vect_traits< Vector1 > >::type::value_type
-  operator*( const Vector1& v1, const Vector2& v2 ) {
+auto operator*( const Vector1& v1, const Vector2& v2 ) 
+    -> typename boost::enable_if< boost::mpl::and_< is_readable_vector< Vector1 >, is_readable_vector< Vector2 > >,
+                                  decltype(v1[v1.size()] * v2[v2.size()]) >::type {
   if( v1.size() != v2.size() )
     throw std::range_error( "Vector size mismatch." );
   typedef typename vect_traits< Vector1 >::size_type SizeType;
@@ -2596,7 +2590,7 @@ typename boost::enable_if< boost::mpl::and_< is_readable_vector< Vector1 >, is_r
 template < typename T, typename Vector >
 typename boost::enable_if< boost::mpl::and_< is_readable_vector< Vector >, boost::mpl::not_< is_readable_vector< T > >,
                                              boost::mpl::not_< is_readable_matrix< T > > >,
-                           vect_copy< Vector > >::type::type
+                           typename vect_copy< Vector >::type >::type
   operator*( const Vector& v, const T& S ) {
   typename vect_copy< Vector >::type result;
   result = v;
@@ -2611,7 +2605,7 @@ typename boost::enable_if< boost::mpl::and_< is_readable_vector< Vector >, boost
 template < typename T, typename Vector >
 typename boost::enable_if< boost::mpl::and_< is_readable_vector< Vector >, boost::mpl::not_< is_readable_vector< T > >,
                                              boost::mpl::not_< is_readable_matrix< T > > >,
-                           vect_copy< Vector > >::type::type
+                           typename vect_copy< Vector >::type >::type
   operator*( const T& S, const Vector& v ) {
   typename vect_copy< Vector >::type result;
   result = v;
@@ -2626,7 +2620,7 @@ typename boost::enable_if< boost::mpl::and_< is_readable_vector< Vector >, boost
 template < typename T, typename Vector >
 typename boost::enable_if< boost::mpl::and_< is_readable_vector< Vector >, boost::mpl::not_< is_readable_vector< T > >,
                                              boost::mpl::not_< is_readable_matrix< T > > >,
-                           vect_copy< Vector > >::type::type
+                           typename vect_copy< Vector >::type >::type
   operator/( const Vector& v, const T& S ) {
   typename vect_copy< Vector >::type result;
   result = v;
@@ -2641,7 +2635,7 @@ typename boost::enable_if< boost::mpl::and_< is_readable_vector< Vector >, boost
  */
 template < typename Vector1, typename Vector2 >
 typename boost::enable_if< boost::mpl::and_< is_writable_vector< Vector1 >, is_readable_vector< Vector2 > >,
-                           vect_copy< Vector1 > >::type::type
+                           typename vect_copy< Vector1 >::type >::type
   elem_product( const Vector1& v1, const Vector2& v2 ) {
   if( v1.size() != v2.size() )
     throw std::range_error( "Vector size mismatch." );

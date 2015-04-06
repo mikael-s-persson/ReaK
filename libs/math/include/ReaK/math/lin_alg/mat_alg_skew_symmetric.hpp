@@ -122,12 +122,12 @@ public:
     const Matrix& M, const allocator_type& aAlloc = allocator_type(),
     typename boost::enable_if_c< is_readable_matrix< Matrix >::value && !( boost::is_same< Matrix, self >::value ),
                                  void* >::type dummy = nullptr )
-      : q( mat_triangular_size( ( M.get_row_count() > M.get_col_count() ? M.get_row_count() : M.get_col_count() ) - 1 ),
+                                 : q(mat_triangular_size(static_cast<size_type>(M.get_row_count() > M.get_col_count() ? M.get_row_count() : M.get_col_count()) - 1),
            value_type( 0 ), aAlloc ),
-        rowCount( ( M.get_row_count() > M.get_col_count() ? M.get_row_count() : M.get_col_count() ) ) {
+           rowCount(static_cast<size_type>(M.get_row_count() > M.get_col_count() ? M.get_row_count() : M.get_col_count())) {
     size_type k = 0;
     size_type i = 1;
-    size_type min_size = ( M.get_row_count() > M.get_col_count() ? M.get_col_count() : M.get_row_count() );
+    size_type min_size = static_cast<size_type>(M.get_row_count() > M.get_col_count() ? M.get_col_count() : M.get_row_count());
     for( ; i < min_size; k += i++ ) {
       for( size_type j = 0; j < i; ++j ) {
         q[k + j] = value_type( 0.5 ) * ( M( j, i ) - M( i, j ) );

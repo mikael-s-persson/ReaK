@@ -93,7 +93,7 @@ struct get_type_id< std::uint64_t > {
 #endif
   static construct_ptr CreatePtr() BOOST_NOEXCEPT { return nullptr; };
 
-  typedef const std::uint64_t& save_type;
+  typedef std::uint64_t save_type;
   typedef std::uint64_t& load_type;
 };
 
