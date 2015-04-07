@@ -44,7 +44,6 @@
 #include <boost/property_map/property_map.hpp>
 
 // BGL-Extra includes:
-#include <boost/graph/tree_traits.hpp>
 #include <boost/graph/tree_adaptor.hpp>
 #include <boost/graph/bst_inorder_iterator.hpp>
 

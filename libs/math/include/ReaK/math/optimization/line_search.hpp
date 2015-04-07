@@ -236,16 +236,6 @@ T expand_and_zoom_search_impl( Function f, GradFunction df, T& low_bound, T& up_
   };
 };
 
-
-template < typename Function, typename T, typename U >
-T linear_composed_function_param( Function f, const T& alpha, const U& x0, const U& dx ) {
-  return f( x0 + alpha * dx );
-};
-
-template < typename Function, typename T, typename U >
-T linear_composed_proj_gradient( Function df, const T& alpha, const U& x0, const U& dx ) {
-  return dx * df( x0 + alpha * dx );
-};
 };
 
 /**
@@ -293,8 +283,7 @@ struct bounded_line_srch_dichotomous {
    */
   template < typename Function, typename T, typename U >
   T operator()( Function f, T a0, T a1, const U& x0, const U& dx, const T& tol = T( 1e-6 ) ) const {
-    dichotomous_search( boost::bind( detail::linear_composed_function_param< Function, T, U >, f, _1, boost::cref( x0 ),
-                                     boost::cref( dx ) ),
+    dichotomous_search([&f, &x0, &dx](const T& alpha) -> T { return f(x0 + alpha * dx); },
                         a0, a1, tol );
     return ( a1 + a0 ) * T( 0.5 );
   };
@@ -320,8 +309,7 @@ struct bounded_line_srch_dichotomous {
    */
   template < typename Function, typename GradFunction, typename T, typename U >
   T operator()( Function f, GradFunction, T a0, T a1, const U& x0, const U& dx, const T& tol = T( 1e-6 ) ) const {
-    dichotomous_search( boost::bind( detail::linear_composed_function_param< Function, T, U >, f, _1, boost::cref( x0 ),
-                                     boost::cref( dx ) ),
+    dichotomous_search([&f, &x0, &dx](const T& alpha) -> T { return f(x0 + alpha * dx); },
                         a0, a1, tol );
     return ( a1 + a0 ) * T( 0.5 );
   };
@@ -374,8 +362,7 @@ struct bounded_line_srch_gold_sect {
    */
   template < typename Function, typename T, typename U >
   T operator()( Function f, T a0, T a1, const U& x0, const U& dx, const T& tol = T( 1e-6 ) ) const {
-    golden_section_search( boost::bind( detail::linear_composed_function_param< Function, T, U >, f, _1,
-                                        boost::cref( x0 ), boost::cref( dx ) ),
+    golden_section_search([&f, &x0, &dx](const T& alpha) -> T { return f(x0 + alpha * dx); },
                            a0, a1, tol );
     return ( a1 + a0 ) * T( 0.5 );
   };
@@ -401,8 +388,7 @@ struct bounded_line_srch_gold_sect {
    */
   template < typename Function, typename GradFunction, typename T, typename U >
   T operator()( Function f, GradFunction, T a0, T a1, const U& x0, const U& dx, const T& tol = T( 1e-6 ) ) const {
-    golden_section_search( boost::bind( detail::linear_composed_function_param< Function, T, U >, f, _1,
-                                        boost::cref( x0 ), boost::cref( dx ) ),
+    golden_section_search([&f, &x0, &dx](const T& alpha) -> T { return f(x0 + alpha * dx); },
                            a0, a1, tol );
     return ( a1 + a0 ) * T( 0.5 );
   };
@@ -457,8 +443,7 @@ struct bounded_line_srch_fibonacci {
    */
   template < typename Function, typename T, typename U >
   T operator()( Function f, T a0, T a1, const U& x0, const U& dx, const T& tol = T( 1e-6 ) ) const {
-    fibonacci_search( boost::bind( detail::linear_composed_function_param< Function, T, U >, f, _1, boost::cref( x0 ),
-                                   boost::cref( dx ) ),
+    fibonacci_search([&f, &x0, &dx](const T& alpha) -> T { return f(x0 + alpha * dx); },
                       a0, a1, tol );
     return ( a1 + a0 ) * T( 0.5 );
   };
@@ -484,8 +469,7 @@ struct bounded_line_srch_fibonacci {
    */
   template < typename Function, typename GradFunction, typename T, typename U >
   T operator()( Function f, GradFunction, T a0, T a1, const U& x0, const U& dx, const T& tol = T( 1e-6 ) ) const {
-    fibonacci_search( boost::bind( detail::linear_composed_function_param< Function, T, U >, f, _1, boost::cref( x0 ),
-                                   boost::cref( dx ) ),
+    fibonacci_search([&f, &x0, &dx](const T& alpha) -> T { return f(x0 + alpha * dx); },
                       a0, a1, tol );
     return ( a1 + a0 ) * T( 0.5 );
   };
@@ -560,12 +544,10 @@ struct line_search_backtracking {
    * \return The optimal scalar value along the line-search.
    */
   template < typename Function, typename GradFunction, typename U >
-  T operator()( Function f, GradFunction df, T a0, T a1, const U& x0, const U& dx, const T& tol = T( 1e-6 ) ) const {
-    backtracking_search( boost::bind( detail::linear_composed_function_param< Function, T, U >, f, _1,
-                                      boost::cref( x0 ), boost::cref( dx ) ),
-                         boost::bind( detail::linear_composed_proj_gradient< GradFunction, T, U >, df, _1,
-                                      boost::cref( x0 ), boost::cref( dx ) ),
-                         a0, a1, tol, c1, c2, geom_factor );
+  T operator()(Function f, GradFunction df, T a0, T a1, const U& x0, const U& dx, const T& tol = T(1e-6)) const {
+    backtracking_search([&f, &x0, &dx](const T& alpha) -> T { return f(x0 + alpha * dx); },
+                        [&df, &x0, &dx](const T& alpha) -> T { return dx * df(x0 + alpha * dx); },
+                        a0, a1, tol, c1, c2, geom_factor );
     return a1;
   };
 };
@@ -638,10 +620,8 @@ struct line_search_expand_and_zoom {
    */
   template < typename Function, typename GradFunction, typename U >
   T operator()( Function f, GradFunction df, T a0, T a1, const U& x0, const U& dx, const T& tol = T( 1e-6 ) ) const {
-    expand_and_zoom_search( boost::bind( detail::linear_composed_function_param< Function, T, U >, f, _1,
-                                         boost::cref( x0 ), boost::cref( dx ) ),
-                            boost::bind( detail::linear_composed_proj_gradient< GradFunction, T, U >, df, _1,
-                                         boost::cref( x0 ), boost::cref( dx ) ),
+    expand_and_zoom_search([&f, &x0, &dx](const T& alpha) -> T { return f(x0 + alpha * dx); },
+                           [&df, &x0, &dx](const T& alpha) -> T { return dx * df(x0 + alpha * dx); },
                             a0, a1, tol, c1, c2 );
     return a1;
   };

@@ -1195,7 +1195,9 @@ int main() {
     try {
       optim::make_constraint_newton_method_tr( funcs_f[i], funcs_grad[i], funcs_hess[i], 2.0, 300, 1e-6, 1e-6, 1e-3 )
         .set_limiter(
-           boost::bind( optim::box_limit_function< vect_n< double > >, _1, _2, funcs_lower[i], funcs_upper[i] ) )
+           [i, &funcs_lower, &funcs_upper](const vect_n< double >& x, vect_n< double >& dx) -> void {
+             optim::box_limit_function(x, dx, funcs_lower[i], funcs_upper[i]);
+           } )
         .set_eq_constraints( funcs_g[i], funcs_g_jac[i] )
         .set_ineq_constraints( funcs_h[i], funcs_h_jac[i] )( x );
       std::cout << "  Augmented Lagrangian method gives:\n"
@@ -1219,7 +1221,9 @@ int main() {
     try {
       optim::make_constraint_newton_method_tr( funcs_f[i], funcs_grad[i], funcs_hess[i], 2.0, 300, 1e-6, 1e-6, 1e-3 )
         .set_limiter(
-           boost::bind( optim::box_limit_function< vect_n< double > >, _1, _2, funcs_lower[i], funcs_upper[i] ) )
+           [i, &funcs_lower, &funcs_upper](const vect_n< double >& x, vect_n< double >& dx) -> void {
+             optim::box_limit_function(x, dx, funcs_lower[i], funcs_upper[i]);
+           } )
         .set_eq_constraints( funcs_g[i], funcs_g_jac[i] )
         .set_ineq_constraints( funcs_h[i], funcs_h_jac[i] )
         .regularize( 1e-8 )( x );
@@ -1244,7 +1248,9 @@ int main() {
     try {
       optim::make_nlip_newton_tr( funcs_f[i], funcs_grad[i], funcs_hess[i], 1.0, 0.1, 300, 1e-6, 1e-3, 0.99 )
         .set_limiter(
-           boost::bind( optim::box_limit_function< vect_n< double > >, _1, _2, funcs_lower[i], funcs_upper[i] ) )
+           [i, &funcs_lower, &funcs_upper](const vect_n< double >& x, vect_n< double >& dx) -> void {
+             optim::box_limit_function(x, dx, funcs_lower[i], funcs_upper[i]);
+           } )
         .set_eq_constraints( funcs_g[i], funcs_g_jac[i] )
         .set_ineq_constraints( funcs_h[i], funcs_h_jac[i] )( x );
       std::cout << "  NL Interior-point method gives:\n"
@@ -1268,7 +1274,9 @@ int main() {
     try {
       optim::make_nlip_quasi_newton_tr( funcs_f[i], funcs_grad[i], 1.0, 0.1, 300, 1e-6, 1e-3, 0.99 )
         .set_limiter(
-           boost::bind( optim::box_limit_function< vect_n< double > >, _1, _2, funcs_lower[i], funcs_upper[i] ) )
+           [i, &funcs_lower, &funcs_upper](const vect_n< double >& x, vect_n< double >& dx) -> void {
+             optim::box_limit_function(x, dx, funcs_lower[i], funcs_upper[i]);
+           } )
         .set_eq_constraints( funcs_g[i], funcs_g_jac[i] )
         .set_ineq_constraints( funcs_h[i], funcs_h_jac[i] )( x );
       std::cout << "  NL Interior-point Quasi-Newton method gives:\n"
@@ -1339,7 +1347,9 @@ int main() {
       try {
         optim::make_bosqp_newton_tr( funcs_f[i], funcs_grad[i], funcs_hess[i], 2.0, 300, 1e-6, 1e-3, 0.8 )
           .set_limiter(
-             boost::bind( optim::box_limit_function< vect_n< double > >, _1, _2, funcs_lower[i], funcs_upper[i] ) )
+             [i, &funcs_lower, &funcs_upper](const vect_n< double >& x, vect_n< double >& dx) -> void {
+               optim::box_limit_function(x, dx, funcs_lower[i], funcs_upper[i]);
+             } )
           .set_eq_constraints( funcs_g[i], funcs_g_jac[i] )( x );
         std::cout << "  Byrd-Omojokun SQP method gives:\n"
                   << "    x = " << x << " with error = " << norm_2( x - funcs_sol[i] ) << "\n"
@@ -1362,7 +1372,9 @@ int main() {
       try {
         optim::make_bosqp_quasi_newton_tr( funcs_f[i], funcs_grad[i], 2.0, 300, 1e-6, 1e-3, 0.8 )
           .set_limiter(
-             boost::bind( optim::box_limit_function< vect_n< double > >, _1, _2, funcs_lower[i], funcs_upper[i] ) )
+             [i, &funcs_lower, &funcs_upper](const vect_n< double >& x, vect_n< double >& dx) -> void {
+               optim::box_limit_function(x, dx, funcs_lower[i], funcs_upper[i]);
+             } )
           .set_eq_constraints( funcs_g[i], funcs_g_jac[i] )( x );
         std::cout << "  Byrd-Omojokun SQP Quasi-Newton method gives:\n"
                   << "    x = " << x << " with error = " << norm_2( x - funcs_sol[i] ) << "\n"

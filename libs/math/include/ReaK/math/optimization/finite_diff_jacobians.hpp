@@ -162,25 +162,6 @@ void compute_jacobian_5pts_central_impl( Function f, Vector1& x, const Vector2& 
   };
 };
 
-
-template < typename Function, typename Vector, typename Scalar >
-vect< Scalar, 1 > scalar_return_function_to_vect_function( Function f, const Vector& x ) {
-  vect< Scalar, 1 > result;
-  result[0] = f( x );
-  return result;
-};
-
-template < typename Function, typename Scalar, typename Vector >
-Vector scalar_param_function_to_vect_function( Function f, const vect< Scalar, 1 >& x ) {
-  return f( x[0] );
-};
-
-template < typename Function, typename Scalar1, typename Scalar2 >
-vect< Scalar2, 1 > scalar_param_ret_function_to_vect_function( Function f, const vect< Scalar1, 1 >& x ) {
-  vect< Scalar2, 1 > result;
-  result[0] = f( x[0] );
-  return result;
-};
 };
 
 
@@ -217,9 +198,13 @@ typename boost::enable_if< boost::mpl::and_< is_readable_vector< Vector >,
                                  = typename vect_traits< Vector >::value_type( 1e-6 ) ) {
   vect< Scalar, 1 > y_tmp;
   y_tmp[0] = y;
-  compute_jacobian_2pts_forward( boost::bind< vect< Scalar, 1 > >(
-                                   detail::scalar_return_function_to_vect_function< Function, Vector, Scalar >, f, _1 ),
-                                 x, y_tmp, jac, delta );
+  
+  compute_jacobian_2pts_forward([&f](const Vector& x) -> vect < Scalar, 1 > {
+                                  vect< Scalar, 1 > result;
+                                  result[0] = f(x);
+                                  return result;
+                                },
+                                x, y_tmp, jac, delta );
 };
 
 template < typename Function, typename Vector, typename Scalar, typename Matrix >
@@ -230,8 +215,9 @@ typename boost::enable_if< boost::mpl::and_< is_readable_vector< Vector >,
   compute_jacobian_2pts_forward( Function f, Scalar& x, const Vector& y, Matrix& jac, Scalar delta = Scalar( 1e-6 ) ) {
   vect< Scalar, 1 > x_tmp;
   x_tmp[0] = x;
-  compute_jacobian_2pts_forward( boost::bind< vect< Scalar, 1 > >(
-                                   detail::scalar_param_function_to_vect_function< Function, Scalar, Vector >, f, _1 ),
+  compute_jacobian_2pts_forward( [&f](const vect< Scalar, 1 >& x) -> Vector {
+                                   return f( x[0] );
+                                 },
                                  x_tmp, y, jac, delta );
   x = x_tmp[0];
 };
@@ -248,9 +234,13 @@ typename boost::enable_if< boost::mpl::and_< boost::mpl::not_< is_readable_vecto
   x_tmp[0] = x;
   vect< Scalar2, 1 > y_tmp;
   y_tmp[0] = y;
+
   compute_jacobian_2pts_forward(
-    boost::bind< vect< Scalar2, 1 > >( detail::scalar_param_ret_function_to_vect_function< Function, Scalar1, Scalar2 >,
-                                       f, _1 ),
+    [&f](const vect< Scalar1, 1 >& x) -> vect< Scalar2, 1 > {
+      vect< Scalar2, 1 > result;
+      result[0] = f(x[0]);
+      return result;
+    },
     x_tmp, y_tmp, jac, delta );
   x = x_tmp[0];
 };
@@ -289,8 +279,11 @@ typename boost::enable_if< boost::mpl::and_< is_readable_vector< Vector >,
                                  = typename vect_traits< Vector >::value_type( 1e-6 ) ) {
   vect< Scalar, 1 > y_tmp;
   y_tmp[0] = y;
-  compute_jacobian_2pts_central( boost::bind< vect< Scalar, 1 > >(
-                                   detail::scalar_return_function_to_vect_function< Function, Vector, Scalar >, f, _1 ),
+  compute_jacobian_2pts_central( [&f](const Vector& x) -> vect < Scalar, 1 > {
+                                   vect< Scalar, 1 > result;
+                                   result[0] = f(x);
+                                   return result;
+                                 },
                                  x, y_tmp, jac, delta );
 };
 
@@ -302,8 +295,9 @@ typename boost::enable_if< boost::mpl::and_< is_readable_vector< Vector >,
   compute_jacobian_2pts_central( Function f, Scalar& x, const Vector& y, Matrix& jac, Scalar delta = Scalar( 1e-6 ) ) {
   vect< Scalar, 1 > x_tmp;
   x_tmp[0] = x;
-  compute_jacobian_2pts_central( boost::bind< vect< Scalar, 1 > >(
-                                   detail::scalar_param_function_to_vect_function< Function, Scalar, Vector >, f, _1 ),
+  compute_jacobian_2pts_central( [&f](const vect< Scalar, 1 >& x) -> Vector {
+                                   return f(x[0]);
+                                 },
                                  x_tmp, y, jac, delta );
   x = x_tmp[0];
 };
@@ -321,8 +315,11 @@ typename boost::enable_if< boost::mpl::and_< boost::mpl::not_< is_readable_vecto
   vect< Scalar2, 1 > y_tmp;
   y_tmp[0] = y;
   compute_jacobian_2pts_central(
-    boost::bind< vect< Scalar2, 1 > >( detail::scalar_param_ret_function_to_vect_function< Function, Scalar1, Scalar2 >,
-                                       f, _1 ),
+    [&f](const vect< Scalar1, 1 >& x) -> vect< Scalar2, 1 > {
+      vect< Scalar2, 1 > result;
+      result[0] = f(x[0]);
+      return result;
+    },
     x_tmp, y_tmp, jac, delta );
   x = x_tmp[0];
 };
@@ -361,8 +358,11 @@ typename boost::enable_if< boost::mpl::and_< is_readable_vector< Vector >,
                                  = typename vect_traits< Vector >::value_type( 1e-6 ) ) {
   vect< Scalar, 1 > y_tmp;
   y_tmp[0] = y;
-  compute_jacobian_5pts_central( boost::bind< vect< Scalar, 1 > >(
-                                   detail::scalar_return_function_to_vect_function< Function, Vector, Scalar >, f, _1 ),
+  compute_jacobian_5pts_central( [&f](const Vector& x) -> vect < Scalar, 1 > {
+                                   vect< Scalar, 1 > result;
+                                   result[0] = f(x);
+                                   return result;
+                                 },
                                  x, y_tmp, jac, delta );
 };
 
@@ -374,8 +374,9 @@ typename boost::enable_if< boost::mpl::and_< is_readable_vector< Vector >,
   compute_jacobian_5pts_central( Function f, Scalar& x, const Vector& y, Matrix& jac, Scalar delta = Scalar( 1e-6 ) ) {
   vect< Scalar, 1 > x_tmp;
   x_tmp[0] = x;
-  compute_jacobian_5pts_central( boost::bind< vect< Scalar, 1 > >(
-                                   detail::scalar_param_function_to_vect_function< Function, Scalar, Vector >, f, _1 ),
+  compute_jacobian_5pts_central( [&f](const vect< Scalar, 1 >& x) -> Vector {
+                                   return f(x[0]);
+                                 },
                                  x_tmp, y, jac, delta );
   x = x_tmp[0];
 };
@@ -393,8 +394,11 @@ typename boost::enable_if< boost::mpl::and_< boost::mpl::not_< is_readable_vecto
   vect< Scalar2, 1 > y_tmp;
   y_tmp[0] = y;
   compute_jacobian_5pts_central(
-    boost::bind< vect< Scalar2, 1 > >( detail::scalar_param_ret_function_to_vect_function< Function, Scalar1, Scalar2 >,
-                                       f, _1 ),
+    [&f](const vect< Scalar1, 1 >& x) -> vect< Scalar2, 1 > {
+      vect< Scalar2, 1 > result;
+      result[0] = f(x[0]);
+      return result;
+    },
     x_tmp, y_tmp, jac, delta );
   x = x_tmp[0];
 };

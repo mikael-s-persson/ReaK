@@ -167,7 +167,7 @@ struct hestenes_stiefel_beta {
    * \return The HS-beta value.
    */
   template < typename Vector >
-  typename boost::enable_if< is_readable_vector< Vector >, vect_traits< Vector > >::type::value_type
+  typename boost::lazy_enable_if< is_readable_vector< Vector >, vect_value_type< Vector > >::type
     operator()( const Vector& dx, const Vector& dx_prev, const Vector& p ) const {
     return detail::hestenes_stiefel_beta_impl< typename vect_traits< Vector >::value_type >( dx, dx_prev, p );
   };

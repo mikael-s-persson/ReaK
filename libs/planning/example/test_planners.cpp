@@ -163,7 +163,7 @@ int main( int argc, char** argv ) {
 
     try {
       ( *serialization::open_oarchive( file_name ) ) << plan_options;
-    } catch( std::exception& e ) {
+    } catch( std::exception& e ) { RK_UNUSED(e);
       std::cerr << "Error: Could not generate the planner options file!" << std::endl;
     };
     if( !vm.count( "input-file" ) ) // only wanted to generate planner-option file.

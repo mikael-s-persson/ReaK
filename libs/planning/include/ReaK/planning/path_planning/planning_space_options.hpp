@@ -99,7 +99,7 @@ public:
     space_options |= ( aID << 3 ) & PLANNING_SPACE_INTERPOLATOR_MASK;
   };
 
-  bool is_temporal_space() const { return static_cast<bool>(space_options & PLAN_IN_TEMPORAL_SPACE); };
+  bool is_temporal_space() const { return ((space_options & PLAN_IN_TEMPORAL_SPACE) != 0); };
   void set_temporal_space( bool aIsTemporal = true ) {
     if( aIsTemporal )
       space_options |= PLAN_IN_TEMPORAL_SPACE;
@@ -107,7 +107,7 @@ public:
       space_options &= ~PLAN_IN_TEMPORAL_SPACE;
   };
 
-  bool is_rate_limited() const { return static_cast<bool>(space_options & PLAN_IN_RATE_LIMITED_SPACE); };
+  bool is_rate_limited() const { return ((space_options & PLAN_IN_RATE_LIMITED_SPACE) != 0); };
   void set_rate_limited( bool aIsRateLimited = true ) {
     if( aIsRateLimited )
       space_options |= PLAN_IN_RATE_LIMITED_SPACE;
@@ -128,7 +128,7 @@ public:
     output_space_options |= ( aID << 3 ) & PLANNING_SPACE_INTERPOLATOR_MASK;
   };
 
-  bool is_temporal_output_space() const { return static_cast<bool>(output_space_options & PLAN_IN_TEMPORAL_SPACE); };
+  bool is_temporal_output_space() const { return ((output_space_options & PLAN_IN_TEMPORAL_SPACE) != 0); };
   void set_temporal_output_space( bool aIsTemporal = true ) {
     if( aIsTemporal )
       output_space_options |= PLAN_IN_TEMPORAL_SPACE;
@@ -136,7 +136,7 @@ public:
       output_space_options &= ~PLAN_IN_TEMPORAL_SPACE;
   };
 
-  bool is_output_rate_limited() const { return static_cast<bool>(output_space_options & PLAN_IN_RATE_LIMITED_SPACE); };
+  bool is_output_rate_limited() const { return ((output_space_options & PLAN_IN_RATE_LIMITED_SPACE) != 0); };
   void set_output_rate_limited( bool aIsRateLimited = true ) {
     if( aIsRateLimited )
       output_space_options |= PLAN_IN_RATE_LIMITED_SPACE;

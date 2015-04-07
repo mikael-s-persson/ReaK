@@ -321,14 +321,10 @@ struct trust_region_solver_dogleg_reg {
                    typename vect_traits< Vector >::value_type abs_tol
                    = typename vect_traits< Vector >::value_type( 1e-6 ) ) const {
     detail::compute_dogleg_point_impl( g, B, p, norm_p, radius,
-                                       boost::bind(
-#ifdef _MSC_VER
-                                         &(regularized_newton_directioner< T >::operator()< Matrix, Vector >),
-#else
-                                         &regularized_newton_directioner< T >::template operator()< Matrix, Vector >,
-#endif
-                                         &get_reg_direction, _1, _2, _3, _4 ),
-                                       abs_tol );
+      [this](const Matrix& H, const Vector& x_grad, Vector& p, const T& abs_tol) -> void {
+        this->get_reg_direction(H, x_grad, p, abs_tol);
+      },
+      abs_tol );
   };
 };
 
@@ -430,15 +426,10 @@ struct tr_solver_right_pinv_dogleg_reg {
                    = typename vect_traits< Vector2 >::value_type( 1e-6 ) ) const {
     detail::compute_right_pinv_dogleg_impl(
       g, B, p, norm_p, radius,
-      boost::bind(
-#ifdef _MSC_VER
-        &(regularized_newton_directioner< T >::
-            operator()< mat< typename vect_traits< Vector2 >::value_type, mat_structure::symmetric >, Vector1 >),
-#else
-        &regularized_newton_directioner< T >::template
-        operator()< mat< typename vect_traits< Vector2 >::value_type, mat_structure::symmetric >, Vector1 >,
-#endif
-        &get_reg_direction, _1, _2, _3, _4 ),
+      [this](const mat< typename vect_traits< Vector2 >::value_type, mat_structure::symmetric >& H, 
+                           const Vector1& x_grad, Vector1& p, const T& abs_tol) -> void {
+        this->get_reg_direction(H, x_grad, p, abs_tol);
+      },
       abs_tol );
   };
 };

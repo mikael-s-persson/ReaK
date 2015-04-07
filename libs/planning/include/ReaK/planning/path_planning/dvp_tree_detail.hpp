@@ -44,7 +44,6 @@
 #include <ReaK/core/base/global_rng.hpp>
 
 // BGL-Extra includes:
-#include <boost/graph/tree_traits.hpp>
 #include <boost/graph/tree_adaptor.hpp>
 
 // Pending inclusion in BGL-Extra:
@@ -1064,7 +1063,7 @@ public:
     vertex_type u_node;
     try {
       u_node = get_vertex( u_key, u_pt, m_root );
-    } catch( int err ) {
+    } catch( int err ) { RK_UNUSED(err);
       std::cout << " Could not find the node to be removed from the DVP tree!" << std::endl;
       return;
     };

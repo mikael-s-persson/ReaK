@@ -42,6 +42,7 @@
 #include <boost/random.hpp>
 #include <boost/random/normal_distribution.hpp>
 
+#include <cctype>
 
 #include <boost/program_options.hpp>
 #include <boost/filesystem.hpp>
