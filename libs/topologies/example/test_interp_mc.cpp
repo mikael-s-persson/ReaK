@@ -154,7 +154,9 @@ void try_interpolation( const std::string& aMethodName, std::size_t& succ_count,
 
     ++succ_count;
 
-  } catch (std::exception& e) { RK_UNUSED(e); };
+  } catch( std::exception& e ) {
+    RK_UNUSED( e );
+  };
 };
 
 

@@ -57,13 +57,13 @@ struct get_type_id< std::int32_t > {
 
 template <>
 struct get_type_id< std::int64_t > {
-  BOOST_STATIC_CONSTANT(unsigned int, ID = 0x00000001);
+  BOOST_STATIC_CONSTANT( unsigned int, ID = 0x00000001 );
 #ifdef RK_RTTI_USE_CONSTEXPR_STRINGS
   BOOST_STATIC_CONSTEXPR auto type_name = RK_LSA( "int" );
 #else
-  static const char* type_name() BOOST_NOEXCEPT{ return "int"; };
+  static const char* type_name() BOOST_NOEXCEPT { return "int"; };
 #endif
-  static construct_ptr CreatePtr() BOOST_NOEXCEPT{ return nullptr; };
+  static construct_ptr CreatePtr() BOOST_NOEXCEPT { return nullptr; };
 
   typedef std::int64_t save_type;
   typedef std::int64_t& load_type;

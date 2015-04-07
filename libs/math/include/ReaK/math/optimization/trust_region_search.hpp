@@ -321,10 +321,9 @@ struct trust_region_solver_dogleg_reg {
                    typename vect_traits< Vector >::value_type abs_tol
                    = typename vect_traits< Vector >::value_type( 1e-6 ) ) const {
     detail::compute_dogleg_point_impl( g, B, p, norm_p, radius,
-      [this](const Matrix& H, const Vector& x_grad, Vector& p, const T& abs_tol) -> void {
-        this->get_reg_direction(H, x_grad, p, abs_tol);
-      },
-      abs_tol );
+                                       [this]( const Matrix& H, const Vector& x_grad, Vector& p, const T& abs_tol )
+                                         -> void { this->get_reg_direction( H, x_grad, p, abs_tol ); },
+                                       abs_tol );
   };
 };
 
@@ -426,10 +425,9 @@ struct tr_solver_right_pinv_dogleg_reg {
                    = typename vect_traits< Vector2 >::value_type( 1e-6 ) ) const {
     detail::compute_right_pinv_dogleg_impl(
       g, B, p, norm_p, radius,
-      [this](const mat< typename vect_traits< Vector2 >::value_type, mat_structure::symmetric >& H, 
-                           const Vector1& x_grad, Vector1& p, const T& abs_tol) -> void {
-        this->get_reg_direction(H, x_grad, p, abs_tol);
-      },
+      [this]( const mat< typename vect_traits< Vector2 >::value_type, mat_structure::symmetric >& H,
+              const Vector1& x_grad, Vector1& p,
+              const T& abs_tol ) -> void { this->get_reg_direction( H, x_grad, p, abs_tol ); },
       abs_tol );
   };
 };

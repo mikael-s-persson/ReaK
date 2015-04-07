@@ -50,8 +50,7 @@ namespace detail {
 namespace {
 
 template < typename Topology, typename Graph >
-typename boost::lazy_enable_if< is_steerable_space< Topology >,
-                           steerable_space_steer_record< Topology > >::type&
+typename boost::lazy_enable_if< is_steerable_space< Topology >, steerable_space_steer_record< Topology > >::type&
   try_get_steer_record( Graph& g, typename boost::graph_traits< Graph >::edge_descriptor e ) {
   return g[e].steer_record;
 };

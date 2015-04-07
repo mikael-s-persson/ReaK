@@ -63,7 +63,8 @@ chaser_target_data get_chaser_target_data_from_po( boost::program_options::varia
   if( vm.count( "chaser-target-env" ) ) {
     try {
       ( *serialization::open_iarchive( vm["chaser-target-env"].as< std::string >() ) ) >> scene_data;
-    } catch( std::exception& e ) { RK_UNUSED(e);
+    } catch( std::exception& e ) {
+      RK_UNUSED( e );
     };
   };
 

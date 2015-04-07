@@ -124,20 +124,20 @@ public:
    * Constructor from a vector of size n.
    */
   template < typename Vector >
-  explicit mat(
-    const Vector& V, const allocator_type& aAlloc = allocator_type(),
-    typename boost::enable_if< boost::mpl::and_< is_readable_vector< Vector >, boost::mpl::not_< boost::is_same< Vector, self > > >,
-                                 void* >::type dummy = nullptr )
+  explicit mat( const Vector& V, const allocator_type& aAlloc = allocator_type(),
+                typename boost::enable_if< boost::mpl::and_< is_readable_vector< Vector >,
+                                                             boost::mpl::not_< boost::is_same< Vector, self > > >,
+                                           void* >::type dummy = nullptr )
       : q( V.begin(), V.end(), aAlloc ), rowCount( V.size() ){};
 
   /**
    * Constructor from a general matrix, copying only the diagonal part.
    */
   template < typename Matrix >
-  explicit mat(
-    const Matrix& M, const allocator_type& aAlloc = allocator_type(),
-    typename boost::enable_if< boost::mpl::and_< is_readable_matrix< Matrix >, boost::mpl::not_< boost::is_same< Matrix, self > > >,
-                                 void* >::type dummy = nullptr )
+  explicit mat( const Matrix& M, const allocator_type& aAlloc = allocator_type(),
+                typename boost::enable_if< boost::mpl::and_< is_readable_matrix< Matrix >,
+                                                             boost::mpl::not_< boost::is_same< Matrix, self > > >,
+                                           void* >::type dummy = nullptr )
       : q( ( M.get_row_count() < M.get_col_count() ? M.get_row_count() : M.get_col_count() ), T( 0.0 ), aAlloc ),
         rowCount( ( M.get_row_count() < M.get_col_count() ? M.get_row_count() : M.get_col_count() ) ) {
     for( size_type i = 0; i < rowCount; ++i )
@@ -463,8 +463,7 @@ public:
    * \throw std::range_error if the matrix-vector dimensions don't match.
    */
   template < typename Vector >
-  friend typename boost::enable_if< is_writable_vector< Vector >, Vector >::type operator*( const self& M,
-                                                                                                     Vector V ) {
+  friend typename boost::enable_if< is_writable_vector< Vector >, Vector >::type operator*( const self& M, Vector V ) {
     if( V.size() != M.rowCount )
       throw std::range_error( "Matrix dimension mismatch." );
     for( size_type i = 0; i < M.rowCount; ++i )
@@ -480,8 +479,7 @@ public:
    * \throw std::range_error if the matrix-vector dimensions don't match.
    */
   template < typename Vector >
-  friend typename boost::enable_if< is_writable_vector< Vector >, Vector >::type operator*( Vector V,
-                                                                                                     const self& M ) {
+  friend typename boost::enable_if< is_writable_vector< Vector >, Vector >::type operator*( Vector V, const self& M ) {
     if( V.size() != M.rowCount )
       throw std::range_error( "Matrix dimension mismatch." );
     for( size_type i = 0; i < M.rowCount; ++i )

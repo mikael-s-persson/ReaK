@@ -577,7 +577,8 @@ int main( int argc, char** argv ) {
         vect_n< double > jt_start_tmp = jt_start;
         ( *serialization::open_iarchive( vm["start-configuration"].as< std::string >() ) ) >> jt_start_tmp;
         jt_start = jt_start_tmp;
-      } catch( std::exception& e ) { RK_UNUSED(e);
+      } catch( std::exception& e ) {
+        RK_UNUSED( e );
         std::cerr << "Error: Could not load the start-configuration file!" << std::endl;
       };
     };
@@ -593,7 +594,8 @@ int main( int argc, char** argv ) {
         target_frame = target_frame_tmp;
         *( scene_data.target_kin_model->getFrame3D( 0 ) ) = target_frame;
         scene_data.target_kin_model->doDirectMotion();
-      } catch( std::exception& e ) { RK_UNUSED(e);
+      } catch( std::exception& e ) {
+        RK_UNUSED( e );
         std::cerr << "Error: Could not load the target-pose file!" << std::endl;
       };
     };
@@ -629,7 +631,8 @@ int main( int argc, char** argv ) {
           & RK_SERIAL_LOAD_WITH_ALIAS( "se3_trajectory", tmp_traj->get_underlying_trajectory() );
 
         target_state_traj = tmp_traj;
-      } catch( std::exception& e ) { RK_UNUSED(e);
+      } catch( std::exception& e ) {
+        RK_UNUSED( e );
         std::cerr << "Error: Could not load the target-trajectory file!" << std::endl;
         return 11;
       };
@@ -655,7 +658,8 @@ int main( int argc, char** argv ) {
 
     try {
       ( *serialization::open_oarchive( file_name ) ) << plan_options;
-    } catch( std::exception& e ) { RK_UNUSED(e);
+    } catch( std::exception& e ) {
+      RK_UNUSED( e );
       std::cerr << "Error: Could not generate the planner options file!" << std::endl;
     };
   };
@@ -676,7 +680,8 @@ int main( int argc, char** argv ) {
 
     try {
       ( *serialization::open_oarchive( file_name ) ) << scene_data;
-    } catch( std::exception& e ) { RK_UNUSED(e);
+    } catch( std::exception& e ) {
+      RK_UNUSED( e );
       std::cerr << "Error: Could not generate the chaser-target-env model file!" << std::endl;
     };
   };
@@ -697,7 +702,8 @@ int main( int argc, char** argv ) {
 
     try {
       ( *serialization::open_oarchive( file_name ) ) << space_def;
-    } catch( std::exception& e ) { RK_UNUSED(e);
+    } catch( std::exception& e ) {
+      RK_UNUSED( e );
       std::cerr << "Error: Could not generate the space-definition file!" << std::endl;
     };
   };
@@ -718,7 +724,8 @@ int main( int argc, char** argv ) {
 
     try {
       ( *serialization::open_oarchive( file_name ) ) << jt_start;
-    } catch( std::exception& e ) { RK_UNUSED(e);
+    } catch( std::exception& e ) {
+      RK_UNUSED( e );
       std::cerr << "Error: Could not generate the start-configuration file!" << std::endl;
     };
   };
@@ -739,7 +746,8 @@ int main( int argc, char** argv ) {
 
     try {
       ( *serialization::open_oarchive( file_name ) ) << target_frame;
-    } catch( std::exception& e ) { RK_UNUSED(e);
+    } catch( std::exception& e ) {
+      RK_UNUSED( e );
       std::cerr << "Error: Could not generate the target-pose file!" << std::endl;
     };
   };

@@ -814,12 +814,15 @@ void nl_intpoint_method_ls_impl(
 
       if( m_func.compute_derivative_merit( alpha_s_max ) > ValueType( 0.0 ) ) {
 
-        //           expand_and_zoom_search([&m_func](ValueType alpha_s) -> ValueType { return m_func.compute_merit(alpha_s); },
-        //                                  [&m_func](ValueType alpha_s) -> ValueType { return m_func.compute_derivative_merit(alpha_s); },
+        //           expand_and_zoom_search([&m_func](ValueType alpha_s) -> ValueType { return
+        //           m_func.compute_merit(alpha_s); },
+        //                                  [&m_func](ValueType alpha_s) -> ValueType { return
+        //                                  m_func.compute_derivative_merit(alpha_s); },
         //                                   alpha_s, alpha_s_max, abs_tol_mu, kappa, ValueType(0.1));
-        backtracking_search([&m_func](ValueType alpha_s) -> ValueType { return m_func.compute_merit(alpha_s); },
-                            [&m_func](ValueType alpha_s) -> ValueType { return m_func.compute_derivative_merit(alpha_s); },
-                            alpha_s, alpha_s_max, 0.0001, kappa, ValueType( 0.5 ), ValueType( 0.75 ) );
+        backtracking_search(
+          [&m_func]( ValueType alpha_s ) -> ValueType { return m_func.compute_merit( alpha_s ); },
+          [&m_func]( ValueType alpha_s ) -> ValueType { return m_func.compute_derivative_merit( alpha_s ); }, alpha_s,
+          alpha_s_max, 0.0001, kappa, ValueType( 0.5 ), ValueType( 0.75 ) );
       } else {
         alpha_s = alpha_s_max;
       };

@@ -424,15 +424,17 @@ typename boost::enable_if< boost::is_convertible< const IndependentSpace2&, cons
 template < int Idx, typename IndependentSpace, typename SpaceTuple, typename TupleDistanceMetric, typename DiffRule,
            typename IndependentSpace2 >
 #ifndef BOOST_NO_CXX11_HDR_TYPE_TRAITS
-typename boost::lazy_enable_if< std::is_convertible< const IndependentSpace2&, const IndependentSpace& >,
-                         arithmetic_tuple_element< Idx, typename differentiable_space< IndependentSpace, SpaceTuple,
-                                                                                       TupleDistanceMetric, DiffRule >::
-                                                          point_type > >::type
+typename boost::
+  lazy_enable_if< std::is_convertible< const IndependentSpace2&, const IndependentSpace& >,
+                  arithmetic_tuple_element< Idx, typename differentiable_space< IndependentSpace, SpaceTuple,
+                                                                                TupleDistanceMetric,
+                                                                                DiffRule >::point_type > >::type
 #else
-typename boost::lazy_enable_if< boost::is_convertible< const IndependentSpace2&, const IndependentSpace& >,
-             arithmetic_tuple_element< Idx,
-                                       typename differentiable_space< IndependentSpace, SpaceTuple, TupleDistanceMetric,
-                                                                      DiffRule >::point_type > >::type
+typename boost::
+  lazy_enable_if< boost::is_convertible< const IndependentSpace2&, const IndependentSpace& >,
+                  arithmetic_tuple_element< Idx, typename differentiable_space< IndependentSpace, SpaceTuple,
+                                                                                TupleDistanceMetric,
+                                                                                DiffRule >::point_type > >::type
 #endif
   lift_to_space(
     const typename arithmetic_tuple_element< Idx - 1, typename differentiable_space< IndependentSpace, SpaceTuple,
@@ -456,15 +458,17 @@ typename boost::lazy_enable_if< boost::is_convertible< const IndependentSpace2&,
 template < int Idx, typename IndependentSpace, typename SpaceTuple, typename TupleDistanceMetric, typename DiffRule,
            typename IndependentSpace2 >
 #ifndef BOOST_NO_CXX11_HDR_TYPE_TRAITS
-typename boost::lazy_enable_if< std::is_convertible< const IndependentSpace2&, const IndependentSpace& >,
-                         arithmetic_tuple_element< Idx, typename differentiable_space< IndependentSpace, SpaceTuple,
-                                                                                       TupleDistanceMetric, DiffRule >::
-                                                          point_difference_type > >::type
+typename boost::
+  lazy_enable_if< std::is_convertible< const IndependentSpace2&, const IndependentSpace& >,
+                  arithmetic_tuple_element< Idx, typename differentiable_space< IndependentSpace, SpaceTuple,
+                                                                                TupleDistanceMetric, DiffRule >::
+                                                   point_difference_type > >::type
 #else
-typename boost::lazy_enable_if< boost::is_convertible< const IndependentSpace2&, const IndependentSpace& >,
-             arithmetic_tuple_element< Idx,
-                                       typename differentiable_space< IndependentSpace, SpaceTuple, TupleDistanceMetric,
-                                                                      DiffRule >::point_difference_type > >::type
+typename boost::
+  lazy_enable_if< boost::is_convertible< const IndependentSpace2&, const IndependentSpace& >,
+                  arithmetic_tuple_element< Idx, typename differentiable_space< IndependentSpace, SpaceTuple,
+                                                                                TupleDistanceMetric, DiffRule >::
+                                                   point_difference_type > >::type
 #endif
   descend_to_space(
     const typename arithmetic_tuple_element< Idx + 1, typename differentiable_space< IndependentSpace, SpaceTuple,

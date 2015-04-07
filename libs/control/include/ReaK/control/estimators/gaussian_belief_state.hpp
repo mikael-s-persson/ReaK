@@ -430,7 +430,7 @@ typename mat_traits< Matrix >::value_type gaussian_likelihood_ratio_of_diff( con
     mat< ValueType, mat_structure::square > L;
     decompose_Cholesky( P, L );
     mat_vect_adaptor< Vector > Pinv_dx_mat( Pinv_dx );
-    ::ReaK::detail::backsub_Cholesky_impl(L, Pinv_dx_mat);
+    ::ReaK::detail::backsub_Cholesky_impl( L, Pinv_dx_mat );
   } catch( singularity_error& ) {
     mat< double, mat_structure::diagonal > E( P.get_row_count() );
     mat< double, mat_structure::square > U( P.get_row_count() ), V( P.get_row_count() );

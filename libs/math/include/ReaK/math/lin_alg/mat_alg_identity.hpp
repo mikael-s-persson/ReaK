@@ -223,7 +223,7 @@ public:
    * \return the trace of matrix M.
    * \test PASSED
    */
-  friend value_type trace( const self& M ) { return static_cast<value_type>(M.rowCount); };
+  friend value_type trace( const self& M ) { return static_cast< value_type >( M.rowCount ); };
 
   /**
    * Appends a matrix to another.
@@ -328,8 +328,9 @@ typename boost::enable_if< is_readable_vector< Vector >, Vector >::type
  * \throw std::range_error if matrix and vector dimensions are not proper for multiplication.
  */
 template < typename T, mat_alignment::tag Alignment, typename Allocator >
-typename boost::enable_if< boost::mpl::and_< boost::mpl::not_< is_readable_vector< T > >, boost::mpl::not_< is_readable_matrix< T > > >,
-                             mat< T, mat_structure::scalar, Alignment, Allocator > >::type
+typename boost::enable_if< boost::mpl::and_< boost::mpl::not_< is_readable_vector< T > >,
+                                             boost::mpl::not_< is_readable_matrix< T > > >,
+                           mat< T, mat_structure::scalar, Alignment, Allocator > >::type
   operator*( const mat< T, mat_structure::identity, Alignment, Allocator >& M, const T& S ) {
   return mat< T, mat_structure::scalar, Alignment, Allocator >( M.get_row_count(), S );
 };
@@ -342,8 +343,9 @@ typename boost::enable_if< boost::mpl::and_< boost::mpl::not_< is_readable_vecto
  * \throw std::range_error if matrix and vector dimensions are not proper for multiplication.
  */
 template < typename T, mat_alignment::tag Alignment, typename Allocator >
-typename boost::enable_if< boost::mpl::and_< boost::mpl::not_< is_readable_vector< T > >, boost::mpl::not_< is_readable_matrix< T > > >,
-                             mat< T, mat_structure::scalar, Alignment, Allocator > >::type
+typename boost::enable_if< boost::mpl::and_< boost::mpl::not_< is_readable_vector< T > >,
+                                             boost::mpl::not_< is_readable_matrix< T > > >,
+                           mat< T, mat_structure::scalar, Alignment, Allocator > >::type
   operator*( const T& S, const mat< T, mat_structure::identity, Alignment, Allocator >& M ) {
   return mat< T, mat_structure::scalar, Alignment, Allocator >( M.get_row_count(), S );
 };

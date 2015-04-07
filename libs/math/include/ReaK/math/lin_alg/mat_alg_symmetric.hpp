@@ -528,9 +528,10 @@ public:
    * \throw std::range_error if the two matrix dimensions don't match.
    */
   template < typename Matrix >
-  friend typename boost::enable_if< boost::mpl::and_< is_readable_matrix< Matrix >, boost::mpl::bool_< ( mat_product_priority< Matrix >::value
-                                                                             < mat_product_priority< self >::value ) > >,
-                                      mat< value_type, mat_structure::rectangular, Alignment, Allocator > >::type
+  friend typename boost::enable_if< boost::mpl::and_< is_readable_matrix< Matrix >,
+                                                      boost::mpl::bool_< ( mat_product_priority< Matrix >::value
+                                                                           < mat_product_priority< self >::value ) > >,
+                                    mat< value_type, mat_structure::rectangular, Alignment, Allocator > >::type
     operator*( const self& M1, const Matrix& M2 ) {
     typedef mat< value_type, mat_structure::rectangular, Alignment, Allocator > result_type;
     if( M1.rowCount != M2.get_row_count() )
@@ -557,9 +558,10 @@ public:
    * \throw std::range_error if the two matrix dimensions don't match.
    */
   template < typename Matrix >
-  friend typename boost::enable_if< boost::mpl::and_< is_readable_matrix< Matrix >, boost::mpl::bool_< ( mat_product_priority< Matrix >::value
-                                                                             < mat_product_priority< self >::value ) > >,
-                                      mat< value_type, mat_structure::rectangular, alignment, allocator_type > >::type
+  friend typename boost::enable_if< boost::mpl::and_< is_readable_matrix< Matrix >,
+                                                      boost::mpl::bool_< ( mat_product_priority< Matrix >::value
+                                                                           < mat_product_priority< self >::value ) > >,
+                                    mat< value_type, mat_structure::rectangular, alignment, allocator_type > >::type
     operator*( const Matrix& M1, const self& M2 ) {
     typedef mat< typename mat_traits< Matrix >::value_type, mat_structure::rectangular, alignment, allocator_type >
       result_type;
@@ -668,7 +670,7 @@ public:
    */
   template < typename Vector >
   friend typename boost::enable_if< is_writable_vector< Vector >, Vector >::type operator*( const self& M,
-                                                                                                     const Vector& V ) {
+                                                                                            const Vector& V ) {
     if( V.size() != M.rowCount )
       throw std::range_error( "Matrix dimension mismatch." );
     Vector result( V.size(), value_type( 0 ), V.get_allocator() );
@@ -693,7 +695,7 @@ public:
    */
   template < typename Vector >
   friend typename boost::enable_if< is_writable_vector< Vector >, Vector >::type operator*( const Vector& V,
-                                                                                                     const self& M ) {
+                                                                                            const self& M ) {
     return M * V;
   };
 
@@ -849,7 +851,7 @@ public:
   };
   virtual void RK_CALL load( serialization::iarchive& A, unsigned int ) {
     A& std::pair< std::string, std::vector< T >& >( "q", q )
-      & std::pair< std::string, std::size_t& >("rowCount", rowCount);
+      & std::pair< std::string, std::size_t& >( "rowCount", rowCount );
   };
 
   RK_RTTI_REGISTER_CLASS_1BASE( self, 1, serializable )

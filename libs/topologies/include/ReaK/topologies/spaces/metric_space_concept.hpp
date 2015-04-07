@@ -290,8 +290,7 @@ struct default_distance_metric : public serializable {
 
 
 template < typename MetricSpace >
-typename boost::lazy_enable_if< is_metric_space< MetricSpace >,
-                                metric_space_distance_metric< MetricSpace > >::type
+typename boost::lazy_enable_if< is_metric_space< MetricSpace >, metric_space_distance_metric< MetricSpace > >::type
   get( distance_metric_t, const MetricSpace& s ) {
   typedef typename metric_space_traits< MetricSpace >::distance_metric_type result_type;
   return result_type( s );

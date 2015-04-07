@@ -144,11 +144,11 @@ public:
    * \test PASSED
    */
   template < typename Matrix >
-  explicit mat(
-    const Matrix& M, const allocator_type& aAlloc = allocator_type(),
-    typename boost::enable_if< boost::mpl::and_< is_readable_matrix< Matrix >, boost::mpl::not_< boost::is_same< Matrix, self > >,
-                                 boost::mpl::not_< has_allocator_matrix< Matrix > > >,
-                                 void* >::type dummy = nullptr )
+  explicit mat( const Matrix& M, const allocator_type& aAlloc = allocator_type(),
+                typename boost::enable_if< boost::mpl::and_< is_readable_matrix< Matrix >,
+                                                             boost::mpl::not_< boost::is_same< Matrix, self > >,
+                                                             boost::mpl::not_< has_allocator_matrix< Matrix > > >,
+                                           void* >::type dummy = nullptr )
       : q( M.get_row_count() * M.get_row_count(), T( 0.0 ), aAlloc ), rowCount( M.get_row_count() ) {
     if( M.get_col_count() != M.get_row_count() )
       throw std::range_error( "Matrix is not square!" );
@@ -163,11 +163,11 @@ public:
    * \test PASSED
    */
   template < typename Matrix >
-  explicit mat(
-    const Matrix& M,
-    typename boost::enable_if< boost::mpl::and_< is_readable_matrix< Matrix >, boost::mpl::not_< boost::is_same< Matrix, self > >,
-                                 has_allocator_matrix< Matrix > >,
-                                 void* >::type dummy = nullptr )
+  explicit mat( const Matrix& M,
+                typename boost::enable_if< boost::mpl::and_< is_readable_matrix< Matrix >,
+                                                             boost::mpl::not_< boost::is_same< Matrix, self > >,
+                                                             has_allocator_matrix< Matrix > >,
+                                           void* >::type dummy = nullptr )
       : q( M.get_row_count() * M.get_row_count(), T( 0.0 ), M.get_allocator() ), rowCount( M.get_row_count() ) {
     if( M.get_col_count() != M.get_row_count() )
       throw std::range_error( "Matrix is not square!" );
@@ -602,11 +602,11 @@ public:
 
   virtual void RK_CALL save( serialization::oarchive& A, unsigned int ) const {
     A& std::pair< std::string, const std::vector< T >& >( "q", q )
-      & std::pair< std::string, std::size_t >("rowCount", rowCount);
+      & std::pair< std::string, std::size_t >( "rowCount", rowCount );
   };
   virtual void RK_CALL load( serialization::iarchive& A, unsigned int ) {
     A& std::pair< std::string, std::vector< T >& >( "q", q )
-      & std::pair< std::string, std::size_t& >("rowCount", rowCount);
+      & std::pair< std::string, std::size_t& >( "rowCount", rowCount );
   };
 
   RK_RTTI_REGISTER_CLASS_1BASE( self, 1, serializable )
@@ -704,10 +704,10 @@ public:
    * \test PASSED
    */
   template < typename Matrix >
-  explicit mat(
-    const Matrix& M,
-    typename boost::enable_if< boost::mpl::and_< is_readable_matrix< Matrix >, boost::mpl::not_< boost::is_same< Matrix, self > > >,
-                                 void* >::type dummy = nullptr )
+  explicit mat( const Matrix& M,
+                typename boost::enable_if< boost::mpl::and_< is_readable_matrix< Matrix >,
+                                                             boost::mpl::not_< boost::is_same< Matrix, self > > >,
+                                           void* >::type dummy = nullptr )
       : q( M.get_row_count() * M.get_row_count(), T( 0.0 ) ), rowCount( M.get_row_count() ) {
     if( M.get_col_count() != M.get_row_count() )
       throw std::range_error( "Matrix is not square!" );
@@ -1149,7 +1149,7 @@ public:
   };
   virtual void RK_CALL load( serialization::iarchive& A, unsigned int ) {
     A& std::pair< std::string, std::vector< T >& >( "q", q )
-      & std::pair< std::string, std::size_t& >("rowCount", rowCount);
+      & std::pair< std::string, std::size_t& >( "rowCount", rowCount );
   };
 
   RK_RTTI_REGISTER_CLASS_1BASE( self, 1, serializable )

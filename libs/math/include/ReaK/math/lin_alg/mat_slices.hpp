@@ -909,8 +909,7 @@ struct mat_const_slice_factory {
  * \return A factory class to create a slice from a row or column range and a row or column index.
  */
 template < typename Matrix >
-typename boost::enable_if< is_readable_matrix< Matrix >, mat_slice_factory< Matrix > >::type
-  slice( Matrix& M ) {
+typename boost::enable_if< is_readable_matrix< Matrix >, mat_slice_factory< Matrix > >::type slice( Matrix& M ) {
   return mat_slice_factory< Matrix >( M );
 };
 

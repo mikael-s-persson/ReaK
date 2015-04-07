@@ -117,8 +117,8 @@ struct vlist_sbmp_report : public shared_object {
   void draw_solution(
     const FreeSpaceType& free_space,
     typename boost::enable_if< is_temporal_space< FreeSpaceType >,
-    const shared_ptr< seq_trajectory_base< typename subspace_traits< FreeSpaceType >::super_space_type > >& >::type traj )
-    const {
+                               const shared_ptr< seq_trajectory_base< typename subspace_traits< FreeSpaceType >::
+                                                                        super_space_type > >& >::type traj ) const {
     next_reporter.draw_solution( free_space, traj );
   };
 
@@ -131,8 +131,10 @@ struct vlist_sbmp_report : public shared_object {
   template < typename FreeSpaceType >
   void draw_solution(
     const FreeSpaceType& free_space,
-    typename boost::disable_if< is_temporal_space< FreeSpaceType >,
-    const shared_ptr< seq_path_base< typename subspace_traits< FreeSpaceType >::super_space_type > >& >::type p ) const {
+    typename boost::
+      disable_if< is_temporal_space< FreeSpaceType >,
+                  const shared_ptr< seq_path_base< typename subspace_traits< FreeSpaceType >::super_space_type > >& >::
+        type p ) const {
     next_reporter.draw_solution( free_space, p );
   };
 

@@ -116,10 +116,10 @@ public:
    * Constructor from a general matrix, conserving only the trace value.
    */
   template < typename Matrix >
-  explicit mat(
-    const Matrix& M, const Allocator& aAlloc = Allocator(),
-    typename boost::enable_if< boost::mpl::and_< is_readable_matrix< Matrix >, boost::mpl::not_< boost::is_same< Matrix, self > > >,
-                                 void* >::type dummy = nullptr )
+  explicit mat( const Matrix& M, const Allocator& aAlloc = Allocator(),
+                typename boost::enable_if< boost::mpl::and_< is_readable_matrix< Matrix >,
+                                                             boost::mpl::not_< boost::is_same< Matrix, self > > >,
+                                           void* >::type dummy = nullptr )
       : q( 0.0 ), rowCount( ( M.get_row_count() < M.get_col_count() ? M.get_row_count() : M.get_col_count() ) ) {
     q = trace( M ) / value_type( rowCount );
   };

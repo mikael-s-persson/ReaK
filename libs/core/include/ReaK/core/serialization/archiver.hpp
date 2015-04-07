@@ -119,7 +119,7 @@ struct archive_object_header {
   unsigned int type_version; ///< The version number of the object's type.
   std::size_t object_ID; ///< A unique number identifying the object instance, uniqueness is guaranteed to within the
   /// life-span of the archive.
-  bool is_external;  ///< Flag that identifies whether the object is serialized in an external archive.
+  bool is_external; ///< Flag that identifies whether the object is serialized in an external archive.
   std::size_t size; ///< Size of the object's data, relevant to a binary archive (to know the space to skip if object
   /// is unknown, unsupported).
   archive_object_header() : type_ID(), type_version( 0 ), object_ID( 0 ), is_external( false ), size( 0 ){};
@@ -176,16 +176,16 @@ protected:
   virtual iarchive& RK_CALL load_unsigned_char( const std::pair< std::string, unsigned char& >& u ) = 0;
 
   /// Loading an integer value.
-  virtual iarchive& RK_CALL load_int(std::ptrdiff_t& i) = 0;
+  virtual iarchive& RK_CALL load_int( std::ptrdiff_t& i ) = 0;
 
   /// Loading an integer value with a name.
-  virtual iarchive& RK_CALL load_int(const std::pair< std::string, std::ptrdiff_t& >& i) = 0;
+  virtual iarchive& RK_CALL load_int( const std::pair< std::string, std::ptrdiff_t& >& i ) = 0;
 
   /// Loading an unsigned integer value.
   virtual iarchive& RK_CALL load_unsigned_int( std::size_t& u ) = 0;
 
   /// Loading an unsigned integer value with a name.
-  virtual iarchive& RK_CALL load_unsigned_int(const std::pair< std::string, std::size_t& >& u) = 0;
+  virtual iarchive& RK_CALL load_unsigned_int( const std::pair< std::string, std::size_t& >& u ) = 0;
 
   /// Loading a float value.
   virtual iarchive& RK_CALL load_float( float& f ) = 0;
@@ -288,70 +288,70 @@ public:
   };
 
   /// Loading an integer value.
-  friend iarchive& RK_CALL operator>>(iarchive& in, std::int32_t& u) {
+  friend iarchive& RK_CALL operator>>( iarchive& in, std::int32_t& u ) {
     std::ptrdiff_t tmp;
-    in.load_int(tmp);
-    u = static_cast<std::int32_t>(tmp);
+    in.load_int( tmp );
+    u = static_cast< std::int32_t >( tmp );
     return in;
   };
 
   /// Loading an integer value with a name.
-  friend iarchive& RK_CALL operator&(iarchive& in, const std::pair< std::string, std::int32_t& >& u) {
+  friend iarchive& RK_CALL operator&( iarchive& in, const std::pair< std::string, std::int32_t& >& u ) {
     std::ptrdiff_t tmp;
-    std::pair< std::string, std::ptrdiff_t& > p(u.first, tmp);
-    in.load_int(p);
-    u.second = static_cast<std::int32_t>(p.second);
+    std::pair< std::string, std::ptrdiff_t& > p( u.first, tmp );
+    in.load_int( p );
+    u.second = static_cast< std::int32_t >( p.second );
     return in;
   };
 
   /// Loading an integer value.
-  friend iarchive& RK_CALL operator>>(iarchive& in, std::int64_t& u) {
+  friend iarchive& RK_CALL operator>>( iarchive& in, std::int64_t& u ) {
     std::ptrdiff_t tmp;
-    in.load_int(tmp);
-    u = static_cast<std::int64_t>(tmp);
+    in.load_int( tmp );
+    u = static_cast< std::int64_t >( tmp );
     return in;
   };
 
   /// Loading an integer value with a name.
-  friend iarchive& RK_CALL operator&(iarchive& in, const std::pair< std::string, std::int64_t& >& u) {
+  friend iarchive& RK_CALL operator&( iarchive& in, const std::pair< std::string, std::int64_t& >& u ) {
     std::ptrdiff_t tmp;
-    std::pair< std::string, std::ptrdiff_t& > p(u.first, tmp);
-    in.load_int(p);
-    u.second = static_cast<std::int64_t>(p.second);
+    std::pair< std::string, std::ptrdiff_t& > p( u.first, tmp );
+    in.load_int( p );
+    u.second = static_cast< std::int64_t >( p.second );
     return in;
   };
 
   /// Loading an unsigned integer value.
   friend iarchive& RK_CALL operator>>( iarchive& in, std::uint32_t& u ) {
     std::size_t tmp;
-    in.load_unsigned_int(tmp);
-    u = static_cast<std::uint32_t>(tmp);
+    in.load_unsigned_int( tmp );
+    u = static_cast< std::uint32_t >( tmp );
     return in;
   };
 
   /// Loading an unsigned integer value with a name.
-  friend iarchive& RK_CALL operator&(iarchive& in, const std::pair< std::string, std::uint32_t& >& u) {
+  friend iarchive& RK_CALL operator&( iarchive& in, const std::pair< std::string, std::uint32_t& >& u ) {
     std::size_t tmp;
-    std::pair< std::string, std::size_t& > p(u.first, tmp);
-    in.load_unsigned_int(p);
-    u.second = static_cast<std::uint32_t>(p.second);
+    std::pair< std::string, std::size_t& > p( u.first, tmp );
+    in.load_unsigned_int( p );
+    u.second = static_cast< std::uint32_t >( p.second );
     return in;
   };
 
   /// Loading an unsigned integer value.
-  friend iarchive& RK_CALL operator>>(iarchive& in, std::uint64_t& u) {
+  friend iarchive& RK_CALL operator>>( iarchive& in, std::uint64_t& u ) {
     std::size_t tmp;
     in.load_unsigned_int( tmp );
-    u = static_cast<std::uint64_t>(tmp);
+    u = static_cast< std::uint64_t >( tmp );
     return in;
   };
 
   /// Loading an unsigned integer value with a name.
-  friend iarchive& RK_CALL operator&(iarchive& in, const std::pair< std::string, std::uint64_t& >& u) {
+  friend iarchive& RK_CALL operator&( iarchive& in, const std::pair< std::string, std::uint64_t& >& u ) {
     std::size_t tmp;
-    std::pair< std::string, std::size_t& > p(u.first, tmp);
+    std::pair< std::string, std::size_t& > p( u.first, tmp );
     in.load_unsigned_int( p );
-    u.second = static_cast<std::uint64_t>(p.second);
+    u.second = static_cast< std::uint64_t >( p.second );
     return in;
   };
 
@@ -492,7 +492,7 @@ public:
 #else
     in.start_repeated_field( rtti::get_type_info< T >::type_name() );
 #endif
-    for (std::size_t i = 0; i < count; ++i)
+    for( std::size_t i = 0; i < count; ++i )
       in >> v[i];
     in.finish_repeated_field();
     return in;
@@ -510,7 +510,7 @@ public:
 #else
     in.start_repeated_field( rtti::get_type_info< T >::type_name(), v.first );
 #endif
-    for (std::size_t i = 0; i < count; ++i) {
+    for( std::size_t i = 0; i < count; ++i ) {
       std::stringstream s_stream;
       s_stream << v.first << "_q[" << i << "]";
       in& RK_SERIAL_LOAD_WITH_ALIAS( s_stream.str(), v.second[i] );
@@ -551,7 +551,7 @@ public:
     in.start_repeated_field( rtti::get_type_info< T >::type_name(), v.first );
 #endif
     typename std::list< T >::iterator it = v.second.begin();
-    for (std::size_t i = 0; it != v.second.end(); ++it) {
+    for( std::size_t i = 0; it != v.second.end(); ++it ) {
       std::stringstream s_stream;
       s_stream << v.first << "_q[" << i++ << "]";
       in& RK_SERIAL_LOAD_WITH_ALIAS( s_stream.str(), ( *it ) );
@@ -573,7 +573,7 @@ public:
 #else
     in.start_repeated_pair( rtti::get_type_info< Key >::type_name(), rtti::get_type_info< T >::type_name() );
 #endif
-    for (std::size_t i = 0; i < count; ++i) {
+    for( std::size_t i = 0; i < count; ++i ) {
       Key value_key;
       in >> value_key;
       in >> m[value_key];
@@ -595,7 +595,7 @@ public:
 #else
     in.start_repeated_pair( rtti::get_type_info< Key >::type_name(), rtti::get_type_info< T >::type_name(), m.first );
 #endif
-    for (std::size_t i = 0; i < count; ++i) {
+    for( std::size_t i = 0; i < count; ++i ) {
       std::stringstream key_s_stream;
       key_s_stream << m.first << "_key[" << i << "]";
       Key value_key;
@@ -621,7 +621,7 @@ public:
 #else
     in.start_repeated_pair( rtti::get_type_info< Key >::type_name(), rtti::get_type_info< T >::type_name() );
 #endif
-    for (std::size_t i = 0; i < count; ++i) {
+    for( std::size_t i = 0; i < count; ++i ) {
       Key value_key;
       T value_t;
       in >> value_key;
@@ -645,7 +645,7 @@ public:
 #else
     in.start_repeated_pair( rtti::get_type_info< Key >::type_name(), rtti::get_type_info< T >::type_name(), m.first );
 #endif
-    for (std::size_t i = 0; i < count; ++i) {
+    for( std::size_t i = 0; i < count; ++i ) {
       std::stringstream key_s_stream;
       key_s_stream << m.first << "_key[" << i << "]";
       Key value_key;
@@ -672,7 +672,7 @@ public:
 #else
     in.start_repeated_field( rtti::get_type_info< T >::type_name() );
 #endif
-    for (std::size_t i = 0; i < count; ++i) {
+    for( std::size_t i = 0; i < count; ++i ) {
       T temp;
       in >> temp;
       v.insert( v.end(), temp );
@@ -693,7 +693,7 @@ public:
 #else
     in.start_repeated_field( rtti::get_type_info< T >::type_name(), v.first );
 #endif
-    for (std::size_t i = 0; i < count; ++i) {
+    for( std::size_t i = 0; i < count; ++i ) {
       std::stringstream s_stream;
       s_stream << v.first << "_q[" << i << "]";
       T temp;
@@ -716,7 +716,7 @@ public:
 #else
     in.start_repeated_field( rtti::get_type_info< T >::type_name() );
 #endif
-    for (std::size_t i = 0; i < count; ++i) {
+    for( std::size_t i = 0; i < count; ++i ) {
       T temp;
       in >> temp;
       v.insert( v.end(), temp );
@@ -737,7 +737,7 @@ public:
 #else
     in.start_repeated_field( rtti::get_type_info< T >::type_name(), v.first );
 #endif
-    for (std::size_t i = 0; i < count; ++i) {
+    for( std::size_t i = 0; i < count; ++i ) {
       std::stringstream s_stream;
       s_stream << v.first << "_q[" << i << "]";
       T temp;
@@ -797,7 +797,7 @@ public:
     in.start_repeated_field( rtti::get_type_info< T >::type_name(), v.first );
 #endif
     typename std::forward_list< T >::iterator it = v.second.begin();
-    for (std::size_t i = 0; it != v.second.end(); ++it) {
+    for( std::size_t i = 0; it != v.second.end(); ++it ) {
       std::stringstream s_stream;
       s_stream << v.first << "_q[" << i++ << "]";
       in& RK_SERIAL_LOAD_WITH_ALIAS( s_stream.str(), ( *it ) );
@@ -817,7 +817,7 @@ public:
 #else
     in.start_repeated_field( rtti::get_type_info< T >::type_name() );
 #endif
-    for (std::size_t i = 0; i < N; ++i)
+    for( std::size_t i = 0; i < N; ++i )
       in >> v[i];
     in.finish_repeated_field();
     return in;
@@ -832,7 +832,7 @@ public:
 #else
     in.start_repeated_field( rtti::get_type_info< T >::type_name(), v.first );
 #endif
-    for (std::size_t i = 0; i < N; ++i) {
+    for( std::size_t i = 0; i < N; ++i ) {
       std::stringstream s_stream;
       s_stream << v.first << "_q[" << i << "]";
       in& RK_SERIAL_LOAD_WITH_ALIAS( s_stream.str(), v.second[i] );
@@ -860,7 +860,7 @@ public:
 #else
     in.start_repeated_pair( rtti::get_type_info< Key >::type_name(), rtti::get_type_info< T >::type_name() );
 #endif
-    for (std::size_t i = 0; i < count; ++i) {
+    for( std::size_t i = 0; i < count; ++i ) {
       Key value_key;
       in >> value_key;
       in >> m[value_key];
@@ -882,7 +882,7 @@ public:
 #else
     in.start_repeated_pair( rtti::get_type_info< Key >::type_name(), rtti::get_type_info< T >::type_name(), m.first );
 #endif
-    for (std::size_t i = 0; i < count; ++i) {
+    for( std::size_t i = 0; i < count; ++i ) {
       std::stringstream key_s_stream;
       key_s_stream << m.first << "_key[" << i << "]";
       Key value_key;
@@ -908,7 +908,7 @@ public:
 #else
     in.start_repeated_pair( rtti::get_type_info< Key >::type_name(), rtti::get_type_info< T >::type_name() );
 #endif
-    for (std::size_t i = 0; i < count; ++i) {
+    for( std::size_t i = 0; i < count; ++i ) {
       Key value_key;
       T value_t;
       in >> value_key;
@@ -932,7 +932,7 @@ public:
 #else
     in.start_repeated_pair( rtti::get_type_info< Key >::type_name(), rtti::get_type_info< T >::type_name(), m.first );
 #endif
-    for (std::size_t i = 0; i < count; ++i) {
+    for( std::size_t i = 0; i < count; ++i ) {
       std::stringstream key_s_stream;
       key_s_stream << m.first << "_key[" << i << "]";
       Key value_key;
@@ -961,7 +961,7 @@ public:
 #else
     in.start_repeated_field( rtti::get_type_info< T >::type_name() );
 #endif
-    for (std::size_t i = 0; i < count; ++i) {
+    for( std::size_t i = 0; i < count; ++i ) {
       T temp;
       in >> temp;
       v.insert( v.end(), temp );
@@ -982,7 +982,7 @@ public:
 #else
     in.start_repeated_field( rtti::get_type_info< T >::type_name(), v.first );
 #endif
-    for (std::size_t i = 0; i < count; ++i) {
+    for( std::size_t i = 0; i < count; ++i ) {
       std::stringstream s_stream;
       s_stream << v.first << "_q[" << i << "]";
       T temp;
@@ -1005,7 +1005,7 @@ public:
 #else
     in.start_repeated_field( rtti::get_type_info< T >::type_name() );
 #endif
-    for (std::size_t i = 0; i < count; ++i) {
+    for( std::size_t i = 0; i < count; ++i ) {
       T temp;
       in >> temp;
       v.insert( v.end(), temp );
@@ -1026,7 +1026,7 @@ public:
 #else
     in.start_repeated_field( rtti::get_type_info< T >::type_name(), v.first );
 #endif
-    for (std::size_t i = 0; i < count; ++i) {
+    for( std::size_t i = 0; i < count; ++i ) {
       std::stringstream s_stream;
       s_stream << v.first << "_q[" << i << "]";
       T temp;
@@ -1083,16 +1083,16 @@ protected:
   virtual oarchive& RK_CALL save_unsigned_char( const std::pair< std::string, unsigned char >& u ) = 0;
 
   /// Saving an integer value.
-  virtual oarchive& RK_CALL save_int(std::ptrdiff_t i) = 0;
+  virtual oarchive& RK_CALL save_int( std::ptrdiff_t i ) = 0;
 
   /// Saving an integer value with a name.
-  virtual oarchive& RK_CALL save_int(const std::pair< std::string, std::ptrdiff_t >& i) = 0;
+  virtual oarchive& RK_CALL save_int( const std::pair< std::string, std::ptrdiff_t >& i ) = 0;
 
   /// Saving an unsigned integer value.
-  virtual oarchive& RK_CALL save_unsigned_int(std::size_t u) = 0;
+  virtual oarchive& RK_CALL save_unsigned_int( std::size_t u ) = 0;
 
   /// Saving an unsigned integer value with a name.
-  virtual oarchive& RK_CALL save_unsigned_int(const std::pair< std::string, std::size_t >& u) = 0;
+  virtual oarchive& RK_CALL save_unsigned_int( const std::pair< std::string, std::size_t >& u ) = 0;
 
   /// Saving a float value.
   virtual oarchive& RK_CALL save_float( float f ) = 0;
@@ -1157,7 +1157,7 @@ protected:
 
 public:
   /// Default constructor.
-  oarchive() : archive(), mObjRegMap(*(new std::map< serializable_shared_pointer, std::size_t >())) {
+  oarchive() : archive(), mObjRegMap( *( new std::map< serializable_shared_pointer, std::size_t >() ) ) {
     mObjRegMap[serializable_shared_pointer()] = 0;
   };
 
@@ -1212,47 +1212,47 @@ public:
   };
 
   /// Saving an integer value.
-  friend oarchive& RK_CALL operator<<( oarchive& out, std::int32_t i ) { 
+  friend oarchive& RK_CALL operator<<( oarchive& out, std::int32_t i ) {
     std::ptrdiff_t tmp = i;
     return out.save_int( tmp );
   };
 
   /// Saving an integer value with a name.
-  friend oarchive& RK_CALL operator&(oarchive& out, const std::pair< std::string, std::int32_t >& i) {
-    return out.save_int(std::pair< std::string, std::ptrdiff_t >(i.first, i.second));
+  friend oarchive& RK_CALL operator&( oarchive& out, const std::pair< std::string, std::int32_t >& i ) {
+    return out.save_int( std::pair< std::string, std::ptrdiff_t >( i.first, i.second ) );
   };
 
   /// Saving an integer value.
-  friend oarchive& RK_CALL operator<<(oarchive& out, std::int64_t i) {
+  friend oarchive& RK_CALL operator<<( oarchive& out, std::int64_t i ) {
     std::ptrdiff_t tmp = i;
-    return out.save_int(tmp);
+    return out.save_int( tmp );
   };
 
   /// Saving an integer value with a name.
-  friend oarchive& RK_CALL operator&(oarchive& out, const std::pair< std::string, std::int64_t >& i) {
-    return out.save_int(std::pair< std::string, std::ptrdiff_t >(i.first, i.second));
+  friend oarchive& RK_CALL operator&( oarchive& out, const std::pair< std::string, std::int64_t >& i ) {
+    return out.save_int( std::pair< std::string, std::ptrdiff_t >( i.first, i.second ) );
   };
 
   /// Saving an unsigned integer value.
-  friend oarchive& RK_CALL operator<<(oarchive& out, std::uint32_t u) {
-    std::size_t tmp = u;
-    return out.save_unsigned_int(tmp);
-  };
-
-  /// Saving an unsigned integer value with a name.
-  friend oarchive& RK_CALL operator&(oarchive& out, const std::pair< std::string, std::uint32_t >& u) {
-    return out.save_unsigned_int(std::pair< std::string, std::size_t >(u.first, u.second));
-  };
-
-  /// Saving an unsigned integer value.
-  friend oarchive& RK_CALL operator<<(oarchive& out, const std::uint64_t& u) {
+  friend oarchive& RK_CALL operator<<( oarchive& out, std::uint32_t u ) {
     std::size_t tmp = u;
     return out.save_unsigned_int( tmp );
   };
 
   /// Saving an unsigned integer value with a name.
-  friend oarchive& RK_CALL operator&(oarchive& out, const std::pair< std::string, std::uint64_t >& u) {
-    return out.save_unsigned_int(std::pair< std::string, std::size_t >(u.first, u.second));
+  friend oarchive& RK_CALL operator&( oarchive& out, const std::pair< std::string, std::uint32_t >& u ) {
+    return out.save_unsigned_int( std::pair< std::string, std::size_t >( u.first, u.second ) );
+  };
+
+  /// Saving an unsigned integer value.
+  friend oarchive& RK_CALL operator<<( oarchive& out, const std::uint64_t& u ) {
+    std::size_t tmp = u;
+    return out.save_unsigned_int( tmp );
+  };
+
+  /// Saving an unsigned integer value with a name.
+  friend oarchive& RK_CALL operator&( oarchive& out, const std::pair< std::string, std::uint64_t >& u ) {
+    return out.save_unsigned_int( std::pair< std::string, std::size_t >( u.first, u.second ) );
   };
 
   /// Saving a float value.
@@ -1381,7 +1381,7 @@ public:
 #else
     out.start_repeated_field( rtti::get_type_info< T >::type_name() );
 #endif
-    for (std::size_t i = 0; i < count; ++i)
+    for( std::size_t i = 0; i < count; ++i )
       out << v[i];
     out.finish_repeated_field();
     return out;
@@ -1398,7 +1398,7 @@ public:
 #else
     out.start_repeated_field( rtti::get_type_info< T >::type_name(), v.first );
 #endif
-    for (std::size_t i = 0; i < count; ++i) {
+    for( std::size_t i = 0; i < count; ++i ) {
       std::stringstream s_stream;
       s_stream << v.first << "_q[" << i << "]";
       out& RK_SERIAL_SAVE_WITH_ALIAS( s_stream.str(), v.second[i] );
@@ -1437,7 +1437,7 @@ public:
     out.start_repeated_field( rtti::get_type_info< T >::type_name(), v.first );
 #endif
     typename std::list< T >::const_iterator it = v.second.begin();
-    for (std::size_t i = 0; it != v.second.end(); ++it) {
+    for( std::size_t i = 0; it != v.second.end(); ++it ) {
       std::stringstream s_stream;
       s_stream << v.first << "_q[" << i++ << "]";
       out& RK_SERIAL_SAVE_WITH_ALIAS( s_stream.str(), ( *it ) );
@@ -1478,7 +1478,7 @@ public:
     out.start_repeated_pair( rtti::get_type_info< Key >::type_name(), rtti::get_type_info< T >::type_name(), m.first );
 #endif
     typename std::map< Key, T >::const_iterator it = m.second.begin();
-    for (std::size_t i = 0; it != m.second.end(); it++, ++i) {
+    for( std::size_t i = 0; it != m.second.end(); it++, ++i ) {
       std::stringstream key_s_stream;
       key_s_stream << m.first << "_key[" << i << "]";
       out& RK_SERIAL_SAVE_WITH_ALIAS( key_s_stream.str(), it->first );
@@ -1523,7 +1523,7 @@ public:
     out.start_repeated_pair( rtti::get_type_info< Key >::type_name(), rtti::get_type_info< T >::type_name(), m.first );
 #endif
     typename std::multimap< Key, T >::const_iterator it = m.second.begin();
-    for (std::size_t i = 0; it != m.second.end(); it++, ++i) {
+    for( std::size_t i = 0; it != m.second.end(); it++, ++i ) {
       std::stringstream key_s_stream;
       key_s_stream << m.first << "_key[" << i << "]";
       out& RK_SERIAL_SAVE_WITH_ALIAS( key_s_stream.str(), it->first );
@@ -1566,7 +1566,7 @@ public:
     out.start_repeated_field( rtti::get_type_info< T >::type_name(), v.first );
 #endif
     typename std::set< T >::const_iterator it = v.second.begin();
-    for (std::size_t i = 0; it != v.second.end(); ++it) {
+    for( std::size_t i = 0; it != v.second.end(); ++it ) {
       std::stringstream s_stream;
       s_stream << v.first << "_q[" << i++ << "]";
       out& RK_SERIAL_SAVE_WITH_ALIAS( s_stream.str(), ( *it ) );
@@ -1605,7 +1605,7 @@ public:
     out.start_repeated_field( rtti::get_type_info< T >::type_name(), v.first );
 #endif
     typename std::multiset< T >::const_iterator it = v.second.begin();
-    for (std::size_t i = 0; it != v.second.end(); ++it) {
+    for( std::size_t i = 0; it != v.second.end(); ++it ) {
       std::stringstream s_stream;
       s_stream << v.first << "_q[" << i++ << "]";
       out& RK_SERIAL_SAVE_WITH_ALIAS( s_stream.str(), ( *it ) );
@@ -1660,7 +1660,7 @@ public:
     out.start_repeated_field( rtti::get_type_info< T >::type_name(), v.first );
 #endif
     typename std::forward_list< T >::const_iterator it = v.second.begin();
-    for (std::size_t i = 0; it != v.second.end(); ++it) {
+    for( std::size_t i = 0; it != v.second.end(); ++it ) {
       std::stringstream s_stream;
       s_stream << v.first << "_q[" << i++ << "]";
       out& RK_SERIAL_SAVE_WITH_ALIAS( s_stream.str(), ( *it ) );
@@ -1680,7 +1680,7 @@ public:
 #else
     out.start_repeated_field( rtti::get_type_info< T >::type_name() );
 #endif
-    for (std::size_t i = 0; i < N; ++i)
+    for( std::size_t i = 0; i < N; ++i )
       out << v[i];
     out.finish_repeated_field();
     return out;
@@ -1695,7 +1695,7 @@ public:
 #else
     out.start_repeated_field( rtti::get_type_info< T >::type_name(), v.first );
 #endif
-    for (std::size_t i = 0; i < N; ++i) {
+    for( std::size_t i = 0; i < N; ++i ) {
       std::stringstream s_stream;
       s_stream << v.first << "_q[" << i << "]";
       out& RK_SERIAL_SAVE_WITH_ALIAS( s_stream.str(), v.second[i] );
@@ -1742,7 +1742,7 @@ public:
     out.start_repeated_pair( rtti::get_type_info< Key >::type_name(), rtti::get_type_info< T >::type_name(), m.first );
 #endif
     typename std::unordered_map< Key, T >::const_iterator it = m.second.begin();
-    for (std::size_t i = 0; it != m.second.end(); it++, ++i) {
+    for( std::size_t i = 0; it != m.second.end(); it++, ++i ) {
       std::stringstream key_s_stream;
       key_s_stream << m.first << "_key[" << i << "]";
       out& RK_SERIAL_SAVE_WITH_ALIAS( key_s_stream.str(), it->first );
@@ -1788,7 +1788,7 @@ public:
     out.start_repeated_pair( rtti::get_type_info< Key >::type_name(), rtti::get_type_info< T >::type_name(), m.first );
 #endif
     typename std::unordered_multimap< Key, T >::const_iterator it = m.second.begin();
-    for (std::size_t i = 0; it != m.second.end(); it++, ++i) {
+    for( std::size_t i = 0; it != m.second.end(); it++, ++i ) {
       std::stringstream key_s_stream;
       key_s_stream << m.first << "_key[" << i << "]";
       out& RK_SERIAL_SAVE_WITH_ALIAS( key_s_stream.str(), it->first );
@@ -1833,7 +1833,7 @@ public:
     out.start_repeated_field( rtti::get_type_info< T >::type_name(), v.first );
 #endif
     typename std::unordered_set< T >::const_iterator it = v.second.begin();
-    for (std::size_t i = 0; it != v.second.end(); ++it) {
+    for( std::size_t i = 0; it != v.second.end(); ++it ) {
       std::stringstream s_stream;
       s_stream << v.first << "_q[" << i++ << "]";
       out& RK_SERIAL_SAVE_WITH_ALIAS( s_stream.str(), ( *it ) );
@@ -1872,7 +1872,7 @@ public:
     out.start_repeated_field( rtti::get_type_info< T >::type_name(), v.first );
 #endif
     typename std::unordered_multiset< T >::const_iterator it = v.second.begin();
-    for (std::size_t i = 0; it != v.second.end(); ++it) {
+    for( std::size_t i = 0; it != v.second.end(); ++it ) {
       std::stringstream s_stream;
       s_stream << v.first << "_q[" << i++ << "]";
       out& RK_SERIAL_SAVE_WITH_ALIAS( s_stream.str(), ( *it ) );

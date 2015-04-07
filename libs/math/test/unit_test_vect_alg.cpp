@@ -122,7 +122,7 @@ BOOST_AUTO_TEST_CASE_TEMPLATE( vectn_tests, Vector, vectn_tests_types ) {
   typedef typename ReaK::vect_traits< Vector >::value_type ValueType;
   using std::fabs;
 
-  Vector gravity_acc(ValueType(0.0), ValueType(-9.81), ValueType(0.0));
+  Vector gravity_acc( ValueType( 0.0 ), ValueType( -9.81 ), ValueType( 0.0 ) );
   BOOST_CHECK_EQUAL( gravity_acc.size(), 3 );
   BOOST_CHECK( gravity_acc.max_size() );
   BOOST_CHECK( gravity_acc.capacity() );

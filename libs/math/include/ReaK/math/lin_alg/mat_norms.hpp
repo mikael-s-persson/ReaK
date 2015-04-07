@@ -45,8 +45,7 @@ namespace ReaK {
  * \return the 1-norm of matrix M.
  */
 template < typename Matrix >
-typename boost::enable_if< is_readable_matrix< Matrix >, typename Matrix::value_type >::type
-  norm_1( const Matrix& M ) {
+typename boost::enable_if< is_readable_matrix< Matrix >, typename Matrix::value_type >::type norm_1( const Matrix& M ) {
   typedef typename mat_traits< Matrix >::value_type ValueType;
   typedef typename mat_traits< Matrix >::size_type SizeType;
   using std::fabs;

@@ -50,7 +50,8 @@ namespace ReaK {
  * \return true iff both matrices are the same, within the given tolerance.
  */
 template < typename Matrix1, typename Matrix2 >
-typename boost::enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >, is_readable_matrix< Matrix2 > >, bool >::type
+typename boost::enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >, is_readable_matrix< Matrix2 > >,
+                           bool >::type
   is_equal_mat( const Matrix1& M1, const Matrix2& M2, typename mat_traits< Matrix1 >::value_type NumTol
                                                       = typename mat_traits< Matrix1 >::value_type( 1E-8 ) ) {
   if( ( M1.get_row_count() != M2.get_row_count() ) || ( M1.get_col_count() != M2.get_col_count() ) )

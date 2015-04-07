@@ -747,11 +747,13 @@ public:
 
 private:
   template < typename Arg1 >
-  static void set_value_impl(pointer& pval, const Arg1& a1) BOOST_NOEXCEPT { *pval++ = value_type(a1); };
+  static void set_value_impl( pointer& pval, const Arg1& a1 ) BOOST_NOEXCEPT {
+    *pval++ = value_type( a1 );
+  };
 
   template < typename Arg1, typename... Args >
-  static void set_value_impl(pointer& pval, const Arg1& a1, const Args&... tail) BOOST_NOEXCEPT{
-    *pval++ = value_type(a1);
+  static void set_value_impl( pointer& pval, const Arg1& a1, const Args&... tail ) BOOST_NOEXCEPT {
+    *pval++ = value_type( a1 );
     set_value_impl( pval, tail... );
   };
 
@@ -838,8 +840,9 @@ public:
    * \test PASSED
    */
   template < typename Vector >
-  typename boost::enable_if< boost::mpl::and_< is_readable_vector< Vector >, boost::mpl::not_< boost::is_same< Vector, self > > >,
-                               self& >::type
+  typename boost::enable_if< boost::mpl::and_< is_readable_vector< Vector >,
+                                               boost::mpl::not_< boost::is_same< Vector, self > > >,
+                             self& >::type
     operator=( const Vector& V ) {
     if( Size != V.size() )
       throw std::range_error( "Vector size mismatch." );
@@ -1958,8 +1961,9 @@ public:
    * \test PASSED
    */
   template < typename Vector >
-  typename boost::enable_if< boost::mpl::and_< is_readable_vector< Vector >, boost::mpl::not_< boost::is_same< Vector, self > > >,
-                               self& >::type
+  typename boost::enable_if< boost::mpl::and_< is_readable_vector< Vector >,
+                                               boost::mpl::not_< boost::is_same< Vector, self > > >,
+                             self& >::type
     operator=( const Vector& V ) {
     q.resize( V.size() );
     for( size_type i = 0; i < q.size(); ++i )
@@ -2373,7 +2377,8 @@ public:
  * Square magnitude of the vector.
  */
 template < typename Vector >
-auto norm_2_sqr( const Vector& v ) BOOST_NOEXCEPT -> typename std::decay< decltype(v[v.size()] * v[v.size()]) >::type {
+auto norm_2_sqr( const Vector& v )
+  BOOST_NOEXCEPT -> typename std::decay< decltype( v[v.size()] * v[v.size()] ) >::type {
   typedef typename vect_traits< Vector >::value_type ValueType;
   typedef typename vect_traits< Vector >::size_type SizeType;
   ValueType sum( 0.0 );
@@ -2386,7 +2391,7 @@ auto norm_2_sqr( const Vector& v ) BOOST_NOEXCEPT -> typename std::decay< declty
  * Magnitude of the vector.
  */
 template < typename Vector >
-auto norm_2(const Vector& v) BOOST_NOEXCEPT -> typename std::decay< decltype(v[v.size()]) >::type {
+auto norm_2( const Vector& v ) BOOST_NOEXCEPT -> typename std::decay< decltype( v[v.size()] ) >::type {
   using std::sqrt;
   return sqrt( norm_2_sqr( v ) );
 };
@@ -2395,7 +2400,7 @@ auto norm_2(const Vector& v) BOOST_NOEXCEPT -> typename std::decay< decltype(v[v
  * Infinite norm of the vector.
  */
 template < typename Vector >
-auto norm_inf(const Vector& v) BOOST_NOEXCEPT -> typename std::decay< decltype(v[v.size()]) >::type {
+auto norm_inf( const Vector& v ) BOOST_NOEXCEPT -> typename std::decay< decltype( v[v.size()] ) >::type {
   typedef typename vect_traits< Vector >::value_type ValueType;
   typedef typename vect_traits< Vector >::size_type SizeType;
   using std::fabs;
@@ -2410,7 +2415,7 @@ auto norm_inf(const Vector& v) BOOST_NOEXCEPT -> typename std::decay< decltype(v
  * Square magnitude of the vector.
  */
 template < typename Vector >
-auto norm_1(const Vector& v) BOOST_NOEXCEPT -> typename std::decay< decltype(v[v.size()]) >::type {
+auto norm_1( const Vector& v ) BOOST_NOEXCEPT -> typename std::decay< decltype( v[v.size()] ) >::type {
   typedef typename vect_traits< Vector >::value_type ValueType;
   typedef typename vect_traits< Vector >::size_type SizeType;
   using std::fabs;
@@ -2424,8 +2429,8 @@ auto norm_1(const Vector& v) BOOST_NOEXCEPT -> typename std::decay< decltype(v[v
  * Unit vector in the same direction.
  */
 template < typename Vector >
-auto unit(const Vector& v) -> typename std::decay< decltype(v / v[v.size()]) >::type  {
-  typename std::decay< decltype(v / v[v.size()]) >::type result;
+auto unit( const Vector& v ) -> typename std::decay< decltype( v / v[v.size()] ) >::type {
+  typename std::decay< decltype( v / v[v.size()] ) >::type result;
   result = v;
   result /= norm_2( result );
   return result;
@@ -2497,8 +2502,8 @@ typename boost::enable_if< boost::mpl::and_< is_writable_vector< Vector >,
   operator*=( Vector& v, const T& S ) BOOST_NOEXCEPT {
   typedef typename vect_traits< Vector >::size_type SizeType;
   typedef typename vect_traits< Vector >::value_type ValueType;
-  for (SizeType i = 0; i < v.size(); ++i)
-    v[i] *= ValueType(S);
+  for( SizeType i = 0; i < v.size(); ++i )
+    v[i] *= ValueType( S );
   return v;
 };
 
@@ -2514,7 +2519,7 @@ typename boost::enable_if< boost::mpl::and_< is_writable_vector< Vector >,
   typedef typename vect_traits< Vector >::size_type SizeType;
   typedef typename vect_traits< Vector >::value_type ValueType;
   for( SizeType i = 0; i < v.size(); ++i )
-    v[i] /= ValueType(S);
+    v[i] /= ValueType( S );
   return v;
 };
 
@@ -2571,9 +2576,9 @@ typename boost::enable_if< boost::mpl::and_< is_readable_vector< Vector1 >, is_r
  * \test PASSED
  */
 template < typename Vector1, typename Vector2 >
-auto operator*( const Vector1& v1, const Vector2& v2 ) 
-    -> typename boost::enable_if< boost::mpl::and_< is_readable_vector< Vector1 >, is_readable_vector< Vector2 > >,
-                                  decltype(v1[v1.size()] * v2[v2.size()]) >::type {
+auto operator*( const Vector1& v1, const Vector2& v2 )
+  -> typename boost::enable_if< boost::mpl::and_< is_readable_vector< Vector1 >, is_readable_vector< Vector2 > >,
+                                decltype( v1[v1.size()] * v2[v2.size()] ) >::type {
   if( v1.size() != v2.size() )
     throw std::range_error( "Vector size mismatch." );
   typedef typename vect_traits< Vector1 >::size_type SizeType;

@@ -397,9 +397,8 @@ int main() {
     try {
       optim::limited_gauss_newton_nllsq(
         funcs[i], func_jacs[i], x, y, 200,
-        [i, &func_lowers, &func_uppers](const vect_n< double >& x, vect_n< double >& dx) -> void {
-          optim::box_limit_function(x, dx, func_lowers[i], func_uppers[i]);
-        },
+        [i, &func_lowers, &func_uppers]( const vect_n< double >& x, vect_n< double >& dx )
+          -> void { optim::box_limit_function( x, dx, func_lowers[i], func_uppers[i] ); },
         1e-8, 1e-8 );
       std::cout << "  Box-limited Gauss-Newton method gives:\n"
                 << "    x = " << x << " with error = " << norm_2( x - func_sols[i] ) << "\n"
@@ -418,9 +417,8 @@ int main() {
     try {
       optim::limited_jacobian_transpose_nllsq(
         funcs[i], func_jacs[i], x, y, 500,
-        [i, &func_lowers, &func_uppers](const vect_n< double >& x, vect_n< double >& dx) -> void {
-          optim::box_limit_function(x, dx, func_lowers[i], func_uppers[i]);
-        },
+        [i, &func_lowers, &func_uppers]( const vect_n< double >& x, vect_n< double >& dx )
+          -> void { optim::box_limit_function( x, dx, func_lowers[i], func_uppers[i] ); },
         1e-8, 1e-8 );
       std::cout << "  Box-limited Jacobian-Transpose method gives:\n"
                 << "    x = " << x << " with error = " << norm_2( x - func_sols[i] ) << "\n"
@@ -438,10 +436,8 @@ int main() {
     gradCount = 0;
     try {
       optim::limited_levenberg_marquardt_nllsq(
-        funcs[i], func_jacs[i], x, y,
-        [i, &func_lowers, &func_uppers](const vect_n< double >& x, vect_n< double >& dx) -> void {
-          optim::box_limit_function(x, dx, func_lowers[i], func_uppers[i]);
-        }, 
+        funcs[i], func_jacs[i], x, y, [i, &func_lowers, &func_uppers]( const vect_n< double >& x, vect_n< double >& dx )
+                                        -> void { optim::box_limit_function( x, dx, func_lowers[i], func_uppers[i] ); },
         200, 1e-4, 1e-14, 1e-8, 1e-14 );
       std::cout << "  Box-limited Levenberg-Marquardt method gives:\n"
                 << "    x = " << x << " with error = " << norm_2( x - func_sols[i] ) << "\n"

@@ -156,7 +156,9 @@ void try_interpolation( const std::string& aMethodName, const std::string& aTest
 
       ++succ_count;
 
-    } catch (std::exception& e) {RK_UNUSED(e); };
+    } catch( std::exception& e ) {
+      RK_UNUSED( e );
+    };
   };
 };
 
@@ -407,8 +409,7 @@ void perform_mc_tests( const po::variables_map& vm, std::size_t dyn_sp_dim ) {
                  << "\t Successes: " << svp_Ndof_succ_count << "\n"
                  << "\t Graceful Failures: " << svp_Ndof_graceful_fails << "\n"
                  << "\t Total num. of trials: " << total_segments << "\n"
-                 << "\t Success-rate: " << ( 100.0 * double( svp_Ndof_succ_count ) / double( total_segments ) )
-                 << "%\n"
+                 << "\t Success-rate: " << ( 100.0 * double( svp_Ndof_succ_count ) / double( total_segments ) ) << "%\n"
                  << "\t Graceful-fail-rate: "
                  << ( 100.0 * double( svp_Ndof_graceful_fails ) / double( total_segments ) ) << "%\n"
                  << "\t Hard-fail-rate: "
@@ -423,8 +424,7 @@ void perform_mc_tests( const po::variables_map& vm, std::size_t dyn_sp_dim ) {
                  << "\t Successes: " << sap_Ndof_succ_count << "\n"
                  << "\t Graceful Failures: " << sap_Ndof_graceful_fails << "\n"
                  << "\t Total num. of trials: " << total_segments << "\n"
-                 << "\t Success-rate: " << ( 100.0 * double( sap_Ndof_succ_count ) / double( total_segments ) )
-                 << "%\n"
+                 << "\t Success-rate: " << ( 100.0 * double( sap_Ndof_succ_count ) / double( total_segments ) ) << "%\n"
                  << "\t Graceful-fail-rate: "
                  << ( 100.0 * double( sap_Ndof_graceful_fails ) / double( total_segments ) ) << "%\n"
                  << "\t Hard-fail-rate: "

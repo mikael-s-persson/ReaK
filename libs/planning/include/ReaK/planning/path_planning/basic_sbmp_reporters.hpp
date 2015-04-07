@@ -78,7 +78,8 @@ struct no_sbmp_report : public shared_object {
   void draw_solution(
     const FreeSpaceType&,
     typename boost::enable_if< is_temporal_space< FreeSpaceType >,
-    const shared_ptr< seq_trajectory_base< typename subspace_traits< FreeSpaceType >::super_space_type > >& >::type ) const {};
+                               const shared_ptr< seq_trajectory_base< typename subspace_traits< FreeSpaceType >::
+                                                                        super_space_type > >& >::type ) const {};
 
   /**
    * Draws the solution trajectory.
@@ -87,8 +88,10 @@ struct no_sbmp_report : public shared_object {
   template < typename FreeSpaceType >
   void draw_solution(
     const FreeSpaceType&,
-    typename boost::disable_if< is_temporal_space< FreeSpaceType >,
-    const shared_ptr< seq_path_base< typename subspace_traits< FreeSpaceType >::super_space_type > >& >::type ) const {};
+    typename boost::
+      disable_if< is_temporal_space< FreeSpaceType >,
+                  const shared_ptr< seq_path_base< typename subspace_traits< FreeSpaceType >::super_space_type > >& >::
+        type ) const {};
 
 
   /*******************************************************************************
@@ -228,8 +231,8 @@ struct differ_sbmp_report_to_space : public shared_object {
   void draw_solution(
     const FreeSpaceType& free_space,
     typename boost::enable_if< is_temporal_space< FreeSpaceType >,
-    const shared_ptr< seq_trajectory_base< typename subspace_traits< FreeSpaceType >::super_space_type > >& >::type traj )
-    const {
+                               const shared_ptr< seq_trajectory_base< typename subspace_traits< FreeSpaceType >::
+                                                                        super_space_type > >& >::type traj ) const {
     typedef typename topology_traits< FreeSpaceType >::point_type PointType;
 
     free_space.reset_output();
@@ -261,8 +264,10 @@ struct differ_sbmp_report_to_space : public shared_object {
   template < typename FreeSpaceType >
   void draw_solution(
     const FreeSpaceType& free_space,
-    typename boost::disable_if< is_temporal_space< FreeSpaceType >,
-    const shared_ptr< seq_path_base< typename subspace_traits< FreeSpaceType >::super_space_type > >& >::type p ) const {
+    typename boost::
+      disable_if< is_temporal_space< FreeSpaceType >,
+                  const shared_ptr< seq_path_base< typename subspace_traits< FreeSpaceType >::super_space_type > >& >::
+        type p ) const {
     typedef typename seq_path_base< typename subspace_traits< FreeSpaceType >::super_space_type >::
       point_distance_iterator PtIter;
 
@@ -361,8 +366,8 @@ struct timing_sbmp_report : public shared_object {
   void draw_solution(
     const FreeSpaceType& free_space,
     typename boost::enable_if< is_temporal_space< FreeSpaceType >,
-    const shared_ptr< seq_trajectory_base< typename subspace_traits< FreeSpaceType >::super_space_type > >& >::type traj )
-    const {
+                               const shared_ptr< seq_trajectory_base< typename subspace_traits< FreeSpaceType >::
+                                                                        super_space_type > >& >::type traj ) const {
     next_reporter.draw_solution( free_space, traj );
   };
 
@@ -375,8 +380,10 @@ struct timing_sbmp_report : public shared_object {
   template < typename FreeSpaceType >
   void draw_solution(
     const FreeSpaceType& free_space,
-    typename boost::disable_if< is_temporal_space< FreeSpaceType >,
-    const shared_ptr< seq_path_base< typename subspace_traits< FreeSpaceType >::super_space_type > >& >::type p ) const {
+    typename boost::
+      disable_if< is_temporal_space< FreeSpaceType >,
+                  const shared_ptr< seq_path_base< typename subspace_traits< FreeSpaceType >::super_space_type > >& >::
+        type p ) const {
     next_reporter.draw_solution( free_space, p );
   };
 
@@ -441,8 +448,8 @@ struct print_sbmp_progress : public shared_object {
   void draw_solution(
     const FreeSpaceType& free_space,
     typename boost::enable_if< is_temporal_space< FreeSpaceType >,
-    const shared_ptr< seq_trajectory_base< typename subspace_traits< FreeSpaceType >::super_space_type > >& >::type traj )
-    const {
+                               const shared_ptr< seq_trajectory_base< typename subspace_traits< FreeSpaceType >::
+                                                                        super_space_type > >& >::type traj ) const {
     std::cout << "Solution Found!" << std::endl;
 
     next_reporter.draw_solution( free_space, traj );
@@ -457,8 +464,10 @@ struct print_sbmp_progress : public shared_object {
   template < typename FreeSpaceType >
   void draw_solution(
     const FreeSpaceType& free_space,
-    typename boost::disable_if< is_temporal_space< FreeSpaceType >,
-    const shared_ptr< seq_path_base< typename subspace_traits< FreeSpaceType >::super_space_type > >& >::type p ) const {
+    typename boost::
+      disable_if< is_temporal_space< FreeSpaceType >,
+                  const shared_ptr< seq_path_base< typename subspace_traits< FreeSpaceType >::super_space_type > >& >::
+        type p ) const {
     std::cout << "Solution Found!" << std::endl;
 
     next_reporter.draw_solution( free_space, p );
@@ -536,8 +545,8 @@ struct least_cost_sbmp_report : public shared_object {
   void draw_solution(
     const FreeSpaceType& free_space,
     typename boost::enable_if< is_temporal_space< FreeSpaceType >,
-    const shared_ptr< seq_trajectory_base< typename subspace_traits< FreeSpaceType >::super_space_type > >& >::type traj )
-    const {
+                               const shared_ptr< seq_trajectory_base< typename subspace_traits< FreeSpaceType >::
+                                                                        super_space_type > >& >::type traj ) const {
     //     typedef typename seq_trajectory_base< typename subspace_traits<FreeSpaceType>::super_space_type
     //     >::point_time_iterator TIter;
     //     double total_cost = 0.0;
@@ -568,8 +577,10 @@ struct least_cost_sbmp_report : public shared_object {
   template < typename FreeSpaceType >
   void draw_solution(
     const FreeSpaceType& free_space,
-    typename boost::disable_if< is_temporal_space< FreeSpaceType >,
-    const shared_ptr< seq_path_base< typename subspace_traits< FreeSpaceType >::super_space_type > >& >::type p ) const {
+    typename boost::
+      disable_if< is_temporal_space< FreeSpaceType >,
+                  const shared_ptr< seq_path_base< typename subspace_traits< FreeSpaceType >::super_space_type > >& >::
+        type p ) const {
     typedef typename seq_path_base< typename subspace_traits< FreeSpaceType >::super_space_type >::
       point_fraction_iterator FIter;
     double total_cost = 0.0;

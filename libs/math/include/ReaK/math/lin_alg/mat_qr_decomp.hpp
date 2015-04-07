@@ -196,12 +196,12 @@ void backsub_R_impl( const Matrix1& R, Matrix2& b, typename mat_traits< Matrix1 
   // back-substitution
   for( SizeType i = N; i > 0; --i ) {
     for( SizeType j = 0; j < b.get_col_count(); ++j ) {
-      ValueType sum = b( i-1, j );
+      ValueType sum = b( i - 1, j );
       for( SizeType k = i; k < N; ++k )
-        sum -= b( k, j ) * R( i-1, k );
-      if( fabs( R( i-1, i-1 ) ) < NumTol )
+        sum -= b( k, j ) * R( i - 1, k );
+      if( fabs( R( i - 1, i - 1 ) ) < NumTol )
         throw singularity_error( "R" );
-      b( i-1, j ) = sum / R( i-1, i-1 );
+      b( i - 1, j ) = sum / R( i - 1, i - 1 );
     };
   };
 };
@@ -514,12 +514,12 @@ void linlsq_QR_impl( const Matrix1& A, Matrix2& x, const Matrix3& b,
   x.set_col_count( b_store.get_col_count() );
   for( SizeType i = M; i > 0; --i ) {
     for( SizeType j = 0; j < b_store.get_col_count(); ++j ) {
-      ValueType sum = b_store( i-1, j );
+      ValueType sum = b_store( i - 1, j );
       for( SizeType k = i; k < M; ++k )
-        sum -= x( k, j ) * R( i-1, k );
-      if( fabs( R( i-1, i-1 ) ) < NumTol )
+        sum -= x( k, j ) * R( i - 1, k );
+      if( fabs( R( i - 1, i - 1 ) ) < NumTol )
         throw singularity_error( "R" );
-      x( i-1, j ) = sum / R( i-1, i-1 );
+      x( i - 1, j ) = sum / R( i - 1, i - 1 );
     };
   };
 };
@@ -543,8 +543,8 @@ void linlsq_QR_impl( const Matrix1& A, Matrix2& x, const Matrix3& b,
  */
 template < typename Matrix1, typename Matrix2, typename Matrix3 >
 typename boost::enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >, is_fully_writable_matrix< Matrix2 >,
-                             is_fully_writable_matrix< Matrix3 > >,
-                             void >::type
+                                             is_fully_writable_matrix< Matrix3 > >,
+                           void >::type
   decompose_QR( const Matrix1& A, Matrix2& Q, Matrix3& R, typename mat_traits< Matrix1 >::value_type NumTol = 1E-8 ) {
   if( A.get_row_count() < A.get_col_count() )
     throw std::range_error( "QR decomposition is only possible on a matrix with row-count >= column-count!" );
@@ -575,9 +575,11 @@ typename boost::enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >, is_f
  */
 template < typename Matrix1, typename Matrix2, typename Matrix3 >
 typename boost::enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >, is_fully_writable_matrix< Matrix2 >,
-                             is_writable_matrix< Matrix3 >, boost::mpl::not_< is_fully_writable_matrix< Matrix3 > >,
-                             boost::mpl::bool_< ( mat_traits< Matrix3 >::structure == mat_structure::upper_triangular ) > >,
-                             void >::type
+                                             is_writable_matrix< Matrix3 >,
+                                             boost::mpl::not_< is_fully_writable_matrix< Matrix3 > >,
+                                             boost::mpl::bool_< ( mat_traits< Matrix3 >::structure
+                                                                  == mat_structure::upper_triangular ) > >,
+                           void >::type
   decompose_QR( const Matrix1& A, Matrix2& Q, Matrix3& R, typename mat_traits< Matrix1 >::value_type NumTol = 1E-8 ) {
   if( A.get_row_count() < A.get_col_count() )
     throw std::range_error( "QR decomposition is only possible on a matrix with row-count >= column-count!" );
@@ -643,8 +645,8 @@ typename boost::enable_if< is_readable_matrix< Matrix >, typename mat_traits< Ma
  */
 template < typename Matrix1, typename Matrix2, typename Matrix3 >
 typename boost::enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >, is_fully_writable_matrix< Matrix2 >,
-                             is_readable_matrix< Matrix3 > >,
-                             void >::type
+                                             is_readable_matrix< Matrix3 > >,
+                           void >::type
   linlsq_QR( const Matrix1& A, Matrix2& x, const Matrix3& b,
              typename mat_traits< Matrix1 >::value_type NumTol = 1E-8 ) {
   if( A.get_row_count() < A.get_col_count() )
@@ -690,8 +692,8 @@ struct QR_linlsqsolver {
  */
 template < typename Matrix1, typename Matrix2, typename Matrix3 >
 typename boost::enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >, is_fully_writable_matrix< Matrix2 >,
-                             is_readable_matrix< Matrix3 > >,
-                             void >::type
+                                             is_readable_matrix< Matrix3 > >,
+                           void >::type
   minnorm_QR( const Matrix1& A, Matrix2& x, const Matrix3& b,
               typename mat_traits< Matrix1 >::value_type NumTol = 1E-8 ) {
   if( A.get_row_count() > A.get_col_count() )
@@ -746,8 +748,8 @@ struct QR_minnormsolver {
  */
 template < typename Matrix1, typename Matrix2, typename Matrix3 >
 typename boost::enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >, is_fully_writable_matrix< Matrix2 >,
-                             is_readable_matrix< Matrix3 > >,
-                             void >::type
+                                             is_readable_matrix< Matrix3 > >,
+                           void >::type
   backsub_R( const Matrix1& R, Matrix2& x, const Matrix3& b,
              typename mat_traits< Matrix1 >::value_type NumTol = 1E-8 ) {
   if( R.get_row_count() > b.get_row_count() )
@@ -776,7 +778,7 @@ typename boost::enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >, is_f
  */
 template < typename Matrix1, typename Matrix2 >
 typename boost::enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >, is_fully_writable_matrix< Matrix2 > >,
-                             void >::type
+                           void >::type
   backsub_R( const Matrix1& R, Matrix2& x, typename mat_traits< Matrix1 >::value_type NumTol = 1E-8 ) {
   if( R.get_row_count() > x.get_row_count() )
     throw std::range_error( "Back-substitution is only possible if row count of b is equal to row count of R!" );
@@ -803,7 +805,7 @@ typename boost::enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >, is_f
  */
 template < typename Matrix1, typename Matrix2 >
 typename boost::enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >, is_fully_writable_matrix< Matrix2 > >,
-                             void >::type
+                           void >::type
   pseudoinvert_QR( const Matrix1& A, Matrix2& A_pinv, typename mat_traits< Matrix1 >::value_type NumTol = 1E-8 ) {
 
   typedef typename mat_traits< Matrix1 >::value_type ValueType;
@@ -837,8 +839,8 @@ typename boost::enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >, is_f
  */
 template < typename Matrix1, typename Matrix2, typename Matrix3 >
 typename boost::enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >, is_fully_writable_matrix< Matrix2 >,
-                             is_readable_matrix< Matrix3 > >,
-                             void >::type
+                                             is_readable_matrix< Matrix3 > >,
+                           void >::type
   linlsq_RRQR( const Matrix1& A, Matrix2& x, const Matrix3& b,
                typename mat_traits< Matrix1 >::value_type NumTol = 1E-8 ) {
   if( A.get_row_count() < A.get_col_count() )
@@ -907,8 +909,8 @@ struct RRQR_linlsqsolver {
  */
 template < typename Matrix1, typename Matrix2, typename Matrix3 >
 typename boost::enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >, is_fully_writable_matrix< Matrix2 >,
-                             is_readable_matrix< Matrix3 > >,
-                             void >::type
+                                             is_readable_matrix< Matrix3 > >,
+                           void >::type
   minnorm_RRQR( const Matrix1& A, Matrix2& x, const Matrix3& b,
                 typename mat_traits< Matrix1 >::value_type NumTol = 1E-8 ) {
   if( A.get_row_count() > A.get_col_count() )
@@ -977,7 +979,7 @@ struct RRQR_minnormsolver {
  */
 template < typename Matrix1, typename Matrix2 >
 typename boost::enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >, is_fully_writable_matrix< Matrix2 > >,
-                             void >::type
+                           void >::type
   pseudoinvert_RRQR( const Matrix1& A, Matrix2& A_pinv, typename mat_traits< Matrix1 >::value_type NumTol = 1E-8 ) {
   typedef typename mat_traits< Matrix1 >::value_type ValueType;
 

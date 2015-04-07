@@ -449,10 +449,10 @@ private:
      * *************************************************************************************/
 
 
-    for (std::size_t i = 0; i < model->mCoords.size(); ++i) {
+    for( std::size_t i = 0; i < model->mCoords.size(); ++i ) {
       RowInd = 0;
 
-      for (std::size_t j = 0; j < model->mDependentGenCoords.size(); ++j) {
+      for( std::size_t j = 0; j < model->mDependentGenCoords.size(); ++j ) {
         if( model->mDependentGenCoords[j]->mUpStreamJoints.find( model->mCoords[i] )
             != model->mDependentGenCoords[j]->mUpStreamJoints.end() ) {
           mat_sub_block< Matrix1 > subJac = sub( Jac )( range( RowInd, RowInd + 1 ), range( i, i + 1 ) );
@@ -466,7 +466,7 @@ private:
         RowInd++;
       };
 
-      for (std::size_t j = 0; j < model->mDependent2DFrames.size(); ++j) {
+      for( std::size_t j = 0; j < model->mDependent2DFrames.size(); ++j ) {
         if( model->mDependent2DFrames[j]->mUpStreamJoints.find( model->mCoords[i] )
             != model->mDependent2DFrames[j]->mUpStreamJoints.end() ) {
           mat_sub_block< Matrix1 > subJac = sub( Jac )( range( RowInd, RowInd + 3 ), range( i, i + 1 ) );
@@ -486,7 +486,7 @@ private:
         RowInd += 3;
       };
 
-      for (std::size_t j = 0; j < model->mDependent3DFrames.size(); ++j) {
+      for( std::size_t j = 0; j < model->mDependent3DFrames.size(); ++j ) {
         if( model->mDependent3DFrames[j]->mUpStreamJoints.find( model->mCoords[i] )
             != model->mDependent3DFrames[j]->mUpStreamJoints.end() ) {
           mat_sub_block< Matrix1 > subJac = sub( Jac )( range( RowInd, RowInd + 6 ), range( i, i + 1 ) );
@@ -513,10 +513,10 @@ private:
      * *************************************************************************************/
 
     std::size_t base_i = model->mCoords.size();
-    for (std::size_t i = 0; i < model->mFrames2D.size(); ++i) {
+    for( std::size_t i = 0; i < model->mFrames2D.size(); ++i ) {
       RowInd = 0;
 
-      for (std::size_t j = 0; j < model->mDependentGenCoords.size(); ++j) {
+      for( std::size_t j = 0; j < model->mDependentGenCoords.size(); ++j ) {
         if( model->mDependentGenCoords[j]->mUpStream2DJoints.find( model->mFrames2D[i] )
             != model->mDependentGenCoords[j]->mUpStream2DJoints.end() ) {
           mat_sub_block< Matrix1 > subJac
@@ -533,7 +533,7 @@ private:
         RowInd++;
       };
 
-      for (std::size_t j = 0; j < model->mDependent2DFrames.size(); ++j) {
+      for( std::size_t j = 0; j < model->mDependent2DFrames.size(); ++j ) {
         if( model->mDependent2DFrames[j]->mUpStream2DJoints.find( model->mFrames2D[i] )
             != model->mDependent2DFrames[j]->mUpStream2DJoints.end() ) {
           mat_sub_block< Matrix1 > subJac
@@ -555,7 +555,7 @@ private:
         RowInd += 3;
       };
 
-      for (std::size_t j = 0; j < model->mDependent3DFrames.size(); ++j) {
+      for( std::size_t j = 0; j < model->mDependent3DFrames.size(); ++j ) {
         if( model->mDependent3DFrames[j]->mUpStream2DJoints.find( model->mFrames2D[i] )
             != model->mDependent3DFrames[j]->mUpStream2DJoints.end() ) {
           mat_sub_block< Matrix1 > subJac
@@ -584,10 +584,10 @@ private:
      * *************************************************************************************/
 
     base_i = model->mCoords.size() + 3 * model->mFrames2D.size();
-    for (std::size_t i = 0; i < model->mFrames3D.size(); ++i) {
+    for( std::size_t i = 0; i < model->mFrames3D.size(); ++i ) {
       RowInd = 0;
 
-      for (std::size_t j = 0; j < model->mDependentGenCoords.size(); ++j) {
+      for( std::size_t j = 0; j < model->mDependentGenCoords.size(); ++j ) {
         if( model->mDependentGenCoords[j]->mUpStreamJoints.find( model->mCoords[i] )
             != model->mDependentGenCoords[j]->mUpStreamJoints.end() ) {
           mat_sub_block< Matrix1 > subJac
@@ -604,7 +604,7 @@ private:
         RowInd++;
       };
 
-      for (std::size_t j = 0; j < model->mDependent2DFrames.size(); ++j) {
+      for( std::size_t j = 0; j < model->mDependent2DFrames.size(); ++j ) {
         if( model->mDependent2DFrames[j]->mUpStream3DJoints.find( model->mFrames3D[i] )
             != model->mDependent2DFrames[j]->mUpStream3DJoints.end() ) {
           mat_sub_block< Matrix1 > subJac
@@ -626,7 +626,7 @@ private:
         RowInd += 3;
       };
 
-      for (std::size_t j = 0; j < model->mDependent3DFrames.size(); ++j) {
+      for( std::size_t j = 0; j < model->mDependent3DFrames.size(); ++j ) {
         if( model->mDependent3DFrames[j]->mUpStream3DJoints.find( model->mFrames3D[i] )
             != model->mDependent3DFrames[j]->mUpStream3DJoints.end() ) {
           mat_sub_block< Matrix1 > subJac

@@ -85,14 +85,14 @@ iarchive& RK_CALL bin_iarchive::load_serializable_ptr( serializable_shared_point
   unsigned int i;
   do {
     std::size_t tmp_i;
-    bin_iarchive::load_unsigned_int(tmp_i);
-    i = static_cast<unsigned int>(tmp_i);
+    bin_iarchive::load_unsigned_int( tmp_i );
+    i = static_cast< unsigned int >( tmp_i );
     typeIDvect.push_back( i );
   } while( i != 0 );
 
   std::size_t tmp_tv;
-  bin_iarchive::load_unsigned_int(tmp_tv);
-  hdr.type_version = static_cast<unsigned int>(tmp_tv);
+  bin_iarchive::load_unsigned_int( tmp_tv );
+  hdr.type_version = static_cast< unsigned int >( tmp_tv );
   bin_iarchive::load_unsigned_int( hdr.object_ID );
   bin_iarchive::load_bool( hdr.is_external );
   bin_iarchive::load_unsigned_int( hdr.size );
@@ -201,27 +201,27 @@ iarchive& RK_CALL bin_iarchive::load_unsigned_char( const std::pair< std::string
   return bin_iarchive::load_unsigned_char( u.second );
 };
 
-iarchive& RK_CALL bin_iarchive::load_int(std::ptrdiff_t& i) {
+iarchive& RK_CALL bin_iarchive::load_int( std::ptrdiff_t& i ) {
   llong_to_ulong tmp;
   file_stream->read( reinterpret_cast< char* >( &tmp ), sizeof( llong_to_ulong ) );
   ntoh_2ui32( tmp );
-  i = static_cast< std::ptrdiff_t >(tmp.i64);
+  i = static_cast< std::ptrdiff_t >( tmp.i64 );
   return *this;
 };
 
-iarchive& RK_CALL bin_iarchive::load_int(const std::pair< std::string, std::ptrdiff_t& >& i) {
+iarchive& RK_CALL bin_iarchive::load_int( const std::pair< std::string, std::ptrdiff_t& >& i ) {
   return bin_iarchive::load_int( i.second );
 };
 
-iarchive& RK_CALL bin_iarchive::load_unsigned_int(std::size_t& u) {
+iarchive& RK_CALL bin_iarchive::load_unsigned_int( std::size_t& u ) {
   llong_to_ulong tmp;
   file_stream->read( reinterpret_cast< char* >( &tmp ), sizeof( llong_to_ulong ) );
   ntoh_2ui32( tmp );
-  u = static_cast< std::size_t >(tmp.ui64);
+  u = static_cast< std::size_t >( tmp.ui64 );
   return *this;
 };
 
-iarchive& RK_CALL bin_iarchive::load_unsigned_int(const std::pair< std::string, std::size_t& >& u) {
+iarchive& RK_CALL bin_iarchive::load_unsigned_int( const std::pair< std::string, std::size_t& >& u ) {
   return bin_iarchive::load_unsigned_int( u.second );
 };
 
@@ -296,7 +296,7 @@ oarchive& RK_CALL
   bool already_saved( false );
 
   if( Item ) {
-    std::map< serializable_shared_pointer, std::size_t >::const_iterator it = mObjRegMap.find(Item);
+    std::map< serializable_shared_pointer, std::size_t >::const_iterator it = mObjRegMap.find( Item );
 
     if( it != mObjRegMap.end() ) {
       hdr.object_ID = it->second;
@@ -363,7 +363,7 @@ oarchive& RK_CALL bin_oarchive::save_serializable_ptr( const serializable_shared
   bool already_saved( false );
 
   if( Item ) {
-    std::map< serializable_shared_pointer, std::size_t >::const_iterator it = mObjRegMap.find(Item);
+    std::map< serializable_shared_pointer, std::size_t >::const_iterator it = mObjRegMap.find( Item );
 
     if( it != mObjRegMap.end() ) {
       hdr.object_ID = it->second;
@@ -476,7 +476,7 @@ oarchive& RK_CALL bin_oarchive::save_unsigned_char( const std::pair< std::string
   return bin_oarchive::save_unsigned_char( u.second );
 };
 
-oarchive& RK_CALL bin_oarchive::save_int(std::ptrdiff_t i) {
+oarchive& RK_CALL bin_oarchive::save_int( std::ptrdiff_t i ) {
   llong_to_ulong tmp;
   tmp.i64 = i;
   hton_2ui32( tmp );
@@ -485,11 +485,11 @@ oarchive& RK_CALL bin_oarchive::save_int(std::ptrdiff_t i) {
 };
 
 
-oarchive& RK_CALL bin_oarchive::save_int(const std::pair< std::string, std::ptrdiff_t >& i) {
+oarchive& RK_CALL bin_oarchive::save_int( const std::pair< std::string, std::ptrdiff_t >& i ) {
   return bin_oarchive::save_int( i.second );
 };
 
-oarchive& RK_CALL bin_oarchive::save_unsigned_int(std::size_t u) {
+oarchive& RK_CALL bin_oarchive::save_unsigned_int( std::size_t u ) {
   llong_to_ulong tmp;
   tmp.ui64 = u;
   hton_2ui32( tmp );
@@ -498,7 +498,7 @@ oarchive& RK_CALL bin_oarchive::save_unsigned_int(std::size_t u) {
 };
 
 
-oarchive& RK_CALL bin_oarchive::save_unsigned_int(const std::pair< std::string, std::size_t >& u) {
+oarchive& RK_CALL bin_oarchive::save_unsigned_int( const std::pair< std::string, std::size_t >& u ) {
   return bin_oarchive::save_unsigned_int( u.second );
 };
 

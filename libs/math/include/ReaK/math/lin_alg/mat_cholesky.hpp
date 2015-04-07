@@ -168,10 +168,10 @@ void backsub_Cholesky_impl( const Matrix1& L, Matrix2& B ) {
       B( i, j ) /= L( i, i );               // do Y(i,j) = (B(i,j) - sum_k(L(i,k) * Y(k,j))) / L(i,i)
     };
     // Then solve L.transpose() * X = Y
-    for (SizeType i = N; i > 0; --i) {     // for every row of L.transpose(), starting from the last
-      for (SizeType k = N; k > i; --k)      // for every element of row i in L.tranpose(), after the diagonal.
-        B( i-1, j ) -= L( k-1, i-1 ) * B( k-1, j ); // subtract to B(i,j) the product of L(k,i) * Y(k,j)
-      B( i-1, j ) /= L( i-1, i-1 );
+    for( SizeType i = N; i > 0; --i ) { // for every row of L.transpose(), starting from the last
+      for( SizeType k = N; k > i; --k ) // for every element of row i in L.tranpose(), after the diagonal.
+        B( i - 1, j ) -= L( k - 1, i - 1 ) * B( k - 1, j ); // subtract to B(i,j) the product of L(k,i) * Y(k,j)
+      B( i - 1, j ) /= L( i - 1, i - 1 );
     };
   };
 };
@@ -412,14 +412,16 @@ void backsub_PLTLP_impl(const Matrix1& L,
  * \author Mikael Persson
  */
 template < typename Matrix1, typename Matrix2 >
-typename boost::enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >,
-                             boost::mpl::or_< boost::mpl::bool_< (mat_traits< Matrix1 >::structure == mat_structure::square) >,
-                               boost::mpl::bool_< (mat_traits< Matrix1 >::structure == mat_structure::symmetric) >,
-                               boost::mpl::bool_< ( mat_traits< Matrix1 >::structure == mat_structure::tridiagonal ) > >,
-                             is_writable_matrix< Matrix2 >,
-                             is_resizable_matrix< Matrix2 >, boost::mpl::bool_< ( mat_traits< Matrix2 >::structure
-                                                                         != mat_structure::lower_triangular ) > >,
-                             void >::type
+typename boost::
+  enable_if< boost::mpl::
+               and_< is_readable_matrix< Matrix1 >,
+                     boost::mpl::
+                       or_< boost::mpl::bool_< ( mat_traits< Matrix1 >::structure == mat_structure::square ) >,
+                            boost::mpl::bool_< ( mat_traits< Matrix1 >::structure == mat_structure::symmetric ) >,
+                            boost::mpl::bool_< ( mat_traits< Matrix1 >::structure == mat_structure::tridiagonal ) > >,
+                     is_writable_matrix< Matrix2 >, is_resizable_matrix< Matrix2 >,
+                     boost::mpl::bool_< ( mat_traits< Matrix2 >::structure != mat_structure::lower_triangular ) > >,
+             void >::type
   decompose_Cholesky( const Matrix1& A, Matrix2& L, typename mat_traits< Matrix1 >::value_type NumTol = 1E-8 ) {
   L.set_col_count( A.get_col_count() );
   detail::decompose_Cholesky_impl( A, L, NumTol );
@@ -442,13 +444,16 @@ typename boost::enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >,
  * \author Mikael Persson
  */
 template < typename Matrix1, typename Matrix2 >
-typename boost::enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >,
-                             boost::mpl::or_< boost::mpl::bool_< ( mat_traits< Matrix1 >::structure == mat_structure::square ) >,
-                               boost::mpl::bool_< ( mat_traits< Matrix1 >::structure == mat_structure::symmetric ) >,
-                               boost::mpl::bool_< ( mat_traits< Matrix1 >::structure == mat_structure::tridiagonal ) > >,
-                             is_writable_matrix< Matrix2 >, boost::mpl::bool_< ( mat_traits< Matrix2 >::structure
-                                                                        == mat_structure::lower_triangular ) > >,
-                             void >::type
+typename boost::
+  enable_if< boost::mpl::
+               and_< is_readable_matrix< Matrix1 >,
+                     boost::mpl::
+                       or_< boost::mpl::bool_< ( mat_traits< Matrix1 >::structure == mat_structure::square ) >,
+                            boost::mpl::bool_< ( mat_traits< Matrix1 >::structure == mat_structure::symmetric ) >,
+                            boost::mpl::bool_< ( mat_traits< Matrix1 >::structure == mat_structure::tridiagonal ) > >,
+                     is_writable_matrix< Matrix2 >,
+                     boost::mpl::bool_< ( mat_traits< Matrix2 >::structure == mat_structure::lower_triangular ) > >,
+             void >::type
   decompose_Cholesky( const Matrix1& A, Matrix2& L, typename mat_traits< Matrix1 >::value_type NumTol = 1E-8 ) {
   typedef typename mat_traits< Matrix1 >::value_type ValueType;
   mat< ValueType, mat_structure::square > L_tmp( A.get_row_count(), ValueType( 0 ) );
@@ -473,11 +478,13 @@ typename boost::enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >,
  * \author Mikael Persson
  */
 template < typename Matrix1, typename Matrix2 >
-typename boost::enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >, 
-                             boost::mpl::or_< boost::mpl::bool_< ( mat_traits< Matrix1 >::structure == mat_structure::diagonal ) >,
-                               boost::mpl::bool_< ( mat_traits< Matrix1 >::structure == mat_structure::identity ) > >,
-                             is_writable_matrix< Matrix2 > >,
-                             void >::type
+typename boost::enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >,
+                                             boost::mpl::or_< boost::mpl::bool_< ( mat_traits< Matrix1 >::structure
+                                                                                   == mat_structure::diagonal ) >,
+                                                              boost::mpl::bool_< ( mat_traits< Matrix1 >::structure
+                                                                                   == mat_structure::identity ) > >,
+                                             is_writable_matrix< Matrix2 > >,
+                           void >::type
   decompose_Cholesky( const Matrix1& A, Matrix2& L, typename mat_traits< Matrix1 >::value_type NumTol = 1E-8 ) {
   using std::sqrt;
   typedef typename mat_traits< Matrix1 >::size_type SizeType;
@@ -538,12 +545,15 @@ typename boost::enable_if< is_readable_matrix< Matrix >, typename mat_traits< Ma
  * \author Mikael Persson
  */
 template < typename Matrix1, typename Matrix2 >
-typename boost::enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >,
-                             boost::mpl::or_< boost::mpl::bool_< ( mat_traits< Matrix1 >::structure == mat_structure::square ) >,
-                               boost::mpl::bool_< ( mat_traits< Matrix1 >::structure == mat_structure::symmetric ) >,
-                               boost::mpl::bool_< ( mat_traits< Matrix1 >::structure == mat_structure::tridiagonal ) > >,
-                             is_fully_writable_matrix< Matrix2 > >,
-                             void >::type
+typename boost::
+  enable_if< boost::mpl::
+               and_< is_readable_matrix< Matrix1 >,
+                     boost::mpl::
+                       or_< boost::mpl::bool_< ( mat_traits< Matrix1 >::structure == mat_structure::square ) >,
+                            boost::mpl::bool_< ( mat_traits< Matrix1 >::structure == mat_structure::symmetric ) >,
+                            boost::mpl::bool_< ( mat_traits< Matrix1 >::structure == mat_structure::tridiagonal ) > >,
+                     is_fully_writable_matrix< Matrix2 > >,
+             void >::type
   linsolve_Cholesky( const Matrix1& A, Matrix2& b, typename mat_traits< Matrix1 >::value_type NumTol = 1E-8 ) {
   if( b.get_row_count() != A.get_col_count() )
     throw std::range_error( "For linear equation solution, matrix b must have same row count as A!" );
@@ -574,12 +584,15 @@ typename boost::enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >,
  * \author Mikael Persson
  */
 template < typename Matrix1, typename Matrix2 >
-typename boost::enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >,
-                             boost::mpl::or_< boost::mpl::bool_< ( mat_traits< Matrix1 >::structure == mat_structure::square ) >,
-                               boost::mpl::bool_< ( mat_traits< Matrix1 >::structure == mat_structure::symmetric ) >,
-                               boost::mpl::bool_< ( mat_traits< Matrix1 >::structure == mat_structure::tridiagonal ) > >,
-                             is_writable_matrix< Matrix2 >, boost::mpl::not_< is_fully_writable_matrix< Matrix2 > > >,
-                             void >::type
+typename boost::
+  enable_if< boost::mpl::
+               and_< is_readable_matrix< Matrix1 >,
+                     boost::mpl::
+                       or_< boost::mpl::bool_< ( mat_traits< Matrix1 >::structure == mat_structure::square ) >,
+                            boost::mpl::bool_< ( mat_traits< Matrix1 >::structure == mat_structure::symmetric ) >,
+                            boost::mpl::bool_< ( mat_traits< Matrix1 >::structure == mat_structure::tridiagonal ) > >,
+                     is_writable_matrix< Matrix2 >, boost::mpl::not_< is_fully_writable_matrix< Matrix2 > > >,
+             void >::type
   linsolve_Cholesky( const Matrix1& A, Matrix2& b, typename mat_traits< Matrix1 >::value_type NumTol = 1E-8 ) {
   if( b.get_row_count() != A.get_col_count() )
     throw std::range_error( "For linear equation solution, matrix b must have same row count as A!" );
@@ -612,10 +625,11 @@ typename boost::enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >,
  * \author Mikael Persson
  */
 template < typename Matrix1, typename Matrix2 >
-typename boost::enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >, 
-                             boost::mpl::bool_< ( mat_traits< Matrix1 >::structure == mat_structure::diagonal ) >,
-                             is_fully_writable_matrix< Matrix2 > >,
-                             void >::type
+typename boost::
+  enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >,
+                               boost::mpl::bool_< ( mat_traits< Matrix1 >::structure == mat_structure::diagonal ) >,
+                               is_fully_writable_matrix< Matrix2 > >,
+             void >::type
   linsolve_Cholesky( const Matrix1& A, Matrix2& b, typename mat_traits< Matrix1 >::value_type NumTol = 1E-8 ) {
   if( b.get_row_count() != A.get_col_count() )
     throw std::range_error( "For linear equation solution, matrix b must have same row count as A!" );
@@ -650,11 +664,12 @@ typename boost::enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >,
  * \author Mikael Persson
  */
 template < typename Matrix1, typename Matrix2 >
-typename boost::enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >, 
-                             boost::mpl::bool_< ( mat_traits< Matrix1 >::structure == mat_structure::diagonal ) >,
-                             is_writable_matrix< Matrix2 >, boost::mpl::not_< is_fully_writable_matrix< Matrix2 > >,
-                             boost::mpl::bool_< ( mat_traits< Matrix2 >::structure != mat_structure::diagonal ) > >,
-                             void >::type
+typename boost::
+  enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >,
+                               boost::mpl::bool_< ( mat_traits< Matrix1 >::structure == mat_structure::diagonal ) >,
+                               is_writable_matrix< Matrix2 >, boost::mpl::not_< is_fully_writable_matrix< Matrix2 > >,
+                               boost::mpl::bool_< ( mat_traits< Matrix2 >::structure != mat_structure::diagonal ) > >,
+             void >::type
   linsolve_Cholesky( const Matrix1& A, Matrix2& b, typename mat_traits< Matrix1 >::value_type NumTol = 1E-8 ) {
   if( b.get_row_count() != A.get_col_count() )
     throw std::range_error( "For linear equation solution, matrix b must have same row count as A!" );
@@ -692,11 +707,12 @@ typename boost::enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >,
  * \author Mikael Persson
  */
 template < typename Matrix1, typename Matrix2 >
-typename boost::enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >, 
-                             boost::mpl::bool_< ( mat_traits< Matrix1 >::structure == mat_structure::diagonal ) >,
-                             is_writable_matrix< Matrix2 >, 
-                             boost::mpl::bool_< ( mat_traits< Matrix2 >::structure == mat_structure::diagonal ) > >,
-                             void >::type
+typename boost::
+  enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >,
+                               boost::mpl::bool_< ( mat_traits< Matrix1 >::structure == mat_structure::diagonal ) >,
+                               is_writable_matrix< Matrix2 >,
+                               boost::mpl::bool_< ( mat_traits< Matrix2 >::structure == mat_structure::diagonal ) > >,
+             void >::type
   linsolve_Cholesky( const Matrix1& A, Matrix2& b, typename mat_traits< Matrix1 >::value_type NumTol = 1E-8 ) {
   if( b.get_row_count() != A.get_col_count() )
     throw std::range_error( "For linear equation solution, matrix b must have same row count as A!" );
@@ -729,9 +745,10 @@ typename boost::enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >,
  * \author Mikael Persson
  */
 template < typename Matrix1, typename Matrix2 >
-typename boost::enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >, 
-                             boost::mpl::bool_< ( mat_traits< Matrix1 >::structure == mat_structure::identity ) > >,
-                             void >::type
+typename boost::
+  enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >,
+                               boost::mpl::bool_< ( mat_traits< Matrix1 >::structure == mat_structure::identity ) > >,
+             void >::type
   linsolve_Cholesky( const Matrix1& A, Matrix2& b, typename mat_traits< Matrix1 >::value_type NumTol = 1E-8 ) {
   if( b.get_row_count() != A.get_col_count() )
     throw std::range_error( "For linear equation solution, matrix b must have same row count as A!" );
@@ -769,14 +786,17 @@ struct Cholesky_linsolver {
  * \author Mikael Persson
  */
 template < typename Matrix1, typename Matrix2 >
-typename boost::enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >,
-                             boost::mpl::or_< boost::mpl::bool_< ( mat_traits< Matrix1 >::structure == mat_structure::square ) >,
-                               boost::mpl::bool_< ( mat_traits< Matrix1 >::structure == mat_structure::symmetric ) >,
-                               boost::mpl::bool_< ( mat_traits< Matrix1 >::structure == mat_structure::tridiagonal ) >,
-                               boost::mpl::bool_< ( mat_traits< Matrix1 >::structure == mat_structure::diagonal ) >,
-                               boost::mpl::bool_< ( mat_traits< Matrix1 >::structure == mat_structure::identity ) > >,
-                             is_writable_matrix< Matrix2 > >,
-                             void >::type
+typename boost::
+  enable_if< boost::mpl::
+               and_< is_readable_matrix< Matrix1 >,
+                     boost::mpl::
+                       or_< boost::mpl::bool_< ( mat_traits< Matrix1 >::structure == mat_structure::square ) >,
+                            boost::mpl::bool_< ( mat_traits< Matrix1 >::structure == mat_structure::symmetric ) >,
+                            boost::mpl::bool_< ( mat_traits< Matrix1 >::structure == mat_structure::tridiagonal ) >,
+                            boost::mpl::bool_< ( mat_traits< Matrix1 >::structure == mat_structure::diagonal ) >,
+                            boost::mpl::bool_< ( mat_traits< Matrix1 >::structure == mat_structure::identity ) > >,
+                     is_writable_matrix< Matrix2 > >,
+             void >::type
   invert_Cholesky( const Matrix1& A, Matrix2& A_inv, typename mat_traits< Matrix1 >::value_type NumTol = 1E-8 ) {
   typedef typename mat_traits< Matrix1 >::value_type ValueType;
 
@@ -807,8 +827,8 @@ typename boost::enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >,
  */
 template < typename Matrix1, typename Matrix2 >
 typename boost::enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >, is_square_matrix< Matrix1 >,
-                             is_fully_writable_matrix< Matrix2 > >,
-                             void >::type
+                                             is_fully_writable_matrix< Matrix2 > >,
+                           void >::type
   decompose_BandCholesky( const Matrix1& A, Matrix2& L, typename mat_traits< Matrix1 >::size_type bandwidth = 1,
                           typename mat_traits< Matrix1 >::value_type NumTol = 1E-8 ) {
   typedef typename mat_traits< Matrix1 >::size_type SizeType;
@@ -875,8 +895,8 @@ typename boost::enable_if< is_readable_matrix< Matrix >, typename mat_traits< Ma
  */
 template < typename Matrix1, typename Matrix2 >
 typename boost::enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >, is_square_matrix< Matrix1 >,
-                             is_fully_writable_matrix< Matrix2 > >,
-                             void >::type
+                                             is_fully_writable_matrix< Matrix2 > >,
+                           void >::type
   linsolve_BandCholesky( const Matrix1& A, Matrix2& b, typename mat_traits< Matrix1 >::size_type bandwidth,
                          typename mat_traits< Matrix1 >::value_type NumTol = 1E-8 ) {
   if( b.get_row_count() != A.get_col_count() )
@@ -921,14 +941,17 @@ struct BandCholesky_linsolver {
  * \author Mikael Persson
  */
 template < typename Matrix1, typename Matrix2 >
-typename boost::enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >,
-                             boost::mpl::or_< boost::mpl::bool_< ( mat_traits< Matrix1 >::structure == mat_structure::square ) >,
-                               boost::mpl::bool_< ( mat_traits< Matrix1 >::structure == mat_structure::symmetric ) >,
-                               boost::mpl::bool_< ( mat_traits< Matrix1 >::structure == mat_structure::tridiagonal ) >,
-                               boost::mpl::bool_< ( mat_traits< Matrix1 >::structure == mat_structure::diagonal ) >,
-                               boost::mpl::bool_< ( mat_traits< Matrix1 >::structure == mat_structure::identity ) > >,
-                             is_writable_matrix< Matrix2 > >,
-                             void >::type
+typename boost::
+  enable_if< boost::mpl::
+               and_< is_readable_matrix< Matrix1 >,
+                     boost::mpl::
+                       or_< boost::mpl::bool_< ( mat_traits< Matrix1 >::structure == mat_structure::square ) >,
+                            boost::mpl::bool_< ( mat_traits< Matrix1 >::structure == mat_structure::symmetric ) >,
+                            boost::mpl::bool_< ( mat_traits< Matrix1 >::structure == mat_structure::tridiagonal ) >,
+                            boost::mpl::bool_< ( mat_traits< Matrix1 >::structure == mat_structure::diagonal ) >,
+                            boost::mpl::bool_< ( mat_traits< Matrix1 >::structure == mat_structure::identity ) > >,
+                     is_writable_matrix< Matrix2 > >,
+             void >::type
   invert_BandCholesky( const Matrix1& A, Matrix2& A_inv, typename mat_traits< Matrix1 >::size_type bandwidth,
                        typename mat_traits< Matrix1 >::value_type NumTol = 1E-8 ) {
   typedef typename mat_traits< Matrix1 >::value_type ValueType;
@@ -954,8 +977,8 @@ typename boost::enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >,
  */
 template < typename Matrix1, typename Matrix2, typename Matrix3 >
 typename boost::enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >, is_square_matrix< Matrix1 >,
-                             is_fully_writable_matrix< Matrix2 >, is_writable_matrix< Matrix3 > >,
-                             void >::type
+                                             is_fully_writable_matrix< Matrix2 >, is_writable_matrix< Matrix3 > >,
+                           void >::type
   decompose_LDL( const Matrix1& A, Matrix2& L, Matrix3& D, typename mat_traits< Matrix1 >::value_type NumTol = 1E-8 ) {
   typedef typename mat_traits< Matrix1 >::size_type SizeType;
   typedef typename mat_traits< Matrix1 >::value_type ValueType;
@@ -1017,8 +1040,8 @@ typename boost::enable_if< is_readable_matrix< Matrix >, typename mat_traits< Ma
  */
 template < typename Matrix1, typename Matrix2 >
 typename boost::enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >, is_square_matrix< Matrix1 >,
-                             is_fully_writable_matrix< Matrix2 > >,
-                             void >::type
+                                             is_fully_writable_matrix< Matrix2 > >,
+                           void >::type
   linsolve_LDL( const Matrix1& A, Matrix2& b, typename mat_traits< Matrix1 >::value_type NumTol = 1E-8 ) {
   if( b.get_row_count() != A.get_col_count() )
     throw std::range_error( "For linear equation solution, matrix b must have same row count as A!" );
@@ -1056,14 +1079,17 @@ struct LDL_linsolver {
  * \author Mikael Persson
  */
 template < typename Matrix1, typename Matrix2 >
-typename boost::enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >, 
-                             boost::mpl::or_< boost::mpl::bool_< ( mat_traits< Matrix1 >::structure == mat_structure::square ) >,
-                               boost::mpl::bool_< ( mat_traits< Matrix1 >::structure == mat_structure::symmetric ) >,
-                               boost::mpl::bool_< ( mat_traits< Matrix1 >::structure == mat_structure::tridiagonal ) >,
-                               boost::mpl::bool_< ( mat_traits< Matrix1 >::structure == mat_structure::diagonal ) >,
-                               boost::mpl::bool_< ( mat_traits< Matrix1 >::structure == mat_structure::identity ) > >,
-                             is_writable_matrix< Matrix2 > >,
-                             void >::type
+typename boost::
+  enable_if< boost::mpl::
+               and_< is_readable_matrix< Matrix1 >,
+                     boost::mpl::
+                       or_< boost::mpl::bool_< ( mat_traits< Matrix1 >::structure == mat_structure::square ) >,
+                            boost::mpl::bool_< ( mat_traits< Matrix1 >::structure == mat_structure::symmetric ) >,
+                            boost::mpl::bool_< ( mat_traits< Matrix1 >::structure == mat_structure::tridiagonal ) >,
+                            boost::mpl::bool_< ( mat_traits< Matrix1 >::structure == mat_structure::diagonal ) >,
+                            boost::mpl::bool_< ( mat_traits< Matrix1 >::structure == mat_structure::identity ) > >,
+                     is_writable_matrix< Matrix2 > >,
+             void >::type
   invert_LDL( const Matrix1& A, Matrix2& A_inv, typename mat_traits< Matrix1 >::value_type NumTol = 1E-8 ) {
   typedef typename mat_traits< Matrix1 >::value_type ValueType;
   mat< ValueType, mat_structure::square > result( mat< ValueType, mat_structure::identity >( A.get_col_count() ) );
@@ -1088,8 +1114,8 @@ typename boost::enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >,
  */
 template < typename Matrix1, typename Matrix2, typename Matrix3 >
 typename boost::enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >, is_square_matrix< Matrix1 >,
-                             is_fully_writable_matrix< Matrix2 >, is_writable_matrix< Matrix3 > >,
-                             void >::type
+                                             is_fully_writable_matrix< Matrix2 >, is_writable_matrix< Matrix3 > >,
+                           void >::type
   decompose_TriDiagLDL( const Matrix1& A, Matrix2& L, Matrix3& D,
                         typename mat_traits< Matrix1 >::value_type NumTol = 1E-8 ) {
   typedef typename mat_traits< Matrix1 >::size_type SizeType;
@@ -1152,8 +1178,8 @@ typename boost::enable_if< is_readable_matrix< Matrix >, typename mat_traits< Ma
  */
 template < typename Matrix1, typename Matrix2 >
 typename boost::enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >, is_square_matrix< Matrix1 >,
-                             is_fully_writable_matrix< Matrix2 > >,
-                             void >::type
+                                             is_fully_writable_matrix< Matrix2 > >,
+                           void >::type
   linsolve_TriDiagLDL( const Matrix1& A, Matrix2& b, typename mat_traits< Matrix1 >::value_type NumTol = 1E-8 ) {
   if( b.get_row_count() != A.get_col_count() )
     throw std::range_error( "For linear equation solution, matrix b must have same row count as A!" );
@@ -1191,14 +1217,17 @@ struct TriDiagLDL_linsolver {
  * \author Mikael Persson
  */
 template < typename Matrix1, typename Matrix2 >
-typename boost::enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >,
-                             boost::mpl::or_< boost::mpl::bool_< ( mat_traits< Matrix1 >::structure == mat_structure::square ) >,
-                               boost::mpl::bool_< ( mat_traits< Matrix1 >::structure == mat_structure::symmetric ) >,
-                               boost::mpl::bool_< ( mat_traits< Matrix1 >::structure == mat_structure::tridiagonal ) >,
-                               boost::mpl::bool_< ( mat_traits< Matrix1 >::structure == mat_structure::diagonal ) >,
-                               boost::mpl::bool_< ( mat_traits< Matrix1 >::structure == mat_structure::identity ) > >,
-                             is_writable_matrix< Matrix2 > >,
-                             void >::type
+typename boost::
+  enable_if< boost::mpl::
+               and_< is_readable_matrix< Matrix1 >,
+                     boost::mpl::
+                       or_< boost::mpl::bool_< ( mat_traits< Matrix1 >::structure == mat_structure::square ) >,
+                            boost::mpl::bool_< ( mat_traits< Matrix1 >::structure == mat_structure::symmetric ) >,
+                            boost::mpl::bool_< ( mat_traits< Matrix1 >::structure == mat_structure::tridiagonal ) >,
+                            boost::mpl::bool_< ( mat_traits< Matrix1 >::structure == mat_structure::diagonal ) >,
+                            boost::mpl::bool_< ( mat_traits< Matrix1 >::structure == mat_structure::identity ) > >,
+                     is_writable_matrix< Matrix2 > >,
+             void >::type
   invert_TriDiagLDL( const Matrix1& A, Matrix2& A_inv, typename mat_traits< Matrix1 >::value_type NumTol = 1E-8 ) {
   typedef typename mat_traits< Matrix1 >::value_type ValueType;
   mat< ValueType, mat_structure::square > result( mat< ValueType, mat_structure::identity >( A.get_col_count() ) );

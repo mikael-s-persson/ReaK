@@ -77,8 +77,8 @@ namespace ReaK {
  * \return General block diagonal matrix.
  */
 template < typename Matrix1, typename Matrix2 >
-typename boost::enable_if< boost::mpl::and_< is_writable_matrix< Matrix1 >,  is_readable_matrix< Matrix2 > >,
-                             Matrix1 >::type
+typename boost::enable_if< boost::mpl::and_< is_writable_matrix< Matrix1 >, is_readable_matrix< Matrix2 > >,
+                           Matrix1 >::type
   block_diag_mat( Matrix1 M1, const Matrix2& M2 ) {
   append_block_diag( M1, M2 );
   return M1;
@@ -92,8 +92,8 @@ typename boost::enable_if< boost::mpl::and_< is_writable_matrix< Matrix1 >,  is_
  */
 template < typename Matrix1, typename Matrix2, typename Matrix3 >
 typename boost::enable_if< boost::mpl::and_< is_writable_matrix< Matrix1 >, is_readable_matrix< Matrix2 >,
-                             is_readable_matrix< Matrix3 > >,
-                             Matrix1 >::type
+                                             is_readable_matrix< Matrix3 > >,
+                           Matrix1 >::type
   block_diag_mat( Matrix1 M1, const Matrix2& M2, const Matrix3& M3 ) {
   append_block_diag( M1, M2 );
   append_block_diag( M1, M3 );
@@ -107,9 +107,9 @@ typename boost::enable_if< boost::mpl::and_< is_writable_matrix< Matrix1 >, is_r
  * \return General block diagonal matrix.
  */
 template < typename Matrix1, typename Matrix2, typename Matrix3, typename Matrix4 >
-typename boost::enable_if< boost::mpl::and_< is_writable_matrix< Matrix1 >, is_readable_matrix< Matrix2 >, 
-                             is_readable_matrix< Matrix3 >, is_readable_matrix< Matrix4 > >,
-                             Matrix1 >::type
+typename boost::enable_if< boost::mpl::and_< is_writable_matrix< Matrix1 >, is_readable_matrix< Matrix2 >,
+                                             is_readable_matrix< Matrix3 >, is_readable_matrix< Matrix4 > >,
+                           Matrix1 >::type
   block_diag_mat( Matrix1 M1, const Matrix2& M2, const Matrix3& M3, const Matrix4& M4 ) {
   append_block_diag( M1, M2 );
   append_block_diag( M1, M3 );
@@ -125,9 +125,9 @@ typename boost::enable_if< boost::mpl::and_< is_writable_matrix< Matrix1 >, is_r
  */
 template < typename Matrix1, typename Matrix2, typename Matrix3, typename Matrix4, typename Matrix5 >
 typename boost::enable_if< boost::mpl::and_< is_writable_matrix< Matrix1 >, is_readable_matrix< Matrix2 >,
-                             is_readable_matrix< Matrix3 >, is_readable_matrix< Matrix4 >,
-                             is_readable_matrix< Matrix5 > >,
-                             Matrix1 >::type
+                                             is_readable_matrix< Matrix3 >, is_readable_matrix< Matrix4 >,
+                                             is_readable_matrix< Matrix5 > >,
+                           Matrix1 >::type
   block_diag_mat( Matrix1 M1, const Matrix2& M2, const Matrix3& M3, const Matrix3& M4, const Matrix3& M5 ) {
   append_block_diag( M1, M2 );
   append_block_diag( M1, M3 );
@@ -148,8 +148,8 @@ typename boost::enable_if< boost::mpl::and_< is_writable_matrix< Matrix1 >, is_r
  */
 template < typename Matrix1, typename Matrix2, typename Matrix3, typename Matrix4 >
 typename boost::enable_if< boost::mpl::and_< is_fully_writable_matrix< Matrix1 >, is_readable_matrix< Matrix2 >,
-                             is_readable_matrix< Matrix3 >, is_readable_matrix< Matrix4 > >,
-                             Matrix1 >::type
+                                             is_readable_matrix< Matrix3 >, is_readable_matrix< Matrix4 > >,
+                           Matrix1 >::type
   block_mat( Matrix1 MUL, const Matrix2& MUR, const Matrix3& MLL, const Matrix4& MLR ) {
   if( ( MUL.get_row_count() != MUR.get_row_count() ) || ( MUL.get_col_count() != MLL.get_col_count() )
       || ( MLL.get_row_count() != MLR.get_row_count() ) || ( MUR.get_col_count() != MLR.get_col_count() ) )

@@ -207,21 +207,21 @@ oarchive& RK_CALL scheme_builder::save_unsigned_char( const std::pair< std::stri
   return *this;
 };
 
-oarchive& RK_CALL scheme_builder::save_int(std::ptrdiff_t i) {
-  return scheme_builder::save_int(std::pair< std::string, std::ptrdiff_t >("i", i));
+oarchive& RK_CALL scheme_builder::save_int( std::ptrdiff_t i ) {
+  return scheme_builder::save_int( std::pair< std::string, std::ptrdiff_t >( "i", i ) );
 };
 
-oarchive& RK_CALL scheme_builder::save_int(const std::pair< std::string, std::ptrdiff_t >& i) {
-  save_primitive< std::ptrdiff_t >(i.first);
+oarchive& RK_CALL scheme_builder::save_int( const std::pair< std::string, std::ptrdiff_t >& i ) {
+  save_primitive< std::ptrdiff_t >( i.first );
   return *this;
 };
 
-oarchive& RK_CALL scheme_builder::save_unsigned_int(std::size_t u) {
-  return scheme_builder::save_unsigned_int(std::pair< std::string, std::size_t >("u", u));
+oarchive& RK_CALL scheme_builder::save_unsigned_int( std::size_t u ) {
+  return scheme_builder::save_unsigned_int( std::pair< std::string, std::size_t >( "u", u ) );
 };
 
-oarchive& RK_CALL scheme_builder::save_unsigned_int(const std::pair< std::string, std::size_t >& u) {
-  save_primitive< std::size_t >(u.first);
+oarchive& RK_CALL scheme_builder::save_unsigned_int( const std::pair< std::string, std::size_t >& u ) {
+  save_primitive< std::size_t >( u.first );
   return *this;
 };
 

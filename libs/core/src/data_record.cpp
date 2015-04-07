@@ -105,7 +105,7 @@ data_recorder& data_recorder::operator<<( flag some_flag ) {
     if( colCount != 0 )
       throw improper_flag();
     ReaKaux::unique_lock< ReaKaux::mutex > lock_here( access_mutex );
-    colCount = static_cast<unsigned int>(names.size());
+    colCount = static_cast< unsigned int >( names.size() );
     for( std::size_t i = 0; i < colCount; ++i )
       named_indices[names[i]] = i;
     lock_here.unlock();

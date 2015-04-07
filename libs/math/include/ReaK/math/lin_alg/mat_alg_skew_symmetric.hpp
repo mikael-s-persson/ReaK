@@ -118,16 +118,19 @@ public:
    * \test PASSED
    */
   template < typename Matrix >
-  explicit mat(
-    const Matrix& M, const allocator_type& aAlloc = allocator_type(),
-    typename boost::enable_if< boost::mpl::and_< is_readable_matrix< Matrix >, boost::mpl::not_< boost::is_same< Matrix, self > > >,
-                                 void* >::type dummy = nullptr )
-                                 : q(mat_triangular_size(static_cast<size_type>(M.get_row_count() > M.get_col_count() ? M.get_row_count() : M.get_col_count()) - 1),
+  explicit mat( const Matrix& M, const allocator_type& aAlloc = allocator_type(),
+                typename boost::enable_if< boost::mpl::and_< is_readable_matrix< Matrix >,
+                                                             boost::mpl::not_< boost::is_same< Matrix, self > > >,
+                                           void* >::type dummy = nullptr )
+      : q( mat_triangular_size( static_cast< size_type >(
+                                  M.get_row_count() > M.get_col_count() ? M.get_row_count() : M.get_col_count() ) - 1 ),
            value_type( 0 ), aAlloc ),
-           rowCount(static_cast<size_type>(M.get_row_count() > M.get_col_count() ? M.get_row_count() : M.get_col_count())) {
+        rowCount(
+          static_cast< size_type >( M.get_row_count() > M.get_col_count() ? M.get_row_count() : M.get_col_count() ) ) {
     size_type k = 0;
     size_type i = 1;
-    size_type min_size = static_cast<size_type>(M.get_row_count() > M.get_col_count() ? M.get_col_count() : M.get_row_count());
+    size_type min_size
+      = static_cast< size_type >( M.get_row_count() > M.get_col_count() ? M.get_col_count() : M.get_row_count() );
     for( ; i < min_size; k += i++ ) {
       for( size_type j = 0; j < i; ++j ) {
         q[k + j] = value_type( 0.5 ) * ( M( j, i ) - M( i, j ) );
@@ -471,9 +474,10 @@ public:
    * \test PASSED
    */
   template < typename Matrix >
-  friend typename boost::enable_if< boost::mpl::and_< is_readable_matrix< Matrix >, boost::mpl::bool_< ( mat_product_priority< Matrix >::value
-                                                                             < mat_product_priority< self >::value ) > >,
-                                      mat< value_type, mat_structure::rectangular, Alignment, Allocator > >::type
+  friend typename boost::enable_if< boost::mpl::and_< is_readable_matrix< Matrix >,
+                                                      boost::mpl::bool_< ( mat_product_priority< Matrix >::value
+                                                                           < mat_product_priority< self >::value ) > >,
+                                    mat< value_type, mat_structure::rectangular, Alignment, Allocator > >::type
     operator*( const self& M1, const Matrix& M2 ) {
     if( M1.rowCount != M2.get_row_count() )
       throw std::range_error( "Matrix dimension mismatch." );
@@ -501,9 +505,10 @@ public:
    * \test PASSED
    */
   template < typename Matrix >
-  friend typename boost::enable_if< boost::mpl::and_< is_readable_matrix< Matrix >, boost::mpl::bool_< ( mat_product_priority< Matrix >::value
-                                                                             < mat_product_priority< self >::value ) > >,
-                                      mat< value_type, mat_structure::rectangular, Alignment, Allocator > >::type
+  friend typename boost::enable_if< boost::mpl::and_< is_readable_matrix< Matrix >,
+                                                      boost::mpl::bool_< ( mat_product_priority< Matrix >::value
+                                                                           < mat_product_priority< self >::value ) > >,
+                                    mat< value_type, mat_structure::rectangular, Alignment, Allocator > >::type
     operator*( const Matrix& M1, const self& M2 ) {
     if( M2.rowCount != M1.get_col_count() )
       throw std::range_error( "Matrix dimension mismatch." );
@@ -621,7 +626,7 @@ public:
    */
   template < typename Vector >
   friend typename boost::enable_if< is_writable_vector< Vector >, Vector >::type operator*( const self& M,
-                                                                                                     const Vector& V ) {
+                                                                                            const Vector& V ) {
     if( M.rowCount != V.size() )
       throw std::range_error( "Matrix dimension mismatch." );
     Vector result( V.size(), value_type( 0 ), V.get_allocator() );
@@ -645,7 +650,7 @@ public:
    */
   template < typename Vector >
   friend typename boost::enable_if< is_writable_vector< Vector >, Vector >::type operator*( const Vector& V,
-                                                                                                     const self& M ) {
+                                                                                            const self& M ) {
     if( M.rowCount != V.size() )
       throw std::range_error( "Matrix dimension mismatch." );
     Vector result( V.size(), value_type( 0 ), V.get_allocator() );
@@ -762,7 +767,7 @@ public:
 
   virtual void RK_CALL save( serialization::oarchive& A, unsigned int ) const {
     A& std::pair< std::string, const std::vector< T >& >( "q", q )
-      & std::pair< std::string, std::size_t >("rowCount", rowCount);
+      & std::pair< std::string, std::size_t >( "rowCount", rowCount );
   };
   virtual void RK_CALL load( serialization::iarchive& A, unsigned int ) {
     A& std::pair< std::string, std::vector< T >& >( "q", q )

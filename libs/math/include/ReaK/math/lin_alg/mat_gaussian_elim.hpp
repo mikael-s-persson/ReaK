@@ -73,7 +73,7 @@ namespace ReaK {
  */
 template < typename Matrix1, typename Matrix2 >
 typename boost::enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >, is_fully_writable_matrix< Matrix2 > >,
-                             void >::type
+                           void >::type
   invert_gaussian( const Matrix1& A, Matrix2& A_inv, typename mat_traits< Matrix1 >::value_type NumTol = 1E-8 ) {
   typedef typename mat_traits< Matrix1 >::value_type ValueType;
   typedef typename mat_traits< Matrix1 >::size_type SizeType;
@@ -139,8 +139,9 @@ typename boost::enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >, is_f
  * \author Mikael Persson
  */
 template < typename Matrix1, typename Matrix2 >
-typename boost::enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >, boost::mpl::not_< is_fully_writable_matrix< Matrix2 > > >,
-                             void >::type
+typename boost::enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >,
+                                             boost::mpl::not_< is_fully_writable_matrix< Matrix2 > > >,
+                           void >::type
   invert_gaussian( const Matrix1& A, Matrix2& A_inv, typename mat_traits< Matrix1 >::value_type NumTol = 1E-8 ) {
   typedef typename mat_traits< Matrix2 >::value_type ValueType2;
   mat< ValueType2, mat_structure::rectangular > A_inv_tmp( A_inv.get_row_count(), A_inv.get_col_count() );
@@ -219,7 +220,7 @@ void linsolve_PLU_impl( Matrix1& A, Matrix2& b, IndexVector& P, typename mat_tra
   for( SizeType k = An; k > 0; --k )
     for( SizeType l = 0; l < bn; ++l )
       for( SizeType j = k; j < An; ++j )
-        b( k-1, l ) -= A( k-1, j ) * b( j, l );
+        b( k - 1, l ) -= A( k - 1, j ) * b( j, l );
 
   return;
 };
@@ -227,14 +228,15 @@ void linsolve_PLU_impl( Matrix1& A, Matrix2& b, IndexVector& P, typename mat_tra
 
 template < typename Matrix1, typename Matrix2, typename IndexVector >
 typename boost::enable_if< boost::mpl::and_< is_fully_writable_matrix< Matrix1 >, is_fully_writable_matrix< Matrix2 > >,
-                             void >::type
+                           void >::type
   linsolve_PLU_dispatch( Matrix1& A, Matrix2& b, IndexVector& P, typename mat_traits< Matrix1 >::value_type NumTol ) {
   linsolve_PLU_impl( A, b, P, NumTol );
 };
 
 template < typename Matrix1, typename Matrix2, typename IndexVector >
-typename boost::enable_if< boost::mpl::and_< boost::mpl::not_< is_fully_writable_matrix< Matrix1 > >, is_fully_writable_matrix< Matrix2 > >,
-                             void >::type
+typename boost::enable_if< boost::mpl::and_< boost::mpl::not_< is_fully_writable_matrix< Matrix1 > >,
+                                             is_fully_writable_matrix< Matrix2 > >,
+                           void >::type
   linsolve_PLU_dispatch( Matrix1& A, Matrix2& b, IndexVector& P, typename mat_traits< Matrix1 >::value_type NumTol ) {
   typedef typename mat_traits< Matrix1 >::value_type ValueType;
   mat< ValueType, mat_structure::square > A_tmp( A );
@@ -243,8 +245,9 @@ typename boost::enable_if< boost::mpl::and_< boost::mpl::not_< is_fully_writable
 };
 
 template < typename Matrix1, typename Matrix2, typename IndexVector >
-typename boost::enable_if< boost::mpl::and_< boost::mpl::not_< is_fully_writable_matrix< Matrix1 > >, boost::mpl::not_< is_fully_writable_matrix< Matrix2 > > >,
-                             void >::type
+typename boost::enable_if< boost::mpl::and_< boost::mpl::not_< is_fully_writable_matrix< Matrix1 > >,
+                                             boost::mpl::not_< is_fully_writable_matrix< Matrix2 > > >,
+                           void >::type
   linsolve_PLU_dispatch( Matrix1& A, Matrix2& b, IndexVector& P, typename mat_traits< Matrix1 >::value_type NumTol ) {
   typedef typename mat_traits< Matrix1 >::value_type ValueType;
   mat< ValueType, mat_structure::square > A_tmp( A );
@@ -256,8 +259,9 @@ typename boost::enable_if< boost::mpl::and_< boost::mpl::not_< is_fully_writable
 };
 
 template < typename Matrix1, typename Matrix2, typename IndexVector >
-typename boost::enable_if< boost::mpl::and_< is_fully_writable_matrix< Matrix1 >, boost::mpl::not_< is_fully_writable_matrix< Matrix2 > > >,
-                             void >::type
+typename boost::enable_if< boost::mpl::and_< is_fully_writable_matrix< Matrix1 >,
+                                             boost::mpl::not_< is_fully_writable_matrix< Matrix2 > > >,
+                           void >::type
   linsolve_PLU_dispatch( Matrix1& A, Matrix2& b, IndexVector& P, typename mat_traits< Matrix1 >::value_type NumTol ) {
   typedef typename mat_traits< Matrix2 >::value_type ValueType2;
   mat< ValueType2, mat_structure::rectangular > b_tmp( b );
@@ -291,8 +295,8 @@ typename boost::enable_if< boost::mpl::and_< is_fully_writable_matrix< Matrix1 >
  */
 template < typename Matrix1, typename Matrix2, typename IndexVector >
 typename boost::enable_if< boost::mpl::and_< is_writable_matrix< Matrix1 >, is_writable_matrix< Matrix2 >,
-                             is_writable_vector< IndexVector > >,
-                             void >::type
+                                             is_writable_vector< IndexVector > >,
+                           void >::type
   linsolve_PLU( Matrix1& A, Matrix2& b, IndexVector& P, typename mat_traits< Matrix1 >::value_type NumTol = 1E-8 ) {
   if( A.get_col_count() != A.get_row_count() )
     throw std::range_error( "PLU decomposition impossible! Matrix A is not square!" );
@@ -324,7 +328,8 @@ typename boost::enable_if< boost::mpl::and_< is_writable_matrix< Matrix1 >, is_w
  * \author Mikael Persson
  */
 template < typename Matrix1, typename Matrix2, typename IndexVector >
-typename boost::enable_if< boost::mpl::and_< is_writable_matrix< Matrix1 >, is_writable_matrix< Matrix2 > >, void >::type
+typename boost::enable_if< boost::mpl::and_< is_writable_matrix< Matrix1 >, is_writable_matrix< Matrix2 > >,
+                           void >::type
   linsolve_PLU( Matrix1& A, Matrix2& b, typename mat_traits< Matrix1 >::value_type NumTol = 1E-8 ) {
   vect_n< typename mat_traits< Matrix1 >::size_type > P;
   linsolve_PLU( A, b, P, NumTol );
@@ -352,8 +357,8 @@ typename boost::enable_if< boost::mpl::and_< is_writable_matrix< Matrix1 >, is_w
  */
 template < typename Matrix, typename Vector, typename IndexVector >
 typename boost::enable_if< boost::mpl::and_< is_writable_matrix< Matrix >, is_writable_vector< Vector >,
-                             is_writable_vector< IndexVector > >,
-                             void >::type
+                                             is_writable_vector< IndexVector > >,
+                           void >::type
   linsolve_PLU( Matrix& A, Vector& b, IndexVector& P, typename mat_traits< Matrix >::value_type NumTol = 1E-8 ) {
   if( A.get_col_count() != A.get_row_count() )
     throw std::range_error( "PLU decomposition impossible! Matrix A is not square!" );
@@ -421,7 +426,8 @@ struct PLU_linsolver {
  * \author Mikael Persson
  */
 template < typename Matrix1, typename Matrix2 >
-typename boost::enable_if< boost::mpl::and_< is_writable_matrix< Matrix1 >, is_writable_matrix< Matrix2 > >, void >::type
+typename boost::enable_if< boost::mpl::and_< is_writable_matrix< Matrix1 >, is_writable_matrix< Matrix2 > >,
+                           void >::type
   invert_PLU( Matrix1 A, Matrix2& A_inv, typename mat_traits< Matrix1 >::value_type NumTol = 1E-8 ) {
   typedef typename mat_traits< Matrix1 >::size_type SizeType;
   typedef typename mat_traits< Matrix1 >::value_type ValueType;
@@ -450,17 +456,17 @@ extern template void linsolve_PLU( mat< double, mat_structure::rectangular >& A,
                                    mat< double, mat_structure::rectangular >& b, vect_n< std::size_t >& P,
                                    double NumTol );
 extern template void linsolve_PLU( mat< double, mat_structure::rectangular >& A,
-  mat< double, mat_structure::square >& b, vect_n< std::size_t >& P, double NumTol );
+                                   mat< double, mat_structure::square >& b, vect_n< std::size_t >& P, double NumTol );
 extern template void linsolve_PLU( mat< double, mat_structure::square >& A,
-  mat< double, mat_structure::rectangular >& b, vect_n< std::size_t >& P,
+                                   mat< double, mat_structure::rectangular >& b, vect_n< std::size_t >& P,
                                    double NumTol );
 extern template void linsolve_PLU( mat< double, mat_structure::square >& A, mat< double, mat_structure::square >& b,
-  vect_n< std::size_t >& P, double NumTol );
+                                   vect_n< std::size_t >& P, double NumTol );
 
 extern template void linsolve_PLU( mat< double, mat_structure::rectangular >& A, vect_n< double >& b,
-  vect_n< std::size_t >& P, double NumTol );
+                                   vect_n< std::size_t >& P, double NumTol );
 extern template void linsolve_PLU( mat< double, mat_structure::square >& A, vect_n< double >& b,
-  vect_n< std::size_t >& P, double NumTol );
+                                   vect_n< std::size_t >& P, double NumTol );
 
 extern template void invert_PLU( mat< double, mat_structure::rectangular > A,
                                  mat< double, mat_structure::rectangular >& A_inv, double NumTol );
@@ -482,19 +488,19 @@ extern template void invert_gaussian( const mat< float, mat_structure::square >&
                                       mat< float, mat_structure::square >& A_inv, float NumTol );
 
 extern template void linsolve_PLU( mat< float, mat_structure::rectangular >& A,
-  mat< float, mat_structure::rectangular >& b, vect_n< std::size_t >& P,
+                                   mat< float, mat_structure::rectangular >& b, vect_n< std::size_t >& P,
                                    float NumTol );
 extern template void linsolve_PLU( mat< float, mat_structure::rectangular >& A, mat< float, mat_structure::square >& b,
-  vect_n< std::size_t >& P, float NumTol );
+                                   vect_n< std::size_t >& P, float NumTol );
 extern template void linsolve_PLU( mat< float, mat_structure::square >& A, mat< float, mat_structure::rectangular >& b,
-  vect_n< std::size_t >& P, float NumTol );
+                                   vect_n< std::size_t >& P, float NumTol );
 extern template void linsolve_PLU( mat< float, mat_structure::square >& A, mat< float, mat_structure::square >& b,
-  vect_n< std::size_t >& P, float NumTol );
+                                   vect_n< std::size_t >& P, float NumTol );
 
 extern template void linsolve_PLU( mat< float, mat_structure::rectangular >& A, vect_n< float >& b,
-  vect_n< std::size_t >& P, float NumTol );
-extern template void linsolve_PLU( mat< float, mat_structure::square >& A, vect_n< float >& b,
-  vect_n< std::size_t >& P, float NumTol );
+                                   vect_n< std::size_t >& P, float NumTol );
+extern template void linsolve_PLU( mat< float, mat_structure::square >& A, vect_n< float >& b, vect_n< std::size_t >& P,
+                                   float NumTol );
 
 extern template void invert_PLU( mat< float, mat_structure::rectangular > A,
                                  mat< float, mat_structure::rectangular >& A_inv, float NumTol );

@@ -76,7 +76,8 @@ planning_space_options get_planning_space_options_from_po( boost::program_option
   if( vm.count( "space-definition" ) ) {
     try {
       ( *serialization::open_iarchive( vm["space-definition"].as< std::string >() ) ) >> space_options;
-    } catch( std::exception& e ) { RK_UNUSED(e);
+    } catch( std::exception& e ) {
+      RK_UNUSED( e );
     };
   };
 

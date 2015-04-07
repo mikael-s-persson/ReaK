@@ -107,7 +107,8 @@ planning_option_collection get_planning_option_from_po( boost::program_options::
   if( vm.count( "planner-options" ) ) {
     try {
       ( *serialization::open_iarchive( vm["planner-options"].as< std::string >() ) ) >> plan_options;
-    } catch (std::exception& e) { RK_UNUSED(e);
+    } catch( std::exception& e ) {
+      RK_UNUSED( e );
     };
   };
 

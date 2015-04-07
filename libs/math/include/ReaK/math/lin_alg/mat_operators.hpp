@@ -64,8 +64,8 @@ namespace ReaK {
  * Prints a matrix to a standard output stream (<<) as "((a11; a12); (a21; a22))". \test PASSED
  */
 template < typename Matrix >
-typename boost::enable_if< is_readable_matrix< Matrix >, std::ostream& >::type
-  operator<<( std::ostream& out_stream, const Matrix& M ) {
+typename boost::enable_if< is_readable_matrix< Matrix >, std::ostream& >::type operator<<( std::ostream& out_stream,
+                                                                                           const Matrix& M ) {
   out_stream << "(\n";
   if( ( M.get_row_count() != 0 ) && ( M.get_col_count() != 0 ) ) {
     for( unsigned int i = 0; i < M.get_row_count(); ++i ) {
@@ -178,14 +178,15 @@ void inplace_lower_multiply_with_fill_impl( const MatrixLower1& M1, MatrixLower2
  * \test PASSED
  */
 template < typename Matrix1, typename Matrix2 >
-typename boost::lazy_enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >, is_readable_matrix< Matrix2 >,
-                                             boost::mpl::and_< boost::mpl::not_< is_square_matrix< Matrix1 > >,
-                                                               boost::mpl::not_< is_square_matrix< Matrix2 > > >,
-                                             boost::mpl::less< mat_product_priority< Matrix1 >,
-                                                               detail::product_priority< mat_structure::diagonal > >,
-                                             boost::mpl::less< mat_product_priority< Matrix2 >,
-                                                               detail::product_priority< mat_structure::diagonal > > >,
-                           mat_product_result< Matrix1, Matrix2 > >::type
+typename boost::
+  lazy_enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >, is_readable_matrix< Matrix2 >,
+                                    boost::mpl::and_< boost::mpl::not_< is_square_matrix< Matrix1 > >,
+                                                      boost::mpl::not_< is_square_matrix< Matrix2 > > >,
+                                    boost::mpl::less< mat_product_priority< Matrix1 >,
+                                                      detail::product_priority< mat_structure::diagonal > >,
+                                    boost::mpl::less< mat_product_priority< Matrix2 >,
+                                                      detail::product_priority< mat_structure::diagonal > > >,
+                  mat_product_result< Matrix1, Matrix2 > >::type
   operator*( const Matrix1& M1, const Matrix2& M2 ) {
   typedef typename mat_product_result< Matrix1, Matrix2 >::type result_type;
   BOOST_STATIC_ASSERT( ( is_fully_writable_matrix< result_type >::value ) );
@@ -201,14 +202,15 @@ typename boost::lazy_enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >,
 
 // rect and square matrix.
 template < typename Matrix1, typename Matrix2 >
-typename boost::lazy_enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >, is_readable_matrix< Matrix2 >,
-                                             boost::mpl::and_< boost::mpl::not_< is_square_matrix< Matrix1 > >,
-                                                               is_square_matrix< Matrix2 > >,
-                                             boost::mpl::less< mat_product_priority< Matrix1 >,
-                                                               detail::product_priority< mat_structure::diagonal > >,
-                                             boost::mpl::less< mat_product_priority< Matrix2 >,
-                                                               detail::product_priority< mat_structure::diagonal > > >,
-                           mat_product_result< Matrix1, Matrix2 > >::type
+typename boost::
+  lazy_enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >, is_readable_matrix< Matrix2 >,
+                                    boost::mpl::and_< boost::mpl::not_< is_square_matrix< Matrix1 > >,
+                                                      is_square_matrix< Matrix2 > >,
+                                    boost::mpl::less< mat_product_priority< Matrix1 >,
+                                                      detail::product_priority< mat_structure::diagonal > >,
+                                    boost::mpl::less< mat_product_priority< Matrix2 >,
+                                                      detail::product_priority< mat_structure::diagonal > > >,
+                  mat_product_result< Matrix1, Matrix2 > >::type
   operator*( const Matrix1& M1, const Matrix2& M2 ) {
   typedef typename mat_product_result< Matrix1, Matrix2 >::type result_type;
   BOOST_STATIC_ASSERT( ( is_fully_writable_matrix< result_type >::value ) );
@@ -222,14 +224,15 @@ typename boost::lazy_enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >,
 
 // square and rect matrix.
 template < typename Matrix1, typename Matrix2 >
-typename boost::lazy_enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >, is_readable_matrix< Matrix2 >,
-                                             boost::mpl::and_< is_square_matrix< Matrix1 >,
-                                                               boost::mpl::not_< is_square_matrix< Matrix2 > > >,
-                                             boost::mpl::less< mat_product_priority< Matrix1 >,
-                                                               detail::product_priority< mat_structure::diagonal > >,
-                                             boost::mpl::less< mat_product_priority< Matrix2 >,
-                                                               detail::product_priority< mat_structure::diagonal > > >,
-                           mat_product_result< Matrix1, Matrix2 > >::type
+typename boost::
+  lazy_enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >, is_readable_matrix< Matrix2 >,
+                                    boost::mpl::and_< is_square_matrix< Matrix1 >,
+                                                      boost::mpl::not_< is_square_matrix< Matrix2 > > >,
+                                    boost::mpl::less< mat_product_priority< Matrix1 >,
+                                                      detail::product_priority< mat_structure::diagonal > >,
+                                    boost::mpl::less< mat_product_priority< Matrix2 >,
+                                                      detail::product_priority< mat_structure::diagonal > > >,
+                  mat_product_result< Matrix1, Matrix2 > >::type
   operator*( const Matrix1& M1, const Matrix2& M2 ) {
   typedef typename mat_product_result< Matrix1, Matrix2 >::type result_type;
   BOOST_STATIC_ASSERT( ( is_fully_writable_matrix< result_type >::value ) );
@@ -243,13 +246,14 @@ typename boost::lazy_enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >,
 
 // square and square matrix.
 template < typename Matrix1, typename Matrix2 >
-typename boost::lazy_enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >, is_readable_matrix< Matrix2 >,
-                               boost::mpl::and_< is_square_matrix< Matrix1 >, is_square_matrix< Matrix2 > >,
-                               boost::mpl::less< mat_product_priority< Matrix1 >,
-                                                 detail::product_priority< mat_structure::diagonal > >,
-                               boost::mpl::less< mat_product_priority< Matrix2 >,
-                                                 detail::product_priority< mat_structure::diagonal > > >,
-             mat_product_result< Matrix1, Matrix2 > >::type
+typename boost::
+  lazy_enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >, is_readable_matrix< Matrix2 >,
+                                    boost::mpl::and_< is_square_matrix< Matrix1 >, is_square_matrix< Matrix2 > >,
+                                    boost::mpl::less< mat_product_priority< Matrix1 >,
+                                                      detail::product_priority< mat_structure::diagonal > >,
+                                    boost::mpl::less< mat_product_priority< Matrix2 >,
+                                                      detail::product_priority< mat_structure::diagonal > > >,
+                  mat_product_result< Matrix1, Matrix2 > >::type
   operator*( const Matrix1& M1, const Matrix2& M2 ) {
   typedef typename mat_product_result< Matrix1, Matrix2 >::type result_type;
   BOOST_STATIC_ASSERT( ( is_fully_writable_matrix< result_type >::value ) );
@@ -263,12 +267,13 @@ typename boost::lazy_enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >,
 
 // dense and diagonal matrix.
 template < typename Matrix1, typename Matrix2 >
-typename boost::lazy_enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >, is_readable_matrix< Matrix2 >,
-                               boost::mpl::less< mat_product_priority< Matrix1 >,
-                                                 detail::product_priority< mat_structure::diagonal > >,
-                               boost::mpl::equal_to< mat_product_priority< Matrix2 >,
-                                                     detail::product_priority< mat_structure::diagonal > > >,
-             mat_product_result< Matrix1, Matrix2 > >::type
+typename boost::
+  lazy_enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >, is_readable_matrix< Matrix2 >,
+                                    boost::mpl::less< mat_product_priority< Matrix1 >,
+                                                      detail::product_priority< mat_structure::diagonal > >,
+                                    boost::mpl::equal_to< mat_product_priority< Matrix2 >,
+                                                          detail::product_priority< mat_structure::diagonal > > >,
+                  mat_product_result< Matrix1, Matrix2 > >::type
   operator*( const Matrix1& M1, const Matrix2& M2 ) {
   typedef typename mat_product_result< Matrix1, Matrix2 >::type result_type;
   BOOST_STATIC_ASSERT( ( is_fully_writable_matrix< result_type >::value ) );
@@ -282,12 +287,13 @@ typename boost::lazy_enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >,
 
 // diagonal and dense matrix.
 template < typename Matrix1, typename Matrix2 >
-typename boost::lazy_enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >, is_readable_matrix< Matrix2 >,
-                               boost::mpl::equal_to< mat_product_priority< Matrix1 >,
-                                                     detail::product_priority< mat_structure::diagonal > >,
-                               boost::mpl::less< mat_product_priority< Matrix2 >,
-                                                 detail::product_priority< mat_structure::diagonal > > >,
-             mat_product_result< Matrix1, Matrix2 > >::type
+typename boost::
+  lazy_enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >, is_readable_matrix< Matrix2 >,
+                                    boost::mpl::equal_to< mat_product_priority< Matrix1 >,
+                                                          detail::product_priority< mat_structure::diagonal > >,
+                                    boost::mpl::less< mat_product_priority< Matrix2 >,
+                                                      detail::product_priority< mat_structure::diagonal > > >,
+                  mat_product_result< Matrix1, Matrix2 > >::type
   operator*( const Matrix1& M1, const Matrix2& M2 ) {
   typedef typename mat_product_result< Matrix1, Matrix2 >::type result_type;
   BOOST_STATIC_ASSERT( ( is_fully_writable_matrix< result_type >::value ) );
@@ -301,12 +307,13 @@ typename boost::lazy_enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >,
 
 // diagonal and diagonal matrix.
 template < typename Matrix1, typename Matrix2 >
-typename boost::lazy_enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >, is_readable_matrix< Matrix2 >,
-                               boost::mpl::equal_to< mat_product_priority< Matrix1 >,
-                                                     detail::product_priority< mat_structure::diagonal > >,
-                               boost::mpl::equal_to< mat_product_priority< Matrix2 >,
-                                                     detail::product_priority< mat_structure::diagonal > > >,
-             mat_product_result< Matrix1, Matrix2 > >::type
+typename boost::
+  lazy_enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >, is_readable_matrix< Matrix2 >,
+                                    boost::mpl::equal_to< mat_product_priority< Matrix1 >,
+                                                          detail::product_priority< mat_structure::diagonal > >,
+                                    boost::mpl::equal_to< mat_product_priority< Matrix2 >,
+                                                          detail::product_priority< mat_structure::diagonal > > >,
+                  mat_product_result< Matrix1, Matrix2 > >::type
   operator*( const Matrix1& M1, const Matrix2& M2 ) {
   typedef typename mat_product_result< Matrix1, Matrix2 >::type result_type;
   BOOST_STATIC_ASSERT( ( is_fully_writable_matrix< result_type >::value ) );
@@ -321,13 +328,14 @@ typename boost::lazy_enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >,
 
 // nil matrix.
 template < typename Matrix1, typename Matrix2 >
-typename boost::lazy_enable_if< boost::mpl::
-               and_< is_readable_matrix< Matrix1 >, is_readable_matrix< Matrix2 >,
-                     boost::mpl::or_< boost::mpl::equal_to< mat_product_priority< Matrix1 >,
-                                                            detail::product_priority< mat_structure::nil > >,
-                                      boost::mpl::equal_to< mat_product_priority< Matrix2 >,
-                                                            detail::product_priority< mat_structure::nil > > > >,
-             mat_product_result< Matrix1, Matrix2 > >::type
+typename boost::
+  lazy_enable_if< boost::mpl::
+                    and_< is_readable_matrix< Matrix1 >, is_readable_matrix< Matrix2 >,
+                          boost::mpl::or_< boost::mpl::equal_to< mat_product_priority< Matrix1 >,
+                                                                 detail::product_priority< mat_structure::nil > >,
+                                           boost::mpl::equal_to< mat_product_priority< Matrix2 >,
+                                                                 detail::product_priority< mat_structure::nil > > > >,
+                  mat_product_result< Matrix1, Matrix2 > >::type
   operator*( const Matrix1& M1, const Matrix2& M2 ) {
   typedef typename mat_product_result< Matrix1, Matrix2 >::type result_type;
   BOOST_STATIC_ASSERT( ( is_resizable_matrix< result_type >::value ) );
@@ -343,12 +351,13 @@ typename boost::lazy_enable_if< boost::mpl::
 
 // scalar and normal matrix.
 template < typename Matrix1, typename Matrix2 >
-typename boost::lazy_enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >, is_readable_matrix< Matrix2 >,
-                                             boost::mpl::equal_to< mat_product_priority< Matrix1 >,
-                                                                   detail::product_priority< mat_structure::scalar > >,
-                                             boost::mpl::less< mat_product_priority< Matrix2 >,
-                                                               detail::product_priority< mat_structure::scalar > > >,
-                           mat_product_result< Matrix1, Matrix2 > >::type
+typename boost::
+  lazy_enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >, is_readable_matrix< Matrix2 >,
+                                    boost::mpl::equal_to< mat_product_priority< Matrix1 >,
+                                                          detail::product_priority< mat_structure::scalar > >,
+                                    boost::mpl::less< mat_product_priority< Matrix2 >,
+                                                      detail::product_priority< mat_structure::scalar > > >,
+                  mat_product_result< Matrix1, Matrix2 > >::type
   operator*( const Matrix1& M1, const Matrix2& M2 ) {
   typedef typename mat_product_result< Matrix1, Matrix2 >::type result_type;
   if( M1.get_col_count() != M2.get_row_count() )
@@ -363,12 +372,13 @@ typename boost::lazy_enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >,
 
 // normal and scalar matrix.
 template < typename Matrix1, typename Matrix2 >
-typename boost::lazy_enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >, is_readable_matrix< Matrix2 >,
-                               boost::mpl::less_equal< mat_product_priority< Matrix1 >,
-                                                       detail::product_priority< mat_structure::scalar > >,
-                               boost::mpl::equal_to< mat_product_priority< Matrix2 >,
-                                                     detail::product_priority< mat_structure::scalar > > >,
-             mat_product_result< Matrix1, Matrix2 > >::type
+typename boost::
+  lazy_enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >, is_readable_matrix< Matrix2 >,
+                                    boost::mpl::less_equal< mat_product_priority< Matrix1 >,
+                                                            detail::product_priority< mat_structure::scalar > >,
+                                    boost::mpl::equal_to< mat_product_priority< Matrix2 >,
+                                                          detail::product_priority< mat_structure::scalar > > >,
+                  mat_product_result< Matrix1, Matrix2 > >::type
   operator*( const Matrix1& M1, const Matrix2& M2 ) {
   typedef typename mat_product_result< Matrix1, Matrix2 >::type result_type;
   if( M1.get_col_count() != M2.get_row_count() )
@@ -385,11 +395,11 @@ typename boost::lazy_enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >,
 template < typename Matrix1, typename Matrix2 >
 typename boost::
   lazy_enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >, is_readable_matrix< Matrix2 >,
-                               boost::mpl::equal_to< mat_product_priority< Matrix1 >,
-                                                     detail::product_priority< mat_structure::identity > >,
-                               boost::mpl::less< mat_product_priority< Matrix2 >,
-                                                 detail::product_priority< mat_structure::identity > > >,
-             mat_product_result< Matrix1, Matrix2 > >::type
+                                    boost::mpl::equal_to< mat_product_priority< Matrix1 >,
+                                                          detail::product_priority< mat_structure::identity > >,
+                                    boost::mpl::less< mat_product_priority< Matrix2 >,
+                                                      detail::product_priority< mat_structure::identity > > >,
+                  mat_product_result< Matrix1, Matrix2 > >::type
   operator*( const Matrix1& M1, const Matrix2& M2 ) {
   typedef typename mat_product_result< Matrix1, Matrix2 >::type result_type;
   if( M1.get_col_count() != M2.get_row_count() )
@@ -401,12 +411,13 @@ typename boost::
 
 // normal and identity matrix.
 template < typename Matrix1, typename Matrix2 >
-typename boost::lazy_enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >, is_readable_matrix< Matrix2 >,
-                               boost::mpl::less_equal< mat_product_priority< Matrix1 >,
-                                                       detail::product_priority< mat_structure::identity > >,
-                               boost::mpl::equal_to< mat_product_priority< Matrix2 >,
-                                                     detail::product_priority< mat_structure::identity > > >,
-             mat_product_result< Matrix1, Matrix2 > >::type
+typename boost::
+  lazy_enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >, is_readable_matrix< Matrix2 >,
+                                    boost::mpl::less_equal< mat_product_priority< Matrix1 >,
+                                                            detail::product_priority< mat_structure::identity > >,
+                                    boost::mpl::equal_to< mat_product_priority< Matrix2 >,
+                                                          detail::product_priority< mat_structure::identity > > >,
+                  mat_product_result< Matrix1, Matrix2 > >::type
   operator*( const Matrix1& M1, const Matrix2& M2 ) {
   typedef typename mat_product_result< Matrix1, Matrix2 >::type result_type;
   if( M1.get_col_count() != M2.get_row_count() )
@@ -518,12 +529,13 @@ typename boost::lazy_enable_if< is_readable_matrix< Matrix >, mat_addition_resul
  * \test PASSED
  */
 template < typename Matrix1, typename Matrix2 >
-typename boost::lazy_enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >, is_readable_matrix< Matrix2 >,
-                               boost::mpl::less< mat_addition_priority< Matrix1 >,
-                                                 detail::addition_priority< mat_structure::upper_triangular > >,
-                               boost::mpl::less< mat_addition_priority< Matrix2 >,
-                                                 detail::addition_priority< mat_structure::upper_triangular > > >,
-             mat_addition_result< Matrix1, Matrix2 > >::type
+typename boost::
+  lazy_enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >, is_readable_matrix< Matrix2 >,
+                                    boost::mpl::less< mat_addition_priority< Matrix1 >,
+                                                      detail::addition_priority< mat_structure::upper_triangular > >,
+                                    boost::mpl::less< mat_addition_priority< Matrix2 >,
+                                                      detail::addition_priority< mat_structure::upper_triangular > > >,
+                  mat_addition_result< Matrix1, Matrix2 > >::type
   operator+( const Matrix1& M1, const Matrix2& M2 ) {
   typedef typename mat_addition_result< Matrix1, Matrix2 >::type result_type;
   if( ( M1.get_row_count() != M2.get_row_count() ) || ( M1.get_col_count() != M2.get_col_count() ) )
@@ -549,11 +561,11 @@ typename boost::lazy_enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >,
 template < typename Matrix1, typename Matrix2 >
 typename boost::
   lazy_enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >, is_readable_matrix< Matrix2 >,
-                               boost::mpl::less< mat_addition_priority< Matrix1 >,
-                                                 detail::addition_priority< mat_structure::upper_triangular > >,
-                               boost::mpl::less< mat_addition_priority< Matrix2 >,
-                                                 detail::addition_priority< mat_structure::upper_triangular > > >,
-             mat_addition_result< Matrix1, Matrix2 > >::type
+                                    boost::mpl::less< mat_addition_priority< Matrix1 >,
+                                                      detail::addition_priority< mat_structure::upper_triangular > >,
+                                    boost::mpl::less< mat_addition_priority< Matrix2 >,
+                                                      detail::addition_priority< mat_structure::upper_triangular > > >,
+                  mat_addition_result< Matrix1, Matrix2 > >::type
   operator-( const Matrix1& M1, const Matrix2& M2 ) {
   typedef typename mat_addition_result< Matrix1, Matrix2 >::type result_type;
   if( ( M1.get_row_count() != M2.get_row_count() ) || ( M1.get_col_count() != M2.get_col_count() ) )
@@ -568,12 +580,13 @@ typename boost::
 
 
 template < typename Matrix1, typename Matrix2 >
-typename boost::lazy_enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >, is_readable_matrix< Matrix2 >,
-                               boost::mpl::equal_to< mat_addition_priority< Matrix1 >,
-                                                     detail::addition_priority< mat_structure::diagonal > >,
-                               boost::mpl::equal_to< mat_addition_priority< Matrix2 >,
-                                                     detail::addition_priority< mat_structure::diagonal > > >,
-             mat_addition_result< Matrix1, Matrix2 > >::type
+typename boost::
+  lazy_enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >, is_readable_matrix< Matrix2 >,
+                                    boost::mpl::equal_to< mat_addition_priority< Matrix1 >,
+                                                          detail::addition_priority< mat_structure::diagonal > >,
+                                    boost::mpl::equal_to< mat_addition_priority< Matrix2 >,
+                                                          detail::addition_priority< mat_structure::diagonal > > >,
+                  mat_addition_result< Matrix1, Matrix2 > >::type
   operator+( const Matrix1& M1, const Matrix2& M2 ) {
   typedef typename mat_addition_result< Matrix1, Matrix2 >::type result_type;
   if( M1.get_row_count() != M2.get_row_count() )
@@ -587,11 +600,11 @@ typename boost::lazy_enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >,
 template < typename Matrix1, typename Matrix2 >
 typename boost::
   lazy_enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >, is_readable_matrix< Matrix2 >,
-                               boost::mpl::equal_to< mat_addition_priority< Matrix1 >,
-                                                     detail::addition_priority< mat_structure::diagonal > >,
-                               boost::mpl::equal_to< mat_addition_priority< Matrix2 >,
-                                                     detail::addition_priority< mat_structure::diagonal > > >,
-             mat_addition_result< Matrix1, Matrix2 > >::type
+                                    boost::mpl::equal_to< mat_addition_priority< Matrix1 >,
+                                                          detail::addition_priority< mat_structure::diagonal > >,
+                                    boost::mpl::equal_to< mat_addition_priority< Matrix2 >,
+                                                          detail::addition_priority< mat_structure::diagonal > > >,
+                  mat_addition_result< Matrix1, Matrix2 > >::type
   operator-( const Matrix1& M1, const Matrix2& M2 ) {
   typedef typename mat_addition_result< Matrix1, Matrix2 >::type result_type;
   if( M1.get_row_count() != M2.get_row_count() )
@@ -603,12 +616,13 @@ typename boost::
 
 
 template < typename Matrix1, typename Matrix2 >
-typename boost::lazy_enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >, is_readable_matrix< Matrix2 >,
-                               boost::mpl::equal_to< mat_addition_priority< Matrix1 >,
-                                                     detail::addition_priority< mat_structure::diagonal > >,
-                               boost::mpl::less< mat_addition_priority< Matrix2 >,
-                                                 detail::addition_priority< mat_structure::diagonal > > >,
-             mat_addition_result< Matrix1, Matrix2 > >::type
+typename boost::
+  lazy_enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >, is_readable_matrix< Matrix2 >,
+                                    boost::mpl::equal_to< mat_addition_priority< Matrix1 >,
+                                                          detail::addition_priority< mat_structure::diagonal > >,
+                                    boost::mpl::less< mat_addition_priority< Matrix2 >,
+                                                      detail::addition_priority< mat_structure::diagonal > > >,
+                  mat_addition_result< Matrix1, Matrix2 > >::type
   operator+( const Matrix1& M1, const Matrix2& M2 ) {
   typedef typename mat_addition_result< Matrix1, Matrix2 >::type result_type;
   if( ( M1.get_row_count() != M2.get_row_count() ) || ( M1.get_col_count() != M2.get_col_count() ) )
@@ -624,11 +638,11 @@ typename boost::lazy_enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >,
 template < typename Matrix1, typename Matrix2 >
 typename boost::
   lazy_enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >, is_readable_matrix< Matrix2 >,
-                               boost::mpl::equal_to< mat_addition_priority< Matrix1 >,
-                                                     detail::addition_priority< mat_structure::diagonal > >,
-                               boost::mpl::less< mat_addition_priority< Matrix2 >,
-                                                 detail::addition_priority< mat_structure::diagonal > > >,
-             mat_addition_result< Matrix1, Matrix2 > >::type
+                                    boost::mpl::equal_to< mat_addition_priority< Matrix1 >,
+                                                          detail::addition_priority< mat_structure::diagonal > >,
+                                    boost::mpl::less< mat_addition_priority< Matrix2 >,
+                                                      detail::addition_priority< mat_structure::diagonal > > >,
+                  mat_addition_result< Matrix1, Matrix2 > >::type
   operator-( const Matrix1& M1, const Matrix2& M2 ) {
   typedef typename mat_addition_result< Matrix1, Matrix2 >::type result_type;
   if( ( M1.get_row_count() != M2.get_row_count() ) || ( M1.get_col_count() != M2.get_col_count() ) )
@@ -642,12 +656,13 @@ typename boost::
 
 
 template < typename Matrix1, typename Matrix2 >
-typename boost::lazy_enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >, is_readable_matrix< Matrix2 >,
-                               boost::mpl::less< mat_addition_priority< Matrix1 >,
-                                                 detail::addition_priority< mat_structure::diagonal > >,
-                               boost::mpl::equal_to< mat_addition_priority< Matrix2 >,
-                                                     detail::addition_priority< mat_structure::diagonal > > >,
-             mat_addition_result< Matrix1, Matrix2 > >::type
+typename boost::
+  lazy_enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >, is_readable_matrix< Matrix2 >,
+                                    boost::mpl::less< mat_addition_priority< Matrix1 >,
+                                                      detail::addition_priority< mat_structure::diagonal > >,
+                                    boost::mpl::equal_to< mat_addition_priority< Matrix2 >,
+                                                          detail::addition_priority< mat_structure::diagonal > > >,
+                  mat_addition_result< Matrix1, Matrix2 > >::type
   operator+( const Matrix1& M1, const Matrix2& M2 ) {
   typedef typename mat_addition_result< Matrix1, Matrix2 >::type result_type;
   if( ( M1.get_row_count() != M2.get_row_count() ) || ( M1.get_col_count() != M2.get_col_count() ) )
@@ -661,12 +676,13 @@ typename boost::lazy_enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >,
 
 
 template < typename Matrix1, typename Matrix2 >
-typename boost::lazy_enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >, is_readable_matrix< Matrix2 >,
-                               boost::mpl::less< mat_addition_priority< Matrix1 >,
-                                                 detail::addition_priority< mat_structure::diagonal > >,
-                               boost::mpl::equal_to< mat_addition_priority< Matrix2 >,
-                                                     detail::addition_priority< mat_structure::diagonal > > >,
-             mat_addition_result< Matrix1, Matrix2 > >::type
+typename boost::
+  lazy_enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >, is_readable_matrix< Matrix2 >,
+                                    boost::mpl::less< mat_addition_priority< Matrix1 >,
+                                                      detail::addition_priority< mat_structure::diagonal > >,
+                                    boost::mpl::equal_to< mat_addition_priority< Matrix2 >,
+                                                          detail::addition_priority< mat_structure::diagonal > > >,
+                  mat_addition_result< Matrix1, Matrix2 > >::type
   operator-( const Matrix1& M1, const Matrix2& M2 ) {
   typedef typename mat_addition_result< Matrix1, Matrix2 >::type result_type;
   if( ( M1.get_row_count() != M2.get_row_count() ) || ( M1.get_col_count() != M2.get_col_count() ) )
@@ -680,12 +696,13 @@ typename boost::lazy_enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >,
 
 
 template < typename Matrix1, typename Matrix2 >
-typename boost::lazy_enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >, is_readable_matrix< Matrix2 >,
-                               boost::mpl::equal_to< mat_addition_priority< Matrix1 >,
-                                                     detail::addition_priority< mat_structure::nil > >,
-                               boost::mpl::not_equal_to< mat_addition_priority< Matrix2 >,
-                                                         detail::addition_priority< mat_structure::nil > > >,
-             mat_addition_result< Matrix1, Matrix2 > >::type
+typename boost::
+  lazy_enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >, is_readable_matrix< Matrix2 >,
+                                    boost::mpl::equal_to< mat_addition_priority< Matrix1 >,
+                                                          detail::addition_priority< mat_structure::nil > >,
+                                    boost::mpl::not_equal_to< mat_addition_priority< Matrix2 >,
+                                                              detail::addition_priority< mat_structure::nil > > >,
+                  mat_addition_result< Matrix1, Matrix2 > >::type
   operator+( const Matrix1& M1, const Matrix2& M2 ) {
   typedef typename mat_addition_result< Matrix1, Matrix2 >::type result_type;
   if( ( M1.get_row_count() != M2.get_row_count() ) || ( M1.get_col_count() != M2.get_col_count() ) )
@@ -695,12 +712,13 @@ typename boost::lazy_enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >,
 
 
 template < typename Matrix1, typename Matrix2 >
-typename boost::lazy_enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >, is_readable_matrix< Matrix2 >,
-                               boost::mpl::equal_to< mat_addition_priority< Matrix1 >,
-                                                     detail::addition_priority< mat_structure::nil > >,
-                               boost::mpl::not_equal_to< mat_addition_priority< Matrix2 >,
-                                                         detail::addition_priority< mat_structure::nil > > >,
-             mat_addition_result< Matrix1, Matrix2 > >::type
+typename boost::
+  lazy_enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >, is_readable_matrix< Matrix2 >,
+                                    boost::mpl::equal_to< mat_addition_priority< Matrix1 >,
+                                                          detail::addition_priority< mat_structure::nil > >,
+                                    boost::mpl::not_equal_to< mat_addition_priority< Matrix2 >,
+                                                              detail::addition_priority< mat_structure::nil > > >,
+                  mat_addition_result< Matrix1, Matrix2 > >::type
   operator-( const Matrix1& M1, const Matrix2& M2 ) {
   typedef typename mat_addition_result< Matrix1, Matrix2 >::type result_type;
   if( ( M1.get_row_count() != M2.get_row_count() ) || ( M1.get_col_count() != M2.get_col_count() ) )
@@ -710,10 +728,11 @@ typename boost::lazy_enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >,
 
 
 template < typename Matrix1, typename Matrix2 >
-typename boost::lazy_enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >, is_readable_matrix< Matrix2 >,
-                                             boost::mpl::equal_to< mat_addition_priority< Matrix2 >,
-                                                                   detail::addition_priority< mat_structure::nil > > >,
-                           mat_addition_result< Matrix1, Matrix2 > >::type
+typename boost::
+  lazy_enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >, is_readable_matrix< Matrix2 >,
+                                    boost::mpl::equal_to< mat_addition_priority< Matrix2 >,
+                                                          detail::addition_priority< mat_structure::nil > > >,
+                  mat_addition_result< Matrix1, Matrix2 > >::type
   operator+( const Matrix1& M1, const Matrix2& M2 ) {
   typedef typename mat_addition_result< Matrix1, Matrix2 >::type result_type;
   if( ( M1.get_row_count() != M2.get_row_count() ) || ( M1.get_col_count() != M2.get_col_count() ) )
@@ -723,10 +742,11 @@ typename boost::lazy_enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >,
 
 
 template < typename Matrix1, typename Matrix2 >
-typename boost::lazy_enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >, is_readable_matrix< Matrix2 >,
-                                             boost::mpl::equal_to< mat_addition_priority< Matrix2 >,
-                                                                   detail::addition_priority< mat_structure::nil > > >,
-                           mat_addition_result< Matrix1, Matrix2 > >::type
+typename boost::
+  lazy_enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >, is_readable_matrix< Matrix2 >,
+                                    boost::mpl::equal_to< mat_addition_priority< Matrix2 >,
+                                                          detail::addition_priority< mat_structure::nil > > >,
+                  mat_addition_result< Matrix1, Matrix2 > >::type
   operator-( const Matrix1& M1, const Matrix2& M2 ) {
   typedef typename mat_addition_result< Matrix1, Matrix2 >::type result_type;
   if( ( M1.get_row_count() != M2.get_row_count() ) || ( M1.get_col_count() != M2.get_col_count() ) )
@@ -780,14 +800,15 @@ typename boost::enable_if< boost::mpl::and_< is_readable_matrix<Matrix2>,
  */
 template < typename Matrix, typename Vector >
 typename boost::lazy_enable_if< boost::mpl::and_< is_readable_matrix< Matrix >, is_readable_vector< Vector > >,
-                           vect_copy< Vector > >::type
+                                vect_copy< Vector > >::type
   operator*( const Matrix& M, const Vector& V ) {
   typedef typename vect_copy< Vector >::type result_type;
   if( V.size() != M.get_col_count() )
     throw std::range_error( "Matrix dimension mismatch." );
   typedef typename mat_traits< Matrix >::value_type ValueType;
   typedef typename mat_traits< Matrix >::size_type SizeType;
-  result_type result; result.resize(M.get_row_count());
+  result_type result;
+  result.resize( M.get_row_count() );
   for( SizeType i = 0; i < M.get_row_count(); ++i ) {
     result[i] = ValueType( 0.0 );
     for( SizeType j = 0; j < M.get_col_count(); ++j )
@@ -807,7 +828,7 @@ typename boost::lazy_enable_if< boost::mpl::and_< is_readable_matrix< Matrix >, 
  */
 template < typename Matrix, typename Vector >
 typename boost::lazy_enable_if< boost::mpl::and_< is_readable_matrix< Matrix >, is_readable_vector< Vector > >,
-                           vect_copy< Vector > >::type
+                                vect_copy< Vector > >::type
   operator*( const Vector& V, const Matrix& M ) {
   typedef typename vect_copy< Vector >::type result_type;
   if( V.size() != M.get_row_count() )
@@ -881,7 +902,8 @@ vect<T,Size> operator *(const vect<T,Size>& V,const mat<T,Structure,Alignment,Al
  * \test PASSED
  */
 template < typename Matrix1, typename Matrix2 >
-typename boost::enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >, is_readable_matrix< Matrix2 > >, bool >::type
+typename boost::enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >, is_readable_matrix< Matrix2 > >,
+                           bool >::type
   operator==( const Matrix1& M1, const Matrix2& M2 ) {
   if( ( M1.get_row_count() != M2.get_row_count() ) || ( M1.get_col_count() != M2.get_col_count() ) )
     return false;
@@ -898,7 +920,8 @@ typename boost::enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >, is_r
  * \test PASSED
  */
 template < typename Matrix1, typename Matrix2 >
-typename boost::enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >, is_readable_matrix< Matrix2 > >, bool >::type
+typename boost::enable_if< boost::mpl::and_< is_readable_matrix< Matrix1 >, is_readable_matrix< Matrix2 > >,
+                           bool >::type
   operator!=( const Matrix1& M1, const Matrix2& M2 ) {
   if( ( M1.get_row_count() != M2.get_row_count() ) || ( M1.get_col_count() != M2.get_col_count() ) )
     return true;

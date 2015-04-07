@@ -170,9 +170,9 @@ public:
 
   template < typename Matrix >
   explicit rot_mat_3D(
-    const Matrix& M,
-    typename boost::enable_if< boost::mpl::and_< is_readable_matrix< Matrix >, boost::mpl::not_< boost::is_same< Matrix, self > > >,
-                                 void* >::type dummy = nullptr ) {
+    const Matrix& M, typename boost::enable_if< boost::mpl::and_< is_readable_matrix< Matrix >,
+                                                                  boost::mpl::not_< boost::is_same< Matrix, self > > >,
+                                                void* >::type dummy = nullptr ) {
     if( ( M.get_col_count() != 3 ) || ( M.get_row_count() != 3 ) )
       throw std::range_error( "Right-hand-side of assignment to a 3D rotation matrix is not of dimension 3x3!" );
     vect< value_type, 3 > v1( M( 0, 0 ), M( 1, 0 ), M( 2, 0 ) );
@@ -239,8 +239,9 @@ public:
 #endif
 
   template < typename Matrix >
-  typename boost::enable_if< boost::mpl::and_< is_readable_matrix< Matrix >, boost::mpl::not_< boost::is_same< Matrix, self > > >,
-                               self& >::type
+  typename boost::enable_if< boost::mpl::and_< is_readable_matrix< Matrix >,
+                                               boost::mpl::not_< boost::is_same< Matrix, self > > >,
+                             self& >::type
     operator=( const Matrix& M ) {
     if( ( M.get_col_count() != 3 ) || ( M.get_row_count() != 3 ) )
       throw std::range_error( "Right-hand-side of assignment to a 3D rotation matrix is not of dimension 3x3!" );
@@ -312,8 +313,8 @@ public:
    * \test PASSED
    */
   template < typename Matrix >
-  friend typename boost::enable_if< is_fully_writable_matrix< Matrix >, Matrix >::type
-    operator*( const self& M1, const Matrix& M2 ) {
+  friend typename boost::enable_if< is_fully_writable_matrix< Matrix >, Matrix >::type operator*( const self& M1,
+                                                                                                  const Matrix& M2 ) {
     if( M2.get_row_count() != 3 )
       throw std::range_error( "Matrix M's row count is not 3, 3D rotation impossible!" );
     Matrix result( M2 );
@@ -327,8 +328,8 @@ public:
   };
 
   template < typename Matrix >
-  friend typename boost::enable_if< is_fully_writable_matrix< Matrix >, Matrix >::type
-    operator*( const Matrix& M1, const self& M2 ) {
+  friend typename boost::enable_if< is_fully_writable_matrix< Matrix >, Matrix >::type operator*( const Matrix& M1,
+                                                                                                  const self& M2 ) {
     if( M1.get_col_count() != 3 )
       throw std::range_error( "Matrix M1's column count is not 3, 3D rotation impossible!" );
     Matrix result( M1 );
@@ -844,9 +845,8 @@ public:
 #endif
 
   template < typename Vector >
-  explicit quaternion( const Vector& aV,
-                       typename boost::enable_if< is_readable_vector< Vector >, void* >::type dummy
-                       = nullptr ) BOOST_NOEXCEPT {
+  explicit quaternion( const Vector& aV, typename boost::enable_if< is_readable_vector< Vector >, void* >::type dummy
+                                         = nullptr ) BOOST_NOEXCEPT {
     RK_UNUSED( dummy );
     vect< value_type, 4 > v = unit( vect< value_type, 4 >( aV[0], aV[1], aV[2], aV[3] ) );
     q[0] = v[0];
@@ -2492,9 +2492,10 @@ public:
   template < typename Matrix >
   explicit trans_mat_3D(
     const Matrix& M,
-    typename boost::enable_if< boost::mpl::and_< is_readable_matrix< Matrix >, boost::mpl::not_< boost::is_same< Matrix, self > >,
-                                 boost::mpl::not_< boost::is_same< Matrix, rot_mat_3D< value_type > > > >,
-                                 void* >::type dummy = nullptr ) {
+    typename boost::
+      enable_if< boost::mpl::and_< is_readable_matrix< Matrix >, boost::mpl::not_< boost::is_same< Matrix, self > >,
+                                   boost::mpl::not_< boost::is_same< Matrix, rot_mat_3D< value_type > > > >,
+                 void* >::type dummy = nullptr ) {
     if( ( M.get_row_count() != 4 ) || ( M.get_col_count() != 4 ) )
       throw std::range_error( "Matrix for creating the 3D transformation matrix is not of correct dimensions!" );
     vect< value_type, 3 > v1 = unit( vect< value_type, 3 >( M( 0, 0 ), M( 1, 0 ), M( 2, 0 ) ) );

@@ -358,16 +358,15 @@ double sap_compute_min_delta_time( const PointType& start_point, const PointType
   double result = 0.0;
   // RK_NOTICE(1,"*********  Starting Min-dt Iterations    *****************");
 
-  double s2_rad = get_space< 2 >(space, t_space).get_radius();
-  svp_peak_velocity_iteration( start_point, end_point, delta_first_order, peak_velocity, norm_delta, beta, space,
-                               t_space, sap_update_delta_first_order(),
-                               [s2_rad](double beta, double norm_delta, const double (&coefs)[5], double num_tol) -> double {
-                                 return sap_solve_for_min_dt_beta(beta, norm_delta, coefs, num_tol, s2_rad);
-                               },
-                               [s2_rad, &result](double beta, double norm_delta, const double(&coefs)[5], double num_tol) -> double {
-                                 return sap_min_dt_predicate(beta, norm_delta, coefs, num_tol, result, s2_rad);
-                               },
-                               num_tol, max_iter );
+  double s2_rad = get_space< 2 >( space, t_space ).get_radius();
+  svp_peak_velocity_iteration(
+    start_point, end_point, delta_first_order, peak_velocity, norm_delta, beta, space, t_space,
+    sap_update_delta_first_order(),
+    [s2_rad]( double beta, double norm_delta, const double( &coefs )[5], double num_tol )
+      -> double { return sap_solve_for_min_dt_beta( beta, norm_delta, coefs, num_tol, s2_rad ); },
+    [s2_rad, &result]( double beta, double norm_delta, const double( &coefs )[5], double num_tol )
+      -> double { return sap_min_dt_predicate( beta, norm_delta, coefs, num_tol, result, s2_rad ); },
+    num_tol, max_iter );
 
   return result;
 };
@@ -381,16 +380,14 @@ double sap_compute_peak_velocity( const PointType& start_point, const PointType&
   double slack = 0.0;
   // RK_NOTICE(1,"*********  Starting No-slack Iterations  *****************");
 
-  double s2_rad = get_space< 2 >(space, t_space).get_radius();
+  double s2_rad = get_space< 2 >( space, t_space ).get_radius();
   svp_peak_velocity_iteration(
     start_point, end_point, delta_first_order, peak_velocity, norm_delta, beta, space, t_space,
-    sap_update_delta_first_order(), 
-    [delta_time, s2_rad](double beta, double norm_delta, const double (&coefs)[5], double num_tol) -> double {
-      return sap_solve_for_no_slack_beta(beta, norm_delta, coefs, num_tol, delta_time, s2_rad);
-    },
-    [delta_time, s2_rad, &slack](double beta, double norm_delta, const double(&coefs)[5], double num_tol) -> double {
-      return sap_no_slack_predicate(beta, norm_delta, coefs, num_tol, slack, delta_time, s2_rad);
-    },
+    sap_update_delta_first_order(),
+    [delta_time, s2_rad]( double beta, double norm_delta, const double( &coefs )[5], double num_tol )
+      -> double { return sap_solve_for_no_slack_beta( beta, norm_delta, coefs, num_tol, delta_time, s2_rad ); },
+    [delta_time, s2_rad, &slack]( double beta, double norm_delta, const double( &coefs )[5], double num_tol )
+      -> double { return sap_no_slack_predicate( beta, norm_delta, coefs, num_tol, slack, delta_time, s2_rad ); },
     num_tol, max_iter );
 
   return slack;

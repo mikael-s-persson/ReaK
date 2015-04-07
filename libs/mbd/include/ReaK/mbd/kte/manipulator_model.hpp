@@ -53,7 +53,7 @@ namespace ReaK {
 namespace kte {
 
 
-class manip_kin_mdl_joint_io; // forward-declaration.
+class manip_kin_mdl_joint_io;       // forward-declaration.
 class manip_kin_mdl_jac_calculator; // forward-declaration.
 
 

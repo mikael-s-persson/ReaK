@@ -115,7 +115,7 @@ public:
   };
 
   /// This function gets the number of direct descendants of this.
-  unsigned int getDescendantCount_impl() { return static_cast<unsigned int>(mDescendants.size()); };
+  unsigned int getDescendantCount_impl() { return static_cast< unsigned int >( mDescendants.size() ); };
 
   /// This function gets a Type record by index in the direct descendants of this.
   so_type_impl* getDescendant_impl( unsigned int aIndex ) {

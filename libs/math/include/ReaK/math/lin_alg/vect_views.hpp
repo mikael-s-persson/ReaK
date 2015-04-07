@@ -508,8 +508,9 @@ public:
    * Standard assignment operator.
    */
   template < typename Vector2 >
-  typename boost::enable_if< boost::mpl::and_< is_readable_vector< Vector2 >, boost::mpl::not_< boost::is_same< Vector2, self > > >,
-                               self& >::type
+  typename boost::enable_if< boost::mpl::and_< is_readable_vector< Vector2 >,
+                                               boost::mpl::not_< boost::is_same< Vector2, self > > >,
+                             self& >::type
     operator=( const Vector2& rhs ) {
     if( rhs.size() != count )
       throw std::range_error( "Vector dimensions mismatch." );

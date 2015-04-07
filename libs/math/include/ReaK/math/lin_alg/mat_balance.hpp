@@ -140,8 +140,8 @@ typename boost::enable_if< is_fully_writable_matrix< Matrix1 >, void >::type bal
  */
 template < typename Matrix1, typename Matrix2, typename Matrix3, typename Matrix4 >
 typename boost::enable_if< boost::mpl::and_< is_fully_writable_matrix< Matrix1 >, is_fully_writable_matrix< Matrix2 >,
-                             is_writable_matrix< Matrix3 >, is_writable_matrix< Matrix4 > >,
-                             void >::type
+                                             is_writable_matrix< Matrix3 >, is_writable_matrix< Matrix4 > >,
+                           void >::type
   balance_pencil( Matrix1& A, Matrix2& B, Matrix3& Dl, Matrix4& Dr ) {
   if( ( A.get_row_count() != A.get_col_count() ) || ( B.get_row_count() != A.get_row_count() )
       || ( B.get_row_count() != B.get_col_count() ) )
@@ -228,7 +228,7 @@ typename boost::enable_if< boost::mpl::and_< is_fully_writable_matrix< Matrix1 >
  */
 template < typename Matrix1, typename Matrix2 >
 typename boost::enable_if< boost::mpl::and_< is_fully_writable_matrix< Matrix1 >, is_fully_writable_matrix< Matrix2 > >,
-                             void >::type
+                           void >::type
   balance_pencil( Matrix1& A, Matrix2& B, vect_n< int >& Dl, vect_n< int >& Dr ) {
   if( ( A.get_row_count() != A.get_col_count() ) || ( B.get_row_count() != A.get_row_count() )
       || ( B.get_row_count() != B.get_col_count() ) )
@@ -313,7 +313,7 @@ typename boost::enable_if< boost::mpl::and_< is_fully_writable_matrix< Matrix1 >
  */
 template < typename Matrix1, typename Matrix2 >
 typename boost::enable_if< boost::mpl::and_< is_fully_writable_matrix< Matrix1 >, is_fully_writable_matrix< Matrix2 > >,
-                             void >::type
+                           void >::type
   balance_pencil( Matrix1& A, Matrix2& B ) {
   vect_n< int > Dl( A.get_row_count() );
   vect_n< int > Dr( A.get_row_count() );

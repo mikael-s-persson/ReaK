@@ -147,8 +147,8 @@ public:
   template < typename Matrix >
   explicit mat( const Matrix& M,
                 typename boost::enable_if< boost::mpl::and_< is_readable_matrix< Matrix >,
-                                             boost::mpl::not_< boost::is_same< Matrix, self > > >,
-                                             void* >::type dummy = nullptr )
+                                                             boost::mpl::not_< boost::is_same< Matrix, self > > >,
+                                           void* >::type dummy = nullptr )
       : q( M.get_row_count() * M.get_col_count(), T( 0.0 ) ), rowCount( M.get_row_count() ),
         colCount( M.get_col_count() ) {
     typename container_type::iterator it = q.begin();
@@ -582,12 +582,12 @@ public:
   virtual void RK_CALL save( serialization::oarchive& A, unsigned int ) const {
     A& std::pair< std::string, const std::vector< T >& >( "q", q )
       & std::pair< std::string, std::size_t >( "rowCount", rowCount )
-      & std::pair< std::string, std::size_t >("colCount", colCount);
+      & std::pair< std::string, std::size_t >( "colCount", colCount );
   };
   virtual void RK_CALL load( serialization::iarchive& A, unsigned int ) {
     A& std::pair< std::string, std::vector< T >& >( "q", q )
-      & std::pair< std::string, std::size_t& >("rowCount", rowCount)
-      & std::pair< std::string, std::size_t& >("colCount", colCount);
+      & std::pair< std::string, std::size_t& >( "rowCount", rowCount )
+      & std::pair< std::string, std::size_t& >( "colCount", colCount );
   };
 
   RK_RTTI_REGISTER_CLASS_1BASE( self, 1, serializable )
@@ -736,8 +736,8 @@ public:
   template < typename Matrix >
   explicit mat( const Matrix& M,
                 typename boost::enable_if< boost::mpl::and_< is_readable_matrix< Matrix >,
-                                           boost::mpl::not_< boost::is_same< Matrix, self > > >,
-                                             void* >::type dummy = nullptr )
+                                                             boost::mpl::not_< boost::is_same< Matrix, self > > >,
+                                           void* >::type dummy = nullptr )
       : q( M.get_row_count() * M.get_col_count(), T( 0.0 ) ), rowCount( M.get_row_count() ),
         colCount( M.get_col_count() ) {
     typename container_type::iterator it = q.begin();
@@ -1173,12 +1173,12 @@ public:
   virtual void RK_CALL save( serialization::oarchive& A, unsigned int ) const {
     A& std::pair< std::string, const std::vector< T >& >( "q", q )
       & std::pair< std::string, std::size_t >( "rowCount", rowCount )
-      & std::pair< std::string, std::size_t >("colCount", colCount);
+      & std::pair< std::string, std::size_t >( "colCount", colCount );
   };
   virtual void RK_CALL load( serialization::iarchive& A, unsigned int ) {
     A& std::pair< std::string, std::vector< T >& >( "q", q )
-      & std::pair< std::string, std::size_t& >("rowCount", rowCount)
-      & std::pair< std::string, std::size_t& >("colCount", colCount);
+      & std::pair< std::string, std::size_t& >( "rowCount", rowCount )
+      & std::pair< std::string, std::size_t& >( "colCount", colCount );
   };
 
   RK_RTTI_REGISTER_CLASS_1BASE( self, 1, serializable )
@@ -1219,21 +1219,22 @@ mat< T, mat_structure::rectangular, Alignment, Allocator >
  */
 template < typename T, mat_structure::tag Structure, mat_alignment::tag Alignment, typename Allocator, typename Matrix >
 typename boost::
-  enable_if< boost::mpl::and_< boost::mpl::or_< boost::mpl::equal_to< boost::mpl::integral_c< mat_structure::tag, Structure >,
-                                                              boost::mpl::integral_c< mat_structure::tag,
-                                                                                      mat_structure::rectangular > >,
-                                        boost::mpl::equal_to< boost::mpl::integral_c< mat_structure::tag, Structure >,
-                                                              boost::mpl::integral_c< mat_structure::tag,
-                                                                                      mat_structure::square > > >,
-                       is_readable_matrix< Matrix > >,
-               void >::type
-    set_block(mat< T, Structure, Alignment, Allocator >& M, const Matrix& subM, std::size_t aRowOffset,
+  enable_if< boost::mpl::
+               and_< boost::mpl::or_< boost::mpl::equal_to< boost::mpl::integral_c< mat_structure::tag, Structure >,
+                                                            boost::mpl::integral_c< mat_structure::tag,
+                                                                                    mat_structure::rectangular > >,
+                                      boost::mpl::equal_to< boost::mpl::integral_c< mat_structure::tag, Structure >,
+                                                            boost::mpl::integral_c< mat_structure::tag,
+                                                                                    mat_structure::square > > >,
+                     is_readable_matrix< Matrix > >,
+             void >::type
+  set_block( mat< T, Structure, Alignment, Allocator >& M, const Matrix& subM, std::size_t aRowOffset,
              std::size_t aColOffset ) {
   if( ( aRowOffset + subM.get_row_count() > M.get_row_count() )
       || ( aColOffset + subM.get_col_count() > M.get_col_count() ) )
     throw std::range_error( "Matrix dimension mismatch." );
-  for (std::size_t i = 0; i < subM.get_row_count(); ++i)
-    for (std::size_t j = 0; j < subM.get_col_count(); ++j)
+  for( std::size_t i = 0; i < subM.get_row_count(); ++i )
+    for( std::size_t j = 0; j < subM.get_col_count(); ++j )
       M( i + aRowOffset, j + aColOffset ) = subM( i, j );
 };
 

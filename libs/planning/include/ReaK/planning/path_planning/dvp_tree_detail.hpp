@@ -1063,7 +1063,8 @@ public:
     vertex_type u_node;
     try {
       u_node = get_vertex( u_key, u_pt, m_root );
-    } catch( int err ) { RK_UNUSED(err);
+    } catch( int err ) {
+      RK_UNUSED( err );
       std::cout << " Could not find the node to be removed from the DVP tree!" << std::endl;
       return;
     };

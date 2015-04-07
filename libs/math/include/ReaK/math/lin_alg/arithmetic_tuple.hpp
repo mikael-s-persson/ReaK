@@ -112,7 +112,6 @@ public:
   typedef arithmetic_tuple< T... > self;
 
 public:
-  
   template < typename... U >
   explicit arithmetic_tuple( U&&... u )
       : arithmetic_tuple_base_class( std::forward< U >( u )... ){};
@@ -148,7 +147,7 @@ struct arithmetic_tuple_size< arithmetic_tuple< T... > > : boost::mpl::size_t< s
  */
 template < typename... T >
 inline arithmetic_tuple< typename std::decay< T >::type... > make_arithmetic_tuple( T&&... t ) {
-  return arithmetic_tuple< typename std::decay< T >::type... >(std::forward< T >(t)...);
+  return arithmetic_tuple< typename std::decay< T >::type... >( std::forward< T >( t )... );
 };
 
 #else

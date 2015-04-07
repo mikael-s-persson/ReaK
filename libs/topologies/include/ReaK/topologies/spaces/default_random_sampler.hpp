@@ -79,7 +79,7 @@ struct default_random_sampler : public serializable {
 
 template < typename PointDistribution >
 typename boost::lazy_enable_if< is_point_distribution< PointDistribution >,
-                           point_distribution_random_sampler< PointDistribution > >::type
+                                point_distribution_random_sampler< PointDistribution > >::type
   get( random_sampler_t, const PointDistribution& s ) {
   typedef typename point_distribution_traits< PointDistribution >::random_sampler_type result_type;
   return result_type( s );
