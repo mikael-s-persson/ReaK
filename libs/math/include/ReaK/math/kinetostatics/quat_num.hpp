@@ -242,7 +242,7 @@ T runge_kutta_4( T q, Func f, const Scalar& t_start, const Scalar& t_end, Scalar
     auto k2 = otransport( p2, f( t + 0.5 * dt, p2 ), p0 );
     auto p3 = oplus( p0, dt * k2 );
     auto k3 = f( t + 0.5 * dt, p3 );
-    auto p_vals[] = {oplus( p0, dt * k0 ), oplus( p0, dt * k1 ), p3, oplus( p0, dt * k3 )};
+    T p_vals[] = {oplus( p0, dt * k0 ), oplus( p0, dt * k1 ), p3, oplus( p0, dt * k3 )};
     q = weighted_avg( p_vals, p_vals + 4, w_vals, w_vals + 4 );
     t += dt;
   };

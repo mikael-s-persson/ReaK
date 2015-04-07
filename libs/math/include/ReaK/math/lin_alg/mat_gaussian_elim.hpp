@@ -385,7 +385,7 @@ typename boost::enable_if< boost::mpl::and_< is_writable_matrix< Matrix >, is_wr
 template < typename Matrix, typename Vector, typename IndexVector >
 typename boost::enable_if< boost::mpl::and_< is_writable_matrix< Matrix >, is_writable_vector< Vector > >, void >::type
   linsolve_PLU( Matrix& A, Vector& b, typename mat_traits< Matrix >::value_type NumTol = 1E-8 ) {
-  vect_n< typename mat_traits< Matrix1 >::size_type > P;
+  vect_n< typename mat_traits< Matrix >::size_type > P;
   linsolve_PLU( A, b, P, NumTol );
 };
 
