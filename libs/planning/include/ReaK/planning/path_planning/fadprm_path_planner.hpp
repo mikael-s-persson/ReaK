@@ -150,4 +150,8 @@ public:
 };
 };
 
+#ifdef BOOST_NO_CXX11_EXTERN_TEMPLATE
+#include "fadprm_path_planner.tpp"
+#endif
+
 #endif

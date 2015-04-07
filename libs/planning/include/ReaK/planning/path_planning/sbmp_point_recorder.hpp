@@ -237,7 +237,8 @@ public:
   template < typename FreeSpaceType >
   void draw_solution(
     const FreeSpaceType& free_space,
-    const shared_ptr< seq_trajectory_base< typename subspace_traits< FreeSpaceType >::super_space_type > >& traj )
+    typename boost::enable_if< is_temporal_space< FreeSpaceType >,
+    const shared_ptr< seq_trajectory_base< typename subspace_traits< FreeSpaceType >::super_space_type > >& >::type traj )
     const {
     typedef typename topology_traits< FreeSpaceType >::point_type PointType;
     typedef typename topology_traits< JointStateSpace >::point_type JointState;
@@ -285,7 +286,8 @@ public:
   template < typename FreeSpaceType >
   void draw_solution(
     const FreeSpaceType& free_space,
-    const shared_ptr< seq_path_base< typename subspace_traits< FreeSpaceType >::super_space_type > >& p ) const {
+    typename boost::disable_if< is_temporal_space< FreeSpaceType >,
+    const shared_ptr< seq_path_base< typename subspace_traits< FreeSpaceType >::super_space_type > >& >::type p ) const {
     typedef typename topology_traits< FreeSpaceType >::point_type PointType;
     typedef typename topology_traits< JointStateSpace >::point_type JointState;
     typedef typename seq_path_base< typename subspace_traits< FreeSpaceType >::super_space_type >::
@@ -510,7 +512,8 @@ public:
   template < typename FreeSpaceType >
   void draw_solution(
     const FreeSpaceType& free_space,
-    const shared_ptr< seq_trajectory_base< typename subspace_traits< FreeSpaceType >::super_space_type > >& traj )
+    typename boost::enable_if< is_temporal_space< FreeSpaceType >,
+    const shared_ptr< seq_trajectory_base< typename subspace_traits< FreeSpaceType >::super_space_type > >& >::type traj )
     const {
     typedef typename topology_traits< FreeSpaceType >::point_type PointType;
 
@@ -555,7 +558,8 @@ public:
   template < typename FreeSpaceType >
   void draw_solution(
     const FreeSpaceType& free_space,
-    const shared_ptr< seq_path_base< typename subspace_traits< FreeSpaceType >::super_space_type > >& p ) const {
+    typename boost::disable_if< is_temporal_space< FreeSpaceType >,
+    const shared_ptr< seq_path_base< typename subspace_traits< FreeSpaceType >::super_space_type > >& >::type p ) const {
     typedef typename seq_path_base< typename subspace_traits< FreeSpaceType >::super_space_type >::
       point_fraction_iterator PtIter;
 

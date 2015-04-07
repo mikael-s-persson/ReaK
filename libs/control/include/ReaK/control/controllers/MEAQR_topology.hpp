@@ -240,39 +240,6 @@ public:
 };
 
 
-class MEAQR_to_state_mapper : public named_object {
-public:
-  MEAQR_to_state_mapper() : named_object() { setName( "MEAQR_to_state_mapper" ); };
-
-  template < typename SourceSpace, typename StateSpace, typename StateSpaceSystem >
-  typename topology_traits< StateSpace >::point_type
-    map_to_space( const MEAQR_point_type< StateSpace, StateSpaceSystem >& pt, const SourceSpace&,
-                  const StateSpace& ) const {
-    return pt.x;
-  };
-
-  template < typename DestSpace, typename StateSpace >
-  typename topology_traits< DestSpace >::point_type
-    map_to_space( const typename topology_traits< StateSpace >::point_type& pt, const StateSpace&,
-                  const DestSpace& ) const {
-    return typename topology_traits< DestSpace >::point_type( pt );
-  };
-
-  /*******************************************************************************
-                     ReaK's RTTI and Serialization interfaces
-  *******************************************************************************/
-
-  virtual void RK_CALL save( ReaK::serialization::oarchive& A, unsigned int ) const {
-    named_object::save( A, named_object::getStaticObjectType()->TypeVersion() );
-  };
-  virtual void RK_CALL load( ReaK::serialization::iarchive& A, unsigned int ) {
-    named_object::load( A, named_object::getStaticObjectType()->TypeVersion() );
-  };
-
-  RK_RTTI_MAKE_CONCRETE_1BASE( MEAQR_to_state_mapper, 0xC2400038, 1, "MEAQR_to_state_mapper", named_object )
-};
-
-
 /**
  * This class implements a topology on a system controlled by an minimum-energy affine
  * quadratic regulator (MEAQR). This topology class takes an underlying state-space (topology),
@@ -830,6 +797,39 @@ struct is_steerable_space< MEAQR_topology< StateSpace, StateSpaceSystem, StateSp
 template < typename StateSpace, typename StateSpaceSystem, typename StateSpaceSampler >
 struct get_proper_metric< MEAQR_topology< StateSpace, StateSpaceSystem, StateSpaceSampler > > {
   typedef default_proper_metric type;
+};
+
+
+class MEAQR_to_state_mapper : public named_object {
+public:
+  MEAQR_to_state_mapper() : named_object() { setName("MEAQR_to_state_mapper"); };
+
+  template < typename StateSpace, typename StateSpaceSystem, typename StateSpaceSampler >
+  typename topology_traits< StateSpace >::point_type
+    map_to_space(const MEAQR_point_type< StateSpace, StateSpaceSystem >& pt, 
+                 const MEAQR_topology< StateSpace, StateSpaceSystem, StateSpaceSampler >&,
+                 const StateSpace&) const {
+    return pt.x;
+  };
+
+  template < typename DestSpace, typename StateSpace >
+  typename topology_traits< DestSpace >::point_type
+    map_to_space(const typename topology_traits< StateSpace >::point_type& pt, const StateSpace&, const DestSpace&) const {
+    return typename topology_traits< DestSpace >::point_type(pt);
+  };
+
+  /*******************************************************************************
+  ReaK's RTTI and Serialization interfaces
+  *******************************************************************************/
+
+  virtual void RK_CALL save(ReaK::serialization::oarchive& A, unsigned int) const {
+    named_object::save(A, named_object::getStaticObjectType()->TypeVersion());
+  };
+  virtual void RK_CALL load(ReaK::serialization::iarchive& A, unsigned int) {
+    named_object::load(A, named_object::getStaticObjectType()->TypeVersion());
+  };
+
+  RK_RTTI_MAKE_CONCRETE_1BASE(MEAQR_to_state_mapper, 0xC2400038, 1, "MEAQR_to_state_mapper", named_object)
 };
 
 

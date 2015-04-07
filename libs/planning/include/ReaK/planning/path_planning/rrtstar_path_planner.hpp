@@ -149,5 +149,8 @@ public:
 };
 };
 
+#ifdef BOOST_NO_CXX11_EXTERN_TEMPLATE
+#include "rrtstar_path_planner.tpp"
+#endif
 
 #endif

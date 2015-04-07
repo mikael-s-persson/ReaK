@@ -139,4 +139,8 @@ public:
 };
 };
 
+#ifdef BOOST_NO_CXX11_EXTERN_TEMPLATE
+#include "prm_path_planner.tpp"
+#endif
+
 #endif

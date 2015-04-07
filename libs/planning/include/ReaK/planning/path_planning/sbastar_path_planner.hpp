@@ -208,4 +208,8 @@ public:
 };
 };
 
+#ifdef BOOST_NO_CXX11_EXTERN_TEMPLATE
+#include "sbastar_path_planner.tpp"
+#endif
+
 #endif

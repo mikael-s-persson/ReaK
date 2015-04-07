@@ -142,5 +142,8 @@ struct joint_limits_mapping : public named_object {
 };
 };
 
+#ifdef BOOST_NO_CXX11_EXTERN_TEMPLATE
+#include "joint_space_limits.tpp"
+#endif
 
 #endif

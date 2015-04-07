@@ -43,8 +43,6 @@
 #include "rate_limited_spaces.hpp"
 #include "hyperbox_topology.hpp"
 
-#include "joint_space_limits.hpp"
-
 
 namespace ReaK {
 
@@ -913,6 +911,8 @@ void set_acceleration( arithmetic_tuple< Vector, Vector, Vector >& pt, std::size
 
 
 #ifndef BOOST_NO_CXX11_EXTERN_TEMPLATE
+
+#include "joint_space_limits.hpp"
 
 namespace ReaK {
 

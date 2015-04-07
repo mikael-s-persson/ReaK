@@ -147,8 +147,8 @@ struct arithmetic_tuple_size< arithmetic_tuple< T... > > : boost::mpl::size_t< s
  * \return An arithmetic-tuple.
  */
 template < typename... T >
-inline arithmetic_tuple< typename std::remove_reference< T >::type... > make_arithmetic_tuple( T&&... t ) {
-  return arithmetic_tuple< typename std::remove_reference< T >::type... >( std::forward< T >( t )... );
+inline arithmetic_tuple< typename std::decay< T >::type... > make_arithmetic_tuple( T&&... t ) {
+  return arithmetic_tuple< typename std::decay< T >::type... >(std::forward< T >(t)...);
 };
 
 #else
@@ -209,8 +209,8 @@ struct arithmetic_tuple_size< arithmetic_tuple< T... > >
  * \return An arithmetic-tuple.
  */
 template < typename... T >
-inline arithmetic_tuple< typename std::remove_reference< T >::type... > make_arithmetic_tuple( T&&... t ) {
-  return arithmetic_tuple< typename std::remove_reference< T >::type... >( std::forward< T >( t )... );
+inline arithmetic_tuple< typename std::decay< T >::type... > make_arithmetic_tuple( T&&... t ) {
+  return arithmetic_tuple< typename std::decay< T >::type... >( std::forward< T >( t )... );
 };
 
 

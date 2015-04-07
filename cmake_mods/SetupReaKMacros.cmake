@@ -64,7 +64,7 @@ mark_as_advanced(_COMPILER_SUPPORTS_CXX0X)
 mark_as_advanced(_COMPILER_SUPPORTS_CXX11)
 
 
-if (${CMAKE_CXX_COMPILER_ID} STREQUAL "MSVC")
+if (MSVC)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W3 /bigobj /wd4996 /D_SCL_SECURE_NO_WARNINGS /DBOOST_NO_CXX11_EXTERN_TEMPLATE")
 #   set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} ")
   set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} /Ox")
@@ -146,7 +146,7 @@ if (NOT WIN32)
   set(CMAKE_FIND_LIBRARY_PREFIXES lib ${CMAKE_FIND_LIBRARY_PREFIXES})
 endif()
 
-if (${CMAKE_CXX_COMPILER_ID} STREQUAL "MSVC")
+if (MSVC)
 find_package(Boost 1.49)
 else()
 find_package(Boost 1.49 COMPONENTS thread chrono date_time system program_options unit_test_framework filesystem random REQUIRED)
@@ -155,9 +155,20 @@ if(Boost_FOUND)
   include_directories(SYSTEM ${Boost_INCLUDE_DIR})
   add_definitions( "-DREAK_HAS_BOOST" )
   if(MSVC)
+    if(MSVC_VERSION EQUAL 1900)
+      set(MSVC_LIB_VERSION_NUMBER 13)
+    elseif(MSVC_VERSION EQUAL 1800)
+      set(MSVC_LIB_VERSION_NUMBER 12)
+    elseif(MSVC_VERSION EQUAL 1700)
+      set(MSVC_LIB_VERSION_NUMBER 11)
+    endif()
     # Disable the libraries, since it uses automatic linking:
     set(Boost_LIBRARIES "")
-    find_path(Boost_LIBRARY_DIRS DEPENDENCY_VERSIONS.txt HINTS ${Boost_INCLUDE_DIR})
+    find_path(Boost_LIBRARY_DIRS "boost_atomic-vc${MSVC_LIB_VERSION_NUMBER}0-mt-${Boost_LIB_VERSION}.lib" 
+              HINTS
+              "${Boost_INCLUDE_DIR}/lib64-msvc-${MSVC_LIB_VERSION_NUMBER}.0"
+              "${Boost_INCLUDE_DIR}/lib32-msvc-${MSVC_LIB_VERSION_NUMBER}.0"
+              "${Boost_INCLUDE_DIR}/stage/lib" "${Boost_INCLUDE_DIR}/stage/lib32" "${Boost_INCLUDE_DIR}/stage/lib64")
   endif()
   link_directories(${Boost_LIBRARY_DIRS})
   message(STATUS "Boost library version ${Boost_LIB_VERSION} found, with headers at '${Boost_INCLUDE_DIR}' and libraries at '${Boost_LIBRARY_DIRS}' for libraries: \n${Boost_LIBRARIES}")
