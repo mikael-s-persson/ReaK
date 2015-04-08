@@ -179,7 +179,7 @@ iarchive& RK_CALL protobuf_iarchive::load_serializable_ptr( serializable_shared_
   if( hdr.object_ID == 0 ) {
     // Item already null.
     std::streampos end_pos = file_stream->tellg();
-    if( hdr.size + start_pos != end_pos )
+    if( std::streampos( hdr.size ) + start_pos != end_pos )
       if( !file_stream->seekg( start_pos + std::streampos( hdr.size ) ) )
         throw std::ios_base::failure( bad_stream_msg );
     return *this;
@@ -187,7 +187,7 @@ iarchive& RK_CALL protobuf_iarchive::load_serializable_ptr( serializable_shared_
   if( ( hdr.object_ID < mObjRegistry.size() ) && ( mObjRegistry[hdr.object_ID] ) ) {
     Item = mObjRegistry[hdr.object_ID];
     std::streampos end_pos = file_stream->tellg();
-    if( hdr.size + start_pos != end_pos )
+    if( std::streampos( hdr.size ) + start_pos != end_pos )
       if( !file_stream->seekg( start_pos + std::streampos( hdr.size ) ) )
         throw std::ios_base::failure( bad_stream_msg );
     return *this;
@@ -197,7 +197,7 @@ iarchive& RK_CALL protobuf_iarchive::load_serializable_ptr( serializable_shared_
     std::string ext_filename;
     *this >> ext_filename;
     std::streampos end_pos = file_stream->tellg();
-    if( hdr.size + start_pos != end_pos )
+    if( std::streampos( hdr.size ) + start_pos != end_pos )
       if( !file_stream->seekg( start_pos + std::streampos( hdr.size ) ) )
         throw std::ios_base::failure( bad_stream_msg );
 
@@ -211,7 +211,7 @@ iarchive& RK_CALL protobuf_iarchive::load_serializable_ptr( serializable_shared_
   rtti::so_type* p = rtti::so_type_repo::getInstance().findType( &( typeIDvect[0] ) );
   if( ( !p ) || ( p->TypeVersion() < hdr.type_version ) ) {
     std::streampos end_pos = file_stream->tellg();
-    if( hdr.size + start_pos != end_pos )
+    if( std::streampos( hdr.size ) + start_pos != end_pos )
       if( !file_stream->seekg( start_pos + std::streampos( hdr.size ) ) )
         throw std::ios_base::failure( bad_stream_msg );
     throw unsupported_type( unsupported_type::not_found_in_repo, &( typeIDvect[0] ) );
@@ -219,7 +219,7 @@ iarchive& RK_CALL protobuf_iarchive::load_serializable_ptr( serializable_shared_
   ReaK::shared_ptr< shared_object > po( p->CreateObject() );
   if( !po ) {
     std::streampos end_pos = file_stream->tellg();
-    if( hdr.size + start_pos != end_pos )
+    if( std::streampos( hdr.size ) + start_pos != end_pos )
       if( !file_stream->seekg( start_pos + std::streampos( hdr.size ) ) )
         throw std::ios_base::failure( bad_stream_msg );
     throw unsupported_type( unsupported_type::could_not_create, &( typeIDvect[0] ) );
@@ -238,7 +238,7 @@ iarchive& RK_CALL protobuf_iarchive::load_serializable_ptr( serializable_shared_
   Item->load( *this, hdr.type_version );
 
   std::streampos end_pos = file_stream->tellg();
-  if( hdr.size + start_pos != end_pos )
+  if( std::streampos( hdr.size ) + start_pos != end_pos )
     if( !file_stream->seekg( start_pos + std::streampos( hdr.size ) ) )
       throw std::ios_base::failure( bad_stream_msg );
 
@@ -281,7 +281,7 @@ iarchive& RK_CALL protobuf_iarchive::load_serializable( serializable& Item ) {
   Item.load( *this, hdr.type_version );
   std::streampos end_pos = file_stream->tellg();
 
-  if( hdr.size + start_pos != end_pos )
+  if( std::streampos( hdr.size ) + start_pos != end_pos )
     if( !file_stream->seekg( start_pos + std::streampos( hdr.size ) ) )
       throw std::ios_base::failure( bad_stream_msg );
 

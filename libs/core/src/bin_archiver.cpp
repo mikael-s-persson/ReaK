@@ -111,7 +111,7 @@ iarchive& RK_CALL bin_iarchive::load_serializable_ptr( serializable_shared_point
     std::streampos start_pos = file_stream->tellg();
     *this >> ext_filename;
     std::streampos end_pos = file_stream->tellg();
-    if( hdr.size + start_pos != end_pos )
+    if( std::streampos( hdr.size ) + start_pos != end_pos )
       file_stream->seekg( start_pos + std::streampos( hdr.size ) );
 
     bin_iarchive a( ext_filename ); // if this throws, let it propagate up (no point catching and throwing).
@@ -146,7 +146,7 @@ iarchive& RK_CALL bin_iarchive::load_serializable_ptr( serializable_shared_point
   Item->load( *this, hdr.type_version );
   std::streampos end_pos = file_stream->tellg();
 
-  if( hdr.size + start_pos != end_pos )
+  if( std::streampos( hdr.size ) + start_pos != end_pos )
     file_stream->seekg( start_pos + std::streampos( hdr.size ) );
 
   return *this;
@@ -173,7 +173,7 @@ iarchive& RK_CALL bin_iarchive::load_serializable( serializable& Item ) {
   Item.load( *this, hdr.type_version );
   std::streampos end_pos = file_stream->tellg();
 
-  if( hdr.size + start_pos != end_pos )
+  if( std::streampos( hdr.size ) + start_pos != end_pos )
     file_stream->seekg( start_pos + std::streampos( hdr.size ) );
 
   return *this;
