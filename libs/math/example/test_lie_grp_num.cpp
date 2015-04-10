@@ -46,6 +46,22 @@ struct const_ang_vel_sys {
 };
 
 
+struct compare_quat_lex_less {
+  template < typename Vector >
+  bool operator()( const Vector& u, const Vector& v, int i = 0 ) const {
+    if( u[i] < v[i] )
+      return true;
+    else if( u[i] > v[i] )
+      return false;
+    else {
+      if( i == 3 )
+        return false;
+      return ( *this )( u, v, i + 1 ); // tail-call
+    };
+  };
+};
+
+
 int main() {
   using namespace ReaK;
 
@@ -83,6 +99,7 @@ int main() {
   };
 #endif
 
+#if 0
   /* ----- numerical integration tests ------ */
   unit_quat< double > q0;
   vect< double, 4 > qv0( q0[0], q0[1], q0[2], q0[3] );
@@ -103,6 +120,36 @@ int main() {
               << " " << qv0_u[3] << std::endl;
     qv0 = unit( qv0 ); // with normalization at sample steps.
   };
+#endif
+
+#if 1
+  /* --------- interpolation tests ---------- */
+
+  unit_quat< double > qx_05( 0.877582562, 0.4794255386, 0.0, 0.0 );
+  unit_quat< double > qy_05( 0.877582562, 0.0, 0.4794255386, 0.0 );
+  unit_quat< double > qz_05( 0.877582562, 0.0, 0.0, 0.4794255386 );
+
+  std::vector< unit_quat< double > > avg_pts
+    = {unit_quat< double >(), qx_05,                         qx_05 * qy_05,                        qz_05 * qy_05,
+       qz_05 * qx_05 * qy_05, qx_05 * qx_05 * qz_05 * qy_05, qz_05 * qx_05 * qx_05 * qz_05 * qy_05};
+  std::vector< vect< double, 4 > > avg_pts_v4;
+  for( auto q : avg_pts )
+    avg_pts_v4.emplace_back( q[0], q[1], q[2], q[3] );
+
+  std::sort( avg_pts.begin(), avg_pts.end(), compare_quat_lex_less() );
+  std::sort( avg_pts_v4.begin(), avg_pts_v4.end(), compare_quat_lex_less() );
+
+  // run averaging on both kinds of ctrl-pts vectors:
+  do {
+    unit_quat< double > q_avg = lie_group::average( avg_pts.begin(), avg_pts.end() );
+    vect< double, 4 > qv_avg = lie_group::average( avg_pts_v4.begin(), avg_pts_v4.end() );
+    vect< double, 4 > qv_avg_u = unit( qv_avg );
+    std::cout << " " << q_avg[0] << " " << q_avg[1] << " " << q_avg[2] << " " << q_avg[3] << " " << qv_avg[0] << " "
+              << qv_avg[1] << " " << qv_avg[2] << " " << qv_avg[3] << " " << qv_avg_u[0] << " " << qv_avg_u[1] << " "
+              << qv_avg_u[2] << " " << qv_avg_u[3] << std::endl;
+    std::next_permutation( avg_pts.begin(), avg_pts.end(), compare_quat_lex_less() );
+  } while( std::next_permutation( avg_pts_v4.begin(), avg_pts_v4.end(), compare_quat_lex_less() ) );
+#endif
 
   return 0;
 };
