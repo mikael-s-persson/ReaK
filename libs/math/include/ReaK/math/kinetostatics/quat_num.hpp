@@ -93,6 +93,12 @@ vect< T, 3 > otransport( const unit_quat< T >& a, const vect< T, 3 >& v, const u
 };
 
 
+template < typename Vector >
+Vector ocross( const Vector& a, const Vector& b ) {
+  return a % b;
+};
+
+
 template < typename T >
 struct is_commutative : boost::mpl::true_ {};
 
@@ -244,6 +250,45 @@ T runge_kutta_4( T q, Func f, const Scalar& t_start, const Scalar& t_end, Scalar
     auto k3 = f( t + 0.5 * dt, p3 );
     T p_vals[] = {oplus( p0, dt * k0 ), oplus( p0, dt * k1 ), p3, oplus( p0, dt * k3 )};
     q = weighted_avg( p_vals, p_vals + 4, w_vals, w_vals + 4 );
+    t += dt;
+  };
+  return q;
+};
+
+/* From Munthe-Kaas 1998, with:
+ * A = 
+ *      0 
+ *      0.5 
+ *      0 0.5
+ *      0 0 1
+ * c = 0 0.5 0.5 1
+ * d = 0 0 0.25 0.5
+ * 
+ * (m1 m2 m3) ( 0.5 0.25 0   )
+ *            ( 0.5 0.25 0.5 )
+ *            ( 1   1    1   ) = (1 0 0)
+ * m = 2 2 -1
+ */
+template < typename T, typename Func, typename Scalar >
+T corrected_runge_kutta_4( T q, Func f, const Scalar& t_start, const Scalar& t_end, Scalar dt ) {
+  assert( t_end > t_start );
+  Scalar t = t_start;
+  while( t < t_end ) {
+    if( t + dt > t_end )
+      dt = t_end - t;
+    auto p0 = q;
+    auto k0 = f( t, p0 );
+    auto p1 = oplus( p0, ( 0.5 * dt ) * k0 );
+    auto k1 = f( t + 0.5 * dt, p1 );
+    auto k1_h2 = ( 0.5 * dt ) * k1;
+    auto p2 = oplus( p0, k1_h2 + ( dt / 12.0 ) * ocross( k0, k1_h2 ) );
+    auto k2 = f( t + 0.5 * dt, p2 );
+    auto k2_h = dt * k2;
+    auto p3 = oplus( p0, k2_h + ( dt / 6.0 ) * ocross( k0, k2_h ) );
+    auto k3 = f( t + 0.5 * dt, p3 );
+    auto k_2nd = ( 2.0 / dt ) * ( k1 + k2 + 0.5 * k3 - 2.5 * k0 );
+    auto u_avg = ( dt / 6.0 ) * ( k0 + 3.0 * k1 + 3.0 * k2 + k3 );
+    q = oplus( p0, u_avg + ( dt / 4.0 ) * ocross( k0, u_avg ) + ( dt * dt / 24.0 ) * ocross( k_2nd, u_avg ) );
     t += dt;
   };
   return q;
