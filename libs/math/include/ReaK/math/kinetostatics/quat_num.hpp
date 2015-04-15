@@ -256,14 +256,14 @@ T runge_kutta_4( T q, Func f, const Scalar& t_start, const Scalar& t_end, Scalar
 };
 
 /* From Munthe-Kaas 1998, with:
- * A = 
- *      0 
- *      0.5 
+ * A =
+ *      0
+ *      0.5
  *      0 0.5
  *      0 0 1
  * c = 0 0.5 0.5 1
  * d = 0 0 0.25 0.5
- * 
+ *
  * (m1 m2 m3) ( 0.5 0.25 0   )
  *            ( 0.5 0.25 0.5 )
  *            ( 1   1    1   ) = (1 0 0)
@@ -287,7 +287,7 @@ T corrected_runge_kutta_4( T q, Func f, const Scalar& t_start, const Scalar& t_e
     auto p3 = oplus( p0, k2_h + ( dt / 6.0 ) * ocross( k0, k2_h ) );
     auto k3 = f( t + 0.5 * dt, p3 );
     auto k_2nd = ( 2.0 / dt ) * ( k1 + k2 + 0.5 * k3 - 2.5 * k0 );
-    auto u_avg = ( dt / 6.0 ) * ( k0 + 3.0 * k1 + 3.0 * k2 + k3 );
+    auto u_avg = ( dt / 6.0 ) * ( k0 + 2.0 * k1 + 2.0 * k2 + k3 );
     q = oplus( p0, u_avg + ( dt / 4.0 ) * ocross( k0, u_avg ) + ( dt * dt / 24.0 ) * ocross( k_2nd, u_avg ) );
     t += dt;
   };
