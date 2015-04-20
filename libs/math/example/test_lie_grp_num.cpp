@@ -292,8 +292,8 @@ int main() {
   vect< double, 7 > sv0_rk = sv0;
   const double t_start = 0.0;
   const double t_end = 100.0;
-  const double dt_samp = 0.1;
-  const double dt_int = 0.00001;
+  const double dt_samp = 1;
+  const double dt_int = 0.1;
   const_ang_mom_sys f_sys( mat< double, mat_structure::symmetric >( 2.0, 0.5, -0.25, 3.0, 1.25, 4.5 ) );
 
   std::ofstream f_out_fe( "test_lie_grp_num_result/cm_fe.ssv" );
