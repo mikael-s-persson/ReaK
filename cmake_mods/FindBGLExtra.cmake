@@ -35,7 +35,7 @@ if(WIN32)
   set(_BGLEXTRA_PATH_HINTS "C:/" "C:/Boost/")
 else()
   # Add hints for unix-like systems.. not really needed.
-  set(_BGLEXTRA_PATH_HINTS "/usr/include" "/usr/local/include")
+  set(_BGLEXTRA_PATH_HINTS "/usr/include" "/usr/local/include" "${CMAKE_SOURCE_DIR}/libs/bgl_extra/include")
 endif()
 
 find_path(_BGLEXTRA_INCLUDE_DIR adjacency_list_BC.hpp HINTS ${_BGLEXTRA_PATH_HINTS} PATH_SUFFIXES "libbgl-extra/boost/graph" "boost/graph")

@@ -1,0 +1,3 @@
+[submodule "libs/bgl_extra"]
+	path = libs/bgl_extra
+	url = git@github.com:mikael-s-persson/boost_graph_ext_mp.git
