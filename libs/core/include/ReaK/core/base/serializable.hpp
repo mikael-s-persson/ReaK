@@ -82,6 +82,76 @@ public:
 
   RK_RTTI_MAKE_ABSTRACT_1BASE( serializable, 0x80000000, 1, "serializable", typed_object )
 };
+
+/**
+ * This class can be used to make any class (WrappedClass) appear like a serializable object without 
+ * requiring any inheritance on that class. However, it is the user's responsability to assign the 
+ * class' meta-data either through the RK_RTTI_REGISTER_CLASS_ID macro or through a manual definition 
+ * of the rtti::get_type_id and rtti::get_type_info traits.
+ */
+template <typename WrappedClass>
+class fake_serializable : public serializable {
+private:
+  WrappedClass* p_obj;
+  
+  typedef boost::remove_cv<WrappedClass>::type decayed_wrapped_type;
+  
+public:
+  
+  explicit fake_serializable(WrappedClass* aPObj) BOOST_NOEXCEPT : p_obj(aPObj) {};
+  
+  /*******************************************************************************
+                     ReaK's RTTI and Serialization interfaces
+  *******************************************************************************/
+
+  virtual void RK_CALL save( serialization::oarchive& A, unsigned int aVersion) const {
+    serialize(A, *p_obj, aVersion);
+  };
+  virtual void RK_CALL load( serialization::iarchive& A, unsigned int aVersion) {
+    deserialize(A, *p_obj, aVersion);
+  };
+
+  RK_RTTI_REGISTER_CLASS_1BASE( decayed_wrapped_type, 1, serializable );
+  
+};
+
+namespace serialization {
+
+template < typename T >
+struct get_fake_serializable_version {
+  BOOST_STATIC_CONSTANT(unsigned int, value = 1);
+};
+
+template < typename T >
+typename boost::disable_if< boost::is_convertible< T&, serializable& >, 
+iarchive& >::type operator>>( iarchive& in, T& t ) {
+  fake_serializable< T, get_fake_serializable_version<T>::value > fs(&m);
+  return in >> fs;
+};
+
+template < typename T >
+typename boost::disable_if< boost::is_convertible< T&, serializable& >, 
+iarchive& >::type operator&( iarchive& in, const std::pair< std::string, T& >& m ) {
+  fake_serializable< T, get_fake_serializable_version<T>::value > fs(&(m.second));
+  return in & std::pair< std::string, serializable& >(m.first, fs);
+};
+
+template < typename T >
+typename boost::disable_if< boost::is_convertible< T&, serializable& >, 
+oarchive& >::type operator<<( oarchive& out, const T& t ) {
+  fake_serializable< const T, get_fake_serializable_version<T>::value > fs(&t);
+  return out << fs;
+};
+
+template < typename T >
+typename boost::disable_if< boost::is_convertible< T&, serializable& >, 
+oarchive& >::type operator&( oarchive& out, const std::pair< std::string, const T& >& t ) {
+  fake_serializable< const T, get_fake_serializable_version<T>::value > fs(&(t.second));
+  return out & std::pair< std::string, const serializable& >(t.first, fs);
+};
+
+};
+
 };
 
 #endif
